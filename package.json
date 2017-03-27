@@ -1,21 +1,14 @@
 {
-  "name": "truffle-testrpc",
-  "version": "0.0.9",
-  "bin": {
-    "truffle-testrpc": "./build/cli.node.js"
-  },
+  "name": "ganache-core",
+  "version": "0.0.1",
   "main": "./index.js",
   "directories": {
     "lib": "./lib"
   },
   "scripts": {
-    "start": "./build/cli.node.js",
-    "test": "mocha",
-    "build": "npm run build-cli && npm run build-server",
-    "build-cli": "webpack --config ./webpack/cli.webpack.config.js",
-    "build-server": "webpack --config ./webpack/server.webpack.config.js"
+    "test": "mocha"
   },
-  "devDependencies": {
+  "dependencies": {
     "async": "~1.5.0",
     "bip39": "~2.2.0",
     "cachedown": "^1.0.0",
@@ -48,6 +41,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ethereumjs/testrpc"
+    "url": "https://github.com/trufflesuite/ganache-core"
   }
 }
