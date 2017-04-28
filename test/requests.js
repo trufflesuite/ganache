@@ -184,6 +184,15 @@ var tests = function(web3) {
       });
     });
 
+    it("should return null given a future block number", function(done) {
+      web3.eth.getBlock(10000, true, function(err, block) {
+        if (err) return done(err);
+
+        assert.deepEqual(block, null);
+        done();
+      });
+    });
+
     it("should return transactions in the block as well", function(done) {
       web3.eth.sendTransaction({
         from: accounts[0],

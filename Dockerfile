@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:6.9.2
+FROM mhart/alpine-node:7.9.0
 
 RUN apk add --no-cache make gcc g++ python git bash
 COPY package.json /src/package.json
