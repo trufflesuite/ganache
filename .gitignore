@@ -5,3 +5,4 @@ TODO
 .tern-project
 .DS_Store
 .tern-port
+yarn.lock

@@ -167,7 +167,7 @@ There’s also special non-standard methods that aren’t included within the or
 
 # Docker
 
-The Simplest way to get stared with the Docker image:
+The Simplest way to get started with the Docker image:
 
 ```Bash
 docker run -d -p 8545:8545 ethereumjs/testrpc:latest
