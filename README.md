@@ -140,6 +140,7 @@ The RPC methods currently implemented are:
 * `eth_mining`
 * `eth_newBlockFilter`
 * `eth_newFilter` (includes log/event filters)
+* `eth_protocolVersion` (stub, returns -1)
 * `eth_sendTransaction`
 * `eth_sendRawTransaction`
 * `eth_sign`
