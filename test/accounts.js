@@ -150,8 +150,8 @@ describe("Accounts", function() {
       ]
     }));
 
-    web3.eth.getAccounts((err, result) => {
-      if (err) return done(new Error("Expected to create 2 accounts, but received error instead."));
+    web3.eth.getAccounts(function(err, result) {
+      if (err) return done(err);
       assert(result.length, 2, "The number of accounts created should be 2");
       done();
     })
@@ -159,14 +159,13 @@ describe("Accounts", function() {
 
 
   it("should create a 7 accounts when ", function(done) {
-
     var web3 = new Web3();
     web3.setProvider(TestRPC.provider({
       total_accounts: 7
     }));
 
-    web3.eth.getAccounts((err, result) => {
-      if (err) return done(new Error("Expected to create 7 accounts, but received error instead."));
+    web3.eth.getAccounts(function(err, result) {
+      if (err) return done(err);
       assert(result.length, 7, "The number of accounts created should be 7");
       done();
     })
