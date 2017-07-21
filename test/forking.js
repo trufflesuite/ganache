@@ -98,20 +98,29 @@ describe("Forking", function() {
 
         contractAddress = receipt.contractAddress;
 
-        // Deploy a second one, which we won't use often.
-        forkedWeb3.eth.sendTransaction({
-          from: forkedAccounts[0],
-          data: contract.binary,
-          gas: 3141592
-        }, function(err, tx) {
-          if (err) { return done(err); }
-          forkedWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
-            if (err) return done(err);
+        forkedWeb3.eth.getCode(contractAddress, function(err, code) {
+          if (err) return done(err);
 
-            secondContractAddress = receipt.contractAddress;
-            done();
+          // Ensure there's *something* there.
+          assert.notEqual(code, null);
+          assert.notEqual(code, "0x");
+          assert.notEqual(code, "0x0");
+
+          // Deploy a second one, which we won't use often.
+          forkedWeb3.eth.sendTransaction({
+            from: forkedAccounts[0],
+            data: contract.binary,
+            gas: 3141592
+          }, function(err, tx) {
+            if (err) { return done(err); }
+            forkedWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
+              if (err) return done(err);
+
+              secondContractAddress = receipt.contractAddress;
+              done();
+            });
           });
-        });
+        })
       });
     });
   });
@@ -127,9 +136,13 @@ describe("Forking", function() {
     var event = forkedExample.ValueSet([{}]);
 
     function cleanup(err) {
-      event.stopWatching();
-      clearInterval(interval);
-      done(err);
+      if (err) return done(err);
+
+      event.stopWatching(function(err) {
+        if (err) return done(err);
+        clearInterval(interval);
+        done(err);
+      });
     }
 
     forkedExample.setValue(7, {from: forkedAccounts[0]}, function(err, tx) {
@@ -164,7 +177,8 @@ describe("Forking", function() {
   before("Set main web3 provider, forking from forked chain at this point", function(done) {
     mainWeb3.setProvider(TestRPC.provider({
       fork: forkedTargetUrl,
-      logger: logger,
+      //logger: console, //logger,
+      //verbose: true,
 
       // Do not change seed. Determinism matters for these tests.
       seed: "a different seed"
@@ -186,8 +200,7 @@ describe("Forking", function() {
   });
 
   after("Close down the forked TestRPC server", function(done){
-    forkedServer.close();
-    done();
+    forkedServer.close(done);
   });
 
   it("should fetch a contract from the forked provider via the main provider", function(done) {
@@ -406,7 +419,7 @@ describe("Forking", function() {
     var event = example.ValueSet({}, {fromBlock: 0, toBlock: "latest"});
 
     event.get(function(err, logs) {
-      if (err) return callback(err);
+      if (err) return done(err);
       assert.equal(logs.length, 2);
       done();
     });

@@ -10,16 +10,16 @@ var to = require("../lib/utils/to");
 var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
 var result = solc.compile(source, 1);
 var secretKeys = [
-  '0xda09f8cdec20b7c8334ce05b27e6797bef01c1ad79c59381666467552c5012e3',
-  '0x0d14f32c8e3ed7417fb7db52ebab63572bf7cfcd557351d4ccf19a05edeecfa5',
-  '0x0d80aca78bfaf3ab47865a53e5977e285c41c028a15313f917fe78abe5a50ef7',
-  '0x00af8067d4c69abca7234194f154d7f31e13c0e53dae9260432f1bcc6d1d13fb',
-  '0x8939a6a37b48c47f9bc683c371dd96e819d65f6138f3b376a622ecb40379bd22',
-  '0x4a3665bf95efd38cb9820ce129a26fee03927f17930924c98908c8885ca53606',
-  '0x111bd4b380f2eeb0d00b025d574908d59c1bfa0030d7a69f69445c171d8cfa27',
-  '0x6aff34e843c3a99fe21dcc014e3b5bf6a160a4bb8c4c470ea79acd33d9bea41f',
-  '0x12ae0eb585babc60c88a74190a6074488a0d2f296124ce37f85dbec1d693906f',
-  '0xd46dc75904628a0b0eaffdda6acbe2687924299995708e30d05a1e8a2a1c5d45'
+  '0x53b541ac72e6f2ef730986b06851742be5bfddf9b74cfd71b838b3b4d03acec1',
+  '0x99291ca006ef0f086382ba748f222b47144e9d528d37481fe991b8f04adc93c1',
+  '0x15ae4b2e96240738da0c4ce87471f5bf69ec5899f61b0f8121927f6f97bab4a5',
+  '0x916a03bc7d9fb9723f65bb300d78551318e8fcf14e5f95796b5f09e66a7cf491',
+  '0x9fa1e5c5748965a3c499543fb13d2626adb032cea0e1d163007cd4570179e9e3',
+  '0x41a4f0fecfb1d6b7dfc4f5913fabee30536cd603cf422d06639444d1b111e56b',
+  '0x6bf856f985b1fcce144819fdef88f87d5179654a87d1fb932855e609cf56fca4',
+  '0x70a08b90bd42120c740035a06d3698a88f4ea0f295fac78577b665914b144fe0',
+  '0x3e94bcb95e4007bf9b391088299af801ae7978f4593fee9235046a685286c195',
+  '0x2ca04562960a5a3cf00a26156f1c51ce3a834637eaa950221fc3938ebb996277'
 ];
 
 // Thanks solc. At least this works!
@@ -164,7 +164,7 @@ var tests = function(web3) {
           sha3Uncles: '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',
           logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
           transactionsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
-          stateRoot: '0x484475ce2cad3b248148f8e0ed8b1a65da0b7d6b541ab5c6ef9393477724a619',
+          stateRoot: '0x54826da81da8573b3b099742ede69ff5dc96b6bbe185e60cc49f32c195e47e50',
           receiptRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
           miner: '0x0000000000000000000000000000000000000000',
           difficulty: { s: 1, e: 0, c: [ 0 ] },
@@ -185,6 +185,15 @@ var tests = function(web3) {
 
         assert.equal(then.toString().length, now.toString().length, "Invalid timestamp length");
         assert(then < now, "Time returned was greater than the current time");
+        done();
+      });
+    });
+
+    it("should return null given a future block number", function(done) {
+      web3.eth.getBlock(10000, true, function(err, block) {
+        if (err) return done(err);
+
+        assert.deepEqual(block, null);
         done();
       });
     });
@@ -236,12 +245,68 @@ var tests = function(web3) {
     });
   });
 
+  describe("eth_getBlockTransactionCountByNumber", function(){
+    it("should return the number of transactions given the block number (0 transactions)", function(done) {
+      //Block 0 should have 0 transactions as per test eth_getBlockByNumber
+      web3.eth.getBlock(0, true, function(err, block) {
+        if (err) return done(err);
+        web3.eth.getBlockTransactionCount(0, function(err, blockTransactionCount) {
+          assert.equal(block.transactions.length, blockTransactionCount,  "Block transaction count should be 0.");
+          assert.equal(0, blockTransactionCount,  "Block transaction count should be 0.");
+          done();
+        });
+      });
+    });
+
+    it("should return the number of transactions given the block number (1 transaction)", function(done) {
+      // Create a transaction and check
+      // Account 0 seems to be running out of gas before all tests are complete
+      var payingAccount = 2;
+
+      web3.eth.sendTransaction({
+        from: accounts[payingAccount],
+        data: contract.binary,
+        gas: 3141592
+      }, function(err, tx_hash) {
+        if (err) return done(err);
+        // Assume it was processed correctly.
+        assert.deepEqual(tx_hash.length, 66);
+
+        web3.eth.getBlock("latest", true, function(err, block) {
+          if (err) return done(err);
+          web3.eth.getBlockTransactionCount(block.number , function(err, blockTransactionCount) {
+            assert.equal(block.transactions.length, blockTransactionCount, "Block transaction count should be 1.");
+            assert.equal(1, blockTransactionCount, "Block transaction count should be 1.");
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  // Dependent upon validity of eth_getBlockTransactionCountByNumber
+  describe("eth_getBlockTransactionCountByHash", function(){
+    it("should return the number of transactions given the hash", function(done) {
+      web3.eth.getBlock(0, true, function(err, blockByNumber) {
+        if (err) return done(err);
+        web3.eth.getBlockTransactionCount(blockByNumber.number, true, function(err, txCountByHash) {
+          if (err) return done(err);
+            web3.eth.getBlockTransactionCount(blockByNumber.hash , function(err, txCountByNumber) {
+              if (err) return done(err);
+              assert.equal(txCountByHash, txCountByNumber, "Txn count for block retrieved by hash should equal count retrieved by number.");
+              done();
+            });
+        });
+      });
+    });
+  });
+
   describe("eth_sign", function() {
     var accounts;
     var web3;
 
-    // This account produces an edge case signature when it signs the string:
-    // "558d2681eeb61e8bd3ee590aa624a6739caf9bef529a3f6e63dc54459be3ebd1". (See Issue #190)
+    // This account produces an edge case signature when it signs the hex-encoded buffer:
+    // '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627'. (See Issue #190)
     var acc = {
       balance: "0X00",
       secretKey: "0xe6d66f02cd45a13982b99a5abf3deab1f67cf7be9fee62f0a072cb70896342e4"
@@ -261,15 +326,16 @@ var tests = function(web3) {
     });
 
     it("should produce a signature whose signer can be recovered", function(done) {
-  	  var msg = web3.sha3("asparagus");
-  	  web3.eth.sign(accounts[0], msg, function(err, sgn) {
+  	  var msg = utils.toBuffer("asparagus");
+      var msgHash = utils.hashPersonalMessage(msg);
+  	  web3.eth.sign(accounts[0], utils.bufferToHex(msg), function(err, sgn) {
         if (err) return done(err);
 
     	  sgn = utils.stripHexPrefix(sgn);
     		var r = new Buffer(sgn.slice(0, 64), 'hex');
     		var s = new Buffer(sgn.slice(64, 128), 'hex');
-    		var v = new Buffer((parseInt(sgn.slice(128, 130), 16) + 27).toString(16), 'hex');
-    		var pub = utils.ecrecover(utils.toBuffer(msg), v, r, s);
+    		var v = parseInt(sgn.slice(128, 130), 16) + 27;
+    		var pub = utils.ecrecover(msgHash, v, r, s);
     		var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
     		addr = utils.addHexPrefix(addr.toString('hex'));
     		assert.deepEqual(addr, accounts[0]);
@@ -280,16 +346,17 @@ var tests = function(web3) {
     it("should work if ecsign produces 'r' or 's' components that start with 0", function(done){
       // This message produces a zero prefixed 'r' component when signed by ecsign
       // w/ the account set in this test's 'before' block.
-      var edgeCaseMsg = "558d2681eeb61e8bd3ee590aa624a6739caf9bef529a3f6e63dc54459be3ebd1";
-      var msg = web3.sha3(edgeCaseMsg);
-      web3.eth.sign( accounts[0], msg, function(err, sgn) {
+      var msgHex = '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627';
+      var edgeCaseMsg = utils.toBuffer(msgHex);
+      var msgHash = utils.hashPersonalMessage(edgeCaseMsg);
+      web3.eth.sign( accounts[0], msgHex, function(err, sgn) {
         if (err) return done(err);
 
         sgn = utils.stripHexPrefix(sgn);
         var r = new Buffer(sgn.slice(0, 64), 'hex');
         var s = new Buffer(sgn.slice(64, 128), 'hex');
-        var v = new Buffer((parseInt(sgn.slice(128, 130), 16) + 27).toString(16), 'hex');
-        var pub = utils.ecrecover(utils.toBuffer(msg), v, r, s);
+        var v = parseInt(sgn.slice(128, 130), 16) + 27;
+        var pub = utils.ecrecover(msgHash, v, r, s);
         var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
         addr = utils.addHexPrefix(addr.toString('hex'));
         assert.deepEqual(addr, accounts[0]);
@@ -373,7 +440,8 @@ var tests = function(web3) {
       web3.eth.sendTransaction({
         from: accounts[0],
         data: contract.binary,
-        gas: 3141592
+        gas: 3141592,
+        value: 1
       }, function(err, result) {
         if (err) return done(err);
 
@@ -408,6 +476,14 @@ var tests = function(web3) {
       web3.eth.getCode(contractAddress, function(err, result) {
         if (err) return done(err);
         assert.equal(result, contract.runtimeBinary);
+        done();
+      });
+    });
+
+    it("should have balance of 1 (eth_getBalance)", function(done) {
+      web3.eth.getBalance(contractAddress, function(err, result) {
+        if (err) return done(err);
+        assert.equal(result, 1);
         done();
       });
     });
@@ -504,7 +580,7 @@ var tests = function(web3) {
 
         web3.eth.estimateGas(tx_data, function(err, result) {
           if (err) return done(err);
-          assert.equal(result, 27678);
+          assert.equal(result, 27684);
 
           web3.eth.getBlockNumber(function(err, result) {
             if (err) return done(err);
@@ -525,7 +601,7 @@ var tests = function(web3) {
 
       web3.eth.estimateGas(tx_data, function(err, result) {
         if (err) return done(err);
-        assert.equal(result, 27678);
+        assert.equal(result, 27684);
         done();
       });
     });
@@ -539,7 +615,7 @@ var tests = function(web3) {
 
       web3.eth.estimateGas(tx_data, function(err, result) {
         if (err) return done(err);
-        assert.equal(result, 27678);
+        assert.equal(result, 27684);
         done();
       });
     });
@@ -740,12 +816,12 @@ var tests = function(web3) {
     });
   });
 
-  describe("eth_compileSolidity", function() {
+  describe("eth_compileSolidity (not supported)", function() {
     this.timeout(5000);
     it("correctly compiles solidity code", function(done) {
       web3.eth.compile.solidity(source, function(err, result) {
-        if (err) return done(err);
-        assert.equal(result.code, contract.binary);
+        assert(err != null)
+        assert(err.message.indexOf("Method eth_compileSolidity not supported") >= 0);
         done();
       });
     });
@@ -924,7 +1000,7 @@ describe("Server:", function(done) {
       logger: logger,
       seed: "1337"
     });
-    server.listen(port, function() {
+    server.listen(port, function(err) {
       web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
       done();
     });

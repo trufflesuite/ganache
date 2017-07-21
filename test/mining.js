@@ -2,9 +2,16 @@ var Web3 = require('web3');
 var TestRPC = require("../index.js");
 var assert = require('assert');
 var to = require("../lib/utils/to.js");
+var solc = require("solc");
 
-describe("Block Processing", function() {
-  var web3 = new Web3(TestRPC.provider());
+// Thanks solc. At least this works!
+// This removes solc's overzealous uncaughtException event handler.
+process.removeAllListeners("uncaughtException");
+
+describe("Mining", function() {
+  var web3 = new Web3(TestRPC.provider({
+    //logger: console
+  }));
   var accounts;
   var snapshot_id;
   var badBytecode;
@@ -142,10 +149,8 @@ describe("Block Processing", function() {
 
   function compileSolidity(source) {
     return new Promise(function(accept, reject) {
-      web3.eth.compile.solidity(source, function(err, result) {
-        if (err) return reject(err);
-        accept(result);
-      });
+      var result = solc.compile({sources: {"Contract.sol": source}});
+      accept({code: "0x" + result.contracts[Object.keys(result.contracts)[0]].bytecode})
     });
   };
 

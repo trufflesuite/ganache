@@ -5,7 +5,7 @@ contract Example {
 
   event ValueSet(uint);
 
-  function Example() {
+  function Example() payable {
     value = 5;
   }
 

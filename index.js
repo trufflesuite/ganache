@@ -1,13 +1,12 @@
-var Interface = require('./lib/interface.js');
+var Provider = require("./lib/provider");
+var Server = require("./lib/server");
 
-var TestRPC = {
+// This interface exists so as not to cause breaking changes.
+module.exports = {
   server: function(options) {
-    return Interface.server(options);
+    return Server.create(options);
   },
-
   provider: function(options) {
-    return Interface.provider(options);
+    return new Provider(options);
   }
-}
-
-module.exports = TestRPC;
+};

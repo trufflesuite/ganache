@@ -140,5 +140,36 @@ describe("Accounts", function() {
     });
   });
 
+  it("should create a 2 accounts when passing an object to provider", function(done) {
+
+    var web3 = new Web3();
+    web3.setProvider(TestRPC.provider({
+      accounts: [
+        { balance: '0x12' },
+        { balance: '0x13' }
+      ]
+    }));
+
+    web3.eth.getAccounts(function(err, result) {
+      if (err) return done(err);
+      assert(result.length, 2, "The number of accounts created should be 2");
+      done();
+    })
+  })
+
+
+  it("should create a 7 accounts when ", function(done) {
+    var web3 = new Web3();
+    web3.setProvider(TestRPC.provider({
+      total_accounts: 7
+    }));
+
+    web3.eth.getAccounts(function(err, result) {
+      if (err) return done(err);
+      assert(result.length, 7, "The number of accounts created should be 7");
+      done();
+    })
+  })
+
 
 });

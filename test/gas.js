@@ -3,6 +3,11 @@ var assert = require('assert');
 var TestRPC = require("../index.js");
 var fs = require("fs");
 var path = require("path");
+var solc = require("solc");
+
+// Thanks solc. At least this works!
+// This removes solc's overzealous uncaughtException event handler.
+process.removeAllListeners("uncaughtException");
 
 describe("Gas Estimation", function() {
   var web3 = new Web3(TestRPC.provider());
@@ -21,23 +26,21 @@ describe("Gas Estimation", function() {
 
   before("compile source", function(done) {
     this.timeout(10000);
-    web3.eth.compile.solidity(source, function(err, result) {
+    var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
+
+    var code = "0x" + result.contracts.EstimateGas.bytecode;
+    var abi = JSON.parse(result.contracts.EstimateGas.interface);
+
+    EstimateGasContract = web3.eth.contract(abi);
+    EstimateGasContract._code = code;
+    EstimateGasContract.new({data: code, from: accounts[0], gas: 3141592}, function(err, instance) {
       if (err) return done(err);
+      if (!instance.address) return;
 
-      var code = "0x" + result.code;
-      var abi = result.info.abiDefinition;
+      EstimateGas = instance;
 
-      EstimateGasContract = web3.eth.contract(abi);
-      EstimateGasContract._code = code;
-      EstimateGasContract.new({data: code, from: accounts[0], gas: 3141592}, function(err, instance) {
-        if (err) return done(err);
-        if (!instance.address) return;
-
-        EstimateGas = instance;
-
-        done();
-      });
-    })
+      done();
+    });
   });
 
   function testTransactionEstimate(contractFn, args, done) {

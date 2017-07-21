@@ -2,6 +2,11 @@ var Web3 = require('web3');
 var TestRPC = require("../index.js");
 var assert = require('assert');
 var to = require("../lib/utils/to.js");
+var solc = require("solc");
+
+// Thanks solc. At least this works!
+// This removes solc's overzealous uncaughtException event handler.
+process.removeAllListeners("uncaughtException");
 
 describe("Interval Mining", function() {
   var web3;
@@ -151,23 +156,21 @@ describe("Interval Mining", function() {
       logger: logger
     }));
 
-    web3.eth.compile.solidity("pragma solidity ^0.4.2; contract Example { function Example() {throw;} }", function(err, result) {
+    var result = solc.compile({sources: {"Example.sol": "pragma solidity ^0.4.2; contract Example { function Example() {throw;} }"}}, 1);
+    var bytecode = "0x" + result.contracts.Example.bytecode;
+
+    web3.eth.sendTransaction({
+      from: first_address,
+      data: bytecode,
+      gas: 3141592
+    }, function(err, tx) {
       if (err) return done(err);
-      var bytecode = result.code;
 
-      web3.eth.sendTransaction({
-        from: first_address,
-        data: bytecode,
-        gas: 3141592
-      }, function(err, tx) {
-        if (err) return done(err);
-
-        // Wait .75 seconds (one and a half mining intervals) and ensure log sees error.
-        setTimeout(function() {
-          assert(logData.indexOf("Runtime Error: invalid JUMP") >= 0);
-          done();
-        }, 750);
-      });
+      // Wait .75 seconds (one and a half mining intervals) and ensure log sees error.
+      setTimeout(function() {
+        assert(logData.indexOf("Runtime Error: invalid JUMP") >= 0);
+        done();
+      }, 750);
     });
 
   });

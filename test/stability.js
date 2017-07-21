@@ -10,18 +10,14 @@ var logger = {
 
 describe("TestRPC", function(done) {
   var web3 = new Web3();
+  var provider;
   var port = 12345;
   var server;
   var accounts;
 
-  before("Initialize TestRPC server", function(done) {
-    server = TestRPC.server({
-      logger: logger
-    });
-    server.listen(port, function() {
-      web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
-      done();
-    });
+  before("Initialize the provider", function() {
+    provider = TestRPC.provider();
+    web3.setProvider(provider);
   });
 
   before(function(done) {
@@ -31,10 +27,6 @@ describe("TestRPC", function(done) {
       accounts = accs;
       done();
     });
-  });
-
-  after("Shutdown server", function(done) {
-    server.close(done);
   });
 
   it("should be able to handle multiple transactions at once and manage nonces accordingly", function(done) {

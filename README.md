@@ -27,7 +27,7 @@ Having problems? Be sure to check out the [FAQ](https://github.com/ethereumjs/te
 
 # USAGE
 
-##### Command Line
+### Command Line
 
 ```Bash
 $ testrpc <options>
@@ -46,7 +46,10 @@ Options:
 * `-g` or `--gasPrice`: Use a custom Gas Price (defaults to 20000000000)
 * `-l` or `--gasLimit`: Use a custom Gas Limit (defaults to 0x47E7C4)
 * `-f` or `--fork`: Fork from another currently running Ethereum client at a given block. Input should be the HTTP location and port of the other client, e.g. `http://localhost:8545`. You can optionally specify the block to fork from using an `@` sign: `http://localhost:8545@1599200`.
+* `-i` or `--network-id`: Specify the network id the TestRPC will use to identify itself (defaults to the current time or the network id of the forked blockchain if configured)
+* `--db`: Specify a path to a directory to save the chain database. If a database already exists, the TestRPC will initialize that chain instead of creating a new one.
 * `--debug`: Output VM opcodes for debugging
+* `--mem`: Output TestRPC memory usage statistics. This replaces normal output.
 
 Special Options:
 
@@ -74,7 +77,7 @@ Special Options:
 
   This feature can also be used to impersonate accounts and unlock addresses you wouldn't otherwise have access to. When used with the `--fork` feature, you can use the TestRPC to make transactions as any address on the blockchain, which is very useful for testing and dynamic analysis.
 
-##### Library
+### Library
 
 As a Web3 provider:
 
@@ -101,25 +104,27 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"seed"`: Use arbitrary data to generate the HD wallet mnemonic to be used.
 * `"total_accounts"`: `number` - Number of accounts to generate at startup.
 * `"fork"`: `string` - Same as `--fork` option above.
+* `"network_id"`: `integer` - Same as `--networkId` option above.
 * `"time"`: `Date` - Date that the first block should start. Use this feature, along with the `evm_increaseTime` method to test time-dependent code.
 * `"locked"`: `boolean` - whether or not accounts are locked by default.
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
+* `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, the TestRPC will initialize that chain instead of creating a new one.
 
 # IMPLEMENTED METHODS
 
 The RPC methods currently implemented are:
 
-
 * `eth_accounts`
 * `eth_blockNumber`
 * `eth_call`
 * `eth_coinbase`
-* `eth_compileSolidity`
 * `eth_estimateGas`
 * `eth_gasPrice`
 * `eth_getBalance`
 * `eth_getBlockByNumber`
 * `eth_getBlockByHash`
+* `eth_getBlockTransactionCountByHash`
+* `eth_getBlockTransactionCountByNumber`
 * `eth_getCode` (only supports block number “latest”)
 * `eth_getCompilers`
 * `eth_getFilterChanges`
@@ -135,6 +140,7 @@ The RPC methods currently implemented are:
 * `eth_mining`
 * `eth_newBlockFilter`
 * `eth_newFilter` (includes log/event filters)
+* `eth_protocolVersion` (stub, returns -1)
 * `eth_sendTransaction`
 * `eth_sendRawTransaction`
 * `eth_sign`
@@ -160,6 +166,33 @@ There’s also special non-standard methods that aren’t included within the or
 * `evm_revert` : Revert the state of the blockchain to a previous snapshot. Takes a single parameter, which is the snapshot id to revert to. If no snapshot id is passed it will revert to the latest snapshot. Returns `true`.
 * `evm_increaseTime` : Jump forward in time. Takes one parameter, which is the amount of time to increase in seconds. Returns the total time adjustment, in seconds.
 * `evm_mine` : Force a block to be mined. Takes no parameters. Mines a block independent of whether or not mining is started or stopped.
+
+# Unsupported Methods
+
+* `eth_compileSolidity`: If you'd like Solidity compilation in Javascript, please see the [solc-js project](https://github.com/ethereum/solc-js).
+
+# Docker
+
+The Simplest way to get started with the Docker image:
+
+```Bash
+docker run -d -p 8545:8545 ethereumjs/testrpc:latest
+```
+
+To pass options to testrpc through Docker simply add the arguments to
+the run command:
+
+```Bash
+docker run -d -p 8545:8545 ethereumjs/testrpc:latest -a 10 --debug
+```
+
+To build the Docker container from source:
+
+```Bash
+git clone https://github.com/ethereumjs/testrpc.git && cd testrpc
+docker build -t ethereumjs/testrpc .
+```
+
 
 # TESTING
 
