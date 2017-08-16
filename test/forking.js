@@ -15,35 +15,16 @@ var logger = {
   log: function(msg) { /*noop*/ }
 };
 
-var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
-var result = solc.compile(source, 1);
-
-// Note: Certain properties of the following contract data are hardcoded to
-// maintain repeatable tests. If you significantly change the solidity code,
-// make sure to update the resulting contract data with the correct values.
-var contract = {
-  solidity: source,
-  abi: result.contracts.Example.interface,
-  binary: "0x" + result.contracts.Example.bytecode,
-  position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
-  expected_default_value: 5,
-  call_data: {
-    gas: '0x2fefd8',
-    gasPrice: '0x01', // This is important, as passing it has exposed errors in the past.
-    to: null, // set by test
-    data: '0x3fa4f245'
-  },
-  transaction_data: {
-    from: null, // set by test
-    gas: '0x2fefd8',
-    to: null, // set by test
-    data: '0x552410770000000000000000000000000000000000000000000000000000000000000019' // sets value to 25 (base 10)
-  }
-};
-
-var forkedTargetUrl = "http://localhost:21345";
+/**
+ * NOTE: Naming in these tests is a bit confusing. Here, the "main chain"
+ * is the main chain the tests interact with; and the "forked chain" is the
+ * chain that _was forked_. This is in contrast to general naming, where the
+ * main chain represents the main chain to be forked (like the Ethereum live
+ * network) and the fork chaing being "the fork".
+ */
 
 describe("Forking", function() {
+  var contract;
   var contractAddress;
   var secondContractAddress; // used sparingly
   var forkedServer;
@@ -55,9 +36,38 @@ describe("Forking", function() {
   var forkedWeb3 = new Web3();
   var mainWeb3 = new Web3();
 
+  var forkedTargetUrl = "http://localhost:21345";
   var forkBlockNumber;
 
   var initialDeployTransactionHash;
+
+  before("set up test data", function() {
+    var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
+    var result = solc.compile(source, 1);
+
+    // Note: Certain properties of the following contract data are hardcoded to
+    // maintain repeatable tests. If you significantly change the solidity code,
+    // make sure to update the resulting contract data with the correct values.
+    contract = {
+      solidity: source,
+      abi: result.contracts.Example.interface,
+      binary: "0x" + result.contracts.Example.bytecode,
+      position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      expected_default_value: 5,
+      call_data: {
+        gas: '0x2fefd8',
+        gasPrice: '0x01', // This is important, as passing it has exposed errors in the past.
+        to: null, // set by test
+        data: '0x3fa4f245'
+      },
+      transaction_data: {
+        from: null, // set by test
+        gas: '0x2fefd8',
+        to: null, // set by test
+        data: '0x552410770000000000000000000000000000000000000000000000000000000000000019' // sets value to 25 (base 10)
+      }
+    };
+  });
 
   before("Initialize Fallback TestRPC server", function(done) {
     forkedServer = TestRPC.server({
@@ -208,9 +218,9 @@ describe("Forking", function() {
       if (err) return done(err);
 
       // Ensure there's *something* there.
-      assert.notEqual(result, null);
-      assert.notEqual(result, "0x");
-      assert.notEqual(result, "0x0");
+      assert.notEqual(mainCode, null);
+      assert.notEqual(mainCode, "0x");
+      assert.notEqual(mainCode, "0x0");
 
       // Now make sure it matches exactly.
       forkedWeb3.eth.getCode(contractAddress, function(err, forkedCode) {
