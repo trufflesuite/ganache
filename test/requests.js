@@ -275,11 +275,20 @@ var tests = function(web3) {
         web3.eth.getBlock("latest", true, function(err, block) {
           if (err) return done(err);
           web3.eth.getBlockTransactionCount(block.number , function(err, blockTransactionCount) {
+            if (err) return done(err);
             assert.equal(block.transactions.length, blockTransactionCount, "Block transaction count should be 1.");
             assert.equal(1, blockTransactionCount, "Block transaction count should be 1.");
             done();
           });
         });
+      });
+    });
+
+    it("should return 0 transactions when the block doesn't exist", function(done) {
+      web3.eth.getBlockTransactionCount(1000000, function(err, blockTransactionCount) {
+        if (err) return done(err);
+        assert.equal(0, blockTransactionCount,  "Block transaction count should be 0.");
+        done();
       });
     });
   });
@@ -757,6 +766,16 @@ var tests = function(web3) {
       });
     });
 
+    it("should return null if transaction doesn't exist (eth_getTransactionByHash)", function(done) {
+      web3.eth.getTransaction("0x401b8ebb563ec9425b052aba8896cb74e07635563111b5a0663289d1baa8eb12", function(err, result) {
+        if (err) return done(err);
+
+        assert.equal(result, null, "Receipt should be null");
+
+        done();
+      });
+    });
+
     it("should verify there's code at the address (eth_getCode)", function(done) {
       web3.eth.getCode(contractAddress, function(err, result) {
         if (err) return done(err);
@@ -778,6 +797,17 @@ var tests = function(web3) {
         assert.equal(result.hash, initialTransaction);
         assert.equal(result.blockNumber, blockNumber);
         assert.equal(result.blockHash, blockHash);
+        done();
+      });
+    });
+
+    it("should return null if block doesn't exist (eth_getTransactionByBlockHashAndIndex)", function(done) {
+      var badBlockHash = "0xaaaaaaeb03ec5e3c000d150df2c9e7ffc31e728d12aaaedc5f6cccaca5aaaaaa";
+      web3.eth.getTransactionFromBlock(badBlockHash, 0, function(err, result) {
+        if (err) return done(err);
+
+        assert.equal(result, null);
+
         done();
       });
     });

@@ -265,6 +265,29 @@ var tests = function(web3, EventTest) {
         done();
       });
     });
+
+    it("will return an empty array if logs are requested when fromBlock doesn't exist", function(done) {
+      var event = instance.ExampleEvent({}, {fromBlock: 100000});
+
+      // fromBlock doesn't exist, hence no logs.
+      event.get(function(err, logs) {
+        if (err) return done(err);
+        assert(logs.length == 0);
+        done();
+      });
+    });
+
+    it("will return an empty array if logs are requested when toBlock doesn't exist", function(done) {
+      var expected_value = 6;
+      var event = instance.ExampleEvent({}, {toBlock: 100000});
+
+      // fromBlock doesn't exist, hence no logs.
+      event.get(function(err, logs) {
+        if (err) return done(err);
+        assert(logs.length == 0);
+        done();
+      });
+    });
   })
 };
 
