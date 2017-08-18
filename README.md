@@ -115,6 +115,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 
 The RPC methods currently implemented are:
 
+* `debug_traceTransaction`
 * `eth_accounts`
 * `eth_blockNumber`
 * `eth_call`
