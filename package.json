@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "async": "~1.5.0",
-    "bip39": "~2.2.0",
+    "bip39": "~2.4.0",
     "cachedown": "^1.0.0",
     "chai": "^3.5.0",
     "ethereumjs-account": "~2.0.4",
