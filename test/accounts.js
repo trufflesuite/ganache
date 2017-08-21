@@ -20,6 +20,18 @@ describe("Accounts", function() {
     });
   });
 
+  it("should be equal (getListAccounts) and (getAccounts)", function(done) {
+    var web3 = new Web3();
+    web3.setProvider(TestRPC.provider());
+    web3.personal.getListAccounts(function(err, listAccounts) {
+      if (err) return done(err);
+      web3.eth.getAccounts(function(err, getAccounts){
+        assert.deepEqual(listAccounts, getAccounts);
+        done();
+      })
+    });
+  });
+
   it("should lock all accounts when specified", function(done) {
     var web3 = new Web3();
     web3.setProvider(TestRPC.provider({
