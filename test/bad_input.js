@@ -133,7 +133,7 @@ var tests = function(web3) {
           // Note that if using the TestRPC as a provider, err will be non-null when there's
           // an error. However, when using it as a server it won't be. In both cases, however,
           // result.error should be set with the same error message. We'll check for that.
-          assert(result.error.message.indexOf("sender doesn't have enough funds to send tx. The upfront cost is: 324518553658426726783156021576256 and the senders account only has: 99999999999463087088") >= 0);
+          assert(result.error.message.indexOf("sender doesn't have enough funds to send tx. The upfront cost is: 324518553658426726783156021576256 and the sender's account only has: 99999999999463087088") >= 0);
 
           request.params[0].value = "0x5";
           provider.sendAsync(request, done)
