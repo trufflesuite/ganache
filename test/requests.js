@@ -531,20 +531,16 @@ var tests = function(web3) {
       call_data.from = accounts[0];
 
       // TODO: Removing this callback hell would be nice.
-      web3.eth.getBlockNumber(function(err, result) {
+      web3.eth.estimateGas(call_data, function (err, result) {
         if (err) return done(err);
+        // set a low gas limit to force a runtime error
+        call_data.gas = result - 1;
 
-        web3.eth.estimateGas(call_data, function (err, result) {
-          if (err) return done(err);
-          // set a low gas limit to force a runtime error
-          call_data.gas = result - 1;
-
-          web3.eth.call(call_data, function (err, result) {
-            // should have received an error
-            assert(err, "did not return runtime error");
-            assert.equal(err.message, "VM Exception while processing transaction: out of gas", "did not receive an 'out of gas' error.")
-            done();
-          });
+        web3.eth.call(call_data, function (err, result) {
+          // should have received an error
+          assert(err, "did not return runtime error");
+          assert.equal(err.message, "VM Exception while processing transaction: out of gas", "did not receive an 'out of gas' error.")
+          done();
         });
       });
     });
