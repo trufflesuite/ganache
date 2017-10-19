@@ -6,6 +6,7 @@ var TestRPC = require("../index.js");
 var solc = require("solc");
 var fs = require("fs");
 var to = require("../lib/utils/to");
+var clone = require("clone");
 
 var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
 var result = solc.compile(source, 1);
@@ -164,7 +165,7 @@ var tests = function(web3) {
           sha3Uncles: '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',
           logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
           transactionsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
-          stateRoot: '0x484475ce2cad3b248148f8e0ed8b1a65da0b7d6b541ab5c6ef9393477724a619',
+          stateRoot: '0xbb762ad4242c8c2821f7ac9c0a0a7da9f073cfeed39129d4bafa9168118c3b3a',
           receiptRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
           miner: '0x0000000000000000000000000000000000000000',
           difficulty: { s: 1, e: 0, c: [ 0 ] },
@@ -520,6 +521,26 @@ var tests = function(web3) {
             assert.equal(result, starting_block_number, "eth_call increased block count when it shouldn't have");
             done();
           });
+        });
+      });
+    });
+
+    it("should get back a runtime error on a bad call (eth_call)", function(done) {
+      var call_data = clone(contract.call_data);
+      call_data.to = contractAddress;
+      call_data.from = accounts[0];
+
+      // TODO: Removing this callback hell would be nice.
+      web3.eth.estimateGas(call_data, function (err, result) {
+        if (err) return done(err);
+        // set a low gas limit to force a runtime error
+        call_data.gas = result - 1;
+
+        web3.eth.call(call_data, function (err, result) {
+          // should have received an error
+          assert(err, "did not return runtime error");
+          assert.equal(err.message, "VM Exception while processing transaction: out of gas", "did not receive an 'out of gas' error.")
+          done();
         });
       });
     });
