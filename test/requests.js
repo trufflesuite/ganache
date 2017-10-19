@@ -6,6 +6,7 @@ var TestRPC = require("../index.js");
 var solc = require("solc");
 var fs = require("fs");
 var to = require("../lib/utils/to");
+var clone = require("clone");
 
 var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
 var result = solc.compile(source, 1);
@@ -525,17 +526,13 @@ var tests = function(web3) {
     });
 
     it("should get back a runtime error on a bad call (eth_call)", function(done) {
-      var call_data = contract.call_data;
+      var call_data = clone(contract.call_data);
       call_data.to = contractAddress;
       call_data.from = accounts[0];
-
-      var starting_block_number = null;
 
       // TODO: Removing this callback hell would be nice.
       web3.eth.getBlockNumber(function(err, result) {
         if (err) return done(err);
-
-        starting_block_number = result;
 
         web3.eth.estimateGas(call_data, function (err, result) {
           if (err) return done(err);
@@ -543,15 +540,10 @@ var tests = function(web3) {
           call_data.gas = result - 1;
 
           web3.eth.call(call_data, function (err, result) {
-            if (err) return done(err);
-            assert.equal(web3.toDecimal(result), 5);
-
-            web3.eth.getBlockNumber(function (err, result) {
-              if (err) return done(err);
-
-              assert.equal(result, starting_block_number, "eth_call increased block count when it shouldn't have");
-              done();
-            });
+            // should have received an error
+            assert(err, "did not return runtime error");
+            assert.equal(err.message, "VM Exception while processing transaction: out of gas", "did not receive an 'out of gas' error.")
+            done();
           });
         });
       });
