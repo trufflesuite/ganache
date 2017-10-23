@@ -279,19 +279,17 @@ describe("Mining", function() {
     });
   });
 
-  it("should error if queued transaction exceeds the block gas limit", function(done) {
+  it("should error if queued transaction exceeds the block gas limit", function() {
     return stopMining().then(function() {
       return queueTransaction(accounts[0], accounts[1], 5000000, web3.toWei(2, "Ether"));
     }).then(function(tx) {
       // It should never get here.
-      return done(new Error("Transaction was processed without erroring; gas limit should have been too high"));
+      throw new Error("Transaction was processed without erroring; gas limit should have been too high");
     }).catch(function(err) {
       // We caught an error like we expected. Ensure it's the right error, or rethrow.
       if (err.message.toLowerCase().indexOf("exceeds block gas limit") < 0) {
-        return done(new Error("Did not receive expected error; instead received: " + err));
+        throw new Error("Did not receive expected error; instead received: " + err);
       }
-
-      done();
     });
   });
 
