@@ -74,7 +74,7 @@ describe("revert opcode", function() {
             }
 
             assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
-            assert.equal(receipt.status, 0, "Reverted transactions should have a status of 0.");
+            assert.equal(receipt.status, 0, "Reverted (failed) transactions should have a status of 0.");
             done();
           });
         });
@@ -88,6 +88,7 @@ describe("revert opcode", function() {
 
           assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
           assert.notEqual(receipt.contractAddress, null, "Transaction did not create a contract");
+            assert.equal(receipt.status, 1, "Successful transactions should have a status of 1.");
           testCall(RevertContract.at(receipt.contractAddress));
         });
       } else {
