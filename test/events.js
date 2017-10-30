@@ -9,7 +9,7 @@ pragma solidity ^0.4.2;             \
 contract EventTest {                \
   event ExampleEvent(uint indexed first, uint indexed second);   \
                                     \
-  function triggerEvent(uint _first, uint _second) { \
+  function triggerEvent(uint _first, uint _second) public { \
     ExampleEvent(_first, _second);      \
   }                                 \
 }"
@@ -39,9 +39,9 @@ var tests = function(web3, EventTest) {
         throw new Error(result.errors[0]);
       }
 
-      var abi = JSON.parse(result.contracts.EventTest.interface);
+      var abi = JSON.parse(result.contracts[":EventTest"].interface);
       EventTest = web3.eth.contract(abi);
-      EventTest._data = "0x" + result.contracts.EventTest.bytecode;
+      EventTest._data = "0x" + result.contracts[":EventTest"].bytecode;
     });
 
     before(function(done) {

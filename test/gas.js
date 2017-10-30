@@ -28,8 +28,8 @@ describe("Gas Estimation", function() {
     this.timeout(10000);
     var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
 
-    var code = "0x" + result.contracts.EstimateGas.bytecode;
-    var abi = JSON.parse(result.contracts.EstimateGas.interface);
+    var code = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
+    var abi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
 
     EstimateGasContract = web3.eth.contract(abi);
     EstimateGasContract._code = code;
