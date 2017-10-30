@@ -25,32 +25,33 @@ web3.setProvider(TestRPC.provider({
   seed: "1337"
 }));
 
-var testContext = {};
+describe("revert opcode", function() {
+  var testContext = {};
 
-before(function (done) {
-  testContext.source = fs.readFileSync("./test/Revert.sol", {encoding: "utf8"});
-  testContext.solcResult = solc.compile(testContext.source, false);
+  before(function (done) {
+    this.timeout(10000);
+    testContext.source = fs.readFileSync("./test/Revert.sol", {encoding: "utf8"});
+    testContext.solcResult = solc.compile(testContext.source, false);
 
-  testContext.revertContract = {
-    solidity: testContext.source,
-    abi: testContext.solcResult.contracts[":Revert"].interface,
-    binary: "0x" + testContext.solcResult.contracts[":Revert"].bytecode,
-    runtimeBinary: '0x' + testContext.solcResult.contracts[":Revert"].runtimeBytecode
-  };
+    testContext.revertContract = {
+      solidity: testContext.source,
+      abi: testContext.solcResult.contracts[":Revert"].interface,
+      binary: "0x" + testContext.solcResult.contracts[":Revert"].bytecode,
+      runtimeBinary: '0x' + testContext.solcResult.contracts[":Revert"].runtimeBytecode
+    };
 
-  web3.eth.getAccounts(function(err, accs) {
-    if (err) return done(err);
+    web3.eth.getAccounts(function(err, accs) {
+      if (err) return done(err);
 
-    testContext.accounts = accs;
+      testContext.accounts = accs;
 
-    web3.personal.newAccount("password", function(err, result) {
-      testContext.personalAccount = result;
-      done();
+      web3.personal.newAccount("password", function(err, result) {
+        testContext.personalAccount = result;
+        done();
+      });
     });
   });
-});
 
-describe("revert opcode", function() {
   it("should return a transaction receipt with status 0 on REVERT", function(done) {
     var revertCode = testContext.revertContract.binary;
     var revertAbi = JSON.parse(testContext.revertContract.abi);
