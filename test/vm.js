@@ -70,7 +70,7 @@ describe("revert opcode", function() {
 
           web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
             if (err) {
-              done(err);
+              return done(err);
             }
 
             assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
