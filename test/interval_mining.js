@@ -157,7 +157,7 @@ describe("Interval Mining", function() {
     }));
 
     var result = solc.compile({sources: {"Example.sol": "pragma solidity ^0.4.2; contract Example { function Example() {throw;} }"}}, 1);
-    var bytecode = "0x" + result.contracts.Example.bytecode;
+    var bytecode = "0x" + result.contracts["Example.sol:Example"].bytecode;
 
     web3.eth.sendTransaction({
       from: first_address,
@@ -168,7 +168,7 @@ describe("Interval Mining", function() {
 
       // Wait .75 seconds (one and a half mining intervals) and ensure log sees error.
       setTimeout(function() {
-        assert(logData.indexOf("Runtime Error: invalid JUMP") >= 0);
+        assert(logData.indexOf("Runtime Error: revert") >= 0);
         done();
       }, 750);
     });

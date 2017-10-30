@@ -50,8 +50,8 @@ describe("Forking", function() {
     // make sure to update the resulting contract data with the correct values.
     contract = {
       solidity: source,
-      abi: result.contracts.Example.interface,
-      binary: "0x" + result.contracts.Example.bytecode,
+      abi: result.contracts[":Example"].interface,
+      binary: "0x" + result.contracts[":Example"].bytecode,
       position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
       expected_default_value: 5,
       call_data: {
@@ -384,7 +384,8 @@ describe("Forking", function() {
   // Note: This test also puts a new contract on the forked chain, which is a good test.
   it("should represent the block number correctly in the Oracle contract (oracle.blockhash0), providing forked block hash and number", function(done){
     var oracleSol = fs.readFileSync("./test/Oracle.sol", {encoding: "utf8"});
-    var oracleOutput = solc.compile(oracleSol).contracts.Oracle;
+    var solcResult = solc.compile(oracleSol);
+    var oracleOutput = solcResult.contracts[":Oracle"];
 
     mainWeb3.eth.contract(JSON.parse(oracleOutput.interface)).new({ data: oracleOutput.bytecode, from: mainAccounts[0], gas: 3141592 }, function(err, oracle){
       if(err) return done(err)

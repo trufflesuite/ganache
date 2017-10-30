@@ -31,8 +31,8 @@ describe("Runtime Errors", function() {
     var source = fs.readFileSync(path.join(__dirname, "RuntimeError.sol"), "utf8");
     var result = solc.compile({sources: {"RuntimeError.sol": source}}, 1);
 
-    code = "0x" + result.contracts.RuntimeError.bytecode;
-    var abi = JSON.parse(result.contracts.RuntimeError.interface);
+    code = "0x" + result.contracts["RuntimeError.sol:RuntimeError"].bytecode;
+    var abi = JSON.parse(result.contracts["RuntimeError.sol:RuntimeError"].interface);
 
     ErrorContract = web3.eth.contract(abi);
     ErrorContract._code = code;
@@ -51,7 +51,9 @@ describe("Runtime Errors", function() {
     errorInstance.error({from: accounts[0], gas: 3141592}, function(err) {
       assert(err.hashes.length > 0);
       assert(Object.keys(err.results).length > 0);
-      assert.equal(err.results[err.hashes[0]].program_counter, 44); // magic number, will change if compiler changes.
+
+      //TODO: replace this w/ an address lookup, or a precompiled contract
+      assert.equal(err.results[err.hashes[0]].program_counter, 77); // magic number, will change if compiler changes.
       done();
     });
   });
