@@ -45,10 +45,7 @@ describe("revert opcode", function() {
 
       testContext.accounts = accs;
 
-      web3.personal.newAccount("password", function(err, result) {
-        testContext.personalAccount = result;
-        done();
-      });
+      return done();
     });
   });
 
@@ -75,7 +72,7 @@ describe("revert opcode", function() {
 
             assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
             assert.equal(receipt.status, 0, "Reverted (failed) transactions should have a status of 0.");
-            done();
+            return done();
           });
         });
       }
