@@ -281,7 +281,7 @@ describe("Mining", function() {
 
   it("should error if queued transaction exceeds the block gas limit", function() {
     return stopMining().then(function() {
-      return queueTransaction(accounts[0], accounts[1], 5000000, web3.toWei(2, "Ether"));
+      return queueTransaction(accounts[0], accounts[1], 10000000, web3.toWei(2, "Ether"));
     }).then(function(tx) {
       // It should never get here.
       throw new Error("Transaction was processed without erroring; gas limit should have been too high");
