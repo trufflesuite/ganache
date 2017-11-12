@@ -981,11 +981,21 @@ var tests = function(web3) {
     });
   });
 
+  describe("personal_importRawKey", function() {
+    it("should return the known account address", function(done) {
+      web3.personal.importRawKey("0x0123456789012345678901234567890123456789012345678901234567890123", "password", function(err, result) {
+        if (err) return done(err);
+        assert.equal(result, '0x14791697260e4c9a71f18484c9f997b308e59325', "Raw account not imported correctly");
+        done();
+      });
+    });
+  });
+
   describe("personal_listAccounts", function() {
     it("should return more than 0 accounts", function(done) {
       web3.personal.getListAccounts(function(err, result) {
         if (err) return done(err);
-        assert.equal(result.length, 2);
+        assert.equal(result.length, 3);
         done();
       });
     });
