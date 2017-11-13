@@ -68,7 +68,7 @@ describe('Time adjustment', function() {
   it('should mine a block at the given timestamp', function(done) {
       // Adjust time
       var expectedMinedTimestamp = 1000000;
-      send("evm_mineAtTimestamp", [expectedMinedTimestamp], function(err, result) {
+      send("evm_mine", [expectedMinedTimestamp], function(err, result) {
           if (err) return done(err);
 
           web3.eth.getBlock('latest', function(err, block){
