@@ -1,6 +1,6 @@
 [![npm](https://img.shields.io/npm/v/ganache-core.svg)]()
 [![npm](https://img.shields.io/npm/dm/ganache-core.svg)]()
-[![Build Status](https://travis-ci.org/trufflesuite/ganache-core.svg?branch=develop)](https://travis-ci.org/trufflesuite/ganache-core)
+[![Build Status](https://travis-ci.org/trufflesuite/ganache-core.svg?branch=master)](https://travis-ci.org/trufflesuite/ganache-core)
 # Ganache Core
 
 This is the core code that powers the Ganache application and the the Ganache command line tool.
@@ -53,6 +53,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"locked"`: `boolean` - whether or not accounts are locked by default.
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
 * `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, that chain will be initialized instead of creating a new one.
+* `"db"`: `Object` - Specify an alternative database instance, for instance [MemDOWN](https://github.com/level/memdown).
 
 # IMPLEMENTED METHODS
 
