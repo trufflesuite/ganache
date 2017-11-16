@@ -172,7 +172,7 @@ var tests = function(web3) {
           totalDifficulty: { s: 1, e: 0, c: [ 0 ] },
           extraData: '0x0',
           size: 1000,
-          gasLimit: 6712390,
+          gasLimit: 6721975,
           gasUsed: 0,
           timestamp: block.timestamp, // Don't test this one.
           transactions: [],
