@@ -23,8 +23,8 @@ var result = solc.compile(source, 1);
 // make sure to update the resulting contract data with the correct values.
 var contract = {
   solidity: source,
-  abi: result.contracts.Example.interface,
-  binary: "0x" + result.contracts.Example.bytecode,
+  abi: result.contracts[":Example"].interface,
+  binary: "0x" + result.contracts[":Example"].bytecode,
   position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
   expected_default_value: 5,
   call_data: {

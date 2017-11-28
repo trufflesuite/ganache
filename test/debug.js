@@ -36,8 +36,8 @@ describe("Debug", function() {
     this.timeout(10000);
     var result = solc.compile({sources: {"DebugContract.sol": source}}, 1);
 
-    var code = "0x" + result.contracts.DebugContract.bytecode;
-    var abi = JSON.parse(result.contracts.DebugContract.interface);
+    var code = "0x" + result.contracts["DebugContract.sol:DebugContract"].bytecode;
+    var abi = JSON.parse(result.contracts["DebugContract.sol:DebugContract"].interface);
 
     DebugContract = web3.eth.contract(abi);
     DebugContract._code = code;
@@ -107,7 +107,7 @@ describe("Debug", function() {
 
       assert.equal(lastop.op, "STOP");
       assert.equal(lastop.gasCost, 1);
-      assert.equal(lastop.pc, 86);
+      assert.equal(lastop.pc, 131);
 
       // Now let's make sure rerunning this transaction trace didn't change state
       debugContract.value({from: accounts[0], gas: 3141592}, function(err, value) {

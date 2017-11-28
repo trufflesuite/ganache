@@ -1,13 +1,13 @@
 [![npm](https://img.shields.io/npm/v/ganache-core.svg)]()
 [![npm](https://img.shields.io/npm/dm/ganache-core.svg)]()
-[![Build Status](https://travis-ci.org/trufflesuite/ganache-core.svg?branch=develop)](https://travis-ci.org/trufflesuite/ganache-core)
+[![Build Status](https://travis-ci.org/trufflesuite/ganache-core.svg?branch=master)](https://travis-ci.org/trufflesuite/ganache-core)
 # Ganache Core
 
 This is the core code that powers the Ganache application and the the Ganache command line tool.
 
 # INSTALL
 
-`ganache-core` is written in Javascript and distributed as a Node package via `npm`. Make sure you have Node.js (>= v6.9.1) installed, and your environment is capable of installing and compiling `npm` modules.
+`ganache-core` is written in Javascript and distributed as a Node package via `npm`. Make sure you have Node.js (>= v6.11.5) installed, and your environment is capable of installing and compiling `npm` modules.
 
 **macOS** Make sure you have the XCode Command Line Tools installed. These are needed in general to be able to compile most C based languages on your machine, as well as many npm modules.
 
@@ -54,6 +54,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
 * `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, that chain will be initialized instead of creating a new one.
 * `"ws"`: Enable a websocket server. The default is an Http server
+* `"db"`: `Object` - Specify an alternative database instance, for instance [MemDOWN](https://github.com/level/memdown).
 
 # IMPLEMENTED METHODS
 
@@ -131,4 +132,4 @@ $ npm test
 ```
 
 # LICENSE
-[MPL-2.0](https://tldrlegal.com/license/mozilla-public-license-2.0-(mpl-2))
+[MIT](https://tldrlegal.com/license/mit-license)

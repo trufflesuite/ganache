@@ -33,9 +33,9 @@ process.removeAllListeners("uncaughtException");
 // make sure to update the resulting contract data with the correct values.
 var contract = {
   solidity: source,
-  abi: result.contracts.Example.interface,
-  binary: "0x" + result.contracts.Example.bytecode,
-  runtimeBinary: '0x' + result.contracts.Example.runtimeBytecode,
+  abi: result.contracts[":Example"].interface,
+  binary: "0x" + result.contracts[":Example"].bytecode,
+  runtimeBinary: '0x' + result.contracts[":Example"].runtimeBytecode,
   position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
   expected_default_value: 5,
   call_data: {
@@ -166,13 +166,13 @@ var tests = function(web3) {
           logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
           transactionsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
           stateRoot: '0xbb762ad4242c8c2821f7ac9c0a0a7da9f073cfeed39129d4bafa9168118c3b3a',
-          receiptRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
+          receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
           miner: '0x0000000000000000000000000000000000000000',
           difficulty: { s: 1, e: 0, c: [ 0 ] },
           totalDifficulty: { s: 1, e: 0, c: [ 0 ] },
           extraData: '0x0',
           size: 1000,
-          gasLimit: 4712388,
+          gasLimit: 6721975,
           gasUsed: 0,
           timestamp: block.timestamp, // Don't test this one.
           transactions: [],
@@ -580,7 +580,7 @@ var tests = function(web3) {
 
     it("should represent the block number correctly in the Oracle contract (oracle.blockhash0)", function(done){
       var oracleSol = fs.readFileSync("./test/Oracle.sol", {encoding: "utf8"});
-      var oracleOutput = solc.compile(oracleSol).contracts.Oracle
+      var oracleOutput = solc.compile(oracleSol).contracts[":Oracle"]
       web3.eth.contract(JSON.parse(oracleOutput.interface)).new({ data: oracleOutput.bytecode, from: accounts[0], gas: 3141592 }, function(err, oracle){
         if(err) return done(err)
         if(!oracle.address) return
@@ -610,7 +610,7 @@ var tests = function(web3) {
 
         web3.eth.estimateGas(tx_data, function(err, result) {
           if (err) return done(err);
-          assert.equal(result, 27724);
+          assert.equal(result, 27682);
 
           web3.eth.getBlockNumber(function(err, result) {
             if (err) return done(err);
@@ -631,7 +631,7 @@ var tests = function(web3) {
 
       web3.eth.estimateGas(tx_data, function(err, result) {
         if (err) return done(err);
-        assert.equal(result, 27724);
+        assert.equal(result, 27682);
         done();
       });
     });
@@ -645,7 +645,7 @@ var tests = function(web3) {
 
       web3.eth.estimateGas(tx_data, function(err, result) {
         if (err) return done(err);
-        assert.equal(result, 27724);
+        assert.equal(result, 27682);
         done();
       });
     });

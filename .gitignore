@@ -5,5 +5,5 @@ TODO
 .tern-project
 .DS_Store
 .tern-port
+.vscode
 yarn.lock
-package-lock.json
