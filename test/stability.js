@@ -114,16 +114,10 @@ describe("race conditions", function(done) {
       done(err);
     });
 
-    var waitUntilReady = setInterval(function() {
-      var trie = provider.manager.state.blockchain.stateTrie;
-      if (trie) {
-        clearInterval(waitUntilReady);
-        var blockchain = provider.manager.state.blockchain;
-        blockchain.vm.stateManager.checkpoint(); // processCall or processBlock
-        blockchain.stateTrie.get(utils.toBuffer(accounts[0]), function() {}); // getCode (or any function that calls trie.get)
-        blockchain.vm.stateManager.revert(function() {}); // processCall or processBlock
-      }
-    }, 1);
+    var blockchain = provider.manager.state.blockchain;
+    blockchain.vm.stateManager.checkpoint(); // processCall or processBlock
+    blockchain.stateTrie.get(utils.toBuffer(accounts[0]), function() {}); // getCode (or any function that calls trie.get)
+    blockchain.vm.stateManager.revert(function() {}); // processCall or processBlock
   });
 
   it("should not cause 'pop' of undefined", function(done) {
@@ -131,31 +125,16 @@ describe("race conditions", function(done) {
       done(err);
     });
 
-    var waitUntilReady = setInterval(function() {
-      var trie = provider.manager.state.blockchain.stateTrie;
-      if (trie) {
-        clearInterval(waitUntilReady);
-        var blockchain = provider.manager.state.blockchain;
-        blockchain.vm.stateManager.checkpoint(); // processCall #1
-        // processNextBlock triggered by interval mining which at some point calls vm.stateManager.commit() and blockchain.putBlock()
-        blockchain.processNextBlock(function(err, tx, results) {
-          blockchain.vm.stateManager.revert(function() { // processCall #1 finishes
-            blockchain.latestBlock(function (err, latestBlock) { // getCode #1 (or any function with this logic)
-              blockchain.stateTrie.root = latestBlock.header.stateRoot;
-              // processCall #2
-              var call_data = {
-                gasPrice: '0x01',
-                to: accounts[1],
-                data: '0x3fa4f245',
-                from: accounts[0]
-              };
-              web3.eth.call(call_data, function() {
-                done();
-              });
-            });
-          });
+    var blockchain = provider.manager.state.blockchain;
+    blockchain.vm.stateManager.checkpoint(); // processCall #1
+    // processNextBlock triggered by interval mining which at some point calls vm.stateManager.commit() and blockchain.putBlock()
+    blockchain.processNextBlock(function(err, tx, results) {
+      blockchain.vm.stateManager.revert(function() { // processCall #1 finishes
+        blockchain.latestBlock(function (err, latestBlock) { 
+          blockchain.stateTrie.root = latestBlock.header.stateRoot; // getCode #1 (or any function with this logic)
+          web3.eth.call({}, function() {}); // processCall #2
         });
-      }
-    }, 1);
+      });
+    });
   });
 });
