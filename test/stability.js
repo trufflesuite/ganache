@@ -117,7 +117,9 @@ describe("race conditions", function(done) {
     var blockchain = provider.manager.state.blockchain;
     blockchain.vm.stateManager.checkpoint(); // processCall or processBlock
     blockchain.stateTrie.get(utils.toBuffer(accounts[0]), function() {}); // getCode (or any function that calls trie.get)
-    blockchain.vm.stateManager.revert(function() {}); // processCall or processBlock
+    blockchain.vm.stateManager.revert(function() {
+      done();
+    }); // processCall or processBlock
   });
 
   it("should not cause 'pop' of undefined", function(done) {
@@ -132,7 +134,9 @@ describe("race conditions", function(done) {
       blockchain.vm.stateManager.revert(function() { // processCall #1 finishes
         blockchain.latestBlock(function (err, latestBlock) { 
           blockchain.stateTrie.root = latestBlock.header.stateRoot; // getCode #1 (or any function with this logic)
-          web3.eth.call({}, function() {}); // processCall #2
+          web3.eth.call({}, function() {
+            done();
+          }); // processCall #2
         });
       });
     });
