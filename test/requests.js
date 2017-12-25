@@ -51,8 +51,6 @@ var contract = {
   }
 };
 
-var provider;
-
 var tests = function(web3) {
   var accounts;
   var personalAccount;
@@ -498,47 +496,6 @@ var tests = function(web3) {
         assert.equal(result, 1);
         done();
       });
-    });
-
-    it("should not cause 'get' of undefined", function(done) {
-      var waitUntilReady = setInterval(function() {
-        var trie = provider.manager.state.blockchain.stateTrie;
-        if (trie) {
-          clearInterval(waitUntilReady);
-          var blockchain = provider.manager.state.blockchain;
-          blockchain.vm.stateManager.checkpoint(); // processCall or processBlock
-          blockchain.stateTrie.get(utils.toBuffer(accounts[0]), function() { // getCode (or any function that calls trie.get)
-            done();
-          });
-          blockchain.vm.stateManager.revert(function() {}); // processCall or processBlock
-        }
-      }, 1);
-    });
-
-    it("should not cause 'pop' of undefined", function(done) {
-      var waitUntilReady = setInterval(function() {
-        var trie = provider.manager.state.blockchain.stateTrie;
-        if (trie) {
-          clearInterval(waitUntilReady);
-          var blockchain = provider.manager.state.blockchain;
-          blockchain.vm.stateManager.checkpoint(); // processCall #1
-          // processNextBlock triggered by interval mining which at some point calls vm.stateManager.commit() and blockchain.putBlock()
-          blockchain.processNextBlock(function(err, tx, results) {
-            blockchain.vm.stateManager.revert(function() { // processCall #1 finishes
-              blockchain.latestBlock(function (err, latestBlock) { // getCode #1 (or any function with this logic)
-                blockchain.stateTrie.root = latestBlock.header.stateRoot;
-                // processCall #2
-                var call_data = contract.call_data;
-                call_data.to = contractAddress;
-                call_data.from = accounts[0];
-                web3.eth.call(call_data, function() {
-                  done();
-                });
-              });
-            });
-          });
-        }
-      }, 1);
     });
 
     it("should be able to read data via a call (eth_call)", function(done) {
@@ -1077,11 +1034,10 @@ var logger = {
 
 describe("Provider:", function() {
   var web3 = new Web3();
-  provider = TestRPC.provider({
+  web3.setProvider(TestRPC.provider({
     logger: logger,
     seed: "1337"
-  });
-  web3.setProvider(provider);
+  }));
   tests(web3);
 });
 
