@@ -171,5 +171,47 @@ describe("Accounts", function() {
     })
   })
 
+  it("should respect the default_balance_ether option", function(done) {
+    var web3 = new Web3();
+    web3.setProvider(TestRPC.provider({
+      default_balance_ether: 1.23456
+    }));
+
+    web3.eth.getAccounts(function(err, accounts) {
+      if (err) return done(err);
+
+      function checkBalance(account) {
+        return new Promise(function(accept, reject) {
+          web3.eth.getBalance(accounts[0], function(err, balance) {
+            if (err) return reject(err);
+
+            var balanceInEther = web3.fromWei(balance, "Ether");
+
+            assert.equal(balanceInEther, 1.23456);
+            return accept(balance);
+          });
+        });
+      }
+
+      accounts.reduce((promise, account, index) => {
+        var returnVal;
+
+        if (promise) {
+          returnVal = promise.then(checkBalance(account));
+        } else {
+          returnVal = checkBalance(account);
+        }
+
+        if (index == accounts.length - 1) {
+          returnVal.then(done())
+            .catch((err) => { done(err); });
+        }
+
+        return returnVal;
+      }, null);
+
+    });
+  });
+
 
 });
