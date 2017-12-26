@@ -103,7 +103,7 @@ The RPC methods currently implemented are:
 * `personal_listAccounts`
 * `personal_lockAccount`
 * `personal_newAccount`
-* `personal_importRawAccount`
+* `personal_importRawKey`
 * `personal_unlockAccount`
 * `personal_sendTransaction`
 * `shh_version`
