@@ -90,7 +90,8 @@ describe("TestRPC", function(done) {
   });
 });
 
-describe("race conditions", function(done) {
+//TODO: remove `.skip` when working on and/or submitting fix for issue #453
+describe.skip("race conditions", function(done) {
   var web3 = new Web3();
   var provider;
   var accounts;
