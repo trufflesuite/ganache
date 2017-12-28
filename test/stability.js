@@ -2,6 +2,7 @@ var Web3 = require('web3');
 var assert = require('assert');
 var TestRPC = require("../index.js");
 var utils = require('ethereumjs-util');
+var async = require('async');
 
 var logger = {
   log: function(message) {
@@ -111,22 +112,31 @@ describe.skip("race conditions", function(done) {
   });
 
   it("should not cause 'get' of undefined", function(done) {
-    process.prependOnceListener('uncaughtException', function(err) {
+    var errFunc = function(err) {
       done(err);
-    });
+    };
+    process.prependOnceListener('uncaughtException', errFunc);
 
     var blockchain = provider.manager.state.blockchain;
     blockchain.vm.stateManager.checkpoint(); // processCall or processBlock
-    blockchain.stateTrie.get(utils.toBuffer(accounts[0]), function() {}); // getCode (or any function that calls trie.get)
-    blockchain.vm.stateManager.revert(function() {
+    async.parallel([
+      function(callback) {
+        blockchain.stateTrie.get(utils.toBuffer(accounts[0]), callback); // getCode (or any function that calls trie.get)
+      },
+      function(callback) {
+        blockchain.vm.stateManager.revert(callback); // processCall or processBlock
+      }
+    ], function(err, results) {
+      process.removeListener('uncaughtException', errFunc);
       done();
-    }); // processCall or processBlock
+    });
   });
 
   it("should not cause 'pop' of undefined", function(done) {
-    process.prependOnceListener('uncaughtException', function(err) {
+    var errFunc = function(err) {
       done(err);
-    });
+    };
+    process.prependOnceListener('uncaughtException', errFunc);
 
     var blockchain = provider.manager.state.blockchain;
     blockchain.vm.stateManager.checkpoint(); // processCall #1
@@ -135,9 +145,10 @@ describe.skip("race conditions", function(done) {
       blockchain.vm.stateManager.revert(function() { // processCall #1 finishes
         blockchain.latestBlock(function (err, latestBlock) { 
           blockchain.stateTrie.root = latestBlock.header.stateRoot; // getCode #1 (or any function with this logic)
-          web3.eth.call({}, function() {
+          web3.eth.call({}, function() { // processCall #2
+            process.removeListener('uncaughtException', errFunc);
             done();
-          }); // processCall #2
+          });
         });
       });
     });
