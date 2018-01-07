@@ -160,8 +160,9 @@ var tests = function(web3) {
         var expectedFirstBlock = {
           number: 0,
           hash: block.hash, // Don't test this one
+          mixHash: "0x1010101010101010101010101010101010101010101010101010101010101010",
           parentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-          nonce: '0x0',
+          nonce: '0x0000000000000000',
           sha3Uncles: '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',
           logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
           transactionsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
@@ -170,7 +171,7 @@ var tests = function(web3) {
           miner: '0x0000000000000000000000000000000000000000',
           difficulty: { s: 1, e: 0, c: [ 0 ] },
           totalDifficulty: { s: 1, e: 0, c: [ 0 ] },
-          extraData: '0x0',
+          extraData: '0x00',
           size: 1000,
           gasLimit: 6721975,
           gasUsed: 0,
@@ -336,22 +337,22 @@ var tests = function(web3) {
     });
 
     it("should produce a signature whose signer can be recovered", function(done) {
-  	  var msg = utils.toBuffer("asparagus");
+      var msg = utils.toBuffer("asparagus");
       var msgHash = utils.hashPersonalMessage(msg);
-  	  web3.eth.sign(accounts[0], utils.bufferToHex(msg), function(err, sgn) {
+      web3.eth.sign(accounts[0], utils.bufferToHex(msg), function(err, sgn) {
         if (err) return done(err);
 
-    	  sgn = utils.stripHexPrefix(sgn);
-    		var r = new Buffer(sgn.slice(0, 64), 'hex');
-    		var s = new Buffer(sgn.slice(64, 128), 'hex');
-    		var v = parseInt(sgn.slice(128, 130), 16) + 27;
-    		var pub = utils.ecrecover(msgHash, v, r, s);
-    		var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
-    		addr = utils.addHexPrefix(addr.toString('hex'));
-    		assert.deepEqual(addr, accounts[0]);
-    		done();
-	    });
-  	});
+        sgn = utils.stripHexPrefix(sgn);
+        var r = new Buffer(sgn.slice(0, 64), 'hex');
+        var s = new Buffer(sgn.slice(64, 128), 'hex');
+        var v = parseInt(sgn.slice(128, 130), 16) + 27;
+        var pub = utils.ecrecover(msgHash, v, r, s);
+        var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
+        addr = utils.addHexPrefix(addr.toString('hex'));
+        assert.deepEqual(addr, accounts[0]);
+        done();
+      });
+    });
 
     it("should work if ecsign produces 'r' or 's' components that start with 0", function(done){
       // This message produces a zero prefixed 'r' component when signed by ecsign

@@ -3,29 +3,29 @@ var Web3 = require("web3");
 var TestRPC = require("../index.js");
 var to = require("../lib/utils/to.js");
 
-describe("to.hexWithoutLeadingZeroes", function() {
+describe("to.rpcQuantityHexString", function() {
   it("should print '0x0' for input 0", function(done) {
-    assert.equal(to.hexWithoutLeadingZeroes(0), "0x0");
+    assert.equal(to.rpcQuantityHexString(0), "0x0");
     done();
   });
 
   it("should print '0x0' for input '0'", function(done) {
-    assert.equal(to.hexWithoutLeadingZeroes("0"), "0x0");
+    assert.equal(to.rpcQuantityHexString("0"), "0x0");
     done();
   });
 
   it("should print '0x0' for input '000'", function(done) {
-    assert.equal(to.hexWithoutLeadingZeroes("000"), "0x0");
+    assert.equal(to.rpcQuantityHexString("000"), "0x0");
     done();
   });
 
   it("should print '0x0' for input '0x000'", function(done) {
-    assert.equal(to.hexWithoutLeadingZeroes("0x000"), "0x0");
+    assert.equal(to.rpcQuantityHexString("0x000"), "0x0");
     done();
   });
 
   it("should print '0x20' for input '0x0020'", function(done) {
-    assert.equal(to.hexWithoutLeadingZeroes("0x0020"), "0x20");
+    assert.equal(to.rpcQuantityHexString("0x0020"), "0x20");
     done();
   });
 });
@@ -33,7 +33,7 @@ describe("to.hexWithoutLeadingZeroes", function() {
 function noLeadingZeros(result) {
   if (typeof result === "string") {
     if (/^0x/.test(result)) {
-      assert.equal(result, to.hexWithoutLeadingZeroes(result));
+      assert.equal(result, to.rpcQuantityHexString(result));
     }
   } else if (typeof result === "object") {
     for (var key in result) {
