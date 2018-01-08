@@ -39,6 +39,7 @@
     "web3": "^0.19.1",
     "web3-provider-engine": "~8.1.0",
     "webpack": "^2.2.1",
+    "websocket": "^1.0.24",
     "yargs": "^7.0.2"
   },
   "devDependencies": {
