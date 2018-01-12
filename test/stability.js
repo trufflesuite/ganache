@@ -90,7 +90,8 @@ describe("TestRPC", function(done) {
   });
 
   it("should not crash when receiving transactions which don't pass FakeTransaction validation", function(done) {
-    (provider.sendAsync || provider.send).bind(provider)({
+    // the || below is for web3 1.0 compatibility so that I don't need to update this test when websockets is merged
+    (provider.sendAsync || provider.send)({
       jsonrpc: 2.0,
       id: 123,
       method: 'eth_sendTransaction',
