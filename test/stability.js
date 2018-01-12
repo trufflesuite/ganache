@@ -88,6 +88,23 @@ describe("TestRPC", function(done) {
 
     batch.execute();
   });
+
+  it("should not crash when receiving transactions which don't pass FakeTransaction validation", function(done) {
+    (provider.sendAsync || provider.send).bind(provider)({
+      jsonrpc: 2.0,
+      id: 123,
+      method: 'eth_sendTransaction',
+      params:[{
+        from: accounts[0],
+        to: '0x123', //bad address
+        value: '1000000000000000000' // 1 ETH
+      }]
+    }, function(err, result) {
+      assert.notEqual(err, undefined)
+      assert.notEqual(result.error, undefined)
+      done()
+    })
+  })
 });
 
 //TODO: remove `.skip` when working on and/or submitting fix for issue #453
