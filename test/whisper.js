@@ -11,10 +11,9 @@ describe("Whisper", function(done) {
     web3.setProvider(provider);
   });
 
-  it("should call get whisper version (shh_version)", function(done) {
-    web3.version.getWhisper(function(err, result){
+  it("should call get whisper version (shh_version)", function() {
+    return web3.shh.getVersion(function(err, result){
       assert.equal(result, "2", "Whisper version should be 2");
-      done();
     })
   });
 });

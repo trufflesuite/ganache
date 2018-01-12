@@ -1,3 +1,4 @@
+var BN = require('bn.js');
 var Web3 = require('web3');
 var TestRPC = require("../index.js");
 var assert = require('assert');
@@ -58,7 +59,7 @@ describe("Interval Mining", function() {
       web3.eth.sendTransaction({
         from: first_address,
         to: "0x1234567890123456789012345678901234567890",
-        value: web3.toWei(1, "Ether"),
+        value: web3.utils.toWei(new BN(1), "ether"),
         gas: 90000
       }, function(err, tx) {
         if (err) return done(err);
@@ -98,7 +99,7 @@ describe("Interval Mining", function() {
       assert.equal(number, 0);
 
       // Stop mining
-      web3.currentProvider.sendAsync({
+      web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "miner_stop",
         id: new Date().getTime()
@@ -113,7 +114,7 @@ describe("Interval Mining", function() {
             assert.equal(latest_number, 0);
 
             // Start mining again
-            web3.currentProvider.sendAsync({
+            web3.currentProvider.send({
               jsonrpc: "2.0",
               method: "miner_start",
               params: [1],

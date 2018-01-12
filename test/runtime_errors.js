@@ -17,11 +17,15 @@ describe("Runtime Errors", function() {
   var errorInstance;
   var code;
 
-  before("get accounts", function(done) {
-    web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+  before ("initialize Web3", function(done) {
+    web3 = new Web3()
+    web3.setProvider(TestRPC.provider())
+    done()
+  });
+
+  before("get accounts", function() {
+    return web3.eth.getAccounts().then(function(accs) {
       accounts = accs;
-      done();
     });
   });
 
@@ -34,21 +38,23 @@ describe("Runtime Errors", function() {
     code = "0x" + result.contracts["RuntimeError.sol:RuntimeError"].bytecode;
     var abi = JSON.parse(result.contracts["RuntimeError.sol:RuntimeError"].interface);
 
-    ErrorContract = web3.eth.contract(abi);
+    ErrorContract = new web3.eth.Contract(abi);
     ErrorContract._code = code;
-    ErrorContract.new({data: code, from: accounts[0], gas: 3141592}, function(err, instance) {
-      if (err) return done(err);
-      if (!instance.address) return;
-
-      errorInstance = instance;
-
-      done();
-    });
+    ErrorContract.deploy({data: code})
+      .send({from: accounts[0], gas: 3141592})
+      .then(function(instance) {
+        // TODO: ugly workaround - not sure why this is necessary.
+        if (!instance._requestManager.provider) {
+          instance._requestManager.setProvider(web3.eth._provider);
+        }
+        errorInstance = instance;
+        done();
+      });
   });
 
   it("should output instruction index on runtime errors", function(done) {
     // This should execute immediately.
-    errorInstance.error({from: accounts[0], gas: 3141592}, function(err) {
+    errorInstance.methods.error().send({from: accounts[0], gas: 3141592}, function(err) {
       assert(err.hashes.length > 0);
       assert(Object.keys(err.results).length > 0);
 
@@ -60,7 +66,7 @@ describe("Runtime Errors", function() {
 
   it("should output the transaction hash even if a runtime error occurs", function(done) {
     // we can't use `web3.eth.sendTransaction` because it will obfuscate the result
-    web3.currentProvider.sendAsync({
+    web3.currentProvider.send({
       jsonrpc: "2.0",
       method: "eth_sendTransaction",
       params: [{
@@ -74,6 +80,12 @@ describe("Runtime Errors", function() {
       assert.equal(result.result.length, 66); // transaction hash
       done();
     });
+  });
+
+  after('shutdown', function(done) {
+    let provider = web3._provider;
+    web3.setProvider();
+    provider.close(done);
   });
 
 })

@@ -23,7 +23,7 @@ var tests = function(web3) {
     it("recovers after to address that isn't a string", function(done) {
       var provider = web3.currentProvider;
 
-      provider.sendAsync({
+      provider.send({
         "jsonrpc": "2.0",
         "method": "eth_sendTransaction",
         "params": [
@@ -66,7 +66,7 @@ var tests = function(web3) {
         "id": 2
       }
 
-      provider.sendAsync(request, function(err, result) {
+      provider.send(request, function(err, result) {
         // We're supposed to get an error the first time. Let's assert we get the right one.
         // Note that if using the TestRPC as a provider, err will be non-null when there's
         // an error. However, when using it as a server it won't be. In both cases, however,
@@ -74,7 +74,7 @@ var tests = function(web3) {
         assert(result.error.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 0 tx has nonce of: 4294967295") >= 0);
 
         delete request.params[0].nonce
-        provider.sendAsync(request, done)
+        provider.send(request, done)
       });
     });
 
@@ -96,7 +96,7 @@ var tests = function(web3) {
         "id": 2
       }
 
-      provider.sendAsync(request, function(err, result) {
+      provider.send(request, function(err, result) {
         // We're supposed to get an error the first time. Let's assert we get the right one.
         // Note that if using the TestRPC as a provider, err will be non-null when there's
         // an error. However, when using it as a server it won't be. In both cases, however,
@@ -104,7 +104,7 @@ var tests = function(web3) {
         assert(result.error.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0);
 
         delete request.params[0].nonce
-        provider.sendAsync(request, done)
+        provider.send(request, done)
       });
     });
 
@@ -128,7 +128,7 @@ var tests = function(web3) {
           "id": 2
         }
 
-        provider.sendAsync(request, function(err, result) {
+        provider.send(request, function(err, result) {
           // We're supposed to get an error the first time. Let's assert we get the right one.
           // Note that if using the TestRPC as a provider, err will be non-null when there's
           // an error. However, when using it as a server it won't be. In both cases, however,
@@ -136,7 +136,7 @@ var tests = function(web3) {
           assert(result.error.message.indexOf("sender doesn't have enough funds to send tx. The upfront cost is: 324518553658426726783156021576256 and the sender's account only has: 99999999999463087088") >= 0);
 
           request.params[0].value = "0x5";
-          provider.sendAsync(request, done)
+          provider.send(request, done)
         });
       })
     });

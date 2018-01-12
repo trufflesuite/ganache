@@ -4,16 +4,20 @@ var TestRPC = require("../index.js");
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
+var to = require("../lib/utils/to.js");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
 describe("Gas Estimation", function() {
-  var web3 = new Web3(TestRPC.provider());
+  var web3 = new Web3(TestRPC.provider({}));
   var accounts;
+  var estimateGasContractData;
+  var estimateGasContractAbi;
   var EstimateGasContract;
-  var EstimateGas;
+  var estimateGasInstance;
+  var deploymentReceipt;
   var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
 
   before("get accounts", function(done) {
@@ -24,68 +28,66 @@ describe("Gas Estimation", function() {
     });
   });
 
-  before("compile source", function(done) {
+  before("compile source", function() {
     this.timeout(10000);
     var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
 
-    var code = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
-    var abi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
+    estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
+    estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
 
-    EstimateGasContract = web3.eth.contract(abi);
-    EstimateGasContract._code = code;
-    EstimateGasContract.new({data: code, from: accounts[0], gas: 3141592}, function(err, instance) {
-      if (err) return done(err);
-      if (!instance.address) return;
-
-      EstimateGas = instance;
-
-      done();
-    });
+    EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
+    return EstimateGasContract.deploy({data: estimateGasContractData})
+      .send({from: accounts[0], gas: 3141592})
+      .on('receipt', function (receipt) {
+        deploymentReceipt = receipt;
+      })
+      .then(function(instance) {
+        // TODO: ugly workaround - not sure why this is necessary.
+        if (!instance._requestManager.provider) {
+          instance._requestManager.setProvider(web3.eth._provider);
+        }
+        estimateGasInstance = instance;
+      });
   });
 
-  function verifyGas(txHash, gasEstimate, done) {
-    // Get the gas usage.
-    web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
-      if (err) return done(err);
-
-      // When instamining, gasUsed and cumulativeGasUsed should be the same.
-      assert.equal(receipt.gasUsed, gasEstimate);
-      assert.equal(receipt.cumulativeGasUsed, gasEstimate);
-
-      done();
-    });
-  }
-
-  function testTransactionEstimate(contractFn, args, done) {
-    var estimate = contractFn.estimateGas.bind.apply(contractFn.estimateGas, [contractFn].concat(args));
-    var transaction = contractFn.bind.apply(contractFn, [contractFn].concat(args));
-
-    estimate(function(err, estimate) {
-      if (err) return done(err);
-
-      // Now perform the actual transaction
-      transaction(function(err, tx) {
-        if (err) return done(err);
-
-        verifyGas(tx, estimate, done);
+  function testTransactionEstimate(contractFn, args, options, done) {
+    return contractFn.apply(contractFn, args).estimateGas(options)
+      .then(function(estimate) {
+        return web3.eth.sendTransaction(Object.assign(contractFn.apply(contractFn, args), options)) 
+          .then(function(receipt) {
+            assert.equal(receipt.gasUsed, estimate);
+            assert.equal(receipt.cumulativeGasUsed, estimate);
+            done()
+          })
       })
-    })
   }
 
-  it("matches estimate for deployment", function(done) {
-    web3.eth.estimateGas({ data: EstimateGasContract._code, from: accounts[0]}, function(err, gasEstimate) {
-      if (err) assert.fail(err);
-
-      verifyGas(EstimateGas.transactionHash, gasEstimate, done);
-    });
+  it("matches estimate for deployment", function() {
+    let contract = new web3.eth.Contract(estimateGasContractAbi);
+    contract.deploy({ data: estimateGasContractData })
+      .estimateGas({ from: accounts[1], gas: 3141592 })
+      .then(function(gasEstimate) {
+        assert.deepEqual(deploymentReceipt.gasUsed, gasEstimate);
+        assert.deepEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
+      });
   });
 
   it("matches usage for complex function call (add)", function(done) {
-    testTransactionEstimate(EstimateGas.add, ["Tim", "A great guy", 5, {from: accounts[0], gas: 3141592}], done);
+    this.timeout(10000)
+    testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 5], {from: accounts[0], gas: 3141592}, done);
   });
 
   it("matches usage for complex function call (transfer)", function(done) {
-    testTransactionEstimate(EstimateGas.transfer, ["0x0123456789012345678901234567890123456789", 5, "Tim", {from: accounts[0], gas: 3141592}], done);
+    this.timeout(10000)
+    testTransactionEstimate(estimateGasInstance.methods.transfer, ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")], {from: accounts[0], gas: 3141592}, done);
   });
+
+  function toBytes(s) {
+    let bytes = Array.prototype.map.call(s, function(c) {
+      return c.codePointAt(0)
+    })
+
+    return to.hex(Buffer.from(bytes))
+  }
 
 });

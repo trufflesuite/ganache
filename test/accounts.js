@@ -1,3 +1,4 @@
+var BN = require('bn.js');
 var Web3 = require('web3');
 var TestRPC = require("../index.js");
 var assert = require('assert');
@@ -30,7 +31,7 @@ describe("Accounts", function() {
     web3.eth.sendTransaction({
       from: expected_address,
       to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
-      value: web3.toWei(1, "Ether"),
+      value: web3.utils.toWei(new BN(1), "ether"),
       gasLimit: 90000
     }, function(err, tx) {
       if (!err) return done(new Error("We expected the account to be locked, which should throw an error when sending a transaction"));
@@ -50,7 +51,7 @@ describe("Accounts", function() {
     web3.eth.sendTransaction({
       from: expected_address,
       to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
-      value: web3.toWei(1, "Ether"),
+      value: web3.utils.toWei(new BN(1), "ether"),
       gasLimit: 90000
     }, function(err, tx) {
       if (err) return done(err);
@@ -70,7 +71,7 @@ describe("Accounts", function() {
     web3.eth.sendTransaction({
       from: expected_address,
       to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
-      value: web3.toWei(1, "Ether"),
+      value: web3.utils.toWei(new BN(1), "ether"),
       gasLimit: 90000
     }, function(err, tx) {
       if (err) return done(err);
@@ -79,7 +80,7 @@ describe("Accounts", function() {
     });
   });
 
-  it("should unlock accounts even if private key isn't managed by the testrpc (impersonation)", function(done) {
+  it("should unlock accounts even if private key isn't managed by the testrpc (impersonation)", function() {
     var second_address = "0x1234567890123456789012345678901234567890";
 
     var web3 = new Web3();
@@ -90,39 +91,38 @@ describe("Accounts", function() {
     }));
 
     // Set up: give second address some ether
-    web3.eth.sendTransaction({
-      from: expected_address,
-      to: second_address,
-      value: web3.toWei(10, "Ether"),
-      gasLimit: 90000
-    }, function(err, tx) {
-      if (err) return done(err);
-
+    return web3.eth.sendTransaction({
+        from: expected_address,
+        to: second_address,
+        value: web3.utils.toWei(new BN(10), "ether"),
+        gasLimit: 90000
+    }).then(() => {
       // Now we should be able to send a transaction from second address without issue.
-      web3.eth.sendTransaction({
+      return web3.eth.sendTransaction({
         from: second_address,
         to: expected_address,
-        value: web3.toWei(5, "Ether"),
+        value: web3.utils.toWei(new BN(5), "ether"),
         gasLimit: 90000
-      }, function(err, tx) {
-        if (err) return done(err);
-
-        // And for the heck of it let's check the balance just to make sure it went througj
-        web3.eth.getBalance(second_address, function(err, balance) {
-          if (err) return done(err);
-
-          var balanceInEther = web3.fromWei(balance, "Ether");
-
-          // Can't check the balance exactly. It cost some ether to send the transaction.
-          assert(balanceInEther.gt(4));
-          assert(balanceInEther.lt(5));
-          done();
-        });
       });
+    }).then(tx => {
+      // And for the heck of it let's check the balance just to make sure it went through
+      return web3.eth.getBalance(second_address);
+    }).then(balance => {
+      var balanceInEther = web3.utils.fromWei(new BN(balance), "ether");
+
+      if (typeof balanceInEther === 'string') {
+        balanceInEther = parseFloat(balanceInEther);
+      } else {
+        balanceInEther.toNumber();
+      }
+
+      // Can't check the balance exactly. It cost some ether to send the transaction.
+      assert(balanceInEther > 4);
+      assert(balanceInEther < 5);
     });
   });
 
-  it("errors when we try to sign a transaction from an account we're impersonating", function(done) {
+  it("errors when we try to sign a transaction from an account we're impersonating", function() {
     var second_address = "0x1234567890123456789012345678901234567890";
 
     var web3 = new Web3();
@@ -132,12 +132,12 @@ describe("Accounts", function() {
       unlocked_accounts: [0, second_address]
     }));
 
-    web3.eth.sign(second_address, "some data", function(err, result) {
-      if (!err) return done(new Error("Expected an error while signing when not managing the private key"));
-
-      assert(err.message.toLowerCase().indexOf("cannot sign data; no private key") >= 0);
-      done();
-    });
+    return web3.eth.sign("some data", second_address)
+      .then(result => {
+        assert.fail("Expected an error while signing when not managing the private key")
+      }).catch(err => {
+        assert(err.message.toLowerCase().indexOf("cannot sign data; no private key") >= 0);
+      });
   });
 
   it("should create a 2 accounts when passing an object to provider", function(done) {
@@ -185,7 +185,7 @@ describe("Accounts", function() {
           web3.eth.getBalance(accounts[0], function(err, balance) {
             if (err) return reject(err);
 
-            var balanceInEther = web3.fromWei(balance, "Ether");
+            var balanceInEther = web3.utils.fromWei(balance, "Ether");
 
             assert.equal(balanceInEther, 1.23456);
             return accept(balance);

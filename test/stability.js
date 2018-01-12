@@ -1,3 +1,4 @@
+var BN = require('bn.js');
 var Web3 = require('web3');
 var assert = require('assert');
 var TestRPC = require("../index.js");
@@ -53,7 +54,7 @@ describe("TestRPC", function(done) {
       web3.eth.sendTransaction({
         from: accounts[0],
         to: accounts[1],
-        value: web3.toWei(1, "ether")
+        value: web3.utils.toWei(new BN(1), "ether")
       }, txHandler);
     }
   });
@@ -76,13 +77,13 @@ describe("TestRPC", function(done) {
       }
     };
 
-    var batch = web3.createBatch();
+    var batch = new web3.BatchRequest();
 
     for (var i = 0; i < expected; i++) {
       batch.add(web3.eth.sendTransaction.request({
         from: accounts[0],
         to: accounts[1],
-        value: web3.toWei(1, "ether")
+        value: web3.utils.toWei(new BN(1), "ether")
       }), txHandler);
     }
 

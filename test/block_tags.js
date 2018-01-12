@@ -111,12 +111,14 @@ describe("Block Tags", function() {
   it("should return the initial balance at the previous block number", function(done) {
     web3.eth.getBalance(accounts[0], initial_block_number, function(err, balance) {
       if (err) return done(err);
-      assert(balance.eq(initial.balance));
+      assert.equal(balance, initial.balance);
 
       // Check that the balance incremented with the block number, just to be sure.
       web3.eth.getBalance(accounts[0], initial_block_number + 1, function(err, balance) {
         if (err) return done(err);
-        assert(balance.lt(initial.balance));
+        var initialBalanceInEther = parseFloat(web3.utils.fromWei(initial.balance, 'ether'));
+        var balanceInEther = parseFloat(web3.utils.fromWei(balance, 'ether'));
+        assert(balanceInEther < initialBalanceInEther);
         done();
       });
     });

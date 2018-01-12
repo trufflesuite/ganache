@@ -14,7 +14,7 @@ describe("Custom Gas Price", function() {
     web3.setProvider(provider);
     web3.eth.getGasPrice(function(err, result) {
       if (err) return done(err);
-      assert.deepEqual(result.toNumber(), 15);
+      assert.equal(parseFloat(result), 15);
       done();
     });
   });
@@ -25,7 +25,7 @@ describe("Custom Gas Price", function() {
     web3.setProvider(provider);
     web3.eth.getGasPrice(function(err, result) {
       if (err) return done(err);
-      assert.deepEqual(result.toNumber(), 15);
+      assert.equal(parseFloat(result), 15);
       done();
     });
   });

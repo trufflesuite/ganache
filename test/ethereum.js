@@ -12,10 +12,9 @@ describe("Ethereum", function(done) {
     web3.setProvider(provider);
   });
 
-  it("should get ethereum version (eth_protocolVersion)", function(done) {
-    web3.version.getEthereum(function(err, result){
+  it("should get ethereum version (eth_protocolVersion)", function() {
+    return web3.eth.getProtocolVersion().then(result => {
       assert.equal(result, "63", "Network Version should be 63");
-      done();
     })
   });
 });

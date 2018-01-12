@@ -18,7 +18,7 @@ describe('Time adjustment', function() {
       params = [];
     }
 
-    provider.sendAsync({
+    provider.send({
       jsonrpc: "2.0",
       method: method,
       params: params || [],

@@ -121,7 +121,7 @@ var runTests = function(providerInit) {
     it("should maintain the balance of the original accounts", function (done) {
       web3.eth.getBalance(accounts[0], function(err, balance) {
         if (err) return done(err);
-        assert(balance.toNumber() > 98);
+        assert(balance > 98);
         done();
       });
     });
