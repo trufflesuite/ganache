@@ -402,7 +402,7 @@ describe("Forking", function() {
 
             oracle.currentBlock.call(function(err, number) {
               if (err) return done(err);
-              assert.equal(number, expected_number);
+              assert.equal(number, expected_number + 1);
 
               oracle.setCurrentBlock({from: mainAccounts[0], gas: 3141592}, function(err, tx) {
                 if (err) return done(err);
