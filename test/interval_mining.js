@@ -46,7 +46,7 @@ describe("Interval Mining", function() {
     this.timeout(5000);
 
     web3 = new Web3(TestRPC.provider({
-      blocktime: 0.5, // seconds
+      blocktime: 0.25, // seconds
       mnemonic: mnemonic
     }));
 
@@ -93,25 +93,25 @@ describe("Interval Mining", function() {
       mnemonic: mnemonic
     }));
 
-    // Get the first block (pre-condition)
-    web3.eth.getBlockNumber(function(err, number) {
+    // Stop mining
+    web3.currentProvider.send({
+      jsonrpc: "2.0",
+      method: "miner_stop",
+      id: new Date().getTime()
+    }, function(err, result) {
       if (err) return done(err);
-      assert.equal(number, 0);
+      if (result.error) return done(result.error.message);
 
-      // Stop mining
-      web3.currentProvider.send({
-        jsonrpc: "2.0",
-        method: "miner_stop",
-        id: new Date().getTime()
-      }, function(err) {
+      // Get the first block (pre-condition)
+      web3.eth.getBlockNumber(function(err, initial_number) {
         if (err) return done(err);
 
         // Wait .75 seconds (one and a half mining intervals) and ensure
         // the block number hasn't increased.
         setTimeout(function() {
-          web3.eth.getBlockNumber(function(err, latest_number) {
+          web3.eth.getBlockNumber(function(err, stopped_number) {
             if (err) return done(err);
-            assert.equal(latest_number, 0);
+            assert.equal(stopped_number, initial_number);
 
             // Start mining again
             web3.currentProvider.send({
@@ -119,8 +119,9 @@ describe("Interval Mining", function() {
               method: "miner_start",
               params: [1],
               id: new Date().getTime()
-            }, function(err) {
+            }, function(err, result) {
               if (err) return done(err);
+              if (result.error) return done(result.error.message);
 
               // Wait .75 seconds (one and a half mining intervals) and ensure
               // the block number has increased by one.
@@ -128,7 +129,7 @@ describe("Interval Mining", function() {
                 web3.eth.getBlockNumber(function(err, last_number) {
                   if (err) return done(err);
 
-                  assert(last_number, latest_number + 1);
+                  assert(last_number > stopped_number);
                   done();
                 });
               }, 750)
