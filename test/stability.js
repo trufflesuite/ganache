@@ -1,8 +1,12 @@
 var BN = require('bn.js');
 var Web3 = require('web3');
-var assert = require('assert');
+var assert = require('assert-match');
+var matchers = require('assert-match/matchers');
 var Ganache = require("../index.js");
 var utils = require('ethereumjs-util');
+var pify = require('pify');
+
+var regex = matchers.regex
 
 var logger = {
   log: function(message) {
@@ -93,8 +97,7 @@ describe("stability", function(done) {
   });
 
   it("should not crash when receiving transactions which don't pass FakeTransaction validation", function(done) {
-    // the || below is for web3 1.0 compatibility so that I don't need to update this test when websockets is merged
-    (provider.sendAsync || provider.send)({
+    provider.send({
       jsonrpc: 2.0,
       id: 123,
       method: 'eth_sendTransaction',
@@ -108,6 +111,30 @@ describe("stability", function(done) {
       assert.notEqual(result.error, undefined)
       done()
     })
+  })
+
+  it('should not crash when receiving a request with too many arguments', function() {
+    // At time of writing, `evm_mine` takes 0 arguments
+    return pify(provider.send)({
+      jsonrpc: 2.0,
+      id: 123,
+      method: 'evm_mine',
+      params:[
+        '0x1',
+        '0x2',
+        '0x3',
+        '0x4',
+        '0x5',
+        '0x6',
+        '0x7',
+        '0x8',
+        '0x9',
+        '0xA'
+        // 10 oughtta do it!
+      ]
+    }).catch(err => {
+      assert.deepEqual(err.message, regex(/Method 'evm_mine' requires a maximum of \d+ arguments/));
+    });// nothing to check from here, if the promise rejects, test fails
   })
 
   //TODO: remove `.skip` when working on and/or submitting fix for issue #453
