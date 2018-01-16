@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
@@ -11,7 +11,7 @@ var RuntimeError = require("../lib/utils/runtimeerror");
 process.removeAllListeners("uncaughtException");
 
 describe("Runtime Errors", function() {
-  var web3 = new Web3(TestRPC.provider({
+  var web3 = new Web3(Ganache.provider({
     vmErrorsOnRPCResponse: true
   }));
   var accounts;
@@ -21,7 +21,7 @@ describe("Runtime Errors", function() {
 
   before ("initialize Web3", function(done) {
     web3 = new Web3()
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       vmErrorsOnRPCResponse: true
     }))
     done()

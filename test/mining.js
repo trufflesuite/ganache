@@ -1,6 +1,6 @@
 var BN = require('bn.js');
 var Web3 = require('web3');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert');
 var to = require("../lib/utils/to.js");
 var solc = require("solc");
@@ -10,7 +10,7 @@ var solc = require("solc");
 process.removeAllListeners("uncaughtException");
 
 describe("Mining", function() {
-  var web3 = new Web3(TestRPC.provider({
+  var web3 = new Web3(Ganache.provider({
     //logger: console,
     vmErrorsOnRPCResponse: true
   }));
@@ -206,7 +206,7 @@ describe("Mining", function() {
 
   it("should mine two blocks when two queued transactions won't fit into a single block", function() {
     // This is a very similar test to the above, except the gas limits are much higher
-    // per transaction. This means the TestRPC will react differently and process
+    // per transaction. This means the Ganache will react differently and process
     // each transaction it its own block.
 
     var tx1, tx2, blockNumber;

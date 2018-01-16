@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
@@ -11,7 +11,7 @@ var to = require("../lib/utils/to.js");
 process.removeAllListeners("uncaughtException");
 
 describe("Gas Estimation", function() {
-  var web3 = new Web3(TestRPC.provider({}));
+  var web3 = new Web3(Ganache.provider({}));
   var accounts;
   var estimateGasContractData;
   var estimateGasContractAbi;

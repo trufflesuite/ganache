@@ -1,5 +1,5 @@
 var Web3 = require('web3');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert');
 var temp = require("temp").track();
 var fs = require("fs");
@@ -134,7 +134,7 @@ describe("Default DB", function() {
   temp.mkdir('testrpc-db-', function(err, dirPath) {
     var db_path = dirPath;
     var providerInit = function(cb) {
-      provider = TestRPC.provider({
+      provider = Ganache.provider({
         db_path: dirPath,
         mnemonic: "debris electric learn dove warrior grow pistol carry either curve radio hidden"
       });
@@ -151,7 +151,7 @@ describe("Custom DB", function() {
 
   // initialize a custom persistence provider
   var providerInit = function(cb) {
-    provider = TestRPC.provider({
+    provider = Ganache.provider({
       db: db,
       mnemonic: "debris electric learn dove warrior grow pistol carry either curve radio hidden"
     });

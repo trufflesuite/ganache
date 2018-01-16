@@ -1,4 +1,4 @@
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
 var async = require("async");
@@ -24,7 +24,7 @@ var logger = {
 
 describe("Forking using a Provider", function() {
   var contract;
-  var forkedProvider = TestRPC.provider({
+  var forkedProvider = Ganache.provider({
     logger: logger,
     seed: "main provider"
   });
@@ -105,7 +105,7 @@ describe("Forking using a Provider", function() {
   });
 
   before("Set up main provider and web3 instance", function() {
-    mainProvider = TestRPC.provider({
+    mainProvider = Ganache.provider({
       fork: forkedProvider,
       logger: logger,
       seed: "forked provider"

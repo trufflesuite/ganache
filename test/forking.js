@@ -2,7 +2,7 @@ var Web3 = require('web3');
 var Web3WsProvider = require('web3-providers-ws');
 var utils = require('ethereumjs-util');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var fs = require("fs");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
@@ -71,9 +71,9 @@ describe("Forking", function() {
     };
   });
 
-  before("Initialize Fallback TestRPC server", function(done) {
+  before("Initialize Fallback Ganache server", function(done) {
     this.timeout(10000)
-    forkedServer = TestRPC.server({
+    forkedServer = Ganache.server({
       // Do not change seed. Determinism matters for these tests.
       seed: "let's make this deterministic",
       ws: true,
@@ -178,7 +178,7 @@ describe("Forking", function() {
   });
 
   before("Set main web3 provider, forking from forked chain at this point", function(done) {
-    mainWeb3.setProvider(TestRPC.provider({
+    mainWeb3.setProvider(Ganache.provider({
       fork: forkedTargetUrl.replace('ws', 'http'),
       logger,
       verbose: true,

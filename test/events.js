@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 var Web3WsProvider = require('web3-providers-ws');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert');
 var solc = require("solc");
 var async = require("async");
@@ -253,7 +253,7 @@ var logger = {
 
 describe("Provider:", function() {
   var web3 = new Web3();
-  web3.setProvider(TestRPC.provider({
+  web3.setProvider(Ganache.provider({
     logger: logger
   }));
   tests(web3);
@@ -264,8 +264,8 @@ describe("Server:", function(done) {
   var port = 12345;
   var server;
 
-  before("Initialize TestRPC server", function(done) {
-    server = TestRPC.server({
+  before("Initialize Ganache server", function(done) {
+    server = Ganache.server({
       logger: logger,
       ws: true
     });

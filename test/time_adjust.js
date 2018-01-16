@@ -1,4 +1,4 @@
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert-match');
 var matchers = require('assert-match/matchers');
 var gte = matchers.gte
@@ -7,7 +7,7 @@ var Web3 = require("web3");
 
 describe('Time adjustment', function() {
   var startTime = new Date("Wed Aug 24 2016 00:00:00 GMT-0700 (PDT)");
-  var provider = TestRPC.provider({
+  var provider = Ganache.provider({
     time: startTime
   });
   var web3 = new Web3(provider);

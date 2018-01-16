@@ -1,6 +1,6 @@
 var assert = require("assert");
 var Web3 = require("web3");
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var to = require("../lib/utils/to.js");
 
 describe("to.rpcQuantityHexString", function() {
@@ -46,7 +46,7 @@ function noLeadingZeros(result) {
 
 describe("JSON-RPC Response", function() {
   var web3 = new Web3();
-  var provider = TestRPC.provider();
+  var provider = Ganache.provider();
   web3.setProvider(provider);
 
   var accounts;

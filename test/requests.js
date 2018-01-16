@@ -3,7 +3,7 @@ var Web3WsProvider = require('web3-providers-ws');
 var Transaction = require('ethereumjs-tx');
 var utils = require('ethereumjs-util');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var solc = require("solc");
 var fs = require("fs");
 var to = require("../lib/utils/to");
@@ -328,7 +328,7 @@ var tests = function(web3) {
     // Load account.
     before(function( done ){
       signingWeb3 = new Web3();
-      signingWeb3.setProvider(TestRPC.provider({
+      signingWeb3.setProvider(Ganache.provider({
         accounts: [ acc ]
       }));
       signingWeb3.eth.getAccounts(function(err, accs) {
@@ -1090,7 +1090,7 @@ var logger = {
 describe("Provider:", function() {
   var Web3 = require('web3');
   var web3 = new Web3();
-  web3.setProvider(TestRPC.provider({
+  web3.setProvider(Ganache.provider({
     logger: logger,
     seed: "1337",
     // so that the runtime errors on call test passes
@@ -1111,8 +1111,8 @@ describe("HTTP Server:", function(done) {
   var port = 12345;
   var server;
 
-  before("Initialize TestRPC server", function(done) {
-    server = TestRPC.server({
+  before("Initialize Ganache server", function(done) {
+    server = Ganache.server({
       logger: logger,
       seed: "1337",
       // so that the runtime errors on call test passes
@@ -1138,8 +1138,8 @@ describe("WebSockets Server:", function(done) {
   var port = 12345;
   var server;
 
-  before("Initialize TestRPC server", function(done) {
-    server = TestRPC.server({
+  before("Initialize Ganache server", function(done) {
+    server = Ganache.server({
       logger: logger,
       seed: "1337",
       // so that the runtime errors on call test passes

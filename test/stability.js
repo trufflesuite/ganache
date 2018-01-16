@@ -1,7 +1,7 @@
 var BN = require('bn.js');
 var Web3 = require('web3');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var utils = require('ethereumjs-util');
 
 var logger = {
@@ -10,7 +10,7 @@ var logger = {
   }
 };
 
-describe("TestRPC", function(done) {
+describe("stability", function(done) {
   var web3 = new Web3();
   var provider;
   var port = 12345;
@@ -18,7 +18,7 @@ describe("TestRPC", function(done) {
   var accounts;
 
   before("Initialize the provider", function() {
-    provider = TestRPC.provider({
+    provider = Ganache.provider({
       vmErrorsOnRPCResponse: true
     });
     web3.setProvider(provider);
@@ -109,60 +109,61 @@ describe("TestRPC", function(done) {
       done()
     })
   })
-});
 
-//TODO: remove `.skip` when working on and/or submitting fix for issue #453
-describe.skip("race conditions", function(done) {
-  var web3 = new Web3();
-  var provider;
-  var accounts;
+  //TODO: remove `.skip` when working on and/or submitting fix for issue #453
+  describe.skip("race conditions", function(done) {
+    var web3 = new Web3();
+    var provider;
+    var accounts;
 
-  before("initialize the provider", function() {
-    provider = TestRPC.provider({
-      vmErrorsOnRPCResponse: true
-    });
-    web3.setProvider(provider);
-  });
-
-  before("get accounts", function(done) {
-    web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
-
-      accounts = accs;
-      done();
-    });
-  });
-
-  it("should not cause 'get' of undefined", function(done) {
-    process.prependOnceListener('uncaughtException', function(err) {
-      done(err);
+    before("initialize the provider", function() {
+      provider = Ganache.provider({
+        vmErrorsOnRPCResponse: true
+      });
+      web3.setProvider(provider);
     });
 
-    var blockchain = provider.manager.state.blockchain;
-    blockchain.vm.stateManager.checkpoint(); // processCall or processBlock
-    blockchain.stateTrie.get(utils.toBuffer(accounts[0]), function() {}); // getCode (or any function that calls trie.get)
-    blockchain.vm.stateManager.revert(function() {
-      done();
-    }); // processCall or processBlock
-  });
+    before("get accounts", function(done) {
+      web3.eth.getAccounts(function(err, accs) {
+        if (err) return done(err);
 
-  it("should not cause 'pop' of undefined", function(done) {
-    process.prependOnceListener('uncaughtException', function(err) {
-      done(err);
+        accounts = accs;
+        done();
+      });
     });
 
-    var blockchain = provider.manager.state.blockchain;
-    blockchain.vm.stateManager.checkpoint(); // processCall #1
-    // processNextBlock triggered by interval mining which at some point calls vm.stateManager.commit() and blockchain.putBlock()
-    blockchain.processNextBlock(function(err, tx, results) {
-      blockchain.vm.stateManager.revert(function() { // processCall #1 finishes
-        blockchain.latestBlock(function (err, latestBlock) { 
-          blockchain.stateTrie.root = latestBlock.header.stateRoot; // getCode #1 (or any function with this logic)
-          web3.eth.call({}, function() {
-            done();
-          }); // processCall #2
+    it("should not cause 'get' of undefined", function(done) {
+      process.prependOnceListener('uncaughtException', function(err) {
+        done(err);
+      });
+
+      var blockchain = provider.manager.state.blockchain;
+      blockchain.vm.stateManager.checkpoint(); // processCall or processBlock
+      blockchain.stateTrie.get(utils.toBuffer(accounts[0]), function() {}); // getCode (or any function that calls trie.get)
+      blockchain.vm.stateManager.revert(function() {
+        done();
+      }); // processCall or processBlock
+    });
+
+    it("should not cause 'pop' of undefined", function(done) {
+      process.prependOnceListener('uncaughtException', function(err) {
+        done(err);
+      });
+
+      var blockchain = provider.manager.state.blockchain;
+      blockchain.vm.stateManager.checkpoint(); // processCall #1
+      // processNextBlock triggered by interval mining which at some point calls vm.stateManager.commit() and blockchain.putBlock()
+      blockchain.processNextBlock(function(err, tx, results) {
+        blockchain.vm.stateManager.revert(function() { // processCall #1 finishes
+          blockchain.latestBlock(function (err, latestBlock) { 
+            blockchain.stateTrie.root = latestBlock.header.stateRoot; // getCode #1 (or any function with this logic)
+            web3.eth.call({}, function() {
+              done();
+            }); // processCall #2
+          });
         });
       });
     });
   });
 });
+

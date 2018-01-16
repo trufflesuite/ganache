@@ -1,11 +1,11 @@
 var Web3 = require('web3');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert');
 var to = require('../lib/utils/to.js');
 
 describe("Transaction Ordering", function() {
   var accounts;
-  var web3 = new Web3(TestRPC.provider());
+  var web3 = new Web3(Ganache.provider());
 
   before(function(done) {
     web3.eth.getAccounts(function(err, accs) {

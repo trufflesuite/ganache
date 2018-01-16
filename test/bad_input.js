@@ -1,5 +1,5 @@
 var Web3 = require('web3');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert');
 
 var tests = function(web3) {
@@ -68,7 +68,7 @@ var tests = function(web3) {
 
       provider.send(request, function(err, result) {
         // We're supposed to get an error the first time. Let's assert we get the right one.
-        // Note that if using the TestRPC as a provider, err will be non-null when there's
+        // Note that if using the Ganache as a provider, err will be non-null when there's
         // an error. However, when using it as a server it won't be. In both cases, however,
         // result.error should be set with the same error message. We'll check for that.
         assert(result.error.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 0 tx has nonce of: 4294967295") >= 0);
@@ -98,7 +98,7 @@ var tests = function(web3) {
 
       provider.send(request, function(err, result) {
         // We're supposed to get an error the first time. Let's assert we get the right one.
-        // Note that if using the TestRPC as a provider, err will be non-null when there's
+        // Note that if using the Ganache as a provider, err will be non-null when there's
         // an error. However, when using it as a server it won't be. In both cases, however,
         // result.error should be set with the same error message. We'll check for that.
         assert(result.error.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0);
@@ -130,7 +130,7 @@ var tests = function(web3) {
 
         provider.send(request, function(err, result) {
           // We're supposed to get an error the first time. Let's assert we get the right one.
-          // Note that if using the TestRPC as a provider, err will be non-null when there's
+          // Note that if using the Ganache as a provider, err will be non-null when there's
           // an error. However, when using it as a server it won't be. In both cases, however,
           // result.error should be set with the same error message. We'll check for that.
           assert(result.error.message.indexOf("sender doesn't have enough funds to send tx. The upfront cost is: 324518553658426726783156021576256 and the sender's account only has: 99999999999463087088") >= 0);
@@ -145,7 +145,7 @@ var tests = function(web3) {
 
 describe("Provider:", function() {
   var web3 = new Web3();
-  web3.setProvider(TestRPC.provider({
+  web3.setProvider(Ganache.provider({
     vmErrorsOnRPCResponse: true
   }));
   tests(web3);
@@ -156,8 +156,8 @@ describe("Server:", function(done) {
   var port = 12345;
   var server;
 
-  before("Initialize TestRPC server", function(done) {
-    server = TestRPC.server({
+  before("Initialize Ganache server", function(done) {
+    server = Ganache.server({
       vmErrorsOnRPCResponse: true
     });
     server.listen(port, function() {

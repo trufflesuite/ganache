@@ -2,7 +2,7 @@ var Web3 = require('web3');
 var Transaction = require('ethereumjs-tx');
 var utils = require('ethereumjs-util');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var solc = require("solc");
 var fs = require("fs");
 var to = require("../lib/utils/to");
@@ -19,7 +19,7 @@ var logger = {
 };
 
 var web3 = new Web3();
-web3.setProvider(TestRPC.provider({
+web3.setProvider(Ganache.provider({
   /*blocktime: 100,*/
   logger: logger,
   seed: "1337"

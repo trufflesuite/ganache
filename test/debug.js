@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
@@ -20,7 +20,7 @@ describe("Debug", function() {
   var expectedValueBeforeTrace = 1234;
 
   before("init web3", function() {
-    provider = TestRPC.provider();
+    provider = Ganache.provider();
     web3 = new Web3(provider);
   });
 

@@ -1,7 +1,7 @@
 var Web3 = require('web3');
 var utils = require('ethereumjs-util');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var fs = require("fs");
 var solc = require("solc");
 var async = require("async");
@@ -43,7 +43,7 @@ var contract = {
 
 describe("Block Tags", function() {
   var accounts;
-  var web3 = new Web3(TestRPC.provider());
+  var web3 = new Web3(Ganache.provider());
   var contractAddress;
 
   var initial_block_number;

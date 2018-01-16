@@ -1,6 +1,6 @@
 var BN = require('bn.js');
 var Web3 = require('web3');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert');
 
 describe("Accounts", function() {
@@ -9,7 +9,7 @@ describe("Accounts", function() {
 
   it("should respect the BIP99 mnemonic", function(done) {
     var web3 = new Web3();
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       mnemonic: mnemonic,
       vmErrorsOnRPCResponse: true
     }));
@@ -24,7 +24,7 @@ describe("Accounts", function() {
 
   it("should lock all accounts when specified", function(done) {
     var web3 = new Web3();
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       mnemonic: mnemonic,
       secure: true,
       vmErrorsOnRPCResponse: true
@@ -44,7 +44,7 @@ describe("Accounts", function() {
 
   it("should unlock specified accounts, in conjunction with --secure", function(done) {
     var web3 = new Web3();
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       mnemonic: mnemonic,
       secure: true,
       unlocked_accounts: [expected_address],
@@ -65,7 +65,7 @@ describe("Accounts", function() {
 
   it("should unlock specified accounts, in conjunction with --secure, using array indexes", function(done) {
     var web3 = new Web3();
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       mnemonic: mnemonic,
       secure: true,
       unlocked_accounts: [0]
@@ -87,7 +87,7 @@ describe("Accounts", function() {
     var second_address = "0x1234567890123456789012345678901234567890";
 
     var web3 = new Web3();
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       mnemonic: mnemonic,
       secure: true,
       unlocked_accounts: [0, second_address],
@@ -130,7 +130,7 @@ describe("Accounts", function() {
     var second_address = "0x1234567890123456789012345678901234567890";
 
     var web3 = new Web3();
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       mnemonic: mnemonic,
       secure: true,
       unlocked_accounts: [0, second_address],
@@ -148,7 +148,7 @@ describe("Accounts", function() {
   it("should create a 2 accounts when passing an object to provider", function(done) {
 
     var web3 = new Web3();
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       accounts: [
         { balance: '0x12' },
         { balance: '0x13' }
@@ -166,7 +166,7 @@ describe("Accounts", function() {
 
   it("should create a 7 accounts when ", function(done) {
     var web3 = new Web3();
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       total_accounts: 7,
       vmErrorsOnRPCResponse: true
     }));
@@ -180,7 +180,7 @@ describe("Accounts", function() {
 
   it("should respect the default_balance_ether option", function(done) {
     var web3 = new Web3();
-    web3.setProvider(TestRPC.provider({
+    web3.setProvider(Ganache.provider({
       default_balance_ether: 1.23456,
       vmErrorsOnRPCResponse: true
     }));

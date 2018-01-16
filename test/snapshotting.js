@@ -1,5 +1,5 @@
 var BN = require("bn.js");
-var TestRPC = require("../");
+var Ganache = require("../");
 var async = require("async");
 var Web3 = require("web3");
 var assert = require("assert");
@@ -12,7 +12,7 @@ describe("Checkpointing / Reverting", function() {
   var snapshotId;
 
   before("create provider", function() {
-    provider = TestRPC.provider();
+    provider = Ganache.provider();
     web3.setProvider(provider);
   });
 

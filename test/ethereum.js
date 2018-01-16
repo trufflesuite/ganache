@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 
 
 describe("Ethereum", function(done) {
@@ -8,7 +8,7 @@ describe("Ethereum", function(done) {
   var provider;
 
   before("Initialize the provider", function() {
-    provider = TestRPC.provider();
+    provider = Ganache.provider();
     web3.setProvider(provider);
   });
 

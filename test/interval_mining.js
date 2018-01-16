@@ -1,6 +1,6 @@
 var BN = require('bn.js');
 var Web3 = require('web3');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert');
 var to = require("../lib/utils/to.js");
 var solc = require("solc");
@@ -18,7 +18,7 @@ describe("Interval Mining", function() {
   it("should mine a block on the interval", function(done) {
     this.timeout(5000);
 
-    web3 = new Web3(TestRPC.provider({
+    web3 = new Web3(Ganache.provider({
       blocktime: 0.5, // seconds
       mnemonic: mnemonic
     }));
@@ -45,7 +45,7 @@ describe("Interval Mining", function() {
   it("shouldn't instamine when mining on an interval", function(done) {
     this.timeout(5000);
 
-    web3 = new Web3(TestRPC.provider({
+    web3 = new Web3(Ganache.provider({
       blocktime: 0.25, // seconds
       mnemonic: mnemonic
     }));
@@ -88,7 +88,7 @@ describe("Interval Mining", function() {
   it("miner_stop should stop interval mining, and miner_start should start it again", function(done) {
     this.timeout(5000);
 
-    web3 = new Web3(TestRPC.provider({
+    web3 = new Web3(Ganache.provider({
       blocktime: 0.5, // seconds
       mnemonic: mnemonic
     }));
@@ -152,7 +152,7 @@ describe("Interval Mining", function() {
       }
     };
 
-    web3 = new Web3(TestRPC.provider({
+    web3 = new Web3(Ganache.provider({
       blocktime: 0.5, // seconds
       mnemonic: mnemonic,
       logger: logger
