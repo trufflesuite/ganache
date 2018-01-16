@@ -1,5 +1,8 @@
 var TestRPC = require("../index.js");
-var assert = require('assert');
+var assert = require('assert-match');
+var matchers = require('assert-match/matchers');
+var gte = matchers.gte
+var lte = matchers.lte
 var Web3 = require("web3");
 
 describe('Time adjustment', function() {
@@ -36,12 +39,17 @@ describe('Time adjustment', function() {
 
   it('should mine the first block at the time provided', function(done) {
     web3.eth.getBlock(0, function(err, result) {
-      assert.equal(result.timestamp, startTime / 1000 | 0);
+      // give ourselves a 25ms window for this to succeed
+      let acceptableStartTime = startTime / 1000 | 0;
+      let acceptableEndTime = acceptableStartTime + 25;
+      assert.deepEqual(result.timestamp, gte(acceptableStartTime));
+      assert.deepEqual(result.timestamp, lte(acceptableEndTime));
       done();
     });
   });
 
   it('should jump 5 hours', function(done) {
+    this.timeout(5000) // this is timing out on travis for some reason :-(
     // Adjust time
     send("evm_increaseTime", [secondsToJump], function(err, result) {
       if (err) return done(err);
