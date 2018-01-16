@@ -238,7 +238,7 @@ describe("Mining", function() {
       assert.equal(receipts[0].transactionHash, tx1);
       assert.notEqual(receipts[1], null);
       assert.equal(receipts[1].transactionHash, tx2);
-      assert.notEqual(receipts[0].blockNumber, receipts[1].blockNumber, "Transactions should be mined in the same block.");
+      assert.notEqual(receipts[0].blockNumber, receipts[1].blockNumber, "Transactions should not be mined in the same block.");
 
       return getBlockNumber();
     }).then(function(number) {
