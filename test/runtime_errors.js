@@ -11,7 +11,9 @@ var RuntimeError = require("../lib/utils/runtimeerror");
 process.removeAllListeners("uncaughtException");
 
 describe("Runtime Errors", function() {
-  var web3 = new Web3(TestRPC.provider());
+  var web3 = new Web3(TestRPC.provider({
+    vmErrorsOnRPCResponse: true
+  }));
   var accounts;
   var ErrorContract;
   var errorInstance;
@@ -19,7 +21,9 @@ describe("Runtime Errors", function() {
 
   before ("initialize Web3", function(done) {
     web3 = new Web3()
-    web3.setProvider(TestRPC.provider())
+    web3.setProvider(TestRPC.provider({
+      vmErrorsOnRPCResponse: true
+    }))
     done()
   });
 

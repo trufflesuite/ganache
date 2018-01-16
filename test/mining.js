@@ -11,7 +11,8 @@ process.removeAllListeners("uncaughtException");
 
 describe("Mining", function() {
   var web3 = new Web3(TestRPC.provider({
-    //logger: console
+    //logger: console,
+    vmErrorsOnRPCResponse: true
   }));
   var accounts;
   var snapshot_id;

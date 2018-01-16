@@ -56,6 +56,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, that chain will be initialized instead of creating a new one.
 * `"db"`: `Object` - Specify an alternative database instance, for instance [MemDOWN](https://github.com/level/memdown).
 * `"ws"`: Enable a websocket server. This is `true` by default.
+* `"vmErrorsOnRPCResponse"`: Whether to report runtime errors from EVM code as RPC errors. This is `false` by default to replicate the error reporting behavior of the major clients.
 
 # IMPLEMENTED METHODS
 

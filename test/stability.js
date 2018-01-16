@@ -18,7 +18,9 @@ describe("TestRPC", function(done) {
   var accounts;
 
   before("Initialize the provider", function() {
-    provider = TestRPC.provider();
+    provider = TestRPC.provider({
+      vmErrorsOnRPCResponse: true
+    });
     web3.setProvider(provider);
   });
 
@@ -116,7 +118,9 @@ describe.skip("race conditions", function(done) {
   var accounts;
 
   before("initialize the provider", function() {
-    provider = TestRPC.provider();
+    provider = TestRPC.provider({
+      vmErrorsOnRPCResponse: true
+    });
     web3.setProvider(provider);
   });
 

@@ -10,7 +10,8 @@ describe("Accounts", function() {
   it("should respect the BIP99 mnemonic", function(done) {
     var web3 = new Web3();
     web3.setProvider(TestRPC.provider({
-      mnemonic: mnemonic
+      mnemonic: mnemonic,
+      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.getAccounts(function(err, accounts) {
@@ -25,7 +26,8 @@ describe("Accounts", function() {
     var web3 = new Web3();
     web3.setProvider(TestRPC.provider({
       mnemonic: mnemonic,
-      secure: true
+      secure: true,
+      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.sendTransaction({
@@ -45,7 +47,8 @@ describe("Accounts", function() {
     web3.setProvider(TestRPC.provider({
       mnemonic: mnemonic,
       secure: true,
-      unlocked_accounts: [expected_address]
+      unlocked_accounts: [expected_address],
+      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.sendTransaction({
@@ -87,7 +90,8 @@ describe("Accounts", function() {
     web3.setProvider(TestRPC.provider({
       mnemonic: mnemonic,
       secure: true,
-      unlocked_accounts: [0, second_address]
+      unlocked_accounts: [0, second_address],
+      vmErrorsOnRPCResponse: true
     }));
 
     // Set up: give second address some ether
@@ -129,7 +133,8 @@ describe("Accounts", function() {
     web3.setProvider(TestRPC.provider({
       mnemonic: mnemonic,
       secure: true,
-      unlocked_accounts: [0, second_address]
+      unlocked_accounts: [0, second_address],
+      vmErrorsOnRPCResponse: true
     }));
 
     return web3.eth.sign("some data", second_address)
@@ -147,7 +152,8 @@ describe("Accounts", function() {
       accounts: [
         { balance: '0x12' },
         { balance: '0x13' }
-      ]
+      ],
+      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.getAccounts(function(err, result) {
@@ -161,7 +167,8 @@ describe("Accounts", function() {
   it("should create a 7 accounts when ", function(done) {
     var web3 = new Web3();
     web3.setProvider(TestRPC.provider({
-      total_accounts: 7
+      total_accounts: 7,
+      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.getAccounts(function(err, result) {
@@ -174,7 +181,8 @@ describe("Accounts", function() {
   it("should respect the default_balance_ether option", function(done) {
     var web3 = new Web3();
     web3.setProvider(TestRPC.provider({
-      default_balance_ether: 1.23456
+      default_balance_ether: 1.23456,
+      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.getAccounts(function(err, accounts) {
