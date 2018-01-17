@@ -972,6 +972,36 @@ var tests = function(web3) {
         })
       })
     })
+
+    it("should treat the threads argument as optional", function(done){
+      web3.currentProvider.send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_stop",
+      }, function(err,result){
+        web3.currentProvider.send({
+          id: new Date().getTime(),
+          jsonrpc: "2.0",
+          method: "miner_start",
+          params: []
+        }, function(err,result){
+          var tx_data = {}
+          tx_data.to = accounts[1];
+          tx_data.from = accounts[0];
+          tx_data.value = 0x1;
+
+          web3.eth.sendTransaction(tx_data, function(err, tx) {
+            if (err) return done(err);
+            //Check the receipt
+            web3.eth.getTransactionReceipt(tx, function(err, receipt) {
+              if (err) return done(err);
+              assert.notEqual(receipt, null); //i.e. receipt exists, so transaction was mined
+              done();
+            });
+          });
+        })
+      })
+    })
   });
 
   describe("web3_sha3", function() {
