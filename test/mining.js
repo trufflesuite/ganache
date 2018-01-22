@@ -111,9 +111,10 @@ describe("Mining", function() {
         jsonrpc: "2.0",
         method: "evm_mine",
         id: new Date().getTime()
-      }, function(err) {
+      }, function(err, result) {
         if (err) return reject(err);
-        accept();
+        if(result.result !== true) return reject(new Error("evm_mine should return result = true:" + JSON.stringify(result)))
+        accept(result);
       })
     });
   }
