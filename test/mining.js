@@ -112,7 +112,7 @@ describe("Mining", function() {
         id: new Date().getTime()
       }, function(err, result) {
         if (err) return reject(err);
-        if(result.result !== '0x0') return reject(new Error("evm_mine should return result = '0x0':" + JSON.stringify(result)))
+        assert.notDeepEqual(result.result, "0x0", "evm_mine should return result = '0x0'");
         accept(result);
       })
     });
