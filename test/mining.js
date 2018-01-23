@@ -110,9 +110,10 @@ describe("Mining", function() {
         jsonrpc: "2.0",
         method: "evm_mine",
         id: new Date().getTime()
-      }, function(err) {
+      }, function(err, result) {
         if (err) return reject(err);
-        accept();
+        assert.deepEqual(result.result, "0x0");
+        accept(result);
       })
     });
   }
