@@ -12,7 +12,6 @@ process.removeAllListeners("uncaughtException");
 
 describe("Runtime Errors", function() {
   var web3 = new Web3(Ganache.provider({
-    vmErrorsOnRPCResponse: true
   }));
   var accounts;
   var ErrorContract;
@@ -22,7 +21,6 @@ describe("Runtime Errors", function() {
   before ("initialize Web3", function(done) {
     web3 = new Web3()
     web3.setProvider(Ganache.provider({
-      vmErrorsOnRPCResponse: true
     }))
     done()
   });

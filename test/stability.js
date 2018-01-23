@@ -23,7 +23,6 @@ describe("stability", function(done) {
 
   before("Initialize the provider", function() {
     provider = Ganache.provider({
-      vmErrorsOnRPCResponse: true
     });
     web3.setProvider(provider);
   });
@@ -145,7 +144,6 @@ describe("stability", function(done) {
 
     before("initialize the provider", function() {
       provider = Ganache.provider({
-        vmErrorsOnRPCResponse: true
       });
       web3.setProvider(provider);
     });
