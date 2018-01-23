@@ -1124,7 +1124,6 @@ describe("Provider:", function() {
     logger: logger,
     seed: "1337",
     // so that the runtime errors on call test passes
-    vmErrorsOnRPCResponse: true
   }));
   tests(web3);
 
@@ -1146,7 +1145,6 @@ describe("HTTP Server:", function(done) {
       logger: logger,
       seed: "1337",
       // so that the runtime errors on call test passes
-      vmErrorsOnRPCResponse: true
     });
 
     server.listen(port, function(err) {
@@ -1173,7 +1171,6 @@ describe("WebSockets Server:", function(done) {
       logger: logger,
       seed: "1337",
       // so that the runtime errors on call test passes
-      vmErrorsOnRPCResponse: true
     });
     server.listen(port, function(err) {
       var provider = new Web3WsProvider("ws://localhost:" + port);

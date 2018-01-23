@@ -11,7 +11,6 @@ describe("Accounts", function() {
     var web3 = new Web3();
     web3.setProvider(Ganache.provider({
       mnemonic: mnemonic,
-      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.getAccounts(function(err, accounts) {
@@ -27,7 +26,6 @@ describe("Accounts", function() {
     web3.setProvider(Ganache.provider({
       mnemonic: mnemonic,
       secure: true,
-      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.sendTransaction({
@@ -48,7 +46,6 @@ describe("Accounts", function() {
       mnemonic: mnemonic,
       secure: true,
       unlocked_accounts: [expected_address],
-      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.sendTransaction({
@@ -91,7 +88,6 @@ describe("Accounts", function() {
       mnemonic: mnemonic,
       secure: true,
       unlocked_accounts: [0, second_address],
-      vmErrorsOnRPCResponse: true
     }));
 
     // Set up: give second address some ether
@@ -134,7 +130,6 @@ describe("Accounts", function() {
       mnemonic: mnemonic,
       secure: true,
       unlocked_accounts: [0, second_address],
-      vmErrorsOnRPCResponse: true
     }));
 
     return web3.eth.sign("some data", second_address)
@@ -153,7 +148,6 @@ describe("Accounts", function() {
         { balance: '0x12' },
         { balance: '0x13' }
       ],
-      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.getAccounts(function(err, result) {
@@ -168,7 +162,6 @@ describe("Accounts", function() {
     var web3 = new Web3();
     web3.setProvider(Ganache.provider({
       total_accounts: 7,
-      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.getAccounts(function(err, result) {
@@ -182,7 +175,6 @@ describe("Accounts", function() {
     var web3 = new Web3();
     web3.setProvider(Ganache.provider({
       default_balance_ether: 1.23456,
-      vmErrorsOnRPCResponse: true
     }));
 
     web3.eth.getAccounts(function(err, accounts) {
