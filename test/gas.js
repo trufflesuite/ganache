@@ -5,6 +5,7 @@ var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
+var clone = require("clone");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -50,36 +51,41 @@ describe("Gas Estimation", function() {
       });
   });
 
-  function testTransactionEstimate(contractFn, args, options, done) {
-    return contractFn.apply(contractFn, args).estimateGas(options)
-      .then(function(estimate) {
-        return web3.eth.sendTransaction(Object.assign(contractFn.apply(contractFn, args), options)) 
-          .then(function(receipt) {
-            assert.equal(receipt.gasUsed, estimate);
-            assert.equal(receipt.cumulativeGasUsed, estimate);
-            done()
-          })
-      })
+  function testTransactionEstimate(contractFn, args, options) {
+    let transactionGas = options.gas
+    delete options.gas
+
+    return contractFn.apply(contractFn, args)
+    .estimateGas(options)
+    .then(function(estimate) {
+      options.gas = transactionGas
+      return web3.eth.sendTransaction(Object.assign(contractFn.apply(contractFn, args), options))
+        .then(function (receipt) {
+          assert.equal(receipt.status, 1, 'Transaction must succeed');
+          assert.equal(receipt.gasUsed, estimate);
+          assert.equal(receipt.cumulativeGasUsed, estimate);
+        })
+    });
   }
 
   it("matches estimate for deployment", function() {
     let contract = new web3.eth.Contract(estimateGasContractAbi);
     contract.deploy({ data: estimateGasContractData })
-      .estimateGas({ from: accounts[1], gas: 3141592 })
+      .estimateGas({ from: accounts[1]})
       .then(function(gasEstimate) {
         assert.deepEqual(deploymentReceipt.gasUsed, gasEstimate);
         assert.deepEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
       });
   });
 
-  it("matches usage for complex function call (add)", function(done) {
+  it("matches usage for complex function call (add)", function() {
     this.timeout(10000)
-    testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 5], {from: accounts[0], gas: 3141592}, done);
+    return testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 5], {from: accounts[0], gas: 3141592});
   });
 
-  it("matches usage for complex function call (transfer)", function(done) {
+  it("matches usage for complex function call (transfer)", function() {
     this.timeout(10000)
-    testTransactionEstimate(estimateGasInstance.methods.transfer, ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")], {from: accounts[0], gas: 3141592}, done);
+    return testTransactionEstimate(estimateGasInstance.methods.transfer, ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")], {from: accounts[0], gas: 3141592});
   });
 
   function toBytes(s) {
