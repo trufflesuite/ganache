@@ -115,7 +115,7 @@ The RPC methods currently implemented are:
 * `web3_clientVersion`
 * `web3_sha3`
 
-There’s also special non-standard methods that aren’t included within the original RPC specification:
+There are also special non-standard methods that aren’t included within the original RPC specification:
 
 * `evm_snapshot` : Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the integer id of the snapshot created.
 * `evm_revert` : Revert the state of the blockchain to a previous snapshot. Takes a single parameter, which is the snapshot id to revert to. If no snapshot id is passed it will revert to the latest snapshot. Returns `true`.
