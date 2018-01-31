@@ -398,7 +398,7 @@ var tests = function(web3) {
       transaction.sign(secretKeyBuffer)
 
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0);
+        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0, `Incorrect error message: ${err.message}`);
         done()
       })
 
@@ -1066,7 +1066,7 @@ var tests = function(web3) {
     it("should return more than 0 accounts", function(done) {
       web3.eth.personal.getAccounts(function(err, result) {
         if (err) return done(err);
-        assert.equal(result.length, 3);
+        assert.equal(result.length, 13);
         done();
       });
     });
