@@ -11,6 +11,7 @@ process.removeAllListeners("uncaughtException");
 
 describe("Mining", function() {
   var web3 = new Web3(Ganache.provider({
+    vmErrorsOnRPCResponse: true
     //logger: console,
   }));
   var accounts;

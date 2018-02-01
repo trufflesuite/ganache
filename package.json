@@ -28,6 +28,7 @@
     "level-sublevel": "^6.6.1",
     "levelup": "^1.1.0",
     "localstorage-down": "^0.6.7",
+    "lodash": "^4.17.4",
     "merkle-patricia-tree": "^2.2.0",
     "mocha": "~3.3.0",
     "on-build-webpack": "^0.1.0",

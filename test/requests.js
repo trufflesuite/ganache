@@ -7,7 +7,7 @@ var Ganache = require("../index.js");
 var solc = require("solc");
 var fs = require("fs");
 var to = require("../lib/utils/to");
-var clone = require("clone");
+var _ = require("lodash");
 
 var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
 var result = solc.compile(source, 1);
@@ -536,7 +536,7 @@ var tests = function(web3) {
     });
 
     it("should get back a runtime error on a bad call (eth_call)", function(done) {
-      var call_data = clone(contract.call_data);
+      var call_data = _.cloneDeep(contract.call_data);
       call_data.to = contractAddress;
       call_data.from = accounts[0];
 
@@ -713,7 +713,7 @@ var tests = function(web3) {
 
       web3.eth.sendTransaction(tx_data, function(err, result) {
         if (err) {
-          assert.notEqual(err.message.indexOf("could not unlock signer account"), -1);
+          assert(/sender account not recognized/.test(err.message), `Expected error message containing 'sender account not recognized', but got ${err.message}`)
           done();
         } else {
           assert.fail("Should have received an error")
