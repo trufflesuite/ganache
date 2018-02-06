@@ -382,6 +382,58 @@ var tests = function(web3) {
 
   });
 
+
+  describe("eth_ecRecover", function() {
+    var accounts;
+    var signingWeb3;
+
+    // This account produces an edge case signature when it signs the hex-encoded buffer:
+    // '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627'. (See Issue #190)
+    var acc = {
+      balance: "0x00",
+      secretKey: "0xe6d66f02cd45a13982b99a5abf3deab1f67cf7be9fee62f0a072cb70896342e4"
+    };
+
+    // Load account.
+    before(function( done ){
+      signingWeb3 = new Web3();
+      signingWeb3.setProvider(Ganache.provider({
+        accounts: [ acc ]
+      }));
+      signingWeb3.eth.getAccounts(function(err, accs) {
+        if (err) return done(err);
+        accounts = accs.map(function(val) {
+          return val.toLowerCase();
+        });
+        done();
+      });
+    });
+
+    it("should return the address of the account signing a message", function() {
+      var msgHex = '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627';
+      var edgeCaseMsg = utils.toBuffer(msgHex);
+      var msgHash = utils.hashPersonalMessage(edgeCaseMsg);
+      return signingWeb3.eth.sign(msgHex, accounts[0]).then(sgn => {
+        sgn = utils.stripHexPrefix(sgn);
+        var r = new Buffer(sgn.slice(0, 64), 'hex');
+        var s = new Buffer(sgn.slice(64, 128), 'hex');
+        var v = parseInt(sgn.slice(128, 130), 16) + 27;
+        var pub = utils.ecrecover(msgHash, v, r, s);
+        var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
+        addr = to.hex(addr);
+        assert.deepEqual(addr, accounts[0]);
+      });
+    });
+
+    after("shutdown", function(done) {
+      let provider = signingWeb3._provider;
+      signingWeb3.setProvider()
+      provider.close(done)
+    });
+
+  });
+
+
   describe('eth_sendRawTransaction', () => {
 
     it("should fail with bad nonce (too low)", function(done) {
