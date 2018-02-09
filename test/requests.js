@@ -382,6 +382,28 @@ var tests = function(web3) {
 
   });
 
+
+  describe("eth_ecRecover", function() {
+    it("should return the address of the account signing a message", function(done) {
+      var msgHex = '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627';
+      var edgeCaseMsg = utils.toBuffer(msgHex);
+      var msgHash = utils.hashPersonalMessage(edgeCaseMsg);
+      return signingWeb3.eth.sign(msgHex, accounts[0]).then(sgn => {
+        sgn = utils.stripHexPrefix(sgn);
+        var r = new Buffer(sgn.slice(0, 64), 'hex');
+        var s = new Buffer(sgn.slice(64, 128), 'hex');
+        var v = parseInt(sgn.slice(128, 130), 16) + 27;
+        var pub = utils.ecrecover(msgHash, v, r, s);
+        var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
+        addr = to.hex(addr);
+        assert.deepEqual(addr, accounts[0]);
+      });
+
+      // Note: We'll assert the block number changes on transactions.
+    });
+  });
+
+
   describe('eth_sendRawTransaction', () => {
 
     it("should fail with bad nonce (too low)", function(done) {
