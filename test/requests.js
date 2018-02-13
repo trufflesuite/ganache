@@ -424,7 +424,7 @@ var tests = function(web3) {
 
     })
 
-    it("should suceed with right nonce (1)", function(done) {
+    it("should succeed with right nonce (1)", function(done) {
       var provider = web3.currentProvider;
       var transaction = new Transaction({
         "value": "0x10000000",
