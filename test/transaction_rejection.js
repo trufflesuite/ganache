@@ -59,7 +59,7 @@ describe("Transaction rejection", function() {
           instance._requestManager.setProvider(web3.eth._provider);
         }
         estimateGasInstance = instance;
-        estimateGasContractAddress = to.hex(instance.address);
+        estimateGasContractAddress = to.hex(instance.options.address);
       });
   });
 
@@ -99,6 +99,18 @@ describe("Transaction rejection", function() {
     }, /sender doesn't have enough funds to send tx/, done)
   });
 
+  it("should reject contract transaction if 'to' is not a contract address", function(done) {
+    let params = {
+      to: '0x0000000000000000000000001234000000000000'
+    }
+
+    testTransactionForRejection(
+      params,
+      new RegExp(`Attempting to run transaction which calls a contract function, but recipient address ${params.to} is not a contract address`),
+      done
+    )
+  });
+
   function testTransactionForRejection(paramsOverride, messageRegex, done) {
     let params = Object.assign({
       from: accounts[0],
@@ -107,31 +119,42 @@ describe("Transaction rejection", function() {
       data: '0x91ea8a0554696d000000000000000000000000000000000000000000000000000000000041206772656174206775790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005'
     }, paramsOverride)
 
-
-    // don't send with web3 because it'll inject its own checks
-    provider.send({
+    let request = {
       jsonrpc: 2.0,
       id: new Date().getTime(),
       method: 'eth_sendTransaction',
       params: [ params ]
-    }, (err, response) => {
+    }
+
+    // don't send with web3 because it'll inject its own checks
+    provider.send(request, (err, response) => {
+      // cyclomatic complexity? what's that? :-(
       if (response.error) {
-        if(!messageRegex.test(response.error.message)) {
-          return done(`Expected error message matching ${messageRegex}, got ${response.error.message}`)
+        if (response.error.message) {
+          if (messageRegex.test(response.error.message)) {
+            // success!
+            return done()
+          } else {
+            // wrong error message
+            return done(new Error(`Expected error message matching ${messageRegex}, got ${response.error.message}`))
+          }
+        } else {
+          return done(new Error(`Error was returned which had no message`))
         }
       } else if (response.result) {
         web3.eth.getTransactionReceipt(response.result)
           .then((result) => {
             if (to.number(result.status) == 0) { 
-              return done('TX rejections should return error, but returned receipt with zero status instead')
+              return done(new Error('TX rejections should return error, but returned receipt with zero status instead'))
             } else {
-              return done('TX should have rejected prior to running. Instead transaction ran successfully')
+              return done(new Error(`TX should have rejected prior to running. Instead transaction ran successfully (receipt.status == ${to.number(result.status)})`))
             }
+          }).catch(error => {
+            return done(error)
           })
       } else {
-        return done("eth_sendTransaction responded with empty RPC response")
+        return done(new Error('eth_sendTransaction responded with empty RPC response'))
       }
-      done();
     })
   }
 })
