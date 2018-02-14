@@ -81,13 +81,7 @@ describe("stability", function(done) {
       request.push(req)
     }
 
-    console.log('sending request');
-    console.log(JSON.stringify(request, null, 2))
-
     provider.sendAsync(request, function(err, result) {
-      console.log('response received');
-      console.log(JSON.stringify(result, null, 2))
-
       assert.deepEqual(err, undefined)
       assert(Array.isArray(result))
       assert.deepEqual(result.length, expected)
