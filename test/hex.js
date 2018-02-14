@@ -30,15 +30,24 @@ describe("to.rpcQuantityHexString", function() {
   });
 });
 
-function noLeadingZeros(result) {
+function noLeadingZeros(method, result, path) {
+  if (!path) {
+    path = 'result'
+  }
+
   if (typeof result === "string") {
     if (/^0x/.test(result)) {
-      assert.equal(result, to.rpcQuantityHexString(result));
+      assert.equal(result, to.rpcQuantityHexString(result), 'Field ${path} in ${method} response has leading zeroes.');
     }
   } else if (typeof result === "object") {
     for (var key in result) {
       if (result.hasOwnProperty(key)) {
-        noLeadingZeros(result[key]);
+        if (Array.isArray(result)) {
+          path += [key]
+        } else {
+          path += '.' + key
+        }
+        noLeadingZeros(method, result[key], path + (path ? '.' : '') + key);
       }
     }
   }
@@ -58,7 +67,7 @@ describe("JSON-RPC Response", function() {
     });
   });
 
-  it("should not have leading zeros in hex strings", function(done) {
+  it("should not have leading zeros in rpc quantity hex strings", function(done) {
     var request = {
       "jsonrpc": "2.0",
       "method": "eth_getTransactionCount",
@@ -70,7 +79,7 @@ describe("JSON-RPC Response", function() {
     };
 
     provider.sendAsync(request, function(err, result) {
-      noLeadingZeros(result);
+      noLeadingZeros('eth_getTransactionCount', result);
 
       request = {
         "jsonrpc": "2.0",
@@ -86,7 +95,7 @@ describe("JSON-RPC Response", function() {
       };
 
       provider.sendAsync(request, function(err, result) {
-        noLeadingZeros(result);
+        noLeadingZeros('eth_sendTransaction', result);
 
         request = {
           "jsonrpc": "2.0",
@@ -99,7 +108,7 @@ describe("JSON-RPC Response", function() {
         };
 
         provider.sendAsync(request, function(err, result) {
-          noLeadingZeros(result);
+          noLeadingZeros('eth_getTransactionCount', result);
           done();
         });
       });

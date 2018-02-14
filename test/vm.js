@@ -6,7 +6,6 @@ var Ganache = require("../index.js");
 var solc = require("solc");
 var fs = require("fs");
 var to = require("../lib/utils/to");
-var clone = require("clone");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.

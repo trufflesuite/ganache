@@ -5,7 +5,6 @@ var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
-var clone = require("clone");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
