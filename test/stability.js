@@ -39,17 +39,15 @@ describe("stability", function(done) {
   it("should be able to handle multiple transactions at once and manage nonces accordingly", function(done) {
     var expected = 5;
     var received = 0;
-    var callback_called = false;
 
     var txHandler = function(err, result) {
-      if (callback_called) {
-        return;
-      }
-
       received += 1;
 
-      if (err || received >= expected) {
-        callback_called = true;
+      if (received > expected) {
+        throw new Error('Callback called too many times');
+      }
+
+      if (err || received == expected) {
         return done(err);
       }
     };
@@ -64,35 +62,38 @@ describe("stability", function(done) {
     }
   });
 
-  it("should be able to handle batch transactions", function() {
+  it("should be able to handle batch transactions", function(done) {
     var expected = 5;
     var received = 0;
-    var callback_called = false;
 
-    var txHandler = function(err, result) {
-      if (callback_called) {
-        return;
-      }
-
-      received += 1;
-
-      if (err || received >= expected) {
-        callback_called = true;
-        return done(err);
-      }
-    };
-
-    var batch = new web3.BatchRequest();
+    var request = []
 
     for (var i = 0; i < expected; i++) {
-      batch.add(web3.eth.sendTransaction.request({
+      let req = web3.eth.sendTransaction.request({
         from: accounts[0],
         to: accounts[1],
         value: web3.utils.toWei(new BN(1), "ether")
-      }), txHandler);
+      })
+
+      req.jsonrpc = '2.0'
+      req.id = 100 + i
+
+      request.push(req)
     }
 
-    batch.execute();
+    console.log('sending request');
+    console.log(JSON.stringify(request, null, 2))
+
+    provider.sendAsync(request, function(err, result) {
+      console.log('response received');
+      console.log(JSON.stringify(result, null, 2))
+
+      assert.deepEqual(err, undefined)
+      assert(Array.isArray(result))
+      assert.deepEqual(result.length, expected)
+      done();
+    })
+
   });
 
   it("should not crash when receiving transactions which don't pass FakeTransaction validation", function(done) {
