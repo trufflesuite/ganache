@@ -50,7 +50,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"fork"`: `string` or `object` - When a `string`, same as `--fork` option above. Can also be a Web3 Provider object, optionally used in conjunction with the `fork_block_number` option below.
 * `"fork_block_number"`: `string` or `number` - Block number the provider should fork from, when the `fork` option is specified. If the `fork` option is specified as a string including the `@` sign and a block number, the block number in the `fork` parameter takes precedence.
 * `"network_id"`: `integer` - Same as `--networkId` option above.
-* `"time"`: `Date` - Date that the first block should start. Use this feature, along with the `evm_increaseTime` method to test time-dependent code.
+* `"time"`: `Date` - Date that the first block should start. Use this feature with the `evm_increaseTime` method to test time-dependent code.
 * `"locked"`: `boolean` - whether or not accounts are locked by default.
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
 * `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, that chain will be initialized instead of creating a new one.
@@ -115,11 +115,11 @@ The RPC methods currently implemented are:
 * `web3_clientVersion`
 * `web3_sha3`
 
-There’s also special non-standard methods that aren’t included within the original RPC specification:
+There are also special non-standard methods that aren’t included within the original RPC specification:
 
 * `evm_snapshot` : Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the integer id of the snapshot created.
-* `evm_revert` : Revert the state of the blockchain to a previous snapshot. Takes a single parameter, which is the snapshot id to revert to. If no snapshot id is passed it will revert to the latest snapshot. Returns `true`.
-* `evm_increaseTime` : Jump forward in time. Takes one parameter, which is the amount of time to increase in seconds. Returns the total time adjustment, in seconds.
+* `evm_revert` : Revert the state of the blockchain to a previous snapshot. Takes one parameter: the snapshot id to revert to. If no snapshot id is passed it will revert to the latest snapshot. Returns `true`.
+* `evm_increaseTime` : Jump forward in time. Takes one parameter: the amount of time to increase in seconds. Returns the total time adjustment, in seconds.
 * `evm_mine` : Force a block to be mined. Takes no parameters. Mines a block independent of whether or not mining is started or stopped.
 
 # Unsupported Methods
