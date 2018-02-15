@@ -451,6 +451,7 @@ var tests = function(web3) {
     // These are expected to be run in order.
     var initialTransaction;
     var contractAddress;
+    var contractCreationBlockNumber;
 
     it("should add a contract to the network (eth_sendTransaction)", function(done) {
       web3.eth.sendTransaction({
@@ -465,6 +466,7 @@ var tests = function(web3) {
         initialTransaction = hash
         web3.eth.getTransactionReceipt(hash, function(err, receipt) {
           if (err) return done(err);
+          contractCreationBlockNumber = receipt.blockNumber; // For defaultBlock test
           assert(receipt)
           done();
         })
@@ -698,6 +700,38 @@ var tests = function(web3) {
 
             assert.equal(to.number(result), 25);
             done();
+          });
+        });
+      });
+    });
+
+    // NB: relies on the previous test setting value to 25 and the contract deployment setting
+    // original value to 5. `contractCreationBlockNumber` is set in the first test of this
+    // describe block.
+    it("should be able to read data via a call at a specified block (eth_call)", function(done){
+      var starting_block_number = null;
+      var call_data = contract.call_data;
+      call_data.to = contractAddress;
+
+      // TODO: Removing this callback hell would be nice.
+      web3.eth.getBlockNumber(function(err, result) {
+        if (err) return done(err);
+        starting_block_number = result;
+
+        web3.eth.call(call_data, function(err, result) {
+          if (err) return done(err);
+          assert.equal(to.number(result), 25, "value retrieved from latest block should be 25");
+
+          web3.eth.call(call_data, contractCreationBlockNumber, function(err, result) {
+            if (err) return done(err);
+            assert.equal(to.number(result), 5, "value retrieved from block 1 should be 5");
+
+            web3.eth.getBlockNumber(function(err, result) {
+              if (err) return done(err);
+              assert.equal(result, starting_block_number, "eth_call w/defaultBlock increased block count when it shouldn't have");
+
+              done();
+            });
           });
         });
       });
