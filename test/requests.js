@@ -708,32 +708,72 @@ var tests = function(web3) {
     // NB: relies on the previous test setting value to 25 and the contract deployment setting
     // original value to 5. `contractCreationBlockNumber` is set in the first test of this
     // describe block.
-    it("should be able to read data via a call at a specified block (eth_call)", function(done){
-      var starting_block_number = null;
+    it("should read data via a call at a specified blockNumber (eth_call)", function(done){
+      var startingBlockNumber = null;
       var call_data = contract.call_data;
-      call_data.to = contractAddress;
 
-      // TODO: Removing this callback hell would be nice.
-      web3.eth.getBlockNumber(function(err, result) {
-        if (err) return done(err);
-        starting_block_number = result;
+      web3.eth.getBlockNumber().then(function(result){
 
-        web3.eth.call(call_data, function(err, result) {
-          if (err) return done(err);
-          assert.equal(to.number(result), 25, "value retrieved from latest block should be 25");
+        startingBlockNumber = result;
+        return web3.eth.call(call_data)
 
-          web3.eth.call(call_data, contractCreationBlockNumber, function(err, result) {
-            if (err) return done(err);
-            assert.equal(to.number(result), 5, "value retrieved from block 1 should be 5");
+      }).then(function(result){
 
-            web3.eth.getBlockNumber(function(err, result) {
-              if (err) return done(err);
-              assert.equal(result, starting_block_number, "eth_call w/defaultBlock increased block count when it shouldn't have");
+        assert.equal(to.number(result), 25, "value retrieved from latest block should be 25");
+        return web3.eth.call(call_data, contractCreationBlockNumber)
 
-              done();
-            });
-          });
-        });
+      }).then(function(result){
+
+        assert.equal(to.number(result), 5, "value retrieved from contract creation block should be 5");
+        return web3.eth.getBlockNumber()
+
+      }).then(function(result){
+
+        assert.equal(result, startingBlockNumber, "eth_call w/defaultBlock increased block count");
+        return web3.eth.call(call_data);
+
+      }).then(function(result){
+
+        assert.equal(to.number(result), 25, "stateTrie root was corrupted by defaultBlock call");
+        done();
+      });
+    });
+
+    it('should read data via a call when specified blockNumber is "earliest" (eth_call)', function(done) {
+      var call_data = contract.call_data;
+
+      web3.eth.call(call_data, "earliest").then(function(result){
+        assert.equal(to.number(result), 0, "value retrieved from earliest block should be zero");
+        done();
+      })
+    });
+
+    it('should read data via a call when specified blockNumber is "pending" (eth_call)', function(done){
+      var call_data = contract.call_data;
+
+      web3.eth.call(call_data, "pending").then(function(result){
+        assert.equal(to.number(result), 25, "value retrieved from pending block should be 25");
+        done();
+      });
+    });
+
+    it("should error when reading data via a call at a non-existent blockNumber (eth_call)", function(done){
+      var nonExistentBlock;
+      var call_data = contract.call_data;
+
+      web3.eth.getBlockNumber().then(function(result){
+
+        nonExistentBlock = result + 1;
+        return web3.eth.call(call_data, nonExistentBlock);
+
+      }).then(function(result){
+        assert.fail();
+
+      }).catch(function(error){
+
+        assert(error.message.includes('index out of range'));
+        assert(error.message.includes(nonExistentBlock));
+        done();
       });
     });
 
