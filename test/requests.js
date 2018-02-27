@@ -551,7 +551,7 @@ var tests = function(web3) {
         web3.eth.call(call_data, function (err, result) {
           // should have received an error
           assert(err, "did not return runtime error");
-          assert(/.*out of gas.*/.test(err.message), `Did not receive an 'out of gas' error. `)
+          assert(/.*out of gas.*/.test(err.message), `Did not receive an 'out of gas' error. got '${err.message}' instead.`)
           done();
         });
       });
