@@ -95,6 +95,15 @@ describe("Debug", function() {
         // To at least assert SOMETHING, let's assert the last opcode
         assert(result.structLogs.length > 0);
 
+        for (let op of result.structLogs) {
+          if (op.stack.length > 0) {
+            // check formatting of stack
+            // formatting was broken when updating to ethereumjs-vm v2.3.3
+            assert.equal(op.stack[0].length, 64)
+            assert.notEqual(op.stack[0].substr(0, 2), '0x')
+            break
+          }
+        }
         var lastop = result.structLogs[result.structLogs.length - 1];
 
         assert.equal(lastop.op, "STOP");
