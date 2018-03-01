@@ -101,7 +101,8 @@ var tests = function(web3) {
         // Note that if using the Ganache as a provider, err will be non-null when there's
         // an error. However, when using it as a server it won't be. In both cases, however,
         // result.error should be set with the same error message. We'll check for that.
-        assert(result.error.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0);
+        assert(/the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0/.test(result.error.message),
+          `Expected incorrect nonce error, got '${result.error.message}', instead.`)
 
         delete request.params[0].nonce
         provider.send(request, done)
