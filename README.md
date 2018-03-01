@@ -58,6 +58,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"ws"`: Enable a websocket server. This is `true` by default.
 * `"vmErrorsOnRPCResponse"`: Whether to report runtime errors from EVM code as RPC errors. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
+* `"estimateGasThreshold"`: Minimum threshold for estimateGas response. The bigger the number, the faster but less accurate (response is always >= actual gas required for the tx) the estimateGas response is. Default is 50000
 
 # IMPLEMENTED METHODS
 
