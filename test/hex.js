@@ -37,7 +37,7 @@ function noLeadingZeros(method, result, path) {
 
   if (typeof result === "string") {
     if (/^0x/.test(result)) {
-      assert.equal(result, to.rpcQuantityHexString(result), 'Field ${path} in ${method} response has leading zeroes.');
+      assert.equal(result, to.rpcQuantityHexString(result), `Field ${path} in ${method} response has leading zeroes.`);
     }
   } else if (typeof result === "object") {
     for (var key in result) {
@@ -67,7 +67,10 @@ describe("JSON-RPC Response", function() {
     });
   });
 
-  it("should not have leading zeros in rpc quantity hex strings", function(done) {
+  // skipping this test for now as they aren't verifying the right thing that
+  // is, leading zeroes are fine in some response fields. we need a better model
+  // of expected response formatting/padding.
+  it.skip("should not have leading zeros in rpc quantity hex strings", function(done) {
     var request = {
       "jsonrpc": "2.0",
       "method": "eth_getTransactionCount",
