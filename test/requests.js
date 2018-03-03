@@ -2,6 +2,7 @@ var Web3 = require('web3');
 var Web3WsProvider = require('web3-providers-ws');
 var Transaction = require('ethereumjs-tx');
 var utils = require('ethereumjs-util');
+var Abi = require('ethereumjs-abi');
 var assert = require('assert');
 var Ganache = require("../index.js");
 var solc = require("solc");
@@ -373,6 +374,83 @@ var tests = function(web3) {
         assert.deepEqual(addr, accounts[0]);
       });
     })
+
+    after("shutdown", function(done) {
+      let provider = signingWeb3._provider;
+      signingWeb3.setProvider()
+      provider.close(done)
+    });
+
+  });
+
+  describe("eth_signTypedData", function() {
+    var accounts;
+    var signingWeb3;
+
+    // This account produces an edge case signature when it signs the hex-encoded buffer:
+    // '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627'. (See Issue #190)
+    var acc = {
+      balance: "0x00",
+      secretKey: "0xe6d66f02cd45a13982b99a5abf3deab1f67cf7be9fee62f0a072cb70896342e4"
+    };
+
+    // Load account.
+    before(function( done ){
+      signingWeb3 = new Web3();
+      signingWeb3.setProvider(Ganache.provider({
+        accounts: [ acc ]
+      }));
+      signingWeb3.eth.getAccounts(function(err, accs) {
+        if (err) return done(err);
+        accounts = accs.map(function(val) {
+          return val.toLowerCase();
+        });
+        done();
+      });
+    });
+
+    it("should produce a signature whose signer can be recovered", function(done) {
+      var typedData = [
+        {
+          type: 'string',
+          name: 'Message',
+          value: 'Hi, Alice!',
+        },
+        {
+          type: 'uint32',
+          name: 'A number',
+          value: '1337',
+        },
+      ];
+      var request = {
+        jsonrpc: 2.0,
+        method: 'eth_signTypedData',
+        params: [accounts[0], typedData],
+        id: 1,
+      };
+      var data = _.map(typedData, 'value');
+      var types = _.map(typedData, 'type');
+      var schema = _.map(typedData, entry => `${entry.type} ${entry.name}`);
+      var msgHash = Abi.soliditySHA3(
+        ['bytes32', 'bytes32'],
+        [
+          Abi.soliditySHA3(_.times(typedData.length, _.constant('string')), schema),
+          Abi.soliditySHA3(types, data),
+        ]
+      );
+      return signingWeb3.currentProvider.send(request, (err, result) => {
+        var sgn = result.result;
+        sgn = utils.stripHexPrefix(sgn);
+        var r = new Buffer(sgn.slice(0, 64), 'hex');
+        var s = new Buffer(sgn.slice(64, 128), 'hex');
+        var v = parseInt(sgn.slice(128, 130), 16) + 27;
+        var pub = utils.ecrecover(msgHash, v, r, s);
+        var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
+        addr = to.hex(addr);
+        assert.deepEqual(addr, accounts[0]);
+        done();
+      })
+    });
 
     after("shutdown", function(done) {
       let provider = signingWeb3._provider;
