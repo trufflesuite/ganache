@@ -92,6 +92,7 @@ describe("Forking", function() {
   });
 
   before("Gather forked accounts", function(done) {
+    this.timeout(5000)
     forkedWeb3.eth.getAccounts(function(err, f) {
       if (err) return done(err);
       forkedAccounts = f;
@@ -195,6 +196,7 @@ describe("Forking", function() {
   });
 
   before("Gather main accounts", function(done) {
+    this.timeout(5000)
     mainWeb3.eth.getAccounts(function(err, m) {
       if (err) return done(err);
       mainAccounts = m;

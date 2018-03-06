@@ -7,7 +7,7 @@ var Ganache = require("../index.js");
 var solc = require("solc");
 var fs = require("fs");
 var to = require("../lib/utils/to");
-var clone = require("clone");
+var _ = require("lodash");
 
 var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
 var result = solc.compile(source, 1);
@@ -168,7 +168,7 @@ var tests = function(web3) {
           sha3Uncles: '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',
           logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
           transactionsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
-          stateRoot: '0xbb762ad4242c8c2821f7ac9c0a0a7da9f073cfeed39129d4bafa9168118c3b3a',
+          stateRoot: '0x7caba99698b405652a6bcb1038efa16db54b3338af71fa832a0b99a3e6c344bc',
           receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
           miner: '0x0000000000000000000000000000000000000000',
           difficulty: "0",
@@ -450,7 +450,7 @@ var tests = function(web3) {
       transaction.sign(secretKeyBuffer)
 
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0);
+        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0, `Incorrect error message: ${err.message}`);
         done()
       })
 
@@ -476,7 +476,7 @@ var tests = function(web3) {
 
     })
 
-    it("should suceed with right nonce (1)", function(done) {
+    it("should succeed with right nonce (1)", function(done) {
       var provider = web3.currentProvider;
       var transaction = new Transaction({
         "value": "0x10000000",
@@ -503,6 +503,7 @@ var tests = function(web3) {
     // These are expected to be run in order.
     var initialTransaction;
     var contractAddress;
+    var contractCreationBlockNumber;
 
     it("should add a contract to the network (eth_sendTransaction)", function(done) {
       web3.eth.sendTransaction({
@@ -517,6 +518,7 @@ var tests = function(web3) {
         initialTransaction = hash
         web3.eth.getTransactionReceipt(hash, function(err, receipt) {
           if (err) return done(err);
+          contractCreationBlockNumber = receipt.blockNumber; // For defaultBlock test
           assert(receipt)
           done();
         })
@@ -588,7 +590,7 @@ var tests = function(web3) {
     });
 
     it("should get back a runtime error on a bad call (eth_call)", function(done) {
-      var call_data = clone(contract.call_data);
+      var call_data = _.cloneDeep(contract.call_data);
       call_data.to = contractAddress;
       call_data.from = accounts[0];
 
@@ -601,7 +603,7 @@ var tests = function(web3) {
         web3.eth.call(call_data, function (err, result) {
           // should have received an error
           assert(err, "did not return runtime error");
-          assert(/.*out of gas.*/.test(err.message), `Did not receive an 'out of gas' error. `)
+          assert(/.*out of gas.*/.test(err.message), `Did not receive an 'out of gas' error. got '${err.message}' instead.`)
           done();
         });
       });
@@ -755,6 +757,78 @@ var tests = function(web3) {
       });
     });
 
+    // NB: relies on the previous test setting value to 25 and the contract deployment setting
+    // original value to 5. `contractCreationBlockNumber` is set in the first test of this
+    // describe block.
+    it("should read data via a call at a specified blockNumber (eth_call)", function(done){
+      var startingBlockNumber = null;
+      var call_data = contract.call_data;
+
+      web3.eth.getBlockNumber().then(function(result){
+
+        startingBlockNumber = result;
+        return web3.eth.call(call_data)
+
+      }).then(function(result){
+
+        assert.equal(to.number(result), 25, "value retrieved from latest block should be 25");
+        return web3.eth.call(call_data, contractCreationBlockNumber)
+
+      }).then(function(result){
+
+        assert.equal(to.number(result), 5, "value retrieved from contract creation block should be 5");
+        return web3.eth.getBlockNumber()
+
+      }).then(function(result){
+
+        assert.equal(result, startingBlockNumber, "eth_call w/defaultBlock increased block count");
+        return web3.eth.call(call_data);
+
+      }).then(function(result){
+
+        assert.equal(to.number(result), 25, "stateTrie root was corrupted by defaultBlock call");
+        done();
+      });
+    });
+
+    it('should read data via a call when specified blockNumber is "earliest" (eth_call)', function(done) {
+      var call_data = contract.call_data;
+
+      web3.eth.call(call_data, "earliest").then(function(result){
+        assert.equal(to.number(result), 0, "value retrieved from earliest block should be zero");
+        done();
+      })
+    });
+
+    it('should read data via a call when specified blockNumber is "pending" (eth_call)', function(done){
+      var call_data = contract.call_data;
+
+      web3.eth.call(call_data, "pending").then(function(result){
+        assert.equal(to.number(result), 25, "value retrieved from pending block should be 25");
+        done();
+      });
+    });
+
+    it("should error when reading data via a call at a non-existent blockNumber (eth_call)", function(done){
+      var nonExistentBlock;
+      var call_data = contract.call_data;
+
+      web3.eth.getBlockNumber().then(function(result){
+
+        nonExistentBlock = result + 1;
+        return web3.eth.call(call_data, nonExistentBlock);
+
+      }).then(function(result){
+        assert.fail();
+
+      }).catch(function(error){
+
+        assert(error.message.includes('index out of range'));
+        assert(error.message.includes(nonExistentBlock));
+        done();
+      });
+    });
+
     it("should only be able to send an unsigned state changing transaction from an address within the accounts list (eth_sendTransaction)", function(done) {
       var badAddress = "0x1234567890123456789012345678901234567890";
 
@@ -765,7 +839,7 @@ var tests = function(web3) {
 
       web3.eth.sendTransaction(tx_data, function(err, result) {
         if (err) {
-          assert.notEqual(err.message.indexOf("could not unlock signer account"), -1);
+          assert(/sender account not recognized/.test(err.message), `Expected error message containing 'sender account not recognized', but got ${err.message}`)
           done();
         } else {
           assert.fail("Should have received an error")
@@ -1118,7 +1192,7 @@ var tests = function(web3) {
     it("should return more than 0 accounts", function(done) {
       web3.eth.personal.getAccounts(function(err, result) {
         if (err) return done(err);
-        assert.equal(result.length, 3);
+        assert.equal(result.length, 13);
         done();
       });
     });
