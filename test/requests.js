@@ -384,6 +384,7 @@ var tests = function(web3) {
 
 
   describe("eth_ecRecover", function() {
+
     it("should return the address of the account signing a message", function(done) {
       var msgHex = '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627';
       var edgeCaseMsg = utils.toBuffer(msgHex);
@@ -398,9 +399,8 @@ var tests = function(web3) {
         addr = to.hex(addr);
         assert.deepEqual(addr, accounts[0]);
       });
-
-      // Note: We'll assert the block number changes on transactions.
     });
+    
   });
 
 
