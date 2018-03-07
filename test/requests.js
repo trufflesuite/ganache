@@ -444,6 +444,26 @@ var tests = function(web3) {
     })
 
 
+    it("should respond with correct txn hash", function(done) {
+      var provider = web3.currentProvider;
+      var transaction = new Transaction({
+        "value": "0x00",
+        "gasLimit": "0x5208",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x02"
+      })
+
+      var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), 'hex')
+      transaction.sign(secretKeyBuffer)
+
+      web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
+        assert.equal(result, to.hex(transaction.hash()))
+        done(err)
+      })
+
+    })
+
   })
 
   describe("contract scenario", function() {
