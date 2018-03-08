@@ -8,10 +8,27 @@ describe("Checkpointing / Reverting", function() {
   var provider;
   var accounts;
   var web3 = new Web3();
+  var secondsToJump = 24 * 60 * 60;
   var startingBalance;
   var startingTime;
 
+  var timestampBeforeJump;
+
   var snapshotId;
+
+  function send(method, params, callback) {
+      if (typeof params == "function") {
+          callback = params;
+          params = [];
+      }
+
+      provider.send({
+          jsonrpc: "2.0",
+          method: method,
+          params: params || [],
+          id: new Date().getTime()
+      }, callback);
+  }
 
   before("create provider", function() {
     provider = Ganache.provider();
@@ -61,6 +78,35 @@ describe("Checkpointing / Reverting", function() {
           });
         })
       })
+    })
+  });
+
+  it('get current time', function(done) {
+    web3.eth.getBlock('latest', function(err, block){
+      if(err) return done(err);
+      timestampBeforeJump = block.timestamp;
+      done();
+    });
+  });
+
+  it('increments time by 24 hours', function(done) {
+    this.timeout(5000) // this is timing out on travis for some reason :-(
+    // Adjust time
+    send("evm_increaseTime", [secondsToJump], function(err, result) {
+      if (err) return done(err);
+
+      // Mine a block so new time is recorded.
+      send("evm_mine", function(err, result) {
+        if (err) return done(err);
+
+        web3.eth.getBlock('latest', function(err, block){
+          if(err) return done(err);
+          var secondsJumped = block.timestamp - timestampBeforeJump;
+
+          assert(secondsJumped >= secondsToJump);
+          done();
+        });
+      });
     });
   });
 

@@ -14,6 +14,7 @@ describe('Time adjustment', function() {
   var secondsToJump = 5 * 60 * 60;
 
   var timestampBeforeJump;
+  var timestampBeforeJumpBack;
 
   function send(method, params, callback) {
     if (typeof params == "function") {
@@ -29,7 +30,7 @@ describe('Time adjustment', function() {
     }, callback);
   }
 
-  before('get current time', function(done) {
+  it('get current time', function(done) {
     web3.eth.getBlock('latest', function(err, block){
       if(err) return done(err)
       timestampBeforeJump = block.timestamp
@@ -66,6 +67,8 @@ describe('Time adjustment', function() {
           // test suite. It might have something to do with when the before block
           // runs and when the test runs. Likely the last block didn't occur for
           // awhile.
+
+          //@note: I think the previous comment should be fixed now, changed to an 'it' instead of a 'before'
           assert(secondsJumped >= secondsToJump)
           done()
         })
@@ -73,13 +76,13 @@ describe('Time adjustment', function() {
     })
   })
 
-  before('get current time', function(done) {
+  it('get current time', function(done) {
     send("evm_mine", function(err, result) {
       if (err) return done(err);
 
       web3.eth.getBlock('latest', function (err, block) {
         if (err) return done(err)
-        timestampBeforeJump = block.timestamp
+        timestampBeforeJumpBack = block.timestamp;
         done()
       })
     });
@@ -96,11 +99,11 @@ describe('Time adjustment', function() {
 
         web3.eth.getBlock('latest', function(err, block){
           if(err) return done(err)
-          var secondsJumped = timestampBeforeJump - block.timestamp;
+          var secondsJumped = timestampBeforeJumpBack - block.timestamp;
 
           //@note: fixed the 18 second thing by mining right before this call.
           // inverted the "secondsJumped" since we're going backwards.
-          assert(-secondsJumped >= secondsToJump)
+          assert(secondsJumped >= secondsToJump)
           done()
         })
       })
