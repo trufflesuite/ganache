@@ -162,7 +162,7 @@ var tests = function(web3) {
         var expectedFirstBlock = {
           number: 0,
           hash: block.hash, // Don't test this one
-          mixHash: "0x1010101010101010101010101010101010101010101010101010101010101010",
+          mixHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
           parentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
           nonce: '0x0000000000000000',
           sha3Uncles: '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',
@@ -173,7 +173,7 @@ var tests = function(web3) {
           miner: '0x0000000000000000000000000000000000000000',
           difficulty: "0",
           totalDifficulty: "0",
-          extraData: '0x00',
+          extraData: '0x',
           size: 1000,
           gasLimit: 6721975,
           gasUsed: 0,
