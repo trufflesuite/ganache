@@ -178,7 +178,12 @@ var tests = function(web3, EventTest) {
         let filter_id = result.result;
 
         let listener = function (err, result) {
-          if (err) return done(err);
+          if(result == undefined) {
+            // If there's only one argument, it's the result, not an error
+            result = err;
+          } else if (err) {
+            return done(err);
+          }
           first_changes = result.params.result.hash;
           assert.equal(first_changes.length, 66); // Ensure we have a hash
           provider.removeAllListeners('data')
