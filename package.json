@@ -39,7 +39,7 @@
     "temp": "^0.8.3",
     "tmp": "0.0.31",
     "web3": "^1.0.0-beta.30",
-    "web3-provider-engine": "^13.6.5",
+    "web3-provider-engine": "^14.0.2",
     "websocket": "^1.0.24",
     "yargs": "^7.0.2"
   },
