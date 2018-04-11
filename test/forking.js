@@ -399,7 +399,7 @@ describe("Forking", function() {
     var solcResult = solc.compile(oracleSol);
     var oracleOutput = solcResult.contracts[":Oracle"];
 
-    return oracleContract = new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface))
+    return new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface))
       .deploy({ data: oracleOutput.bytecode })
       .send({ from: mainAccounts[0], gas: 3141592 })
       .then(function(oracle){

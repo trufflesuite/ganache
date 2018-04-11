@@ -12,6 +12,7 @@ process.removeAllListeners("uncaughtException");
 
 var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
 var result = solc.compile(source, 1);
+var provider
 
 // Note: Certain properties of the following contract data are hardcoded to
 // maintain repeatable tests. If you significantly change the solidity code,
@@ -83,7 +84,7 @@ var runTests = function(providerInit) {
         provider.close(done);
       });
     });
-    
+
     it("should reopen the provider", function (done) {
       providerInit(function(p) {
         provider = p;
