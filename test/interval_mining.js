@@ -19,7 +19,7 @@ describe("Interval Mining", function() {
     this.timeout(5000);
 
     web3 = new Web3(Ganache.provider({
-      blocktime: 0.5, // seconds
+      blockTime: 0.5, // seconds
       mnemonic: mnemonic
     }));
 
@@ -46,7 +46,7 @@ describe("Interval Mining", function() {
     this.timeout(5000);
 
     web3 = new Web3(Ganache.provider({
-      blocktime: 0.25, // seconds
+      blockTime: 0.25, // seconds
       mnemonic: mnemonic
     }));
 
@@ -89,7 +89,7 @@ describe("Interval Mining", function() {
     this.timeout(5000);
 
     web3 = new Web3(Ganache.provider({
-      blocktime: 0.5, // seconds
+      blockTime: 0.5, // seconds
       mnemonic: mnemonic
     }));
 
@@ -153,7 +153,7 @@ describe("Interval Mining", function() {
     };
 
     web3 = new Web3(Ganache.provider({
-      blocktime: 0.5, // seconds
+      blockTime: 0.5, // seconds
       mnemonic: mnemonic,
       logger: logger
     }));
