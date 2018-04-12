@@ -184,7 +184,7 @@ var tests = function(web3, EventTest) {
           } else if (err) {
             return done(err);
           }
-          first_changes = result.params.result.hash;
+          let first_changes = result.params.result.hash;
           assert.equal(first_changes.length, 66); // Ensure we have a hash
           provider.removeAllListeners('data')
           done();
