@@ -1,23 +1,26 @@
 {
   "name": "ganache-core",
-  "version": "1.0.1",
+  "version": "2.1.0",
   "main": "./index.js",
   "directories": {
     "lib": "./lib"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --check-leaks --globals _scratch"
   },
   "dependencies": {
-    "async": "~1.5.0",
-    "bip39": "~2.2.0",
+    "abstract-leveldown": "^3.0.0",
+    "async": "^2.5.0",
+    "bip39": "~2.4.0",
+    "bn.js": "4.11.6",
     "cachedown": "^1.0.0",
     "chai": "^3.5.0",
+    "clone": "^2.1.1",
     "ethereumjs-account": "~2.0.4",
     "ethereumjs-block": "~1.2.2",
     "ethereumjs-tx": "^1.3.0",
-    "ethereumjs-util": "~5.1.0",
-    "ethereumjs-vm": "~2.0.1",
+    "ethereumjs-util": "^5.1.5",
+    "ethereumjs-vm": "2.3.3",
     "ethereumjs-wallet": "~0.6.0",
     "fake-merkle-patricia-tree": "~1.0.1",
     "heap": "~0.2.6",
@@ -25,22 +28,28 @@
     "level-sublevel": "^6.6.1",
     "levelup": "^1.1.0",
     "localstorage-down": "^0.6.7",
-    "merkle-patricia-tree": "^2.1.2",
-    "mocha": "~2.2.5",
-    "on-build-webpack": "^0.1.0",
+    "lodash": "^4.17.5",
+    "merkle-patricia-tree": "^2.2.0",
+    "mocha": "~3.3.0",
+    "pify": "^3.0.0",
     "prepend-file": "^1.3.1",
     "seedrandom": "~2.4.2",
     "shebang-loader": "0.0.1",
-    "solc": "0.4.8",
+    "solc": "0.4.18",
     "temp": "^0.8.3",
     "tmp": "0.0.31",
-    "web3": "^0.18.2",
-    "web3-provider-engine": "~8.1.0",
-    "webpack": "^2.2.1",
+    "web3": "^1.0.0-beta.30",
+    "web3-provider-engine": "^14.0.2",
+    "websocket": "^1.0.24",
     "yargs": "^7.0.2"
+  },
+  "devDependencies": {
+    "memdown": "^1.3.1",
+    "assert-match": "^1.1.1"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache-core"
-  }
+  },
+  "license": "MIT"
 }

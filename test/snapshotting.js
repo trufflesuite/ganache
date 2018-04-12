@@ -1,4 +1,5 @@
-var TestRPC = require("../");
+var BN = require("bn.js");
+var Ganache = require("../");
 var async = require("async");
 var Web3 = require("web3");
 var assert = require("assert");
@@ -11,7 +12,7 @@ describe("Checkpointing / Reverting", function() {
   var snapshotId;
 
   before("create provider", function() {
-    provider = TestRPC.provider();
+    provider = Ganache.provider();
     web3.setProvider(provider);
   });
 
@@ -27,14 +28,14 @@ describe("Checkpointing / Reverting", function() {
     web3.eth.sendTransaction({
       from: accounts[0],
       to: accounts[1],
-      value: web3.toWei(1, "ether"),
+      value: web3.utils.toWei(new BN(1), "ether"),
       gas: 90000
     }, function() {
       // Since transactions happen immediately, we can assert the balance.
       web3.eth.getBalance(accounts[0], function(err, balance) {
         if (err) return done(err);
 
-        balance = web3.fromWei(balance, "ether").toNumber()
+        balance = parseFloat(web3.utils.fromWei(balance, "ether"))
 
         // Assert the starting balance is where we think it is, including tx costs.
         assert(balance > 98.9 && balance < 99);
@@ -42,7 +43,7 @@ describe("Checkpointing / Reverting", function() {
         startingBalance = balance;
 
         // Now checkpoint.
-        provider.sendAsync({
+        provider.send({
           jsonrpc: "2.0",
           method: "evm_snapshot",
           params: [],
@@ -61,7 +62,7 @@ describe("Checkpointing / Reverting", function() {
     web3.eth.sendTransaction({
       from: accounts[0],
       to: accounts[1],
-      value: web3.toWei(1, "ether"),
+      value: web3.utils.toWei(new BN(1), "ether"),
       gas: 90000
     }, function(err, tx_hash) {
       if (err) return done(err);
@@ -70,13 +71,13 @@ describe("Checkpointing / Reverting", function() {
       web3.eth.getBalance(accounts[0], function(err, balance) {
         if (err) return done(err);
 
-        balance = web3.fromWei(balance, "ether").toNumber()
+        balance = parseFloat(web3.utils.fromWei(balance, "ether"))
 
         // Assert the starting balance is where we think it is, including tx costs.
         assert(balance > 97.9 && balance < 98);
 
         // Now revert.
-        provider.sendAsync({
+        provider.send({
           jsonrpc: "2.0",
           method: "evm_revert",
           params: [snapshotId],
@@ -89,7 +90,7 @@ describe("Checkpointing / Reverting", function() {
           web3.eth.getBalance(accounts[0], function(err, balance) {
             if (err) return done(err);
 
-            balance = web3.fromWei(balance, "ether").toNumber()
+            balance = parseFloat(web3.utils.fromWei(balance, "ether"))
 
             assert(balance == startingBalance, "Should have reverted back to the starting balance");
 

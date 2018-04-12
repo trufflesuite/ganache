@@ -1,5 +1,6 @@
+var BN = require('bn.js');
 var Web3 = require('web3');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert');
 var to = require("../lib/utils/to.js");
 var solc = require("solc");
@@ -17,8 +18,8 @@ describe("Interval Mining", function() {
   it("should mine a block on the interval", function(done) {
     this.timeout(5000);
 
-    web3 = new Web3(TestRPC.provider({
-      blocktime: 0.5, // seconds
+    web3 = new Web3(Ganache.provider({
+      blockTime: 0.5, // seconds
       mnemonic: mnemonic
     }));
 
@@ -44,8 +45,8 @@ describe("Interval Mining", function() {
   it("shouldn't instamine when mining on an interval", function(done) {
     this.timeout(5000);
 
-    web3 = new Web3(TestRPC.provider({
-      blocktime: 0.5, // seconds
+    web3 = new Web3(Ganache.provider({
+      blockTime: 0.25, // seconds
       mnemonic: mnemonic
     }));
 
@@ -58,7 +59,7 @@ describe("Interval Mining", function() {
       web3.eth.sendTransaction({
         from: first_address,
         to: "0x1234567890123456789012345678901234567890",
-        value: web3.toWei(1, "Ether"),
+        value: web3.utils.toWei(new BN(1), "ether"),
         gas: 90000
       }, function(err, tx) {
         if (err) return done(err);
@@ -87,39 +88,40 @@ describe("Interval Mining", function() {
   it("miner_stop should stop interval mining, and miner_start should start it again", function(done) {
     this.timeout(5000);
 
-    web3 = new Web3(TestRPC.provider({
-      blocktime: 0.5, // seconds
+    web3 = new Web3(Ganache.provider({
+      blockTime: 0.5, // seconds
       mnemonic: mnemonic
     }));
 
-    // Get the first block (pre-condition)
-    web3.eth.getBlockNumber(function(err, number) {
+    // Stop mining
+    web3.currentProvider.send({
+      jsonrpc: "2.0",
+      method: "miner_stop",
+      id: new Date().getTime()
+    }, function(err, result) {
       if (err) return done(err);
-      assert.equal(number, 0);
+      if (result.error) return done(result.error.message);
 
-      // Stop mining
-      web3.currentProvider.sendAsync({
-        jsonrpc: "2.0",
-        method: "miner_stop",
-        id: new Date().getTime()
-      }, function(err) {
+      // Get the first block (pre-condition)
+      web3.eth.getBlockNumber(function(err, initial_number) {
         if (err) return done(err);
 
         // Wait .75 seconds (one and a half mining intervals) and ensure
         // the block number hasn't increased.
         setTimeout(function() {
-          web3.eth.getBlockNumber(function(err, latest_number) {
+          web3.eth.getBlockNumber(function(err, stopped_number) {
             if (err) return done(err);
-            assert.equal(latest_number, 0);
+            assert.equal(stopped_number, initial_number);
 
             // Start mining again
-            web3.currentProvider.sendAsync({
+            web3.currentProvider.send({
               jsonrpc: "2.0",
               method: "miner_start",
               params: [1],
               id: new Date().getTime()
-            }, function(err) {
+            }, function(err, result) {
               if (err) return done(err);
+              if (result.error) return done(result.error.message);
 
               // Wait .75 seconds (one and a half mining intervals) and ensure
               // the block number has increased by one.
@@ -127,7 +129,7 @@ describe("Interval Mining", function() {
                 web3.eth.getBlockNumber(function(err, last_number) {
                   if (err) return done(err);
 
-                  assert(last_number, latest_number + 1);
+                  assert(last_number > stopped_number);
                   done();
                 });
               }, 750)
@@ -150,14 +152,14 @@ describe("Interval Mining", function() {
       }
     };
 
-    web3 = new Web3(TestRPC.provider({
-      blocktime: 0.5, // seconds
+    web3 = new Web3(Ganache.provider({
+      blockTime: 0.5, // seconds
       mnemonic: mnemonic,
       logger: logger
     }));
 
     var result = solc.compile({sources: {"Example.sol": "pragma solidity ^0.4.2; contract Example { function Example() {throw;} }"}}, 1);
-    var bytecode = "0x" + result.contracts.Example.bytecode;
+    var bytecode = "0x" + result.contracts["Example.sol:Example"].bytecode;
 
     web3.eth.sendTransaction({
       from: first_address,
@@ -168,7 +170,7 @@ describe("Interval Mining", function() {
 
       // Wait .75 seconds (one and a half mining intervals) and ensure log sees error.
       setTimeout(function() {
-        assert(logData.indexOf("Runtime Error: invalid JUMP") >= 0);
+        assert(logData.indexOf("Runtime Error: revert") >= 0);
         done();
       }, 750);
     });

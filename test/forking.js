@@ -1,7 +1,8 @@
 var Web3 = require('web3');
+var Web3WsProvider = require('web3-providers-ws');
 var utils = require('ethereumjs-util');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var fs = require("fs");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
@@ -12,38 +13,19 @@ var async = require("async");
 process.removeAllListeners("uncaughtException");
 
 var logger = {
-  log: function(msg) { /*noop*/ }
+  log: function(msg) { /*console.log(msg)*/ }
 };
 
-var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
-var result = solc.compile(source, 1);
-
-// Note: Certain properties of the following contract data are hardcoded to
-// maintain repeatable tests. If you significantly change the solidity code,
-// make sure to update the resulting contract data with the correct values.
-var contract = {
-  solidity: source,
-  abi: result.contracts.Example.interface,
-  binary: "0x" + result.contracts.Example.bytecode,
-  position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
-  expected_default_value: 5,
-  call_data: {
-    gas: '0x2fefd8',
-    gasPrice: '0x01', // This is important, as passing it has exposed errors in the past.
-    to: null, // set by test
-    data: '0x3fa4f245'
-  },
-  transaction_data: {
-    from: null, // set by test
-    gas: '0x2fefd8',
-    to: null, // set by test
-    data: '0x552410770000000000000000000000000000000000000000000000000000000000000019' // sets value to 25 (base 10)
-  }
-};
-
-var forkedTargetUrl = "http://localhost:21345";
+/**
+ * NOTE: Naming in these tests is a bit confusing. Here, the "main chain"
+ * is the main chain the tests interact with; and the "forked chain" is the
+ * chain that _was forked_. This is in contrast to general naming, where the
+ * main chain represents the main chain to be forked (like the Ethereum live
+ * network) and the fork chaing being "the fork".
+ */
 
 describe("Forking", function() {
+  var contract;
   var contractAddress;
   var secondContractAddress; // used sparingly
   var forkedServer;
@@ -55,26 +37,62 @@ describe("Forking", function() {
   var forkedWeb3 = new Web3();
   var mainWeb3 = new Web3();
 
+  var forkedTargetUrl = "ws://localhost:21345";
   var forkBlockNumber;
 
   var initialDeployTransactionHash;
 
-  before("Initialize Fallback TestRPC server", function(done) {
-    forkedServer = TestRPC.server({
+  before("set up test data", function() {
+    this.timeout(10000)
+    var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
+    var result = solc.compile(source, 1);
+
+    // Note: Certain properties of the following contract data are hardcoded to
+    // maintain repeatable tests. If you significantly change the solidity code,
+    // make sure to update the resulting contract data with the correct values.
+    contract = {
+      solidity: source,
+      abi: result.contracts[":Example"].interface,
+      binary: "0x" + result.contracts[":Example"].bytecode,
+      position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      expected_default_value: 5,
+      call_data: {
+        gas: '0x2fefd8',
+        gasPrice: '0x01', // This is important, as passing it has exposed errors in the past.
+        to: null, // set by test
+        data: '0x3fa4f245'
+      },
+      transaction_data: {
+        from: null, // set by test
+        gas: '0x2fefd8',
+        to: null, // set by test
+        data: '0x552410770000000000000000000000000000000000000000000000000000000000000019' // sets value to 25 (base 10)
+      }
+    };
+  });
+
+  before("Initialize Fallback Ganache server", function(done) {
+    this.timeout(10000)
+    forkedServer = Ganache.server({
       // Do not change seed. Determinism matters for these tests.
       seed: "let's make this deterministic",
+      ws: true,
       logger: logger
     });
 
     forkedServer.listen(21345, function(err) {
       if (err) return done(err);
-
-      forkedWeb3.setProvider(new Web3.providers.HttpProvider(forkedTargetUrl));
       done();
     });
   });
 
+  before("set forkedWeb3 provider", function(done) {
+    forkedWeb3.setProvider(new Web3WsProvider(forkedTargetUrl));
+    done();
+  });
+
   before("Gather forked accounts", function(done) {
+    this.timeout(5000)
     forkedWeb3.eth.getAccounts(function(err, f) {
       if (err) return done(err);
       forkedAccounts = f;
@@ -128,37 +146,23 @@ describe("Forking", function() {
   before("Make a transaction on the forked chain that produces a log", function(done) {
     this.timeout(10000)
 
-    var FallbackExample = forkedWeb3.eth.contract(JSON.parse(contract.abi));
-    var forkedExample = FallbackExample.at(contractAddress);
+    var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!forkedExample._requestManager.provider) {
+      forkedExample._requestManager.setProvider(forkedWeb3.eth._provider);
+    }
 
     var interval;
 
-    var event = forkedExample.ValueSet([{}]);
+    var event = forkedExample.events.ValueSet({});
 
-    function cleanup(err) {
-      if (err) return done(err);
+    event.once('data', function(logs) {
+      done()
+    });
 
-      event.stopWatching(function(err) {
+    forkedExample.methods.setValue(7).send({from: forkedAccounts[0]}, function(err, tx) {
         if (err) return done(err);
-        clearInterval(interval);
-        done(err);
-      });
-    }
-
-    forkedExample.setValue(7, {from: forkedAccounts[0]}, function(err, tx) {
-      if (err) return done(err);
-
-      interval = setInterval(function() {
-        event.get(function(err, logs) {
-          if (err) return cleanup(err);
-
-          if (logs.length == 0) return;
-
-          assert(logs.length == 1);
-
-          cleanup();
-        });
-      }, 500);
     });
   });
 
@@ -175,10 +179,10 @@ describe("Forking", function() {
   });
 
   before("Set main web3 provider, forking from forked chain at this point", function(done) {
-    mainWeb3.setProvider(TestRPC.provider({
-      fork: forkedTargetUrl,
-      //logger: console, //logger,
-      //verbose: true,
+    mainWeb3.setProvider(Ganache.provider({
+      fork: forkedTargetUrl.replace('ws', 'http'),
+      logger,
+      verbose: true,
 
       // Do not change seed. Determinism matters for these tests.
       seed: "a different seed"
@@ -192,6 +196,7 @@ describe("Forking", function() {
   });
 
   before("Gather main accounts", function(done) {
+    this.timeout(5000)
     mainWeb3.eth.getAccounts(function(err, m) {
       if (err) return done(err);
       mainAccounts = m;
@@ -199,18 +204,14 @@ describe("Forking", function() {
     });
   });
 
-  after("Close down the forked TestRPC server", function(done){
-    forkedServer.close(done);
-  });
-
   it("should fetch a contract from the forked provider via the main provider", function(done) {
     mainWeb3.eth.getCode(contractAddress, function(err, mainCode) {
       if (err) return done(err);
 
       // Ensure there's *something* there.
-      assert.notEqual(result, null);
-      assert.notEqual(result, "0x");
-      assert.notEqual(result, "0x0");
+      assert.notEqual(mainCode, null);
+      assert.notEqual(mainCode, "0x");
+      assert.notEqual(mainCode, "0x0");
 
       // Now make sure it matches exactly.
       forkedWeb3.eth.getCode(contractAddress, function(err, forkedCode) {
@@ -240,47 +241,59 @@ describe("Forking", function() {
   it("should be able to get storage values on the forked provider via the main provider", function(done) {
     mainWeb3.eth.getStorageAt(contractAddress, contract.position_of_value, function(err, result) {
       if (err) return done(err);
-      assert.equal(mainWeb3.toDecimal(result), 7);
+      assert.equal(mainWeb3.utils.hexToNumber(result), 7);
       done();
     });
   });
 
   it("should be able to execute calls against a contract on the forked provider via the main provider", function(done) {
-    var Example = mainWeb3.eth.contract(JSON.parse(contract.abi));
-    var example = Example.at(contractAddress);
+    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
-    example.value({from: mainAccounts[0]}, function(err, result){
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!example._requestManager.provider) {
+      example._requestManager.setProvider(web3.eth._provider);
+    }
+
+    example.methods.value().call({from: mainAccounts[0]}, function(err, result){
       if (err) return done(err);
-      assert.equal(mainWeb3.toDecimal(result), 7);
+      assert.equal(mainWeb3.utils.hexToNumber(result), 7);
 
       // Make the call again to ensure caches updated and the call still works.
-      example.value({from: mainAccounts[0]}, function(err, result){
+      example.methods.value().call({from: mainAccounts[0]}, function(err, result){
         if (err) return done(err);
-        assert.equal(mainWeb3.toDecimal(result), 7);
+        assert.equal(mainWeb3.utils.hexToNumber(result), 7);
         done(err);
       });
     });
   });
 
   it("should be able to make a transaction on the main provider while not transacting on the forked provider", function(done) {
-    var Example = mainWeb3.eth.contract(JSON.parse(contract.abi));
-    var example = Example.at(contractAddress);
+    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
-    var FallbackExample = forkedWeb3.eth.contract(JSON.parse(contract.abi));
-    var forkedExample = FallbackExample.at(contractAddress);
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!example._requestManager.provider) {
+      example._requestManager.setProvider(web3.eth._provider);
+    }
 
-    example.setValue(25, {from: mainAccounts[0]}, function(err) {
+    var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!forkedExample._requestManager.provider) {
+      forkedExample._requestManager.setProvider(forkedWeb3.eth._provider);
+    }
+
+    example.methods.setValue(25).send({from: mainAccounts[0]}, function(err) {
       if (err) return done(err);
 
       // It insta-mines, so we can make a call directly after.
-      example.value({from: mainAccounts[0]}, function(err, result) {
+      example.methods.value().call({from: mainAccounts[0]}, function(err, result) {
         if (err) return done(err);
-        assert.equal(mainWeb3.toDecimal(result), 25);
+        assert.equal(mainWeb3.utils.hexToNumber(result), 25);
 
         // Now call back to the forked to ensure it's value stayed 5
-        forkedExample.value({from: forkedAccounts[0]}, function(err, result) {
+        forkedExample.methods.value().call({from: forkedAccounts[0]}, function(err, result) {
           if (err) return done(err);
-          assert.equal(forkedWeb3.toDecimal(result), 7);
+          assert.equal(forkedWeb3.utils.hexToNumber(result), 7);
           done();
         })
       });
@@ -293,26 +306,34 @@ describe("Forking", function() {
     // yet, and it will require it forked to the forked provider at a specific block.
     // If that block handling is done improperly, this should fail.
 
-    var Example = mainWeb3.eth.contract(JSON.parse(contract.abi));
-    var example = Example.at(secondContractAddress);
+    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), secondContractAddress);
 
-    var FallbackExample = forkedWeb3.eth.contract(JSON.parse(contract.abi));
-    var forkedExample = FallbackExample.at(secondContractAddress);
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!example._requestManager.provider) {
+      example._requestManager.setProvider(web3.eth._provider);
+    }
+
+    var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), secondContractAddress);
+
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!forkedExample._requestManager.provider) {
+      forkedExample._requestManager.setProvider(forkedWeb3.eth._provider);
+    }
 
     // This transaction happens entirely on the forked chain after forking.
     // It should be ignored by the main chain.
-    forkedExample.setValue(800, {from: forkedAccounts[0]}, function(err, result) {
+    forkedExample.methods.setValue(800).send({from: forkedAccounts[0]}, function(err, result) {
       if (err) return done(err);
       // Let's assert the value was set correctly.
-      forkedExample.value({from: forkedAccounts[0]}, function(err, result) {
+      forkedExample.methods.value().call({from: forkedAccounts[0]}, function(err, result) {
         if (err) return done(err);
-        assert.equal(forkedWeb3.toDecimal(result), 800);
+        assert.equal(forkedWeb3.utils.hexToNumber(result), 800);
 
         // Now lets check the value on the main chain. It shouldn't be 800.
-        example.value({from: mainAccounts[0]}, function(err, result) {
+        example.methods.value().call({from: mainAccounts[0]}, function(err, result) {
           if (err) return done(err);
 
-          assert.equal(mainWeb3.toDecimal(result), 5);
+          assert.equal(mainWeb3.utils.hexToNumber(result), 5);
           done();
         })
       })
@@ -330,7 +351,7 @@ describe("Forking", function() {
     mainWeb3.eth.getBlockNumber(function(err, result) {
       if (err) return done(err);
 
-      assert.equal(mainWeb3.toDecimal(result), 5);
+      assert.equal(mainWeb3.utils.hexToNumber(result), 5);
 
       // Now lets get a block that exists on the forked chain.
       mainWeb3.eth.getBlock(0, function(err, mainBlock) {
@@ -361,7 +382,7 @@ describe("Forking", function() {
 
       var parentHash = forkedBlock.hash;
 
-      var mainGenesisNumber = mainWeb3.toDecimal(forkBlockNumber) + 1;
+      var mainGenesisNumber = mainWeb3.utils.hexToNumber(forkBlockNumber) + 1;
       mainWeb3.eth.getBlock(mainGenesisNumber, function(err, mainGenesis) {
         if (err) return done(err);
 
@@ -372,56 +393,61 @@ describe("Forking", function() {
   });
 
   // Note: This test also puts a new contract on the forked chain, which is a good test.
-  it("should represent the block number correctly in the Oracle contract (oracle.blockhash0), providing forked block hash and number", function(done){
-    var oracleSol = fs.readFileSync("./test/Oracle.sol", {encoding: "utf8"});
-    var oracleOutput = solc.compile(oracleSol).contracts.Oracle;
-
-    mainWeb3.eth.contract(JSON.parse(oracleOutput.interface)).new({ data: oracleOutput.bytecode, from: mainAccounts[0], gas: 3141592 }, function(err, oracle){
-      if(err) return done(err)
-      if(!oracle.address) return
-      mainWeb3.eth.getBlock(0, function(err, block){
-        if (err) return done(err)
-        oracle.blockhash0.call(function(err, blockhash){
-          if (err) return done(err)
-          assert.equal(blockhash, block.hash);
-
-          // Now check the block number.
-          mainWeb3.eth.getBlockNumber(function(err, expected_number) {
-            if (err) return done(err);
-
-            oracle.currentBlock.call(function(err, number) {
-              if (err) return done(err);
-              assert.equal(number, expected_number);
-
-              oracle.setCurrentBlock({from: mainAccounts[0], gas: 3141592}, function(err, tx) {
-                if (err) return done(err);
-
-                oracle.lastBlock.call({from: mainAccounts[0]}, function(err, val) {
-                  if (err) return done(err);
-
-                  assert(val.eq(expected_number + 1));
-                  done();
-                });
-              })
-            });
-          });
-        })
-      })
-    })
-  })
-
-  it("should be able to get logs across the fork boundary", function(done) {
+  it("should represent the block number correctly in the Oracle contract (oracle.blockhash0), providing forked block hash and number", function() {
     this.timeout(10000)
+    var oracleSol = fs.readFileSync("./test/Oracle.sol", {encoding: "utf8"});
+    var solcResult = solc.compile(oracleSol);
+    var oracleOutput = solcResult.contracts[":Oracle"];
 
-    var Example = mainWeb3.eth.contract(JSON.parse(contract.abi));
-    var example = Example.at(contractAddress);
+    return new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface))
+      .deploy({ data: oracleOutput.bytecode })
+      .send({ from: mainAccounts[0], gas: 3141592 })
+      .then(function(oracle){
+        // TODO: ugly workaround - not sure why this is necessary.
+        if (!oracle._requestManager.provider) {
+          oracle._requestManager.setProvider(mainWeb3.eth._provider);
+        }
+        return mainWeb3.eth.getBlock(0).then(function(block){
+          return oracle.methods.blockhash0().call()
+            .then(function(blockhash) {
+              assert.equal(blockhash, block.hash);
+              // Now check the block number.
+              return mainWeb3.eth.getBlockNumber()
+            })
+        }).then(function(expected_number) {
+          return oracle.methods.currentBlock().call()
+            .then(function(number) {
+              assert.equal(number, expected_number + 1);
+              return oracle.methods.setCurrentBlock().send({from: mainAccounts[0], gas: 3141592})
+            }).then(function(tx) {
+              return oracle.methods.lastBlock().call({from: mainAccounts[0]})
+            }).then(function(val) {
+              assert.equal(to.number(val), expected_number + 1);
+            });
+        });
+      });
+  });
 
-    var event = example.ValueSet({}, {fromBlock: 0, toBlock: "latest"});
+  // TODO
+  it("should be able to get logs across the fork boundary", function(done) {
+    this.timeout(30000)
 
-    event.get(function(err, logs) {
-      if (err) return done(err);
-      assert.equal(logs.length, 2);
-      done();
+    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!example._requestManager.provider) {
+      example._requestManager.setProvider(web3.eth._provider);
+    }
+
+    var event = example.events.ValueSet({fromBlock: 0, toBlock: "latest"});
+
+    var callcount = 0
+    event.on('data', function(log) {
+      callcount++
+      if (callcount == 2) {
+        event.removeAllListeners()
+        done()
+      }
     });
   });
 
@@ -473,10 +499,10 @@ describe("Forking", function() {
     }, function(err, results) {
       if (err) return done(err);
 
-      var balanceBeforeFork = results.balanceBeforeFork;
-      var balanceAfterFork  = results.balanceAfterFork;
-      var balanceLatestMain = results.balanceLatestMain;
-      var balanceLatestFallback = results.balanceLatestFallback;
+      var balanceBeforeFork = mainWeb3.utils.toBN(results.balanceBeforeFork);
+      var balanceAfterFork  = mainWeb3.utils.toBN(results.balanceAfterFork);
+      var balanceLatestMain = mainWeb3.utils.toBN(results.balanceLatestMain);
+      var balanceLatestFallback = mainWeb3.utils.toBN(results.balanceLatestFallback);
 
       // First ensure our balances for the block before the fork
       // We do this by simply ensuring the balance has decreased since exact values
@@ -506,7 +532,7 @@ describe("Forking", function() {
       var codeLatest = results.codeLatest;
 
       // There should be no code initially.
-      assert(mainWeb3.toBigNumber(codeEarliest).eq(0));
+      assert.equal(to.number(codeEarliest), 0)
 
       // Arbitrary length check since we can't assert the exact value
       assert(codeAfterFork.length > 20);
@@ -553,10 +579,12 @@ describe("Forking", function() {
   it("should return a transaction receipt for transactions made before the fork", function(done) {
     forkedWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, referenceReceipt) {
       if (err) return done(err);
+      assert.deepEqual(referenceReceipt.transactionHash, initialDeployTransactionHash)
 
       mainWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, forkedReceipt) {
         if (err) return done(err);
 
+        assert.deepEqual(forkedReceipt.transactionHash, initialDeployTransactionHash)
         assert.deepEqual(referenceReceipt, forkedReceipt);
         done();
       });
@@ -564,15 +592,29 @@ describe("Forking", function() {
   })
 
   it("should return the same network version as the chain it forked from", function(done) {
-    forkedWeb3.version.getNetwork(function(err, forkedNetwork) {
+    forkedWeb3.eth.net.getId(function(err, forkedNetwork) {
       if (err) return done(err);
 
-      mainWeb3.version.getNetwork(function(err, mainNetwork) {
+      mainWeb3.eth.net.getId(function(err, mainNetwork) {
         if (err) return done(err);
 
         assert.equal(mainNetwork, forkedNetwork);
         done();
       });
     })
+  });
+
+  after("Shutdown server", function(done) {
+    forkedWeb3._provider.connection.close()
+    forkedServer.close(function(serverCloseErr) {
+      forkedWeb3.setProvider();
+      let mainProvider = mainWeb3._provider;
+      mainWeb3.setProvider();
+      mainProvider.close(function(providerCloseErr) {
+        if (serverCloseErr) return done(serverCloseErr);
+        if (providerCloseErr) return done(providerCloseErr);
+        done()
+      });
+    });
   });
 });
