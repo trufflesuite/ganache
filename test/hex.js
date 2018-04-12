@@ -30,6 +30,13 @@ describe("to.rpcQuantityHexString", function() {
   });
 });
 
+describe("to.rpcDataHexString", function() {
+  it("should differentiate between a list of 0 items and a list of one 0", function(done) {
+    assert.notEqual(to.rpcDataHexString(new Buffer("", "hex")), to.rpcDataHexString(new Buffer("00", "hex")));
+    done();
+  })
+})
+
 function noLeadingZeros(method, result, path) {
   if (!path) {
     path = 'result'
