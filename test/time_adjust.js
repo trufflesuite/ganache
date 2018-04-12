@@ -92,7 +92,7 @@ describe('Time adjustment', function() {
           send("evm_mine", function(err, result) {
             if (err) return done(err);
 
-            send("evm_revert", function(err, result) {
+            send("evm_revert", [1], function(err, result) {
               var revertedTimeAdjustment = provider.manager.state.blockchain.timeAdjustment
               assert.equal(revertedTimeAdjustment, originalTimeAdjustment);
               done()
