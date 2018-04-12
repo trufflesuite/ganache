@@ -19,7 +19,7 @@ var logger = {
 
 var web3 = new Web3();
 web3.setProvider(Ganache.provider({
-  /*blocktime: 100,*/
+  /*blockTime: 100,*/
   logger: logger,
   seed: "1337"
 }));
