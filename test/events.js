@@ -39,7 +39,7 @@ var tests = function(web3, EventTest) {
       var result = solc.compile(source, 1);
 
       if (result.errors != null) {
-        done(result.errors[0]) 
+        done(result.errors[0])
       }
 
       var abi = JSON.parse(result.contracts[":EventTest"].interface);
@@ -110,7 +110,7 @@ var tests = function(web3, EventTest) {
       var waitingFor = {}
       waitingFor[expectedValueA] = true
       waitingFor[expectedValueB] = true
-      
+
       var listener = function(result) {
         assert(waitingFor.hasOwnProperty(result.returnValues.first))
         delete waitingFor[result.returnValues.first]
@@ -179,7 +179,7 @@ var tests = function(web3, EventTest) {
 
         let listener = function (err, result) {
           if (err) return done(err);
-          first_changes = result.params.result.hash;
+          const first_changes = result.params.result.hash;
           assert.equal(first_changes.length, 66); // Ensure we have a hash
           provider.removeAllListeners('data')
           done();
