@@ -119,6 +119,21 @@ describe("Mining", function() {
     });
   }
 
+  function mineMultipleBlocks(numBlocks) {
+    return new Promise(function(accept, reject) {
+      web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_mineBlocks",
+        params: [numBlocks],
+        id: new Date().getTime()
+      }, function(err, result) {
+        if (err) return reject(err);
+        assert.deepEqual(result.result, "0x0");
+        accept(result);
+      })
+    });
+  }
+
   function queueTransaction(from, to, gasLimit, value, data) {
     return new Promise(function(accept, reject) {
       web3.eth.sendTransaction({
@@ -431,5 +446,14 @@ describe("Mining", function() {
     }).then(function(is_mining) {
       assert(is_mining);
     });
+  });
+
+  it("should mine multiple blocks", function() {
+    const numBlocks = 10;
+    return mineMultipleBlocks(numBlocks).then(function() {
+      return getBlockNumber();
+    }).then(function(number) {
+      assert.equal(number, numBlocks);
+    })
   });
 });
