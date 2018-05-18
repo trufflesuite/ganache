@@ -652,7 +652,7 @@ var tests = function(web3) {
 
         web3.eth.estimateGas(tx_data, function(err, result) {
           if (err) return done(err);
-          assert.equal(result, 27682);
+          assert.equal(result, 27693);
 
           web3.eth.getBlockNumber(function(err, result) {
             if (err) return done(err);
@@ -673,7 +673,7 @@ var tests = function(web3) {
 
       web3.eth.estimateGas(tx_data, function(err, result) {
         if (err) return done(err);
-        assert.equal(result, 27682);
+        assert.equal(result, 27693);
         done();
       });
     });
@@ -687,7 +687,7 @@ var tests = function(web3) {
 
       web3.eth.estimateGas(tx_data, function(err, result) {
         if (err) return done(err);
-        assert.equal(result, 27682);
+        assert.equal(result, 27693);
         done();
       });
     });
