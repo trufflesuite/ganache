@@ -7,12 +7,12 @@ var async = require("async");
 var util = require("util")
 
 var source = "                      \
-pragma solidity ^0.4.2;             \
+pragma solidity ^0.4.24;            \
 contract EventTest {                \
   event ExampleEvent(uint indexed first, uint indexed second);   \
                                     \
   function triggerEvent(uint _first, uint _second) public { \
-    ExampleEvent(_first, _second);      \
+    emit ExampleEvent(_first, _second);      \
   }                                 \
 }"
 
@@ -40,6 +40,7 @@ var tests = function(web3, EventTest) {
 
       if (result.errors != null) {
         done(result.errors[0])
+        return
       }
 
       var abi = JSON.parse(result.contracts[":EventTest"].interface);
