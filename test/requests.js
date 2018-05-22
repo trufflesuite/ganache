@@ -346,8 +346,8 @@ var tests = function(web3) {
 
   	  return signingWeb3.eth.sign(utils.bufferToHex(msg), accounts[0]).then(sgn => {
     	  sgn = utils.stripHexPrefix(sgn);
-    		var r = new Buffer(sgn.slice(0, 64), 'hex');
-    		var s = new Buffer(sgn.slice(64, 128), 'hex');
+    		var r = Buffer.from(sgn.slice(0, 64), 'hex');
+    		var s = Buffer.from(sgn.slice(64, 128), 'hex');
     		var v = parseInt(sgn.slice(128, 130), 16) + 27;
     		var pub = utils.ecrecover(msgHash, v, r, s);
     		var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
@@ -364,8 +364,8 @@ var tests = function(web3) {
       var msgHash = utils.hashPersonalMessage(edgeCaseMsg);
       return signingWeb3.eth.sign(msgHex, accounts[0]).then(sgn => {
         sgn = utils.stripHexPrefix(sgn);
-        var r = new Buffer(sgn.slice(0, 64), 'hex');
-        var s = new Buffer(sgn.slice(64, 128), 'hex');
+        var r = Buffer.from(sgn.slice(0, 64), 'hex');
+        var s = Buffer.from(sgn.slice(64, 128), 'hex');
         var v = parseInt(sgn.slice(128, 130), 16) + 27;
         var pub = utils.ecrecover(msgHash, v, r, s);
         var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
@@ -844,7 +844,7 @@ var tests = function(web3) {
       data: contract.binary,
       gasLimit: to.hex(3141592)
     })
-    var privateKey = new Buffer('e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109', 'hex')
+    var privateKey = Buffer.from('e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109', 'hex')
     var senderAddress = '0x'+utils.privateToAddress(privateKey).toString('hex')
     tx.sign(privateKey)
     var rawTx = '0x'+tx.serialize().toString('hex')

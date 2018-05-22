@@ -32,7 +32,7 @@ describe("to.rpcQuantityHexString", function() {
 
 describe("to.rpcDataHexString", function() {
   it("should differentiate between a list of 0 items and a list of one 0", function(done) {
-    assert.notEqual(to.rpcDataHexString(new Buffer("", "hex")), to.rpcDataHexString(new Buffer("00", "hex")));
+    assert.notEqual(to.rpcDataHexString(Buffer.from("", "hex")), to.rpcDataHexString(Buffer.from("00", "hex")));
     done();
   })
 })
