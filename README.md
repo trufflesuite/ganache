@@ -7,7 +7,7 @@ This is the core code that powers the Ganache application and the the Ganache co
 
 # INSTALL
 
-`ganache-core` is written in Javascript and distributed as a Node package via `npm`. Make sure you have Node.js (>= v6.11.5) installed, and your environment is capable of installing and compiling `npm` modules.
+`ganache-core` is written in Javascript and distributed as a Node package via `npm`. Make sure you have Node.js (>= v8.9.0) installed, and your environment is capable of installing and compiling `npm` modules.
 
 **macOS** Make sure you have the XCode Command Line Tools installed. These are needed in general to be able to compile most C based languages on your machine, as well as many npm modules.
 
