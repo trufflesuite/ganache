@@ -983,6 +983,16 @@ var tests = function(web3) {
     });
   });
 
+  describe("eth_getTransactionCount", function() {
+    it("should error for non-existent block", function(done) {
+      web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999, function(err, result) {
+        assert(err, "Error with message 'Unknown block number' expected, instead no error was returned");
+        assert(err.message.indexOf("Unknown block number") > -1);
+        done();
+      });
+    });
+  });
+
   describe("eth_compileSolidity (not supported)", function() {
     this.timeout(5000);
     it("correctly compiles solidity code", function(done) {
