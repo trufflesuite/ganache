@@ -58,6 +58,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"ws"`: Enable a websocket server. This is `true` by default.
 * `"vmErrorsOnRPCResponse"`: Whether to report runtime errors from EVM code as RPC errors. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
+* `"noMethodLog"`: `boolean` - Do not output RPC method name.
 
 # IMPLEMENTED METHODS
 
