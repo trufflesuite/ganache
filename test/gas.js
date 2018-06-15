@@ -13,7 +13,10 @@ process.removeAllListeners("uncaughtException");
 let mnemonic = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
 describe("Gas", function() {
-  var provider = new Ganache.provider({mnemonic});
+  var provider = new Ganache.provider({
+    mnemonic,
+    estimateGasThreshold: 0
+  });
   var web3 = new Web3(provider);
   var accounts;
 
@@ -66,8 +69,9 @@ describe("Gas", function() {
           return web3.eth.sendTransaction(Object.assign(contractFn.apply(contractFn, args), options))
             .then(function (receipt) {
               assert.equal(receipt.status, 1, 'Transaction must succeed');
-              assert.equal(receipt.gasUsed, estimate);
-              assert.equal(receipt.cumulativeGasUsed, estimate);
+              // gasUsed should be <= gasEstimate due to gasRefunds, etc
+              assert(receipt.gasUsed <= estimate);
+              assert(receipt.cumulativeGasUsed <= estimate);
             })
         });
     }
@@ -90,6 +94,37 @@ describe("Gas", function() {
     it("matches usage for complex function call (transfer)", function() {
       this.timeout(10000)
       return testTransactionEstimate(estimateGasInstance.methods.transfer, ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")], {from: accounts[0], gas: 3141592});
+    });
+
+    it("tx executes for funky gas function call (setField)", function () {
+      return estimateGasInstance.methods.setField("Tim")
+        .estimateGas({ from: accounts[0] })
+        .then(function (gas) {
+          return estimateGasInstance.methods.setField("Tim")
+          .send({ from: accounts[0], gas })
+          .then(function (receipt) {
+              assert.equal(receipt.status, 1, 'Transaction must succeed');
+              assert(receipt.gasUsed <= gas );
+              assert(receipt.cumulativeGasUsed <= gas );
+          })
+        });
+    });
+
+    it("estimateGas response should be within threshold for funky gas function call (setField)", function () {
+      return estimateGasInstance.methods.setField("Tim")
+        .estimateGas({ from: accounts[0] })
+        .then(function (gasEstimate) {
+          return estimateGasInstance.methods.setField("Tim")
+            // should fail when subtracting threshold from estimate
+            .send({ from: accounts[0], gas: gasEstimate - 1 })
+            .then(function (receipt) {
+              assert.equal(receipt.status, 0, 'Transaction must fail. estimateGas response not within estimateGasThreshold');
+            })
+            .catch(function (err) {
+              if (err.name === 'RuntimeError' && err.message.includes('revert')) return;
+              throw err;
+            })
+        })
     });
 
     function toBytes(s) {
