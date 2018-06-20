@@ -5,8 +5,6 @@ var assert = require('assert');
 var Ganache = require("../index.js");
 var fs = require("fs");
 var solc = require("solc");
-var to = require("../lib/utils/to.js");
-var async = require("async");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
