@@ -58,6 +58,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"ws"`: Enable a websocket server. This is `true` by default.
 * `"vmErrorsOnRPCResponse"`: Whether to report runtime errors from EVM code as RPC errors. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
+* `"allowUnlimitedContractSize"`: Allows unlimited contract sizes while debugging. By setting this to `true`, the check within the EVM for contract size limit of 2KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
 
 # IMPLEMENTED METHODS
 
