@@ -1,10 +1,8 @@
 var Web3 = require('web3');
-var assert = require('assert');
 var Ganache = require("../index.js");
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
-var to = require("../lib/utils/to.js");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -15,23 +13,19 @@ let mnemonic = 'candy maple cake sugar pudding cream honey rich smooth crumble s
 describe("Unlimited Contract Size", function() {
   let contract;
 
-  function generateLargeContract() {
-    let result = {
-      bytecode: "",
-      abi: ""
-    };
-
-    return result;
-  }
-
-  before("generate contract", function() {
-    contract = generateLargeContract();
+  before("compile contract", function() {
+    var result = solc.compile({sources: {"LargeContract.sol": fs.readFileSync(path.join(__dirname, "LargeContract.sol"), "utf8")}}, 1);
+    contract = {
+      bytecode: "0x" + result.contracts["LargeContract.sol:LargeContract"].bytecode,
+      abi: JSON.parse(result.contracts["LargeContract.sol:LargeContract"].interface)
+    }
   });
 
   describe("Disallow Unlimited Contract Size", function() {
     var provider = new Ganache.provider({
       mnemonic,
-      allowUnlimitedContractSize: false
+      allowUnlimitedContractSize: false,
+      gasLimit: 20000000
     });
     var web3 = new Web3(provider);
     var accounts;
@@ -44,12 +38,12 @@ describe("Unlimited Contract Size", function() {
       });
     });
 
-    it("fails deployment", function(done) {
-      this.timeout(10000);
-
-      DummyContract = new web3.eth.Contract(contract.abi);
-      return DummyContract.deploy({data: contract.bytecode})
-        .send({from: accounts[0], gas: 3141592})
+    it("should fail deployment", function(done) {
+      let DummyContract = new web3.eth.Contract(contract.abi);
+      DummyContract.deploy({
+        data: contract.bytecode
+      })
+        .send({from: accounts[0], gas: 20000000})
         .then(function(instance) {
           done(new Error("succeeded deployment when it should have failed"));
         })
@@ -62,7 +56,8 @@ describe("Unlimited Contract Size", function() {
   describe("Allow Unlimited Contract Size", function() {
     var provider = new Ganache.provider({
       mnemonic,
-      allowUnlimitedContractSize: true
+      allowUnlimitedContractSize: true,
+      gasLimit: 20000000
     });
     var web3 = new Web3(provider);
     var accounts;
@@ -75,16 +70,17 @@ describe("Unlimited Contract Size", function() {
       });
     });
 
-    it("succeeds deployment", function(done) {
-      this.timeout(10000);
-
-      DummyContract = new web3.eth.Contract(contract.abi);
-      return DummyContract.deploy({data: contract.bytecode})
-        .send({from: accounts[0], gas: 3141592})
+    it("should succeed deployment", function(done) {
+      let DummyContract = new web3.eth.Contract(contract.abi);
+      DummyContract.deploy({
+        data: contract.bytecode
+      })
+        .send({from: accounts[0], gas: 20000000})
         .then(function(instance) {
           done()
         })
         .catch(function(error) {
+          console.log(error);
           done(new Error("failed deployment when it should have succeeded"));
         });
     });
