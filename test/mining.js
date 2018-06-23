@@ -119,6 +119,63 @@ describe("Mining", function() {
     });
   }
 
+  function mineMultipleBlocks(numBlocks) {
+    return new Promise(function(accept, reject) {
+      web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_mineBlocks",
+        params: [numBlocks],
+        id: new Date().getTime()
+      }, function(err, result) {
+        if (err) return reject(err);
+        assert.deepEqual(result.result, "0x0");
+        accept(result);
+      })
+    });
+  }
+
+  function getLogsWithFakeBlocks() {
+    return new Promise(function(accept, reject) {
+      web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_getLogsWithFakeBlocks",
+        params: [{}],
+        id: new Date().getTime()
+      }, function(err, result) {
+        if (err) return reject(err);
+        accept(result);
+      })
+    });
+  }
+
+  function getLogs() {
+    return new Promise(function(accept, reject) {
+      web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "eth_getLogs",
+        params: [{}],
+        id: new Date().getTime()
+      }, function(err, result) {
+        if (err) return reject(err);
+        accept(result);
+      })
+    });
+  }
+
+  function skipBlocks(numBlocks) {
+    return new Promise(function(accept, reject) {
+      web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_skipBlocks",
+        params: [numBlocks],
+        id: new Date().getTime()
+      }, function(err, result) {
+        if (err) return reject(err);
+        accept(result);
+      })
+    });
+  }
+
   function queueTransaction(from, to, gasLimit, value, data) {
     return new Promise(function(accept, reject) {
       web3.eth.sendTransaction({
@@ -430,6 +487,24 @@ describe("Mining", function() {
       return checkMining();
     }).then(function(is_mining) {
       assert(is_mining);
+    });
+  });
+
+  it("should mine multiple blocks", function() {
+    const numBlocks = 10;
+    return mineMultipleBlocks(numBlocks).then(function() {
+      return getBlockNumber();
+    }).then(function(number) {
+      assert.equal(number, numBlocks);
+    })
+  });
+
+  it("should skip multiple blocks", function() {
+    const numBlocks = 1000;
+    return skipBlocks(numBlocks).then(function() {
+      return getBlockNumber();
+    }).then(function(number) {
+      assert.equal(number, numBlocks);
     });
   });
 });
