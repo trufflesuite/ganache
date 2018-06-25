@@ -1,6 +1,5 @@
 var Web3 = require('web3');
 var Web3WsProvider = require('web3-providers-ws');
-var utils = require('ethereumjs-util');
 var assert = require('assert');
 var Ganache = require("../index.js");
 var fs = require("fs");
@@ -27,15 +26,11 @@ describe("Contract Deployed on Main Chain After Fork", function() {
   var contractAddress;
   var forkedServer;
   var mainAccounts;
-  var forkedAccounts;
 
   var forkedWeb3 = new Web3();
   var mainWeb3 = new Web3();
 
   var forkedTargetUrl = "ws://localhost:21345";
-  var forkBlockNumber;
-
-  var initialDeployTransactionHash;
 
   before("set up test data", function() {
     this.timeout(10000)
@@ -81,21 +76,11 @@ describe("Contract Deployed on Main Chain After Fork", function() {
     });
   });
 
-  before("set forkedWeb3 provider", function(done) {
+  before("set forkedWeb3 provider", function() {
     forkedWeb3.setProvider(new Web3WsProvider(forkedTargetUrl));
-    done();
   });
 
-  before("Gather forked accounts", function(done) {
-    this.timeout(5000)
-    forkedWeb3.eth.getAccounts(function(err, f) {
-      if (err) return done(err);
-      forkedAccounts = f;
-      done();
-    });
-  });
-
-  before("Set main web3 provider, forking from forked chain at this point", function(done) {
+  before("Set main web3 provider, forking from forked chain at this point", function() {
     mainWeb3.setProvider(Ganache.provider({
       fork: forkedTargetUrl.replace('ws', 'http'),
       logger,
@@ -104,62 +89,35 @@ describe("Contract Deployed on Main Chain After Fork", function() {
       // Do not change seed. Determinism matters for these tests.
       seed: "a different seed"
     }));
-
-    forkedWeb3.eth.getBlockNumber(function(err, number) {
-      if (err) return done(err);
-      forkBlockNumber = number;
-      done();
-    });
   });
 
-  before("Gather main accounts", function(done) {
+  before("Gather main accounts", async function() {
     this.timeout(5000)
-    mainWeb3.eth.getAccounts(function(err, m) {
-      if (err) return done(err);
-      mainAccounts = m;
-      done();
-    });
+    mainAccounts = await mainWeb3.eth.getAccounts();
   });
 
-  before("Deploy initial contract", function(done) {
-    mainWeb3.eth.sendTransaction({
+  before("Deploy initial contract", async function() {
+    const receipt = await mainWeb3.eth.sendTransaction({
       from: mainAccounts[0],
       data: contract.binary,
       gas: 3141592,
       value: mainWeb3.utils.toWei('1', 'ether')
-    }, function(err, tx) {
-      if (err) { return done(err); }
-
-      // Save this for a later test.
-      initialDeployTransactionHash = tx;
-
-      mainWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
-        if (err) return done(err);
-
-        contractAddress = receipt.contractAddress;
-
-        mainWeb3.eth.getCode(contractAddress, function(err, code) {
-          if (err) return done(err);
-
-          // Ensure there's *something* there.
-          assert.notEqual(code, null);
-          assert.notEqual(code, "0x");
-          assert.notEqual(code, "0x0");
-
-          done();
-        })
-      });
     });
+
+    contractAddress = receipt.contractAddress;
+
+    // Ensure there's *something* there.
+    const code = await mainWeb3.eth.getCode(contractAddress);
+    assert.notEqual(code, null);
+    assert.notEqual(code, "0x");
+    assert.notEqual(code, "0x0");
   });
 
-  it("should send 1 ether to the created contract, checked on the forked chain", function(done) {
-    mainWeb3.eth.getBalance(contractAddress, function(err, balance) {
-      if (err) return done(err);
+  it("should send 1 ether to the created contract, checked on the forked chain", async function() {
+    const balance = await mainWeb3.eth.getBalance(contractAddress);
 
-      assert.equal(balance, mainWeb3.utils.toWei('1', 'ether'));
-      done();
-    })
-  });
+    assert.equal(balance, mainWeb3.utils.toWei('1', 'ether'));
+  })
 
   after("Shutdown server", function(done) {
     forkedWeb3._provider.connection.close()
