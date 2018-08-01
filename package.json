@@ -1,6 +1,6 @@
 {
   "name": "ganache-core",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "main": "./index.js",
   "engines": {
     "node": ">=8.9.0"
