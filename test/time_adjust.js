@@ -109,7 +109,7 @@ describe('Time adjustment', function() {
 
       var previousTime = block.timestamp
 
-      send("evm_setTime", [new Date(startTime.getTime() - (secondsToJump * 2))], function(err, result) {
+      send("evm_setTime", [new Date(previousTime - secondsToJump)], function(err, result) {
         if (err) return done(err);
 
         // Mine a block so new time is recorded.
