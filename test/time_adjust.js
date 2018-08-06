@@ -118,11 +118,6 @@ describe('Time adjustment', function() {
 
           web3.eth.getBlock('latest', function(err, block){
             if(err) return done(err)
-
-            // Somehow it jumps an extra 18 seconds, ish, when run inside the whole
-            // test suite. It might have something to do with when the before block
-            // runs and when the test runs. Likely the last block didn't occur for
-            // awhile.
             assert(previousTime > block.timestamp);
             done()
             })
