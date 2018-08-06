@@ -102,4 +102,32 @@ describe('Time adjustment', function() {
       })
     })
   })
+
+  it('should allow setting of time', function(done) {
+    web3.eth.getBlock('latest', function(err, block) {
+      if (err) return done(err)
+
+      var previousTime = block.timestamp
+
+      send("evm_setTime", [new Date(startTime.getTime() - (secondsToJump * 2))], function(err, result) {
+        if (err) return done(err);
+
+        // Mine a block so new time is recorded.
+        send("evm_mine", function(err, result) {
+          if (err) return done(err);
+
+          web3.eth.getBlock('latest', function(err, block){
+            if(err) return done(err)
+
+            // Somehow it jumps an extra 18 seconds, ish, when run inside the whole
+            // test suite. It might have something to do with when the before block
+            // runs and when the test runs. Likely the last block didn't occur for
+            // awhile.
+            assert(previousTime > block.timestamp);
+            done()
+            })
+          })
+        })
+      })
+  });
 })
