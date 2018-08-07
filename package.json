@@ -33,7 +33,7 @@
     "level-sublevel": "^6.6.1",
     "levelup": "^1.1.0",
     "lodash": "^4.17.10",
-    "merkle-patricia-tree": "^2.2.0",
+    "merkle-patricia-tree": "git+https://github.com/ethereumjs/merkle-patricia-tree.git#2818d8a66ea87adc3bacb521098273275badbf1f",
     "seedrandom": "~2.4.2",
     "tmp": "0.0.31",
     "web3": "^1.0.0-beta.34",
