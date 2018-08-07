@@ -1,9 +1,8 @@
-var path = require("path");
+const { join } = require("path");
+const applyBaseConfig = require("./base.webpack.config");
 
-var applyBaseConfig = require("./base.webpack.config")
-
-var outputDir = path.join(__dirname, "..", "build");
-var outputFilename = "ganache.server.js";
+const outputDir = join(__dirname, "..", "build");
+const outputFilename = "ganache.server.js";
 
 module.exports = applyBaseConfig({
   entry: "./lib/server.js",

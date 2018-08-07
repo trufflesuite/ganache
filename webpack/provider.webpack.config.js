@@ -1,6 +1,7 @@
-const path = require("path");
-const applyBaseConfig = require("./base.webpack.config")
-const outputDir = path.join(__dirname, "..", "build");
+const { join } = require("path");
+const applyBaseConfig = require("./base.webpack.config");
+
+const outputDir = join(__dirname, "..", "build");
 const outputFilename = "ganache.provider.js";
 
 module.exports = applyBaseConfig({
@@ -13,4 +14,4 @@ module.exports = applyBaseConfig({
     libraryTarget: "umd",
     umdNamedDefine: true
   }
-})
+});

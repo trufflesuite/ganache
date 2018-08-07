@@ -1,13 +1,13 @@
-const path = require("path");
-const webpack = require("webpack");
-const WebpackBundleSizeAnalyzerPlugin = require("webpack-bundle-size-analyzer").WebpackBundleSizeAnalyzerPlugin;
-const babelLoader = require("./babel-loader").default;
+const { merge } = require("lodash");
+const { join } = require("path");
+const { IgnorePlugin } = require("webpack");
+const { WebpackBundleSizeAnalyzerPlugin } = require("webpack-bundle-size-analyzer");
+const babelLoader = require("./babel-loader");
 
-const outputDir = path.join(__dirname, "..", "build");
-const _ = require("lodash")
+const outputDir = join(__dirname, "..", "build");
 
-module.exports = function(override) {
-  return _.merge({}, {
+module.exports = (override) => {
+  return merge({}, {
     output: {
       path: outputDir
     },
@@ -22,16 +22,24 @@ module.exports = function(override) {
     },
     resolve: {
       alias: {
-        "scrypt": "js-scrypt",
-        "secp256k1": path.join(__dirname, "..", "node_modules", "secp256k1", "elliptic.js")
+        // replace native scrypt with pure js version
+        scrypt: "js-scrypt",
+
+        // replace native secp256k1 with elliptic.js
+        secp256k1: join(__dirname, "..", "node_modules", "secp256k1", "elliptic.js")
       }
     },
     plugins: [
       // ignore these plugins completely
-      new webpack.IgnorePlugin(/^(?:electron|ws)$/),
+      new IgnorePlugin(/^(?:electron|ws)$/),
+
       // writes a size report
-      new WebpackBundleSizeAnalyzerPlugin("./size-report.txt"),
+      new WebpackBundleSizeAnalyzerPlugin("./size-report.txt")
     ],
-    mode: "production"
-  }, override)
+    mode: "production",
+    node: {
+      // mocha-webpack breaks `__dirname`, this makes it stop doing that
+      __dirname: true
+    }
+  }, override);
 };
