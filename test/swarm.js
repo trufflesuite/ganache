@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 var assert = require('assert');
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BRANCH == "built" ? "../build/ganache.core.js" : "../index.js");
 
 describe("Swarm", function(done) {
   var web3 = new Web3();

@@ -2,7 +2,7 @@ var BN = require('bn.js');
 var Web3 = require('web3');
 var assert = require('assert-match');
 var matchers = require('assert-match/matchers');
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BRANCH == "built" ? "../build/ganache.core.js" : "../index.js");
 var utils = require('ethereumjs-util');
 var pify = require('pify');
 
