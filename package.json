@@ -9,12 +9,13 @@
     "lib": "./lib"
   },
   "scripts": {
-    "build": "npm run build-server && npm run build-provider && npm run build-lib",
+    "build": "npm run build-server && npm run build-provider && npm run build-core",
     "build-server": "webpack-cli --config ./webpack/server.webpack.config.js",
     "build-provider": "webpack-cli --config ./webpack/provider.webpack.config.js",
-    "build-lib": "webpack-cli --config ./webpack/lib.webpack.config.js",
+    "build-core": "webpack-cli --config ./webpack/core.webpack.config.js",
     "prepare": "npm run build",
-    "test": "mocha --check-leaks --globals _scratch"
+    "test": "mocha --check-leaks",
+    "test-built": "cross-env TEST_BRANCH=built mocha --check-leaks"
   },
   "dependencies": {
     "abstract-leveldown": "^3.0.0",
@@ -50,10 +51,12 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.1",
     "chai": "^3.5.0",
+    "cross-env": "^5.2.0",
     "js-scrypt": "^0.2.0",
     "lodash-webpack-plugin": "^0.11.5",
     "memdown": "^1.3.1",
     "mocha": "~5.1.1",
+    "mocha-webpack": "^1.1.0",
     "pify": "^3.0.0",
     "solc": "0.4.24",
     "temp": "^0.8.3",
