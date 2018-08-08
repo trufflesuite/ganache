@@ -162,7 +162,7 @@ var tests = function(web3) {
         var expectedFirstBlock = {
           number: 0,
           hash: block.hash, // Don't test this one
-          mixHash: "0x1010101010101010101010101010101010101010101010101010101010101010",
+          mixHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
           parentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
           nonce: '0x0000000000000000',
           sha3Uncles: '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',
@@ -173,7 +173,7 @@ var tests = function(web3) {
           miner: '0x0000000000000000000000000000000000000000',
           difficulty: "0",
           totalDifficulty: "0",
-          extraData: '0x00',
+          extraData: '0x',
           size: 1000,
           gasLimit: 6721975,
           gasUsed: 0,
@@ -346,8 +346,8 @@ var tests = function(web3) {
 
   	  return signingWeb3.eth.sign(utils.bufferToHex(msg), accounts[0]).then(sgn => {
     	  sgn = utils.stripHexPrefix(sgn);
-    		var r = new Buffer(sgn.slice(0, 64), 'hex');
-    		var s = new Buffer(sgn.slice(64, 128), 'hex');
+    		var r = Buffer.from(sgn.slice(0, 64), 'hex');
+    		var s = Buffer.from(sgn.slice(64, 128), 'hex');
     		var v = parseInt(sgn.slice(128, 130), 16) + 27;
     		var pub = utils.ecrecover(msgHash, v, r, s);
     		var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
@@ -364,8 +364,8 @@ var tests = function(web3) {
       var msgHash = utils.hashPersonalMessage(edgeCaseMsg);
       return signingWeb3.eth.sign(msgHex, accounts[0]).then(sgn => {
         sgn = utils.stripHexPrefix(sgn);
-        var r = new Buffer(sgn.slice(0, 64), 'hex');
-        var s = new Buffer(sgn.slice(64, 128), 'hex');
+        var r = Buffer.from(sgn.slice(0, 64), 'hex');
+        var s = Buffer.from(sgn.slice(64, 128), 'hex');
         var v = parseInt(sgn.slice(128, 130), 16) + 27;
         var pub = utils.ecrecover(msgHash, v, r, s);
         var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
@@ -443,6 +443,26 @@ var tests = function(web3) {
 
     })
 
+
+    it("should respond with correct txn hash", function(done) {
+      var provider = web3.currentProvider;
+      var transaction = new Transaction({
+        "value": "0x00",
+        "gasLimit": "0x5208",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x02"
+      })
+
+      var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), 'hex')
+      transaction.sign(secretKeyBuffer)
+
+      web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
+        assert.equal(result, to.hex(transaction.hash()))
+        done(err)
+      })
+
+    })
 
   })
 
@@ -632,7 +652,7 @@ var tests = function(web3) {
 
         web3.eth.estimateGas(tx_data, function(err, result) {
           if (err) return done(err);
-          assert.equal(result, 27682);
+          assert.equal(result, 27693);
 
           web3.eth.getBlockNumber(function(err, result) {
             if (err) return done(err);
@@ -653,7 +673,7 @@ var tests = function(web3) {
 
       web3.eth.estimateGas(tx_data, function(err, result) {
         if (err) return done(err);
-        assert.equal(result, 27682);
+        assert.equal(result, 27693);
         done();
       });
     });
@@ -667,7 +687,7 @@ var tests = function(web3) {
 
       web3.eth.estimateGas(tx_data, function(err, result) {
         if (err) return done(err);
-        assert.equal(result, 27682);
+        assert.equal(result, 27693);
         done();
       });
     });
@@ -824,7 +844,7 @@ var tests = function(web3) {
       data: contract.binary,
       gasLimit: to.hex(3141592)
     })
-    var privateKey = new Buffer('e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109', 'hex')
+    var privateKey = Buffer.from('e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109', 'hex')
     var senderAddress = '0x'+utils.privateToAddress(privateKey).toString('hex')
     tx.sign(privateKey)
     var rawTx = '0x'+tx.serialize().toString('hex')
@@ -958,6 +978,16 @@ var tests = function(web3) {
         if (err) return done(err);
 
         assert.equal(result, "0x0");
+        done();
+      });
+    });
+  });
+
+  describe("eth_getTransactionCount", function() {
+    it("should error for non-existent block", function(done) {
+      web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999, function(err, result) {
+        assert(err, "Error with message 'Unknown block number' expected, instead no error was returned");
+        assert(err.message.indexOf("Unknown block number") > -1);
         done();
       });
     });

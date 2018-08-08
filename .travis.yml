@@ -1,22 +1,22 @@
 language: node_js
 node_js:
   - "node"
-  - "lts/boron"
+  - "lts/carbon"
 
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - gcc-4.7
-      - g++-4.7
+      - gcc-5
+      - g++-5
 
 before_install:
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      export CC="gcc-4.7";
-      export CXX="g++-4.7";
-      export LINK="gcc-4.7";
-      export LINKXX="g++-4.7";
+      export CC="gcc-5";
+      export CXX="g++-5";
+      export LINK="gcc-5";
+      export LINKXX="g++-5";
     fi
   - nvm --version
   - node --version

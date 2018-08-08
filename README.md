@@ -7,7 +7,7 @@ This is the core code that powers the Ganache application and the the Ganache co
 
 # INSTALL
 
-`ganache-core` is written in Javascript and distributed as a Node package via `npm`. Make sure you have Node.js (>= v6.11.5) installed, and your environment is capable of installing and compiling `npm` modules.
+`ganache-core` is written in Javascript and distributed as a Node package via `npm`. Make sure you have Node.js (>= v8.9.0) installed, and your environment is capable of installing and compiling `npm` modules.
 
 **macOS** Make sure you have the XCode Command Line Tools installed. These are needed in general to be able to compile most C based languages on your machine, as well as many npm modules.
 
@@ -58,6 +58,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"ws"`: Enable a websocket server. This is `true` by default.
 * `"vmErrorsOnRPCResponse"`: Whether to report runtime errors from EVM code as RPC errors. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
+* `"allowUnlimitedContractSize"`: Allows unlimited contract sizes while debugging. By setting this to `true`, the check within the EVM for contract size limit of 2KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
 
 # IMPLEMENTED METHODS
 

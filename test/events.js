@@ -7,12 +7,12 @@ var async = require("async");
 var util = require("util")
 
 var source = "                      \
-pragma solidity ^0.4.2;             \
+pragma solidity ^0.4.24;            \
 contract EventTest {                \
   event ExampleEvent(uint indexed first, uint indexed second);   \
                                     \
   function triggerEvent(uint _first, uint _second) public { \
-    ExampleEvent(_first, _second);      \
+    emit ExampleEvent(_first, _second);      \
   }                                 \
 }"
 
@@ -39,7 +39,8 @@ var tests = function(web3, EventTest) {
       var result = solc.compile(source, 1);
 
       if (result.errors != null) {
-        done(result.errors[0]) 
+        done(result.errors[0])
+        return
       }
 
       var abi = JSON.parse(result.contracts[":EventTest"].interface);
@@ -110,7 +111,7 @@ var tests = function(web3, EventTest) {
       var waitingFor = {}
       waitingFor[expectedValueA] = true
       waitingFor[expectedValueB] = true
-      
+
       var listener = function(result) {
         assert(waitingFor.hasOwnProperty(result.returnValues.first))
         delete waitingFor[result.returnValues.first]
@@ -178,8 +179,13 @@ var tests = function(web3, EventTest) {
         let filter_id = result.result;
 
         let listener = function (err, result) {
-          if (err) return done(err);
-          first_changes = result.params.result.hash;
+          if(result == undefined) {
+            // If there's only one argument, it's the result, not an error
+            result = err;
+          } else if (err) {
+            return done(err);
+          }
+          let first_changes = result.params.result.hash;
           assert.equal(first_changes.length, 66); // Ensure we have a hash
           provider.removeAllListeners('data')
           done();

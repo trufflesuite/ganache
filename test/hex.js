@@ -30,6 +30,13 @@ describe("to.rpcQuantityHexString", function() {
   });
 });
 
+describe("to.rpcDataHexString", function() {
+  it("should differentiate between a list of 0 items and a list of one 0", function(done) {
+    assert.notEqual(to.rpcDataHexString(Buffer.from("", "hex")), to.rpcDataHexString(Buffer.from("00", "hex")));
+    done();
+  })
+})
+
 function noLeadingZeros(method, result, path) {
   if (!path) {
     path = 'result'
@@ -97,8 +104,10 @@ describe("JSON-RPC Response", function() {
         "id": 2
       };
 
-      provider.sendAsync(request, function(err, result) {
-        noLeadingZeros('eth_sendTransaction', result);
+      provider.sendAsync(request, function() {
+        // Ignore eth_sendTransaction result, it returns the transaction hash.
+        // A transaction hash is a 'DATA' type, which can have leading zeroes
+        // to pad it to an even string length (4 bit per char, so whole bytes).
 
         request = {
           "jsonrpc": "2.0",

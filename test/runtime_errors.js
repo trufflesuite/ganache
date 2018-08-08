@@ -116,6 +116,68 @@ function runTests(web3, provider, extraTests) {
       });
   });
 
+  it("should have correct return value when calling a method that reverts without message", function(done) {    
+      provider.send({
+        jsonrpc: '2.0',
+        id: new Date().getTime(),
+        method: 'eth_call',
+        params: [{
+          from: testState.accounts[0],
+          to: testState.errorInstance.options.address,
+          // calls error()
+          data: '0xc79f8b62',
+          gas: to.hex(3141592)
+        }]
+      }, function(err, response) {
+        if (provider.options.vmErrorsOnRPCResponse) {
+          // null & undefined are equivalent for equality tests, but I'm being
+          // pedantic here for readability's sake
+          assert(response.error !== null)
+          assert(response.error !== undefined)
+          assert(response.result === undefined || response.result === null)
+
+          assert(/revert/.test(response.error.message), `Expected error message (${response.error.message}) to contain 'revert'`);
+
+        } else {
+          assert(response.error === undefined)
+          assert(response.result === "0x0")
+        }
+
+        done();
+      });
+  });
+
+  it("should have correct return value when calling a method that reverts with message", function(done) {    
+      provider.send({
+        jsonrpc: '2.0',
+        id: new Date().getTime(),
+        method: 'eth_call',
+        params: [{
+          from: testState.accounts[0],
+          to: testState.errorInstance.options.address,
+          // calls error()
+          data: '0xcd4aed30',
+          gas: to.hex(3141592)
+        }]
+      }, function(err, response) {
+        if (provider.options.vmErrorsOnRPCResponse) {
+          // null & undefined are equivalent for equality tests, but I'm being
+          // pedantic here for readability's sake
+          assert(response.error !== null)
+          assert(response.error !== undefined)
+          assert(response.result === undefined || response.result === null)
+
+          assert(/revert/.test(response.error.message), `Expected error message (${response.error.message}) to contain 'revert'`);
+
+        } else {
+          assert(response.error === undefined)
+          assert(response.result === "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000074d65737361676500000000000000000000000000000000000000000000000000")
+        }
+
+        done();
+      });
+  });
+
   if (extraTests) {
     extraTests(testState)
   }
@@ -153,7 +215,7 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
 
         assert(response.error);
         assert(response.error.data[txHash]);
-        assert.equal(response.error.data[txHash].program_counter, 77); // magic number, will change if compiler changes.
+        assert.equal(response.error.data[txHash].program_counter, 91); // magic number, will change if compiler changes.
         done();
       });
     });

@@ -399,7 +399,7 @@ describe("Forking", function() {
     var solcResult = solc.compile(oracleSol);
     var oracleOutput = solcResult.contracts[":Oracle"];
 
-    return oracleContract = new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface))
+    return new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface))
       .deploy({ data: oracleOutput.bytecode })
       .send({ from: mainAccounts[0], gas: 3141592 })
       .then(function(oracle){
@@ -509,10 +509,20 @@ describe("Forking", function() {
       // are hard to assert in this case.
       assert(balanceBeforeFork.gt(balanceAfterFork));
 
+      // Make sure it's not substantially larger. it should only be larger by a small
+      // amount (<2%). This assertion was added since forked balances were previously
+      // incorrectly being converted between decimal and hex
+      assert(balanceBeforeFork.muln(0.95).lt(balanceAfterFork));
+
       // Since the forked provider had once extra transaction for this account,
       // it should have a lower balance, and the main provider shouldn't acknowledge
       // that transaction.
       assert(balanceLatestMain.gt(balanceLatestFallback));
+
+      // Make sure it's not substantially larger. it should only be larger by a small
+      // amount (<2%). This assertion was added since forked balances were previously
+      // incorrectly being converted between decimal and hex
+      assert(balanceLatestMain.muln(0.95).lt(balanceLatestFallback));
 
       done();
     });
