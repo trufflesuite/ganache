@@ -153,11 +153,12 @@ describe("Gas", function() {
 
       return estimateGasInstance.methods.reset().send({from: options.from, gas: 5000000})  // prime storage by making sure it is set to 0
         .then(() => {
-          return contractFn.apply(contractFn, args)
+          const fn = contractFn(...args);
+          return fn
             .estimateGas(options)
             .then(function(estimate) {
               options.gas = transactionGas
-              return web3.eth.sendTransaction(Object.assign(contractFn.apply(contractFn, args), options))
+              return fn.send(options)
                 .then(function (receipt) {
                   assert.equal(receipt.status, 1, 'Transaction must succeed');
                   assert.equal(receipt.gasUsed, estimate, "gasUsed");
