@@ -1,6 +1,7 @@
 var Web3 = require('web3');
 var Ganache = require("../index.js");
-var assert = require('assert');
+var assert = require('assert-match');
+var regex = require('assert-match/matchers').regex;
 
 var tests = function(web3) {
   var accounts;
@@ -134,7 +135,8 @@ var tests = function(web3) {
           // Note that if using the Ganache as a provider, err will be non-null when there's
           // an error. However, when using it as a server it won't be. In both cases, however,
           // result.error should be set with the same error message. We'll check for that.
-          assert(result.error.message.indexOf("sender doesn't have enough funds to send tx. The upfront cost is: 324518553658426726783156021576256 and the sender's account only has: 99999999999463087088") >= 0);
+          assert.deepEqual(result.error.message, regex(/sender doesn't have enough funds to send tx. The upfront cost is: \d+ and the sender's account only has: \d+/),
+            `Unexpected error message. Got ${result.error.message}.`);
 
           request.params[0].value = "0x5";
           provider.send(request, done)
