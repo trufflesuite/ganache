@@ -25,6 +25,7 @@
     "ethereumjs-util": "^5.2.0",
     "ethereumjs-vm": "2.3.5",
     "ethereumjs-wallet": "0.6.0",
+    "ethereumjs-abi": "^0.6.5",
     "fake-merkle-patricia-tree": "~1.0.1",
     "heap": "~0.2.6",
     "js-scrypt": "^0.2.0",
