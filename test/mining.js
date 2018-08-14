@@ -1,5 +1,6 @@
+var BN = require('bn.js');
 var Web3 = require('web3');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var assert = require('assert');
 var to = require("../lib/utils/to.js");
 var solc = require("solc");
@@ -9,8 +10,9 @@ var solc = require("solc");
 process.removeAllListeners("uncaughtException");
 
 describe("Mining", function() {
-  var web3 = new Web3(TestRPC.provider({
-    //logger: console
+  var web3 = new Web3(Ganache.provider({
+    vmErrorsOnRPCResponse: true
+    //logger: console,
   }));
   var accounts;
   var snapshot_id;
@@ -18,19 +20,21 @@ describe("Mining", function() {
   var goodBytecode;
 
   before("compile solidity code that causes runtime errors", function() {
+    this.timeout(10000)
     return compileSolidity("pragma solidity ^0.4.2; contract Example { function Example() {throw;} }").then(function(result) {
       badBytecode = result.code;
     });
   });
 
   before("compile solidity code that causes an event", function() {
+    this.timeout(10000)
     return compileSolidity("pragma solidity ^0.4.2; contract Example { event Event(); function Example() { Event(); } }").then(function(result) {
       goodBytecode = result.code;
     });
   });
 
   beforeEach("checkpoint, so that we can revert later", function(done) {
-    web3.currentProvider.sendAsync({
+    web3.currentProvider.send({
       jsonrpc: "2.0",
       method: "evm_snapshot",
       id: new Date().getTime()
@@ -43,7 +47,7 @@ describe("Mining", function() {
   });
 
   afterEach("revert back to checkpoint", function(done) {
-    web3.currentProvider.sendAsync({
+    web3.currentProvider.send({
       jsonrpc: "2.0",
       method: "evm_revert",
       params: [snapshot_id],
@@ -63,7 +67,7 @@ describe("Mining", function() {
 
   function startMining() {
     return new Promise(function(accept, reject) {
-      web3.currentProvider.sendAsync({
+      web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "miner_start",
         params: [1],
@@ -77,7 +81,7 @@ describe("Mining", function() {
 
   function stopMining() {
     return new Promise(function(accept, reject) {
-      web3.currentProvider.sendAsync({
+      web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "miner_stop",
         id: new Date().getTime()
@@ -90,7 +94,7 @@ describe("Mining", function() {
 
   function checkMining() {
     return new Promise(function(accept, reject) {
-      web3.currentProvider.sendAsync({
+      web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "eth_mining",
         id: new Date().getTime()
@@ -103,13 +107,14 @@ describe("Mining", function() {
 
   function mineSingleBlock() {
     return new Promise(function(accept, reject) {
-      web3.currentProvider.sendAsync({
+      web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_mine",
         id: new Date().getTime()
-      }, function(err) {
+      }, function(err, result) {
         if (err) return reject(err);
-        accept();
+        assert.deepEqual(result.result, "0x0");
+        accept(result);
       })
     });
   }
@@ -169,14 +174,14 @@ describe("Mining", function() {
       return getBlockNumber();
     }).then(function(number) {
       blockNumber = number;
-      return queueTransaction(accounts[0], accounts[1], 90000, web3.toWei(2, "Ether"));
+      return queueTransaction(accounts[0], accounts[1], 90000, web3.utils.toWei(new BN(2), "ether"));
     }).then(function(tx) {
       tx1 = tx;
       return getReceipt(tx);
     }).then(function(receipt) {
       assert.equal(receipt, null);
 
-      return queueTransaction(accounts[0], accounts[1], 90000, web3.toWei(3, "Ether"));
+      return queueTransaction(accounts[0], accounts[1], 90000, web3.utils.toWei(new BN(3), "ether"));
     }).then(function(tx) {
       tx2 = tx;
       return getReceipt(tx);
@@ -192,6 +197,7 @@ describe("Mining", function() {
       assert.equal(receipts[0].transactionHash, tx1);
       assert.notEqual(receipts[1], null);
       assert.equal(receipts[1].transactionHash, tx2);
+      assert.equal(receipts[0].blockNumber, receipts[1].blockNumber, "Transactions should be mined in the same block.");
 
       return getBlockNumber();
     }).then(function(number) {
@@ -201,7 +207,7 @@ describe("Mining", function() {
 
   it("should mine two blocks when two queued transactions won't fit into a single block", function() {
     // This is a very similar test to the above, except the gas limits are much higher
-    // per transaction. This means the TestRPC will react differently and process
+    // per transaction. This means the Ganache will react differently and process
     // each transaction it its own block.
 
     var tx1, tx2, blockNumber;
@@ -210,14 +216,14 @@ describe("Mining", function() {
       return getBlockNumber();
     }).then(function(number) {
       blockNumber = number;
-      return queueTransaction(accounts[0], accounts[1], 4000000, web3.toWei(2, "Ether"));
+      return queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
     }).then(function(tx) {
       tx1 = tx;
       return getReceipt(tx);
     }).then(function(receipt) {
       assert.equal(receipt, null);
 
-      return queueTransaction(accounts[0], accounts[1], 4000000, web3.toWei(3, "Ether"));
+      return queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
     }).then(function(tx) {
       tx2 = tx;
       return getReceipt(tx);
@@ -233,6 +239,7 @@ describe("Mining", function() {
       assert.equal(receipts[0].transactionHash, tx1);
       assert.notEqual(receipts[1], null);
       assert.equal(receipts[1].transactionHash, tx2);
+      assert.notEqual(receipts[0].blockNumber, receipts[1].blockNumber, "Transactions should not be mined in the same block.");
 
       return getBlockNumber();
     }).then(function(number) {
@@ -250,14 +257,14 @@ describe("Mining", function() {
       return getBlockNumber();
     }).then(function(number) {
       blockNumber = number;
-      return queueTransaction(accounts[0], accounts[1], 4000000, web3.toWei(2, "Ether"));
+      return queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
     }).then(function(tx) {
       tx1 = tx;
       return getReceipt(tx);
     }).then(function(receipt) {
       assert.equal(receipt, null);
 
-      return queueTransaction(accounts[0], accounts[1], 4000000, web3.toWei(3, "Ether"));
+      return queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
     }).then(function(tx) {
       tx2 = tx;
       return getReceipt(tx);
@@ -279,19 +286,17 @@ describe("Mining", function() {
     });
   });
 
-  it("should error if queued transaction exceeds the block gas limit", function(done) {
+  it("should error if queued transaction exceeds the block gas limit", function() {
     return stopMining().then(function() {
-      return queueTransaction(accounts[0], accounts[1], 5000000, web3.toWei(2, "Ether"));
+      return queueTransaction(accounts[0], accounts[1], 10000000, web3.utils.toWei(new BN(2), "ether"));
     }).then(function(tx) {
       // It should never get here.
-      return done(new Error("Transaction was processed without erroring; gas limit should have been too high"));
+      throw new Error("Transaction was processed without erroring; gas limit should have been too high");
     }).catch(function(err) {
       // We caught an error like we expected. Ensure it's the right error, or rethrow.
       if (err.message.toLowerCase().indexOf("exceeds block gas limit") < 0) {
-        return done(new Error("Did not receive expected error; instead received: " + err));
+        throw new Error("Did not receive expected error; instead received: " + err);
       }
-
-      done();
     });
   });
 
@@ -407,7 +412,7 @@ describe("Mining", function() {
         return getCode(receipt.contractAddress);
       }).then(function(code) {
         // Convert hex to a big number and ensure it's not zero.
-        assert(web3.toBigNumber(code).eq(0) == false);
+        assert(web3.utils.toBN(code).eq(0) == false);
 
         // Hot diggety dog!
         done();

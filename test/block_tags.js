@@ -1,7 +1,7 @@
 var Web3 = require('web3');
 var utils = require('ethereumjs-util');
 var assert = require('assert');
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var fs = require("fs");
 var solc = require("solc");
 var async = require("async");
@@ -23,8 +23,8 @@ var result = solc.compile(source, 1);
 // make sure to update the resulting contract data with the correct values.
 var contract = {
   solidity: source,
-  abi: result.contracts.Example.interface,
-  binary: "0x" + result.contracts.Example.bytecode,
+  abi: result.contracts[":Example"].interface,
+  binary: "0x" + result.contracts[":Example"].bytecode,
   position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
   expected_default_value: 5,
   call_data: {
@@ -43,7 +43,7 @@ var contract = {
 
 describe("Block Tags", function() {
   var accounts;
-  var web3 = new Web3(TestRPC.provider());
+  var web3 = new Web3(Ganache.provider());
   var contractAddress;
 
   var initial_block_number;
@@ -111,12 +111,14 @@ describe("Block Tags", function() {
   it("should return the initial balance at the previous block number", function(done) {
     web3.eth.getBalance(accounts[0], initial_block_number, function(err, balance) {
       if (err) return done(err);
-      assert(balance.eq(initial.balance));
+      assert.equal(balance, initial.balance);
 
       // Check that the balance incremented with the block number, just to be sure.
       web3.eth.getBalance(accounts[0], initial_block_number + 1, function(err, balance) {
         if (err) return done(err);
-        assert(balance.lt(initial.balance));
+        var initialBalanceInEther = parseFloat(web3.utils.fromWei(initial.balance, 'ether'));
+        var balanceInEther = parseFloat(web3.utils.fromWei(balance, 'ether'));
+        assert(balanceInEther < initialBalanceInEther);
         done();
       });
     });

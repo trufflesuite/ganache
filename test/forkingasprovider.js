@@ -1,4 +1,4 @@
-var TestRPC = require("../index.js");
+var Ganache = require("../index.js");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
 var async = require("async");
@@ -24,7 +24,7 @@ var logger = {
 
 describe("Forking using a Provider", function() {
   var contract;
-  var forkedProvider = TestRPC.provider({
+  var forkedProvider = Ganache.provider({
     logger: logger,
     seed: "main provider"
   });
@@ -38,6 +38,7 @@ describe("Forking using a Provider", function() {
   var initialDeployTransactionHash;
 
   before("set up test data", function() {
+    this.timeout(5000)
     var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
     var result = solc.compile(source, 1);
 
@@ -46,8 +47,8 @@ describe("Forking using a Provider", function() {
     // make sure to update the resulting contract data with the correct values.
     contract = {
       solidity: source,
-      abi: result.contracts.Example.interface,
-      binary: "0x" + result.contracts.Example.bytecode,
+      abi: result.contracts[":Example"].interface,
+      binary: "0x" + result.contracts[":Example"].bytecode,
       position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
       expected_default_value: 5,
       call_data: {
@@ -104,7 +105,7 @@ describe("Forking using a Provider", function() {
   });
 
   before("Set up main provider and web3 instance", function() {
-    mainProvider = TestRPC.provider({
+    mainProvider = Ganache.provider({
       fork: forkedProvider,
       logger: logger,
       seed: "forked provider"

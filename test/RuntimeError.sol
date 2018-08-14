@@ -9,6 +9,13 @@ contract RuntimeError {
     throw;
   }
 
+  function errorWithMessage() {
+    for (uint i = 0; i < 3; ) {
+      i++;
+    }
+    revert("Message");
+  }
+
   function success() {
 
   }
