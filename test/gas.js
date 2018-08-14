@@ -87,7 +87,6 @@ describe("Gas", function() {
               return {from, gas};
             }).then(options => {
               const gasEstimate = options.gas;
-              options.gas = 26527;
               return method.send(options).then(receipt=>({gasEstimate, receipt}));
             }).then(data => {
               assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - 24000);
