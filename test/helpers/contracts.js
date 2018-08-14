@@ -12,7 +12,6 @@ async function compileAndDeploy(contractPath, contractName, web3) {
   let bytecode = "0x" + result.contracts[`${contractFilename}:${contractName}`].bytecode;
   let abi = JSON.parse(result.contracts[`${contractFilename}:${contractName}`].interface);
 
-  console.log('good')
   let contract = new web3.eth.Contract(abi);
 
   let accounts = await web3.eth.getAccounts()
