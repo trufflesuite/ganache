@@ -109,11 +109,34 @@ describe('Time adjustment', function() {
             send("evm_revert", [1], function(err, result) {
               var revertedTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
               assert.equal(revertedTimeAdjustment, originalTimeAdjustment);
-              done();
-            });
-          });
-        });
-      });
-    });
+              done()
+            })
+          })
+        })
+      })
+    })
+  })
+
+  it('should allow setting of time', function(done) {
+    web3.eth.getBlock('latest', function(err, block) {
+      if (err) return done(err)
+
+      var previousTime = block.timestamp
+
+      send("evm_setTime", [new Date(previousTime - secondsToJump)], function(err, result) {
+        if (err) return done(err);
+
+        // Mine a block so new time is recorded.
+        send("evm_mine", function(err, result) {
+          if (err) return done(err);
+
+          web3.eth.getBlock('latest', function(err, block){
+            if(err) return done(err)
+            assert(previousTime > block.timestamp);
+            done()
+          })
+        })
+      })
+    })
   });
 })
