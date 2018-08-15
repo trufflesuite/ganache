@@ -73,33 +73,47 @@ describe('Time adjustment', function() {
     })
   })
 
+  it('should mine a block at the given timestamp', function(done) {
+      // Adjust time
+      var expectedMinedTimestamp = 1000000;
+      send("evm_mine", [expectedMinedTimestamp], function(err, result) {
+          if (err) return done(err);
+
+          web3.eth.getBlock('latest', function(err, block) {
+              if(err) return done(err);
+              assert(block.timestamp == expectedMinedTimestamp);
+              done();
+          });
+      });
+  });
+
   it('should revert time adjustments when snapshot is reverted', function(done) {
     // Adjust time
-    web3.eth.getBlock('latest', function(err, block){
-      if(err) return done(err)
-      var previousBlockTime = block.timestamp
-      var originalTimeAdjustment = provider.manager.state.blockchain.timeAdjustment
+    web3.eth.getBlock('latest', function(err, block) {
+      if(err) return done(err);
+      var previousBlockTime = block.timestamp;
+      var originalTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
 
       send("evm_snapshot", function(err, result) {
         // jump forward another 5 hours
         send("evm_increaseTime", [secondsToJump], function(err, result) {
           if (err) return done(err);
 
-          var currentTimeAdjustment = provider.manager.state.blockchain.timeAdjustment
-          assert.equal(currentTimeAdjustment, originalTimeAdjustment + secondsToJump)
+          var currentTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
+          assert.equal(currentTimeAdjustment, originalTimeAdjustment + secondsToJump);
 
           // Mine a block so new time is recorded.
           send("evm_mine", function(err, result) {
             if (err) return done(err);
 
             send("evm_revert", [1], function(err, result) {
-              var revertedTimeAdjustment = provider.manager.state.blockchain.timeAdjustment
+              var revertedTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
               assert.equal(revertedTimeAdjustment, originalTimeAdjustment);
-              done()
-            })
-          })
-        })
-      })
-    })
-  })
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
 })

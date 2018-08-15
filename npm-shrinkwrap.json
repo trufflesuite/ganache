@@ -1895,8 +1895,8 @@
       "resolved": "https://registry.npmjs.org/ethereumjs-abi/-/ethereumjs-abi-0.6.5.tgz",
       "integrity": "sha1-WmN+8Wq0NHP6cqKa2QhxQFs/UkE=",
       "requires": {
-        "bn.js": "^4.10.0",
-        "ethereumjs-util": "^4.3.0"
+        "bn.js": "4.11.6",
+        "ethereumjs-util": "4.5.0"
       },
       "dependencies": {
         "ethereumjs-util": {
@@ -1904,11 +1904,11 @@
           "resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-4.5.0.tgz",
           "integrity": "sha1-PpQosxfuvaPXJg2FT93alUsfG8Y=",
           "requires": {
-            "bn.js": "^4.8.0",
-            "create-hash": "^1.1.2",
-            "keccakjs": "^0.2.0",
-            "rlp": "^2.0.0",
-            "secp256k1": "^3.0.1"
+            "bn.js": "4.11.6",
+            "create-hash": "1.2.0",
+            "keccakjs": "0.2.1",
+            "rlp": "2.0.0",
+            "secp256k1": "3.5.0"
           }
         }
       }

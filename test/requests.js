@@ -124,11 +124,11 @@ var tests = function(web3) {
   });
 
   describe("eth_gasPrice", function() {
-    it("should return gas price of 0.02 szabo", function(done) {
+    it("should return gas price of 2 gwei", function(done) {
       web3.eth.getGasPrice(function(err, result) {
         if (err) return done(err);
 
-        assert.equal(to.hexWithZeroPadding(result), to.hexWithZeroPadding(20000000000));
+        assert.equal(to.hexWithZeroPadding(result), to.hexWithZeroPadding(2000000000));
         done();
       });
     });

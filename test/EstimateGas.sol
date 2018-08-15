@@ -11,6 +11,22 @@ contract EstimateGas {
         mapping(address => uint) owners;
     }
 
+    uint256 public x;
+    function reset() public {
+        x = 0;
+    }
+    function triggerRsclearRefund() public {
+        x = gasleft();
+        reset();
+    }
+    function triggerRselfdestructRefund() public {
+        selfdestruct(msg.sender);
+    }
+    function triggerAllRefunds() public {
+        triggerRsclearRefund();
+        triggerRselfdestructRefund();
+    }
+
     mapping(bytes32 => uint) index;
     Test[] tests;
 
