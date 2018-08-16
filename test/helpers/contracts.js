@@ -36,6 +36,9 @@ async function compileAndDeploy(contractPath, contractName, web3) {
 }
 
 exports = module.exports = {
-  compileAndDeploy
+  compileAndDeploy,
+  getSignatureHash: (signature, web3) => {
+    return web3.utils.keccak256(signature).substr(0, 10);
+  }
 }
 
