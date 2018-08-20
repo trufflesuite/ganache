@@ -14,9 +14,9 @@
     "build-provider": "webpack-cli --config ./webpack/provider.webpack.config.js",
     "build-core": "webpack-cli --config ./webpack/core.webpack.config.js",
     "prepare": "npm run build",
-    "test": "mocha --check-leaks",
-    "test-built": "cross-env TEST_BRANCH=built mocha --check-leaks",
-    "test-watch": "cross-env TEST_BRANCH=built mocha-webpack --webpack-config \"./webpack/core.webpack.config.js\" --watch --check-leaks"
+    "test": "mocha --check-leaks --recursive --globals _scratch,sanitizedData",
+    "test-built": "cross-env TEST_BRANCH=built mocha --check-leaks --recursive --globals _scratch,sanitizedData",
+    "test-watch": "cross-env TEST_BRANCH=built mocha-webpack --webpack-config \"./webpack/core.webpack.config.js\" --watch --check-leaks --recursive --globals _scratch,sanitizedData"
   },
   "dependencies": {
     "abstract-leveldown": "^3.0.0",
@@ -24,6 +24,8 @@
     "bip39": "~2.4.0",
     "bn.js": "4.11.6",
     "cachedown": "^1.0.0",
+    "clone": "^2.1.1",
+    "eth-sig-util": "^2.0.2",
     "ethereumjs-account": "~2.0.4",
     "ethereumjs-block": "~1.2.2",
     "ethereumjs-tx": "1.3.4",
@@ -34,10 +36,10 @@
     "level-sublevel": "^6.6.1",
     "levelup": "^1.1.0",
     "lodash": "^4.17.10",
-    "merkle-patricia-tree": "git+https://github.com/ethereumjs/merkle-patricia-tree.git#2818d8a66ea87adc3bacb521098273275badbf1f",
+    "merkle-patricia-tree": "^2.2.0",
     "seedrandom": "~2.4.2",
     "tmp": "0.0.31",
-    "web3": "^1.0.0-beta.34",
+    "web3": "^1.0.0-beta.35",
     "web3-provider-engine": "^14.0.6",
     "websocket": "^1.0.24"
   },
