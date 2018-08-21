@@ -2,7 +2,7 @@ var Web3 = require('web3');
 var Web3WsProvider = require('web3-providers-ws');
 var utils = require('ethereumjs-util');
 var assert = require('assert');
-var Ganache = require(process.env.TEST_BRANCH == "built" ? "../build/ganache.core.js" : "../index.js");
+var Ganache = require(process.env.TEST_BRANCH ? "../build/ganache.core." + process.env.TEST_BRANCH + ".js" : "../index.js");
 var fs = require("fs");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");

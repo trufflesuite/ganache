@@ -1,5 +1,5 @@
 var Web3 = require('web3');
-var Ganache = require(process.env.TEST_BRANCH == "built" ? "../build/ganache.core.js" : "../index.js");
+var Ganache = require(process.env.TEST_BRANCH ? "../build/ganache.core." + process.env.TEST_BRANCH + ".js" : "../index.js");
 var assert = require('assert');
 
 var tests = function(web3) {
