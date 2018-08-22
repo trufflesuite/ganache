@@ -530,6 +530,13 @@
         "lodash": "^4.17.4",
         "source-map": "^0.5.7",
         "trim-right": "^1.0.1"
+      },
+      "dependencies": {
+        "jsesc": {
+          "version": "1.3.0",
+          "resolved": "https://registry.npmjs.org/jsesc/-/jsesc-1.3.0.tgz",
+          "integrity": "sha1-RsP+yMGJKxKwgz25vHYiF226s0s="
+        }
       }
     },
     "babel-helper-builder-binary-assignment-operator-visitor": {
@@ -2278,9 +2285,9 @@
       "integrity": "sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0="
     },
     "electron-to-chromium": {
-      "version": "1.3.59",
-      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.59.tgz",
-      "integrity": "sha512-PbJGGpDSNn3fyUN1eQESAmnMT+a1QAO4NEZgikDuGOn7tbAuMHF87jNna+NoVsMBfEEYzfpn/ay88HgDCJUbQA=="
+      "version": "1.3.60",
+      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.60.tgz",
+      "integrity": "sha512-nOZ40zMIpmAtbZBqbMFOprS02+vIIjzLobXvwz9RALT28PtVu4Ekrm8Zk6VrjmWSnv7PLL/e6Va+hLG5nREnvA=="
     },
     "elliptic": {
       "version": "6.4.1",
@@ -3930,8 +3937,7 @@
     "generic-pool": {
       "version": "2.0.4",
       "resolved": "https://registry.npmjs.org/generic-pool/-/generic-pool-2.0.4.tgz",
-      "integrity": "sha1-+XGN7agvoSXtXEPjQcmiFadm2aM=",
-      "dev": true
+      "integrity": "sha1-+XGN7agvoSXtXEPjQcmiFadm2aM="
     },
     "get-caller-file": {
       "version": "1.0.3",
@@ -4675,7 +4681,6 @@
       "version": "0.2.0",
       "resolved": "https://registry.npmjs.org/js-scrypt/-/js-scrypt-0.2.0.tgz",
       "integrity": "sha1-emK3AbRhbnCtDN5URiequ5nX/jk=",
-      "dev": true,
       "requires": {
         "generic-pool": "~2.0.4"
       }
@@ -4697,9 +4702,9 @@
       "optional": true
     },
     "jsesc": {
-      "version": "1.3.0",
-      "resolved": "https://registry.npmjs.org/jsesc/-/jsesc-1.3.0.tgz",
-      "integrity": "sha1-RsP+yMGJKxKwgz25vHYiF226s0s="
+      "version": "0.5.0",
+      "resolved": "https://registry.npmjs.org/jsesc/-/jsesc-0.5.0.tgz",
+      "integrity": "sha1-597mbjXW/Bb3EP6R1c9p9w8IkR0="
     },
     "json-parse-better-errors": {
       "version": "1.0.2",
@@ -5186,7 +5191,8 @@
     },
     "merkle-patricia-tree": {
       "version": "2.3.1",
-      "resolved": "git+https://github.com/ethereumjs/merkle-patricia-tree.git#2818d8a66ea87adc3bacb521098273275badbf1f",
+      "resolved": "https://registry.npmjs.org/merkle-patricia-tree/-/merkle-patricia-tree-2.3.1.tgz",
+      "integrity": "sha512-Qp9Mpb3xazznXzzGQBqHbqCpT2AR9joUOHYYPiQjYCarrdCPCnLWXo4BFv77y4xN26KR224xoU1n/qYY7RYYgw==",
       "requires": {
         "async": "^1.4.2",
         "ethereumjs-util": "^5.0.0",
@@ -6309,13 +6315,6 @@
       "integrity": "sha1-fuj4Tcb6eS0/0K4ijSS9lJ6tIFw=",
       "requires": {
         "jsesc": "~0.5.0"
-      },
-      "dependencies": {
-        "jsesc": {
-          "version": "0.5.0",
-          "resolved": "https://registry.npmjs.org/jsesc/-/jsesc-0.5.0.tgz",
-          "integrity": "sha1-597mbjXW/Bb3EP6R1c9p9w8IkR0="
-        }
       }
     },
     "remove-trailing-separator": {
@@ -6560,10 +6559,10 @@
     },
     "scrypt": {
       "version": "6.0.3",
-      "resolved": "https://registry.npmjs.org/scrypt/-/scrypt-6.0.3.tgz",
-      "integrity": "sha1-BOAUpWgrU/pQwtXM4WfXGcBthw0=",
+      "resolved": "https://registry.npmjs.org/js-scrypt/-/js-scrypt-0.2.0.tgz",
+      "integrity": "sha1-emK3AbRhbnCtDN5URiequ5nX/jk=",
       "requires": {
-        "nan": "^2.0.8"
+        "generic-pool": "~2.0.4"
       }
     },
     "scrypt.js": {
@@ -6584,17 +6583,26 @@
       }
     },
     "secp256k1": {
-      "version": "3.5.0",
-      "resolved": "https://registry.npmjs.org/secp256k1/-/secp256k1-3.5.0.tgz",
-      "integrity": "sha512-e5QIJl8W7Y4tT6LHffVcZAxJjvpgE5Owawv6/XCYPQljE9aP2NFFddQ8OYMKhdLshNu88FfL3qCN3/xYkXGRsA==",
+      "version": "3.5.2",
+      "from": "git+https://github.com/davidmurdoch/secp256k1-js.git",
       "requires": {
-        "bindings": "^1.2.1",
         "bip66": "^1.1.3",
         "bn.js": "^4.11.3",
         "create-hash": "^1.1.2",
         "drbg.js": "^1.0.1",
         "elliptic": "^6.2.3",
-        "nan": "^2.2.1",
+        "safe-buffer": "^5.1.0"
+      }
+    },
+    "secp256k1-js": {
+      "version": "3.5.2",
+      "from": "git+https://github.com/davidmurdoch/secp256k1-js.git",
+      "requires": {
+        "bip66": "^1.1.3",
+        "bn.js": "^4.11.3",
+        "create-hash": "^1.1.2",
+        "drbg.js": "^1.0.1",
+        "elliptic": "^6.2.3",
         "safe-buffer": "^5.1.0"
       }
     },

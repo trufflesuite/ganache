@@ -14,7 +14,7 @@
     "build-provider": "webpack-cli --config ./webpack/node/provider.webpack.config.js",
     "build-core": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js && webpack-cli --config ./webpack/web-experimental/server.webpack.config.js && webpack-cli --config ./webpack/web-experimental/provider.webpack.config.js",
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "mocha --check-leaks --recursive --globals _scratch",
     "test-web-experimental": "cross-env TEST_BRANCH=web-experimental mocha --check-leaks --recursive --globals _scratch",
     "test-built": "cross-env TEST_BRANCH=node mocha --check-leaks --recursive --globals _scratch"
@@ -42,13 +42,14 @@
     "tmp": "0.0.31",
     "web3": "^1.0.0-beta.35",
     "web3-provider-engine": "^14.0.6",
-    "websocket": "^1.0.24"
+    "websocket": "^1.0.24",
+    "js-scrypt": "^0.2.0",
+    "secp256k1-js": "git+https://github.com/davidmurdoch/secp256k1-js.git"
   },
   "devDependencies": {
     "assert-match": "^1.1.1",
     "browserfs": "1.4.3",
     "cross-env": "^5.2.0",
-    "js-scrypt": "^0.2.0",
     "memdown": "^1.3.1",
     "mocha": "~5.1.1",
     "pify": "^3.0.0",
