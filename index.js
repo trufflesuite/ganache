@@ -1,3 +1,6 @@
+// make sourcemaps work!
+require('source-map-support/register')
+
 var Provider = require("./lib/provider");
 var Server = require("./lib/server");
 

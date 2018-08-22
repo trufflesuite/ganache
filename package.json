@@ -53,6 +53,7 @@
     "mocha": "~5.1.1",
     "pify": "^3.0.0",
     "solc": "0.4.24",
+    "source-map-support": "0.5.9",
     "temp": "^0.8.3",
     "webpack": "4.17.0",
     "webpack-bundle-size-analyzer": "^2.7.0",
