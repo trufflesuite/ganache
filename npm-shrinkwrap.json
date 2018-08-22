@@ -6584,7 +6584,8 @@
     },
     "secp256k1": {
       "version": "3.5.2",
-      "from": "git+https://github.com/davidmurdoch/secp256k1-js.git",
+      "resolved": "https://registry.npmjs.org/secp256k1-pure/-/secp256k1-pure-0.0.1.tgz",
+      "integrity": "sha512-/lEg9QMpBtLvxei1u226+HwcSlA3FLOULtItBee7nKFEKiByUkflSR1XnL/yBFMaEw54MNd7t+m3COSXw+3S7g==",
       "requires": {
         "bip66": "^1.1.3",
         "bn.js": "^4.11.3",
@@ -6594,9 +6595,10 @@
         "safe-buffer": "^5.1.0"
       }
     },
-    "secp256k1-js": {
-      "version": "3.5.2",
-      "from": "git+https://github.com/davidmurdoch/secp256k1-js.git",
+    "secp256k1-pure": {
+      "version": "0.0.1",
+      "resolved": "https://registry.npmjs.org/secp256k1-pure/-/secp256k1-pure-0.0.1.tgz",
+      "integrity": "sha512-/lEg9QMpBtLvxei1u226+HwcSlA3FLOULtItBee7nKFEKiByUkflSR1XnL/yBFMaEw54MNd7t+m3COSXw+3S7g==",
       "requires": {
         "bip66": "^1.1.3",
         "bn.js": "^4.11.3",

@@ -34,17 +34,17 @@
     "ethereumjs-vm": "2.3.5",
     "ethereumjs-wallet": "0.6.0",
     "heap": "~0.2.6",
+    "js-scrypt": "^0.2.0",
     "level-sublevel": "6.6.4",
     "levelup": "3.1.1",
     "lodash": "^4.17.10",
     "merkle-patricia-tree": "^2.2.0",
+    "secp256k1-pure": "0.0.1",
     "seedrandom": "~2.4.2",
     "tmp": "0.0.31",
     "web3": "^1.0.0-beta.35",
     "web3-provider-engine": "^14.0.6",
-    "websocket": "^1.0.24",
-    "js-scrypt": "^0.2.0",
-    "secp256k1-js": "git+https://github.com/davidmurdoch/secp256k1-js.git"
+    "websocket": "^1.0.24"
   },
   "devDependencies": {
     "assert-match": "^1.1.1",
