@@ -40,22 +40,17 @@
     "levelup": "3.1.1",
     "lodash": "4.17.10",
     "merkle-patricia-tree": "2.3.1",
-    "scrypt": "npm:js-scrypt@0.2.0",
-    "secp256k1": "npm:secp256k1-pure@3.5.2",
     "seedrandom": "2.4.4",
     "tmp": "0.0.33",
     "web3": "1.0.0-beta.35",
     "web3-provider-engine": "14.0.6",
     "websocket": "1.0.26"
   },
-  "resolutions": {
-    "**/scrypt": "js-scrypt@0.2.0",
-    "**/secp256k1": "secp256k1-pure@3.5.2"
-  },
   "devDependencies": {
     "assert-match": "1.1.1",
     "browserfs": "1.4.3",
     "cross-env": "5.2.0",
+    "js-scrypt": "0.2.0",
     "memdown": "1.3.1",
     "mocha": "5.2.0",
     "pify": "4.0.0",
