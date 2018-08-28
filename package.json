@@ -19,7 +19,7 @@
     "test-web-experimental": "cross-env TEST_BRANCH=web-experimental mocha --check-leaks --recursive --globals _scratch",
     "test-native": "mocha --check-leaks --recursive --globals _scratch"
   },
-  "dependencies": {
+  "devDependencies": {
     "abstract-leveldown": "3.0.0",
     "async": "2.6.1",
     "bip39": "2.5.0",
@@ -44,9 +44,8 @@
     "tmp": "0.0.33",
     "web3": "1.0.0-beta.35",
     "web3-provider-engine": "14.0.6",
-    "websocket": "1.0.26"
-  },
-  "devDependencies": {
+    "websocket": "1.0.26",
+
     "assert-match": "1.1.1",
     "browserfs": "1.4.3",
     "cross-env": "5.2.0",
