@@ -3,6 +3,7 @@ require('source-map-support/register')
 
 var Provider = require("./lib/provider");
 var Server = require("./lib/server");
+var to = require("./lib/utils/to");
 
 // This interface exists so as not to cause breaking changes.
 module.exports = {
@@ -11,5 +12,8 @@ module.exports = {
   },
   provider: function(options) {
     return new Provider(options);
+  },
+  utils: {
+    to
   }
 };
