@@ -1,5 +1,5 @@
 const { merge } = require("lodash");
-const { resolve } = require("path");
+const { resolve, relative } = require("path");
 const { IgnorePlugin } = require("webpack");
 // const { WebpackBundleSizeAnalyzerPlugin } = require("webpack-bundle-size-analyzer");
 
@@ -11,6 +11,23 @@ module.exports = (override) => {
       path: outputDir
     },
     devtool: "source-map",
+    externals: [
+      (context, request, callback) => {
+        
+        // webpack these modules:
+        if (/^(ethereumjs-wallet|scrypt|web3|eth-block-tracker)(\/.*)?$/.test(request)) {
+          return callback();
+        }
+
+        // we want to webpack all local files
+        if(/^\./.test(request)){
+          return callback();
+        }
+
+        // we dont' want to webpack any other modules
+        return callback(null, 'commonjs ' + request);
+      }
+    ],
     resolve: {
       alias: {
         // eth-block-tracker is es6 but automatically builds an es5 version for us on install. thanks eth-block-tracker!
