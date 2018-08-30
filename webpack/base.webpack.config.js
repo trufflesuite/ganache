@@ -1,7 +1,6 @@
 const { merge } = require("lodash");
-const { resolve, relative } = require("path");
+const { resolve } = require("path");
 const { IgnorePlugin } = require("webpack");
-// const { WebpackBundleSizeAnalyzerPlugin } = require("webpack-bundle-size-analyzer");
 
 const outputDir = resolve(__dirname, "..", "build");
 
@@ -13,18 +12,19 @@ module.exports = (override) => {
     devtool: "source-map",
     externals: [
       (context, request, callback) => {
-        
         // webpack these modules:
+        // we actually only care about scrypt and eth-block-tracker here, as those are the only native modules
+        // but webpack won't detect them if we don't traverse teh dependency tree to get to them
         if (/^(ethereumjs-wallet|scrypt|web3|eth-block-tracker)(\/.*)?$/.test(request)) {
           return callback();
         }
 
-        // we want to webpack all local files
+        // we want to webpack all local files (files starting with a .)
         if(/^\./.test(request)){
           return callback();
         }
 
-        // we dont' want to webpack any other modules
+        // we don't want to webpack any other modules
         return callback(null, 'commonjs ' + request);
       }
     ],
@@ -42,10 +42,7 @@ module.exports = (override) => {
     },
     plugins: [
       // ignore these plugins completely
-      new IgnorePlugin(/^(?:electron|ws)$/),
-
-      // writes a size report
-      // new WebpackBundleSizeAnalyzerPlugin("./size-report.txt"),
+      new IgnorePlugin(/^(?:electron|ws)$/)
     ],
     mode: "production"
   }, override);
