@@ -1,27 +1,28 @@
 // make sourcemaps work!
 require('source-map-support/register')
 
-let Ganache;
+const debug = require("debug")("ganache");
+
 // we use optional dependencies which may, or may not exist, so try native first
 try {
-  Ganache = {
-    Provider: require("./lib/provider"),
-    Server: require("./lib/server")
-  };
-  console.log("Using Ganache with native dependencies");
-}
-catch (e) {
-  // grabbing the Native deps failed, so we are using our webpacked build.
-  Ganache = require("./build/ganache.core.node.js");
-  console.log("Using Ganache with JS dependencies");
-}
+  // make sure these exist before we try to load ganache with native modules
+  require("scrypt");
+  require("web3");
+  require("ethereumjs-wallet");
 
-// This interface exists so as not to cause breaking changes.
-module.exports = {
-  server: function(options) {
-    return Ganache.Server.create(options);
-  },
-  provider: function(options) {
-    return new Ganache.Provider(options);
+  module.exports = require("./interface.js");
+  debug("Optional dependencies installed; exporting ganache-core with native optional dependencies.");
+}
+catch (nativeError) {
+  debug(nativeError);
+
+  // grabbing the native/optional deps failed, try using our webpacked build.
+  try {
+    module.exports = require("./build/ganache.core.node.js");
+    debug("Native modules not installed; exporting ganache-core from `./build` directory.");
   }
-};
+  catch(webpackError) {
+    debug("ganache-core could not be exported; optional dependencies nor webpack build available for export.");
+    throw webpackError;
+  }
+}
