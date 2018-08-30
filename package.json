@@ -14,10 +14,10 @@
     "build-provider": "webpack-cli --config ./webpack/node/provider.webpack.config.js",
     "build-core": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js && webpack-cli --config ./webpack/web-experimental/server.webpack.config.js && webpack-cli --config ./webpack/web-experimental/provider.webpack.config.js",
-    "prepublishOnly": "npm run build",
-    "test": "cross-env TEST_BRANCH=node mocha --check-leaks --recursive --globals _scratch",
-    "test-web-experimental": "cross-env TEST_BRANCH=web-experimental mocha --check-leaks --recursive --globals _scratch",
-    "test-native": "mocha --check-leaks --recursive --globals _scratch"
+    "prepublishOnly": "npm run test && npm run build && npm run test-build",
+    "test": "mocha --check-leaks --recursive --globals _scratch",
+    "test-web-experimental": "cross-env TEST_BUILD=web-experimental mocha --check-leaks --recursive --globals _scratch",
+    "test-build": "cross-env TEST_BUILD=node mocha --check-leaks --recursive --globals _scratch"
   },
   "dependencies": {
     "abstract-leveldown": "3.0.0",
@@ -26,6 +26,7 @@
     "bn.js": "4.11.8",
     "cachedown": "1.0.0",
     "clone": "2.1.2",
+    "debug": "3.1.0",
     "encoding-down": "5.0.4",
     "eth-sig-util": "2.0.2",
     "ethereumjs-abi": "0.6.5",
