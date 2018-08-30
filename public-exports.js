@@ -1,3 +1,6 @@
+// make sourcemaps work!
+require('source-map-support/register');
+
 const Provider = require("./lib/provider");
 const Server = require("./lib/server");
 
@@ -8,5 +11,6 @@ module.exports = {
   },
   provider: function(options) {
       return new Provider(options);
-  }
+  },
+  _webpacked: true
 };

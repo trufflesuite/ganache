@@ -5,7 +5,7 @@ const outputDir = join(__dirname, "..", "..", "build");
 const outputFilename = "ganache.core.node.js";
 
 module.exports = applyBaseConfig({
-  entry: "./interface.js",
+  entry: "./public-exports.js",
   target: "node",
   output: {
     path: outputDir,
