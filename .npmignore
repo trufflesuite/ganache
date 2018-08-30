@@ -11,4 +11,3 @@ ISSUE_TEMPLATE.md
 test/
 webpack/
 perf/
-lib/
