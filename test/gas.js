@@ -114,6 +114,26 @@ describe("Gas", function() {
             });
       });
     }).timeout(0);
+
+    it("clears mapping storage slots", async () =>{
+      const options = {from: accounts[0]};
+
+      const estimateGasInstance = await deployContract();
+      const uintsa = await estimateGasInstance.methods.uints(1).call();
+      assert.equal(uintsa, "0", "initial value is not correct");
+
+      const receipta = await estimateGasInstance.methods.store(1).send(options);
+      assert.equal(receipta.status, true, "storing value did not work");
+
+      const uintsb = await estimateGasInstance.methods.uints(1).call();
+      assert.equal(uintsb, "1", "set value is incorrect");
+
+      const receiptb = await estimateGasInstance.methods.clear().send(options);
+      assert.equal(receiptb.status, true, "clearing value did not work");
+
+      const uintsc = await estimateGasInstance.methods.uints(1).call();
+      assert.equal(uintsc, "0", "cleared value is not correct");
+    });
   });
 
   describe("Estimation", function() {
