@@ -78,7 +78,7 @@ var tests = function(web3) {
   });
 
   describe("eth_getCompilers", function() {
-    it.only("should return an empty array", function() {
+    it("should return an empty array", function() {
       return web3.eth.getCompilers()
         .then(function(compilers) {
           assert(Array.isArray(compilers));
