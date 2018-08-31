@@ -27,6 +27,15 @@ contract EstimateGas {
         triggerRselfdestructRefund();
     }
 
+    
+    // https://github.com/trufflesuite/ganache-cli/issues/294
+    mapping (uint => uint) public uints;
+    // Sets the uints[1] slot to a value;
+    function store(uint _uint) public { uints[1] = _uint;}
+    // Fails under testRPC provider on non empty store
+    // "callback contain no result Error: Error: base fee exceeds gas limit"
+    function clear() public { delete uints[1]; }
+
     mapping(bytes32 => uint) index;
     Test[] tests;
 
