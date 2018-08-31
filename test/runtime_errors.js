@@ -79,8 +79,7 @@ function runTests(web3, provider, extraTests) {
   });
 
   it("should output the transaction hash even if a runtime error occurs (revert)", function(done) {
-    // we can't use `web3.eth.sendTransaction` because it will obfuscate the result
-    
+      // we can't use `web3.eth.sendTransaction` because it will obfuscate the result
       provider.send({
         jsonrpc: '2.0',
         id: new Date().getTime(),
@@ -116,7 +115,7 @@ function runTests(web3, provider, extraTests) {
       });
   });
 
-  it("should have correct return value when calling a method that reverts without message", function(done) {    
+  it("should have correct return value when calling a method that reverts without message", function(done) {
       provider.send({
         jsonrpc: '2.0',
         id: new Date().getTime(),
@@ -147,7 +146,7 @@ function runTests(web3, provider, extraTests) {
       });
   });
 
-  it("should have correct return value when calling a method that reverts with message", function(done) {    
+  it("should have correct return value when calling a method that reverts with message", function(done) {
       provider.send({
         jsonrpc: '2.0',
         id: new Date().getTime(),
@@ -167,6 +166,8 @@ function runTests(web3, provider, extraTests) {
           assert(response.error !== undefined)
           assert(response.result === undefined || response.result === null)
 
+          // RuntimeError.sol reverts with revert("Message")
+          assert(/Message/.test(response.error.message), `Expected error message (${response.error.message}) to contain revert reason "Message"`);
           assert(/revert/.test(response.error.message), `Expected error message (${response.error.message}) to contain 'revert'`);
 
         } else {

@@ -127,7 +127,7 @@ describe("stability", function(done) {
         // 10 oughtta do it!
       ]
     }).catch(err => {
-      assert.deepEqual(err.message, regex(/Method \'evm_mine\' requires exactly \d+ arguments/));
+      assert.deepEqual(err.message, regex(/Incorrect number of arguments\. Method \'evm_mine\' requires between \d+ and \d+ arguments\. Request specified \d+ arguments: \[[^\]]*\]\./));
     });// nothing to check from here, if the promise rejects, test fails
   })
 

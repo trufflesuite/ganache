@@ -25,6 +25,97 @@ describe("Gas", function() {
     });
   });
 
+  describe("Refunds", function() {
+    var EstimateGasContract;
+    var estimateGasContractData;
+    before("compile source", function() {
+      this.timeout(10000);
+
+      var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
+      var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
+
+      var estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
+
+      estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
+      EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
+    });
+
+    async function deployContract(){
+      return EstimateGasContract.deploy({data: estimateGasContractData})
+      .send({from: accounts[0], gas: 3141592})
+      .then(function(instance) {
+        // TODO: ugly workaround - not sure why this is necessary.
+        if (!instance._requestManager.provider) {
+          instance._requestManager.setProvider(web3.eth._provider);
+        }
+        return instance;
+      });
+    }
+
+    it("accounts for Rsclear Refund in gasEstimate", async () => {
+      const from = accounts[0];
+      const options = {from, gas: 5000000};
+      const estimateGasInstance = await deployContract();
+      return estimateGasInstance.methods.reset().send(options)  // prime storage by making sure it is set to 0
+        .then(() => {
+          const method = estimateGasInstance.methods.triggerRsclearRefund();
+
+          return method.estimateGas(options)
+            .then((gas)=>{
+              return {from, gas};
+            }).then(options => {
+              const gasEstimate = options.gas;
+              return method.send(options).then(receipt=>({gasEstimate, receipt}));
+            }).then(data => {
+              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - 15000);
+              assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
+            });
+      });
+    });
+    
+    
+    it("accounts for Rselfdestruct Refund in gasEstimate", async () => {
+      const from = accounts[0];
+      const options = {from, gas: 5000000};
+      const estimateGasInstance = await deployContract();
+      return estimateGasInstance.methods.reset().send(options)  // prime storage by making sure it is set to 0
+        .then(() => {
+          const method = estimateGasInstance.methods.triggerRselfdestructRefund();
+
+          return method.estimateGas(options)
+            .then((gas)=>{
+              return {from, gas};
+            }).then(options => {
+              const gasEstimate = options.gas;
+              return method.send(options).then(receipt=>({gasEstimate, receipt}));
+            }).then(data => {
+              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - 24000);
+              assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
+            });
+      });
+    });
+
+    it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async () => {
+      const from = accounts[0];
+      const estimateGasInstance = await deployContract();
+      return estimateGasInstance.methods.reset().send({from, gas: 5000000})  // prime storage by making sure it is set to 0
+        .then(() => {
+          const method = estimateGasInstance.methods.triggerAllRefunds();
+
+          return method.estimateGas({from})
+            .then((gas)=>{
+              return {from, gas};
+            }).then(options => {
+              const gasEstimate = options.gas;
+              return method.send(options).then(receipt=>({gasEstimate, receipt}));
+            }).then(data => {
+              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - 24000 - 15000);
+              assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
+            });
+      });
+    }).timeout(0);
+  });
+
   describe("Estimation", function() {
     var estimateGasContractData;
     var estimateGasContractAbi;
@@ -59,17 +150,21 @@ describe("Gas", function() {
       let transactionGas = options.gas
       delete options.gas
 
-      return contractFn.apply(contractFn, args)
-        .estimateGas(options)
-        .then(function(estimate) {
-          options.gas = transactionGas
-          return web3.eth.sendTransaction(Object.assign(contractFn.apply(contractFn, args), options))
-            .then(function (receipt) {
-              assert.equal(receipt.status, 1, 'Transaction must succeed');
-              assert.equal(receipt.gasUsed, estimate);
-              assert.equal(receipt.cumulativeGasUsed, estimate);
-            })
+      return estimateGasInstance.methods.reset().send({from: options.from, gas: 5000000})  // prime storage by making sure it is set to 0
+        .then(() => {
+          const fn = contractFn(...args);
+          return fn
+            .estimateGas(options)
+            .then(function(estimate) {
+              options.gas = transactionGas
+              return fn.send(options)
+                .then(function (receipt) {
+                  assert.equal(receipt.status, 1, 'Transaction must succeed');
+                  assert.equal(receipt.gasUsed, estimate, "gasUsed");
+                  assert.equal(receipt.cumulativeGasUsed, estimate, "estimate");
+                })
         });
+      });
     }
 
     it("matches estimate for deployment", function() {
@@ -84,7 +179,7 @@ describe("Gas", function() {
 
     it("matches usage for complex function call (add)", function() {
       this.timeout(10000)
-      return testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 5], {from: accounts[0], gas: 3141592});
+      return testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 10], {from: accounts[0], gas: 3141592});
     });
 
     it("matches usage for complex function call (transfer)", function() {
