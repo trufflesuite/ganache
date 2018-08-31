@@ -9,15 +9,15 @@
     "lib": "./lib"
   },
   "scripts": {
-    "build": "npm run build-server && npm run build-provider && npm run build-core && npm run build-web",
-    "build-server": "webpack-cli --config ./webpack/node/server.webpack.config.js",
-    "build-provider": "webpack-cli --config ./webpack/node/provider.webpack.config.js",
+    "build": "npm run build-core",
     "build-core": "webpack-cli --config ./webpack/node/core.webpack.config.js",
+    "build-provider": "webpack-cli --config ./webpack/node/provider.webpack.config.js",
+    "build-server": "webpack-cli --config ./webpack/node/server.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js && webpack-cli --config ./webpack/web-experimental/server.webpack.config.js && webpack-cli --config ./webpack/web-experimental/provider.webpack.config.js",
     "prepublishOnly": "npm run test && npm run build && npm run test-build",
     "test": "mocha --check-leaks --recursive --globals _scratch",
-    "test-web-experimental": "cross-env TEST_BUILD=web-experimental mocha --check-leaks --recursive --globals _scratch",
-    "test-build": "cross-env TEST_BUILD=node mocha --check-leaks --recursive --globals _scratch"
+    "test-build": "cross-env TEST_BUILD=node mocha --check-leaks --recursive --globals _scratch",
+    "test-web-experimental": "cross-env TEST_BUILD=web-experimental mocha --check-leaks --recursive --globals _scratch"
   },
   "dependencies": {
     "abstract-leveldown": "3.0.0",
