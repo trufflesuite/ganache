@@ -5,8 +5,8 @@ var assert = require("assert");
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-describe("Mining", function() {
-    it("Tests the right version", () =>{
+describe("BuildType", function() {
+    it("Tests that we are using the right version", () =>{
         assert(process.env.TEST_BUILD ? Ganache._webpacked === true : Ganache._webpacked === false);
     });
 });
