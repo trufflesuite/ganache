@@ -15,9 +15,9 @@
     "build-server": "webpack-cli --config ./webpack/node/server.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js && webpack-cli --config ./webpack/web-experimental/server.webpack.config.js && webpack-cli --config ./webpack/web-experimental/provider.webpack.config.js",
     "prepublishOnly": "npm run test && npm run build && npm run test-build",
-    "test": "mocha --check-leaks --recursive --globals _scratch",
-    "test-build": "cross-env TEST_BUILD=node mocha --check-leaks --recursive --globals _scratch",
-    "test-web-experimental": "cross-env TEST_BUILD=web-experimental mocha --check-leaks --recursive --globals _scratch"
+    "test": "mocha --check-leaks --recursive --globals _scratch,sanitizedData",
+    "test-build": "cross-env TEST_BUILD=node mocha --check-leaks --recursive --globals _scratch,sanitizedData",
+    "test-web-experimental": "cross-env TEST_BUILD=web-experimental mocha --check-leaks --recursive --globals _scratch,sanitizedData"
   },
   "dependencies": {
     "abstract-leveldown": "3.0.0",
