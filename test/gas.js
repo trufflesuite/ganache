@@ -1,6 +1,5 @@
 var Web3 = require('web3');
 var assert = require('assert');
-
 var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../index.js");
 var fs = require("fs");
 var path = require("path");
