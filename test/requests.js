@@ -77,6 +77,16 @@ var tests = function(web3) {
     });
   });
 
+  describe("eth_getCompilers", function() {
+    it.only("should return an empty array", function() {
+      return web3.eth.getCompilers()
+        .then(function(compilers) {
+          assert(Array.isArray(compilers));
+          assert.equal(0, compilers.length);
+        })
+    });
+  });
+
   describe("eth_blockNumber", function() {
     it("should return initial block number of zero", function(done) {
       var number = web3.eth.getBlockNumber(function(err, result) {
