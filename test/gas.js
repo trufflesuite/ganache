@@ -129,7 +129,7 @@ describe("Gas", function() {
       assert.equal(uintsb, "1", "set value is incorrect");
 
       const receiptb = await estimateGasInstance.methods.clear().send(options);
-      assert.equal(receiptb.status, true, "storing 0 did not work");
+      assert.equal(receiptb.status, true, "clearing value did not work");
 
       const uintsc = await estimateGasInstance.methods.uints(1).call();
       assert.equal(uintsc, "0", "cleared value is not correct");
