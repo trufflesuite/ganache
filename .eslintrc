@@ -1,0 +1,23 @@
+{
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+        "impliedStrict": true,
+        "jsx": true
+    }
+  },
+  "extends": "standard",
+  "rules": {
+    "curly": ["error", "all"],
+    "semi": ["error", "always"],
+    "quotes": ["error", "double"],
+    "wrap-iife": ["error", "outside"],
+    "space-before-function-paren": ["error", "never"],
+    "promise/param-names": "off"
+  }
+}
