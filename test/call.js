@@ -1,5 +1,5 @@
-var Web3 = require('web3');
-var assert = require('assert');
+var Web3 = require("web3");
+var assert = require("assert");
 var Ganache = require("../index.js");
 var fs = require("fs");
 var path = require("path");
@@ -30,15 +30,15 @@ describe("eth_call", function() {
 
   before("compile source and deploy", function() {
     this.timeout(10000);
-    var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
+    var result = solc.compile({ sources: { "EstimateGas.sol": source } }, 1);
 
     estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
     estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
 
     EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
-    return EstimateGasContract.deploy({data: estimateGasContractData})
-      .send({from: accounts[0], gas: 3141592})
-      .on('receipt', function (receipt) {
+    return EstimateGasContract.deploy({ data: estimateGasContractData })
+      .send({ from: accounts[0], gas: 3141592 })
+      .on("receipt", function(receipt) {
         deploymentReceipt = receipt;
       })
       .then(function(instance) {
@@ -53,19 +53,19 @@ describe("eth_call", function() {
   it("should use the block gas limit if no gas limit is specified", function() {
     // this call uses more than the default transaction gas limit and will
     // therefore fail if the block gas limit isn't used for calls
-    return estimateGasInstance.methods.add(toBytes("Tim"), toBytes("A great guy"), 5)
-      .call({from: accounts[0]})
-      .then(result => {
-        assert.equal(result, true)
-      })
-  })
+    return estimateGasInstance.methods
+      .add(toBytes("Tim"), toBytes("A great guy"), 5)
+      .call({ from: accounts[0] })
+      .then((result) => {
+        assert.equal(result, true);
+      });
+  });
 
   function toBytes(s) {
     let bytes = Array.prototype.map.call(s, function(c) {
-      return c.codePointAt(0)
-    })
+      return c.codePointAt(0);
+    });
 
-    return to.hex(Buffer.from(bytes))
+    return to.hex(Buffer.from(bytes));
   }
-
 });

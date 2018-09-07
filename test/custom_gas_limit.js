@@ -1,15 +1,17 @@
-var Web3 = require('web3');
-var assert = require('assert');
+var Web3 = require("web3");
+var assert = require("assert");
 var Ganache = require("../index.js");
 
 describe("Custom Gas Limit", function() {
   var web3;
 
-  before("Init the Web3 provider", function(done){
+  before("Init the Web3 provider", function(done) {
     web3 = new Web3();
-    web3.setProvider(Ganache.provider({
-      gasLimit: 5000000
-    }));
+    web3.setProvider(
+      Ganache.provider({
+        gasLimit: 5000000
+      })
+    );
     done();
   });
 

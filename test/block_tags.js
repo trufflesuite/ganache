@@ -1,6 +1,6 @@
-var Web3 = require('web3');
-var utils = require('ethereumjs-util');
-var assert = require('assert');
+var Web3 = require("web3");
+var utils = require("ethereumjs-util");
+var assert = require("assert");
 var Ganache = require("../index.js");
 var fs = require("fs");
 var solc = require("solc");
@@ -12,10 +12,12 @@ var to = require("../lib/utils/to.js");
 process.removeAllListeners("uncaughtException");
 
 var logger = {
-  log: function(msg) { /*noop*/ }
+  log: function(msg) {
+    /*noop*/
+  }
 };
 
-var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
+var source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
 var result = solc.compile(source, 1);
 
 // Note: Certain properties of the following contract data are hardcoded to
@@ -28,16 +30,16 @@ var contract = {
   position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
   expected_default_value: 5,
   call_data: {
-    gas: '0x2fefd8',
-    gasPrice: '0x01', // This is important, as passing it has exposed errors in the past.
+    gas: "0x2fefd8",
+    gasPrice: "0x01", // This is important, as passing it has exposed errors in the past.
     to: null, // set by test
-    data: '0x3fa4f245'
+    data: "0x3fa4f245"
   },
   transaction_data: {
     from: null, // set by test
-    gas: '0x2fefd8',
+    gas: "0x2fefd8",
     to: null, // set by test
-    data: '0x552410770000000000000000000000000000000000000000000000000000000000000019' // sets value to 25 (base 10)
+    data: "0x552410770000000000000000000000000000000000000000000000000000000000000019" // sets value to 25 (base 10)
   }
 };
 
@@ -66,32 +68,38 @@ describe("Block Tags", function() {
   });
 
   before("Get initial balance and nonce", function(done) {
-    async.parallel({
-      balance: web3.eth.getBalance.bind(web3.eth, accounts[0]),
-      nonce: web3.eth.getTransactionCount.bind(web3.eth, accounts[0])
-    }, function(err, result) {
-      if (err) return done(err);
-      initial = result;
-      initial.nonce = to.number(initial.nonce);
-      done();
-    });
+    async.parallel(
+      {
+        balance: web3.eth.getBalance.bind(web3.eth, accounts[0]),
+        nonce: web3.eth.getTransactionCount.bind(web3.eth, accounts[0])
+      },
+      function(err, result) {
+        if (err) return done(err);
+        initial = result;
+        initial.nonce = to.number(initial.nonce);
+        done();
+      }
+    );
   });
 
   before("Make transaction that changes balance, nonce and code", function(done) {
-    web3.eth.sendTransaction({
-      from: accounts[0],
-      data: contract.binary,
-      gas: 3141592
-    }, function(err, tx) {
-      if (err) return done(err);
-
-      web3.eth.getTransactionReceipt(tx, function(err, receipt) {
+    web3.eth.sendTransaction(
+      {
+        from: accounts[0],
+        data: contract.binary,
+        gas: 3141592
+      },
+      function(err, tx) {
         if (err) return done(err);
 
-        contractAddress = receipt.contractAddress;
-        done();
-      });
-    });
+        web3.eth.getTransactionReceipt(tx, function(err, receipt) {
+          if (err) return done(err);
+
+          contractAddress = receipt.contractAddress;
+          done();
+        });
+      }
+    );
   });
 
   it("should return the initial nonce at the previous block number", function(done) {
@@ -116,8 +124,8 @@ describe("Block Tags", function() {
       // Check that the balance incremented with the block number, just to be sure.
       web3.eth.getBalance(accounts[0], initial_block_number + 1, function(err, balance) {
         if (err) return done(err);
-        var initialBalanceInEther = parseFloat(web3.utils.fromWei(initial.balance, 'ether'));
-        var balanceInEther = parseFloat(web3.utils.fromWei(balance, 'ether'));
+        var initialBalanceInEther = parseFloat(web3.utils.fromWei(initial.balance, "ether"));
+        var balanceInEther = parseFloat(web3.utils.fromWei(balance, "ether"));
         assert(balanceInEther < initialBalanceInEther);
         done();
       });

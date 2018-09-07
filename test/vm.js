@@ -1,7 +1,7 @@
-var Web3 = require('web3');
-var Transaction = require('ethereumjs-tx');
-var utils = require('ethereumjs-util');
-var assert = require('assert');
+var Web3 = require("web3");
+var Transaction = require("ethereumjs-tx");
+var utils = require("ethereumjs-util");
+var assert = require("assert");
 var Ganache = require("../index.js");
 var solc = require("solc");
 var fs = require("fs");
@@ -18,25 +18,27 @@ var logger = {
 };
 
 var web3 = new Web3();
-web3.setProvider(Ganache.provider({
-  /*blockTime: 100,*/
-  logger: logger,
-  seed: "1337"
-}));
+web3.setProvider(
+  Ganache.provider({
+    /*blockTime: 100,*/
+    logger: logger,
+    seed: "1337"
+  })
+);
 
 describe("revert opcode", function() {
   var testContext = {};
 
-  before(function (done) {
+  before(function(done) {
     this.timeout(10000);
-    testContext.source = fs.readFileSync("./test/Revert.sol", {encoding: "utf8"});
+    testContext.source = fs.readFileSync("./test/Revert.sol", { encoding: "utf8" });
     testContext.solcResult = solc.compile(testContext.source, false);
 
     testContext.revertContract = {
       solidity: testContext.source,
       abi: testContext.solcResult.contracts[":Revert"].interface,
       binary: "0x" + testContext.solcResult.contracts[":Revert"].bytecode,
-      runtimeBinary: '0x' + testContext.solcResult.contracts[":Revert"].runtimeBytecode
+      runtimeBinary: "0x" + testContext.solcResult.contracts[":Revert"].runtimeBytecode
     };
 
     web3.eth.getAccounts(function(err, accs) {
@@ -55,17 +57,17 @@ describe("revert opcode", function() {
     var RevertContract = new web3.eth.Contract(revertAbi);
     RevertContract._code = revertCode;
     return RevertContract.deploy({ data: revertCode })
-      .send({from: testContext.accounts[0], gas: 3141592 })
-      .then(function (instance) {
+      .send({ from: testContext.accounts[0], gas: 3141592 })
+      .then(function(instance) {
         // TODO: ugly workaround - not sure why this is necessary.
         if (!instance._requestManager.provider) {
           instance._requestManager.setProvider(web3.eth._provider);
         }
-        return instance.methods.alwaysReverts(5).send({ from: testContext.accounts[0] })
+        return instance.methods.alwaysReverts(5).send({ from: testContext.accounts[0] });
       })
-      .catch(function(err){
+      .catch(function(err) {
         assert.equal(err.results[err.hashes[0]].error, "revert", "Expected error result not returned.");
-        return web3.eth.getTransactionReceipt(err.hashes[0])
+        return web3.eth.getTransactionReceipt(err.hashes[0]);
       })
       .then(function(receipt) {
         assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
