@@ -18,6 +18,8 @@
     "quotes": ["error", "double"],
     "wrap-iife": ["error", "outside"],
     "space-before-function-paren": ["error", "never"],
-    "promise/param-names": "off"
+    "brace-style": ["error", "1tbs", {
+      "allowSingleLine": false
+    }]
   }
 }
