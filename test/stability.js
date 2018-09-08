@@ -10,7 +10,7 @@ var regex = matchers.regex;
 
 var logger = {
   log: function(message) {
-    //console.log(message);
+    // console.log(message);
   }
 };
 
@@ -28,7 +28,9 @@ describe("stability", function(done) {
 
   before(function(done) {
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       accounts = accs;
       done();
@@ -100,7 +102,7 @@ describe("stability", function(done) {
         params: [
           {
             from: accounts[0],
-            to: "0x123", //bad address
+            to: "0x123", // bad address
             value: "1000000000000000000" // 1 ETH
           }
         ]
@@ -142,7 +144,7 @@ describe("stability", function(done) {
     }); // nothing to check from here, if the promise rejects, test fails
   });
 
-  //TODO: remove `.skip` when working on and/or submitting fix for issue #453
+  // TODO: remove `.skip` when working on and/or submitting fix for issue #453
   describe.skip("race conditions", function(done) {
     var web3 = new Web3();
     var provider;
@@ -155,7 +157,9 @@ describe("stability", function(done) {
 
     before("get accounts", function(done) {
       web3.eth.getAccounts(function(err, accs) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         accounts = accs;
         done();

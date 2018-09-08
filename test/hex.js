@@ -68,7 +68,9 @@ describe("JSON-RPC Response", function() {
   var accounts;
   before(function(done) {
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       accounts = accs;
       done();
     });

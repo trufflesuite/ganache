@@ -12,7 +12,7 @@ process.removeAllListeners("uncaughtException");
 
 var logger = {
   log: function(msg) {
-    /*noop*/
+    /* noop */
   }
 };
 
@@ -70,7 +70,9 @@ describe("Forking using a Provider", function() {
 
   before("Gather forked accounts", function(done) {
     forkedWeb3.eth.getAccounts(function(err, f) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       forkedAccounts = f;
       done();
     });
@@ -92,12 +94,16 @@ describe("Forking using a Provider", function() {
         initialDeployTransactionHash = tx;
 
         forkedWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           contractAddress = receipt.contractAddress;
 
           forkedWeb3.eth.getCode(contractAddress, function(err, code) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
 
             // Ensure there's *something* there.
             assert.notEqual(code, null);
@@ -126,7 +132,9 @@ describe("Forking using a Provider", function() {
   // one passes, it should follow that the rest of the forking features should work as normal.
   it("gets code correctly via the main chain (i.e., internally requests it from forked chain)", function(done) {
     mainWeb3.eth.getCode(contractAddress, function(err, code) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       // Ensure there's *something* there.
       assert.notEqual(code, null);

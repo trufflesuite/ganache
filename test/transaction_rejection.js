@@ -31,7 +31,9 @@ describe("Transaction rejection", function() {
 
   before("get accounts", function(done) {
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       accounts = accs;
       done();
     });
@@ -156,7 +158,7 @@ describe("Transaction rejection", function() {
             return done(new Error(`Expected error message matching ${messageRegex}, got ${response.error.message}`));
           }
         } else {
-          return done(new Error(`Error was returned which had no message`));
+          return done(new Error("Error was returned which had no message"));
         }
       } else if (response.result) {
         web3.eth

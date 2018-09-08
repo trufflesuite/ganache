@@ -16,7 +16,9 @@ describe("Accounts", function() {
     );
 
     web3.eth.getAccounts(function(err, accounts) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       assert(accounts[0].toLowerCase(), expected_address.toLowerCase());
       done();
@@ -40,13 +42,14 @@ describe("Accounts", function() {
         gasLimit: 90000
       },
       function(err, tx) {
-        if (!err)
+        if (!err) {
           return done(
             new Error("We expected the account to be locked, which should throw an error when sending a transaction")
           );
+        }
         assert(
           err.message.toLowerCase().indexOf("could not unlock signer account") >= 0,
-          'Expected error message containing "could not unlock signer account" ' +
+          "Expected error message containing \"could not unlock signer account\" " +
             "(case insensitive check). Received the following error message, instead. " +
             `"${err.message}"`
         );
@@ -73,7 +76,9 @@ describe("Accounts", function() {
         gasLimit: 90000
       },
       function(err, tx) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         // We should have no error here because the account is unlocked.
         done();
       }
@@ -98,7 +103,9 @@ describe("Accounts", function() {
         gasLimit: 90000
       },
       function(err, tx) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         // We should have no error here because the account is unlocked.
         done();
       }
@@ -184,7 +191,9 @@ describe("Accounts", function() {
     );
 
     web3.eth.getAccounts(function(err, result) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert(result.length, 2, "The number of accounts created should be 2");
       done();
     });
@@ -199,7 +208,9 @@ describe("Accounts", function() {
     );
 
     web3.eth.getAccounts(function(err, result) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert(result.length, 7, "The number of accounts created should be 7");
       done();
     });
@@ -214,12 +225,16 @@ describe("Accounts", function() {
     );
 
     web3.eth.getAccounts(function(err, accounts) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       function checkBalance(account) {
         return new Promise(function(accept, reject) {
           web3.eth.getBalance(accounts[0], function(err, balance) {
-            if (err) return reject(err);
+            if (err) {
+              return reject(err);
+            }
 
             var balanceInEther = web3.utils.fromWei(balance, "Ether");
 

@@ -35,7 +35,9 @@ describe("Unlimited Contract Size", function() {
 
     before("get accounts", function(done) {
       web3.eth.getAccounts(function(err, accs) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         accounts = accs;
         done();
       });
@@ -67,7 +69,9 @@ describe("Unlimited Contract Size", function() {
 
     before("get accounts", function(done) {
       web3.eth.getAccounts(function(err, accs) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         accounts = accs;
         done();
       });

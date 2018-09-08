@@ -54,7 +54,9 @@ var runTests = function(providerInit) {
 
     before("Gather accounts", function(done) {
       web3.eth.getAccounts(function(err, a) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         accounts = a;
         done();
       });
@@ -68,7 +70,9 @@ var runTests = function(providerInit) {
           data: contract.binary
         },
         function(err, hash) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           tx_hash = hash;
           done();
         }
@@ -78,7 +82,9 @@ var runTests = function(providerInit) {
     it("should have block height 1", function(done) {
       this.timeout(5000);
       web3.eth.getBlockNumber(function(err, res) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert(res == 1);
 
@@ -99,7 +105,9 @@ var runTests = function(providerInit) {
     it("should still be on block height 1", function(done) {
       this.timeout(5000);
       web3.eth.getBlockNumber(function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert(result == 1);
         done();
       });
@@ -107,14 +115,18 @@ var runTests = function(providerInit) {
 
     it("should still have block data for first block", function(done) {
       web3.eth.getBlock(1, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         done();
       });
     });
 
     it("should have a receipt for the previous transaction", function(done) {
       web3.eth.getTransactionReceipt(tx_hash, function(err, receipt) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.notEqual(receipt, null, "Receipt shouldn't be null!");
         assert.equal(receipt.transactionHash, tx_hash);
@@ -124,7 +136,9 @@ var runTests = function(providerInit) {
 
     it("should maintain the balance of the original accounts", function(done) {
       web3.eth.getBalance(accounts[0], function(err, balance) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert(balance > 98);
         done();
       });

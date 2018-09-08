@@ -29,7 +29,9 @@ var tests = function(web3, EventTest) {
   describe("events", function() {
     before(function(done) {
       web3.eth.getAccounts(function(err, accs) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         accounts = accs;
         done();
       });
@@ -162,7 +164,7 @@ var tests = function(web3, EventTest) {
 
           event.on("data", function(result) {
             assert(result.returnValues.first == expectedValue);
-            //event.removeAllListeners()
+            // event.removeAllListeners()
             done();
           });
 
@@ -186,7 +188,9 @@ var tests = function(web3, EventTest) {
           id: new Date().getTime()
         },
         function(err, result) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           let filter_id = result.result;
 
           let listener = function(err, result) {
@@ -212,7 +216,9 @@ var tests = function(web3, EventTest) {
               id: new Date().getTime()
             },
             function(err) {
-              if (err) done(err);
+              if (err) {
+                done(err);
+              }
             }
           );
         }
@@ -270,7 +276,7 @@ var tests = function(web3, EventTest) {
 
 var logger = {
   log: function(message) {
-    //console.log(message);
+    // console.log(message);
   }
 };
 

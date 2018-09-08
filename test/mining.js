@@ -13,7 +13,7 @@ describe("Mining", function() {
   var web3 = new Web3(
     Ganache.provider({
       vmErrorsOnRPCResponse: true
-      //logger: console,
+      // logger: console,
     })
   );
   var accounts;
@@ -71,7 +71,9 @@ describe("Mining", function() {
   function getBlockNumber() {
     return new Promise(function(accept, reject) {
       web3.eth.getBlockNumber(function(err, number) {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
         accept(to.number(number));
       });
     });
@@ -87,7 +89,9 @@ describe("Mining", function() {
           id: new Date().getTime()
         },
         function(err) {
-          if (err) return reject(err);
+          if (err) {
+            return reject(err);
+          }
           accept();
         }
       );
@@ -103,7 +107,9 @@ describe("Mining", function() {
           id: new Date().getTime()
         },
         function(err) {
-          if (err) return reject(err);
+          if (err) {
+            return reject(err);
+          }
           accept();
         }
       );
@@ -119,7 +125,9 @@ describe("Mining", function() {
           id: new Date().getTime()
         },
         function(err, res) {
-          if (err) return reject(err);
+          if (err) {
+            return reject(err);
+          }
           accept(res.result);
         }
       );
@@ -135,7 +143,9 @@ describe("Mining", function() {
           id: new Date().getTime()
         },
         function(err, result) {
-          if (err) return reject(err);
+          if (err) {
+            return reject(err);
+          }
           assert.deepEqual(result.result, "0x0");
           accept(result);
         }
@@ -154,7 +164,9 @@ describe("Mining", function() {
           data: data
         },
         function(err, tx) {
-          if (err) return reject(err);
+          if (err) {
+            return reject(err);
+          }
           accept(tx);
         }
       );
@@ -164,7 +176,9 @@ describe("Mining", function() {
   function getReceipt(tx) {
     return new Promise(function(accept, reject) {
       web3.eth.getTransactionReceipt(tx, function(err, result) {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
         accept(result);
       });
     });
@@ -173,7 +187,9 @@ describe("Mining", function() {
   function getCode(address) {
     return new Promise(function(accept, reject) {
       web3.eth.getCode(address, function(err, result) {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
         accept(result);
       });
     });
@@ -188,7 +204,9 @@ describe("Mining", function() {
 
   before(function(done) {
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       accounts = accs;
       done();
     });

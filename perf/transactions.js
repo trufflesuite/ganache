@@ -11,7 +11,9 @@ function runTest(times, fn, callback) {
   var start = new Date();
 
   async.timesSeries(times, fn, function(err) {
-    if (err) return callback(err);
+    if (err) {
+      return callback(err);
+    }
 
     var end = new Date();
     var actualTime = end.getTime() - start.getTime();
@@ -29,7 +31,9 @@ function runAverage(title, number_of_runs, fn_times, fn, callback) {
       process.stdout.write(title + " " + (n + 1) + "...");
 
       runTest(fn_times, fn, function(err, totalTime) {
-        if (err) return next(err);
+        if (err) {
+          return next(err);
+        }
         results[n] = totalTime;
 
         console.log(totalTime / 1000 + " seconds");
@@ -37,7 +41,9 @@ function runAverage(title, number_of_runs, fn_times, fn, callback) {
       });
     },
     function(err) {
-      if (err) return callback(err);
+      if (err) {
+        return callback(err);
+      }
 
       var sum = results.reduce(function(a, b) {
         return a + b;

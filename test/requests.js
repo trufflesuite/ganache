@@ -89,7 +89,9 @@ var tests = function(web3) {
   describe("eth_blockNumber", function() {
     it("should return initial block number of zero", function(done) {
       var number = web3.eth.getBlockNumber(function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.deepEqual(result, 0);
         done();
@@ -102,7 +104,9 @@ var tests = function(web3) {
   describe("eth_coinbase", function() {
     it("should return correct address", function(done) {
       web3.eth.getCoinbase(function(err, coinbase) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(coinbase, accounts[0]);
         done();
@@ -113,7 +117,9 @@ var tests = function(web3) {
   describe("eth_mining", function() {
     it("should return true", function(done) {
       web3.eth.isMining(function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.deepEqual(result, true);
         done();
@@ -124,7 +130,9 @@ var tests = function(web3) {
   describe("eth_hashrate", function() {
     it("should return hashrate of zero", function(done) {
       web3.eth.getHashrate(function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.deepEqual(result, 0);
         done();
@@ -135,7 +143,9 @@ var tests = function(web3) {
   describe("eth_gasPrice", function() {
     it("should return gas price of 2 gwei", function(done) {
       web3.eth.getGasPrice(function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(to.hexWithZeroPadding(result), to.hexWithZeroPadding(2000000000));
         done();
@@ -146,7 +156,9 @@ var tests = function(web3) {
   describe("eth_getBalance", function() {
     it("should return initial balance", function(done) {
       web3.eth.getBalance(accounts[0], function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.deepEqual(result, "100000000000000000000");
         done();
@@ -155,7 +167,9 @@ var tests = function(web3) {
 
     it("should return 0 for non-existent account", function(done) {
       web3.eth.getBalance("0x1234567890123456789012345678901234567890", function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal("0x" + result.toString(16), "0x0");
         done();
@@ -166,7 +180,9 @@ var tests = function(web3) {
   describe("eth_getBlockByNumber", function() {
     it("should return block given the block number", function(done) {
       web3.eth.getBlock(0, true, function(err, block) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         var expectedFirstBlock = {
           number: 0,
@@ -205,7 +221,9 @@ var tests = function(web3) {
 
     it("should return null given a future block number", function(done) {
       web3.eth.getBlock(10000, true, function(err, block) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.deepEqual(block, null);
         done();
@@ -220,20 +238,26 @@ var tests = function(web3) {
           gas: 3141592
         },
         function(err, tx_hash) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           // Assume it was processed correctly.
           assert.deepEqual(tx_hash.length, 66);
 
           web3.eth.getBlock("latest", true, function(err, block) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
 
             assert.equal(block.transactions.length, 1, "Latest block should have one transaction");
             assert.equal(block.transactions[0].hash, tx_hash, "Transaction hashes don't match");
 
-            //Retest, with transaction only as hash
+            // Retest, with transaction only as hash
             web3.eth.getBlock("latest", false, function(err, block) {
-              if (err) return done(err);
+              if (err) {
+                return done(err);
+              }
 
               assert.equal(block.transactions.length, 1, "Latest block should have one transaction");
               assert.equal(block.transactions[0], tx_hash, "Transaction hashes don't match");
@@ -250,10 +274,14 @@ var tests = function(web3) {
   describe("eth_getBlockByHash", function() {
     it("should return block given the block hash", function(done) {
       web3.eth.getBlock(0, true, function(err, blockByNumber) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         web3.eth.getBlock(blockByNumber.hash, true, function(err, blockByHash) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           assert.deepEqual(blockByHash, blockByNumber);
           done();
@@ -264,9 +292,11 @@ var tests = function(web3) {
 
   describe("eth_getBlockTransactionCountByNumber", function() {
     it("should return the number of transactions given the block number (0 transactions)", function(done) {
-      //Block 0 should have 0 transactions as per test eth_getBlockByNumber
+      // Block 0 should have 0 transactions as per test eth_getBlockByNumber
       web3.eth.getBlock(0, true, function(err, block) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         web3.eth.getBlockTransactionCount(0, function(err, blockTransactionCount) {
           assert.equal(block.transactions.length, blockTransactionCount, "Block transaction count should be 0.");
           assert.equal(0, blockTransactionCount, "Block transaction count should be 0.");
@@ -287,14 +317,20 @@ var tests = function(web3) {
           gas: 3141592
         },
         function(err, tx_hash) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           // Assume it was processed correctly.
           assert.deepEqual(tx_hash.length, 66);
 
           web3.eth.getBlock("latest", true, function(err, block) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
             web3.eth.getBlockTransactionCount(block.number, function(err, blockTransactionCount) {
-              if (err) return done(err);
+              if (err) {
+                return done(err);
+              }
               assert.equal(block.transactions.length, blockTransactionCount, "Block transaction count should be 1.");
               assert.equal(1, blockTransactionCount, "Block transaction count should be 1.");
               done();
@@ -306,7 +342,9 @@ var tests = function(web3) {
 
     it("should return 0 transactions when the block doesn't exist", function(done) {
       web3.eth.getBlockTransactionCount(1000000, function(err, blockTransactionCount) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(0, blockTransactionCount, "Block transaction count should be 0.");
         done();
       });
@@ -317,11 +355,17 @@ var tests = function(web3) {
   describe("eth_getBlockTransactionCountByHash", function() {
     it("should return the number of transactions given the hash", function(done) {
       web3.eth.getBlock(0, true, function(err, blockByNumber) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         web3.eth.getBlockTransactionCount(blockByNumber.number, true, function(err, txCountByHash) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           web3.eth.getBlockTransactionCount(blockByNumber.hash, function(err, txCountByNumber) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
             assert.equal(
               txCountByHash,
               txCountByNumber,
@@ -354,7 +398,9 @@ var tests = function(web3) {
         })
       );
       signingWeb3.eth.getAccounts(function(err, accs) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         accounts = accs.map(function(val) {
           return val.toLowerCase();
         });
@@ -422,7 +468,9 @@ var tests = function(web3) {
         })
       );
       signingWeb3.eth.getAccounts(function(err, accs) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         accounts = accs.map(function(val) {
           return val.toLowerCase();
         });
@@ -584,12 +632,16 @@ var tests = function(web3) {
           value: 1
         },
         function(err, hash) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           assert.deepEqual(hash.length, 66);
           initialTransaction = hash;
           web3.eth.getTransactionReceipt(hash, function(err, receipt) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
             contractCreationBlockNumber = receipt.blockNumber; // For defaultBlock test
             assert(receipt);
             done();
@@ -600,7 +652,9 @@ var tests = function(web3) {
 
     it("should verify the transaction immediately (eth_getTransactionReceipt)", function(done) {
       web3.eth.getTransactionReceipt(initialTransaction, function(err, receipt) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         contractAddress = receipt.contractAddress;
 
@@ -612,7 +666,9 @@ var tests = function(web3) {
 
     it("should return null if asked for a receipt for a nonexistent transaction (eth_getTransactionReceipt)", function(done) {
       web3.eth.getTransactionReceipt("0xdeadbeef", function(err, receipt) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(receipt, null, "Transaction receipt should be null");
         done();
@@ -621,7 +677,9 @@ var tests = function(web3) {
 
     it("should verify the code at the address matches the runtimeBinary (eth_getCode)", function(done) {
       web3.eth.getCode(contractAddress, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(result, contract.runtimeBinary);
         done();
       });
@@ -629,7 +687,9 @@ var tests = function(web3) {
 
     it("should have balance of 1 (eth_getBalance)", function(done) {
       web3.eth.getBalance(contractAddress, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(result, 1);
         done();
       });
@@ -644,16 +704,22 @@ var tests = function(web3) {
 
       // TODO: Removing this callback hell would be nice.
       web3.eth.getBlockNumber(function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         starting_block_number = result;
 
         web3.eth.call(call_data, function(err, result) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           assert.equal(to.number(result), 5);
 
           web3.eth.getBlockNumber(function(err, result) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
 
             assert.equal(result, starting_block_number, "eth_call increased block count when it shouldn't have");
             done();
@@ -669,7 +735,9 @@ var tests = function(web3) {
 
       // TODO: Removing this callback hell would be nice.
       web3.eth.estimateGas(call_data, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         // set a low gas limit to force a runtime error
         call_data.gas = result - 1;
 
@@ -702,7 +770,9 @@ var tests = function(web3) {
       call_data.from = from;
 
       web3.eth.call(call_data, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(to.number(result), 5);
 
         done();
@@ -715,7 +785,9 @@ var tests = function(web3) {
       delete call_data.from;
 
       web3.eth.call(call_data, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(to.number(result), 5);
 
         done();
@@ -741,9 +813,13 @@ var tests = function(web3) {
               oracle._requestManager.setProvider(web3.eth._provider);
             }
             web3.eth.getBlock(0, true, function(err, block) {
-              if (err) return done(err);
+              if (err) {
+                return done(err);
+              }
               oracle.methods.blockhash0().call(function(err, blockhash) {
-                if (err) return done(err);
+                if (err) {
+                  return done(err);
+                }
                 assert.equal(blockhash, block.hash);
                 done();
               });
@@ -761,16 +837,22 @@ var tests = function(web3) {
 
       // TODO: Removing this callback hell would be nice.
       web3.eth.getBlockNumber(function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         starting_block_number = result;
 
         web3.eth.estimateGas(tx_data, function(err, result) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           assert.equal(result, 27693);
 
           web3.eth.getBlockNumber(function(err, result) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
 
             assert.equal(result, starting_block_number, "eth_estimateGas increased block count when it shouldn't have");
             done();
@@ -787,7 +869,9 @@ var tests = function(web3) {
       var starting_block_number = null;
 
       web3.eth.estimateGas(tx_data, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(result, 27693);
         done();
       });
@@ -801,7 +885,9 @@ var tests = function(web3) {
       var starting_block_number = null;
 
       web3.eth.estimateGas(tx_data, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(result, 27693);
         done();
       });
@@ -817,21 +903,27 @@ var tests = function(web3) {
       call_data.to = contractAddress;
 
       web3.eth.sendTransaction(tx_data, function(err, tx) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         // Now double check the data was set properly.
         // NOTE: Because ethereumjs-testrpc processes transactions immediately,
         // we can do this. Calling the call immediately after the transaction would
         // fail on a different Ethereum client.
 
         web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           assert.equal(receipt.logs.length, 1, "Receipt had wrong amount of logs");
           assert.equal(receipt.logs[0].blockHash, receipt.blockHash, "Logs blockhash doesn't match block blockhash");
 
-          //console.log(call_data);
+          // console.log(call_data);
           web3.eth.call(call_data, function(err, result) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
 
             assert.equal(to.number(result), 25);
             done();
@@ -871,7 +963,7 @@ var tests = function(web3) {
         });
     });
 
-    it('should read data via a call when specified blockNumber is "earliest" (eth_call)', function(done) {
+    it("should read data via a call when specified blockNumber is \"earliest\" (eth_call)", function(done) {
       var call_data = contract.call_data;
 
       web3.eth.call(call_data, "earliest").then(function(result) {
@@ -880,7 +972,7 @@ var tests = function(web3) {
       });
     });
 
-    it('should read data via a call when specified blockNumber is "pending" (eth_call)', function(done) {
+    it("should read data via a call when specified blockNumber is \"pending\" (eth_call)", function(done) {
       var call_data = contract.call_data;
 
       web3.eth.call(call_data, "pending").then(function(result) {
@@ -978,9 +1070,13 @@ var tests = function(web3) {
           gas: 3141592
         },
         function(err, hash) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           web3.eth.getTransactionReceipt(hash, function(err, receipt) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
             assert(receipt);
             done();
           });
@@ -990,7 +1086,9 @@ var tests = function(web3) {
 
     it("should add a contract to the network (eth_sendRawTransaction)", function(done) {
       web3.eth.sendSignedTransaction(rawTx, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         initialTransaction = result;
         done();
       });
@@ -998,7 +1096,9 @@ var tests = function(web3) {
 
     it("should verify the transaction immediately (eth_getTransactionReceipt)", function(done) {
       web3.eth.getTransactionReceipt(initialTransaction, function(err, receipt) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         contractAddress = receipt.contractAddress;
         blockHash = receipt.blockHash;
@@ -1012,7 +1112,9 @@ var tests = function(web3) {
 
     it("should verify the transaction immediately (eth_getTransactionByHash)", function(done) {
       web3.eth.getTransaction(initialTransaction, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.notEqual(result, null, "Transaction result shouldn't be null");
         assert.equal(result.hash, initialTransaction, "Resultant hash isn't what we expected");
@@ -1026,7 +1128,9 @@ var tests = function(web3) {
         err,
         result
       ) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(result, null, "Receipt should be null");
 
@@ -1036,7 +1140,9 @@ var tests = function(web3) {
 
     it("should verify there's code at the address (eth_getCode)", function(done) {
       web3.eth.getCode(contractAddress, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.notEqual(result, null);
         assert.notEqual(result, "0x");
 
@@ -1050,7 +1156,9 @@ var tests = function(web3) {
 
     it("should be able to get the transaction from the block (eth_getTransactionByBlockHashAndIndex)", function(done) {
       web3.eth.getTransactionFromBlock(blockHash, 0, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(result.hash, initialTransaction);
         assert.equal(result.blockNumber, blockNumber);
@@ -1062,7 +1170,9 @@ var tests = function(web3) {
     it("should return null if block doesn't exist (eth_getTransactionByBlockHashAndIndex)", function(done) {
       var badBlockHash = "0xaaaaaaeb03ec5e3c000d150df2c9e7ffc31e728d12aaaedc5f6cccaca5aaaaaa";
       web3.eth.getTransactionFromBlock(badBlockHash, 0, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(result, null);
 
@@ -1072,7 +1182,9 @@ var tests = function(web3) {
 
     it("should be able to get the transaction from the block (eth_getTransactionByBlockNumberAndIndex)", function(done) {
       web3.eth.getTransactionFromBlock(blockNumber, 0, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(result.hash, initialTransaction);
         assert.equal(result.blockNumber, blockNumber);
@@ -1084,7 +1196,9 @@ var tests = function(web3) {
     it("should throw error for transactions that don't exist in block (eth_getTransactionByBlockNumberAndIndex)", function(done) {
       web3.eth.getTransactionFromBlock(blockNumber, 3, function(err, result) {
         // We want an error because there is no transaction with id 3.
-        if (err) return done();
+        if (err) {
+          return done();
+        }
 
         done(new Error("We didn't receive an error like we expected"));
       });
@@ -1094,7 +1208,9 @@ var tests = function(web3) {
   describe("eth_getTransactionCount", function() {
     it("should return 0 for non-existent account", function(done) {
       web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(result, "0x0");
         done();
@@ -1147,11 +1263,15 @@ var tests = function(web3) {
               params: [tx_data]
             },
             function(err, result) {
-              if (err) return done(err);
+              if (err) {
+                return done(err);
+              }
               let tx = result.result;
 
               web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-                if (err) return done(err);
+                if (err) {
+                  return done(err);
+                }
 
                 assert.equal(receipt, null);
                 web3.currentProvider.send(
@@ -1162,7 +1282,9 @@ var tests = function(web3) {
                     params: [1]
                   },
                   function(err, result) {
-                    if (err) return done(err);
+                    if (err) {
+                      return done(err);
+                    }
                     done();
                   }
                 );
@@ -1197,11 +1319,15 @@ var tests = function(web3) {
               tx_data.value = 0x1;
 
               web3.eth.sendTransaction(tx_data, function(err, tx) {
-                if (err) return done(err);
-                //Check the receipt
+                if (err) {
+                  return done(err);
+                }
+                // Check the receipt
                 web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-                  if (err) return done(err);
-                  assert.notEqual(receipt, null); //i.e. receipt exists, so transaction was mined
+                  if (err) {
+                    return done(err);
+                  }
+                  assert.notEqual(receipt, null); // i.e. receipt exists, so transaction was mined
                   done();
                 });
               });
@@ -1233,11 +1359,15 @@ var tests = function(web3) {
               tx_data.value = 0x1;
 
               web3.eth.sendTransaction(tx_data, function(err, tx) {
-                if (err) return done(err);
-                //Check the receipt
+                if (err) {
+                  return done(err);
+                }
+                // Check the receipt
                 web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-                  if (err) return done(err);
-                  assert.notEqual(receipt, null); //i.e. receipt exists, so transaction was mined
+                  if (err) {
+                    return done(err);
+                  }
+                  assert.notEqual(receipt, null); // i.e. receipt exists, so transaction was mined
                   done();
                 });
               });
@@ -1261,8 +1391,12 @@ var tests = function(web3) {
           id: new Date().getTime()
         },
         function(err, result) {
-          if (err) return done(err);
-          if (result.error) return done(result.error);
+          if (err) {
+            return done(err);
+          }
+          if (result.error) {
+            return done(result.error);
+          }
 
           assert.equal(result.result, web3.utils.sha3(input));
           done();
@@ -1274,7 +1408,9 @@ var tests = function(web3) {
   describe("net_version", function() {
     it("should return a version very close to the current time", function(done) {
       web3.eth.net.getId(function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         var dateAsInt = new Date().getTime() + "";
         var strResult = to.number(result) + "";
@@ -1291,7 +1427,9 @@ var tests = function(web3) {
   describe("personal_newAccount", function() {
     it("should return the new address", function(done) {
       web3.eth.personal.newAccount("password", function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.notEqual(result.toLowerCase().match("0x[0-9a-f]{39}"), null, "Invalid address received");
         done();
       });
@@ -1308,7 +1446,9 @@ var tests = function(web3) {
           params: ["0x0123456789012345678901234567890123456789012345678901234567890123", "password"]
         },
         function(err, result) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           assert.equal(
             result.result,
             "0x14791697260e4c9a71f18484c9f997b308e59325",
@@ -1323,7 +1463,9 @@ var tests = function(web3) {
   describe("personal_listAccounts", function() {
     it("should return more than 0 accounts", function(done) {
       web3.eth.personal.getAccounts(function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(result.length, 13);
         done();
       });
@@ -1333,7 +1475,9 @@ var tests = function(web3) {
   describe("personal_unlockAccount", function() {
     it("should unlock account", function(done) {
       web3.eth.personal.unlockAccount(personalAccount, "password", function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(result, true);
         done();
       });
@@ -1343,14 +1487,16 @@ var tests = function(web3) {
   describe("personal_lockAccount", function() {
     it("should lock account", function(done) {
       web3.eth.personal.lockAccount(personalAccount, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(result, true);
         done();
       });
     });
   });
 
-  /*describe("personal_sendTransaction", function() {
+  /* describe("personal_sendTransaction", function() {
     it("should send transaction", function(done) {
       web3.eth.sendTransaction({value: web3.utils.toWei('5', 'ether'), from: accounts[0], to: personalAccount }, function(err, result){
         if (err) return done(err)
@@ -1366,12 +1512,12 @@ var tests = function(web3) {
         });
       });
     });
-  })*/
+  }) */
 };
 
 var logger = {
   log: function(message) {
-    //console.log(message);
+    // console.log(message);
   }
 };
 

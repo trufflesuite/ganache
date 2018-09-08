@@ -13,7 +13,7 @@ process.removeAllListeners("uncaughtException");
 
 var logger = {
   log: function(msg) {
-    /*noop*/
+    /* noop */
   }
 };
 
@@ -53,7 +53,9 @@ describe("Block Tags", function() {
 
   before("Gather accounts", function(done) {
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       accounts = accs;
       done();
     });
@@ -61,7 +63,9 @@ describe("Block Tags", function() {
 
   before("Get initial block number", function(done) {
     web3.eth.getBlockNumber(function(err, n) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       initial_block_number = to.number(n);
       done();
     });
@@ -74,7 +78,9 @@ describe("Block Tags", function() {
         nonce: web3.eth.getTransactionCount.bind(web3.eth, accounts[0])
       },
       function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         initial = result;
         initial.nonce = to.number(initial.nonce);
         done();
@@ -90,10 +96,14 @@ describe("Block Tags", function() {
         gas: 3141592
       },
       function(err, tx) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           contractAddress = receipt.contractAddress;
           done();
@@ -104,12 +114,16 @@ describe("Block Tags", function() {
 
   it("should return the initial nonce at the previous block number", function(done) {
     web3.eth.getTransactionCount(accounts[0], initial_block_number, function(err, nonce) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert.equal(nonce, initial.nonce);
 
       // Check that the nonce incremented with the block number, just to be sure.
       web3.eth.getTransactionCount(accounts[0], initial_block_number + 1, function(err, nonce) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(nonce, initial.nonce + 1);
         done();
       });
@@ -118,12 +132,16 @@ describe("Block Tags", function() {
 
   it("should return the initial balance at the previous block number", function(done) {
     web3.eth.getBalance(accounts[0], initial_block_number, function(err, balance) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert.equal(balance, initial.balance);
 
       // Check that the balance incremented with the block number, just to be sure.
       web3.eth.getBalance(accounts[0], initial_block_number + 1, function(err, balance) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         var initialBalanceInEther = parseFloat(web3.utils.fromWei(initial.balance, "ether"));
         var balanceInEther = parseFloat(web3.utils.fromWei(balance, "ether"));
         assert(balanceInEther < initialBalanceInEther);
@@ -134,12 +152,16 @@ describe("Block Tags", function() {
 
   it("should return the no code at the previous block number", function(done) {
     web3.eth.getCode(contractAddress, initial_block_number, function(err, code) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert.equal(code, "0x0");
 
       // Check that the code incremented with the block number, just to be sure.
       web3.eth.getCode(contractAddress, initial_block_number + 1, function(err, code) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.notEqual(code, "0x0");
         assert(code.length > 20); // Just because we don't know the actual code we're supposed to get back
         done();

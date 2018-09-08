@@ -16,7 +16,7 @@ describe("Time adjustment", function() {
   var timestampBeforeJump;
 
   function send(method, params, callback) {
-    if (typeof params == "function") {
+    if (typeof params === "function") {
       callback = params;
       params = [];
     }
@@ -34,7 +34,9 @@ describe("Time adjustment", function() {
 
   before("get current time", function(done) {
     web3.eth.getBlock("latest", function(err, block) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       timestampBeforeJump = block.timestamp;
       done();
     });
@@ -55,14 +57,20 @@ describe("Time adjustment", function() {
     this.timeout(5000); // this is timing out on travis for some reason :-(
     // Adjust time
     send("evm_increaseTime", [secondsToJump], function(err, result) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       // Mine a block so new time is recorded.
       send("evm_mine", function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         web3.eth.getBlock("latest", function(err, block) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           var secondsJumped = block.timestamp - timestampBeforeJump;
 
           // Somehow it jumps an extra 18 seconds, ish, when run inside the whole
@@ -80,10 +88,14 @@ describe("Time adjustment", function() {
     // Adjust time
     var expectedMinedTimestamp = 1000000;
     send("evm_mine", [expectedMinedTimestamp], function(err, result) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       web3.eth.getBlock("latest", function(err, block) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert(block.timestamp == expectedMinedTimestamp);
         done();
       });
@@ -93,21 +105,27 @@ describe("Time adjustment", function() {
   it("should revert time adjustments when snapshot is reverted", function(done) {
     // Adjust time
     web3.eth.getBlock("latest", function(err, block) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       var previousBlockTime = block.timestamp;
       var originalTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
 
       send("evm_snapshot", function(err, result) {
         // jump forward another 5 hours
         send("evm_increaseTime", [secondsToJump], function(err, result) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           var currentTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
           assert.equal(currentTimeAdjustment, originalTimeAdjustment + secondsToJump);
 
           // Mine a block so new time is recorded.
           send("evm_mine", function(err, result) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
 
             send("evm_revert", [1], function(err, result) {
               var revertedTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
@@ -122,19 +140,27 @@ describe("Time adjustment", function() {
 
   it("should allow setting of time", function(done) {
     web3.eth.getBlock("latest", function(err, block) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       var previousTime = block.timestamp;
 
       send("evm_setTime", [new Date(previousTime - secondsToJump)], function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         // Mine a block so new time is recorded.
         send("evm_mine", function(err, result) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           web3.eth.getBlock("latest", function(err, block) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
             assert(previousTime > block.timestamp);
             done();
           });

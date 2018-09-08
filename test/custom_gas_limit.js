@@ -17,7 +17,9 @@ describe("Custom Gas Limit", function() {
 
   it("The block should show the correct custom Gas Limit", function(done) {
     web3.eth.getBlock(0, function(err, block) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert.deepEqual(block.gasLimit, 5000000);
       done();
     });

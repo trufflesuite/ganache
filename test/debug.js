@@ -98,8 +98,12 @@ describe("Debug", function() {
           id: new Date().getTime()
         },
         function(err, response) {
-          if (err) reject(err);
-          if (response.error) reject(response.error);
+          if (err) {
+            reject(err);
+          }
+          if (response.error) {
+            reject(response.error);
+          }
 
           var result = response.result;
 

@@ -22,7 +22,9 @@ describe("eth_call", function() {
 
   before("get accounts", function(done) {
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       accounts = accs;
       done();
     });

@@ -14,7 +14,7 @@ process.removeAllListeners("uncaughtException");
 
 var logger = {
   log: function(msg) {
-    /*console.log(msg)*/
+    /* console.log(msg) */
   }
 };
 
@@ -83,7 +83,9 @@ describe("Forking", function() {
     });
 
     forkedServer.listen(21345, function(err) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       done();
     });
   });
@@ -96,7 +98,9 @@ describe("Forking", function() {
   before("Gather forked accounts", function(done) {
     this.timeout(5000);
     forkedWeb3.eth.getAccounts(function(err, f) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       forkedAccounts = f;
       done();
     });
@@ -118,12 +122,16 @@ describe("Forking", function() {
         initialDeployTransactionHash = tx;
 
         forkedWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           contractAddress = receipt.contractAddress;
 
           forkedWeb3.eth.getCode(contractAddress, function(err, code) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
 
             // Ensure there's *something* there.
             assert.notEqual(code, null);
@@ -142,7 +150,9 @@ describe("Forking", function() {
                   return done(err);
                 }
                 forkedWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
-                  if (err) return done(err);
+                  if (err) {
+                    return done(err);
+                  }
 
                   secondContractAddress = receipt.contractAddress;
                   done();
@@ -174,7 +184,9 @@ describe("Forking", function() {
     });
 
     forkedExample.methods.setValue(7).send({ from: forkedAccounts[0] }, function(err, tx) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
     });
   });
 
@@ -185,7 +197,9 @@ describe("Forking", function() {
         nonce: forkedWeb3.eth.getTransactionCount.bind(forkedWeb3.eth, forkedAccounts[0])
       },
       function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         initialFallbackAccountState = result;
         initialFallbackAccountState.nonce = to.number(initialFallbackAccountState.nonce);
         done();
@@ -206,7 +220,9 @@ describe("Forking", function() {
     );
 
     forkedWeb3.eth.getBlockNumber(function(err, number) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       forkBlockNumber = number;
       done();
     });
@@ -215,7 +231,9 @@ describe("Forking", function() {
   before("Gather main accounts", function(done) {
     this.timeout(5000);
     mainWeb3.eth.getAccounts(function(err, m) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       mainAccounts = m;
       done();
     });
@@ -223,7 +241,9 @@ describe("Forking", function() {
 
   it("should fetch a contract from the forked provider via the main provider", function(done) {
     mainWeb3.eth.getCode(contractAddress, function(err, mainCode) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       // Ensure there's *something* there.
       assert.notEqual(mainCode, null);
@@ -232,7 +252,9 @@ describe("Forking", function() {
 
       // Now make sure it matches exactly.
       forkedWeb3.eth.getCode(contractAddress, function(err, forkedCode) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(mainCode, forkedCode);
         done();
@@ -247,7 +269,9 @@ describe("Forking", function() {
 
     // Now for the real test: Get the balance of a forked account through the main provider.
     mainWeb3.eth.getBalance(first_forked_account, function(err, balance) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       // We don't assert the exact balance as transactions cost eth
       assert(balance > 999999);
@@ -257,7 +281,9 @@ describe("Forking", function() {
 
   it("should be able to get storage values on the forked provider via the main provider", function(done) {
     mainWeb3.eth.getStorageAt(contractAddress, contract.position_of_value, function(err, result) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert.equal(mainWeb3.utils.hexToNumber(result), 7);
       done();
     });
@@ -272,12 +298,16 @@ describe("Forking", function() {
     }
 
     example.methods.value().call({ from: mainAccounts[0] }, function(err, result) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert.equal(mainWeb3.utils.hexToNumber(result), 7);
 
       // Make the call again to ensure caches updated and the call still works.
       example.methods.value().call({ from: mainAccounts[0] }, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(mainWeb3.utils.hexToNumber(result), 7);
         done(err);
       });
@@ -300,16 +330,22 @@ describe("Forking", function() {
     }
 
     example.methods.setValue(25).send({ from: mainAccounts[0] }, function(err) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       // It insta-mines, so we can make a call directly after.
       example.methods.value().call({ from: mainAccounts[0] }, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(mainWeb3.utils.hexToNumber(result), 25);
 
         // Now call back to the forked to ensure it's value stayed 5
         forkedExample.methods.value().call({ from: forkedAccounts[0] }, function(err, result) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           assert.equal(forkedWeb3.utils.hexToNumber(result), 7);
           done();
         });
@@ -340,15 +376,21 @@ describe("Forking", function() {
     // This transaction happens entirely on the forked chain after forking.
     // It should be ignored by the main chain.
     forkedExample.methods.setValue(800).send({ from: forkedAccounts[0] }, function(err, result) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       // Let's assert the value was set correctly.
       forkedExample.methods.value().call({ from: forkedAccounts[0] }, function(err, result) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         assert.equal(forkedWeb3.utils.hexToNumber(result), 800);
 
         // Now lets check the value on the main chain. It shouldn't be 800.
         example.methods.value().call({ from: mainAccounts[0] }, function(err, result) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           assert.equal(mainWeb3.utils.hexToNumber(result), 5);
           done();
@@ -366,24 +408,32 @@ describe("Forking", function() {
     // - Then the main chain performed a transaction, putting it at block 5.
 
     mainWeb3.eth.getBlockNumber(function(err, result) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       assert.equal(mainWeb3.utils.hexToNumber(result), 5);
 
       // Now lets get a block that exists on the forked chain.
       mainWeb3.eth.getBlock(0, function(err, mainBlock) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         // And compare it to the forked chain's block
         forkedWeb3.eth.getBlock(0, function(err, forkedBlock) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           // Block hashes should be the same.
           assert.equal(mainBlock.hash, forkedBlock.hash);
 
           // Now make sure we can get the block by hash as well.
           mainWeb3.eth.getBlock(mainBlock.hash, function(err, mainBlockByHash) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
 
             assert.equal(mainBlock.hash, mainBlockByHash.hash);
             done();
@@ -395,13 +445,17 @@ describe("Forking", function() {
 
   it("should have a genesis block whose parent is the last block from the forked provider", function(done) {
     forkedWeb3.eth.getBlock(forkBlockNumber, function(err, forkedBlock) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       var parentHash = forkedBlock.hash;
 
       var mainGenesisNumber = mainWeb3.utils.hexToNumber(forkBlockNumber) + 1;
       mainWeb3.eth.getBlock(mainGenesisNumber, function(err, mainGenesis) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(mainGenesis.parentHash, parentHash);
         done();
@@ -488,7 +542,9 @@ describe("Forking", function() {
         nonceLatestFallback: forkedWeb3.eth.getTransactionCount.bind(forkedWeb3.eth, forkedAccounts[0], "latest")
       },
       function(err, results) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         var nonceBeforeFork = results.nonceBeforeFork;
         var nonceAtFork = results.nonceAtFork;
@@ -528,7 +584,9 @@ describe("Forking", function() {
         balanceLatestFallback: forkedWeb3.eth.getBalance.bind(forkedWeb3.eth, forkedAccounts[0], "latest")
       },
       function(err, results) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         var balanceBeforeFork = mainWeb3.utils.toBN(results.balanceBeforeFork);
         var balanceAfterFork = mainWeb3.utils.toBN(results.balanceAfterFork);
@@ -569,7 +627,9 @@ describe("Forking", function() {
         codeLatest: mainWeb3.eth.getCode.bind(mainWeb3.eth, contractAddress, "latest")
       },
       function(err, results) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         var codeEarliest = results.codeEarliest;
         var codeAfterFork = results.codeAfterFork;
@@ -592,13 +652,19 @@ describe("Forking", function() {
 
   it("should return transactions for blocks requested before the fork", function(done) {
     forkedWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, receipt) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       forkedWeb3.eth.getBlock(receipt.blockNumber, true, function(err, referenceBlock) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         mainWeb3.eth.getBlock(receipt.blockNumber, true, function(err, forkedBlock) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           assert.equal(forkedBlock.transactions.length, referenceBlock.transactions.length);
           assert.deepEqual(forkedBlock.transactions, referenceBlock.transactions);
@@ -610,10 +676,14 @@ describe("Forking", function() {
 
   it("should return a transaction for transactions made before the fork", function(done) {
     forkedWeb3.eth.getTransaction(initialDeployTransactionHash, function(err, referenceTransaction) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       mainWeb3.eth.getTransaction(initialDeployTransactionHash, function(err, forkedTransaction) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.deepEqual(referenceTransaction, forkedTransaction);
         done();
@@ -623,11 +693,15 @@ describe("Forking", function() {
 
   it("should return a transaction receipt for transactions made before the fork", function(done) {
     forkedWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, referenceReceipt) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert.deepEqual(referenceReceipt.transactionHash, initialDeployTransactionHash);
 
       mainWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, forkedReceipt) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.deepEqual(forkedReceipt.transactionHash, initialDeployTransactionHash);
         assert.deepEqual(referenceReceipt, forkedReceipt);
@@ -638,10 +712,14 @@ describe("Forking", function() {
 
   it("should return the same network version as the chain it forked from", function(done) {
     forkedWeb3.eth.net.getId(function(err, forkedNetwork) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       mainWeb3.eth.net.getId(function(err, mainNetwork) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         assert.equal(mainNetwork, forkedNetwork);
         done();
@@ -656,8 +734,12 @@ describe("Forking", function() {
       let mainProvider = mainWeb3._provider;
       mainWeb3.setProvider();
       mainProvider.close(function(providerCloseErr) {
-        if (serverCloseErr) return done(serverCloseErr);
-        if (providerCloseErr) return done(providerCloseErr);
+        if (serverCloseErr) {
+          return done(serverCloseErr);
+        }
+        if (providerCloseErr) {
+          return done(providerCloseErr);
+        }
         done();
       });
     });

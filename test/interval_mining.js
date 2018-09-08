@@ -27,7 +27,9 @@ describe("Interval Mining", function() {
 
     // Get the first block (pre-condition)
     web3.eth.getBlockNumber(function(err, number) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert.equal(number, 0);
 
       // Wait 1.25 seconds (two and a half mining intervals) then get the next block.
@@ -56,7 +58,9 @@ describe("Interval Mining", function() {
 
     // Get the first block (pre-condition)
     web3.eth.getBlockNumber(function(err, number) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       assert.equal(number, 0);
 
       // Queue a transaction
@@ -68,11 +72,15 @@ describe("Interval Mining", function() {
           gas: 90000
         },
         function(err, tx) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           // Ensure there's no receipt since the transaction hasn't yet been processed.
           web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-            if (err) return done(err);
+            if (err) {
+              return done(err);
+            }
 
             assert.equal(receipt, null);
 
@@ -109,18 +117,26 @@ describe("Interval Mining", function() {
         id: new Date().getTime()
       },
       function(err, result) {
-        if (err) return done(err);
-        if (result.error) return done(result.error.message);
+        if (err) {
+          return done(err);
+        }
+        if (result.error) {
+          return done(result.error.message);
+        }
 
         // Get the first block (pre-condition)
         web3.eth.getBlockNumber(function(err, initial_number) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           // Wait .75 seconds (one and a half mining intervals) and ensure
           // the block number hasn't increased.
           setTimeout(function() {
             web3.eth.getBlockNumber(function(err, stopped_number) {
-              if (err) return done(err);
+              if (err) {
+                return done(err);
+              }
               assert.equal(stopped_number, initial_number);
 
               // Start mining again
@@ -132,14 +148,20 @@ describe("Interval Mining", function() {
                   id: new Date().getTime()
                 },
                 function(err, result) {
-                  if (err) return done(err);
-                  if (result.error) return done(result.error.message);
+                  if (err) {
+                    return done(err);
+                  }
+                  if (result.error) {
+                    return done(result.error.message);
+                  }
 
                   // Wait .75 seconds (one and a half mining intervals) and ensure
                   // the block number has increased by one.
                   setTimeout(function() {
                     web3.eth.getBlockNumber(function(err, last_number) {
-                      if (err) return done(err);
+                      if (err) {
+                        return done(err);
+                      }
 
                       assert(last_number > stopped_number);
                       done();
@@ -185,7 +207,9 @@ describe("Interval Mining", function() {
         gas: 3141592
       },
       function(err, tx) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         // Wait .75 seconds (one and a half mining intervals) and ensure log sees error.
         setTimeout(function() {

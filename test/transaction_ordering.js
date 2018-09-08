@@ -9,7 +9,9 @@ describe("Transaction Ordering", function() {
 
   before(function(done) {
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       accounts = accs;
       done();
@@ -61,7 +63,9 @@ describe("Transaction Ordering", function() {
           },
           function(err, tx) {
             web3.eth.getBlock("latest", function(err, block) {
-              if (err) return done(err);
+              if (err) {
+                return done(err);
+              }
               assert.equal(block.transactions.length, 2, "Latest block should have two transactions");
               done();
             });
@@ -96,7 +100,9 @@ describe("Transaction Ordering", function() {
           },
           function(err, tx) {
             web3.eth.getBlock("latest", true, function(err, block) {
-              if (err) return done(err);
+              if (err) {
+                return done(err);
+              }
               assert.equal(block.transactions.length, 2, "Latest block should have two transactions");
               assert.equal(to.number(block.transactions[0].gasPrice), 2);
               assert.equal(to.number(block.transactions[1].gasPrice), 1);

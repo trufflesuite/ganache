@@ -13,14 +13,14 @@ process.removeAllListeners("uncaughtException");
 
 var logger = {
   log: function(message) {
-    //console.log(message);
+    // console.log(message);
   }
 };
 
 var web3 = new Web3();
 web3.setProvider(
   Ganache.provider({
-    /*blockTime: 100,*/
+    /* blockTime: 100, */
     logger: logger,
     seed: "1337"
   })
@@ -42,7 +42,9 @@ describe("revert opcode", function() {
     };
 
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       testContext.accounts = accs;
 

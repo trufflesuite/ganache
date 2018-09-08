@@ -15,7 +15,9 @@ var tests = function(web3) {
   describe("bad input", function() {
     before(function(done) {
       web3.eth.getAccounts(function(err, accs) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         accounts = accs;
         done();
       });
@@ -123,7 +125,9 @@ var tests = function(web3) {
 
     it("recovers after bad balance", function(done) {
       web3.eth.getBalance(accounts[0], function(err, balance) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         var provider = web3.currentProvider;
 

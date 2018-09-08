@@ -18,7 +18,9 @@ describe("Checkpointing / Reverting", function() {
 
   before("get accounts", function(done) {
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       accounts = accs;
       done();
     });
@@ -35,7 +37,9 @@ describe("Checkpointing / Reverting", function() {
       function() {
         // Since transactions happen immediately, we can assert the balance.
         web3.eth.getBalance(accounts[0], function(err, balance) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           balance = parseFloat(web3.utils.fromWei(balance, "ether"));
 
@@ -53,7 +57,9 @@ describe("Checkpointing / Reverting", function() {
               id: new Date().getTime()
             },
             function(err, result) {
-              if (err) return done(err);
+              if (err) {
+                return done(err);
+              }
               snapshotId = result.result;
               done();
             }
@@ -73,11 +79,15 @@ describe("Checkpointing / Reverting", function() {
         gas: 90000
       },
       function(err, tx_hash) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         // Since transactions happen immediately, we can assert the balance.
         web3.eth.getBalance(accounts[0], function(err, balance) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
 
           balance = parseFloat(web3.utils.fromWei(balance, "ether"));
 
@@ -93,12 +103,16 @@ describe("Checkpointing / Reverting", function() {
               id: new Date().getTime()
             },
             function(err, result) {
-              if (err) return done(err);
+              if (err) {
+                return done(err);
+              }
               assert(result, "Snapshot should have returned true");
 
               // Now check the balance one more time.
               web3.eth.getBalance(accounts[0], function(err, balance) {
-                if (err) return done(err);
+                if (err) {
+                  return done(err);
+                }
 
                 balance = parseFloat(web3.utils.fromWei(balance, "ether"));
 
@@ -106,7 +120,9 @@ describe("Checkpointing / Reverting", function() {
 
                 // Now check that the receipt is gone.
                 web3.eth.getTransactionReceipt(tx_hash, function(err, receipt) {
-                  if (err) return done(err);
+                  if (err) {
+                    return done(err);
+                  }
 
                   assert.equal(receipt, null, "Receipt should be null as it should have been removed");
 
