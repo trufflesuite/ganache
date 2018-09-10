@@ -1,4 +1,4 @@
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../index.js");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
 var async = require("async");
