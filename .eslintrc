@@ -20,6 +20,7 @@
     "space-before-function-paren": ["error", "never"],
     "brace-style": ["error", "1tbs", {
       "allowSingleLine": false
-    }]
+    }],
+    "max-len": ["error", 120]
   }
 }
