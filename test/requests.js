@@ -324,6 +324,15 @@ var tests = function(web3) {
     });
   });
 
+  describe("eth_getCode", function() {
+    it("should return 0x for eth_getCode called on a non-contract", function(done) {
+      web3.eth.getCode("0x000000000000000000000000000000000000dEaD", function(err, code) {
+        assert.equal(code, "0x");
+        done();
+      });
+    });
+  });
+
   describe("eth_sign", function() {
     var accounts;
     var signingWeb3;
