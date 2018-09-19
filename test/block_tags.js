@@ -127,12 +127,12 @@ describe("Block Tags", function() {
   it("should return the no code at the previous block number", function(done) {
     web3.eth.getCode(contractAddress, initial_block_number, function(err, code) {
       if (err) return done(err);
-      assert.equal(code, "0x0");
+      assert.equal(code, "0x");
 
       // Check that the code incremented with the block number, just to be sure.
       web3.eth.getCode(contractAddress, initial_block_number + 1, function(err, code) {
         if (err) return done(err);
-        assert.notEqual(code, "0x0");
+        assert.notEqual(code, "0x");
         assert(code.length > 20); // Just because we don't know the actual code we're supposed to get back
         done();
       });

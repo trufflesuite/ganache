@@ -19,7 +19,10 @@ function setUp(options = {mnemonic}, contractName = 'Example') {
   };
 
   before ('setup web3', async function() {
+    context.options.vmErrorsOnRPCResponse = false;
+    
     context.provider = new Ganache.provider(context.options);
+    //context.provider = new Web3.providers.WebsocketProvider("http://172.26.26.177:8546");
     context.web3 = new Web3(context.provider);
   })
 
