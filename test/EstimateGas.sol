@@ -27,6 +27,13 @@ contract EstimateGas {
         triggerRselfdestructRefund();
     }
 
+    
+    // https://github.com/trufflesuite/ganache-cli/issues/294
+    mapping (uint => uint) public uints;
+    // Sets the uints[1] slot to a value;
+    function store(uint _uint) public { uints[1] = _uint;}
+    function clear() public { delete uints[1]; }
+
     mapping(bytes32 => uint) index;
     Test[] tests;
 

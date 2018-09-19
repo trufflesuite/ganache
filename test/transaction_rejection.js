@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 var assert = require('assert');
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../index.js");
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
@@ -98,18 +98,6 @@ describe("Transaction rejection", function() {
     testTransactionForRejection({
       value: web3.utils.toWei('100000', 'ether')
     }, /sender doesn't have enough funds to send tx/, done)
-  });
-
-  it("should reject contract transaction if 'to' is not a contract address", function(done) {
-    let params = {
-      to: '0x0000000000000000000000001234000000000000'
-    }
-
-    testTransactionForRejection(
-      params,
-      new RegExp(`Attempting to run transaction which calls a contract function, but recipient address ${params.to} is not a contract address`),
-      done
-    )
   });
 
   function testTransactionForRejection(paramsOverride, messageRegex, done) {

@@ -3,7 +3,7 @@ var Web3WsProvider = require('web3-providers-ws');
 var Transaction = require('ethereumjs-tx');
 var utils = require('ethereumjs-util');
 var assert = require('assert');
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../index.js");
 var solc = require("solc");
 var fs = require("fs");
 var to = require("../lib/utils/to");
@@ -74,6 +74,16 @@ var tests = function(web3) {
     it("should return 10 addresses", function(done) {
       assert.deepEqual(accounts.length, 10);
       done();
+    });
+  });
+
+  describe("eth_getCompilers", function() {
+    it("should return an empty array", function() {
+      return web3.eth.getCompilers()
+        .then(function(compilers) {
+          assert(Array.isArray(compilers));
+          assert.equal(0, compilers.length);
+        })
     });
   });
 

@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 var Web3WsProvider = require('web3-providers-ws');
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../index.js");
 var assert = require('assert');
 var solc = require("solc");
 var async = require("async");

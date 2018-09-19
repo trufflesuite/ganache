@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 var assert = require('assert');
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../index.js");
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
@@ -114,6 +114,26 @@ describe("Gas", function() {
             });
       });
     }).timeout(0);
+
+    it("clears mapping storage slots", async () =>{
+      const options = {from: accounts[0]};
+
+      const estimateGasInstance = await deployContract();
+      const uintsa = await estimateGasInstance.methods.uints(1).call();
+      assert.equal(uintsa, "0", "initial value is not correct");
+
+      const receipta = await estimateGasInstance.methods.store(1).send(options);
+      assert.equal(receipta.status, true, "storing value did not work");
+
+      const uintsb = await estimateGasInstance.methods.uints(1).call();
+      assert.equal(uintsb, "1", "set value is incorrect");
+
+      const receiptb = await estimateGasInstance.methods.clear().send(options);
+      assert.equal(receiptb.status, true, "clearing value did not work");
+
+      const uintsc = await estimateGasInstance.methods.uints(1).call();
+      assert.equal(uintsc, "0", "cleared value is not correct");
+    });
   });
 
   describe("Estimation", function() {
