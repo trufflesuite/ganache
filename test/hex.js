@@ -127,3 +127,10 @@ describe("JSON-RPC Response", function() {
     });
   });
 });
+
+describe("to.hex", function() {
+  it("should print '0x' for input '' (blank)", function(done) {
+    assert.equal(to.hex(Buffer("")), "0x");
+    done();
+  });
+})

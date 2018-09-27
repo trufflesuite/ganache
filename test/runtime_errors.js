@@ -139,7 +139,7 @@ function runTests(web3, provider, extraTests) {
 
         } else {
           assert(response.error === undefined)
-          assert(response.result === "0x0")
+          assert(response.result === "0x")
         }
 
         done();
