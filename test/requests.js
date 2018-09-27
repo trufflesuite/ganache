@@ -953,6 +953,9 @@ var tests = function(web3) {
 
         assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
         assert.notEqual(contractAddress, null, "Transaction did not create a contract");
+        assert.equal(receipt.hasOwnProperty('v'), true, "Transaction includes v signature parameter");
+        assert.equal(receipt.hasOwnProperty('r'), true, "Transaction includes r signature parameter");
+        assert.equal(receipt.hasOwnProperty('s'), true, "Transaction includes s signature parameter");
         done();
       });
     });
@@ -963,7 +966,9 @@ var tests = function(web3) {
 
         assert.notEqual(result, null, "Transaction result shouldn't be null");
         assert.equal(result.hash, initialTransaction, "Resultant hash isn't what we expected")
-
+        assert.equal(result.hasOwnProperty('v'), true, "Transaction includes v signature parameter");
+        assert.equal(result.hasOwnProperty('r'), true, "Transaction includes r signature parameter");
+        assert.equal(result.hasOwnProperty('s'), true, "Transaction includes s signature parameter");
         done();
       });
     });
