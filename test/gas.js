@@ -272,5 +272,66 @@ describe("Gas", function() {
       let gasPrice = '0x2000'
       return testGasExpenseIsCorrect(gasPrice, false, new Web3(Ganache.provider({ mnemonic, gasPrice })))
     })
-  })
+    it.only('should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block', function (done){
+      let tempWeb3 = new Web3(Ganache.provider({
+        blockTime: .5, // seconds
+        mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
+      }));
+
+      const accounts = [ // configured with mnemonic
+        '0x627306090abab3a6e1400e9345bc60c78a8bef57',
+        '0xf17f52151ebef6c7334fad080c5704d77216b732',
+      ];
+      const secretKeys = [ // configured with mnemonic
+          '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
+      ];
+
+      let transaction = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x00"
+      }
+
+      let transaction2 = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x01" 
+      }
+
+      // Precondition
+      tempWeb3.eth.getBlockNumber(function(err, number){
+        assert.deepEqual(number, 0, 'Current Block Should be 0')
+      });
+
+      tempWeb3.eth.sendTransaction(transaction, function(err, hash) {
+        if (err) return done(err);
+        // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
+        tempWeb3.eth.getTransactionReceipt(hash, function(err, receipt) {
+          if (err) return done(err);
+          assert.equal(receipt, null, "No receipt since the transaction hasn't yet been processed.");
+          // Issue second transaction
+          tempWeb3.eth.sendTransaction(transaction2, function(err2, hash2) {
+            assert.deepEqual(err2, null, 'Transaction should succeed.');
+            setTimeout(function() {
+              // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
+              tempWeb3.eth.getBlockNumber(function(err3, number){
+                assert.deepEqual(number, 1, 'Current Block Should be 1');
+              });
+              tempWeb3.eth.getTransactionReceipt(hash2, function(err4, receipt1) {
+                tempWeb3.eth.getTransactionReceipt(hash, function(err5, receipt) {
+                  assert.notDeepEqual(receipt1.cumulativeGasUsed, receipt.cumulativeGasUsed, 'Cumulative gas should NOT be equal for 2 transactions in the same block.');
+                  assert.notDeepEqual(receipt1.gasUsed, receipt1.cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal.');
+                  done();
+                });
+              });
+            }, 750);
+          });
+        });
+      });
+    });
+  });
 });
