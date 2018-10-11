@@ -192,16 +192,6 @@ describe("Gas", function() {
       });
     }
 
-    it.only("should estimate gas for a reverted transaction", function(done) {
-        estimateGasInstance.methods.failIfNonZero(0).estimateGas({from: accounts[0], gas: 3141592}, function(err, receipt){
-          //web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
-            console.log(err);
-            console.log(receipt);
-            done();
-          //});
-        });
-    });
-
     it("matches estimate for deployment", function() {
       let contract = new web3.eth.Contract(estimateGasContractAbi);
       contract.deploy({ data: estimateGasContractData })

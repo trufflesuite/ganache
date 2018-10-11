@@ -41,16 +41,6 @@ contract EstimateGas {
         tests.length++;
     }
 
-
-    // storage for failIfNonZero so we can easily test spending gas
-    int public _a = -1;
-    function failIfNonZero(uint a) public returns (uint) {
-        _a = int(a);
-        // we use this check to force a revert and test gas usage
-        require(a == 0);
-        return a;
-    }
-
     function add(bytes32 _name, bytes32 _description, uint _value) returns(bool) {
         if (index[_name] != 0) {
             return false;
