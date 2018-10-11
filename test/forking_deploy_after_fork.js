@@ -11,7 +11,7 @@ process.removeAllListeners("uncaughtException");
 
 var logger = {
   log: function(msg) {
-    /*console.log(msg)*/
+    /* console.log(msg) */
   }
 };
 
@@ -73,7 +73,9 @@ describe("Contract Deployed on Main Chain After Fork", function() {
     });
 
     forkedServer.listen(21345, function(err) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       done();
     });
   });
@@ -130,8 +132,12 @@ describe("Contract Deployed on Main Chain After Fork", function() {
       let mainProvider = mainWeb3._provider;
       mainWeb3.setProvider();
       mainProvider.close(function(providerCloseErr) {
-        if (serverCloseErr) return done(serverCloseErr);
-        if (providerCloseErr) return done(providerCloseErr);
+        if (serverCloseErr) {
+          return done(serverCloseErr);
+        }
+        if (providerCloseErr) {
+          return done(providerCloseErr);
+        }
         done();
       });
     });

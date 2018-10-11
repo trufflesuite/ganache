@@ -19,7 +19,9 @@ describe("Gas", function() {
 
   before("get accounts", function(done) {
     web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       accounts = accs;
       done();
     });
@@ -52,7 +54,7 @@ describe("Gas", function() {
         });
     }
 
-    it("accounts for Rsclear Refund in gasEstimate", async () => {
+    it("accounts for Rsclear Refund in gasEstimate", async() => {
       const from = accounts[0];
       const options = { from, gas: 5000000 };
       const estimateGasInstance = await deployContract();
@@ -78,7 +80,7 @@ describe("Gas", function() {
         });
     });
 
-    it("accounts for Rselfdestruct Refund in gasEstimate", async () => {
+    it("accounts for Rselfdestruct Refund in gasEstimate", async() => {
       const from = accounts[0];
       const options = { from, gas: 5000000 };
       const estimateGasInstance = await deployContract();
@@ -104,7 +106,7 @@ describe("Gas", function() {
         });
     });
 
-    it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async () => {
+    it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async() => {
       const from = accounts[0];
       const estimateGasInstance = await deployContract();
       return estimateGasInstance.methods
@@ -129,7 +131,7 @@ describe("Gas", function() {
         });
     }).timeout(0);
 
-    it("clears mapping storage slots", async () => {
+    it("clears mapping storage slots", async() => {
       const options = { from: accounts[0] };
 
       const estimateGasInstance = await deployContract();
