@@ -13,7 +13,10 @@ process.removeAllListeners("uncaughtException");
 let mnemonic = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
 describe("Gas", function() {
-  var provider = new Ganache.provider({mnemonic});
+  //var provider = new Ganache.provider({mnemonic, vmErrorsOnRPCResponse: false});
+  //var provider = new Web3.providers.HttpProvider("http://localhost:8545");
+  //var provider = new Web3.providers.HttpProvider("http://172.25.208.1:8545"); // ganache
+  var provider = new Web3.providers.HttpProvider("http://127.0.0.1:8545"); //parity
   var web3 = new Web3(provider);
   var accounts;
 
@@ -144,12 +147,14 @@ describe("Gas", function() {
     var deploymentReceipt;
     var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
 
-    before("compile source", function() {
+    before("compile source", async function() {
       this.timeout(10000);
       var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
 
       estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
       estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
+
+      await web3.eth.personal.unlockAccount(accounts[0], "");
 
       EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
       return EstimateGasContract.deploy({data: estimateGasContractData})
@@ -186,6 +191,16 @@ describe("Gas", function() {
         });
       });
     }
+
+    it.only("should estimate gas for a reverted transaction", function(done) {
+        estimateGasInstance.methods.failIfNonZero(0).estimateGas({from: accounts[0], gas: 3141592}, function(err, receipt){
+          //web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
+            console.log(err);
+            console.log(receipt);
+            done();
+          //});
+        });
+    });
 
     it("matches estimate for deployment", function() {
       let contract = new web3.eth.Contract(estimateGasContractAbi);
