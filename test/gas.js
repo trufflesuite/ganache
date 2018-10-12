@@ -272,7 +272,7 @@ describe("Gas", function() {
       let gasPrice = '0x2000'
       return testGasExpenseIsCorrect(gasPrice, false, new Web3(Ganache.provider({ mnemonic, gasPrice })))
     })
-    it.only('should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block', function (done){
+    it('should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block', function (done){
       let tempWeb3 = new Web3(Ganache.provider({
         blockTime: .5, // seconds
         mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
@@ -291,7 +291,7 @@ describe("Gas", function() {
         "gasLimit": "0x33450",
         "from": accounts[0],
         "to": accounts[1],
-        "nonce": "0x00"
+        "nonce": "0x0"
       }
 
       let transaction2 = {
@@ -299,7 +299,14 @@ describe("Gas", function() {
         "gasLimit": "0x33450",
         "from": accounts[0],
         "to": accounts[1],
-        "nonce": "0x01" 
+        "nonce": "0x1" 
+      }
+      let transaction3 = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[1],// <
+        "to": accounts[0], // <^ reversed tx order
+        "nonce": "0x0" 
       }
 
       // Precondition
@@ -307,28 +314,47 @@ describe("Gas", function() {
         assert.deepEqual(number, 0, 'Current Block Should be 0')
       });
 
-      tempWeb3.eth.sendTransaction(transaction, function(err, hash) {
+      tempWeb3.eth.sendTransaction(transaction, function(err, hash1) {
         if (err) return done(err);
         // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
-        tempWeb3.eth.getTransactionReceipt(hash, function(err, receipt) {
-          if (err) return done(err);
+        tempWeb3.eth.getTransactionReceipt(hash1, function(errTxRcpt1, receipt) {
+          if (errTxRcpt1) return done(errTxRcpt1);
           assert.equal(receipt, null, "No receipt since the transaction hasn't yet been processed.");
           // Issue second transaction
-          tempWeb3.eth.sendTransaction(transaction2, function(err2, hash2) {
-            assert.deepEqual(err2, null, 'Transaction should succeed.');
-            setTimeout(function() {
-              // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
-              tempWeb3.eth.getBlockNumber(function(err3, number){
-                assert.deepEqual(number, 1, 'Current Block Should be 1');
-              });
-              tempWeb3.eth.getTransactionReceipt(hash2, function(err4, receipt1) {
-                tempWeb3.eth.getTransactionReceipt(hash, function(err5, receipt) {
-                  assert.notDeepEqual(receipt1.cumulativeGasUsed, receipt.cumulativeGasUsed, 'Cumulative gas should NOT be equal for 2 transactions in the same block.');
-                  assert.notDeepEqual(receipt1.gasUsed, receipt1.cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal.');
-                  done();
+          tempWeb3.eth.sendTransaction(transaction2, function(errSndTx2, hash2) {
+            if (errSndTx2) return done(errSndTx2);
+            tempWeb3.eth.sendTransaction(transaction3, function(errSndTx3, hash3) {
+              if(errSndTx3) return done(errSndTx3);
+              setTimeout(function() {
+                // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
+                tempWeb3.eth.getBlockNumber(function(err3, number){
+                  assert.deepEqual(number, 1, 'Current Block Should be 1');
                 });
-              });
-            }, 750);
+                tempWeb3.eth.getBlock(1, function(getBlockErr, block){
+                  if(getBlockErr) done(getBlockErr);
+                  console.log(block);
+                  tempWeb3.eth.getTransactionReceipt(hash1, function(err5, receipt1) {
+                    tempWeb3.eth.getTransactionReceipt(hash2, function(err4, receipt2) {
+                      tempWeb3.eth.getTransactionReceipt(hash3, function(err5, receipt3) {
+                        assert.deepEqual(receipt1.gasUsed, receipt2.gasUsed, 'Tx1 and Tx2 should cost the same gas.');
+                        assert.deepEqual(receipt2.gasUsed, receipt3.gasUsed, 'Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive');
+                        assert.deepEqual(receipt2.transactionIndex > receipt3.transactionIndex, true, '(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)');
+                        // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
+                        let isAccumulating = (receipt2.cumulativeGasUsed > receipt3.cumulativeGasUsed) && (receipt3.cumulativeGasUsed > receipt1.cumulativeGasUsed);
+                        assert.deepEqual(isAccumulating, true, 'Cumulative gas should be accumulating for any transactions in the same block.');
+                        assert.deepEqual(receipt1.gasUsed, receipt1.cumulativeGasUsed, 'Gas and cumulative gas should be equal for the FIRST Tx.');
+                        assert.notDeepEqual(receipt2.gasUsed, receipt2.cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Second Tx.');
+                        assert.notDeepEqual(receipt3.gasUsed, receipt3.cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Third Tx.');
+                        let totalGas = receipt1.gasUsed + receipt2.gasUsed + receipt3.gasUsed;
+                        assert.deepEqual(totalGas, receipt2.cumulativeGasUsed, "Total Gas should be equal the final tx.cumulativeGas")
+                        assert.deepEqual(totalGas, block.gasUsed, "Total Gas should be equal to the block.gasUsed")
+                        done();
+                      });
+                    });
+                  });
+                });
+              }, 750);
+            });
           });
         });
       });
