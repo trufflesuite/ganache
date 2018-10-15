@@ -5,7 +5,8 @@ var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
-
+const RSCLEAR_REFUND = 15000;
+const RSELFDESTRUCT_REFUND = 24000;
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
@@ -28,13 +29,14 @@ describe("Gas", function() {
   describe("Refunds", function() {
     var EstimateGasContract;
     var estimateGasContractData;
+    var estimateGasContractAbi;
     before("compile source", function() {
       this.timeout(10000);
 
       var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
       var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
 
-      var estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
+      estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
 
       estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
       EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
@@ -51,6 +53,32 @@ describe("Gas", function() {
         return instance;
       });
     }
+    
+    async function deployContractCustomProvider(tempWeb3){
+      let contract = new tempWeb3.eth.Contract(estimateGasContractAbi);
+      let proma = contract.deploy({data: estimateGasContractData});
+      var prom = proma.send({from: accounts[3], gas: 3141592}).catch((err) =>{
+        console.log(err);
+      });
+      return new Promise((resolve, reject) => {
+         setTimeout(()=>{
+           resolve(prom);
+         }, 0);
+      });
+      //return prom;
+      // return prom.then(function(instance) {
+      //   if (!instance._requestManager.provider) {
+      //     instance._requestManager.setProvider(tempWeb3.eth._provider);
+      //   }
+      //   return instance;
+      // }).catch((err) =>{
+      //   console.log(err);
+      // });
+    }
+
+  process.on("unhandledRejection", (e) =>{
+    console.log(e);
+  })
 
     it("accounts for Rsclear Refund in gasEstimate", async () => {
       const from = accounts[0];
@@ -67,7 +95,7 @@ describe("Gas", function() {
               const gasEstimate = options.gas;
               return method.send(options).then(receipt=>({gasEstimate, receipt}));
             }).then(data => {
-              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - 15000);
+              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - RSCLEAR_REFUND);
               assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
             });
       });
@@ -89,7 +117,7 @@ describe("Gas", function() {
               const gasEstimate = options.gas;
               return method.send(options).then(receipt=>({gasEstimate, receipt}));
             }).then(data => {
-              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - 24000);
+              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - RSELFDESTRUCT_REFUND);
               assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
             });
       });
@@ -109,9 +137,47 @@ describe("Gas", function() {
               const gasEstimate = options.gas;
               return method.send(options).then(receipt=>({gasEstimate, receipt}));
             }).then(data => {
-              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - 24000 - 15000);
+              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
               assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
             });
+      });
+    }).timeout(0);
+
+    
+    it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate with multiple transaction in the block", async () => {
+      let tempWeb3 = new Web3(Ganache.provider({
+        blockTime: .5, // seconds
+        mnemonic: mnemonic
+      }));
+      // let tempWeb3 = new Web3(new Web3.providers.HttpProvider("http://172.17.0.1:8545"));
+      // let account = "0x8b4663819a738b5b1a6c1002749e230c4db0e561";
+
+      const from = accounts[0];
+      let estimateGasInstance;
+      try {
+        estimateGasInstance = await deployContractCustomProvider(tempWeb3);
+      } catch (error) {
+        console.log(error);
+      }
+      console.log(estimateGasInstance);
+      return estimateGasInstance.methods.reset().send({from, gas: 5000000})  // prime storage by making sure it is set to 0
+        .then(() => {
+          const method = estimateGasInstance.methods.triggerAllRefunds();
+  
+          return method.estimateGas({from})
+            .then((gas)=>{
+              return {from, gas};
+            }).then(options => {
+              const gasEstimate = options.gas;
+              return method.send(options).then(receipt=>({gasEstimate, receipt}));
+            }).then(data => {
+              setTimeout(()=>{
+                assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+                assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
+              }, 750);
+            });
+      }).catch((err)=>{
+        console.log(err);
       });
     }).timeout(0);
 
@@ -275,16 +341,8 @@ describe("Gas", function() {
     it('should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block', function (done){
       let tempWeb3 = new Web3(Ganache.provider({
         blockTime: .5, // seconds
-        mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
+        mnemonic: mnemonic
       }));
-
-      const accounts = [ // configured with mnemonic
-        '0x627306090abab3a6e1400e9345bc60c78a8bef57',
-        '0xf17f52151ebef6c7334fad080c5704d77216b732',
-      ];
-      const secretKeys = [ // configured with mnemonic
-          '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
-      ];
 
       let transaction = {
         "value": "0x10000000",
@@ -301,6 +359,7 @@ describe("Gas", function() {
         "to": accounts[1],
         "nonce": "0x1" 
       }
+
       let transaction3 = {
         "value": "0x10000000",
         "gasLimit": "0x33450",
@@ -308,12 +367,7 @@ describe("Gas", function() {
         "to": accounts[0], // <^ reversed tx order
         "nonce": "0x0" 
       }
-
-      // Precondition
-      tempWeb3.eth.getBlockNumber(function(err, number){
-        assert.deepEqual(number, 0, 'Current Block Should be 0')
-      });
-
+      
       tempWeb3.eth.sendTransaction(transaction, function(err, hash1) {
         if (err) return done(err);
         // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
@@ -325,14 +379,19 @@ describe("Gas", function() {
             if (errSndTx2) return done(errSndTx2);
             tempWeb3.eth.sendTransaction(transaction3, function(errSndTx3, hash3) {
               if(errSndTx3) return done(errSndTx3);
+              // Precondition
+              tempWeb3.eth.getBlockNumber(function(getBlockNumErr, number){
+                if (getBlockNumErr) return done(getBlockNumErr);
+                assert.deepEqual(number, 0, 'Current Block Should be 0')
+              });
               setTimeout(function() {
                 // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
                 tempWeb3.eth.getBlockNumber(function(err3, number){
+                  if(err3) return done(err3);
                   assert.deepEqual(number, 1, 'Current Block Should be 1');
                 });
                 tempWeb3.eth.getBlock(1, function(getBlockErr, block){
                   if(getBlockErr) done(getBlockErr);
-                  console.log(block);
                   tempWeb3.eth.getTransactionReceipt(hash1, function(err5, receipt1) {
                     tempWeb3.eth.getTransactionReceipt(hash2, function(err4, receipt2) {
                       tempWeb3.eth.getTransactionReceipt(hash3, function(err5, receipt3) {
