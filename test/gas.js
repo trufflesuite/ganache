@@ -49,6 +49,11 @@ describe("Gas", function() {
     estimateGasInstance = await promiEvent;
   });
 
+  after("cleanup", function() {
+    web3.setProvider(null);
+    provider.close(() => {});
+  });
+
   async function deployContract(tempWeb3){
     let contract = new tempWeb3.eth.Contract(estimateGasContractAbi);
 
@@ -248,78 +253,99 @@ describe("Gas", function() {
 
     it('should calculate gas expenses correctly in consideration of a user-defined default gasPrice', async function() {
       let gasPrice = '0x2000'
+      let provider = new Ganache.provider({ mnemonic, gasPrice });
+      let tempWeb3;
+      try {
+        tempWeb3 = new Web3(provider);
       await testGasExpenseIsCorrect(gasPrice, false, new Web3(Ganache.provider({ mnemonic, gasPrice })))
+      } catch {
+        if (tempWeb3) {
+          tempWeb3.setProvider(null);
+        }
+        provider.stop(() => {})
+      }
     })
 
     it('should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block', async function (){
-      let tempWeb3 = new Web3(Ganache.provider({
+      let provider = Ganache.provider({
         blockTime: .5, // seconds
         mnemonic: mnemonic
-      }));
+      });
 
-      let transactions = [{
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x0"
-      }, {
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x1" 
-      }, {
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[1],// <
-        "to": accounts[0], // <^ reversed tx order
-        "nonce": "0x0" 
-      }]
+      let tempWeb3;
 
-      // Precondition
-      const initialBlockNumber = await tempWeb3.eth.getBlockNumber();
-      assert.deepEqual(initialBlockNumber, 0, 'Current Block Should be 0');
-      
-      let hashes = await Promise.all(transactions.map((transaction) => {
-        let promiEvent = tempWeb3.eth.sendTransaction(transaction);
+      try {
+        tempWeb3 = new Web3(provider);
 
-        return new Promise((accept) => {
-          promiEvent.once('transactionHash', async (hash) => {
+        let transactions = [{
+          "value": "0x10000000",
+          "gasLimit": "0x33450",
+          "from": accounts[0],
+          "to": accounts[1],
+          "nonce": "0x0"
+        }, {
+          "value": "0x10000000",
+          "gasLimit": "0x33450",
+          "from": accounts[0],
+          "to": accounts[1],
+          "nonce": "0x1" 
+        }, {
+          "value": "0x10000000",
+          "gasLimit": "0x33450",
+          "from": accounts[1],// <
+          "to": accounts[0], // <^ reversed tx order
+          "nonce": "0x0" 
+        }]
 
-            // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
-            let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
-            assert.equal(receipt, null, "No receipt since the transaction hasn't yet been processed.");
+        // Precondition
+        const initialBlockNumber = await tempWeb3.eth.getBlockNumber();
+        assert.deepEqual(initialBlockNumber, 0, 'Current Block Should be 0');
 
-            accept(hash);
-          })
-        });
-      }));
+        let hashes = await Promise.all(transactions.map((transaction) => {
+          let promiEvent = tempWeb3.eth.sendTransaction(transaction);
 
-      // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
-      await delay(750)
+          return new Promise((accept) => {
+            promiEvent.once('transactionHash', async (hash) => {
 
-      let currentBlockNumber = await tempWeb3.eth.getBlockNumber();
-      assert.deepEqual(currentBlockNumber, 1, 'Current Block Should be 1');
+              // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
+              let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
+              assert.equal(receipt, null, "No receipt since the transaction hasn't yet been processed.");
 
-      let currentBlock = await tempWeb3.eth.getBlock(currentBlockNumber);
+              accept(hash);
+            })
+          });
+        }));
 
-      let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)))
+        // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
+        await delay(750)
 
-      assert.deepEqual(receipts[0].gasUsed, receipts[1].gasUsed, 'Tx1 and Tx2 should cost the same gas.');
-      assert.deepEqual(receipts[1].gasUsed, receipts[2].gasUsed, 'Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive');
-      assert.deepEqual(receipts[1].transactionIndex > receipts[2].transactionIndex, true, '(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)');
+        let currentBlockNumber = await tempWeb3.eth.getBlockNumber();
+        assert.deepEqual(currentBlockNumber, 1, 'Current Block Should be 1');
 
-      // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
-      let isAccumulating = (receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed) && (receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed);
-      assert.deepEqual(isAccumulating, true, 'Cumulative gas should be accumulating for any transactions in the same block.');
-      assert.deepEqual(receipts[0].gasUsed, receipts[0].cumulativeGasUsed, 'Gas and cumulative gas should be equal for the FIRST Tx.');
-      assert.notDeepEqual(receipts[1].gasUsed, receipts[1].cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Second Tx.');
-      assert.notDeepEqual(receipts[2].gasUsed, receipts[2].cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Third Tx.');
+        let currentBlock = await tempWeb3.eth.getBlock(currentBlockNumber);
 
-      let totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
-      assert.deepEqual(totalGas, receipts[1].cumulativeGasUsed, "Total Gas should be equal the final tx.cumulativeGas")
-      assert.deepEqual(totalGas, currentBlock.gasUsed, "Total Gas should be equal to the currentBlock.gasUsed")
+        let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)))
+
+        assert.deepEqual(receipts[0].gasUsed, receipts[1].gasUsed, 'Tx1 and Tx2 should cost the same gas.');
+        assert.deepEqual(receipts[1].gasUsed, receipts[2].gasUsed, 'Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive');
+        assert.deepEqual(receipts[1].transactionIndex > receipts[2].transactionIndex, true, '(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)');
+
+        // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
+        let isAccumulating = (receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed) && (receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed);
+        assert.deepEqual(isAccumulating, true, 'Cumulative gas should be accumulating for any transactions in the same block.');
+        assert.deepEqual(receipts[0].gasUsed, receipts[0].cumulativeGasUsed, 'Gas and cumulative gas should be equal for the FIRST Tx.');
+        assert.notDeepEqual(receipts[1].gasUsed, receipts[1].cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Second Tx.');
+        assert.notDeepEqual(receipts[2].gasUsed, receipts[2].cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Third Tx.');
+
+        let totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
+        assert.deepEqual(totalGas, receipts[1].cumulativeGasUsed, "Total Gas should be equal the final tx.cumulativeGas")
+        assert.deepEqual(totalGas, currentBlock.gasUsed, "Total Gas should be equal to the currentBlock.gasUsed")
+      } catch {
+        if (tempWeb3) {
+          tempWeb3.setProvider(null);
+        }
+        provider.stop(() => {})
+      }
     });
   });
 });
