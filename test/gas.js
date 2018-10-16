@@ -5,6 +5,7 @@ var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
+const pify = require("pify");
 const RSCLEAR_REFUND = 15000;
 const RSELFDESTRUCT_REFUND = 24000;
 // Thanks solc. At least this works!
@@ -30,8 +31,9 @@ describe("Gas", function() {
     var EstimateGasContract;
     var estimateGasContractData;
     var estimateGasContractAbi;
+
     before("compile source", function() {
-      this.timeout(10000);
+      this.timeout(30000);
 
       var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
       var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
@@ -43,42 +45,16 @@ describe("Gas", function() {
     });
 
     async function deployContract(){
-      return EstimateGasContract.deploy({data: estimateGasContractData})
-      .send({from: accounts[0], gas: 3141592})
-      .then(function(instance) {
-        // TODO: ugly workaround - not sure why this is necessary.
-        if (!instance._requestManager.provider) {
-          instance._requestManager.setProvider(web3.eth._provider);
-        }
-        return instance;
-      });
+      return await (EstimateGasContract.deploy({data: estimateGasContractData})
+        .send({from: accounts[0], gas: 3141592}))
     }
     
     async function deployContractCustomProvider(tempWeb3){
       let contract = new tempWeb3.eth.Contract(estimateGasContractAbi);
-      let proma = contract.deploy({data: estimateGasContractData});
-      var prom = proma.send({from: accounts[3], gas: 3141592}).catch((err) =>{
-        console.log(err);
-      });
-      return new Promise((resolve, reject) => {
-         setTimeout(()=>{
-           resolve(prom);
-         }, 0);
-      });
-      //return prom;
-      // return prom.then(function(instance) {
-      //   if (!instance._requestManager.provider) {
-      //     instance._requestManager.setProvider(tempWeb3.eth._provider);
-      //   }
-      //   return instance;
-      // }).catch((err) =>{
-      //   console.log(err);
-      // });
-    }
 
-  process.on("unhandledRejection", (e) =>{
-    console.log(e);
-  })
+      return await (contract.deploy({ data: estimateGasContractData })
+        .send({ from: accounts[0], gas: 3141592 }));
+    }
 
     it("accounts for Rsclear Refund in gasEstimate", async () => {
       const from = accounts[0];
@@ -106,6 +82,7 @@ describe("Gas", function() {
       const from = accounts[0];
       const options = {from, gas: 5000000};
       const estimateGasInstance = await deployContract();
+
       return estimateGasInstance.methods.reset().send(options)  // prime storage by making sure it is set to 0
         .then(() => {
           const method = estimateGasInstance.methods.triggerRselfdestructRefund();
@@ -145,41 +122,32 @@ describe("Gas", function() {
 
     
     it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate with multiple transaction in the block", async () => {
-      let tempWeb3 = new Web3(Ganache.provider({
+      const ganacheProvider = Ganache.provider({
         blockTime: .5, // seconds
         mnemonic: mnemonic
-      }));
-      // let tempWeb3 = new Web3(new Web3.providers.HttpProvider("http://172.17.0.1:8545"));
-      // let account = "0x8b4663819a738b5b1a6c1002749e230c4db0e561";
+      })
+      let tempWeb3;
 
-      const from = accounts[0];
-      let estimateGasInstance;
       try {
-        estimateGasInstance = await deployContractCustomProvider(tempWeb3);
-      } catch (error) {
-        console.log(error);
+        tempWeb3 = new Web3(ganacheProvider);
+
+        const from = (await tempWeb3.eth.getAccounts())[0];
+        
+        const localGasInstance = await deployContractCustomProvider(tempWeb3);
+
+        await localGasInstance.methods.reset().send({from, gas: 5000000});  // prime storage by making sure it is set to 0
+        const method = localGasInstance.methods.triggerAllRefunds();
+        const gasEstimate = await method.estimateGas({from});
+        const receipt = await method.send({from, gas: gasEstimate});
+
+        assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+      } finally {
+        // clean up after ourselves
+        tempWeb3.setProvider(null);
+        await pify(ganacheProvider.close)();
       }
-      console.log(estimateGasInstance);
-      return estimateGasInstance.methods.reset().send({from, gas: 5000000})  // prime storage by making sure it is set to 0
-        .then(() => {
-          const method = estimateGasInstance.methods.triggerAllRefunds();
-  
-          return method.estimateGas({from})
-            .then((gas)=>{
-              return {from, gas};
-            }).then(options => {
-              const gasEstimate = options.gas;
-              return method.send(options).then(receipt=>({gasEstimate, receipt}));
-            }).then(data => {
-              setTimeout(()=>{
-                assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
-                assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
-              }, 750);
-            });
-      }).catch((err)=>{
-        console.log(err);
-      });
-    }).timeout(0);
+    });
 
     it("clears mapping storage slots", async () =>{
       const options = {from: accounts[0]};
@@ -210,26 +178,28 @@ describe("Gas", function() {
     var deploymentReceipt;
     var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
 
-    before("compile source", function() {
-      this.timeout(10000);
+    before("compile source", async function() {
+      this.timeout(30000);
       var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
 
       estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
       estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
 
       EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
-      return EstimateGasContract.deploy({data: estimateGasContractData})
-        .send({from: accounts[0], gas: 3141592})
-        .on('receipt', function (receipt) {
+      let promiEvent = EstimateGasContract.deploy({data: estimateGasContractData})
+        .send({from: accounts[0], gas: 3141592});
+
+      promiEvent.on('receipt', function (receipt) {
           deploymentReceipt = receipt;
         })
-        .then(function(instance) {
-          // TODO: ugly workaround - not sure why this is necessary.
-          if (!instance._requestManager.provider) {
-            instance._requestManager.setProvider(web3.eth._provider);
-          }
-          estimateGasInstance = instance;
-        });
+
+      estimateGasInstance = await promiEvent;
+
+      // TODO: ugly workaround - not sure why this is necessary.
+      if (!estimateGasInstance._requestManager.provider) {
+        console.log('ugly hack');
+        estimateGasInstance._requestManager.setProvider(web3.eth._provider);
+      }
     });
 
     function testTransactionEstimate(contractFn, args, options) {
