@@ -4,12 +4,12 @@ const Ganache = require("../../index.js");
 const path = require("path");
 const to = require("../../lib/utils/to");
 
-const {compileAndDeploy, getSignatureHash} = require ('../helpers/contracts');
+const {compileAndDeploy} = require ('../helpers/contracts');
 
 const mnemonic = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat';
 
 function setUp(options = {mnemonic}, contractName = 'Example') {
-  let context = {
+  const context = {
     options: options,
     provider: null,
     web3: null,
@@ -22,7 +22,6 @@ function setUp(options = {mnemonic}, contractName = 'Example') {
     context.options.vmErrorsOnRPCResponse = false;
     
     context.provider = new Ganache.provider(context.options);
-    //context.provider = new Web3.providers.WebsocketProvider("http://172.26.26.177:8546");
     context.web3 = new Web3(context.provider);
   })
 
@@ -43,45 +42,64 @@ describe('call:undefined', function() {
   let context = setUp({mnemonic}, "Call");
 
   // TODO: this one should error with something like `Error: Couldn't decode bool from ABI: 0x` instead of `RuntimeError: VM Exception while processing transaction: revert`
-  it("should return 0x when eth_call fails", async function() {
+  it("should return `0x` when eth_call fails (web3.eth call)", async function() {
     let {instance, web3} = context;
 
-    const result = await instance.methods.causeReturnValueOfUndefined().call();
-    assert.equal(result, "0x");
+    const signature = instance.methods.causeReturnValueOfUndefined()._method.signature;
+    // test raw JSON RPC value:
+    const result = await web3.eth.call({
+      to: instance._address,
+      data: signature
+    });
+    assert.strictEqual(result, "0x");
+  });
+
+  it("should throw due to returned value of `0x` when eth_call fails (compiled contract call)", function(done) {
+    let {instance} = context;
+    // running this test with callback style because I couldn't get `assert.throws` 
+    // to work with async/await (in node 10.0.0 this is handled by `assert.rejects`)
+    instance.methods.causeReturnValueOfUndefined().call((err) => {
+      // web3 will try to parse this return value of `0x` to something, but there is no
+      // way to properly represent the DATA type `0x` in JS.
+      assert.strictEqual(err.message, "Couldn't decode bool from ABI: 0x");
+      done();
+    });
   });
 
   it("should return a value when contract and method exists at block (web3.eth.call)", async function() {
-    let {instance, web3} = context;
+    const {instance, web3} = context;
 
+    const signature = instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature;
     // test raw JSON RPC value:
-    let result = await web3.eth.call({
+    const result = await web3.eth.call({
       to: instance._address,
-      data: getSignatureHash("theAnswerToLifeTheUniverseAndEverything()", web3)
+      data: signature
     }, "latest");
     assert.strictEqual(to.number(result), 42);
   });
 
   it("should return a value when contract and method exists at block (compiled contract call)", async function() {
-    let {instance} = context;
-    let result = await instance.methods.theAnswerToLifeTheUniverseAndEverything().call();
-    assert.strictEqual(to.number(result), 42);
+    const {instance} = context;
+    const result = await instance.methods.theAnswerToLifeTheUniverseAndEverything().call();
+    assert.strictEqual(result, "42");
   });
 
   it("should return 0x when contract doesn't exist at block", async function() {
-    let {instance, web3} = context;
+    const {instance, web3} = context;
 
-    let result = await web3.eth.call({
+    const signature = instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature;
+    const result = await web3.eth.call({
       to: instance._address,
-      data: "0x01d4ccf4"
+      data: signature
     }, "earliest");
 
     assert.equal(result, "0x");
   });
 
   it("should return 0x when method doesn't exist at block", async function() {
-    let {instance, web3} = context;
+    const {instance, web3} = context;
 
-    let result = await web3.eth.call({
+    const result = await web3.eth.call({
       to: instance._address,
       data: "0x01234567"
     }, "latest");

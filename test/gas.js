@@ -13,10 +13,7 @@ process.removeAllListeners("uncaughtException");
 let mnemonic = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
 describe("Gas", function() {
-  //var provider = new Ganache.provider({mnemonic, vmErrorsOnRPCResponse: false});
-  //var provider = new Web3.providers.HttpProvider("http://localhost:8545");
-  //var provider = new Web3.providers.HttpProvider("http://172.25.208.1:8545"); // ganache
-  var provider = new Web3.providers.HttpProvider("http://127.0.0.1:8545"); //parity
+  var provider = new Ganache.provider({mnemonic, vmErrorsOnRPCResponse: false});
   var web3 = new Web3(provider);
   var accounts;
 
