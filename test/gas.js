@@ -1,13 +1,14 @@
-var Web3 = require('web3');
-var assert = require('assert');
-var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../index.js");
-var fs = require("fs");
-var path = require("path");
-var solc = require("solc");
-var to = require("../lib/utils/to.js");
+const Web3 = require('web3');
+const assert = require('assert');
+const Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../index.js");
+const fs = require("fs");
+const path = require("path");
+const solc = require("solc");
+const to = require("../lib/utils/to.js");
 const pify = require("pify");
 const RSCLEAR_REFUND = 15000;
 const RSELFDESTRUCT_REFUND = 24000;
+
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
@@ -15,110 +16,96 @@ process.removeAllListeners("uncaughtException");
 let mnemonic = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
 describe("Gas", function() {
-  var provider = new Ganache.provider({mnemonic});
-  var web3 = new Web3(provider);
-  var accounts;
+  let estimateGasContractData;
+  let estimateGasContractAbi;
+  let EstimateGasContract;
+  let estimateGasInstance;
+  let deploymentReceipt;
 
-  before("get accounts", function(done) {
-    web3.eth.getAccounts(function(err, accs) {
-      if (err) return done(err);
-      accounts = accs;
-      done();
-    });
+  const provider = new Ganache.provider({mnemonic});
+  const web3 = new Web3(provider);
+  let accounts = [];
+
+  before("get accounts", async function() {
+    accounts = await web3.eth.getAccounts();
   });
 
+  before("compile source", async function() {
+    this.timeout(10000);
+    const source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
+    const result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
+
+    estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
+    estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
+
+    EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
+    let promiEvent = EstimateGasContract.deploy({data: estimateGasContractData})
+      .send({from: accounts[0], gas: 3141592});
+
+    promiEvent.on('receipt', function (receipt) {
+      deploymentReceipt = receipt;
+    })
+
+    estimateGasInstance = await promiEvent;
+  });
+
+  async function deployContract(tempWeb3){
+    let contract = new tempWeb3.eth.Contract(estimateGasContractAbi);
+
+    return await (contract.deploy({ data: estimateGasContractData })
+      .send({ from: accounts[0], gas: 3141592 }));
+  }
+
   describe("Refunds", function() {
-    var EstimateGasContract;
-    var estimateGasContractData;
-    var estimateGasContractAbi;
-
-    before("compile source", function() {
-      this.timeout(30000);
-
-      var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
-      var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
-
-      estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
-
-      estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
-      EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
-    });
-
-    async function deployContract(){
-      return await (EstimateGasContract.deploy({data: estimateGasContractData})
-        .send({from: accounts[0], gas: 3141592}))
-    }
-    
-    async function deployContractCustomProvider(tempWeb3){
-      let contract = new tempWeb3.eth.Contract(estimateGasContractAbi);
-
-      return await (contract.deploy({ data: estimateGasContractData })
-        .send({ from: accounts[0], gas: 3141592 }));
-    }
-
     it("accounts for Rsclear Refund in gasEstimate", async () => {
       const from = accounts[0];
       const options = {from, gas: 5000000};
-      const estimateGasInstance = await deployContract();
-      return estimateGasInstance.methods.reset().send(options)  // prime storage by making sure it is set to 0
-        .then(() => {
-          const method = estimateGasInstance.methods.triggerRsclearRefund();
 
-          return method.estimateGas(options)
-            .then((gas)=>{
-              return {from, gas};
-            }).then(options => {
-              const gasEstimate = options.gas;
-              return method.send(options).then(receipt=>({gasEstimate, receipt}));
-            }).then(data => {
-              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - RSCLEAR_REFUND);
-              assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
-            });
-      });
+      await estimateGasInstance.methods.reset().send(options);  // prime storage by making sure it is set to 0
+
+      const method = estimateGasInstance.methods.triggerRsclearRefund();
+
+      let gasEstimate = await method.estimateGas(options);
+
+      let receipt = await method.send({from, gas: gasEstimate});
+
+      assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+      assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
     });
     
     
     it("accounts for Rselfdestruct Refund in gasEstimate", async () => {
       const from = accounts[0];
       const options = {from, gas: 5000000};
-      const estimateGasInstance = await deployContract();
 
-      return estimateGasInstance.methods.reset().send(options)  // prime storage by making sure it is set to 0
-        .then(() => {
-          const method = estimateGasInstance.methods.triggerRselfdestructRefund();
+      const instance = await deployContract(web3);
+      await instance.methods.reset().send(options);  // prime storage by making sure it is set to 0
 
-          return method.estimateGas(options)
-            .then((gas)=>{
-              return {from, gas};
-            }).then(options => {
-              const gasEstimate = options.gas;
-              return method.send(options).then(receipt=>({gasEstimate, receipt}));
-            }).then(data => {
-              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - RSELFDESTRUCT_REFUND);
-              assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
-            });
-      });
+      const method = instance.methods.triggerRselfdestructRefund();
+
+      let gasEstimate = await method.estimateGas(options);
+
+      let receipt = await method.send({from, gas: gasEstimate});
+
+      assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND);
+      assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
     });
 
     it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async () => {
       const from = accounts[0];
-      const estimateGasInstance = await deployContract();
-      return estimateGasInstance.methods.reset().send({from, gas: 5000000})  // prime storage by making sure it is set to 0
-        .then(() => {
-          const method = estimateGasInstance.methods.triggerAllRefunds();
 
-          return method.estimateGas({from})
-            .then((gas)=>{
-              return {from, gas};
-            }).then(options => {
-              const gasEstimate = options.gas;
-              return method.send(options).then(receipt=>({gasEstimate, receipt}));
-            }).then(data => {
-              assert.strictEqual(data.receipt.gasUsed, data.gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
-              assert.strictEqual(data.receipt.gasUsed, data.receipt.cumulativeGasUsed);
-            });
-      });
-    }).timeout(0);
+      const instance = await deployContract(web3);
+      await instance.methods.reset().send({from, gas: 5000000});  // prime storage by making sure it is set to 0
+
+      const method = instance.methods.triggerAllRefunds();
+
+      const gasEstimate = await method.estimateGas({from});
+
+      let receipt = await method.send({from, gas: gasEstimate});
+
+      assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+      assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+    })
 
     
     it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate with multiple transaction in the block", async () => {
@@ -126,6 +113,7 @@ describe("Gas", function() {
         blockTime: .5, // seconds
         mnemonic: mnemonic
       })
+
       let tempWeb3;
 
       try {
@@ -133,7 +121,7 @@ describe("Gas", function() {
 
         const from = (await tempWeb3.eth.getAccounts())[0];
         
-        const localGasInstance = await deployContractCustomProvider(tempWeb3);
+        const localGasInstance = await deployContract(tempWeb3);
 
         await localGasInstance.methods.reset().send({from, gas: 5000000});  // prime storage by making sure it is set to 0
         const method = localGasInstance.methods.triggerAllRefunds();
@@ -144,7 +132,9 @@ describe("Gas", function() {
         assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
       } finally {
         // clean up after ourselves
-        tempWeb3.setProvider(null);
+        if (tempWeb3) {
+          tempWeb3.setProvider(null);
+        }
         await pify(ganacheProvider.close)();
       }
     });
@@ -152,7 +142,8 @@ describe("Gas", function() {
     it("clears mapping storage slots", async () =>{
       const options = {from: accounts[0]};
 
-      const estimateGasInstance = await deployContract();
+      await estimateGasInstance.methods.reset().send({from: options.from, gas: 5000000});
+
       const uintsa = await estimateGasInstance.methods.uints(1).call();
       assert.equal(uintsa, "0", "initial value is not correct");
 
@@ -171,76 +162,34 @@ describe("Gas", function() {
   });
 
   describe("Estimation", function() {
-    var estimateGasContractData;
-    var estimateGasContractAbi;
-    var EstimateGasContract;
-    var estimateGasInstance;
-    var deploymentReceipt;
-    var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
 
-    before("compile source", async function() {
-      this.timeout(30000);
-      var result = solc.compile({sources: {"EstimateGas.sol": source}}, 1);
+    async function testTransactionEstimate(contractFn, args, options) {
+      await estimateGasInstance.methods.reset().send({from: options.from, gas: 5000000});
+      const method = contractFn(...args);
+      const gasEstimate = await method.estimateGas(options);
+      const receipt = await method.send(options);
 
-      estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
-      estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
-
-      EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
-      let promiEvent = EstimateGasContract.deploy({data: estimateGasContractData})
-        .send({from: accounts[0], gas: 3141592});
-
-      promiEvent.on('receipt', function (receipt) {
-          deploymentReceipt = receipt;
-        })
-
-      estimateGasInstance = await promiEvent;
-
-      // TODO: ugly workaround - not sure why this is necessary.
-      if (!estimateGasInstance._requestManager.provider) {
-        console.log('ugly hack');
-        estimateGasInstance._requestManager.setProvider(web3.eth._provider);
-      }
-    });
-
-    function testTransactionEstimate(contractFn, args, options) {
-      let transactionGas = options.gas
-      delete options.gas
-
-      return estimateGasInstance.methods.reset().send({from: options.from, gas: 5000000})  // prime storage by making sure it is set to 0
-        .then(() => {
-          const fn = contractFn(...args);
-          return fn
-            .estimateGas(options)
-            .then(function(estimate) {
-              options.gas = transactionGas
-              return fn.send(options)
-                .then(function (receipt) {
-                  assert.equal(receipt.status, 1, 'Transaction must succeed');
-                  assert.equal(receipt.gasUsed, estimate, "gasUsed");
-                  assert.equal(receipt.cumulativeGasUsed, estimate, "estimate");
-                })
-        });
-      });
+      assert.equal(receipt.status, 1, 'Transaction must succeed');
+      assert.equal(receipt.gasUsed, gasEstimate, "gasUsed");
+      assert.equal(receipt.cumulativeGasUsed, gasEstimate, "estimate");
     }
 
-    it("matches estimate for deployment", function() {
-      let contract = new web3.eth.Contract(estimateGasContractAbi);
-      contract.deploy({ data: estimateGasContractData })
+    it("matches estimate for deployment", async function() {
+      let gasEstimate = await EstimateGasContract.deploy({ data: estimateGasContractData })
         .estimateGas({ from: accounts[1]})
-        .then(function(gasEstimate) {
-          assert.deepEqual(deploymentReceipt.gasUsed, gasEstimate);
-          assert.deepEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
-        });
+
+      assert.deepEqual(deploymentReceipt.gasUsed, gasEstimate);
+      assert.deepEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
     });
 
-    it("matches usage for complex function call (add)", function() {
+    it("matches usage for complex function call (add)", async function() {
       this.timeout(10000)
-      return testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 10], {from: accounts[0], gas: 3141592});
+      await testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 10], {from: accounts[0], gas: 3141592});
     });
 
-    it("matches usage for complex function call (transfer)", function() {
+    it("matches usage for complex function call (transfer)", async function() {
       this.timeout(10000)
-      return testTransactionEstimate(estimateGasInstance.methods.transfer, ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")], {from: accounts[0], gas: 3141592});
+      await testTransactionEstimate(estimateGasInstance.methods.transfer, ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")], {from: accounts[0], gas: 3141592});
     });
 
     function toBytes(s) {
@@ -254,139 +203,129 @@ describe("Gas", function() {
   });
 
   describe('Expenditure', function() {
-    var testGasExpenseIsCorrect = function(expectedGasPrice, setGasPriceOnTransaction = false, w3 = web3) {
-      let initialBalance;
-      let gasUsed;
-      let transferAmount = w3.utils.toBN(w3.utils.toWei('5', 'finney'))
+    async function testGasExpenseIsCorrect(expectedGasPrice, setGasPriceOnTransaction = false, w3 = web3) {
+      const transferAmount = w3.utils.toBN(w3.utils.toWei('5', 'finney'));
 
-      expectedGasPrice = w3.utils.toBN(expectedGasPrice)
+      expectedGasPrice = w3.utils.toBN(expectedGasPrice);
 
-      return w3.eth.getBalance(accounts[0])
-        .then(balance => {
-          initialBalance = w3.utils.toBN(balance)
+      const initialBalance = await w3.utils.toBN(await w3.eth.getBalance(accounts[0]));
 
-          let params = {
-            from: accounts[0],
-            to: accounts[1],
-            value: transferAmount
-          }
+      let params = {
+        from: accounts[0],
+        to: accounts[1],
+        value: transferAmount
+      }
 
-          if (setGasPriceOnTransaction) {
-            params.gasPrice = expectedGasPrice
-          }
+      if (setGasPriceOnTransaction) {
+        params.gasPrice = expectedGasPrice
+      }
 
-          return w3.eth.sendTransaction(params)
-        })
-        .then(receipt => {
-          gasUsed = w3.utils.toBN(receipt.gasUsed)
-          return w3.eth.getBalance(accounts[0])
-        })
-        .then(balance => {
-          let finalBalance = w3.utils.toBN(balance)
-          let deltaBalance = initialBalance.sub(finalBalance)
+      const receipt = await w3.eth.sendTransaction(params);
+      const gasUsed = w3.utils.toBN(receipt.gasUsed);
 
-          // the amount we paid in excess of our transferAmount is what we spent on gas
-          let gasExpense = deltaBalance.sub(transferAmount)
+      const finalBalance = w3.utils.toBN(await w3.eth.getBalance(accounts[0]));
+      const deltaBalance = initialBalance.sub(finalBalance)
 
-          assert(!gasExpense.eq(w3.utils.toBN('0')), 'Calculated gas expense must be nonzero.')
-          // gas expense is just gasPrice * gasUsed, so just solve accordingly
-          let actualGasPrice = gasExpense.div(gasUsed)
+      // the amount we paid in excess of our transferAmount is what we spent on gas
+      const gasExpense = deltaBalance.sub(transferAmount)
 
-          assert(expectedGasPrice.eq(actualGasPrice), `Gas price used by EVM (${to.hex(actualGasPrice)}) was different from expected gas price (${to.hex(expectedGasPrice)})`)
-        })
+      assert(!gasExpense.eq(w3.utils.toBN('0')), 'Calculated gas expense must be nonzero.')
+
+      // gas expense is just gasPrice * gasUsed, so just solve accordingly
+      const actualGasPrice = gasExpense.div(gasUsed)
+
+      assert(expectedGasPrice.eq(actualGasPrice),
+        `Gas price used by EVM (${to.hex(actualGasPrice)}) was different from expected gas price (${to.hex(expectedGasPrice)})`)
     }
       
-    it('should calculate gas expenses correctly in consideration of the default gasPrice', function() {
-      return web3.eth.getGasPrice().then(testGasExpenseIsCorrect)
+    it('should calculate gas expenses correctly in consideration of the default gasPrice', async function() {
+     await testGasExpenseIsCorrect(await web3.eth.getGasPrice())
     })
 
-    it('should calculate gas expenses correctly in consideration of the requested gasPrice', function() {
-      return testGasExpenseIsCorrect('0x10000', true)
+    it('should calculate gas expenses correctly in consideration of the requested gasPrice', async function() {
+      await testGasExpenseIsCorrect('0x10000', true)
     })
 
-    it('should calculate gas expenses correctly in consideration of a user-defined default gasPrice', function() {
+    it('should calculate gas expenses correctly in consideration of a user-defined default gasPrice', async function() {
       let gasPrice = '0x2000'
-      return testGasExpenseIsCorrect(gasPrice, false, new Web3(Ganache.provider({ mnemonic, gasPrice })))
+      await testGasExpenseIsCorrect(gasPrice, false, new Web3(Ganache.provider({ mnemonic, gasPrice })))
     })
-    it('should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block', function (done){
+
+    it('should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block', async function (){
       let tempWeb3 = new Web3(Ganache.provider({
         blockTime: .5, // seconds
         mnemonic: mnemonic
       }));
 
-      let transaction = {
+      let transactions = [{
         "value": "0x10000000",
         "gasLimit": "0x33450",
         "from": accounts[0],
         "to": accounts[1],
         "nonce": "0x0"
-      }
-
-      let transaction2 = {
+      }, {
         "value": "0x10000000",
         "gasLimit": "0x33450",
         "from": accounts[0],
         "to": accounts[1],
         "nonce": "0x1" 
-      }
-
-      let transaction3 = {
+      }, {
         "value": "0x10000000",
         "gasLimit": "0x33450",
         "from": accounts[1],// <
         "to": accounts[0], // <^ reversed tx order
         "nonce": "0x0" 
-      }
+      }]
+
+      // Precondition
+      const initialBlockNumber = await tempWeb3.eth.getBlockNumber();
+      assert.deepEqual(initialBlockNumber, 0, 'Current Block Should be 0');
       
-      tempWeb3.eth.sendTransaction(transaction, function(err, hash1) {
-        if (err) return done(err);
-        // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
-        tempWeb3.eth.getTransactionReceipt(hash1, function(errTxRcpt1, receipt) {
-          if (errTxRcpt1) return done(errTxRcpt1);
-          assert.equal(receipt, null, "No receipt since the transaction hasn't yet been processed.");
-          // Issue second transaction
-          tempWeb3.eth.sendTransaction(transaction2, function(errSndTx2, hash2) {
-            if (errSndTx2) return done(errSndTx2);
-            tempWeb3.eth.sendTransaction(transaction3, function(errSndTx3, hash3) {
-              if(errSndTx3) return done(errSndTx3);
-              // Precondition
-              tempWeb3.eth.getBlockNumber(function(getBlockNumErr, number){
-                if (getBlockNumErr) return done(getBlockNumErr);
-                assert.deepEqual(number, 0, 'Current Block Should be 0')
-              });
-              setTimeout(function() {
-                // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
-                tempWeb3.eth.getBlockNumber(function(err3, number){
-                  if(err3) return done(err3);
-                  assert.deepEqual(number, 1, 'Current Block Should be 1');
-                });
-                tempWeb3.eth.getBlock(1, function(getBlockErr, block){
-                  if(getBlockErr) done(getBlockErr);
-                  tempWeb3.eth.getTransactionReceipt(hash1, function(err5, receipt1) {
-                    tempWeb3.eth.getTransactionReceipt(hash2, function(err4, receipt2) {
-                      tempWeb3.eth.getTransactionReceipt(hash3, function(err5, receipt3) {
-                        assert.deepEqual(receipt1.gasUsed, receipt2.gasUsed, 'Tx1 and Tx2 should cost the same gas.');
-                        assert.deepEqual(receipt2.gasUsed, receipt3.gasUsed, 'Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive');
-                        assert.deepEqual(receipt2.transactionIndex > receipt3.transactionIndex, true, '(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)');
-                        // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
-                        let isAccumulating = (receipt2.cumulativeGasUsed > receipt3.cumulativeGasUsed) && (receipt3.cumulativeGasUsed > receipt1.cumulativeGasUsed);
-                        assert.deepEqual(isAccumulating, true, 'Cumulative gas should be accumulating for any transactions in the same block.');
-                        assert.deepEqual(receipt1.gasUsed, receipt1.cumulativeGasUsed, 'Gas and cumulative gas should be equal for the FIRST Tx.');
-                        assert.notDeepEqual(receipt2.gasUsed, receipt2.cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Second Tx.');
-                        assert.notDeepEqual(receipt3.gasUsed, receipt3.cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Third Tx.');
-                        let totalGas = receipt1.gasUsed + receipt2.gasUsed + receipt3.gasUsed;
-                        assert.deepEqual(totalGas, receipt2.cumulativeGasUsed, "Total Gas should be equal the final tx.cumulativeGas")
-                        assert.deepEqual(totalGas, block.gasUsed, "Total Gas should be equal to the block.gasUsed")
-                        done();
-                      });
-                    });
-                  });
-                });
-              }, 750);
-            });
-          });
+      let hashes = await Promise.all(transactions.map((transaction) => {
+        let promiEvent = tempWeb3.eth.sendTransaction(transaction);
+
+        return new Promise((accept) => {
+          promiEvent.once('transactionHash', async (hash) => {
+
+            // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
+            let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
+            assert.equal(receipt, null, "No receipt since the transaction hasn't yet been processed.");
+
+            accept(hash);
+          })
         });
-      });
+      }));
+
+      // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
+      await delay(750)
+
+      let currentBlockNumber = await tempWeb3.eth.getBlockNumber();
+      assert.deepEqual(currentBlockNumber, 1, 'Current Block Should be 1');
+
+      let currentBlock = await tempWeb3.eth.getBlock(currentBlockNumber);
+
+      let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)))
+
+      assert.deepEqual(receipts[0].gasUsed, receipts[1].gasUsed, 'Tx1 and Tx2 should cost the same gas.');
+      assert.deepEqual(receipts[1].gasUsed, receipts[2].gasUsed, 'Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive');
+      assert.deepEqual(receipts[1].transactionIndex > receipts[2].transactionIndex, true, '(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)');
+
+      // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
+      let isAccumulating = (receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed) && (receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed);
+      assert.deepEqual(isAccumulating, true, 'Cumulative gas should be accumulating for any transactions in the same block.');
+      assert.deepEqual(receipts[0].gasUsed, receipts[0].cumulativeGasUsed, 'Gas and cumulative gas should be equal for the FIRST Tx.');
+      assert.notDeepEqual(receipts[1].gasUsed, receipts[1].cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Second Tx.');
+      assert.notDeepEqual(receipts[2].gasUsed, receipts[2].cumulativeGasUsed, 'Gas and cumulative gas should NOT be equal for the Third Tx.');
+
+      let totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
+      assert.deepEqual(totalGas, receipts[1].cumulativeGasUsed, "Total Gas should be equal the final tx.cumulativeGas")
+      assert.deepEqual(totalGas, currentBlock.gasUsed, "Total Gas should be equal to the currentBlock.gasUsed")
     });
   });
 });
+
+async function delay(duration) {
+  await new Promise((accept) => {
+    setTimeout(accept, duration)
+  });
+}
