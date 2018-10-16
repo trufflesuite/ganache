@@ -324,6 +324,15 @@ var tests = function(web3) {
     });
   });
 
+  describe("eth_getCode", function() {
+    it("should return 0x for eth_getCode called on a non-contract", function(done) {
+      web3.eth.getCode("0x000000000000000000000000000000000000dEaD", function(err, code) {
+        assert.equal(code, "0x");
+        done();
+      });
+    });
+  });
+
   describe("eth_sign", function() {
     var accounts;
     var signingWeb3;
@@ -445,10 +454,110 @@ var tests = function(web3) {
 
   });
 
+  describe('eth_sendTransaction', () => {
+
+    it("should fail with bad nonce (too low)", function(done) {
+      var transaction = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x00",  // too low nonce
+      }
+
+      web3.eth.sendTransaction(transaction, function(err, result) {
+        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0, `Incorrect error message: ${err.message}`);
+        done()
+      })
+
+    });
+
+    it("should fail with bad nonce (too high)", function(done) {
+      var transaction = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0xff",  // too high nonce
+      }
+
+      web3.eth.sendTransaction(transaction, function(err, result) {
+        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 255") >= 0);
+        done()
+      });
+
+    });
+
+    it("should succeed with right nonce (1)", function(done) {
+      var transaction = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x01"
+      }
+
+      web3.eth.sendTransaction(transaction, function(err, result) {
+        done(err)
+      })
+
+    })
+
+    it("should fail with bad nonce (skipped value)", function(done) {
+      let tempWeb3 = new Web3(Ganache.provider({
+        blockTime: .5, // seconds
+        mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
+      }));
+
+      const accounts = [ // configured with mnemonic
+        '0x627306090abab3a6e1400e9345bc60c78a8bef57',
+        '0xf17f52151ebef6c7334fad080c5704d77216b732',
+      ];
+      const secretKeys = [ // configured with mnemonic
+          '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
+      ];
+
+      let transaction = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x00"
+      }
+
+      let transaction2 = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x02"  // Skipped nonce 1
+      }
+
+      tempWeb3.eth.sendTransaction(transaction, function(err, hash) {
+        if (err) return done(err);
+        // Ensure there's no receipt since the transaction hasn't yet been processed.
+        tempWeb3.eth.getTransactionReceipt(hash, function(err, receipt) {
+          if (err) return done(err);
+          assert.equal(receipt, null, "No receipt since the transaction hasn't yet been processed.");
+          // Issue second transaction
+          tempWeb3.eth.sendTransaction(transaction2, function(err2, hash2) {
+            assert.notDeepEqual(err2, null, 'Incorrect nonce, tx should fail.');
+            setTimeout(function() {
+              // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
+              tempWeb3.eth.getTransactionReceipt(hash, function(err3, receipt1) {
+                assert.notDeepEqual(receipt1, null, 'First tx should be processed');
+                done()
+              });
+            }, 750);
+          });
+        });
+      });
+    })
+  })
+
   describe('eth_sendRawTransaction', () => {
 
     it("should fail with bad nonce (too low)", function(done) {
-      var provider = web3.currentProvider;
       var transaction = new Transaction({
         "value": "0x10000000",
         "gasLimit": "0x33450",
@@ -461,40 +570,38 @@ var tests = function(web3) {
       transaction.sign(secretKeyBuffer)
 
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0, `Incorrect error message: ${err.message}`);
+        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 0") >= 0, `Incorrect error message: ${err.message}`);
         done()
       })
 
     })
 
     it("should fail with bad nonce (too high)", function(done) {
-      var provider = web3.currentProvider;
       var transaction = new Transaction({
         "value": "0x10000000",
         "gasLimit": "0x33450",
         "from": accounts[0],
         "to": accounts[1],
-        "nonce": "0xff",  // too low nonce
+        "nonce": "0xff",  // too high nonce
       })
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), 'hex')
       transaction.sign(secretKeyBuffer)
 
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 255") >= 0);
+        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 255") >= 0);
         done()
       })
 
     })
 
     it("should succeed with right nonce (1)", function(done) {
-      var provider = web3.currentProvider;
       var transaction = new Transaction({
         "value": "0x10000000",
         "gasLimit": "0x33450",
         "from": accounts[0],
         "to": accounts[1],
-        "nonce": "0x1"
+        "nonce": "0x2"
       })
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), 'hex')
@@ -503,7 +610,61 @@ var tests = function(web3) {
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
         done(err)
       })
+    })
 
+    it("should fail with bad nonce (skipped value)", function(done) {
+      let tempWeb3 = new Web3(Ganache.provider({
+        blockTime: .5, // seconds
+        mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
+      }));
+
+      const accounts = [ // configured with mnemonic
+        '0x627306090abab3a6e1400e9345bc60c78a8bef57',
+        '0xf17f52151ebef6c7334fad080c5704d77216b732',
+      ];
+      const secretKeys = [ // configured with mnemonic
+          '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
+      ];
+
+      let transaction = new Transaction({
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x00"
+      })
+      let transaction2 = new Transaction({
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[0],
+        "to": accounts[1],
+        "nonce": "0x02"  // Skipped nonce 1
+      })
+
+      let secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), 'hex')
+      transaction.sign(secretKeyBuffer)
+      transaction2.sign(secretKeyBuffer)
+      
+
+      tempWeb3.eth.sendSignedTransaction(transaction.serialize(), function(err, tx) {
+        if (err) return done(err);
+        // Ensure there's no receipt since the transaction hasn't yet been processed.
+        tempWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
+          if (err) return done(err);
+          assert.equal(receipt, null, "No receipt since the transaction hasn't yet been processed.");
+          // Issue second transaction
+          tempWeb3.eth.sendSignedTransaction(transaction2.serialize(), function(err2, tx2) {
+            assert.notDeepEqual(err2, null, 'Incorrect nonce, tx should fail.');
+            setTimeout(function() {
+              // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
+              tempWeb3.eth.getTransactionReceipt(tx, function(err3, receipt1) {
+                assert.notDeepEqual(receipt1, null, 'First tx should be processed');
+                done()
+              });
+            }, 750);
+          });
+        });
+      });
     })
 
 
@@ -514,7 +675,7 @@ var tests = function(web3) {
         "gasLimit": "0x5208",
         "from": accounts[0],
         "to": accounts[1],
-        "nonce": "0x2"
+        "nonce": "0x3"
       })
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), 'hex')
@@ -524,9 +685,7 @@ var tests = function(web3) {
         assert.equal(result, to.hex(transaction.hash()))
         done(err)
       })
-
     })
-
   })
 
   describe("contract scenario", function() {
@@ -965,6 +1124,9 @@ var tests = function(web3) {
 
         assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
         assert.notEqual(contractAddress, null, "Transaction did not create a contract");
+        assert.equal(receipt.hasOwnProperty('v'), true, "Transaction includes v signature parameter");
+        assert.equal(receipt.hasOwnProperty('r'), true, "Transaction includes r signature parameter");
+        assert.equal(receipt.hasOwnProperty('s'), true, "Transaction includes s signature parameter");
         done();
       });
     });
@@ -977,6 +1139,9 @@ var tests = function(web3) {
         assert.equal(result.hash, initialTransaction, "Resultant hash isn't what we expected")
         assert.equal(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment")
 
+        assert.equal(result.hasOwnProperty('v'), true, "Transaction includes v signature parameter");
+        assert.equal(result.hasOwnProperty('r'), true, "Transaction includes r signature parameter");
+        assert.equal(result.hasOwnProperty('s'), true, "Transaction includes s signature parameter");
         done();
       });
     });
