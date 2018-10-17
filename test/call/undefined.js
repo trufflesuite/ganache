@@ -38,7 +38,7 @@ function setUp(options = {mnemonic}, contractName = 'Example') {
   return context;
 }
 
-describe('call:undefined', function() {
+describe.only('call:undefined', function() {
   let context = setUp({mnemonic}, "Call");
 
   it("should return `0x` when eth_call fails (web3.eth call)", async function() {
@@ -74,7 +74,7 @@ describe('call:undefined', function() {
       to: instance._address,
       data: signature
     }, "latest");
-    assert.strictEqual(to.number(result), 42);
+    assert.strictEqual(result, "0x000000000000000000000000000000000000000000000000000000000000002a", "it should return 42 (as hex)");
   });
 
   it("should return a value when contract and method exists at block (compiled contract call)", async function() {
