@@ -321,8 +321,8 @@ describe("Gas", function() {
       let tempWeb3;
       try {
         tempWeb3 = new Web3(provider);
-      await testGasExpenseIsCorrect(gasPrice, false, new Web3(Ganache.provider({ mnemonic, gasPrice })))
-      } catch {
+        await testGasExpenseIsCorrect(gasPrice, false, new Web3(Ganache.provider({ mnemonic, gasPrice })))
+      } catch (e) {
         if (tempWeb3) {
           tempWeb3.setProvider(null);
         }
