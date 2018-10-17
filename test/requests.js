@@ -731,7 +731,9 @@ var tests = function(web3) {
       // This test uses the provider directly because web3 fixes a bug we had for us.
       //  specifically, when the an rpc result field is `0x` it transform it to `null`
       //  `0x` is an incorrect response (it should be null). so we test for that here
-      web3.currentProvider.sendAsync({
+      web3.currentProvider.send({
+        id: "1", // an "id" is required here because the web3 websocket provider (v1.0.0-beta.35) throws if it is 
+                 // missing (it's probably just a bug on their end)
         jsonrpc: "2.0",
         method: "eth_getTransactionByHash",
         params: [initialTransaction]
