@@ -728,11 +728,20 @@ var tests = function(web3) {
     });
 
     it("should verify the transaction immediately (eth_getTransactionByHash)", function(done) {
-      web3.eth.getTransaction(initialTransaction, function(err, result) {
+      // This test uses the provider directly because web3 fixes a bug we had for us.
+      //  specifically, when the an rpc result field is `0x` it transform it to `null`
+      //  `0x` is an incorrect response (it should be null). so we test for that here
+      web3.currentProvider.sendAsync({
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [initialTransaction]
+      }, (err, jsonRpcResponse) => {
         if (err) return done(err);
 
+        const result = jsonRpcResponse.result;
+
         assert.notEqual(result, null, "Transaction result shouldn't be null");
-        assert.equal(result.hash, initialTransaction, "Resultant hash isn't what we expected")
+        assert.equal(result.hash, initialTransaction, "Resultant hash isn't what we expected");
         assert.equal(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
 
         done();
@@ -1519,7 +1528,6 @@ describe("WebSockets Server:", function(done) {
     });
     server.listen(port, function(err) {
       var provider = new Web3WsProvider("ws://localhost:" + port);
-      var Web3 = require('web3');
       web3.setProvider(provider);
       done();
     });
