@@ -38,7 +38,7 @@ function setUp(options = {mnemonic}, contractName = 'Example') {
   return context;
 }
 
-describe.only('call:undefined', function() {
+describe('call:undefined', function() {
   let context = setUp({mnemonic}, "Call");
 
   it("should return `0x` when eth_call fails (web3.eth call)", async function() {
