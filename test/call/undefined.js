@@ -41,7 +41,6 @@ function setUp(options = {mnemonic}, contractName = 'Example') {
 describe('call:undefined', function() {
   let context = setUp({mnemonic}, "Call");
 
-  // TODO: this one should error with something like `Error: Couldn't decode bool from ABI: 0x` instead of `RuntimeError: VM Exception while processing transaction: revert`
   it("should return `0x` when eth_call fails (web3.eth call)", async function() {
     let {instance, web3} = context;
 
