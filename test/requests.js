@@ -503,6 +503,14 @@ var tests = function(web3) {
 
     })
 
+    it('should not produce colliding transaction hashes', async () => {
+      let tx1 = await web3.eth.sendTransaction({from:accounts[3],to:accounts[5],value:2000}, console.log);
+      let tx2 = await web3.eth.sendTransaction({from:accounts[4],to:accounts[5],value:2000}, console.log);
+      let tx3 = await web3.eth.sendTransaction({from:accounts[4],to:accounts[5],value:2000}, console.log);
+      assert.notDeepStrictEqual(tx1.transactionHash, tx2.transactionHash, "Tx1 and Tx2 should not produce hash collisions (different sender)")
+      assert.notDeepStrictEqual(tx3.transactionHash, tx2.transactionHash, "Tx3 and Tx2 should not produce hash collisions (same sender)")
+    })
+
     it("should fail with bad nonce (skipped value)", function(done) {
       let tempWeb3 = new Web3(Ganache.provider({
         blockTime: .5, // seconds
