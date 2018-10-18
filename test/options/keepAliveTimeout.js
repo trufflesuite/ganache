@@ -43,7 +43,7 @@ const testTimeout = async (timeout, sleepTime, errorMessage) => {
   server.close();
 }
 
-describe.only('options:keepAliveTimeout', () => {
+describe('options:keepAliveTimeout', () => {
   it('should timeout', async () => {
     await testTimeout(2000, 1000, "timeout should have destroyed socket");
   }).timeout(2500);
