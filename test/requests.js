@@ -553,6 +553,19 @@ var tests = function(web3) {
         });
       });
     })
+
+    it("should allow a tx to contain data when sent to an external (personal) address", async () => {
+      var transaction = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[9],
+        "to": accounts[8],
+        "data": "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
+      }
+
+      let result = await web3.eth.sendTransaction(transaction);
+      assert.notDeepStrictEqual(result, null, "Tx should be successful.");
+    });
   })
 
   describe('eth_sendRawTransaction', () => {
@@ -573,7 +586,6 @@ var tests = function(web3) {
         assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 0") >= 0, `Incorrect error message: ${err.message}`);
         done()
       })
-
     })
 
     it("should fail with bad nonce (too high)", function(done) {
@@ -685,6 +697,23 @@ var tests = function(web3) {
         assert.equal(result, to.hex(transaction.hash()))
         done(err)
       })
+    })
+
+
+    it("should allow a tx to contain data when sent to an external (personal) address", async () => {
+      var transaction = new Transaction({
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[6],
+        "to": accounts[8],
+        "data": "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
+      })
+
+      var secretKeyBuffer = Buffer.from(secretKeys[6].substr(2), 'hex')
+      transaction.sign(secretKeyBuffer)
+
+      let result = await web3.eth.sendSignedTransaction(transaction.serialize());
+      assert.notDeepStrictEqual(result, null, "Tx should be successful.");
     })
   })
 
