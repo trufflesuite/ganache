@@ -17,7 +17,6 @@ describe("eth_call", function() {
   var estimateGasContractAbi;
   var EstimateGasContract;
   var estimateGasInstance;
-  var deploymentReceipt;
   var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
 
   before("get accounts", function(done) {
@@ -40,9 +39,6 @@ describe("eth_call", function() {
     EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
     return EstimateGasContract.deploy({ data: estimateGasContractData })
       .send({ from: accounts[0], gas: 3141592 })
-      .on("receipt", function(receipt) {
-        deploymentReceipt = receipt;
-      })
       .then(function(instance) {
         // TODO: ugly workaround - not sure why this is necessary.
         if (!instance._requestManager.provider) {
@@ -59,7 +55,8 @@ describe("eth_call", function() {
       .add(toBytes("Tim"), toBytes("A great guy"), 5)
       .call({ from: accounts[0] })
       .then((result) => {
-        assert.equal(result, true);
+        console.log(result);
+        assert.strictEqual(result, true);
       });
   });
 

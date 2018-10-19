@@ -1,5 +1,4 @@
 var Web3 = require("web3");
-var utils = require("ethereumjs-util");
 var assert = require("assert");
 var Ganache = require("../index.js");
 var fs = require("fs");
@@ -10,12 +9,6 @@ var to = require("../lib/utils/to.js");
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
-
-var logger = {
-  log: function(msg) {
-    /* noop */
-  }
-};
 
 var source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
 var result = solc.compile(source, 1);
@@ -48,7 +41,7 @@ describe("Block Tags", function() {
   var web3 = new Web3(Ganache.provider());
   var contractAddress;
 
-  var initial_block_number;
+  var initialBlockNumber;
   var initial = {};
 
   before("Gather accounts", function(done) {
@@ -66,7 +59,7 @@ describe("Block Tags", function() {
       if (err) {
         return done(err);
       }
-      initial_block_number = to.number(n);
+      initialBlockNumber = to.number(n);
       done();
     });
   });
@@ -113,32 +106,32 @@ describe("Block Tags", function() {
   });
 
   it("should return the initial nonce at the previous block number", function(done) {
-    web3.eth.getTransactionCount(accounts[0], initial_block_number, function(err, nonce) {
+    web3.eth.getTransactionCount(accounts[0], initialBlockNumber, function(err, nonce) {
       if (err) {
         return done(err);
       }
-      assert.equal(nonce, initial.nonce);
+      assert.strictEqual(nonce, initial.nonce);
 
       // Check that the nonce incremented with the block number, just to be sure.
-      web3.eth.getTransactionCount(accounts[0], initial_block_number + 1, function(err, nonce) {
+      web3.eth.getTransactionCount(accounts[0], initialBlockNumber + 1, function(err, nonce) {
         if (err) {
           return done(err);
         }
-        assert.equal(nonce, initial.nonce + 1);
+        assert.strictEqual(nonce, initial.nonce + 1);
         done();
       });
     });
   });
 
   it("should return the initial balance at the previous block number", function(done) {
-    web3.eth.getBalance(accounts[0], initial_block_number, function(err, balance) {
+    web3.eth.getBalance(accounts[0], initialBlockNumber, function(err, balance) {
       if (err) {
         return done(err);
       }
-      assert.equal(balance, initial.balance);
+      assert.strictEqual(balance, initial.balance);
 
       // Check that the balance incremented with the block number, just to be sure.
-      web3.eth.getBalance(accounts[0], initial_block_number + 1, function(err, balance) {
+      web3.eth.getBalance(accounts[0], initialBlockNumber + 1, function(err, balance) {
         if (err) {
           return done(err);
         }
@@ -151,18 +144,18 @@ describe("Block Tags", function() {
   });
 
   it("should return the no code at the previous block number", function(done) {
-    web3.eth.getCode(contractAddress, initial_block_number, function(err, code) {
+    web3.eth.getCode(contractAddress, initialBlockNumber, function(err, code) {
       if (err) {
         return done(err);
       }
-      assert.equal(code, "0x0");
+      assert.strictEqual(code, "0x0");
 
       // Check that the code incremented with the block number, just to be sure.
-      web3.eth.getCode(contractAddress, initial_block_number + 1, function(err, code) {
+      web3.eth.getCode(contractAddress, initialBlockNumber + 1, function(err, code) {
         if (err) {
           return done(err);
         }
-        assert.notEqual(code, "0x0");
+        assert.notStrictEqual(code, "0x0");
         assert(code.length > 20); // Just because we don't know the actual code we're supposed to get back
         done();
       });

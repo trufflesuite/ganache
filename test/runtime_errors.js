@@ -62,6 +62,9 @@ function runTests(web3, provider, extraTests) {
         id: 1
       },
       function(err, result) {
+        if (err) {
+          return done(err);
+        }
         if (provider.options.vmErrorsOnRPCResponse) {
           // null & undefined are equivalent for equality tests, but I'm being
           // pedantic here for readability's sake
@@ -76,7 +79,7 @@ function runTests(web3, provider, extraTests) {
         assert(result.result !== null);
         assert(result.result !== undefined);
 
-        assert.equal(result.result.length, 66); // transaction hash
+        assert.strictEqual(result.result.length, 66); // transaction hash
         done();
       }
     );
@@ -100,6 +103,9 @@ function runTests(web3, provider, extraTests) {
         ]
       },
       function(err, response) {
+        if (err) {
+          return done(err);
+        }
         if (provider.options.vmErrorsOnRPCResponse) {
           // null & undefined are equivalent for equality tests, but I'm being
           // pedantic here for readability's sake
@@ -119,7 +125,7 @@ function runTests(web3, provider, extraTests) {
         assert(response.result !== null);
         assert(response.result !== undefined);
 
-        assert.equal(response.result.length, 66); // transaction hash
+        assert.strictEqual(response.result.length, 66); // transaction hash
 
         done();
       }
@@ -143,6 +149,9 @@ function runTests(web3, provider, extraTests) {
         ]
       },
       function(err, response) {
+        if (err) {
+          return done(err);
+        }
         if (provider.options.vmErrorsOnRPCResponse) {
           // null & undefined are equivalent for equality tests, but I'm being
           // pedantic here for readability's sake
@@ -181,6 +190,9 @@ function runTests(web3, provider, extraTests) {
         ]
       },
       function(err, response) {
+        if (err) {
+          return done(err);
+        }
         if (provider.options.vmErrorsOnRPCResponse) {
           // null & undefined are equivalent for equality tests, but I'm being
           // pedantic here for readability's sake
@@ -201,7 +213,9 @@ function runTests(web3, provider, extraTests) {
           assert(response.error === undefined);
           assert(
             response.result ===
-              "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000074d65737361676500000000000000000000000000000000000000000000000000"
+              "0x08c379a000000000000000000000000000000000000000000000000000000000000000" +
+              "2000000000000000000000000000000000000000000000000000000000000000074d6573" +
+              "7361676500000000000000000000000000000000000000000000000000"
           );
         }
 
@@ -246,11 +260,15 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
           ]
         },
         function(err, response) {
+          if (err) {
+            return done(err);
+          }
           let txHash = response.result;
 
           assert(response.error);
           assert(response.error.data[txHash]);
-          assert.equal(response.error.data[txHash].program_counter, 91); // magic number, will change if compiler changes.
+          // magic number, will change if compiler changes.
+          assert.strictEqual(to.number(response.error.data[txHash].program_counter), 91);
           done();
         }
       );

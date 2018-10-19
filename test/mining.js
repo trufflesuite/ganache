@@ -17,7 +17,7 @@ describe("Mining", function() {
     })
   );
   var accounts;
-  var snapshot_id;
+  var snapshotId;
   var badBytecode;
   var goodBytecode;
 
@@ -48,7 +48,7 @@ describe("Mining", function() {
       },
       function(err, res) {
         if (!err) {
-          snapshot_id = res.result;
+          snapshotId = res.result;
         }
         done(err);
       }
@@ -60,7 +60,7 @@ describe("Mining", function() {
       {
         jsonrpc: "2.0",
         method: "evm_revert",
-        params: [snapshot_id],
+        params: [snapshotId],
         id: new Date().getTime()
       },
       done
@@ -69,18 +69,18 @@ describe("Mining", function() {
 
   // Everything's a Promise to add in readibility.
   function getBlockNumber() {
-    return new Promise(function(accept, reject) {
+    return new Promise(function(resolve, reject) {
       web3.eth.getBlockNumber(function(err, number) {
         if (err) {
           return reject(err);
         }
-        accept(to.number(number));
+        resolve(to.number(number));
       });
     });
   }
 
   function startMining() {
-    return new Promise(function(accept, reject) {
+    return new Promise(function(resolve, reject) {
       web3.currentProvider.send(
         {
           jsonrpc: "2.0",
@@ -92,14 +92,14 @@ describe("Mining", function() {
           if (err) {
             return reject(err);
           }
-          accept();
+          resolve();
         }
       );
     });
   }
 
   function stopMining() {
-    return new Promise(function(accept, reject) {
+    return new Promise(function(resolve, reject) {
       web3.currentProvider.send(
         {
           jsonrpc: "2.0",
@@ -110,14 +110,14 @@ describe("Mining", function() {
           if (err) {
             return reject(err);
           }
-          accept();
+          resolve();
         }
       );
     });
   }
 
   function checkMining() {
-    return new Promise(function(accept, reject) {
+    return new Promise(function(resolve, reject) {
       web3.currentProvider.send(
         {
           jsonrpc: "2.0",
@@ -128,14 +128,14 @@ describe("Mining", function() {
           if (err) {
             return reject(err);
           }
-          accept(res.result);
+          resolve(res.result);
         }
       );
     });
   }
 
   function mineSingleBlock() {
-    return new Promise(function(accept, reject) {
+    return new Promise(function(resolve, reject) {
       web3.currentProvider.send(
         {
           jsonrpc: "2.0",
@@ -146,15 +146,15 @@ describe("Mining", function() {
           if (err) {
             return reject(err);
           }
-          assert.deepEqual(result.result, "0x0");
-          accept(result);
+          assert.deepStrictEqual(result.result, "0x0");
+          resolve(result);
         }
       );
     });
   }
 
   function queueTransaction(from, to, gasLimit, value, data) {
-    return new Promise(function(accept, reject) {
+    return new Promise(function(resolve, reject) {
       web3.eth.sendTransaction(
         {
           from: from,
@@ -167,38 +167,38 @@ describe("Mining", function() {
           if (err) {
             return reject(err);
           }
-          accept(tx);
+          resolve(tx);
         }
       );
     });
   }
 
   function getReceipt(tx) {
-    return new Promise(function(accept, reject) {
+    return new Promise(function(resolve, reject) {
       web3.eth.getTransactionReceipt(tx, function(err, result) {
         if (err) {
           return reject(err);
         }
-        accept(result);
+        resolve(result);
       });
     });
   }
 
   function getCode(address) {
-    return new Promise(function(accept, reject) {
+    return new Promise(function(resolve, reject) {
       web3.eth.getCode(address, function(err, result) {
         if (err) {
           return reject(err);
         }
-        accept(result);
+        resolve(result);
       });
     });
   }
 
   function compileSolidity(source) {
-    return new Promise(function(accept, reject) {
+    return new Promise(function(resolve, reject) {
       var result = solc.compile({ sources: { "Contract.sol": source } });
-      accept({ code: "0x" + result.contracts[Object.keys(result.contracts)[0]].bytecode });
+      resolve({ code: "0x" + result.contracts[Object.keys(result.contracts)[0]].bytecode });
     });
   }
 
@@ -228,7 +228,7 @@ describe("Mining", function() {
         return getReceipt(tx);
       })
       .then(function(receipt) {
-        assert.equal(receipt, null);
+        assert.strictEqual(receipt, null);
 
         return queueTransaction(accounts[0], accounts[1], 90000, web3.utils.toWei(new BN(3), "ether"));
       })
@@ -237,7 +237,7 @@ describe("Mining", function() {
         return getReceipt(tx);
       })
       .then(function(receipt) {
-        assert.equal(receipt, null);
+        assert.strictEqual(receipt, null);
 
         return startMining();
       })
@@ -245,12 +245,13 @@ describe("Mining", function() {
         return Promise.all([getReceipt(tx1), getReceipt(tx2)]);
       })
       .then(function(receipts) {
-        assert.equal(receipts.length, 2);
-        assert.notEqual(receipts[0], null);
-        assert.equal(receipts[0].transactionHash, tx1);
-        assert.notEqual(receipts[1], null);
-        assert.equal(receipts[1].transactionHash, tx2);
-        assert.equal(
+        console.log(receipts[0].transactionHash, tx1);
+        assert.strictEqual(receipts.length, 2);
+        assert.notStrictEqual(receipts[0], null);
+        assert.strictEqual(receipts[0].transactionHash, tx1);
+        assert.notStrictEqual(receipts[1], null);
+        assert.strictEqual(receipts[1].transactionHash, tx2);
+        assert.strictEqual(
           receipts[0].blockNumber,
           receipts[1].blockNumber,
           "Transactions should be mined in the same block."
@@ -259,7 +260,7 @@ describe("Mining", function() {
         return getBlockNumber();
       })
       .then(function(number) {
-        assert.equal(number, blockNumber + 1);
+        assert.strictEqual(number, blockNumber + 1);
       });
   });
 
@@ -283,7 +284,7 @@ describe("Mining", function() {
         return getReceipt(tx);
       })
       .then(function(receipt) {
-        assert.equal(receipt, null);
+        assert.strictEqual(receipt, null);
 
         return queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
       })
@@ -292,7 +293,7 @@ describe("Mining", function() {
         return getReceipt(tx);
       })
       .then(function(receipt) {
-        assert.equal(receipt, null);
+        assert.strictEqual(receipt, null);
 
         return startMining();
       })
@@ -300,12 +301,13 @@ describe("Mining", function() {
         return Promise.all([getReceipt(tx1), getReceipt(tx2)]);
       })
       .then(function(receipts) {
-        assert.equal(receipts.length, 2);
-        assert.notEqual(receipts[0], null);
-        assert.equal(receipts[0].transactionHash, tx1);
-        assert.notEqual(receipts[1], null);
-        assert.equal(receipts[1].transactionHash, tx2);
-        assert.notEqual(
+        console.log(receipts[1].transactionHash, tx2);
+        assert.strictEqual(receipts.length, 2);
+        assert.notStrictEqual(receipts[0], null);
+        assert.strictEqual(receipts[0].transactionHash, tx1);
+        assert.notStrictEqual(receipts[1], null);
+        assert.strictEqual(receipts[1].transactionHash, tx2);
+        assert.notStrictEqual(
           receipts[0].blockNumber,
           receipts[1].blockNumber,
           "Transactions should not be mined in the same block."
@@ -314,11 +316,12 @@ describe("Mining", function() {
         return getBlockNumber();
       })
       .then(function(number) {
-        assert.equal(number, blockNumber + 2);
+        assert.strictEqual(number, blockNumber + 2);
       });
   });
 
-  it("should mine one block when requested, and only one transaction, when two queued transactions together are larger than a single block", function() {
+  it("should mine one block when requested, and only one transaction, " +
+  "when two queued transactions together are larger than a single block", function() {
     // This is a very similar test to the above, except we don't start mining again,
     // we only mine one block by request.
 
@@ -337,7 +340,7 @@ describe("Mining", function() {
         return getReceipt(tx);
       })
       .then(function(receipt) {
-        assert.equal(receipt, null);
+        assert.strictEqual(receipt, null);
 
         return queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
       })
@@ -346,7 +349,7 @@ describe("Mining", function() {
         return getReceipt(tx);
       })
       .then(function(receipt) {
-        assert.equal(receipt, null);
+        assert.strictEqual(receipt, null);
 
         return mineSingleBlock();
       })
@@ -354,15 +357,16 @@ describe("Mining", function() {
         return Promise.all([getReceipt(tx1), getReceipt(tx2)]);
       })
       .then(function(receipts) {
-        assert.equal(receipts.length, 2);
-        assert.notEqual(receipts[0], null);
-        assert.equal(receipts[0].transactionHash, tx1);
-        assert.equal(receipts[1], null);
+        console.log(receipts[0]);
+        assert.strictEqual(receipts.length, 2);
+        assert.notStrictEqual(receipts[0], null);
+        assert.strictEqual(receipts[0].transactionHash, tx1);
+        assert.strictEqual(receipts[1], null);
 
         return getBlockNumber();
       })
       .then(function(number) {
-        assert.equal(number, blockNumber + 1);
+        assert.strictEqual(number, blockNumber + 1);
       });
   });
 
@@ -384,8 +388,6 @@ describe("Mining", function() {
   });
 
   it("should error via instamining when queued transaction throws a runtime errors", function(done) {
-    var tx1, tx2, blockNumber, bytecode, address;
-
     startMining()
       .then(function() {
         // This transaction should be processed immediately.
@@ -395,7 +397,7 @@ describe("Mining", function() {
         throw new Error("Execution should never get here as we expected `eth_sendTransaction` to throw an error");
       })
       .catch(function(err) {
-        if (err.message.indexOf("VM Exception while processing transaction") != 0) {
+        if (err.message.indexOf("VM Exception while processing transaction") !== 0) {
           return done(new Error("Received error we didn't expect: " + err));
         }
         // We got the error we wanted. Test passed!
@@ -404,21 +406,18 @@ describe("Mining", function() {
   });
 
   it("should error via evm_mine when queued transaction throws a runtime errors", function(done) {
-    var tx1, tx2, blockNumber, bytecode, address;
-
     stopMining()
       .then(function() {
         return queueTransaction(accounts[0], null, 3141592, 0, badBytecode);
       })
       .then(function(tx) {
-        tx1 = tx;
         return mineSingleBlock();
       })
       .then(function() {
         throw new Error("Execution should never get here as we expected `evm_mine` to throw an error");
       })
       .catch(function(err) {
-        if (err.message.indexOf("VM Exception while processing transaction") != 0) {
+        if (err.message.indexOf("VM Exception while processing transaction") !== 0) {
           return done(new Error("Received error we didn't expect: " + err));
         }
         // We got the error we wanted. Test passed!
@@ -426,9 +425,8 @@ describe("Mining", function() {
       });
   });
 
-  it("should error via evm_mine when multiple queued transactions throw runtime errors in a single block", function(done) {
-    var tx1, tx2, blockNumber, bytecode;
-
+  it("should error via evm_mine when multiple queued transactions throw runtime" +
+  " errors in a single block", function(done) {
     // Note: The two transactions queued in this test do not exceed the block gas limit
     // and thus should fit within a single block.
 
@@ -446,7 +444,7 @@ describe("Mining", function() {
         throw new Error("Execution should never get here as we expected `evm_mine` to throw an error");
       })
       .catch(function(err) {
-        if (err.message.indexOf("Multiple VM Exceptions while processing transactions") != 0) {
+        if (err.message.indexOf("Multiple VM Exceptions while processing transactions") !== 0) {
           return done(new Error("Received error we didn't expect: " + err));
         }
         // We got the error we wanted. Test passed!
@@ -454,9 +452,8 @@ describe("Mining", function() {
       });
   });
 
-  it("should error via miner_start when multiple queued transactions throw runtime errors in multiple blocks", function(done) {
-    var blockNumber, bytecode;
-
+  it("should error via miner_start when multiple queued transactions" +
+  " throw runtime errors in multiple blocks", function(done) {
     // Note: The two transactions queued in this test together DO exceed the block gas limit
     // and thus will fit in two blocks, one block each.
 
@@ -474,7 +471,7 @@ describe("Mining", function() {
         throw new Error("Execution should never get here as we expected `miner_start` to throw an error");
       })
       .catch(function(err) {
-        if (err.message.indexOf("Multiple VM Exceptions while processing transactions") != 0) {
+        if (err.message.indexOf("Multiple VM Exceptions while processing transactions") !== 0) {
           return done(new Error("Received error we didn't expect: " + err));
         }
         // We got the error we wanted. Test passed!
@@ -483,7 +480,7 @@ describe("Mining", function() {
   });
 
   it("even if we receive a runtime error, logs for successful transactions need to be processed", function(done) {
-    var tx1, tx2, blockNumber, bytecode;
+    var tx2;
 
     // Note: The two transactions queued in this test should exist within the same block.
 
@@ -492,7 +489,6 @@ describe("Mining", function() {
         return queueTransaction(accounts[0], null, 1000000, 0, badBytecode);
       })
       .then(function(tx) {
-        tx1 = tx;
         return queueTransaction(accounts[0], null, 1000000, 0, goodBytecode);
       })
       .then(function(tx) {
@@ -503,23 +499,24 @@ describe("Mining", function() {
         throw new Error("Execution should never get here as we expected `miner_start` to throw an error");
       })
       .catch(function(err) {
-        if (err.message.indexOf("VM Exception while processing transaction") != 0) {
+        if (err.message.indexOf("VM Exception while processing transaction") !== 0) {
           return done(new Error("Received error we didn't expect: " + err));
         }
         // We got the error we wanted. Now check to see if the transaction was processed correctly.
         getReceipt(tx2)
           .then(function(receipt) {
             // We should have a receipt for the second transaction - it should have been processed.
-            assert.notEqual(receipt, null);
+            assert.notStrictEqual(receipt, null);
             // It also should have logs.
-            assert.notEqual(receipt.logs.length, 0);
+            assert.notStrictEqual(receipt.logs.length, 0);
 
             // Now check that there's code at the address, which means it deployed successfully.
             return getCode(receipt.contractAddress);
           })
           .then(function(code) {
             // Convert hex to a big number and ensure it's not zero.
-            assert(web3.utils.toBN(code).eq(0) == false);
+            console.log(web3.utils.toBN(code).eq(0));
+            assert(web3.utils.toBN(code).eq(0) === false);
 
             // Hot diggety dog!
             done();
@@ -532,15 +529,15 @@ describe("Mining", function() {
       .then(function() {
         return checkMining();
       })
-      .then(function(is_mining) {
-        assert(!is_mining);
+      .then(function(isMining) {
+        assert(!isMining);
         return startMining();
       })
       .then(function() {
         return checkMining();
       })
-      .then(function(is_mining) {
-        assert(is_mining);
+      .then(function(isMining) {
+        assert(isMining);
       });
   });
 });

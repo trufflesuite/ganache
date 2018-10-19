@@ -1,6 +1,5 @@
 var BN = require("bn.js");
 var Ganache = require("../");
-var async = require("async");
 var Web3 = require("web3");
 var assert = require("assert");
 
@@ -78,7 +77,7 @@ describe("Checkpointing / Reverting", function() {
         value: web3.utils.toWei(new BN(1), "ether"),
         gas: 90000
       },
-      function(err, tx_hash) {
+      function(err, txHash) {
         if (err) {
           return done(err);
         }
@@ -116,15 +115,15 @@ describe("Checkpointing / Reverting", function() {
 
                 balance = parseFloat(web3.utils.fromWei(balance, "ether"));
 
-                assert(balance == startingBalance, "Should have reverted back to the starting balance");
+                assert(balance === startingBalance, "Should have reverted back to the starting balance");
 
                 // Now check that the receipt is gone.
-                web3.eth.getTransactionReceipt(tx_hash, function(err, receipt) {
+                web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
                   if (err) {
                     return done(err);
                   }
 
-                  assert.equal(receipt, null, "Receipt should be null as it should have been removed");
+                  assert.strictEqual(receipt, null, "Receipt should be null as it should have been removed");
 
                   done();
                 });

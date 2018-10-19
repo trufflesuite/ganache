@@ -22,15 +22,15 @@ function runTest(times, fn, callback) {
   });
 }
 
-function runAverage(title, number_of_runs, fn_times, fn, callback) {
-  var results = new Array(number_of_runs);
+function runAverage(title, numberOfRuns, fnTimes, fn, callback) {
+  var results = new Array(numberOfRuns);
 
   async.timesSeries(
-    number_of_runs,
+    numberOfRuns,
     function(n, next) {
       process.stdout.write(title + " " + (n + 1) + "...");
 
-      runTest(fn_times, fn, function(err, totalTime) {
+      runTest(fnTimes, fn, function(err, totalTime) {
         if (err) {
           return next(err);
         }
@@ -49,7 +49,7 @@ function runAverage(title, number_of_runs, fn_times, fn, callback) {
         return a + b;
       }, 0);
 
-      var average = sum / number_of_runs;
+      var average = sum / numberOfRuns;
 
       console.log("Average " + average / 1000 + " seconds");
 

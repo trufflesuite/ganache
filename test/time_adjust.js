@@ -44,6 +44,9 @@ describe("Time adjustment", function() {
 
   it("should mine the first block at the time provided", function(done) {
     web3.eth.getBlock(0, function(err, result) {
+      if (err) {
+        return done(err);
+      }
       // give ourselves a 25ms window for this to succeed
       let acceptableStartTime = (startTime / 1000) | 0;
       let acceptableEndTime = acceptableStartTime + 25;
@@ -96,7 +99,7 @@ describe("Time adjustment", function() {
         if (err) {
           return done(err);
         }
-        assert(block.timestamp == expectedMinedTimestamp);
+        assert(block.timestamp === expectedMinedTimestamp);
         done();
       });
     });
@@ -108,10 +111,12 @@ describe("Time adjustment", function() {
       if (err) {
         return done(err);
       }
-      var previousBlockTime = block.timestamp;
       var originalTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
 
       send("evm_snapshot", function(err, result) {
+        if (err) {
+          return done(err);
+        }
         // jump forward another 5 hours
         send("evm_increaseTime", [secondsToJump], function(err, result) {
           if (err) {
@@ -128,6 +133,9 @@ describe("Time adjustment", function() {
             }
 
             send("evm_revert", [1], function(err, result) {
+              if (err) {
+                return done(err);
+              }
               var revertedTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
               assert.equal(revertedTimeAdjustment, originalTimeAdjustment);
               done();

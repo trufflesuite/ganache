@@ -22,6 +22,6 @@
     "brace-style": ["error", "1tbs", {
       "allowSingleLine": false
     }],
-    "max-len": ["error", 120]
+    "max-len": ["error", 120, {"ignoreRegExpLiterals": true }]
   }
 }

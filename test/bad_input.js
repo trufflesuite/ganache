@@ -73,6 +73,9 @@ var tests = function(web3) {
       };
 
       provider.send(request, function(err, result) {
+        if (err) {
+          console.log(err);
+        }
         // We're supposed to get an error the first time. Let's assert we get the right one.
         // Note that if using the Ganache as a provider, err will be non-null when there's
         // an error. However, when using it as a server it won't be. In both cases, however,
@@ -107,6 +110,9 @@ var tests = function(web3) {
       };
 
       provider.send(request, function(err, result) {
+        if (err) {
+          console.log(err);
+        }
         // We're supposed to get an error the first time. Let's assert we get the right one.
         // Note that if using the Ganache as a provider, err will be non-null when there's
         // an error. However, when using it as a server it won't be. In both cases, however,
@@ -146,6 +152,9 @@ var tests = function(web3) {
         };
 
         provider.send(request, function(err, result) {
+          if (err) {
+            return done(err);
+          }
           // We're supposed to get an error the first time. Let's assert we get the right one.
           // Note that if using the Ganache as a provider, err will be non-null when there's
           // an error. However, when using it as a server it won't be. In both cases, however,

@@ -13,7 +13,10 @@ describe("Whisper", function(done) {
 
   it("should call get whisper version (shh_version)", function() {
     return web3.shh.getVersion(function(err, result) {
-      assert.equal(result, "2", "Whisper version should be 2");
+      if (err) {
+        return done(err);
+      }
+      assert.strictEqual(result, "2", "Whisper version should be 2");
     });
   });
 });

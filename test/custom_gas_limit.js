@@ -20,7 +20,7 @@ describe("Custom Gas Limit", function() {
       if (err) {
         return done(err);
       }
-      assert.deepEqual(block.gasLimit, 5000000);
+      assert.deepStrictEqual(block.gasLimit, 5000000);
       done();
     });
   });

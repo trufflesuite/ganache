@@ -114,15 +114,15 @@ describe("Contract Deployed on Main Chain After Fork", function() {
 
     // Ensure there's *something* there.
     const code = await mainWeb3.eth.getCode(contractAddress);
-    assert.notEqual(code, null);
-    assert.notEqual(code, "0x");
-    assert.notEqual(code, "0x0");
+    assert.notStrictEqual(code, null);
+    assert.notStrictEqual(code, "0x");
+    assert.notStrictEqual(code, "0x0");
   });
 
   it("should send 1 ether to the created contract, checked on the forked chain", async function() {
     const balance = await mainWeb3.eth.getBalance(contractAddress);
 
-    assert.equal(balance, mainWeb3.utils.toWei("1", "ether"));
+    assert.strictEqual(balance, mainWeb3.utils.toWei("1", "ether"));
   });
 
   after("Shutdown server", function(done) {

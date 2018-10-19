@@ -1,11 +1,8 @@
 var Web3 = require("web3");
-var Transaction = require("ethereumjs-tx");
-var utils = require("ethereumjs-util");
 var assert = require("assert");
 var Ganache = require("../index.js");
 var solc = require("solc");
 var fs = require("fs");
-var to = require("../lib/utils/to");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -68,12 +65,13 @@ describe("revert opcode", function() {
         return instance.methods.alwaysReverts(5).send({ from: testContext.accounts[0] });
       })
       .catch(function(err) {
-        assert.equal(err.results[err.hashes[0]].error, "revert", "Expected error result not returned.");
+        console.log(err.results[err.hashes[0]].error);
+        assert.strictEqual(err.results[err.hashes[0]].error, "revert", "Expected error result not returned.");
         return web3.eth.getTransactionReceipt(err.hashes[0]);
       })
       .then(function(receipt) {
-        assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
-        assert.equal(receipt.status, 0, "Reverted (failed) transactions should have a status of 0.");
+        assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
+        assert.strictEqual(receipt.status, 0, "Reverted (failed) transactions should have a status of 0.");
       });
   });
 });

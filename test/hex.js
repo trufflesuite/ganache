@@ -5,34 +5,34 @@ var to = require("../lib/utils/to.js");
 
 describe("to.rpcQuantityHexString", function() {
   it("should print '0x0' for input 0", function(done) {
-    assert.equal(to.rpcQuantityHexString(0), "0x0");
+    assert.strictEqual(to.rpcQuantityHexString(0), "0x0");
     done();
   });
 
   it("should print '0x0' for input '0'", function(done) {
-    assert.equal(to.rpcQuantityHexString("0"), "0x0");
+    assert.strictEqual(to.rpcQuantityHexString("0"), "0x0");
     done();
   });
 
   it("should print '0x0' for input '000'", function(done) {
-    assert.equal(to.rpcQuantityHexString("000"), "0x0");
+    assert.strictEqual(to.rpcQuantityHexString("000"), "0x0");
     done();
   });
 
   it("should print '0x0' for input '0x000'", function(done) {
-    assert.equal(to.rpcQuantityHexString("0x000"), "0x0");
+    assert.strictEqual(to.rpcQuantityHexString("0x000"), "0x0");
     done();
   });
 
   it("should print '0x20' for input '0x0020'", function(done) {
-    assert.equal(to.rpcQuantityHexString("0x0020"), "0x20");
+    assert.strictEqual(to.rpcQuantityHexString("0x0020"), "0x20");
     done();
   });
 });
 
 describe("to.rpcDataHexString", function() {
   it("should differentiate between a list of 0 items and a list of one 0", function(done) {
-    assert.notEqual(to.rpcDataHexString(Buffer.from("", "hex")), to.rpcDataHexString(Buffer.from("00", "hex")));
+    assert.notStrictEqual(to.rpcDataHexString(Buffer.from("", "hex")), to.rpcDataHexString(Buffer.from("00", "hex")));
     done();
   });
 });
@@ -44,7 +44,9 @@ function noLeadingZeros(method, result, path) {
 
   if (typeof result === "string") {
     if (/^0x/.test(result)) {
-      assert.equal(result, to.rpcQuantityHexString(result), `Field ${path} in ${method} response has leading zeroes.`);
+      assert.strictEqual(
+        result, to.rpcQuantityHexString(result), `Field ${path} in ${method} response has leading zeroes.`
+      );
     }
   } else if (typeof result === "object") {
     for (var key in result) {
@@ -88,6 +90,10 @@ describe("JSON-RPC Response", function() {
     };
 
     provider.sendAsync(request, function(err, result) {
+      if (err) {
+        return done(err);
+      }
+
       noLeadingZeros("eth_getTransactionCount", result);
 
       request = {
@@ -116,6 +122,10 @@ describe("JSON-RPC Response", function() {
         };
 
         provider.sendAsync(request, function(err, result) {
+          if (err) {
+            return done(err);
+          }
+
           noLeadingZeros("eth_getTransactionCount", result);
           done();
         });

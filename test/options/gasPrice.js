@@ -19,7 +19,7 @@ function setUp(options = { mnemonic }, contractName = "Example") {
   };
 
   before("setup web3", async function() {
-    context.provider = new Ganache.provider(context.options);
+    context.provider = Ganache.provider(context.options);
     context.web3 = new Web3(context.provider);
   });
 
@@ -53,7 +53,7 @@ describe("options:gasPrice", function() {
       let tx = await context.web3.eth.getTransaction(transactionHash);
       let gasPrice = tx.gasPrice;
 
-      assert.deepEqual(to.hex(gasPrice), to.hex(assignedGasPrice));
+      assert.deepStrictEqual(to.hex(gasPrice), to.hex(assignedGasPrice));
     });
   });
 
@@ -63,7 +63,7 @@ describe("options:gasPrice", function() {
     it("should be possible to set a zero gas price", async function() {
       let assignedGasPrice = context.provider.engine.manager.state.gasPriceVal;
 
-      assert.deepEqual(assignedGasPrice, "0x0");
+      assert.deepStrictEqual(to.hex(assignedGasPrice), "0x0");
 
       let receipt = await context.instance.methods.setValue("0x10").send({ from: context.accounts[0], gas: 3141592 });
 
@@ -71,7 +71,7 @@ describe("options:gasPrice", function() {
       let tx = await context.web3.eth.getTransaction(transactionHash);
       let gasPrice = tx.gasPrice;
 
-      assert.deepEqual(to.hex(gasPrice), to.hex(assignedGasPrice));
+      assert.deepStrictEqual(to.hex(gasPrice), to.hex(assignedGasPrice));
     });
   });
 });

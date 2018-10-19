@@ -13,7 +13,7 @@ process.removeAllListeners("uncaughtException");
 let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
 describe("Gas", function() {
-  var provider = new Ganache.provider({ mnemonic });
+  var provider = Ganache.provider({ mnemonic });
   var web3 = new Web3(provider);
   var accounts;
 
@@ -136,19 +136,24 @@ describe("Gas", function() {
 
       const estimateGasInstance = await deployContract();
       const uintsa = await estimateGasInstance.methods.uints(1).call();
-      assert.equal(uintsa, "0", "initial value is not correct");
+      console.log(uintsa);
+      assert.strictEqual(uintsa, "0", "initial value is not correct");
 
       const receipta = await estimateGasInstance.methods.store(1).send(options);
-      assert.equal(receipta.status, true, "storing value did not work");
+      assert.strictEqual(receipta.status, true, "storing value did not work");
+      console.log(receipta);
 
       const uintsb = await estimateGasInstance.methods.uints(1).call();
-      assert.equal(uintsb, "1", "set value is incorrect");
+      assert.strictEqual(uintsb, "1", "set value is incorrect");
+      console.log(uintsb);
 
       const receiptb = await estimateGasInstance.methods.clear().send(options);
-      assert.equal(receiptb.status, true, "clearing value did not work");
+      assert.strictEqual(receiptb.status, true, "clearing value did not work");
+      console.log(receiptb);
 
       const uintsc = await estimateGasInstance.methods.uints(1).call();
-      assert.equal(uintsc, "0", "cleared value is not correct");
+      assert.strictEqual(uintsc, "0", "cleared value is not correct");
+      console.log(uintsc);
     });
   });
 
@@ -194,9 +199,10 @@ describe("Gas", function() {
           return fn.estimateGas(options).then(function(estimate) {
             options.gas = transactionGas;
             return fn.send(options).then(function(receipt) {
-              assert.equal(receipt.status, 1, "Transaction must succeed");
-              assert.equal(receipt.gasUsed, estimate, "gasUsed");
-              assert.equal(receipt.cumulativeGasUsed, estimate, "estimate");
+              console.log(receipt.status);
+              assert.strictEqual(receipt.status, 1, "Transaction must succeed");
+              assert.strictEqual(receipt.gasUsed, estimate, "gasUsed");
+              assert.strictEqual(receipt.cumulativeGasUsed, estimate, "estimate");
             });
           });
         });
@@ -208,8 +214,9 @@ describe("Gas", function() {
         .deploy({ data: estimateGasContractData })
         .estimateGas({ from: accounts[1] })
         .then(function(gasEstimate) {
-          assert.deepEqual(deploymentReceipt.gasUsed, gasEstimate);
-          assert.deepEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
+          console.log(deploymentReceipt.gasUsed, gasEstimate);
+          assert.deepStrictEqual(deploymentReceipt.gasUsed, gasEstimate);
+          assert.deepStrictEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
         });
     });
 

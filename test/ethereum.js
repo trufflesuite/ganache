@@ -13,7 +13,7 @@ describe("Ethereum", function(done) {
 
   it("should get ethereum version (eth_protocolVersion)", function() {
     return web3.eth.getProtocolVersion().then((result) => {
-      assert.equal(result, "63", "Network Version should be 63");
+      assert.strictEqual(result, "63", "Network Version should be 63");
     });
   });
 });

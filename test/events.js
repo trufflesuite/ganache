@@ -3,19 +3,17 @@ var Web3WsProvider = require("web3-providers-ws");
 var Ganache = require("../index.js");
 var assert = require("assert");
 var solc = require("solc");
-var async = require("async");
-var util = require("util");
 
 var source =
-  "                      \
-pragma solidity ^0.4.24;            \
-contract EventTest {                \
-  event ExampleEvent(uint indexed first, uint indexed second);   \
-                                    \
-  function triggerEvent(uint _first, uint _second) public { \
-    emit ExampleEvent(_first, _second);      \
-  }                                 \
-}";
+  "                      \n" +
+"pragma solidity ^0.4.24;            \n" +
+"contract EventTest {                \n" +
+"  event ExampleEvent(uint indexed first, uint indexed second);   \n" +
+"                                    \n" +
+"  function triggerEvent(uint _first, uint _second) public { \n" +
+"    emit ExampleEvent(_first, _second);      \n" +
+"  }                                 \n" +
+"}";
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -23,7 +21,6 @@ process.removeAllListeners("uncaughtException");
 
 var tests = function(web3, EventTest) {
   var accounts;
-  var EventTest;
   var instance;
 
   describe("events", function() {
@@ -71,7 +68,8 @@ var tests = function(web3, EventTest) {
       var event = instance.events.ExampleEvent({ filter: { first: expectedValue } });
 
       var listener = function(result) {
-        assert.equal(result.returnValues.first, expectedValue);
+        console.log(result.returnValues.first, expectedValue);
+        assert.strictEqual(result.returnValues.first, expectedValue);
         done();
       };
 
@@ -80,10 +78,7 @@ var tests = function(web3, EventTest) {
 
       instance.methods
         .triggerEvent(1, 6)
-        .send({ from: accounts[0], gas: 3141592 })
-        .catch((err) => {
-          cleanup(err);
-        });
+        .send({ from: accounts[0], gas: 3141592 });
     });
 
     // NOTE! This test relies on the events triggered in the tests above.
@@ -93,29 +88,22 @@ var tests = function(web3, EventTest) {
       var event = instance.events.ExampleEvent({ filter: { first: expectedValue }, fromBlock: 0 });
 
       var listener = function(result) {
-        assert.equal(result.returnValues.first, expectedValue);
+        console.log(result.returnValues.first, expectedValue);
+        assert.strictEqual(result.returnValues.first, expectedValue);
         done();
       };
 
-      var errHandler = (err) => {
-        cleanup(err);
-      };
       event.once("data", listener);
-      event.once("error", errHandler);
 
       instance.methods
         .triggerEvent(2, 6)
-        .send({ from: accounts[0], gas: 3141592 })
-        .catch((err) => {
-          cleanup(err);
-        });
+        .send({ from: accounts[0], gas: 3141592 });
     });
 
     // NOTE! This test relies on the events triggered in the tests above.
     it("accepts an array of topics as a filter", function(done) {
       var expectedValueA = 3;
       var expectedValueB = 4;
-      var expectedValue = expectedValueA;
 
       var event = instance.events.ExampleEvent({ filter: { first: [expectedValueA, expectedValueB] }, fromBlock: 0 });
 
@@ -127,7 +115,7 @@ var tests = function(web3, EventTest) {
         assert(waitingFor.hasOwnProperty(result.returnValues.first));
         delete waitingFor[result.returnValues.first];
 
-        if (Object.keys(waitingFor).length == 0) {
+        if (Object.keys(waitingFor).length === 0) {
           event.removeAllListeners();
           done();
         }
@@ -150,7 +138,6 @@ var tests = function(web3, EventTest) {
 
     it("only returns logs for the expected address", function(done) {
       var expectedValue = 1;
-      var event;
 
       EventTest.deploy({ data: EventTest._data })
         .send({ from: accounts[0], gas: 3141592 })
@@ -163,7 +150,8 @@ var tests = function(web3, EventTest) {
           var event = newInstance.events.ExampleEvent({ filter: { first: expectedValue }, fromBlock: 0 });
 
           event.on("data", function(result) {
-            assert(result.returnValues.first == expectedValue);
+            console.log(result.returnValues.first, expectedValue);
+            assert(result.returnValues.first === expectedValue);
             // event.removeAllListeners()
             done();
           });
@@ -191,17 +179,17 @@ var tests = function(web3, EventTest) {
           if (err) {
             return done(err);
           }
-          let filter_id = result.result;
 
           let listener = function(err, result) {
-            if (result == undefined) {
+            console.log(result);
+            if (result === undefined) {
               // If there's only one argument, it's the result, not an error
               result = err;
             } else if (err) {
               return done(err);
             }
-            let first_changes = result.params.result.hash;
-            assert.equal(first_changes.length, 66); // Ensure we have a hash
+            let firstChanges = result.params.result.hash;
+            assert.strictEqual(firstChanges.length, 66); // Ensure we have a hash
             provider.removeAllListeners("data");
             done();
           };
@@ -266,7 +254,7 @@ var tests = function(web3, EventTest) {
         .then(() => {
           // have to finish somehow...
           setTimeout(() => {
-            event.removeAllListeners;
+            event.removeAllListeners();
             done();
           }, 250);
         });

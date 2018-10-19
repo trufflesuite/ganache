@@ -38,7 +38,7 @@ var contract = {
   runtimeBinary: "0x" + result.contracts[":Example"].runtimeBytecode,
   position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
   expected_default_value: 5,
-  call_data: {
+  callData: {
     gasPrice: "0x01", // This is important, as passing it has exposed errors in the past.
     to: null, // set by test
     data: "0x3fa4f245"
@@ -72,7 +72,7 @@ var tests = function(web3) {
 
   describe("eth_accounts", function() {
     it("should return 10 addresses", function(done) {
-      assert.deepEqual(accounts.length, 10);
+      assert.deepStrictEqual(accounts.length, 10);
       done();
     });
   });
@@ -81,19 +81,19 @@ var tests = function(web3) {
     it("should return an empty array", function() {
       return web3.eth.getCompilers().then(function(compilers) {
         assert(Array.isArray(compilers));
-        assert.equal(0, compilers.length);
+        assert.strictEqual(0, compilers.length);
       });
     });
   });
 
   describe("eth_blockNumber", function() {
     it("should return initial block number of zero", function(done) {
-      var number = web3.eth.getBlockNumber(function(err, result) {
+      web3.eth.getBlockNumber(function(err, result) {
         if (err) {
           return done(err);
         }
 
-        assert.deepEqual(result, 0);
+        assert.deepStrictEqual(result, 0);
         done();
       });
 
@@ -108,7 +108,7 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.equal(coinbase, accounts[0]);
+        assert.strictEqual(coinbase, accounts[0]);
         done();
       });
     });
@@ -121,7 +121,7 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.deepEqual(result, true);
+        assert.deepStrictEqual(result, true);
         done();
       });
     });
@@ -134,7 +134,7 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.deepEqual(result, 0);
+        assert.deepStrictEqual(result, 0);
         done();
       });
     });
@@ -147,7 +147,7 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.equal(to.hexWithZeroPadding(result), to.hexWithZeroPadding(2000000000));
+        assert.strictEqual(to.hexWithZeroPadding(result), to.hexWithZeroPadding(2000000000));
         done();
       });
     });
@@ -160,7 +160,7 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.deepEqual(result, "100000000000000000000");
+        assert.deepStrictEqual(result, "100000000000000000000");
         done();
       });
     });
@@ -171,7 +171,7 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.equal("0x" + result.toString(16), "0x0");
+        assert.strictEqual("0x" + result.toString(16), "0x0");
         done();
       });
     });
@@ -192,7 +192,13 @@ var tests = function(web3) {
           nonce: "0x0000000000000000",
           sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           logsBloom:
-            "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000",
           transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
           stateRoot: "0x7caba99698b405652a6bcb1038efa16db54b3338af71fa832a0b99a3e6c344bc",
           receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
@@ -208,12 +214,12 @@ var tests = function(web3) {
           uncles: []
         };
 
-        assert.deepEqual(block, expectedFirstBlock);
+        assert.deepStrictEqual(block, expectedFirstBlock);
 
         var now = new Date().getTime();
         var then = block.timestamp * 1000; // block.timestamp is in seconds.
 
-        assert.equal(then.toString().length, now.toString().length, "Invalid timestamp length");
+        assert.strictEqual(then.toString().length, now.toString().length, "Invalid timestamp length");
         assert(then < now, "Time returned was greater than the current time");
         done();
       });
@@ -225,7 +231,7 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.deepEqual(block, null);
+        assert.deepStrictEqual(block, null);
         done();
       });
     });
@@ -237,21 +243,21 @@ var tests = function(web3) {
           data: contract.binary,
           gas: 3141592
         },
-        function(err, tx_hash) {
+        function(err, txHash) {
           if (err) {
             return done(err);
           }
 
           // Assume it was processed correctly.
-          assert.deepEqual(tx_hash.length, 66);
+          assert.deepStrictEqual(txHash.length, 66);
 
           web3.eth.getBlock("latest", true, function(err, block) {
             if (err) {
               return done(err);
             }
 
-            assert.equal(block.transactions.length, 1, "Latest block should have one transaction");
-            assert.equal(block.transactions[0].hash, tx_hash, "Transaction hashes don't match");
+            assert.strictEqual(block.transactions.length, 1, "Latest block should have one transaction");
+            assert.strictEqual(block.transactions[0].hash, txHash, "Transaction hashes don't match");
 
             // Retest, with transaction only as hash
             web3.eth.getBlock("latest", false, function(err, block) {
@@ -259,8 +265,8 @@ var tests = function(web3) {
                 return done(err);
               }
 
-              assert.equal(block.transactions.length, 1, "Latest block should have one transaction");
-              assert.equal(block.transactions[0], tx_hash, "Transaction hashes don't match");
+              assert.strictEqual(block.transactions.length, 1, "Latest block should have one transaction");
+              assert.strictEqual(block.transactions[0], txHash, "Transaction hashes don't match");
 
               done();
             });
@@ -283,7 +289,7 @@ var tests = function(web3) {
             return done(err);
           }
 
-          assert.deepEqual(blockByHash, blockByNumber);
+          assert.deepStrictEqual(blockByHash, blockByNumber);
           done();
         });
       });
@@ -298,8 +304,11 @@ var tests = function(web3) {
           return done(err);
         }
         web3.eth.getBlockTransactionCount(0, function(err, blockTransactionCount) {
-          assert.equal(block.transactions.length, blockTransactionCount, "Block transaction count should be 0.");
-          assert.equal(0, blockTransactionCount, "Block transaction count should be 0.");
+          if (err) {
+            return done(err);
+          }
+          assert.strictEqual(block.transactions.length, blockTransactionCount, "Block transaction count should be 0.");
+          assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
           done();
         });
       });
@@ -316,12 +325,12 @@ var tests = function(web3) {
           data: contract.binary,
           gas: 3141592
         },
-        function(err, tx_hash) {
+        function(err, txHash) {
           if (err) {
             return done(err);
           }
           // Assume it was processed correctly.
-          assert.deepEqual(tx_hash.length, 66);
+          assert.deepStrictEqual(txHash.length, 66);
 
           web3.eth.getBlock("latest", true, function(err, block) {
             if (err) {
@@ -331,8 +340,12 @@ var tests = function(web3) {
               if (err) {
                 return done(err);
               }
-              assert.equal(block.transactions.length, blockTransactionCount, "Block transaction count should be 1.");
-              assert.equal(1, blockTransactionCount, "Block transaction count should be 1.");
+              assert.strictEqual(
+                block.transactions.length,
+                blockTransactionCount,
+                "Block transaction count should be 1."
+              );
+              assert.strictEqual(1, blockTransactionCount, "Block transaction count should be 1.");
               done();
             });
           });
@@ -345,7 +358,7 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-        assert.equal(0, blockTransactionCount, "Block transaction count should be 0.");
+        assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
         done();
       });
     });
@@ -366,7 +379,7 @@ var tests = function(web3) {
             if (err) {
               return done(err);
             }
-            assert.equal(
+            assert.strictEqual(
               txCountByHash,
               txCountByNumber,
               "Txn count for block retrieved by hash should equal count retrieved by number."
@@ -420,7 +433,7 @@ var tests = function(web3) {
         var pub = utils.ecrecover(msgHash, v, r, s);
         var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
         addr = to.hex(addr);
-        assert.deepEqual(addr, accounts[0]);
+        assert.deepStrictEqual(addr, accounts[0]);
       });
     });
 
@@ -438,7 +451,7 @@ var tests = function(web3) {
         var pub = utils.ecrecover(msgHash, v, r, s);
         var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
         addr = to.hex(addr);
-        assert.deepEqual(addr, accounts[0]);
+        assert.deepStrictEqual(addr, accounts[0]);
       });
     });
 
@@ -503,8 +516,6 @@ var tests = function(web3) {
           contents: "Hello, Bob!"
         }
       };
-      var msg = utils.toBuffer("asparagus");
-      var msgHash = utils.hashPersonalMessage(msg);
 
       signingWeb3.currentProvider.sendAsync(
         {
@@ -517,10 +528,11 @@ var tests = function(web3) {
           if (err) {
             return done(err);
           }
-          console.log(response);
-          assert.equal(
+          console.log(response.result);
+          assert.strictEqual(
             response.result,
-            "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
+            "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d" +
+            "07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
           );
           done();
         }
@@ -536,7 +548,6 @@ var tests = function(web3) {
 
   describe("eth_sendRawTransaction", () => {
     it("should fail with bad nonce (too low)", function(done) {
-      var provider = web3.currentProvider;
       var transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
@@ -558,7 +569,6 @@ var tests = function(web3) {
     });
 
     it("should fail with bad nonce (too high)", function(done) {
-      var provider = web3.currentProvider;
       var transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
@@ -580,7 +590,6 @@ var tests = function(web3) {
     });
 
     it("should succeed with right nonce (1)", function(done) {
-      var provider = web3.currentProvider;
       var transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
@@ -598,7 +607,6 @@ var tests = function(web3) {
     });
 
     it("should respond with correct txn hash", function(done) {
-      var provider = web3.currentProvider;
       var transaction = new Transaction({
         value: "0x00",
         gasLimit: "0x5208",
@@ -611,7 +619,7 @@ var tests = function(web3) {
       transaction.sign(secretKeyBuffer);
 
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        assert.equal(result, to.hex(transaction.hash()));
+        assert.strictEqual(result, to.hex(transaction.hash()));
         done(err);
       });
     });
@@ -636,7 +644,7 @@ var tests = function(web3) {
             return done(err);
           }
 
-          assert.deepEqual(hash.length, 66);
+          assert.deepStrictEqual(hash.length, 66);
           initialTransaction = hash;
           web3.eth.getTransactionReceipt(hash, function(err, receipt) {
             if (err) {
@@ -658,19 +666,20 @@ var tests = function(web3) {
 
         contractAddress = receipt.contractAddress;
 
-        assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
-        assert.notEqual(contractAddress, null, "Transaction did not create a contract");
+        assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
+        assert.notStrictEqual(contractAddress, null, "Transaction did not create a contract");
         done();
       });
     });
 
-    it("should return null if asked for a receipt for a nonexistent transaction (eth_getTransactionReceipt)", function(done) {
+    it("should return null if asked for a receipt for a nonexistent transaction" +
+    " (eth_getTransactionReceipt)", function(done) {
       web3.eth.getTransactionReceipt("0xdeadbeef", function(err, receipt) {
         if (err) {
           return done(err);
         }
 
-        assert.equal(receipt, null, "Transaction receipt should be null");
+        assert.strictEqual(receipt, null, "Transaction receipt should be null");
         done();
       });
     });
@@ -680,7 +689,8 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-        assert.equal(result, contract.runtimeBinary);
+        console.log(contract.runtimeBinary);
+        assert.strictEqual(result, contract.runtimeBinary);
         done();
       });
     });
@@ -690,17 +700,17 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-        assert.equal(result, 1);
+        assert.strictEqual(result, "1");
         done();
       });
     });
 
     it("should be able to read data via a call (eth_call)", function(done) {
-      var call_data = contract.call_data;
-      call_data.to = contractAddress;
-      call_data.from = accounts[0];
+      var callData = contract.callData;
+      callData.to = contractAddress;
+      callData.from = accounts[0];
 
-      var starting_block_number = null;
+      var startingBlockNumber = null;
 
       // TODO: Removing this callback hell would be nice.
       web3.eth.getBlockNumber(function(err, result) {
@@ -708,20 +718,20 @@ var tests = function(web3) {
           return done(err);
         }
 
-        starting_block_number = result;
+        startingBlockNumber = result;
 
-        web3.eth.call(call_data, function(err, result) {
+        web3.eth.call(callData, function(err, result) {
           if (err) {
             return done(err);
           }
-          assert.equal(to.number(result), 5);
+          assert.strictEqual(to.number(result), 5);
 
           web3.eth.getBlockNumber(function(err, result) {
             if (err) {
               return done(err);
             }
 
-            assert.equal(result, starting_block_number, "eth_call increased block count when it shouldn't have");
+            assert.strictEqual(result, startingBlockNumber, "eth_call increased block count when it shouldn't have");
             done();
           });
         });
@@ -729,19 +739,19 @@ var tests = function(web3) {
     });
 
     it("should get back a runtime error on a bad call (eth_call)", function(done) {
-      var call_data = _.cloneDeep(contract.call_data);
-      call_data.to = contractAddress;
-      call_data.from = accounts[0];
+      var callData = _.cloneDeep(contract.callData);
+      callData.to = contractAddress;
+      callData.from = accounts[0];
 
       // TODO: Removing this callback hell would be nice.
-      web3.eth.estimateGas(call_data, function(err, result) {
+      web3.eth.estimateGas(callData, function(err, result) {
         if (err) {
           return done(err);
         }
         // set a low gas limit to force a runtime error
-        call_data.gas = result - 1;
+        callData.gas = result - 1;
 
-        web3.eth.call(call_data, function(err, result) {
+        web3.eth.call(callData, function(err, result) {
           // should have received an error
           assert(err, "did not return runtime error");
           assert(
@@ -758,37 +768,37 @@ var tests = function(web3) {
 
       // Assert precondition: Ensure from address isn't in the accounts list.
       accounts.forEach(function(account) {
-        assert.notEqual(
+        assert.notStrictEqual(
           from,
           account,
           "Test preconditions not met: from address must not be within the accounts list, please rerun"
         );
       });
 
-      var call_data = contract.call_data;
-      call_data.to = contractAddress;
-      call_data.from = from;
+      var callData = contract.callData;
+      callData.to = contractAddress;
+      callData.from = from;
 
-      web3.eth.call(call_data, function(err, result) {
+      web3.eth.call(callData, function(err, result) {
         if (err) {
           return done(err);
         }
-        assert.equal(to.number(result), 5);
+        assert.strictEqual(to.number(result), 5);
 
         done();
       });
     });
 
     it("should be able to make a call when no address is listed (eth_call)", function(done) {
-      var call_data = contract.call_data;
-      call_data.to = contractAddress;
-      delete call_data.from;
+      var callData = contract.callData;
+      callData.to = contractAddress;
+      delete callData.from;
 
-      web3.eth.call(call_data, function(err, result) {
+      web3.eth.call(callData, function(err, result) {
         if (err) {
           return done(err);
         }
-        assert.equal(to.number(result), 5);
+        assert.strictEqual(to.number(result), 5);
 
         done();
       });
@@ -798,6 +808,9 @@ var tests = function(web3) {
       var oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
       var oracleOutput = solc.compile(oracleSol).contracts[":Oracle"];
       web3.eth.personal.unlockAccount(accounts[0], "password", function(err, result) {
+        if (err) {
+          return done(err);
+        }
         var contract = new web3.eth.Contract(JSON.parse(oracleOutput.interface));
         contract
           .deploy({
@@ -820,7 +833,8 @@ var tests = function(web3) {
                 if (err) {
                   return done(err);
                 }
-                assert.equal(blockhash, block.hash);
+                console.log(blockhash, block.hash);
+                assert.strictEqual(blockhash, block.hash);
                 done();
               });
             });
@@ -829,11 +843,11 @@ var tests = function(web3) {
     });
 
     it("should be able to estimate gas of a transaction (eth_estimateGas)", function(done) {
-      var tx_data = contract.transaction_data;
-      tx_data.to = contractAddress;
-      tx_data.from = accounts[0];
+      var txData = contract.transaction_data;
+      txData.to = contractAddress;
+      txData.from = accounts[0];
 
-      var starting_block_number = null;
+      var startingBlockNumber = null;
 
       // TODO: Removing this callback hell would be nice.
       web3.eth.getBlockNumber(function(err, result) {
@@ -841,20 +855,22 @@ var tests = function(web3) {
           return done(err);
         }
 
-        starting_block_number = result;
+        startingBlockNumber = result;
 
-        web3.eth.estimateGas(tx_data, function(err, result) {
+        web3.eth.estimateGas(txData, function(err, result) {
           if (err) {
             return done(err);
           }
-          assert.equal(result, 27693);
+          assert.strictEqual(result, 27693);
 
           web3.eth.getBlockNumber(function(err, result) {
             if (err) {
               return done(err);
             }
 
-            assert.equal(result, starting_block_number, "eth_estimateGas increased block count when it shouldn't have");
+            assert.strictEqual(
+              result, startingBlockNumber, "eth_estimateGas increased block count when it shouldn't have"
+            );
             done();
           });
         });
@@ -862,47 +878,43 @@ var tests = function(web3) {
     });
 
     it("should be able to estimate gas from an account not within the accounts list (eth_estimateGas)", function(done) {
-      var tx_data = contract.transaction_data;
-      tx_data.to = contractAddress;
-      tx_data.from = "0x1234567890123456789012345678901234567890";
+      var txData = contract.transaction_data;
+      txData.to = contractAddress;
+      txData.from = "0x1234567890123456789012345678901234567890";
 
-      var starting_block_number = null;
-
-      web3.eth.estimateGas(tx_data, function(err, result) {
+      web3.eth.estimateGas(txData, function(err, result) {
         if (err) {
           return done(err);
         }
-        assert.equal(result, 27693);
+        assert.strictEqual(result, 27693);
         done();
       });
     });
 
     it("should be able to estimate gas when no account is listed (eth_estimateGas)", function(done) {
-      var tx_data = contract.transaction_data;
-      tx_data.to = contractAddress;
-      delete tx_data.from;
+      var txData = contract.transaction_data;
+      txData.to = contractAddress;
+      delete txData.from;
 
-      var starting_block_number = null;
-
-      web3.eth.estimateGas(tx_data, function(err, result) {
+      web3.eth.estimateGas(txData, function(err, result) {
         if (err) {
           return done(err);
         }
-        assert.equal(result, 27693);
+        assert.strictEqual(result, 27693);
         done();
       });
     });
 
     it("should be able to send a state changing transaction (eth_sendTransaction)", function(done) {
-      var tx_data = contract.transaction_data;
-      tx_data.to = contractAddress;
-      tx_data.from = accounts[0];
+      var txData = contract.transaction_data;
+      txData.to = contractAddress;
+      txData.from = accounts[0];
 
-      var call_data = contract.call_data;
-      call_data.from = accounts[0];
-      call_data.to = contractAddress;
+      var callData = contract.callData;
+      callData.from = accounts[0];
+      callData.to = contractAddress;
 
-      web3.eth.sendTransaction(tx_data, function(err, tx) {
+      web3.eth.sendTransaction(txData, function(err, tx) {
         if (err) {
           return done(err);
         }
@@ -916,16 +928,18 @@ var tests = function(web3) {
             return done(err);
           }
 
-          assert.equal(receipt.logs.length, 1, "Receipt had wrong amount of logs");
-          assert.equal(receipt.logs[0].blockHash, receipt.blockHash, "Logs blockhash doesn't match block blockhash");
+          assert.strictEqual(receipt.logs.length, 1, "Receipt had wrong amount of logs");
+          assert.strictEqual(
+            receipt.logs[0].blockHash, receipt.blockHash, "Logs blockhash doesn't match block blockhash"
+          );
 
-          // console.log(call_data);
-          web3.eth.call(call_data, function(err, result) {
+          // console.log(callData);
+          web3.eth.call(callData, function(err, result) {
             if (err) {
               return done(err);
             }
 
-            assert.equal(to.number(result), 25);
+            assert.strictEqual(to.number(result), 25);
             done();
           });
         });
@@ -937,59 +951,59 @@ var tests = function(web3) {
     // describe block.
     it("should read data via a call at a specified blockNumber (eth_call)", function(done) {
       var startingBlockNumber = null;
-      var call_data = contract.call_data;
+      var callData = contract.callData;
 
       web3.eth
         .getBlockNumber()
         .then(function(result) {
           startingBlockNumber = result;
-          return web3.eth.call(call_data);
+          return web3.eth.call(callData);
         })
         .then(function(result) {
-          assert.equal(to.number(result), 25, "value retrieved from latest block should be 25");
-          return web3.eth.call(call_data, contractCreationBlockNumber);
+          assert.strictEqual(to.number(result), 25, "value retrieved from latest block should be 25");
+          return web3.eth.call(callData, contractCreationBlockNumber);
         })
         .then(function(result) {
-          assert.equal(to.number(result), 5, "value retrieved from contract creation block should be 5");
+          assert.strictEqual(to.number(result), 5, "value retrieved from contract creation block should be 5");
           return web3.eth.getBlockNumber();
         })
         .then(function(result) {
-          assert.equal(result, startingBlockNumber, "eth_call w/defaultBlock increased block count");
-          return web3.eth.call(call_data);
+          assert.strictEqual(result, startingBlockNumber, "eth_call w/defaultBlock increased block count");
+          return web3.eth.call(callData);
         })
         .then(function(result) {
-          assert.equal(to.number(result), 25, "stateTrie root was corrupted by defaultBlock call");
+          assert.strictEqual(to.number(result), 25, "stateTrie root was corrupted by defaultBlock call");
           done();
         });
     });
 
     it("should read data via a call when specified blockNumber is \"earliest\" (eth_call)", function(done) {
-      var call_data = contract.call_data;
+      var callData = contract.callData;
 
-      web3.eth.call(call_data, "earliest").then(function(result) {
-        assert.equal(to.number(result), 0, "value retrieved from earliest block should be zero");
+      web3.eth.call(callData, "earliest").then(function(result) {
+        assert.strictEqual(to.number(result), 0, "value retrieved from earliest block should be zero");
         done();
       });
     });
 
     it("should read data via a call when specified blockNumber is \"pending\" (eth_call)", function(done) {
-      var call_data = contract.call_data;
+      var callData = contract.callData;
 
-      web3.eth.call(call_data, "pending").then(function(result) {
-        assert.equal(to.number(result), 25, "value retrieved from pending block should be 25");
+      web3.eth.call(callData, "pending").then(function(result) {
+        assert.strictEqual(to.number(result), 25, "value retrieved from pending block should be 25");
         done();
       });
     });
 
     it("should error when reading data via a call at a non-existent blockNumber (eth_call)", function(done) {
       var nonExistentBlock;
-      var call_data = contract.call_data;
+      var callData = contract.callData;
 
       web3.eth
         .getBlockNumber()
         .then(function(result) {
           nonExistentBlock = result + 1;
-          return web3.eth.call(call_data, nonExistentBlock);
+          return web3.eth.call(callData, nonExistentBlock);
         })
         .then(function(result) {
           assert.fail();
@@ -1001,15 +1015,16 @@ var tests = function(web3) {
         });
     });
 
-    it("should only be able to send an unsigned state changing transaction from an address within the accounts list (eth_sendTransaction)", function(done) {
+    it("should only be able to send an unsigned state changing transaction from" +
+    " an address within the accounts list (eth_sendTransaction)", function(done) {
       var badAddress = "0x1234567890123456789012345678901234567890";
 
-      var tx_data = {};
-      tx_data.to = "0x1111111111000000000011111111110000000000";
-      tx_data.from = badAddress;
-      tx_data.value = "0x1";
+      var txData = {};
+      txData.to = "0x1111111111000000000011111111110000000000";
+      txData.from = badAddress;
+      txData.value = "0x1";
 
-      web3.eth.sendTransaction(tx_data, function(err, result) {
+      web3.eth.sendTransaction(txData, function(err, result) {
         if (err) {
           assert(
             /sender account not recognized/.test(err.message),
@@ -1024,21 +1039,30 @@ var tests = function(web3) {
 
     it("should get the data from storage (eth_getStorageAt) with padded hex", function(done) {
       web3.eth.getStorageAt(contractAddress, contract.position_of_value, function(err, result) {
-        assert.equal(to.number(result), 25);
+        if (err) {
+          return done(err);
+        }
+        assert.strictEqual(to.number(result), 25);
         done();
       });
     });
 
     it("should get the data from storage (eth_getStorageAt) with unpadded hex", function(done) {
       web3.eth.getStorageAt(contractAddress, "0x0", function(err, result) {
-        assert.equal(to.number(result), 25);
+        if (err) {
+          return done(err);
+        }
+        assert.strictEqual(to.number(result), 25);
         done();
       });
     });
 
     it("should get the data from storage (eth_getStorageAt) with number", function(done) {
       web3.eth.getStorageAt(contractAddress, 0, function(err, result) {
-        assert.equal(to.number(result), 25);
+        if (err) {
+          return done(err);
+        }
+        assert.strictEqual(to.number(result), 25);
         done();
       });
     });
@@ -1104,8 +1128,8 @@ var tests = function(web3) {
         blockHash = receipt.blockHash;
         blockNumber = receipt.blockNumber;
 
-        assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
-        assert.notEqual(contractAddress, null, "Transaction did not create a contract");
+        assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
+        assert.notStrictEqual(contractAddress, null, "Transaction did not create a contract");
         done();
       });
     });
@@ -1116,8 +1140,8 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.notEqual(result, null, "Transaction result shouldn't be null");
-        assert.equal(result.hash, initialTransaction, "Resultant hash isn't what we expected");
+        assert.notStrictEqual(result, null, "Transaction result shouldn't be null");
+        assert.strictEqual(result.hash, initialTransaction, "Resultant hash isn't what we expected");
 
         done();
       });
@@ -1132,7 +1156,8 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.equal(result, null, "Receipt should be null");
+        console.log(result);
+        assert.strictEqual(result, null, "Receipt should be null");
 
         done();
       });
@@ -1143,8 +1168,8 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-        assert.notEqual(result, null);
-        assert.notEqual(result, "0x");
+        assert.notStrictEqual(result, null);
+        assert.notStrictEqual(result, "0x");
 
         // NOTE: We can't test the code returned is correct because the results
         // of getCode() are *supposed* to be different than the code that was
@@ -1160,9 +1185,9 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.equal(result.hash, initialTransaction);
-        assert.equal(result.blockNumber, blockNumber);
-        assert.equal(result.blockHash, blockHash);
+        assert.strictEqual(result.hash, initialTransaction);
+        assert.strictEqual(result.blockNumber, blockNumber);
+        assert.strictEqual(result.blockHash, blockHash);
         done();
       });
     });
@@ -1174,26 +1199,28 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.equal(result, null);
+        assert.strictEqual(result, null);
 
         done();
       });
     });
 
-    it("should be able to get the transaction from the block (eth_getTransactionByBlockNumberAndIndex)", function(done) {
+    it("should be able to get the transaction from the block " +
+    "(eth_getTransactionByBlockNumberAndIndex)", function(done) {
       web3.eth.getTransactionFromBlock(blockNumber, 0, function(err, result) {
         if (err) {
           return done(err);
         }
 
-        assert.equal(result.hash, initialTransaction);
-        assert.equal(result.blockNumber, blockNumber);
-        assert.equal(result.blockHash, blockHash);
+        assert.strictEqual(result.hash, initialTransaction);
+        assert.strictEqual(result.blockNumber, blockNumber);
+        assert.strictEqual(result.blockHash, blockHash);
         done();
       });
     });
 
-    it("should throw error for transactions that don't exist in block (eth_getTransactionByBlockNumberAndIndex)", function(done) {
+    it("should throw error for transactions that don't exist in block " +
+    "(eth_getTransactionByBlockNumberAndIndex)", function(done) {
       web3.eth.getTransactionFromBlock(blockNumber, 3, function(err, result) {
         // We want an error because there is no transaction with id 3.
         if (err) {
@@ -1212,7 +1239,8 @@ var tests = function(web3) {
           return done(err);
         }
 
-        assert.equal(result, "0x0");
+        console.log(result);
+        assert.strictEqual(result, "0x0");
         done();
       });
     });
@@ -1248,10 +1276,13 @@ var tests = function(web3) {
           method: "miner_stop"
         },
         function(err, result) {
-          var tx_data = {};
-          tx_data.to = accounts[1];
-          tx_data.from = accounts[0];
-          tx_data.value = "0x1";
+          if (err) {
+            return done(err);
+          }
+          var txData = {};
+          txData.to = accounts[1];
+          txData.from = accounts[0];
+          txData.value = "0x1";
 
           // we don't use web3.eth.sendTransaction here because it gets huffy waiting for a receipt,
           // then winds up w/ an unhandled rejection on server.close later on
@@ -1260,7 +1291,7 @@ var tests = function(web3) {
               id: new Date().getTime(),
               jsonrpc: "2.0",
               method: "eth_sendTransaction",
-              params: [tx_data]
+              params: [txData]
             },
             function(err, result) {
               if (err) {
@@ -1273,7 +1304,7 @@ var tests = function(web3) {
                   return done(err);
                 }
 
-                assert.equal(receipt, null);
+                assert.strictEqual(receipt, null);
                 web3.currentProvider.send(
                   {
                     id: new Date().getTime(),
@@ -1305,6 +1336,9 @@ var tests = function(web3) {
           method: "miner_stop"
         },
         function(err, result) {
+          if (err) {
+            return done(err);
+          }
           web3.currentProvider.send(
             {
               id: new Date().getTime(),
@@ -1313,12 +1347,15 @@ var tests = function(web3) {
               params: [1]
             },
             function(err, result) {
-              var tx_data = {};
-              tx_data.to = accounts[1];
-              tx_data.from = accounts[0];
-              tx_data.value = 0x1;
+              if (err) {
+                return done(err);
+              }
+              var txData = {};
+              txData.to = accounts[1];
+              txData.from = accounts[0];
+              txData.value = 0x1;
 
-              web3.eth.sendTransaction(tx_data, function(err, tx) {
+              web3.eth.sendTransaction(txData, function(err, tx) {
                 if (err) {
                   return done(err);
                 }
@@ -1327,7 +1364,7 @@ var tests = function(web3) {
                   if (err) {
                     return done(err);
                   }
-                  assert.notEqual(receipt, null); // i.e. receipt exists, so transaction was mined
+                  assert.notStrictEqual(receipt, null); // i.e. receipt exists, so transaction was mined
                   done();
                 });
               });
@@ -1345,6 +1382,9 @@ var tests = function(web3) {
           method: "miner_stop"
         },
         function(err, result) {
+          if (err) {
+            return done(err);
+          }
           web3.currentProvider.send(
             {
               id: new Date().getTime(),
@@ -1353,12 +1393,15 @@ var tests = function(web3) {
               params: []
             },
             function(err, result) {
-              var tx_data = {};
-              tx_data.to = accounts[1];
-              tx_data.from = accounts[0];
-              tx_data.value = 0x1;
+              if (err) {
+                return done(err);
+              }
+              var txData = {};
+              txData.to = accounts[1];
+              txData.from = accounts[0];
+              txData.value = 0x1;
 
-              web3.eth.sendTransaction(tx_data, function(err, tx) {
+              web3.eth.sendTransaction(txData, function(err, tx) {
                 if (err) {
                   return done(err);
                 }
@@ -1367,7 +1410,7 @@ var tests = function(web3) {
                   if (err) {
                     return done(err);
                   }
-                  assert.notEqual(receipt, null); // i.e. receipt exists, so transaction was mined
+                  assert.notStrictEqual(receipt, null); // i.e. receipt exists, so transaction was mined
                   done();
                 });
               });
@@ -1398,7 +1441,9 @@ var tests = function(web3) {
             return done(result.error);
           }
 
-          assert.equal(result.result, web3.utils.sha3(input));
+          console.log(result.result);
+          // web3.utils.sha3 returns string
+          assert.strictEqual(result.result, web3.utils.sha3(input));
           done();
         }
       );
@@ -1414,10 +1459,11 @@ var tests = function(web3) {
 
         var dateAsInt = new Date().getTime() + "";
         var strResult = to.number(result) + "";
-        assert.equal(
+        assert.strictEqual(
           strResult.length,
           dateAsInt.length,
-          `net_version result, ${result}, doesn't appear to be similar in length the current time as an integer, ${dateAsInt}`
+          `net_version result, ${result}` +
+           `doesn't appear to be similar in length the current time as an integer, ${dateAsInt}`
         );
         done();
       });
@@ -1430,7 +1476,7 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-        assert.notEqual(result.toLowerCase().match("0x[0-9a-f]{39}"), null, "Invalid address received");
+        assert.notStrictEqual(result.toLowerCase().match("0x[0-9a-f]{39}"), null, "Invalid address received");
         done();
       });
     });
@@ -1449,7 +1495,7 @@ var tests = function(web3) {
           if (err) {
             return done(err);
           }
-          assert.equal(
+          assert.strictEqual(
             result.result,
             "0x14791697260e4c9a71f18484c9f997b308e59325",
             "Raw account not imported correctly"
@@ -1466,7 +1512,7 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-        assert.equal(result.length, 13);
+        assert.strictEqual(result.length, 13);
         done();
       });
     });
@@ -1478,7 +1524,7 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-        assert.equal(result, true);
+        assert.strictEqual(result, true);
         done();
       });
     });
@@ -1490,7 +1536,7 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-        assert.equal(result, true);
+        assert.strictEqual(result, true);
         done();
       });
     });
@@ -1498,7 +1544,11 @@ var tests = function(web3) {
 
   /* describe("personal_sendTransaction", function() {
     it("should send transaction", function(done) {
-      web3.eth.sendTransaction({value: web3.utils.toWei('5', 'ether'), from: accounts[0], to: personalAccount }, function(err, result){
+      web3.eth.sendTransaction({
+        value: web3.utils.toWei('5', 'ether'),
+        from: accounts[0],
+        to: personalAccount
+      }, function(err, result){
         if (err) return done(err)
 
         web3.eth.personal.sendTransaction({
@@ -1554,6 +1604,9 @@ describe("HTTP Server:", function(done) {
     });
 
     server.listen(port, function(err) {
+      if (err) {
+        return done(err);
+      }
       web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
       done();
     });
@@ -1579,8 +1632,10 @@ describe("WebSockets Server:", function(done) {
       // so that the runtime errors on call test passes
     });
     server.listen(port, function(err) {
+      if (err) {
+        return done(err);
+      }
       var provider = new Web3WsProvider("ws://localhost:" + port);
-      var Web3 = require("web3");
       web3.setProvider(provider);
       done();
     });

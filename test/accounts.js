@@ -4,7 +4,7 @@ var Ganache = require("../index.js");
 var assert = require("assert");
 
 describe("Accounts", function() {
-  var expected_address = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
+  var expectedAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
   var mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 
   it("should respect the BIP99 mnemonic", function(done) {
@@ -20,7 +20,7 @@ describe("Accounts", function() {
         return done(err);
       }
 
-      assert(accounts[0].toLowerCase(), expected_address.toLowerCase());
+      assert(accounts[0].toLowerCase(), expectedAddress.toLowerCase());
       done();
     });
   });
@@ -36,7 +36,7 @@ describe("Accounts", function() {
 
     web3.eth.sendTransaction(
       {
-        from: expected_address,
+        from: expectedAddress,
         to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
         value: web3.utils.toWei(new BN(1), "ether"),
         gasLimit: 90000
@@ -64,13 +64,13 @@ describe("Accounts", function() {
       Ganache.provider({
         mnemonic: mnemonic,
         secure: true,
-        unlocked_accounts: [expected_address]
+        unlocked_accounts: [expectedAddress]
       })
     );
 
     web3.eth.sendTransaction(
       {
-        from: expected_address,
+        from: expectedAddress,
         to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
         value: web3.utils.toWei(new BN(1), "ether"),
         gasLimit: 90000
@@ -97,7 +97,7 @@ describe("Accounts", function() {
 
     web3.eth.sendTransaction(
       {
-        from: expected_address,
+        from: expectedAddress,
         to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
         value: web3.utils.toWei(new BN(1), "ether"),
         gasLimit: 90000
@@ -113,37 +113,37 @@ describe("Accounts", function() {
   });
 
   it("should unlock accounts even if private key isn't managed by the testrpc (impersonation)", function() {
-    var second_address = "0x1234567890123456789012345678901234567890";
+    var secondAddress = "0x1234567890123456789012345678901234567890";
 
     var web3 = new Web3();
     web3.setProvider(
       Ganache.provider({
         mnemonic: mnemonic,
         secure: true,
-        unlocked_accounts: [0, second_address]
+        unlocked_accounts: [0, secondAddress]
       })
     );
 
     // Set up: give second address some ether
     return web3.eth
       .sendTransaction({
-        from: expected_address,
-        to: second_address,
+        from: expectedAddress,
+        to: secondAddress,
         value: web3.utils.toWei(new BN(10), "ether"),
         gasLimit: 90000
       })
       .then(() => {
         // Now we should be able to send a transaction from second address without issue.
         return web3.eth.sendTransaction({
-          from: second_address,
-          to: expected_address,
+          from: secondAddress,
+          to: expectedAddress,
           value: web3.utils.toWei(new BN(5), "ether"),
           gasLimit: 90000
         });
       })
       .then((tx) => {
         // And for the heck of it let's check the balance just to make sure it went through
-        return web3.eth.getBalance(second_address);
+        return web3.eth.getBalance(secondAddress);
       })
       .then((balance) => {
         var balanceInEther = web3.utils.fromWei(new BN(balance), "ether");
@@ -161,19 +161,19 @@ describe("Accounts", function() {
   });
 
   it("errors when we try to sign a transaction from an account we're impersonating", function() {
-    var second_address = "0x1234567890123456789012345678901234567890";
+    var secondAddress = "0x1234567890123456789012345678901234567890";
 
     var web3 = new Web3();
     web3.setProvider(
       Ganache.provider({
         mnemonic: mnemonic,
         secure: true,
-        unlocked_accounts: [0, second_address]
+        unlocked_accounts: [0, secondAddress]
       })
     );
 
     return web3.eth
-      .sign("some data", second_address)
+      .sign("some data", secondAddress)
       .then((result) => {
         assert.fail("Expected an error while signing when not managing the private key");
       })
@@ -230,7 +230,7 @@ describe("Accounts", function() {
       }
 
       function checkBalance(account) {
-        return new Promise(function(accept, reject) {
+        return new Promise(function(resolve, reject) {
           web3.eth.getBalance(accounts[0], function(err, balance) {
             if (err) {
               return reject(err);
@@ -238,8 +238,8 @@ describe("Accounts", function() {
 
             var balanceInEther = web3.utils.fromWei(balance, "Ether");
 
-            assert.equal(balanceInEther, 1.23456);
-            return accept(balance);
+            assert.strictEqual(balanceInEther, "1.23456");
+            return resolve(balance);
           });
         });
       }
@@ -253,7 +253,7 @@ describe("Accounts", function() {
           returnVal = checkBalance(account);
         }
 
-        if (index == accounts.length - 1) {
+        if (index === accounts.length - 1) {
           returnVal.then(done()).catch((err) => {
             done(err);
           });

@@ -25,7 +25,7 @@ describe("Unlimited Contract Size", function() {
   });
 
   describe("Disallow Unlimited Contract Size", function() {
-    var provider = new Ganache.provider({
+    var provider = Ganache.provider({
       mnemonic,
       allowUnlimitedContractSize: false,
       gasLimit: 20000000
@@ -53,13 +53,13 @@ describe("Unlimited Contract Size", function() {
           done(new Error("succeeded deployment when it should have failed"));
         })
         .catch(function(error) {
-          done();
+          done(error);
         });
     });
   });
 
   describe("Allow Unlimited Contract Size", function() {
-    var provider = new Ganache.provider({
+    var provider = Ganache.provider({
       mnemonic,
       allowUnlimitedContractSize: true,
       gasLimit: 20000000

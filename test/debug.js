@@ -64,7 +64,8 @@ describe("Debug", function() {
         return debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
       })
       .then((value) => {
-        assert.equal(value, 26);
+        console.log(value);
+        assert.strictEqual(value, 26);
 
         // Set the hash to trace to the transaction we made, so we know preconditions
         // are set correctly.
@@ -83,13 +84,14 @@ describe("Debug", function() {
       })
       .then((value) => {
         // Now that it's 85, we can trace the transaction that set it to 26.
-        assert.equal(value, expectedValueBeforeTrace);
+        console.log(value);
+        assert.strictEqual(value, expectedValueBeforeTrace);
       });
   });
 
   it("should trace a successful transaction without changing state", function() {
     // We want to trace the transaction that sets the value to 26
-    return new Promise((accept, reject) => {
+    return new Promise((resolve, reject) => {
       provider.send(
         {
           jsonrpc: "2.0",
@@ -114,35 +116,33 @@ describe("Debug", function() {
             if (op.stack.length > 0) {
               // check formatting of stack
               // formatting was broken when updating to ethereumjs-vm v2.3.3
-              assert.equal(op.stack[0].length, 64);
-              assert.notEqual(op.stack[0].substr(0, 2), "0x");
+              assert.strictEqual(op.stack[0].length, 64);
+              console.log(op.stack[0].substr(0, 2));
+              assert.notStrictEqual(op.stack[0].substr(0, 2), "0x");
               break;
             }
           }
           var lastop = result.structLogs[result.structLogs.length - 1];
 
-          assert.equal(lastop.op, "STOP");
-          assert.equal(lastop.gasCost, 1);
-          assert.equal(lastop.pc, 145);
-          assert.equal(
+          console.log(lastop);
+          assert.strictEqual(lastop.op, "STOP");
+          assert.strictEqual(lastop.gasCost, 1);
+          assert.strictEqual(lastop.pc, 145);
+          assert.strictEqual(
             lastop.storage["0000000000000000000000000000000000000000000000000000000000000000"],
             "000000000000000000000000000000000000000000000000000000000000001a"
           );
-          assert.equal(
+          assert.strictEqual(
             lastop.storage["0000000000000000000000000000000000000000000000000000000000000001"],
             "000000000000000000000000000000000000000000000000000000000000001f"
           );
 
-          accept();
+          resolve();
         }
       );
     }).then(() => {
       // Now let's make sure rerunning this transaction trace didn't change state
       return debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
-    });
-    then((value) => {
-      // Did it change state?
-      assert.equal(value, expectedValueBeforeTrace);
     });
   });
 });

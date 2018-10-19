@@ -41,7 +41,7 @@ var runTests = function(providerInit) {
   describe("Persistence", function() {
     var web3 = new Web3();
     var accounts;
-    var tx_hash;
+    var txHash;
     var provider;
 
     before("init provider", function(done) {
@@ -73,7 +73,7 @@ var runTests = function(providerInit) {
           if (err) {
             return done(err);
           }
-          tx_hash = hash;
+          txHash = hash;
           done();
         }
       );
@@ -86,7 +86,7 @@ var runTests = function(providerInit) {
           return done(err);
         }
 
-        assert(res == 1);
+        assert(res === 1);
 
         // Close the first provider now that we've gotten where we need to be.
         // Note: we specifically close the provider so we can read from the same db.
@@ -108,7 +108,7 @@ var runTests = function(providerInit) {
         if (err) {
           return done(err);
         }
-        assert(result == 1);
+        assert(result === 1);
         done();
       });
     });
@@ -123,13 +123,13 @@ var runTests = function(providerInit) {
     });
 
     it("should have a receipt for the previous transaction", function(done) {
-      web3.eth.getTransactionReceipt(tx_hash, function(err, receipt) {
+      web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
         if (err) {
           return done(err);
         }
 
-        assert.notEqual(receipt, null, "Receipt shouldn't be null!");
-        assert.equal(receipt.transactionHash, tx_hash);
+        assert.notStrictEqual(receipt, null, "Receipt shouldn't be null!");
+        assert.strictEqual(receipt.transactionHash, txHash);
         done();
       });
     });
@@ -146,10 +146,12 @@ var runTests = function(providerInit) {
   });
 };
 
-describe("Default DB", function() {
+describe("Default DB", function(done) {
   // initialize a persistant provider
   temp.mkdir("testrpc-db-", function(err, dirPath) {
-    var db_path = dirPath;
+    if (err) {
+      return done(err);
+    }
     var providerInit = function(cb) {
       provider = Ganache.provider({
         db_path: dirPath,

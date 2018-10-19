@@ -1,5 +1,4 @@
 var Web3 = require("web3");
-var utils = require("ethereumjs-util");
 var assert = require("assert");
 var Ganache = require("../index.js");
 
@@ -16,7 +15,7 @@ describe("Custom Gas Price", function() {
       if (err) {
         return done(err);
       }
-      assert.equal(parseFloat(result), 15);
+      assert.strictEqual(parseFloat(result), 15);
       done();
     });
   });
@@ -29,7 +28,7 @@ describe("Custom Gas Price", function() {
       if (err) {
         return done(err);
       }
-      assert.equal(parseFloat(result), 15);
+      assert.strictEqual(parseFloat(result), 15);
       done();
     });
   });

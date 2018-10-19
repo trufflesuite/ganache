@@ -1,7 +1,5 @@
 var Ganache = require("../index.js");
 var solc = require("solc");
-var to = require("../lib/utils/to.js");
-var async = require("async");
 var Web3 = require("web3");
 var fs = require("fs");
 var assert = require("assert");
@@ -35,9 +33,6 @@ describe("Forking using a Provider", function() {
   var mainWeb3;
   var forkedAccounts;
   var contractAddress;
-
-  var forkBlockNumber;
-  var initialDeployTransactionHash;
 
   before("set up test data", function() {
     this.timeout(5000);
@@ -90,9 +85,6 @@ describe("Forking using a Provider", function() {
           return done(err);
         }
 
-        // Save this for a later test.
-        initialDeployTransactionHash = tx;
-
         forkedWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
           if (err) {
             return done(err);
@@ -106,9 +98,9 @@ describe("Forking using a Provider", function() {
             }
 
             // Ensure there's *something* there.
-            assert.notEqual(code, null);
-            assert.notEqual(code, "0x");
-            assert.notEqual(code, "0x0");
+            assert.notStrictEqual(code, null);
+            assert.notStrictEqual(code, "0x");
+            assert.notStrictEqual(code, "0x0");
 
             done();
           });
@@ -137,9 +129,9 @@ describe("Forking using a Provider", function() {
       }
 
       // Ensure there's *something* there.
-      assert.notEqual(code, null);
-      assert.notEqual(code, "0x");
-      assert.notEqual(code, "0x0");
+      assert.notStrictEqual(code, null);
+      assert.notStrictEqual(code, "0x");
+      assert.notStrictEqual(code, "0x0");
 
       done();
     });

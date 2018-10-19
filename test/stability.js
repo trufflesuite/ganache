@@ -8,17 +8,9 @@ var pify = require("pify");
 
 var regex = matchers.regex;
 
-var logger = {
-  log: function(message) {
-    // console.log(message);
-  }
-};
-
 describe("stability", function(done) {
   var web3 = new Web3();
   var provider;
-  var port = 12345;
-  var server;
   var accounts;
 
   before("Initialize the provider", function() {
@@ -48,7 +40,7 @@ describe("stability", function(done) {
         throw new Error("Callback called too many times");
       }
 
-      if (err || received == expected) {
+      if (err || received === expected) {
         return done(err);
       }
     };
@@ -68,8 +60,6 @@ describe("stability", function(done) {
 
   it("should be able to handle batch transactions", function(done) {
     var expected = 5;
-    var received = 0;
-
     var request = [];
 
     for (var i = 0; i < expected; i++) {
@@ -138,7 +128,7 @@ describe("stability", function(done) {
       assert.deepEqual(
         err.message,
         regex(
-          /Incorrect number of arguments\. Method \'evm_mine\' requires between \d+ and \d+ arguments\. Request specified \d+ arguments: \[[^\]]*\]\./
+          /Incorrect number of arguments\. Method 'evm_mine' requires between \d+ and \d+ arguments\. Request specified \d+ arguments: \[[^\]]*\]\./
         )
       );
     }); // nothing to check from here, if the promise rejects, test fails
@@ -172,8 +162,10 @@ describe("stability", function(done) {
       });
 
       var blockchain = provider.manager.state.blockchain;
-      blockchain.vm.stateManager.checkpoint(); // processCall or processBlock
-      blockchain.stateTrie.get(utils.toBuffer(accounts[0]), function() {}); // getCode (or any function that calls trie.get)
+      // processCall or processBlock
+      blockchain.vm.stateManager.checkpoint();
+      // getCode (or any function that calls trie.get)
+      blockchain.stateTrie.get(utils.toBuffer(accounts[0]), function() {});
       blockchain.vm.stateManager.revert(function() {
         done();
       }); // processCall or processBlock
@@ -186,11 +178,18 @@ describe("stability", function(done) {
 
       var blockchain = provider.manager.state.blockchain;
       blockchain.vm.stateManager.checkpoint(); // processCall #1
-      // processNextBlock triggered by interval mining which at some point calls vm.stateManager.commit() and blockchain.putBlock()
+      // processNextBlock triggered by interval mining which at some point calls
+      // vm.stateManager.commit() and blockchain.putBlock()
       blockchain.processNextBlock(function(err, tx, results) {
+        if (err) {
+          return done(err);
+        }
         blockchain.vm.stateManager.revert(function() {
           // processCall #1 finishes
           blockchain.latestBlock(function(err, latestBlock) {
+            if (err) {
+              return done(err);
+            }
             blockchain.stateTrie.root = latestBlock.header.stateRoot; // getCode #1 (or any function with this logic)
             web3.eth.call({}, function() {
               done();

@@ -1,5 +1,4 @@
 var Web3 = require("web3");
-var assert = require("assert");
 var Ganache = require("../index.js");
 var fs = require("fs");
 var path = require("path");
@@ -23,9 +22,6 @@ describe("Transaction rejection", function() {
   var estimateGasContractData;
   var estimateGasContractAbi;
   var EstimateGasContract;
-  var EstimateGasContractAddress;
-  var estimateGasInstance;
-  var deploymentReceipt;
   var estimateGasContractAddress;
   var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
 
@@ -53,15 +49,11 @@ describe("Transaction rejection", function() {
     EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
     return EstimateGasContract.deploy({ data: estimateGasContractData })
       .send({ from: accounts[0], gas: 3141592 })
-      .on("receipt", function(receipt) {
-        deploymentReceipt = receipt;
-      })
       .then(function(instance) {
         // TODO: ugly workaround - not sure why this is necessary.
         if (!instance._requestManager.provider) {
           instance._requestManager.setProvider(web3.eth._provider);
         }
-        estimateGasInstance = instance;
         estimateGasContractAddress = to.hex(instance.options.address);
       });
   });
@@ -133,7 +125,9 @@ describe("Transaction rejection", function() {
         to: estimateGasContractAddress,
         gas: to.hex(3141592),
         data:
-          "0x91ea8a0554696d000000000000000000000000000000000000000000000000000000000041206772656174206775790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005"
+          "0x91ea8a0554696d0000000000000000000000000000000000000000000000000" +
+          "00000000041206772656174206775790000000000000000000000000000000000" +
+          "000000000000000000000000000000000000000000000000000000000000000000000005"
       },
       paramsOverride
     );
@@ -147,6 +141,9 @@ describe("Transaction rejection", function() {
 
     // don't send with web3 because it'll inject its own checks
     provider.send(request, (err, response) => {
+      if (err) {
+        return done(err);
+      }
       // cyclomatic complexity? what's that? :-(
       if (response.error) {
         if (response.error.message) {
@@ -164,16 +161,15 @@ describe("Transaction rejection", function() {
         web3.eth
           .getTransactionReceipt(response.result)
           .then((result) => {
-            if (to.number(result.status) == 0) {
+            if (to.number(result.status) === 0) {
               return done(
                 new Error("TX rejections should return error, but returned receipt with zero status instead")
               );
             } else {
               return done(
                 new Error(
-                  `TX should have rejected prior to running. Instead transaction ran successfully (receipt.status == ${to.number(
-                    result.status
-                  )})`
+                  `TX should have rejected prior to running. Instead transaction ran successfully (receipt.status == 
+                    ${to.number(result.status)})`
                 )
               );
             }
