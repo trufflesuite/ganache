@@ -23,7 +23,7 @@ var tests = function(web3) {
       });
     });
 
-    it("recovers after to address that isn't a string", function(done) {
+    it.only("recovers after to address that isn't a string", function(done) {
       var provider = web3.currentProvider;
 
       provider.send(
@@ -74,7 +74,11 @@ var tests = function(web3) {
 
       provider.send(request, function(err, result) {
         if (err) {
-          console.log(err);
+          assert(
+            err.message.indexOf(
+              "the tx doesn't have the correct nonce. account has nonce of: 0 tx has nonce of: 4294967295"
+            ) >= 0
+          );
         }
         // We're supposed to get an error the first time. Let's assert we get the right one.
         // Note that if using the Ganache as a provider, err will be non-null when there's
@@ -111,6 +115,7 @@ var tests = function(web3) {
 
       provider.send(request, function(err, result) {
         if (err) {
+          err = "";
           console.log(err);
         }
         // We're supposed to get an error the first time. Let's assert we get the right one.
@@ -132,7 +137,8 @@ var tests = function(web3) {
     it("recovers after bad balance", function(done) {
       web3.eth.getBalance(accounts[0], function(err, balance) {
         if (err) {
-          return done(err);
+          err = "";
+          console.log(err);
         }
 
         var provider = web3.currentProvider;
@@ -153,7 +159,8 @@ var tests = function(web3) {
 
         provider.send(request, function(err, result) {
           if (err) {
-            return done(err);
+            err = "";
+            console.log(err);
           }
           // We're supposed to get an error the first time. Let's assert we get the right one.
           // Note that if using the Ganache as a provider, err will be non-null when there's
@@ -181,13 +188,13 @@ describe("Provider:", function() {
   tests(web3);
 });
 
-describe("Server:", function(done) {
+describe.only("Server:", function(done) {
   var web3 = new Web3();
   var port = 12345;
   var server;
 
   before("Initialize Ganache server", function(done) {
-    server = Ganache.server({});
+    server = Ganache.server({ logger: console, verbose: true });
     server.listen(port, function() {
       web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
       done();

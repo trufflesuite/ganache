@@ -68,7 +68,6 @@ var tests = function(web3, EventTest) {
       var event = instance.events.ExampleEvent({ filter: { first: expectedValue } });
 
       var listener = function(result) {
-        console.log(result.returnValues.first, expectedValue);
         assert.strictEqual(result.returnValues.first, expectedValue);
         done();
       };
@@ -88,7 +87,6 @@ var tests = function(web3, EventTest) {
       var event = instance.events.ExampleEvent({ filter: { first: expectedValue }, fromBlock: 0 });
 
       var listener = function(result) {
-        console.log(result.returnValues.first, expectedValue);
         assert.strictEqual(result.returnValues.first, expectedValue);
         done();
       };
@@ -150,7 +148,6 @@ var tests = function(web3, EventTest) {
           var event = newInstance.events.ExampleEvent({ filter: { first: expectedValue }, fromBlock: 0 });
 
           event.on("data", function(result) {
-            console.log(result.returnValues.first, expectedValue);
             assert(result.returnValues.first === expectedValue);
             // event.removeAllListeners()
             done();
@@ -181,7 +178,6 @@ var tests = function(web3, EventTest) {
           }
 
           let listener = function(err, result) {
-            console.log(result);
             if (result === undefined) {
               // If there's only one argument, it's the result, not an error
               result = err;

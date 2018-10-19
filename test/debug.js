@@ -64,7 +64,6 @@ describe("Debug", function() {
         return debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
       })
       .then((value) => {
-        console.log(value);
         assert.strictEqual(value, 26);
 
         // Set the hash to trace to the transaction we made, so we know preconditions

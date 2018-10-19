@@ -1,7 +1,7 @@
 const Web3 = require("web3");
 const assert = require("assert");
 const Ganache = require("../../index.js");
-const to = require("./utils/to.js");
+const to = require("../../lib/utils/to.js");
 
 const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
