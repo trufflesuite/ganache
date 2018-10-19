@@ -53,7 +53,7 @@ describe("Forking using a Provider", function() {
       expected_default_value: 5,
       call_data: {
         gas: '0x2fefd8',
-        gasPrice: '0x01', // This is important, as passing it has exposed errors in the past.
+        gasPrice: '0x1', // This is important, as passing it has exposed errors in the past.
         to: null, // set by test
         data: '0x3fa4f245'
       },

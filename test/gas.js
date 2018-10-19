@@ -232,7 +232,6 @@ describe("Gas", function() {
   });
 
   describe("Estimation", function() {
-
     async function testTransactionEstimate(contractFn, args, options) {
       await estimateGasInstance.methods.reset().send({from: options.from, gas: 5000000});
       const method = contractFn(...args);
