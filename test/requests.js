@@ -528,7 +528,6 @@ var tests = function(web3) {
           if (err) {
             return done(err);
           }
-          console.log(response.result);
           assert.strictEqual(
             response.result,
             "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d" +
@@ -689,7 +688,6 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-        console.log(contract.runtimeBinary);
         assert.strictEqual(result, contract.runtimeBinary);
         done();
       });
@@ -746,7 +744,7 @@ var tests = function(web3) {
       // TODO: Removing this callback hell would be nice.
       web3.eth.estimateGas(callData, function(err, result) {
         if (err) {
-          return done(err);
+          assert(err);
         }
         // set a low gas limit to force a runtime error
         callData.gas = result - 1;
@@ -833,7 +831,6 @@ var tests = function(web3) {
                 if (err) {
                   return done(err);
                 }
-                console.log(blockhash, block.hash);
                 assert.strictEqual(blockhash, block.hash);
                 done();
               });
@@ -933,7 +930,6 @@ var tests = function(web3) {
             receipt.logs[0].blockHash, receipt.blockHash, "Logs blockhash doesn't match block blockhash"
           );
 
-          // console.log(callData);
           web3.eth.call(callData, function(err, result) {
             if (err) {
               return done(err);
@@ -1156,7 +1152,6 @@ var tests = function(web3) {
           return done(err);
         }
 
-        console.log(result);
         assert.strictEqual(result, null, "Receipt should be null");
 
         done();
@@ -1239,8 +1234,7 @@ var tests = function(web3) {
           return done(err);
         }
 
-        console.log(result);
-        assert.strictEqual(result, "0x0");
+        assert.strictEqual(result, 0);
         done();
       });
     });
@@ -1441,8 +1435,6 @@ var tests = function(web3) {
             return done(result.error);
           }
 
-          console.log(result.result);
-          // web3.utils.sha3 returns string
           assert.strictEqual(result.result, web3.utils.sha3(input));
           done();
         }
@@ -1628,7 +1620,8 @@ describe("WebSockets Server:", function(done) {
   before("Initialize Ganache server", function(done) {
     server = Ganache.server({
       logger: logger,
-      seed: "1337"
+      seed: "1337",
+      verbose: true
       // so that the runtime errors on call test passes
     });
     server.listen(port, function(err) {

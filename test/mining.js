@@ -245,7 +245,6 @@ describe("Mining", function() {
         return Promise.all([getReceipt(tx1), getReceipt(tx2)]);
       })
       .then(function(receipts) {
-        console.log(receipts[0].transactionHash, tx1);
         assert.strictEqual(receipts.length, 2);
         assert.notStrictEqual(receipts[0], null);
         assert.strictEqual(receipts[0].transactionHash, tx1);
@@ -301,7 +300,6 @@ describe("Mining", function() {
         return Promise.all([getReceipt(tx1), getReceipt(tx2)]);
       })
       .then(function(receipts) {
-        console.log(receipts[1].transactionHash, tx2);
         assert.strictEqual(receipts.length, 2);
         assert.notStrictEqual(receipts[0], null);
         assert.strictEqual(receipts[0].transactionHash, tx1);
@@ -357,7 +355,6 @@ describe("Mining", function() {
         return Promise.all([getReceipt(tx1), getReceipt(tx2)]);
       })
       .then(function(receipts) {
-        console.log(receipts[0]);
         assert.strictEqual(receipts.length, 2);
         assert.notStrictEqual(receipts[0], null);
         assert.strictEqual(receipts[0].transactionHash, tx1);
@@ -515,7 +512,6 @@ describe("Mining", function() {
           })
           .then(function(code) {
             // Convert hex to a big number and ensure it's not zero.
-            console.log(web3.utils.toBN(code).eq(0));
             assert(web3.utils.toBN(code).eq(0) === false);
 
             // Hot diggety dog!

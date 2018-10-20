@@ -3,6 +3,7 @@ var Web3WsProvider = require("web3-providers-ws");
 var Ganache = require("../index.js");
 var assert = require("assert");
 var solc = require("solc");
+var to = require("../lib/utils/to.js");
 
 var source =
   "                      \n" +
@@ -68,7 +69,7 @@ var tests = function(web3, EventTest) {
       var event = instance.events.ExampleEvent({ filter: { first: expectedValue } });
 
       var listener = function(result) {
-        assert.strictEqual(result.returnValues.first, expectedValue);
+        assert.strictEqual(to.number(result.returnValues.first), expectedValue);
         done();
       };
 
@@ -87,7 +88,7 @@ var tests = function(web3, EventTest) {
       var event = instance.events.ExampleEvent({ filter: { first: expectedValue }, fromBlock: 0 });
 
       var listener = function(result) {
-        assert.strictEqual(result.returnValues.first, expectedValue);
+        assert.strictEqual(to.number(result.returnValues.first), expectedValue);
         done();
       };
 
@@ -148,7 +149,7 @@ var tests = function(web3, EventTest) {
           var event = newInstance.events.ExampleEvent({ filter: { first: expectedValue }, fromBlock: 0 });
 
           event.on("data", function(result) {
-            assert(result.returnValues.first === expectedValue);
+            assert(to.number(result.returnValues.first) === expectedValue);
             // event.removeAllListeners()
             done();
           });
@@ -282,7 +283,8 @@ describe("Server:", function(done) {
   before("Initialize Ganache server", function(done) {
     server = Ganache.server({
       logger: logger,
-      ws: true
+      ws: true,
+      verbose: true
     });
     server.listen(port, function() {
       web3.setProvider(new Web3WsProvider("ws://localhost:" + port));

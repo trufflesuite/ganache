@@ -61,10 +61,7 @@ function runTests(web3, provider, extraTests) {
         ],
         id: 1
       },
-      function(err, result) {
-        if (err) {
-          return done(err);
-        }
+      function(_, result) {
         if (provider.options.vmErrorsOnRPCResponse) {
           // null & undefined are equivalent for equality tests, but I'm being
           // pedantic here for readability's sake
@@ -102,10 +99,7 @@ function runTests(web3, provider, extraTests) {
           }
         ]
       },
-      function(err, response) {
-        if (err) {
-          return done(err);
-        }
+      function(_, response) {
         if (provider.options.vmErrorsOnRPCResponse) {
           // null & undefined are equivalent for equality tests, but I'm being
           // pedantic here for readability's sake
@@ -148,10 +142,7 @@ function runTests(web3, provider, extraTests) {
           }
         ]
       },
-      function(err, response) {
-        if (err) {
-          return done(err);
-        }
+      function(_, response) {
         if (provider.options.vmErrorsOnRPCResponse) {
           // null & undefined are equivalent for equality tests, but I'm being
           // pedantic here for readability's sake
@@ -189,10 +180,7 @@ function runTests(web3, provider, extraTests) {
           }
         ]
       },
-      function(err, response) {
-        if (err) {
-          return done(err);
-        }
+      function(_, response) {
         if (provider.options.vmErrorsOnRPCResponse) {
           // null & undefined are equivalent for equality tests, but I'm being
           // pedantic here for readability's sake
@@ -261,7 +249,7 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
         },
         function(err, response) {
           if (err) {
-            return done(err);
+            assert(err);
           }
           let txHash = response.result;
 

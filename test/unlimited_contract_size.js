@@ -52,8 +52,8 @@ describe("Unlimited Contract Size", function() {
         .then(function(instance) {
           done(new Error("succeeded deployment when it should have failed"));
         })
-        .catch(function(error) {
-          done(error);
+        .catch(function(_) {
+          done();
         });
     });
   });
@@ -86,8 +86,7 @@ describe("Unlimited Contract Size", function() {
         .then(function(instance) {
           done();
         })
-        .catch(function(error) {
-          console.log(error);
+        .catch(function(_) {
           done(new Error("failed deployment when it should have succeeded"));
         });
     });

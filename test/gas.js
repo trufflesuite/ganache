@@ -136,24 +136,19 @@ describe("Gas", function() {
 
       const estimateGasInstance = await deployContract();
       const uintsa = await estimateGasInstance.methods.uints(1).call();
-      console.log(uintsa);
       assert.strictEqual(uintsa, "0", "initial value is not correct");
 
       const receipta = await estimateGasInstance.methods.store(1).send(options);
       assert.strictEqual(receipta.status, true, "storing value did not work");
-      console.log(receipta);
 
       const uintsb = await estimateGasInstance.methods.uints(1).call();
       assert.strictEqual(uintsb, "1", "set value is incorrect");
-      console.log(uintsb);
 
       const receiptb = await estimateGasInstance.methods.clear().send(options);
       assert.strictEqual(receiptb.status, true, "clearing value did not work");
-      console.log(receiptb);
 
       const uintsc = await estimateGasInstance.methods.uints(1).call();
       assert.strictEqual(uintsc, "0", "cleared value is not correct");
-      console.log(uintsc);
     });
   });
 
@@ -199,8 +194,7 @@ describe("Gas", function() {
           return fn.estimateGas(options).then(function(estimate) {
             options.gas = transactionGas;
             return fn.send(options).then(function(receipt) {
-              console.log(receipt.status);
-              assert.strictEqual(receipt.status, 1, "Transaction must succeed");
+              assert.strictEqual(receipt.status, true, "Transaction must succeed");
               assert.strictEqual(receipt.gasUsed, estimate, "gasUsed");
               assert.strictEqual(receipt.cumulativeGasUsed, estimate, "estimate");
             });
@@ -214,7 +208,6 @@ describe("Gas", function() {
         .deploy({ data: estimateGasContractData })
         .estimateGas({ from: accounts[1] })
         .then(function(gasEstimate) {
-          console.log(deploymentReceipt.gasUsed, gasEstimate);
           assert.deepStrictEqual(deploymentReceipt.gasUsed, gasEstimate);
           assert.deepStrictEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
         });

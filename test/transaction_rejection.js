@@ -140,10 +140,7 @@ describe("Transaction rejection", function() {
     };
 
     // don't send with web3 because it'll inject its own checks
-    provider.send(request, (err, response) => {
-      if (err) {
-        return done(err);
-      }
+    provider.send(request, (_, response) => {
       // cyclomatic complexity? what's that? :-(
       if (response.error) {
         if (response.error.message) {
