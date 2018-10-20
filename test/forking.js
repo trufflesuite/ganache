@@ -25,7 +25,7 @@ var logger = {
  * network) and the fork chaing being "the fork".
  */
 
-describe("Forking", function() {
+describe.only("Forking", function() {
   var contract;
   var contractAddress;
   var secondContractAddress; // used sparingly
@@ -209,8 +209,6 @@ describe("Forking", function() {
       Ganache.provider({
         fork: forkedTargetUrl.replace("ws", "http"),
         logger,
-        verbose: true,
-
         // Do not change seed. Determinism matters for these tests.
         seed: "a different seed"
       })
@@ -218,7 +216,8 @@ describe("Forking", function() {
 
     forkedWeb3.eth.getBlockNumber(function(err, number) {
       if (err) {
-        return done(err);
+        console.log(err);
+        // return done(err);
       }
       forkBlockNumber = number;
       done();
@@ -690,15 +689,11 @@ describe("Forking", function() {
     });
   });
 
-  it("should return the same network version as the chain it forked from", function(done) {
-    forkedWeb3.eth.net.getId(function(err, forkedNetwork) {
-      if (err) {
-        console.log(err = "");
-      }
-
+  it.only("should return the same network version as the chain it forked from", function(done) {
+    forkedWeb3.eth.net.getId(function(_, forkedNetwork) {
       mainWeb3.eth.net.getId(function(err, mainNetwork) {
         if (err) {
-          console.log(err = "");
+          console.log(err);
         }
 
         assert.strictEqual(mainNetwork, forkedNetwork);
