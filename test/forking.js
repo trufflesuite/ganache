@@ -684,8 +684,8 @@ describe("Forking", function() {
   });
 
   it("should return the same network version as the chain it forked from", function(done) {
-    forkedWeb3.eth.net.getId().then(function(forkedNetwork) {
-      mainWeb3.eth.get.getId().then(function(mainNetwork) {
+    forkedWeb3.eth.net.getId(function(_, forkedNetwork) {
+      mainWeb3.eth.net.getId(function(_, mainNetwork) {
         assert.strictEqual(mainNetwork, forkedNetwork);
       });
     });
