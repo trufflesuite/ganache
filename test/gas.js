@@ -8,6 +8,7 @@ const to = require("../lib/utils/to.js");
 const pify = require("pify");
 const RSCLEAR_REFUND = 15000;
 const RSELFDESTRUCT_REFUND = 24000;
+const { sleep } = require("./helpers/utils");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -231,7 +232,6 @@ describe("Gas", function() {
   });
 
   describe("Estimation", function() {
-
     async function testTransactionEstimate(contractFn, args, options) {
       await estimateGasInstance.methods.reset().send({from: options.from, gas: 5000000});
       const method = contractFn(...args);
@@ -381,7 +381,7 @@ describe("Gas", function() {
         }));
 
         // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
-        await delay(750)
+        await sleep(750)
 
         let currentBlockNumber = await tempWeb3.eth.getBlockNumber();
         assert.deepStrictEqual(currentBlockNumber, 1, 'Current Block Should be 1');
@@ -415,9 +415,3 @@ describe("Gas", function() {
     });
   });
 });
-
-async function delay(duration) {
-  await new Promise((accept) => {
-    setTimeout(accept, duration)
-  });
-}

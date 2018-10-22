@@ -340,7 +340,7 @@ var tests = function(web3) {
     // This account produces an edge case signature when it signs the hex-encoded buffer:
     // '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627'. (See Issue #190)
     var acc = {
-      balance: "0x00",
+      balance: "0x0",
       secretKey: "0xe6d66f02cd45a13982b99a5abf3deab1f67cf7be9fee62f0a072cb70896342e4"
     };
 
@@ -407,7 +407,7 @@ var tests = function(web3) {
 
     // Account based on https://github.com/ethereum/EIPs/blob/master/assets/eip-712/Example.js
     var acc = {
-      balance: "0x00",
+      balance: "0x0",
       secretKey: web3.utils.sha3('cow')
     };
 
@@ -440,7 +440,7 @@ var tests = function(web3) {
         if (err) { 
           return done(err);
         }
-        console.log(response);
+
         assert.equal(response.result, "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c");
         done();
       });
@@ -561,6 +561,19 @@ var tests = function(web3) {
         });
       });
     })
+
+    it("should allow a tx to contain data when sent to an external (personal) address", async () => {
+      var transaction = {
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[9],
+        "to": accounts[8],
+        "data": "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
+      }
+
+      let result = await web3.eth.sendTransaction(transaction);
+      assert.notDeepStrictEqual(result, null, "Tx should be successful.");
+    });
   })
 
   describe('eth_sendRawTransaction', () => {
@@ -571,7 +584,7 @@ var tests = function(web3) {
         "gasLimit": "0x33450",
         "from": accounts[0],
         "to": accounts[1],
-        "nonce": "0x00",  // too low nonce
+        "nonce": "0x0", // too low nonce
       })
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), 'hex')
@@ -581,7 +594,6 @@ var tests = function(web3) {
         assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 0") >= 0, `Incorrect error message: ${err.message}`);
         done()
       })
-
     })
 
     it("should fail with bad nonce (too high)", function(done) {
@@ -609,7 +621,7 @@ var tests = function(web3) {
         "gasLimit": "0x33450",
         "from": accounts[0],
         "to": accounts[1],
-        "nonce": "0x02"
+        "nonce": "0x2"
       })
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), 'hex')
@@ -679,11 +691,11 @@ var tests = function(web3) {
     it("should respond with correct txn hash", function(done) {
       var provider = web3.currentProvider;
       var transaction = new Transaction({
-        "value": "0x00",
+        "value": "0x0",
         "gasLimit": "0x5208",
         "from": accounts[0],
         "to": accounts[1],
-        "nonce": "0x03"
+        "nonce": "0x3"
       })
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), 'hex')
@@ -693,6 +705,23 @@ var tests = function(web3) {
         assert.equal(result, to.hex(transaction.hash()))
         done(err)
       })
+    })
+
+
+    it("should allow a tx to contain data when sent to an external (personal) address", async () => {
+      var transaction = new Transaction({
+        "value": "0x10000000",
+        "gasLimit": "0x33450",
+        "from": accounts[6],
+        "to": accounts[8],
+        "data": "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
+      })
+
+      var secretKeyBuffer = Buffer.from(secretKeys[6].substr(2), 'hex')
+      transaction.sign(secretKeyBuffer)
+
+      let result = await web3.eth.sendSignedTransaction(transaction.serialize());
+      assert.notDeepStrictEqual(result, null, "Tx should be successful.");
     })
   })
 
@@ -731,6 +760,29 @@ var tests = function(web3) {
 
         assert.notEqual(receipt, null, "Transaction receipt shouldn't be null");
         assert.notEqual(contractAddress, null, "Transaction did not create a contract");
+        done();
+      });
+    });
+
+    it("should verify the transaction immediately (eth_getTransactionByHash)", function(done) {
+      // This test uses the provider directly because web3 fixes a bug we had for us.
+      //  specifically, when the an rpc result field is `0x` it transform it to `null`
+      //  `0x` is an incorrect response (it should be null). so we test for that here
+      web3.currentProvider.send({
+        id: "1", // an "id" is required here because the web3 websocket provider (v1.0.0-beta.35) throws if it is 
+                 // missing (it's probably just a bug on their end)
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [initialTransaction]
+      }, (err, jsonRpcResponse) => {
+        if (err) return done(err);
+
+        const result = jsonRpcResponse.result;
+
+        assert.notEqual(result, null, "Transaction result shouldn't be null");
+        assert.equal(result.hash, initialTransaction, "Resultant hash isn't what we expected");
+        assert.equal(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
+
         done();
       });
     });
@@ -969,12 +1021,12 @@ var tests = function(web3) {
 
       }).then(function(result){
 
-        assert.equal(to.number(result), 25, "value retrieved from latest block should be 25");
+        assert.equal(result, "0x0000000000000000000000000000000000000000000000000000000000000019", "value retrieved from latest block should be 25");
         return web3.eth.call(call_data, contractCreationBlockNumber)
 
       }).then(function(result){
 
-        assert.equal(to.number(result), 5, "value retrieved from contract creation block should be 5");
+        assert.equal(result, "0x0000000000000000000000000000000000000000000000000000000000000005", "value retrieved from contract creation block should be 5");
         return web3.eth.getBlockNumber()
 
       }).then(function(result){
@@ -984,7 +1036,7 @@ var tests = function(web3) {
 
       }).then(function(result){
 
-        assert.equal(to.number(result), 25, "stateTrie root was corrupted by defaultBlock call");
+        assert.equal(result, "0x0000000000000000000000000000000000000000000000000000000000000019", "stateTrie root was corrupted by defaultBlock call");
         done();
       });
     });
@@ -993,7 +1045,7 @@ var tests = function(web3) {
       var call_data = contract.call_data;
 
       web3.eth.call(call_data, "earliest").then(function(result){
-        assert.equal(to.number(result), 0, "value retrieved from earliest block should be zero");
+        assert.equal(result, "0x", "value retrieved from earliest block should be 0x");
         done();
       })
     });
@@ -1002,7 +1054,7 @@ var tests = function(web3) {
       var call_data = contract.call_data;
 
       web3.eth.call(call_data, "pending").then(function(result){
-        assert.equal(to.number(result), 25, "value retrieved from pending block should be 25");
+        assert.equal(result, "0x0000000000000000000000000000000000000000000000000000000000000019", "value retrieved from pending block should be 25");
         done();
       });
     });
@@ -1133,6 +1185,8 @@ var tests = function(web3) {
 
         assert.notEqual(result, null, "Transaction result shouldn't be null");
         assert.equal(result.hash, initialTransaction, "Resultant hash isn't what we expected")
+        assert.equal(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment")
+
         assert.equal(result.hasOwnProperty('v'), true, "Transaction includes v signature parameter");
         assert.equal(result.hasOwnProperty('r'), true, "Transaction includes r signature parameter");
         assert.equal(result.hasOwnProperty('s'), true, "Transaction includes s signature parameter");
@@ -1513,7 +1567,6 @@ describe("WebSockets Server:", function(done) {
     });
     server.listen(port, function(err) {
       var provider = new Web3WsProvider("ws://localhost:" + port);
-      var Web3 = require('web3');
       web3.setProvider(provider);
       done();
     });

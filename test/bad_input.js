@@ -92,7 +92,7 @@ var tests = function(web3) {
             "gas": "0xf4240",
             "from": accounts[0],
             "to": accounts[1],
-            "nonce": "0x00",  // too low nonce
+            "nonce": "0x0",  // too low nonce
           }
         ],
         "id": 2

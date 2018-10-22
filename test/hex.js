@@ -4,6 +4,11 @@ var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + proces
 var to = require("../lib/utils/to.js");
 
 describe("to.rpcQuantityHexString", function() {
+  it("should print '0x0' for input '0x'", function(done) {
+    assert.equal(to.rpcQuantityHexString('0x'), "0x0");
+    done();
+  });
+
   it("should print '0x0' for input 0", function(done) {
     assert.equal(to.rpcQuantityHexString(0), "0x0");
     done();
