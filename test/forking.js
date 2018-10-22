@@ -211,8 +211,7 @@ describe("Forking", function() {
 
     forkedWeb3.eth.getBlockNumber(function(err, number) {
       if (err) {
-        console.log(err);
-        // return done(err);
+        return done(err);
       }
       forkBlockNumber = number;
       done();

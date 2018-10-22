@@ -58,9 +58,8 @@ function runAverage(title, numberOfRuns, fnTimes, fn, callback) {
   );
 }
 
-function bailIfError(err) {
-  if (err) {
-    console.log(err);
+function bailIfError(_) {
+  if (_) {
     process.exit(1);
   }
 }

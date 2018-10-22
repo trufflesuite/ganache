@@ -55,7 +55,6 @@ describe("eth_call", function() {
       .add(toBytes("Tim"), toBytes("A great guy"), 5)
       .call({ from: accounts[0] })
       .then((result) => {
-        console.log(result);
         assert.strictEqual(result, true);
       });
   });
