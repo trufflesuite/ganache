@@ -3,7 +3,6 @@ var Web3WsProvider = require("web3-providers-ws");
 var Ganache = require("../index.js");
 var assert = require("assert");
 var solc = require("solc");
-var to = require("../lib/utils/to.js");
 
 var source =
   "                      \n" +
@@ -64,12 +63,12 @@ var tests = function(web3, EventTest) {
     });
 
     it("should handle events properly via the data event handler", function(done) {
-      var expectedValue = 1;
+      var expectedValue = "1";
 
       var event = instance.events.ExampleEvent({ filter: { first: expectedValue } });
 
       var listener = function(result) {
-        assert.strictEqual(to.number(result.returnValues.first), expectedValue);
+        assert.strictEqual(result.returnValues.first, expectedValue);
         done();
       };
 
@@ -83,12 +82,12 @@ var tests = function(web3, EventTest) {
 
     // NOTE! This test relies on the events triggered in the tests above.
     it("grabs events in the past", function(done) {
-      var expectedValue = 2;
+      var expectedValue = "2";
 
       var event = instance.events.ExampleEvent({ filter: { first: expectedValue }, fromBlock: 0 });
 
       var listener = function(result) {
-        assert.strictEqual(to.number(result.returnValues.first), expectedValue);
+        assert.strictEqual(result.returnValues.first, expectedValue);
         done();
       };
 
@@ -136,7 +135,7 @@ var tests = function(web3, EventTest) {
     });
 
     it("only returns logs for the expected address", function(done) {
-      var expectedValue = 1;
+      var expectedValue = "1";
 
       EventTest.deploy({ data: EventTest._data })
         .send({ from: accounts[0], gas: 3141592 })
@@ -149,7 +148,7 @@ var tests = function(web3, EventTest) {
           var event = newInstance.events.ExampleEvent({ filter: { first: expectedValue }, fromBlock: 0 });
 
           event.on("data", function(result) {
-            assert(to.number(result.returnValues.first) === expectedValue);
+            assert(result.returnValues.first === expectedValue);
             // event.removeAllListeners()
             done();
           });
@@ -283,8 +282,7 @@ describe("Server:", function(done) {
   before("Initialize Ganache server", function(done) {
     server = Ganache.server({
       logger: logger,
-      ws: true,
-      verbose: true
+      ws: true
     });
     server.listen(port, function() {
       web3.setProvider(new Web3WsProvider("ws://localhost:" + port));

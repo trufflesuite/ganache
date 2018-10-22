@@ -4,7 +4,6 @@ var Ganache = require("../index.js");
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
-var to = require("../lib/utils/to.js");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -18,7 +17,7 @@ describe("Debug", function() {
   var debugContract;
   var source = fs.readFileSync(path.join(__dirname, "DebugContract.sol"), "utf8");
   var hashToTrace = null;
-  var expectedValueBeforeTrace = 1234;
+  var expectedValueBeforeTrace = "1234";
 
   before("init web3", function() {
     provider = Ganache.provider();
@@ -65,7 +64,7 @@ describe("Debug", function() {
         return debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
       })
       .then((value) => {
-        assert.strictEqual(to.number(value), 26);
+        assert.strictEqual(value, "26");
 
         // Set the hash to trace to the transaction we made, so we know preconditions
         // are set correctly.
@@ -84,7 +83,7 @@ describe("Debug", function() {
       })
       .then((value) => {
         // Now that it's 85, we can trace the transaction that set it to 26.
-        assert.strictEqual(to.number(value), expectedValueBeforeTrace);
+        assert.strictEqual(value, expectedValueBeforeTrace);
       });
   });
 

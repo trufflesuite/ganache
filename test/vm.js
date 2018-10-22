@@ -65,13 +65,11 @@ describe("revert opcode", function() {
         return instance.methods.alwaysReverts(5).send({ from: testContext.accounts[0] });
       })
       .catch(function(err) {
-        console.log(err.results[err.hashes[0]].error);
         assert.strictEqual(err.results[err.hashes[0]].error, "revert", "Expected error result not returned.");
         return web3.eth.getTransactionReceipt(err.hashes[0]);
       })
       .then(function(receipt) {
         assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
-        console.log(receipt.status);
         assert.strictEqual(receipt.status, false, "Reverted (failed) transactions should have a status of FALSE.");
       });
   });

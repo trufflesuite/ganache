@@ -25,7 +25,7 @@ var logger = {
  * network) and the fork chaing being "the fork".
  */
 
-describe.only("Forking", function() {
+describe("Forking", function() {
   var contract;
   var contractAddress;
   var secondContractAddress; // used sparingly
@@ -168,11 +168,6 @@ describe.only("Forking", function() {
     this.timeout(10000);
 
     var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
-
-    // TODO: ugly workaround - not sure why this is necessary.
-    if (!forkedExample._requestManager.provider) {
-      forkedExample._requestManager.setProvider(forkedWeb3.eth._provider);
-    }
 
     var event = forkedExample.events.ValueSet({});
 
@@ -689,17 +684,13 @@ describe.only("Forking", function() {
     });
   });
 
-  it.only("should return the same network version as the chain it forked from", function(done) {
-    forkedWeb3.eth.net.getId(function(_, forkedNetwork) {
-      mainWeb3.eth.net.getId(function(err, mainNetwork) {
-        if (err) {
-          console.log(err);
-        }
-
+  it("should return the same network version as the chain it forked from", function(done) {
+    forkedWeb3.eth.net.getId().then(function(forkedNetwork) {
+      mainWeb3.eth.get.getId().then(function(mainNetwork) {
         assert.strictEqual(mainNetwork, forkedNetwork);
-        done();
       });
     });
+    done();
   });
 
   after("Shutdown server", function(done) {
