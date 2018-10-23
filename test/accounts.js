@@ -65,8 +65,7 @@ describe("Accounts", function() {
       Ganache.provider({
         mnemonic: mnemonic,
         secure: true,
-        unlocked_accounts: [expectedAddress],
-        verbose: true
+        unlocked_accounts: [expectedAddress]
       })
     );
 

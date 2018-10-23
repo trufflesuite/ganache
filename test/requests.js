@@ -562,7 +562,7 @@ var tests = function(web3) {
         "gasLimit": "0x33450",
         "from": accounts[0],
         "to": accounts[1],
-        "nonce": "0x00" // too low nonce
+        "nonce": "0x0" // too low nonce
       };
 
       web3.eth.sendTransaction(transaction, function(err, result) {

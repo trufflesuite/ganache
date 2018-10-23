@@ -232,6 +232,7 @@ describe("Mining", function() {
   it("should error if queued transaction exceeds the block gas limit", async function() {
     try {
       await stopMining();
+      await queueTransaction(accounts[0], accounts[1], 10000000, web3.utils.toWei(new BN(2), "ether"));
       assert.fail("Transaction was processed without erroring; gas limit should have been too high");
     } catch (err) {
       // We caught an error like we expected. Ensure it's the right error, or rethrow.
@@ -244,6 +245,7 @@ describe("Mining", function() {
   it("should error via instamining when queued transaction throws a runtime errors", async function() {
     try {
       await startMining();
+      await queueTransaction(accounts[0], null, 3141592, 0, badBytecode);
       // This transaction should be processed immediately.
       assert.fail("Execution should never get here as we expected `eth_sendTransaction` to throw an error");
     } catch (err) {
@@ -311,6 +313,7 @@ describe("Mining", function() {
     try {
       await stopMining();
 
+      await queueTransaction(accounts[0], null, 1000000, 0, badBytecode);
       tx2 = await queueTransaction(accounts[0], null, 1000000, 0, goodBytecode);
 
       await startMining();

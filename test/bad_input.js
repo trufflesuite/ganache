@@ -199,7 +199,7 @@ describe("Server:", function(done) {
   var server;
 
   before("Initialize Ganache server", function(done) {
-    server = Ganache.server();
+    server = Ganache.server({});
     server.listen(port, function() {
       web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
       done();

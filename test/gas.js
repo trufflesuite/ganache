@@ -267,7 +267,7 @@ describe("Gas", function() {
       const gasEstimate = await method.estimateGas(options);
       const receipt = await method.send(options);
 
-      assert.strictEqual(receipt.status, 1, "Transaction must succeed");
+      assert.strictEqual(receipt.status, true, "Transaction must succeed");
       assert.strictEqual(receipt.gasUsed, gasEstimate, "gasUsed");
       assert.strictEqual(receipt.cumulativeGasUsed, gasEstimate, "estimate");
     }
