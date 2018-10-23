@@ -1,5 +1,6 @@
 var Web3 = require("web3");
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
+  process.env.TEST_BUILD + ".js" : "../index.js");
 var assert = require("assert");
 var temp = require("temp").track();
 var fs = require("fs");
@@ -25,7 +26,7 @@ var contract = {
   expected_default_value: 5,
   call_data: {
     gas: "0x2fefd8",
-    gasPrice: "0x01", // This is important, as passing it has exposed errors in the past.
+    gasPrice: "0x1", // This is important, as passing it has exposed errors in the past.
     to: null, // set by test
     data: "0x3fa4f245"
   },
@@ -38,7 +39,7 @@ var contract = {
 };
 
 var runTests = function(providerInit) {
-  describe("Persistence", function() {
+  describe("Persistence ", function() {
     var web3 = new Web3();
     var accounts;
     var txHash;
@@ -146,22 +147,22 @@ var runTests = function(providerInit) {
   });
 };
 
-describe("Default DB", function(done) {
-  // initialize a persistant provider
-  temp.mkdir("testrpc-db-", function(err, dirPath) {
-    if (err) {
-      return done(err);
-    }
-    var providerInit = function(cb) {
-      provider = Ganache.provider({
-        db_path: dirPath,
-        mnemonic: "debris electric learn dove warrior grow pistol carry either curve radio hidden"
-      });
+var mnemonic = "debris electric learn dove warrior grow pistol carry either curve radio hidden";
 
-      cb(provider);
-    };
-    runTests(providerInit);
-  });
+describe("Default DB", function() {
+  var dbPath = temp.mkdirSync("testrpc-db-");
+  // initialize a persistent provider
+
+  var providerInit = function(cb) {
+    provider = Ganache.provider({
+      db_path: dbPath,
+      mnemonic
+    });
+
+    cb(provider);
+  };
+
+  runTests(providerInit);
 });
 
 describe("Custom DB", function() {
@@ -170,8 +171,8 @@ describe("Custom DB", function() {
   // initialize a custom persistence provider
   var providerInit = function(cb) {
     provider = Ganache.provider({
-      db: db,
-      mnemonic: "debris electric learn dove warrior grow pistol carry either curve radio hidden"
+      db,
+      mnemonic
     });
 
     cb(provider);

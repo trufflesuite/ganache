@@ -1,6 +1,7 @@
 var Web3 = require("web3");
 var assert = require("assert");
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
+  process.env.TEST_BUILD + ".js" : "../index.js");
 var fs = require("fs");
 var solc = require("solc");
 var async = require("async");
@@ -24,7 +25,7 @@ var contract = {
   expected_default_value: 5,
   call_data: {
     gas: "0x2fefd8",
-    gasPrice: "0x01", // This is important, as passing it has exposed errors in the past.
+    gasPrice: "0x1", // This is important, as passing it has exposed errors in the past.
     to: null, // set by test
     data: "0x3fa4f245"
   },
@@ -148,14 +149,14 @@ describe("Block Tags", function() {
       if (err) {
         return done(err);
       }
-      assert.strictEqual(code, "0x0");
+      assert.strictEqual(code, "0x");
 
       // Check that the code incremented with the block number, just to be sure.
       web3.eth.getCode(contractAddress, initialBlockNumber + 1, function(err, code) {
         if (err) {
           return done(err);
         }
-        assert.notStrictEqual(code, "0x0");
+        assert.notStrictEqual(code, "0x");
         assert(code.length > 20); // Just because we don't know the actual code we're supposed to get back
         done();
       });

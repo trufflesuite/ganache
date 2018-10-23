@@ -1,7 +1,8 @@
 var Web3 = require("web3");
 var Web3WsProvider = require("web3-providers-ws");
 var assert = require("assert");
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
+  process.env.TEST_BUILD + ".js" : "../index.js");
 var fs = require("fs");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
@@ -59,7 +60,7 @@ describe("Forking", function() {
       expected_default_value: 5,
       call_data: {
         gas: "0x2fefd8",
-        gasPrice: "0x01", // This is important, as passing it has exposed errors in the past.
+        gasPrice: "0x1", // This is important, as passing it has exposed errors in the past.
         to: null, // set by test
         data: "0x3fa4f245"
       },
@@ -609,7 +610,7 @@ describe("Forking", function() {
         var codeLatest = results.codeLatest;
 
         // There should be no code initially.
-        assert.strictEqual(to.number(codeEarliest), 0);
+        assert.strictEqual(codeEarliest, "0x");
 
         // Arbitrary length check since we can't assert the exact value
         assert(codeAfterFork.length > 20);

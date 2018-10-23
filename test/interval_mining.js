@@ -1,6 +1,7 @@
 var BN = require("bn.js");
 var Web3 = require("web3");
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
+  process.env.TEST_BUILD + ".js" : "../index.js");
 var assert = require("assert");
 var solc = require("solc");
 
@@ -182,7 +183,7 @@ describe("Interval Mining", function() {
     );
   });
 
-  it("should log runtime errors to the log", function(done) {
+  it("should log runtime errors to the log", async function() {
     this.timeout(5000);
 
     var logData = "";
@@ -206,23 +207,15 @@ describe("Interval Mining", function() {
     );
     var bytecode = "0x" + result.contracts["Example.sol:Example"].bytecode;
 
-    web3.eth.sendTransaction(
-      {
+    try {
+      await web3.eth.sendTransaction({
         from: firstAddress,
         data: bytecode,
         gas: 3141592
-      },
-      function(err, tx) {
-        if (err) {
-          return done(err);
-        }
-
-        // Wait .75 seconds (one and a half mining intervals) and ensure log sees error.
-        setTimeout(function() {
-          assert(logData.indexOf("Runtime Error: revert") >= 0);
-          done();
-        }, 750);
-      }
-    );
+      });
+      assert.fail("Contract deploy promise should have rejected");
+    } catch (e) {
+      assert(logData.indexOf("Runtime Error: revert") >= 0);
+    }
   });
 });

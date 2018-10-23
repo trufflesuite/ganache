@@ -1,12 +1,37 @@
-var Provider = require("./lib/provider");
-var Server = require("./lib/server");
+// make sourcemaps work!
+require("source-map-support/register");
 
-// This interface exists so as not to cause breaking changes.
-module.exports = {
-  server: function(options) {
-    return Server.create(options);
-  },
-  provider: function(options) {
-    return new Provider(options);
+const debug = require("debug")("ganache");
+
+// we use optional dependencies which may, or may not exist, so try native first
+try {
+  // make sure these exist before we try to load ganache with native modules
+  const optionalDependencies = require("./package.json").optionalDependencies;
+  const wrongWeb3 = require("web3/package.json").version !== optionalDependencies["web3"];
+  const wrongEthereumJs = require(
+    "ethereumjs-wallet/package.json"
+  ).version !== optionalDependencies["ethereumjs-wallet"];
+  if (wrongWeb3 || wrongEthereumJs) {
+    useBundled();
+  } else {
+    module.exports = require("./public-exports.js");
+    module.exports._webpacked = false;
+    debug("Optional dependencies installed; exporting ganache-core with native optional dependencies.");
   }
-};
+} catch (nativeError) {
+  debug(nativeError);
+
+  // grabbing the native/optional deps failed, try using our webpacked build.
+  useBundled();
+}
+
+function useBundled() {
+  try {
+    module.exports = require("./build/ganache.core.node.js");
+    module.exports._webpacked = true;
+    debug("Optional dependencies not installed; exporting ganache-core from `./build` directory.");
+  } catch (webpackError) {
+    debug("ganache-core could not be exported; optional dependencies nor webpack build available for export.");
+    throw webpackError;
+  }
+}

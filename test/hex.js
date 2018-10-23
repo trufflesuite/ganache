@@ -1,9 +1,15 @@
 var assert = require("assert");
 var Web3 = require("web3");
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
+  process.env.TEST_BUILD + ".js" : "../index.js");
 var to = require("../lib/utils/to.js");
 
 describe("to.rpcQuantityHexString", function() {
+  it("should print '0x0' for input '0x'", function(done) {
+    assert.strictEqual(to.rpcQuantityHexString("0x"), "0x0");
+    done();
+  });
+
   it("should print '0x0' for input 0", function(done) {
     assert.strictEqual(to.rpcQuantityHexString(0), "0x0");
     done();
@@ -131,5 +137,12 @@ describe("JSON-RPC Response", function() {
         });
       });
     });
+  });
+});
+
+describe("to.hex", function() {
+  it("should print '0x' for input '' (blank)", function(done) {
+    assert.strictEqual(to.hex(Buffer.from("")), "0x");
+    done();
   });
 });

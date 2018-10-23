@@ -1,6 +1,7 @@
 var BN = require("bn.js");
 var Web3 = require("web3");
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
+  process.env.TEST_BUILD + ".js" : "../index.js");
 var assert = require("assert");
 
 describe("Accounts", function() {
@@ -64,7 +65,8 @@ describe("Accounts", function() {
       Ganache.provider({
         mnemonic: mnemonic,
         secure: true,
-        unlocked_accounts: [expectedAddress]
+        unlocked_accounts: [expectedAddress],
+        verbose: true
       })
     );
 

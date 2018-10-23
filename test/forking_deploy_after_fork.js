@@ -1,7 +1,8 @@
 var Web3 = require("web3");
 var Web3WsProvider = require("web3-providers-ws");
 var assert = require("assert");
-var Ganache = require("../index.js");
+var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
+  process.env.TEST_BUILD + ".js" : "../index.js");
 var fs = require("fs");
 var solc = require("solc");
 
@@ -50,7 +51,7 @@ describe("Contract Deployed on Main Chain After Fork", function() {
       expected_default_value: 5,
       call_data: {
         gas: "0x2fefd8",
-        gasPrice: "0x01", // This is important, as passing it has exposed errors in the past.
+        gasPrice: "0x1", // This is important, as passing it has exposed errors in the past.
         to: null, // set by test
         data: "0x3fa4f245"
       },
