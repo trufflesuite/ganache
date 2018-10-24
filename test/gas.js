@@ -1,7 +1,8 @@
 const Web3 = require("web3");
 const assert = require("assert");
-const Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
-  process.env.TEST_BUILD + ".js" : "../index.js");
+const Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 const fs = require("fs");
 const path = require("path");
 const solc = require("solc");
@@ -41,8 +42,10 @@ describe("Gas", function() {
     estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
 
     EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
-    let promiEvent = EstimateGasContract.deploy({ data: estimateGasContractData })
-      .send({ from: accounts[0], gas: 3141592 });
+    let promiEvent = EstimateGasContract.deploy({ data: estimateGasContractData }).send({
+      from: accounts[0],
+      gas: 3141592
+    });
 
     promiEvent.on("receipt", function(receipt) {
       deploymentReceipt = receipt;
@@ -59,8 +62,7 @@ describe("Gas", function() {
   async function deployContract(tempWeb3) {
     let contract = new tempWeb3.eth.Contract(estimateGasContractAbi);
 
-    return (contract.deploy({ data: estimateGasContractData })
-      .send({ from: accounts[0], gas: 3141592 }));
+    return contract.deploy({ data: estimateGasContractData }).send({ from: accounts[0], gas: 3141592 });
   }
 
   describe("Refunds", function() {
@@ -113,130 +115,140 @@ describe("Gas", function() {
       assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
     });
 
-    it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate with multiple transaction" +
-    " in the block", async() => {
-      const ganacheProvider = Ganache.provider({
-        blockTime: 0.5, // seconds
-        mnemonic: mnemonic
-      });
+    it(
+      "accounts for Rsclear and Rselfdestruct Refunds in gasEstimate with multiple transaction in the block",
+      async() => {
+        const ganacheProvider = Ganache.provider({
+          blockTime: 0.5, // seconds
+          mnemonic: mnemonic
+        });
 
-      let tempWeb3;
+        let tempWeb3;
 
-      try {
-        tempWeb3 = new Web3(ganacheProvider);
+        try {
+          tempWeb3 = new Web3(ganacheProvider);
 
-        const from = (await tempWeb3.eth.getAccounts())[0];
+          const from = (await tempWeb3.eth.getAccounts())[0];
 
-        let transactions = [{
-          "value": "0x10000000",
-          "gasLimit": "0x33450",
-          "from": accounts[2],
-          "to": accounts[1],
-          "nonce": "0x0"
-        }, {
-          "value": "0x10000000",
-          "gasLimit": "0x33450",
-          "from": accounts[2],
-          "to": accounts[1],
-          "nonce": "0x1"
-        }, {
-          "value": "0x10000000",
-          "gasLimit": "0x33450",
-          "from": accounts[1], // <
-          "to": accounts[2], // <^ reversed tx order
-          "nonce": "0x0"
-        }];
+          let transactions = [
+            {
+              value: "0x10000000",
+              gasLimit: "0x33450",
+              from: accounts[2],
+              to: accounts[1],
+              nonce: "0x0"
+            },
+            {
+              value: "0x10000000",
+              gasLimit: "0x33450",
+              from: accounts[2],
+              to: accounts[1],
+              nonce: "0x1"
+            },
+            {
+              value: "0x10000000",
+              gasLimit: "0x33450",
+              from: accounts[1], // <
+              to: accounts[2], // <^ reversed tx order
+              nonce: "0x0"
+            }
+          ];
 
-        // Precondition
-        const initialBlockNumber = await tempWeb3.eth.getBlockNumber();
-        assert.deepStrictEqual(initialBlockNumber, 0, "Current Block Should be 0");
+          // Precondition
+          const initialBlockNumber = await tempWeb3.eth.getBlockNumber();
+          assert.deepStrictEqual(initialBlockNumber, 0, "Current Block Should be 0");
 
-        const localGasInstance = await deployContract(tempWeb3);
+          const localGasInstance = await deployContract(tempWeb3);
 
-        // prime storage by making sure it is set to 0
-        await localGasInstance.methods.reset().send({ from, gas: 5000000 });
-        const method = localGasInstance.methods.triggerAllRefunds();
-        const gasEstimate = await method.estimateGas({ from });
+          // prime storage by making sure it is set to 0
+          await localGasInstance.methods.reset().send({ from, gas: 5000000 });
+          const method = localGasInstance.methods.triggerAllRefunds();
+          const gasEstimate = await method.estimateGas({ from });
 
-        let hashes = await Promise.all(transactions.map((transaction) => {
-          let promiEvent = tempWeb3.eth.sendTransaction(transaction);
+          let hashes = await Promise.all(
+            transactions.map((transaction) => {
+              let promiEvent = tempWeb3.eth.sendTransaction(transaction);
 
-          return new Promise((resolve) => {
-            promiEvent.once("transactionHash", async(hash) => {
-              // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
-              let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
-              assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
+              return new Promise((resolve) => {
+                promiEvent.once("transactionHash", async(hash) => {
+                  // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
+                  let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
+                  assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
 
-              resolve(hash);
-            });
-          });
-        }));
-        let currentBlockNumber = await tempWeb3.eth.getBlockNumber();
-        assert.deepStrictEqual(currentBlockNumber, 2, "Current Block Should be 2");
+                  resolve(hash);
+                });
+              });
+            })
+          );
+          let currentBlockNumber = await tempWeb3.eth.getBlockNumber();
+          assert.deepStrictEqual(currentBlockNumber, 2, "Current Block Should be 2");
 
-        const receipt = await method.send({ from, gas: gasEstimate });
+          const receipt = await method.send({ from, gas: gasEstimate });
 
-        let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
-        assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+          let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
+          assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
 
-        let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)));
-        assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
-        assert.deepStrictEqual(
-          receipts[1].gasUsed,
-          receipts[2].gasUsed,
-          "Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive"
-        );
-        assert.deepStrictEqual(
-          receipts[1].transactionIndex > receipts[2].transactionIndex,
-          true,
-          "(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)"
-        );
-        let currentBlock = await tempWeb3.eth.getBlock(receipts[0].blockNumber);
+          let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)));
+          assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
+          assert.deepStrictEqual(
+            receipts[1].gasUsed,
+            receipts[2].gasUsed,
+            "Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive"
+          );
+          assert.deepStrictEqual(
+            receipts[1].transactionIndex > receipts[2].transactionIndex,
+            true,
+            "(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)"
+          );
+          let currentBlock = await tempWeb3.eth.getBlock(receipts[0].blockNumber);
 
-        // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
-        let isAccumulating = (receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed) &&
-         (receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed);
-        assert.deepStrictEqual(
-          isAccumulating,
-          true,
-          "Cumulative gas should be accumulating for any transactions in the same block."
-        );
-        assert.deepStrictEqual(
-          receipts[0].gasUsed,
-          receipts[0].cumulativeGasUsed,
-          "Gas and cumulative gas should be equal for the FIRST Tx."
-        );
-        assert.notDeepStrictEqual(
-          receipts[1].gasUsed,
-          receipts[1].cumulativeGasUsed,
-          "Gas and cumulative gas should NOT be equal for the Second Tx."
-        );
-        assert.notDeepStrictEqual(receipts[2].gasUsed,
-          receipts[2].cumulativeGasUsed,
-          "Gas and cumulative gas should NOT be equal for the Third Tx."
-        );
+          // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
+          let isAccumulating =
+            receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed &&
+            receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed;
+          assert.deepStrictEqual(
+            isAccumulating,
+            true,
+            "Cumulative gas should be accumulating for any transactions in the same block."
+          );
+          assert.deepStrictEqual(
+            receipts[0].gasUsed,
+            receipts[0].cumulativeGasUsed,
+            "Gas and cumulative gas should be equal for the FIRST Tx."
+          );
+          assert.notDeepStrictEqual(
+            receipts[1].gasUsed,
+            receipts[1].cumulativeGasUsed,
+            "Gas and cumulative gas should NOT be equal for the Second Tx."
+          );
+          assert.notDeepStrictEqual(
+            receipts[2].gasUsed,
+            receipts[2].cumulativeGasUsed,
+            "Gas and cumulative gas should NOT be equal for the Third Tx."
+          );
 
-        let totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
-        assert.deepStrictEqual(
-          totalGas + transactionCostMinusRefund,
-          receipts[1].cumulativeGasUsed,
-          "Total Gas should equal the final tx.cumulativeGas"
-        );
-        assert.deepStrictEqual(
-          totalGas + transactionCostMinusRefund,
-          currentBlock.gasUsed,
-          "Total Gas should be equal to the currentBlock.gasUsed"
-        );
-      } catch (e) {
-        assert(false, e);
-      } finally {
-        // clean up after ourselves
-        if (tempWeb3) {
-          tempWeb3.setProvider(null);
+          let totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
+          assert.deepStrictEqual(
+            totalGas + transactionCostMinusRefund,
+            receipts[1].cumulativeGasUsed,
+            "Total Gas should equal the final tx.cumulativeGas"
+          );
+          assert.deepStrictEqual(
+            totalGas + transactionCostMinusRefund,
+            currentBlock.gasUsed,
+            "Total Gas should be equal to the currentBlock.gasUsed"
+          );
+        } catch (e) {
+          assert(false, e);
+        } finally {
+          // clean up after ourselves
+          if (tempWeb3) {
+            tempWeb3.setProvider(null);
+          }
+          await pify(ganacheProvider.close)();
         }
-        await pify(ganacheProvider.close)();
       }
-    });
+    );
 
     it("clears mapping storage slots", async() => {
       const options = { from: accounts[0] };
@@ -273,8 +285,9 @@ describe("Gas", function() {
     }
 
     it("matches estimate for deployment", async function() {
-      let gasEstimate = await EstimateGasContract.deploy({ data: estimateGasContractData })
-        .estimateGas({ from: accounts[1] });
+      let gasEstimate = await EstimateGasContract.deploy({ data: estimateGasContractData }).estimateGas({
+        from: accounts[1]
+      });
 
       assert.deepStrictEqual(deploymentReceipt.gasUsed, gasEstimate);
       assert.deepStrictEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
@@ -282,11 +295,10 @@ describe("Gas", function() {
 
     it("matches usage for complex function call (add)", async function() {
       this.timeout(10000);
-      await testTransactionEstimate(
-        estimateGasInstance.methods.add,
-        [toBytes("Tim"), toBytes("A great guy"), 10],
-        { from: accounts[0], gas: 3141592 }
-      );
+      await testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 10], {
+        from: accounts[0],
+        gas: 3141592
+      });
     });
 
     it("matches usage for complex function call (transfer)", async function() {
@@ -339,9 +351,11 @@ describe("Gas", function() {
       // gas expense is just gasPrice * gasUsed, so just solve accordingly
       const actualGasPrice = gasExpense.div(gasUsed);
 
-      assert(expectedGasPrice.eq(actualGasPrice),
+      assert(
+        expectedGasPrice.eq(actualGasPrice),
         `Gas price used by EVM (${to.hex(actualGasPrice)}) was different from` +
-        ` expected gas price (${to.hex(expectedGasPrice)})`);
+          ` expected gas price (${to.hex(expectedGasPrice)})`
+      );
     }
 
     it("should calculate gas expenses correctly in consideration of the default gasPrice", async function() {
@@ -352,7 +366,7 @@ describe("Gas", function() {
       await testGasExpenseIsCorrect("0x10000", true);
     });
 
-    it("should calculate gas expenses correctly in consideration of a user-defined default gasPrice", async function() {
+    it("should calculate gas expenses correctly in consideration of a user-defined default gasPrice", async() => {
       let gasPrice = "0x2000";
       let provider = Ganache.provider({ mnemonic, gasPrice });
       let tempWeb3;
@@ -367,8 +381,7 @@ describe("Gas", function() {
       }
     });
 
-    it("should calculate cumalativeGas and gasUsed correctly when multiple transactions " +
-    "are in a block", async function() {
+    it("should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block", async() => {
       let provider = Ganache.provider({
         blockTime: 0.5, // seconds
         mnemonic: mnemonic
@@ -379,43 +392,49 @@ describe("Gas", function() {
       try {
         tempWeb3 = new Web3(provider);
 
-        let transactions = [{
-          "value": "0x10000000",
-          "gasLimit": "0x33450",
-          "from": accounts[0],
-          "to": accounts[1],
-          "nonce": "0x0"
-        }, {
-          "value": "0x10000000",
-          "gasLimit": "0x33450",
-          "from": accounts[0],
-          "to": accounts[1],
-          "nonce": "0x1"
-        }, {
-          "value": "0x10000000",
-          "gasLimit": "0x33450",
-          "from": accounts[1], // <
-          "to": accounts[0], // <^ reversed tx order
-          "nonce": "0x0"
-        }];
+        let transactions = [
+          {
+            value: "0x10000000",
+            gasLimit: "0x33450",
+            from: accounts[0],
+            to: accounts[1],
+            nonce: "0x0"
+          },
+          {
+            value: "0x10000000",
+            gasLimit: "0x33450",
+            from: accounts[0],
+            to: accounts[1],
+            nonce: "0x1"
+          },
+          {
+            value: "0x10000000",
+            gasLimit: "0x33450",
+            from: accounts[1], // <
+            to: accounts[0], // <^ reversed tx order
+            nonce: "0x0"
+          }
+        ];
 
         // Precondition
         const initialBlockNumber = await tempWeb3.eth.getBlockNumber();
         assert.deepStrictEqual(initialBlockNumber, 0, "Current Block Should be 0");
 
-        let hashes = await Promise.all(transactions.map((transaction) => {
-          let promiEvent = tempWeb3.eth.sendTransaction(transaction);
+        let hashes = await Promise.all(
+          transactions.map((transaction) => {
+            let promiEvent = tempWeb3.eth.sendTransaction(transaction);
 
-          return new Promise((resolve) => {
-            promiEvent.once("transactionHash", async(hash) => {
-              // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
-              let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
-              assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
+            return new Promise((resolve) => {
+              promiEvent.once("transactionHash", async(hash) => {
+                // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
+                let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
+                assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
 
-              resolve(hash);
+                resolve(hash);
+              });
             });
-          });
-        }));
+          })
+        );
 
         // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
         await sleep(750);
@@ -427,11 +446,7 @@ describe("Gas", function() {
 
         let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)));
 
-        assert.deepStrictEqual(
-          receipts[0].gasUsed,
-          receipts[1].gasUsed,
-          "Tx1 and Tx2 should cost the same gas."
-        );
+        assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
         assert.deepStrictEqual(
           receipts[1].gasUsed,
           receipts[2].gasUsed,
@@ -444,8 +459,9 @@ describe("Gas", function() {
         );
 
         // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
-        let isAccumulating = (receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed) &&
-          (receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed);
+        let isAccumulating =
+          receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed &&
+          receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed;
         assert.deepStrictEqual(
           isAccumulating,
           true,

@@ -8,10 +8,16 @@
   "directories": {
     "lib": "./lib"
   },
+  "prettier": {
+    "printWidth": 120,
+    "arrowParans": "always"
+  },
   "scripts": {
     "test": "npm run lint && mocha --check-leaks --recursive --globals _scratch,sanitizedData",
     "lint": "eslint --ignore-path .gitignore .",
-    "format": "prettier --print-width 120 --arrow-parens always --no-config --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
+    "format": "npm run prettier && npm run eslint",
+    "eslint": "eslint --fix --ignore-path .gitignore .",
+    "prettier": "prettier --write \"{lib,perf,test}/**/*.js\"",
     "build": "npm run build-core",
     "build-core": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-provider": "webpack-cli --config ./webpack/node/provider.webpack.config.js",
@@ -50,15 +56,15 @@
   },
   "devDependencies": {
     "assert-match": "^1.1.1",
-    "eslint": "^5.5.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^7.0.1",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
+    "eslint": "5.7.0",
+    "eslint-config-standard": "12.0.0",
+    "eslint-plugin-import": "2.14.0",
+    "eslint-plugin-node": "7.0.1",
+    "eslint-plugin-promise": "4.0.1",
+    "eslint-plugin-standard": "4.0.0",
     "memdown": "^1.3.1",
     "mocha": "5.2.0",
-    "prettier": "^1.14.2",
+    "prettier": "^1.14.3",
     "browserfs": "1.4.3",
     "cross-env": "5.2.0",
     "ethereumjs-wallet": "0.6.2",

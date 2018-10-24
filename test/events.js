@@ -1,20 +1,21 @@
 var Web3 = require("web3");
 var Web3WsProvider = require("web3-providers-ws");
-var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
-  process.env.TEST_BUILD + ".js" : "../index.js");
+var Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 var assert = require("assert");
 var solc = require("solc");
 
 var source =
   "                      \n" +
-"pragma solidity ^0.4.24;            \n" +
-"contract EventTest {                \n" +
-"  event ExampleEvent(uint indexed first, uint indexed second);   \n" +
-"                                    \n" +
-"  function triggerEvent(uint _first, uint _second) public { \n" +
-"    emit ExampleEvent(_first, _second);      \n" +
-"  }                                 \n" +
-"}";
+  "pragma solidity ^0.4.24;            \n" +
+  "contract EventTest {                \n" +
+  "  event ExampleEvent(uint indexed first, uint indexed second);   \n" +
+  "                                    \n" +
+  "  function triggerEvent(uint _first, uint _second) public { \n" +
+  "    emit ExampleEvent(_first, _second);      \n" +
+  "  }                                 \n" +
+  "}";
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -76,9 +77,7 @@ var tests = function(web3, EventTest) {
       event.once("data", listener);
       event.once("error", (err) => done(err));
 
-      instance.methods
-        .triggerEvent(1, 6)
-        .send({ from: accounts[0], gas: 3141592 });
+      instance.methods.triggerEvent(1, 6).send({ from: accounts[0], gas: 3141592 });
     });
 
     // NOTE! This test relies on the events triggered in the tests above.
@@ -94,9 +93,7 @@ var tests = function(web3, EventTest) {
 
       event.once("data", listener);
 
-      instance.methods
-        .triggerEvent(2, 6)
-        .send({ from: accounts[0], gas: 3141592 });
+      instance.methods.triggerEvent(2, 6).send({ from: accounts[0], gas: 3141592 });
     });
 
     // NOTE! This test relies on the events triggered in the tests above.

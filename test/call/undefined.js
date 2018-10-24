@@ -30,9 +30,8 @@ function setUp(options = { mnemonic }, contractName = "Example") {
 
   before("compile source", async function() {
     this.timeout(10000);
-    context.contractArtifact = await compileAndDeploy(
-      path.join(__dirname, ".", `${contractName}.sol`), contractName, context.web3
-    );
+    const location = path.join(__dirname, ".", `${contractName}.sol`);
+    context.contractArtifact = await compileAndDeploy(location, contractName, context.web3);
     context.instance = context.contractArtifact.instance;
   });
 
@@ -70,11 +69,12 @@ describe("call:undefined", function() {
     const { instance, web3 } = context;
 
     const signature = instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature;
-    // test raw JSON RPC value:
-    const result = await web3.eth.call({
+    const params = {
       to: instance._address,
       data: signature
-    }, "latest");
+    };
+    // test raw JSON RPC value:
+    const result = await web3.eth.call(params, "latest");
     assert.strictEqual(
       result,
       "0x000000000000000000000000000000000000000000000000000000000000002a",
@@ -92,21 +92,22 @@ describe("call:undefined", function() {
     const { instance, web3 } = context;
 
     const signature = instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature;
-    const result = await web3.eth.call({
+    const params = {
       to: instance._address,
       data: signature
-    }, "earliest");
+    };
+    const result = await web3.eth.call(params, "earliest");
 
     assert.strictEqual(result, "0x");
   });
 
   it("should return 0x when method doesn't exist at block", async function() {
     const { instance, web3 } = context;
-
-    const result = await web3.eth.call({
+    const params = {
       to: instance._address,
       data: "0x01234567"
-    }, "latest");
+    };
+    const result = await web3.eth.call(params, "latest");
 
     assert.strictEqual(result, "0x");
   });

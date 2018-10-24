@@ -1,7 +1,8 @@
 var Web3 = require("web3");
 var assert = require("assert");
-var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
-  process.env.TEST_BUILD + ".js" : "../index.js");
+var Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
@@ -203,8 +204,8 @@ function runTests(web3, provider, extraTests) {
           assert(
             response.result ===
               "0x08c379a000000000000000000000000000000000000000000000000000000000000000" +
-              "2000000000000000000000000000000000000000000000000000000000000000074d6573" +
-              "7361676500000000000000000000000000000000000000000000000000"
+                "2000000000000000000000000000000000000000000000000000000000000000074d6573" +
+                "7361676500000000000000000000000000000000000000000000000000"
           );
         }
 

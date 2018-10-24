@@ -1,7 +1,8 @@
 var assert = require("assert");
 var Web3 = require("web3");
-var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
-  process.env.TEST_BUILD + ".js" : "../index.js");
+var Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 var to = require("../lib/utils/to.js");
 
 describe("to.rpcQuantityHexString", function() {
@@ -50,9 +51,8 @@ function noLeadingZeros(method, result, path) {
 
   if (typeof result === "string") {
     if (/^0x/.test(result)) {
-      assert.strictEqual(
-        result, to.rpcQuantityHexString(result), `Field ${path} in ${method} response has leading zeroes.`
-      );
+      const asHex = to.rpcQuantityHexString(result);
+      assert.strictEqual(result, asHex, `Field ${path} in ${method} response has leading zeroes.`);
     }
   } else if (typeof result === "object") {
     for (var key in result) {

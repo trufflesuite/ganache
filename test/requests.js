@@ -3,8 +3,9 @@ var Web3WsProvider = require("web3-providers-ws");
 var Transaction = require("ethereumjs-tx");
 var utils = require("ethereumjs-util");
 var assert = require("assert");
-var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
-  process.env.TEST_BUILD + ".js" : "../index.js");
+var Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 var solc = require("solc");
 var fs = require("fs");
 var to = require("../lib/utils/to");
@@ -541,7 +542,7 @@ var tests = function(web3) {
           assert.strictEqual(
             response.result,
             "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d" +
-            "07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
+              "07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
           );
           done();
         }
@@ -558,43 +559,47 @@ var tests = function(web3) {
   describe("eth_sendTransaction", () => {
     it("should fail with bad nonce (too low)", function(done) {
       var transaction = {
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x0" // too low nonce
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0x0" // too low nonce
       };
 
       web3.eth.sendTransaction(transaction, function(err, result) {
-        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce" +
-        " of: 1 tx has nonce of: 0") >= 0, `Incorrect error message: ${err.message}`);
+        assert(
+          err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0,
+          `Incorrect error message: ${err.message}`
+        );
         done();
       });
     });
 
     it("should fail with bad nonce (too high)", function(done) {
       var transaction = {
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0xff" // too high nonce
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0xff" // too high nonce
       };
 
       web3.eth.sendTransaction(transaction, function(err, result) {
-        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce" +
-        " of: 1 tx has nonce of: 255") >= 0);
+        assert(
+          err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 255") >=
+            0
+        );
         done();
       });
     });
 
     it("should succeed with right nonce (1)", function(done) {
       var transaction = {
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x01"
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0x01"
       };
 
       web3.eth.sendTransaction(transaction, function(err, result) {
@@ -603,30 +608,33 @@ var tests = function(web3) {
     });
 
     it("should fail with bad nonce (skipped value)", function(done) {
-      let tempWeb3 = new Web3(Ganache.provider({
-        blockTime: 0.5, // seconds
-        mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
-      }));
+      let tempWeb3 = new Web3(
+        Ganache.provider({
+          blockTime: 0.5, // seconds
+          mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
+        })
+      );
 
-      const accounts = [ // configured with mnemonic
+      const accounts = [
+        // configured with mnemonic
         "0x627306090abab3a6e1400e9345bc60c78a8bef57",
         "0xf17f52151ebef6c7334fad080c5704d77216b732"
       ];
 
       let transaction = {
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x00"
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0x00"
       };
 
       let transaction2 = {
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x02" // Skipped nonce 1
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0x02" // Skipped nonce 1
       };
 
       tempWeb3.eth.sendTransaction(transaction, function(err, hash) {
@@ -656,11 +664,11 @@ var tests = function(web3) {
 
     it("should allow a tx to contain data when sent to an external (personal) address", async() => {
       var transaction = {
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[9],
-        "to": accounts[8],
-        "data": "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[9],
+        to: accounts[8],
+        data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
       };
 
       let result = await web3.eth.sendTransaction(transaction);
@@ -671,49 +679,51 @@ var tests = function(web3) {
   describe("eth_sendRawTransaction", () => {
     it("should fail with bad nonce (too low)", function(done) {
       var transaction = new Transaction({
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x0" // too low nonce
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0x0" // too low nonce
       });
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce" +
-        " of: 2 tx has nonce of: 0") >= 0, `Incorrect error message: ${err.message}`);
+        const msg = "the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 0";
+        assert(err.message.indexOf(msg) >= 0, `Incorrect error message: ${err.message}`);
         done();
       });
     });
 
     it("should fail with bad nonce (too high)", function(done) {
       var transaction = new Transaction({
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0xff" // too high nonce
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0xff" // too high nonce
       });
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        assert(err.message.indexOf("the tx doesn't have the correct nonce. account has nonce" +
-        " of: 2 tx has nonce of: 255") >= 0);
+        assert(
+          err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 255") >=
+            0
+        );
         done();
       });
     });
 
     it("should succeed with right nonce (1)", function(done) {
       var transaction = new Transaction({
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x2"
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0x2"
       });
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
@@ -725,32 +735,36 @@ var tests = function(web3) {
     });
 
     it("should fail with bad nonce (skipped value)", function(done) {
-      let tempWeb3 = new Web3(Ganache.provider({
-        blockTime: 0.5, // seconds
-        mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
-      }));
+      let tempWeb3 = new Web3(
+        Ganache.provider({
+          blockTime: 0.5, // seconds
+          mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
+        })
+      );
 
-      const accounts = [ // configured with mnemonic
+      const accounts = [
+        // configured with mnemonic
         "0x627306090abab3a6e1400e9345bc60c78a8bef57",
         "0xf17f52151ebef6c7334fad080c5704d77216b732"
       ];
-      const secretKeys = [ // configured with mnemonic
+      const secretKeys = [
+        // configured with mnemonic
         "0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3"
       ];
 
       let transaction = new Transaction({
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x00"
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0x00"
       });
       let transaction2 = new Transaction({
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x02" // Skipped nonce 1
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0x02" // Skipped nonce 1
       });
 
       let secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
@@ -784,11 +798,11 @@ var tests = function(web3) {
 
     it("should respond with correct txn hash", function(done) {
       var transaction = new Transaction({
-        "value": "0x0",
-        "gasLimit": "0x5208",
-        "from": accounts[0],
-        "to": accounts[1],
-        "nonce": "0x3"
+        value: "0x0",
+        gasLimit: "0x5208",
+        from: accounts[0],
+        to: accounts[1],
+        nonce: "0x3"
       });
 
       var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
@@ -802,11 +816,11 @@ var tests = function(web3) {
 
     it("should allow a tx to contain data when sent to an external (personal) address", async() => {
       var transaction = new Transaction({
-        "value": "0x10000000",
-        "gasLimit": "0x33450",
-        "from": accounts[6],
-        "to": accounts[8],
-        "data": "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[6],
+        to: accounts[8],
+        data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
       });
 
       var secretKeyBuffer = Buffer.from(secretKeys[6].substr(2), "hex");
@@ -868,29 +882,31 @@ var tests = function(web3) {
       // This test uses the provider directly because web3 fixes a bug we had for us.
       //  specifically, when the an rpc result field is `0x` it transform it to `null`
       //  `0x` is an incorrect response (it should be null). so we test for that here
-      web3.currentProvider.send({
-        id: "1", // an "id" is required here because the web3 websocket provider (v1.0.0-beta.35) throws if it is
-        // missing (it's probably just a bug on their end)
-        jsonrpc: "2.0",
-        method: "eth_getTransactionByHash",
-        params: [initialTransaction]
-      }, (err, jsonRpcResponse) => {
-        if (err) {
-          return done(err);
+      web3.currentProvider.send(
+        {
+          id: "1", // an "id" is required here because the web3 websocket provider (v1.0.0-beta.35) throws if it is
+          // missing (it's probably just a bug on their end)
+          jsonrpc: "2.0",
+          method: "eth_getTransactionByHash",
+          params: [initialTransaction]
+        },
+        (err, jsonRpcResponse) => {
+          if (err) {
+            return done(err);
+          }
+
+          const result = jsonRpcResponse.result;
+
+          assert.notStrictEqual(result, null, "Transaction result shouldn't be null");
+          assert.strictEqual(result.hash, initialTransaction, "Resultant hash isn't what we expected");
+          assert.strictEqual(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
+
+          done();
         }
-
-        const result = jsonRpcResponse.result;
-
-        assert.notStrictEqual(result, null, "Transaction result shouldn't be null");
-        assert.strictEqual(result.hash, initialTransaction, "Resultant hash isn't what we expected");
-        assert.strictEqual(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
-
-        done();
-      });
+      );
     });
 
-    it("should return null if asked for a receipt for a nonexistent transaction " +
-    "(eth_getTransactionReceipt)", function(done) {
+    it("should return null for a receipt for a nonexistent transaction (eth_getTransactionReceipt)", (done) => {
       web3.eth.getTransactionReceipt("0xdeadbeef", function(err, receipt) {
         if (err) {
           return done(err);
@@ -1084,7 +1100,9 @@ var tests = function(web3) {
             }
 
             assert.strictEqual(
-              result, startingBlockNumber, "eth_estimateGas increased block count when it shouldn't have"
+              result,
+              startingBlockNumber,
+              "eth_estimateGas increased block count when it shouldn't have"
             );
             done();
           });
@@ -1145,7 +1163,9 @@ var tests = function(web3) {
 
           assert.strictEqual(receipt.logs.length, 1, "Receipt had wrong amount of logs");
           assert.strictEqual(
-            receipt.logs[0].blockHash, receipt.blockHash, "Logs blockhash doesn't match block blockhash"
+            receipt.logs[0].blockHash,
+            receipt.blockHash,
+            "Logs blockhash doesn't match block blockhash"
           );
 
           web3.eth.call(callData, function(err, result) {
@@ -1167,33 +1187,40 @@ var tests = function(web3) {
       var startingBlockNumber = null;
       var callData = contract.callData;
 
-      web3.eth.getBlockNumber().then(function(result) {
-        startingBlockNumber = result;
-        return web3.eth.call(callData);
-      }).then(function(result) {
-        assert.strictEqual(
-          result,
-          "0x0000000000000000000000000000000000000000000000000000000000000019",
-          "value retrieved from latest block should be 25"
-        );
-        return web3.eth.call(callData, contractCreationBlockNumber);
-      }).then(function(result) {
-        assert.strictEqual(result,
-          "0x0000000000000000000000000000000000000000000000000000000000000005",
-          "value retrieved from contract creation block should be 5"
-        );
-        return web3.eth.getBlockNumber();
-      }).then(function(result) {
-        assert.strictEqual(result, startingBlockNumber, "eth_call w/defaultBlock increased block count");
-        return web3.eth.call(callData);
-      }).then(function(result) {
-        assert.strictEqual(
-          result,
-          "0x0000000000000000000000000000000000000000000000000000000000000019",
-          "stateTrie root was corrupted by defaultBlock call"
-        );
-        done();
-      });
+      web3.eth
+        .getBlockNumber()
+        .then(function(result) {
+          startingBlockNumber = result;
+          return web3.eth.call(callData);
+        })
+        .then(function(result) {
+          assert.strictEqual(
+            result,
+            "0x0000000000000000000000000000000000000000000000000000000000000019",
+            "value retrieved from latest block should be 25"
+          );
+          return web3.eth.call(callData, contractCreationBlockNumber);
+        })
+        .then(function(result) {
+          assert.strictEqual(
+            result,
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+            "value retrieved from contract creation block should be 5"
+          );
+          return web3.eth.getBlockNumber();
+        })
+        .then(function(result) {
+          assert.strictEqual(result, startingBlockNumber, "eth_call w/defaultBlock increased block count");
+          return web3.eth.call(callData);
+        })
+        .then(function(result) {
+          assert.strictEqual(
+            result,
+            "0x0000000000000000000000000000000000000000000000000000000000000019",
+            "stateTrie root was corrupted by defaultBlock call"
+          );
+          done();
+        });
     });
 
     it("should read data via a call when specified blockNumber is \"earliest\" (eth_call)", function(done) {
@@ -1238,27 +1265,30 @@ var tests = function(web3) {
         });
     });
 
-    it("should only be able to send an unsigned state changing transaction from" +
-    " an address within the accounts list (eth_sendTransaction)", function(done) {
-      var badAddress = "0x1234567890123456789012345678901234567890";
+    it(
+      "should only be able to send an unsigned state changing transaction from" +
+        " an address within the accounts list (eth_sendTransaction)",
+      function(done) {
+        var badAddress = "0x1234567890123456789012345678901234567890";
 
-      var txData = {};
-      txData.to = "0x1111111111000000000011111111110000000000";
-      txData.from = badAddress;
-      txData.value = "0x1";
+        var txData = {};
+        txData.to = "0x1111111111000000000011111111110000000000";
+        txData.from = badAddress;
+        txData.value = "0x1";
 
-      web3.eth.sendTransaction(txData, function(err, result) {
-        if (err) {
-          assert(
-            /sender account not recognized/.test(err.message),
-            `Expected error message containing 'sender account not recognized', but got ${err.message}`
-          );
-          done();
-        } else {
-          assert.fail("Should have received an error");
-        }
-      });
-    });
+        web3.eth.sendTransaction(txData, function(err, result) {
+          if (err) {
+            assert(
+              /sender account not recognized/.test(err.message),
+              `Expected error message containing 'sender account not recognized', but got ${err.message}`
+            );
+            done();
+          } else {
+            assert.fail("Should have received an error");
+          }
+        });
+      }
+    );
 
     it("should get the data from storage (eth_getStorageAt) with padded hex", function(done) {
       web3.eth.getStorageAt(contractAddress, contract.position_of_value, function(err, result) {
@@ -1434,8 +1464,7 @@ var tests = function(web3) {
       });
     });
 
-    it("should be able to get the transaction from the block " +
-    "(eth_getTransactionByBlockNumberAndIndex)", function(done) {
+    it("should be able to get the transaction from the block (eth_getTransactionByBlockNumberAndIndex)", (done) => {
       web3.eth.getTransactionFromBlock(blockNumber, 0, function(err, result) {
         if (err) {
           return done(err);
@@ -1448,8 +1477,7 @@ var tests = function(web3) {
       });
     });
 
-    it("should throw error for transactions that don't exist in block " +
-    "(eth_getTransactionByBlockNumberAndIndex)", function(done) {
+    it("should error for transactions that don't exist in block (eth_getTransactionByBlockNumberAndIndex)", (done) => {
       web3.eth.getTransactionFromBlock(blockNumber, 3, function(err, result) {
         // We want an error because there is no transaction with id 3.
         if (err) {
@@ -1689,7 +1717,7 @@ var tests = function(web3) {
           strResult.length,
           dateAsInt.length,
           `net_version result, ${result}` +
-           `doesn't appear to be similar in length the current time as an integer, ${dateAsInt}`
+            `doesn't appear to be similar in length the current time as an integer, ${dateAsInt}`
         );
         done();
       });
@@ -1793,7 +1821,7 @@ var tests = function(web3) {
 
 var logger = {
   log: function(message) {
-  // console.log(message);
+    // console.log(message);
   }
 };
 
@@ -1804,7 +1832,7 @@ describe("Provider:", function() {
     Ganache.provider({
       logger: logger,
       seed: "1337"
-    // so that the runtime errors on call test passes
+      // so that the runtime errors on call test passes
     })
   );
   tests(web3);
@@ -1826,7 +1854,7 @@ describe("HTTP Server:", function(done) {
     server = Ganache.server({
       logger: logger,
       seed: "1337"
-    // so that the runtime errors on call test passes
+      // so that the runtime errors on call test passes
     });
 
     server.listen(port, function(err) {
@@ -1856,7 +1884,7 @@ describe("WebSockets Server:", function(done) {
       logger: logger,
       seed: "1337",
       verbose: true
-    // so that the runtime errors on call test passes
+      // so that the runtime errors on call test passes
     });
     server.listen(port, function(err) {
       if (err) {

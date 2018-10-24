@@ -1,8 +1,9 @@
 var Web3 = require("web3");
 var Web3WsProvider = require("web3-providers-ws");
 var assert = require("assert");
-var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
-  process.env.TEST_BUILD + ".js" : "../index.js");
+var Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 var fs = require("fs");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
@@ -253,7 +254,7 @@ describe("Forking", function() {
     });
   });
 
-  it("should be able to get the balance of an address in the forked provider via the main provider", function(done) {
+  it("should get the balance of an address in the forked provider via the main provider", function(done) {
     // Assert preconditions
     var firstForkedAccount = forkedAccounts[0];
     assert(mainAccounts.indexOf(firstForkedAccount) < 0);
@@ -270,7 +271,7 @@ describe("Forking", function() {
     });
   });
 
-  it("should be able to get storage values on the forked provider via the main provider", function(done) {
+  it("should get storage values on the forked provider via the main provider", function(done) {
     mainWeb3.eth.getStorageAt(contractAddress, contract.position_of_value, function(err, result) {
       if (err) {
         return done(err);
@@ -280,7 +281,7 @@ describe("Forking", function() {
     });
   });
 
-  it("should be able to execute calls against a contract on the forked provider via the main provider", function(done) {
+  it("should execute calls against a contract on the forked provider via the main provider", function(done) {
     var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
     example.methods.value().call({ from: mainAccounts[0] }, function(err, result) {
@@ -300,8 +301,7 @@ describe("Forking", function() {
     });
   });
 
-  it("should be able to make a transaction on the main provider while" +
-  " not transacting on the forked provider", function(done) {
+  it("should make a transaction on the main provider while not transacting on the forked provider", (done) => {
     var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
     var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
@@ -335,8 +335,7 @@ describe("Forking", function() {
     });
   });
 
-  it("should ignore continued transactions on the forked blockchain" +
-  " by pegging the forked block number", function(done) {
+  it("should ignore continued transactions on the forked blockchain by pegging the forked block number", (done) => {
     // In this test, we're going to use the second contract address that we haven't
     // used previously. This ensures the data hasn't been cached on the main web3 trie
     // yet, and it will require it forked to the forked provider at a specific block.
@@ -442,50 +441,53 @@ describe("Forking", function() {
   });
 
   // Note: This test also puts a new contract on the forked chain, which is a good test.
-  it("should represent the block number correctly in the Oracle contract (oracle.blockhash0)," +
-  " providing forked block hash and number", function() {
-    this.timeout(10000);
-    var oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
-    var solcResult = solc.compile(oracleSol);
-    var oracleOutput = solcResult.contracts[":Oracle"];
+  it(
+    "should represent the block number correctly in the Oracle contract (oracle.blockhash0)," +
+      " providing forked block hash and number",
+    function() {
+      this.timeout(10000);
+      var oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
+      var solcResult = solc.compile(oracleSol);
+      var oracleOutput = solcResult.contracts[":Oracle"];
 
-    return new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface))
-      .deploy({ data: oracleOutput.bytecode })
-      .send({ from: mainAccounts[0], gas: 3141592 })
-      .then(function(oracle) {
-        // TODO: ugly workaround - not sure why this is necessary.
-        if (!oracle._requestManager.provider) {
-          oracle._requestManager.setProvider(mainWeb3.eth._provider);
-        }
-        return mainWeb3.eth
-          .getBlock(0)
-          .then(function(block) {
-            return oracle.methods
-              .blockhash0()
-              .call()
-              .then(function(blockhash) {
-                assert.strictEqual(blockhash, block.hash);
-                // Now check the block number.
-                return mainWeb3.eth.getBlockNumber();
-              });
-          })
-          .then(function(expectedNumber) {
-            return oracle.methods
-              .currentBlock()
-              .call()
-              .then(function(number) {
-                assert.strictEqual(to.number(number), expectedNumber + 1);
-                return oracle.methods.setCurrentBlock().send({ from: mainAccounts[0], gas: 3141592 });
-              })
-              .then(function(tx) {
-                return oracle.methods.lastBlock().call({ from: mainAccounts[0] });
-              })
-              .then(function(val) {
-                assert.strictEqual(to.number(val), expectedNumber + 1);
-              });
-          });
-      });
-  });
+      return new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface))
+        .deploy({ data: oracleOutput.bytecode })
+        .send({ from: mainAccounts[0], gas: 3141592 })
+        .then(function(oracle) {
+          // TODO: ugly workaround - not sure why this is necessary.
+          if (!oracle._requestManager.provider) {
+            oracle._requestManager.setProvider(mainWeb3.eth._provider);
+          }
+          return mainWeb3.eth
+            .getBlock(0)
+            .then(function(block) {
+              return oracle.methods
+                .blockhash0()
+                .call()
+                .then(function(blockhash) {
+                  assert.strictEqual(blockhash, block.hash);
+                  // Now check the block number.
+                  return mainWeb3.eth.getBlockNumber();
+                });
+            })
+            .then(function(expectedNumber) {
+              return oracle.methods
+                .currentBlock()
+                .call()
+                .then(function(number) {
+                  assert.strictEqual(to.number(number), expectedNumber + 1);
+                  return oracle.methods.setCurrentBlock().send({ from: mainAccounts[0], gas: 3141592 });
+                })
+                .then(function(tx) {
+                  return oracle.methods.lastBlock().call({ from: mainAccounts[0] });
+                })
+                .then(function(val) {
+                  assert.strictEqual(to.number(val), expectedNumber + 1);
+                });
+            });
+        });
+    }
+  );
 
   // TODO
   it("should be able to get logs across the fork boundary", function(done) {

@@ -1,7 +1,8 @@
 var BN = require("bn.js");
 var Web3 = require("web3");
-var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
-  process.env.TEST_BUILD + ".js" : "../index.js");
+var Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 var assert = require("assert");
 var to = require("../lib/utils/to.js");
 var solc = require("solc");
@@ -59,7 +60,7 @@ describe("Mining", function() {
   // Everything's a Promise to add in readibility.
   async function getBlockNumber() {
     return to.number(await web3.eth.getBlockNumber());
-  };
+  }
 
   async function startMining() {
     await pify(web3.currentProvider.send)({
@@ -102,13 +103,15 @@ describe("Mining", function() {
       jsonrpc: "2.0",
       method: "eth_sendTransaction",
       id: new Date().getTime(),
-      params: [{
-        from: from,
-        to: to,
-        gas: gasLimit,
-        value: value,
-        data: data
-      }]
+      params: [
+        {
+          from: from,
+          to: to,
+          gas: gasLimit,
+          value: value,
+          data: data
+        }
+      ]
     });
     if (response.error) {
       throw new Error(response.error.message);
@@ -118,12 +121,14 @@ describe("Mining", function() {
 
   async function getCode(address) {
     return web3.eth.getCode(address);
-  };
+  }
 
   function compileSolidity(source) {
     let result = solc.compile({ sources: { "Contract.sol": source } });
-    return Promise.resolve({ code: "0x" + result.contracts[Object.keys(result.contracts)[0]].bytecode });
-  };
+    return Promise.resolve({
+      code: "0x" + result.contracts[Object.keys(result.contracts)[0]].bytecode
+    });
+  }
 
   before(async function() {
     accounts = await web3.eth.getAccounts();
@@ -199,35 +204,38 @@ describe("Mining", function() {
     assert.strictEqual(number, blockNumber + 2);
   });
 
-  it("should mine one block when requested, and only one transaction, when two queued transactions" +
-  " together are larger than a single block", async function() {
-    // This is a very similar test to the above, except we don't start mining again,
-    // we only mine one block by request.
+  it(
+    "should mine one block when requested, and only one transaction, when two queued transactions" +
+      " together are larger than a single block",
+    async function() {
+      // This is a very similar test to the above, except we don't start mining again,
+      // we only mine one block by request.
 
-    await stopMining();
-    let blockNumber = await getBlockNumber();
-    let tx1 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
-    let receipt1 = await web3.eth.getTransactionReceipt(tx1);
-    assert.strictEqual(receipt1, null);
+      await stopMining();
+      let blockNumber = await getBlockNumber();
+      let tx1 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
+      let receipt1 = await web3.eth.getTransactionReceipt(tx1);
+      assert.strictEqual(receipt1, null);
 
-    let tx2 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
-    let receipt2 = await web3.eth.getTransactionReceipt(tx2);
-    assert.strictEqual(receipt2, null);
+      let tx2 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
+      let receipt2 = await web3.eth.getTransactionReceipt(tx2);
+      assert.strictEqual(receipt2, null);
 
-    await mineSingleBlock();
+      await mineSingleBlock();
 
-    let receipts = await Promise.all([web3.eth.getTransactionReceipt(tx1), web3.eth.getTransactionReceipt(tx2)]);
+      let receipts = await Promise.all([web3.eth.getTransactionReceipt(tx1), web3.eth.getTransactionReceipt(tx2)]);
 
-    assert.strictEqual(receipts.length, 2);
+      assert.strictEqual(receipts.length, 2);
 
-    assert.notStrictEqual(receipts[0], null);
-    assert.strictEqual(receipts[0].transactionHash, tx1);
+      assert.notStrictEqual(receipts[0], null);
+      assert.strictEqual(receipts[0].transactionHash, tx1);
 
-    assert.strictEqual(receipts[1], null);
+      assert.strictEqual(receipts[1], null);
 
-    let number = await getBlockNumber();
-    assert.strictEqual(number, blockNumber + 1);
-  });
+      let number = await getBlockNumber();
+      assert.strictEqual(number, blockNumber + 1);
+    }
+  );
 
   it("should error if queued transaction exceeds the block gas limit", async function() {
     try {
@@ -268,8 +276,7 @@ describe("Mining", function() {
     }
   });
 
-  it("should error via evm_mine when multiple queued transactions throw runtime errors" +
-  " in a single block", async function() {
+  it("should error via evm_mine when multiple queued transactions throw runtime errors in a single block", async () => {
     // Note: The two transactions queued in this test do not exceed the block gas limit
     // and thus should fit within a single block.
 
@@ -287,8 +294,7 @@ describe("Mining", function() {
     }
   });
 
-  it("should error via miner_start when multiple queued transactions throw runtime errors" +
-  " in multiple blocks", async function() {
+  it("should error via miner_start when queued transactions throw runtime errors in multiple blocks", async () => {
     // Note: The two transactions queued in this test together DO exceed the block gas limit
     // and thus will fit in two blocks, one block each.
 

@@ -1,6 +1,7 @@
 var Web3 = require("web3");
-var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." +
-  process.env.TEST_BUILD + ".js" : "../index.js");
+var Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 var assert = require("assert-match");
 var regex = require("assert-match/matchers").regex;
 
@@ -104,11 +105,11 @@ var tests = function(web3) {
         method: "eth_sendTransaction",
         params: [
           {
-            "value": "0x10000000",
-            "gas": "0xf4240",
-            "from": accounts[0],
-            "to": accounts[1],
-            "nonce": "0x0" // too low nonce
+            value: "0x10000000",
+            gas: "0xf4240",
+            from: accounts[0],
+            to: accounts[1],
+            nonce: "0x0" // too low nonce
           }
         ],
         id: 2
@@ -117,9 +118,7 @@ var tests = function(web3) {
       provider.send(request, function(err, result) {
         if (err) {
           assert(
-            /the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0/.test(
-              err.message
-            ),
+            /the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0/.test(err.message),
             `Expected incorrect nonce error, got '${err.message}', instead.`
           );
         }
