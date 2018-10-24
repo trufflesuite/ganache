@@ -1789,91 +1789,91 @@ var tests = function(web3) {
       });
     });
   }) */
-
-  var logger = {
-    log: function(message) {
-    // console.log(message);
-    }
-  };
-
-  describe("Provider:", function() {
-    var Web3 = require("web3");
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        logger: logger,
-        seed: "1337"
-      // so that the runtime errors on call test passes
-      })
-    );
-    tests(web3);
-
-    after("shutdown provider", function(done) {
-      let provider = web3._provider;
-      web3.setProvider();
-      provider.close(done);
-    });
-  });
-
-  describe("HTTP Server:", function(done) {
-    var Web3 = require("web3");
-    var web3 = new Web3();
-    var port = 12345;
-    var server;
-
-    before("Initialize Ganache server", function(done) {
-      server = Ganache.server({
-        logger: logger,
-        seed: "1337"
-      // so that the runtime errors on call test passes
-      });
-
-      server.listen(port, function(err) {
-        if (err) {
-          return done(err);
-        }
-        web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
-        done();
-      });
-    });
-
-    after("Shutdown server", function(done) {
-      server.close(done);
-    });
-
-    tests(web3);
-  });
-
-  describe("WebSockets Server:", function(done) {
-    var Web3 = require("web3");
-    var web3 = new Web3();
-    var port = 12345;
-    var server;
-
-    before("Initialize Ganache server", function(done) {
-      server = Ganache.server({
-        logger: logger,
-        seed: "1337",
-        verbose: true
-      // so that the runtime errors on call test passes
-      });
-      server.listen(port, function(err) {
-        if (err) {
-          return done(err);
-        }
-        var provider = new Web3WsProvider("ws://localhost:" + port);
-        web3.setProvider(provider);
-        done();
-      });
-    });
-
-    tests(web3);
-
-    after("Shutdown server", function(done) {
-      let provider = web3._provider;
-      web3.setProvider();
-      provider.connection.close();
-      server.close(done);
-    });
-  });
 };
+
+var logger = {
+  log: function(message) {
+  // console.log(message);
+  }
+};
+
+describe("Provider:", function() {
+  var Web3 = require("web3");
+  var web3 = new Web3();
+  web3.setProvider(
+    Ganache.provider({
+      logger: logger,
+      seed: "1337"
+    // so that the runtime errors on call test passes
+    })
+  );
+  tests(web3);
+
+  after("shutdown provider", function(done) {
+    let provider = web3._provider;
+    web3.setProvider();
+    provider.close(done);
+  });
+});
+
+describe("HTTP Server:", function(done) {
+  var Web3 = require("web3");
+  var web3 = new Web3();
+  var port = 12345;
+  var server;
+
+  before("Initialize Ganache server", function(done) {
+    server = Ganache.server({
+      logger: logger,
+      seed: "1337"
+    // so that the runtime errors on call test passes
+    });
+
+    server.listen(port, function(err) {
+      if (err) {
+        return done(err);
+      }
+      web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
+      done();
+    });
+  });
+
+  after("Shutdown server", function(done) {
+    server.close(done);
+  });
+
+  tests(web3);
+});
+
+describe("WebSockets Server:", function(done) {
+  var Web3 = require("web3");
+  var web3 = new Web3();
+  var port = 12345;
+  var server;
+
+  before("Initialize Ganache server", function(done) {
+    server = Ganache.server({
+      logger: logger,
+      seed: "1337",
+      verbose: true
+    // so that the runtime errors on call test passes
+    });
+    server.listen(port, function(err) {
+      if (err) {
+        return done(err);
+      }
+      var provider = new Web3WsProvider("ws://localhost:" + port);
+      web3.setProvider(provider);
+      done();
+    });
+  });
+
+  tests(web3);
+
+  after("Shutdown server", function(done) {
+    let provider = web3._provider;
+    web3.setProvider();
+    provider.connection.close();
+    server.close(done);
+  });
+});
