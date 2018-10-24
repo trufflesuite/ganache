@@ -665,7 +665,7 @@ describe("Forking", function() {
     });
   });
 
-  it.only("should return a transaction receipt for transactions made before the fork", function(done) {
+  it("should return a transaction receipt for transactions made before the fork", function(done) {
     forkedWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, referenceReceipt) {
       if (err) {
         return done(err);
@@ -673,7 +673,6 @@ describe("Forking", function() {
       assert.deepStrictEqual(referenceReceipt.transactionHash, initialDeployTransactionHash);
 
       mainWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, forkedReceipt) {
-        console.log(err, forkedReceipt);
         if (err) {
           return done(err);
         }
