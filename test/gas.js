@@ -231,8 +231,9 @@ describe("Gas", function() {
     });
   });
 
-  describe("Estimation", function() {
+  describe.only("Estimation", function() {
     async function testTransactionEstimate(contractFn, args, options) {
+      // console.log(estimateGasInstance);
       await estimateGasInstance.methods.reset().send({from: options.from, gas: 5000000});
       const method = contractFn(...args);
       const gasEstimate = await method.estimateGas(options);
@@ -269,6 +270,21 @@ describe("Gas", function() {
       return to.hex(Buffer.from(bytes))
     }
 
+    it("matches usage for simple account to account transfer", async function() {
+      // given an estimate for gas for the transfer
+      let transferAmount =  web3.utils.toBN(web3.utils.toWei('5', 'finney'));
+      let transactionData = {
+        from: accounts[0],
+        to: accounts[1],
+        value: transferAmount
+      };
+      let gasEstimate = await web3.eth.estimateGas(transactionData);
+      // when the transaction is sent
+      let receipt = await web3.eth.sendTransaction(transactionData);
+      // then the gas estimate should be equal to the gas used
+      console.log(receipt.gasUsed, gasEstimate);
+      assert.strictEqual(receipt.gasUsed, gasEstimate);
+    })
   });
 
   describe('Expenditure', function() {
