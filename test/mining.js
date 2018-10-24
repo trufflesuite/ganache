@@ -276,7 +276,7 @@ describe("Mining", function() {
     }
   });
 
-  it("should error via evm_mine when multiple queued transactions throw runtime errors in a single block", async () => {
+  it("should error via evm_mine when multiple queued transactions throw runtime errors in a single block", async() => {
     // Note: The two transactions queued in this test do not exceed the block gas limit
     // and thus should fit within a single block.
 
@@ -294,7 +294,7 @@ describe("Mining", function() {
     }
   });
 
-  it("should error via miner_start when queued transactions throw runtime errors in multiple blocks", async () => {
+  it("should error via miner_start when queued transactions throw runtime errors in multiple blocks", async() => {
     // Note: The two transactions queued in this test together DO exceed the block gas limit
     // and thus will fit in two blocks, one block each.
 

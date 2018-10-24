@@ -10,14 +10,12 @@
   },
   "prettier": {
     "printWidth": 120,
-    "arrowParans": "always"
+    "arrowParens": "always"
   },
   "scripts": {
     "test": "npm run lint && mocha --check-leaks --recursive --globals _scratch,sanitizedData",
     "lint": "eslint --ignore-path .gitignore .",
-    "format": "npm run prettier && npm run eslint",
-    "eslint": "eslint --fix --ignore-path .gitignore .",
-    "prettier": "prettier --write \"{lib,perf,test}/**/*.js\"",
+    "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
     "build": "npm run build-core",
     "build-core": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-provider": "webpack-cli --config ./webpack/node/provider.webpack.config.js",

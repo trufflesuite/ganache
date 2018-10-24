@@ -115,140 +115,137 @@ describe("Gas", function() {
       assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
     });
 
-    it(
-      "accounts for Rsclear and Rselfdestruct Refunds in gasEstimate with multiple transaction in the block",
-      async() => {
-        const ganacheProvider = Ganache.provider({
-          blockTime: 0.5, // seconds
-          mnemonic: mnemonic
-        });
+    it("accounts for Rsclear & Rselfdestruct Refunds in gasEstimate w/ multiple transactions in the block", async() => {
+      const ganacheProvider = Ganache.provider({
+        blockTime: 0.5, // seconds
+        mnemonic: mnemonic
+      });
 
-        let tempWeb3;
+      let tempWeb3;
 
-        try {
-          tempWeb3 = new Web3(ganacheProvider);
+      try {
+        tempWeb3 = new Web3(ganacheProvider);
 
-          const from = (await tempWeb3.eth.getAccounts())[0];
+        const from = (await tempWeb3.eth.getAccounts())[0];
 
-          let transactions = [
-            {
-              value: "0x10000000",
-              gasLimit: "0x33450",
-              from: accounts[2],
-              to: accounts[1],
-              nonce: "0x0"
-            },
-            {
-              value: "0x10000000",
-              gasLimit: "0x33450",
-              from: accounts[2],
-              to: accounts[1],
-              nonce: "0x1"
-            },
-            {
-              value: "0x10000000",
-              gasLimit: "0x33450",
-              from: accounts[1], // <
-              to: accounts[2], // <^ reversed tx order
-              nonce: "0x0"
-            }
-          ];
-
-          // Precondition
-          const initialBlockNumber = await tempWeb3.eth.getBlockNumber();
-          assert.deepStrictEqual(initialBlockNumber, 0, "Current Block Should be 0");
-
-          const localGasInstance = await deployContract(tempWeb3);
-
-          // prime storage by making sure it is set to 0
-          await localGasInstance.methods.reset().send({ from, gas: 5000000 });
-          const method = localGasInstance.methods.triggerAllRefunds();
-          const gasEstimate = await method.estimateGas({ from });
-
-          let hashes = await Promise.all(
-            transactions.map((transaction) => {
-              let promiEvent = tempWeb3.eth.sendTransaction(transaction);
-
-              return new Promise((resolve) => {
-                promiEvent.once("transactionHash", async(hash) => {
-                  // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
-                  let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
-                  assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
-
-                  resolve(hash);
-                });
-              });
-            })
-          );
-          let currentBlockNumber = await tempWeb3.eth.getBlockNumber();
-          assert.deepStrictEqual(currentBlockNumber, 2, "Current Block Should be 2");
-
-          const receipt = await method.send({ from, gas: gasEstimate });
-
-          let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
-          assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
-
-          let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)));
-          assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
-          assert.deepStrictEqual(
-            receipts[1].gasUsed,
-            receipts[2].gasUsed,
-            "Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive"
-          );
-          assert.deepStrictEqual(
-            receipts[1].transactionIndex > receipts[2].transactionIndex,
-            true,
-            "(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)"
-          );
-          let currentBlock = await tempWeb3.eth.getBlock(receipts[0].blockNumber);
-
-          // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
-          let isAccumulating =
-            receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed &&
-            receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed;
-          assert.deepStrictEqual(
-            isAccumulating,
-            true,
-            "Cumulative gas should be accumulating for any transactions in the same block."
-          );
-          assert.deepStrictEqual(
-            receipts[0].gasUsed,
-            receipts[0].cumulativeGasUsed,
-            "Gas and cumulative gas should be equal for the FIRST Tx."
-          );
-          assert.notDeepStrictEqual(
-            receipts[1].gasUsed,
-            receipts[1].cumulativeGasUsed,
-            "Gas and cumulative gas should NOT be equal for the Second Tx."
-          );
-          assert.notDeepStrictEqual(
-            receipts[2].gasUsed,
-            receipts[2].cumulativeGasUsed,
-            "Gas and cumulative gas should NOT be equal for the Third Tx."
-          );
-
-          let totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
-          assert.deepStrictEqual(
-            totalGas + transactionCostMinusRefund,
-            receipts[1].cumulativeGasUsed,
-            "Total Gas should equal the final tx.cumulativeGas"
-          );
-          assert.deepStrictEqual(
-            totalGas + transactionCostMinusRefund,
-            currentBlock.gasUsed,
-            "Total Gas should be equal to the currentBlock.gasUsed"
-          );
-        } catch (e) {
-          assert(false, e);
-        } finally {
-          // clean up after ourselves
-          if (tempWeb3) {
-            tempWeb3.setProvider(null);
+        let transactions = [
+          {
+            value: "0x10000000",
+            gasLimit: "0x33450",
+            from: accounts[2],
+            to: accounts[1],
+            nonce: "0x0"
+          },
+          {
+            value: "0x10000000",
+            gasLimit: "0x33450",
+            from: accounts[2],
+            to: accounts[1],
+            nonce: "0x1"
+          },
+          {
+            value: "0x10000000",
+            gasLimit: "0x33450",
+            from: accounts[1], // <
+            to: accounts[2], // <^ reversed tx order
+            nonce: "0x0"
           }
-          await pify(ganacheProvider.close)();
+        ];
+
+        // Precondition
+        const initialBlockNumber = await tempWeb3.eth.getBlockNumber();
+        assert.deepStrictEqual(initialBlockNumber, 0, "Current Block Should be 0");
+
+        const localGasInstance = await deployContract(tempWeb3);
+
+        // prime storage by making sure it is set to 0
+        await localGasInstance.methods.reset().send({ from, gas: 5000000 });
+        const method = localGasInstance.methods.triggerAllRefunds();
+        const gasEstimate = await method.estimateGas({ from });
+
+        let hashes = await Promise.all(
+          transactions.map((transaction) => {
+            let promiEvent = tempWeb3.eth.sendTransaction(transaction);
+
+            return new Promise((resolve) => {
+              promiEvent.once("transactionHash", async(hash) => {
+                // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
+                let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
+                assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
+
+                resolve(hash);
+              });
+            });
+          })
+        );
+        let currentBlockNumber = await tempWeb3.eth.getBlockNumber();
+        assert.deepStrictEqual(currentBlockNumber, 2, "Current Block Should be 2");
+
+        const receipt = await method.send({ from, gas: gasEstimate });
+
+        let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
+        assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+
+        let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)));
+        assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
+        assert.deepStrictEqual(
+          receipts[1].gasUsed,
+          receipts[2].gasUsed,
+          "Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive"
+        );
+        assert.deepStrictEqual(
+          receipts[1].transactionIndex > receipts[2].transactionIndex,
+          true,
+          "(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)"
+        );
+        let currentBlock = await tempWeb3.eth.getBlock(receipts[0].blockNumber);
+
+        // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
+        let isAccumulating =
+          receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed &&
+          receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed;
+        assert.deepStrictEqual(
+          isAccumulating,
+          true,
+          "Cumulative gas should be accumulating for any transactions in the same block."
+        );
+        assert.deepStrictEqual(
+          receipts[0].gasUsed,
+          receipts[0].cumulativeGasUsed,
+          "Gas and cumulative gas should be equal for the FIRST Tx."
+        );
+        assert.notDeepStrictEqual(
+          receipts[1].gasUsed,
+          receipts[1].cumulativeGasUsed,
+          "Gas and cumulative gas should NOT be equal for the Second Tx."
+        );
+        assert.notDeepStrictEqual(
+          receipts[2].gasUsed,
+          receipts[2].cumulativeGasUsed,
+          "Gas and cumulative gas should NOT be equal for the Third Tx."
+        );
+
+        let totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
+        assert.deepStrictEqual(
+          totalGas + transactionCostMinusRefund,
+          receipts[1].cumulativeGasUsed,
+          "Total Gas should equal the final tx.cumulativeGas"
+        );
+        assert.deepStrictEqual(
+          totalGas + transactionCostMinusRefund,
+          currentBlock.gasUsed,
+          "Total Gas should be equal to the currentBlock.gasUsed"
+        );
+      } catch (e) {
+        assert(false, e);
+      } finally {
+        // clean up after ourselves
+        if (tempWeb3) {
+          tempWeb3.setProvider(null);
         }
+        await pify(ganacheProvider.close)();
       }
-    );
+    });
 
     it("clears mapping storage slots", async() => {
       const options = { from: accounts[0] };

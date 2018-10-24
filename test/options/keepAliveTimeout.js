@@ -8,7 +8,7 @@ const { sleep } = require("../helpers/utils");
 
 const host = "127.0.0.1";
 
-const testTimeout = async (keepAliveTimeout, sleepTime, errorMessage) => {
+const testTimeout = async(keepAliveTimeout, sleepTime, errorMessage) => {
   const server = Ganache.server({
     keepAliveTimeout
   });
