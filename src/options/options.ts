@@ -3,7 +3,7 @@ import HexData from "../types/hex-data";
 import HexQuantity from "../types/hex-quantity";
 
 interface Logger {
-  log(...args: any[]): void;
+  log(message?: any, ...optionalParams: any[]): void;
 }
 
 export default class Options {
@@ -24,7 +24,7 @@ export default class Options {
   /**
    * An object, like console, that implements a log() function.
    */
-  public logger: {log: Logger} = null
+  public logger: Logger = {log: () => {}}
 
   /**
    * Use a specific HD wallet mnemonic to generate initial addresses.
@@ -121,4 +121,14 @@ export default class Options {
    * "0x6691b7".
    */
   public gasLimit: HexQuantity = new HexQuantity("0x6691b7")
+
+  /**
+   * 
+   */
+  public verbose: boolean = false
+
+  /**
+   * 
+   */
+  public asyncRequestProcessing: boolean = false
 }

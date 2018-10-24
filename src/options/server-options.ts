@@ -20,4 +20,9 @@ export default class ServerOptions extends Options {
    * Enable a websocket server. This is `true` by default.
    */
   public ws: boolean = true
+
+  /**
+   * Array of strings to installed subproviders
+   */
+  public subProviders: string[]
 }

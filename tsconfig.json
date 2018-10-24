@@ -12,6 +12,7 @@
     "rootDir": "./"
   },
   "include": [
-    "./index.ts"
+    "./index.ts",
+    "./typings/**/*.d.ts"
   ]
 }
