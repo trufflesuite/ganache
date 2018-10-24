@@ -8,22 +8,16 @@
   "directories": {
     "lib": "./lib"
   },
-  "prettier": {
-    "printWidth": 120,
-    "arrowParens": "always"
-  },
   "scripts": {
-    "test": "npm run lint && mocha --check-leaks --recursive --globals _scratch,sanitizedData",
-    "lint": "eslint --ignore-path .gitignore .",
+    "_mocha": "mocha --check-leaks --recursive --globals _scratch,sanitizedData",
+    "_lint": "eslint --ignore-path .gitignore .",
+    "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
+    "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
     "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
-    "build": "npm run build-core",
-    "build-core": "webpack-cli --config ./webpack/node/core.webpack.config.js",
-    "build-provider": "webpack-cli --config ./webpack/node/provider.webpack.config.js",
-    "build-server": "webpack-cli --config ./webpack/node/server.webpack.config.js",
-    "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js && webpack-cli --config ./webpack/web-experimental/server.webpack.config.js && webpack-cli --config ./webpack/web-experimental/provider.webpack.config.js",
     "prepublishOnly": "npm run test && npm run build && npm run test-build",
-    "test-build": "cross-env TEST_BUILD=node mocha --check-leaks --recursive --globals _scratch,sanitizedData",
-    "test-web-experimental": "cross-env TEST_BUILD=web-experimental mocha --check-leaks --recursive --globals _scratch,sanitizedData"
+    "test": "npm run _lint && npm run _mocha",
+    "test-build": "cross-env TEST_BUILD=node npm run _mocha",
+    "test-web-experimental": "cross-env TEST_BUILD=web-experimental npm run _mocha"
   },
   "dependencies": {
     "abstract-leveldown": "3.0.0",
@@ -42,14 +36,13 @@
     "ethereumjs-util": "5.2.0",
     "ethereumjs-vm": "2.4.0",
     "heap": "0.2.6",
-    "intercept-require": "^1.1.0",
     "level-sublevel": "6.6.4",
     "levelup": "3.1.1",
     "lodash": "4.17.10",
     "merkle-patricia-tree": "2.3.1",
     "seedrandom": "2.4.4",
     "tmp": "0.0.33",
-    "web3-provider-engine": "^14.0.6",
+    "web3-provider-engine": "14.1.0",
     "websocket": "1.0.26"
   },
   "devDependencies": {
@@ -85,5 +78,60 @@
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache-core"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 8,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "impliedStrict": true
+      }
+    },
+    "extends": "standard",
+    "rules": {
+      "brace-style": [
+        "error",
+        "1tbs",
+        {
+          "allowSingleLine": false
+        }
+      ],
+      "curly": [
+        "error",
+        "all"
+      ],
+      "max-len": [
+        "error",
+        120,
+        {
+          "ignoreRegExpLiterals": true
+        }
+      ],
+      "quotes": [
+        "error",
+        "double"
+      ],
+      "semi": [
+        "error",
+        "always"
+      ],
+      "space-before-function-paren": [
+        "error",
+        "never"
+      ],
+      "wrap-iife": [
+        "error",
+        "outside"
+      ]
+    }
+  },
+  "prettier": {
+    "printWidth": 120,
+    "arrowParens": "always"
+  }
 }
