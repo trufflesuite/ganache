@@ -8,7 +8,9 @@ try {
   // make sure these exist before we try to load ganache with native modules
   const optionalDependencies = require("./package.json").optionalDependencies;
   const wrongWeb3 = require("web3/package.json").version !== optionalDependencies["web3"];
-  const wrongEthereumJs = require("ethereumjs-wallet/package.json").version !== optionalDependencies["ethereumjs-wallet"];
+  const wrongEthereumJs = require(
+    "ethereumjs-wallet/package.json"
+  ).version !== optionalDependencies["ethereumjs-wallet"];
   if (wrongWeb3 || wrongEthereumJs) {
     useBundled();
   } else {
@@ -28,7 +30,7 @@ function useBundled() {
     module.exports = require("./build/ganache.core.node.js");
     module.exports._webpacked = true;
     debug("Optional dependencies not installed; exporting ganache-core from `./build` directory.");
-  } catch(webpackError) {
+  } catch (webpackError) {
     debug("ganache-core could not be exported; optional dependencies nor webpack build available for export.");
     throw webpackError;
   }
