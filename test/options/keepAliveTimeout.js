@@ -34,7 +34,7 @@ const testTimeout = async(keepAliveTimeout, sleepTime, errorMessage) => {
     await sleep(sleepTime);
 
     assert(socket.connecting === false, "socket should have connected by now");
-    assert(socket.destroyed === (keepAliveTimeout < sleepTime), errorMessage);
+    assert.deepStrictEqual(socket.destroyed, keepAliveTimeout < sleepTime, errorMessage);
 
     req.destroy();
   } catch (e) {
