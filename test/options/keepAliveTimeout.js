@@ -1,12 +1,14 @@
 const assert = require("assert");
-const Ganache = require(process.env.TEST_BUILD ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../../index.js");
+const Ganache = require(process.env.TEST_BUILD
+  ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../../index.js");
 const request = require("request");
 const portfinder = require("portfinder");
 const { sleep } = require("../helpers/utils");
 
 const host = "127.0.0.1";
 
-const testTimeout = async (keepAliveTimeout, sleepTime, errorMessage) => {
+const testTimeout = async(keepAliveTimeout, sleepTime, errorMessage) => {
   const server = Ganache.server({
     keepAliveTimeout
   });
@@ -33,7 +35,7 @@ const testTimeout = async (keepAliveTimeout, sleepTime, errorMessage) => {
     await sleep(sleepTime);
 
     assert(socket.connecting === false, "socket should have connected by now");
-    assert(socket.destroyed === keepAliveTimeout < sleepTime, errorMessage);
+    assert.deepStrictEqual(socket.destroyed, keepAliveTimeout < sleepTime, errorMessage);
 
     req.destroy();
   } catch (e) {
@@ -42,14 +44,18 @@ const testTimeout = async (keepAliveTimeout, sleepTime, errorMessage) => {
   } finally {
     server.close();
   }
-}
+};
 
 describe("options:keepAliveTimeout", () => {
-  it("should timeout", async () => {
+  it("should timeout", async() => {
     await testTimeout(2000, 1000, "timeout should have destroyed socket");
-  }).timeout(2500).slow(1500);
+  })
+    .timeout(2500)
+    .slow(1500);
 
-  it("shouldn't timeout", async () => {
+  it("shouldn't timeout", async() => {
     await testTimeout(1000, 2000, "timeout should not have destroyed socket");
-  }).timeout(2500).slow(3000);
+  })
+    .timeout(2500)
+    .slow(3000);
 });

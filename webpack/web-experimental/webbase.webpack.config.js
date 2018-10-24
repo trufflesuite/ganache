@@ -5,7 +5,7 @@ module.exports = (override) => {
   return merge({}, applyBaseConfig({
     resolve: {
       alias: {
-        'fs': 'browserfs/dist/shims/fs.js'
+        "fs": "browserfs/dist/shims/fs.js"
       }
     }
   }), override);

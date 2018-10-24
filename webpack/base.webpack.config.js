@@ -20,12 +20,12 @@ module.exports = (override) => {
         }
 
         // we want to webpack all local files (files starting with a .)
-        if(/^\./.test(request)){
+        if (/^\./.test(request)) {
           return callback();
         }
 
         // we don't want to webpack any other modules
-        return callback(null, 'commonjs ' + request);
+        return callback(null, "commonjs " + request);
       }
     ],
     resolve: {
