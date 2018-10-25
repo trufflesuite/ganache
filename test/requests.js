@@ -607,13 +607,25 @@ var tests = function(web3) {
       });
     });
 
-    it('should not produce colliding transaction hashes', async () => {
-      let tx1 = await web3.eth.sendTransaction({from:accounts[3],to:accounts[5],value:2000}, console.log);
-      let tx2 = await web3.eth.sendTransaction({from:accounts[4],to:accounts[5],value:2000}, console.log);
-      let tx3 = await web3.eth.sendTransaction({from:accounts[4],to:accounts[5],value:2000}, console.log);
-      assert.notDeepStrictEqual(tx1.transactionHash, tx2.transactionHash, "Tx1 and Tx2 should not produce hash collisions (different sender)")
-      assert.notDeepStrictEqual(tx3.transactionHash, tx2.transactionHash, "Tx3 and Tx2 should not produce hash collisions (same sender)")
-    })
+    it("should not produce colliding transaction hashes", async() => {
+      try {
+        let tx1 = await web3.eth.sendTransaction({ from: accounts[3], to: accounts[5], value: 2000 });
+        let tx2 = await web3.eth.sendTransaction({ from: accounts[4], to: accounts[5], value: 2000 });
+        let tx3 = await web3.eth.sendTransaction({ from: accounts[4], to: accounts[5], value: 2000 });
+        assert.notDeepStrictEqual(
+          tx1.transactionHash,
+          tx2.transactionHash,
+          "Tx1 and Tx2 should not produce hash collisions (different sender)"
+        );
+        assert.notDeepStrictEqual(
+          tx3.transactionHash,
+          tx2.transactionHash,
+          "Tx3 and Tx2 should not produce hash collisions (same sender)"
+        );
+      } catch (error) {
+        assert.fail(error);
+      }
+    });
 
     it("should fail with bad nonce (skipped value)", function(done) {
       let tempWeb3 = new Web3(
@@ -765,14 +777,15 @@ var tests = function(web3) {
         gasLimit: "0x33450",
         from: accounts[0],
         to: accounts[1],
-        nonce: "0x00"
+        nonce: "0x0"
       });
+
       let transaction2 = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[0],
         to: accounts[1],
-        nonce: "0x02" // Skipped nonce 1
+        nonce: "0x2" // Skipped nonce 1
       });
 
       let secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
@@ -817,7 +830,7 @@ var tests = function(web3) {
       transaction.sign(secretKeyBuffer);
 
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        assert.strictEqual(result, to.hex(transaction.hash()));
+        assert.strictEqual(result, to.txHash(transaction));
         done(err);
       });
     });
@@ -1329,7 +1342,7 @@ var tests = function(web3) {
     });
   });
 
-  describe("contract scenario (raw tx)", function() {
+  describe.only("contract scenario (raw tx)", function() {
     var tx = new Transaction({
       data: contract.binary,
       gasLimit: to.hex(3141592)
