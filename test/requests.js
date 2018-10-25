@@ -1342,7 +1342,7 @@ var tests = function(web3) {
     });
   });
 
-  describe.only("contract scenario (raw tx)", function() {
+  describe("contract scenario (raw tx)", function() {
     var tx = new Transaction({
       data: contract.binary,
       gasLimit: to.hex(3141592)
