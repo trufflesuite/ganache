@@ -316,7 +316,7 @@ describe("Gas", function() {
     }
 
     it("matches usage for simple account to account transfer", async function() {
-      let transferAmount =  web3.utils.toBN(web3.utils.toWei('5', 'finney'));
+      let transferAmount = web3.utils.toBN(web3.utils.toWei("5", "finney"));
       let transactionData = {
         from: accounts[0],
         to: accounts[1],
@@ -328,7 +328,7 @@ describe("Gas", function() {
       let receipt = await web3.eth.sendTransaction(transactionData);
 
       assert.strictEqual(receipt.gasUsed, gasEstimate);
-    })
+    });
   });
 
   describe("Expenditure", function() {
