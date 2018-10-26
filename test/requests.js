@@ -72,6 +72,20 @@ var tests = function(web3) {
       });
   });
 
+  // before("set up subscription to logs", function() {
+  //   const options = {
+  //     fromBlock: 0,
+  //     address: accounts[0],
+  //     topics: []
+  //   };
+  //   web3.eth.subscribe("logs", options, function(err, result) {
+  //     console.log(err, result);
+  //   })
+  //     .on("data", function(log) {
+  //       console.log(log);
+  //     });
+  // });
+
   describe("eth_accounts", function() {
     it("should return 10 addresses", function(done) {
       assert.deepStrictEqual(accounts.length, 10);
@@ -401,6 +415,39 @@ var tests = function(web3) {
       });
     });
   });
+
+  // describe("eth_getLogs", function() {
+  //   // before("set up subscription to logs", function() {
+  //   //   const options = {
+  //   //     fromBlock: 0,
+  //   //     address: accounts[0],
+  //   //     topics: ["0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"]
+  //   //   };
+  //   //   web3.eth.subscribe("logs", options, function(err, result) {
+  //   //     console.log(err, result);
+  //   //   })
+  //   //     .on("data", function(log) {
+  //   //       console.log(log);
+  //   //     });
+  //   // });
+  //   it("should return logIndex in the correct format", function(done) {
+  //     // given a set of logs
+  //     // when web3.eth.getPastLogs is called
+  //     // then we can assert logIndex is in the correct format
+
+  //     web3.eth.getPastLogs({
+  //       fromBlock: 0,
+  //       toBlock: "latest",
+  //       address: accounts[0],
+  //       topics: []
+  //     }).then(console.log)
+  //       .catch(function(err) {
+  //         console.log(err);
+  //       });
+
+  //     done();
+  //   });
+  // });
 
   describe("eth_sign", function() {
     var accounts;
@@ -1376,7 +1423,7 @@ var tests = function(web3) {
         if (err) {
           return done(err);
         }
-
+        
         contractAddress = receipt.contractAddress;
         blockHash = receipt.blockHash;
         blockNumber = receipt.blockNumber;
@@ -1518,6 +1565,30 @@ var tests = function(web3) {
       web3.eth.compile.solidity(source, function(err, result) {
         assert(err != null);
         assert(err.message.indexOf("Method eth_compileSolidity not supported") >= 0);
+        done();
+      });
+    });
+  });
+
+  describe("eth_newFilter", function() {
+    it("creates a new filter and returns the correctly formatted result", function(done) {
+      var provider = web3.currentProvider;
+
+      provider.send({
+        jsonrpc: "2.0",
+        method: "eth_newFilter",
+        params: [{
+          fromBlock: "0x0",
+          toBlock: "0x1",
+          address: accounts[1],
+          topics: []
+        }],
+        id: new Date().getTime()
+      }, function(err, result) {
+        if (err) {
+          return done(err);
+        }
+        assert.strictEqual(result.result, "0x1");
         done();
       });
     });
