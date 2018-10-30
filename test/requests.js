@@ -1,19 +1,20 @@
-var Web3 = require("web3");
-var Web3WsProvider = require("web3-providers-ws");
-var Transaction = require("ethereumjs-tx");
-var utils = require("ethereumjs-util");
-var assert = require("assert");
-var Ganache = require(process.env.TEST_BUILD
+const Web3 = require("web3");
+const Web3WsProvider = require("web3-providers-ws");
+const Transaction = require("ethereumjs-tx");
+const utils = require("ethereumjs-util");
+const assert = require("assert");
+const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var solc = require("solc");
-var fs = require("fs");
-var to = require("../lib/utils/to");
-var _ = require("lodash");
+const solc = require("solc");
+const fs = require("fs");
+const to = require("../lib/utils/to");
+const _ = require("lodash");
+const pify = require("pify");
 
-var source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
-var result = solc.compile(source, 1);
-var secretKeys = [
+const source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
+const compilationResult = solc.compile(source, 1);
+const secretKeys = [
   "0xda09f8cdec20b7c8334ce05b27e6797bef01c1ad79c59381666467552c5012e3",
   "0x0d14f32c8e3ed7417fb7db52ebab63572bf7cfcd557351d4ccf19a05edeecfa5",
   "0x0d80aca78bfaf3ab47865a53e5977e285c41c028a15313f917fe78abe5a50ef7",
@@ -33,11 +34,11 @@ process.removeAllListeners("uncaughtException");
 // Note: Certain properties of the following contract data are hardcoded to
 // maintain repeatable tests. If you significantly change the solidity code,
 // make sure to update the resulting contract data with the correct values.
-var contract = {
+const contract = {
   solidity: source,
-  abi: result.contracts[":Example"].interface,
-  binary: "0x" + result.contracts[":Example"].bytecode,
-  runtimeBinary: "0x" + result.contracts[":Example"].runtimeBytecode,
+  abi: compilationResult.contracts[":Example"].interface,
+  binary: "0x" + compilationResult.contracts[":Example"].bytecode,
+  runtimeBinary: "0x" + compilationResult.contracts[":Example"].runtimeBytecode,
   position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
   expected_default_value: 5,
   callData: {
@@ -53,457 +54,317 @@ var contract = {
   }
 };
 
-var tests = function(web3) {
-  var accounts;
-  var personalAccount;
+const tests = function(web3) {
+  let accounts;
+  let personalAccount;
 
-  before("create and fund personal account", function() {
-    return web3.eth
-      .getAccounts()
-      .then(function(accs) {
-        accounts = accs.map(function(val) {
-          return val.toLowerCase();
-        });
+  before("create and fund personal account", async function() {
+    accounts = await web3.eth.getAccounts();
+    accounts = accounts.map(function(val) {
+      return val.toLowerCase();
+    });
 
-        return web3.eth.personal.newAccount("password");
-      })
-      .then(function(acct) {
-        personalAccount = acct;
-      });
+    personalAccount = await web3.eth.personal.newAccount("password");
   });
 
   describe("eth_accounts", function() {
-    it("should return 10 addresses", function(done) {
+    it("should return 10 addresses", function() {
       assert.deepStrictEqual(accounts.length, 10);
-      done();
     });
   });
 
   describe("eth_getCompilers", function() {
-    it("should return an empty array", function() {
-      return web3.eth.getCompilers().then(function(compilers) {
-        assert(Array.isArray(compilers));
-        assert.strictEqual(0, compilers.length);
-      });
+    it("should return an empty array", async function() {
+      let compilers = await web3.eth.getCompilers();
+      assert(Array.isArray(compilers));
+      assert.strictEqual(0, compilers.length);
     });
   });
 
   describe("eth_blockNumber", function() {
-    it("should return initial block number of zero", function(done) {
-      web3.eth.getBlockNumber(function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.deepStrictEqual(result, 0);
-        done();
-      });
-
-      // Note: We'll assert the block number changes on transactions.
+    it("should return initial block number of zero", async function() {
+      let result = await web3.eth.getBlockNumber();
+      assert.deepStrictEqual(result, 0);
     });
   });
 
   describe("eth_coinbase", function() {
-    it("should return correct address", function(done) {
-      web3.eth.getCoinbase(function(err, coinbase) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.strictEqual(coinbase, accounts[0]);
-        done();
-      });
+    it("should return correct address", async function() {
+      let coinbase = await web3.eth.getCoinbase();
+      assert.strictEqual(coinbase, accounts[0]);
     });
   });
 
   describe("eth_mining", function() {
-    it("should return true", function(done) {
-      web3.eth.isMining(function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.deepStrictEqual(result, true);
-        done();
-      });
+    it("should return true", async function() {
+      let result = await web3.eth.isMining();
+      assert.deepStrictEqual(result, true);
     });
   });
 
   describe("eth_hashrate", function() {
-    it("should return hashrate of zero", function(done) {
-      web3.eth.getHashrate(function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.deepStrictEqual(result, 0);
-        done();
-      });
+    it("should return hashrate of zero", async function() {
+      let result = await web3.eth.getHashrate();
+      assert.deepStrictEqual(result, 0);
     });
   });
 
   describe("eth_gasPrice", function() {
-    it("should return gas price of 2 gwei", function(done) {
-      web3.eth.getGasPrice(function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.strictEqual(to.hexWithZeroPadding(result), to.hexWithZeroPadding(2000000000));
-        done();
-      });
+    it("should return gas price of 2 gwei", async function() {
+      let result = await web3.eth.getGasPrice();
+      assert.strictEqual(to.hexWithZeroPadding(result), to.hexWithZeroPadding(2000000000));
     });
   });
 
   describe("eth_getBalance", function() {
-    it("should return initial balance", function(done) {
-      web3.eth.getBalance(accounts[0], function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.deepStrictEqual(result, "100000000000000000000");
-        done();
-      });
+    it("should return initial balance", async function() {
+      let result = await web3.eth.getBalance(accounts[0]);
+      assert.deepStrictEqual(result, "100000000000000000000");
     });
 
-    it("should return 0 for non-existent account", function(done) {
-      web3.eth.getBalance("0x1234567890123456789012345678901234567890", function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.strictEqual("0x" + result.toString(16), "0x0");
-        done();
-      });
+    it("should return 0 for non-existent account", async function() {
+      let result = await web3.eth.getBalance("0x1234567890123456789012345678901234567890");
+      assert.strictEqual("0x" + result.toString(16), "0x0");
     });
   });
 
   describe("eth_getBlockByNumber", function() {
-    it("should return block given the block number", function(done) {
-      web3.eth.getBlock(0, true, function(err, block) {
-        if (err) {
-          return done(err);
-        }
+    it("should return block given the block number", async function() {
+      let block = await web3.eth.getBlock(0, true);
 
-        var expectedFirstBlock = {
-          number: 0,
-          hash: block.hash, // Don't test this one
-          mixHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-          parentHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-          nonce: "0x0000000000000000",
-          sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          logsBloom:
-            "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-            "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000",
-          transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-          stateRoot: "0x7caba99698b405652a6bcb1038efa16db54b3338af71fa832a0b99a3e6c344bc",
-          receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-          miner: "0x0000000000000000000000000000000000000000",
-          difficulty: "0",
-          totalDifficulty: "0",
-          extraData: "0x",
-          size: 1000,
-          gasLimit: 6721975,
-          gasUsed: 0,
-          timestamp: block.timestamp, // Don't test this one.
-          transactions: [],
-          uncles: []
-        };
+      const expectedFirstBlock = {
+        number: 0,
+        hash: block.hash, // Don't test this one
+        mixHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        parentHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        nonce: "0x0000000000000000",
+        sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+        logsBloom:
+        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+        "0000000000000000000000000000",
+        transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        stateRoot: "0x7caba99698b405652a6bcb1038efa16db54b3338af71fa832a0b99a3e6c344bc",
+        receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        miner: "0x0000000000000000000000000000000000000000",
+        difficulty: "0",
+        totalDifficulty: "0",
+        extraData: "0x",
+        size: 1000,
+        gasLimit: 6721975,
+        gasUsed: 0,
+        timestamp: block.timestamp, // Don't test this one.
+        transactions: [],
+        uncles: []
+      };
 
-        assert.deepStrictEqual(block, expectedFirstBlock);
+      assert.deepStrictEqual(block, expectedFirstBlock);
 
-        var now = new Date().getTime();
-        var then = block.timestamp * 1000; // block.timestamp is in seconds.
+      const now = new Date().getTime();
+      const then = block.timestamp * 1000; // block.timestamp is in seconds.
 
-        assert.strictEqual(then.toString().length, now.toString().length, "Invalid timestamp length");
-        assert(then < now, "Time returned was greater than the current time");
-        done();
-      });
+      assert.strictEqual(then.toString().length, now.toString().length, "Invalid timestamp length");
+      assert(then < now, "Time returned was greater than the current time");
     });
 
-    it("should return null given a future block number", function(done) {
-      web3.eth.getBlock(10000, true, function(err, block) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.deepStrictEqual(block, null);
-        done();
-      });
+    it("should return null given a future block number", async function() {
+      let block = await web3.eth.getBlock(10000, true);
+      assert.deepStrictEqual(block, null);
     });
 
-    it("should return transactions in the block as well", function(done) {
-      web3.eth.sendTransaction(
-        {
-          from: accounts[0],
-          data: contract.binary,
-          gas: 3141592
-        },
-        function(err, txHash) {
-          if (err) {
-            return done(err);
-          }
+    it("should return transactions in the block as well", async function() {
+      let receipt = await web3.eth.sendTransaction({
+        from: accounts[0],
+        data: contract.binary,
+        gas: 3141592
+      });
 
-          // Assume it was processed correctly.
-          assert.deepStrictEqual(txHash.length, 66);
+      let txHash = receipt.transactionHash;
 
-          web3.eth.getBlock("latest", true, function(err, block) {
-            if (err) {
-              return done(err);
-            }
+      // Assume it was processed correctly.
+      assert.deepStrictEqual(txHash.length, 66);
 
-            assert.strictEqual(block.transactions.length, 1, "Latest block should have one transaction");
-            assert.strictEqual(block.transactions[0].hash, txHash, "Transaction hashes don't match");
+      let block = await web3.eth.getBlock("latest", true);
 
-            // Retest, with transaction only as hash
-            web3.eth.getBlock("latest", false, function(err, block) {
-              if (err) {
-                return done(err);
-              }
+      assert.strictEqual(block.transactions.length, 1, "Latest block should have one transaction");
+      assert.strictEqual(block.transactions[0].hash, txHash, "Transaction hashes don't match");
 
-              assert.strictEqual(block.transactions.length, 1, "Latest block should have one transaction");
-              assert.strictEqual(block.transactions[0], txHash, "Transaction hashes don't match");
+      // Retest, with transaction only as hash
+      block = await web3.eth.getBlock("latest", false);
 
-              done();
-            });
-          });
-        }
-      );
+      assert.strictEqual(block.transactions.length, 1, "Latest block should have one transaction");
+      assert.strictEqual(block.transactions[0], txHash, "Transaction hashes don't match");
     });
   });
 
   // Relies on the validity of eth_getBlockByNumber above.
   describe("eth_getBlockByHash", function() {
-    it("should return block given the block hash", function(done) {
-      web3.eth.getBlock(0, true, function(err, blockByNumber) {
-        if (err) {
-          return done(err);
-        }
-
-        web3.eth.getBlock(blockByNumber.hash, true, function(err, blockByHash) {
-          if (err) {
-            return done(err);
-          }
-
-          assert.deepStrictEqual(blockByHash, blockByNumber);
-          done();
-        });
-      });
+    it("should return block given the block hash", async function() {
+      let blockByNumber = await web3.eth.getBlock(0, true);
+      let blockByHash = await web3.eth.getBlock(blockByNumber.hash, true);
+      assert.deepStrictEqual(blockByHash, blockByNumber);
     });
   });
 
   describe("eth_getBlockTransactionCountByNumber", function() {
-    it("should return the number of transactions given the block number (0 transactions)", function(done) {
+    it("should return the number of transactions given the block number (0 transactions)", async function() {
       // Block 0 should have 0 transactions as per test eth_getBlockByNumber
-      web3.eth.getBlock(0, true, function(err, block) {
-        if (err) {
-          return done(err);
-        }
-        web3.eth.getBlockTransactionCount(0, function(err, blockTransactionCount) {
-          if (err) {
-            return done(err);
-          }
-          assert.strictEqual(block.transactions.length, blockTransactionCount, "Block transaction count should be 0.");
-          assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
-          done();
-        });
-      });
+      let block = await web3.eth.getBlock(0, true);
+      let blockTransactionCount = await web3.eth.getBlockTransactionCount(0);
+      assert.strictEqual(block.transactions.length, blockTransactionCount, "Block transaction count should be 0.");
+      assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
     });
 
-    it("should return the number of transactions given the block number (1 transaction)", function(done) {
+    it("should return the number of transactions given the block number (1 transaction)", async function() {
       // Create a transaction and check
       // Account 0 seems to be running out of gas before all tests are complete
-      var payingAccount = 2;
+      const payingAccount = 2;
 
-      web3.eth.sendTransaction(
-        {
-          from: accounts[payingAccount],
-          data: contract.binary,
-          gas: 3141592
-        },
-        function(err, txHash) {
-          if (err) {
-            return done(err);
-          }
-          // Assume it was processed correctly.
-          assert.deepStrictEqual(txHash.length, 66);
+      let receipt = await web3.eth.sendTransaction({
+        from: accounts[payingAccount],
+        data: contract.binary,
+        gas: 3141592
+      });
 
-          web3.eth.getBlock("latest", true, function(err, block) {
-            if (err) {
-              return done(err);
-            }
-            web3.eth.getBlockTransactionCount(block.number, function(err, blockTransactionCount) {
-              if (err) {
-                return done(err);
-              }
-              assert.strictEqual(
-                block.transactions.length,
-                blockTransactionCount,
-                "Block transaction count should be 1."
-              );
-              assert.strictEqual(1, blockTransactionCount, "Block transaction count should be 1.");
-              done();
-            });
-          });
-        }
+      let txHash = receipt.transactionHash;
+
+      // Assume it was processed correctly.
+      assert.deepStrictEqual(txHash.length, 66);
+
+      let block = await web3.eth.getBlock("latest", true);
+      let blockTransactionCount = await web3.eth.getBlockTransactionCount(block.number);
+      assert.strictEqual(
+        block.transactions.length,
+        blockTransactionCount,
+        "Block transaction count should be 1."
       );
+      assert.strictEqual(1, blockTransactionCount, "Block transaction count should be 1.");
     });
 
-    it("should return 0 transactions when the block doesn't exist", function(done) {
-      web3.eth.getBlockTransactionCount(1000000, function(err, blockTransactionCount) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
-        done();
-      });
+    it("should return 0 transactions when the block doesn't exist", async function() {
+      let blockTransactionCount = await web3.eth.getBlockTransactionCount(1000000);
+      assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
     });
   });
 
   // Dependent upon validity of eth_getBlockTransactionCountByNumber
   describe("eth_getBlockTransactionCountByHash", function() {
-    it("should return the number of transactions given the hash", function(done) {
-      web3.eth.getBlock(0, true, function(err, blockByNumber) {
-        if (err) {
-          return done(err);
-        }
-        web3.eth.getBlockTransactionCount(blockByNumber.number, true, function(err, txCountByHash) {
-          if (err) {
-            return done(err);
-          }
-          web3.eth.getBlockTransactionCount(blockByNumber.hash, function(err, txCountByNumber) {
-            if (err) {
-              return done(err);
-            }
-            assert.strictEqual(
-              txCountByHash,
-              txCountByNumber,
-              "Txn count for block retrieved by hash should equal count retrieved by number."
-            );
-            done();
-          });
-        });
-      });
+    it("should return the number of transactions given the hash", async function() {
+      let blockByNumber = await web3.eth.getBlock(0, true);
+      let txCountByHash = await web3.eth.getBlockTransactionCount(blockByNumber.number, true);
+      let txCountByNumber = await web3.eth.getBlockTransactionCount(blockByNumber.hash);
+      assert.strictEqual(
+        txCountByHash,
+        txCountByNumber,
+        "Txn count for block retrieved by hash should equal count retrieved by number."
+      );
     });
   });
 
   describe("eth_getCode", function() {
-    it("should return 0x for eth_getCode called on a non-contract", function(done) {
-      web3.eth.getCode("0x000000000000000000000000000000000000dEaD", function(_, code) {
-        assert.strictEqual(code, "0x");
-        done();
-      });
+    it("should return 0x for eth_getCode called on a non-contract", async function() {
+      let code = await web3.eth.getCode("0x000000000000000000000000000000000000dEaD");
+      assert.strictEqual(code, "0x");
     });
   });
 
   describe("eth_sign", function() {
-    var accounts;
-    var signingWeb3;
+    let accounts;
+    let signingWeb3;
 
     // This account produces an edge case signature when it signs the hex-encoded buffer:
     // '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627'. (See Issue #190)
-    var acc = {
+    const acc = {
       balance: "0x0",
       secretKey: "0xe6d66f02cd45a13982b99a5abf3deab1f67cf7be9fee62f0a072cb70896342e4"
     };
 
     // Load account.
-    before(function(done) {
+    before(async function() {
       signingWeb3 = new Web3();
       signingWeb3.setProvider(
         Ganache.provider({
           accounts: [acc]
         })
       );
-      signingWeb3.eth.getAccounts(function(err, accs) {
-        if (err) {
-          return done(err);
-        }
-        accounts = accs.map(function(val) {
-          return val.toLowerCase();
-        });
-        done();
+      accounts = await signingWeb3.eth.getAccounts();
+      accounts = accounts.map(function(val) {
+        return val.toLowerCase();
       });
     });
 
-    it("should produce a signature whose signer can be recovered", function() {
-      var msg = utils.toBuffer("asparagus");
-      var msgHash = utils.hashPersonalMessage(msg);
+    it("should produce a signature whose signer can be recovered", async function() {
+      const msg = utils.toBuffer("asparagus");
+      const msgHash = utils.hashPersonalMessage(msg);
 
-      return signingWeb3.eth.sign(utils.bufferToHex(msg), accounts[0]).then((sgn) => {
-        sgn = utils.stripHexPrefix(sgn);
-        var r = Buffer.from(sgn.slice(0, 64), "hex");
-        var s = Buffer.from(sgn.slice(64, 128), "hex");
-        var v = parseInt(sgn.slice(128, 130), 16) + 27;
-        var pub = utils.ecrecover(msgHash, v, r, s);
-        var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
-        addr = to.hex(addr);
-        assert.deepStrictEqual(addr, accounts[0]);
-      });
+      let sgn = await signingWeb3.eth.sign(utils.bufferToHex(msg), accounts[0]);
+      sgn = utils.stripHexPrefix(sgn);
+
+      const r = Buffer.from(sgn.slice(0, 64), "hex");
+      const s = Buffer.from(sgn.slice(64, 128), "hex");
+      const v = parseInt(sgn.slice(128, 130), 16) + 27;
+      const pub = utils.ecrecover(msgHash, v, r, s);
+      let addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
+      addr = to.hex(addr);
+      assert.deepStrictEqual(addr, accounts[0]);
     });
 
-    it("should work if ecsign produces 'r' or 's' components that start with 0", function() {
+    it("should work if ecsign produces 'r' or 's' components that start with 0", async function() {
       // This message produces a zero prefixed 'r' component when signed by ecsign
       // w/ the account set in this test's 'before' block.
-      var msgHex = "0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627";
-      var edgeCaseMsg = utils.toBuffer(msgHex);
-      var msgHash = utils.hashPersonalMessage(edgeCaseMsg);
-      return signingWeb3.eth.sign(msgHex, accounts[0]).then((sgn) => {
-        sgn = utils.stripHexPrefix(sgn);
-        var r = Buffer.from(sgn.slice(0, 64), "hex");
-        var s = Buffer.from(sgn.slice(64, 128), "hex");
-        var v = parseInt(sgn.slice(128, 130), 16) + 27;
-        var pub = utils.ecrecover(msgHash, v, r, s);
-        var addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
-        addr = to.hex(addr);
-        assert.deepStrictEqual(addr, accounts[0]);
-      });
+      const msgHex = "0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627";
+      const edgeCaseMsg = utils.toBuffer(msgHex);
+      const msgHash = utils.hashPersonalMessage(edgeCaseMsg);
+
+      let sgn = await signingWeb3.eth.sign(msgHex, accounts[0]);
+      sgn = utils.stripHexPrefix(sgn);
+
+      const r = Buffer.from(sgn.slice(0, 64), "hex");
+      const s = Buffer.from(sgn.slice(64, 128), "hex");
+      const v = parseInt(sgn.slice(128, 130), 16) + 27;
+      const pub = utils.ecrecover(msgHash, v, r, s);
+      let addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
+      addr = to.hex(addr);
+      assert.deepStrictEqual(addr, accounts[0]);
     });
 
-    after("shutdown", function(done) {
+    after("shutdown", async function() {
       let provider = signingWeb3._provider;
       signingWeb3.setProvider();
-      provider.close(done);
+      await pify(provider.close)();
     });
   });
 
   describe("eth_signTypedData", function() {
-    var accounts;
-    var signingWeb3;
+    let accounts;
+    let signingWeb3;
 
     // Account based on https://github.com/ethereum/EIPs/blob/master/assets/eip-712/Example.js
-    var acc = {
+    const acc = {
       balance: "0x0",
       secretKey: web3.utils.sha3("cow")
     };
 
     // Load account.
-    before(function(done) {
+    before(async function() {
       signingWeb3 = new Web3();
       signingWeb3.setProvider(
         Ganache.provider({
           accounts: [acc]
         })
       );
-      signingWeb3.eth.getAccounts(function(err, accs) {
-        if (err) {
-          return done(err);
-        }
-        accounts = accs.map(function(val) {
-          return val.toLowerCase();
-        });
-        done();
+      accounts = await signingWeb3.eth.getAccounts();
+      accounts = accounts.map(function(val) {
+        return val.toLowerCase();
       });
     });
 
-    it("should produce a signature whose signer can be recovered", function(done) {
-      var typedData = {
+    it("should produce a signature whose signer can be recovered", async function() {
+      const typedData = {
         types: {
           EIP712Domain: [
             { name: "name", type: "string" },
@@ -528,37 +389,29 @@ var tests = function(web3) {
         }
       };
 
-      signingWeb3.currentProvider.sendAsync(
-        {
-          jsonrpc: "2.0",
-          method: "eth_signTypedData",
-          params: [accounts[0], typedData],
-          id: new Date().getTime()
-        },
-        function(err, response) {
-          if (err) {
-            return done(err);
-          }
-          assert.strictEqual(
-            response.result,
-            "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d" +
-              "07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
-          );
-          done();
-        }
+      let response = await pify(signingWeb3.currentProvider.send)({
+        jsonrpc: "2.0",
+        method: "eth_signTypedData",
+        params: [accounts[0], typedData],
+        id: new Date().getTime()
+      });
+      assert.strictEqual(
+        response.result,
+        "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d" +
+        "07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
       );
     });
 
-    after("shutdown", function(done) {
+    after("shutdown", async function() {
       let provider = signingWeb3._provider;
       signingWeb3.setProvider();
-      provider.close(done);
+      await pify(provider.close)();
     });
   });
 
-  describe("eth_sendTransaction", () => {
-    it("should fail with bad nonce (too low)", function(done) {
-      var transaction = {
+  describe("eth_sendTransaction", function() {
+    it("should fail with bad nonce (too low)", async function() {
+      const transaction = {
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[0],
@@ -566,17 +419,19 @@ var tests = function(web3) {
         nonce: "0x0" // too low nonce
       };
 
-      web3.eth.sendTransaction(transaction, function(err, result) {
+      try {
+        await web3.eth.sendTransaction(transaction);
+        assert.fail("sendTransaction promiEvent should reject");
+      } catch (err) {
         assert(
           err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0,
           `Incorrect error message: ${err.message}`
         );
-        done();
-      });
+      }
     });
 
-    it("should fail with bad nonce (too high)", function(done) {
-      var transaction = {
+    it("should fail with bad nonce (too high)", async function() {
+      const transaction = {
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[0],
@@ -584,17 +439,18 @@ var tests = function(web3) {
         nonce: "0xff" // too high nonce
       };
 
-      web3.eth.sendTransaction(transaction, function(err, result) {
+      try {
+        await web3.eth.sendTransaction(transaction);
+        assert.fail("sendTransaction promiEvent should reject");
+      } catch (e) {
         assert(
-          err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 255") >=
-            0
+          e.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 255") >= 0
         );
-        done();
-      });
+      }
     });
 
-    it("should succeed with right nonce (1)", function(done) {
-      var transaction = {
+    it("should succeed with right nonce (1)", async function() {
+      const transaction = {
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[0],
@@ -602,9 +458,7 @@ var tests = function(web3) {
         nonce: "0x01"
       };
 
-      web3.eth.sendTransaction(transaction, function(err, result) {
-        done(err);
-      });
+      await web3.eth.sendTransaction(transaction);
     });
 
     it("should not produce colliding transaction hashes", async() => {
@@ -627,63 +481,26 @@ var tests = function(web3) {
       }
     });
 
-    it("should fail with bad nonce (skipped value)", function(done) {
-      let tempWeb3 = new Web3(
-        Ganache.provider({
-          blockTime: 0.5, // seconds
-          mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
-        })
-      );
-
-      const accounts = [
-        // configured with mnemonic
-        "0x627306090abab3a6e1400e9345bc60c78a8bef57",
-        "0xf17f52151ebef6c7334fad080c5704d77216b732"
-      ];
-
+    it("should fail with bad nonce (skipped value)", async function() {
+      let nonce = await web3.eth.getTransactionCount(accounts[0]);
       let transaction = {
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[0],
         to: accounts[1],
-        nonce: "0x00"
+        nonce: to.rpcQuantityHexString(nonce + 1) // Skipped nonce
       };
 
-      let transaction2 = {
-        value: "0x10000000",
-        gasLimit: "0x33450",
-        from: accounts[0],
-        to: accounts[1],
-        nonce: "0x02" // Skipped nonce 1
-      };
-
-      tempWeb3.eth.sendTransaction(transaction, function(err, hash) {
-        if (err) {
-          return done(err);
-        }
-        // Ensure there's no receipt since the transaction hasn't yet been processed.
-        tempWeb3.eth.getTransactionReceipt(hash, function(err, receipt) {
-          if (err) {
-            return done(err);
-          }
-          assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
-          // Issue second transaction
-          tempWeb3.eth.sendTransaction(transaction2, function(err2, hash2) {
-            assert.notDeepStrictEqual(err2, null, "Incorrect nonce, tx should fail.");
-            setTimeout(function() {
-              // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
-              tempWeb3.eth.getTransactionReceipt(hash, function(err3, receipt1) {
-                assert.notDeepStrictEqual(receipt1, null, "First tx should be processed");
-                done();
-              });
-            }, 750);
-          });
-        });
-      });
+      try {
+        await web3.eth.sendTransaction(transaction);
+        assert.fail("sendTransaction promiEvent should reject");
+      } catch (err) {
+        assert.notDeepStrictEqual(err, null, "Incorrect nonce, tx should fail.");
+      }
     });
 
-    it("should allow a tx to contain data when sent to an external (personal) address", async() => {
-      var transaction = {
+    it("should allow a tx to contain data when sent to an external (personal) address", async function() {
+      const transaction = {
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[9],
@@ -696,9 +513,9 @@ var tests = function(web3) {
     });
   });
 
-  describe("eth_sendRawTransaction", () => {
-    it("should fail with bad nonce (too low)", function(done) {
-      var transaction = new Transaction({
+  describe("eth_sendRawTransaction", function() {
+    it("should fail with bad nonce (too low)", async function() {
+      const transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[0],
@@ -706,18 +523,20 @@ var tests = function(web3) {
         nonce: "0x0" // too low nonce
       });
 
-      var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
+      const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
-      web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
+      try {
+        await web3.eth.sendSignedTransaction(transaction.serialize());
+        assert.fail("sendSignedTransaction promiEvent should reject");
+      } catch (err) {
         const msg = "the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 0";
         assert(err.message.indexOf(msg) >= 0, `Incorrect error message: ${err.message}`);
-        done();
-      });
+      }
     });
 
-    it("should fail with bad nonce (too high)", function(done) {
-      var transaction = new Transaction({
+    it("should fail with bad nonce (too high)", async function() {
+      const transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[0],
@@ -725,100 +544,62 @@ var tests = function(web3) {
         nonce: "0xff" // too high nonce
       });
 
-      var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
+      const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
-      web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
+      try {
+        await web3.eth.sendSignedTransaction(transaction.serialize());
+        assert.fail("sendSignedTransaction promiEvent should reject");
+      } catch (err) {
         assert(
           err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 255") >=
-            0
+          0
         );
-        done();
-      });
+      }
     });
 
-    it("should succeed with right nonce (1)", function(done) {
-      var transaction = new Transaction({
+    it("should succeed with right nonce", async function() {
+      let nonce = await web3.eth.getTransactionCount(accounts[0]);
+
+      const transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[0],
         to: accounts[1],
-        nonce: "0x2"
+        nonce: to.rpcQuantityHexString(nonce)
       });
 
-      var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
+      const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
-      web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        done(err);
-      });
+      let receipt = await web3.eth.sendSignedTransaction(transaction.serialize());
+      assert.strictEqual(receipt.status, true);
     });
 
-    it("should fail with bad nonce (skipped value)", function(done) {
-      let tempWeb3 = new Web3(
-        Ganache.provider({
-          blockTime: 0.5, // seconds
-          mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
-        })
-      );
-
-      const accounts = [
-        // configured with mnemonic
-        "0x627306090abab3a6e1400e9345bc60c78a8bef57",
-        "0xf17f52151ebef6c7334fad080c5704d77216b732"
-      ];
-      const secretKeys = [
-        // configured with mnemonic
-        "0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3"
-      ];
+    it("should fail with bad nonce (skipped value)", async function() {
+      let nonce = await web3.eth.getTransactionCount(accounts[0]);
 
       let transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[0],
         to: accounts[1],
-        nonce: "0x0"
+        nonce: to.rpcQuantityHexString(nonce + 1) // Skipped nonce
       });
 
-      let transaction2 = new Transaction({
-        value: "0x10000000",
-        gasLimit: "0x33450",
-        from: accounts[0],
-        to: accounts[1],
-        nonce: "0x2" // Skipped nonce 1
-      });
-
-      let secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
+      const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
-      transaction2.sign(secretKeyBuffer);
 
-      tempWeb3.eth.sendSignedTransaction(transaction.serialize(), function(err, tx) {
-        if (err) {
-          return done(err);
-        }
-        // Ensure there's no receipt since the transaction hasn't yet been processed.
-        tempWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
-          if (err) {
-            return done(err);
-          }
-          assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
-          // Issue second transaction
-          tempWeb3.eth.sendSignedTransaction(transaction2.serialize(), function(err2, tx2) {
-            assert.notDeepStrictEqual(err2, null, "Incorrect nonce, tx should fail.");
-            setTimeout(function() {
-              // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
-              tempWeb3.eth.getTransactionReceipt(tx, function(err3, receipt1) {
-                assert.notDeepStrictEqual(receipt1, null, "First tx should be processed");
-                done();
-              });
-            }, 750);
-          });
-        });
-      });
+      try {
+        await web3.eth.sendSignedTransaction(transaction.serialize());
+        assert.fail("sendSignedTransaction promiEvent should reject");
+      } catch (err) {
+        assert.notDeepStrictEqual(err, null, "Incorrect nonce, tx should fail.");
+      }
     });
 
-    it("should respond with correct txn hash", function(done) {
-      var transaction = new Transaction({
+    it("should respond with correct txn hash", async function() {
+      const transaction = new Transaction({
         value: "0x0",
         gasLimit: "0x5208",
         from: accounts[0],
@@ -826,17 +607,15 @@ var tests = function(web3) {
         nonce: "0x3"
       });
 
-      var secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
+      const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
-      web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
-        assert.strictEqual(result, to.txHash(transaction));
-        done(err);
-      });
+      let result = await web3.eth.sendSignedTransaction(transaction.serialize());
+      assert.strictEqual(result.transactionHash, to.txHash(transaction));
     });
 
-    it("should allow a tx to contain data when sent to an external (personal) address", async() => {
-      var transaction = new Transaction({
+    it("should allow a tx to contain data when sent to an external (personal) address", async function() {
+      const transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
         from: accounts[6],
@@ -844,180 +623,107 @@ var tests = function(web3) {
         data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
       });
 
-      var secretKeyBuffer = Buffer.from(secretKeys[6].substr(2), "hex");
+      const secretKeyBuffer = Buffer.from(secretKeys[6].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
-      let result = await web3.eth.sendSignedTransaction(transaction.serialize());
-      assert.notDeepStrictEqual(result, null, "Tx should be successful.");
+      let receipt = await web3.eth.sendSignedTransaction(transaction.serialize());
+      assert.strictEqual(receipt.status, true, "Tx should be successful.");
     });
   });
 
   describe("contract scenario", function() {
     // These are expected to be run in order.
-    var initialTransaction;
-    var contractAddress;
-    var contractCreationBlockNumber;
+    let initialTransactionHash;
+    let contractAddress;
+    let contractCreationBlockNumber;
 
-    it("should add a contract to the network (eth_sendTransaction)", function(done) {
-      web3.eth.sendTransaction(
-        {
-          from: accounts[0],
-          data: contract.binary,
-          gas: 3141592,
-          value: 1
-        },
-        function(err, hash) {
-          if (err) {
-            return done(err);
-          }
-
-          assert.deepStrictEqual(hash.length, 66);
-          initialTransaction = hash;
-          web3.eth.getTransactionReceipt(hash, function(err, receipt) {
-            if (err) {
-              return done(err);
-            }
-            contractCreationBlockNumber = receipt.blockNumber; // For defaultBlock test
-            assert(receipt);
-            done();
-          });
-        }
-      );
-    });
-
-    it("should verify the transaction immediately (eth_getTransactionReceipt)", function(done) {
-      web3.eth.getTransactionReceipt(initialTransaction, function(err, receipt) {
-        if (err) {
-          return done(err);
-        }
-
-        contractAddress = receipt.contractAddress;
-
-        assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
-        assert.notStrictEqual(contractAddress, null, "Transaction did not create a contract");
-        done();
+    it("should add a contract to the network (eth_sendTransaction)", async function() {
+      let receipt = await web3.eth.sendTransaction({
+        from: accounts[0],
+        data: contract.binary,
+        gas: 3141592,
+        value: 1
       });
+      initialTransactionHash = receipt.transactionHash;
+      assert.deepStrictEqual(initialTransactionHash.length, 66);
+      contractCreationBlockNumber = receipt.blockNumber; // For defaultBlock test
+
+      contractAddress = receipt.contractAddress;
+
+      assert(receipt.contractAddress, "should have deployed a contract");
     });
 
-    it("should verify the transaction immediately (eth_getTransactionByHash)", function(done) {
+    it("should verify the transaction immediately (eth_getTransactionByHash)", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
       // This test uses the provider directly because web3 fixes a bug we had for us.
       //  specifically, when the an rpc result field is `0x` it transform it to `null`
       //  `0x` is an incorrect response (it should be null). so we test for that here
-      web3.currentProvider.send(
-        {
-          id: "1", // an "id" is required here because the web3 websocket provider (v1.0.0-beta.35) throws if it is
-          // missing (it's probably just a bug on their end)
-          jsonrpc: "2.0",
-          method: "eth_getTransactionByHash",
-          params: [initialTransaction]
-        },
-        (err, jsonRpcResponse) => {
-          if (err) {
-            return done(err);
-          }
-
-          const result = jsonRpcResponse.result;
-
-          assert.notStrictEqual(result, null, "Transaction result shouldn't be null");
-          assert.strictEqual(result.hash, initialTransaction, "Resultant hash isn't what we expected");
-          assert.strictEqual(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
-
-          done();
-        }
-      );
-    });
-
-    it("should return null for a receipt for a nonexistent transaction (eth_getTransactionReceipt)", (done) => {
-      web3.eth.getTransactionReceipt("0xdeadbeef", function(err, receipt) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.strictEqual(receipt, null, "Transaction receipt should be null");
-        done();
+      let jsonRpcResponse = await send({
+        id: "1", // an "id" is required here because the web3 websocket provider (v1.0.0-beta.35) throws if it is
+        // missing (it's probably just a bug on their end)
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [initialTransactionHash]
       });
+      const result = jsonRpcResponse.result;
+
+      assert.notStrictEqual(result, null, "Transaction result shouldn't be null");
+      assert.strictEqual(result.hash, initialTransactionHash, "Resultant hash isn't what we expected");
+      assert.strictEqual(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
     });
 
-    it("should verify the code at the address matches the runtimeBinary (eth_getCode)", function(done) {
-      web3.eth.getCode(contractAddress, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(result, contract.runtimeBinary);
-        done();
-      });
+    it("should return null for a receipt for a nonexistent transaction (eth_getTransactionReceipt)", async function() {
+      let receipt = await web3.eth.getTransactionReceipt("0xdeadbeef");
+      assert.strictEqual(receipt, null, "Transaction receipt should be null");
     });
 
-    it("should have balance of 1 (eth_getBalance)", function(done) {
-      web3.eth.getBalance(contractAddress, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(result, "1");
-        done();
-      });
+    it("should verify the code at the address matches the runtimeBinary (eth_getCode)", async function() {
+      let code = await web3.eth.getCode(contractAddress);
+      assert.strictEqual(code, contract.runtimeBinary);
     });
 
-    it("should be able to read data via a call (eth_call)", function(done) {
-      var callData = contract.callData;
+    it("should have balance of 1 (eth_getBalance)", async function() {
+      let result = await web3.eth.getBalance(contractAddress);
+      assert.strictEqual(result, "1");
+    });
+
+    it("should read data via a call (eth_call)", async function() {
+      let callData = contract.callData;
       callData.to = contractAddress;
       callData.from = accounts[0];
 
-      var startingBlockNumber = null;
+      let startingBlockNumber = await web3.eth.getBlockNumber();
+      let result = await web3.eth.call(callData);
 
-      // TODO: Removing this callback hell would be nice.
-      web3.eth.getBlockNumber(function(err, result) {
-        if (err) {
-          return done(err);
-        }
+      assert.strictEqual(to.number(result), 5);
 
-        startingBlockNumber = result;
-
-        web3.eth.call(callData, function(err, result) {
-          if (err) {
-            return done(err);
-          }
-          assert.strictEqual(to.number(result), 5);
-
-          web3.eth.getBlockNumber(function(err, result) {
-            if (err) {
-              return done(err);
-            }
-
-            assert.strictEqual(result, startingBlockNumber, "eth_call increased block count when it shouldn't have");
-            done();
-          });
-        });
-      });
+      let number = await web3.eth.getBlockNumber();
+      assert.strictEqual(number, startingBlockNumber, "eth_call increased block count when it shouldn't have");
     });
 
-    it("should get back a runtime error on a bad call (eth_call)", function(done) {
-      var callData = _.cloneDeep(contract.callData);
+    it("should get back a runtime error on a bad call (eth_call)", async function() {
+      let callData = _.cloneDeep(contract.callData);
       callData.to = contractAddress;
       callData.from = accounts[0];
 
-      // TODO: Removing this callback hell would be nice.
-      web3.eth.estimateGas(callData, function(err, result) {
-        if (err) {
-          assert(err);
-        }
-        // set a low gas limit to force a runtime error
-        callData.gas = result - 1;
+      let gasEstimate = await web3.eth.estimateGas(callData);
+      // set a low gas limit to force a runtime error
+      callData.gas = gasEstimate - 1;
 
-        web3.eth.call(callData, function(err, result) {
-          // should have received an error
-          assert(err, "did not return runtime error");
-          assert(
-            /.*out of gas.*/.test(err.message),
-            `Did not receive an 'out of gas' error. got '${err.message}' instead.`
-          );
-          done();
-        });
-      });
+      try {
+        await web3.eth.call(callData);
+        // should have received an error
+        assert.fail("did not return runtime error");
+      } catch (err) {
+        assert(
+          /.*out of gas.*/.test(err.message),
+          `Did not receive an 'out of gas' error. got '${err.message}' instead.`
+        );
+      }
     });
 
-    it("should be able to make a call from an address not in the accounts list (eth_call)", function(done) {
-      var from = "0x1234567890123456789012345678901234567890";
+    it("should make a call from an address not in the accounts list (eth_call)", async function() {
+      const from = "0x1234567890123456789012345678901234567890";
 
       // Assert precondition: Ensure from address isn't in the accounts list.
       accounts.forEach(function(account) {
@@ -1028,827 +734,506 @@ var tests = function(web3) {
         );
       });
 
-      var callData = contract.callData;
+      let callData = contract.callData;
       callData.to = contractAddress;
       callData.from = from;
 
-      web3.eth.call(callData, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(to.number(result), 5);
-
-        done();
-      });
+      let result = await web3.eth.call(callData);
+      assert.strictEqual(to.number(result), 5);
     });
 
-    it("should be able to make a call when no address is listed (eth_call)", function(done) {
-      var callData = contract.callData;
+    it("should make a call when no address is listed (eth_call)", async function() {
+      let callData = contract.callData;
       callData.to = contractAddress;
       delete callData.from;
 
-      web3.eth.call(callData, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(to.number(result), 5);
-
-        done();
-      });
+      let result = await web3.eth.call(callData);
+      assert.strictEqual(to.number(result), 5);
     });
 
-    it("should represent the block number correctly in the Oracle contract (oracle.blockhash0)", function(done) {
-      var oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
-      var oracleOutput = solc.compile(oracleSol).contracts[":Oracle"];
-      web3.eth.personal.unlockAccount(accounts[0], "password", function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        var contract = new web3.eth.Contract(JSON.parse(oracleOutput.interface));
-        contract
-          .deploy({
-            data: oracleOutput.bytecode
-          })
-          .send({
-            from: accounts[0],
-            gas: 3141592
-          })
-          .then(function(oracle) {
-            // TODO: ugly workaround - not sure why this is necessary.
-            if (!oracle._requestManager.provider) {
-              oracle._requestManager.setProvider(web3.eth._provider);
-            }
-            web3.eth.getBlock(0, true, function(err, block) {
-              if (err) {
-                return done(err);
-              }
-              oracle.methods.blockhash0().call(function(err, blockhash) {
-                if (err) {
-                  return done(err);
-                }
-                assert.strictEqual(blockhash, block.hash);
-                done();
-              });
-            });
-          });
+    it("should represent the block number correctly in the Oracle contract (oracle.blockhash0)", async function() {
+      const oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
+      const oracleOutput = solc.compile(oracleSol).contracts[":Oracle"];
+      await web3.eth.personal.unlockAccount(accounts[0], "password");
+
+      let contract = new web3.eth.Contract(JSON.parse(oracleOutput.interface));
+      let oracle = await contract.deploy({
+        data: oracleOutput.bytecode
+      }).send({
+        from: accounts[0],
+        gas: 3141592
       });
+      let block = await web3.eth.getBlock(0, true);
+      let blockhash = await oracle.methods.blockhash0().call();
+      assert.strictEqual(blockhash, block.hash);
     });
 
-    it("should be able to estimate gas of a transaction (eth_estimateGas)", function(done) {
-      var txData = contract.transaction_data;
+    it("should estimate gas of a transaction (eth_estimateGas)", async function() {
+      let txData = contract.transaction_data;
       txData.to = contractAddress;
       txData.from = accounts[0];
 
-      var startingBlockNumber = null;
+      let startingBlockNumber = await web3.eth.getBlockNumber();
 
-      // TODO: Removing this callback hell would be nice.
-      web3.eth.getBlockNumber(function(err, result) {
-        if (err) {
-          return done(err);
-        }
+      let gasEstimate = await web3.eth.estimateGas(txData);
+      assert.strictEqual(gasEstimate, 27693);
 
-        startingBlockNumber = result;
+      let blockNumber = await web3.eth.getBlockNumber();
 
-        web3.eth.estimateGas(txData, function(err, result) {
-          if (err) {
-            return done(err);
-          }
-          assert.strictEqual(result, 27693);
-
-          web3.eth.getBlockNumber(function(err, result) {
-            if (err) {
-              return done(err);
-            }
-
-            assert.strictEqual(
-              result,
-              startingBlockNumber,
-              "eth_estimateGas increased block count when it shouldn't have"
-            );
-            done();
-          });
-        });
-      });
+      assert.strictEqual(
+        blockNumber,
+        startingBlockNumber,
+        "eth_estimateGas increased block count when it shouldn't have"
+      );
     });
 
-    it("should be able to estimate gas from an account not within the accounts list (eth_estimateGas)", function(done) {
-      var txData = contract.transaction_data;
+    it("should estimate gas from an unknown account (eth_estimateGas)", async function() {
+      let txData = contract.transaction_data;
       txData.to = contractAddress;
       txData.from = "0x1234567890123456789012345678901234567890";
 
-      web3.eth.estimateGas(txData, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(result, 27693);
-        done();
-      });
+      let result = await web3.eth.estimateGas(txData);
+      assert.strictEqual(result, 27693);
     });
 
-    it("should be able to estimate gas when no account is listed (eth_estimateGas)", function(done) {
-      var txData = contract.transaction_data;
+    it("should estimate gas when no account is listed (eth_estimateGas)", async function() {
+      let txData = contract.transaction_data;
       txData.to = contractAddress;
       delete txData.from;
 
-      web3.eth.estimateGas(txData, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(result, 27693);
-        done();
-      });
+      let result = await web3.eth.estimateGas(txData);
+      assert.strictEqual(result, 27693);
     });
 
-    it("should be able to send a state changing transaction (eth_sendTransaction)", function(done) {
-      var txData = contract.transaction_data;
+    it("should send a state changing transaction (eth_sendTransaction)", async function() {
+      let txData = contract.transaction_data;
       txData.to = contractAddress;
       txData.from = accounts[0];
 
-      var callData = contract.callData;
+      let callData = contract.callData;
       callData.from = accounts[0];
       callData.to = contractAddress;
 
-      web3.eth.sendTransaction(txData, function(err, tx) {
-        if (err) {
-          return done(err);
-        }
-        // Now double check the data was set properly.
-        // NOTE: Because ethereumjs-testrpc processes transactions immediately,
-        // we can do this. Calling the call immediately after the transaction would
-        // fail on a different Ethereum client.
+      let receipt = await web3.eth.sendTransaction(txData);
+      assert.strictEqual(receipt.logs.length, 1, "Receipt had wrong amount of logs");
+      assert.strictEqual(
+        receipt.logs[0].blockHash,
+        receipt.blockHash,
+        "Logs blockhash doesn't match block blockhash"
+      );
 
-        web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-          if (err) {
-            return done(err);
-          }
+      // Now double check the data was set properly.
+      // NOTE: Because ethereumjs-testrpc processes transactions immediately,
+      // we can do this. Calling the call immediately after the transaction would
+      // fail on a different Ethereum client.
+      let result = await web3.eth.call(callData);
 
-          assert.strictEqual(receipt.logs.length, 1, "Receipt had wrong amount of logs");
-          assert.strictEqual(
-            receipt.logs[0].blockHash,
-            receipt.blockHash,
-            "Logs blockhash doesn't match block blockhash"
-          );
-
-          web3.eth.call(callData, function(err, result) {
-            if (err) {
-              return done(err);
-            }
-
-            assert.strictEqual(to.number(result), 25);
-            done();
-          });
-        });
-      });
+      assert.strictEqual(to.number(result), 25);
     });
 
     // NB: relies on the previous test setting value to 25 and the contract deployment setting
     // original value to 5. `contractCreationBlockNumber` is set in the first test of this
     // describe block.
-    it("should read data via a call at a specified blockNumber (eth_call)", function(done) {
-      var startingBlockNumber = null;
-      var callData = contract.callData;
+    it("should read data via a call at a specified blockNumber (eth_call)", async function() {
+      let callData = contract.callData;
 
-      web3.eth
-        .getBlockNumber()
-        .then(function(result) {
-          startingBlockNumber = result;
-          return web3.eth.call(callData);
-        })
-        .then(function(result) {
-          assert.strictEqual(
-            result,
-            "0x0000000000000000000000000000000000000000000000000000000000000019",
-            "value retrieved from latest block should be 25"
-          );
-          return web3.eth.call(callData, contractCreationBlockNumber);
-        })
-        .then(function(result) {
-          assert.strictEqual(
-            result,
-            "0x0000000000000000000000000000000000000000000000000000000000000005",
-            "value retrieved from contract creation block should be 5"
-          );
-          return web3.eth.getBlockNumber();
-        })
-        .then(function(result) {
-          assert.strictEqual(result, startingBlockNumber, "eth_call w/defaultBlock increased block count");
-          return web3.eth.call(callData);
-        })
-        .then(function(result) {
-          assert.strictEqual(
-            result,
-            "0x0000000000000000000000000000000000000000000000000000000000000019",
-            "stateTrie root was corrupted by defaultBlock call"
-          );
-          done();
-        });
+      let startingBlockNumber = await web3.eth.getBlockNumber();
+      let result = await web3.eth.call(callData);
+
+      assert.strictEqual(
+        result,
+        "0x0000000000000000000000000000000000000000000000000000000000000019",
+        "value retrieved from latest block should be 25"
+      );
+
+      result = await web3.eth.call(callData, contractCreationBlockNumber);
+      assert.strictEqual(
+        result,
+        "0x0000000000000000000000000000000000000000000000000000000000000005",
+        "value retrieved from contract creation block should be 5"
+      );
+
+      result = await web3.eth.getBlockNumber();
+      assert.strictEqual(result, startingBlockNumber, "eth_call w/defaultBlock increased block count");
+
+      result = await web3.eth.call(callData);
+      assert.strictEqual(
+        result,
+        "0x0000000000000000000000000000000000000000000000000000000000000019",
+        "stateTrie root was corrupted by defaultBlock call"
+      );
     });
 
-    it("should read data via a call when specified blockNumber is \"earliest\" (eth_call)", function(done) {
-      var callData = contract.callData;
+    it("should read data via a call when specified blockNumber is \"earliest\" (eth_call)", async function() {
+      let callData = contract.callData;
 
-      web3.eth.call(callData, "earliest").then(function(result) {
-        assert.strictEqual(result, "0x", "value retrieved from earliest block should be 0x");
-        done();
-      });
+      let result = await web3.eth.call(callData, "earliest");
+      assert.strictEqual(result, "0x", "value retrieved from earliest block should be 0x");
     });
 
-    it("should read data via a call when specified blockNumber is \"pending\" (eth_call)", function(done) {
-      var callData = contract.callData;
+    it("should read data via a call when specified blockNumber is \"pending\" (eth_call)", async function() {
+      let callData = contract.callData;
 
-      web3.eth.call(callData, "pending").then(function(result) {
-        assert.strictEqual(
-          result,
-          "0x0000000000000000000000000000000000000000000000000000000000000019",
-          "value retrieved from pending block should be 25"
-        );
-        done();
-      });
+      let result = await web3.eth.call(callData, "pending");
+      assert.strictEqual(
+        result,
+        "0x0000000000000000000000000000000000000000000000000000000000000019",
+        "value retrieved from pending block should be 25"
+      );
     });
 
-    it("should error when reading data via a call at a non-existent blockNumber (eth_call)", function(done) {
-      var nonExistentBlock;
-      var callData = contract.callData;
+    it("should error when reading data via a call at a non-existent blockNumber (eth_call)", async function() {
+      let callData = contract.callData;
 
-      web3.eth
-        .getBlockNumber()
-        .then(function(result) {
-          nonExistentBlock = result + 1;
-          return web3.eth.call(callData, nonExistentBlock);
-        })
-        .then(function(result) {
-          assert.fail();
-        })
-        .catch(function(error) {
-          assert(error.message.includes("index out of range"));
-          assert(error.message.includes(nonExistentBlock));
-          done();
-        });
-    });
-
-    it(
-      "should only be able to send an unsigned state changing transaction from" +
-        " an address within the accounts list (eth_sendTransaction)",
-      function(done) {
-        var badAddress = "0x1234567890123456789012345678901234567890";
-
-        var txData = {};
-        txData.to = "0x1111111111000000000011111111110000000000";
-        txData.from = badAddress;
-        txData.value = "0x1";
-
-        web3.eth.sendTransaction(txData, function(err, result) {
-          if (err) {
-            assert(
-              /sender account not recognized/.test(err.message),
-              `Expected error message containing 'sender account not recognized', but got ${err.message}`
-            );
-            done();
-          } else {
-            assert.fail("Should have received an error");
-          }
-        });
+      let nonExistentBlock = (await web3.eth.getBlockNumber()) + 1;
+      try {
+        await web3.eth.call(callData, nonExistentBlock);
+        assert.fail("expected promise rejection");
+      } catch (err) {
+        assert(err.message.includes("index out of range"));
+        assert(err.message.includes(nonExistentBlock));
       }
-    );
-
-    it("should get the data from storage (eth_getStorageAt) with padded hex", function(done) {
-      web3.eth.getStorageAt(contractAddress, contract.position_of_value, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(to.number(result), 25);
-        done();
-      });
     });
 
-    it("should get the data from storage (eth_getStorageAt) with unpadded hex", function(done) {
-      web3.eth.getStorageAt(contractAddress, "0x0", function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(to.number(result), 25);
-        done();
-      });
+    it("should only accept unsigned transaction from known accounts eth_sendTransaction)", async function() {
+      const badAddress = "0x1234567890123456789012345678901234567890";
+
+      let txData = {};
+      txData.to = "0x1111111111000000000011111111110000000000";
+      txData.from = badAddress;
+      txData.value = "0x1";
+
+      try {
+        await web3.eth.sendTransaction(txData);
+        assert.fail("expected promise rejection");
+      } catch (err) {
+        assert(
+          /sender account not recognized/.test(err.message),
+          `Expected error message containing 'sender account not recognized', but got ${err.message}`
+        );
+      }
     });
 
-    it("should get the data from storage (eth_getStorageAt) with number", function(done) {
-      web3.eth.getStorageAt(contractAddress, 0, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(to.number(result), 25);
-        done();
-      });
+    it("should get the data from storage (eth_getStorageAt) with padded hex", async function() {
+      let result = await web3.eth.getStorageAt(contractAddress, contract.position_of_value);
+      assert.strictEqual(to.number(result), 25);
+    });
+
+    it("should get the data from storage (eth_getStorageAt) with unpadded hex", async function() {
+      let result = await web3.eth.getStorageAt(contractAddress, "0x0");
+      assert.strictEqual(to.number(result), 25);
+    });
+
+    it("should get the data from storage (eth_getStorageAt) with number", async function() {
+      let result = await web3.eth.getStorageAt(contractAddress, 0);
+      assert.strictEqual(to.number(result), 25);
     });
   });
 
   describe("contract scenario (raw tx)", function() {
-    var tx = new Transaction({
+    const tx = new Transaction({
       data: contract.binary,
       gasLimit: to.hex(3141592)
     });
-    var privateKey = Buffer.from("e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109", "hex");
-    var senderAddress = "0x" + utils.privateToAddress(privateKey).toString("hex");
+    const privateKey = Buffer.from("e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109", "hex");
+    const senderAddress = "0x" + utils.privateToAddress(privateKey).toString("hex");
     tx.sign(privateKey);
-    var rawTx = "0x" + tx.serialize().toString("hex");
+    const rawTx = "0x" + tx.serialize().toString("hex");
 
     // These are expected to be run in order.
-    var initialTransaction;
-    var blockHash;
-    var blockNumber;
-    var contractAddress;
+    let initialTransactionHash;
+    let blockHash;
+    let blockNumber;
+    let contractAddress;
 
-    it("should first populate senders address", function(done) {
+    it("should first populate senders address", async function() {
       // populate senders balance
-      web3.eth.sendTransaction(
-        {
-          from: accounts[0],
-          to: senderAddress,
-          value: "0x3141592",
-          gas: 3141592
-        },
-        function(err, hash) {
-          if (err) {
-            return done(err);
-          }
-          web3.eth.getTransactionReceipt(hash, function(err, receipt) {
-            if (err) {
-              return done(err);
-            }
-            assert(receipt);
-            done();
-          });
-        }
-      );
+      let receipt = await web3.eth.sendTransaction({
+        from: accounts[0],
+        to: senderAddress,
+        value: "0x3141592",
+        gas: 3141592
+      });
+      assert(receipt);
     });
 
-    it("should add a contract to the network (eth_sendRawTransaction)", function(done) {
-      web3.eth.sendSignedTransaction(rawTx, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        initialTransaction = result;
-        done();
-      });
+    it("should add a contract to the network (eth_sendRawTransaction)", async function() {
+      let receipt = await web3.eth.sendSignedTransaction(rawTx);
+      initialTransactionHash = receipt.transactionHash;
+      contractAddress = receipt.contractAddress;
+      blockHash = receipt.blockHash;
+      blockNumber = receipt.blockNumber;
+
+      assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
+      assert.notStrictEqual(contractAddress, null, "Transaction did not create a contract");
+      assert.strictEqual(receipt.hasOwnProperty("v"), true, "Transaction includes v signature parameter");
+      assert.strictEqual(receipt.hasOwnProperty("r"), true, "Transaction includes r signature parameter");
+      assert.strictEqual(receipt.hasOwnProperty("s"), true, "Transaction includes s signature parameter");
     });
 
-    it("should verify the transaction immediately (eth_getTransactionReceipt)", function(done) {
-      web3.eth.getTransactionReceipt(initialTransaction, function(err, receipt) {
-        if (err) {
-          return done(err);
-        }
+    it("should verify the transaction immediately (eth_getTransactionByHash)", async function() {
+      let result = await web3.eth.getTransaction(initialTransactionHash);
 
-        contractAddress = receipt.contractAddress;
-        blockHash = receipt.blockHash;
-        blockNumber = receipt.blockNumber;
+      assert.notStrictEqual(result, null, "Transaction result shouldn't be null");
+      assert.strictEqual(result.hash, initialTransactionHash, "Resultant hash isn't what we expected");
+      assert.strictEqual(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
 
-        assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
-        assert.notStrictEqual(contractAddress, null, "Transaction did not create a contract");
-        assert.strictEqual(receipt.hasOwnProperty("v"), true, "Transaction includes v signature parameter");
-        assert.strictEqual(receipt.hasOwnProperty("r"), true, "Transaction includes r signature parameter");
-        assert.strictEqual(receipt.hasOwnProperty("s"), true, "Transaction includes s signature parameter");
-        done();
-      });
+      assert.strictEqual(result.hasOwnProperty("v"), true, "Transaction includes v signature parameter");
+      assert.strictEqual(result.hasOwnProperty("r"), true, "Transaction includes r signature parameter");
+      assert.strictEqual(result.hasOwnProperty("s"), true, "Transaction includes s signature parameter");
     });
 
-    it("should verify the transaction immediately (eth_getTransactionByHash)", function(done) {
-      web3.eth.getTransaction(initialTransaction, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.notStrictEqual(result, null, "Transaction result shouldn't be null");
-        assert.strictEqual(result.hash, initialTransaction, "Resultant hash isn't what we expected");
-        assert.strictEqual(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
-
-        assert.strictEqual(result.hasOwnProperty("v"), true, "Transaction includes v signature parameter");
-        assert.strictEqual(result.hasOwnProperty("r"), true, "Transaction includes r signature parameter");
-        assert.strictEqual(result.hasOwnProperty("s"), true, "Transaction includes s signature parameter");
-        done();
-      });
+    it("should return null if transaction doesn't exist (eth_getTransactionByHash)", async function() {
+      let result = await web3.eth.getTransaction("0x401b8ebb563ec9425b052aba8896cb74e07635563111b5a0663289d1baa8eb12");
+      assert.strictEqual(result, null, "Receipt should be null");
     });
 
-    it("should return null if transaction doesn't exist (eth_getTransactionByHash)", function(done) {
-      web3.eth.getTransaction("0x401b8ebb563ec9425b052aba8896cb74e07635563111b5a0663289d1baa8eb12", function(
-        err,
-        result
-      ) {
-        if (err) {
-          return done(err);
-        }
+    it("should verify there's code at the address (eth_getCode)", async function() {
+      let result = await web3.eth.getCode(contractAddress);
+      assert.notStrictEqual(result, null);
+      assert.notStrictEqual(result, "0x");
 
-        assert.strictEqual(result, null, "Receipt should be null");
-
-        done();
-      });
+      // NOTE: We can't test the code returned is correct because the results
+      // of getCode() are *supposed* to be different than the code that was
+      // added to the chain.
     });
 
-    it("should verify there's code at the address (eth_getCode)", function(done) {
-      web3.eth.getCode(contractAddress, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.notStrictEqual(result, null);
-        assert.notStrictEqual(result, "0x");
-
-        // NOTE: We can't test the code returned is correct because the results
-        // of getCode() are *supposed* to be different than the code that was
-        // added to the chain.
-
-        done();
-      });
+    it("should get the transaction from the block (eth_getTransactionByBlockHashAndIndex)", async function() {
+      let result = await web3.eth.getTransactionFromBlock(blockHash, 0);
+      assert.strictEqual(result.hash, initialTransactionHash);
+      assert.strictEqual(result.blockNumber, blockNumber);
+      assert.strictEqual(result.blockHash, blockHash);
     });
 
-    it("should be able to get the transaction from the block (eth_getTransactionByBlockHashAndIndex)", function(done) {
-      web3.eth.getTransactionFromBlock(blockHash, 0, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.strictEqual(result.hash, initialTransaction);
-        assert.strictEqual(result.blockNumber, blockNumber);
-        assert.strictEqual(result.blockHash, blockHash);
-        done();
-      });
+    it("should return null if block doesn't exist (eth_getTransactionByBlockHashAndIndex)", async function() {
+      const badBlockHash = "0xaaaaaaeb03ec5e3c000d150df2c9e7ffc31e728d12aaaedc5f6cccaca5aaaaaa";
+      let result = await web3.eth.getTransactionFromBlock(badBlockHash, 0);
+      assert.strictEqual(result, null);
     });
 
-    it("should return null if block doesn't exist (eth_getTransactionByBlockHashAndIndex)", function(done) {
-      var badBlockHash = "0xaaaaaaeb03ec5e3c000d150df2c9e7ffc31e728d12aaaedc5f6cccaca5aaaaaa";
-      web3.eth.getTransactionFromBlock(badBlockHash, 0, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.strictEqual(result, null);
-
-        done();
-      });
+    it("should get the transaction from the block (eth_getTransactionByBlockNumberAndIndex)", async function() {
+      let result = await web3.eth.getTransactionFromBlock(blockNumber, 0);
+      assert.strictEqual(result.hash, initialTransactionHash);
+      assert.strictEqual(result.blockNumber, blockNumber);
+      assert.strictEqual(result.blockHash, blockHash);
     });
 
-    it("should be able to get the transaction from the block (eth_getTransactionByBlockNumberAndIndex)", (done) => {
-      web3.eth.getTransactionFromBlock(blockNumber, 0, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.strictEqual(result.hash, initialTransaction);
-        assert.strictEqual(result.blockNumber, blockNumber);
-        assert.strictEqual(result.blockHash, blockHash);
-        done();
-      });
-    });
-
-    it("should error for transactions that don't exist in block (eth_getTransactionByBlockNumberAndIndex)", (done) => {
-      web3.eth.getTransactionFromBlock(blockNumber, 3, function(err, result) {
-        // We want an error because there is no transaction with id 3.
-        if (err) {
-          return done();
-        }
-
-        done(new Error("We didn't receive an error like we expected"));
-      });
+    it("should error for missing txns n block (eth_getTransactionByBlockNumberAndIndex)", async function() {
+      try {
+        await web3.eth.getTransactionFromBlock(blockNumber, 3);
+        assert.fail("expected promise rejection");
+      } catch (err) {
+      }
     });
   });
 
   describe("eth_getTransactionCount", function() {
-    it("should return 0 for non-existent account", function(done) {
-      web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.strictEqual(result, 0);
-        done();
-      });
+    it("should return 0 for non-existent account", async function() {
+      let result = await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890");
+      assert.strictEqual(result, 0);
     });
   });
 
   describe("eth_getTransactionCount", function() {
-    it("should error for non-existent block", function(done) {
-      web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999, function(err, result) {
-        assert(err, "Error with message 'Unknown block number' expected, instead no error was returned");
+    it("should error for non-existent block", async function() {
+      try {
+        await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999);
+        assert.fail("Error with message 'Unknown block number' expected, instead no error was returned");
+      } catch (err) {
         assert(err.message.indexOf("Unknown block number") > -1);
-        done();
-      });
+      }
     });
   });
 
   describe("eth_compileSolidity (not supported)", function() {
     this.timeout(5000);
-    it("correctly compiles solidity code", function(done) {
-      web3.eth.compile.solidity(source, function(err, result) {
-        assert(err != null);
+
+    it("errors on compile solidity request", async function() {
+      try {
+        await web3.eth.compile.solidity(source);
+        assert.fail("expected promise rejection");
+      } catch (err) {
         assert(err.message.indexOf("Method eth_compileSolidity not supported") >= 0);
-        done();
-      });
+      }
     });
   });
 
   describe("miner_stop", function() {
-    it("should stop mining", function(done) {
-      web3.currentProvider.send(
-        {
-          id: new Date().getTime(),
-          jsonrpc: "2.0",
-          method: "miner_stop"
-        },
-        function(err, result) {
-          if (err) {
-            return done(err);
-          }
-          var txData = {};
-          txData.to = accounts[1];
-          txData.from = accounts[0];
-          txData.value = "0x1";
+    it("should stop mining", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_stop"
+      });
 
-          // we don't use web3.eth.sendTransaction here because it gets huffy waiting for a receipt,
-          // then winds up w/ an unhandled rejection on server.close later on
-          web3._provider.send(
-            {
-              id: new Date().getTime(),
-              jsonrpc: "2.0",
-              method: "eth_sendTransaction",
-              params: [txData]
-            },
-            function(err, result) {
-              if (err) {
-                return done(err);
-              }
-              let tx = result.result;
+      let txData = {};
+      txData.to = accounts[1];
+      txData.from = accounts[0];
+      txData.value = "0x1";
 
-              web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-                if (err) {
-                  return done(err);
-                }
+      // we don't use web3.eth.sendTransaction here because it gets huffy waiting for a receipt,
+      // then winds up w/ an unhandled rejection on server.close later on
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [txData]
+      });
 
-                assert.strictEqual(receipt, null);
-                web3.currentProvider.send(
-                  {
-                    id: new Date().getTime(),
-                    jsonrpc: "2.0",
-                    method: "miner_start",
-                    params: [1]
-                  },
-                  function(err, result) {
-                    if (err) {
-                      return done(err);
-                    }
-                    done();
-                  }
-                );
-              });
-            }
-          );
-        }
-      );
+      let txHash = result.result;
+
+      let receipt = await web3.eth.getTransactionReceipt(txHash);
+
+      assert.strictEqual(receipt, null);
+      await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_start",
+        params: [1]
+      });
     });
   });
 
   describe("miner_start", function() {
-    it("should start mining", function(done) {
-      web3.currentProvider.send(
-        {
-          id: new Date().getTime(),
-          jsonrpc: "2.0",
-          method: "miner_stop"
-        },
-        function(err, result) {
-          if (err) {
-            return done(err);
-          }
-          web3.currentProvider.send(
-            {
-              id: new Date().getTime(),
-              jsonrpc: "2.0",
-              method: "miner_start",
-              params: [1]
-            },
-            function(err, result) {
-              if (err) {
-                return done(err);
-              }
-              var txData = {};
-              txData.to = accounts[1];
-              txData.from = accounts[0];
-              txData.value = 0x1;
+    it("should start mining", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_stop"
+      });
 
-              web3.eth.sendTransaction(txData, function(err, tx) {
-                if (err) {
-                  return done(err);
-                }
-                // Check the receipt
-                web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-                  if (err) {
-                    return done(err);
-                  }
-                  assert.notStrictEqual(receipt, null); // i.e. receipt exists, so transaction was mined
-                  done();
-                });
-              });
-            }
-          );
-        }
-      );
+      await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_start",
+        params: [1]
+      });
+
+      let txData = {};
+      txData.to = accounts[1];
+      txData.from = accounts[0];
+      txData.value = 0x1;
+
+      let receipt = await web3.eth.sendTransaction(txData);
+      assert.notStrictEqual(receipt, null); // i.e. receipt exists, so transaction was mined
     });
 
-    it("should treat the threads argument as optional", function(done) {
-      web3.currentProvider.send(
-        {
-          id: new Date().getTime(),
-          jsonrpc: "2.0",
-          method: "miner_stop"
-        },
-        function(err, result) {
-          if (err) {
-            return done(err);
-          }
-          web3.currentProvider.send(
-            {
-              id: new Date().getTime(),
-              jsonrpc: "2.0",
-              method: "miner_start",
-              params: []
-            },
-            function(err, result) {
-              if (err) {
-                return done(err);
-              }
-              var txData = {};
-              txData.to = accounts[1];
-              txData.from = accounts[0];
-              txData.value = 0x1;
+    it("should treat the threads argument as optional", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
 
-              web3.eth.sendTransaction(txData, function(err, tx) {
-                if (err) {
-                  return done(err);
-                }
-                // Check the receipt
-                web3.eth.getTransactionReceipt(tx, function(err, receipt) {
-                  if (err) {
-                    return done(err);
-                  }
-                  assert.notStrictEqual(receipt, null); // i.e. receipt exists, so transaction was mined
-                  done();
-                });
-              });
-            }
-          );
-        }
-      );
+      await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_stop"
+      });
+
+      await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_start",
+        params: []
+      });
+
+      let txData = {};
+      txData.to = accounts[1];
+      txData.from = accounts[0];
+      txData.value = 0x1;
+
+      let receipt = await web3.eth.sendTransaction(txData);
+      assert.notStrictEqual(receipt, null); // i.e. receipt exists, so transaction was mined
     });
   });
 
   describe("web3_sha3", function() {
-    it("should hash the given input", function(done) {
-      var input = "Tim is a swell guy.";
+    it("should hash the given input", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      const input = "Tim is a swell guy.";
 
       // web3.sha3() doesn't actually call the function, so we need to call it ourselves.
-      web3.currentProvider.send(
-        {
-          jsonrpc: "2.0",
-          method: "web3_sha3",
-          params: [input],
-          id: new Date().getTime()
-        },
-        function(err, result) {
-          if (err) {
-            return done(err);
-          }
-          if (result.error) {
-            return done(result.error);
-          }
+      let result = await send({
+        jsonrpc: "2.0",
+        method: "web3_sha3",
+        params: [input],
+        id: new Date().getTime()
+      });
 
-          assert.strictEqual(result.result, web3.utils.sha3(input));
-          done();
-        }
-      );
+      assert.strictEqual(result.result, web3.utils.sha3(input));
     });
   });
 
   describe("net_version", function() {
-    it("should return a version very close to the current time", function(done) {
-      web3.eth.net.getId(function(err, result) {
-        if (err) {
-          return done(err);
-        }
+    it("should return a version very close to the current time", async function() {
+      let result = await web3.eth.net.getId();
 
-        var dateAsInt = new Date().getTime() + "";
-        var strResult = to.number(result) + "";
-        assert.strictEqual(
-          strResult.length,
-          dateAsInt.length,
-          `net_version result, ${result}` +
-            `doesn't appear to be similar in length the current time as an integer, ${dateAsInt}`
-        );
-        done();
-      });
+      const dateAsInt = new Date().getTime() + "";
+      const strResult = to.number(result) + "";
+
+      assert.strictEqual(
+        strResult.length,
+        dateAsInt.length,
+        `net_version result, ${result}` +
+        `doesn't appear to be similar in length the current time as an integer, ${dateAsInt}`
+      );
     });
   });
 
   describe("personal_newAccount", function() {
-    it("should return the new address", function(done) {
-      web3.eth.personal.newAccount("password", function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.notStrictEqual(result.toLowerCase().match("0x[0-9a-f]{39}"), null, "Invalid address received");
-        done();
-      });
+    it("should return the new address", async function() {
+      let result = await web3.eth.personal.newAccount("password");
+      assert.notStrictEqual(result.toLowerCase().match("0x[0-9a-f]{39}"), null, "Invalid address received");
     });
   });
 
   describe("personal_importRawKey", function() {
-    it("should return the known account address", function(done) {
-      web3._provider.send(
-        {
-          jsonrpc: "2.0",
-          id: 1234,
-          method: "personal_importRawKey",
-          params: ["0x0123456789012345678901234567890123456789012345678901234567890123", "password"]
-        },
-        function(err, result) {
-          if (err) {
-            return done(err);
-          }
-          assert.strictEqual(
-            result.result,
-            "0x14791697260e4c9a71f18484c9f997b308e59325",
-            "Raw account not imported correctly"
-          );
-          done();
-        }
+    it("should return the known account address", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      let result = await send({
+        jsonrpc: "2.0",
+        id: 1234,
+        method: "personal_importRawKey",
+        params: ["0x0123456789012345678901234567890123456789012345678901234567890123", "password"]
+      });
+      assert.strictEqual(
+        result.result,
+        "0x14791697260e4c9a71f18484c9f997b308e59325",
+        "Raw account not imported correctly"
       );
     });
   });
 
   describe("personal_listAccounts", function() {
-    it("should return more than 0 accounts", function(done) {
-      web3.eth.personal.getAccounts(function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(result.length, 13);
-        done();
-      });
+    it("should return more than 0 accounts", async function() {
+      let result = await web3.eth.personal.getAccounts();
+      assert.strictEqual(result.length, 13);
     });
   });
 
   describe("personal_unlockAccount", function() {
-    it("should unlock account", function(done) {
-      web3.eth.personal.unlockAccount(personalAccount, "password", function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(result, true);
-        done();
-      });
+    it("should unlock account", async function() {
+      let result = await web3.eth.personal.unlockAccount(personalAccount, "password");
+      assert.strictEqual(result, true);
     });
   });
 
   describe("personal_lockAccount", function() {
-    it("should lock account", function(done) {
-      web3.eth.personal.lockAccount(personalAccount, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-        assert.strictEqual(result, true);
-        done();
-      });
+    it("should lock account", async function() {
+      let result = await web3.eth.personal.lockAccount(personalAccount);
+      assert.strictEqual(result, true);
     });
   });
-
-  /* describe("personal_sendTransaction", function() {
-    it("should send transaction", function(done) {
-      web3.eth.sendTransaction({
-        value: web3.utils.toWei('5', 'ether'),
-        from: accounts[0],
-        to: personalAccount
-      }, function(err, result){
-        if (err) return done(err)
-
-        web3.eth.personal.sendTransaction({
-          from: personalAccount,
-          to: accounts[0],
-          value: 1
-        }, "password", function(err, receipt) {
-          if (err) return done(err);
-          assert(receipt);
-          setTimeout(done, 500);
-        });
-      });
-    });
-  }) */
 };
 
-var logger = {
+const logger = {
   log: function(message) {
     // console.log(message);
   }
 };
 
 describe("Provider:", function() {
-  var Web3 = require("web3");
-  var web3 = new Web3();
+  const Web3 = require("web3");
+  const web3 = new Web3();
   web3.setProvider(
     Ganache.provider({
       logger: logger,
@@ -1858,71 +1243,61 @@ describe("Provider:", function() {
   );
   tests(web3);
 
-  after("shutdown provider", function(done) {
+  after("shutdown provider", async function() {
     let provider = web3._provider;
     web3.setProvider();
-    provider.close(done);
+    await pify(provider.close)();
   });
 });
 
-describe("HTTP Server:", function(done) {
-  var Web3 = require("web3");
-  var web3 = new Web3();
-  var port = 12345;
-  var server;
+describe("HTTP Server:", function() {
+  const Web3 = require("web3");
+  const web3 = new Web3();
+  const port = 12345;
+  let server;
 
-  before("Initialize Ganache server", function(done) {
+  before("Initialize Ganache server", async function() {
     server = Ganache.server({
       logger: logger,
       seed: "1337"
       // so that the runtime errors on call test passes
     });
 
-    server.listen(port, function(err) {
-      if (err) {
-        return done(err);
-      }
-      web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
-      done();
-    });
+    await pify(server.listen)(port);
+    web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
   });
 
-  after("Shutdown server", function(done) {
-    server.close(done);
+  after("Shutdown server", async function() {
+    await pify(server.close)();
   });
 
   tests(web3);
 });
 
-describe("WebSockets Server:", function(done) {
-  var Web3 = require("web3");
-  var web3 = new Web3();
-  var port = 12345;
-  var server;
+describe("WebSockets Server:", function() {
+  const Web3 = require("web3");
+  const web3 = new Web3();
+  const port = 12345;
+  let server;
 
-  before("Initialize Ganache server", function(done) {
+  before("Initialize Ganache server", async function() {
     server = Ganache.server({
       logger: logger,
       seed: "1337",
       verbose: true
       // so that the runtime errors on call test passes
     });
-    server.listen(port, function(err) {
-      if (err) {
-        return done(err);
-      }
-      var provider = new Web3WsProvider("ws://localhost:" + port);
-      web3.setProvider(provider);
-      done();
-    });
+    await pify(server.listen)(port);
+    const provider = new Web3WsProvider("ws://localhost:" + port);
+    web3.setProvider(provider);
   });
 
   tests(web3);
 
-  after("Shutdown server", function(done) {
+  after("Shutdown server", async function() {
     let provider = web3._provider;
     web3.setProvider();
     provider.connection.close();
-    server.close(done);
+    await pify(server.close)();
   });
 });
