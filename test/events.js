@@ -167,7 +167,10 @@ var tests = function(web3, EventTest) {
         {
           jsonrpc: "2.0",
           method: "eth_subscribe",
-          params: ["newHeads"],
+          params: ["logs", {
+            address: accounts[0],
+            topics: []
+          }],
           id: new Date().getTime()
         },
         function(err, result) {
@@ -176,6 +179,7 @@ var tests = function(web3, EventTest) {
           }
 
           let listener = function(err, result) {
+            console.log(err, result);
             if (result === undefined) {
               // If there's only one argument, it's the result, not an error
               result = err;
@@ -203,9 +207,59 @@ var tests = function(web3, EventTest) {
               }
             }
           );
+          done();
         }
       );
     });
+
+    // it("creates a new filter and returns the correctly formatted result", function(done) {
+    //   var provider = web3.currentProvider;
+
+    //   provider.send(
+    //     {
+    //       jsonrpc: "2.0",
+    //       method: "eth_newFilter",
+    //       params: [
+    //         {
+    //           fromBlock: "0x0",
+    //           toBlock: "0x1",
+    //           address: accounts[0],
+    //           topics: []
+    //         }
+    //       ],
+    //       id: new Date().getTime()
+    //     },
+    //     function(err, result) {
+    //       if (err) {
+    //         return done(err);
+    //       }
+    //       assert.strictEqual(result.result, "0x6");
+
+    //       done();
+    //     }
+    //   );
+    // });
+
+    // it("does things", function(done) {
+    //   var provider = web3.currentProvider;
+
+    //   provider.send(
+    //     {
+    //       jsonrpc: "2.0",
+    //       method: "eth_getFilterChanges",
+    //       params: [ "0x3" ],
+    //       id: new Date().getTime()
+    //     },
+    //     function(err, result) {
+    //       if (err) {
+    //         return done(err);
+    //       }
+    //       console.log(result);
+    //       assert.strictEqual(result.result, "0x1");
+    //       done();
+    //     }
+    //   );
+    // });
 
     // NOTE! This test relies on the events triggered in the tests above.
     it("ensures topics are respected in past events, using `event.get()` (exclusive)", function(done) {

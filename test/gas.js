@@ -193,6 +193,7 @@ describe("Gas", function() {
           receipts[2].gasUsed,
           "Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive"
         );
+        console.log(receipts[1].transactionIndex);
         assert.deepStrictEqual(
           receipts[1].transactionIndex > receipts[2].transactionIndex,
           true,
