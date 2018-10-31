@@ -691,7 +691,6 @@ var tests = function(web3) {
 
       web3.eth.sendSignedTransaction(transaction.serialize(), function(err, result) {
         const msg = "the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 0";
-        console.log(err.message);
         assert(err.message.indexOf(msg) >= 0, `Incorrect error message: ${err.message}`);
         done();
       });
@@ -1350,28 +1349,6 @@ var tests = function(web3) {
     });
   });
 
-  describe("eth_getFilterChanges", function() {
-    it("creates a new filter and returns the correctly formatted result", function(done) {
-      var provider = web3.currentProvider;
-
-      provider.send(
-        {
-          jsonrpc: "2.0",
-          method: "eth_getFilterChanges",
-          params: [ "0x2" ],
-          id: new Date().getTime()
-        },
-        function(err, result) {
-          if (err) {
-            return done(err);
-          }
-          // console.log(err.message);
-          done();
-        }
-      );
-    });
-  });
-
   describe("contract scenario (raw tx)", function() {
     var tx = new Transaction({
       data: contract.binary,
@@ -1573,104 +1550,6 @@ var tests = function(web3) {
       });
     });
   });
-
-  describe("eth_newFilter", function() {
-    it("creates a new filter and returns the correctly formatted result", function(done) {
-      var provider = web3.currentProvider;
-
-      provider.send(
-        {
-          jsonrpc: "2.0",
-          method: "eth_newFilter",
-          params: [
-            {
-              fromBlock: "0x0",
-              toBlock: "0x1",
-              address: accounts[1],
-              topics: []
-            }
-          ],
-          id: new Date().getTime()
-        },
-        function(err, result) {
-          if (err) {
-            return done(err);
-          }
-          assert.strictEqual(result.result, "0x2");
-          done();
-        }
-      );
-    });
-  });
-
-  // describe("eth_getLogs", function() {
-  //   it("should do stuff", function(done) {
-  //     var provider = web3.currentProvider;
-
-  //     provider.send(
-  //       {
-  //         jsonrpc: "2.0",
-  //         method: "eth_sendTransaction",
-  //         params: [{
-  //           data: contract.transaction_data,
-  //           to: contractAddress,
-  //           from: accounts[0]
-  //         }],
-  //         id: new Date().getTime()
-  //       },
-  //       function(err, transactionResult) {
-  //         if (err) {
-  //           console.log(err);
-  //         }
-  //         console.log(transactionResult);
-  //         web3.eth.getTransactionReceipt(transactionResult, function(err, receipt) {
-  //           console.log(err, receipt);
-  //         });
-  //         // provider.send(
-  //         //   {
-  //         //     jsonrpc: "2.0",
-  //         //     method: "eth_getTransactionReceipt",
-  //         //     params: [ result ],
-  //         //     id: new Date().getTime()
-  //         //   },
-  //         //   function(err, result) {
-  //         //     if (err) {
-  //         //       console.log(err);
-  //         //     }
-  //         //     console.log(result);
-  //         //   }
-  //         // );
-  //       });
-  //     done();
-  //   });
-
-  //   // it("should return an error message for an invalid filter ID", function(done) {
-  //   //   var provider = web3.currentProvider;
-
-  //   //   provider.send(
-  //   //     {
-  //   //       jsonrpc: "2.0",
-  //   //       method: "eth_getLogs",
-  //   //       params: [{
-  //   //         fromBlock: 0,
-  //   //         toBlock: "latest",
-  //   //         address: accounts[1],
-  //   //         topics: []
-  //   //       }],
-  //   //       id: new Date().getTime()
-  //   //     },
-  //   //     function(err, result) {
-  //   //       if (err) {
-  //   //         return done(err);
-  //   //       }
-  //   //       console.log(result);
-  //   //       // console.log(err, result);
-  //   //       assert("FilterSubprovider - no filter with that id: 0x2");
-  //   //       done();
-  //   //     }
-  //   //   );
-  //   // });
-  // });
 
   describe("miner_stop", function() {
     it("should stop mining", function(done) {
