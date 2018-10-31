@@ -494,6 +494,32 @@ const tests = function(web3) {
     });
   });
 
+  // This test relies on the one above it running
+  describe("eth_getTransactionReceipt", function() {
+    it("should return to and from address fields in the receipt", function(done) {
+      var provider = web3.currentProvider;
+
+      provider.send(
+        {
+          jsonrpc: "2.0",
+          method: "eth_getTransactionReceipt",
+          params: [ "0xe0be65aa192f931857f9e42d3a8d772522fd0196d72981566bd1c8367ae12eb8" ],
+          id: new Date().getTime()
+        },
+        function(err, result) {
+          if (err) {
+            return done(err);
+          }
+          assert.notStrictEqual(typeof result.result.from, "undefined");
+          assert.notStrictEqual(typeof result.result.to, "undefined");
+          assert.strictEqual(result.result.from, accounts[9]);
+          assert.strictEqual(result.result.to, accounts[8]);
+        }
+      );
+      done();
+    });
+  });
+
   describe("eth_sendRawTransaction", function() {
     it("should fail with bad nonce (too low)", async function() {
       const transaction = new Transaction({
@@ -632,6 +658,11 @@ const tests = function(web3) {
       contractAddress = receipt.contractAddress;
 
       assert(receipt.contractAddress, "should have deployed a contract");
+    });
+
+    it("should return null for the to field due to contract creation (eth_getTransactionReceipt)", async function() {
+      let receipt = await web3.eth.getTransactionReceipt(initialTransactionHash);
+      assert.strictEqual(receipt.to, null);
     });
 
     it("should verify the transaction immediately (eth_getTransactionByHash)", async function() {
