@@ -461,7 +461,7 @@ const tests = function(web3) {
       await web3.eth.sendTransaction(transaction);
     });
 
-    it("should not produce colliding transaction hashes", async() => {
+    it("should not produce colliding transaction hashes", async function() {
       try {
         let tx1 = await web3.eth.sendTransaction({ from: accounts[3], to: accounts[5], value: 2000 });
         let tx2 = await web3.eth.sendTransaction({ from: accounts[4], to: accounts[5], value: 2000 });
