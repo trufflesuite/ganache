@@ -7,7 +7,7 @@ const compileAndDeploy = require("./helpers/contracts").compileAndDeploy;
 const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
 function setUp(options = { mnemonic }, contractName = "BlockGasLimit") {
-  let context = {
+  const context = {
     options: options,
     provider: null,
     web3: null,
@@ -20,7 +20,11 @@ function setUp(options = { mnemonic }, contractName = "BlockGasLimit") {
     // eslint-disable-next-line new-cap
     context.provider = new Ganache.provider(context.options);
 
+    // Enable Geth provider
     // context.provider = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+
+    // Parity setup
+
     context.options.blockTime = 2000;
     context.web3 = new Web3(context.provider);
   });
@@ -33,14 +37,13 @@ function setUp(options = { mnemonic }, contractName = "BlockGasLimit") {
     );
     context.instance = context.contractArtifact.instance;
   });
-
   return context;
 }
 
 describe("Exceeding block gas limitations", function() {
-  let context = setUp();
-  let iterations = 10 ** 6;
-  let clientGasLimit = 10 ** 8;
+  const context = setUp();
+  const iterations = 10 ** 6;
+  const clientGasLimit = 10 ** 8;
 
   it("when calling a 'view' function should generate an error", async function() {
     const block = await context.web3.eth.getBlock("latest");
@@ -64,10 +67,19 @@ describe("Exceeding block gas limitations", function() {
     assert.strictEqual(isVeryHighGas, true);
 
     try {
-      await context.instance.methods.pureExpensiveOperationPure(iterations).call({ gas: clientGasLimit });
+      await context.instance.methods.pureExpensiveOperation(iterations).call({ gas: clientGasLimit });
       assert.fail("Expecting a block gas limit error when executing a expensive 'pure' function");
     } catch (error) {
       assert.strictEqual(error.message, "Exceeds block gas limit");
     }
+  });
+
+  // Enable if running a Geth or Parity node
+  it.skip("GETH/PARITY ONLY: when calling a 'pure' function should generate an error", async function() {
+    const iterations = 10 ** 0;
+    const clientGasLimit = 21780;
+
+    const status = await context.instance.methods.pureExpensiveOperation(iterations).call({ gas: clientGasLimit });
+    assert.strictEqual(status, true);
   });
 });

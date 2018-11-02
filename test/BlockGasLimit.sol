@@ -12,7 +12,7 @@ contract BlockGasLimit {
     return startGas - gasleft();
   }   
   
-  function pureExpensiveOperationPure(uint256 iterations) public pure returns (bool) {
+  function pureExpensiveOperation(uint256 iterations) public pure returns (bool) {
     uint256 result;
 
     for (uint256 i = 0; i < iterations; i++) {
