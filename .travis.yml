@@ -2,7 +2,7 @@ language: node_js
 node_js:
   - "node"
   - "lts/carbon"
-# - "lts/dubnium"
+  - "lts/*"
 
 addons:
   apt:
