@@ -237,7 +237,8 @@ const tests = function(web3) {
 
       const block = await web3.eth.getBlock("latest", true);
       const blockTransactionCount = await web3.eth.getBlockTransactionCount(block.number);
-      assert.strictEqual(block.transactions.length, blockTransactionCount, "Block transaction count should be 1.");
+      assert.strictEqual(block.transactions.length, blockTransactionCount, "Tx count should equal block tx's length.");
+      assert.strictEqual(1, blockTransactionCount, "Block transaction count should be 1.");
     });
 
     it("should return 0 transactions when the block doesn't exist", async function() {
