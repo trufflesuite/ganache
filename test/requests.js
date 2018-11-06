@@ -140,13 +140,13 @@ const tests = function(web3) {
         nonce: "0x0000000000000000",
         sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
         logsBloom:
-        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-        "0000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+          "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+          "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+          "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+          "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+          "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+          "0000000000000000000000000000",
         transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
         stateRoot: "0x7caba99698b405652a6bcb1038efa16db54b3338af71fa832a0b99a3e6c344bc",
         receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
@@ -237,11 +237,7 @@ const tests = function(web3) {
 
       let block = await web3.eth.getBlock("latest", true);
       let blockTransactionCount = await web3.eth.getBlockTransactionCount(block.number);
-      assert.strictEqual(
-        block.transactions.length,
-        blockTransactionCount,
-        "Block transaction count should be 1."
-      );
+      assert.strictEqual(block.transactions.length, blockTransactionCount, "Block transaction count should be 1.");
       assert.strictEqual(1, blockTransactionCount, "Block transaction count should be 1.");
     });
 
@@ -398,7 +394,7 @@ const tests = function(web3) {
       assert.strictEqual(
         response.result,
         "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d" +
-        "07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
+          "07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
       );
     });
 
@@ -494,6 +490,22 @@ const tests = function(web3) {
     });
   });
 
+  describe("eth_getTransactionReceipt", function() {
+    it("should return to and from address fields in the receipt", async function() {
+      const transaction = {
+        from: accounts[9],
+        to: accounts[8]
+      };
+
+      let result = await web3.eth.sendTransaction(transaction);
+
+      assert.notStrictEqual(typeof result.from, "undefined");
+      assert.notStrictEqual(typeof result.to, "undefined");
+      assert.strictEqual(result.from, accounts[9]);
+      assert.strictEqual(result.to, accounts[8]);
+    });
+  });
+
   describe("eth_sendRawTransaction", function() {
     it("should fail with bad nonce (too low)", async function() {
       const transaction = new Transaction({
@@ -534,7 +546,7 @@ const tests = function(web3) {
       } catch (err) {
         assert(
           err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 255") >=
-          0
+            0
         );
       }
     });
@@ -632,6 +644,11 @@ const tests = function(web3) {
       contractAddress = receipt.contractAddress;
 
       assert(receipt.contractAddress, "should have deployed a contract");
+    });
+
+    it("should return null for the to field due to contract creation (eth_getTransactionReceipt)", async function() {
+      let receipt = await web3.eth.getTransactionReceipt(initialTransactionHash);
+      assert.strictEqual(receipt.to, null);
     });
 
     it("should verify the transaction immediately (eth_getTransactionByHash)", async function() {
@@ -738,12 +755,14 @@ const tests = function(web3) {
       await web3.eth.personal.unlockAccount(accounts[0], "password");
 
       let contract = new web3.eth.Contract(JSON.parse(oracleOutput.interface));
-      let oracle = await contract.deploy({
-        data: oracleOutput.bytecode
-      }).send({
-        from: accounts[0],
-        gas: 3141592
-      });
+      let oracle = await contract
+        .deploy({
+          data: oracleOutput.bytecode
+        })
+        .send({
+          from: accounts[0],
+          gas: 3141592
+        });
       let block = await web3.eth.getBlock(0, true);
       let blockhash = await oracle.methods.blockhash0().call();
       assert.strictEqual(blockhash, block.hash);
@@ -797,11 +816,7 @@ const tests = function(web3) {
 
       let receipt = await web3.eth.sendTransaction(txData);
       assert.strictEqual(receipt.logs.length, 1, "Receipt had wrong amount of logs");
-      assert.strictEqual(
-        receipt.logs[0].blockHash,
-        receipt.blockHash,
-        "Logs blockhash doesn't match block blockhash"
-      );
+      assert.strictEqual(receipt.logs[0].blockHash, receipt.blockHash, "Logs blockhash doesn't match block blockhash");
 
       // Now double check the data was set properly.
       // NOTE: Because ethereumjs-testrpc processes transactions immediately,
@@ -1003,8 +1018,7 @@ const tests = function(web3) {
       try {
         await web3.eth.getTransactionFromBlock(blockNumber, 3);
         assert.fail("expected promise rejection");
-      } catch (err) {
-      }
+      } catch (err) {}
     });
   });
 
@@ -1155,7 +1169,7 @@ const tests = function(web3) {
         strResult.length,
         dateAsInt.length,
         `net_version result, ${result}` +
-        `doesn't appear to be similar in length the current time as an integer, ${dateAsInt}`
+          `doesn't appear to be similar in length the current time as an integer, ${dateAsInt}`
       );
     });
   });
