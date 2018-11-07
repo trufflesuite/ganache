@@ -7,7 +7,6 @@ var assert = require("assert");
 var to = require("../lib/utils/to.js");
 var solc = require("solc");
 var pify = require("pify");
-const { sleep } = require("./helpers/utils");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -357,30 +356,51 @@ describe("Mining", function() {
     assert(isMining);
   });
 
-  it("should stop mining when the provider is stopped", async() => {
-    const provider = Ganache.provider({ blockTime: 0.5 });
-    const web3 = new Web3(provider);
-    const accounts = await web3.eth.getAccounts();
+  describe("stopping", () => {
+    function setUp(close, done) {
+      const blockTime = 0.1;
+      const provider = Ganache.provider({ blockTime });
+      let closed = false;
+      let closing = false;
+      let timer;
 
-    let closed = false;
+      // duck punch provider.send so we can detect when it is called
+      const send = provider.send;
+      provider.send = function(payload) {
+        if (payload.method === "evm_mine") {
+          if (closed) {
+            clearTimeout(timer);
+            assert.fail("evm_mine after provider closed");
+          } else if (!closing) {
+            closing = true;
+            close(provider, () => {
+              closed = true;
 
-    // duck punch provider.send so we can detect when it is getting called
-    const send = provider.send;
-    provider.send = function(payload) {
-      if (closed && payload.method === "evm_mine") {
-        assert.fail("got another block after server was closed.");
-      }
-      send.apply(provider, arguments);
-    };
+              // give the miner a chance to mine a block before calling done:
+              timer = setTimeout(done, blockTime * 2 * 1000);
+            });
+          }
+        }
+        send.apply(provider, arguments);
+      };
+    }
 
-    // we don't await this call so we can make sure it gets sent after we close the connection
-    web3.eth.sendTransaction({ from: accounts[0], to: accounts[1], value: 500 });
+    it("should stop mining when the provider is stopped during an evm_mine (same REPL)", (done) => {
+      setUp(function(provider, callback) {
+        provider.close(callback);
+      }, done);
+    });
 
-    // close the server while we wait for the transaction to be mined:
-    await pify(provider.close)();
-    closed = true;
+    it("should stop mining when the provider is stopped during evm_mine (next tick)", (done) => {
+      setUp(function(provider, callback) {
+        process.nextTick(() => provider.close(callback));
+      }, done);
+    });
 
-    // give the miner a chance to get a block or two off (this is where the bug is detected)
-    await sleep(1000);
+    it("should stop mining when the provider is stopped during evm_mine (setImmediate)", (done) => {
+      setUp(function(provider, callback) {
+        setImmediate(() => provider.close(callback));
+      }, done);
+    });
   });
 });
