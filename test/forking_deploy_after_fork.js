@@ -1,7 +1,9 @@
-var Web3 = require('web3');
-var Web3WsProvider = require('web3-providers-ws');
-var assert = require('assert');
-var Ganache = require(process.env.TEST_BUILD ? "../build/ganache.core." + process.env.TEST_BUILD + ".js" : "../index.js");
+var Web3 = require("web3");
+var Web3WsProvider = require("web3-providers-ws");
+var assert = require("assert");
+var Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 var fs = require("fs");
 var solc = require("solc");
 
@@ -10,7 +12,9 @@ var solc = require("solc");
 process.removeAllListeners("uncaughtException");
 
 var logger = {
-  log: function(msg) { /*console.log(msg)*/ }
+  log: function(msg) {
+    /* console.log(msg) */
+  }
 };
 
 /**
@@ -33,8 +37,8 @@ describe("Contract Deployed on Main Chain After Fork", function() {
   var forkedTargetUrl = "ws://localhost:21345";
 
   before("set up test data", function() {
-    this.timeout(10000)
-    var source = fs.readFileSync("./test/Example.sol", {encoding: "utf8"});
+    this.timeout(10000);
+    var source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
     var result = solc.compile(source, 1);
 
     // Note: Certain properties of the following contract data are hardcoded to
@@ -47,22 +51,22 @@ describe("Contract Deployed on Main Chain After Fork", function() {
       position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
       expected_default_value: 5,
       call_data: {
-        gas: '0x2fefd8',
-        gasPrice: '0x01', // This is important, as passing it has exposed errors in the past.
+        gas: "0x2fefd8",
+        gasPrice: "0x1", // This is important, as passing it has exposed errors in the past.
         to: null, // set by test
-        data: '0x3fa4f245'
+        data: "0x3fa4f245"
       },
       transaction_data: {
         from: null, // set by test
-        gas: '0x2fefd8',
+        gas: "0x2fefd8",
         to: null, // set by test
-        data: '0x552410770000000000000000000000000000000000000000000000000000000000000019' // sets value to 25 (base 10)
+        data: "0x552410770000000000000000000000000000000000000000000000000000000000000019" // sets value to 25 (base 10)
       }
     };
   });
 
   before("Initialize Fallback Ganache server", function(done) {
-    this.timeout(10000)
+    this.timeout(10000);
     forkedServer = Ganache.server({
       // Do not change seed. Determinism matters for these tests.
       seed: "let's make this deterministic",
@@ -71,7 +75,9 @@ describe("Contract Deployed on Main Chain After Fork", function() {
     });
 
     forkedServer.listen(21345, function(err) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
       done();
     });
   });
@@ -81,18 +87,20 @@ describe("Contract Deployed on Main Chain After Fork", function() {
   });
 
   before("Set main web3 provider, forking from forked chain at this point", function() {
-    mainWeb3.setProvider(Ganache.provider({
-      fork: forkedTargetUrl.replace('ws', 'http'),
-      logger,
-      verbose: true,
+    mainWeb3.setProvider(
+      Ganache.provider({
+        fork: forkedTargetUrl.replace("ws", "http"),
+        logger,
+        verbose: true,
 
-      // Do not change seed. Determinism matters for these tests.
-      seed: "a different seed"
-    }));
+        // Do not change seed. Determinism matters for these tests.
+        seed: "a different seed"
+      })
+    );
   });
 
   before("Gather main accounts", async function() {
-    this.timeout(5000)
+    this.timeout(5000);
     mainAccounts = await mainWeb3.eth.getAccounts();
   });
 
@@ -101,34 +109,38 @@ describe("Contract Deployed on Main Chain After Fork", function() {
       from: mainAccounts[0],
       data: contract.binary,
       gas: 3141592,
-      value: mainWeb3.utils.toWei('1', 'ether')
+      value: mainWeb3.utils.toWei("1", "ether")
     });
 
     contractAddress = receipt.contractAddress;
 
     // Ensure there's *something* there.
     const code = await mainWeb3.eth.getCode(contractAddress);
-    assert.notEqual(code, null);
-    assert.notEqual(code, "0x");
-    assert.notEqual(code, "0x0");
+    assert.notStrictEqual(code, null);
+    assert.notStrictEqual(code, "0x");
+    assert.notStrictEqual(code, "0x0");
   });
 
   it("should send 1 ether to the created contract, checked on the forked chain", async function() {
     const balance = await mainWeb3.eth.getBalance(contractAddress);
 
-    assert.equal(balance, mainWeb3.utils.toWei('1', 'ether'));
-  })
+    assert.strictEqual(balance, mainWeb3.utils.toWei("1", "ether"));
+  });
 
   after("Shutdown server", function(done) {
-    forkedWeb3._provider.connection.close()
+    forkedWeb3._provider.connection.close();
     forkedServer.close(function(serverCloseErr) {
       forkedWeb3.setProvider();
       let mainProvider = mainWeb3._provider;
       mainWeb3.setProvider();
       mainProvider.close(function(providerCloseErr) {
-        if (serverCloseErr) return done(serverCloseErr);
-        if (providerCloseErr) return done(providerCloseErr);
-        done()
+        if (serverCloseErr) {
+          return done(serverCloseErr);
+        }
+        if (providerCloseErr) {
+          return done(providerCloseErr);
+        }
+        done();
       });
     });
   });

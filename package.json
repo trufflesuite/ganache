@@ -9,15 +9,15 @@
     "lib": "./lib"
   },
   "scripts": {
-    "build": "npm run build-core",
-    "build-core": "webpack-cli --config ./webpack/node/core.webpack.config.js",
-    "build-provider": "webpack-cli --config ./webpack/node/provider.webpack.config.js",
-    "build-server": "webpack-cli --config ./webpack/node/server.webpack.config.js",
-    "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js && webpack-cli --config ./webpack/web-experimental/server.webpack.config.js && webpack-cli --config ./webpack/web-experimental/provider.webpack.config.js",
+    "_mocha": "mocha --check-leaks --recursive --globals _scratch,sanitizedData",
+    "_lint": "eslint --ignore-path .gitignore .",
+    "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
+    "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
+    "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
     "prepublishOnly": "npm run test && npm run build && npm run test-build",
-    "test": "mocha --check-leaks --recursive --globals _scratch,sanitizedData",
-    "test-build": "cross-env TEST_BUILD=node mocha --check-leaks --recursive --globals _scratch,sanitizedData",
-    "test-web-experimental": "cross-env TEST_BUILD=web-experimental mocha --check-leaks --recursive --globals _scratch,sanitizedData"
+    "test": "npm run _lint && npm run _mocha",
+    "test-build": "cross-env TEST_BUILD=node npm run _mocha",
+    "test-web-experimental": "cross-env TEST_BUILD=web-experimental npm run _mocha"
   },
   "dependencies": {
     "abstract-leveldown": "3.0.0",
@@ -36,31 +36,39 @@
     "ethereumjs-util": "5.2.0",
     "ethereumjs-vm": "2.4.0",
     "heap": "0.2.6",
-    "intercept-require": "^1.1.0",
     "level-sublevel": "6.6.4",
     "levelup": "3.1.1",
     "lodash": "4.17.10",
     "merkle-patricia-tree": "2.3.1",
     "seedrandom": "2.4.4",
     "tmp": "0.0.33",
-    "web3-provider-engine": "^14.0.6",
+    "web3-provider-engine": "14.1.0",
     "websocket": "1.0.26"
   },
   "devDependencies": {
-    "ethereumjs-wallet": "0.6.2",
-    "assert-match": "1.1.1",
+    "assert-match": "^1.1.1",
+    "eslint": "5.7.0",
+    "eslint-config-standard": "12.0.0",
+    "eslint-plugin-import": "2.14.0",
+    "eslint-plugin-node": "7.0.1",
+    "eslint-plugin-promise": "4.0.1",
+    "eslint-plugin-standard": "4.0.0",
+    "memdown": "^1.3.1",
+    "mocha": "5.2.0",
+    "prettier": "^1.14.3",
     "browserfs": "1.4.3",
     "cross-env": "5.2.0",
-    "memdown": "1.3.1",
-    "mocha": "5.2.0",
+    "ethereumjs-wallet": "0.6.2",
     "pify": "4.0.0",
+    "portfinder": "^1.0.18",
+    "request": "^2.88.0",
     "solc": "0.4.24",
     "source-map-support": "^0.5.9",
     "temp": "0.8.3",
+    "web3": "1.0.0-beta.35",
     "webpack": "4.17.1",
     "webpack-bundle-size-analyzer": "2.7.0",
-    "webpack-cli": "3.1.0",
-    "web3": "1.0.0-beta.35"
+    "webpack-cli": "3.1.0"
   },
   "optionalDependencies": {
     "ethereumjs-wallet": "0.6.2",
@@ -70,5 +78,60 @@
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache-core"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 8,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "impliedStrict": true
+      }
+    },
+    "extends": "standard",
+    "rules": {
+      "brace-style": [
+        "error",
+        "1tbs",
+        {
+          "allowSingleLine": false
+        }
+      ],
+      "curly": [
+        "error",
+        "all"
+      ],
+      "max-len": [
+        "error",
+        120,
+        {
+          "ignoreRegExpLiterals": true
+        }
+      ],
+      "quotes": [
+        "error",
+        "double"
+      ],
+      "semi": [
+        "error",
+        "always"
+      ],
+      "space-before-function-paren": [
+        "error",
+        "never"
+      ],
+      "wrap-iife": [
+        "error",
+        "outside"
+      ]
+    }
+  },
+  "prettier": {
+    "printWidth": 120,
+    "arrowParens": "always"
+  }
 }
