@@ -17,8 +17,7 @@ function setUp(options = { mnemonic }, contractName = "DynamicStringLength") {
   };
 
   before("setup web3", async function() {
-    // eslint-disable-next-line new-cap
-    context.provider = new Ganache.provider(context.options);
+    context.provider = Ganache.provider(context.options);
     context.options.blockTime = 2000;
     context.web3 = new Web3(context.provider);
   });
