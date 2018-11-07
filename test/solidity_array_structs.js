@@ -6,7 +6,7 @@ const compileAndDeploy = require("./helpers/contracts").compileAndDeploy;
 
 const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
-function setUp(options = { mnemonic }, contractName = "DynamicStrings") {
+function setUp(options = { mnemonic }, contractName = "ArrayOfStructs") {
   const context = {
     options: options,
     provider: null,
