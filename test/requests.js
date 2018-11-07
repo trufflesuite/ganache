@@ -882,13 +882,8 @@ const tests = function(web3) {
       let callData = contract.callData;
 
       let nonExistentBlock = (await web3.eth.getBlockNumber()) + 1;
-      try {
-        await web3.eth.call(callData, nonExistentBlock);
-        assert.fail("expected promise rejection");
-      } catch (err) {
-        assert(err.message.includes("index out of range"));
-        assert(err.message.includes(nonExistentBlock));
-      }
+      let result = await web3.eth.call(callData, nonExistentBlock);
+      assert.strictEqual(result, null, "Result should be null");
     });
 
     it("should only accept unsigned transaction from known accounts eth_sendTransaction)", async function() {
