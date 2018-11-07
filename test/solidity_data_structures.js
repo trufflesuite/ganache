@@ -6,7 +6,7 @@ const compileAndDeploy = require("./helpers/contracts").compileAndDeploy;
 
 const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
-function setUp(options = { mnemonic }, contractName = "PaymentArrays") {
+function setUp(options = { mnemonic }, contractName = "DynamicStrings") {
   const context = {
     options: options,
     provider: null,
@@ -34,9 +34,9 @@ function setUp(options = { mnemonic }, contractName = "PaymentArrays") {
   return context;
 }
 
-describe.only("Array of Structures", function() {
+describe("Array of Structures", function() {
   const context = setUp();
-  it.only("Processing sample payments", async function() {
+  it("can add Structs to an Array", async function() {
     this.timeout(10000);
     const myGuid = "Payment1";
     const paymentIndex = 0;
