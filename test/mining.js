@@ -334,4 +334,31 @@ describe("Mining", function() {
     isMining = await checkMining();
     assert(isMining);
   });
+
+  it("should stop mining when the provider is stopped", async() => {
+    const provider = Ganache.provider({ blockTime: 0.5 });
+    const web3 = new Web3(provider);
+    const accounts = await web3.eth.getAccounts();
+
+    let closed = false;
+
+    // duck punch provider.send so we can detect when it is getting called
+    const send = provider.send;
+    provider.send = function(payload) {
+      if (closed && payload.method === "evm_mine") {
+        assert.fail("got another block after server was closed.");
+      }
+      send.apply(provider, arguments);
+    };
+
+    // we don't await this call so we can make sure it gets sent after we close the connection
+    web3.eth.sendTransaction({ from: accounts[0], to: accounts[1], value: 500 });
+
+    // close the server while we wait for the transaction to be mined:
+    await pify(provider.close)();
+    closed = true;
+
+    // give the miner a chance to get a block or two off (this is where the bug is detected)
+    await sleep(1000);
+  });
 });
