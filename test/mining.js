@@ -7,6 +7,7 @@ var assert = require("assert");
 var to = require("../lib/utils/to.js");
 var solc = require("solc");
 var pify = require("pify");
+const { sleep } = require("./helpers/utils");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
