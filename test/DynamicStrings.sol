@@ -1,6 +1,19 @@
 pragma solidity ^0.4.2;
 
-contract PaymentArrays {
+contract DynamicStrings {
+  string public testString;
+  uint public testId = 246;
+
+  event StringAnnounce(string text, uint id);
+
+  function set(string _s) public {
+    testString = _s;
+  }
+
+  function get() public {
+    StringAnnounce(testString, testId);
+  }
+
   struct PayRecord {
     address sender;
     uint256 sum;
