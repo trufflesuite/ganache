@@ -1,54 +1,23 @@
-const Web3 = require("web3");
 const assert = require("assert");
-const Ganache = require("../index");
-const path = require("path");
-const compileAndDeploy = require("./helpers/contracts").compileAndDeploy;
+const pretest = require("./helpers/pretest_setup");
 
-const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+describe("Solidity Strings", function() {
+  describe("modifying public strings", function() {
+    const contractName = "DynamicStringLength";
+    const context = pretest.setup(contractName);
 
-function setUp(options = { mnemonic }, contractName = "DynamicStringLength") {
-  const context = {
-    options: options,
-    provider: null,
-    web3: null,
-    accounts: [],
-    contractArtifact: {},
-    instance: null
-  };
+    it("replacing a long string with a short string", async function() {
+      const gas = 500000;
 
-  before("setup web3", async function() {
-    context.provider = Ganache.provider(context.options);
-    context.options.blockTime = 2000;
-    context.web3 = new Web3(context.provider);
-  });
+      const text = "1234567890".repeat(13);
+      await context.instance.methods.set(text).send({ from: context.accounts[0], gas });
+      let response = await context.instance.methods.testString().call();
+      assert.strictEqual(response, text);
 
-  before("compile source", async function() {
-    this.timeout(10000);
-    context.contractArtifact = await compileAndDeploy(
-      path.join(__dirname, ".", `${contractName}.sol`),
-      contractName,
-      context.web3
-    );
-    context.instance = context.contractArtifact.instance;
-  });
-  return context;
-}
-
-describe("Solidity variable string length", function() {
-  const context = setUp();
-  it("replacing a long string with a short string", async function() {
-    let response;
-    const text = "1234567890".repeat(13);
-    const gas = 500000;
-
-    const addresses = await context.web3.eth.getAccounts();
-    await context.instance.methods.set(text).send({ from: addresses[0], gas });
-    response = await context.instance.methods.testString().call();
-    assert.strictEqual(response, text);
-
-    const text2 = "123";
-    await context.instance.methods.set(text2).send({ from: addresses[0] });
-    response = await context.instance.methods.testString().call();
-    assert.strictEqual(response, text2);
+      const text2 = "123";
+      await context.instance.methods.set(text2).send({ from: context.accounts[0], gas });
+      response = await context.instance.methods.testString().call();
+      assert.strictEqual(response, text2);
+    });
   });
 });
