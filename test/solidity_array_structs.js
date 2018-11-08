@@ -1,74 +1,61 @@
-const Web3 = require("web3");
+const pretest = require("./helpers/pretest_setup");
 const assert = require("assert");
-const Ganache = require("../index");
-const path = require("path");
-const compileAndDeploy = require("./helpers/contracts").compileAndDeploy;
 
-const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+describe("Solidity Data Types", function() {
+  describe("Array of Structures", function() {
+    const contractName = "ArrayOfStructs";
+    const services = pretest.setup(contractName);
 
-function setUp(options = { mnemonic }, contractName = "ArrayOfStructs") {
-  const context = {
-    options: options,
-    provider: null,
-    web3: null,
-    accounts: [],
-    contractArtifact: {},
-    instance: null
-  };
+    it("can add structs to an array", async function() {
+      /**
+       * Enable access to:
+       * accounts - randomly generated test accounts
+       * instance - contract instance
+       * provider - Ganache, Geth or Parity
+       * web3 - web3 interface
+       */
 
-  before("setup web3", async function() {
-    context.provider = Ganache.provider(context.options);
-    context.options.blockTime = 2000;
-    context.web3 = new Web3(context.provider);
-  });
+      const { accounts, instance } = services;
 
-  before("compile source", async function() {
-    this.timeout(10000);
-    context.contractArtifact = await compileAndDeploy(
-      path.join(__dirname, ".", `${contractName}.sol`),
-      contractName,
-      context.web3
-    );
-    context.instance = context.contractArtifact.instance;
-  });
-  return context;
-}
+      this.timeout(6000);
+      const myGuid = "Payment1";
+      const paymentIndex = 0;
+      const value = 10;
+      const gas = 5000000;
+      const iterations = 100;
 
-describe("Array of Structures", function() {
-  const context = setUp();
-  it("can add Structs to an Array", async function() {
-    this.timeout(10000);
-    const myGuid = "Payment1";
-    const paymentIndex = 0;
-    const account = "0x627306090abab3a6e1400e9345bc60c78a8bef57";
-    const amount = 10;
-    const gas = 5000000;
-    const iterations = 100;
-
-    let response = await context.instance.methods.payForSomething(myGuid).send({
-      from: account,
-      value: amount,
-      gas: gas
-    });
-
-    assert.strictEqual(response.events.PaymentPlaced.returnValues.guid, myGuid);
-    assert.strictEqual(account, response.events.PaymentPlaced.returnValues.senderAddress.toLowerCase());
-    assert.strictEqual(parseInt(response.events.PaymentPlaced.returnValues.blockNumber), 2);
-    assert.strictEqual(parseInt(response.events.PaymentPlaced.returnValues.payIndex), 0);
-
-    await context.instance.methods.changeSomething(paymentIndex).call();
-
-    for (let i = 0; i < iterations; i++) {
-      const response = await context.instance.methods.payForSomething(myGuid).send({
-        from: account,
-        value: amount,
-        gas: gas
+      // Add and validate a struct to the array
+      const response = await instance.methods.payForSomething(myGuid).send({
+        from: accounts[0],
+        value,
+        gas
       });
 
-      assert.strictEqual(response.events.PaymentPlaced.returnValues.guid, myGuid);
-      assert.strictEqual(account, response.events.PaymentPlaced.returnValues.senderAddress.toLowerCase());
-      assert.strictEqual(parseInt(response.events.PaymentPlaced.returnValues.blockNumber), i + 3);
-      assert.strictEqual(parseInt(response.events.PaymentPlaced.returnValues.payIndex), i + 1);
-    }
+      const { blockNumber, guid, payIndex, senderAddress } = response.events.PaymentPlaced.returnValues;
+
+      assert.strictEqual(guid, myGuid);
+      assert.strictEqual(senderAddress, accounts[0]);
+      assert.strictEqual(parseInt(blockNumber), 2);
+      assert.strictEqual(parseInt(payIndex), 0);
+
+      // Update the status of a struct in the array
+      await instance.methods.changeSomething(paymentIndex).call();
+
+      // Add and validate 100 more struct to the array
+      for (let i = 0; i < iterations; i++) {
+        const response = await instance.methods.payForSomething(myGuid).send({
+          from: accounts[0],
+          value,
+          gas
+        });
+
+        const { blockNumber, guid, payIndex, senderAddress } = response.events.PaymentPlaced.returnValues;
+
+        assert.strictEqual(guid, myGuid);
+        assert.strictEqual(senderAddress, accounts[0]);
+        assert.strictEqual(parseInt(blockNumber), i + 3);
+        assert.strictEqual(parseInt(payIndex), i + 1);
+      }
+    });
   });
 });
