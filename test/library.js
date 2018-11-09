@@ -6,23 +6,21 @@ const Ganache = require(process.env.TEST_BUILD
 const fs = require("fs");
 const path = require("path");
 const solc = require("solc");
+const linker = require("solc/linker");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
 describe.only("Libraries", function() {
-  let callLibraryContractData;
-  let callLibraryContractAbi;
+  let libraryData;
+  let libraryAbi;
+  let Library;
+  let libraryAddress;
+  let contractAbi;
   let CallLibraryContract;
-  let callLibraryInstance;
   let contractDeploymentReceipt;
-
-  let libraryContractData;
-  let libraryContractAbi;
-  let LibraryContract;
-  let libraryInstance;
-  let libraryDeploymentReceipt;
+  let contractBytecode;
 
   const provider = Ganache.provider();
   const web3 = new Web3(provider);
@@ -32,62 +30,52 @@ describe.only("Libraries", function() {
     accounts = await web3.eth.getAccounts();
   });
 
-  before("compile source - library", async function() {
+  before("compile sources - library & contract", async function() {
     this.timeout(10000);
-    const source = fs.readFileSync(path.join(__dirname, "Library.sol"), "utf8");
-    const result = solc.compile({ sources: { "Library.sol": source } }, 1);
+    const librarySource = fs.readFileSync(path.join(__dirname, "Library.sol"), "utf8");
+    const contractSource = fs.readFileSync(path.join(__dirname, "CallLibrary.sol"), "utf8");
+    const input = {
+      "Library.sol": librarySource,
+      "CallLibrary.sol": contractSource
+    };
+    const result = solc.compile({ sources: input }, 1);
 
-    libraryContractData = "0x" + result.contracts["Library.sol:Library"].bytecode;
-    libraryContractAbi = JSON.parse(result.contracts["Library.sol:Library"].interface);
+    libraryData = "0x" + result.contracts["Library.sol:Library"].bytecode;
+    libraryAbi = JSON.parse(result.contracts["Library.sol:Library"].interface);
 
-    LibraryContract = new web3.eth.Contract(libraryContractAbi);
-    let promiEvent = LibraryContract.deploy({ data: libraryContractData }).send({
+    contractBytecode = result.contracts["CallLibrary.sol:CallLibrary"].bytecode;
+    contractAbi = JSON.parse(result.contracts["CallLibrary.sol:CallLibrary"].interface);
+  });
+
+  before("deploy library", async function() {
+    Library = new web3.eth.Contract(libraryAbi);
+    let promiEvent = Library.deploy({ data: libraryData }).send({
       from: accounts[0],
       gas: 3141592
     });
 
     promiEvent.on("receipt", function(receipt) {
-      libraryDeploymentReceipt = receipt;
+      libraryAddress = receipt.contractAddress;
     });
 
-    libraryInstance = await promiEvent;
+    await promiEvent;
   });
 
-  before("compile source - contract", async function() {
-    this.timeout(10000);
-    let source =
-      "                      \n" +
-      "pragma solidity ^0.4.24;            \n" +
-      "contract CallLibrary {                \n" +
-      "  Library libraryContract = Library(" +
-      `${libraryDeploymentReceipt.transactionHash}` +
-      ");   \n" +
-      "                                    \n" +
-      "  function callExternalLibraryFunction() public view returns (address) { \n" +
-      "    address sender = libraryContract.callCheckMsgSender();      \n" +
-      "    return sender;      \n" +
-      "  }                                 \n" +
-      "}";
+  before("deploy contract", async function() {
+    contractBytecode = linker.linkBytecode(contractBytecode, { "Library.sol:Library": libraryAddress });
+    let contractData = "0x" + contractBytecode;
 
-    const result = solc.compile(source, 1);
-    console.log(result);
-
-    callLibraryContractData = "0x" + result.contracts[":CallLibrary"].bytecode;
-    callLibraryContractAbi = JSON.parse(result.contracts[":CallLibrary"].interface);
-
-    CallLibraryContract = new web3.eth.Contract(callLibraryContractAbi);
-    let promiEvent = CallLibraryContract.deploy({ data: callLibraryContractData }).send({
+    CallLibraryContract = new web3.eth.Contract(contractAbi);
+    let promiEvent = CallLibraryContract.deploy({ data: contractData }).send({
       from: accounts[0],
       gas: 3141592
     });
 
-    promiEvent
-      .on("receipt", function(receipt) {
-        contractDeploymentReceipt = receipt;
-      })
-      .on("error", console.error);
+    promiEvent.on("receipt", function(receipt) {
+      contractDeploymentReceipt = receipt;
+    });
 
-    callLibraryInstance = await promiEvent;
+    await promiEvent;
   });
 
   after("cleanup", function() {
@@ -96,9 +84,7 @@ describe.only("Libraries", function() {
   });
 
   it("does stuff", function(done) {
-    console.log(libraryInstance, callLibraryInstance);
     console.log(contractDeploymentReceipt);
-
     done();
   });
 });
