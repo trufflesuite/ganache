@@ -1,5 +1,4 @@
 const Web3 = require("web3");
-// const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
@@ -16,10 +15,8 @@ process.removeAllListeners("uncaughtException");
 describe.only("Libraries", function() {
   let libraryData;
   let libraryAbi;
-  let Library;
   let libraryAddress;
   let contractAbi;
-  let CallLibraryContract;
   let contractInstance;
   let contractBytecode;
 
@@ -27,11 +24,11 @@ describe.only("Libraries", function() {
   const web3 = new Web3(provider);
   let accounts = [];
 
-  before("get accounts", async function() {
+  before("get accounts", async() => {
     accounts = await web3.eth.getAccounts();
   });
 
-  before("compile sources - library & contract", async function() {
+  before("compile sources - library & contract", async() => {
     this.timeout(10000);
     const librarySource = fs.readFileSync(path.join(__dirname, "Library.sol"), "utf8");
     const contractSource = fs.readFileSync(path.join(__dirname, "CallLibrary.sol"), "utf8");
@@ -48,9 +45,9 @@ describe.only("Libraries", function() {
     contractAbi = JSON.parse(result.contracts["CallLibrary.sol:CallLibrary"].interface);
   });
 
-  before("deploy library", async function() {
-    Library = new web3.eth.Contract(libraryAbi);
-    let promiEvent = Library.deploy({ data: libraryData }).send({
+  before("deploy library", async() => {
+    const Library = new web3.eth.Contract(libraryAbi);
+    const promiEvent = Library.deploy({ data: libraryData }).send({
       from: accounts[0],
       gas: 3141592
     });
@@ -62,12 +59,12 @@ describe.only("Libraries", function() {
     await promiEvent;
   });
 
-  before("deploy contract", async function() {
+  before("deploy contract", async() => {
     contractBytecode = linker.linkBytecode(contractBytecode, { "Library.sol:Library": libraryAddress });
-    let contractData = "0x" + contractBytecode;
+    const contractData = "0x" + contractBytecode;
 
-    CallLibraryContract = new web3.eth.Contract(contractAbi);
-    let promiEvent = CallLibraryContract.deploy({ data: contractData }).send({
+    const CallLibraryContract = new web3.eth.Contract(contractAbi);
+    const promiEvent = CallLibraryContract.deploy({ data: contractData }).send({
       from: accounts[0],
       gas: 3141592
     });
