@@ -3,8 +3,13 @@ pragma solidity ^0.4.24;
 import "./Library.sol";
 
 contract CallLibrary {
-    function callExternalLibraryFunction() public view returns (address) {
+    address originalSender = msg.sender;
+
+    function callExternalLibraryFunction() public view returns (bool) {
         address sender = Library.callCheckMsgSender();
-        return sender;
+        if (sender == originalSender){
+            return true;
+        }
+        return false;
     }
 }

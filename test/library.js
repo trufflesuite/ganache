@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const solc = require("solc");
 const linker = require("solc/linker");
+const assert = require("assert");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -19,7 +20,7 @@ describe.only("Libraries", function() {
   let libraryAddress;
   let contractAbi;
   let CallLibraryContract;
-  let contractDeploymentReceipt;
+  let contractInstance;
   let contractBytecode;
 
   const provider = Ganache.provider();
@@ -71,11 +72,7 @@ describe.only("Libraries", function() {
       gas: 3141592
     });
 
-    promiEvent.on("receipt", function(receipt) {
-      contractDeploymentReceipt = receipt;
-    });
-
-    await promiEvent;
+    contractInstance = await promiEvent;
   });
 
   after("cleanup", function() {
@@ -83,8 +80,8 @@ describe.only("Libraries", function() {
     provider.close(() => {});
   });
 
-  it("does stuff", function(done) {
-    console.log(contractDeploymentReceipt);
-    done();
+  it("should return true if the msg.sender is the externally owned account", async() => {
+    const result = await contractInstance.methods.callExternalLibraryFunction().call();
+    assert.strictEqual(true, result);
   });
 });

@@ -1,8 +1,6 @@
 pragma solidity ^0.4.24;
 
 library Library {
-    // this function should check if msg.sender == callingEOAAddress
-
     function checkMsgSender() public view returns (address) {
         address sender = msg.sender;
         return sender;
