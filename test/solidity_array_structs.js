@@ -3,8 +3,13 @@ const assert = require("assert");
 
 describe("Solidity Data Types", function() {
   describe("Array of Structures", function() {
-    const contractName = "ArrayOfStructs";
-    const services = pretest.setup(contractName);
+    // Main contract
+    const mainContract = "ArrayOfStructs"; // Name of the parent contract
+
+    // List of all contracts to compile and deploy
+    const subContractNames = ["ArrayOfStructs"];
+
+    const services = pretest.setup(mainContract, subContractNames);
 
     it("can add structs to an array", async function() {
       /**
