@@ -9,7 +9,7 @@ const { compile } = require("solc");
  * @param {Object} web3 Web3 interface
  * @returns {Object} context
  */
-async function compileAndDeploy(contractPath, mainContractName, web3, contractFileNames = []) {
+async function compileAndDeploy(contractPath, mainContractName, contractFileNames = [], web3) {
   const selectedContracts = contractFileNames.length === 0 ? [mainContractName] : contractFileNames;
   const contractSources = selectedContracts.map((contractName) => {
     return { [`${contractName}.sol`]: readFileSync(`${contractPath}${contractName}.sol`, "utf8") };

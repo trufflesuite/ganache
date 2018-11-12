@@ -1,9 +1,9 @@
 const Web3 = require("web3");
 const Ganache = require("../../index");
-const path = require("path");
+const { join } = require("path");
 const { compileAndDeploy } = require("./compile_deploy");
 
-const setup = (mainContractName = "", subContractNames = [], mnemonics = "") => {
+const setup = (mainContractName = "", subContractNames = [], contractPath = "../contracts/", mnemonics = "") => {
   const context = {};
 
   before("Setting up web3 and contract", async function() {
@@ -12,11 +12,12 @@ const setup = (mainContractName = "", subContractNames = [], mnemonics = "") => 
     const options = mnemonics === "" ? {} : { mnemonics };
     const provider = Ganache.provider(options);
     const web3 = new Web3(provider);
+
     const { abi, accounts, bytecode, contract, instance, sources } = await compileAndDeploy(
-      path.join(__dirname, "../contracts/"),
+      join(__dirname, contractPath),
       mainContractName,
-      web3,
-      subContractNames
+      subContractNames,
+      web3
     );
 
     context.abi = abi;
