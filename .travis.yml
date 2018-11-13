@@ -4,7 +4,6 @@ node_js:
   - "lts/*"
   - "lts/carbon"
 
-
 addons:
   apt:
     sources:
