@@ -294,7 +294,7 @@ describe("Forking", function() {
   // Note: This test also puts a new contract on the forked chain, which is a good test.
   it(
     "should represent the block number correctly in the Oracle contract (oracle.blockhash0)," +
-    " providing forked block hash and number",
+      " providing forked block hash and number",
     async function() {
       this.timeout(10000);
       const oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
@@ -371,15 +371,9 @@ describe("Forking", function() {
     let balanceBeforeFork = new mainWeb3.utils.BN(
       await mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber - 1)
     );
-    let balanceAfterFork = new mainWeb3.utils.BN(
-      await mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber + 1)
-    );
-    let balanceLatestMain = new mainWeb3.utils.BN(
-      await mainWeb3.eth.getBalance(forkedAccounts[0], "latest")
-    );
-    let balanceLatestFallback = new mainWeb3.utils.BN(
-      await forkedWeb3.eth.getBalance(forkedAccounts[0], "latest")
-    );
+    let balanceAfterFork = new mainWeb3.utils.BN(await mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber + 1));
+    let balanceLatestMain = new mainWeb3.utils.BN(await mainWeb3.eth.getBalance(forkedAccounts[0], "latest"));
+    let balanceLatestFallback = new mainWeb3.utils.BN(await forkedWeb3.eth.getBalance(forkedAccounts[0], "latest"));
 
     // First ensure our balances for the block before the fork
     // We do this by simply ensuring the balance has decreased since exact values
@@ -469,7 +463,8 @@ describe("Forking", function() {
             reject(response.error);
           }
           resolve();
-        });
+        }
+      );
     });
   });
 
