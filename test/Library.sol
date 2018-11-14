@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 library Library {
-    function checkMsgSender() public view returns (address) {
+    function checkMsgSender() internal view returns (address) {
         address sender = msg.sender;
         return sender;
     }

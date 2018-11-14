@@ -77,8 +77,10 @@ describe.only("Libraries", function() {
     provider.close(() => {});
   });
 
-  it("should return true if the msg.sender is the externally owned account", async() => {
-    const result = await contractInstance.methods.callExternalLibraryFunction().call();
-    assert.strictEqual(true, result);
+  describe("msg.sender for external library function calls", async() => {
+    it("should return true - msg.sender is the externally owned account", async() => {
+      const result = await contractInstance.methods.callExternalLibraryFunction().call();
+      assert.strictEqual(true, result);
+    });
   });
 });
