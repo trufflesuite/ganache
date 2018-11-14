@@ -10,11 +10,13 @@ const { compile } = require("solc");
  * @returns {Object} context
  */
 async function compileAndDeploy(contractPath, mainContractName, contractFileNames = [], web3) {
+  // Organize contract(s) for compilation
   const selectedContracts = contractFileNames.length === 0 ? [mainContractName] : contractFileNames;
   const contractSources = selectedContracts.map((contractName) => {
     return { [`${contractName}.sol`]: readFileSync(`${contractPath}${contractName}.sol`, "utf8") };
   });
-  const sources = Object.assign(...contractSources);
+
+  const sources = Object.assign({}, ...contractSources);
 
   const { contracts } = compile({ sources }, 1);
   const compiledMainContract = contracts[`${mainContractName}.sol:${mainContractName}`];
@@ -23,6 +25,8 @@ async function compileAndDeploy(contractPath, mainContractName, contractFileName
   const contract = new web3.eth.Contract(abi);
 
   const accounts = await web3.eth.getAccounts();
+
+  // Retrieve block gas limit
   const { gasLimit } = await web3.eth.getBlock("latest");
   const instance = await contract.deploy({ data: bytecode }).send({ from: accounts[0], gas: gasLimit });
 

@@ -3,13 +3,13 @@ const Ganache = require("../../index");
 const { join } = require("path");
 const { compileAndDeploy } = require("./compile_deploy");
 
-const setup = (mainContractName = "", subContractNames = [], contractPath = "../contracts/", mnemonics = "") => {
+const preloadContracts = (mainContractName = "", subContractNames = [], contractPath = "../contracts/", mnemonics) => {
   const context = {};
 
   before("Setting up web3 and contract", async function() {
     this.timeout(10000);
 
-    const options = mnemonics === "" ? {} : { mnemonics };
+    const options = typeof mnemonics === "string" ? {} : { mnemonics };
     const provider = Ganache.provider(options);
     const web3 = new Web3(provider);
 
@@ -35,5 +35,5 @@ const setup = (mainContractName = "", subContractNames = [], contractPath = "../
 };
 
 module.exports = {
-  setup
+  preloadContracts
 };

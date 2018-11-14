@@ -1,4 +1,4 @@
-const pretest = require("./helpers/pretest_setup");
+const { preloadContracts } = require("./helpers/pretest_setup");
 const assert = require("assert");
 
 describe("Solidity Data Types", function() {
@@ -9,7 +9,7 @@ describe("Solidity Data Types", function() {
     // List of all contracts to compile and deploy
     const subContractNames = ["ArrayOfStructs"];
 
-    const services = pretest.setup(mainContract, subContractNames);
+    const services = preloadContracts(mainContract, subContractNames);
 
     it("can add structs to an array", async function() {
       /**

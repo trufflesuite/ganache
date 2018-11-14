@@ -1,24 +1,24 @@
-const { readFileSync } = require("fs");
-const { compile } = require("solc");
-const { basename } = require("path");
+const fs = require("fs");
+const solc = require("solc");
+const path = require("path");
 
 async function compileAndDeploy(contractPath, contractName, web3) {
-  const contractFilename = basename(contractPath);
+  let contractFilename = path.basename(contractPath);
 
-  const source = readFileSync(contractPath, "utf8");
+  let source = fs.readFileSync(contractPath, "utf8");
 
-  const { contracts } = compile({ sources: { [contractFilename]: source } }, 1);
+  let result = solc.compile({ sources: { [contractFilename]: source } }, 1);
 
-  const compiledContracts = contracts[`${contractFilename}:${contractName}`];
-  const bytecode = "0x" + compiledContracts.bytecode;
-  const abi = JSON.parse(compiledContracts.interface);
+  let bytecode = "0x" + result.contracts[`${contractFilename}:${contractName}`].bytecode;
+  let abi = JSON.parse(result.contracts[`${contractFilename}:${contractName}`].interface);
 
-  const contract = new web3.eth.Contract(abi);
+  let contract = new web3.eth.Contract(abi);
 
-  const accounts = await web3.eth.getAccounts();
-  const { gasLimit } = await web3.eth.getBlock("latest");
+  let accounts = await web3.eth.getAccounts();
+  let block = await web3.eth.getBlock("latest");
+  let gasLimit = block.gasLimit;
 
-  const instance = await contract.deploy({ data: bytecode }).send({ from: accounts[0], gas: gasLimit });
+  let instance = await contract.deploy({ data: bytecode }).send({ from: accounts[0], gas: gasLimit });
 
   // TODO: ugly workaround - not sure why this is necessary.
   if (!instance._requestManager.provider) {
@@ -26,12 +26,11 @@ async function compileAndDeploy(contractPath, contractName, web3) {
   }
 
   return {
-    abi,
-    accounts,
+    source,
     bytecode,
+    abi,
     contract,
-    instance,
-    source
+    instance
   };
 }
 
