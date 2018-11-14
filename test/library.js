@@ -12,7 +12,7 @@ const assert = require("assert");
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-describe.only("Libraries", function() {
+describe("Libraries", function() {
   let libraryData;
   let libraryAbi;
   let libraryAddress;
