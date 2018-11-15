@@ -241,9 +241,9 @@ const tests = function(web3) {
       assert.strictEqual(1, blockTransactionCount, "Block transaction count should be 1.");
     });
 
-    it("should return 0 transactions when the block doesn't exist", async function() {
+    it("should return null transactions when the block doesn't exist", async function() {
       const blockTransactionCount = await web3.eth.getBlockTransactionCount(1000000);
-      assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
+      assert.strictEqual(null, blockTransactionCount, "Block transaction count should be null.");
     });
   });
 
@@ -1041,13 +1041,9 @@ const tests = function(web3) {
   });
 
   describe("eth_getTransactionCount", function() {
-    it("should error for non-existent block", async function() {
-      try {
-        await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999);
-        assert.fail("Error with message 'Unknown block number' expected, instead no error was returned");
-      } catch (err) {
-        assert(err.message.indexOf("Unknown block number") > -1);
-      }
+    it("should return null for non-existent block", async function() {
+      const result = await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999);
+      assert.strictEqual(result, null, "Should return null for non-existent block (GETH)");
     });
   });
 
