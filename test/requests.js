@@ -1152,6 +1152,78 @@ const tests = function(web3) {
     });
   });
 
+  describe("eth_getTransactionByHash", function() {
+    it(
+      "should return null for blockHash, blockNumber, and transactionIndex" + " on a pending transaction",
+      async function() {
+        const send = pify(web3._provider.send.bind(web3._provider));
+
+        const txData = {
+          to: accounts[0],
+          from: accounts[1]
+        };
+
+        await send({
+          id: new Date().getTime(),
+          jsonrpc: "2.0",
+          method: "miner_stop"
+        });
+
+        let result = await send({
+          id: new Date().getTime(),
+          jsonrpc: "2.0",
+          method: "eth_sendTransaction",
+          params: [txData]
+        });
+
+        let transactionObject = await send({
+          id: new Date().getTime(),
+          jsonrpc: "2.0",
+          method: "eth_getTransactionByHash",
+          params: [result.result]
+        });
+
+        assert.strictEqual(null, transactionObject.result.blockHash);
+        assert.strictEqual(null, transactionObject.result.blockNumber);
+        assert.strictEqual(null, transactionObject.result.transactionIndex);
+      }
+    );
+
+    it("should return values for blockHash, blockNumber, and transactionIndex once mined", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+
+      const txData = {
+        to: accounts[0],
+        from: accounts[1]
+      };
+
+      await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_start",
+        params: []
+      });
+
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [txData]
+      });
+
+      let transactionObject = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [result.result]
+      });
+
+      assert.notStrictEqual(null, transactionObject.result.blockHash);
+      assert.notStrictEqual(null, transactionObject.result.blockNumber);
+      assert.notStrictEqual(null, transactionObject.result.transactionIndex);
+    });
+  });
+
   describe("web3_sha3", function() {
     it("should hash the given input", async function() {
       const send = pify(web3._provider.send.bind(web3._provider));
