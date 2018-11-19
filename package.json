@@ -1,6 +1,6 @@
 {
   "name": "ganache-core",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "main": "./index.js",
   "engines": {
     "node": ">=8.9.0"
@@ -14,7 +14,8 @@
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
     "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
-    "prepublishOnly": "npm run test && npm run build && npm run test-build",
+    "prepublishOnly": "npm run test && npm run build && npm run test-build && mv npm-shrinkwrap.json npm-shrinkwrap.json.bak && npm prune --only=prod && npm shrinkwrap",
+    "postpublish": "rm npm-shrinkwrap.json && mv npm-shrinkwrap.json.bak npm-shrinkwrap.json && npm install",
     "test": "npm run _lint && npm run _mocha",
     "test-build": "cross-env TEST_BUILD=node npm run _mocha",
     "test-web-experimental": "cross-env TEST_BUILD=web-experimental npm run _mocha"
