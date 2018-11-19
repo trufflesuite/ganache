@@ -107,7 +107,7 @@ describe("Block Tags", function() {
     );
   });
 
-  it("should return the initial nonce at the previous block number", function(done) {
+  it.skip("should return the initial nonce at the previous block number", function(done) {
     web3.eth.getTransactionCount(accounts[0], initialBlockNumber, function(err, nonce) {
       if (err) {
         return done(err);
@@ -125,7 +125,7 @@ describe("Block Tags", function() {
     });
   });
 
-  it("should return the initial balance at the previous block number", function(done) {
+  it.skip("should return the initial balance at the previous block number", function(done) {
     web3.eth.getBalance(accounts[0], initialBlockNumber, function(err, balance) {
       if (err) {
         return done(err);
@@ -145,7 +145,7 @@ describe("Block Tags", function() {
     });
   });
 
-  it("should return the no code at the previous block number", function(done) {
+  it.skip("should return the no code at the previous block number", function(done) {
     web3.eth.getCode(contractAddress, initialBlockNumber, function(err, code) {
       if (err) {
         return done(err);
@@ -162,5 +162,11 @@ describe("Block Tags", function() {
         done();
       });
     });
+  });
+
+  it("should not have the same tx and receipt root when the block contains 1 tx", async function() {
+    const block = await web3.eth.getBlock(initialBlockNumber + 1, false);
+    assert.strictEqual(block.transactions.length, 1, "should have one tx in the block.");
+    assert.notStrictEqual(block.transactionsRoot, block.receiptsRoot, "Trie roots should not be equal.");
   });
 });
