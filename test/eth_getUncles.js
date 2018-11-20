@@ -14,7 +14,6 @@ describe("Uncle support", function() {
       const method = "eth_getUncleCountByBlockHash";
       const params = [hash];
       const { result } = await rpcSend(method, params, web3);
-      assert.notStrictEqual(result, "0x0");
       assert.strictEqual(result, uncles.length);
 
       // Validate a bad hash lookup
@@ -31,18 +30,28 @@ describe("Uncle support", function() {
 
     it("by block number", async function() {
       const { web3 } = services;
+
+      // Validate a good block number lookup
       const { number, uncles } = await web3.eth.getBlock("latest");
       const method = "eth_getUncleCountByBlockNumber";
       const params = [number];
       const { result } = await rpcSend(method, params, web3);
-      assert.notStrictEqual(result, "0x0");
       assert.strictEqual(result, uncles.length);
+
+      // Validate a good block tag lookup
+      const tags = ["latest", "earliest", "pending"];
+      tags.forEach(async(tag) => {
+        const method = "eth_getUncleCountByBlockNumber";
+        const params = [tag];
+        const { result } = await rpcSend(method, params, web3);
+        assert.strictEqual(result, uncles.length);
+      });
 
       // Validate a bad block number lookup
       try {
-        const method = "eth_getUncleCountByBlockNumber";
         const { number } = await web3.eth.getBlock("latest");
         const invalidBlockNumber = number + 1000;
+        const method = "eth_getUncleCountByBlockNumber";
         const params = [invalidBlockNumber];
         await rpcSend(method, params, web3);
       } catch (error) {
