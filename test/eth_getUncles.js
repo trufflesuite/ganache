@@ -39,10 +39,22 @@ describe("Uncle support", function() {
       const { result } = await rpcSend(method, params, web3);
       assert.strictEqual(result, uncles.length);
 
-      // Validate a BAD block number lookup
+      // Validate a VERY HIGH block number lookup
       try {
         const { number } = await web3.eth.getBlock("latest");
         const invalidBlockNumber = number + 1000;
+        const method = "eth_getUncleCountByBlockNumber";
+        const params = [invalidBlockNumber];
+        await rpcSend(method, params, web3);
+        assert.fail("Invalid block number was processed!");
+      } catch (error) {
+        const expectedErrorMessage = "Unknown block number";
+        assert.strictEqual(error.message, expectedErrorMessage);
+      }
+
+      // Validate a NEGATIVE block number lookup
+      try {
+        const invalidBlockNumber = -1;
         const method = "eth_getUncleCountByBlockNumber";
         const params = [invalidBlockNumber];
         await rpcSend(method, params, web3);
