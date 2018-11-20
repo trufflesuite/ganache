@@ -16,12 +16,13 @@ describe("Uncle support", function() {
       const { result } = await rpcSend(method, params, web3);
       assert.strictEqual(result, uncles.length);
 
-      // Validate a bad hash lookup
+      // Validate a BAD hash lookup
       try {
         const method = "eth_getUncleCountByBlockHash";
         const invalidHash = `0x${"f".repeat(64)}`;
         const params = [invalidHash];
         await rpcSend(method, params, web3);
+        assert.fail("Invalid block hash was processed!");
       } catch (error) {
         const expectedErrorMessage = "Unknown block hash";
         assert.strictEqual(error.message, expectedErrorMessage);
@@ -38,6 +39,24 @@ describe("Uncle support", function() {
       const { result } = await rpcSend(method, params, web3);
       assert.strictEqual(result, uncles.length);
 
+      // Validate a BAD block number lookup
+      try {
+        const { number } = await web3.eth.getBlock("latest");
+        const invalidBlockNumber = number + 1000;
+        const method = "eth_getUncleCountByBlockNumber";
+        const params = [invalidBlockNumber];
+        await rpcSend(method, params, web3);
+        assert.fail("Invalid block number was processed!");
+      } catch (error) {
+        const expectedErrorMessage = "Unknown block number";
+        assert.strictEqual(error.message, expectedErrorMessage);
+      }
+    });
+
+    it("by block tag", async function() {
+      const { web3 } = services;
+      const { uncles } = await web3.eth.getBlock("latest");
+
       // Validate a good block tag lookup
       const tags = ["latest", "earliest", "pending"];
       tags.forEach(async(tag) => {
@@ -47,17 +66,19 @@ describe("Uncle support", function() {
         assert.strictEqual(result, uncles.length);
       });
 
-      // Validate a bad block number lookup
-      try {
-        const { number } = await web3.eth.getBlock("latest");
-        const invalidBlockNumber = number + 1000;
-        const method = "eth_getUncleCountByBlockNumber";
-        const params = [invalidBlockNumber];
-        await rpcSend(method, params, web3);
-      } catch (error) {
-        const expectedErrorMessage = "Unknown block number";
-        assert.strictEqual(error.message, expectedErrorMessage);
-      }
+      // Validate a BAD block tag lookup
+      const invalidTags = ["latest_blah", "earliest_blah", "pending_blah", ""];
+      invalidTags.forEach(async(tag) => {
+        try {
+          const method = "eth_getUncleCountByBlockNumber";
+          const params = [tag];
+          await rpcSend(method, params, web3);
+          assert.fail("Invalid block tag was processed!");
+        } catch (error) {
+          const expectedErrorMessage = "Unknown block number";
+          assert.strictEqual(error.message, expectedErrorMessage);
+        }
+      });
     });
   });
 });
