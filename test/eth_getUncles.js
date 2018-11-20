@@ -24,7 +24,7 @@ describe("Uncle support", function() {
         const params = [invalidHash];
         await rpcSend(method, params, web3);
       } catch (error) {
-        const expectedErrorMessage = "Unknown block number";
+        const expectedErrorMessage = "Unknown block hash";
         assert.strictEqual(error.message, expectedErrorMessage);
       }
     });
@@ -37,6 +37,18 @@ describe("Uncle support", function() {
       const { result } = await rpcSend(method, params, web3);
       assert.notStrictEqual(result, "0x0");
       assert.strictEqual(result, uncles.length);
+
+      // Validate a bad block number lookup
+      try {
+        const method = "eth_getUncleCountByBlockNumber";
+        const { number } = await web3.eth.getBlock("latest");
+        const invalidBlockNumber = number + 1000;
+        const params = [invalidBlockNumber];
+        await rpcSend(method, params, web3);
+      } catch (error) {
+        const expectedErrorMessage = "Unknown block number";
+        assert.strictEqual(error.message, expectedErrorMessage);
+      }
     });
   });
 });
