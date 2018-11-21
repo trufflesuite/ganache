@@ -38,7 +38,11 @@ const contract = {
 };
 
 describe("Block Tags", function() {
-  const web3 = new Web3(Ganache.provider());
+  const options = {
+    mnemonic: "candy maple velvet cake sugar cream honey rich smooth crumble sweet treat",
+    time: new Date(0) // Testing features that rely on determinate conditions
+  };
+  const web3 = new Web3(Ganache.provider(options));
   const initial = {};
   let accounts;
   let contractAddress;
@@ -104,8 +108,8 @@ describe("Block Tags", function() {
   });
 
   it("should not have the same tx and receipt root when the block contains 1 tx", async function() {
-    // const block = await web3.eth.getBlock(initialBlockNumber + 1, false);
-    // assert.strictEqual(block.transactions.length, 1, "should have one tx in the block.");
-    // assert.notStrictEqual(block.transactionsRoot, block.receiptsRoot, "Trie roots should not be equal.");
+    const block = await web3.eth.getBlock(initialBlockNumber + 1, false);
+    assert.strictEqual(block.transactions.length, 1, "should have one tx in the block.");
+    assert.notStrictEqual(block.transactionsRoot, block.receiptsRoot, "Trie roots should not be equal.");
   });
 });
