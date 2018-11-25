@@ -2,6 +2,7 @@
   "name": "ganache-core",
   "version": "2.3.1",
   "main": "./index.js",
+  "types": "./index.d.ts",
   "engines": {
     "node": ">=8.9.0"
   },
@@ -42,12 +43,14 @@
     "lodash": "4.17.10",
     "merkle-patricia-tree": "2.3.1",
     "seedrandom": "2.4.4",
+    "source-map-support": "0.5.9",
     "tmp": "0.0.33",
     "web3-provider-engine": "14.1.0",
-    "source-map-support": "0.5.9",
     "websocket": "1.0.26"
   },
   "devDependencies": {
+    "@types/node": "^10.12.10",
+    "@types/web3": "^1.0.12",
     "assert-match": "^1.1.1",
     "browserfs": "1.4.3",
     "cross-env": "5.2.0",
