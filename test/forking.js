@@ -368,12 +368,10 @@ describe("Forking", function() {
   it("should return the correct balance based on block number", async function() {
     // Note for the first two requests, we choose the block numbers 1 before and after the fork to
     // ensure we're pulling data off the correct provider in both cases.
-    let balanceBeforeFork = new mainWeb3.utils.BN(
-      await mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber - 1)
-    );
-    let balanceAfterFork = new mainWeb3.utils.BN(await mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber + 1));
-    let balanceLatestMain = new mainWeb3.utils.BN(await mainWeb3.eth.getBalance(forkedAccounts[0], "latest"));
-    let balanceLatestFallback = new mainWeb3.utils.BN(await forkedWeb3.eth.getBalance(forkedAccounts[0], "latest"));
+    let balanceBeforeFork = Web3.utils.toBN(await mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber - 1));
+    let balanceAfterFork = Web3.utils.toBN(await mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber + 1));
+    let balanceLatestMain = Web3.utils.toBN(await mainWeb3.eth.getBalance(forkedAccounts[0], "latest"));
+    let balanceLatestFallback = Web3.utils.toBN(await forkedWeb3.eth.getBalance(forkedAccounts[0], "latest"));
 
     // First ensure our balances for the block before the fork
     // We do this by simply ensuring the balance has decreased since exact values
