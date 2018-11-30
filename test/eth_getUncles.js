@@ -98,10 +98,10 @@ describe("Uncle support", function() {
       });
     });
 
-    it("forking mainnet", async function() {
-      this.timeout(5000);
+    it("by forking mainnet", async function() {
+      this.timeout(8000);
       // Set up forking from mainnet
-      const fWeb3 = new Web3(
+      const forkedWeb3 = new Web3(
         Ganache.provider({
           fork: "https://mainnet.infura.io"
         })
@@ -111,13 +111,24 @@ describe("Uncle support", function() {
       const oneUncleBlock = 6790228;
       const twoUncleBlock = 6795996;
 
-      // Validate a single uncle count
-      let testBlock = await fWeb3.eth.getBlock(oneUncleBlock);
+      // Directly validate a single uncle count
+      let testBlock = await forkedWeb3.eth.getBlock(oneUncleBlock);
       assert.strictEqual(testBlock.uncles.length, 1);
 
-      // Validate a single uncle count
-      testBlock = await fWeb3.eth.getBlock(twoUncleBlock);
+      // Validate single uncle count using Ganache rpc method
+      const method = "eth_getUncleCountByBlockNumber";
+      let params = [oneUncleBlock];
+      let count = await rpcSend(method, params, forkedWeb3);
+      assert.strictEqual(testBlock.uncles.length, count.result);
+
+      // Directly validate a double uncle count
+      testBlock = await forkedWeb3.eth.getBlock(twoUncleBlock);
       assert.strictEqual(testBlock.uncles.length, 2);
+
+      // Validate double uncle count using Ganache rpc method
+      params = [twoUncleBlock];
+      count = await rpcSend(method, params, forkedWeb3);
+      assert.strictEqual(testBlock.uncles.length, count.result);
     });
   });
 });
