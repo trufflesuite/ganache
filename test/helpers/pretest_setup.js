@@ -43,9 +43,6 @@ const preloadWeb3 = (mnemonics) => {
     const options = typeof mnemonics === "string" ? {} : { mnemonics };
     const provider = Ganache.provider(options);
     const web3 = new Web3(provider);
-    // console.log(provider);
-    // console.log(web3);
-    // process.exit(1);
 
     context.provider = provider;
     context.options = options;

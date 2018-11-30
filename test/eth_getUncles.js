@@ -2,6 +2,11 @@ const assert = require("assert");
 const { rpcSend } = require("./helpers/rpc");
 const { preloadWeb3 } = require("./helpers/pretest_setup");
 
+const Web3 = require("web3");
+const Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
+
 describe("Uncle support", function() {
   describe("retrieving uncles", function() {
     const services = preloadWeb3();
@@ -39,7 +44,7 @@ describe("Uncle support", function() {
       const { result } = await rpcSend(method, params, web3);
       assert.strictEqual(result, uncles.length);
 
-      // Validate a VERY HIGH block number lookup
+      // Validate a TOO HIGH block number lookup
       try {
         const { number } = await web3.eth.getBlock("latest");
         const invalidBlockNumber = number + 1000;
@@ -91,6 +96,28 @@ describe("Uncle support", function() {
           assert.strictEqual(error.message, expectedErrorMessage);
         }
       });
+    });
+
+    it("forking mainnet", async function() {
+      this.timeout(5000);
+      // Set up forking from mainnet
+      const fWeb3 = new Web3(
+        Ganache.provider({
+          fork: "https://mainnet.infura.io"
+        })
+      );
+
+      // Block numbers on mainnet containing uncles
+      const oneUncleBlock = 6790228;
+      const twoUncleBlock = 6795996;
+
+      // Validate a single uncle count
+      let testBlock = await fWeb3.eth.getBlock(oneUncleBlock);
+      assert.strictEqual(testBlock.uncles.length, 1);
+
+      // Validate a single uncle count
+      testBlock = await fWeb3.eth.getBlock(twoUncleBlock);
+      assert.strictEqual(testBlock.uncles.length, 2);
     });
   });
 });
