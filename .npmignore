@@ -11,3 +11,4 @@ ISSUE_TEMPLATE.md
 test/
 webpack/
 perf/
+npm-shrinkwrap.json.bak
