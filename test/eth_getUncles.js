@@ -1,14 +1,11 @@
 const assert = require("assert");
+const Web3 = require("web3");
+const Ganache = require("../index");
 const { rpcSend } = require("./helpers/rpc");
 const { preloadWeb3 } = require("./helpers/pretest_setup");
 
-const Web3 = require("web3");
-const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-
 describe("Uncle support", function() {
-  describe("retrieving uncles", function() {
+  describe("retrieving uncle count", function() {
     const services = preloadWeb3();
 
     it("by hash", async function() {
@@ -98,8 +95,8 @@ describe("Uncle support", function() {
       });
     });
 
-    it("by forking mainnet", async function() {
-      this.timeout(10000);
+    it("through forking mainnet", async function() {
+      this.timeout(15000);
       // Set up forking from mainnet
       const forkedWeb3 = new Web3(
         Ganache.provider({
@@ -108,25 +105,38 @@ describe("Uncle support", function() {
       );
 
       // Block numbers on mainnet containing uncles
-      const oneUncleBlock = 6790228;
-      const twoUncleBlock = 6795996;
+      const oneUncleBlockNumber = 6790228;
+      const twoUncleBlockNumber = 6795996;
 
-      // Directly validate a single uncle count
-      let testBlock = await forkedWeb3.eth.getBlock(oneUncleBlock);
+      /* VALIDATING A SINGLE UNCLE COUNT */
+      // Directly validate a single uncle count from a know block number on Mainnet
+      let testBlock = await forkedWeb3.eth.getBlock(oneUncleBlockNumber);
       assert.strictEqual(testBlock.uncles.length, 1);
 
       // Validate single uncle count using Ganache rpc method
-      const method = "eth_getUncleCountByBlockNumber";
-      let params = [oneUncleBlock];
+      let method = "eth_getUncleCountByBlockNumber";
+      let params = [oneUncleBlockNumber];
       let { result } = await rpcSend(method, params, forkedWeb3);
       assert.strictEqual(testBlock.uncles.length, result);
 
-      // Directly validate a double uncle count
-      testBlock = await forkedWeb3.eth.getBlock(twoUncleBlock);
+      method = "eth_getUncleCountByBlockHash";
+      params = [testBlock.hash];
+      ({ result } = await rpcSend(method, params, forkedWeb3));
+      assert.strictEqual(testBlock.uncles.length, result);
+
+      /* VALIDATING A DOUBLE UNCLE COUNT */
+      // Directly validate a single uncle count from a know block number on Mainnet
+      testBlock = await forkedWeb3.eth.getBlock(twoUncleBlockNumber);
       assert.strictEqual(testBlock.uncles.length, 2);
 
       // Validate double uncle count using Ganache rpc method
-      params = [twoUncleBlock];
+      method = "eth_getUncleCountByBlockNumber";
+      params = [twoUncleBlockNumber];
+      ({ result } = await rpcSend(method, params, forkedWeb3));
+      assert.strictEqual(testBlock.uncles.length, result);
+
+      method = "eth_getUncleCountByBlockHash";
+      params = [testBlock.hash];
       ({ result } = await rpcSend(method, params, forkedWeb3));
       assert.strictEqual(testBlock.uncles.length, result);
     });

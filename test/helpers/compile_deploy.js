@@ -30,11 +30,6 @@ async function compileAndDeploy(contractPath, mainContractName, contractFileName
   const { gasLimit } = await web3.eth.getBlock("latest");
   const instance = await contract.deploy({ data: bytecode }).send({ from: accounts[0], gas: gasLimit });
 
-  // TODO: ugly workaround - not sure why this is necessary.
-  if (!instance._requestManager.provider) {
-    instance._requestManager.setProvider(web3.eth._provider);
-  }
-
   return {
     abi,
     accounts,
