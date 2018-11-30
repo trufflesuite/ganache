@@ -5,12 +5,13 @@ contract DynamicStringLength {
   string public testString;
   DynamicStringLengthCheck validate = new DynamicStringLengthCheck();
 
-  function set(string _s) public {
+  function setAndConfirm(string _s) public {
     testString = _s;
-    validate.stringSetting(_s, testString);
+    require(confirmStringInternally(_s));
+    validate.stringSettingExternally(_s, testString);
   }
 
-  function confirmSetting(string _s) public view returns (bool) {
+  function confirmStringInternally(string _s) public view returns (bool) {
     return keccak256(abi.encodePacked(_s)) == keccak256(abi.encodePacked(testString));
   }
 }
