@@ -2,6 +2,12 @@ const fs = require("fs");
 const solc = require("solc");
 const path = require("path");
 
+/**
+ * compileAndDeploy
+ * @param {string} contractPath path to the directory containing contract
+ * @param {string} contractName name of the top most contract
+ * @param {object} web3 Web3 interface
+ */
 async function compileAndDeploy(contractPath, contractName, web3) {
   let contractFilename = path.basename(contractPath);
 
