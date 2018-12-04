@@ -2,7 +2,7 @@ var ethers = require("ethers");
 var assert = require("assert");
 var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../public-exports.js");
+  : "../index.js");
 
 const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
