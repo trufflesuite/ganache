@@ -6,16 +6,24 @@ var Ganache = require(process.env.TEST_BUILD
 
 const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
-describe("ethers", function(done) {
+describe("ethers", async(done) => {
   const g = Ganache.provider({ mnemonic });
   const provider = new ethers.providers.Web3Provider(g);
-  let wallet = ethers.Wallet.fromMnemonic(mnemonic).connect(provider);
+  const wallet = ethers.Wallet.fromMnemonic(mnemonic).connect(provider);
 
-  it("should test ethers.js", async() => {
-    let tx = await wallet.sendTransaction({
+  it("ether.js transaction hash matches ganache transaction hash", async() => {
+    const transaction = {
       to: "0x88a5C2d9919e46F883EB62F7b8Dd9d0CC45bc290",
-      value: 1
-    });
-    assert(tx != null);
+      gasPrice: 2000000,
+      gasLimit: 21000,
+      value: 1,
+      nonce: 0,
+      chainId: Date.now()
+    };
+    const signedTransaction = await wallet.sign(transaction);
+    const ethersTxHash = ethers.utils.keccak256(signedTransaction);
+
+    const txHash = await provider.sendTransaction(signedTransaction);
+    assert.deepStrictEqual(txHash.hash, ethersTxHash, "Transaction hash doesn't match etherjs signed transaction hash");
   });
 });

@@ -41,10 +41,11 @@
     "levelup": "3.1.1",
     "lodash": "4.17.10",
     "merkle-patricia-tree": "2.3.1",
+    "rlp": "2.1.0",
     "seedrandom": "2.4.4",
+    "source-map-support": "0.5.9",
     "tmp": "0.0.33",
     "web3-provider-engine": "14.1.0",
-    "source-map-support": "0.5.9",
     "websocket": "1.0.26"
   },
   "devDependencies": {
