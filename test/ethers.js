@@ -4,21 +4,31 @@ var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
 
-const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
-
 describe("ethers", async(done) => {
-  const g = Ganache.provider({ mnemonic });
+  const secretKey = "4646464646464646464646464646464646464646464646464646464646464646";
+  const g = Ganache.provider({
+    accounts: [
+      {
+        secretKey: "0x" + secretKey,
+        balance: 1000000000000000000000
+      }
+    ]
+  });
+  const privateKey = Buffer.from(secretKey, "hex");
+  const wallet = new ethers.Wallet(privateKey);
   const provider = new ethers.providers.Web3Provider(g);
-  const wallet = ethers.Wallet.fromMnemonic(mnemonic).connect(provider);
 
   it("ether.js transaction hash matches ganache transaction hash", async() => {
+    // This tx mostly matches EIP-155 example except for the nonce
+    // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
     const transaction = {
-      to: "0x88a5C2d9919e46F883EB62F7b8Dd9d0CC45bc290",
-      gasPrice: 2000000,
-      gasLimit: 21000,
-      value: 1,
       nonce: 0,
-      chainId: Date.now()
+      to: "0x3535353535353535353535353535353535353535",
+      gasPrice: 20 * 10 ** 9,
+      gasLimit: 21000,
+      value: 10 ** 18,
+      data: "",
+      chainId: 1 // EIP 155 chainId - mainnet: 1, ropsten: 3
     };
     const signedTransaction = await wallet.sign(transaction);
     const ethersTxHash = ethers.utils.keccak256(signedTransaction);
