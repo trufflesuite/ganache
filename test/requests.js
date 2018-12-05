@@ -1051,6 +1051,70 @@ const tests = function(web3) {
     });
   });
 
+  describe("eth_getTransactionByHash", function() {
+    it("should return nonce as a quantity datatype when requested via RPC method", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      let txHash = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: accounts[8],
+            to: accounts[9],
+            value: 0
+          }
+        ]
+      });
+
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [txHash.result]
+      });
+
+      assert.strictEqual(result.result.nonce, "0x0");
+    });
+
+    it("should return nonce as a number when requested via web3 method", async function() {
+      let txHash = await web3.eth.sendTransaction({
+        from: accounts[8],
+        to: accounts[9],
+        value: 0
+      });
+
+      let result = await web3.eth.getTransaction(txHash.transactionHash);
+
+      assert.strictEqual(result.nonce, 1);
+    });
+
+    it("should return input as an unformatted datatype when requested via RPC method", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      let txHash = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: accounts[8],
+            to: accounts[9],
+            value: 0
+          }
+        ]
+      });
+
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [txHash.result]
+      });
+
+      assert.strictEqual(result.result.input, "0x");
+    });
+  });
+
   describe("eth_compileSolidity (not supported)", function() {
     this.timeout(5000);
 
