@@ -17,7 +17,7 @@ describe("Transaction", () => {
     };
 
     const tx = new Transaction(txParams);
-    // 'Signing data
+    // Signing data
     assert.strictEqual(
       tx.serialize().toString("hex"),
       "ec098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a764000080018080",
@@ -33,6 +33,7 @@ describe("Transaction", () => {
     );
 
     tx.sign(privateKey);
+    // Signed Tx
     assert.strictEqual(
       tx.serialize().toString("hex"),
       // eslint-disable-next-line max-len
@@ -40,6 +41,7 @@ describe("Transaction", () => {
       "Signed TX is incorrect"
     );
 
+    // Tx hash
     assert.strictEqual(
       tx.hash().toString("hex"),
       "33469b22e9f636356c4160a87eb19df52b7412e8eac32a4a55ffe88ea8350788",
