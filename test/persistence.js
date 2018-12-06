@@ -71,7 +71,7 @@ const runTests = function(providerInit) {
       assert(res === 1);
       // Close the first provider now that we've gotten where we need to be.
       // Note: we specifically close the provider so we can read from the same db.
-      provider.close(() => true);
+      provider.close(() => null); // pass dummy fn to satisfy callback expectation
     });
 
     it("should reopen the provider", function() {
@@ -103,6 +103,56 @@ const runTests = function(providerInit) {
     });
   });
 };
+
+const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
+  describe("Verify previous db compatibility", function() {
+    const web3 = new Web3();
+    const memdbWeb3 = new Web3();
+    let accounts;
+    let tx;
+    let provider;
+    let memProvider;
+
+    before("init provider", function() {
+      regressionProviderInit(function(p) {
+        provider = p;
+        web3.setProvider(p);
+      });
+      memdbProviderInit(function(p) {
+        memProvider = p;
+        memdbWeb3.setProvider(p);
+      });
+    });
+
+    before("Gather accounts", async function() {
+      this.timeout(5000);
+      accounts = await web3.eth.getAccounts();
+    });
+
+    it("should have identical accounts (same mnemonic)", async function() {
+      const memAccounts = await web3.eth.getAccounts();
+      assert.strictEqual(accounts, memAccounts, "accounts should be equal on both chains");
+    });
+
+    it("should be on block height 2 (db store)", async function() {
+      this.timeout(5000);
+      const result = await web3.eth.getBlockNumber();
+      assert(result === 2);
+    });
+    
+    it("should be on block height 0 (mem store)", async function() {
+      this.timeout(5000);
+      const result = await memdbWeb3.eth.getBlockNumber();
+      assert(result === 0);
+    });
+
+    it("should be on block height 2 (mem store)", async function() {
+      this.timeout(5000);
+      const result = await memdbWeb3.eth.getBlockNumber();
+      assert(result === 2);
+    });
+  });
+}
 
 var mnemonic = "debris electric learn dove warrior grow pistol carry either curve radio hidden";
 
@@ -136,4 +186,33 @@ describe("Custom DB", function() {
   };
 
   runTests(providerInit);
+});
+
+describe.only("Regression test DB", function() {
+  const memdb = memdown();
+  const db = `${__dirname}/testdb`;
+  const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+  const i = "1337";
+  const time = new Date("2009-01-03T18:15:05+00:00");
+  const b = 1000;
+
+  // initialize a custom persistence provider
+  const dboptions = {
+    db,
+    mnemonic,
+    i,
+    time,
+    b
+  };
+  const memdbOptions = Object.assign({}, dboptions, {db: memdb});
+
+  const providerInitGen = function (opts) {
+    return function(cb) {
+      provider = Ganache.provider(opts);
+      cb(provider);
+    };
+  }
+  
+
+  runRegressionTests(providerInitGen(dboptions), providerInitGen(memdbOptions));
 });
