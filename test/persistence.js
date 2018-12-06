@@ -14,7 +14,6 @@ process.removeAllListeners("uncaughtException");
 
 const source = readFileSync("./test/Example.sol", { encoding: "utf8" });
 const result = compile(source, 1);
-let provider;
 
 // Note: Certain properties of the following contract data are hardcoded to
 // maintain repeatable tests. If you significantly change the solidity code,
@@ -109,17 +108,13 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     const web3 = new Web3();
     const memdbWeb3 = new Web3();
     let accounts;
-    let tx;
-    let provider;
-    let memProvider;
+    // let tx;
 
     before("init provider", function() {
       regressionProviderInit(function(p) {
-        provider = p;
         web3.setProvider(p);
       });
       memdbProviderInit(function(p) {
-        memProvider = p;
         memdbWeb3.setProvider(p);
       });
     });
@@ -130,8 +125,9 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     });
 
     it("should have identical accounts (same mnemonic)", async function() {
-      const memAccounts = await web3.eth.getAccounts();
-      assert.strictEqual(accounts, memAccounts, "accounts should be equal on both chains");
+      const memAccounts = await memdbWeb3.eth.getAccounts();
+      const str = JSON.stringify;
+      assert.strictEqual(str(accounts), str(memAccounts), "accounts should be equal on both chains");
     });
 
     it("should be on block height 2 (db store)", async function() {
@@ -139,7 +135,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       const result = await web3.eth.getBlockNumber();
       assert(result === 2);
     });
-    
+
     it("should be on block height 0 (mem store)", async function() {
       this.timeout(5000);
       const result = await memdbWeb3.eth.getBlockNumber();
@@ -152,67 +148,69 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       assert(result === 2);
     });
   });
-}
+};
 
 var mnemonic = "debris electric learn dove warrior grow pistol carry either curve radio hidden";
 
-describe("Default DB", function() {
+const providerInitGen = function(opts) {
+  return function(cb) {
+    const provider = Ganache.provider(opts);
+    cb(provider);
+  };
+};
+
+describe.only("Default DB", function() {
   const dbPath = temp.mkdirSync("testrpc-db-");
   // initialize a persistent provider
 
-  const providerInit = function(cb) {
-    provider = Ganache.provider({
-      db_path: dbPath,
-      mnemonic
-    });
-
-    cb(provider);
-  };
+  const providerInit = providerInitGen({
+    db_path: dbPath,
+    mnemonic
+  });
 
   runTests(providerInit);
 });
 
-describe("Custom DB", function() {
+describe.only("Custom DB", function() {
   const db = memdown();
 
   // initialize a custom persistence provider
-  const providerInit = function(cb) {
-    provider = Ganache.provider({
-      db,
-      mnemonic
-    });
-
-    cb(provider);
-  };
+  const providerInit = providerInitGen({
+    db,
+    mnemonic
+  });
 
   runTests(providerInit);
 });
 
-describe.only("Regression test DB", function() {
-  const memdb = memdown();
-  const db = `${__dirname}/testdb`;
+describe("Regression test DB", function() {
+  // Don't change these options, we need these to match the saved chain in ./test/testdb
+  const db = memdown();
+  const path = `${__dirname}/testdb`;
   const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
-  const i = "1337";
   const time = new Date("2009-01-03T18:15:05+00:00");
-  const b = 1000;
+  const i = "1337";
+  const b = 1000; // An abundantly sufficient block time used with evm_mine for deterministic results
 
   // initialize a custom persistence provider
-  const dboptions = {
+  const options = {
+    db_path: path,
+    mnemonic,
+    i,
+    time,
+    b
+  };
+  const memdbOptions = {
     db,
     mnemonic,
     i,
     time,
     b
   };
-  const memdbOptions = Object.assign({}, dboptions, {db: memdb});
+  // const memdbOptions = Object.assign({}, dboptions, {db: memdb});
 
-  const providerInitGen = function (opts) {
-    return function(cb) {
-      provider = Ganache.provider(opts);
-      cb(provider);
-    };
-  }
-  
+  const dbProviderInit = providerInitGen(options);
+  const memdbProviderInit = providerInitGen(memdbOptions);
 
-  runRegressionTests(providerInitGen(dboptions), providerInitGen(memdbOptions));
+  runRegressionTests(dbProviderInit, memdbProviderInit);
 });
