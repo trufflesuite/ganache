@@ -9,7 +9,6 @@ const { join } = require("path");
 const assert = require("assert");
 const Web3 = require("web3");
 
-// const Transaction = require("ethereumjs-tx");
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
@@ -67,26 +66,24 @@ const runTests = function(providerInit) {
     });
 
     it("should have block height 1", async function() {
-      this.timeout(5000);
       let res = await web3.eth.getBlockNumber();
       assert(res === 1);
       // Close the first provider now that we've gotten where we need to be.
       // Note: we specifically close the provider so we can read from the same db.
       provider.close(() => null); // pass dummy fn to satisfy callback expectation
-    });
+    }).timeout(5000);
 
     it("should reopen the provider", function() {
       providerInit(function(p) {
         provider = p;
         web3.setProvider(provider);
       });
-    });
+    }).slow(200);
 
     it("should still be on block height 1", async function() {
-      this.timeout(5000);
       const result = await web3.eth.getBlockNumber();
       assert(result === 1);
-    });
+    }).timeout(5000);
 
     it("should still have block data for first block", async function() {
       await web3.eth.getBlock(1);
@@ -115,7 +112,6 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     let blockHeight = 2;
     let memdbBlockHeight = 0;
     let accounts;
-    // let tx;
 
     before("init provider", function() {
       regressionProviderInit(function(p) {
@@ -154,7 +150,6 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
         value: 1
       };
       let receipt = memdbWeb3.eth.sendTransaction(txOptions);
-      // send("evm_mine", )
       assert(receipt);
       assert.strictEqual(receipt.blockNumber, ++memdbBlockHeight);
       const receipt2 = await memdbWeb3.eth.sendTransaction(txOptions);
@@ -205,8 +200,8 @@ const providerInitGen = function(opts) {
 
 describe("Default DB", function() {
   const dbPath = temp.mkdirSync("testrpc-db-");
-  // initialize a persistent provider
 
+  // initialize a persistent provider
   const providerInit = providerInitGen({
     db_path: dbPath,
     mnemonic
