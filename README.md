@@ -41,6 +41,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 
 * `"accounts"`: `Array` of `Object`'s. Each object should have a balance key with a hexadecimal value. The key `secretKey` can also be specified, which represents the account's private key. If no `secretKey`, the address is auto-generated with the given balance. If specified, the key is used to determine the account's address.
 * `"debug"`: `boolean` - Output VM opcodes for debugging
+* `"blockTime"`: `number` - Specify blockTime in seconds for automatic mining. If you don't specify this flag, ganache will instantly mine a new block for every transaction. Using the `blockTime` option is discouraged unless you have tests which require a specific mining interval.
 * `"logger"`: `Object` - Object, like `console`, that implements a `log()` function.
 * `"mnemonic"`: Use a specific HD wallet mnemonic to generate initial addresses.
 * `"port"`: Port number to listen on when running as a server.
