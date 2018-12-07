@@ -171,26 +171,25 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       blocks.push(await web3.eth.getBlock(0, true));
       blocks.push(await web3.eth.getBlock(1, true));
       blocks.push(await web3.eth.getBlock(2, true));
-      memdbBlocks.push(await web3.eth.getBlock(0, true));
-      memdbBlocks.push(await web3.eth.getBlock(1, true));
-      memdbBlocks.push(await web3.eth.getBlock(2, true));
-      // assert.strictEqual(str(block0), str(memDbBlock0));
-      // assert.strictEqual(str(block1), str(memDbBlock1));
-      // assert.strictEqual(str(block2), str(memDbBlock2));
+      memdbBlocks.push(await memdbWeb3.eth.getBlock(0, true));
+      memdbBlocks.push(await memdbWeb3.eth.getBlock(1, true));
+      memdbBlocks.push(await memdbWeb3.eth.getBlock(2, true));
+      for (let i = 0; i < blocks.length; i++) {
+        assert.strictEqual(str(blocks[i]), str(memdbBlocks[i]));
+      }
     });
 
     it("should produce identical transactions (persitant db - memdb)", async function() {
-      // const block1 = await web3.eth.getBlock(1);
-      // const block2 = await web3.eth.getBlock(2);
-      const block2 = await memdbWeb3.eth.getBlock(2, false);
-      const block1 = await memdbWeb3.eth.getBlock(1, false);
-      const tx1 = await web3.eth.getTransaction(block1.transactions[0]);
-      const tx2 = await web3.eth.getTransaction(block2.transactions[0]);
-      const memDbTx1 = await memdbWeb3.eth.getTransaction(block1.transactions[0]);
-      const memDbTx2 = await memdbWeb3.eth.getTransaction(block2.transactions[0]);
-      assert(tx1 && tx2 && memDbTx1 && memDbTx2);
-      assert.strictEqual(str(tx1), str(memDbTx1));
-      assert.strictEqual(str(tx2), str(memDbTx2));
+      // Start at block 1 to skip genesis block
+      for (let i = 1; i < blocks.length; i++) {
+        const block = await memdbWeb3.eth.getBlock(i, false);
+        for (let j = 0; j < block.transactions.length; j++) {
+          const tx = await web3.eth.getTransaction(block.transactions[j]);
+          const memDbTx = await memdbWeb3.eth.getTransaction(block.transactions[j]);
+          assert(tx && memDbTx);
+          assert.strictEqual(str(tx), str(memDbTx));
+        }
+      }
     });
   });
 };
@@ -228,7 +227,7 @@ describe("Custom DB", function() {
   runTests(providerInit);
 });
 
-describe("Regression test DB", function() {
+describe.skip("Regression test DB", function() {
   // Don't change these options, we need these to match the saved chain in ./test/testdb
   const db = memdown();
   const dbPath = join(__dirname, "/testdb");
