@@ -9,6 +9,7 @@ declare module 'ganache-core' {
         secretKey?: string,
       }[]
       debug: boolean,
+      blockTime: number,
       logger: {
         log: (message?: any, ...optionalParams: any[]) => void
       },
