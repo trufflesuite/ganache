@@ -7,6 +7,7 @@ const temp = require("temp").track();
 const { readFileSync } = require("fs");
 const { compile } = require("solc");
 const memdown = require("memdown");
+const { join } = require("path");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -108,6 +109,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     const web3 = new Web3();
     const memdbWeb3 = new Web3();
     let accounts;
+    const str = JSON.stringify;
     // let tx;
 
     before("init provider", function() {
@@ -126,26 +128,65 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
 
     it("should have identical accounts (same mnemonic)", async function() {
       const memAccounts = await memdbWeb3.eth.getAccounts();
-      const str = JSON.stringify;
       assert.strictEqual(str(accounts), str(memAccounts), "accounts should be equal on both chains");
     });
 
     it("should be on block height 2 (db store)", async function() {
-      this.timeout(5000);
       const result = await web3.eth.getBlockNumber();
       assert(result === 2);
     });
 
     it("should be on block height 0 (mem store)", async function() {
-      this.timeout(5000);
       const result = await memdbWeb3.eth.getBlockNumber();
       assert(result === 0);
     });
 
+    it("should issue/accept two tx's (mem store)", async function() {
+      // Don't change the details of this tx - it's needed to deterministically match a manually created
+      // DB with prior versions of ganache-core
+      let receipt = await memdbWeb3.eth.sendTransaction({
+        from: accounts[0],
+        to: accounts[1],
+        value: 1
+      });
+      assert(receipt);
+      const receipt2 = await memdbWeb3.eth.sendTransaction({
+        from: accounts[0],
+        to: accounts[1],
+        value: 1
+      });
+      assert(receipt2);
+    });
+
     it("should be on block height 2 (mem store)", async function() {
-      this.timeout(5000);
       const result = await memdbWeb3.eth.getBlockNumber();
       assert(result === 2);
+    });
+
+    it("should produce identical blocks (persitant db - memdb)", async function() {
+      const block0 = await web3.eth.getBlock(0, true);
+      const block1 = await web3.eth.getBlock(1, true);
+      const block2 = await web3.eth.getBlock(2, true);
+      const memDbBlock0 = await memdbWeb3.eth.getBlock(0, true);
+      const memDbBlock1 = await memdbWeb3.eth.getBlock(1, true);
+      const memDbBlock2 = await memdbWeb3.eth.getBlock(2, true);
+      assert.strictEqual(str(block0), str(memDbBlock0));
+      assert.strictEqual(str(block1), str(memDbBlock1));
+      assert.strictEqual(str(block2), str(memDbBlock2));
+    });
+
+    it("should produce identical transactions (persitant db - memdb)", async function() {
+      // const block1 = await web3.eth.getBlock(1);
+      // const block2 = await web3.eth.getBlock(2);
+      const block2 = await memdbWeb3.eth.getBlock(2, false);
+      const block1 = await memdbWeb3.eth.getBlock(1, false);
+      const tx1 = await web3.eth.getTransaction(block1.transactions[0]);
+      const tx2 = await web3.eth.getTransaction(block2.transactions[0]);
+      const memDbTx1 = await memdbWeb3.eth.getTransaction(block1.transactions[0]);
+      const memDbTx2 = await memdbWeb3.eth.getTransaction(block2.transactions[0]);
+      assert(tx1 && tx2 && memDbTx1 && memDbTx2);
+      assert.strictEqual(str(tx1), str(memDbTx1));
+      assert.strictEqual(str(tx2), str(memDbTx2));
     });
   });
 };
@@ -186,30 +227,18 @@ describe("Custom DB", function() {
 describe("Regression test DB", function() {
   // Don't change these options, we need these to match the saved chain in ./test/testdb
   const db = memdown();
-  const path = `${__dirname}/testdb`;
+  const dbPath = join(__dirname, "/testdb");
   const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
   const time = new Date("2009-01-03T18:15:05+00:00");
   const i = "1337";
   const b = 1000; // An abundantly sufficient block time used with evm_mine for deterministic results
 
   // initialize a custom persistence provider
-  const options = {
-    db_path: path,
-    mnemonic,
-    i,
-    time,
-    b
-  };
-  const memdbOptions = {
-    db,
-    mnemonic,
-    i,
-    time,
-    b
-  };
-  // const memdbOptions = Object.assign({}, dboptions, {db: memdb});
+  const options = { mnemonic, i, time, b };
+  const dbOptions = Object.assign({}, options, { db_path: dbPath });
+  const memdbOptions = Object.assign({}, options, { db });
 
-  const dbProviderInit = providerInitGen(options);
+  const dbProviderInit = providerInitGen(dbOptions);
   const memdbProviderInit = providerInitGen(memdbOptions);
 
   runRegressionTests(dbProviderInit, memdbProviderInit);
