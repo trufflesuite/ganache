@@ -41,7 +41,7 @@ describe("ethers", async(done) => {
     // This tx mostly matches EIP-155 example except for the nonce and chainId
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
     const transaction = {
-      nonce: 0,
+      nonce: 1,
       to: "0x3535353535353535353535353535353535353535",
       gasPrice: 20 * 10 ** 9,
       gasLimit: 21000,
