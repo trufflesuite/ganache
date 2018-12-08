@@ -1,6 +1,7 @@
 const Web3 = require("web3");
 const Web3WsProvider = require("web3-providers-ws");
 const Transaction = require("../lib/utils/transaction");
+const BlockHeader = require("ethereumjs-block/header");
 const utils = require("ethereumjs-util");
 const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
@@ -198,6 +199,28 @@ const tests = function(web3) {
 
       assert.strictEqual(block.transactions.length, 1, "Latest block should have one transaction");
       assert.strictEqual(block.transactions[0], txHash, "Transaction hashes don't match");
+    });
+
+    it("should return correct block hash", async function() {
+      const block = await web3.eth.getBlock("latest", true);
+      const header = new BlockHeader({
+        parentHash: block.parentHash,
+        uncleHash: block.sha3Uncles,
+        coinbase: block.miner,
+        stateRoot: block.stateRoot,
+        transactionsTrie: block.transactionsRoot,
+        receiptTrie: block.receiptsRoot,
+        bloom: block.logsBloom,
+        difficulty: parseInt(block.difficulty, 10),
+        number: block.number,
+        gasLimit: block.gasLimit,
+        gasUsed: block.gasUsed,
+        timestamp: block.timestamp,
+        extraData: block.extraData,
+        mixHash: block.mixHash,
+        nonce: block.nonce
+      });
+      assert.strictEqual(block.hash, "0x" + header.hash().toString("hex"), "Block hash matches computed hash");
     });
   });
 
