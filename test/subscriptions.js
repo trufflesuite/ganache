@@ -2,18 +2,11 @@ const assert = require("assert");
 // const Ganache = require(process.env.TEST_BUILD
 //   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
 //   : "../index.js");
-// const pify = require("pify");
-// const { readFileSync } = require("fs");
-// const { compileAndDeploy } = require("./helpers/contracts");
-// const CONTRACTNAME = "Example";
+const pify = require("pify");
 const PORT = 8545;
 const HTTPADDRESS = "http://127.0.0.1:" + PORT;
 // const WSADDRESS = "ws://127.0.0.1:" + PORT;
 // const to = require("../lib/utils/to");
-
-// const getJSON = function(relativePath) {
-//   return JSON.parse(readFileSync(`${__dirname}/${relativePath}`).toString());
-// };
 
 const tests = function(web3, newWeb3) {
   let accounts;
@@ -80,12 +73,6 @@ const tests = function(web3, newWeb3) {
   });
 };
 
-// const logger = {
-//   log: function(message) {
-//     // console.log(message);
-//   }
-// };
-
 describe.skip("WebSockets Server:", function() {
   const Web3 = require("web3");
   const web3 = new Web3(new Web3.providers.HttpProvider(HTTPADDRESS));
@@ -104,3 +91,12 @@ describe.skip("WebSockets Server:", function() {
     }
   });
 });
+
+const getSend = provider => (method = "", ...params) => {
+  return pify(provider.send.bind(provider))({
+    id: `${new Date().getTime()}`,
+    jsonrpc: "2.0",
+    method,
+    params: [...params]
+  });
+};
