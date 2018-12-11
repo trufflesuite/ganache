@@ -1,6 +1,7 @@
 const Web3 = require("web3");
+const BN = Web3.utils.BN;
 const Web3WsProvider = require("web3-providers-ws");
-const Transaction = require("ethereumjs-tx");
+const Transaction = require("../lib/utils/transaction");
 const BlockHeader = require("ethereumjs-block/header");
 const utils = require("ethereumjs-util");
 const assert = require("assert");
@@ -442,10 +443,9 @@ const tests = function(web3) {
         await web3.eth.sendTransaction(transaction);
         assert.fail("sendTransaction promiEvent should reject");
       } catch (err) {
-        assert(
-          err.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0") >= 0,
-          `Incorrect error message: ${err.message}`
-        );
+        const msg = "the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0";
+        const correctFailureMessage = err.message.indexOf(msg) !== -1;
+        assert(correctFailureMessage, `Incorrect error message: ${err.message}`);
       }
     });
 
@@ -526,6 +526,23 @@ const tests = function(web3) {
       const result = await web3.eth.sendTransaction(transaction);
       assert.notDeepStrictEqual(result, null, "Tx should be successful.");
     });
+
+    it("should succeed with a gasPrice of 0", async function() {
+      const transaction = {
+        value: "0x1",
+        gasLimit: "0x5208",
+        gasPrice: "0x0",
+        from: accounts[5],
+        to: accounts[1]
+      };
+
+      // the account balance should be 1 wei less then when the test started
+      // gas should have been free
+      const balanceStart = new BN(await web3.eth.getBalance(accounts[5]));
+      await web3.eth.sendTransaction(transaction);
+      const balanceEnd = new BN(await web3.eth.getBalance(accounts[5]));
+      assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
+    });
   });
 
   describe("eth_getTransactionReceipt", function() {
@@ -558,7 +575,9 @@ const tests = function(web3) {
       transaction.sign(secretKeyBuffer);
 
       try {
-        await web3.eth.sendSignedTransaction(transaction.serialize());
+        const tx = transaction.serialize();
+
+        await web3.eth.sendSignedTransaction(tx);
         assert.fail("sendSignedTransaction promiEvent should reject");
       } catch (err) {
         const msg = "the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 0";
@@ -642,7 +661,7 @@ const tests = function(web3) {
       transaction.sign(secretKeyBuffer);
 
       const result = await web3.eth.sendSignedTransaction(transaction.serialize());
-      assert.strictEqual(result.transactionHash, to.txHash(transaction));
+      assert.strictEqual(result.transactionHash, to.hex(transaction.hash()));
     });
 
     it("should allow a tx to contain data when sent to an external (personal) address", async function() {
@@ -659,6 +678,27 @@ const tests = function(web3) {
 
       const receipt = await web3.eth.sendSignedTransaction(transaction.serialize());
       assert.strictEqual(receipt.status, true, "Tx should be successful.");
+    });
+
+    it("should succeed with a gasPrice of 0", async function() {
+      const transaction = new Transaction({
+        value: "0x1",
+        gasLimit: "0x5208",
+        gasPrice: "0x0",
+        from: accounts[5],
+        to: accounts[1],
+        nonce: "0x1"
+      });
+
+      const secretKeyBuffer = Buffer.from(secretKeys[5].substr(2), "hex");
+      transaction.sign(secretKeyBuffer);
+
+      // the account balance should be 1 wei less then when the test started
+      // gas should have been free
+      const balanceStart = new BN(await web3.eth.getBalance(accounts[5]));
+      await web3.eth.sendSignedTransaction(transaction.serialize());
+      const balanceEnd = new BN(await web3.eth.getBalance(accounts[5]));
+      assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
     });
   });
 
@@ -1312,8 +1352,7 @@ describe("WebSockets Server:", function() {
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
       logger: logger,
-      seed: "1337",
-      verbose: true
+      seed: "1337"
       // so that the runtime errors on call test passes
     });
     await pify(server.listen)(port);
