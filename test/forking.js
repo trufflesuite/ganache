@@ -7,6 +7,7 @@ var Ganache = require(process.env.TEST_BUILD
 var fs = require("fs");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
+var async = require("async");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -95,68 +96,112 @@ describe("Forking", function() {
     done();
   });
 
-  before("Gather forked accounts", async function() {
+  before("Gather forked accounts", function(done) {
     this.timeout(5000);
-    forkedAccounts = await forkedWeb3.eth.getAccounts();
+    forkedWeb3.eth.getAccounts(function(err, f) {
+      if (err) {
+        return done(err);
+      }
+      forkedAccounts = f;
+      done();
+    });
   });
 
-  before("Deploy initial contracts", async function() {
-    let receipt = await forkedWeb3.eth.sendTransaction({
-      from: forkedAccounts[0],
-      data: contract.binary,
-      gas: 3141592
-    });
+  before("Deploy initial contracts", function(done) {
+    forkedWeb3.eth.sendTransaction(
+      {
+        from: forkedAccounts[0],
+        data: contract.binary,
+        gas: 3141592
+      },
+      function(err, tx) {
+        if (err) {
+          return done(err);
+        }
 
-    // Save this for a later test.
-    initialDeployTransactionHash = receipt.transactionHash;
+        // Save this for a later test.
+        initialDeployTransactionHash = tx;
 
-    contractAddress = receipt.contractAddress;
+        forkedWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
+          if (err) {
+            return done(err);
+          }
 
-    let code = await forkedWeb3.eth.getCode(contractAddress);
+          contractAddress = receipt.contractAddress;
 
-    // Ensure there's *something* there.
-    assert.notStrictEqual(code, null);
-    assert.notStrictEqual(code, "0x");
-    assert.notStrictEqual(code, "0x0");
+          forkedWeb3.eth.getCode(contractAddress, function(err, code) {
+            if (err) {
+              return done(err);
+            }
 
-    // Deploy a second one, which we won't use often.
-    forkedWeb3.eth.sendTransaction({
-      from: forkedAccounts[0],
-      data: contract.binary,
-      gas: 3141592
-    });
+            // Ensure there's *something* there.
+            assert.notStrictEqual(code, null);
+            assert.notStrictEqual(code, "0x");
+            assert.notStrictEqual(code, "0x0");
 
-    secondContractAddress = receipt.contractAddress;
+            // Deploy a second one, which we won't use often.
+            forkedWeb3.eth.sendTransaction(
+              {
+                from: forkedAccounts[0],
+                data: contract.binary,
+                gas: 3141592
+              },
+              function(err, tx) {
+                if (err) {
+                  return done(err);
+                }
+                forkedWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  secondContractAddress = receipt.contractAddress;
+                  done();
+                });
+              }
+            );
+          });
+        });
+      }
+    );
   });
 
-  before("Make a transaction on the forked chain that produces a log", async function() {
+  before("Make a transaction on the forked chain that produces a log", function(done) {
     this.timeout(10000);
 
     var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
     var event = forkedExample.events.ValueSet({});
 
-    let p = new Promise(async function(resolve, reject) {
-      event.once("data", function(logs) {
-        resolve();
-      });
+    event.once("data", function(logs) {
+      done();
     });
 
-    await forkedExample.methods.setValue(7).send({ from: forkedAccounts[0] });
-    await p;
+    forkedExample.methods.setValue(7).send({ from: forkedAccounts[0] }, function(err, tx) {
+      if (err) {
+        return done(err);
+      }
+    });
   });
 
-  before("Get initial balance and nonce", async function() {
-    let balance = await forkedWeb3.eth.getBalance(forkedAccounts[0]);
-    let nonce = await forkedWeb3.eth.getTransactionCount(forkedAccounts[0]);
-
-    initialFallbackAccountState = {
-      balance,
-      nonce: to.number(nonce)
-    };
+  before("Get initial balance and nonce", function(done) {
+    async.parallel(
+      {
+        balance: forkedWeb3.eth.getBalance.bind(forkedWeb3.eth, forkedAccounts[0]),
+        nonce: forkedWeb3.eth.getTransactionCount.bind(forkedWeb3.eth, forkedAccounts[0])
+      },
+      function(err, result) {
+        if (err) {
+          return done(err);
+        }
+        initialFallbackAccountState = result;
+        initialFallbackAccountState.nonce = to.number(initialFallbackAccountState.nonce);
+        done();
+      }
+    );
   });
 
-  before("Set main web3 provider, forking from forked chain at this point", async function() {
+  before("Set main web3 provider, forking from forked chain at this point", function(done) {
     mainWeb3.setProvider(
       Ganache.provider({
         fork: forkedTargetUrl.replace("ws", "http"),
@@ -166,72 +211,131 @@ describe("Forking", function() {
       })
     );
 
-    forkBlockNumber = await forkedWeb3.eth.getBlockNumber();
+    forkedWeb3.eth.getBlockNumber(function(err, number) {
+      if (err) {
+        return done(err);
+      }
+      forkBlockNumber = number;
+      done();
+    });
   });
 
-  before("Gather main accounts", async function() {
+  before("Gather main accounts", function(done) {
     this.timeout(5000);
-    mainAccounts = await mainWeb3.eth.getAccounts();
+    mainWeb3.eth.getAccounts(function(err, m) {
+      if (err) {
+        return done(err);
+      }
+      mainAccounts = m;
+      done();
+    });
   });
 
-  it("should fetch a contract from the forked provider via the main provider", async function() {
-    let mainCode = await mainWeb3.eth.getCode(contractAddress);
-    // Ensure there's *something* there.
-    assert.notStrictEqual(mainCode, null);
-    assert.notStrictEqual(mainCode, "0x");
-    assert.notStrictEqual(mainCode, "0x0");
+  it("should fetch a contract from the forked provider via the main provider", function(done) {
+    mainWeb3.eth.getCode(contractAddress, function(err, mainCode) {
+      if (err) {
+        return done(err);
+      }
 
-    // Now make sure it matches exactly.
-    let forkedCode = await forkedWeb3.eth.getCode(contractAddress);
+      // Ensure there's *something* there.
+      assert.notStrictEqual(mainCode, null);
+      assert.notStrictEqual(mainCode, "0x");
+      assert.notStrictEqual(mainCode, "0x0");
 
-    assert.strictEqual(mainCode, forkedCode);
+      // Now make sure it matches exactly.
+      forkedWeb3.eth.getCode(contractAddress, function(err, forkedCode) {
+        if (err) {
+          return done(err);
+        }
+
+        assert.strictEqual(mainCode, forkedCode);
+        done();
+      });
+    });
   });
 
-  it("should get the balance of an address in the forked provider via the main provider", async function() {
+  it("should get the balance of an address in the forked provider via the main provider", function(done) {
     // Assert preconditions
     var firstForkedAccount = forkedAccounts[0];
     assert(mainAccounts.indexOf(firstForkedAccount) < 0);
 
     // Now for the real test: Get the balance of a forked account through the main provider.
-    let balance = await mainWeb3.eth.getBalance(firstForkedAccount);
+    mainWeb3.eth.getBalance(firstForkedAccount, function(err, balance) {
+      if (err) {
+        return done(err);
+      }
 
-    // We don't assert the exact balance as transactions cost eth
-    assert(balance > 999999);
+      // We don't assert the exact balance as transactions cost eth
+      assert(balance > 999999);
+      done();
+    });
   });
 
-  it("should get storage values on the forked provider via the main provider", async function() {
-    let result = await mainWeb3.eth.getStorageAt(contractAddress, contract.position_of_value);
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+  it("should get storage values on the forked provider via the main provider", function(done) {
+    mainWeb3.eth.getStorageAt(contractAddress, contract.position_of_value, function(err, result) {
+      if (err) {
+        return done(err);
+      }
+      assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+      done();
+    });
   });
 
-  it("should execute calls against a contract on the forked provider via the main provider", async function() {
+  it("should execute calls against a contract on the forked provider via the main provider", function(done) {
     var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
-    let result = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+    example.methods.value().call({ from: mainAccounts[0] }, function(err, result) {
+      if (err) {
+        return done(err);
+      }
+      assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
 
-    // Make the call again to ensure caches updated and the call still works.
-    result = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+      // Make the call again to ensure caches updated and the call still works.
+      example.methods.value().call({ from: mainAccounts[0] }, function(err, result) {
+        if (err) {
+          return done(err);
+        }
+        assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+        done(err);
+      });
+    });
   });
 
-  it("should make a transaction on the main provider while not transacting on the forked provider", async function() {
+  it("should make a transaction on the main provider while not transacting on the forked provider", (done) => {
     var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
     var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
-    await example.methods.setValue(25).send({ from: mainAccounts[0] });
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!forkedExample._requestManager.provider) {
+      forkedExample._requestManager.setProvider(forkedWeb3.eth._provider);
+    }
 
-    // It insta-mines, so we can make a call directly after.
-    let result = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 25);
+    example.methods.setValue(25).send({ from: mainAccounts[0] }, function(err) {
+      if (err) {
+        return done(err);
+      }
 
-    // Now call back to the forked to ensure it's value stayed 5
-    result = await forkedExample.methods.value().call({ from: forkedAccounts[0] });
-    assert.strictEqual(forkedWeb3.utils.hexToNumber(result), 7);
+      // It insta-mines, so we can make a call directly after.
+      example.methods.value().call({ from: mainAccounts[0] }, function(err, result) {
+        if (err) {
+          return done(err);
+        }
+        assert.strictEqual(mainWeb3.utils.hexToNumber(result), 25);
+
+        // Now call back to the forked to ensure it's value stayed 5
+        forkedExample.methods.value().call({ from: forkedAccounts[0] }, function(err, result) {
+          if (err) {
+            return done(err);
+          }
+          assert.strictEqual(forkedWeb3.utils.hexToNumber(result), 7);
+          done();
+        });
+      });
+    });
   });
 
-  it("should ignore transactions on the forked chain after forked block", async function() {
+  it("should ignore continued transactions on the forked blockchain by pegging the forked block number", (done) => {
     // In this test, we're going to use the second contract address that we haven't
     // used previously. This ensures the data hasn't been cached on the main web3 trie
     // yet, and it will require it forked to the forked provider at a specific block.
@@ -241,20 +345,38 @@ describe("Forking", function() {
 
     var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), secondContractAddress);
 
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!forkedExample._requestManager.provider) {
+      forkedExample._requestManager.setProvider(forkedWeb3.eth._provider);
+    }
+
     // This transaction happens entirely on the forked chain after forking.
     // It should be ignored by the main chain.
-    await forkedExample.methods.setValue(800).send({ from: forkedAccounts[0] });
-    // Let's assert the value was set correctly.
-    let result = await forkedExample.methods.value().call({ from: forkedAccounts[0] });
-    assert.strictEqual(to.number(result), 800);
+    forkedExample.methods.setValue(800).send({ from: forkedAccounts[0] }, function(err, result) {
+      if (err) {
+        return done(err);
+      }
+      // Let's assert the value was set correctly.
+      forkedExample.methods.value().call({ from: forkedAccounts[0] }, function(err, result) {
+        if (err) {
+          return done(err);
+        }
+        assert.strictEqual(forkedWeb3.utils.hexToNumber(result), 800);
 
-    // Now lets check the value on the main chain. It shouldn't be 800.
-    result = await example.methods.value().call({ from: mainAccounts[0] });
+        // Now lets check the value on the main chain. It shouldn't be 800.
+        example.methods.value().call({ from: mainAccounts[0] }, function(err, result) {
+          if (err) {
+            return done(err);
+          }
 
-    assert.notStrictEqual(mainWeb3.utils.hexToNumber(result), 800);
+          assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
+          done();
+        });
+      });
+    });
   });
 
-  it("should maintain a block number that includes new blocks PLUS the existing chain", async function() {
+  it("should maintain a block number that includes new blocks PLUS the existing chain", function(done) {
     // Note: The main provider should be at block 5 at this test. Reasoning:
     // - The forked chain has an initial block, which is block 0.
     // - The forked chain performed a transaction that produced a log, resulting in block 1.
@@ -262,74 +384,120 @@ describe("Forking", function() {
     // - The main chain forked from there, creating its own initial block, block 4.
     // - Then the main chain performed a transaction, putting it at block 5.
 
-    let result = await mainWeb3.eth.getBlockNumber();
+    mainWeb3.eth.getBlockNumber(function(err, result) {
+      if (err) {
+        return done(err);
+      }
 
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
+      assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
 
-    // Now lets get a block that exists on the forked chain.
-    let mainBlock = await mainWeb3.eth.getBlock(0);
+      // Now lets get a block that exists on the forked chain.
+      mainWeb3.eth.getBlock(0, function(err, mainBlock) {
+        if (err) {
+          return done(err);
+        }
 
-    // And compare it to the forked chain's block
-    let forkedBlock = await forkedWeb3.eth.getBlock(0);
+        // And compare it to the forked chain's block
+        forkedWeb3.eth.getBlock(0, function(err, forkedBlock) {
+          if (err) {
+            return done(err);
+          }
 
-    // Block hashes should be the same.
-    assert.strictEqual(mainBlock.hash, forkedBlock.hash);
+          // Block hashes should be the same.
+          assert.strictEqual(mainBlock.hash, forkedBlock.hash);
 
-    // Now make sure we can get the block by hash as well.
-    let mainBlockByHash = await mainWeb3.eth.getBlock(mainBlock.hash);
+          // Now make sure we can get the block by hash as well.
+          mainWeb3.eth.getBlock(mainBlock.hash, function(err, mainBlockByHash) {
+            if (err) {
+              return done(err);
+            }
 
-    assert.strictEqual(mainBlock.hash, mainBlockByHash.hash);
+            assert.strictEqual(mainBlock.hash, mainBlockByHash.hash);
+            done();
+          });
+        });
+      });
+    });
   });
 
-  it("should have a genesis block whose parent is the last block from the forked provider", async function() {
-    let forkedBlock = await forkedWeb3.eth.getBlock(forkBlockNumber);
-    let parentHash = forkedBlock.hash;
+  it("should have a genesis block whose parent is the last block from the forked provider", function(done) {
+    forkedWeb3.eth.getBlock(forkBlockNumber, function(err, forkedBlock) {
+      if (err) {
+        return done(err);
+      }
 
-    let mainGenesisNumber = mainWeb3.utils.hexToNumber(forkBlockNumber) + 1;
-    let mainGenesis = await mainWeb3.eth.getBlock(mainGenesisNumber);
+      var parentHash = forkedBlock.hash;
 
-    assert.strictEqual(mainGenesis.parentHash, parentHash);
+      var mainGenesisNumber = mainWeb3.utils.hexToNumber(forkBlockNumber) + 1;
+      mainWeb3.eth.getBlock(mainGenesisNumber, function(err, mainGenesis) {
+        if (err) {
+          return done(err);
+        }
+
+        assert.strictEqual(mainGenesis.parentHash, parentHash);
+        done();
+      });
+    });
   });
 
   // Note: This test also puts a new contract on the forked chain, which is a good test.
   it(
     "should represent the block number correctly in the Oracle contract (oracle.blockhash0)," +
-    " providing forked block hash and number",
-    async function() {
+      " providing forked block hash and number",
+    function() {
       this.timeout(10000);
-      const oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
-      const solcResult = solc.compile(oracleSol);
-      const oracleOutput = solcResult.contracts[":Oracle"];
+      var oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
+      var solcResult = solc.compile(oracleSol);
+      var oracleOutput = solcResult.contracts[":Oracle"];
 
-      const contract = new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface));
-      const deployTxn = contract.deploy({ data: oracleOutput.bytecode });
-      const oracle = await deployTxn.send({ from: mainAccounts[0], gas: 3141592 });
-
-      const block = await mainWeb3.eth.getBlock(0);
-      const blockhash = await oracle.methods.blockhash0().call();
-      assert.strictEqual(blockhash, block.hash);
-
-      const expectedNumber = await mainWeb3.eth.getBlockNumber();
-
-      const number = await oracle.methods.currentBlock().call();
-      assert.strictEqual(to.number(number), expectedNumber + 1);
-
-      await oracle.methods.setCurrentBlock().send({ from: mainAccounts[0], gas: 3141592 });
-      const val = await oracle.methods.lastBlock().call({ from: mainAccounts[0] });
-      assert.strictEqual(to.number(val), expectedNumber + 1);
+      return new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface))
+        .deploy({ data: oracleOutput.bytecode })
+        .send({ from: mainAccounts[0], gas: 3141592 })
+        .then(function(oracle) {
+          // TODO: ugly workaround - not sure why this is necessary.
+          if (!oracle._requestManager.provider) {
+            oracle._requestManager.setProvider(mainWeb3.eth._provider);
+          }
+          return mainWeb3.eth
+            .getBlock(0)
+            .then(function(block) {
+              return oracle.methods
+                .blockhash0()
+                .call()
+                .then(function(blockhash) {
+                  assert.strictEqual(blockhash, block.hash);
+                  // Now check the block number.
+                  return mainWeb3.eth.getBlockNumber();
+                });
+            })
+            .then(function(expectedNumber) {
+              return oracle.methods
+                .currentBlock()
+                .call()
+                .then(function(number) {
+                  assert.strictEqual(to.number(number), expectedNumber + 1);
+                  return oracle.methods.setCurrentBlock().send({ from: mainAccounts[0], gas: 3141592 });
+                })
+                .then(function(tx) {
+                  return oracle.methods.lastBlock().call({ from: mainAccounts[0] });
+                })
+                .then(function(val) {
+                  assert.strictEqual(to.number(val), expectedNumber + 1);
+                });
+            });
+        });
     }
   );
 
-  // TODO: refactor this to not use web3
+  // TODO
   it("should be able to get logs across the fork boundary", function(done) {
     this.timeout(30000);
 
-    let example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
-    let event = example.events.ValueSet({ fromBlock: 0, toBlock: "latest" });
+    var event = example.events.ValueSet({ fromBlock: 0, toBlock: "latest" });
 
-    let callcount = 0;
-
+    var callcount = 0;
     event.on("data", function(log) {
       callcount++;
       if (callcount === 2) {
@@ -339,138 +507,192 @@ describe("Forking", function() {
     });
   });
 
-  it("should return the correct nonce based on block number", async function() {
+  it("should return the correct nonce based on block number", function(done) {
     // Note for the first two requests, we choose the block numbers 1 before and after the fork to
     // ensure we're pulling data off the correct provider in both cases.
-    let nonceBeforeFork = await mainWeb3.eth.getTransactionCount(forkedAccounts[0], forkBlockNumber - 1);
-    let nonceAtFork = await mainWeb3.eth.getTransactionCount(forkedAccounts[0], forkBlockNumber + 1);
-    let nonceLatestMain = await mainWeb3.eth.getTransactionCount(forkedAccounts[0], "latest");
-    let nonceLatestFallback = await forkedWeb3.eth.getTransactionCount(forkedAccounts[0], "latest");
+    async.parallel(
+      {
+        nonceBeforeFork: mainWeb3.eth.getTransactionCount.bind(mainWeb3.eth, forkedAccounts[0], forkBlockNumber - 1),
+        nonceAtFork: mainWeb3.eth.getTransactionCount.bind(mainWeb3.eth, forkedAccounts[0], forkBlockNumber + 1),
+        nonceLatestMain: mainWeb3.eth.getTransactionCount.bind(mainWeb3.eth, forkedAccounts[0], "latest"),
+        nonceLatestFallback: forkedWeb3.eth.getTransactionCount.bind(forkedWeb3.eth, forkedAccounts[0], "latest")
+      },
+      function(err, results) {
+        if (err) {
+          return done(err);
+        }
 
-    // First ensure our nonces for the block before the fork
-    // Note that we're asking for the block *before* the forked block,
-    // which automatically means we sacrifice a transaction (i.e., one nonce value)
-    assert.strictEqual(nonceBeforeFork, initialFallbackAccountState.nonce - 1);
+        var nonceBeforeFork = results.nonceBeforeFork;
+        var nonceAtFork = results.nonceAtFork;
+        var nonceLatestMain = results.nonceLatestMain;
+        var nonceLatestFallback = results.nonceLatestFallback;
 
-    // Now check at the fork. We should expect our initial state.
-    assert.strictEqual(nonceAtFork, initialFallbackAccountState.nonce);
+        // First ensure our nonces for the block before the fork
+        // Note that we're asking for the block *before* the forked block,
+        // which automatically means we sacrifice a transaction (i.e., one nonce value)
+        assert.strictEqual(nonceBeforeFork, initialFallbackAccountState.nonce - 1);
 
-    // Make sure the main web3 provider didn't alter the state of the forked account.
-    // This means the nonce should stay the same.
-    assert.strictEqual(nonceLatestMain, initialFallbackAccountState.nonce);
+        // Now check at the fork. We should expect our initial state.
+        assert.strictEqual(nonceAtFork, initialFallbackAccountState.nonce);
 
-    // And since we made one additional transaction with this account on the forked
-    // provider AFTER the fork, it's nonce should be one ahead, and the main provider's
-    // nonce for that address shouldn't acknowledge it.
-    assert.strictEqual(nonceLatestFallback, nonceLatestMain + 1);
+        // Make sure the main web3 provider didn't alter the state of the forked account.
+        // This means the nonce should stay the same.
+        assert.strictEqual(nonceLatestMain, initialFallbackAccountState.nonce);
+
+        // And since we made one additional transaction with this account on the forked
+        // provider AFTER the fork, it's nonce should be one ahead, and the main provider's
+        // nonce for that address shouldn't acknowledge it.
+        assert.strictEqual(nonceLatestFallback, nonceLatestMain + 1);
+
+        done();
+      }
+    );
   });
 
-  it("should return the correct balance based on block number", async function() {
+  it("should return the correct balance based on block number", function(done) {
     // Note for the first two requests, we choose the block numbers 1 before and after the fork to
     // ensure we're pulling data off the correct provider in both cases.
-    let balanceBeforeFork = new mainWeb3.utils.BN(
-      await mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber - 1)
-    );
-    let balanceAfterFork = new mainWeb3.utils.BN(
-      await mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber + 1)
-    );
-    let balanceLatestMain = new mainWeb3.utils.BN(
-      await mainWeb3.eth.getBalance(forkedAccounts[0], "latest")
-    );
-    let balanceLatestFallback = new mainWeb3.utils.BN(
-      await forkedWeb3.eth.getBalance(forkedAccounts[0], "latest")
-    );
+    async.parallel(
+      {
+        balanceBeforeFork: mainWeb3.eth.getBalance.bind(mainWeb3.eth, forkedAccounts[0], forkBlockNumber - 1),
+        balanceAfterFork: mainWeb3.eth.getBalance.bind(mainWeb3.eth, forkedAccounts[0], forkBlockNumber + 1),
+        balanceLatestMain: mainWeb3.eth.getBalance.bind(mainWeb3.eth, forkedAccounts[0], "latest"),
+        balanceLatestFallback: forkedWeb3.eth.getBalance.bind(forkedWeb3.eth, forkedAccounts[0], "latest")
+      },
+      function(err, results) {
+        if (err) {
+          return done(err);
+        }
 
-    // First ensure our balances for the block before the fork
-    // We do this by simply ensuring the balance has decreased since exact values
-    // are hard to assert in this case.
-    assert(balanceBeforeFork.gt(balanceAfterFork));
+        var balanceBeforeFork = mainWeb3.utils.toBN(results.balanceBeforeFork);
+        var balanceAfterFork = mainWeb3.utils.toBN(results.balanceAfterFork);
+        var balanceLatestMain = mainWeb3.utils.toBN(results.balanceLatestMain);
+        var balanceLatestFallback = mainWeb3.utils.toBN(results.balanceLatestFallback);
 
-    // Make sure it's not substantially larger. it should only be larger by a small
-    // amount (<2%). This assertion was added since forked balances were previously
-    // incorrectly being converted between decimal and hex
-    assert(balanceBeforeFork.muln(0.95).lt(balanceAfterFork));
+        // First ensure our balances for the block before the fork
+        // We do this by simply ensuring the balance has decreased since exact values
+        // are hard to assert in this case.
+        assert(balanceBeforeFork.gt(balanceAfterFork));
 
-    // Since the forked provider had once extra transaction for this account,
-    // it should have a lower balance, and the main provider shouldn't acknowledge
-    // that transaction.
-    assert(balanceLatestMain.gt(balanceLatestFallback));
+        // Make sure it's not substantially larger. it should only be larger by a small
+        // amount (<2%). This assertion was added since forked balances were previously
+        // incorrectly being converted between decimal and hex
+        assert(balanceBeforeFork.muln(0.95).lt(balanceAfterFork));
 
-    // Make sure it's not substantially larger. it should only be larger by a small
-    // amount (<2%). This assertion was added since forked balances were previously
-    // incorrectly being converted between decimal and hex
-    assert(balanceLatestMain.muln(0.95).lt(balanceLatestFallback));
+        // Since the forked provider had once extra transaction for this account,
+        // it should have a lower balance, and the main provider shouldn't acknowledge
+        // that transaction.
+        assert(balanceLatestMain.gt(balanceLatestFallback));
+
+        // Make sure it's not substantially larger. it should only be larger by a small
+        // amount (<2%). This assertion was added since forked balances were previously
+        // incorrectly being converted between decimal and hex
+        assert(balanceLatestMain.muln(0.95).lt(balanceLatestFallback));
+
+        done();
+      }
+    );
   });
 
-  it("should return the correct code based on block number", async function() {
+  it("should return the correct code based on block number", function(done) {
     // This one is simpler than the previous two. Either the code exists or doesn't.
-    let codeEarliest = await mainWeb3.eth.getCode(contractAddress, "earliest");
-    let codeAfterFork = await mainWeb3.eth.getCode(contractAddress, forkBlockNumber + 1);
-    let codeLatest = await mainWeb3.eth.getCode(contractAddress, "latest");
+    async.parallel(
+      {
+        codeEarliest: mainWeb3.eth.getCode.bind(mainWeb3.eth, contractAddress, "earliest"),
+        codeAfterFork: mainWeb3.eth.getCode.bind(mainWeb3.eth, contractAddress, forkBlockNumber + 1),
+        codeLatest: mainWeb3.eth.getCode.bind(mainWeb3.eth, contractAddress, "latest")
+      },
+      function(err, results) {
+        if (err) {
+          return done(err);
+        }
 
-    // There should be no code initially.
-    assert.strictEqual(codeEarliest, "0x");
+        var codeEarliest = results.codeEarliest;
+        var codeAfterFork = results.codeAfterFork;
+        var codeLatest = results.codeLatest;
 
-    // Arbitrary length check since we can't assert the exact value
-    assert(codeAfterFork.length > 20);
-    assert(codeLatest.length > 20);
+        // There should be no code initially.
+        assert.strictEqual(codeEarliest, "0x");
 
-    // These should be the same since code can't change.
-    assert.strictEqual(codeAfterFork, codeLatest);
+        // Arbitrary length check since we can't assert the exact value
+        assert(codeAfterFork.length > 20);
+        assert(codeLatest.length > 20);
+
+        // These should be the same since code can't change.
+        assert.strictEqual(codeAfterFork, codeLatest);
+
+        done();
+      }
+    );
   });
 
-  it("should return transactions for blocks requested before the fork", async function() {
-    let receipt = await forkedWeb3.eth.getTransactionReceipt(initialDeployTransactionHash);
-    let referenceBlock = await forkedWeb3.eth.getBlock(receipt.blockNumber, true);
-    let forkedBlock = await mainWeb3.eth.getBlock(receipt.blockNumber, true);
-    assert.strictEqual(forkedBlock.transactions.length, referenceBlock.transactions.length);
-    assert.deepStrictEqual(forkedBlock.transactions, referenceBlock.transactions);
-  });
+  it("should return transactions for blocks requested before the fork", function(done) {
+    forkedWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, receipt) {
+      if (err) {
+        return done(err);
+      }
 
-  it("should return a transaction for transactions made before the fork", async function() {
-    let referenceTransaction = await forkedWeb3.eth.getTransaction(initialDeployTransactionHash);
-    let forkedTransaction = await mainWeb3.eth.getTransaction(initialDeployTransactionHash);
-    assert.deepStrictEqual(referenceTransaction, forkedTransaction);
-  });
+      forkedWeb3.eth.getBlock(receipt.blockNumber, true, function(err, referenceBlock) {
+        if (err) {
+          return done(err);
+        }
 
-  it("should return a transaction receipt for transactions made before the fork", async function() {
-    let referenceReceipt = await forkedWeb3.eth.getTransactionReceipt(initialDeployTransactionHash);
-    assert.deepStrictEqual(referenceReceipt.transactionHash, initialDeployTransactionHash);
-
-    let forkedReceipt = await mainWeb3.eth.getTransactionReceipt(initialDeployTransactionHash);
-
-    assert.deepStrictEqual(forkedReceipt.transactionHash, initialDeployTransactionHash);
-    assert.deepStrictEqual(referenceReceipt, forkedReceipt);
-  });
-
-  it("should return the same network version as the chain it forked from", async function() {
-    let forkedNetwork = await forkedWeb3.eth.net.getId();
-    let mainNetwork = await mainWeb3.eth.net.getId();
-    assert.strictEqual(mainNetwork, forkedNetwork);
-  });
-
-  it("should trace a successful transaction", async function() {
-    let block = await mainWeb3.eth.getBlock("latest");
-    let hash = block.transactions[0];
-
-    await new Promise((resolve, reject) => {
-      mainWeb3._provider.send(
-        {
-          jsonrpc: "2.0",
-          method: "debug_traceTransaction",
-          params: [hash, []],
-          id: new Date().getTime()
-        },
-        function(err, response) {
+        mainWeb3.eth.getBlock(receipt.blockNumber, true, function(err, forkedBlock) {
           if (err) {
-            reject(err);
+            return done(err);
           }
-          if (response.error) {
-            reject(response.error);
-          }
-          resolve();
+
+          assert.strictEqual(forkedBlock.transactions.length, referenceBlock.transactions.length);
+          assert.deepStrictEqual(forkedBlock.transactions, referenceBlock.transactions);
+          done();
         });
+      });
     });
+  });
+
+  it("should return a transaction for transactions made before the fork", function(done) {
+    forkedWeb3.eth.getTransaction(initialDeployTransactionHash, function(err, referenceTransaction) {
+      if (err) {
+        return done(err);
+      }
+
+      mainWeb3.eth.getTransaction(initialDeployTransactionHash, function(err, forkedTransaction) {
+        if (err) {
+          return done(err);
+        }
+
+        assert.deepStrictEqual(referenceTransaction, forkedTransaction);
+        done();
+      });
+    });
+  });
+
+  it("should return a transaction receipt for transactions made before the fork", function(done) {
+    forkedWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, referenceReceipt) {
+      if (err) {
+        return done(err);
+      }
+      assert.deepStrictEqual(referenceReceipt.transactionHash, initialDeployTransactionHash);
+
+      mainWeb3.eth.getTransactionReceipt(initialDeployTransactionHash, function(err, forkedReceipt) {
+        if (err) {
+          return done(err);
+        }
+
+        assert.deepStrictEqual(forkedReceipt.transactionHash, initialDeployTransactionHash);
+        assert.deepStrictEqual(referenceReceipt, forkedReceipt);
+        done();
+      });
+    });
+  });
+
+  it("should return the same network version as the chain it forked from", function(done) {
+    forkedWeb3.eth.net.getId(function(_, forkedNetwork) {
+      mainWeb3.eth.net.getId(function(_, mainNetwork) {
+        assert.strictEqual(mainNetwork, forkedNetwork);
+      });
+    });
+    done();
   });
 
   after("Shutdown server", function(done) {
