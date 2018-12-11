@@ -1,4 +1,5 @@
 const Web3 = require("web3");
+const BN = Web3.utils.BN;
 const Web3WsProvider = require("web3-providers-ws");
 const Transaction = require("../lib/utils/transaction");
 const BlockHeader = require("ethereumjs-block/header");
@@ -525,6 +526,23 @@ const tests = function(web3) {
       const result = await web3.eth.sendTransaction(transaction);
       assert.notDeepStrictEqual(result, null, "Tx should be successful.");
     });
+
+    it.only("should succeed with a gasPrice of 0", async function() {
+      const transaction = {
+        value: "0x1",
+        gasLimit: "0x5208",
+        gasPrice: "0x0",
+        from: accounts[0],
+        to: accounts[1]
+      };
+
+      // the account balance should be 1 wei less then when the test started
+      // gas should have been free
+      const balanceStart = new BN(await web3.eth.getBalance(accounts[0]));
+      await web3.eth.sendTransaction(transaction);
+      const balanceEnd = new BN(await web3.eth.getBalance(accounts[0]));
+      assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
+    });
   });
 
   describe("eth_getTransactionReceipt", function() {
@@ -660,6 +678,26 @@ const tests = function(web3) {
 
       const receipt = await web3.eth.sendSignedTransaction(transaction.serialize());
       assert.strictEqual(receipt.status, true, "Tx should be successful.");
+    });
+
+    it("should succeed with a gasPrice of 0", async function() {
+      const transaction = new Transaction({
+        value: "0x1",
+        gasLimit: "0x5208",
+        gasPrice: "0x0",
+        from: accounts[0],
+        to: accounts[1]
+      });
+
+      const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
+      transaction.sign(secretKeyBuffer);
+
+      // the account balance should be 1 wei less then when the test started
+      // gas should have been free
+      const balanceStart = new BN(await web3.eth.getBalance(accounts[0]));
+      await web3.eth.sendSignedTransaction(transaction.serialize());
+      const balanceEnd = new BN(await web3.eth.getBalance(accounts[0]));
+      assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
     });
   });
 
