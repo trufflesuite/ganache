@@ -41,6 +41,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 
 * `"accounts"`: `Array` of `Object`'s. Each object should have a balance key with a hexadecimal value. The key `secretKey` can also be specified, which represents the account's private key. If no `secretKey`, the address is auto-generated with the given balance. If specified, the key is used to determine the account's address.
 * `"debug"`: `boolean` - Output VM opcodes for debugging
+* `"blockTime"`: `number` - Specify blockTime in seconds for automatic mining. If you don't specify this flag, ganache will instantly mine a new block for every transaction. Using the `blockTime` option is discouraged unless you have tests which require a specific mining interval.
 * `"logger"`: `Object` - Object, like `console`, that implements a `log()` function.
 * `"mnemonic"`: Use a specific HD wallet mnemonic to generate initial addresses.
 * `"port"`: Port number to listen on when running as a server.
@@ -49,7 +50,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"total_accounts"`: `number` - Number of accounts to generate at startup.
 * `"fork"`: `string` or `object` - When a `string`, same as `--fork` option above. Can also be a Web3 Provider object, optionally used in conjunction with the `fork_block_number` option below.
 * `"fork_block_number"`: `string` or `number` - Block number the provider should fork from, when the `fork` option is specified. If the `fork` option is specified as a string including the `@` sign and a block number, the block number in the `fork` parameter takes precedence.
-* `"network_id"`: `integer` - Same as `--networkId` option above.
+* `"network_id"`: Specify the network id ganache-core will use to identify itself (defaults to the current time or the network id of the forked blockchain if configured)
 * `"time"`: `Date` - Date that the first block should start. Use this feature, along with the `evm_increaseTime` method to test time-dependent code.
 * `"locked"`: `boolean` - whether or not accounts are locked by default.
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
