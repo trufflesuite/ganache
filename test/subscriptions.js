@@ -23,7 +23,7 @@ const testHttp = function(web3) {
     it("should gracefully handle http subscription attempts", async function() {
       // Attempt to subscribe http connection to 'pendingTransactions'
       const result = await web3send("eth_subscribe", "pendingTransactions");
-      assert(result.error);
+      assert(result.error, "http subscription should respond with an error");
       assert.strictEqual(result.error.code, -32000, "Error code should equal -32000");
       assert.strictEqual(result.error.message, "notifications not supported", "notifications should not be supported");
 
@@ -31,7 +31,8 @@ const testHttp = function(web3) {
       const tx = await web3send("eth_sendTransaction", { from: accounts[0], value: "0x1" });
       // Get receipt -- ensure ganache is still running/accepting calls
       let receipt = await web3send("eth_getTransactionReceipt", tx.result);
-      assert(receipt.result);
+      // Receipt indicates that ganache has NOT crashed and continues to handly RPC requests
+      assert(receipt.result, "Should respond with a receipt.");
     });
   });
 };
