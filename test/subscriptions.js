@@ -1,98 +1,63 @@
 const assert = require("assert");
-// const Ganache = require(process.env.TEST_BUILD
-//   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-//   : "../index.js");
+const Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 const pify = require("pify");
 const PORT = 8545;
-const HTTPADDRESS = "http://127.0.0.1:" + PORT;
-// const WSADDRESS = "ws://127.0.0.1:" + PORT;
-// const to = require("../lib/utils/to");
+const HOST = "127.0.0.1";
+const HTTPADDRESS = `http://${HOST}:${PORT}`;
 
-const tests = function(web3, newWeb3) {
+const testHttp = function(web3) {
+  let web3send;
   let accounts;
 
-  before("create and fund personal account", async function() {
+  before("get personal accounts", async function() {
     accounts = await web3.eth.getAccounts();
-    // accounts = accounts.map(function(val) {
-    //   return val.toLowerCase();
-    // });
+  });
+
+  before("setup provider send fn", function() {
+    web3send = getSend(web3.currentProvider);
   });
 
   describe("subscriptions", function() {
-    // const abi = getJSON("subscriptions_abi.json");
-    // const bytecode = getJSON("subscriptions_bytecode.json")[0];
+    it("should gracefully handle http subscription attempts", async function() {
+      // Attempt to subscribe http connection to 'pendingTransactions'
+      const result = await web3send("eth_subscribe", "pendingTransactions");
+      assert(result.error);
+      assert.strictEqual(result.error.code, -32000, "Error code should equal -32000");
+      assert.strictEqual(result.error.message, "notifications not supported", "notifications should not be supported");
 
-    it("should not crash", async function() {
-      // var exampleSocket = new WebSocket(WSADDRESS, "data");
-      // const ctx = await compileAndDeploy(`${__dirname}/${CONTRACTNAME}.sol`, CONTRACTNAME, web3);
-      // const block = await web3.eth.getBlock("latest", false);
-      // const gasLimit = block.gasLimit;
-
-      // let value = await ctx.instance.methods.value().call();
-      // console.log(value);
-
-      // const subscription = await newWeb3.eth.subscribe("pendingTransactions");
-      // const unsubscription = await subscription.unsubscribe();
-      // const block = await newWeb3.eth.getBlock("latest", false);
-      console.log(accounts[0]);
-      console.log(1);
-      web3.currentProvider.send(
-        {
-          jsonrpc: "2.0",
-          method: "eth_subscribe",
-          params: ["newHeads", {}],
-          id: new Date().getTime()
-        },
-        function name(err, result) {
-          if (err) {
-            console.log(err);
-          }
-          console.log(result);
-          assert(!!result);
-          try {
-            web3.currentProvider.send(
-              {
-                jsonrpc: "2.0",
-                method: "eth_sendTransaction",
-                params: { from: accounts[0], value: "0x1" },
-                id: new Date().getTime()
-              },
-              function name(err, res) {
-                console.log(err);
-                console.log(res);
-                assert(!!res);
-              }
-            );
-          } catch (error) {
-            console.log(error);
-          }
-        }
-      );
+      // Issue a sendTransaction - ganache should not attempt to issue a message to http subscriptions
+      const tx = await web3send("eth_sendTransaction", { from: accounts[0], value: "0x1" });
+      // Get receipt -- ensure ganache is still running/accepting calls
+      let receipt = await web3send("eth_getTransactionReceipt", tx.result);
+      assert(receipt.result);
     });
-    // contract.methods.buyTokens(accounts[0]).send({from: accounts[0], value: web3.utils.toWei('0.00005', 'ether')});
   });
 };
 
-describe.skip("WebSockets Server:", function() {
+describe.only("HTTP Server should not handle subscriptions:", function() {
   const Web3 = require("web3");
-  const web3 = new Web3(new Web3.providers.HttpProvider(HTTPADDRESS));
-  // const newWeb3 = new Web3(new Web3.providers.WebsocketProvider(WSADDRESS));
+  const web3 = new Web3();
+  let server;
 
-  console.log(web3.currentProvider);
+  before("Initialize Ganache server", async function() {
+    server = Ganache.server({
+      seed: "1337"
+    });
 
-  tests(web3, null);
+    await pify(server.listen)(PORT);
+    web3.setProvider(new Web3.providers.HttpProvider(HTTPADDRESS));
+  });
 
   after("Shutdown server", async function() {
-    let provider = web3._provider;
-    web3.setProvider();
-    if (provider) {
-      // provider.connection.close();
-      // await pify(server.close)();
-    }
+    await pify(server.close)();
   });
+
+  testHttp(web3);
 });
 
-const getSend = provider => (method = "", ...params) => {
+const getSend = (provider) => (method = "", ...params) => {
   return pify(provider.send.bind(provider))({
     id: `${new Date().getTime()}`,
     jsonrpc: "2.0",
