@@ -532,15 +532,15 @@ const tests = function(web3) {
         value: "0x1",
         gasLimit: "0x5208",
         gasPrice: "0x0",
-        from: accounts[0],
+        from: accounts[5],
         to: accounts[1]
       };
 
       // the account balance should be 1 wei less then when the test started
       // gas should have been free
-      const balanceStart = new BN(await web3.eth.getBalance(accounts[0]));
+      const balanceStart = new BN(await web3.eth.getBalance(accounts[5]));
       await web3.eth.sendTransaction(transaction);
-      const balanceEnd = new BN(await web3.eth.getBalance(accounts[0]));
+      const balanceEnd = new BN(await web3.eth.getBalance(accounts[5]));
       assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
     });
   });
@@ -685,18 +685,19 @@ const tests = function(web3) {
         value: "0x1",
         gasLimit: "0x5208",
         gasPrice: "0x0",
-        from: accounts[0],
-        to: accounts[1]
+        from: accounts[5],
+        to: accounts[1],
+        nonce: "0x1"
       });
 
-      const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
+      const secretKeyBuffer = Buffer.from(secretKeys[5].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
       // the account balance should be 1 wei less then when the test started
       // gas should have been free
-      const balanceStart = new BN(await web3.eth.getBalance(accounts[0]));
+      const balanceStart = new BN(await web3.eth.getBalance(accounts[5]));
       await web3.eth.sendSignedTransaction(transaction.serialize());
-      const balanceEnd = new BN(await web3.eth.getBalance(accounts[0]));
+      const balanceEnd = new BN(await web3.eth.getBalance(accounts[5]));
       assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
     });
   });
