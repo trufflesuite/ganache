@@ -31,7 +31,7 @@ const testHttp = function(web3) {
       const { result } = await web3send("eth_sendTransaction", { from: accounts[0], value: "0x1" });
       // Get receipt -- ensure ganache is still running/accepting calls
       let receipt = await web3send("eth_getTransactionReceipt", result);
-      // Receipt indicates that ganache has NOT crashed and continues to handly RPC requests
+      // Receipt indicates that ganache has NOT crashed and continues to handle RPC requests
       assert(!receipt.error, "Should not respond with an error.");
       assert(receipt.result, "Should respond with a receipt.");
     });
