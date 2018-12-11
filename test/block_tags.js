@@ -1,11 +1,11 @@
-const Web3 = require("web3");
-const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
+const to = require("../lib/utils/to.js");
 const { readFileSync } = require("fs");
 const { compile } = require("solc");
-const to = require("../lib/utils/to.js");
+const assert = require("assert");
+const Web3 = require("web3");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -68,13 +68,12 @@ describe("Block Tags", function() {
   });
 
   before("Make transaction that changes balance, nonce and code", async function() {
-    const tx = await web3.eth.sendTransaction({
+    const { transactionHash } = await web3.eth.sendTransaction({
       from: accounts[0],
       data: contract.binary,
       gas: 3141592
     });
-    const receipt = await web3.eth.getTransactionReceipt(tx.transactionHash);
-    contractAddress = receipt.contractAddress;
+    ({ contractAddress } = await web3.eth.getTransactionReceipt(transactionHash));
   });
 
   it("should return the initial nonce at the previous block number", async function() {
@@ -107,7 +106,7 @@ describe("Block Tags", function() {
     assert(newCode.length > 20); // Just because we don't know the actual code we're supposed to get back
   });
 
-  it("should not have the same tx and receipt root when the block contains 1 tx", async function() {
+  it("should not have the same tx and receipt root when the block contains 1 (or more) tx's", async function() {
     const block = await web3.eth.getBlock(initialBlockNumber + 1, false);
     assert.strictEqual(block.transactions.length, 1, "should have one tx in the block.");
     assert.notStrictEqual(block.transactionsRoot, block.receiptsRoot, "Trie roots should not be equal.");
