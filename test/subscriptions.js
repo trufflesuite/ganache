@@ -36,7 +36,7 @@ const testHttp = function(web3) {
   });
 };
 
-describe.only("HTTP Server should not handle subscriptions:", function() {
+describe("HTTP Server should not handle subscriptions:", function() {
   const Web3 = require("web3");
   const web3 = new Web3();
   let server;
