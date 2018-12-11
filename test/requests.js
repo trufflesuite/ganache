@@ -527,7 +527,7 @@ const tests = function(web3) {
       assert.notDeepStrictEqual(result, null, "Tx should be successful.");
     });
 
-    it.only("should succeed with a gasPrice of 0", async function() {
+    it("should succeed with a gasPrice of 0", async function() {
       const transaction = {
         value: "0x1",
         gasLimit: "0x5208",
