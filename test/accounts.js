@@ -48,7 +48,9 @@ describe("Accounts", function() {
       function(err) {
         count++;
         if (!err) {
-          assert.fail("We expected the account to be locked, which should throw an error when sending a transaction");
+          return done(
+            new Error("We expected the account to be locked, which should throw an error when sending a transaction")
+          );
         }
         assert.strictEqual(count, 1);
         done();
