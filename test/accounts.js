@@ -27,8 +27,37 @@ describe("Accounts", function() {
     });
   });
 
+  it("should generate one error message when transacting from a locked account", function(done) {
+    const web3 = new Web3();
+    web3.setProvider(
+      Ganache.provider({
+        mnemonic: mnemonic,
+        secure: true
+      })
+    );
+
+    let count = 0;
+
+    web3.eth.sendTransaction(
+      {
+        from: expectedAddress,
+        to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
+        value: web3.utils.toWei(new BN(1), "ether"),
+        gasLimit: 90000
+      },
+      function(err) {
+        count++;
+        if (!err) {
+          assert.fail("We expected the account to be locked, which should throw an error when sending a transaction");
+        }
+        assert.strictEqual(count, 1);
+        done();
+      }
+    );
+  });
+
   it("should lock all accounts when specified", function(done) {
-    var web3 = new Web3();
+    const web3 = new Web3();
     web3.setProvider(
       Ganache.provider({
         mnemonic: mnemonic,
@@ -43,18 +72,13 @@ describe("Accounts", function() {
         value: web3.utils.toWei(new BN(1), "ether"),
         gasLimit: 90000
       },
-      function(err, tx) {
+      function(err) {
         if (!err) {
           return done(
             new Error("We expected the account to be locked, which should throw an error when sending a transaction")
           );
         }
-        assert(
-          err.message.toLowerCase().indexOf("could not unlock signer account") >= 0,
-          "Expected error message containing \"could not unlock signer account\" " +
-            "(case insensitive check). Received the following error message, instead. " +
-            `"${err.message}"`
-        );
+        assert.strictEqual(err.message, "signer account is locked");
         done();
       }
     );

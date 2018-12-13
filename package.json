@@ -49,6 +49,7 @@
     "websocket": "1.0.26"
   },
   "devDependencies": {
+    "arrify": "^1.0.1",
     "assert-match": "^1.1.1",
     "browserfs": "1.4.3",
     "cross-env": "5.2.0",

@@ -4804,31 +4804,28 @@
       "integrity": "sha512-kQoE9qH+T1AHKgSSD0Hkv98bobE90ILQcXAF4wvGgsr7uFqNvwmh8j+Lq3l0RVt3E3HjSbv2B9biEGcEtpHLCA==",
       "dev": true,
       "requires": {
-        "nan": "^2.9.2",
-        "node-pre-gyp": "^0.10.0"
+        "arrify": "^1.0.1",
+        "matcher": "^1.0.0",
+        "simple-git": "^1.85.0"
       },
       "dependencies": {
         "abbrev": {
           "version": "1.1.1",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "ansi-regex": {
           "version": "2.1.1",
-          "bundled": true,
-          "dev": true
+          "bundled": true
         },
         "aproba": {
           "version": "1.2.0",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "are-we-there-yet": {
           "version": "1.1.4",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "delegates": "^1.0.0",
@@ -4838,12 +4835,12 @@
         "balanced-match": {
           "version": "1.0.0",
           "bundled": true,
-          "dev": true
+          "optional": true
         },
         "brace-expansion": {
           "version": "1.1.11",
           "bundled": true,
-          "dev": true,
+          "optional": true,
           "requires": {
             "balanced-match": "^1.0.0",
             "concat-map": "0.0.1"
@@ -4852,34 +4849,31 @@
         "chownr": {
           "version": "1.0.1",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "code-point-at": {
           "version": "1.1.0",
           "bundled": true,
-          "dev": true
+          "optional": true
         },
         "concat-map": {
           "version": "0.0.1",
           "bundled": true,
-          "dev": true
+          "optional": true
         },
         "console-control-strings": {
           "version": "1.1.0",
           "bundled": true,
-          "dev": true
+          "optional": true
         },
         "core-util-is": {
           "version": "1.0.2",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "debug": {
           "version": "2.6.9",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "ms": "2.0.0"
@@ -4888,25 +4882,21 @@
         "deep-extend": {
           "version": "0.5.1",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "delegates": {
           "version": "1.0.0",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "detect-libc": {
           "version": "1.0.3",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "fs-minipass": {
           "version": "1.2.5",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "minipass": "^2.2.1"
@@ -4915,13 +4905,11 @@
         "fs.realpath": {
           "version": "1.0.0",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "gauge": {
           "version": "2.7.4",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "aproba": "^1.0.3",
@@ -4937,7 +4925,6 @@
         "glob": {
           "version": "7.1.2",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "fs.realpath": "^1.0.0",
@@ -4951,13 +4938,11 @@
         "has-unicode": {
           "version": "2.0.1",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "iconv-lite": {
           "version": "0.4.21",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "safer-buffer": "^2.1.0"
@@ -4966,7 +4951,6 @@
         "ignore-walk": {
           "version": "3.0.1",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "minimatch": "^3.0.4"
@@ -4975,7 +4959,6 @@
         "inflight": {
           "version": "1.0.6",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "once": "^1.3.0",
@@ -4985,18 +4968,17 @@
         "inherits": {
           "version": "2.0.3",
           "bundled": true,
-          "dev": true
+          "optional": true
         },
         "ini": {
           "version": "1.3.5",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "is-fullwidth-code-point": {
           "version": "1.0.0",
           "bundled": true,
-          "dev": true,
+          "optional": true,
           "requires": {
             "number-is-nan": "^1.0.0"
           }
@@ -5004,26 +4986,24 @@
         "isarray": {
           "version": "1.0.0",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "minimatch": {
           "version": "3.0.4",
           "bundled": true,
-          "dev": true,
+          "optional": true,
           "requires": {
             "brace-expansion": "^1.1.7"
           }
         },
         "minimist": {
           "version": "0.0.8",
-          "bundled": true,
-          "dev": true
+          "bundled": true
         },
         "minipass": {
           "version": "2.2.4",
           "bundled": true,
-          "dev": true,
+          "optional": true,
           "requires": {
             "safe-buffer": "^5.1.1",
             "yallist": "^3.0.0"
@@ -5032,7 +5012,6 @@
         "minizlib": {
           "version": "1.1.0",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "minipass": "^2.2.1"
@@ -5041,7 +5020,6 @@
         "mkdirp": {
           "version": "0.5.1",
           "bundled": true,
-          "dev": true,
           "requires": {
             "minimist": "0.0.8"
           }
@@ -5049,13 +5027,11 @@
         "ms": {
           "version": "2.0.0",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "needle": {
           "version": "2.2.0",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "debug": "^2.1.2",
@@ -5066,8 +5042,6 @@
         "node-pre-gyp": {
           "version": "0.10.0",
           "bundled": true,
-          "dev": true,
-          "optional": true,
           "requires": {
             "detect-libc": "^1.0.2",
             "mkdirp": "^0.5.1",
@@ -5084,7 +5058,6 @@
         "nopt": {
           "version": "4.0.1",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "abbrev": "1",
@@ -5094,13 +5067,11 @@
         "npm-bundled": {
           "version": "1.0.3",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "npm-packlist": {
           "version": "1.1.10",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "ignore-walk": "^3.0.1",
@@ -5110,7 +5081,6 @@
         "npmlog": {
           "version": "4.1.2",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "are-we-there-yet": "~1.1.2",
@@ -5122,18 +5092,17 @@
         "number-is-nan": {
           "version": "1.0.1",
           "bundled": true,
-          "dev": true
+          "optional": true
         },
         "object-assign": {
           "version": "4.1.1",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "once": {
           "version": "1.4.0",
           "bundled": true,
-          "dev": true,
+          "optional": true,
           "requires": {
             "wrappy": "1"
           }
@@ -5141,19 +5110,16 @@
         "os-homedir": {
           "version": "1.0.2",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "os-tmpdir": {
           "version": "1.0.2",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "osenv": {
           "version": "0.1.5",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "os-homedir": "^1.0.0",
@@ -5163,19 +5129,16 @@
         "path-is-absolute": {
           "version": "1.0.1",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "process-nextick-args": {
           "version": "2.0.0",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "rc": {
           "version": "1.2.7",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "deep-extend": "^0.5.1",
@@ -5187,7 +5150,6 @@
             "minimist": {
               "version": "1.2.0",
               "bundled": true,
-              "dev": true,
               "optional": true
             }
           }
@@ -5195,7 +5157,6 @@
         "readable-stream": {
           "version": "2.3.6",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "core-util-is": "~1.0.0",
@@ -5210,7 +5171,6 @@
         "rimraf": {
           "version": "2.6.2",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "glob": "^7.0.5"
@@ -5218,43 +5178,37 @@
         },
         "safe-buffer": {
           "version": "5.1.1",
-          "bundled": true,
-          "dev": true
+          "bundled": true
         },
         "safer-buffer": {
           "version": "2.1.2",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "sax": {
           "version": "1.2.4",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "semver": {
           "version": "5.5.0",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "set-blocking": {
           "version": "2.0.0",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "signal-exit": {
           "version": "3.0.2",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "string-width": {
           "version": "1.0.2",
           "bundled": true,
-          "dev": true,
+          "optional": true,
           "requires": {
             "code-point-at": "^1.0.0",
             "is-fullwidth-code-point": "^1.0.0",
@@ -5264,7 +5218,6 @@
         "string_decoder": {
           "version": "1.1.1",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "safe-buffer": "~5.1.0"
@@ -5273,7 +5226,6 @@
         "strip-ansi": {
           "version": "3.0.1",
           "bundled": true,
-          "dev": true,
           "requires": {
             "ansi-regex": "^2.0.0"
           }
@@ -5281,13 +5233,11 @@
         "strip-json-comments": {
           "version": "2.0.1",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "tar": {
           "version": "4.4.1",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "chownr": "^1.0.1",
@@ -5302,13 +5252,11 @@
         "util-deprecate": {
           "version": "1.0.2",
           "bundled": true,
-          "dev": true,
           "optional": true
         },
         "wide-align": {
           "version": "1.1.2",
           "bundled": true,
-          "dev": true,
           "optional": true,
           "requires": {
             "string-width": "^1.0.2"
@@ -5316,26 +5264,12 @@
         },
         "wrappy": {
           "version": "1.0.2",
-          "bundled": true,
-          "dev": true
+          "bundled": true
         },
         "yallist": {
           "version": "3.0.2",
-          "bundled": true,
-          "dev": true
+          "bundled": true
         }
-      }
-    },
-    "fstream": {
-      "version": "1.0.11",
-      "resolved": "https://registry.npmjs.org/fstream/-/fstream-1.0.11.tgz",
-      "integrity": "sha1-XB+x8RdHcRTwYyoOtLcbPLD9MXE=",
-      "dev": true,
-      "requires": {
-        "graceful-fs": "^4.1.2",
-        "inherits": "~2.0.0",
-        "mkdirp": ">=0.5 0",
-        "rimraf": "2"
       }
     },
     "get-caller-file": {
