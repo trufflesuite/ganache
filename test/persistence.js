@@ -113,12 +113,10 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     let blockHeight = 2;
     let accounts;
     let memdbSend;
-    // let send;
 
     before("init provider", function() {
       regressionProviderInit(function(p) {
         web3.setProvider(p);
-        // send = generateSend(p);
       });
       memdbProviderInit(function(p) {
         memdbWeb3.setProvider(p);
