@@ -113,12 +113,10 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     let blockHeight = 2;
     let accounts;
     let memdbSend;
-    // let send;
 
     before("init provider", function() {
       regressionProviderInit(function(p) {
         web3.setProvider(p);
-        // send = generateSend(p);
       });
       memdbProviderInit(function(p) {
         memdbWeb3.setProvider(p);
@@ -168,7 +166,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       assert(result === 2);
     });
 
-    it("should produce identical blocks (persistence db - memdb)", async function() {
+    it.skip("should produce identical blocks (persistence db - memdb)", async function() {
       blocks.push(await web3.eth.getBlock(0, true));
       blocks.push(await web3.eth.getBlock(1, true));
       blocks.push(await web3.eth.getBlock(2, true));
@@ -180,7 +178,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       }
     });
 
-    it("should produce identical transactions (persistence db - memdb)", async function() {
+    it.skip("should produce identical transactions (persistence db - memdb)", async function() {
       // Start at block 1 to skip genesis block
       for (let i = 1; i < blocks.length; i++) {
         const block = await memdbWeb3.eth.getBlock(i, false);
@@ -228,7 +226,7 @@ describe("Custom DB", function() {
   runTests(providerInit);
 });
 
-describe.skip("Regression test DB", function() {
+describe("Regression test DB", function() {
   // Don't change these options, we need these to match the saved chain in ./test/testdb
   const db = memdown();
   const dbPath = join(__dirname, "/testdb");
