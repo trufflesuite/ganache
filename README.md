@@ -1,7 +1,7 @@
 [![npm](https://img.shields.io/npm/v/ganache-core.svg)]()
 [![npm](https://img.shields.io/npm/dm/ganache-core.svg)]()
 [![Build Status](https://travis-ci.org/trufflesuite/ganache-core.svg?branch=master)](https://travis-ci.org/trufflesuite/ganache-core)
-[![Coverage Status](https://coveralls.io/repos/github/trufflesuite/ganache-core/badge.svg?branch=test-refactoring)](https://coveralls.io/github/trufflesuite/ganache-core?branch=test-refactoring)
+[![Coverage Status](https://coveralls.io/repos/github/trufflesuite/ganache-core/badge.svg?branch=coverage-support)](https://coveralls.io/github/trufflesuite/ganache-core?branch=coverage-support)
 # Ganache Core
 
 This is the core code that powers the Ganache application and the the Ganache command line tool.
