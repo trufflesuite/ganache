@@ -166,7 +166,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       assert(result === 2);
     });
 
-    it.skip("should produce identical blocks (persitant db - memdb)", async function() {
+    it.skip("should produce identical blocks (persitent db - memdb)", async function() {
       blocks.push(await web3.eth.getBlock(0, true));
       blocks.push(await web3.eth.getBlock(1, true));
       blocks.push(await web3.eth.getBlock(2, true));
@@ -178,7 +178,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       }
     });
 
-    it.skip("should produce identical transactions (persitant db - memdb)", async function() {
+    it.skip("should produce identical transactions (persitent db - memdb)", async function() {
       // Start at block 1 to skip genesis block
       for (let i = 1; i < blocks.length; i++) {
         const block = await memdbWeb3.eth.getBlock(i, false);
