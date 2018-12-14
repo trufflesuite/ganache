@@ -8,6 +8,7 @@ const memdown = require("memdown");
 const { join } = require("path");
 const assert = require("assert");
 const Web3 = require("web3");
+const { generateSend } = require("./helpers/utils");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -107,18 +108,21 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     const web3 = new Web3();
     const memdbWeb3 = new Web3();
     const str = JSON.stringify;
-    const blocks = [];
     const memdbBlocks = [];
+    const blocks = [];
     let blockHeight = 2;
-    let memdbBlockHeight = 0;
     let accounts;
+    let memdbSend;
+    // let send;
 
     before("init provider", function() {
       regressionProviderInit(function(p) {
         web3.setProvider(p);
+        // send = generateSend(p);
       });
       memdbProviderInit(function(p) {
         memdbWeb3.setProvider(p);
+        memdbSend = generateSend(p);
       });
     });
 
@@ -144,17 +148,19 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     it("should issue/accept two tx's (mem store)", async function() {
       // Don't change the details of this tx - it's needed to deterministically match a manually created
       // DB with prior versions of ganache-core
+      let { timestamp } = await memdbWeb3.eth.getBlock(0);
+      assert(timestamp);
       const txOptions = {
         from: accounts[0],
         to: accounts[1],
         value: 1
       };
-      let receipt = memdbWeb3.eth.sendTransaction(txOptions);
-      assert(receipt);
-      assert.strictEqual(receipt.blockNumber, ++memdbBlockHeight);
-      const receipt2 = await memdbWeb3.eth.sendTransaction(txOptions);
-      assert(receipt2);
-      assert.strictEqual(receipt2.blockNumber, ++memdbBlockHeight);
+      const receipt = await memdbSend("eth_sendTransaction", txOptions);
+      await memdbSend("evm_mine", ++timestamp);
+      const receipt2 = await memdbSend("eth_sendTransaction", txOptions);
+      await memdbSend("evm_mine", ++timestamp);
+      assert(receipt.result, "Should return a tx hash");
+      assert(receipt2.result, "Should return a tx hash");
     });
 
     it("should be on block height 2 (mem store)", async function() {
