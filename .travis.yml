@@ -24,3 +24,6 @@ before_install:
   - npm --version
   - gcc --version
   - g++ --version
+
+after_success:
+  npm run coverage
