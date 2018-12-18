@@ -160,6 +160,40 @@ var tests = function(web3, EventTest) {
         });
     });
 
+    // NOTE! This test relies on the events triggered in the tests above.
+    it("should return logs with correctly formatted logIndex and transactionIndex", function(done) {
+      var provider = web3.currentProvider;
+
+      provider.send(
+        {
+          jsonrpc: "2.0",
+          method: "eth_getLogs",
+          params: [
+            {
+              fromBlock: "0x0",
+              toBlock: "latest",
+              topics: [
+                "0xc54307031d9aa93e0568c363be84a9400dce343fef6a2851d55662a6af1a29da",
+                "0x0000000000000000000000000000000000000000000000000000000000000001",
+                "0x0000000000000000000000000000000000000000000000000000000000000006"
+              ]
+            }
+          ],
+          id: new Date().getTime()
+        },
+        function(err, result) {
+          if (err) {
+            return done(err);
+          }
+          const logIndex = result.result[0].logIndex;
+          const transactionIndex = result.result[0].transactionIndex;
+          assert.strictEqual(logIndex, "0x0");
+          assert.strictEqual(transactionIndex, "0x0");
+          done();
+        }
+      );
+    });
+
     it("always returns a change for every new block subscription when instamining", function(done) {
       var provider = web3.currentProvider;
 

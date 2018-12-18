@@ -702,6 +702,34 @@ const tests = function(web3) {
     });
   });
 
+  describe("eth_newFilter", function() {
+    it("creates a new filter and returns the correctly formatted result", function(done) {
+      var provider = web3.currentProvider;
+
+      provider.send(
+        {
+          jsonrpc: "2.0",
+          method: "eth_newFilter",
+          params: [
+            {
+              fromBlock: "0x0",
+              address: accounts[0],
+              topics: []
+            }
+          ],
+          id: new Date().getTime()
+        },
+        function(err, result) {
+          if (err) {
+            return done(err);
+          }
+          assert.strictEqual(result.result, "0x1");
+          done();
+        }
+      );
+    });
+  });
+
   describe("contract scenario", function() {
     // These are expected to be run in order.
     let initialTransactionHash;
