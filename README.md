@@ -19,13 +19,13 @@ This is the core code that powers the Ganache application and the the Ganache co
 Using npm:
 
 ```Bash
-npm install -g ganache-cli
+npm install ganache-core
 ```
 
 or, if you are using [Yarn](https://yarnpkg.com/):
 
 ```Bash
-yarn global add ganache-cli
+yarn add ganache-core
 ```
 
 
