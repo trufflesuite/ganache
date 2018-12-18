@@ -3683,16 +3683,16 @@
       }
     },
     "ethereumjs-vm": {
-      "version": "2.4.0",
-      "resolved": "https://registry.npmjs.org/ethereumjs-vm/-/ethereumjs-vm-2.4.0.tgz",
-      "integrity": "sha512-MJ4lCWa5c6LhahhhvoDKW+YGjK00ZQn0RHHLh4L+WaH1k6Qv7/q3uTluew6sJGNCZdlO0yYMDXYW9qyxLHKlgQ==",
+      "version": "2.5.0",
+      "resolved": "https://registry.npmjs.org/ethereumjs-vm/-/ethereumjs-vm-2.5.0.tgz",
+      "integrity": "sha512-Cp1do4J2FIJFnbofqLsKb/aoZKG+Q8NBIbTa1qwZPQkQxzeR3DZVpFk/VbE1EUO6Ha0kSClJ1jzfj07z3cScSQ==",
       "requires": {
         "async": "^2.1.2",
         "async-eventemitter": "^0.2.2",
         "ethereumjs-account": "^2.0.3",
-        "ethereumjs-block": "~1.7.0",
-        "ethereumjs-common": "~0.4.0",
-        "ethereumjs-util": "^5.2.0",
+        "ethereumjs-block": "~2.1.0",
+        "ethereumjs-common": "^0.6.0",
+        "ethereumjs-util": "^6.0.0",
         "fake-merkle-patricia-tree": "^1.0.1",
         "functional-red-black-tree": "^1.0.1",
         "merkle-patricia-tree": "^2.1.2",
@@ -3700,27 +3700,19 @@
         "safe-buffer": "^5.1.1"
       },
       "dependencies": {
-        "ethereum-common": {
-          "version": "0.2.0",
-          "resolved": "https://registry.npmjs.org/ethereum-common/-/ethereum-common-0.2.0.tgz",
-          "integrity": "sha512-XOnAR/3rntJgbCdGhqdaLIxDLWKLmsZOGhHdBKadEr6gEnJLH52k93Ou+TUdFaPN3hJc3isBZBal3U/XZ15abA=="
-        },
-        "ethereumjs-block": {
-          "version": "1.7.1",
-          "resolved": "http://registry.npmjs.org/ethereumjs-block/-/ethereumjs-block-1.7.1.tgz",
-          "integrity": "sha512-B+sSdtqm78fmKkBq78/QLKJbu/4Ts4P2KFISdgcuZUPDm9x+N7qgBPIIFUGbaakQh8bzuquiRVbdmvPKqbILRg==",
+        "ethereumjs-util": {
+          "version": "6.0.0",
+          "resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-6.0.0.tgz",
+          "integrity": "sha512-E3yKUyl0Fs95nvTFQZe/ZSNcofhDzUsDlA5y2uoRmf1+Ec7gpGhNCsgKkZBRh7Br5op8mJcYF/jFbmjj909+nQ==",
           "requires": {
-            "async": "^2.0.1",
-            "ethereum-common": "0.2.0",
-            "ethereumjs-tx": "^1.2.2",
-            "ethereumjs-util": "^5.0.0",
-            "merkle-patricia-tree": "^2.1.2"
+            "bn.js": "^4.11.0",
+            "create-hash": "^1.1.2",
+            "ethjs-util": "^0.1.6",
+            "keccak": "^1.0.2",
+            "rlp": "^2.0.0",
+            "safe-buffer": "^5.1.1",
+            "secp256k1": "^3.0.1"
           }
-        },
-        "ethereumjs-common": {
-          "version": "0.4.1",
-          "resolved": "https://registry.npmjs.org/ethereumjs-common/-/ethereumjs-common-0.4.1.tgz",
-          "integrity": "sha512-ywYGsOeGCsMNWso5Y4GhjWI24FJv9FK7+VyVKiQgXg8ZRDPXJ7F/kJ1CnjtkjTvDF4e0yqU+FWswlqR3bmZQ9Q=="
         }
       }
     },
