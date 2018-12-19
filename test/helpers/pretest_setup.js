@@ -13,9 +13,9 @@ const setUp = (mainContractName = "", subContractNames = [], options, contractPa
     const web3 = new Web3(provider);
 
     const { abi, accounts, bytecode, contract, instance, sources } = await compileAndDeploy(
-      join(__dirname, contractPath),
       mainContractName,
       subContractNames,
+      join(__dirname, contractPath),
       web3
     );
 

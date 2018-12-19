@@ -24,15 +24,13 @@ describe("Undefined", () => {
       assert.strictEqual(result, "0x");
     });
 
-    it("should throw due to returned value of `0x` when eth_call fails (compiled contract call)", () => {
+    it("should throw due to returned value of `0x` when eth_call fails (compiled contract call)", async() => {
       const { instance } = services;
-      // running this test with callback style because I couldn't get `assert.throws`
-      // to work with async/await (in node 10.0.0 this is handled by `assert.rejects`)
-      instance.methods.causeReturnValueOfUndefined().call((err) => {
-        // web3 will try to parse this return value of `0x` to something, but there is no
-        // way to properly represent the DATA type `0x` in JS.
-        assert.strictEqual(err.message, "Couldn't decode bool from ABI: 0x");
-      });
+      try {
+        await instance.methods.causeReturnValueOfUndefined().call();
+      } catch (error) {
+        assert.strictEqual(error.message, "Couldn't decode bool from ABI: 0x");
+      }
     });
 
     it("should return a value when contract and method exists at block (web3.eth.call)", async() => {

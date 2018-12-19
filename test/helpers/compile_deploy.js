@@ -7,19 +7,25 @@ const { compile } = require("solc");
  * @param {String} mainContractName  Name of the main contract (without .sol extension)
  * @param {Array|String} contractFileNames List of imported contracts
  * @param {Object} web3 Web3 interface
- * @returns {Object} context
+ * @returns {Object} context: abi, accounts, bytecode, contract, instance, sources
  */
-async function compileAndDeploy(contractPath, mainContractName, contractFileNames = [], web3) {
-  // Organize contract(s) for compilation
+async function compileAndDeploy(mainContractName, contractFileNames = [], contractPath, web3) {
   const selectedContracts = contractFileNames.length === 0 ? [mainContractName] : contractFileNames;
   const contractSources = selectedContracts.map((contractName) => {
-    return { [`${contractName}.sol`]: readFileSync(`${contractPath}${contractName}.sol`, "utf8") };
+    const _contractName = contractName.indexOf(".sol") >= 0 ? contractName : `${contractName}.sol`;
+    return { [_contractName]: readFileSync(`${contractPath}${_contractName}`, "utf8") };
   });
 
   const sources = Object.assign({}, ...contractSources);
 
   const { contracts } = compile({ sources }, 1);
-  const compiledMainContract = contracts[`${mainContractName}.sol:${mainContractName}`];
+
+  let _mainContractName = mainContractName;
+  if (mainContractName.indexOf(".sol") >= 0) {
+    _mainContractName = mainContractName.split(".sol").shift();
+  }
+
+  const compiledMainContract = contracts[`${_mainContractName}.sol:${_mainContractName}`];
   const bytecode = `0x${compiledMainContract.bytecode}`;
   const abi = JSON.parse(compiledMainContract.interface);
   const contract = new web3.eth.Contract(abi);
