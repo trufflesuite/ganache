@@ -1,77 +1,45 @@
-const to = require("../../lib/utils/to");
-const Web3 = require("web3");
 const assert = require("assert");
-const Ganache = require("../../index");
-const path = require("path");
+const { setUp } = require("../helpers/pretest_setup");
+const { hex } = require("../../lib/utils/to");
 
-const compileAndDeploy = require("../helpers/contracts").compileAndDeploy;
+describe("options:gasPrice", () => {
+  const mainContract = "Example";
+  const contractFilenames = ["Example"];
 
-const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+  describe("default gasPrice", () => {
+    const options = {};
+    const services = setUp(mainContract, contractFilenames, options);
 
-function setUp(options = { mnemonic }, contractName = "Example") {
-  let context = {
-    options: options,
-    provider: null,
-    web3: null,
-    accounts: [],
-    contractArtifact: {},
-    instance: null
-  };
+    it("should respect the default gasPrice", async() => {
+      const { accounts, instance, provider, web3 } = services;
 
-  before("setup web3", async function() {
-    context.provider = Ganache.provider(context.options);
-    context.web3 = new Web3(context.provider);
-  });
+      const assignedGasPrice = provider.engine.manager.state.gasPriceVal;
 
-  before("get accounts", async function() {
-    context.accounts = await context.web3.eth.getAccounts();
-  });
+      const { transactionHash } = await instance.methods.setValue("0x10").send({ from: accounts[0], gas: 3141592 });
+      const { gasPrice } = await web3.eth.getTransaction(transactionHash);
 
-  before("compile source", async function() {
-    this.timeout(10000);
-    context.contractArtifact = await compileAndDeploy(
-      path.join(__dirname, "..", `${contractName}.sol`),
-      contractName,
-      context.web3
-    );
-    context.instance = context.contractArtifact.instance;
-  });
-
-  return context;
-}
-
-describe("options:gasPrice", function() {
-  describe("default gasPrice", function() {
-    let context = setUp();
-
-    it("should respect the default gasPrice", async function() {
-      let assignedGasPrice = context.provider.engine.manager.state.gasPriceVal;
-
-      let receipt = await context.instance.methods.setValue("0x10").send({ from: context.accounts[0], gas: 3141592 });
-
-      let transactionHash = receipt.transactionHash;
-      let tx = await context.web3.eth.getTransaction(transactionHash);
-      let gasPrice = tx.gasPrice;
-
-      assert.deepStrictEqual(to.hex(gasPrice), to.hex(assignedGasPrice));
+      assert.deepStrictEqual(hex(gasPrice), hex(assignedGasPrice));
     });
   });
 
-  describe("zero gasPrice", function() {
-    let context = setUp({ mnemonic, gasPrice: 0 });
+  describe("zero gasPrice", () => {
+    const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+    const options = {
+      mnemonic,
+      gasPrice: 0
+    };
 
-    it("should be possible to set a zero gas price", async function() {
-      let assignedGasPrice = context.provider.engine.manager.state.gasPriceVal;
+    const services = setUp(mainContract, contractFilenames, options);
 
-      assert.deepStrictEqual(to.hex(assignedGasPrice), "0x0");
+    it("should be possible to set a zero gas price", async() => {
+      const { accounts, instance, provider, web3 } = services;
 
-      let receipt = await context.instance.methods.setValue("0x10").send({ from: context.accounts[0], gas: 3141592 });
+      const assignedGasPrice = provider.engine.manager.state.gasPriceVal;
+      assert.deepStrictEqual(hex(assignedGasPrice), "0x0");
 
-      let transactionHash = receipt.transactionHash;
-      let tx = await context.web3.eth.getTransaction(transactionHash);
-      let gasPrice = tx.gasPrice;
-
-      assert.deepStrictEqual(to.hex(gasPrice), to.hex(assignedGasPrice));
+      const { transactionHash } = await instance.methods.setValue("0x10").send({ from: accounts[0], gas: 3141592 });
+      const { gasPrice } = await web3.eth.getTransaction(transactionHash);
+      assert.deepStrictEqual(hex(gasPrice), hex(assignedGasPrice));
     });
   });
 });
