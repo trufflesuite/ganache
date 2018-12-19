@@ -234,7 +234,7 @@ describe("Forking", function() {
     });
   });
 
-  it.only("should get the id of the forked chain", async() => {
+  it("should get the id of the forked chain", async() => {
     const id = await mainWeb3.eth.net.getId();
     assert.strictEqual(id, forkedWeb3NetworkId);
   });
