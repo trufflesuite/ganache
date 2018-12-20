@@ -1,8 +1,8 @@
-const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-const pify = require("pify");
+const { promisify, generateSend } = require("./helpers/utils");
+const assert = require("assert");
 const PORT = 8545;
 const HOST = "127.0.0.1";
 const HTTPADDRESS = `http://${HOST}:${PORT}`;
@@ -16,7 +16,7 @@ const testHttp = function(web3) {
   });
 
   before("setup provider send fn", function() {
-    web3send = getSend(web3.currentProvider);
+    web3send = generateSend(web3.currentProvider);
   });
 
   describe("subscriptions", function() {
@@ -48,22 +48,13 @@ describe("HTTP Server should not handle subscriptions:", function() {
       seed: "1337"
     });
 
-    await pify(server.listen)(PORT);
+    await promisify(server.listen)(PORT);
     web3.setProvider(new Web3.providers.HttpProvider(HTTPADDRESS));
   });
 
   after("Shutdown server", async function() {
-    await pify(server.close)();
+    await promisify(server.close)();
   });
 
   testHttp(web3);
 });
-
-const getSend = (provider) => (method = "", ...params) => {
-  return pify(provider.send.bind(provider))({
-    id: `${new Date().getTime()}`,
-    jsonrpc: "2.0",
-    method,
-    params: [...params]
-  });
-};
