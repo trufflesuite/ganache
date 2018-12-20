@@ -40,7 +40,9 @@ describe("Forking", function() {
   var forkedWeb3 = new Web3();
   var mainWeb3 = new Web3();
 
-  var forkedTargetUrl = "ws://localhost:21345";
+  var forkedWeb3NetworkId = Date.now();
+  var forkedWeb3Port = 21345;
+  var forkedTargetUrl = "ws://localhost:" + forkedWeb3Port;
   var forkBlockNumber;
 
   var initialDeployTransactionHash;
@@ -80,10 +82,11 @@ describe("Forking", function() {
       // Do not change seed. Determinism matters for these tests.
       seed: "let's make this deterministic",
       ws: true,
-      logger: logger
+      logger: logger,
+      network_id: forkedWeb3NetworkId
     });
 
-    forkedServer.listen(21345, function(err) {
+    forkedServer.listen(forkedWeb3Port, function(err) {
       if (err) {
         return done(err);
       }
@@ -229,6 +232,11 @@ describe("Forking", function() {
       mainAccounts = m;
       done();
     });
+  });
+
+  it("should get the id of the forked chain", async() => {
+    const id = await mainWeb3.eth.net.getId();
+    assert.strictEqual(id, forkedWeb3NetworkId);
   });
 
   it("should fetch a contract from the forked provider via the main provider", function(done) {
