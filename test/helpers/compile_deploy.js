@@ -1,5 +1,5 @@
-const { readFileSync } = require("fs");
 const { compile } = require("solc");
+const { readFileSync } = require("fs");
 
 /**
  * Compile and deploy the selected contract(s)
