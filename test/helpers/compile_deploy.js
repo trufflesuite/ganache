@@ -11,6 +11,7 @@ const { compile } = require("solc");
  */
 async function compileAndDeploy(mainContractName, contractFileNames = [], contractPath, web3) {
   const selectedContracts = contractFileNames.length === 0 ? [mainContractName] : contractFileNames;
+
   const contractSources = selectedContracts.map((contractName) => {
     const _contractName = contractName.indexOf(".sol") >= 0 ? contractName : `${contractName}.sol`;
     return { [_contractName]: readFileSync(`${contractPath}${_contractName}`, "utf8") };
