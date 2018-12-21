@@ -4,7 +4,7 @@ const Ganache = require(process.env.TEST_BUILD
 const Web3 = require("web3");
 
 const { join } = require("path");
-const { compileAndDeploy } = require("./compile_deploy");
+const { compileAndDeploy } = require("./compileDeploy");
 
 const setUp = (mainContractName = "", subContractNames = [], options, contractPath = "../contracts/") => {
   const context = {};

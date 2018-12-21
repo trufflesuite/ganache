@@ -14,7 +14,7 @@ const to = require("../lib/utils/to");
 const _ = require("lodash");
 const pify = require("pify");
 
-const source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
+const source = fs.readFileSync("./test/contracts/Example.sol", { encoding: "utf8" });
 const compilationResult = solc.compile(source, 1);
 const secretKeys = [
   "0xda09f8cdec20b7c8334ce05b27e6797bef01c1ad79c59381666467552c5012e3",

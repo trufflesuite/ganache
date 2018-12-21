@@ -2,7 +2,7 @@ const { compile } = require("solc");
 const { readFileSync } = require("fs");
 
 /**
- * Compile and deploy the selected contract(s)
+ * Compile and deploy the specified contract(s)
  * @param {String} contractPath  Path to contracts directory
  * @param {String} mainContractName  Name of the main contract (without .sol extension)
  * @param {Array|String} contractFileNames List of imported contracts
@@ -10,22 +10,18 @@ const { readFileSync } = require("fs");
  * @returns {Object} context: abi, accounts, bytecode, contract, instance, sources
  */
 async function compileAndDeploy(mainContractName, contractFileNames = [], contractPath, web3) {
-  const selectedContracts = contractFileNames.length === 0 ? [mainContractName] : contractFileNames;
+  const selectedContracts = [mainContractName].concat(contractFileNames);
 
   const contractSources = selectedContracts.map((contractName) => {
-    const _contractName = contractName.indexOf(".sol") >= 0 ? contractName : `${contractName}.sol`;
+    const _contractName = `${contractName.replace(/\.sol$/i, "")}.sol`;
     return { [_contractName]: readFileSync(`${contractPath}${_contractName}`, "utf8") };
   });
 
   const sources = Object.assign({}, ...contractSources);
 
-  const { contracts } = compile({ sources }, 1);
+  const { contracts } = compile({ sources });
 
-  let _mainContractName = mainContractName;
-  if (mainContractName.indexOf(".sol") >= 0) {
-    _mainContractName = mainContractName.split(".sol").shift();
-  }
-
+  const _mainContractName = mainContractName.replace(/\.sol$/i, "");
   const compiledMainContract = contracts[`${_mainContractName}.sol:${_mainContractName}`];
   const bytecode = `0x${compiledMainContract.bytecode}`;
   const abi = JSON.parse(compiledMainContract.interface);

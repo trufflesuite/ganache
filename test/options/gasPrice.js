@@ -1,5 +1,5 @@
 const assert = require("assert");
-const { setUp } = require("../helpers/pretest_setup");
+const { setUp } = require("../helpers/pretestSetup");
 const { hex } = require("../../lib/utils/to");
 
 describe("options:gasPrice", () => {
