@@ -1,22 +1,24 @@
-var Web3 = require("web3");
-var Ganache = require(process.env.TEST_BUILD
+const assert = require("assert");
+const Web3 = require("web3");
+const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var fs = require("fs");
-var path = require("path");
-var solc = require("solc");
+const fs = require("fs");
+const path = require("path");
+const solc = require("solc");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
 describe("Constantinople Hardfork", function() {
   let contract;
 
   before("compile contract", function() {
-    var result = solc.compile(
+    this.timeout(200000);
+    let result = solc.compile(
       {
         sources: {
           "ConstantinopleContract.sol": fs.readFileSync(path.join(__dirname, "ConstantinopleContract.sol"), "utf8")
@@ -31,41 +33,31 @@ describe("Constantinople Hardfork", function() {
   });
 
   describe("Disallow Constantinople features", function() {
-    var provider = Ganache.provider({
+    const provider = Ganache.provider({
       mnemonic,
       gasLimit: 20000000
     });
-    var web3 = new Web3(provider);
-    var accounts;
+    const web3 = new Web3(provider);
+    let accounts;
 
-    before("get accounts", function(done) {
-      web3.eth.getAccounts(function(err, accs) {
-        if (err) {
-          return done(err);
-        }
-        accounts = accs;
-        done();
-      });
+    before("get accounts", async function() {
+      accounts = await web3.eth.getAccounts();
     });
 
-    it("should fail execution", function(done) {
-      let DummyContract = new web3.eth.Contract(contract.abi);
-      DummyContract.deploy({
+    it("should fail execution", async function() {
+      const DummyContract = new web3.eth.Contract(contract.abi);
+
+      let promiEvent = DummyContract.deploy({
         data: contract.bytecode
-      })
-        .send({ from: accounts[0], gas: 20000000 })
-        .catch(function(_) {
-          done(new Error("Deployment of Constantinople contract failed!"));
-        })
-        .then(function(instance) {
-          return instance.methods.test(2).call();
-        })
-        .then(function(_) {
-          done(new Error("Constantinople functions should not be available!"));
-        })
-        .catch(function(_) {
-          done();
-        });
+      }).send({ from: accounts[0], gas: 20000000 });
+
+      let dummyContractInstance = await promiEvent;
+
+      try {
+        await dummyContractInstance.methods.test(2).call();
+      } catch (err) {
+        assert.strictEqual(err.message, "VM Exception while processing transaction: invalid opcode");
+      }
     });
   });
 
@@ -78,34 +70,21 @@ describe("Constantinople Hardfork", function() {
     var web3 = new Web3(provider);
     var accounts;
 
-    before("get accounts", function(done) {
-      web3.eth.getAccounts(function(err, accs) {
-        if (err) {
-          return done(err);
-        }
-        accounts = accs;
-        done();
-      });
+    before("get accounts", async function() {
+      accounts = await web3.eth.getAccounts();
     });
 
-    it("should succeed execution", function(done) {
-      let DummyContract = new web3.eth.Contract(contract.abi);
-      DummyContract.deploy({
+    it("should succeed execution", async function() {
+      const DummyContract = new web3.eth.Contract(contract.abi);
+
+      let promiEvent = DummyContract.deploy({
         data: contract.bytecode
-      })
-        .send({ from: accounts[0], gas: 20000000 })
-        .catch(function(_) {
-          done(new Error("Deployment of Constantinople contract failed!"));
-        })
-        .then(function(instance) {
-          return instance.methods.test(2).call();
-        })
-        .then(function(_) {
-          done();
-        })
-        .catch(function(_) {
-          done(new Error("Constantinople functions should be available!"));
-        });
+      }).send({ from: accounts[0], gas: 20000000 });
+
+      let dummyContractInstance = await promiEvent;
+
+      let result = await dummyContractInstance.methods.test(2).call();
+      assert(result, "successful execution");
     });
   });
 });
