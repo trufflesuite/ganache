@@ -194,7 +194,7 @@ describe("Provider:", function() {
 
 describe("Server:", function(done) {
   var web3 = new Web3();
-  var port = 12345;
+  var port = 12346;
   var server;
 
   before("Initialize Ganache server", function(done) {
