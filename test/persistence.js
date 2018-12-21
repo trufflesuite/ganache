@@ -14,7 +14,7 @@ const { generateSend } = require("./helpers/utils");
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-const source = readFileSync("./test/contracts/Example.sol", { encoding: "utf8" });
+const source = readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
 const result = compile(source, 1);
 
 // Note: Certain properties of the following contract data are hardcoded to

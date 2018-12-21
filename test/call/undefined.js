@@ -2,14 +2,15 @@ const assert = require("assert");
 const { setUp } = require("../helpers/pretestSetup");
 
 describe("Undefined", () => {
-  describe("Calls", async() => {
+  describe("Calls", () => {
     const mainContract = "Call";
-    const contractFilenames = ["Call"];
+    const contractFilenames = [];
+    const contractPath = "../contracts/call/";
     const options = {
       vmErrorsOnRPCResponse: false
     };
 
-    const services = setUp(mainContract, contractFilenames, options);
+    const services = setUp(mainContract, contractFilenames, options, contractPath);
 
     it("should return `0x` when eth_call fails (web3.eth call)", async() => {
       const { instance, web3 } = services;
