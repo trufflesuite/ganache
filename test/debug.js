@@ -11,39 +11,6 @@ var solc = require("solc");
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-// describe.only("test", () => {
-//   const FakeTransaction = require("ethereumjs-tx/fake");
-//   const VM = require("ethereumjs-vm");
-//   const Block = require("ethereumjs-block");
-//   const vm = new VM({
-//     generate: true
-//   });
-
-//   const tx = new FakeTransaction({
-//     from: "0x0000000000000000000000000000000000000000",
-//     to: "0x0000000000000000000000000000000000000001",
-//     value: "0x1",
-//     gasLimit: "0x6691b7"
-//   });
-//   const block = new Block();
-//   block.transactions.push(tx);
-//   const runArgs = {
-//     tx,
-//     block,
-//     skipBalance: true,
-//     skipNonce: true
-//   };
-//   vm.stateManager.checkpoint(() => {
-//     vm.runTx(runArgs, (e) => {
-//       console.log(e);
-//       vm.stateManager.revert(function(e) {
-//         console.log(e);
-//         // fails
-//       });
-//     });
-//   });
-// });
-
 describe("Debug", function() {
   var provider;
   var web3;
