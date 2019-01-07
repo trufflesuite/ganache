@@ -41,8 +41,9 @@ async function compile(mainContractName, contractFileNames = [], contractPath) {
 async function deploy(abi, bytecode, web3) {
   const contract = new web3.eth.Contract(abi);
 
-  const accounts = await web3.eth.getAccounts();
-  const { gasLimit } = await web3.eth.getBlock("latest");
+  const testAssets = [web3.eth.getAccounts(), web3.eth.getBlock("latest")];
+
+  const [accounts, { gasLimit }] = await Promise.all(testAssets);
   const instance = await contract.deploy({ data: bytecode }).send({ from: accounts[0], gas: gasLimit });
 
   return {

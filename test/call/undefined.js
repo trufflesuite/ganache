@@ -1,5 +1,5 @@
 const assert = require("assert");
-const { setUp } = require("../helpers/pretestSetup");
+const { setUp } = require("../helpers/bootstrap");
 
 describe("Undefined", () => {
   describe("Calls", () => {
