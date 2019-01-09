@@ -55,6 +55,7 @@ describe("Constantinople Hardfork", function() {
 
       try {
         await dummyContractInstance.methods.test(2).call();
+        assert.fail("Call did not fail execution like it was supposed to");
       } catch (err) {
         assert.strictEqual(err.message, "VM Exception while processing transaction: invalid opcode");
       }
