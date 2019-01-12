@@ -8,7 +8,13 @@ const path = require("path");
 const solc = require("solc");
 const to = require("../lib/utils/to.js");
 const pify = require("pify");
+// for byzantium:
 const RSCLEAR_REFUND = 15000;
+
+// for constantinople:
+// const RSCLEAR_REFUND_IF_NEW_VALUE_IS_ZERO = 15000;
+const RSCLEAR_REFUND_IF_ORIGINAL_VALUE_AND_NEW_VALUE_IS_ZERO = 19800;
+// const RSCLEAR_REFUND_IF_ORIGINAL_VALUE_AND_NEW_VALUE_EQUAL_ANY_NUMBER_EXCEPT_ZERO = 4800;
 const RSELFDESTRUCT_REFUND = 24000;
 const { sleep } = require("./helpers/utils");
 
@@ -78,7 +84,13 @@ describe("Gas", function() {
 
       let receipt = await method.send({ from, gas: gasEstimate });
 
-      assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+      if (provider.options.hardfork === "byzantium") {
+        assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+      } else if (provider.options.hardfork === "constantinople") {
+        // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
+        // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+        assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND_IF_ORIGINAL_VALUE_AND_NEW_VALUE_IS_ZERO);
+      }
       assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
     });
 
@@ -111,7 +123,16 @@ describe("Gas", function() {
 
       let receipt = await method.send({ from, gas: gasEstimate });
 
-      assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+      if (provider.options.hardfork === "byzantium") {
+        assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+      } else if (provider.options.hardfork === "constantinople") {
+        // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
+        // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+        assert.strictEqual(
+          receipt.gasUsed,
+          gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_IF_ORIGINAL_VALUE_AND_NEW_VALUE_IS_ZERO
+        );
+      }
       assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
     });
 
@@ -184,7 +205,15 @@ describe("Gas", function() {
         const receipt = await method.send({ from, gas: gasEstimate });
 
         let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
-        assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+        if (provider.options.hardfork === "byzantium") {
+          assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+        } else if (provider.options.hardfork === "constantinople") {
+          // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
+          // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+          transactionCostMinusRefund =
+            gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_IF_ORIGINAL_VALUE_AND_NEW_VALUE_IS_ZERO;
+          assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+        }
 
         let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)));
         assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
