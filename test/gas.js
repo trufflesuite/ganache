@@ -68,7 +68,8 @@ describe("Gas", function() {
 
   describe("Refunds", function() {
     it(
-      "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's " + "original value is 0",
+      "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
+        " value is 0",
       async() => {
         const from = accounts[0];
         const options = { from, gas: 5000000 };
@@ -124,8 +125,8 @@ describe("Gas", function() {
     );
 
     it(
-      "accounts for Rsclear Refund in gasEstimate when a fresh storage slot's original" +
-        " value is not 0 and new value is 0",
+      "accounts for Rsclear Refund in gasEstimate when a fresh storage slot's original " +
+        "value is not 0 and new value is 0",
       async() => {
         const from = accounts[0];
         const rsclearRefundForUpdatingFreshSlotToZero = 15000;
