@@ -35,7 +35,8 @@ describe("Constantinople Hardfork", function() {
   describe("Disallow Constantinople features", function() {
     const provider = Ganache.provider({
       mnemonic,
-      gasLimit: 20000000
+      gasLimit: 20000000,
+      hardfork: "byzantium"
     });
     const web3 = new Web3(provider);
     let accounts;
