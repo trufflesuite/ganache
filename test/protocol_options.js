@@ -64,7 +64,7 @@ describe("Protocol Options with Instamining", function() {
 describe("Protocol Options with Interval Mining", function() {
   let web3, accounts;
 
-  before(async() => {
+  beforeEach(async() => {
     // start interval mining
     var startTime = new Date("Wed Aug 24 2016 00:00:00 GMT-0700 (PDT)");
     web3 = new Web3(
@@ -133,6 +133,77 @@ describe("Protocol Options with Interval Mining", function() {
             assert.notStrictEqual(receipt1.blockNumber, receipt2.blockNumber);
             done();
           }, 1250);
+        });
+      });
+    });
+  });
+
+  it("should fit more queued transactions in a block after the block gas limit has been raised", function(done) {
+    this.timeout(5000);
+
+    const bgl = web3.currentProvider.manager.state.blockchain.blockGasLimit;
+    const blockGasLimit = utils.stripHexPrefix(bgl);
+    const BNBlockGasLimit = new BN(blockGasLimit, 16);
+
+    var tx1 = {
+      from: accounts[0],
+      to: accounts[1],
+      gas: BNBlockGasLimit.div(new BN(2)),
+      value: web3.utils.toWei(new BN(2), "ether")
+    };
+    var tx2 = {
+      from: accounts[0],
+      to: accounts[1],
+      gas: BNBlockGasLimit.div(new BN(2)),
+      value: web3.utils.toWei(new BN(2), "ether")
+    };
+    // queue 2 transactions
+    web3.eth.sendTransaction(tx1, (err, txHash1) => {
+      if (err) {
+        return done(err);
+      }
+      web3.eth.sendTransaction(tx2, (err, txHash2) => {
+        if (err) {
+          return done(err);
+        }
+
+        var tx3 = {
+          from: accounts[0],
+          to: accounts[1],
+          gas: new BN(30000),
+          value: web3.utils.toWei(new BN(2), "ether")
+        };
+
+        // increase block gas limit so the third tx would fit
+        const options = {
+          gasLimit: BNBlockGasLimit.add(tx3.gas)
+        };
+        send(web3.currentProvider, "ganache_setProtocolOptions", [options], function(err, response) {
+          if (err) {
+            return done(err);
+          }
+
+          // queue a third tx
+          web3.eth.sendTransaction(tx3, (err, txHash3) => {
+            if (err) {
+              return done(err);
+            }
+
+            // Wait .75 seconds (one and a half mining intervals) and ensure
+            // that all three txs were mined in the same block
+            setTimeout(async() => {
+              const receipt1 = await web3.eth.getTransactionReceipt(txHash1);
+              assert.notStrictEqual(receipt1, null);
+              const receipt2 = await web3.eth.getTransactionReceipt(txHash2);
+              assert.notStrictEqual(receipt2, null);
+              const receipt3 = await web3.eth.getTransactionReceipt(txHash3);
+              assert.notStrictEqual(receipt3, null);
+
+              assert.strictEqual(receipt1.blockNumber, receipt2.blockNumber);
+              assert.strictEqual(receipt2.blockNumber, receipt3.blockNumber);
+              done();
+            }, 750);
+          });
         });
       });
     });
