@@ -1,5 +1,5 @@
 const assert = require("assert");
-const setUp = require("../helpers/bootstrap");
+const bootstrap = require("../helpers/bootstrap");
 
 describe("Undefined", () => {
   describe("Calls", () => {
@@ -10,7 +10,7 @@ describe("Undefined", () => {
       vmErrorsOnRPCResponse: false
     };
 
-    const services = setUp(mainContract, contractFilenames, options, contractPath);
+    const services = bootstrap(mainContract, contractFilenames, options, contractPath);
 
     it("should return `0x` when eth_call fails (web3.eth call)", async() => {
       const { instance, web3 } = services;
