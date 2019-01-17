@@ -49,7 +49,9 @@ describe.only("Gas2", async() => {
       });
       console.log(i);
       break;
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   try {
