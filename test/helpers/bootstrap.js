@@ -37,6 +37,4 @@ const setUp = (mainContractName = "", subContractNames = [], options = {}, contr
   return context;
 };
 
-module.exports = {
-  setUp
-};
+module.exports = setUp;
