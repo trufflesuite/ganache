@@ -88,7 +88,7 @@ The RPC methods currently implemented are:
 
 * `bzz_hive` (stub)
 * `bzz_info` (stub)
-* `debug_traceTransaction`
+* `debug_traceTransaction` (without support for `tracer` option)
 * `eth_accounts`
 * `eth_blockNumber`
 * `eth_call`
