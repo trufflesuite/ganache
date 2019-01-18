@@ -89,4 +89,35 @@ describe("Constantinople Hardfork", function() {
       assert(result, "successful execution");
     });
   });
+
+  describe("Allow constantinople-1283-removed features", function() {
+    var provider = Ganache.provider({
+      mnemonic,
+      hardfork: "constantinople-1283-removed",
+      gasLimit: 20000000
+    });
+    var web3 = new Web3(provider);
+    var accounts;
+
+    before("get accounts", async function() {
+      accounts = await web3.eth.getAccounts();
+    });
+
+    it("should succeed execution of a shift operation", async function() {
+      const DummyContract = new web3.eth.Contract(contract.abi);
+
+      let promiEvent = DummyContract.deploy({
+        data: contract.bytecode
+      }).send({ from: accounts[0], gas: 20000000 });
+
+      let dummyContractInstance = await promiEvent;
+
+      let result = await dummyContractInstance.methods.test(2).call();
+      assert(result, "successful execution");
+    });
+
+    it("should calculate gas for SSTORE operations as it did pre-Constantinople 1283", async function() {
+      // need to test that if storage slot is dirty, 5000 gas is deducted as opposed to 200 for Constantinople.
+    });
+  });
 });
