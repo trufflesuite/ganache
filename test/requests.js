@@ -14,7 +14,7 @@ const to = require("../lib/utils/to");
 const _ = require("lodash");
 const pify = require("pify");
 
-const source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
+const source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
 const compilationResult = solc.compile(source, 1);
 const secretKeys = [
   "0xda09f8cdec20b7c8334ce05b27e6797bef01c1ad79c59381666467552c5012e3",
@@ -150,7 +150,7 @@ const tests = function(web3) {
           "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
           "0000000000000000000000000000",
         transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-        stateRoot: "0x7caba99698b405652a6bcb1038efa16db54b3338af71fa832a0b99a3e6c344bc",
+        stateRoot: "0xe15198e397d86e678a5ad5830cbb813915f502384455f10f5004a0d35d6d27d6",
         receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
         miner: "0x0000000000000000000000000000000000000000",
         difficulty: "0",
@@ -1139,6 +1139,70 @@ const tests = function(web3) {
       } catch (err) {
         assert(err.message.indexOf("Unknown block number") > -1);
       }
+    });
+  });
+
+  describe("eth_getTransactionByHash", function() {
+    it("should return nonce as a quantity datatype when requested via RPC method", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      let txHash = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: accounts[8],
+            to: accounts[9],
+            value: 0
+          }
+        ]
+      });
+
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [txHash.result]
+      });
+
+      assert.strictEqual(result.result.nonce, "0x0");
+    });
+
+    it("should return nonce as a number when requested via web3 method", async function() {
+      let txHash = await web3.eth.sendTransaction({
+        from: accounts[8],
+        to: accounts[9],
+        value: 0
+      });
+
+      let result = await web3.eth.getTransaction(txHash.transactionHash);
+
+      assert.strictEqual(result.nonce, 1);
+    });
+
+    it("should return input as an unformatted datatype when requested via RPC method", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      let txHash = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: accounts[8],
+            to: accounts[9],
+            value: 0
+          }
+        ]
+      });
+
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [txHash.result]
+      });
+
+      assert.strictEqual(result.result.input, "0x");
     });
   });
 
