@@ -64,13 +64,13 @@ describe("Constantinople Hardfork", function() {
   });
 
   describe("Allow Constantinople features", function() {
-    var provider = Ganache.provider({
+    const provider = Ganache.provider({
       mnemonic,
       hardfork: "constantinople",
       gasLimit: 20000000
     });
-    var web3 = new Web3(provider);
-    var accounts;
+    const web3 = new Web3(provider);
+    let accounts;
 
     before("get accounts", async function() {
       accounts = await web3.eth.getAccounts();
@@ -91,33 +91,37 @@ describe("Constantinople Hardfork", function() {
   });
 
   describe("Allow constantinople-1283-removed features", function() {
-    var provider = Ganache.provider({
+    const provider = Ganache.provider({
       mnemonic,
       hardfork: "constantinople-1283-removed",
       gasLimit: 20000000
     });
-    var web3 = new Web3(provider);
-    var accounts;
+    const web3 = new Web3(provider);
+    let accounts;
+    let dummyContractInstance;
 
-    before("get accounts", async function() {
+    before("get accounts", async() => {
       accounts = await web3.eth.getAccounts();
     });
 
-    it("should succeed execution of a shift operation", async function() {
+    before("setup contract", async() => {
       const DummyContract = new web3.eth.Contract(contract.abi);
+
+      var options = {
+        from: accounts[0],
+        gas: 20000000
+      };
 
       let promiEvent = DummyContract.deploy({
         data: contract.bytecode
-      }).send({ from: accounts[0], gas: 20000000 });
+      }).send(options);
 
-      let dummyContractInstance = await promiEvent;
-
-      let result = await dummyContractInstance.methods.test(2).call();
-      assert(result, "successful execution");
+      dummyContractInstance = await promiEvent;
     });
 
-    it("should calculate gas for SSTORE operations as it did pre-Constantinople 1283", async function() {
-      // need to test that if storage slot is dirty, 5000 gas is deducted as opposed to 200 for Constantinople.
+    it("should succeed execution of a shift operation", async() => {
+      let result = await dummyContractInstance.methods.test(2).call();
+      assert(result, "successful execution");
     });
   });
 });
