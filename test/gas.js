@@ -84,7 +84,7 @@ describe("Gas", function() {
 
         let receipt = await method.send({ from, gas: gasEstimate });
 
-        if (provider.options.hardfork === "byzantium") {
+        if (provider.options.hardfork === "byzantium" || provider.options.hardfork === "constantinople-1283-removed") {
           assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
@@ -112,7 +112,7 @@ describe("Gas", function() {
 
         let receipt = await method.send({ from, gas: gasEstimate });
 
-        if (provider.options.hardfork === "byzantium") {
+        if (provider.options.hardfork === "byzantium" || provider.options.hardfork === "constantinople-1283-removed") {
           // since we are resetting to a non-zero value, there is no gas added to the refund counter here
           assert.strictEqual(receipt.gasUsed, gasEstimate);
         } else if (provider.options.hardfork === "constantinople") {
@@ -142,7 +142,7 @@ describe("Gas", function() {
 
         let receipt = await method.send({ from, gas: gasEstimate });
 
-        if (provider.options.hardfork === "byzantium") {
+        if (provider.options.hardfork === "byzantium" || provider.options.hardfork === "constantinople-1283-removed") {
           assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 1 and we call reset(), which then sets
@@ -171,7 +171,7 @@ describe("Gas", function() {
 
         let receipt = await method.send({ from, gas: gasEstimate });
 
-        if (provider.options.hardfork === "byzantium") {
+        if (provider.options.hardfork === "byzantium" || provider.options.hardfork === "constantinople-1283-removed") {
           assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 1 and we call triggerRsclearRefund(), which then
@@ -199,7 +199,7 @@ describe("Gas", function() {
 
         let receipt = await method.send({ from, gas: gasEstimate });
 
-        if (provider.options.hardfork === "byzantium") {
+        if (provider.options.hardfork === "byzantium" || provider.options.hardfork === "constantinople-1283-removed") {
           assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 1 and we call triggerRsclearRefundForX(), which then
@@ -241,7 +241,7 @@ describe("Gas", function() {
 
       let receipt = await method.send({ from, gas: gasEstimate });
 
-      if (provider.options.hardfork === "byzantium") {
+      if (provider.options.hardfork === "byzantium" || provider.options.hardfork === "constantinople-1283-removed") {
         assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
       } else if (provider.options.hardfork === "constantinople") {
         // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
@@ -323,7 +323,7 @@ describe("Gas", function() {
         const receipt = await method.send({ from, gas: gasEstimate });
 
         let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
-        if (provider.options.hardfork === "byzantium") {
+        if (provider.options.hardfork === "byzantium" || provider.options.hardfork === "constantinople-1283-removed") {
           assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
