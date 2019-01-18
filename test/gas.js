@@ -18,7 +18,7 @@ process.removeAllListeners("uncaughtException");
 
 let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
-describe.only("Gas2", async() => {
+describe("Gas2", async function() {
   const { compileAndDeploy } = require("./helpers/contracts");
 
   const provider = Ganache.provider();
@@ -29,39 +29,25 @@ describe.only("Gas2", async() => {
   const location = path.join(__dirname, "contracts", `${contractName}.sol`);
   const contractArtifact = await compileAndDeploy(location, contractName, web3);
   const instance = contractArtifact.instance;
-  var est = await instance.methods.createInstance().estimateGas();
+
+  const est = await instance.methods.createInstance().estimateGas();
+  try {
+    await instance.methods.createInstance().send({
+      from: accounts[0],
+      gas: est - 1
+    });
+    assert.fail("Passed? SANITY CHECK");
+  } catch (e) {
+    assert("FAILED: not enough gas (expected)");
+  }
   try {
     await instance.methods.createInstance().send({
       from: accounts[0],
       gas: est
     });
-    assert.fail(":-(");
+    assert("Enough gas supplied!");
   } catch (e) {
-    assert(":-)");
-  }
-
-  var i = est;
-  while (i++) {
-    try {
-      await instance.methods.createInstance().send({
-        from: accounts[0],
-        gas: i
-      });
-      console.log(i);
-      break;
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  try {
-    await instance.methods.createInstance().send({
-      from: accounts[0],
-      gas: 64598
-    });
-    assert(":-)");
-  } catch (e) {
-    assert.fail(e);
+    assert.fail("Still not enough gas? SANITY CHECK");
   }
 });
 
