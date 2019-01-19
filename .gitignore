@@ -7,3 +7,5 @@ TODO
 .tern-port
 .vscode
 build
+npm-shrinkwrap.json.bak
+test/testdb
