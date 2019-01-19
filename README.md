@@ -134,6 +134,8 @@ The RPC methods currently implemented are:
 * `personal_importRawKey`
 * `personal_unlockAccount`
 * `personal_sendTransaction`
+* `personal_sign`
+* `personal_ecRecover`
 * `shh_version`
 * `rpc_modules`
 * `web3_clientVersion`

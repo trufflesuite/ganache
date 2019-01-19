@@ -1550,6 +1550,38 @@ const tests = function(web3) {
       assert.strictEqual(result, true);
     });
   });
+
+  describe("personal_sign", function() {
+    let accounts;
+    let signingWeb3;
+
+    // Account based on https://github.com/ethereum/EIPs/blob/master/assets/eip-712/Example.js
+    const acc = {
+      balance: "0x0",
+      secretKey: web3.utils.sha3("cow")
+    };
+
+    // Load account.
+    before(async function() {
+      signingWeb3 = new Web3();
+      signingWeb3.setProvider(
+        Ganache.provider({
+          accounts: [acc]
+        })
+      );
+      accounts = await signingWeb3.eth.getAccounts();
+      accounts = accounts.map(function(val) {
+        return val.toLowerCase();
+      });
+    });
+
+    it("should produce a signature whose signer can be recovered", async function() {
+      const signature = await signingWeb3.eth.personal.sign("a message", accounts[0], "");
+      assert.strictEqual(signature.length, 132);
+      const address = await signingWeb3.eth.personal.ecRecover("a message", signature);
+      assert.strictEqual(address, accounts[0]);
+    });
+  });
 };
 
 const logger = {
