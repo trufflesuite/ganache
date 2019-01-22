@@ -1,7 +1,19 @@
 pragma solidity ^0.4.2;
 
+contract ContractFactory4{
+  constructor() public {
+  }
+}
+contract ContractFactory3{
+  address public test2;
+  constructor() public {
+    test2 = new ContractFactory4();
+  }
+}
 contract ContractFactory2{
-  constructor() {
+  // address public test2;
+  constructor() public {
+    address test2 = new ContractFactory3();
   }
 }
 

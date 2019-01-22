@@ -18,7 +18,7 @@ process.removeAllListeners("uncaughtException");
 
 let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
-describe("Gas2", async function() {
+describe.only("Gas2", async function() {
   const { compileAndDeploy } = require("./helpers/contracts");
 
   const provider = Ganache.provider();
@@ -30,7 +30,8 @@ describe("Gas2", async function() {
   const contractArtifact = await compileAndDeploy(location, contractName, web3);
   const instance = contractArtifact.instance;
 
-  const est = await instance.methods.createInstance().estimateGas();
+  const est = 201624;
+  // const vest = await instance.methods.createInstance().estimateGas();
   try {
     await instance.methods.createInstance().send({
       from: accounts[0],
