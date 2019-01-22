@@ -30,8 +30,7 @@ describe.only("Gas2", async function() {
   const contractArtifact = await compileAndDeploy(location, contractName, web3);
   const instance = contractArtifact.instance;
 
-  const est = 201624;
-  // const vest = await instance.methods.createInstance().estimateGas();
+  const est = await instance.methods.createInstance().estimateGas();
   try {
     await instance.methods.createInstance().send({
       from: accounts[0],

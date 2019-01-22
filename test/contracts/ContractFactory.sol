@@ -11,14 +11,15 @@ contract ContractFactory3{
   }
 }
 contract ContractFactory2{
-  // address public test2;
+  address public test2;
   constructor() public {
-    address test2 = new ContractFactory3();
+    test2 = new ContractFactory3();
   }
 }
 
 contract ContractFactory{
   function createInstance() public{
     address test2 = new ContractFactory2();
+    address test3 = new ContractFactory4();
   }
 }
