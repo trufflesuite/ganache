@@ -18,7 +18,7 @@ process.removeAllListeners("uncaughtException");
 
 let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
-describe.only("Gas2", async function() {
+describe("Gas2", async function() {
   const { compileAndDeploy } = require("./helpers/contracts");
 
   const provider = Ganache.provider();
