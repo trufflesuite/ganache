@@ -3749,9 +3749,8 @@
       }
     },
     "ethereumjs-vm": {
-      "version": "2.5.1",
-      "resolved": "https://registry.npmjs.org/ethereumjs-vm/-/ethereumjs-vm-2.5.1.tgz",
-      "integrity": "sha512-YLxPfJLHIS6caKJb2WEY+atN8N9DsXzixZfZORCKQBx6nEe1ar6rQBHBNQBBhM7Vbk/bFCOYZpU5gHShvXN1Vw==",
+      "version": "github:trufflesuite/constantinople-experiments-ethereumjs-vm#09b8bfba689b2cdac4adce45dd867623979911b2",
+      "from": "github:trufflesuite/constantinople-experiments-ethereumjs-vm",
       "requires": {
         "async": "^2.1.2",
         "async-eventemitter": "^0.2.2",
