@@ -12,11 +12,24 @@ contract EstimateGas {
     }
 
     uint256 public x;
+    uint256 public y;
     function reset() public {
         x = 0;
+        y = 1;
+    }
+    function initialSettingOfX() public {
+        x = 1;
     }
     function triggerRsclearRefund() public {
         x = gasleft();
+        reset();
+    }
+    function triggerRsclearRefundForX() public {
+        reset();
+        x = gasleft();
+    }
+    function triggerRsclearRefundForY() public {
+        y = gasleft();
         reset();
     }
     function triggerRselfdestructRefund() public {

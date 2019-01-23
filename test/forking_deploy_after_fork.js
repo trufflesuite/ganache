@@ -38,7 +38,7 @@ describe("Contract Deployed on Main Chain After Fork", function() {
 
   before("set up test data", function() {
     this.timeout(10000);
-    var source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
+    var source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
     var result = solc.compile(source, 1);
 
     // Note: Certain properties of the following contract data are hardcoded to

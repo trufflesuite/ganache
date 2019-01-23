@@ -138,9 +138,10 @@ describe("Debug", function() {
           resolve();
         }
       );
-    }).then(() => {
+    }).then(async() => {
       // Now let's make sure rerunning this transaction trace didn't change state
-      return debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
+      const value = await debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
+      assert.strictEqual(value, expectedValueBeforeTrace);
     });
   });
 });
