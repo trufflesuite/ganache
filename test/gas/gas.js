@@ -2,16 +2,16 @@ const Web3 = require("web3");
 const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
+  : "../../index.js");
 const fs = require("fs");
 const path = require("path");
 const solc = require("solc");
-const to = require("../lib/utils/to.js");
+const to = require("../../lib/utils/to.js");
 const pify = require("pify");
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
-const { sleep } = require("./helpers/utils");
+const { sleep } = require("../helpers/utils/sleep");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -36,7 +36,7 @@ describe("Gas", function() {
 
   before("compile source", async function() {
     this.timeout(10000);
-    const source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
+    const source = fs.readFileSync(path.join(__dirname, "/../EstimateGas.sol"), "utf8");
     const result = solc.compile({ sources: { "EstimateGas.sol": source } }, 1);
 
     estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
