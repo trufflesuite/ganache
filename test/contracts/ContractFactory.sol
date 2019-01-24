@@ -1,19 +1,33 @@
 pragma solidity ^0.4.2;
 
-contract ContractFactory4{
+contract ContractFactory5{
   constructor() public {
   }
 }
-contract ContractFactory3{
-  address public test2;
+contract ContractFactory4{
+  address[] addresses;
   constructor() public {
-    test2 = new ContractFactory4();
+    for(uint i=0; i < 3; i++){
+      addresses.push(new ContractFactory5());
+    }
   }
 }
 contract ContractFactory2{
   address public test2;
   constructor() public {
     test2 = new ContractFactory3();
+  }
+}
+
+contract ContractFactory3{
+  address public test2;
+  address[] addresses;
+  constructor() public {
+    test2 = new ContractFactory4();
+
+    for(uint i=0; i < 10; i++){
+      addresses.push(new ContractFactory4());
+    }
   }
 }
 
