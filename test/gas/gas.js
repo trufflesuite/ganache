@@ -3,14 +3,18 @@ const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../../index.js");
-const to = require("../../lib/utils/to.js");
 const pify = require("pify");
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
 const { sleep } = require("../helpers/utils/sleep");
 const bootstrap = require("../helpers/contract/bootstrap");
+
+const getWeb3 = require("../helpers/web3/getWeb3");
 const isGasExpenseCorrect = require("./lib/isGasExpenseCorrect");
+const testTransactionEstimate = require("./lib/transactionEstimate");
+const toBytes = require("./lib/toBytes");
+const deployContract = require("./lib/customContractDeploy");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -25,21 +29,13 @@ describe("Gas", () => {
   const options = { mnemonic };
   const services = bootstrap(mainContract, contractFilenames, options, contractPath);
 
-  // let estimateGasContractData;
-  let EstimateGasContract;
-  let estimateGasInstance;
   let deploymentReceipt;
-
-  const provider = Ganache.provider({ mnemonic });
-  // const web3 = new Web3(provider);
 
   before("compile source", async function() {
     this.timeout(10000);
     const { accounts, bytecode, contract } = services;
-    // estimateGasContractData = bytecode;
-    EstimateGasContract = contract;
 
-    let promiEvent = contract.deploy({ data: bytecode }).send({
+    const promiEvent = contract.deploy({ data: bytecode }).send({
       from: accounts[0],
       gas: 3141592
     });
@@ -47,37 +43,28 @@ describe("Gas", () => {
     promiEvent.on("receipt", (receipt) => {
       deploymentReceipt = receipt;
     });
-
-    estimateGasInstance = await promiEvent;
   });
 
   after("cleanup", () => {
-    const { web3 } = services;
+    const { provider, web3 } = services;
     web3.setProvider(null);
     provider.close(() => {});
   });
-
-  async function deployContract(tempWeb3) {
-    const { abi, accounts, bytecode } = services;
-    let contract = new tempWeb3.eth.Contract(abi);
-
-    return contract.deploy({ data: bytecode }).send({ from: accounts[0], gas: 3141592 });
-  }
 
   describe("Refunds", () => {
     it(
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
         " value is 0",
       async() => {
-        const { accounts } = services;
+        const { accounts, instance, provider } = services;
         const from = accounts[0];
         const options = { from, gas: 5000000 };
 
         // prime storage by making sure it is set to 0
-        await estimateGasInstance.methods.reset().send(options);
+        await instance.methods.reset().send(options);
 
         // update storage and then reset it back to 0
-        const method = estimateGasInstance.methods.triggerRsclearRefund();
+        const method = instance.methods.triggerRsclearRefund();
 
         let gasEstimate = await method.estimateGas(options);
 
@@ -98,15 +85,15 @@ describe("Gas", () => {
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's " +
         "original value is not 0",
       async() => {
-        const { accounts } = services;
+        const { accounts, instance, provider } = services;
         const from = accounts[0];
         const rsclearRefundForResettingDirtySlotToNonZeroValue = 4800;
         const options = { from, gas: 5000000 };
 
-        await estimateGasInstance.methods.reset().send(options); // prime storage by making sure y is set to 1
+        await instance.methods.reset().send(options); // prime storage by making sure y is set to 1
 
         // update storage and then reset it back to 1
-        const method = estimateGasInstance.methods.triggerRsclearRefundForY();
+        const method = instance.methods.triggerRsclearRefundForY();
 
         let gasEstimate = await method.estimateGas(options);
 
@@ -128,16 +115,16 @@ describe("Gas", () => {
       "accounts for Rsclear Refund in gasEstimate when a fresh storage slot's original " +
         "value is not 0 and new value is 0",
       async() => {
-        const { accounts } = services;
+        const { accounts, instance, provider } = services;
         const from = accounts[0];
         const rsclearRefundForUpdatingFreshSlotToZero = 15000;
         const options = { from, gas: 5000000 };
 
         // prime storage by making sure storage is set to 1
-        await estimateGasInstance.methods.initialSettingOfX().send(options);
+        await instance.methods.initialSettingOfX().send(options);
 
         // update storage to be 0
-        const method = estimateGasInstance.methods.reset();
+        const method = instance.methods.reset();
 
         let gasEstimate = await method.estimateGas(options);
 
@@ -158,16 +145,16 @@ describe("Gas", () => {
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot's original value " +
         "is not 0 and new value is 0",
       async() => {
-        const { accounts } = services;
+        const { accounts, instance, provider } = services;
         const from = accounts[0];
         const rsclearRefundForUpdatingDirtySlotToZero = 15000;
         const options = { from, gas: 5000000 };
 
         // prime storage by making sure storage is set to 1
-        await estimateGasInstance.methods.initialSettingOfX().send(options);
+        await instance.methods.initialSettingOfX().send(options);
 
         // update storage and then reset it to 0
-        const method = estimateGasInstance.methods.triggerRsclearRefund();
+        const method = instance.methods.triggerRsclearRefund();
 
         let gasEstimate = await method.estimateGas(options);
 
@@ -188,15 +175,15 @@ describe("Gas", () => {
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot's original value " +
         "is not 0 and current value is 0",
       async() => {
-        const { accounts } = services;
+        const { accounts, instance, provider } = services;
         const from = accounts[0];
         const options = { from, gas: 5000000 };
 
         // prime storage by making sure storage is set to 1
-        await estimateGasInstance.methods.initialSettingOfX().send(options);
+        await instance.methods.initialSettingOfX().send(options);
 
         // updates current value to 0 and new value to be the remaining amount of gas
-        const method = estimateGasInstance.methods.triggerRsclearRefundForX();
+        const method = instance.methods.triggerRsclearRefundForX();
 
         let gasEstimate = await method.estimateGas(options);
 
@@ -216,11 +203,11 @@ describe("Gas", () => {
     );
 
     it("accounts for Rselfdestruct Refund in gasEstimate", async() => {
-      const { accounts, web3 } = services;
+      const { abi, accounts, bytecode, web3 } = services;
       const from = accounts[0];
       const options = { from, gas: 5000000 };
 
-      const instance = await deployContract(web3);
+      const instance = await deployContract(abi, accounts, bytecode, web3);
       await instance.methods.reset().send(options); // prime storage by making sure it is set to 0
 
       const method = instance.methods.triggerRselfdestructRefund();
@@ -234,10 +221,10 @@ describe("Gas", () => {
     });
 
     it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async() => {
-      const { accounts, web3 } = services;
+      const { abi, accounts, bytecode, provider, web3 } = services;
       const from = accounts[0];
 
-      const instance = await deployContract(web3);
+      const instance = await deployContract(abi, accounts, bytecode, web3);
       await instance.methods.reset().send({ from, gas: 5000000 }); // prime storage by making sure it is set to 0
 
       const method = instance.methods.triggerAllRefunds();
@@ -260,20 +247,16 @@ describe("Gas", () => {
     });
 
     it("accounts for Rsclear & Rselfdestruct Refunds in gasEstimate w/ multiple transactions in the block", async() => {
-      const { accounts } = services;
-      const ganacheProvider = Ganache.provider({
+      const { abi, bytecode, provider } = services;
+      const options = {
         blockTime: 0.5, // seconds
         mnemonic
-      });
-
-      let tempWeb3;
+      };
+      const tempWeb3 = await getWeb3(options);
 
       try {
-        tempWeb3 = new Web3(ganacheProvider);
-
-        const from = (await tempWeb3.eth.getAccounts())[0];
-
-        let transactions = [
+        const { accounts, web3 } = tempWeb3;
+        const transactions = [
           {
             value: "0x10000000",
             gasLimit: "0x33450",
@@ -298,24 +281,24 @@ describe("Gas", () => {
         ];
 
         // Precondition
-        const initialBlockNumber = await tempWeb3.eth.getBlockNumber();
+        const initialBlockNumber = await web3.eth.getBlockNumber();
         assert.deepStrictEqual(initialBlockNumber, 0, "Current Block Should be 0");
 
-        const localGasInstance = await deployContract(tempWeb3);
+        const localGasInstance = await deployContract(abi, accounts, bytecode, web3);
 
         // prime storage by making sure it is set to 0
-        await localGasInstance.methods.reset().send({ from, gas: 5000000 });
+        await localGasInstance.methods.reset().send({ from: accounts[0], gas: 5000000 });
         const method = localGasInstance.methods.triggerAllRefunds();
-        const gasEstimate = await method.estimateGas({ from });
+        const gasEstimate = await method.estimateGas({ from: accounts[0] });
 
-        let hashes = await Promise.all(
+        const hashes = await Promise.all(
           transactions.map((transaction) => {
-            let promiEvent = tempWeb3.eth.sendTransaction(transaction);
+            const promiEvent = web3.eth.sendTransaction(transaction);
 
             return new Promise((resolve) => {
               promiEvent.once("transactionHash", async(hash) => {
                 // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
-                let receipt = await tempWeb3.eth.getTransactionReceipt(hash);
+                let receipt = await web3.eth.getTransactionReceipt(hash);
                 assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
 
                 resolve(hash);
@@ -323,10 +306,11 @@ describe("Gas", () => {
             });
           })
         );
-        let currentBlockNumber = await tempWeb3.eth.getBlockNumber();
+
+        const currentBlockNumber = await web3.eth.getBlockNumber();
         assert.deepStrictEqual(currentBlockNumber, 2, "Current Block Should be 2");
 
-        const receipt = await method.send({ from, gas: gasEstimate });
+        const receipt = await method.send({ from: accounts[0], gas: gasEstimate });
 
         let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
         if (provider.options.hardfork === "byzantium") {
@@ -339,7 +323,7 @@ describe("Gas", () => {
           assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
         }
 
-        let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)));
+        const receipts = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
         assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
         assert.deepStrictEqual(
           receipts[1].gasUsed,
@@ -351,39 +335,44 @@ describe("Gas", () => {
           true,
           "(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)"
         );
-        let currentBlock = await tempWeb3.eth.getBlock(receipts[0].blockNumber);
+        const currentBlock = await web3.eth.getBlock(receipts[0].blockNumber);
 
         // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
-        let isAccumulating =
+        const isAccumulating =
           receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed &&
           receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed;
+
         assert.deepStrictEqual(
           isAccumulating,
           true,
           "Cumulative gas should be accumulating for any transactions in the same block."
         );
+
         assert.deepStrictEqual(
           receipts[0].gasUsed,
           receipts[0].cumulativeGasUsed,
           "Gas and cumulative gas should be equal for the FIRST Tx."
         );
+
         assert.notDeepStrictEqual(
           receipts[1].gasUsed,
           receipts[1].cumulativeGasUsed,
           "Gas and cumulative gas should NOT be equal for the Second Tx."
         );
+
         assert.notDeepStrictEqual(
           receipts[2].gasUsed,
           receipts[2].cumulativeGasUsed,
           "Gas and cumulative gas should NOT be equal for the Third Tx."
         );
 
-        let totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
+        const totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
         assert.deepStrictEqual(
           totalGas + transactionCostMinusRefund,
           receipts[1].cumulativeGasUsed,
           "Total Gas should equal the final tx.cumulativeGas"
         );
+
         assert.deepStrictEqual(
           totalGas + transactionCostMinusRefund,
           currentBlock.gasUsed,
@@ -393,51 +382,40 @@ describe("Gas", () => {
         assert(false, e);
       } finally {
         // clean up after ourselves
-        if (tempWeb3) {
-          tempWeb3.setProvider(null);
-        }
-        await pify(ganacheProvider.close)();
+        // if (web3) {
+        // web3.setProvider(null);
+        // }
+        // await pify(ganacheProvider.close)();
       }
     });
 
     it("clears mapping storage slots", async() => {
-      const { accounts } = services;
+      const { accounts, instance } = services;
       const options = { from: accounts[0] };
 
-      await estimateGasInstance.methods.reset().send({ from: options.from, gas: 5000000 });
+      await instance.methods.reset().send({ from: options.from, gas: 5000000 });
 
-      const uintsa = await estimateGasInstance.methods.uints(1).call();
+      const uintsa = await instance.methods.uints(1).call();
       assert.strictEqual(uintsa, "0", "initial value is not correct");
 
-      const receipta = await estimateGasInstance.methods.store(1).send(options);
+      const receipta = await instance.methods.store(1).send(options);
       assert.strictEqual(receipta.status, true, "storing value did not work");
 
-      const uintsb = await estimateGasInstance.methods.uints(1).call();
+      const uintsb = await instance.methods.uints(1).call();
       assert.strictEqual(uintsb, "1", "set value is incorrect");
 
-      const receiptb = await estimateGasInstance.methods.clear().send(options);
+      const receiptb = await instance.methods.clear().send(options);
       assert.strictEqual(receiptb.status, true, "clearing value did not work");
 
-      const uintsc = await estimateGasInstance.methods.uints(1).call();
+      const uintsc = await instance.methods.uints(1).call();
       assert.strictEqual(uintsc, "0", "cleared value is not correct");
     });
   });
 
   describe("Estimation", () => {
-    async function testTransactionEstimate(contractFn, args, options) {
-      await estimateGasInstance.methods.reset().send({ from: options.from, gas: 5000000 });
-      const method = contractFn(...args);
-      const gasEstimate = await method.estimateGas(options);
-      const receipt = await method.send(options);
-
-      assert.strictEqual(receipt.status, true, "Transaction must succeed");
-      assert.strictEqual(receipt.gasUsed, gasEstimate, "gasUsed");
-      assert.strictEqual(receipt.cumulativeGasUsed, gasEstimate, "estimate");
-    }
-
     it("matches estimate for deployment", async() => {
-      const { accounts, bytecode } = services;
-      let gasEstimate = await EstimateGasContract.deploy({ data: bytecode }).estimateGas({
+      const { accounts, bytecode, contract } = services;
+      let gasEstimate = await contract.deploy({ data: bytecode }).estimateGas({
         from: accounts[1]
       });
 
@@ -446,29 +424,24 @@ describe("Gas", () => {
     });
 
     it("matches usage for complex function call (add)", async() => {
-      const { accounts } = services;
-      await testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 10], {
-        from: accounts[0],
-        gas: 3141592
-      });
-    }).timeout(10000);
-
-    it("matches usage for complex function call (transfer)", async() => {
-      const { accounts } = services;
+      const { accounts, instance } = services;
       await testTransactionEstimate(
-        estimateGasInstance.methods.transfer,
-        ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")],
-        { from: accounts[0], gas: 3141592 }
+        instance.methods.add,
+        [toBytes("Tim"), toBytes("A great guy"), 10],
+        { from: accounts[0], gas: 3141592 },
+        instance
       );
     }).timeout(10000);
 
-    function toBytes(s) {
-      let bytes = Array.prototype.map.call(s, function(c) {
-        return c.codePointAt(0);
-      });
-
-      return to.hex(Buffer.from(bytes));
-    }
+    it("matches usage for complex function call (transfer)", async() => {
+      const { accounts, instance } = services;
+      await testTransactionEstimate(
+        instance.methods.transfer,
+        ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")],
+        { from: accounts[0], gas: 3141592 },
+        instance
+      );
+    }).timeout(10000);
 
     it("matches usage for simple account to account transfer", async() => {
       const { accounts, web3 } = services;
