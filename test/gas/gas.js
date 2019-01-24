@@ -3,74 +3,73 @@ const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../../index.js");
-const fs = require("fs");
-const path = require("path");
-const solc = require("solc");
 const to = require("../../lib/utils/to.js");
 const pify = require("pify");
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
 const { sleep } = require("../helpers/utils/sleep");
+const bootstrap = require("../helpers/contract/bootstrap");
+const isGasExpenseCorrect = require("./lib/isGasExpenseCorrect");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+describe("Gas", () => {
+  const mainContract = "EstimateGas";
+  const contractFilenames = [];
+  const contractPath = "../../contracts/gas/";
 
-describe("Gas", function() {
-  let estimateGasContractData;
-  let estimateGasContractAbi;
+  const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+  const options = { mnemonic };
+  const services = bootstrap(mainContract, contractFilenames, options, contractPath);
+
+  // let estimateGasContractData;
   let EstimateGasContract;
   let estimateGasInstance;
   let deploymentReceipt;
 
   const provider = Ganache.provider({ mnemonic });
-  const web3 = new Web3(provider);
-  let accounts = [];
-
-  before("get accounts", async function() {
-    accounts = await web3.eth.getAccounts();
-  });
+  // const web3 = new Web3(provider);
 
   before("compile source", async function() {
     this.timeout(10000);
-    const source = fs.readFileSync(path.join(__dirname, "/../EstimateGas.sol"), "utf8");
-    const result = solc.compile({ sources: { "EstimateGas.sol": source } }, 1);
+    const { accounts, bytecode, contract } = services;
+    // estimateGasContractData = bytecode;
+    EstimateGasContract = contract;
 
-    estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
-    estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
-
-    EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
-    let promiEvent = EstimateGasContract.deploy({ data: estimateGasContractData }).send({
+    let promiEvent = contract.deploy({ data: bytecode }).send({
       from: accounts[0],
       gas: 3141592
     });
 
-    promiEvent.on("receipt", function(receipt) {
+    promiEvent.on("receipt", (receipt) => {
       deploymentReceipt = receipt;
     });
 
     estimateGasInstance = await promiEvent;
   });
 
-  after("cleanup", function() {
+  after("cleanup", () => {
+    const { web3 } = services;
     web3.setProvider(null);
     provider.close(() => {});
   });
 
   async function deployContract(tempWeb3) {
-    let contract = new tempWeb3.eth.Contract(estimateGasContractAbi);
+    const { abi, accounts, bytecode } = services;
+    let contract = new tempWeb3.eth.Contract(abi);
 
-    return contract.deploy({ data: estimateGasContractData }).send({ from: accounts[0], gas: 3141592 });
+    return contract.deploy({ data: bytecode }).send({ from: accounts[0], gas: 3141592 });
   }
 
-  describe("Refunds", function() {
+  describe("Refunds", () => {
     it(
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
         " value is 0",
       async() => {
+        const { accounts } = services;
         const from = accounts[0];
         const options = { from, gas: 5000000 };
 
@@ -99,6 +98,7 @@ describe("Gas", function() {
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's " +
         "original value is not 0",
       async() => {
+        const { accounts } = services;
         const from = accounts[0];
         const rsclearRefundForResettingDirtySlotToNonZeroValue = 4800;
         const options = { from, gas: 5000000 };
@@ -128,6 +128,7 @@ describe("Gas", function() {
       "accounts for Rsclear Refund in gasEstimate when a fresh storage slot's original " +
         "value is not 0 and new value is 0",
       async() => {
+        const { accounts } = services;
         const from = accounts[0];
         const rsclearRefundForUpdatingFreshSlotToZero = 15000;
         const options = { from, gas: 5000000 };
@@ -157,6 +158,7 @@ describe("Gas", function() {
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot's original value " +
         "is not 0 and new value is 0",
       async() => {
+        const { accounts } = services;
         const from = accounts[0];
         const rsclearRefundForUpdatingDirtySlotToZero = 15000;
         const options = { from, gas: 5000000 };
@@ -186,6 +188,7 @@ describe("Gas", function() {
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot's original value " +
         "is not 0 and current value is 0",
       async() => {
+        const { accounts } = services;
         const from = accounts[0];
         const options = { from, gas: 5000000 };
 
@@ -213,6 +216,7 @@ describe("Gas", function() {
     );
 
     it("accounts for Rselfdestruct Refund in gasEstimate", async() => {
+      const { accounts, web3 } = services;
       const from = accounts[0];
       const options = { from, gas: 5000000 };
 
@@ -230,6 +234,7 @@ describe("Gas", function() {
     });
 
     it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async() => {
+      const { accounts, web3 } = services;
       const from = accounts[0];
 
       const instance = await deployContract(web3);
@@ -255,9 +260,10 @@ describe("Gas", function() {
     });
 
     it("accounts for Rsclear & Rselfdestruct Refunds in gasEstimate w/ multiple transactions in the block", async() => {
+      const { accounts } = services;
       const ganacheProvider = Ganache.provider({
         blockTime: 0.5, // seconds
-        mnemonic: mnemonic
+        mnemonic
       });
 
       let tempWeb3;
@@ -395,6 +401,7 @@ describe("Gas", function() {
     });
 
     it("clears mapping storage slots", async() => {
+      const { accounts } = services;
       const options = { from: accounts[0] };
 
       await estimateGasInstance.methods.reset().send({ from: options.from, gas: 5000000 });
@@ -416,7 +423,7 @@ describe("Gas", function() {
     });
   });
 
-  describe("Estimation", function() {
+  describe("Estimation", () => {
     async function testTransactionEstimate(contractFn, args, options) {
       await estimateGasInstance.methods.reset().send({ from: options.from, gas: 5000000 });
       const method = contractFn(...args);
@@ -428,8 +435,9 @@ describe("Gas", function() {
       assert.strictEqual(receipt.cumulativeGasUsed, gasEstimate, "estimate");
     }
 
-    it("matches estimate for deployment", async function() {
-      let gasEstimate = await EstimateGasContract.deploy({ data: estimateGasContractData }).estimateGas({
+    it("matches estimate for deployment", async() => {
+      const { accounts, bytecode } = services;
+      let gasEstimate = await EstimateGasContract.deploy({ data: bytecode }).estimateGas({
         from: accounts[1]
       });
 
@@ -437,22 +445,22 @@ describe("Gas", function() {
       assert.deepStrictEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
     });
 
-    it("matches usage for complex function call (add)", async function() {
-      this.timeout(10000);
+    it("matches usage for complex function call (add)", async() => {
+      const { accounts } = services;
       await testTransactionEstimate(estimateGasInstance.methods.add, [toBytes("Tim"), toBytes("A great guy"), 10], {
         from: accounts[0],
         gas: 3141592
       });
-    });
+    }).timeout(10000);
 
-    it("matches usage for complex function call (transfer)", async function() {
-      this.timeout(10000);
+    it("matches usage for complex function call (transfer)", async() => {
+      const { accounts } = services;
       await testTransactionEstimate(
         estimateGasInstance.methods.transfer,
         ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")],
         { from: accounts[0], gas: 3141592 }
       );
-    });
+    }).timeout(10000);
 
     function toBytes(s) {
       let bytes = Array.prototype.map.call(s, function(c) {
@@ -462,7 +470,8 @@ describe("Gas", function() {
       return to.hex(Buffer.from(bytes));
     }
 
-    it("matches usage for simple account to account transfer", async function() {
+    it("matches usage for simple account to account transfer", async() => {
+      const { accounts, web3 } = services;
       let transferAmount = web3.utils.toBN(web3.utils.toWei("5", "finney"));
       let transactionData = {
         from: accounts[0],
@@ -478,60 +487,27 @@ describe("Gas", function() {
     });
   });
 
-  describe("Expenditure", function() {
-    async function testGasExpenseIsCorrect(expectedGasPrice, setGasPriceOnTransaction = false, w3 = web3) {
-      const transferAmount = w3.utils.toBN(w3.utils.toWei("5", "finney"));
-
-      expectedGasPrice = w3.utils.toBN(expectedGasPrice);
-
-      const initialBalance = await w3.utils.toBN(await w3.eth.getBalance(accounts[0]));
-
-      let params = {
-        from: accounts[0],
-        to: accounts[1],
-        value: transferAmount
-      };
-
-      if (setGasPriceOnTransaction) {
-        params.gasPrice = expectedGasPrice;
-      }
-
-      const receipt = await w3.eth.sendTransaction(params);
-      const gasUsed = w3.utils.toBN(receipt.gasUsed);
-
-      const finalBalance = w3.utils.toBN(await w3.eth.getBalance(accounts[0]));
-      const deltaBalance = initialBalance.sub(finalBalance);
-
-      // the amount we paid in excess of our transferAmount is what we spent on gas
-      const gasExpense = deltaBalance.sub(transferAmount);
-
-      assert(!gasExpense.eq(w3.utils.toBN("0")), "Calculated gas expense must be nonzero.");
-
-      // gas expense is just gasPrice * gasUsed, so just solve accordingly
-      const actualGasPrice = gasExpense.div(gasUsed);
-
-      assert(
-        expectedGasPrice.eq(actualGasPrice),
-        `Gas price used by EVM (${to.hex(actualGasPrice)}) was different from` +
-          ` expected gas price (${to.hex(expectedGasPrice)})`
-      );
-    }
-
-    it("should calculate gas expenses correctly in consideration of the default gasPrice", async function() {
-      await testGasExpenseIsCorrect(await web3.eth.getGasPrice());
+  describe("Expenditure", () => {
+    it("should calculate gas expenses correctly in consideration of the default gasPrice", async() => {
+      const { accounts, web3 } = services;
+      const gasPrice = await web3.eth.getGasPrice();
+      await isGasExpenseCorrect(gasPrice, false, web3, accounts);
     });
 
-    it("should calculate gas expenses correctly in consideration of the requested gasPrice", async function() {
-      await testGasExpenseIsCorrect("0x10000", true);
+    it("should calculate gas expenses correctly in consideration of the requested gasPrice", async() => {
+      const { accounts, web3 } = services;
+      await isGasExpenseCorrect("0x10000", true, web3, accounts);
     });
 
     it("should calculate gas expenses correctly in consideration of a user-defined default gasPrice", async() => {
+      const { accounts } = services;
       let gasPrice = "0x2000";
       let provider = Ganache.provider({ mnemonic, gasPrice });
       let tempWeb3;
       try {
         tempWeb3 = new Web3(provider);
-        await testGasExpenseIsCorrect(gasPrice, false, new Web3(Ganache.provider({ mnemonic, gasPrice })));
+        const web3 = new Web3(Ganache.provider({ mnemonic, gasPrice }));
+        await isGasExpenseCorrect(gasPrice, false, web3, accounts);
       } catch (e) {
         if (tempWeb3) {
           tempWeb3.setProvider(null);
@@ -541,9 +517,10 @@ describe("Gas", function() {
     });
 
     it("should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block", async() => {
+      const { accounts } = services;
       let provider = Ganache.provider({
         blockTime: 0.5, // seconds
-        mnemonic: mnemonic
+        mnemonic
       });
 
       let tempWeb3;
