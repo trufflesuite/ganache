@@ -19,37 +19,33 @@ process.removeAllListeners("uncaughtException");
 
 let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
-describe("Gas2", async function() {
-  const { compileAndDeploy } = require("./helpers/contracts");
-
-  const provider = Ganache.provider();
-  const web3 = new Web3(provider);
-  const accounts = await web3.eth.getAccounts();
-
+describe("EIP150 Gas Estimation: ", async function() {
+  const bootstrap = require("./helpers/bootstrap");
   const contractName = "ContractFactory";
-  const location = path.join(__dirname, "contracts", `${contractName}.sol`);
-  const contractArtifact = await compileAndDeploy(location, contractName, web3);
-  const instance = contractArtifact.instance;
-
-  const est = await instance.methods.createInstance().estimateGas();
-  try {
-    await instance.methods.createInstance().send({
-      from: accounts[0],
-      gas: est - 1
-    });
-    assert.fail("Passed? SANITY CHECK");
-  } catch (e) {
-    assert("FAILED: not enough gas (expected)");
-  }
-  try {
-    await instance.methods.createInstance().send({
-      from: accounts[0],
-      gas: est
-    });
-    assert("Enough gas supplied!");
-  } catch (e) {
-    assert.fail("Still not enough gas? SANITY CHECK");
-  }
+  // const location = path.join(__dirname, "contracts", `${contractName}.sol`);
+  const contractArtifact = bootstrap(contractName);
+  it("Should estimate gas perfectly with EIP150", async() => {
+    const { accounts, instance } = contractArtifact;
+    const est = await instance.methods.createInstance().estimateGas();
+    try {
+      await instance.methods.createInstance().send({
+        from: accounts[0],
+        gas: est - 1
+      });
+      assert.fail("Passed? SANITY CHECK");
+    } catch (e) {
+      assert("FAILED: not enough gas (expected)");
+    }
+    try {
+      await instance.methods.createInstance().send({
+        from: accounts[0],
+        gas: est
+      });
+      assert("Enough gas supplied!");
+    } catch (e) {
+      assert.fail("Still not enough gas? SANITY CHECK");
+    }
+  });
 });
 
 describe("Gas", function() {
