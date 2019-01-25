@@ -55,18 +55,18 @@ describe("Gas", () => {
         // update storage and then reset it back to 0
         const method = instance.methods.triggerRsclearRefund();
 
-        let gasEstimate = await method.estimateGas(options);
+        const gasEstimate = await method.estimateGas(options);
 
-        let receipt = await method.send({ from, gas: gasEstimate });
+        const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
 
         if (provider.options.hardfork === "byzantium") {
-          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+          assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
           // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
-          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
+          assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
         }
-        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+        assert.strictEqual(gasUsed, cumulativeGasUsed);
       }
     );
 
@@ -84,19 +84,19 @@ describe("Gas", () => {
         // update storage and then reset it back to 1
         const method = instance.methods.triggerRsclearRefundForY();
 
-        let gasEstimate = await method.estimateGas(options);
+        const gasEstimate = await method.estimateGas(options);
 
-        let receipt = await method.send({ from, gas: gasEstimate });
+        const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
 
         if (provider.options.hardfork === "byzantium") {
           // since we are resetting to a non-zero value, there is no gas added to the refund counter here
-          assert.strictEqual(receipt.gasUsed, gasEstimate);
+          assert.strictEqual(gasUsed, gasEstimate);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 1 and we call triggerRsclearRefundForY(), which then
           // resets storage back to 1, 4800 gas is added to the refund counter per Constantinople EIP 1283
-          assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValue);
+          assert.strictEqual(gasUsed, gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValue);
         }
-        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+        assert.strictEqual(gasUsed, cumulativeGasUsed);
       }
     );
 
@@ -117,16 +117,16 @@ describe("Gas", () => {
 
         const gasEstimate = await method.estimateGas(options);
 
-        const receipt = await method.send({ from, gas: gasEstimate });
+        const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
 
         if (provider.options.hardfork === "byzantium") {
-          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+          assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 1 and we call reset(), which then sets
           // storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-          assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingFreshSlotToZero);
+          assert.strictEqual(gasUsed, gasEstimate - rsclearRefundForUpdatingFreshSlotToZero);
         }
-        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+        assert.strictEqual(gasUsed, cumulativeGasUsed);
       }
     );
 
@@ -147,16 +147,16 @@ describe("Gas", () => {
 
         const gasEstimate = await method.estimateGas(options);
 
-        const receipt = await method.send({ from, gas: gasEstimate });
+        const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
 
         if (provider.options.hardfork === "byzantium") {
-          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+          assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 1 and we call triggerRsclearRefund(), which then
           // sets storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-          assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingDirtySlotToZero);
+          assert.strictEqual(gasUsed, gasEstimate - rsclearRefundForUpdatingDirtySlotToZero);
         }
-        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+        assert.strictEqual(gasUsed, cumulativeGasUsed);
       }
     );
 
@@ -176,18 +176,18 @@ describe("Gas", () => {
 
         const gasEstimate = await method.estimateGas(options);
 
-        const receipt = await method.send({ from, gas: gasEstimate });
+        const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
 
         if (provider.options.hardfork === "byzantium") {
-          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+          assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 1 and we call triggerRsclearRefundForX(), which then
           // resets storage's current value to 0 and 15000 gas is added to the refund counter, and then
           // it replaces x with gasleft, which removes 150000 gas from the refund counter per Constantinople
           // EIP 1283 leaving us with a rsclear refund of 0
-          assert.strictEqual(receipt.gasUsed, gasEstimate);
+          assert.strictEqual(gasUsed, gasEstimate);
         }
-        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+        assert.strictEqual(gasUsed, cumulativeGasUsed);
       }
     );
 
@@ -203,10 +203,10 @@ describe("Gas", () => {
 
       const gasEstimate = await method.estimateGas(options);
 
-      const receipt = await method.send({ from, gas: gasEstimate });
+      const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
 
-      assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND);
-      assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+      assert.strictEqual(gasUsed, gasEstimate - RSELFDESTRUCT_REFUND);
+      assert.strictEqual(gasUsed, cumulativeGasUsed);
     });
 
     it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async() => {
@@ -220,19 +220,19 @@ describe("Gas", () => {
 
       const gasEstimate = await method.estimateGas({ from });
 
-      const receipt = await method.send({ from, gas: gasEstimate });
+      const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
 
       if (provider.options.hardfork === "byzantium") {
-        assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+        assert.strictEqual(gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
       } else if (provider.options.hardfork === "constantinople") {
         // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
         // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
         assert.strictEqual(
-          receipt.gasUsed,
+          gasUsed,
           gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO
         );
       }
-      assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+      assert.strictEqual(gasUsed, cumulativeGasUsed);
     });
 
     it("accounts for Rsclear & Rselfdestruct Refunds in gasEstimate w/ multiple transactions in the block", async() => {
