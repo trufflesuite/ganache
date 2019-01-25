@@ -1,7 +1,7 @@
 const assert = require("assert");
 const to = require("../../../lib/utils/to.js");
 
-const testGasExpenseIsCorrect = async(expectedGasPrice, setGasPriceOnTransaction = false, web3, accounts) => {
+const isGasExpenseCorrect = async(expectedGasPrice, setGasPriceOnTransaction = false, web3, accounts) => {
   const transferAmount = web3.utils.toBN(web3.utils.toWei("5", "finney"));
   const expectedGasPriceBN = web3.utils.toBN(expectedGasPrice);
 
@@ -39,4 +39,4 @@ const testGasExpenseIsCorrect = async(expectedGasPrice, setGasPriceOnTransaction
   );
 };
 
-module.exports = testGasExpenseIsCorrect;
+module.exports = isGasExpenseCorrect;

@@ -296,37 +296,36 @@ describe("Gas", () => {
       const currentBlockNumber = await web3.eth.getBlockNumber();
       assert.deepStrictEqual(currentBlockNumber, 2, "Current Block Should be 2");
 
-      const receipt = await method.send({ from: accounts[0], gas: gasEstimate });
+      const { gasUsed } = await method.send({ from: accounts[0], gas: gasEstimate });
 
       let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
       if (provider.options.hardfork === "byzantium") {
-        assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+        assert.strictEqual(gasUsed, transactionCostMinusRefund);
       } else if (provider.options.hardfork === "constantinople") {
         // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
         // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
         transactionCostMinusRefund =
           gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO;
-        assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+        assert.strictEqual(gasUsed, transactionCostMinusRefund);
       }
 
-      const receipts = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
-      assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
+      const [tx1, tx2, tx3] = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
+      assert.deepStrictEqual(tx1.gasUsed, tx2.gasUsed, "Tx1 and Tx2 should cost the same gas.");
       assert.deepStrictEqual(
-        receipts[1].gasUsed,
-        receipts[2].gasUsed,
+        tx2.gasUsed,
+        tx3.gasUsed,
         "Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive"
       );
       assert.deepStrictEqual(
-        receipts[1].transactionIndex > receipts[2].transactionIndex,
+        tx2.transactionIndex > tx3.transactionIndex,
         true,
         "(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)"
       );
-      const currentBlock = await web3.eth.getBlock(receipts[0].blockNumber);
+      const currentBlock = await web3.eth.getBlock(tx1.blockNumber);
 
       // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
       const isAccumulating =
-        receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed &&
-        receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed;
+        tx2.cumulativeGasUsed > tx3.cumulativeGasUsed && tx3.cumulativeGasUsed > tx1.cumulativeGasUsed;
 
       assert.deepStrictEqual(
         isAccumulating,
@@ -335,27 +334,27 @@ describe("Gas", () => {
       );
 
       assert.deepStrictEqual(
-        receipts[0].gasUsed,
-        receipts[0].cumulativeGasUsed,
+        tx1.gasUsed,
+        tx1.cumulativeGasUsed,
         "Gas and cumulative gas should be equal for the FIRST Tx."
       );
 
       assert.notDeepStrictEqual(
-        receipts[1].gasUsed,
-        receipts[1].cumulativeGasUsed,
+        tx2.gasUsed,
+        tx2.cumulativeGasUsed,
         "Gas and cumulative gas should NOT be equal for the Second Tx."
       );
 
       assert.notDeepStrictEqual(
-        receipts[2].gasUsed,
-        receipts[2].cumulativeGasUsed,
+        tx3.gasUsed,
+        tx3.cumulativeGasUsed,
         "Gas and cumulative gas should NOT be equal for the Third Tx."
       );
 
-      const totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
+      const totalGas = tx1.gasUsed + tx2.gasUsed + tx3.gasUsed;
       assert.deepStrictEqual(
         totalGas + transactionCostMinusRefund,
-        receipts[1].cumulativeGasUsed,
+        tx2.cumulativeGasUsed,
         "Total Gas should equal the final tx.cumulativeGas"
       );
 
@@ -368,9 +367,10 @@ describe("Gas", () => {
 
     it("clears mapping storage slots", async() => {
       const { accounts, instance } = services;
-      const options = { from: accounts[0] };
+      const from = accounts[0];
+      const options = { from };
 
-      await instance.methods.reset().send({ from: options.from, gas: 5000000 });
+      await instance.methods.reset().send({ from, gas: 5000000 });
 
       const uintsa = await instance.methods.uints(1).call();
       assert.strictEqual(uintsa, "0", "initial value is not correct");
@@ -429,9 +429,11 @@ describe("Gas", () => {
         value: transferAmount
       };
 
-      const gasEstimate = await web3.eth.estimateGas(transactionData);
-
-      const receipt = await web3.eth.sendTransaction(transactionData);
+      const web3Transactions = [
+        await web3.eth.estimateGas(transactionData),
+        await web3.eth.sendTransaction(transactionData)
+      ];
+      const [gasEstimate, receipt] = await Promise.all(web3Transactions);
 
       assert.strictEqual(receipt.gasUsed, gasEstimate);
     });
@@ -452,16 +454,8 @@ describe("Gas", () => {
     it("should calculate gas expenses correctly in consideration of a user-defined default gasPrice", async() => {
       const gasPrice = "0x2000";
       const options = { mnemonic, gasPrice };
-      const { accounts, provider, web3 } = await getWeb3(options);
-
-      try {
-        await isGasExpenseCorrect(gasPrice, false, web3, accounts);
-      } catch (e) {
-        if (web3) {
-          web3.setProvider(null);
-        }
-        provider.stop(() => {});
-      }
+      const { accounts, web3 } = await getWeb3(options);
+      await isGasExpenseCorrect(gasPrice, false, web3, accounts);
     });
 
     it("should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block", async() => {
@@ -523,51 +517,46 @@ describe("Gas", () => {
 
       const currentBlock = await web3.eth.getBlock(currentBlockNumber);
 
-      const receipts = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
+      const [tx1, tx2, tx3] = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
 
-      assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
+      assert.deepStrictEqual(tx1.gasUsed, tx2.gasUsed, "Tx1 and Tx2 should cost the same gas.");
       assert.deepStrictEqual(
-        receipts[1].gasUsed,
-        receipts[2].gasUsed,
+        tx2.gasUsed,
+        tx3.gasUsed,
         "Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive"
       );
       assert.deepStrictEqual(
-        receipts[1].transactionIndex > receipts[2].transactionIndex,
+        tx2.transactionIndex > tx3.transactionIndex,
         true,
         "(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)"
       );
 
       // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
       const isAccumulating =
-        receipts[1].cumulativeGasUsed > receipts[2].cumulativeGasUsed &&
-        receipts[2].cumulativeGasUsed > receipts[0].cumulativeGasUsed;
+        tx2.cumulativeGasUsed > tx3.cumulativeGasUsed && tx3.cumulativeGasUsed > tx1.cumulativeGasUsed;
       assert.deepStrictEqual(
         isAccumulating,
         true,
         "Cumulative gas should be accumulating for any transactions in the same block."
       );
       assert.deepStrictEqual(
-        receipts[0].gasUsed,
-        receipts[0].cumulativeGasUsed,
+        tx1.gasUsed,
+        tx1.cumulativeGasUsed,
         "Gas and cumulative gas should be equal for the FIRST Tx."
       );
       assert.notDeepStrictEqual(
-        receipts[1].gasUsed,
-        receipts[1].cumulativeGasUsed,
+        tx2.gasUsed,
+        tx2.cumulativeGasUsed,
         "Gas and cumulative gas should NOT be equal for the Second Tx."
       );
       assert.notDeepStrictEqual(
-        receipts[2].gasUsed,
-        receipts[2].cumulativeGasUsed,
+        tx3.gasUsed,
+        tx3.cumulativeGasUsed,
         "Gas and cumulative gas should NOT be equal for the Third Tx."
       );
 
-      const totalGas = receipts[0].gasUsed + receipts[1].gasUsed + receipts[2].gasUsed;
-      assert.deepStrictEqual(
-        totalGas,
-        receipts[1].cumulativeGasUsed,
-        "Total Gas should be equal the final tx.cumulativeGas"
-      );
+      const totalGas = tx1.gasUsed + tx2.gasUsed + tx3.gasUsed;
+      assert.deepStrictEqual(totalGas, tx2.cumulativeGasUsed, "Total Gas should be equal the final tx.cumulativeGas");
       assert.deepStrictEqual(totalGas, currentBlock.gasUsed, "Total Gas should be equal to the currentBlock.gasUsed");
     });
   });
