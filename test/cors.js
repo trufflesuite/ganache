@@ -7,13 +7,15 @@ const customRequestHeader = "X-PINGOTHER";
 
 function test(host, port) {
   describe("CORS", () => {
-    it("should set request headers equals to response headers in a preflight request", (done) => {
+    it("should set response headers correctly in a preflight request", (done) => {
       let req = request.options(
         {
           url: "http://" + host + ":" + port,
           headers: {
             "Access-Control-Request-Headers": customRequestHeader,
-            "Access-Control-Request-Method": "POST",
+            // delete isn't supported by ganache.server, but we want to test that
+            // we respond with the headers we do support (POST)
+            "Access-Control-Request-Method": "DELETE",
             Origin: "https://localhost:3000"
           }
         },
@@ -22,44 +24,23 @@ function test(host, port) {
             return done(error);
           }
 
-          let allowHeader = "";
-
-          if (response.headers.hasOwnProperty("access-control-allow-headers")) {
-            allowHeader = response.headers["access-control-allow-headers"];
-          }
+          const allowHeader = response.headers["access-control-allow-headers"];
+          const methodHeader = response.headers["access-control-allow-methods"];
+          const contentLengthHeader = response.headers["content-length"];
+          const statusCode = response.statusCode;
 
           assert.strictEqual(
             allowHeader,
             customRequestHeader,
             "Access-Control-Allow-Headers should be equals to Access-Control-Request-Headers"
           );
-
-          done();
-        }
-      );
-
-      req.destroy();
-    });
-
-    it("should return an error message if the OPTIONS request is not a valid preflight request.", (done) => {
-      let origin = "https://localhost:3000";
-      let req = request.options(
-        {
-          url: "http://" + host + ":" + port,
-          headers: {
-            Origin: origin
-          }
-        },
-        function(error, response) {
-          if (error) {
-            return done(error);
-          }
-
+          assert.strictEqual(methodHeader, "POST", "Access-Control-Allow-Methods should be equals to 'POST'");
           assert.strictEqual(
-            response.statusCode,
-            400,
-            "A an OPTIONS request that isn't a preflight request should return an error."
+            contentLengthHeader,
+            "0",
+            "Content-Length header should be equal to 0 for browser compatibility reasons"
           );
+          assert.strictEqual(statusCode, 204, "response.statusCode should be '204'");
 
           done();
         }
@@ -74,7 +55,8 @@ function test(host, port) {
         {
           url: "http://" + host + ":" + port,
           headers: {
-            Origin: origin
+            Origin: origin,
+            "Access-Control-Request-Method": "POST"
           }
         },
         function(error, response) {
@@ -107,7 +89,8 @@ function test(host, port) {
         {
           url: "http://" + host + ":" + port,
           headers: {
-            Origin: origin
+            Origin: origin,
+            "Access-Control-Request-Method": "POST"
           }
         },
         function(error, response) {
