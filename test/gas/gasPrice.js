@@ -1,11 +1,11 @@
 const assert = require("assert");
-const bootstrap = require("../helpers/bootstrap");
+const bootstrap = require("../helpers/contract/bootstrap");
 const { hex } = require("../../lib/utils/to");
 
 describe("options:gasPrice", () => {
   const mainContract = "Example";
   const contractFilenames = [];
-  const contractPath = "../contracts/examples/";
+  const contractPath = "../../contracts/examples/";
 
   describe("default gasPrice", async() => {
     const options = {};

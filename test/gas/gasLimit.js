@@ -1,23 +1,16 @@
-const Web3 = require("web3");
 const assert = require("assert");
-const Ganache = require("../../index.js");
 const to = require("../../lib/utils/to.js");
+const preloadWeb3 = require("../helpers/web3/preloadWeb3");
 
-const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+describe("options:gasLimit", () => {
+  const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+  const options = { mnemonic };
+  const services = preloadWeb3(options);
 
-describe("options:gasLimit", function() {
-  let options = { mnemonic };
-  let provider = null;
-  let web3 = null;
-
-  before("setup web3", async function() {
-    provider = Ganache.provider(options);
-    web3 = new Web3(provider);
-  });
-
-  it("should respect the assigned gasLimit", async function() {
-    let assignedGasLimit = provider.engine.manager.state.blockchain.blockGasLimit;
-    let block = await web3.eth.getBlock("latest");
-    assert.deepStrictEqual(block.gasLimit, to.number(assignedGasLimit));
+  it("should respect the assigned gasLimit", async() => {
+    const { provider, web3 } = services;
+    const assignedGasLimit = provider.engine.manager.state.blockchain.blockGasLimit;
+    const { gasLimit } = await web3.eth.getBlock("latest");
+    assert.deepStrictEqual(gasLimit, to.number(assignedGasLimit));
   });
 });
