@@ -8,7 +8,7 @@ const memdown = require("memdown");
 const { join } = require("path");
 const assert = require("assert");
 const Web3 = require("web3");
-const { generateSend } = require("./helpers/utils");
+const { generateSend } = require("./helpers/utils/rpc");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.

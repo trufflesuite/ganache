@@ -1,11 +1,11 @@
 const assert = require("assert");
-const bootstrap = require("../helpers/bootstrap");
+const bootstrap = require("../helpers/contract/bootstrap");
 
 describe("Undefined", () => {
   describe("Calls", () => {
     const mainContract = "Call";
     const contractFilenames = [];
-    const contractPath = "../contracts/call/";
+    const contractPath = "../../contracts/call/";
     const options = {
       vmErrorsOnRPCResponse: false
     };

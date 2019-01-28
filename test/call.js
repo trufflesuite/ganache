@@ -19,7 +19,7 @@ describe("eth_call", function() {
   var estimateGasContractAbi;
   var EstimateGasContract;
   var estimateGasInstance;
-  var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
+  var source = fs.readFileSync(path.join(__dirname, "/contracts/gas/EstimateGas.sol"), "utf8");
 
   before("get accounts", function(done) {
     web3.eth.getAccounts(function(err, accs) {

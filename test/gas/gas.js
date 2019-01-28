@@ -1,5 +1,5 @@
 const assert = require("assert");
-const { sleep } = require("../helpers/utils/sleep");
+const sleep = require("../helpers/utils/sleep");
 const bootstrap = require("../helpers/contract/bootstrap");
 const getWeb3 = require("../helpers/web3/getWeb3");
 const isGasExpenseCorrect = require("./lib/isGasExpenseCorrect");
