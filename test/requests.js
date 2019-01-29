@@ -1129,9 +1129,34 @@ const tests = function(web3) {
       const result = await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890");
       assert.strictEqual(result, 0);
     });
-  });
 
-  describe("eth_getTransactionCount", function() {
+    it("should fail when given an invalid blockNumber", (done) => {
+      const provider = web3.currentProvider;
+      provider.send(
+        {
+          jsonrpc: "2.0",
+          method: "eth_getTransactionCount",
+          params: [
+            accounts[0],
+            "" // this is in invalid blockNumber
+          ],
+          id: new Date().getTime()
+        },
+        function(err, result) {
+          if (err) {
+            // Ganache provider responds with an `err`, so check that, too.
+            assert.strictEqual(err.message, "Invalid `blockNumber`: \"\"");
+          }
+          if (result.error) {
+            assert.strictEqual(result.error.message, "Invalid `blockNumber`: \"\"");
+          } else {
+            assert.fail("eth_getTransactionCount did not return an error message for invalid data");
+          }
+          done();
+        }
+      );
+    });
+
     it("should return null for non-existent block", async function() {
       const result = await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999);
       assert.strictEqual(result, null, "Should return null for non-existent block (GETH)");
