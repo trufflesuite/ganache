@@ -18,11 +18,11 @@ process.removeAllListeners("uncaughtException");
 describe("Gas", () => {
   const mainContract = "EstimateGas";
   const contractFilenames = [];
-  const contractPath = "../../contracts/gas/";
+  const contractSubdirectory = "gas";
 
   const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
   const options = { mnemonic };
-  const services = bootstrap(mainContract, contractFilenames, options, contractPath);
+  const services = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
 
   let deploymentReceipt;
 

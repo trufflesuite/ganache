@@ -12,19 +12,20 @@ const { compileAndDeploy } = require("./compileAndDeploy");
  * @param {string} contractPath Relative path to contract
  * @returns {Object} abi, accounts, bytecode, contract, instance, provider, sources, web3
  */
-const setUp = (mainContractName = "", subContractNames = [], options = {}, contractPath = "../../contracts/") => {
+const setUp = (mainContractName = "", subContractNames = [], options = {}, contractPath = "") => {
   const context = {};
 
   before("Setting up web3 and contract", async function() {
     this.timeout(10000);
 
+    // Setup contract path
     const provider = Ganache.provider(options);
     const web3 = new Web3(provider);
 
     const { abi, accounts, bytecode, contract, instance, sources } = await compileAndDeploy(
       mainContractName,
       subContractNames,
-      join(__dirname, contractPath),
+      join(__dirname, "..", "..", "contracts", `${contractPath}/`),
       web3
     );
 

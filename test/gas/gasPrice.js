@@ -5,11 +5,11 @@ const { hex } = require("../../lib/utils/to");
 describe("options:gasPrice", () => {
   const mainContract = "Example";
   const contractFilenames = [];
-  const contractPath = "../../contracts/examples/";
+  const contractSubdirectory = "examples";
 
   describe("default gasPrice", async() => {
     const options = {};
-    const services = bootstrap(mainContract, contractFilenames, options, contractPath);
+    const services = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
 
     it("should respect the default gasPrice", async() => {
       const { accounts, instance, provider, web3 } = services;
@@ -30,7 +30,7 @@ describe("options:gasPrice", () => {
       gasPrice: 0
     };
 
-    const services = bootstrap(mainContract, contractFilenames, options, contractPath);
+    const services = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
 
     it("should be possible to set a zero gas price", async() => {
       const { accounts, instance, provider, web3 } = services;
