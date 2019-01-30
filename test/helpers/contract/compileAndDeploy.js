@@ -40,11 +40,12 @@ async function compile(mainContractName, contractFileNames = [], contractPath) {
  * @param {Object} web3 Web3 interface
  * @returns {Object} context: abi, accounts, bytecode, contract, instance
  */
-async function deploy(abi, bytecode, web3) {
+async function deploy(abi, bytecode, web3, options = {}) {
   const testAssets = [web3.eth.getAccounts(), web3.eth.getBlock("latest")];
   const [accounts, { gasLimit }] = await Promise.all(testAssets);
+  const gas = options.gas ? options.gas : gasLimit;
   const contract = new web3.eth.Contract(abi);
-  const instance = await contract.deploy({ data: bytecode }).send({ from: accounts[0], gas: gasLimit });
+  const instance = await contract.deploy({ data: bytecode }).send({ from: accounts[0], gas });
 
   return {
     abi,
@@ -63,9 +64,9 @@ async function deploy(abi, bytecode, web3) {
  * @param {Object} web3 Web3 interface
  * @returns {Object} context: abi, accounts, bytecode, contract, instance, sources
  */
-async function compileAndDeploy(mainContractName, contractFileNames = [], contractPath, web3) {
+async function compileAndDeploy(mainContractName, contractFileNames = [], contractPath, web3, options = {}) {
   const { abi, bytecode, sources } = await compile(mainContractName, contractFileNames, contractPath);
-  const context = await deploy(abi, bytecode, web3);
+  const context = await deploy(abi, bytecode, web3, options);
   Object.assign(context, { sources });
   return context;
 }

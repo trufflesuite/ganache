@@ -5,7 +5,7 @@ const initializeTestProvider = require("../helpers/web3/initializeTestProvider")
 const isGasExpenseCorrect = require("./lib/isGasExpenseCorrect");
 const testTransactionEstimate = require("./lib/transactionEstimate");
 const toBytes = require("./lib/toBytes");
-const deployContract = require("./lib/customContractDeploy");
+const { deploy } = require("../helpers/contract/compileAndDeploy");
 
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
@@ -196,7 +196,8 @@ describe("Gas", function() {
       const from = accounts[0];
       const options = { from, gas: 5000000 };
 
-      const instance = await deployContract(abi, accounts, bytecode, web3);
+      const deploymentOptions = { gas: 3141592 };
+      const { instance } = await deploy(abi, bytecode, web3, deploymentOptions);
       await instance.methods.reset().send(options); // prime storage by making sure it is set to 0
 
       const method = instance.methods.triggerRselfdestructRefund();
@@ -213,7 +214,8 @@ describe("Gas", function() {
       const { abi, accounts, bytecode, provider, web3 } = services;
       const from = accounts[0];
 
-      const instance = await deployContract(abi, accounts, bytecode, web3);
+      const deploymentOptions = { gas: 3141592 };
+      const { instance } = await deploy(abi, bytecode, web3, deploymentOptions);
       await instance.methods.reset().send({ from, gas: 5000000 }); // prime storage by making sure it is set to 0
 
       const method = instance.methods.triggerAllRefunds();
@@ -271,11 +273,12 @@ describe("Gas", function() {
       const initialBlockNumber = await web3.eth.getBlockNumber();
       assert.deepStrictEqual(initialBlockNumber, 0, "Current Block Should be 0");
 
-      const localGasInstance = await deployContract(abi, accounts, bytecode, web3);
+      const deploymentOptions = { gas: 3141592 };
+      const { instance } = await deploy(abi, bytecode, web3, deploymentOptions);
 
       // prime storage by making sure it is set to 0
-      await localGasInstance.methods.reset().send({ from: accounts[0], gas: 5000000 });
-      const method = localGasInstance.methods.triggerAllRefunds();
+      await instance.methods.reset().send({ from: accounts[0], gas: 5000000 });
+      const method = instance.methods.triggerAllRefunds();
       const gasEstimate = await method.estimateGas({ from: accounts[0] });
 
       const hashes = await Promise.all(
