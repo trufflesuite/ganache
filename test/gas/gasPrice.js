@@ -2,16 +2,16 @@ const assert = require("assert");
 const bootstrap = require("../helpers/contract/bootstrap");
 const { hex } = require("../../lib/utils/to");
 
-describe("options:gasPrice", () => {
+describe("options:gasPrice", function() {
   const mainContract = "Example";
   const contractFilenames = [];
   const contractSubdirectory = "examples";
 
-  describe("default gasPrice", async() => {
+  describe("default gasPrice", async function() {
     const options = {};
     const services = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
 
-    it("should respect the default gasPrice", async() => {
+    it("should respect the default gasPrice", async function() {
       const { accounts, instance, provider, web3 } = services;
 
       const assignedGasPrice = provider.engine.manager.state.gasPriceVal;
@@ -23,7 +23,7 @@ describe("options:gasPrice", () => {
     });
   });
 
-  describe("zero gasPrice", () => {
+  describe("zero gasPrice", function() {
     const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
     const options = {
       mnemonic,
@@ -32,7 +32,7 @@ describe("options:gasPrice", () => {
 
     const services = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
 
-    it("should be possible to set a zero gas price", async() => {
+    it("should be possible to set a zero gas price", async function() {
       const { accounts, instance, provider, web3 } = services;
 
       const assignedGasPrice = provider.engine.manager.state.gasPriceVal;

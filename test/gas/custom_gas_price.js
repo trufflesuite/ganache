@@ -1,8 +1,8 @@
 const assert = require("assert");
 const getWeb3 = require("../helpers/web3/getWeb3");
 
-describe("Custom Gas Price", () => {
-  it("should return gas price of 15 when specified as a decimal", async() => {
+describe("Custom Gas Price", function() {
+  it("should return gas price of 15 when specified as a decimal", async function() {
     const options = {
       gasPrice: 15
     };
@@ -11,7 +11,7 @@ describe("Custom Gas Price", () => {
     assert.strictEqual(parseInt(result), 15);
   });
 
-  it("should return gas price of 15 when specified as hex", async() => {
+  it("should return gas price of 15 when specified as hex", async function() {
     const options = {
       gasPrice: 0xf
     };

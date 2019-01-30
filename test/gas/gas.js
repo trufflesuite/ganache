@@ -15,7 +15,7 @@ const RSELFDESTRUCT_REFUND = 24000;
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-describe("Gas", () => {
+describe("Gas", function() {
   const mainContract = "EstimateGas";
   const contractFilenames = [];
   const contractSubdirectory = "gas";
@@ -40,11 +40,11 @@ describe("Gas", () => {
     });
   });
 
-  describe("Refunds", () => {
+  describe("Refunds", function() {
     it(
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
         " value is 0",
-      async() => {
+      async function() {
         const { accounts, instance, provider } = services;
         const from = accounts[0];
         const options = { from, gas: 5000000 };
@@ -73,7 +73,7 @@ describe("Gas", () => {
     it(
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's " +
         "original value is not 0",
-      async() => {
+      async function() {
         const { accounts, instance, provider } = services;
         const from = accounts[0];
         const rsclearRefundForResettingDirtySlotToNonZeroValue = 4800;
@@ -103,7 +103,7 @@ describe("Gas", () => {
     it(
       "accounts for Rsclear Refund in gasEstimate when a fresh storage slot's original " +
         "value is not 0 and new value is 0",
-      async() => {
+      async function() {
         const { accounts, instance, provider } = services;
         const from = accounts[0];
         const rsclearRefundForUpdatingFreshSlotToZero = 15000;
@@ -133,7 +133,7 @@ describe("Gas", () => {
     it(
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot's original value " +
         "is not 0 and new value is 0",
-      async() => {
+      async function() {
         const { accounts, instance, provider } = services;
         const from = accounts[0];
         const rsclearRefundForUpdatingDirtySlotToZero = 15000;
@@ -163,7 +163,7 @@ describe("Gas", () => {
     it(
       "accounts for Rsclear Refund in gasEstimate when a dirty storage slot's original value " +
         "is not 0 and current value is 0",
-      async() => {
+      async function() {
         const { accounts, instance, provider } = services;
         const from = accounts[0];
         const options = { from, gas: 5000000 };
@@ -191,7 +191,7 @@ describe("Gas", () => {
       }
     );
 
-    it("accounts for Rselfdestruct Refund in gasEstimate", async() => {
+    it("accounts for Rselfdestruct Refund in gasEstimate", async function() {
       const { abi, accounts, bytecode, web3 } = services;
       const from = accounts[0];
       const options = { from, gas: 5000000 };
@@ -209,7 +209,7 @@ describe("Gas", () => {
       assert.strictEqual(gasUsed, cumulativeGasUsed);
     });
 
-    it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async() => {
+    it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async function() {
       const { abi, accounts, bytecode, provider, web3 } = services;
       const from = accounts[0];
 
@@ -235,7 +235,7 @@ describe("Gas", () => {
       assert.strictEqual(gasUsed, cumulativeGasUsed);
     });
 
-    it("accounts for Rsclear & Rselfdestruct Refunds in gasEstimate w/ multiple transactions in the block", async() => {
+    it("accounting Rsclear/Rselfdestruct/Refunds in gasEstimate w/multiple transactions in a block", async function() {
       const { abi, bytecode, provider } = services;
       const options = {
         blockTime: 0.5, // seconds
@@ -365,7 +365,7 @@ describe("Gas", () => {
       );
     });
 
-    it("clears mapping storage slots", async() => {
+    it("clears mapping storage slots", async function() {
       const { accounts, instance } = services;
       const from = accounts[0];
       const options = { from };
@@ -389,8 +389,8 @@ describe("Gas", () => {
     });
   });
 
-  describe("Estimation", () => {
-    it("matches estimate for deployment", async() => {
+  describe("Estimation", function() {
+    it("matches estimate for deployment", async function() {
       const { accounts, bytecode, contract } = services;
       const gasEstimate = await contract.deploy({ data: bytecode }).estimateGas({
         from: accounts[1]
@@ -400,7 +400,7 @@ describe("Gas", () => {
       assert.deepStrictEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
     });
 
-    it("matches usage for complex function call (add)", async() => {
+    it("matches usage for complex function call (add)", async function() {
       const { accounts, instance } = services;
       await testTransactionEstimate(
         instance.methods.add,
@@ -410,7 +410,7 @@ describe("Gas", () => {
       );
     }).timeout(10000);
 
-    it("matches usage for complex function call (transfer)", async() => {
+    it("matches usage for complex function call (transfer)", async function() {
       const { accounts, instance } = services;
       await testTransactionEstimate(
         instance.methods.transfer,
@@ -420,7 +420,7 @@ describe("Gas", () => {
       );
     }).timeout(10000);
 
-    it("matches usage for simple account to account transfer", async() => {
+    it("matches usage for simple account to account transfer", async function() {
       const { accounts, web3 } = services;
       const transferAmount = web3.utils.toBN(web3.utils.toWei("5", "finney"));
       const transactionData = {
@@ -439,26 +439,26 @@ describe("Gas", () => {
     });
   });
 
-  describe("Expenditure", () => {
-    it("should calculate gas expenses correctly in consideration of the default gasPrice", async() => {
+  describe("Expenditure", function() {
+    it("should calculate gas expenses correctly in consideration of the default gasPrice", async function() {
       const { accounts, web3 } = services;
       const gasPrice = await web3.eth.getGasPrice();
       await isGasExpenseCorrect(gasPrice, false, web3, accounts);
     });
 
-    it("should calculate gas expenses correctly in consideration of the requested gasPrice", async() => {
+    it("should calculate gas expenses correctly in consideration of the requested gasPrice", async function() {
       const { accounts, web3 } = services;
       await isGasExpenseCorrect("0x10000", true, web3, accounts);
     });
 
-    it("should calculate gas expenses correctly in consideration of a user-defined default gasPrice", async() => {
+    it("should calculate gas expenses correctly in consideration of a user-defined default gasPrice", async function() {
       const gasPrice = "0x2000";
       const options = { mnemonic, gasPrice };
       const { accounts, web3 } = await getWeb3(options);
       await isGasExpenseCorrect(gasPrice, false, web3, accounts);
     });
 
-    it("should calculate cumalativeGas and gasUsed correctly when multiple transactions are in a block", async() => {
+    it("should calculate cumalativeGas and gasUsed correctly for multiple transactions in a block", async function() {
       const options = {
         blockTime: 0.5, // seconds
         mnemonic
