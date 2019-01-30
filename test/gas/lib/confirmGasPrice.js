@@ -2,42 +2,60 @@ const assert = require("assert");
 const to = require("../../../lib/utils/to.js");
 const numberToBN = require("number-to-bn");
 
-const testGasPrice = async(expectedGasPrice, setGasPriceOnTransaction = false, web3, accounts) => {
-  const transferAmount = numberToBN(web3.utils.toWei("5", "finney"));
+const confirmGasPrice = async(
+  expectedGasPrice,
+  setGasPriceOnTransaction = false,
+  web3,
+  accounts,
+  transferAmount = "5"
+) => {
+  // Convert transferAmount into a big number
+  const _transferAmount = numberToBN(web3.utils.toWei(transferAmount, "finney"));
+
+  // Convert expected gas price into a big number
   const expectedGasPriceBN = numberToBN(expectedGasPrice);
+
+  // Get balance of account
   const balance = await web3.eth.getBalance(accounts[0]);
+
+  // Convert balance into a big number
   const initialBalance = numberToBN(balance);
 
   const params = {
     from: accounts[0],
     to: accounts[1],
-    value: transferAmount
+    value: _transferAmount
   };
 
+  // Check to set the gas price
   if (setGasPriceOnTransaction) {
     params.gasPrice = expectedGasPriceBN;
   }
-
+  // Transfer funds between two accounts
   const receipt = await web3.eth.sendTransaction(params);
+
+  // Convert gasUsed to a big number
   const gasUsed = numberToBN(receipt.gasUsed);
 
+  // Get balance of sender account
   const finalBalance = await web3.eth.getBalance(accounts[0]);
+
+  // Subtract the initial balance from the final balance
   const deltaBalance = initialBalance.sub(numberToBN(finalBalance));
 
   // the amount we paid in excess of our transferAmount is what we spent on gas
-  const gasExpense = deltaBalance.sub(transferAmount);
+  const gasExpense = deltaBalance.sub(_transferAmount);
 
   assert(!gasExpense.eq(numberToBN("0")), "Calculated gas expense must be nonzero.");
 
   // gas expense is just gasPrice * gasUsed, so just solve accordingly
-  const actualGasPrice = gasExpense.div(gasUsed);
-  console.log(expectedGasPriceBN, actualGasPrice);
+  const actualGasPriceBN = gasExpense.div(gasUsed);
 
   assert(
-    expectedGasPriceBN.eq(actualGasPrice),
-    `Gas price used by EVM (${to.hex(actualGasPrice)}) was different from` +
+    expectedGasPriceBN.eq(actualGasPriceBN),
+    `Gas price used by EVM (${to.hex(actualGasPriceBN)}) was different from` +
       ` expected gas price (${to.hex(expectedGasPriceBN)})`
   );
 };
 
-module.exports = testGasPrice;
+module.exports = confirmGasPrice;
