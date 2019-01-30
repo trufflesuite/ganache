@@ -2,7 +2,7 @@ const assert = require("assert");
 const sleep = require("../helpers/utils/sleep");
 const bootstrap = require("../helpers/contract/bootstrap");
 const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
-const isGasExpenseCorrect = require("./lib/isGasExpenseCorrect");
+const testGasPrice = require("./lib/testGasPrice");
 const testTransactionEstimate = require("./lib/transactionEstimate");
 const toBytes = require("./lib/toBytes");
 const { deploy } = require("../helpers/contract/compileAndDeploy");
@@ -446,19 +446,20 @@ describe("Gas", function() {
     it("should calculate gas expenses correctly in consideration of the default gasPrice", async function() {
       const { accounts, web3 } = services;
       const gasPrice = await web3.eth.getGasPrice();
-      await isGasExpenseCorrect(gasPrice, false, web3, accounts);
+      await testGasPrice(gasPrice, false, web3, accounts);
     });
 
     it("should calculate gas expenses correctly in consideration of the requested gasPrice", async function() {
+      const gasPrice = "0x10000";
       const { accounts, web3 } = services;
-      await isGasExpenseCorrect("0x10000", true, web3, accounts);
+      await testGasPrice(gasPrice, true, web3, accounts);
     });
 
     it("should calculate gas expenses correctly in consideration of a user-defined default gasPrice", async function() {
       const gasPrice = "0x2000";
       const options = { mnemonic, gasPrice };
       const { accounts, web3 } = await initializeTestProvider(options);
-      await isGasExpenseCorrect(gasPrice, false, web3, accounts);
+      await testGasPrice(gasPrice, false, web3, accounts);
     });
 
     it("should calculate cumalativeGas and gasUsed correctly for multiple transactions in a block", async function() {
