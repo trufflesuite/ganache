@@ -1,7 +1,7 @@
 const assert = require("assert");
 const sleep = require("../helpers/utils/sleep");
 const bootstrap = require("../helpers/contract/bootstrap");
-const getWeb3 = require("../helpers/web3/getWeb3");
+const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
 const isGasExpenseCorrect = require("./lib/isGasExpenseCorrect");
 const testTransactionEstimate = require("./lib/transactionEstimate");
 const toBytes = require("./lib/toBytes");
@@ -241,7 +241,7 @@ describe("Gas", function() {
         blockTime: 0.5, // seconds
         mnemonic
       };
-      const { accounts, web3 } = await getWeb3(options);
+      const { accounts, web3 } = await initializeTestProvider(options);
 
       const transactions = [
         {
@@ -454,7 +454,7 @@ describe("Gas", function() {
     it("should calculate gas expenses correctly in consideration of a user-defined default gasPrice", async function() {
       const gasPrice = "0x2000";
       const options = { mnemonic, gasPrice };
-      const { accounts, web3 } = await getWeb3(options);
+      const { accounts, web3 } = await initializeTestProvider(options);
       await isGasExpenseCorrect(gasPrice, false, web3, accounts);
     });
 
@@ -463,7 +463,7 @@ describe("Gas", function() {
         blockTime: 0.5, // seconds
         mnemonic
       };
-      const { accounts, web3 } = await getWeb3(options);
+      const { accounts, web3 } = await initializeTestProvider(options);
 
       const transactions = [
         {

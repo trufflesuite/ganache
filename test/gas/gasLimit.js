@@ -1,11 +1,11 @@
 const assert = require("assert");
 const to = require("../../lib/utils/to.js");
-const preloadWeb3 = require("../helpers/web3/preloadWeb3");
+const preloadTestProvider = require("../helpers/web3/preloadTestProvider");
 
 describe("options:gasLimit", function() {
   const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
   const options = { mnemonic };
-  const services = preloadWeb3(options);
+  const services = preloadTestProvider(options);
 
   it("should respect the assigned gasLimit", async function() {
     const { provider, web3 } = services;
