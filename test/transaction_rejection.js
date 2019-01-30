@@ -25,7 +25,7 @@ describe("Transaction rejection", function() {
   var estimateGasContractAbi;
   var EstimateGasContract;
   var estimateGasContractAddress;
-  var source = fs.readFileSync(path.join(__dirname, "/contracts/gas/EstimateGas.sol"), "utf8");
+  var source = fs.readFileSync(path.join(__dirname, "contracts", "gas", "EstimateGas.sol"), "utf8");
 
   before("get accounts", function(done) {
     web3.eth.getAccounts(function(err, accs) {
