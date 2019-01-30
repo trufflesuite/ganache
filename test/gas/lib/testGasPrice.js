@@ -1,14 +1,12 @@
 const assert = require("assert");
 const to = require("../../../lib/utils/to.js");
-const BN = require("bn.js");
+const numberToBN = require("number-to-bn");
 
 const testGasPrice = async(expectedGasPrice, setGasPriceOnTransaction = false, web3, accounts) => {
-  const transferAmount = new BN(web3.utils.toWei("5", "finney"));
-  const expectedGasPriceBN = web3.utils.toBN(expectedGasPrice);
-  // console.log(expectedGasPrice, web3.utils.toBN(expectedGasPrice), new BN("0x2000", 16));
-  // 0x2000 <BN: 2000> <BN: 510e0>
+  const transferAmount = numberToBN(web3.utils.toWei("5", "finney"));
+  const expectedGasPriceBN = numberToBN(expectedGasPrice);
   const balance = await web3.eth.getBalance(accounts[0]);
-  const initialBalance = new BN(balance);
+  const initialBalance = numberToBN(balance);
 
   const params = {
     from: accounts[0],
@@ -21,15 +19,15 @@ const testGasPrice = async(expectedGasPrice, setGasPriceOnTransaction = false, w
   }
 
   const receipt = await web3.eth.sendTransaction(params);
-  const gasUsed = new BN(receipt.gasUsed);
+  const gasUsed = numberToBN(receipt.gasUsed);
 
   const finalBalance = await web3.eth.getBalance(accounts[0]);
-  const deltaBalance = initialBalance.sub(new BN(finalBalance));
+  const deltaBalance = initialBalance.sub(numberToBN(finalBalance));
 
   // the amount we paid in excess of our transferAmount is what we spent on gas
   const gasExpense = deltaBalance.sub(transferAmount);
 
-  assert(!gasExpense.eq(new BN("0")), "Calculated gas expense must be nonzero.");
+  assert(!gasExpense.eq(numberToBN("0")), "Calculated gas expense must be nonzero.");
 
   // gas expense is just gasPrice * gasUsed, so just solve accordingly
   const actualGasPrice = gasExpense.div(gasUsed);
