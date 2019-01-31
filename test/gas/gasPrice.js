@@ -9,10 +9,10 @@ describe("options:gasPrice", function() {
 
   describe("default gasPrice", async function() {
     const options = {};
-    const services = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
+    const context = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
 
     it("should respect the default gasPrice", async function() {
-      const { accounts, instance, provider, web3 } = services;
+      const { accounts, instance, provider, web3 } = context;
 
       const assignedGasPrice = provider.engine.manager.state.gasPriceVal;
 
