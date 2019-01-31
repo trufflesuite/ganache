@@ -1,6 +1,6 @@
 const to = require("../../../lib/utils/to.js");
 
-const toBytes = (message) => {
+const toBytesHexString = (message) => {
   const bytes = Array.prototype.map.call(message, (character) => {
     return character.codePointAt(0);
   });
@@ -8,4 +8,4 @@ const toBytes = (message) => {
   return to.hex(Buffer.from(bytes));
 };
 
-module.exports = toBytes;
+module.exports = toBytesHexString;

@@ -4,7 +4,7 @@ const bootstrap = require("../helpers/contract/bootstrap");
 const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
 const confirmGasPrice = require("./lib/confirmGasPrice");
 const testTransactionEstimate = require("./lib/transactionEstimate");
-const toBytes = require("./lib/toBytes");
+const toBytesHexString = require("./lib/toBytesHexString");
 const { deploy } = require("../helpers/contract/compileAndDeploy");
 
 const RSCLEAR_REFUND = 15000;
@@ -407,7 +407,7 @@ describe("Gas", function() {
       const { accounts, instance } = services;
       await testTransactionEstimate(
         instance.methods.add,
-        [toBytes("Tim"), toBytes("A great guy"), 10],
+        [toBytesHexString("Tim"), toBytesHexString("A great guy"), 10],
         { from: accounts[0], gas: 3141592 },
         instance
       );
@@ -417,7 +417,7 @@ describe("Gas", function() {
       const { accounts, instance } = services;
       await testTransactionEstimate(
         instance.methods.transfer,
-        ["0x0123456789012345678901234567890123456789", 5, toBytes("Tim")],
+        ["0x0123456789012345678901234567890123456789", 5, toBytesHexString("Tim")],
         { from: accounts[0], gas: 3141592 },
         instance
       );
@@ -445,21 +445,24 @@ describe("Gas", function() {
   describe("Expenditure", function() {
     it("should calculate gas expenses correctly in consideration of the default gasPrice", async function() {
       const { accounts, web3 } = services;
+      const transferAmount = "500";
       const gasPrice = await web3.eth.getGasPrice();
-      await confirmGasPrice(gasPrice, false, web3, accounts);
+      await confirmGasPrice(gasPrice, false, web3, accounts, transferAmount);
     });
 
     it("should calculate gas expenses correctly in consideration of the requested gasPrice", async function() {
+      const transferAmount = "500";
       const gasPrice = "0x10000";
       const { accounts, web3 } = services;
-      await confirmGasPrice(gasPrice, true, web3, accounts);
+      await confirmGasPrice(gasPrice, true, web3, accounts, transferAmount);
     });
 
     it("should calculate gas expenses correctly in consideration of a user-defined default gasPrice", async function() {
+      const transferAmount = "500";
       const gasPrice = "0x2000";
       const options = { mnemonic, gasPrice };
       const { accounts, web3 } = await initializeTestProvider(options);
-      await confirmGasPrice(gasPrice, false, web3, accounts);
+      await confirmGasPrice(gasPrice, false, web3, accounts, transferAmount);
     });
 
     it("should calculate cumalativeGas and gasUsed correctly for multiple transactions in a block", async function() {
