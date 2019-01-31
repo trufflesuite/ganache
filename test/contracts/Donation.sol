@@ -31,6 +31,21 @@ contract Donation {
         }
     }
 
+    function moveFund2(address _to, uint _amount) public onlyowner {
+        uint _balance = address(this).balance;
+        bool _tosendbal = _to.send(_balance);
+        // bool _tosendbal = _to.send(_balance);
+        if (_amount <= _balance) {
+            if (_tosendbal) {
+                emit fundMoved(_to, _amount);
+            } else {
+                revert();
+            }
+        } else {
+            revert();
+        }
+    }
+
     function addGiver(uint _amount) internal {
         _giver.push(msg.sender);
         _values.push(_amount);

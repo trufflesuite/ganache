@@ -97,7 +97,7 @@ describe("EIP150 Gas Estimation: ", async function() {
     }
   });
 
-  it("Should estimate gas perfectly with EIP150 - CALL", async() => {
+  it("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async() => {
     const { accounts, instance } = Donation;
     // Pre-condition
     const donateEst = await instance.methods.donate().estimateGas({
@@ -125,6 +125,43 @@ describe("EIP150 Gas Estimation: ", async function() {
     }
     try {
       await instance.methods.moveFund(address, 5).send({
+        from: accounts[0],
+        gas: est
+      });
+      assert("Enough gas supplied!");
+    } catch (e) {
+      assert.fail("Still not enough gas? SANITY CHECK");
+    }
+  }).timeout(1000000);
+
+  it("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async() => {
+    const { accounts, instance } = Donation;
+    // Pre-condition
+    const donateEst = await instance.methods.donate().estimateGas({
+      from: accounts[0],
+      value: 50
+    });
+    await instance.methods.donate().send({
+      from: accounts[0],
+      value: 50,
+      gas: donateEst
+    });
+    const address = accounts[0];
+    const est = await instance.methods.moveFund2(address, 5).estimateGas({
+      from: accounts[0]
+    });
+
+    try {
+      await instance.methods.moveFund2(accounts[1], 5).send({
+        from: accounts[0],
+        gas: est - 1
+      });
+      assert.fail("Passed? SANITY CHECK");
+    } catch (e) {
+      assert("FAILED: not enough gas (expected)");
+    }
+    try {
+      await instance.methods.moveFund2(accounts[1], 5).send({
         from: accounts[0],
         gas: est
       });
