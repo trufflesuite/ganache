@@ -28,22 +28,6 @@ HARDFORK.forEach((hardfork) => {
     };
     const context = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
 
-    let deploymentReceipt;
-
-    before("Adding funds to the contract", async function() {
-      this.timeout(10000);
-      const { accounts, bytecode, contract } = context;
-
-      const promiEvent = contract.deploy({ data: bytecode }).send({
-        from: accounts[0],
-        gas: 3141592
-      });
-
-      promiEvent.on("receipt", (receipt) => {
-        deploymentReceipt = receipt;
-      });
-    });
-
     describe("Refunds", function() {
       it(
         "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
@@ -401,13 +385,13 @@ HARDFORK.forEach((hardfork) => {
 
     describe("Estimation", function() {
       it("matches estimate for deployment", async function() {
-        const { accounts, bytecode, contract } = context;
+        const { accounts, bytecode, contract, receipt } = context;
         const gasEstimate = await contract.deploy({ data: bytecode }).estimateGas({
           from: accounts[1]
         });
 
-        assert.deepStrictEqual(deploymentReceipt.gasUsed, gasEstimate);
-        assert.deepStrictEqual(deploymentReceipt.cumulativeGasUsed, gasEstimate);
+        assert.deepStrictEqual(receipt.gasUsed, gasEstimate);
+        assert.deepStrictEqual(receipt.cumulativeGasUsed, gasEstimate);
       });
 
       it("matches usage for complex function call (add)", async function() {
