@@ -61,16 +61,16 @@ HARDFORK.forEach((hardfork) => {
 
           const gasEstimate = await method.estimateGas(options);
 
-          const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
+          const receipt = await method.send({ from, gas: gasEstimate });
 
           if (provider.options.hardfork === "byzantium") {
-            assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND);
+            assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
           } else if (provider.options.hardfork === "constantinople") {
             // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
             // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
-            assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
+            assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
           }
-          assert.strictEqual(gasUsed, cumulativeGasUsed);
+          assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
         }
       );
 
@@ -90,17 +90,17 @@ HARDFORK.forEach((hardfork) => {
 
           const gasEstimate = await method.estimateGas(options);
 
-          const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
+          const receipt = await method.send({ from, gas: gasEstimate });
 
           if (provider.options.hardfork === "byzantium") {
             // since we are resetting to a non-zero value, there is no gas added to the refund counter here
-            assert.strictEqual(gasUsed, gasEstimate);
+            assert.strictEqual(receipt.gasUsed, gasEstimate);
           } else if (provider.options.hardfork === "constantinople") {
             // since storage was initially primed to 1 and we call triggerRsclearRefundForY(), which then
             // resets storage back to 1, 4800 gas is added to the refund counter per Constantinople EIP 1283
-            assert.strictEqual(gasUsed, gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValue);
+            assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValue);
           }
-          assert.strictEqual(gasUsed, cumulativeGasUsed);
+          assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
         }
       );
 
@@ -121,16 +121,16 @@ HARDFORK.forEach((hardfork) => {
 
           const gasEstimate = await method.estimateGas(options);
 
-          const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
+          const receipt = await method.send({ from, gas: gasEstimate });
 
           if (provider.options.hardfork === "byzantium") {
-            assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND);
+            assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
           } else if (provider.options.hardfork === "constantinople") {
             // since storage was initially primed to 1 and we call reset(), which then sets
             // storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-            assert.strictEqual(gasUsed, gasEstimate - rsclearRefundForUpdatingFreshSlotToZero);
+            assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingFreshSlotToZero);
           }
-          assert.strictEqual(gasUsed, cumulativeGasUsed);
+          assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
         }
       );
 
@@ -151,16 +151,16 @@ HARDFORK.forEach((hardfork) => {
 
           const gasEstimate = await method.estimateGas(options);
 
-          const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
+          const receipt = await method.send({ from, gas: gasEstimate });
 
           if (provider.options.hardfork === "byzantium") {
-            assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND);
+            assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
           } else if (provider.options.hardfork === "constantinople") {
             // since storage was initially primed to 1 and we call triggerRsclearRefund(), which then
             // sets storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-            assert.strictEqual(gasUsed, gasEstimate - rsclearRefundForUpdatingDirtySlotToZero);
+            assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingDirtySlotToZero);
           }
-          assert.strictEqual(gasUsed, cumulativeGasUsed);
+          assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
         }
       );
 
@@ -180,18 +180,18 @@ HARDFORK.forEach((hardfork) => {
 
           const gasEstimate = await method.estimateGas(options);
 
-          const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
+          const receipt = await method.send({ from, gas: gasEstimate });
 
           if (provider.options.hardfork === "byzantium") {
-            assert.strictEqual(gasUsed, gasEstimate - RSCLEAR_REFUND);
+            assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
           } else if (provider.options.hardfork === "constantinople") {
             // since storage was initially primed to 1 and we call triggerRsclearRefundForX(), which then
             // resets storage's current value to 0 and 15000 gas is added to the refund counter, and then
             // it replaces x with gasleft, which removes 150000 gas from the refund counter per Constantinople
             // EIP 1283 leaving us with a rsclear refund of 0
-            assert.strictEqual(gasUsed, gasEstimate);
+            assert.strictEqual(receipt.gasUsed, gasEstimate);
           }
-          assert.strictEqual(gasUsed, cumulativeGasUsed);
+          assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
         }
       );
 
@@ -208,10 +208,10 @@ HARDFORK.forEach((hardfork) => {
 
         const gasEstimate = await method.estimateGas(options);
 
-        const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
+        const receipt = await method.send({ from, gas: gasEstimate });
 
-        assert.strictEqual(gasUsed, gasEstimate - RSELFDESTRUCT_REFUND);
-        assert.strictEqual(gasUsed, cumulativeGasUsed);
+        assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND);
+        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
       });
 
       it("accounts for Rsclear and Rselfdestruct Refunds in gasEstimate", async function() {
@@ -226,19 +226,19 @@ HARDFORK.forEach((hardfork) => {
 
         const gasEstimate = await method.estimateGas({ from });
 
-        const { gasUsed, cumulativeGasUsed } = await method.send({ from, gas: gasEstimate });
+        const receipt = await method.send({ from, gas: gasEstimate });
 
         if (provider.options.hardfork === "byzantium") {
-          assert.strictEqual(gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+          assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
         } else if (provider.options.hardfork === "constantinople") {
           // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
           // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
           assert.strictEqual(
-            gasUsed,
+            receipt.gasUsed,
             gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO
           );
         }
-        assert.strictEqual(gasUsed, cumulativeGasUsed);
+        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
       });
 
       // Unskip this test once byzantium passes
@@ -318,23 +318,24 @@ HARDFORK.forEach((hardfork) => {
           assert.strictEqual(gasUsed, transactionCostMinusRefund);
         }
 
-        const [tx1, tx2, tx3] = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
-        assert.deepStrictEqual(tx1.gasUsed, tx2.gasUsed, "Tx1 and Tx2 should cost the same gas.");
+        const receipt = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
+        assert.deepStrictEqual(receipt[0].gasUsed, receipt[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
         assert.deepStrictEqual(
-          tx2.gasUsed,
-          tx3.gasUsed,
+          receipt[1].gasUsed,
+          receipt[2].gasUsed,
           "Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive"
         );
         assert.deepStrictEqual(
-          tx2.transactionIndex > tx3.transactionIndex,
+          receipt[1].transactionIndex > receipt[2].transactionIndex,
           true,
           "(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)"
         );
-        const currentBlock = await web3.eth.getBlock(tx1.blockNumber);
+        const currentBlock = await web3.eth.getBlock(receipt[0].blockNumber);
 
         // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
         const isAccumulating =
-          tx2.cumulativeGasUsed > tx3.cumulativeGasUsed && tx3.cumulativeGasUsed > tx1.cumulativeGasUsed;
+          receipt[1].cumulativeGasUsed > receipt[2].cumulativeGasUsed &&
+          receipt[2].cumulativeGasUsed > receipt[0].cumulativeGasUsed;
 
         assert.deepStrictEqual(
           isAccumulating,
@@ -343,27 +344,27 @@ HARDFORK.forEach((hardfork) => {
         );
 
         assert.deepStrictEqual(
-          tx1.gasUsed,
-          tx1.cumulativeGasUsed,
+          receipt[0].gasUsed,
+          receipt[0].cumulativeGasUsed,
           "Gas and cumulative gas should be equal for the FIRST Tx."
         );
 
         assert.notDeepStrictEqual(
-          tx2.gasUsed,
-          tx2.cumulativeGasUsed,
+          receipt[1].gasUsed,
+          receipt[1].cumulativeGasUsed,
           "Gas and cumulative gas should NOT be equal for the Second Tx."
         );
 
         assert.notDeepStrictEqual(
-          tx3.gasUsed,
-          tx3.cumulativeGasUsed,
+          receipt[2].gasUsed,
+          receipt[2].cumulativeGasUsed,
           "Gas and cumulative gas should NOT be equal for the Third Tx."
         );
 
-        const totalGas = tx1.gasUsed + tx2.gasUsed + tx3.gasUsed;
+        const totalGas = receipt[0].gasUsed + receipt[1].gasUsed + receipt[2].gasUsed;
         assert.deepStrictEqual(
           totalGas + transactionCostMinusRefund,
-          tx2.cumulativeGasUsed,
+          receipt[1].cumulativeGasUsed,
           "Total Gas should equal the final tx.cumulativeGas"
         );
 
@@ -530,46 +531,51 @@ HARDFORK.forEach((hardfork) => {
 
         const currentBlock = await web3.eth.getBlock(currentBlockNumber);
 
-        const [tx1, tx2, tx3] = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
+        const receipt = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
 
-        assert.deepStrictEqual(tx1.gasUsed, tx2.gasUsed, "Tx1 and Tx2 should cost the same gas.");
+        assert.deepStrictEqual(receipt[0].gasUsed, receipt[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
         assert.deepStrictEqual(
-          tx2.gasUsed,
-          tx3.gasUsed,
+          receipt[1].gasUsed,
+          receipt[2].gasUsed,
           "Tx2 and Tx3 should cost the same gas. -> Tx1 gas === Tx3 gas Transitive"
         );
         assert.deepStrictEqual(
-          tx2.transactionIndex > tx3.transactionIndex,
+          receipt[1].transactionIndex > receipt[2].transactionIndex,
           true,
           "(Tx3 has a lower nonce) -> (Tx3 index is < Tx2 index)"
         );
 
         // ( Tx3 has a lower nonce -> Tx3 index is < Tx2 index ) -> cumulative gas Tx2 > Tx3 > Tx1
         const isAccumulating =
-          tx2.cumulativeGasUsed > tx3.cumulativeGasUsed && tx3.cumulativeGasUsed > tx1.cumulativeGasUsed;
+          receipt[1].cumulativeGasUsed > receipt[2].cumulativeGasUsed &&
+          receipt[2].cumulativeGasUsed > receipt[0].cumulativeGasUsed;
         assert.deepStrictEqual(
           isAccumulating,
           true,
           "Cumulative gas should be accumulating for any transactions in the same block."
         );
         assert.deepStrictEqual(
-          tx1.gasUsed,
-          tx1.cumulativeGasUsed,
+          receipt[0].gasUsed,
+          receipt[0].cumulativeGasUsed,
           "Gas and cumulative gas should be equal for the FIRST Tx."
         );
         assert.notDeepStrictEqual(
-          tx2.gasUsed,
-          tx2.cumulativeGasUsed,
+          receipt[1].gasUsed,
+          receipt[1].cumulativeGasUsed,
           "Gas and cumulative gas should NOT be equal for the Second Tx."
         );
         assert.notDeepStrictEqual(
-          tx3.gasUsed,
-          tx3.cumulativeGasUsed,
+          receipt[2].gasUsed,
+          receipt[2].cumulativeGasUsed,
           "Gas and cumulative gas should NOT be equal for the Third Tx."
         );
 
-        const totalGas = tx1.gasUsed + tx2.gasUsed + tx3.gasUsed;
-        assert.deepStrictEqual(totalGas, tx2.cumulativeGasUsed, "Total Gas should be equal the final tx.cumulativeGas");
+        const totalGas = receipt[0].gasUsed + receipt[1].gasUsed + receipt[2].gasUsed;
+        assert.deepStrictEqual(
+          totalGas,
+          receipt[1].cumulativeGasUsed,
+          "Total Gas should be equal the final tx.cumulativeGas"
+        );
         assert.deepStrictEqual(totalGas, currentBlock.gasUsed, "Total Gas should be equal to the currentBlock.gasUsed");
       });
     });
