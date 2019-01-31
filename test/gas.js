@@ -21,11 +21,37 @@ let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble s
 
 describe("EIP150 Gas Estimation: ", async function() {
   const bootstrap = require("./helpers/bootstrap");
-  const contractName = "ContractFactory";
   // const location = path.join(__dirname, "contracts", `${contractName}.sol`);
-  const contractArtifact = bootstrap(contractName);
-  it("Should estimate gas perfectly with EIP150", async() => {
-    const { accounts, instance } = contractArtifact;
+  const ContractFactory = bootstrap("ContractFactory");
+  const TestDepth = bootstrap("TestDepth");
+  const Donation = bootstrap("Donation", ["Fib"]);
+  const Fib = bootstrap("Fib");
+  it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
+    const { accounts, instance } = Fib;
+    const index = 5;
+    const est = await instance.methods.calc(index).estimateGas();
+    try {
+      await instance.methods.calc(index).send({
+        from: accounts[0],
+        gas: est - 1
+      });
+      assert.fail("Passed? SANITY CHECK");
+    } catch (e) {
+      assert("FAILED: not enough gas (expected)");
+    }
+    try {
+      await instance.methods.calc(index).send({
+        from: accounts[0],
+        gas: est
+      });
+      assert("Enough gas supplied!");
+    } catch (e) {
+      assert.fail("Still not enough gas? SANITY CHECK");
+    }
+  });
+
+  it("Should estimate gas perfectly with EIP150 - CREATE", async() => {
+    const { accounts, instance } = ContractFactory;
     const est = await instance.methods.createInstance().estimateGas();
     try {
       await instance.methods.createInstance().send({
@@ -46,6 +72,67 @@ describe("EIP150 Gas Estimation: ", async function() {
       assert.fail("Still not enough gas? SANITY CHECK");
     }
   });
+
+  it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async() => {
+    const { accounts, instance } = TestDepth;
+    const depth = 2;
+    const est = await instance.methods.depth(depth).estimateGas();
+    try {
+      await instance.methods.depth(depth).send({
+        from: accounts[0],
+        gas: est - 1
+      });
+      assert.fail("Passed? SANITY CHECK");
+    } catch (e) {
+      assert("FAILED: not enough gas (expected)");
+    }
+    try {
+      await instance.methods.depth(depth).send({
+        from: accounts[0],
+        gas: est
+      });
+      assert("Enough gas supplied!");
+    } catch (e) {
+      assert.fail("Still not enough gas? SANITY CHECK");
+    }
+  });
+
+  it("Should estimate gas perfectly with EIP150 - CALL", async() => {
+    const { accounts, instance } = Donation;
+    // Pre-condition
+    const donateEst = await instance.methods.donate().estimateGas({
+      from: accounts[0],
+      value: 50
+    });
+    await instance.methods.donate().send({
+      from: accounts[0],
+      value: 50,
+      gas: donateEst
+    });
+    const address = accounts[0];
+    const est = await instance.methods.moveFund(address, 5).estimateGas({
+      from: accounts[0]
+    });
+
+    try {
+      await instance.methods.moveFund(address, 5).send({
+        from: accounts[0],
+        gas: est - 1
+      });
+      assert.fail("Passed? SANITY CHECK");
+    } catch (e) {
+      assert("FAILED: not enough gas (expected)");
+    }
+    try {
+      await instance.methods.moveFund(address, 5).send({
+        from: accounts[0],
+        gas: est
+      });
+      assert("Enough gas supplied!");
+    } catch (e) {
+      assert.fail("Still not enough gas? SANITY CHECK");
+    }
+  }).timeout(1000000);
 });
 
 describe("Gas", function() {
