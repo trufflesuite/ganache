@@ -10,13 +10,13 @@ const { deploy } = require("../helpers/contract/compileAndDeploy");
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
-const HARDFORKS = ["byzantium", "constantinople"];
+const HARDFORK = ["constantinople", "byzantium"];
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-HARDFORKS.map((hardfork) => {
+HARDFORK.forEach((hardfork) => {
   describe(`Gas: ${hardfork.toUpperCase()}`, function() {
     const mainContract = "EstimateGas";
     const contractFilenames = [];
@@ -242,11 +242,12 @@ HARDFORKS.map((hardfork) => {
       });
 
       // Unskip this test once byzantium passes
-      it.skip("account Rsclear/Rselfdestruct/Refunds in gasEstimate w/many transactions in a block", async function() {
+      it("account Rsclear/Rselfdestruct/Refunds in gasEstimate w/many transactions in a block", async function() {
         const { abi, bytecode, provider } = context;
         const options = {
           blockTime: 0.5, // seconds
-          mnemonic
+          mnemonic,
+          hardfork
         };
         const { accounts, web3 } = await initializeTestProvider(options);
 
