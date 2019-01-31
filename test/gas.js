@@ -35,7 +35,7 @@ describe("EIP150 Gas Estimation: ", async function() {
         from: accounts[0],
         gas: est - 1
       });
-      assert.fail("Passed? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
     } catch (e) {
       assert("FAILED: not enough gas (expected)");
     }
@@ -46,7 +46,7 @@ describe("EIP150 Gas Estimation: ", async function() {
       });
       assert("Enough gas supplied!");
     } catch (e) {
-      assert.fail("Still not enough gas? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
     }
   });
 
@@ -58,7 +58,7 @@ describe("EIP150 Gas Estimation: ", async function() {
         from: accounts[0],
         gas: est - 1
       });
-      assert.fail("Passed? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
     } catch (e) {
       assert("FAILED: not enough gas (expected)");
     }
@@ -69,7 +69,7 @@ describe("EIP150 Gas Estimation: ", async function() {
       });
       assert("Enough gas supplied!");
     } catch (e) {
-      assert.fail("Still not enough gas? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
     }
   });
 
@@ -82,7 +82,7 @@ describe("EIP150 Gas Estimation: ", async function() {
         from: accounts[0],
         gas: est - 1
       });
-      assert.fail("Passed? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
     } catch (e) {
       assert("FAILED: not enough gas (expected)");
     }
@@ -93,7 +93,7 @@ describe("EIP150 Gas Estimation: ", async function() {
       });
       assert("Enough gas supplied!");
     } catch (e) {
-      assert.fail("Still not enough gas? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
     }
   });
 
@@ -119,7 +119,7 @@ describe("EIP150 Gas Estimation: ", async function() {
         from: accounts[0],
         gas: est - 1
       });
-      assert.fail("Passed? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
     } catch (e) {
       assert("FAILED: not enough gas (expected)");
     }
@@ -130,7 +130,7 @@ describe("EIP150 Gas Estimation: ", async function() {
       });
       assert("Enough gas supplied!");
     } catch (e) {
-      assert.fail("Still not enough gas? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
     }
   }).timeout(1000000);
 
@@ -156,7 +156,7 @@ describe("EIP150 Gas Estimation: ", async function() {
         from: accounts[0],
         gas: est - 1
       });
-      assert.fail("Passed? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
     } catch (e) {
       assert("FAILED: not enough gas (expected)");
     }
@@ -167,7 +167,7 @@ describe("EIP150 Gas Estimation: ", async function() {
       });
       assert("Enough gas supplied!");
     } catch (e) {
-      assert.fail("Still not enough gas? SANITY CHECK");
+      assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
     }
   }).timeout(1000000);
 });
