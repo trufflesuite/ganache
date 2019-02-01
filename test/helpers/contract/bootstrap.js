@@ -22,24 +22,14 @@ const bootstrap = (mainContractName = "", subContractNames = [], options = {}, c
     const provider = Ganache.provider(options);
     const web3 = new Web3(provider);
 
-    const { abi, accounts, bytecode, contract, instance, receipt, sources } = await compileAndDeploy(
+    const testAssets = await compileAndDeploy(
       mainContractName,
       subContractNames,
       join(__dirname, "..", "..", "contracts", `${contractSubdirectory}/`),
       web3
     );
 
-    Object.assign(context, {
-      abi,
-      accounts,
-      bytecode,
-      contract,
-      instance,
-      provider,
-      receipt,
-      sources,
-      web3
-    });
+    Object.assign(context, testAssets, { provider, web3 });
   });
 
   return context;

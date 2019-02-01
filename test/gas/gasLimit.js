@@ -1,11 +1,15 @@
 const assert = require("assert");
 const to = require("../../lib/utils/to.js");
-const preloadTestProvider = require("../helpers/web3/preloadTestProvider");
+const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
 
 describe("options:gasLimit", function() {
-  const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
-  const options = { mnemonic };
-  const context = preloadTestProvider(options);
+  let context = {};
+  before("Setting up web3", async function() {
+    this.timeout(10000);
+    const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+    const options = { mnemonic };
+    Object.assign(context, await initializeTestProvider(options));
+  });
 
   it("should respect the assigned gasLimit", async function() {
     const { provider, web3 } = context;

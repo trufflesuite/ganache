@@ -65,17 +65,17 @@ async function deploy(abi, bytecode, web3, options = {}) {
 
 /**
  * Compile and deploy the specified contract(s)
- * @param {String} contractPath  Path to contracts directory
  * @param {String} mainContractName  Name of the main contract (without .sol extension)
  * @param {Array|String} contractFileNames List of imported contracts
+ * @param {String} contractPath  Path to contracts directory
  * @param {Object} web3 Web3 interface
- * @returns {Object} context: abi, accounts, bytecode, contract, instance, sources
+ * @param {Object} options Provider options
+ * @returns {Object} context: abi, accounts, bytecode, contract, instance, receipt, sources
  */
 async function compileAndDeploy(mainContractName, contractFileNames = [], contractPath, web3, options = {}) {
   const { abi, bytecode, sources } = await compile(mainContractName, contractFileNames, contractPath);
   const context = await deploy(abi, bytecode, web3, options);
-  Object.assign(context, { sources });
-  return context;
+  return Object.assign(context, { sources });
 }
 
 module.exports = {
