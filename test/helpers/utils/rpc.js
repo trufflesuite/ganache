@@ -7,6 +7,5 @@ module.exports = {
       method,
       params: [...params]
     });
-  },
-  promisify: pify
+  }
 };
