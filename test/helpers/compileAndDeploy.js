@@ -19,18 +19,12 @@ async function compile(mainContractName, contractFileNames = [], contractPath) {
   const sources = Object.assign({}, ...contractSources);
 
   // Second parameter configures solc to optimize compiled code
-  const compiledContract = solc.compile({ sources }, 1);
-  // let { contracts } = solc.compile({ sources }, 1);
+  const { contracts } = solc.compile({ sources }, 1);
 
-  // const _mainContractName = mainContractName.replace(/\.sol$/i, "");
-  // const compiledMainContract = contracts[`${_mainContractName}.sol:${_mainContractName}`];
-  let lastItem = contractFileNames.length - 1;
-  const compiledMainContract =
-    compiledContract.contracts[`${contractFileNames[lastItem]}.sol:${contractFileNames[lastItem]}`];
+  const _mainContractName = mainContractName.replace(/\.sol$/i, "");
+  const compiledMainContract = contracts[`${_mainContractName}.sol:${_mainContractName}`];
   const bytecode = `0x${compiledMainContract.bytecode}`;
   const abi = JSON.parse(compiledMainContract.interface);
-
-  console.log(abi);
 
   return {
     abi,

@@ -7,7 +7,7 @@ process.removeAllListeners("uncaughtException");
 
 describe.only("Debug", function() {
   const mainContract = "DebugContract";
-  const contractFilenames = ["DebugContractStorage"];
+  const contractFilenames = ["DebugContract", "DebugContractStorage"];
   const contractPath = "../contracts/debug/";
   let options = {};
 
@@ -167,7 +167,7 @@ describe.only("Debug", function() {
     );
   });
 
-  it("should do things", async() => {
+  it.only("should do things", async() => {
     /* SETUP */
     const { accounts, instance } = services;
     options = {
