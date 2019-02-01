@@ -9,10 +9,10 @@ describe("Gas", function() {
     const contractSubdirectory = "examples";
 
     describe("default gasPrice", async function() {
-      const options = {};
-      const context = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
-
+      this.timeout(10000);
       it("should respect the default gasPrice", async function() {
+        const options = {};
+        const context = await bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
         const { accounts, instance, provider, web3 } = context;
 
         const assignedGasPrice = provider.engine.manager.state.gasPriceVal;
@@ -24,17 +24,17 @@ describe("Gas", function() {
       });
     });
 
-    describe("zero gasPrice", function() {
-      const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
-      const options = {
-        mnemonic,
-        gasPrice: 0
-      };
-
-      const services = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
-
+    describe("zero gasPrice", async function() {
+      this.timeout(10000);
       it("should be possible to set a zero gas price", async function() {
-        const { accounts, instance, provider, web3 } = services;
+        const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+        const options = {
+          mnemonic,
+          gasPrice: 0
+        };
+        const context = await bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
+
+        const { accounts, instance, provider, web3 } = context;
 
         const assignedGasPrice = provider.engine.manager.state.gasPriceVal;
         assert.deepStrictEqual(hex(assignedGasPrice), "0x0");

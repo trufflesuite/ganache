@@ -9,26 +9,18 @@ const initializeTestProvider = require("../web3/initializeTestProvider");
  * @param {string} contractSubdirectory relative subdirectory under contract (Ex test/contracts/${contractSubdirectory})
  * @returns {Object} abi, accounts, bytecode, contract, instance, provider, sources, web3
  */
-const bootstrap = (mainContractName = "", subContractNames = [], options = {}, contractSubdirectory = "") => {
-  const context = {};
+const bootstrap = async(mainContractName = "", subContractNames = [], options = {}, contractSubdirectory = "") => {
+  const { accounts, provider, web3 } = await initializeTestProvider(options);
 
-  before("Setting up web3 and contract", async function() {
-    this.timeout(10000);
+  const testAssets = await compileAndDeploy(
+    mainContractName,
+    subContractNames,
+    join(__dirname, "..", "..", "contracts", `${contractSubdirectory}/`),
+    web3,
+    accounts
+  );
 
-    const { accounts, provider, web3 } = await initializeTestProvider(options);
-
-    const testAssets = await compileAndDeploy(
-      mainContractName,
-      subContractNames,
-      join(__dirname, "..", "..", "contracts", `${contractSubdirectory}/`),
-      web3,
-      accounts
-    );
-
-    Object.assign(context, testAssets, { provider, web3 });
-  });
-
-  return context;
+  return Object.assign(testAssets, { provider, web3 });
 };
 
 module.exports = bootstrap;

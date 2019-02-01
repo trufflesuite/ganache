@@ -19,15 +19,22 @@ process.removeAllListeners("uncaughtException");
 describe("Gas", function() {
   HARDFORK.forEach((hardfork) => {
     describe(`Hardfork: ${hardfork.toUpperCase()}`, function() {
-      const mainContract = "EstimateGas";
-      const contractFilenames = [];
-      const contractSubdirectory = "gas";
+      let context = {};
       const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
-      const options = {
-        mnemonic,
-        hardfork
-      };
-      const context = bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
+
+      before("Setting up web3 and contract", async function() {
+        this.timeout(10000);
+
+        const mainContract = "EstimateGas";
+        const contractFilenames = [];
+        const contractSubdirectory = "gas";
+        const options = {
+          mnemonic,
+          hardfork
+        };
+
+        context = await bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
+      });
 
       describe("Refunds", function() {
         it(
