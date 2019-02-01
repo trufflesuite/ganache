@@ -5,9 +5,9 @@ const bootstrap = require("../helpers/bootstrap");
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-describe.only("Debug", function() {
+describe("Debug", function() {
   const mainContract = "DebugContract";
-  const contractFilenames = ["DebugContract", "DebugContractStorage"];
+  const contractFilenames = [];
   const contractPath = "../contracts/debug/";
   let options = {};
 
@@ -80,7 +80,7 @@ describe.only("Debug", function() {
           assert.strictEqual(lastop.op, "STOP");
           assert.strictEqual(lastop.gasCost, 1);
           // TODO: circle back to this, it used to be 145 - why did it change?
-          assert.strictEqual(lastop.pc, 155);
+          assert.strictEqual(lastop.pc, 209);
           assert.strictEqual(
             lastop.storage["0000000000000000000000000000000000000000000000000000000000000000"],
             "000000000000000000000000000000000000000000000000000000000000001a"
@@ -130,12 +130,10 @@ describe.only("Debug", function() {
         params: [tx.transactionHash, []],
         id: new Date().getTime()
       },
-      function(err, result) {
-        console.log(err);
+      function(_, result) {
         for (let op of result.result.structLogs) {
           if (op.op === "SSTORE") {
             arrayOfStorageKeyValues.push(op.storage);
-            // let yourNumber = parseInt(op.storage, 16);
           }
         }
 
@@ -165,34 +163,5 @@ describe.only("Debug", function() {
         );
       }
     );
-  });
-
-  it.only("should do things", async() => {
-    /* SETUP */
-    const { accounts, instance } = services;
-    options = {
-      from: accounts[0],
-      gas: 3141592
-    };
-
-    // check initial value and initial other value to ensure we know what we are starting with
-    let initialValue = await instance.methods.value().call(options);
-    let initialOtherValue = await instance.methods.otherValue().call(options);
-    // should be 2 since the last call was made to setValue with 2
-    assert.strictEqual(initialValue, "2");
-    // should be 1268 since that is the accumulative total thus far
-    assert.strictEqual(initialOtherValue, "1268");
-
-    let tx = await instance.methods.set().send(options);
-    hashToTrace = tx.transactionHash;
-
-    // check value and other value to see if it updated
-    let updatedValue = await instance.methods.value().call(options);
-    let updatedOtherValue = await instance.methods.otherValue().call(options);
-
-    console.log(updatedValue, updatedOtherValue);
-
-    /* DEBUGGING */
-    // here we do the rpc call to debug_traceTransaction and do the damn thinggggg!!
   });
 });

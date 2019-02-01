@@ -13,4 +13,12 @@ contract DebugContractStorage {
         debugContract.setValue(1);
         debugContract.setValue(2);
     }
+
+    function getValue() public view returns(uint) {
+        return debugContract.get();
+    }
+
+    function getOtherValue() public view returns(uint) {
+        return debugContract.getOther();
+    }
 }
