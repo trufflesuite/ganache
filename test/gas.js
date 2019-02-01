@@ -9,6 +9,7 @@ const solc = require("solc");
 const to = require("../lib/utils/to.js");
 const pify = require("pify");
 const RSCLEAR_REFUND = 15000;
+const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
 const { sleep } = require("./helpers/utils");
 
@@ -66,21 +67,150 @@ describe("Gas", function() {
   }
 
   describe("Refunds", function() {
-    it("accounts for Rsclear Refund in gasEstimate", async() => {
-      const from = accounts[0];
-      const options = { from, gas: 5000000 };
+    it(
+      "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
+        " value is 0",
+      async() => {
+        const from = accounts[0];
+        const options = { from, gas: 5000000 };
 
-      await estimateGasInstance.methods.reset().send(options); // prime storage by making sure it is set to 0
+        // prime storage by making sure it is set to 0
+        await estimateGasInstance.methods.reset().send(options);
 
-      const method = estimateGasInstance.methods.triggerRsclearRefund();
+        // update storage and then reset it back to 0
+        const method = estimateGasInstance.methods.triggerRsclearRefund();
 
-      let gasEstimate = await method.estimateGas(options);
+        let gasEstimate = await method.estimateGas(options);
 
-      let receipt = await method.send({ from, gas: gasEstimate });
+        let receipt = await method.send({ from, gas: gasEstimate });
 
-      assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
-      assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
-    });
+        if (provider.options.hardfork === "byzantium") {
+          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+        } else if (provider.options.hardfork === "constantinople") {
+          // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
+          // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
+        }
+        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+      }
+    );
+
+    it(
+      "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's " +
+        "original value is not 0",
+      async() => {
+        const from = accounts[0];
+        const rsclearRefundForResettingDirtySlotToNonZeroValue = 4800;
+        const options = { from, gas: 5000000 };
+
+        await estimateGasInstance.methods.reset().send(options); // prime storage by making sure y is set to 1
+
+        // update storage and then reset it back to 1
+        const method = estimateGasInstance.methods.triggerRsclearRefundForY();
+
+        let gasEstimate = await method.estimateGas(options);
+
+        let receipt = await method.send({ from, gas: gasEstimate });
+
+        if (provider.options.hardfork === "byzantium") {
+          // since we are resetting to a non-zero value, there is no gas added to the refund counter here
+          assert.strictEqual(receipt.gasUsed, gasEstimate);
+        } else if (provider.options.hardfork === "constantinople") {
+          // since storage was initially primed to 1 and we call triggerRsclearRefundForY(), which then
+          // resets storage back to 1, 4800 gas is added to the refund counter per Constantinople EIP 1283
+          assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValue);
+        }
+        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+      }
+    );
+
+    it(
+      "accounts for Rsclear Refund in gasEstimate when a fresh storage slot's original " +
+        "value is not 0 and new value is 0",
+      async() => {
+        const from = accounts[0];
+        const rsclearRefundForUpdatingFreshSlotToZero = 15000;
+        const options = { from, gas: 5000000 };
+
+        // prime storage by making sure storage is set to 1
+        await estimateGasInstance.methods.initialSettingOfX().send(options);
+
+        // update storage to be 0
+        const method = estimateGasInstance.methods.reset();
+
+        let gasEstimate = await method.estimateGas(options);
+
+        let receipt = await method.send({ from, gas: gasEstimate });
+
+        if (provider.options.hardfork === "byzantium") {
+          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+        } else if (provider.options.hardfork === "constantinople") {
+          // since storage was initially primed to 1 and we call reset(), which then sets
+          // storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
+          assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingFreshSlotToZero);
+        }
+        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+      }
+    );
+
+    it(
+      "accounts for Rsclear Refund in gasEstimate when a dirty storage slot's original value " +
+        "is not 0 and new value is 0",
+      async() => {
+        const from = accounts[0];
+        const rsclearRefundForUpdatingDirtySlotToZero = 15000;
+        const options = { from, gas: 5000000 };
+
+        // prime storage by making sure storage is set to 1
+        await estimateGasInstance.methods.initialSettingOfX().send(options);
+
+        // update storage and then reset it to 0
+        const method = estimateGasInstance.methods.triggerRsclearRefund();
+
+        let gasEstimate = await method.estimateGas(options);
+
+        let receipt = await method.send({ from, gas: gasEstimate });
+
+        if (provider.options.hardfork === "byzantium") {
+          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+        } else if (provider.options.hardfork === "constantinople") {
+          // since storage was initially primed to 1 and we call triggerRsclearRefund(), which then
+          // sets storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
+          assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingDirtySlotToZero);
+        }
+        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+      }
+    );
+
+    it(
+      "accounts for Rsclear Refund in gasEstimate when a dirty storage slot's original value " +
+        "is not 0 and current value is 0",
+      async() => {
+        const from = accounts[0];
+        const options = { from, gas: 5000000 };
+
+        // prime storage by making sure storage is set to 1
+        await estimateGasInstance.methods.initialSettingOfX().send(options);
+
+        // updates current value to 0 and new value to be the remaining amount of gas
+        const method = estimateGasInstance.methods.triggerRsclearRefundForX();
+
+        let gasEstimate = await method.estimateGas(options);
+
+        let receipt = await method.send({ from, gas: gasEstimate });
+
+        if (provider.options.hardfork === "byzantium") {
+          assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+        } else if (provider.options.hardfork === "constantinople") {
+          // since storage was initially primed to 1 and we call triggerRsclearRefundForX(), which then
+          // resets storage's current value to 0 and 15000 gas is added to the refund counter, and then
+          // it replaces x with gasleft, which removes 150000 gas from the refund counter per Constantinople
+          // EIP 1283 leaving us with a rsclear refund of 0
+          assert.strictEqual(receipt.gasUsed, gasEstimate);
+        }
+        assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+      }
+    );
 
     it("accounts for Rselfdestruct Refund in gasEstimate", async() => {
       const from = accounts[0];
@@ -111,7 +241,16 @@ describe("Gas", function() {
 
       let receipt = await method.send({ from, gas: gasEstimate });
 
-      assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+      if (provider.options.hardfork === "byzantium") {
+        assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+      } else if (provider.options.hardfork === "constantinople") {
+        // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
+        // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+        assert.strictEqual(
+          receipt.gasUsed,
+          gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO
+        );
+      }
       assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
     });
 
@@ -184,7 +323,15 @@ describe("Gas", function() {
         const receipt = await method.send({ from, gas: gasEstimate });
 
         let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
-        assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+        if (provider.options.hardfork === "byzantium") {
+          assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+        } else if (provider.options.hardfork === "constantinople") {
+          // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
+          // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+          transactionCostMinusRefund =
+            gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO;
+          assert.strictEqual(receipt.gasUsed, transactionCostMinusRefund);
+        }
 
         let receipts = await Promise.all(hashes.map((hash) => tempWeb3.eth.getTransactionReceipt(hash)));
         assert.deepStrictEqual(receipts[0].gasUsed, receipts[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");

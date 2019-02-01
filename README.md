@@ -1,13 +1,14 @@
 [![npm](https://img.shields.io/npm/v/ganache-core.svg)]()
 [![npm](https://img.shields.io/npm/dm/ganache-core.svg)]()
 [![Build Status](https://travis-ci.org/trufflesuite/ganache-core.svg?branch=master)](https://travis-ci.org/trufflesuite/ganache-core)
+[![Coverage Status](https://coveralls.io/repos/github/trufflesuite/ganache-core/badge.svg?branch=develop)](https://coveralls.io/github/trufflesuite/ganache-core?branch=develop)
 # Ganache Core
 
 This is the core code that powers the Ganache application and the the Ganache command line tool.
 
-# INSTALL
+# INSTALLATION
 
-`ganache-core` is written in Javascript and distributed as a Node package via `npm`. Make sure you have Node.js (>= v8.9.0) installed, and your environment is capable of installing and compiling `npm` modules.
+`ganache-core` is written in JavaScript and distributed as a Node.js package via `npm`. Make sure you have Node.js (>= v8.9.0) installed, and your environment is capable of installing and compiling `npm` modules.
 
 **macOS** Make sure you have the XCode Command Line Tools installed. These are needed in general to be able to compile most C based languages on your machine, as well as many npm modules.
 
@@ -15,31 +16,46 @@ This is the core code that powers the Ganache application and the the Ganache co
 
 **Ubuntu/Linux** Follow the basic instructions for installing [Node.js](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions) and make sure that you have `npm` installed, as well as the `build-essential` `apt` package (it supplies `make` which you will need to compile most things). Use the official Node.js packages, *do not use the package supplied by your distribution.*
 
+Using npm:
 
 ```Bash
 npm install ganache-core
 ```
 
-# USAGE
+or, if you are using [Yarn](https://yarnpkg.com/):
 
-As a Web3 provider:
-
-```javascript
-var Ganache = require("ganache-core");
-web3.setProvider(Ganache.provider());
+```Bash
+yarn add ganache-core
 ```
 
-As a general http server:
+
+# USAGE
+
+As a [Web3](https://github.com/ethereum/web3.js/) provider:
 
 ```javascript
-var Ganache = require("ganache-core");
-var server = Ganache.server();
+const ganache = require("ganache-core");
+web3.setProvider(ganache.provider());
+```
+
+As an [ethers.js](https://github.com/ethers-io/ethers.js/) provider:
+
+```javascript
+const ganache = require("ganache-core");
+const provider = new ethers.providers.Web3Provider(ganache.provider());
+```
+
+As a general HTTP and WebSocket server:
+
+```javascript
+const ganache = require("ganache-core");
+const server = ganache.server();
 server.listen(port, function(err, blockchain) {...});
 ```
 
 Both `.provider()` and `.server()` take a single object which allows you to specify behavior of the Ganache instance. This parameter is optional. Available options are:
 
-* `"accounts"`: `Array` of `Object`'s. Each object should have a balance key with a hexadecimal value. The key `secretKey` can also be specified, which represents the account's private key. If no `secretKey`, the address is auto-generated with the given balance. If specified, the key is used to determine the account's address.
+* `"accounts"`: `Array` of `Object`'s. Each object should have a `balance` key with a hexadecimal value. The key `secretKey` can also be specified, which represents the account's private key. If no `secretKey`, the address is auto-generated with the given balance. If specified, the key is used to determine the account's address.
 * `"debug"`: `boolean` - Output VM opcodes for debugging
 * `"blockTime"`: `number` - Specify blockTime in seconds for automatic mining. If you don't specify this flag, ganache will instantly mine a new block for every transaction. Using the `blockTime` option is discouraged unless you have tests which require a specific mining interval.
 * `"logger"`: `Object` - Object, like `console`, that implements a `log()` function.
@@ -54,12 +70,14 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"time"`: `Date` - Date that the first block should start. Use this feature, along with the `evm_increaseTime` method to test time-dependent code.
 * `"locked"`: `boolean` - whether or not accounts are locked by default.
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
-* `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, that chain will be initialized instead of creating a new one.
+* `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, `ganache-core` will initialize that chain instead of creating a new one.
 * `"db"`: `Object` - Specify an alternative database instance, for instance [MemDOWN](https://github.com/level/memdown).
 * `"ws"`: Enable a websocket server. This is `true` by default.
-* `"vmErrorsOnRPCResponse"`: Whether to report runtime errors from EVM code as RPC errors. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
+* `"account_keys_path"`: `String` - Specifies a file to save accounts and private keys to, for testing.
+* `"vmErrorsOnRPCResponse"`: `boolean` - Whether or not to transmit transaction failures as RPC errors. Set to `false` for error reporting behaviour which is compatible with other clients such as geth and Parity. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
-* `"allowUnlimitedContractSize"`: Allows unlimited contract sizes while debugging. By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
+* `"hardfork"`: Allows to specify which hardfork should be used. Supported hardforks are `byzantium` and `constantinople` (default)
+* `"allowUnlimitedContractSize"`: `boolean` - Allows unlimited contract sizes while debugging. By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
 * `"gasPrice"`: Sets the default gas price for transactions if not otherwise specified. Must be specified as a hex string in wei. Defaults to `"0x77359400"`, or 2 gwei.
 * `"gasLimit"`: Sets the block gas limit. Must be specified as a hex string. Defaults to `"0x6691b7"`.
 * `"keepAliveTimeout"`: If using `.server()` - Sets the HTTP server's `keepAliveTimeout` in milliseconds. See the [NodeJS HTTP docs](https://nodejs.org/api/http.html#http_server_keepalivetimeout) for details. `5000` by default.
@@ -70,7 +88,7 @@ The RPC methods currently implemented are:
 
 * `bzz_hive` (stub)
 * `bzz_info` (stub)
-* `debug_traceTransaction`
+* `debug_traceTransaction` (without support for `tracer` option)
 * `eth_accounts`
 * `eth_blockNumber`
 * `eth_call`
@@ -128,7 +146,7 @@ There’s also special non-standard methods that aren’t included within the or
 * `evm_increaseTime` : Jump forward in time. Takes one parameter, which is the amount of time to increase in seconds. Returns the total time adjustment, in seconds.
 * `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block independent of whether or not mining is started or stopped.
 
-# Unsupported Methods
+# UNSUPPORTED METHODS
 
 * `eth_compileSolidity`: If you'd like Solidity compilation in Javascript, please see the [solc-js project](https://github.com/ethereum/solc-js).
 

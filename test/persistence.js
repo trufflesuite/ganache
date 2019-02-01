@@ -8,12 +8,13 @@ const memdown = require("memdown");
 const { join } = require("path");
 const assert = require("assert");
 const Web3 = require("web3");
+const { generateSend } = require("./helpers/utils");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-const source = readFileSync("./test/Example.sol", { encoding: "utf8" });
+const source = readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
 const result = compile(source, 1);
 
 // Note: Certain properties of the following contract data are hardcoded to
@@ -107,11 +108,11 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     const web3 = new Web3();
     const memdbWeb3 = new Web3();
     const str = JSON.stringify;
-    const blocks = [];
     const memdbBlocks = [];
+    const blocks = [];
     let blockHeight = 2;
-    let memdbBlockHeight = 0;
     let accounts;
+    let memdbSend;
 
     before("init provider", function() {
       regressionProviderInit(function(p) {
@@ -119,6 +120,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       });
       memdbProviderInit(function(p) {
         memdbWeb3.setProvider(p);
+        memdbSend = generateSend(p);
       });
     });
 
@@ -144,17 +146,19 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     it("should issue/accept two tx's (mem store)", async function() {
       // Don't change the details of this tx - it's needed to deterministically match a manually created
       // DB with prior versions of ganache-core
+      let { timestamp } = await memdbWeb3.eth.getBlock(0);
+      assert(timestamp);
       const txOptions = {
         from: accounts[0],
         to: accounts[1],
         value: 1
       };
-      let receipt = memdbWeb3.eth.sendTransaction(txOptions);
-      assert(receipt);
-      assert.strictEqual(receipt.blockNumber, ++memdbBlockHeight);
-      const receipt2 = await memdbWeb3.eth.sendTransaction(txOptions);
-      assert(receipt2);
-      assert.strictEqual(receipt2.blockNumber, ++memdbBlockHeight);
+      const receipt = await memdbSend("eth_sendTransaction", txOptions);
+      await memdbSend("evm_mine", ++timestamp);
+      const receipt2 = await memdbSend("eth_sendTransaction", txOptions);
+      await memdbSend("evm_mine", ++timestamp);
+      assert(receipt.result, "Should return a tx hash");
+      assert(receipt2.result, "Should return a tx hash");
     });
 
     it("should be on block height 2 (mem store)", async function() {
@@ -162,7 +166,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       assert(result === 2);
     });
 
-    it("should produce identical blocks (persitant db - memdb)", async function() {
+    it.skip("should produce identical blocks (persistence db - memdb)", async function() {
       blocks.push(await web3.eth.getBlock(0, true));
       blocks.push(await web3.eth.getBlock(1, true));
       blocks.push(await web3.eth.getBlock(2, true));
@@ -174,7 +178,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
       }
     });
 
-    it("should produce identical transactions (persitant db - memdb)", async function() {
+    it.skip("should produce identical transactions (persistence db - memdb)", async function() {
       // Start at block 1 to skip genesis block
       for (let i = 1; i < blocks.length; i++) {
         const block = await memdbWeb3.eth.getBlock(i, false);
@@ -222,7 +226,7 @@ describe("Custom DB", function() {
   runTests(providerInit);
 });
 
-describe.skip("Regression test DB", function() {
+describe("Regression test DB", function() {
   // Don't change these options, we need these to match the saved chain in ./test/testdb
   const db = memdown();
   const dbPath = join(__dirname, "/testdb");
