@@ -9,4 +9,9 @@ contract DebugContract {
     value = _val;
     otherValue += _val;
   }
+
+  function callSetValueTwice() {
+    setValue(1);
+    setValue(2);
+  }
 }
