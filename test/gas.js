@@ -21,7 +21,7 @@ let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble s
 
 describe("EIP150 Gas Estimation: ", async function() {
   const bootstrap = require("./helpers/bootstrap");
-  // const location = path.join(__dirname, "contracts", `${contractName}.sol`);
+
   const ContractFactory = bootstrap("ContractFactory");
   const TestDepth = bootstrap("TestDepth");
   const Donation = bootstrap("Donation", ["Fib"]);
