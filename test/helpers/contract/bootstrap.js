@@ -1,9 +1,6 @@
-const Ganache = require(process.env.TEST_BUILD
-  ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../../../index.js");
-const Web3 = require("web3");
 const { join } = require("path");
 const { compileAndDeploy } = require("./compileAndDeploy");
+const initializeTestProvider = require("../web3/initializeTestProvider");
 
 /**
  * @param {string} mainContractName Main contract filename (withouth file extension)
@@ -18,15 +15,14 @@ const bootstrap = (mainContractName = "", subContractNames = [], options = {}, c
   before("Setting up web3 and contract", async function() {
     this.timeout(10000);
 
-    // Setup contract path
-    const provider = Ganache.provider(options);
-    const web3 = new Web3(provider);
+    const { accounts, provider, web3 } = await initializeTestProvider(options);
 
     const testAssets = await compileAndDeploy(
       mainContractName,
       subContractNames,
       join(__dirname, "..", "..", "contracts", `${contractSubdirectory}/`),
-      web3
+      web3,
+      accounts
     );
 
     Object.assign(context, testAssets, { provider, web3 });
