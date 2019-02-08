@@ -43,18 +43,13 @@ describe("Accounts", function() {
         value: web3.utils.toWei(new BN(1), "ether"),
         gasLimit: 90000
       },
-      function(err, tx) {
+      function(err) {
         if (!err) {
           return done(
             new Error("We expected the account to be locked, which should throw an error when sending a transaction")
           );
         }
-        assert(
-          err.message.toLowerCase().indexOf("could not unlock signer account") >= 0,
-          "Expected error message containing \"could not unlock signer account\" " +
-            "(case insensitive check). Received the following error message, instead. " +
-            `"${err.message}"`
-        );
+        assert.strictEqual(err.message, "signer account is locked");
         done();
       }
     );
