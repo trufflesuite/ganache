@@ -19,7 +19,7 @@
     "test": "npm run _lint && npm run _mocha",
     "test-build": "cross-env TEST_BUILD=node npm run _mocha",
     "test-web-experimental": "cross-env TEST_BUILD=web-experimental npm run _mocha",
-    "test-coverage": "nyc mocha --check-leaks --recursive --globals _scratch,sanitizedData",
+    "local-coverage": "nyc mocha --check-leaks --recursive --globals _scratch,sanitizedData",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "dependencies": {
