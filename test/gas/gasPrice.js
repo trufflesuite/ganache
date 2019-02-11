@@ -30,8 +30,6 @@ describe("Gas", function() {
       this.timeout(10000);
       it("should be possible to set a zero gas price", async function() {
         const seed = randomInteger(SEED_RANGE);
-        // const options = { seed };
-        // const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
         const options = {
           seed,
           gasPrice: 0
