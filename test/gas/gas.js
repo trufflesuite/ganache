@@ -4,7 +4,7 @@ const bootstrap = require("../helpers/contract/bootstrap");
 const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
 const confirmGasPrice = require("./lib/confirmGasPrice");
 const testTransactionEstimate = require("./lib/transactionEstimate");
-const to = require("../../lib/utils/to");
+const toBytesHexString = require("../helpers/utils/toBytesHexString");
 const { deploy } = require("../helpers/contract/compileAndDeploy");
 
 const RSCLEAR_REFUND = 15000;
@@ -406,7 +406,7 @@ describe("Gas", function() {
           const { accounts, instance } = context;
           await testTransactionEstimate(
             instance.methods.add,
-            [to.toBytesHexString("Tim"), to.toBytesHexString("A great guy"), 10],
+            [toBytesHexString("Tim"), toBytesHexString("A great guy"), 10],
             { from: accounts[0], gas: 3141592 },
             instance
           );
@@ -416,7 +416,7 @@ describe("Gas", function() {
           const { accounts, instance } = context;
           await testTransactionEstimate(
             instance.methods.transfer,
-            ["0x0123456789012345678901234567890123456789", 5, to.toBytesHexString("Tim")],
+            ["0x0123456789012345678901234567890123456789", 5, toBytesHexString("Tim")],
             { from: accounts[0], gas: 3141592 },
             instance
           );

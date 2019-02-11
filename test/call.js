@@ -6,7 +6,7 @@ var Ganache = require(process.env.TEST_BUILD
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
-var to = require("../lib/utils/to.js");
+const toBytesHexString = require("./helpers/utils/toBytesHexString");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
@@ -54,7 +54,7 @@ describe("eth_call", function() {
     // this call uses more than the default transaction gas limit and will
     // therefore fail if the block gas limit isn't used for calls
     return estimateGasInstance.methods
-      .add(to.toBytesHexString("Tim"), to.toBytesHexString("A great guy"), 5)
+      .add(toBytesHexString("Tim"), toBytesHexString("A great guy"), 5)
       .call({ from: accounts[0] })
       .then((result) => {
         assert.strictEqual(result, true);
