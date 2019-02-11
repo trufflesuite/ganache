@@ -1,14 +1,16 @@
 const assert = require("assert");
 const to = require("../../lib/utils/to.js");
 const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
+const randomInteger = require("../helpers/utils/generateRandomInteger");
+const SEED_RANGE = 1000000;
 
 describe("Gas", function() {
   describe("options:gasLimit", function() {
     let context = {};
     before("Setting up web3", async function() {
       this.timeout(10000);
-      const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
-      const options = { mnemonic };
+      const seed = randomInteger(SEED_RANGE);
+      const options = { seed };
       Object.assign(context, await initializeTestProvider(options));
     });
 

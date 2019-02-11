@@ -1,6 +1,8 @@
 const assert = require("assert");
 const bootstrap = require("../helpers/contract/bootstrap");
 const { hex } = require("../../lib/utils/to");
+const randomInteger = require("../helpers/utils/generateRandomInteger");
+const SEED_RANGE = 1000000;
 
 describe("Gas", function() {
   describe("options:gasPrice", function() {
@@ -27,9 +29,11 @@ describe("Gas", function() {
     describe("zero gasPrice", async function() {
       this.timeout(10000);
       it("should be possible to set a zero gas price", async function() {
-        const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+        const seed = randomInteger(SEED_RANGE);
+        // const options = { seed };
+        // const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
         const options = {
-          mnemonic,
+          seed,
           gasPrice: 0
         };
         const context = await bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
