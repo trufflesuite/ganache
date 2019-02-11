@@ -3,7 +3,7 @@ const bootstrap = require("../helpers/contract/bootstrap");
 
 describe("Undefined", () => {
   describe("Calls", () => {
-    let context = {};
+    let context;
 
     before("Setting up web3 and contract", async function() {
       this.timeout(10000);

@@ -38,7 +38,7 @@ async function compile(mainContractName, contractFileNames = [], contractPath) {
  * @param {String} abi  contract ABI
  * @param {String} bytecode  contract bytecode
  * @param {Object} web3 Web3 interface
- * @returns {Object} context: abi, accounts, bytecode, contract, instance
+ * @returns {Object} context: abi, accounts, bytecode, contract, instance, receipt
  */
 async function deploy(abi, bytecode, web3, options = {}, existingAccounts = []) {
   let accounts, block, receipt;

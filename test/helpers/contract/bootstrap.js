@@ -7,7 +7,7 @@ const initializeTestProvider = require("../web3/initializeTestProvider");
  * @param {string|Array} subContractNames Array of supporting contract filenames (without file extension)
  * @param {Object} options Provider options
  * @param {string} contractSubdirectory relative subdirectory under contract (Ex test/contracts/${contractSubdirectory})
- * @returns {Object} abi, accounts, bytecode, contract, instance, provider, sources, web3
+ * @returns {Object} abi, accounts, bytecode, contract, instance, provider, receipt, sources, web3
  */
 const bootstrap = async(mainContractName = "", subContractNames = [], options = {}, contractSubdirectory = "") => {
   const { accounts, provider, web3 } = await initializeTestProvider(options);
