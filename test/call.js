@@ -8,10 +8,6 @@ var path = require("path");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 describe("eth_call", function() {
   var web3 = new Web3(Ganache.provider({}));
   var accounts;

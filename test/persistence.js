@@ -10,10 +10,6 @@ const assert = require("assert");
 const Web3 = require("web3");
 const { generateSend } = require("./helpers/utils");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 const source = readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
 const result = compile(source, 1);
 

@@ -29,10 +29,6 @@ const secretKeys = [
   "0xd46dc75904628a0b0eaffdda6acbe2687924299995708e30d05a1e8a2a1c5d45"
 ];
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 // Note: Certain properties of the following contract data are hardcoded to
 // maintain repeatable tests. If you significantly change the solidity code,
 // make sure to update the resulting contract data with the correct values.

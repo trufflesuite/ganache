@@ -6,10 +6,6 @@ var Ganache = require(process.env.TEST_BUILD
 var assert = require("assert");
 var solc = require("solc");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 describe("Interval Mining", function() {
   var web3;
 
