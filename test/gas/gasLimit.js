@@ -6,12 +6,12 @@ const SEED_RANGE = 1000000;
 
 describe("Gas", function() {
   describe("options:gasLimit", function() {
-    let context = {};
+    let context;
     before("Setting up web3", async function() {
       this.timeout(10000);
       const seed = randomInteger(SEED_RANGE);
       const options = { seed };
-      Object.assign(context, await initializeTestProvider(options));
+      context = await initializeTestProvider(options);
     });
 
     it("should respect the assigned gasLimit", async function() {
