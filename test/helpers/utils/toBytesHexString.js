@@ -1,7 +1,7 @@
 const to = require("../../../lib/utils/to");
 
 /**
- * Converts a string into
+ * Converts a string into a hex string
  * @param {string} message
  * @returns {string} Hex representation of the `message`
  */

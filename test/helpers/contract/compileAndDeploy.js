@@ -78,7 +78,7 @@ async function deploy(abi, bytecode, web3, options = {}, existingAccounts = []) 
  * @param {String} contractPath  Path to contracts directory
  * @param {Object} web3 Web3 interface
  * @param {Object} options Provider options
- * @param {Array} accounts Provider options
+ * @param {Array} accounts Predetermined accounts
  * @returns {Object} context: abi, accounts, bytecode, contract, instance, receipt, sources
  */
 async function compileAndDeploy(
