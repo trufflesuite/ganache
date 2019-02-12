@@ -1,5 +1,10 @@
 const to = require("../../../lib/utils/to");
 
+/**
+ * Converts a string into
+ * @param {string} message
+ * @returns {string} Hex representation of the `message`
+ */
 const toBytesHexString = (message) => {
   const bytes = Array.prototype.map.call(message, (character) => {
     return character.codePointAt(0);
