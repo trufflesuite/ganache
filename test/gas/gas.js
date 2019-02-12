@@ -12,10 +12,6 @@ const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
 const HARDFORK = ["constantinople", "byzantium"];
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 describe("Gas", function() {
   HARDFORK.forEach((hardfork) => {
     describe(`Hardfork: ${hardfork.toUpperCase()}`, function() {
