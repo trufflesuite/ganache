@@ -6,11 +6,7 @@ var Ganache = require(process.env.TEST_BUILD
 var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
-var to = require("../lib/utils/to.js");
-
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
+const toBytesHexString = require("./helpers/utils/toBytesHexString");
 
 describe("eth_call", function() {
   var web3 = new Web3(Ganache.provider({}));
@@ -19,7 +15,7 @@ describe("eth_call", function() {
   var estimateGasContractAbi;
   var EstimateGasContract;
   var estimateGasInstance;
-  var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
+  var source = fs.readFileSync(path.join(__dirname, "contracts", "gas", "EstimateGas.sol"), "utf8");
 
   before("get accounts", function(done) {
     web3.eth.getAccounts(function(err, accs) {
@@ -54,18 +50,10 @@ describe("eth_call", function() {
     // this call uses more than the default transaction gas limit and will
     // therefore fail if the block gas limit isn't used for calls
     return estimateGasInstance.methods
-      .add(toBytes("Tim"), toBytes("A great guy"), 5)
+      .add(toBytesHexString("Tim"), toBytesHexString("A great guy"), 5)
       .call({ from: accounts[0] })
       .then((result) => {
         assert.strictEqual(result, true);
       });
   });
-
-  function toBytes(s) {
-    let bytes = Array.prototype.map.call(s, function(c) {
-      return c.codePointAt(0);
-    });
-
-    return to.hex(Buffer.from(bytes));
-  }
 });

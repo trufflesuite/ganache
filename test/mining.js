@@ -8,10 +8,6 @@ var to = require("../lib/utils/to.js");
 var solc = require("solc");
 var pify = require("pify");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 describe("Mining", function() {
   var web3 = new Web3(
     Ganache.provider({

@@ -6,10 +6,6 @@ var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
 describe("Unlimited Contract Size", function() {

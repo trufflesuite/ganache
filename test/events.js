@@ -17,10 +17,6 @@ var source =
   "  }                                 \n" +
   "}";
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 var tests = function(web3, EventTest) {
   var accounts;
   var instance;
