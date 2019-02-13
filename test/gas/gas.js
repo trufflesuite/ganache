@@ -12,10 +12,10 @@ const SEED_RANGE = 1000000;
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
-const HARDFORK = ["constantinople", "byzantium"];
+const HARDFORKS = ["constantinople", "byzantium"];
 
 describe("Gas", function() {
-  HARDFORK.forEach((hardfork) => {
+  HARDFORKS.forEach((hardfork) => {
     describe(`Hardfork: ${hardfork.toUpperCase()}`, function() {
       let context;
       const seed = randomInteger(SEED_RANGE);
@@ -55,12 +55,17 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: gasEstimate });
 
-            if (provider.options.hardfork === "byzantium") {
-              assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
-            } else if (provider.options.hardfork === "constantinople") {
-              // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
-              // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
-              assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
+            switch (provider.options.hardfork) {
+              case "byzantium":
+                assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+                break;
+              case "constantinople":
+                // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
+                // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+                assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
+                break;
+              default:
+                throw new Error("Invalid hardfork option: " + provider.options.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -84,13 +89,18 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: gasEstimate });
 
-            if (provider.options.hardfork === "byzantium") {
-              // since we are resetting to a non-zero value, there is no gas added to the refund counter here
-              assert.strictEqual(receipt.gasUsed, gasEstimate);
-            } else if (provider.options.hardfork === "constantinople") {
-              // since storage was initially primed to 1 and we call triggerRsclearRefundForY(), which then
-              // resets storage back to 1, 4800 gas is added to the refund counter per Constantinople EIP 1283
-              assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValue);
+            switch (provider.options.hardfork) {
+              case "byzantium":
+                // since we are resetting to a non-zero value, there is no gas added to the refund counter here
+                assert.strictEqual(receipt.gasUsed, gasEstimate);
+                break;
+              case "constantinople":
+                // since storage was initially primed to 1 and we call triggerRsclearRefundForY(), which then
+                // resets storage back to 1, 4800 gas is added to the refund counter per Constantinople EIP 1283
+                assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValue);
+                break;
+              default:
+                throw new Error("Invalid hardfork option: " + provider.options.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -115,12 +125,17 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: gasEstimate });
 
-            if (provider.options.hardfork === "byzantium") {
-              assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
-            } else if (provider.options.hardfork === "constantinople") {
-              // since storage was initially primed to 1 and we call reset(), which then sets
-              // storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-              assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingFreshSlotToZero);
+            switch (provider.options.hardfork) {
+              case "byzantium":
+                assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+                break;
+              case "constantinople":
+                // since storage was initially primed to 1 and we call reset(), which then sets
+                // storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
+                assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingFreshSlotToZero);
+                break;
+              default:
+                throw new Error("Invalid hardfork option: " + provider.options.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -145,12 +160,17 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: gasEstimate });
 
-            if (provider.options.hardfork === "byzantium") {
-              assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
-            } else if (provider.options.hardfork === "constantinople") {
-              // since storage was initially primed to 1 and we call triggerRsclearRefund(), which then
-              // sets storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-              assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingDirtySlotToZero);
+            switch (provider.options.hardfork) {
+              case "byzantium":
+                assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+                break;
+              case "constantinople":
+                // since storage was initially primed to 1 and we call triggerRsclearRefund(), which then
+                // sets storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
+                assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingDirtySlotToZero);
+                break;
+              default:
+                throw new Error("Invalid hardfork option: " + provider.options.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -174,14 +194,19 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: gasEstimate });
 
-            if (provider.options.hardfork === "byzantium") {
-              assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
-            } else if (provider.options.hardfork === "constantinople") {
-              // since storage was initially primed to 1 and we call triggerRsclearRefundForX(), which then
-              // resets storage's current value to 0 and 15000 gas is added to the refund counter, and then
-              // it replaces x with gasleft, which removes 150000 gas from the refund counter per Constantinople
-              // EIP 1283 leaving us with a rsclear refund of 0
-              assert.strictEqual(receipt.gasUsed, gasEstimate);
+            switch (provider.options.hardfork) {
+              case "byzantium":
+                assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+                break;
+              case "constantinople":
+                // since storage was initially primed to 1 and we call triggerRsclearRefundForX(), which then
+                // resets storage's current value to 0 and 15000 gas is added to the refund counter, and then
+                // it replaces x with gasleft, which removes 150000 gas from the refund counter per Constantinople
+                // EIP 1283 leaving us with a rsclear refund of 0
+                assert.strictEqual(receipt.gasUsed, gasEstimate);
+                break;
+              default:
+                throw new Error("Invalid hardfork option: " + provider.options.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -220,15 +245,20 @@ describe("Gas", function() {
 
           const receipt = await method.send({ from, gas: gasEstimate });
 
-          if (provider.options.hardfork === "byzantium") {
-            assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
-          } else if (provider.options.hardfork === "constantinople") {
-            // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
-            // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
-            assert.strictEqual(
-              receipt.gasUsed,
-              gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO
-            );
+          switch (provider.options.hardfork) {
+            case "byzantium":
+              assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
+              break;
+            case "constantinople":
+              // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
+              // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+              assert.strictEqual(
+                receipt.gasUsed,
+                gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO
+              );
+              break;
+            default:
+              throw new Error("Invalid hardfork option: " + provider.options.hardfork);
           }
           assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
         });
@@ -300,14 +330,19 @@ describe("Gas", function() {
           const { gasUsed } = await method.send({ from: accounts[0], gas: gasEstimate });
 
           let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
-          if (provider.options.hardfork === "byzantium") {
-            assert.strictEqual(gasUsed, transactionCostMinusRefund);
-          } else if (provider.options.hardfork === "constantinople") {
-            // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
-            // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
-            transactionCostMinusRefund =
-              gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO;
-            assert.strictEqual(gasUsed, transactionCostMinusRefund);
+          switch (provider.options.hardfork) {
+            case "byzantium":
+              assert.strictEqual(gasUsed, transactionCostMinusRefund);
+              break;
+            case "constantinople":
+              // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
+              // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+              transactionCostMinusRefund =
+                gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO;
+              assert.strictEqual(gasUsed, transactionCostMinusRefund);
+              break;
+            default:
+              throw new Error("Invalid hardfork option: " + provider.options.hardfork);
           }
 
           const receipt = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
