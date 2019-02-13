@@ -3,16 +3,14 @@ const { compileAndDeploy } = require("./compileAndDeploy");
 const initializeTestProvider = require("../web3/initializeTestProvider");
 
 /**
- * @param {string} mainContractName Main contract filename (withouth file extension)
- * @param {string|Array} subContractNames Array of supporting contract filenames (without file extension)
+ * @param {Object} contractRef Object containing contract files and subdirectory path
  * @param {Object} options Provider options
- * @param {string} contractSubdirectory relative subdirectory under contract (Ex test/contracts/${contractSubdirectory})
  * @returns {Object} abi, accounts, bytecode, contract, instance, provider, receipt, sources, web3
  */
-const bootstrap = async(contracts = [], options = {}) => {
+const bootstrap = async(contractRef = {}, options = {}) => {
   const { accounts, provider, web3 } = await initializeTestProvider(options);
 
-  const { contractFiles, contractSubdirectory } = contracts;
+  const { contractFiles, contractSubdirectory } = contractRef;
   const [mainContractName, ...subContractNames] = contractFiles;
   const testAssets = await compileAndDeploy(
     mainContractName,
