@@ -21,15 +21,17 @@ describe("Gas", function() {
       before("Setting up web3 and contract", async function() {
         this.timeout(10000);
 
-        const mainContract = "EstimateGas";
-        const contractFilenames = [];
-        const contractSubdirectory = "gas";
-        const options = {
+        const contractRef = {
+          contractFiles: ["EstimateGas"],
+          contractSubdirectory: "gas"
+        };
+
+        const ganacheProviderOptions = {
           mnemonic,
           hardfork
         };
 
-        context = await bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
+        context = await bootstrap(contractRef, ganacheProviderOptions);
       });
 
       describe("Refunds", function() {
