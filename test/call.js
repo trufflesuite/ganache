@@ -8,10 +8,6 @@ var path = require("path");
 var solc = require("solc");
 const toBytesHexString = require("./helpers/utils/toBytesHexString");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 describe("eth_call", function() {
   var web3 = new Web3(Ganache.provider({}));
   var accounts;

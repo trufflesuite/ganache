@@ -8,14 +8,16 @@ describe("Undefined", () => {
     before("Setting up web3 and contract", async function() {
       this.timeout(10000);
 
-      const mainContract = "Call";
-      const contractFilenames = [];
-      const contractSubdirectory = "call";
-      const options = {
+      const contractRef = {
+        contractFiles: ["Call"],
+        contractSubdirectory: "call"
+      };
+
+      const ganacheProviderOptions = {
         vmErrorsOnRPCResponse: false
       };
 
-      context = await bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
+      context = await bootstrap(contractRef, ganacheProviderOptions);
     });
 
     it("should return `0x` when eth_call fails (web3.eth call)", async() => {

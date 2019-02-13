@@ -6,15 +6,16 @@ const SEED_RANGE = 1000000;
 
 describe("Gas", function() {
   describe("options:gasPrice", function() {
-    const mainContract = "Example";
-    const contractFilenames = [];
-    const contractSubdirectory = "examples";
+    const contractRef = {
+      contractFiles: ["Example"],
+      contractSubdirectory: "examples"
+    };
 
     describe("default gasPrice", async function() {
       this.timeout(10000);
       it("should respect the default gasPrice", async function() {
-        const options = {};
-        const context = await bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
+        const ganacheProviderOptions = {};
+        const context = await bootstrap(contractRef, ganacheProviderOptions);
         const { accounts, instance, provider, web3 } = context;
 
         const assignedGasPrice = provider.engine.manager.state.gasPriceVal;
@@ -30,11 +31,11 @@ describe("Gas", function() {
       this.timeout(10000);
       it("should be possible to set a zero gas price", async function() {
         const seed = randomInteger(SEED_RANGE);
-        const options = {
+        const ganacheProviderOptions = {
           seed,
           gasPrice: 0
         };
-        const context = await bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
+        const context = await bootstrap(contractRef, ganacheProviderOptions);
 
         const { accounts, instance, provider, web3 } = context;
 

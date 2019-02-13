@@ -38,6 +38,8 @@ async function compile(mainContractName, contractFileNames = [], contractPath) {
  * @param {String} abi  contract ABI
  * @param {String} bytecode  contract bytecode
  * @param {Object} web3 Web3 interface
+ * @param {Object} options Provider options
+ * @param {Array} existingAccounts Existing accounts
  * @returns {Object} context: abi, accounts, bytecode, contract, instance, receipt
  */
 async function deploy(abi, bytecode, web3, options = {}, existingAccounts = []) {
@@ -76,6 +78,7 @@ async function deploy(abi, bytecode, web3, options = {}, existingAccounts = []) 
  * @param {String} contractPath  Path to contracts directory
  * @param {Object} web3 Web3 interface
  * @param {Object} options Provider options
+ * @param {Array} accounts Predetermined accounts
  * @returns {Object} context: abi, accounts, bytecode, contract, instance, receipt, sources
  */
 async function compileAndDeploy(

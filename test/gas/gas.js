@@ -1,39 +1,39 @@
 const assert = require("assert");
 const sleep = require("../helpers/utils/sleep");
 const bootstrap = require("../helpers/contract/bootstrap");
-const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
 const confirmGasPrice = require("./lib/confirmGasPrice");
+const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
+const randomInteger = require("../helpers/utils/generateRandomInteger");
 const testTransactionEstimate = require("./lib/transactionEstimate");
 const toBytesHexString = require("../helpers/utils/toBytesHexString");
 const { deploy } = require("../helpers/contract/compileAndDeploy");
 
+const SEED_RANGE = 1000000;
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
 const HARDFORKS = ["constantinople", "byzantium"];
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 describe("Gas", function() {
   HARDFORKS.forEach((hardfork) => {
     describe(`Hardfork: ${hardfork.toUpperCase()}`, function() {
       let context;
-      const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+      const seed = randomInteger(SEED_RANGE);
 
       before("Setting up web3 and contract", async function() {
         this.timeout(10000);
 
-        const mainContract = "EstimateGas";
-        const contractFilenames = [];
-        const contractSubdirectory = "gas";
-        const options = {
-          mnemonic,
+        const contractRef = {
+          contractFiles: ["EstimateGas"],
+          contractSubdirectory: "gas"
+        };
+
+        const ganacheProviderOptions = {
+          seed,
           hardfork
         };
 
-        context = await bootstrap(mainContract, contractFilenames, options, contractSubdirectory);
+        context = await bootstrap(contractRef, ganacheProviderOptions);
       });
 
       describe("Refunds", function() {
@@ -268,7 +268,7 @@ describe("Gas", function() {
           const { abi, bytecode, provider } = context;
           const options = {
             blockTime: 0.5, // seconds
-            mnemonic,
+            seed,
             hardfork
           };
           const { accounts, web3 } = await initializeTestProvider(options);
@@ -494,7 +494,7 @@ describe("Gas", function() {
         it("should calculate gas expenses correctly with a user-defined default gasPrice", async function() {
           const transferAmount = "500";
           const gasPrice = "0x2000";
-          const options = { mnemonic, gasPrice };
+          const options = { seed, gasPrice };
           const { accounts, web3 } = await initializeTestProvider(options);
           await confirmGasPrice(gasPrice, false, web3, accounts, transferAmount);
         });
@@ -502,7 +502,7 @@ describe("Gas", function() {
         it("should calculate cumalativeGas and gasUsed correctly for many transactions in a block", async function() {
           const options = {
             blockTime: 0.5, // seconds
-            mnemonic
+            seed
           };
           const { accounts, web3 } = await initializeTestProvider(options);
 
