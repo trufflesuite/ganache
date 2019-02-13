@@ -9,7 +9,7 @@ describe("Contract Strings", function() {
       this.timeout(10000);
       const contractRef = {
         contractFiles: ["DynamicStringLength", "DynamicStringLengthCheck"],
-        contractSubdirectory: "dynamic_strings"
+        contractSubdirectory: "solidity"
       };
 
       const ganacheProviderOptions = {};
