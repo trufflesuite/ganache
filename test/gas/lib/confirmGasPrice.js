@@ -10,7 +10,7 @@ const confirmGasPrice = async(
   transferAmount = "5"
 ) => {
   // Convert transferAmount into a big number
-  const _transferAmount = numberToBN(web3.utils.toWei(transferAmount, "finney"));
+  const _transferAmount = web3.utils.toWei(numberToBN(transferAmount), "finney");
 
   // Convert expected gas price into a big number
   const expectedGasPriceBN = numberToBN(expectedGasPrice);
