@@ -10,8 +10,8 @@ describe("Gas", function() {
     before("Setting up web3", async function() {
       this.timeout(10000);
       const seed = randomInteger(SEED_RANGE);
-      const options = { seed };
-      context = await initializeTestProvider(options);
+      const ganacheProviderOptions = { seed };
+      context = await initializeTestProvider(ganacheProviderOptions);
     });
 
     it("should respect the assigned gasLimit", async function() {
