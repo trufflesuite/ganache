@@ -36,6 +36,157 @@ describe("Gas", function() {
         context = await bootstrap(contractRef, ganacheProviderOptions);
       });
 
+      describe("EIP150 Gas Estimation: ", async function() {
+        const ContractFactory = await bootstrap({ contractFiles: ["ContractFactory"], contractSubdirectory: "gas" });
+        const TestDepth = await bootstrap({ contractFiles: ["TestDepth"], contractSubdirectory: "gas" });
+        const Donation = await bootstrap({ contractFiles: ["Donation"], contractSubdirectory: "gas" });
+        const Fib = await bootstrap({ contractFiles: ["Fib"], contractSubdirectory: "gas" });
+        it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
+          const { accounts, instance } = Fib;
+          const index = 5;
+          const est = await instance.methods.calc(index).estimateGas();
+          try {
+            await instance.methods.calc(index).send({
+              from: accounts[0],
+              gas: est - 1
+            });
+            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+          } catch (e) {
+            assert("FAILED: not enough gas (expected)");
+          }
+          try {
+            await instance.methods.calc(index).send({
+              from: accounts[0],
+              gas: est
+            });
+            assert("Enough gas supplied!");
+          } catch (e) {
+            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
+          }
+        });
+
+        it("Should estimate gas perfectly with EIP150 - CREATE", async() => {
+          const { accounts, instance } = ContractFactory;
+          const est = await instance.methods.createInstance().estimateGas();
+          try {
+            await instance.methods.createInstance().send({
+              from: accounts[0],
+              gas: est - 1
+            });
+            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+          } catch (e) {
+            assert("FAILED: not enough gas (expected)");
+          }
+          try {
+            await instance.methods.createInstance().send({
+              from: accounts[0],
+              gas: est
+            });
+            assert("Enough gas supplied!");
+          } catch (e) {
+            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
+          }
+        });
+
+        it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async() => {
+          const { accounts, instance } = TestDepth;
+          const depth = 2;
+          const est = await instance.methods.depth(depth).estimateGas();
+          try {
+            await instance.methods.depth(depth).send({
+              from: accounts[0],
+              gas: est - 1
+            });
+            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+          } catch (e) {
+            assert("FAILED: not enough gas (expected)");
+          }
+          try {
+            await instance.methods.depth(depth).send({
+              from: accounts[0],
+              gas: est
+            });
+            assert("Enough gas supplied!");
+          } catch (e) {
+            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
+          }
+        });
+
+        it.skip("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async() => {
+          const { accounts, instance } = Donation;
+          // Pre-condition
+          const address = accounts[0];
+          const donateEst = await instance.methods.donate().estimateGas({
+            from: address,
+            value: 50
+          });
+          await instance.methods.donate().send({
+            from: address,
+            value: 50,
+            gas: donateEst
+          });
+          const est = await instance.methods.moveFund(address, 5).estimateGas({
+            from: address
+          });
+
+          try {
+            await instance.methods.moveFund(address, 5).send({
+              from: address,
+              gas: est - 1
+            });
+            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+          } catch (e) {
+            assert("FAILED: not enough gas (expected)");
+          }
+          try {
+            await instance.methods.moveFund(address, 5).send({
+              from: address,
+              gas: est
+            });
+            assert("Enough gas supplied!");
+          } catch (e) {
+            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
+          }
+        }).timeout(1000000);
+
+        it.skip("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async() => {
+          const { accounts, instance } = Donation;
+          // Pre-condition
+          const address = accounts[0];
+          const donateEst = await instance.methods.donate().estimateGas({
+            from: address,
+            value: 50
+          });
+          await instance.methods.donate().send({
+            from: address,
+            value: 50,
+            gas: donateEst
+          });
+          const est = await instance.methods.moveFund2(address, 1).estimateGas({
+            from: address
+          });
+
+          try {
+            await instance.methods.moveFund2(accounts[1], 1).send({
+              from: address,
+              gas: est - 1
+            });
+            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+          } catch (e) {
+            assert("FAILED: not enough gas (expected)");
+          }
+          try {
+            await instance.methods.moveFund2(accounts[1], 1).send({
+              from: address,
+              gas: est
+            });
+            assert("Enough gas supplied!");
+          } catch (e) {
+            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
+          }
+        }).timeout(1000000);
+      });
+
       describe("Refunds", function() {
         it(
           "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
