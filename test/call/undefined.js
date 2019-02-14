@@ -1,19 +1,27 @@
 const assert = require("assert");
-const bootstrap = require("../helpers/bootstrap");
+const bootstrap = require("../helpers/contract/bootstrap");
 
 describe("Undefined", () => {
   describe("Calls", () => {
-    const mainContract = "Call";
-    const contractFilenames = [];
-    const contractPath = "../contracts/call/";
-    const options = {
-      vmErrorsOnRPCResponse: false
-    };
+    let context;
 
-    const services = bootstrap(mainContract, contractFilenames, options, contractPath);
+    before("Setting up web3 and contract", async function() {
+      this.timeout(10000);
+
+      const contractRef = {
+        contractFiles: ["Call"],
+        contractSubdirectory: "call"
+      };
+
+      const ganacheProviderOptions = {
+        vmErrorsOnRPCResponse: false
+      };
+
+      context = await bootstrap(contractRef, ganacheProviderOptions);
+    });
 
     it("should return `0x` when eth_call fails (web3.eth call)", async() => {
-      const { instance, web3 } = services;
+      const { instance, web3 } = context;
 
       const signature = instance.methods.causeReturnValueOfUndefined()._method.signature;
 
@@ -26,7 +34,7 @@ describe("Undefined", () => {
     });
 
     it("should throw due to returned value of `0x` when eth_call fails (compiled contract call)", async() => {
-      const { instance } = services;
+      const { instance } = context;
       try {
         await instance.methods.causeReturnValueOfUndefined().call();
       } catch (error) {
@@ -35,7 +43,7 @@ describe("Undefined", () => {
     });
 
     it("should return a value when contract and method exists at block (web3.eth.call)", async() => {
-      const { instance, web3 } = services;
+      const { instance, web3 } = context;
 
       const signature = instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature;
       const params = {
@@ -52,13 +60,13 @@ describe("Undefined", () => {
     });
 
     it("should return a value when contract and method exists at block (compiled contract call)", async() => {
-      const { instance } = services;
+      const { instance } = context;
       const result = await instance.methods.theAnswerToLifeTheUniverseAndEverything().call();
       assert.strictEqual(result, "42");
     });
 
     it("should return 0x when contract doesn't exist at block", async() => {
-      const { instance, web3 } = services;
+      const { instance, web3 } = context;
 
       const signature = instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature;
       const params = {
@@ -71,7 +79,7 @@ describe("Undefined", () => {
     });
 
     it("should return 0x when method doesn't exist at block", async() => {
-      const { instance, web3 } = services;
+      const { instance, web3 } = context;
       const params = {
         to: instance._address,
         data: "0x01234567"

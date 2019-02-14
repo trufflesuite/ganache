@@ -10,17 +10,17 @@
   },
   "scripts": {
     "_mocha": "mocha --check-leaks --recursive --globals _scratch,sanitizedData",
+    "nyc_mocha": "nyc mocha --check-leaks --recursive --globals _scratch,sanitizedData",
     "_lint": "eslint --ignore-path .gitignore .",
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
     "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
     "prepublishOnly": "npm run test && npm run build && npm run test-build && mv npm-shrinkwrap.json npm-shrinkwrap.json.bak && npm prune --only=prod && npm shrinkwrap",
     "postpublish": "rm npm-shrinkwrap.json && mv npm-shrinkwrap.json.bak npm-shrinkwrap.json && npm ci",
-    "test": "npm run _lint && npm run _mocha",
+    "test": "npm run _lint && npm run nyc_mocha",
     "test-build": "cross-env TEST_BUILD=node npm run _mocha",
     "test-web-experimental": "cross-env TEST_BUILD=web-experimental npm run _mocha",
-    "test-coverage": "nyc mocha --check-leaks --recursive --globals _scratch,sanitizedData",
-    "coverage": "npm run test-coverage && nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "dependencies": {
     "abstract-leveldown": "3.0.0",
@@ -41,7 +41,7 @@
     "heap": "0.2.6",
     "level-sublevel": "6.6.4",
     "levelup": "3.1.1",
-    "lodash": "4.17.10",
+    "lodash": "4.17.11",
     "merkle-patricia-tree": "2.3.1",
     "rlp": "2.1.0",
     "seedrandom": "2.4.4",
@@ -68,6 +68,7 @@
     "memdown": "^1.3.1",
     "mocha": "5.2.0",
     "mocha-lcov-reporter": "^1.3.0",
+    "number-to-bn": "1.7.0",
     "nyc": "^13.1.0",
     "pify": "4.0.0",
     "portfinder": "^1.0.18",
