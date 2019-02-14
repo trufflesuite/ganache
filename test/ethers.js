@@ -4,7 +4,7 @@ var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
 
-describe("ethers", async(done) => {
+describe.skip("ethers", async(done) => {
   const secretKey = "4646464646464646464646464646464646464646464646464646464646464646";
   const g = Ganache.provider({
     accounts: [
