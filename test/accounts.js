@@ -10,6 +10,7 @@ describe("Accounts", function() {
   var mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 
   it("should respect the BIP99 mnemonic", function(done) {
+    this.timeout(5000);
     var web3 = new Web3();
     web3.setProvider(
       Ganache.provider({
