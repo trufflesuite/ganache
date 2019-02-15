@@ -6,10 +6,6 @@ var Web3 = require("web3");
 var fs = require("fs");
 var assert = require("assert");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 var logger = {
   log: function(msg) {
     /* noop */
@@ -38,7 +34,7 @@ describe("Forking using a Provider", function() {
 
   before("set up test data", function() {
     this.timeout(5000);
-    var source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
+    var source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
     var result = solc.compile(source, 1);
 
     // Note: Certain properties of the following contract data are hardcoded to

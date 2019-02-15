@@ -14,7 +14,7 @@ const to = require("../lib/utils/to");
 const _ = require("lodash");
 const pify = require("pify");
 
-const source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
+const source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
 const compilationResult = solc.compile(source, 1);
 const secretKeys = [
   "0xda09f8cdec20b7c8334ce05b27e6797bef01c1ad79c59381666467552c5012e3",
@@ -28,10 +28,6 @@ const secretKeys = [
   "0x12ae0eb585babc60c88a74190a6074488a0d2f296124ce37f85dbec1d693906f",
   "0xd46dc75904628a0b0eaffdda6acbe2687924299995708e30d05a1e8a2a1c5d45"
 ];
-
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
 
 // Note: Certain properties of the following contract data are hardcoded to
 // maintain repeatable tests. If you significantly change the solidity code,
@@ -150,7 +146,7 @@ const tests = function(web3) {
           "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
           "0000000000000000000000000000",
         transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-        stateRoot: "0x7caba99698b405652a6bcb1038efa16db54b3338af71fa832a0b99a3e6c344bc",
+        stateRoot: "0xe15198e397d86e678a5ad5830cbb813915f502384455f10f5004a0d35d6d27d6",
         receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
         miner: "0x0000000000000000000000000000000000000000",
         difficulty: "0",
@@ -265,9 +261,9 @@ const tests = function(web3) {
       assert.strictEqual(1, blockTransactionCount, "Block transaction count should be 1.");
     });
 
-    it("should return 0 transactions when the block doesn't exist", async function() {
+    it("should return null transactions when the block doesn't exist", async function() {
       const blockTransactionCount = await web3.eth.getBlockTransactionCount(1000000);
-      assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
+      assert.strictEqual(null, blockTransactionCount, "Block transaction count should be null.");
     });
   });
 
@@ -1132,13 +1128,140 @@ const tests = function(web3) {
   });
 
   describe("eth_getTransactionCount", function() {
-    it("should error for non-existent block", async function() {
-      try {
-        await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999);
-        assert.fail("Error with message 'Unknown block number' expected, instead no error was returned");
-      } catch (err) {
-        assert(err.message.indexOf("Unknown block number") > -1);
-      }
+    it("should return null for non-existent block", async function() {
+      const result = await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999);
+      assert.strictEqual(result, null, "Should return null for non-existent block (GETH)");
+    });
+  });
+
+  describe("eth_getTransactionByHash", function() {
+    it("should return nonce as a quantity datatype when requested via RPC method", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      let txHash = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: accounts[8],
+            to: accounts[9],
+            value: 0
+          }
+        ]
+      });
+
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [txHash.result]
+      });
+
+      assert.strictEqual(result.result.nonce, "0x0");
+    });
+
+    it("should return nonce as a number when requested via web3 method", async function() {
+      let txHash = await web3.eth.sendTransaction({
+        from: accounts[8],
+        to: accounts[9],
+        value: 0
+      });
+
+      let result = await web3.eth.getTransaction(txHash.transactionHash);
+
+      assert.strictEqual(result.nonce, 1);
+    });
+
+    it("should return input as an unformatted datatype when requested via RPC method", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+      let txHash = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: accounts[8],
+            to: accounts[9],
+            value: 0
+          }
+        ]
+      });
+
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [txHash.result]
+      });
+
+      assert.strictEqual(result.result.input, "0x");
+    });
+
+    it("should return null for blockHash, blockNumber, and transactionIndex on a pending tx", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+
+      const txData = {
+        to: accounts[0],
+        from: accounts[1]
+      };
+
+      await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_stop"
+      });
+
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [txData]
+      });
+
+      let transactionObject = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [result.result]
+      });
+
+      assert.strictEqual(null, transactionObject.result.blockHash);
+      assert.strictEqual(null, transactionObject.result.blockNumber);
+      assert.strictEqual(null, transactionObject.result.transactionIndex);
+    });
+
+    it("should return values for blockHash, blockNumber, and transactionIndex once mined", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+
+      const txData = {
+        to: accounts[0],
+        from: accounts[1]
+      };
+
+      await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "miner_start",
+        params: []
+      });
+
+      let result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: [txData]
+      });
+
+      let transactionObject = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_getTransactionByHash",
+        params: [result.result]
+      });
+
+      assert.notStrictEqual(null, transactionObject.result.blockHash);
+      assert.notStrictEqual(null, transactionObject.result.blockNumber);
+      assert.notStrictEqual(null, transactionObject.result.transactionIndex);
     });
   });
 

@@ -8,10 +8,6 @@ var fs = require("fs");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 var logger = {
   log: function(msg) {
     /* console.log(msg) */
@@ -48,7 +44,7 @@ describe("Forking", function() {
 
   before("set up test data", function() {
     this.timeout(10000);
-    var source = fs.readFileSync("./test/Example.sol", { encoding: "utf8" });
+    var source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
     var result = solc.compile(source, 1);
 
     // Note: Certain properties of the following contract data are hardcoded to

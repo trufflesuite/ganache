@@ -7,10 +7,6 @@ var fs = require("fs");
 var path = require("path");
 var solc = require("solc");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 describe("Debug", function() {
   var provider;
   var web3;
@@ -138,9 +134,10 @@ describe("Debug", function() {
           resolve();
         }
       );
-    }).then(() => {
+    }).then(async() => {
       // Now let's make sure rerunning this transaction trace didn't change state
-      return debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
+      const value = await debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
+      assert.strictEqual(value, expectedValueBeforeTrace);
     });
   });
 });
