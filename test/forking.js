@@ -247,7 +247,7 @@ describe("Forking", function() {
     assert.strictEqual(forkedWeb3.utils.hexToNumber(result), 800);
 
     // Now lets check the value on the main chain. It shouldn't be 800.
-    const mainResult = example.methods.value().call({ from: mainAccounts[0] });
+    const mainResult = await example.methods.value().call({ from: mainAccounts[0] });
     assert.strictEqual(mainWeb3.utils.hexToNumber(mainResult), 5);
   });
 
@@ -360,10 +360,10 @@ describe("Forking", function() {
     // ensure we're pulling data off the correct provider in both cases.
     const [balanceBeforeFork, balanceAfterFork, balanceLatestMain, balanceLatestFallback] = [
       ...(await Promise.all([
-        mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber - 1)(),
-        mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber + 1)(),
-        mainWeb3.eth.getBalance(forkedAccounts[0], "latest")(),
-        forkedWeb3.eth.getBalance(forkedAccounts[0], "latest")()
+        mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber - 1),
+        mainWeb3.eth.getBalance(forkedAccounts[0], forkBlockNumber + 1),
+        mainWeb3.eth.getBalance(forkedAccounts[0], "latest"),
+        forkedWeb3.eth.getBalance(forkedAccounts[0], "latest")
       ]))
     ].map(function(el) {
       return mainWeb3.utils.toBN(el);
@@ -392,11 +392,13 @@ describe("Forking", function() {
 
   it("should return the correct code based on block number", async() => {
     // This one is simpler than the previous two. Either the code exists or doesn't.
-    const [codeEarliest, codeAfterFork, codeLatest] = Promise.all([
-      mainWeb3.eth.getCode(contractAddress, "earliest"),
-      mainWeb3.eth.getCode(contractAddress, forkBlockNumber + 1),
-      mainWeb3.eth.getCode(contractAddress, "latest")
-    ]);
+    const [codeEarliest, codeAfterFork, codeLatest] = [
+      ...(await Promise.all([
+        mainWeb3.eth.getCode(contractAddress, "earliest"),
+        mainWeb3.eth.getCode(contractAddress, forkBlockNumber + 1),
+        mainWeb3.eth.getCode(contractAddress, "latest")
+      ]))
+    ];
 
     // There should be no code initially.
     assert.strictEqual(codeEarliest, "0x");
