@@ -36,11 +36,33 @@ describe("Gas", function() {
         context = await bootstrap(contractRef, ganacheProviderOptions);
       });
 
-      describe("EIP150 Gas Estimation: ", async function() {
-        const ContractFactory = await bootstrap({ contractFiles: ["ContractFactory"], contractSubdirectory: "gas" });
-        const TestDepth = await bootstrap({ contractFiles: ["TestDepth"], contractSubdirectory: "gas" });
-        const Donation = await bootstrap({ contractFiles: ["Donation"], contractSubdirectory: "gas" });
-        const Fib = await bootstrap({ contractFiles: ["Fib"], contractSubdirectory: "gas" });
+      describe("EIP150 Gas Estimation: ", function() {
+        let ContractFactory;
+        let TestDepth;
+        let Donation;
+        let Fib;
+        before("Setting up EIP150 contracts", async function() {
+          this.timeout(10000);
+
+          const subDirectory = {
+            contractSubdirectory: "gas"
+          };
+          const factory = Object.assign({ contractFiles: ["ContractFactory"] }, subDirectory);
+          const testDepth = Object.assign({ contractFiles: ["TestDepth"] }, subDirectory);
+          const donation = Object.assign({ contractFiles: ["Donation"] }, subDirectory);
+          const fib = Object.assign({ contractFiles: ["Fib"] }, subDirectory);
+
+          const ganacheProviderOptions = {
+            seed,
+            hardfork
+          };
+
+          ContractFactory = await bootstrap(factory, ganacheProviderOptions);
+          TestDepth = await bootstrap(testDepth, ganacheProviderOptions);
+          Donation = await bootstrap(donation, ganacheProviderOptions);
+          Fib = await bootstrap(fib, ganacheProviderOptions);
+        });
+
         it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
           const { accounts, instance } = Fib;
           const index = 5;
