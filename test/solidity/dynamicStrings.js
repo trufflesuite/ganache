@@ -51,7 +51,7 @@ describe("Contract Strings", function() {
        * - Confirm `testString` with an internal validation function
        * - Confirm `testString` with an external contract validation function (contract-to-contract validation)
        */
-      const text2 = "123";
+      const text2 = "abc";
       await instance.methods.setAndConfirm(text2).send({ from: accounts[0], gas });
 
       /**
