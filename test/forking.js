@@ -9,10 +9,6 @@ var solc = require("solc");
 var to = require("../lib/utils/to.js");
 var async = require("async");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 var logger = {
   log: function(msg) {
     /* console.log(msg) */
