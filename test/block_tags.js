@@ -7,8 +7,8 @@ const { compile } = require("solc");
 const assert = require("assert");
 const Web3 = require("web3");
 
-var source = readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
-var result = compile(source, 1);
+const source = readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
+const result = compile(source, 1);
 
 // Note: Certain properties of the following contract data are hardcoded to
 // maintain repeatable tests. If you significantly change the solidity code,
