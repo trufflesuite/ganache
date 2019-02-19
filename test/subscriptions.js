@@ -52,21 +52,13 @@ const testWebSocket = function(web3) {
   });
 
   describe("subscriptions", function() {
-    it("should gracefully handle http subscription attempts", async function() {
+    it("should handle eth_subscribe/eth_unsubscribe", async function() {
       // Attempt to subscribe http connection to 'pendingTransactions'
-      const receipt = await web3send("eth_subscribe", "pendingTransactions");
+      const receipt = await web3send("eth_subscribe", "newHeads");
       // assert(!receipt.error, "receipt should not error");
-      assert(receipt.id, "ID must be returned");
-      const result = await web3send("eth_unsubscribe", receipt.id);
-      console.log(result);
-      // Issue a sendTransaction - ganache should not attempt to issue a message to http subscriptions
-      // const { result } = await web3send("eth_sendTransaction", { from: accounts[0], value: "0x1" });
-      // Get receipt -- ensure ganache is still running/accepting calls
-      // let receipt = await web3send("eth_getTransactionReceipt", result);
-      // console.log(receipt);
-      // Receipt indicates that ganache has NOT crashed and continues to handle RPC requests
-      // assert(!receipt.error, "Should not respond with an error.");
-      // assert(receipt.result, "Should respond with a receipt.");
+      assert(receipt.result, "ID must be returned (eth_subscribe successful)");
+      const result = await web3send("eth_unsubscribe", receipt.result);
+      assert(result.result, "Result must be true (eth_unsubscribe successful)");
     });
   });
 };
