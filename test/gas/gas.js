@@ -134,7 +134,7 @@ describe("Gas", function() {
           }
         });
 
-        it.skip("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async() => {
+        it("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async() => {
           const { accounts, instance } = Donation;
           // Pre-condition
           const address = accounts[0];
