@@ -1,143 +1,79 @@
-var Web3 = require("web3");
-var assert = require("assert");
-var Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-var fs = require("fs");
-var path = require("path");
-var solc = require("solc");
+const assert = require("assert");
+const { send } = require("../helpers/utils/rpc");
+const bootstrap = require("../helpers/contract/bootstrap");
 
-describe("Debug", function() {
-  var provider;
-  var web3;
-  var accounts;
-  var DebugContract;
-  var debugContract;
-  var source = fs.readFileSync(path.join(__dirname, "DebugContract.sol"), "utf8");
-  var hashToTrace = null;
-  var expectedValueBeforeTrace = "1234";
+describe("Debug", async() => {
+  const gas = 3141592;
+  let hashToTrace = null;
+  let expectedValueBeforeTrace = "1234";
+  let context;
 
-  before("init web3", function() {
-    provider = Ganache.provider();
-    web3 = new Web3(provider);
-  });
-
-  before("get accounts", function() {
-    return web3.eth.getAccounts().then((accs) => {
-      accounts = accs;
-    });
-  });
-
-  before("compile source", function() {
+  before("Setting up web3 and contract", async function() {
     this.timeout(10000);
-    var result = solc.compile({ sources: { "DebugContract.sol": source } }, 1);
 
-    var code = "0x" + result.contracts["DebugContract.sol:DebugContract"].bytecode;
-    var abi = JSON.parse(result.contracts["DebugContract.sol:DebugContract"].interface);
+    const contractRef = {
+      contractFiles: ["DebugContract"],
+      contractSubdirectory: "debug"
+    };
 
-    DebugContract = new web3.eth.Contract(abi);
-    DebugContract._code = code;
+    const ganacheProviderOptions = {};
 
-    return DebugContract.deploy({ data: code })
-      .send({ from: accounts[0], gas: 3141592 })
-      .then((instance) => {
-        debugContract = instance;
-
-        // TODO: ugly workaround - not sure why this is necessary.
-        if (!debugContract._requestManager.provider) {
-          debugContract._requestManager.setProvider(web3.eth._provider);
-        }
-      });
+    context = await bootstrap(contractRef, ganacheProviderOptions);
   });
 
-  before("set up transaction that should be traced", function() {
-    // This should execute immediately.
-    var setValueTx = debugContract.methods.setValue(26);
-    var tx;
-    return setValueTx
-      .send({ from: accounts[0], gas: 3141592 })
-      .then((result) => {
-        // Check the value first to make sure it's 26
-        tx = result;
-        return debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
-      })
-      .then((value) => {
-        assert.strictEqual(value, "26");
-
-        // Set the hash to trace to the transaction we made, so we know preconditions
-        // are set correctly.
-        hashToTrace = tx.transactionHash;
-      });
+  before("set up transaction that should be traced", async() => {
+    const { accounts, instance } = context;
+    const debugValue = instance.methods.setValue(26);
+    const { transactionHash } = await debugValue.send({ from: accounts[0], gas });
+    const value = await instance.methods.value().call({ from: accounts[0], gas });
+    assert.strictEqual(value, "26");
+    // Set the hash to trace to the transaction we made, so we know preconditions
+    // are set correctly.
+    hashToTrace = transactionHash;
   });
 
-  before("change state of contract to ensure trace doesn't overwrite data", function() {
-    // This should execute immediately.
-    return debugContract.methods
-      .setValue(expectedValueBeforeTrace)
-      .send({ from: accounts[0], gas: 3141592 })
-      .then((tx) => {
-        // Make sure we set it right.
-        return debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
-      })
-      .then((value) => {
-        // Now that it's 85, we can trace the transaction that set it to 26.
-        assert.strictEqual(value, expectedValueBeforeTrace);
-      });
+  before("change state of contract to ensure trace doesn't overwrite data", async() => {
+    const { accounts, instance } = context;
+    await instance.methods.setValue(expectedValueBeforeTrace).send({ from: accounts[0], gas });
+    const value = await instance.methods.value().call({ from: accounts[0], gas });
+    assert.strictEqual(value, expectedValueBeforeTrace);
   });
 
-  it("should trace a successful transaction without changing state", function() {
+  it("should trace a successful transaction without changing state", async() => {
+    const { web3 } = context;
     // We want to trace the transaction that sets the value to 26
-    return new Promise((resolve, reject) => {
-      provider.send(
-        {
-          jsonrpc: "2.0",
-          method: "debug_traceTransaction",
-          params: [hashToTrace, []],
-          id: new Date().getTime()
-        },
-        function(err, response) {
-          if (err) {
-            reject(err);
-          }
-          if (response.error) {
-            reject(response.error);
-          }
+    const method = "debug_traceTransaction";
+    const params = [hashToTrace, []];
+    const { result } = await send(method, params, web3);
+    const { structLogs } = result;
 
-          var result = response.result;
+    // To at least assert SOMETHING, let's assert the last opcode
+    assert(structLogs.length > 0);
 
-          // To at least assert SOMETHING, let's assert the last opcode
-          assert(result.structLogs.length > 0);
+    for (let opcode of structLogs) {
+      if (opcode.stack.length > 0) {
+        // check formatting of stack
+        // formatting was broken when updating to ethereumjs-vm v2.3.3
+        assert.strictEqual(opcode.stack[0].length, 64);
+        assert.notStrictEqual(opcode.stack[0].substr(0, 2), "0x");
+        break;
+      }
+    }
 
-          for (let op of result.structLogs) {
-            if (op.stack.length > 0) {
-              // check formatting of stack
-              // formatting was broken when updating to ethereumjs-vm v2.3.3
-              assert.strictEqual(op.stack[0].length, 64);
-              assert.notStrictEqual(op.stack[0].substr(0, 2), "0x");
-              break;
-            }
-          }
-          var lastop = result.structLogs[result.structLogs.length - 1];
+    const { op, gasCost, pc, storage } = structLogs[structLogs.length - 1];
 
-          assert.strictEqual(lastop.op, "STOP");
-          assert.strictEqual(lastop.gasCost, 1);
-          assert.strictEqual(lastop.pc, 145);
-          assert.strictEqual(
-            lastop.storage["0000000000000000000000000000000000000000000000000000000000000000"],
-            "000000000000000000000000000000000000000000000000000000000000001a"
-          );
-          assert.strictEqual(
-            lastop.storage["0000000000000000000000000000000000000000000000000000000000000001"],
-            "000000000000000000000000000000000000000000000000000000000000001f"
-          );
+    assert.strictEqual(op, "STOP");
+    assert.strictEqual(gasCost, 1);
+    assert.strictEqual(pc, 145);
+    assert.strictEqual(
+      storage["0000000000000000000000000000000000000000000000000000000000000000"],
+      "000000000000000000000000000000000000000000000000000000000000001a"
+    );
+    assert.strictEqual(
+      storage["0000000000000000000000000000000000000000000000000000000000000001"],
+      "000000000000000000000000000000000000000000000000000000000000001f"
+    );
 
-          resolve();
-        }
-      );
-    }).then(async() => {
-      // Now let's make sure rerunning this transaction trace didn't change state
-      const value = await debugContract.methods.value().call({ from: accounts[0], gas: 3141592 });
-      assert.strictEqual(value, expectedValueBeforeTrace);
-    });
+    // await instance.methods.value().call({ from: accounts[0], gas });
   });
 });
