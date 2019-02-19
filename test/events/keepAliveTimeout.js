@@ -4,21 +4,19 @@ const Ganache = require(process.env.TEST_BUILD
   : "../../index.js");
 const request = require("request");
 const portfinder = require("portfinder");
-const sleep = require("../helpers/utils/sleep");
-
-const host = "127.0.0.1";
+const { sleep } = require("../helpers/utils/utils");
 
 const testTimeout = async(keepAliveTimeout, sleepTime, errorMessage) => {
+  const host = "127.0.0.1";
   const server = Ganache.server({
     keepAliveTimeout
   });
-  try {
-    const port = await portfinder.getPortPromise();
-    server.listen(port);
 
+  try {
     let socket;
+    const port = await portfinder.getPortPromise();
     const req = request.post({
-      url: "http://" + host + ":" + port,
+      url: `http://${host}:${port}`,
       json: {
         jsonrpc: "2.0",
         method: "eth_mining",
@@ -28,12 +26,12 @@ const testTimeout = async(keepAliveTimeout, sleepTime, errorMessage) => {
       forever: true
     });
 
+    server.listen(port);
     req.on("socket", (s) => {
       socket = s;
     });
 
     await sleep(sleepTime);
-
     assert(socket.connecting === false, "socket should have connected by now");
     assert.deepStrictEqual(socket.destroyed, keepAliveTimeout < sleepTime, errorMessage);
 
