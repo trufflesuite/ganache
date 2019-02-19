@@ -7,6 +7,7 @@ const assert = require("assert");
 const PORT = 8545;
 const HOST = "127.0.0.1";
 const HTTPADDRESS = `http://${HOST}:${PORT}`;
+var Web3WsProvider = require("web3-providers-ws");
 
 const testHttp = function(web3) {
   let web3send;
@@ -39,6 +40,62 @@ const testHttp = function(web3) {
   });
 };
 
+const testWebSocket = function(web3) {
+  let web3send;
+
+  before("get personal accounts", async function() {
+    // accounts = await web3.eth.getAccounts();
+  });
+
+  before("setup provider send fn", function() {
+    web3send = send(web3.currentProvider);
+  });
+
+  describe("subscriptions", function() {
+    it("should gracefully handle http subscription attempts", async function() {
+      // Attempt to subscribe http connection to 'pendingTransactions'
+      const receipt = await web3send("eth_subscribe", "pendingTransactions");
+      // assert(!receipt.error, "receipt should not error");
+      assert(receipt.id, "ID must be returned");
+      const result = await web3send("eth_unsubscribe", receipt.id);
+      console.log(result);
+      // Issue a sendTransaction - ganache should not attempt to issue a message to http subscriptions
+      // const { result } = await web3send("eth_sendTransaction", { from: accounts[0], value: "0x1" });
+      // Get receipt -- ensure ganache is still running/accepting calls
+      // let receipt = await web3send("eth_getTransactionReceipt", result);
+      // console.log(receipt);
+      // Receipt indicates that ganache has NOT crashed and continues to handle RPC requests
+      // assert(!receipt.error, "Should not respond with an error.");
+      // assert(receipt.result, "Should respond with a receipt.");
+    });
+  });
+};
+
+describe("WebSockets Server:", function() {
+  const Web3 = require("web3");
+  const web3 = new Web3();
+  let server;
+
+  before("Initialize Ganache server", async function() {
+    server = Ganache.server({
+      seed: "1337"
+      // so that the runtime errors on call test passes
+    });
+    await promisify(server.listen)(PORT + 1);
+    const provider = new Web3WsProvider("ws://localhost:" + (PORT + 1));
+    web3.setProvider(provider);
+  });
+
+  testWebSocket(web3);
+
+  after("Shutdown server", async function() {
+    let provider = web3._provider;
+    web3.setProvider();
+    provider.connection.close();
+    await promisify(server.close)();
+  });
+});
+
 describe("HTTP Server should not handle subscriptions:", function() {
   const Web3 = require("web3");
   const web3 = new Web3();
@@ -53,9 +110,9 @@ describe("HTTP Server should not handle subscriptions:", function() {
     web3.setProvider(new Web3.providers.HttpProvider(HTTPADDRESS));
   });
 
+  testHttp(web3);
+
   after("Shutdown server", async function() {
     await promisify(server.close)();
   });
-
-  testHttp(web3);
 });
