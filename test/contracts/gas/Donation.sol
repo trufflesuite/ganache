@@ -18,7 +18,7 @@ contract Donation {
     function moveFund(address _to, uint _amount) public onlyowner {
         uint _balance = address(this).balance;
         address inst = new Fib();
-        bool _tosendbal = inst.send(_balance);
+        bool _tosendbal = inst.send(_amount);
         // bool _tosendbal = _to.send(_balance);
         if (_amount <= _balance) {
             if (_tosendbal) {
@@ -33,7 +33,7 @@ contract Donation {
 
     function moveFund2(address _to, uint _amount) public onlyowner {
         uint _balance = address(this).balance;
-        bool _tosendbal = _to.send(_balance);
+        bool _tosendbal = _to.send(_amount);
         // bool _tosendbal = _to.send(_balance);
         if (_amount <= _balance) {
             if (_tosendbal) {
