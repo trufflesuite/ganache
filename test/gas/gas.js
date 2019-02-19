@@ -171,7 +171,7 @@ describe("Gas", function() {
           }
         }).timeout(1000000);
 
-        it.skip("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async() => {
+        it("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async() => {
           const { accounts, instance } = Donation;
           // Pre-condition
           const address = accounts[0];
