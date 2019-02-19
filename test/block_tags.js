@@ -53,12 +53,11 @@ describe("Block Tags", function() {
   });
 
   before("Get initial balance and nonce", async function() {
-    const [balance, nonce] = [
-      ...(await Promise.all([
-        web3.eth.getBalance.bind(web3.eth, accounts[0])(),
-        web3.eth.getTransactionCount.bind(web3.eth, accounts[0])()
-      ]))
-    ];
+    const [balance, nonce] = await Promise.all([
+      web3.eth.getBalance(accounts[0]),
+      web3.eth.getTransactionCount(accounts[0])
+    ]);
+
     initial.balance = balance;
     initial.nonce = to.number(nonce);
   });
