@@ -16,13 +16,11 @@ function runTests(web3, provider, extraTests) {
     code: null
   };
 
-  before("get accounts", function() {
-    return web3.eth.getAccounts().then(function(accs) {
-      testState.accounts = accs;
-    });
+  before("get accounts", async function() {
+    testState.accounts = await web3.eth.getAccounts();
   });
 
-  before("compile source", function(done) {
+  before("compile source", async function() {
     this.timeout(10000);
 
     var source = fs.readFileSync(path.join(__dirname, "RuntimeError.sol"), "utf8");
@@ -33,16 +31,16 @@ function runTests(web3, provider, extraTests) {
 
     testState.ErrorContract = new web3.eth.Contract(abi);
     testState.ErrorContract._code = testState.code;
-    testState.ErrorContract.deploy({ data: testState.code })
-      .send({ from: testState.accounts[0], gas: 3141592 })
-      .then(function(instance) {
-        // TODO: ugly workaround - not sure why this is necessary.
-        if (!instance._requestManager.provider) {
-          instance._requestManager.setProvider(web3.eth._provider);
-        }
-        testState.errorInstance = instance;
-        done();
-      });
+    const instance = await testState.ErrorContract.deploy({ data: testState.code }).send({
+      from: testState.accounts[0],
+      gas: 3141592
+    });
+
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!instance._requestManager.provider) {
+      instance._requestManager.setProvider(web3.eth._provider);
+    }
+    testState.errorInstance = instance;
   });
 
   it("should output the transaction hash even if an runtime error occurs (out of gas)", function(done) {
