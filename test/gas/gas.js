@@ -12,7 +12,7 @@ const SEED_RANGE = 1000000;
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
-const HARDFORKS = ["constantinople", "byzantium", "petersburg"];
+const HARDFORKS = ["petersburg", "constantinople", "byzantium"];
 
 describe("Gas", function() {
   HARDFORKS.forEach((hardfork) => {
