@@ -1,5 +1,5 @@
 const assert = require("assert");
-const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
 describe("Swarm", function() {
   const context = initializeTestProvider();
