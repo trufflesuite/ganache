@@ -1,92 +1,70 @@
-var Web3 = require("web3");
-var Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-var fs = require("fs");
-var path = require("path");
-var solc = require("solc");
+const assert = require("assert");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
+const randomInteger = require("./helpers/utils/generateRandomInteger");
+const { compile, deploy } = require("./helpers/contract/compileAndDeploy");
+const { join } = require("path");
 
-let mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+const SEED_RANGE = 1000000;
+const seed = randomInteger(SEED_RANGE);
 
-describe("Unlimited Contract Size", function() {
-  let contract;
+describe.only("Unlimited Contract Size", function() {
+  let contract = {};
 
-  before("compile contract", function() {
-    var result = solc.compile(
-      { sources: { "LargeContract.sol": fs.readFileSync(path.join(__dirname, "LargeContract.sol"), "utf8") } },
-      1
-    );
-    contract = {
-      bytecode: "0x" + result.contracts["LargeContract.sol:LargeContract"].bytecode,
-      abi: JSON.parse(result.contracts["LargeContract.sol:LargeContract"].interface)
-    };
+  before("compile contract", async function() {
+    const contractSubdirectory = "customContracts";
+    const contractFilename = "LargeContract";
+    const subcontractFiles = [];
+    const contractPath = join(__dirname, "contracts", `${contractSubdirectory}/`);
+    const { abi, bytecode } = await compile(contractFilename, subcontractFiles, contractPath);
+    Object.assign(contract, {
+      abi,
+      bytecode
+    });
   });
 
   describe("Disallow Unlimited Contract Size", function() {
-    var provider = Ganache.provider({
-      mnemonic,
-      allowUnlimitedContractSize: false,
-      gasLimit: 20000000
-    });
-    var web3 = new Web3(provider);
-    var accounts;
+    let context;
 
-    before("get accounts", function(done) {
-      web3.eth.getAccounts(function(err, accs) {
-        if (err) {
-          return done(err);
-        }
-        accounts = accs;
-        done();
-      });
+    before("Setup provider to disallow unlimited contract size", async function() {
+      const ganacheOptions = {
+        seed,
+        allowUnlimitedContractSize: false,
+        gasLimit: 20000000
+      };
+      context = await initializeTestProvider(ganacheOptions);
     });
 
-    it("should fail deployment", function(done) {
-      let DummyContract = new web3.eth.Contract(contract.abi);
-      DummyContract.deploy({
-        data: contract.bytecode
-      })
-        .send({ from: accounts[0], gas: 20000000 })
-        .then(function(instance) {
-          done(new Error("succeeded deployment when it should have failed"));
-        })
-        .catch(function(_) {
-          done();
-        });
+    it("should fail deployment", async function() {
+      this.timeout(10000);
+      const { web3 } = context;
+      const { abi, bytecode } = contract;
+      const errorMessage = "succeeded deployment when it should have failed";
+      try {
+        await deploy(abi, bytecode, web3, { gas: 20000000 });
+        assert.fail(errorMessage);
+      } catch (error) {
+        assert.notStrictEqual(error.message, errorMessage);
+      }
     });
   });
 
   describe("Allow Unlimited Contract Size", function() {
-    var provider = Ganache.provider({
-      mnemonic,
-      allowUnlimitedContractSize: true,
-      gasLimit: 20000000
-    });
-    var web3 = new Web3(provider);
-    var accounts;
+    let context;
 
-    before("get accounts", function(done) {
-      web3.eth.getAccounts(function(err, accs) {
-        if (err) {
-          return done(err);
-        }
-        accounts = accs;
-        done();
-      });
+    before("Setup provider to allow unlimited contract size", async function() {
+      const ganacheOptions = {
+        seed,
+        allowUnlimitedContractSize: true,
+        gasLimit: 20000000
+      };
+
+      context = await initializeTestProvider(ganacheOptions);
     });
 
-    it("should succeed deployment", function(done) {
-      let DummyContract = new web3.eth.Contract(contract.abi);
-      DummyContract.deploy({
-        data: contract.bytecode
-      })
-        .send({ from: accounts[0], gas: 20000000 })
-        .then(function(instance) {
-          done();
-        })
-        .catch(function(_) {
-          done(new Error("failed deployment when it should have succeeded"));
-        });
+    it("should succeed deployment", async function() {
+      const { web3 } = context;
+      const { abi, bytecode } = contract;
+      await deploy(abi, bytecode, web3, { gas: 20000000 });
     });
   });
 });
