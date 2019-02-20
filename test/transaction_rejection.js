@@ -1,43 +1,38 @@
-var Web3 = require("web3");
-var Ganache = require(process.env.TEST_BUILD
+const assert = require("assert");
+const Web3 = require("web3");
+const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var fs = require("fs");
-var path = require("path");
-var solc = require("solc");
-var to = require("../lib/utils/to");
+const fs = require("fs");
+const path = require("path");
+const solc = require("solc");
+const to = require("../lib/utils/to");
 
 describe("Transaction rejection", function() {
-  var provider = Ganache.provider({
+  const provider = Ganache.provider({
     // important: we want to make sure we get tx rejections as rpc errors even
     // if we don't want runtime errors as RPC erros
     vmErrorsOnRPCResponse: false
   });
 
-  var web3 = new Web3(provider);
+  const web3 = new Web3(provider);
 
-  var accounts;
-  var estimateGasContractData;
-  var estimateGasContractAbi;
-  var EstimateGasContract;
-  var estimateGasContractAddress;
-  var source = fs.readFileSync(path.join(__dirname, "contracts", "gas", "EstimateGas.sol"), "utf8");
+  let accounts;
+  let estimateGasContractData;
+  let estimateGasContractAbi;
+  let EstimateGasContract;
+  let estimateGasContractAddress;
+  let source = fs.readFileSync(path.join(__dirname, "contracts", "gas", "EstimateGas.sol"), "utf8");
 
-  before("get accounts", function(done) {
-    web3.eth.getAccounts(function(err, accs) {
-      if (err) {
-        return done(err);
-      }
-      accounts = accs;
-      done();
-    });
+  before("get accounts", async function() {
+    accounts = await web3.eth.getAccounts();
   });
 
   before("lock account 1", function() {
     return web3.eth.personal.lockAccount(accounts[1]);
   });
 
-  before("compile source", function() {
+  before("compile source", async function() {
     this.timeout(10000);
     var result = solc.compile({ sources: { "EstimateGas.sol": source } }, 1);
 
@@ -45,15 +40,15 @@ describe("Transaction rejection", function() {
     estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
 
     EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
-    return EstimateGasContract.deploy({ data: estimateGasContractData })
-      .send({ from: accounts[0], gas: 3141592 })
-      .then(function(instance) {
-        // TODO: ugly workaround - not sure why this is necessary.
-        if (!instance._requestManager.provider) {
-          instance._requestManager.setProvider(web3.eth._provider);
-        }
-        estimateGasContractAddress = to.hex(instance.options.address);
-      });
+    const instance = await EstimateGasContract.deploy({ data: estimateGasContractData }).send({
+      from: accounts[0],
+      gas: 3141592
+    });
+    // TODO: ugly workaround - not sure why this is necessary.
+    if (!instance._requestManager.provider) {
+      instance._requestManager.setProvider(web3.eth._provider);
+    }
+    estimateGasContractAddress = to.hex(instance.options.address);
   });
 
   it("should reject transaction if nonce is incorrect", function(done) {
@@ -138,7 +133,7 @@ describe("Transaction rejection", function() {
     };
 
     // don't send with web3 because it'll inject its own checks
-    provider.send(request, (_, response) => {
+    provider.send(request, async(_, response) => {
       // cyclomatic complexity? what's that? :-(
       if (response.error) {
         if (response.error.message) {
@@ -153,27 +148,17 @@ describe("Transaction rejection", function() {
           return done(new Error("Error was returned which had no message"));
         }
       } else if (response.result) {
-        web3.eth
-          .getTransactionReceipt(response.result)
-          .then((result) => {
-            if (to.number(result.status) === 0) {
-              return done(
-                new Error("TX rejections should return error, but returned receipt with zero status instead")
-              );
-            } else {
-              return done(
-                new Error(
-                  `TX should have rejected prior to running. Instead transaction ran successfully (receipt.status == 
-                    ${to.number(result.status)})`
-                )
-              );
-            }
-          })
-          .catch((error) => {
-            return done(error);
-          });
+        const result = await web3.eth.getTransactionReceipt(response.result);
+        if (to.number(result.status) === 0) {
+          assert.fail("TX rejections should return error, but returned receipt with zero status instead");
+        } else {
+          assert.fail(
+            `TX should have rejected prior to running. Instead transaction ran successfully (receipt.status == 
+              ${to.number(result.status)})`
+          );
+        }
       } else {
-        return done(new Error("eth_sendTransaction responded with empty RPC response"));
+        assert.fail(new Error("eth_sendTransaction responded with empty RPC response"));
       }
     });
   }
