@@ -6,7 +6,7 @@ const { readFileSync } = require("fs");
  * @param {String} mainContractName  Name of the main contract (without .sol extension)
  * @param {Array|String} contractFileNames List of imported contracts
  * @param {String} contractPath  Path to contracts directory
- * @returns {Object} context: abi, bytecode
+ * @returns {Object} context: abi, bytecode, sources
  */
 async function compile(mainContractName, contractFileNames = [], contractPath) {
   const selectedContracts = [mainContractName].concat(contractFileNames);
@@ -28,7 +28,8 @@ async function compile(mainContractName, contractFileNames = [], contractPath) {
 
   return {
     abi,
-    bytecode
+    bytecode,
+    sources
   };
 }
 
@@ -37,36 +38,60 @@ async function compile(mainContractName, contractFileNames = [], contractPath) {
  * @param {String} abi  contract ABI
  * @param {String} bytecode  contract bytecode
  * @param {Object} web3 Web3 interface
- * @returns {Object} context: abi, accounts, bytecode, contract, instance
+ * @param {Object} options Provider options
+ * @param {Array} existingAccounts Existing accounts
+ * @returns {Object} context: abi, accounts, bytecode, contract, instance, receipt
  */
-async function deploy(abi, bytecode, web3) {
+async function deploy(abi, bytecode, web3, options = {}, existingAccounts = []) {
+  let accounts, block, receipt;
+
+  if (existingAccounts.length) {
+    block = await web3.eth.getBlock("latest");
+  } else {
+    const initialAssets = [web3.eth.getAccounts(), web3.eth.getBlock("latest")];
+    [accounts, block] = await Promise.all(initialAssets);
+  }
+
+  const gas = options.gas || block.gasLimit;
   const contract = new web3.eth.Contract(abi);
-
-  const testAssets = [web3.eth.getAccounts(), web3.eth.getBlock("latest")];
-
-  const [accounts, { gasLimit }] = await Promise.all(testAssets);
-  const instance = await contract.deploy({ data: bytecode }).send({ from: accounts[0], gas: gasLimit });
+  const instance = await contract
+    .deploy({ data: bytecode })
+    .send({ from: accounts[0], gas })
+    .on("receipt", (rcpt) => {
+      receipt = rcpt;
+    });
 
   return {
     abi,
     accounts,
     bytecode,
     contract,
-    instance
+    instance,
+    receipt
   };
 }
 
 /**
  * Compile and deploy the specified contract(s)
- * @param {String} contractPath  Path to contracts directory
  * @param {String} mainContractName  Name of the main contract (without .sol extension)
  * @param {Array|String} contractFileNames List of imported contracts
+ * @param {String} contractPath  Path to contracts directory
  * @param {Object} web3 Web3 interface
- * @returns {Object} context: abi, accounts, bytecode, contract, instance, sources
+ * @param {Object} options Provider options
+ * @param {Array} accounts Predetermined accounts
+ * @returns {Object} context: abi, accounts, bytecode, contract, instance, receipt, sources
  */
-async function compileAndDeploy(mainContractName, contractFileNames = [], contractPath, web3) {
-  const { abi, bytecode } = await compile(mainContractName, contractFileNames, contractPath);
-  return deploy(abi, bytecode, web3);
+async function compileAndDeploy(
+  mainContractName,
+  contractFileNames = [],
+  contractPath,
+  web3,
+  options = {},
+  accounts = []
+) {
+  const { abi, bytecode, sources } = await compile(mainContractName, contractFileNames, contractPath);
+  const context = await deploy(abi, bytecode, web3, options, accounts);
+  return Object.assign(context, { sources });
 }
 
 module.exports = {

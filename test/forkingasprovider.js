@@ -6,10 +6,6 @@ var Web3 = require("web3");
 var fs = require("fs");
 var assert = require("assert");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 var logger = {
   log: function(msg) {
     /* noop */

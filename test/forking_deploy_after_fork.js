@@ -7,10 +7,6 @@ var Ganache = require(process.env.TEST_BUILD
 var fs = require("fs");
 var solc = require("solc");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 var logger = {
   log: function(msg) {
     /* console.log(msg) */

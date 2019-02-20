@@ -7,10 +7,6 @@ var path = require("path");
 var solc = require("solc");
 var to = require("../lib/utils/to");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 describe("Transaction rejection", function() {
   var provider = Ganache.provider({
     // important: we want to make sure we get tx rejections as rpc errors even
@@ -25,7 +21,7 @@ describe("Transaction rejection", function() {
   var estimateGasContractAbi;
   var EstimateGasContract;
   var estimateGasContractAddress;
-  var source = fs.readFileSync(path.join(__dirname, "EstimateGas.sol"), "utf8");
+  var source = fs.readFileSync(path.join(__dirname, "contracts", "gas", "EstimateGas.sol"), "utf8");
 
   before("get accounts", function(done) {
     web3.eth.getAccounts(function(err, accs) {

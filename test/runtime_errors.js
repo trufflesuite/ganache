@@ -8,10 +8,6 @@ var path = require("path");
 var solc = require("solc");
 var to = require("../lib/utils/to");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 function runTests(web3, provider, extraTests) {
   var testState = {
     accounts: null,
