@@ -40,7 +40,7 @@ describe("Debug", async() => {
   });
 
   it("should trace a successful transaction without changing state", async() => {
-    const { web3 } = context;
+    const { accounts, instance, web3 } = context;
     // We want to trace the transaction that sets the value to 26
     const method = "debug_traceTransaction";
     const params = [hashToTrace, []];
@@ -74,6 +74,8 @@ describe("Debug", async() => {
       "000000000000000000000000000000000000000000000000000000000000001f"
     );
 
-    // await instance.methods.value().call({ from: accounts[0], gas });
+    // Now let's make sure rerunning this transaction trace didn't change state
+    const value = await instance.methods.value().call({ from: accounts[0], gas });
+    assert.strictEqual(value, expectedValueBeforeTrace);
   });
 });
