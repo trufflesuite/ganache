@@ -7,7 +7,6 @@ const assert = require("assert");
 const PORT = 8545;
 const HOST = "127.0.0.1";
 const HTTPADDRESS = `http://${HOST}:${PORT}`;
-var Web3WsProvider = require("web3-providers-ws");
 
 const testHttp = function(web3) {
   let web3send;
@@ -43,19 +42,14 @@ const testHttp = function(web3) {
 const testWebSocket = function(web3) {
   let web3send;
 
-  before("get personal accounts", async function() {
-    // accounts = await web3.eth.getAccounts();
-  });
-
   before("setup provider send fn", function() {
     web3send = send(web3.currentProvider);
   });
 
   describe("subscriptions", function() {
     it("should handle eth_subscribe/eth_unsubscribe", async function() {
-      // Attempt to subscribe http connection to 'pendingTransactions'
+      // Attempt to subscribe to 'newHeads'
       const receipt = await web3send("eth_subscribe", "newHeads");
-      // assert(!receipt.error, "receipt should not error");
       assert(receipt.result, "ID must be returned (eth_subscribe successful)");
       const result = await web3send("eth_unsubscribe", receipt.result);
       assert(result.result, "Result must be true (eth_unsubscribe successful)");
@@ -71,10 +65,9 @@ describe("WebSockets Server:", function() {
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
       seed: "1337"
-      // so that the runtime errors on call test passes
     });
     await promisify(server.listen)(PORT + 1);
-    const provider = new Web3WsProvider("ws://localhost:" + (PORT + 1));
+    const provider = new Web3.providers.WebsocketProvider("ws://localhost:" + (PORT + 1));
     web3.setProvider(provider);
   });
 
