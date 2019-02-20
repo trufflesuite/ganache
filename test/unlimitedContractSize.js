@@ -7,7 +7,7 @@ const { join } = require("path");
 const SEED_RANGE = 1000000;
 const seed = randomInteger(SEED_RANGE);
 
-describe.only("Unlimited Contract Size", function() {
+describe("Unlimited Contract Size", function() {
   let contract = {};
 
   before("compile contract", async function() {
