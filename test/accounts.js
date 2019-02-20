@@ -1,5 +1,5 @@
 const assert = require("assert");
-const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
 describe("Accounts", async() => {
   const expectedAddress = "0x604a95c9165bc95ae016a5299dd7d400dddbea9a";

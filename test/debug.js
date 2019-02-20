@@ -1,6 +1,6 @@
 const assert = require("assert");
-const { send } = require("../helpers/utils/rpc");
-const bootstrap = require("../helpers/contract/bootstrap");
+const { send } = require("./helpers/utils/rpc");
+const bootstrap = require("./helpers/contract/bootstrap");
 
 describe("Debug", async() => {
   const gas = 3141592;
