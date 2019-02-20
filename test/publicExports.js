@@ -1,7 +1,7 @@
 const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
-  ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../../index.js");
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 
 describe("BuildType", function() {
   it("should be using the right Ganache version", function() {
