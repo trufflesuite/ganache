@@ -1,5 +1,5 @@
 const assert = require("assert");
-const Transaction = require("../../lib/utils/transaction");
+const Transaction = require("../lib/utils/transaction");
 
 describe("Transaction", function() {
   it("Should adhere to EIP-115", function() {
