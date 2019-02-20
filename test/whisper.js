@@ -1,5 +1,5 @@
 const assert = require("assert");
-const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
 describe("Whisper", function() {
   it("should call get whisper version (shh_version)", async function() {
