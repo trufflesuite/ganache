@@ -182,7 +182,7 @@ describe("Gas", function() {
         it("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async() => {
           const { accounts, instance } = Donation;
           // Pre-condition
-          const address = accounts[0];
+          const address = accounts[2];
           const donateEst = await instance.methods.donate().estimateGas({
             from: address,
             value: 50
@@ -198,7 +198,7 @@ describe("Gas", function() {
 
           let reason = "FAILED: not enough gas (expected)";
           try {
-            await instance.methods.moveFund2(accounts[1], 1).send({
+            await instance.methods.moveFund2(accounts[2], 1).send({
               from: address,
               gas: est - 1
             });
@@ -208,7 +208,7 @@ describe("Gas", function() {
             assert(reason);
           }
           try {
-            await instance.methods.moveFund2(accounts[1], 1).send({
+            await instance.methods.moveFund2(accounts[2], 1).send({
               from: address,
               gas: est
             });
