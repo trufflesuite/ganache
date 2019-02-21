@@ -214,7 +214,7 @@ describe("Gas", function() {
             });
             assert("Enough gas supplied!");
           } catch (e) {
-            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
+            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low\n${e}`);
           }
         }).timeout(1000000);
       });
