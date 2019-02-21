@@ -43,7 +43,7 @@ const testWebSocket = function(web3) {
   let web3send;
 
   before("setup provider send fn", function() {
-    web3send = send(web3.currentProvider);
+    web3send = generateSend(web3.currentProvider);
   });
 
   describe("subscriptions", function() {
