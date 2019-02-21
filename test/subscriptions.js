@@ -1,7 +1,7 @@
 const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-const { generateSend } = require("./helpers/utils/rpc");
+const generateSend = require("./helpers/utils/rpc");
 const promisify = require("pify");
 const assert = require("assert");
 const PORT = 8545;

@@ -8,7 +8,7 @@ const memdown = require("memdown");
 const { join } = require("path");
 const assert = require("assert");
 const Web3 = require("web3");
-const { generateSend } = require("./helpers/utils/rpc");
+const generateSend = require("./helpers/utils/rpc");
 
 const source = readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
 const result = compile(source, 1);

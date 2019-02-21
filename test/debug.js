@@ -1,5 +1,4 @@
 const assert = require("assert");
-const { send } = require("./helpers/utils/rpc");
 const bootstrap = require("./helpers/contract/bootstrap");
 
 describe("Debug", async() => {
@@ -40,11 +39,11 @@ describe("Debug", async() => {
   });
 
   it("should trace a successful transaction without changing state", async() => {
-    const { accounts, instance, web3 } = context;
+    const { accounts, instance, send } = context;
     // We want to trace the transaction that sets the value to 26
     const method = "debug_traceTransaction";
     const params = [hashToTrace, []];
-    const { result } = await send(method, params, web3);
+    const { result } = await send(method, ...params);
     const { structLogs } = result;
 
     // To at least assert SOMETHING, let's assert the last opcode
