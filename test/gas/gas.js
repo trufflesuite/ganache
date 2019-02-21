@@ -67,14 +67,16 @@ describe("Gas", function() {
           const { accounts, instance } = Fib;
           const index = 5;
           const est = await instance.methods.calc(index).estimateGas();
+          let reason = "FAILED: not enough gas (expected)";
           try {
             await instance.methods.calc(index).send({
               from: accounts[0],
               gas: est - 1
             });
-            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
+            assert.fail(reason);
           } catch (e) {
-            assert("FAILED: not enough gas (expected)");
+            assert(reason);
           }
           try {
             await instance.methods.calc(index).send({
@@ -90,14 +92,16 @@ describe("Gas", function() {
         it("Should estimate gas perfectly with EIP150 - CREATE", async() => {
           const { accounts, instance } = ContractFactory;
           const est = await instance.methods.createInstance().estimateGas();
+          let reason = "FAILED: not enough gas (expected)";
           try {
             await instance.methods.createInstance().send({
               from: accounts[0],
               gas: est - 1
             });
-            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
+            assert.fail(reason);
           } catch (e) {
-            assert("FAILED: not enough gas (expected)");
+            assert(reason);
           }
           try {
             await instance.methods.createInstance().send({
@@ -114,14 +118,16 @@ describe("Gas", function() {
           const { accounts, instance } = TestDepth;
           const depth = 2;
           const est = await instance.methods.depth(depth).estimateGas();
+          let reason = "FAILED: not enough gas (expected)";
           try {
             await instance.methods.depth(depth).send({
               from: accounts[0],
               gas: est - 1
             });
-            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
+            assert.fail(reason);
           } catch (e) {
-            assert("FAILED: not enough gas (expected)");
+            assert(reason);
           }
           try {
             await instance.methods.depth(depth).send({
@@ -151,14 +157,16 @@ describe("Gas", function() {
             from: address
           });
 
+          let reason = "FAILED: not enough gas (expected)";
           try {
             await instance.methods.moveFund(address, 5).send({
               from: address,
               gas: est - 1
             });
-            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
+            assert.fail(reason);
           } catch (e) {
-            assert("FAILED: not enough gas (expected)");
+            assert(reason);
           }
           try {
             await instance.methods.moveFund(address, 5).send({
@@ -188,14 +196,16 @@ describe("Gas", function() {
             from: address
           });
 
+          let reason = "FAILED: not enough gas (expected)";
           try {
             await instance.methods.moveFund2(accounts[1], 1).send({
               from: address,
               gas: est - 1
             });
-            assert.fail(`SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`);
+            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
+            assert.fail(reason);
           } catch (e) {
-            assert("FAILED: not enough gas (expected)");
+            assert(reason);
           }
           try {
             await instance.methods.moveFund2(accounts[1], 1).send({
