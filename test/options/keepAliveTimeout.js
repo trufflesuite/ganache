@@ -4,7 +4,7 @@ const Ganache = require(process.env.TEST_BUILD
   : "../../index.js");
 const request = require("request");
 const portfinder = require("portfinder");
-const { sleep } = require("../helpers/utils");
+const sleep = require("../helpers/utils/sleep");
 
 const host = "127.0.0.1";
 

@@ -7,10 +7,6 @@ const fs = require("fs");
 const path = require("path");
 const solc = require("solc");
 
-// Thanks solc. At least this works!
-// This removes solc's overzealous uncaughtException event handler.
-process.removeAllListeners("uncaughtException");
-
 const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
 describe("Constantinople Hardfork", function() {
