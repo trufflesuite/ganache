@@ -157,7 +157,7 @@ describe("Checkpointing / Reverting", function() {
     let n2 = await instance.methods.n().call();
     assert.strictEqual(n2, "43", "n is not 43 after first call to `inc`");
 
-    await mySend("evm_revert", [snapShotId.result]);
+    await mySend("evm_revert", snapShotId.result);
     let n3 = await instance.methods.n().call();
     assert.strictEqual(n3, "42", "n is not 42 after reverting snapshot");
 
