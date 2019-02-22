@@ -15,153 +15,155 @@ describe("Debug", function() {
   const gas = 3141592;
 
   let hashToTrace = null;
+  let multipleCallsHashToTrace = null;
   const expectedValueBeforeTrace = "1234";
 
-  before("set up transaction that should be traced", async() => {
-    const { accounts, instance } = services;
-    options = { from: accounts[0], gas };
-    const tx = await instance.methods.setValue(26).send(options);
+  describe("Trace a successful transaction", function() {
+    before("set up transaction that should be traced", async() => {
+      const { accounts, instance } = services;
+      options = { from: accounts[0], gas };
+      const tx = await instance.methods.setValue(26).send(options);
 
-    // check the value is what we expect it to be: 26
-    const value = await instance.methods.value().call(options);
-    assert.strictEqual(value, "26");
+      // check the value is what we expect it to be: 26
+      const value = await instance.methods.value().call(options);
+      assert.strictEqual(value, "26");
 
-    // set hashToTrace to the tx we made, so we know preconditions are correctly set
-    hashToTrace = tx.transactionHash;
+      // set hashToTrace to the tx we made, so we know preconditions are correctly set
+      hashToTrace = tx.transactionHash;
+    });
+
+    before("change state of contract to ensure trace doesn't overwrite data", async() => {
+      const { accounts, instance } = services;
+      options = { from: accounts[0], gas };
+      await instance.methods.setValue(expectedValueBeforeTrace).send(options);
+
+      // check the value is what we expect it to be: 1234
+      const value = await instance.methods.value().call(options);
+      assert.strictEqual(value, expectedValueBeforeTrace);
+    });
+
+    it("should trace a successful transaction without changing state", function() {
+      // We want to trace the transaction that sets the value to 26
+      const { accounts, instance, web3 } = services;
+      const provider = web3.currentProvider;
+
+      return new Promise((resolve, reject) => {
+        provider.send(
+          {
+            jsonrpc: "2.0",
+            method: "debug_traceTransaction",
+            params: [hashToTrace, []],
+            id: new Date().getTime()
+          },
+          function(err, response) {
+            if (err) {
+              reject(err);
+            }
+            if (response.error) {
+              reject(response.error);
+            }
+
+            const structLogs = response.result.structLogs;
+
+            // To at least assert SOMETHING, let's assert the last opcode
+            assert(structLogs.length > 0);
+
+            for (let op of structLogs) {
+              if (op.stack.length > 0) {
+                // check formatting of stack - it was broken when updating to ethereumjs-vm v2.3.3
+                assert.strictEqual(op.stack[0].length, 64);
+                assert.notStrictEqual(op.stack[0].substr(0, 2), "0x");
+                break;
+              }
+            }
+
+            const lastop = structLogs[structLogs.length - 1];
+
+            assert.strictEqual(lastop.op, "STOP");
+            assert.strictEqual(lastop.gasCost, 1);
+            assert.strictEqual(lastop.pc, 209);
+            assert.strictEqual(
+              lastop.storage["0000000000000000000000000000000000000000000000000000000000000000"],
+              "000000000000000000000000000000000000000000000000000000000000001a"
+            );
+            assert.strictEqual(
+              lastop.storage["0000000000000000000000000000000000000000000000000000000000000001"],
+              "000000000000000000000000000000000000000000000000000000000000001f"
+            );
+
+            resolve();
+          }
+        );
+      }).then(async() => {
+        // Now let's make sure rerunning this transaction trace didn't change state
+        const value = await instance.methods.value().call({ from: accounts[0], gas });
+        assert.strictEqual(value, expectedValueBeforeTrace);
+      });
+    });
   });
 
-  before("change state of contract to ensure trace doesn't overwrite data", async() => {
-    const { accounts, instance } = services;
-    options = { from: accounts[0], gas };
-    await instance.methods.setValue(expectedValueBeforeTrace).send(options);
+  describe("Trace a successful transaction with multiple calls", function() {
+    before("set up transaction with multiple calls to the same contract to be traced", async() => {
+      const { accounts, instance } = services;
+      options = { from: accounts[0], gas };
 
-    // check the value is what we expect it to be: 1234
-    const value = await instance.methods.value().call(options);
-    assert.strictEqual(value, expectedValueBeforeTrace);
-  });
+      // from previous tests, otherValue should be 26 + 1234
+      let otherValue = await instance.methods.otherValue().call(options);
+      assert.strictEqual(otherValue, "1265");
 
-  it("should trace a successful transaction without changing state", function() {
-    // We want to trace the transaction that sets the value to 26
-    const { accounts, instance, web3 } = services;
-    const provider = web3.currentProvider;
+      let tx = await instance.methods.callSetValueTwice().send(options);
+      multipleCallsHashToTrace = tx.transactionHash;
 
-    return new Promise((resolve, reject) => {
+      // we add 1 + 2 to otherValue, so now it should be 1268
+      let updatedValue = await instance.methods.otherValue().call(options);
+      assert.strictEqual(updatedValue, "1268");
+    });
+
+    it("should trace a transaction with multiple calls to the same contract", async function() {
+      const { web3 } = services;
+      const provider = web3.currentProvider;
+      let arrayOfStorageKeyValues = [];
+
       provider.send(
         {
           jsonrpc: "2.0",
           method: "debug_traceTransaction",
-          params: [hashToTrace, []],
+          params: [multipleCallsHashToTrace, []],
           id: new Date().getTime()
         },
-        function(err, response) {
-          if (err) {
-            reject(err);
-          }
-          if (response.error) {
-            reject(response.error);
-          }
-
-          const structLogs = response.result.structLogs;
-
-          // To at least assert SOMETHING, let's assert the last opcode
-          assert(structLogs.length > 0);
-
-          for (let op of structLogs) {
-            if (op.stack.length > 0) {
-              // check formatting of stack - it was broken when updating to ethereumjs-vm v2.3.3
-              assert.strictEqual(op.stack[0].length, 64);
-              assert.notStrictEqual(op.stack[0].substr(0, 2), "0x");
-              break;
+        function(_, result) {
+          for (var i = 0; i < result.result.structLogs.length; i++) {
+            let op = result.result.structLogs[i];
+            let nextOp = result.result.structLogs[i + 1];
+            if (op.op === "SSTORE") {
+              // we want the nextOp because the storage changes doesn't take affect until after the SSTORE opcode
+              arrayOfStorageKeyValues.push(nextOp.storage);
             }
           }
 
-          const lastop = structLogs[structLogs.length - 1];
-
-          assert.strictEqual(lastop.op, "STOP");
-          assert.strictEqual(lastop.gasCost, 1);
-          // TODO: circle back to this, it used to be 145 - why did it change?
-          assert.strictEqual(lastop.pc, 209);
+          // ensure the call to setValue with 1 was successfully stored for value
           assert.strictEqual(
-            lastop.storage["0000000000000000000000000000000000000000000000000000000000000000"],
-            "000000000000000000000000000000000000000000000000000000000000001a"
+            arrayOfStorageKeyValues[0]["0000000000000000000000000000000000000000000000000000000000000000"],
+            "0000000000000000000000000000000000000000000000000000000000000001"
           );
+          // ensure the call to setValue with 1 was successfully stored for otherValue
           assert.strictEqual(
-            lastop.storage["0000000000000000000000000000000000000000000000000000000000000001"],
-            "000000000000000000000000000000000000000000000000000000000000001f"
+            arrayOfStorageKeyValues[1]["0000000000000000000000000000000000000000000000000000000000000001"],
+            "00000000000000000000000000000000000000000000000000000000000004f2"
           );
 
-          resolve();
+          // ensure the call to setValue with 2 was successfully stored for value
+          assert.strictEqual(
+            arrayOfStorageKeyValues[2]["0000000000000000000000000000000000000000000000000000000000000000"],
+            "0000000000000000000000000000000000000000000000000000000000000002"
+          );
+          // ensure the call to setValue with 2 was successfully stored for otherValue
+          assert.strictEqual(
+            arrayOfStorageKeyValues[3]["0000000000000000000000000000000000000000000000000000000000000001"],
+            "00000000000000000000000000000000000000000000000000000000000004f4"
+          );
         }
       );
-    }).then(async() => {
-      // Now let's make sure rerunning this transaction trace didn't change state
-      const value = await instance.methods.value().call({ from: accounts[0], gas });
-      assert.strictEqual(value, expectedValueBeforeTrace);
     });
-  });
-
-  it("should trace a transaction with multiple calls to the same contract", async function() {
-    /* SETUP */
-    const { accounts, instance, web3 } = services;
-
-    const provider = web3.currentProvider;
-    options = {
-      from: accounts[0],
-      gas
-    };
-
-    let initialOtherValue = await instance.methods.otherValue().call(options);
-    // otherValue started at 5, we then set value to 26, and then to 1234 = 1265
-    assert.strictEqual(initialOtherValue, "1265");
-
-    let tx = await instance.methods.callSetValueTwice().send(options);
-
-    let updatedValue = await instance.methods.otherValue().call(options);
-    // 1265 from line 162 + 3 we've added from calling callSetValueTwice() = 1268
-    assert.strictEqual(updatedValue, "1268");
-
-    /* DEBUGGING */
-    let arrayOfStorageKeyValues = [];
-
-    provider.send(
-      {
-        jsonrpc: "2.0",
-        method: "debug_traceTransaction",
-        params: [tx.transactionHash, []],
-        id: new Date().getTime()
-      },
-      function(_, result) {
-        for (let op of result.result.structLogs) {
-          if (op.op === "SSTORE") {
-            arrayOfStorageKeyValues.push(op.storage);
-          }
-        }
-
-        // grab the last two storage operations
-        arrayOfStorageKeyValues = arrayOfStorageKeyValues.slice(-2);
-
-        // ensure the call to setValue with 1 was successfully stored for value
-        assert.strictEqual(
-          arrayOfStorageKeyValues[0]["0000000000000000000000000000000000000000000000000000000000000000"],
-          "0000000000000000000000000000000000000000000000000000000000000001"
-        );
-        // ensure the call to setValue with 1 was successfully stored for otherValue
-        assert.strictEqual(
-          arrayOfStorageKeyValues[0]["0000000000000000000000000000000000000000000000000000000000000001"],
-          "00000000000000000000000000000000000000000000000000000000000004f2"
-        );
-
-        // ensure the call to setValue with 2 was successfully stored for value
-        assert.strictEqual(
-          arrayOfStorageKeyValues[1]["0000000000000000000000000000000000000000000000000000000000000000"],
-          "0000000000000000000000000000000000000000000000000000000000000002"
-        );
-        // ensure the call to setValue with 2 was successfully stored for otherValue
-        assert.strictEqual(
-          arrayOfStorageKeyValues[1]["0000000000000000000000000000000000000000000000000000000000000001"],
-          "00000000000000000000000000000000000000000000000000000000000004f4"
-        );
-      }
-    );
   });
 });

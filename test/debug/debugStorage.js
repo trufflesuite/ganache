@@ -5,7 +5,7 @@ const bootstrap = require("../helpers/bootstrap");
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-describe.only("Debug Storage", function() {
+describe("Debug Storage", function() {
   const mainContract = "DebugContractStorage";
   const contractFilenames = ["DebugContractStorage", "DebugContract"];
   const contractPath = "../contracts/debug/";
@@ -17,23 +17,16 @@ describe.only("Debug Storage", function() {
   let hashToTrace = null;
   const expectedValueBeforeTrace = "5";
 
-  //   before("set up transaction that should be traced", async() => {
-  // come back to thisss
-  //   });
-
-  it("should do things", async() => {
-    /* SETUP */
-    const { accounts, instance, web3 } = services;
+  before("set up transaction that should be traced", async() => {
+    const { accounts, instance } = services;
     options = {
       from: accounts[0],
       gas
     };
-    const provider = web3.currentProvider;
 
     // check initial value and initial other value to ensure we know what we are starting with
     let initialValue = await instance.methods.getValue().call(options);
     let initialOtherValue = await instance.methods.getOtherValue().call(options);
-
     assert.strictEqual(initialValue, expectedValueBeforeTrace);
     assert.strictEqual(initialOtherValue, expectedValueBeforeTrace);
 
@@ -43,13 +36,15 @@ describe.only("Debug Storage", function() {
     // check value and other value to see if it updated
     let updatedValue = await instance.methods.getValue().call(options);
     let updatedOtherValue = await instance.methods.getOtherValue().call(options);
-
     assert.strictEqual(updatedValue, "2");
-    // otherValue should be the total of the initial value plus 3 from calling set()
+    // otherValue should be the total of the initial value (5) plus 3 from calling set()
     assert.strictEqual(updatedOtherValue, "8");
+  });
 
-    /* DEBUGGING */
-    // here we do the rpc call to debug_traceTransaction and do the damn thinggggg!!
+  it("should successfully trace a transaction with multiple calls to an instantiated contract", async() => {
+    const { web3 } = services;
+    const provider = web3.currentProvider;
+
     let arrayOfStorageKeyValues = [];
 
     provider.send(
@@ -60,18 +55,38 @@ describe.only("Debug Storage", function() {
         id: new Date().getTime()
       },
       function(_, result) {
-        for (let op of result.result.structLogs) {
+        for (var i = 0; i < result.result.structLogs.length; i++) {
+          let op = result.result.structLogs[i];
+          let nextOp = result.result.structLogs[i + 1];
           if (op.op === "SSTORE") {
-            arrayOfStorageKeyValues.push(op.storage);
+            // we want the nextOp because the storage changes doesn't take affect until after the SSTORE opcode
+            arrayOfStorageKeyValues.push(nextOp.storage);
           }
         }
-        // grab the last two storage operations
-        arrayOfStorageKeyValues = arrayOfStorageKeyValues.slice(-2);
-        console.log(arrayOfStorageKeyValues);
 
-        // This fails because we aren't maintaining storage properly. It should pass.
-        // Also note this makes a Constantinople test fail, if you change to true then it will pass - weird things.
-        assert.strictEqual(Object.keys(arrayOfStorageKeyValues[0]).length === 0, false);
+        // ensure the call to setValue with 1 was successfully stored for value
+        assert.strictEqual(
+          arrayOfStorageKeyValues[0]["0000000000000000000000000000000000000000000000000000000000000000"],
+          "0000000000000000000000000000000000000000000000000000000000000001"
+        );
+
+        // ensure the call to setValue with 1 was successfully stored for otherValue, making it 6
+        assert.strictEqual(
+          arrayOfStorageKeyValues[1]["0000000000000000000000000000000000000000000000000000000000000001"],
+          "0000000000000000000000000000000000000000000000000000000000000006"
+        );
+
+        // ensure the call to setValue with 2 was successfully stored for value
+        assert.strictEqual(
+          arrayOfStorageKeyValues[2]["0000000000000000000000000000000000000000000000000000000000000000"],
+          "0000000000000000000000000000000000000000000000000000000000000002"
+        );
+
+        // ensure the call to setValue with 2 was successfully stored for otherValue, making it 8
+        assert.strictEqual(
+          arrayOfStorageKeyValues[3]["0000000000000000000000000000000000000000000000000000000000000001"],
+          "0000000000000000000000000000000000000000000000000000000000000008"
+        );
       }
     );
   });
