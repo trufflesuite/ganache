@@ -6,21 +6,25 @@ const bootstrap = require("../helpers/contract/bootstrap");
 process.removeAllListeners("uncaughtException");
 
 describe("Debug", function() {
-  const mainContract = "DebugContract";
-  const contractFilenames = [];
-  const contractPath = "../contracts/debug/";
   let options = {};
-
-  const services = bootstrap(mainContract, contractFilenames, options, contractPath);
+  let context;
   const gas = 3141592;
-
   let hashToTrace = null;
   let multipleCallsHashToTrace = null;
   const expectedValueBeforeTrace = "1234";
 
+  before("set up web3 and contract", async() => {
+    this.timeout(10000);
+    const contractRef = {
+      contractFiles: ["DebugContract"],
+      contractSubdirectory: "debug"
+    };
+    context = await bootstrap(contractRef);
+  });
+
   describe("Trace a successful transaction", function() {
     before("set up transaction that should be traced", async() => {
-      const { accounts, instance } = services;
+      const { accounts, instance } = context;
       options = { from: accounts[0], gas };
       const tx = await instance.methods.setValue(26).send(options);
 
@@ -33,7 +37,7 @@ describe("Debug", function() {
     });
 
     before("change state of contract to ensure trace doesn't overwrite data", async() => {
-      const { accounts, instance } = services;
+      const { accounts, instance } = context;
       options = { from: accounts[0], gas };
       await instance.methods.setValue(expectedValueBeforeTrace).send(options);
 
@@ -44,7 +48,7 @@ describe("Debug", function() {
 
     it("should trace a successful transaction without changing state", function() {
       // We want to trace the transaction that sets the value to 26
-      const { accounts, instance, web3 } = services;
+      const { accounts, instance, web3 } = context;
       const provider = web3.currentProvider;
 
       return new Promise((resolve, reject) => {
@@ -104,7 +108,7 @@ describe("Debug", function() {
 
   describe("Trace a successful transaction with multiple calls", function() {
     before("set up transaction with multiple calls to the same contract to be traced", async() => {
-      const { accounts, instance } = services;
+      const { accounts, instance } = context;
       options = { from: accounts[0], gas };
 
       // from previous tests, otherValue should be 26 + 1234
@@ -120,7 +124,7 @@ describe("Debug", function() {
     });
 
     it("should trace a transaction with multiple calls to the same contract", async function() {
-      const { web3 } = services;
+      const { web3 } = context;
       const provider = web3.currentProvider;
       let arrayOfStorageKeyValues = [];
 

@@ -6,19 +6,25 @@ const bootstrap = require("../helpers/contract/bootstrap");
 process.removeAllListeners("uncaughtException");
 
 describe("Debug Storage", function() {
-  const mainContract = "DebugContractStorage";
-  const contractFilenames = ["DebugContractStorage", "DebugContract"];
-  const contractPath = "../contracts/debug/";
   let options = {};
+  let context;
 
-  const services = bootstrap(mainContract, contractFilenames, options, contractPath);
   const gas = 3141592;
 
   let hashToTrace = null;
   const expectedValueBeforeTrace = "5";
 
+  before("set up web3 and contract", async() => {
+    this.timeout(10000);
+    const contractRef = {
+      contractFiles: ["DebugContractStorage", "DebugContract"],
+      contractSubdirectory: "debug"
+    };
+    context = await bootstrap(contractRef);
+  });
+
   before("set up transaction that should be traced", async() => {
-    const { accounts, instance } = services;
+    const { accounts, instance } = context;
     options = {
       from: accounts[0],
       gas
@@ -42,7 +48,7 @@ describe("Debug Storage", function() {
   });
 
   it("should successfully trace a transaction with multiple calls to an instantiated contract", async() => {
-    const { web3 } = services;
+    const { web3 } = context;
     const provider = web3.currentProvider;
 
     let arrayOfStorageKeyValues = [];
