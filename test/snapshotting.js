@@ -2,6 +2,8 @@ var BN = require("bn.js");
 var Ganache = require("../");
 var Web3 = require("web3");
 var assert = require("assert");
+const bootstrap = require("./helpers/contract/bootstrap");
+const send = require("./helpers/utils/rpc");
 
 describe("Checkpointing / Reverting", function() {
   var provider;
@@ -133,5 +135,36 @@ describe("Checkpointing / Reverting", function() {
         });
       }
     );
+  });
+
+  it("checkpoints and reverts without persisting contract storage", async() => {
+    const contractRef = {
+      contractFiles: ["snapshot"],
+      contractSubdirectory: "snapshotting"
+    };
+
+    const ganacheProviderOptions = {};
+
+    const context = await bootstrap(contractRef, ganacheProviderOptions);
+    const { accounts, instance, provider } = context;
+    const mySend = send(provider);
+
+    const snapShotId = await mySend("evm_snapshot");
+    let n1 = await instance.methods.n().call();
+    assert.strictEqual(n1, "42", "Initial n is not 42");
+
+    await instance.methods.inc().send({ from: accounts[0] });
+    let n2 = await instance.methods.n().call();
+    assert.strictEqual(n2, "43", "n is not 43 after first call to `inc`");
+
+    await mySend("evm_revert", snapShotId.result);
+    let n3 = await instance.methods.n().call();
+    assert.strictEqual(n3, "42", "n is not 42 after reverting snapshot");
+
+    // this is the real test. what happened was that the vm's contract storage
+    // trie cache wasn't cleared when the vm's stateManager cache was cleared.
+    await instance.methods.inc().send({ from: accounts[0] });
+    let n4 = await instance.methods.n().call();
+    assert.strictEqual(n4, "43", "n is not 43 after calling `inc` again");
   });
 });
