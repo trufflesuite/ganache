@@ -137,7 +137,7 @@ describe("Checkpointing / Reverting", function() {
     );
   });
 
-  it.only("checkpoints and reverts without persisting contract storage", async() => {
+  it("checkpoints and reverts without persisting contract storage", async() => {
     const contractRef = {
       contractFiles: ["snapshot"],
       contractSubdirectory: "snapshotting"
