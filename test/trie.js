@@ -1,18 +1,17 @@
-var Ganache = require(process.env.TEST_BUILD
+const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
+const genSend = require("./helpers/utils/rpc");
 
 describe.only("trie", function() {
   it("should work", async() => {
     const blockNumber = 7255067;
 
     const Web3 = require("web3");
-    var web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/metamask"));
+    const web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/metamask"));
     const blockjson = await web3.eth.getBlock(blockNumber, true);
 
-    const unlockedAccounts = blockjson.transactions.map((tx) => {
-      return tx.from;
-    });
+    const unlockedAccounts = blockjson.transactions.map((tx) => tx.from);
 
     const provider = Ganache.provider({
       timestamp: blockjson.timestamp,
@@ -22,38 +21,17 @@ describe.only("trie", function() {
       fork_block_number: blockNumber - 1,
       unlocked_accounts: unlockedAccounts
     });
-    const send = require("util").promisify(provider.send.bind(provider));
+    const send = genSend(provider);
 
-    await send({
-      id: `${new Date().getTime()}`,
-      jsonrpc: "2.0",
-      method: "miner_stop"
-    });
+    await send("miner_stop");
 
-    const pendingResults = blockjson.transactions.map(async(tx) => {
-      const value = send({
-        id: `${new Date().getTime()}`,
-        jsonrpc: "2.0",
-        method: "eth_sendTransaction",
-        params: [tx]
-      });
-      return value;
-    });
+    const pendingResults = blockjson.transactions.map((tx) => send("eth_sendTransaction", tx));
     const results = await Promise.all(pendingResults);
     console.log(results);
 
-    await send({
-      id: `${new Date().getTime()}`,
-      jsonrpc: "2.0",
-      method: "evm_mine"
-    });
+    await send("evm_mine");
 
-    const block = await send({
-      id: `${new Date().getTime()}`,
-      jsonrpc: "2.0",
-      method: "eth_getBlockByNumber",
-      params: ["0x" + blockNumber.toString(16), true]
-    });
+    const block = await send("eth_getBlockByNumber", `0x${blockNumber.toString(16)}`, true);
 
     console.log(
       block.result.transactionsRoot === blockjson.transactionsRoot,
