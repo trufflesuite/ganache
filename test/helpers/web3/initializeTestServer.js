@@ -4,11 +4,12 @@ const Ganache = require(process.env.TEST_BUILD
 const Web3 = require("web3");
 
 /**
- * Initialize Ganache provider with `options`
- * @param {Object} options - Ganache provider options
- * @returns {Object} accounts, provider, web3 Object
+ * Initialize Ganache server with `options`
+ * @param {Object} options - Ganache server options
+ * @returns {Object} accounts, server, web3 Object
  */
-const initializeTestServer = (tests, options = { port: 12345 }) => {
+const initializeTestServer = (tests, options = {}) => {
+  options.port = options.port || 12345;
   return function(done) {
     const web3 = new Web3();
     let server;
