@@ -10,8 +10,8 @@ const Web3 = require("web3");
  */
 const initializeTestServer = (tests, options = { port: 12345 }) => {
   return function(done) {
-    var web3 = new Web3();
-    var server;
+    const web3 = new Web3();
+    let server;
 
     before("Initialize Ganache server", function(done) {
       server = Ganache.server(options);
