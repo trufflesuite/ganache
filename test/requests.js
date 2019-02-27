@@ -485,6 +485,7 @@ const tests = function(web3) {
         async(...args) => {
           await send("evm_mine");
           const { result: count } = await send("eth_getTransactionCount", accounts[9], "latest");
+          assert.strictEqual(parseInt(count), 255, "nonce is not equal 255");
           const {
             result: { number: blockNumber }
           } = await send("eth_getBlockByNumber", "latest", false);
