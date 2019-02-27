@@ -13,6 +13,8 @@ const fs = require("fs");
 const to = require("../lib/utils/to");
 const _ = require("lodash");
 const pify = require("pify");
+const genSend = require("./helpers/utils/rpc");
+const Account = require("ethereumjs-account");
 
 const source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
 const compilationResult = solc.compile(source, 1);
@@ -462,6 +464,103 @@ const tests = function(web3) {
           e.message.indexOf("the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 255") >= 0
         );
       }
+    });
+
+    it("should handle nonces greater than 255 (instamine)", async function() {
+      const provider = Ganache.provider({
+        gasLimit: "0xcd236e" // double gas limit
+      });
+      const send = genSend(provider);
+      let accounts = await send("eth_accounts");
+      accounts = accounts.result.map(function(val) {
+        return val.toLowerCase();
+      });
+      const accountData = new Account();
+      accountData.balance = "0Xffffffffffffffffffff";
+      accountData.nonce = "0xff";
+      accountData.address = accounts[9];
+      provider.manager.state.blockchain.vm.stateManager.putAccount(
+        utils.toBuffer(accountData.address),
+        accountData,
+        async(...args) => {
+          await send("evm_mine");
+          const { result: count } = await send("eth_getTransactionCount", accounts[9], "latest");
+          const {
+            result: { number: blockNumber }
+          } = await send("eth_getBlockByNumber", "latest", false);
+          assert.strictEqual(blockNumber, "0x1", "latest block number is not expected (1)");
+          const tx = {
+            value: "0x1000000",
+            gasLimit: "0x33450",
+            from: accounts[9],
+            to: accounts[8]
+          };
+
+          const txHashes = [];
+          for (let i = 0; i < 3; i++) {
+            txHashes.push(await send("eth_sendTransaction", tx));
+          }
+          const txs = await Promise.all(txHashes.map((tx) => send("eth_getTransactionByHash", tx.result)));
+          let expectedNonce = parseInt(count); // 255
+          let expectedBN = parseInt(blockNumber) + 1; // new transaction was instamined into next block
+          txs.map((tx) => {
+            const nonce = parseInt(tx.result.nonce);
+            const blockNum = parseInt(tx.result.blockNumber);
+            assert.strictEqual(nonce, expectedNonce, `nonce is ${nonce}, expected (${expectedNonce})`);
+            assert.strictEqual(blockNum, expectedBN, `blockNumber is ${blockNum}, expected (${expectedBN})`);
+            expectedNonce++;
+            expectedBN++;
+          });
+        }
+      );
+    });
+
+    it("should handle nonces greater than 255 (interval)", async function() {
+      const provider = Ganache.provider({
+        gasLimit: "0xcd236e" // double gas limit
+      });
+      const send = genSend(provider);
+      let accounts = await send("eth_accounts");
+      accounts = accounts.result.map(function(val) {
+        return val.toLowerCase();
+      });
+      const accountData = new Account();
+      accountData.balance = "0Xffffffffffffffffffff";
+      accountData.nonce = "0xff";
+      accountData.address = accounts[9];
+      provider.manager.state.blockchain.vm.stateManager.putAccount(
+        utils.toBuffer(accountData.address),
+        accountData,
+        async(...args) => {
+          await send("evm_mine");
+          await send("miner_stop");
+          const { result: count } = await send("eth_getTransactionCount", accounts[9], "latest");
+          assert.strictEqual(parseInt(count), 255, "nonce is not equal 255");
+          const { result: startBlock } = await send("eth_getBlockByNumber", "latest", true);
+          assert.strictEqual(parseInt(startBlock.number), 1, "block number is not equal to 1");
+          const tx = {
+            value: "0x1000000",
+            gasLimit: "0x33450",
+            from: accounts[9],
+            to: accounts[8]
+          };
+          const txHashes = [];
+          for (let i = 0; i < 3; i++) {
+            txHashes.push(await send("eth_sendTransaction", tx));
+          }
+          await send("evm_mine");
+          const {
+            result: { transactions: txs }
+          } = await send("eth_getBlockByNumber", "latest", true);
+          assert.strictEqual(txs.length, 3, `block contains ${txs.length} transactions, expected (3)`);
+          let expectedNonce = parseInt(count); // 255
+          txs.map((tx) => {
+            const currentNonce = parseInt(tx.nonce);
+            assert.strictEqual(currentNonce, expectedNonce, `nonce is ${currentNonce}, expected (${expectedNonce})`);
+            expectedNonce++;
+          });
+        }
+      );
     });
 
     it("should succeed with right nonce (1)", async function() {
