@@ -15,9 +15,7 @@ describe("Debug", async() => {
       contractSubdirectory: "debug"
     };
 
-    const ganacheProviderOptions = {};
-
-    context = await bootstrap(contractRef, ganacheProviderOptions);
+    context = await bootstrap(contractRef);
   });
 
   before("set up transaction that should be traced", async() => {

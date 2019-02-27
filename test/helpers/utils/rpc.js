@@ -5,7 +5,7 @@ const { promisify } = require("util");
  * @param {Object} provider Ganache provider
  * @returns {Function} Send method
  */
-const send = function(provider) {
+const generateSend = function(provider) {
   /**
    * Generic RPC method
    * @param {String} method JSON RPC method
@@ -22,4 +22,4 @@ const send = function(provider) {
   };
 };
 
-module.exports = send;
+module.exports = generateSend;

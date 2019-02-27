@@ -2,7 +2,7 @@ const assert = require("assert");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
 describe("Accounts", async() => {
-  const expectedAddress = "0x604a95c9165bc95ae016a5299dd7d400dddbea9a";
+  const expectedAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
   const badAddress = "0x1234567890123456789012345678901234567890";
   const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 
@@ -10,7 +10,7 @@ describe("Accounts", async() => {
     const options = { mnemonic };
     const { accounts } = await initializeTestProvider(options);
 
-    assert.strictEqual(accounts[0].toLowerCase(), expectedAddress);
+    assert.strictEqual(accounts[0], expectedAddress);
   });
 
   it("should lock all accounts when specified", async() => {
@@ -21,17 +21,15 @@ describe("Accounts", async() => {
     const { accounts, web3 } = await initializeTestProvider(options);
 
     accounts.forEach(async(account) => {
-      try {
-        await web3.eth.sendTransaction({
+      assert.rejects(
+        web3.eth.sendTransaction({
           from: account,
           to: badAddress,
           value: web3.utils.toWei("1", "ether"),
           gasLimit: 90000
-        });
-        assert.fail("signer account should be locked");
-      } catch (error) {
-        assert.strictEqual(error.message, "signer account is locked");
-      }
+        }),
+        "signer account should be locked"
+      );
     });
   });
 
@@ -45,7 +43,7 @@ describe("Accounts", async() => {
     const { accounts, web3 } = await initializeTestProvider(options);
 
     accounts.forEach(async(account) => {
-      if (account.toLowerCase() === expectedAddress) {
+      if (account === expectedAddress) {
         await web3.eth.sendTransaction({
           from: account,
           to: badAddress,
@@ -53,17 +51,14 @@ describe("Accounts", async() => {
           gasLimit: 90000
         });
       } else {
-        try {
-          await web3.eth.sendTransaction({
+        assert.rejects(
+          web3.eth.sendTransaction({
             from: account,
             to: badAddress,
             value: web3.utils.toWei("1", "ether"),
             gasLimit: 90000
-          });
-          assert.fail("signer account should be locked");
-        } catch (error) {
-          assert.strictEqual(error.message, "signer account is locked");
-        }
+          })
+        );
       }
     });
   });
@@ -87,17 +82,14 @@ describe("Accounts", async() => {
           gasLimit: 90000
         });
       } else {
-        try {
-          await web3.eth.sendTransaction({
+        assert.rejects(
+          web3.eth.sendTransaction({
             from: account,
             to: badAddress,
             value: web3.utils.toWei("1", "ether"),
             gasLimit: 90000
-          });
-          assert.fail("signer accounts should be locked");
-        } catch (error) {
-          assert.strictEqual(error.message, "signer account is locked");
-        }
+          })
+        );
       }
     });
   });
@@ -106,7 +98,8 @@ describe("Accounts", async() => {
     const options = {
       mnemonic,
       secure: true,
-      unlocked_accounts: [0, badAddress]
+      unlocked_accounts: [0, badAddress],
+      gasPrice: 0
     };
 
     const { web3 } = await initializeTestProvider(options);
@@ -130,16 +123,8 @@ describe("Accounts", async() => {
     // And for the heck of it let's check the balance just to make sure it went through
     const balance = await web3.eth.getBalance(badAddress);
     let balanceInEther = await web3.utils.fromWei(balance, "ether");
-
-    if (typeof balanceInEther === "string") {
-      balanceInEther = parseFloat(balanceInEther);
-    } else {
-      balanceInEther.toNumber();
-    }
-
-    // Can't check the balance exactly. It cost some ether to send the transaction.
-    assert(balanceInEther > 4);
-    assert(balanceInEther < 5);
+    balanceInEther = parseFloat(balanceInEther);
+    assert.strictEqual(balanceInEther, 5);
   });
 
   it("errors when we try to sign a transaction from an account we're impersonating", async() => {
@@ -151,12 +136,10 @@ describe("Accounts", async() => {
 
     const { web3 } = await initializeTestProvider(options);
 
-    try {
-      await web3.eth.sign("some data", badAddress);
-      assert.fail("Expected an error while signing when not managing the private key");
-    } catch (error) {
-      assert(error.message.toLowerCase().indexOf("cannot sign data; no private key") >= 0);
-    }
+    assert.rejects(
+      web3.eth.sign("some data", badAddress),
+      "Expected an error while signing when not managing the private key"
+    );
   });
 
   it("should create a 2 accounts when passing an object to provider", async() => {
@@ -169,7 +152,7 @@ describe("Accounts", async() => {
     assert.strictEqual(accounts.length, 2, "The number of accounts created should be 2");
   });
 
-  it("should create a 7 accounts when ", async() => {
+  it("should create the correct number of accounts as specified by total_accounts", async() => {
     const options = {
       total_accounts: 7
     };
