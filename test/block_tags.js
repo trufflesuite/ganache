@@ -101,9 +101,19 @@ describe("Block Tags", function() {
     assert(newCode.length > 20); // Just because we don't know the actual code we're supposed to get back
   });
 
-  it("should not have the same tx and receipt root when the block contains 1 (or more) tx's", async function() {
+  it("should produce correct tx and receipt root when the block contains 1 (or more) tx's", async function() {
     const block = await web3.eth.getBlock(initialBlockNumber + 1, false);
     assert.strictEqual(block.transactions.length, 1, "should have one tx in the block.");
     assert.notStrictEqual(block.transactionsRoot, block.receiptsRoot, "Trie roots should not be equal.");
+    assert.strictEqual(
+      block.transactionsRoot,
+      "0xce8a25092b27c67e802dff9e3ec66aacf6232da66e2796243aaccdc0deaaa1db",
+      "Should produce correct transactionsRoot"
+    );
+    assert.strictEqual(
+      block.receiptsRoot,
+      "0xa63df9d6e2147dbffa164b173ead7c10d14d95c6e83dbb879ddc45ad7e8dfc89",
+      "Should produce correct receiptsRoot"
+    );
   });
 });
