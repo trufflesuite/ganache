@@ -21,7 +21,7 @@ describe("Accounts", async() => {
     const { accounts, web3 } = await initializeTestProvider(options);
 
     accounts.forEach(async(account) => {
-      assert.rejects(
+      await assert.rejects(
         web3.eth.sendTransaction({
           from: account,
           to: badAddress,
@@ -51,7 +51,7 @@ describe("Accounts", async() => {
           gasLimit: 90000
         });
       } else {
-        assert.rejects(
+        await assert.rejects(
           web3.eth.sendTransaction({
             from: account,
             to: badAddress,
@@ -82,7 +82,7 @@ describe("Accounts", async() => {
           gasLimit: 90000
         });
       } else {
-        assert.rejects(
+        await assert.rejects(
           web3.eth.sendTransaction({
             from: account,
             to: badAddress,
@@ -136,7 +136,7 @@ describe("Accounts", async() => {
 
     const { web3 } = await initializeTestProvider(options);
 
-    assert.rejects(
+    await assert.rejects(
       web3.eth.sign("some data", badAddress),
       "Expected an error while signing when not managing the private key"
     );
