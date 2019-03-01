@@ -18,18 +18,21 @@ describe("Accounts", async() => {
       mnemonic,
       secure: true
     };
+
     const { accounts, web3 } = await initializeTestProvider(options);
 
     accounts.forEach(async(account) => {
-      await assert.rejects(
-        web3.eth.sendTransaction({
+      try {
+        await web3.eth.sendTransaction({
           from: account,
           to: badAddress,
           value: web3.utils.toWei("1", "ether"),
           gasLimit: 90000
-        }),
-        "signer account should be locked"
-      );
+        });
+        assert.fail("should not be able to unlock the count");
+      } catch (error) {
+        assert.strictEqual(error.message, "signer account is locked");
+      }
     });
   });
 
@@ -43,22 +46,19 @@ describe("Accounts", async() => {
     const { accounts, web3 } = await initializeTestProvider(options);
 
     accounts.forEach(async(account) => {
-      if (account === expectedAddress) {
+      try {
         await web3.eth.sendTransaction({
           from: account,
           to: badAddress,
           value: web3.utils.toWei("1", "ether"),
           gasLimit: 90000
         });
-      } else {
-        await assert.rejects(
-          web3.eth.sendTransaction({
-            from: account,
-            to: badAddress,
-            value: web3.utils.toWei("1", "ether"),
-            gasLimit: 90000
-          })
-        );
+
+        if (account !== expectedAddress) {
+          assert.fail("signer account should not be unlockable");
+        }
+      } catch (error) {
+        assert.strictEqual(error.message, "signer account is locked");
       }
     });
   });
@@ -74,22 +74,15 @@ describe("Accounts", async() => {
     const { accounts, web3 } = await initializeTestProvider(options);
 
     accounts.forEach(async(account) => {
-      if (account === accounts[index]) {
+      try {
         await web3.eth.sendTransaction({
           from: account,
           to: badAddress,
           value: web3.utils.toWei("1", "ether"),
           gasLimit: 90000
         });
-      } else {
-        await assert.rejects(
-          web3.eth.sendTransaction({
-            from: account,
-            to: badAddress,
-            value: web3.utils.toWei("1", "ether"),
-            gasLimit: 90000
-          })
-        );
+      } catch (error) {
+        assert.strictEqual(error.message, "signer account is locked");
       }
     });
   });
@@ -127,7 +120,7 @@ describe("Accounts", async() => {
     assert.strictEqual(balanceInEther, 5);
   });
 
-  it("errors when we try to sign a transaction from an account we're impersonating", async() => {
+  it("errors when we try to sign a transaction from an account we're impersonating", async function() {
     const options = {
       mnemonic,
       secure: true,
@@ -136,10 +129,12 @@ describe("Accounts", async() => {
 
     const { web3 } = await initializeTestProvider(options);
 
-    await assert.rejects(
-      web3.eth.sign("some data", badAddress),
-      "Expected an error while signing when not managing the private key"
-    );
+    try {
+      await web3.eth.sign("some data", badAddress);
+      assert.fail("should not be able to sign a transaction with an impersonated account");
+    } catch (error) {
+      assert.strictEqual(error.message, "cannot sign data; no private key");
+    }
   });
 
   it("should create a 2 accounts when passing an object to provider", async() => {
