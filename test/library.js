@@ -19,6 +19,7 @@ describe("Libraries", function() {
   let contractAbi;
   let contractInstance;
   let contractBytecode;
+  let contractAddress;
 
   const provider = Ganache.provider();
   const web3 = new Web3(provider);
@@ -69,6 +70,10 @@ describe("Libraries", function() {
       gas: 3141592
     });
 
+    promiEvent.on("receipt", function(receipt) {
+      contractAddress = receipt.contractAddress;
+    });
+
     contractInstance = await promiEvent;
   });
 
@@ -81,6 +86,21 @@ describe("Libraries", function() {
     it("should return true - msg.sender is the externally owned account", async() => {
       const result = await contractInstance.methods.callExternalLibraryFunction().call();
       assert.strictEqual(true, result);
+    });
+  });
+
+  describe.only("msg.data for external library function calls", async() => {
+    it("should do thingss", async() => {
+      // const result = await contractInstance.methods.callGetStorageBool().send({ from: accounts[0] });
+      const result = await web3.eth.sendTransaction({
+        from: accounts[0],
+        to: contractAddress,
+        data: "0x1",
+        gas: 31000,
+        value: 1
+      });
+      console.log(result);
+      // assert.strictEqual(true, result);
     });
   });
 });

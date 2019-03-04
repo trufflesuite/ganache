@@ -11,4 +11,13 @@ library Library {
         address sender = checkMsgSender();
         return sender;
     }
+
+    function getStorageBool(bytes32 position) internal view returns (bool data) {
+        assembly { data := sload(position) }
+    }
+
+    function checkMsgData() internal view returns (bytes memory) {
+        bytes memory data = msg.data;
+        return data;
+    }
 }
