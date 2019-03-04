@@ -1,57 +1,34 @@
 const assert = require("assert");
-const Web3 = require("web3");
-const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-const fs = require("fs");
-const path = require("path");
-const solc = require("solc");
+const bootstrap = require("./helpers/contract/bootstrap");
 const to = require("../lib/utils/to");
 
 describe("Transaction rejection", function() {
-  const provider = Ganache.provider({
-    // important: we want to make sure we get tx rejections as rpc errors even
-    // if we don't want runtime errors as RPC erros
-    vmErrorsOnRPCResponse: false
-  });
+  let context;
 
-  const web3 = new Web3(provider);
+  before("Setting up web3 and contract", async function() {
+    this.timeout(10000);
 
-  let accounts;
-  let estimateGasContractData;
-  let estimateGasContractAbi;
-  let EstimateGasContract;
-  let estimateGasContractAddress;
-  let source = fs.readFileSync(path.join(__dirname, "contracts", "gas", "EstimateGas.sol"), "utf8");
+    const contractRef = {
+      contractFiles: ["EstimateGas"],
+      contractSubdirectory: "gas"
+    };
 
-  before("get accounts", async function() {
-    accounts = await web3.eth.getAccounts();
+    const ganacheProviderOptions = {
+      // important: we want to make sure we get tx rejections as rpc errors even
+      // if we don't want runtime errors as RPC erros
+      vmErrorsOnRPCResponse: false
+    };
+
+    context = await bootstrap(contractRef, ganacheProviderOptions);
   });
 
   before("lock account 1", function() {
-    return web3.eth.personal.lockAccount(accounts[1]);
-  });
-
-  before("compile source", async function() {
-    this.timeout(10000);
-    var result = solc.compile({ sources: { "EstimateGas.sol": source } }, 1);
-
-    estimateGasContractData = "0x" + result.contracts["EstimateGas.sol:EstimateGas"].bytecode;
-    estimateGasContractAbi = JSON.parse(result.contracts["EstimateGas.sol:EstimateGas"].interface);
-
-    EstimateGasContract = new web3.eth.Contract(estimateGasContractAbi);
-    const instance = await EstimateGasContract.deploy({ data: estimateGasContractData }).send({
-      from: accounts[0],
-      gas: 3141592
-    });
-    // TODO: ugly workaround - not sure why this is necessary.
-    if (!instance._requestManager.provider) {
-      instance._requestManager.setProvider(web3.eth._provider);
-    }
-    estimateGasContractAddress = to.hex(instance.options.address);
+    const { accounts, web3 } = context;
+    web3.eth.personal.lockAccount(accounts[1]);
   });
 
   it("should reject transaction if nonce is incorrect", function(done) {
+    this.timeout(10000);
     testTransactionForRejection(
       {
         nonce: 0xffff
@@ -62,6 +39,7 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if from account is missing", function(done) {
+    this.timeout(10000);
     testTransactionForRejection(
       {
         from: undefined
@@ -72,6 +50,7 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if from account is invalid/unknown", function(done) {
+    this.timeout(10000);
     testTransactionForRejection(
       {
         from: "0x0000000000000000000000000000000000000001"
@@ -82,6 +61,8 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if from known account which is locked", function(done) {
+    this.timeout(10000);
+    const { accounts } = context;
     testTransactionForRejection(
       {
         from: accounts[1]
@@ -92,6 +73,7 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if gas limit exceeds block gas limit", function(done) {
+    this.timeout(10000);
     testTransactionForRejection(
       {
         gas: 0xffffffff
@@ -102,6 +84,8 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if insufficient funds", function(done) {
+    this.timeout(10000);
+    const { web3 } = context;
     testTransactionForRejection(
       {
         value: web3.utils.toWei("100000", "ether")
@@ -112,7 +96,10 @@ describe("Transaction rejection", function() {
   });
 
   function testTransactionForRejection(paramsOverride, messageRegex, done) {
-    let params = Object.assign(
+    const { accounts, instance, provider, web3 } = context;
+    const estimateGasContractAddress = to.hex(instance.options.address);
+
+    const params = Object.assign(
       {
         from: accounts[0],
         to: estimateGasContractAddress,
