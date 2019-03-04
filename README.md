@@ -91,9 +91,9 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 
 The RPC methods currently implemented are:
 
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#bzz_hive" target="_blank">bzz_hive</a> (stub)
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#bzz_info" target="_blank">bzz_info</a> (stub)
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#debug_traceTransaction" target="_blank">debug_traceTransaction</a> (without support for `tracer` option)
+* bzz_hive (stub)
+* bzz_info (stub)
+* debug_traceTransaction (without support for `tracer` option)
 * <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_accounts" target="_blank">eth_accounts</a>
 * <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_blockNumber" target="_blank">eth_blockNumber</a>
 * <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_call" target="_blank">eth_call</a>
