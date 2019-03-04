@@ -4,6 +4,8 @@ import "./Library.sol";
 
 contract CallLibrary {
     address originalSender = msg.sender;
+    event ProxyDeposit(uint length, uint256 value);
+
     // snagged this from Aragon
     using Library for bytes32;
     bytes32 internal constant DEPOSITABLE_POSITION = 0x665fd576fbbe6f247aff98f5c94a561e3f71ec2d3c988d56f12d342396c50cea;
@@ -23,5 +25,10 @@ contract CallLibrary {
     function callCheckMsgData() public view returns (uint256) {
         bytes memory data = Library.checkMsgData();
         return data.length;
+    }
+
+    function () external payable {
+        require(msg.value > 0 && msg.data.length == 0);
+        emit ProxyDeposit(msg.data.length, msg.value);
     }
 }

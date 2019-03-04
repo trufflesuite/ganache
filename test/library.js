@@ -91,7 +91,6 @@ describe("Libraries", function() {
 
   describe.only("msg.data for external library function calls", async() => {
     it("should do thingss", async() => {
-      // const result = await contractInstance.methods.callGetStorageBool().send({ from: accounts[0] });
       const result = await web3.eth.sendTransaction({
         from: accounts[0],
         to: contractAddress,
@@ -99,8 +98,9 @@ describe("Libraries", function() {
         gas: 31000,
         value: 1
       });
+
+      // this tx should not go thru, but it does
       console.log(result);
-      // assert.strictEqual(true, result);
     });
   });
 });
