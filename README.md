@@ -163,20 +163,20 @@ Special non-standard methods that aren’t included within the original RPC spec
           '{"id":1337,"jsonrpc":"2.0","method":"evm_increaseTime","params":[60]}' \
           http://localhost:8545
   ```
-* `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block independent of whether or not mining is started or stopped.
+* `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block independent of whether or not mining is *started* or *stopped*.
   ```bash
   # Ex: new Date("2009-01-03T18:15:05+00:00").getTime()
   curl -H "Content-Type: application/json" -X POST --data \
           '{"id":1337,"jsonrpc":"2.0","method":"evm_mine","params":[1231006505000]}' \
           http://localhost:8545
   ```
-* `miner_start` : Halts ganache from mining.
+* `miner_start` : Resumes mining within ganache.
   ```bash
   curl -H "Content-Type: application/json" -X POST --data \
           '{"id":1337,"jsonrpc":"2.0","method":"miner_start","params":[]}' \
           http://localhost:8545
   ```
-* `miner_stop` : Resumes mining within ganache.
+* `miner_stop` : Halts ganache from mining.
   ```bash
   curl -H "Content-Type: application/json" -X POST --data \
           '{"id":1337,"jsonrpc":"2.0","method":"miner_stop","params":[]}' \
