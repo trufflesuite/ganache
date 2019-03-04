@@ -136,33 +136,46 @@ The RPC methods currently implemented are:
 * <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#web3_clientVersion" target="_blank">web3_clientVersion</a>
 * <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#web3_sha3" target="_blank">web3_sha3</a>
 
-There’s also special non-standard methods that aren’t included within the original RPC specification:
+# Custom Methods
+Special non-standard methods that aren’t included within the original RPC specification:
 * `evm_snapshot` : Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the integer id of the snapshot created. A snapshot can only be used once. After a successful `evm_revert`, the same snapshot id cannot be used again. Consider creating a new snapshot after each `evm_revert` *if you need to revert to the same point multiple times*.
   ```bash
-  curl -H "Content-Type: application/json" -X POST --data '{"id":1337,"jsonrpc":"2.0","method":"evm_snapshot","params":[]}' http://localhost:8545
+  curl -H "Content-Type: application/json" -X POST --data \
+          '{"id":1337,"jsonrpc":"2.0","method":"evm_snapshot","params":[]}' \
+          http://localhost:8545
   ```
 * `evm_revert` : Revert the state of the blockchain to a previous snapshot. Takes a single parameter, which is the snapshot id to revert to. If no snapshot id is passed it will revert to the latest snapshot. Returns `true`.
   ```bash
   # Ex: ID "1" (hex encoded string)
-  curl -H "Content-Type: application/json" -X POST --data '{"id":1337,"jsonrpc":"2.0","method":"evm_revert","params":["0x1"]}' http://localhost:8545
+  curl -H "Content-Type: application/json" -X POST --data \
+          '{"id":1337,"jsonrpc":"2.0","method":"evm_revert","params":["0x1"]}' \
+          http://localhost:8545
   ```
 * `evm_increaseTime` : Jump forward in time. Takes one parameter, which is the amount of time to increase in seconds. Returns the total time adjustment, in seconds.
   ```bash
   # Ex: 1 minute (number)
-  curl -H "Content-Type: application/json" -X POST --data '{"id":1337,"jsonrpc":"2.0","method":"evm_increaseTime","params":[60]}' http://localhost:8545
+  curl -H "Content-Type: application/json" -X POST --data \
+          '{"id":1337,"jsonrpc":"2.0","method":"evm_increaseTime","params":[60]}' \
+          http://localhost:8545
   ```
 * `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block independent of whether or not mining is started or stopped.
   ```bash
   # Ex: new Date("2009-01-03T18:15:05+00:00").getTime()
-  curl -H "Content-Type: application/json" -X POST --data '{"id":1337,"jsonrpc":"2.0","method":"evm_mine","params":[1231006505000]}' http://localhost:8545
+  curl -H "Content-Type: application/json" -X POST --data \
+          '{"id":1337,"jsonrpc":"2.0","method":"evm_mine","params":[1231006505000]}' \
+          http://localhost:8545
   ```
 * `miner_start` : Halts ganache from mining.
   ```bash
-  curl -H "Content-Type: application/json" -X POST --data '{"id":1337,"jsonrpc":"2.0","method":"miner_start","params":[]}' http://localhost:8545
+  curl -H "Content-Type: application/json" -X POST --data \
+          '{"id":1337,"jsonrpc":"2.0","method":"miner_start","params":[]}' \
+          http://localhost:8545
   ```
 * `miner_stop` : Resumes mining within ganache.
   ```bash
-  curl -H "Content-Type: application/json" -X POST --data '{"id":1337,"jsonrpc":"2.0","method":"miner_stop","params":[]}' http://localhost:8545
+  curl -H "Content-Type: application/json" -X POST --data \
+          '{"id":1337,"jsonrpc":"2.0","method":"miner_stop","params":[]}' \
+          http://localhost:8545
   ```
 
 # UNSUPPORTED METHODS
