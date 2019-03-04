@@ -7,7 +7,7 @@
 [Usage](#usage) | [Options](#options) | [Implemented Methods](#implemented-methods) | [Custom Methods](#custom-methods) | [Unsupported Methods](#unsupported-methods) | [Testing](#testing)
 --- | --- | --- | --- | --- | ---
 
-This is the core code that powers the Ganache application and the the Ganache command line tool.
+This is the core code that powers the Ganache application and the Ganache command line tool.
 
 # INSTALLATION
 
