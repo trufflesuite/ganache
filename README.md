@@ -6,6 +6,9 @@
 
 This is the core code that powers the Ganache application and the the Ganache command line tool.
 
+[Installation](#installation) | [Usage](#usage) | [Options](#options) | [Implemented Methods](#implemented-methods) | [Custom Methods](#custom-methods) | [Unsupported Methods](#unsupported-methods) | [Testing](#testing)
+--- | --- | --- | --- | --- | --- | ---
+
 # INSTALLATION
 
 `ganache-core` is written in JavaScript and distributed as a Node.js package via `npm`. Make sure you have Node.js (>= v8.9.0) installed, and your environment is capable of installing and compiling `npm` modules.
@@ -52,6 +55,8 @@ const ganache = require("ganache-core");
 const server = ganache.server();
 server.listen(port, function(err, blockchain) {...});
 ```
+
+# OPTIONS
 
 Both `.provider()` and `.server()` take a single object which allows you to specify behavior of the Ganache instance. This parameter is optional. Available options are:
 
@@ -136,7 +141,7 @@ The RPC methods currently implemented are:
 * <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#web3_clientVersion" target="_blank">web3_clientVersion</a>
 * <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#web3_sha3" target="_blank">web3_sha3</a>
 
-# Custom Methods
+# CUSTOM METHODS
 Special non-standard methods that aren’t included within the original RPC specification:
 * `evm_snapshot` : Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the integer id of the snapshot created. A snapshot can only be used once. After a successful `evm_revert`, the same snapshot id cannot be used again. Consider creating a new snapshot after each `evm_revert` *if you need to revert to the same point multiple times*.
   ```bash
