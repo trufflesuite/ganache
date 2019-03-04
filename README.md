@@ -4,10 +4,10 @@
 [![Coverage Status](https://coveralls.io/repos/github/trufflesuite/ganache-core/badge.svg?branch=develop)](https://coveralls.io/github/trufflesuite/ganache-core?branch=develop)
 # Ganache Core
 
-This is the core code that powers the Ganache application and the the Ganache command line tool.
-
 [Usage](#usage) | [Options](#options) | [Implemented Methods](#implemented-methods) | [Custom Methods](#custom-methods) | [Unsupported Methods](#unsupported-methods) | [Testing](#testing)
 --- | --- | --- | --- | --- | ---
+
+This is the core code that powers the Ganache application and the the Ganache command line tool.
 
 # INSTALLATION
 
@@ -81,7 +81,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"account_keys_path"`: `String` - Specifies a file to save accounts and private keys to, for testing.
 * `"vmErrorsOnRPCResponse"`: `boolean` - Whether or not to transmit transaction failures as RPC errors. Set to `false` for error reporting behaviour which is compatible with other clients such as geth and Parity. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
-* `"hardfork"`: `String` Allows to specify which hardfork should be used. Supported hardforks are `byzantium`, `constantinople`, and `petersburg` (default).
+* `"hardfork"`: `String` Allows users to specify which hardfork should be used. Supported hardforks are `byzantium`, `constantinople`, and `petersburg` (default).
 * `"allowUnlimitedContractSize"`: `boolean` - Allows unlimited contract sizes while debugging. By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
 * `"gasPrice"`: `String::hex` Sets the default gas price for transactions if not otherwise specified. Must be specified as a `hex` encoded string in `wei`. Defaults to `"0x77359400"` (2 gwei).
 * `"gasLimit"`: `String::hex` Sets the block gas limit. Must be specified as a `hex` string. Defaults to `"0x6691b7"`.
@@ -143,7 +143,7 @@ The RPC methods currently implemented are:
 
 # CUSTOM METHODS
 Special non-standard methods that aren’t included within the original RPC specification:
-* `evm_snapshot` : Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the integer id of the snapshot created. A snapshot can only be used once. After a successful `evm_revert`, the same snapshot id cannot be used again. Consider creating a new snapshot after each `evm_revert` *if you need to revert to the same point multiple times*.
+* `evm_snapshot` : Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the integer id of the snapshot created. **A snapshot can only be used once**. After a successful `evm_revert`, the same snapshot id cannot be used again. As such, consider creating a new snapshot after each `evm_revert` *if you need to revert to the same point multiple times*.
   ```bash
   curl -H "Content-Type: application/json" -X POST --data \
           '{"id":1337,"jsonrpc":"2.0","method":"evm_snapshot","params":[]}' \
@@ -163,7 +163,7 @@ Special non-standard methods that aren’t included within the original RPC spec
           '{"id":1337,"jsonrpc":"2.0","method":"evm_increaseTime","params":[60]}' \
           http://localhost:8545
   ```
-* `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block independent of whether or not mining is *started* or *stopped*.
+* `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block **independent** of whether mining is *started* or *stopped*.
   ```bash
   # Ex: new Date("2009-01-03T18:15:05+00:00").getTime()
   curl -H "Content-Type: application/json" -X POST --data \
