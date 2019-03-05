@@ -265,7 +265,7 @@ describe("Accounts", function() {
     });
   });
 
-  describe.only("Should handle large nonces", function() {
+  describe("Should handle large nonces", function() {
     let provider;
     let accounts;
     let from;
