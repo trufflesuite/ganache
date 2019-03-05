@@ -1,10 +1,10 @@
 const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
+  ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../../index.js");
 const request = require("request");
 const portfinder = require("portfinder");
-const sleep = require("./helpers/utils/sleep");
+const sleep = require("../helpers/utils/sleep");
 
 const testTimeout = async(keepAliveTimeout, sleepTime, errorMessage) => {
   const host = "127.0.0.1";
