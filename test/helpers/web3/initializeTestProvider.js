@@ -8,10 +8,10 @@ const Web3 = require("web3");
  * @param {Object} options - Ganache provider options
  * @returns {Object} accounts, provider, web3 Object
  */
-const initializeTestProvider = async(options = {}) => {
+const initializeTestProvider = (options = {}) => {
   const provider = Ganache.provider(options);
   const web3 = new Web3(provider);
-  const accounts = await web3.eth.getAccounts();
+  const accounts = web3.eth.getAccounts();
 
   return {
     accounts,
