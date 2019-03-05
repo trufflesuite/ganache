@@ -11,9 +11,7 @@ describe("eth_call", function() {
       contractSubdirectory: "gas"
     };
 
-    const ganacheProviderOptions = {};
-
-    context = await bootstrap(contractRef, ganacheProviderOptions);
+    context = await bootstrap(contractRef);
   });
 
   it("should use the block gas limit if no gas limit is specified", async function() {
@@ -22,9 +20,10 @@ describe("eth_call", function() {
     const name = "0x54696d"; // Byte code for "Tim"
     const description = "0x4120677265617420677579"; // Byte code for "A great guy"
     const value = 5;
-    const status = await instance.methods.add(name, description, value).call({ from: accounts[0] });
 
     // this call uses more than the default transaction gas limit and will
+    const status = await instance.methods.add(name, description, value).call({ from: accounts[0] });
+
     // therefore fail if the block gas limit isn't used for calls
     assert.strictEqual(status, true);
   });
