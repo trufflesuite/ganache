@@ -3,14 +3,15 @@ const ethers = require("ethers");
 const Ganache = require(process.env.TEST_BUILD
   ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
+var BN = require("bn.js");
 
 describe("ethers", async() => {
   const secretKey = "46".repeat(32);
   const ganache = Ganache.provider({
     accounts: [
       {
-        secretKey: `0x${secretKey}`,
-        balance: 10 ** 21
+        secretKey: "0x" + secretKey,
+        balance: "0x" + new BN("1000000000000000000000").toString("hex")
       }
     ]
   });
@@ -18,16 +19,23 @@ describe("ethers", async() => {
   const privateKey = Buffer.from(secretKey, "hex");
   const wallet = new ethers.Wallet(privateKey);
   const provider = new ethers.providers.Web3Provider(ganache);
+  const gasPrice =
+    "0x" +
+    new BN(10)
+      .pow(new BN(9))
+      .muln(20)
+      .toString("hex");
+  const value = "0x" + new BN(10).pow(new BN(18)).toString("hex");
 
   it("ether.js transaction hash matches ganache transaction hash for chainId 1", async() => {
     // This tx mostly matches EIP-155 example except for the nonce
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
     const transaction = {
       nonce: 0,
-      to: `0x${"35".repeat(20)}`,
-      gasPrice: 2e10,
+      to: "0x3535353535353535353535353535353535353535",
+      gasPrice,
       gasLimit: 21000,
-      value: 1e18,
+      value: value,
       data: "",
       chainId: 1 // EIP 155 chainId - mainnet: 1, ropsten: 3
     };
@@ -43,10 +51,10 @@ describe("ethers", async() => {
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
     const transaction = {
       nonce: 1,
-      to: `0x${"35".repeat(20)}`,
-      gasPrice: 2e10,
+      to: "0x3535353535353535353535353535353535353535",
+      gasPrice,
       gasLimit: 21000,
-      value: 1e18,
+      value: value,
       data: ""
     };
     const signedTransaction = await wallet.sign(transaction);
