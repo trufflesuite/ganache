@@ -1,7 +1,9 @@
 const assert = require("assert");
 const ethers = require("ethers");
 const BN = require("bn.js");
-const intializeTestProvider = require("./helpers/web3/initializeTestProvider");
+const Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 
 describe("ethers", async() => {
   const secretKey = "46".repeat(32);
@@ -13,7 +15,7 @@ describe("ethers", async() => {
       }
     ]
   };
-  const { provider } = intializeTestProvider(ganacheOptions);
+  const provider = Ganache.provider(ganacheOptions);
 
   const ethersProvider = new ethers.providers.Web3Provider(provider);
   const privateKey = Buffer.from(secretKey, "hex");
