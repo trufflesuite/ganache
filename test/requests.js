@@ -929,6 +929,88 @@ const tests = function(web3) {
       assert.strictEqual(to.number(result), 25);
     });
 
+    it("should get only receipts relevant to the transaction (eth_getTransactionReceipt)", async function() {
+      const txData = contract.transaction_data;
+      txData.to = contractAddress;
+      txData.from = accounts[0];
+
+      // this test uses the provider's send instead of web3's sendTransaction
+      // because web3's sendTransaction has a bug when instamining that can
+      // cause it to subscribe to the `newHeads` event after the event has been
+      // sent by the provider, which is obviously too late.
+      const provider = web3.currentProvider;
+      const hasSubscriptions = typeof provider.on === "function";
+      const send = (() => {
+        let id = 1;
+        return (method, params) => {
+          return pify(provider.send.bind(provider))({
+            id: id++,
+            jsonrpc: "2.0",
+            method,
+            params
+          });
+        };
+      })();
+
+      // stop mining
+      await send("miner_stop");
+
+      // queue some transactions
+      const pendingTransactionHashes = [send("eth_sendTransaction", [txData]), send("eth_sendTransaction", [txData])];
+
+      const pendingNextBlockNumber = new Promise(async(resolve) => {
+        if (hasSubscriptions) {
+          // Ganache.provider and WebSocket servers can use the EventEmitter
+          provider.on("data", function newHeads(_, newHead) {
+            if (newHead == null) {
+              // When ganache is used as a provider _ is for errors,
+              // when it is used as a websocket server _ is the data.
+              newHead = _;
+            }
+            if (newHead.params.subscription === subscriptionId) {
+              resolve(to.number(newHead.params.result.number));
+              provider.removeListener("data", newHeads);
+            }
+          });
+        } else {
+          // for the HttpServer tests we need to poll for the next block
+          const startingBlockNumber = await web3.eth.getBlockNumber();
+          let currrentBlockNumber;
+          do {
+            currrentBlockNumber = await web3.eth.getBlockNumber();
+          } while (currrentBlockNumber === startingBlockNumber);
+
+          resolve(currrentBlockNumber);
+        }
+      });
+
+      // subscribe to `newHeads` if subscriptions are supported
+      const subscriptionId = hasSubscriptions ? (await send("eth_subscribe", ["newHeads"])).result : null;
+      const transactionHashes = (await Promise.all(pendingTransactionHashes)).map((response) => response.result);
+
+      // start the miner again
+      await send("miner_start");
+
+      // wait for the pending transactions to be mining in the next block
+      const blockNumber = await pendingNextBlockNumber;
+
+      // Now get the receipts
+      const pendingReceipts = transactionHashes.map((txHash) => send("eth_getTransactionReceipt", [txHash]));
+      const receipts = (await Promise.all(pendingReceipts)).map((response) => response.result);
+
+      assert.strictEqual(receipts.length, 2, "Not enough receipts");
+      receipts.forEach((receipt) => {
+        const logs = receipt.logs;
+        const receiptBlockNumber = to.number(receipt.blockNumber);
+        // What we are testing is that two transactions that "log" in the same block have receipts with only
+        // their own logs, and not each others. We only checking the blockNumber here to make sure they are the same.
+        assert.strictEqual(receiptBlockNumber, blockNumber, "Receipt blockNumber doesn't match expected block number");
+        assert.strictEqual(logs.length, 1, "Receipt had wrong amount of logs");
+        assert(logs.every((l) => l.transactionHash === receipt.transactionHash), "Receipt log isn't valid");
+        assert(logs.every((l) => l.blockHash === receipt.blockHash), "Logs blockhash doesn't match block blockhash");
+      });
+    });
+
     // NB: relies on the previous test setting value to 25 and the contract deployment setting
     // original value to 5. `contractCreationBlockNumber` is set in the first test of this
     // describe block.
@@ -1125,9 +1207,34 @@ const tests = function(web3) {
       const result = await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890");
       assert.strictEqual(result, 0);
     });
-  });
 
-  describe("eth_getTransactionCount", function() {
+    it("should fail when given an invalid blockNumber", (done) => {
+      const provider = web3.currentProvider;
+      provider.send(
+        {
+          jsonrpc: "2.0",
+          method: "eth_getTransactionCount",
+          params: [
+            accounts[0],
+            "" // this is in invalid blockNumber
+          ],
+          id: new Date().getTime()
+        },
+        function(err, result) {
+          if (err) {
+            // Ganache provider responds with an `err`, so check that, too.
+            assert.strictEqual(err.message, "Invalid `blockNumber`: \"\"");
+          }
+          if (result.error) {
+            assert.strictEqual(result.error.message, "Invalid `blockNumber`: \"\"");
+          } else {
+            assert.fail("eth_getTransactionCount did not return an error message for invalid data");
+          }
+          done();
+        }
+      );
+    });
+
     it("should return null for non-existent block", async function() {
       const result = await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999);
       assert.strictEqual(result, null, "Should return null for non-existent block (GETH)");

@@ -39,6 +39,48 @@ const testHttp = function(web3) {
   });
 };
 
+const testWebSocket = function(web3) {
+  let web3send;
+
+  before("setup provider send fn", function() {
+    web3send = send(web3.currentProvider);
+  });
+
+  describe("subscriptions", function() {
+    it("should handle eth_subscribe/eth_unsubscribe", async function() {
+      // Attempt to subscribe to 'newHeads'
+      const receipt = await web3send("eth_subscribe", "newHeads");
+      assert(receipt.result, "ID must be returned (eth_subscribe successful)");
+      const result = await web3send("eth_unsubscribe", receipt.result);
+      assert(result.result, "Result must be true (eth_unsubscribe successful)");
+    });
+  });
+};
+
+describe("WebSockets Server:", function() {
+  const Web3 = require("web3");
+  const web3 = new Web3();
+  let server;
+
+  before("Initialize Ganache server", async function() {
+    server = Ganache.server({
+      seed: "1337"
+    });
+    await promisify(server.listen)(PORT + 1);
+    const provider = new Web3.providers.WebsocketProvider("ws://localhost:" + (PORT + 1));
+    web3.setProvider(provider);
+  });
+
+  testWebSocket(web3);
+
+  after("Shutdown server", async function() {
+    let provider = web3._provider;
+    web3.setProvider();
+    provider.connection.close();
+    await promisify(server.close)();
+  });
+});
+
 describe("HTTP Server should not handle subscriptions:", function() {
   const Web3 = require("web3");
   const web3 = new Web3();
@@ -53,9 +95,9 @@ describe("HTTP Server should not handle subscriptions:", function() {
     web3.setProvider(new Web3.providers.HttpProvider(HTTPADDRESS));
   });
 
+  testHttp(web3);
+
   after("Shutdown server", async function() {
     await promisify(server.close)();
   });
-
-  testHttp(web3);
 });

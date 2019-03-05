@@ -3,6 +3,7 @@ var assert = require("assert");
 var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
+var BN = require("bn.js");
 
 describe("ethers", async(done) => {
   const secretKey = "4646464646464646464646464646464646464646464646464646464646464646";
@@ -10,13 +11,20 @@ describe("ethers", async(done) => {
     accounts: [
       {
         secretKey: "0x" + secretKey,
-        balance: 1000000000000000000000
+        balance: "0x" + new BN("1000000000000000000000").toString("hex")
       }
     ]
   });
   const privateKey = Buffer.from(secretKey, "hex");
   const wallet = new ethers.Wallet(privateKey);
   const provider = new ethers.providers.Web3Provider(g);
+  const gasPrice =
+    "0x" +
+    new BN(10)
+      .pow(new BN(9))
+      .muln(20)
+      .toString("hex");
+  const value = "0x" + new BN(10).pow(new BN(18)).toString("hex");
 
   it("ether.js transaction hash matches ganache transaction hash for chainId 1", async() => {
     // This tx mostly matches EIP-155 example except for the nonce
@@ -24,9 +32,9 @@ describe("ethers", async(done) => {
     const transaction = {
       nonce: 0,
       to: "0x3535353535353535353535353535353535353535",
-      gasPrice: 20 * 10 ** 9,
+      gasPrice: gasPrice,
       gasLimit: 21000,
-      value: 10 ** 18,
+      value: value,
       data: "",
       chainId: 1 // EIP 155 chainId - mainnet: 1, ropsten: 3
     };
@@ -43,9 +51,9 @@ describe("ethers", async(done) => {
     const transaction = {
       nonce: 1,
       to: "0x3535353535353535353535353535353535353535",
-      gasPrice: 20 * 10 ** 9,
+      gasPrice: gasPrice,
       gasLimit: 21000,
-      value: 10 ** 18,
+      value: value,
       data: ""
     };
     const signedTransaction = await wallet.sign(transaction);
