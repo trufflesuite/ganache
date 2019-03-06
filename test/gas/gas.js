@@ -88,13 +88,18 @@ describe("Gas", function() {
           const { result: estimateHex } = await send("eth_estimateGas", txParams);
           const estimate = parseInt(estimateHex);
           const tx = Object.assign({ gas: `0x${(estimate - 1).toString(16)}` }, txParams);
-          await assert.rejects(send("eth_sendTransaction", tx), {
-            name: "RuntimeError",
-            message: "VM Exception while processing transaction: out of gas"
-          });
+          await assert.rejects(
+            async() => send("eth_sendTransaction", tx),
+            {
+              name: "RuntimeError",
+              message: "VM Exception while processing transaction: out of gas"
+            },
+            `SANITY CHECK: Gas estimate: ${estimate - 1} is too high.`
+          );
           tx.gas = estimateHex;
           await assert.doesNotReject(
-            send("eth_sendTransaction", tx),
+            async() => send("eth_sendTransaction", tx),
+            undefined,
             `SANITY CHECK. Still not enough gas? ${estimate} Our estimate is still too low`
           );
         });
@@ -110,14 +115,15 @@ describe("Gas", function() {
           const { result: estimateHex } = await send("eth_estimateGas", txParams);
           const estimate = new BN(estimateHex.substring(2), "hex");
           txParams.gasLimit = "0x" + estimate.subn(1).toString("hex");
-          await assert.rejects(send("eth_sendTransaction", txParams), {
+          await assert.rejects(async() => send("eth_sendTransaction", txParams), {
             name: "RuntimeError",
             message: "VM Exception while processing transaction: revert"
           });
 
           txParams.gasLimit = estimateHex;
           await assert.doesNotReject(
-            send("eth_sendTransaction", txParams),
+            async() => send("eth_sendTransaction", txParams),
+            undefined,
             `SANITY CHECK. Still not enough gas? ${estimate} Our estimate is still too low`
           );
         });
@@ -127,20 +133,24 @@ describe("Gas", function() {
           const depth = 2;
           const est = await instance.methods.depth(depth).estimateGas();
           await assert.rejects(
-            instance.methods.depth(depth).send({
-              from: accounts[0],
-              gas: est - 1
-            }),
+            async() =>
+              instance.methods.depth(depth).send({
+                from: accounts[0],
+                gas: est - 1
+              }),
             {
               name: "RuntimeError",
               message: "VM Exception while processing transaction: revert"
             }
           );
+
           await assert.doesNotReject(
-            instance.methods.depth(depth).send({
-              from: accounts[0],
-              gas: est
-            }),
+            async() =>
+              instance.methods.depth(depth).send({
+                from: accounts[0],
+                gas: est
+              }),
+            undefined,
             `SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`
           );
         });
@@ -155,13 +165,14 @@ describe("Gas", function() {
           const tx = { from: address };
           const est = await instance.methods.moveFund(address, 5).estimateGas(tx);
           tx.gas = est - 1;
-          await assert.rejects(instance.methods.moveFund(address, 5).send(tx), {
+          await assert.rejects(async() => instance.methods.moveFund(address, 5).send(tx), {
             name: "RuntimeError",
             message: "VM Exception while processing transaction: out of gas"
           });
           tx.gas = est;
           await assert.doesNotReject(
-            instance.methods.moveFund(address, 5).send(tx),
+            async() => instance.methods.moveFund(address, 5).send(tx),
+            undefined,
             `SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`
           );
         }).timeout(1000000);
