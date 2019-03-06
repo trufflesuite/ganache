@@ -24,7 +24,7 @@ describe("Accounts", async() => {
     accounts.forEach(async(account) => {
       await assert.rejects(
         async() => {
-          web3.eth.sendTransaction({
+          await web3.eth.sendTransaction({
             from: account,
             to: badAddress,
             value: web3.utils.toWei("1", "ether"),
