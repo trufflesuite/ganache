@@ -21,20 +21,22 @@ describe("Accounts", async() => {
 
     const { accounts, web3 } = await initializeTestProvider(options);
 
-    accounts.forEach(async(account) => {
-      await assert.rejects(
-        async() => {
-          await web3.eth.sendTransaction({
-            from: account,
-            to: badAddress,
-            value: web3.utils.toWei("1", "ether"),
-            gasLimit: 90000
-          });
-        },
-        /signer account is locked/,
-        "should not be able to unlock the count"
-      );
-    });
+    await Promise.all(
+      accounts.map((account) => {
+        assert.rejects(
+          async() => {
+            await web3.eth.sendTransaction({
+              from: account,
+              to: badAddress,
+              value: web3.utils.toWei("1", "ether"),
+              gasLimit: 90000
+            });
+          },
+          /signer account is locked/,
+          "should not be able to unlock the count"
+        );
+      })
+    );
   });
 
   it("should unlock specified accounts, in conjunction with --secure", async() => {
@@ -46,22 +48,37 @@ describe("Accounts", async() => {
 
     const { accounts, web3 } = await initializeTestProvider(options);
 
-    accounts.forEach(async(account) => {
-      try {
-        await web3.eth.sendTransaction({
-          from: account,
-          to: badAddress,
-          value: web3.utils.toWei("1", "ether"),
-          gasLimit: 90000
-        });
-
+    await Promise.all(
+      accounts.map((account) => {
         if (account !== expectedAddress) {
-          assert.fail("signer account should not be unlockable");
+          assert.rejects(
+            async() => {
+              await web3.eth.sendTransaction({
+                from: account,
+                to: badAddress,
+                value: web3.utils.toWei("1", "ether"),
+                gasLimit: 90000
+              });
+            },
+            /signer account is locked/,
+            "should not be able to unlock the count"
+          );
+        } else {
+          assert.doesNotReject(
+            async() => {
+              await web3.eth.sendTransaction({
+                from: account,
+                to: badAddress,
+                value: web3.utils.toWei("1", "ether"),
+                gasLimit: 90000
+              });
+            },
+            /signer account is locked/,
+            "should not be able to unlock the count"
+          );
         }
-      } catch (error) {
-        assert.strictEqual(error.message, "signer account is locked");
-      }
-    });
+      })
+    );
   });
 
   it("should unlock specified accounts, in conjunction with --secure, using array indexes", async() => {
@@ -74,22 +91,37 @@ describe("Accounts", async() => {
 
     const { accounts, web3 } = await initializeTestProvider(options);
 
-    accounts.forEach(async(account) => {
-      try {
-        await web3.eth.sendTransaction({
-          from: account,
-          to: badAddress,
-          value: web3.utils.toWei("1", "ether"),
-          gasLimit: 90000
-        });
-
-        if (account === index) {
-          assert.fail("Expecting signer account to be locked");
+    await Promise.all(
+      accounts.map((account) => {
+        if (account !== accounts[index]) {
+          assert.rejects(
+            async() => {
+              await web3.eth.sendTransaction({
+                from: account,
+                to: badAddress,
+                value: web3.utils.toWei("1", "ether"),
+                gasLimit: 90000
+              });
+            },
+            /signer account is locked/,
+            "should not be able to unlock the count"
+          );
+        } else {
+          assert.doesNotReject(
+            async() => {
+              await web3.eth.sendTransaction({
+                from: account,
+                to: badAddress,
+                value: web3.utils.toWei("1", "ether"),
+                gasLimit: 90000
+              });
+            },
+            /signer account is locked/,
+            "should not be able to unlock the count"
+          );
         }
-      } catch (error) {
-        assert.strictEqual(error.message, "signer account is locked");
-      }
-    });
+      })
+    );
   });
 
   it("should unlock accounts even if private key isn't managed by the testrpc (impersonation)", async() => {
@@ -134,12 +166,13 @@ describe("Accounts", async() => {
 
     const { web3 } = await initializeTestProvider(options);
 
-    try {
-      await web3.eth.sign("some data", badAddress);
-      assert.fail("should not be able to sign a transaction with an impersonated account");
-    } catch (error) {
-      assert.strictEqual(error.message, "cannot sign data; no private key");
-    }
+    assert.rejects(
+      async() => {
+        await web3.eth.sign("some data", badAddress);
+      },
+      /cannot sign data; no private key/,
+      "should not be able to sign a transaction with an impersonated account"
+    );
   });
 
   it("should create a 2 accounts when passing an object to provider", async() => {
