@@ -7,12 +7,14 @@ const randomInteger = require("../helpers/utils/generateRandomInteger");
 const testTransactionEstimate = require("./lib/transactionEstimate");
 const toBytesHexString = require("../helpers/utils/toBytesHexString");
 const { deploy } = require("../helpers/contract/compileAndDeploy");
-
+const BN = require("bn.js");
+const createSignedTx = require("../helpers/utils/create-signed-tx");
 const SEED_RANGE = 1000000;
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
 const HARDFORKS = ["petersburg", "constantinople", "byzantium"];
+const generateSend = require("../helpers/utils/rpc");
 
 describe("Gas", function() {
   HARDFORKS.forEach((hardfork) => {
@@ -37,186 +39,192 @@ describe("Gas", function() {
       });
 
       describe("EIP150 Gas Estimation: ", function() {
+        const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
         let ContractFactory;
         let TestDepth;
         let Donation;
         let Fib;
+        let SendContract;
         before("Setting up EIP150 contracts", async function() {
           this.timeout(10000);
 
-          const subDirectory = {
-            contractSubdirectory: "gas"
-          };
+          const subDirectory = { contractSubdirectory: "gas" };
           const factory = Object.assign({ contractFiles: ["ContractFactory"] }, subDirectory);
           const testDepth = Object.assign({ contractFiles: ["TestDepth"] }, subDirectory);
           const donation = Object.assign({ contractFiles: ["Donation"] }, subDirectory);
           const fib = Object.assign({ contractFiles: ["Fib"] }, subDirectory);
+          const sendContract = Object.assign({ contractFiles: ["SendContract"] }, subDirectory);
 
-          const ganacheProviderOptions = {
-            seed,
-            hardfork
-          };
+          const ganacheProviderOptions = { seed, hardfork };
 
           ContractFactory = await bootstrap(factory, ganacheProviderOptions);
           TestDepth = await bootstrap(testDepth, ganacheProviderOptions);
           Donation = await bootstrap(donation, ganacheProviderOptions);
           Fib = await bootstrap(fib, ganacheProviderOptions);
+          SendContract = await bootstrap(
+            sendContract,
+            Object.assign(
+              {
+                accounts: [
+                  {
+                    secretKey: "0x" + privateKey.toString("hex"),
+                    balance: "0x" + new BN("1000000000000000000000").toString("hex")
+                  }
+                ]
+              },
+              ganacheProviderOptions
+            )
+          );
         });
 
         it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
-          const { accounts, instance } = Fib;
-          const index = 5;
-          const est = await instance.methods.calc(index).estimateGas();
-          let reason = "FAILED: not enough gas (expected)";
-          try {
-            await instance.methods.calc(index).send({
-              from: accounts[0],
-              gas: est - 1
-            });
-            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
-            assert.fail(reason);
-          } catch (e) {
-            assert(reason);
-          }
-          try {
-            await instance.methods.calc(index).send({
-              from: accounts[0],
-              gas: est
-            });
-            assert("Enough gas supplied!");
-          } catch (e) {
-            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
-          }
+          const { accounts, instance, provider } = Fib;
+          const send = generateSend(provider);
+          const txParams = {
+            from: accounts[0],
+            to: instance._address,
+            value: 10
+          };
+          const { result: estimateHex } = await send("eth_estimateGas", txParams);
+          const estimate = parseInt(estimateHex);
+          const tx = Object.assign({ gas: `0x${(estimate - 1).toString(16)}` }, txParams);
+          await assert.rejects(send("eth_sendTransaction", tx), {
+            name: "RuntimeError",
+            message: "VM Exception while processing transaction: out of gas"
+          });
+          tx.gas = estimateHex;
+          await assert.doesNotReject(
+            send("eth_sendTransaction", tx),
+            `SANITY CHECK. Still not enough gas? ${estimate} Our estimate is still too low`
+          );
         });
 
         it("Should estimate gas perfectly with EIP150 - CREATE", async() => {
-          const { accounts, instance } = ContractFactory;
-          const est = await instance.methods.createInstance().estimateGas();
-          let reason = "FAILED: not enough gas (expected)";
-          try {
-            await instance.methods.createInstance().send({
-              from: accounts[0],
-              gas: est - 1
-            });
-            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
-            assert.fail(reason);
-          } catch (e) {
-            assert(reason);
-          }
-          try {
-            await instance.methods.createInstance().send({
-              from: accounts[0],
-              gas: est
-            });
-            assert("Enough gas supplied!");
-          } catch (e) {
-            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
-          }
+          const { accounts, instance, provider } = ContractFactory;
+          const send = generateSend(provider);
+          const txParams = {
+            from: accounts[0],
+            to: instance._address,
+            data: instance.methods.createInstance().encodeABI()
+          };
+          const { result: estimateHex } = await send("eth_estimateGas", txParams);
+          const estimate = new BN(estimateHex.substring(2), "hex");
+          txParams.gasLimit = "0x" + estimate.subn(1).toString("hex");
+          await assert.rejects(send("eth_sendTransaction", txParams), {
+            name: "RuntimeError",
+            message: "VM Exception while processing transaction: revert"
+          });
+
+          txParams.gasLimit = estimateHex;
+          await assert.doesNotReject(
+            send("eth_sendTransaction", txParams),
+            `SANITY CHECK. Still not enough gas? ${estimate} Our estimate is still too low`
+          );
         });
 
         it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async() => {
           const { accounts, instance } = TestDepth;
           const depth = 2;
           const est = await instance.methods.depth(depth).estimateGas();
-          let reason = "FAILED: not enough gas (expected)";
-          try {
-            await instance.methods.depth(depth).send({
+          await assert.rejects(
+            instance.methods.depth(depth).send({
               from: accounts[0],
               gas: est - 1
-            });
-            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
-            assert.fail(reason);
-          } catch (e) {
-            assert(reason);
-          }
-          try {
-            await instance.methods.depth(depth).send({
+            }),
+            {
+              name: "RuntimeError",
+              message: "VM Exception while processing transaction: revert"
+            }
+          );
+          await assert.doesNotReject(
+            instance.methods.depth(depth).send({
               from: accounts[0],
               gas: est
-            });
-            assert("Enough gas supplied!");
-          } catch (e) {
-            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
-          }
+            }),
+            `SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`
+          );
         });
 
         it("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async() => {
           const { accounts, instance } = Donation;
           // Pre-condition
           const address = accounts[0];
-          const donateEst = await instance.methods.donate().estimateGas({
-            from: address,
-            value: 50
+          const donateTx = { from: address, value: 50 };
+          donateTx.gas = await instance.methods.donate().estimateGas(donateTx);
+          await instance.methods.donate().send(donateTx);
+          const tx = { from: address };
+          const est = await instance.methods.moveFund(address, 5).estimateGas(tx);
+          tx.gas = est - 1;
+          await assert.rejects(instance.methods.moveFund(address, 5).send(tx), {
+            name: "RuntimeError",
+            message: "VM Exception while processing transaction: out of gas"
           });
-          await instance.methods.donate().send({
-            from: address,
-            value: 50,
-            gas: donateEst
-          });
-          const est = await instance.methods.moveFund(address, 5).estimateGas({
-            from: address
-          });
-
-          let reason = "FAILED: not enough gas (expected)";
-          try {
-            await instance.methods.moveFund(address, 5).send({
-              from: address,
-              gas: est - 1
-            });
-            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
-            assert.fail(reason);
-          } catch (e) {
-            assert(reason);
-          }
-          try {
-            await instance.methods.moveFund(address, 5).send({
-              from: address,
-              gas: est
-            });
-            assert("Enough gas supplied!");
-          } catch (e) {
-            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`);
-          }
+          tx.gas = est;
+          await assert.doesNotReject(
+            instance.methods.moveFund(address, 5).send(tx),
+            `SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`
+          );
         }).timeout(1000000);
 
+        // TODO: Make this actually test SVT
         it("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async() => {
-          const { accounts, instance } = Donation;
-          // Pre-condition
-          const address = accounts[2];
-          const donateEst = await instance.methods.donate().estimateGas({
-            from: address,
-            value: 50
-          });
-          await instance.methods.donate().send({
-            from: address,
-            value: 50,
-            gas: donateEst
-          });
-          const est = await instance.methods.moveFund2(address, 1).estimateGas({
-            from: address
-          });
+          const { accounts, instance, provider, web3 } = SendContract;
+          const toBN = (hex) => new BN(hex.substring(2), "hex");
+          const toBNStr = (hex, base = 10) => toBN(hex).toString(base);
+          const send = generateSend(provider);
+          const sign = createSignedTx(privateKey);
+          const gasPrice = "0x77359400";
+          const amountToTransfer = "0xfffffff1ff000000";
 
-          let reason = "FAILED: not enough gas (expected)";
-          try {
-            await instance.methods.moveFund2(accounts[2], 1).send({
-              from: address,
-              gas: est - 1
-            });
-            reason = `SANITY CHECK. Passed? when est is: ${est - 1} Our estimate is still too high`;
-            assert.fail(reason);
-          } catch (e) {
-            assert(reason);
-          }
-          try {
-            await instance.methods.moveFund2(accounts[2], 1).send({
-              from: address,
-              gas: est
-            });
-            assert("Enough gas supplied!");
-          } catch (e) {
-            assert.fail(`SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low\n${e}`);
-          }
-        }).timeout(1000000);
+          // Get initial Balance after contract deploy
+          const { result: balance } = await send("eth_getBalance", accounts[0]);
+
+          // Initial seeding of capital to contract, we check the balance after.
+          const tx = {
+            gasPrice,
+            value: amountToTransfer, // ~18 ether
+            from: accounts[0],
+            to: instance._address
+          };
+          ({ result: tx.gasLimit } = await send("eth_estimateGas", tx));
+          const { result: hash } = await send("eth_sendTransaction", tx);
+          const {
+            result: { gasUsed: initialGasUsed }
+          } = await send("eth_getTransactionReceipt", hash);
+
+          // Assert that the contract has the correct balance ~18 ether
+          const getBalance = await instance.methods.getBalance().call({ from: accounts[0] });
+          assert.strictEqual(toBNStr(amountToTransfer), getBalance, "balance is not ~18 ether");
+
+          // It's not neccessary to sign but currently it's the only test that demonstrates sending signed
+          // transactions that call a contract method.
+          // Calling `encodeABI()` on the desired contract method will return the
+          // the necessary bytecode to call the contract method with the given parameters
+          // NOTE: errors from encodeABI are likely do to incorrect types for the method arguments
+          // Double check the contracts method signature and your arguments
+          // Ex: transfer(Address[], uint))  =>  transfer(Array, hex string of int)
+          const txParams = {
+            gasPrice,
+            nonce: "0x2",
+            to: instance._address,
+            value: "0x0",
+            data: instance.methods.transfer(accounts, amountToTransfer).encodeABI()
+          };
+          ({ result: txParams.gasLimit } = await send("eth_estimateGas", sign(txParams)));
+          const { gasUsed: signedGasUsed } = await web3.eth.sendSignedTransaction(sign(txParams));
+          const { result: newBalance } = await send("eth_getBalance", accounts[0]);
+          // Gasprice * ( sum of gas used )
+          const gas = toBN(gasPrice).mul(toBN(initialGasUsed).addn(signedGasUsed));
+          // Our current balance, plus the wei spent on gas === original gas
+          const currentBalancePlusGas = toBN(newBalance)
+            .add(gas)
+            .toString();
+          assert.strictEqual(toBNStr(balance), currentBalancePlusGas, "balance + gas used !== to start balance");
+
+          // Assert that signed tx successfully drains contract to address
+          const newContractBalance = await instance.methods.getBalance().call({ from: accounts[0] });
+          assert.strictEqual(newContractBalance, "0", "balance is not 0");
+        }).timeout(10000);
       });
 
       describe("Refunds", function() {
