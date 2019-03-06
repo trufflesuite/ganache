@@ -1,32 +1,32 @@
-var Web3 = require("web3");
-var assert = require("assert");
-var Ganache = require(process.env.TEST_BUILD
+const Web3 = require("web3");
+const assert = require("assert");
+const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var solc = require("solc");
-var fs = require("fs");
-
-var logger = {
-  log: function(message) {
-    // console.log(message);
-  }
-};
-
-var web3 = new Web3();
-web3.setProvider(
-  Ganache.provider({
-    /* blockTime: 100, */
-    logger: logger,
-    seed: "1337"
-  })
-);
+const solc = require("solc");
+const fs = require("fs");
 
 describe("revert opcode", function() {
-  var testContext = {};
+  const testContext = {};
+
+  const logger = {
+    log: function(message) {
+      // console.log(message);
+    }
+  };
+
+  const web3 = new Web3();
+  web3.setProvider(
+    Ganache.provider({
+      /* blockTime: 100, */
+      logger: logger,
+      seed: "1337"
+    })
+  );
 
   before(function(done) {
     this.timeout(10000);
-    testContext.source = fs.readFileSync("./test/Revert.sol", { encoding: "utf8" });
+    testContext.source = fs.readFileSync("./test/contracts/revert/Revert.sol", { encoding: "utf8" });
     testContext.solcResult = solc.compile(testContext.source, false);
 
     testContext.revertContract = {
@@ -42,7 +42,6 @@ describe("revert opcode", function() {
       }
 
       testContext.accounts = accs;
-
       return done();
     });
   });
