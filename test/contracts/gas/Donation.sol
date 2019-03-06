@@ -32,13 +32,9 @@ contract Donation {
 
     function moveFund2(address _to, uint _amount) public onlyowner {
         uint _balance = address(this).balance;
-        bool _tosendbal = _to.send(_amount);
         if (_amount <= _balance) {
-            if (_tosendbal) {
-                emit fundMoved(_to, _amount);
-            } else {
-                revert();
-            }
+            require(_to.send(_amount));
+            emit fundMoved(_to, _amount);
         } else {
             revert();
         }
