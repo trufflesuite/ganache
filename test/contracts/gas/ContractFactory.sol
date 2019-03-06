@@ -7,7 +7,7 @@ contract ContractFactory5{
 contract ContractFactory4{
     address[] addresses;
     constructor() public {
-        for(uint i=0; i < 3; i++){
+        for(uint i=0; i < 2; i++){
             addresses.push(new ContractFactory5());
         }
     }
@@ -25,7 +25,7 @@ contract ContractFactory3{
     constructor() public {
         test2 = new ContractFactory4();
 
-        for(uint i=0; i < 10; i++){
+        for(uint i=0; i < 2; i++){
             addresses.push(new ContractFactory4());
         }
     }
