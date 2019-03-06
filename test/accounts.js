@@ -23,7 +23,7 @@ describe("Accounts", async() => {
 
     await Promise.all(
       accounts.map((account) => {
-        assert.rejects(
+        return assert.rejects(
           () =>
             web3.eth.sendTransaction({
               from: account,
@@ -58,9 +58,9 @@ describe("Accounts", async() => {
           });
 
         if (account !== expectedAddress) {
-          assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
+          return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
         } else {
-          assert.doesNotReject(tx, /signer account is locked/, "should not be able to unlock the count");
+          return assert.doesNotReject(tx, /signer account is locked/, "should not be able to unlock the count");
         }
       })
     );
