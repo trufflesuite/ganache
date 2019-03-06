@@ -24,14 +24,13 @@ describe("Accounts", async() => {
     await Promise.all(
       accounts.map((account) => {
         assert.rejects(
-          async() => {
-            await web3.eth.sendTransaction({
+          () =>
+            web3.eth.sendTransaction({
               from: account,
               to: badAddress,
               value: web3.utils.toWei("1", "ether"),
               gasLimit: 90000
-            });
-          },
+            }),
           /signer account is locked/,
           "should not be able to unlock the count"
         );
@@ -139,9 +138,7 @@ describe("Accounts", async() => {
     const { web3 } = await initializeTestProvider(options);
 
     assert.rejects(
-      async() => {
-        await web3.eth.sign("some data", badAddress);
-      },
+      () => web3.eth.sign("some data", badAddress),
       /cannot sign data; no private key/,
       "should not be able to sign a transaction with an impersonated account"
     );
