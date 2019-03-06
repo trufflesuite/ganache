@@ -1,7 +1,7 @@
 const assert = require("assert");
 const bootstrap = require("../helpers/contract/bootstrap");
 
-describe.only("Transaction Data", () => {
+describe("Transaction Data", () => {
   let context;
 
   before("Setting up web3 and contract", async function() {
