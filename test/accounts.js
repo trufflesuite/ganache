@@ -22,17 +22,18 @@ describe("Accounts", async() => {
     const { accounts, web3 } = await initializeTestProvider(options);
 
     accounts.forEach(async(account) => {
-      try {
-        await web3.eth.sendTransaction({
-          from: account,
-          to: badAddress,
-          value: web3.utils.toWei("1", "ether"),
-          gasLimit: 90000
-        });
-        assert.fail("should not be able to unlock the count");
-      } catch (error) {
-        assert.strictEqual(error.message, "signer account is locked");
-      }
+      await assert.rejects(
+        async() => {
+          await web3.eth.sendTransaction({
+            from: account,
+            to: badAddress,
+            value: web3.utils.toWei("1", "ether"),
+            gasLimit: 90000
+          });
+        },
+        /signer account is locked/,
+        "should not be able to unlock the count"
+      );
     });
   });
 
@@ -81,6 +82,10 @@ describe("Accounts", async() => {
           value: web3.utils.toWei("1", "ether"),
           gasLimit: 90000
         });
+
+        if (account === index) {
+          assert.fail("Expecting signer account to be locked");
+        }
       } catch (error) {
         assert.strictEqual(error.message, "signer account is locked");
       }
