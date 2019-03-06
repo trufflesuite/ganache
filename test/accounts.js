@@ -205,7 +205,7 @@ describe("Accounts", async() => {
     await Promise.all(
       accounts.map(async(account) => {
         const balance = await web3.eth.getBalance(account);
-        const balanceInEther = await web3.utils.fromWei(balance, "Ether");
+        const balanceInEther = web3.utils.fromWei(balance, "Ether");
         assert.strictEqual(balanceInEther, "1.23456");
       })
     );
