@@ -115,14 +115,14 @@ describe("Gas", function() {
           const { result: estimateHex } = await send("eth_estimateGas", txParams);
           const estimate = new BN(estimateHex.substring(2), "hex");
           txParams.gasLimit = "0x" + estimate.subn(1).toString("hex");
-          await assert.rejects(async() => send("eth_sendTransaction", txParams), {
+          await assert.rejects(() => send("eth_sendTransaction", txParams), {
             name: "RuntimeError",
             message: "VM Exception while processing transaction: revert"
           });
 
           txParams.gasLimit = estimateHex;
           await assert.doesNotReject(
-            async() => send("eth_sendTransaction", txParams),
+            () => send("eth_sendTransaction", txParams),
             undefined,
             `SANITY CHECK. Still not enough gas? ${estimate} Our estimate is still too low`
           );
@@ -133,7 +133,7 @@ describe("Gas", function() {
           const depth = 2;
           const est = await instance.methods.depth(depth).estimateGas();
           await assert.rejects(
-            async() =>
+            () =>
               instance.methods.depth(depth).send({
                 from: accounts[0],
                 gas: est - 1
@@ -145,7 +145,7 @@ describe("Gas", function() {
           );
 
           await assert.doesNotReject(
-            async() =>
+            () =>
               instance.methods.depth(depth).send({
                 from: accounts[0],
                 gas: est
@@ -165,13 +165,13 @@ describe("Gas", function() {
           const tx = { from: address };
           const est = await instance.methods.moveFund(address, 5).estimateGas(tx);
           tx.gas = est - 1;
-          await assert.rejects(async() => instance.methods.moveFund(address, 5).send(tx), {
+          await assert.rejects(() => instance.methods.moveFund(address, 5).send(tx), {
             name: "RuntimeError",
             message: "VM Exception while processing transaction: out of gas"
           });
           tx.gas = est;
           await assert.doesNotReject(
-            async() => instance.methods.moveFund(address, 5).send(tx),
+            () => instance.methods.moveFund(address, 5).send(tx),
             undefined,
             `SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`
           );
