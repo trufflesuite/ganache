@@ -202,10 +202,12 @@ describe("Accounts", async() => {
 
     const { accounts, web3 } = await initializeTestProvider(options);
 
-    accounts.forEach(async(account) => {
-      const balance = await web3.eth.getBalance(account);
-      const balanceInEther = await web3.utils.fromWei(balance, "Ether");
-      assert.strictEqual(balanceInEther, "1.23456");
-    });
+    await Promise.all(
+      accounts.map(async(account) => {
+        const balance = await web3.eth.getBalance(account);
+        const balanceInEther = await web3.utils.fromWei(balance, "Ether");
+        assert.strictEqual(balanceInEther, "1.23456");
+      })
+    );
   });
 });
