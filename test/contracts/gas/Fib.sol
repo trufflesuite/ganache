@@ -6,7 +6,13 @@ contract Fib {
     uint public value = 0;
 
     function() public payable {
-        value = calc(5);
+        Bif bif = new Bif();
+        value = bif.calc(5);
+    }
+}
+
+contract Bif {
+    function Bif() public {
     }
 
     function calc(uint index) public returns(uint){
