@@ -4,6 +4,10 @@ var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
 var assert = require("assert");
+const genSend = require("./helpers/utils/rpc");
+const Account = require("ethereumjs-account");
+const { promisify } = require("util");
+const utils = require("ethereumjs-util");
 
 describe("Accounts", function() {
   var expectedAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
@@ -258,6 +262,108 @@ describe("Accounts", function() {
 
         return returnVal;
       }, null);
+    });
+  });
+
+  describe("Should handle large nonces", function() {
+    let provider;
+    let accounts;
+    let from;
+    let send;
+    let currentNonce;
+    let startingBlockNumber;
+    const sendTransaction = (payload) => send("eth_sendTransaction", payload);
+    const getTransactionByHash = (payload) => send("eth_getTransactionByHash", payload);
+
+    beforeEach("set up provider", async function() {
+      provider = Ganache.provider();
+      send = genSend(provider);
+      const { result: _accounts } = await send("eth_accounts");
+      accounts = _accounts;
+      from = accounts[9];
+    });
+
+    async function setUp(initialNonce) {
+      // Hack to seed the state with an account with a very high nonce
+      const stateManager = provider.manager.state.blockchain.vm.stateManager;
+      const putAccount = promisify(stateManager.putAccount.bind(stateManager));
+      await putAccount(
+        utils.toBuffer(from),
+        new Account({
+          balance: "0xffffffffffffffffffff",
+          nonce: new BN(initialNonce),
+          address: from
+        })
+      );
+      // we need to mine a block for the putAccount to take effect
+      await send("evm_mine");
+
+      const { result: count } = await send("eth_getTransactionCount", from, "latest");
+      currentNonce = new BN(count.slice(2), "hex");
+      assert.strictEqual(currentNonce.toNumber(), initialNonce, "nonce is not equal to" + initialNonce);
+      const {
+        result: { number: blockNumber }
+      } = await send("eth_getBlockByNumber", "latest", false);
+      startingBlockNumber = parseInt(blockNumber, 16);
+      assert.strictEqual(startingBlockNumber, 1, "latest block number is not expected (1)");
+    }
+
+    async function runTests(intervalMining = true) {
+      let expectedNonce = new BN(currentNonce);
+      let expectedBlockNum = startingBlockNumber + 1;
+
+      if (intervalMining) {
+        // mimic interval mining without out having to actually
+        // configure ganache to mine on an interval (slowing tests down)
+        // by just stopping the miner and then mining on command
+        await send("miner_stop");
+      }
+      // create some transactions that will increment the nonce
+      const tx = { value: 1, from, to: from };
+      // send of our transactions and get their tx info once ready
+      const pendingHashes = Array(3)
+        .fill(tx)
+        .map(sendTransaction);
+      if (intervalMining) {
+        await send("evm_mine");
+      }
+      const pendingTransactions = pendingHashes.map((tx) => tx.then(({ result }) => getTransactionByHash(result)));
+      await Promise.all(
+        pendingTransactions.map((tx) =>
+          tx.then(({ result }) => {
+            const nonce = new BN(result.nonce.slice(2), "hex");
+            const blockNum = parseInt(result.blockNumber, 16);
+            assert.strictEqual(nonce.toString(10), expectedNonce.toString(10), "Tx nonce is not as expected");
+            assert.strictEqual(blockNum, expectedBlockNum, "Tx blockNumber is not as expected");
+            expectedNonce.iaddn(1);
+            // the block number must be different for each treansaction is we
+            // we are instamining. This ensures we are testing the right code branch
+            if (!intervalMining) {
+              expectedBlockNum++;
+            }
+          })
+        )
+      );
+    }
+
+    it("should handle nonces greater than 255 (interval)", async function() {
+      await setUp(255);
+      await runTests(true);
+    });
+
+    it("should handle nonces greater than 255 (instamining)", async function() {
+      await setUp(255);
+      await runTests(false);
+    });
+
+    it("should handle nonces greater than MAX_SAFE_INTEGER (interval)", async function() {
+      await setUp(Number.MAX_SAFE_INTEGER);
+      await runTests(true);
+    });
+
+    it("should handle nonces greater than MAX_SAFE_INTEGER (instamining)", async function() {
+      await setUp(Number.MAX_SAFE_INTEGER);
+      await runTests(false);
     });
   });
 });
