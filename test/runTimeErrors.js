@@ -1,15 +1,15 @@
-var Web3 = require("web3");
-var assert = require("assert");
-var Ganache = require(process.env.TEST_BUILD
+const Web3 = require("web3");
+const assert = require("assert");
+const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var fs = require("fs");
-var path = require("path");
-var solc = require("solc");
-var to = require("../lib/utils/to");
+const fs = require("fs");
+const path = require("path");
+const solc = require("solc");
+const to = require("../lib/utils/to");
 
 function runTests(web3, provider, extraTests) {
-  var testState = {
+  const testState = {
     accounts: null,
     ErrorContract: null,
     errorInstance: null,
@@ -23,11 +23,11 @@ function runTests(web3, provider, extraTests) {
   before("compile source", async function() {
     this.timeout(10000);
 
-    var source = fs.readFileSync(path.join(__dirname, "RuntimeError.sol"), "utf8");
-    var result = solc.compile({ sources: { "RuntimeError.sol": source } }, 1);
+    const source = fs.readFileSync(path.join(__dirname, "RuntimeError.sol"), "utf8");
+    const result = solc.compile({ sources: { "RuntimeError.sol": source } }, 1);
 
     testState.code = "0x" + result.contracts["RuntimeError.sol:RuntimeError"].bytecode;
-    var abi = JSON.parse(result.contracts["RuntimeError.sol:RuntimeError"].interface);
+    const abi = JSON.parse(result.contracts["RuntimeError.sol:RuntimeError"].interface);
 
     testState.ErrorContract = new web3.eth.Contract(abi);
     testState.ErrorContract._code = testState.code;
@@ -160,6 +160,44 @@ function runTests(web3, provider, extraTests) {
     );
   });
 
+  it("should have correct return value when calling a method that reverts without message", function(done) {
+    provider.send(
+      {
+        jsonrpc: "2.0",
+        id: new Date().getTime(),
+        method: "eth_call",
+        params: [
+          {
+            from: testState.accounts[0],
+            to: testState.errorInstance.options.address,
+            // calls error()
+            data: "0xc79f8b62",
+            gas: to.hex(3141592)
+          }
+        ]
+      },
+      function(_, response) {
+        if (provider.options.vmErrorsOnRPCResponse) {
+          // null & undefined are equivalent for equality tests, but I'm being
+          // pedantic here for readability's sake
+          assert(response.error !== null);
+          assert(response.error !== undefined);
+          assert(response.result === undefined || response.result === null);
+
+          assert(
+            /revert/.test(response.error.message),
+            `Expected error message (${response.error.message}) to contain 'revert'`
+          );
+        } else {
+          assert(response.error === undefined);
+          assert(response.result === "0x");
+        }
+
+        done();
+      }
+    );
+  });
+
   it("should have correct return value when calling a method that reverts with message", function(done) {
     provider.send(
       {
@@ -220,11 +258,11 @@ function runTests(web3, provider, extraTests) {
 }
 
 describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
-  var provider = Ganache.provider({
+  const provider = Ganache.provider({
     vmErrorsOnRPCResponse: true
   });
 
-  var web3 = new Web3(provider);
+  const web3 = new Web3(provider);
 
   runTests(web3, provider, function(testState) {
     it("should output instruction index on runtime errors", function(done) {
@@ -261,10 +299,10 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
 });
 
 describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
-  var provider = Ganache.provider({
+  const provider = Ganache.provider({
     vmErrorsOnRPCResponse: false
   });
 
-  var web3 = new Web3(provider);
+  const web3 = new Web3(provider);
   runTests(web3, provider);
 });
