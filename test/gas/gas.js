@@ -14,7 +14,6 @@ const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
 const HARDFORKS = ["petersburg", "constantinople", "byzantium"];
-const generateSend = require("../helpers/utils/rpc");
 
 describe("Gas", function() {
   HARDFORKS.forEach((hardfork) => {
@@ -78,8 +77,7 @@ describe("Gas", function() {
         });
 
         it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
-          const { accounts, instance, provider } = Fib;
-          const send = generateSend(provider);
+          const { accounts, instance, send } = Fib;
           const txParams = {
             from: accounts[0],
             to: instance._address,
@@ -105,8 +103,7 @@ describe("Gas", function() {
         });
 
         it("Should estimate gas perfectly with EIP150 - CREATE", async() => {
-          const { accounts, instance, provider } = ContractFactory;
-          const send = generateSend(provider);
+          const { accounts, instance, send } = ContractFactory;
           const txParams = {
             from: accounts[0],
             to: instance._address,
@@ -179,10 +176,9 @@ describe("Gas", function() {
 
         // TODO: Make this actually test SVT
         it("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async() => {
-          const { accounts, instance, provider, web3 } = SendContract;
+          const { accounts, instance, send, web3 } = SendContract;
           const toBN = (hex) => new BN(hex.substring(2), "hex");
           const toBNStr = (hex, base = 10) => toBN(hex).toString(base);
-          const send = generateSend(provider);
           const sign = createSignedTx(privateKey);
           const gasPrice = "0x77359400";
           const amountToTransfer = "0xfffffff1ff000000";
