@@ -1,7 +1,7 @@
 const assert = require("assert");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
-describe("Accounts", async() => {
+describe("Accounts", () => {
   const expectedAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
   const badAddress = "0x1234567890123456789012345678901234567890";
   const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
@@ -57,24 +57,25 @@ describe("Accounts", async() => {
             gasLimit: 90000
           });
 
-        if (account !== expectedAddress) {
-          return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
-        } else {
+        if (account === expectedAddress) {
           return assert.doesNotReject(tx, /signer account is locked/, "should not be able to unlock the count");
+        } else {
+          return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
         }
       })
     );
   });
 
   it("should unlock specified accounts, in conjunction with --secure, using array indexes", async() => {
-    const index = 5;
+    const accountIndexToUnlock = 5;
     const options = {
       mnemonic,
       secure: true,
-      unlocked_accounts: [index]
+      unlocked_accounts: [accountIndexToUnlock]
     };
 
     const { accounts, web3 } = await initializeTestProvider(options);
+    const unlockedAccount = accounts[accountIndexToUnlock];
 
     await Promise.all(
       accounts.map((account) => {
@@ -86,10 +87,10 @@ describe("Accounts", async() => {
             gasLimit: 90000
           });
 
-        if (account !== accounts[index]) {
-          return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
-        } else {
+        if (account === unlockedAccount) {
           return assert.doesNotReject(tx, /signer account is locked/, "should not be able to unlock the count");
+        } else {
+          return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
         }
       })
     );
@@ -123,7 +124,7 @@ describe("Accounts", async() => {
 
     // And for the heck of it let's check the balance just to make sure it went through
     const balance = await web3.eth.getBalance(badAddress);
-    let balanceInEther = await web3.utils.fromWei(balance, "ether");
+    let balanceInEther = web3.utils.fromWei(balance, "ether");
     balanceInEther = parseFloat(balanceInEther);
     assert.strictEqual(balanceInEther, 5);
   });
@@ -172,11 +173,12 @@ describe("Accounts", async() => {
     const { accounts, web3 } = await initializeTestProvider(options);
 
     await Promise.all(
-      accounts.map(async(account) => {
-        const balance = await web3.eth.getBalance(account);
-        const balanceInEther = web3.utils.fromWei(balance, "Ether");
-        assert.strictEqual(balanceInEther, "1.23456");
-      })
+      accounts.map((account) =>
+        web3.eth.getBalance(account).then((balance) => {
+          const balanceInEther = web3.utils.fromWei(balance, "Ether");
+          assert.strictEqual(balanceInEther, "1.23456");
+        })
+      )
     );
   });
 });
