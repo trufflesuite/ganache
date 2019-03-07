@@ -14,9 +14,7 @@ describe("Block Tags", function() {
       contractSubdirectory: "examples"
     };
 
-    const ganacheProviderOptions = {};
-
-    context = await bootstrap(contractRef, ganacheProviderOptions);
+    context = await bootstrap(contractRef);
   });
 
   before("Customize contract data", async function() {
