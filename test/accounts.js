@@ -1,8 +1,6 @@
-
 const assert = require("assert");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 var BN = require("bn.js");
-var Web3 = require("web3");
 var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
