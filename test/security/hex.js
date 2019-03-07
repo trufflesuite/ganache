@@ -3,8 +3,6 @@ const initializeTestProvider = require("../helpers/web3/initializeTestProvider")
 const noLeadingZeros = require("./lib/noLeadingZeros");
 const to = require("../../lib/utils/to.js");
 
-const { send } = require("../helpers/utils/rpc");
-
 describe("to.rpcQuantityHexString", function() {
   it("should print '0x0' for input '0x'", function() {
     assert.strictEqual(to.rpcQuantityHexString("0x"), "0x0");
@@ -48,12 +46,12 @@ describe.skip("JSON-RPC Response", function() {
   // is, leading zeroes are fine in some response fields. we need a better model
   // of expected response formatting/padding.
   it("should not have leading zeros in rpc quantity hex strings", async function() {
-    const { accounts, web3 } = await initializeTestProvider();
+    const { accounts, send } = await initializeTestProvider();
 
     let method = "eth_getTransactionCount";
     let params = [accounts[0], "pending"];
 
-    let result = send(method, params, web3);
+    let result = send(method, params);
     noLeadingZeros("eth_getTransactionCount", result);
 
     method = "eth_sendTransaction";
@@ -68,11 +66,11 @@ describe.skip("JSON-RPC Response", function() {
     // Ignore eth_sendTransaction result, it returns the transaction hash.
     // A transaction hash is a 'DATA' type, which can have leading zeroes
     // to pad it to an even string length (4 bit per char, so whole bytes).
-    send(method, params, web3);
+    send(method, params);
 
     method = "eth_getTransactionCount";
     params = [accounts[0], "pending"];
-    result = send(method, params, web3);
+    result = send(method, params);
     noLeadingZeros("eth_getTransactionCount", result);
   });
 });
