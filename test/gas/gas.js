@@ -89,7 +89,7 @@ describe("Gas", function() {
           const estimate = parseInt(estimateHex);
           const tx = Object.assign({ gas: `0x${(estimate - 1).toString(16)}` }, txParams);
           await assert.rejects(
-            async() => send("eth_sendTransaction", tx),
+            () => send("eth_sendTransaction", tx),
             {
               name: "RuntimeError",
               message: "VM Exception while processing transaction: out of gas"
@@ -98,7 +98,7 @@ describe("Gas", function() {
           );
           tx.gas = estimateHex;
           await assert.doesNotReject(
-            async() => send("eth_sendTransaction", tx),
+            () => send("eth_sendTransaction", tx),
             undefined,
             `SANITY CHECK. Still not enough gas? ${estimate} Our estimate is still too low`
           );
