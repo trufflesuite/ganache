@@ -23,17 +23,14 @@ describe("Accounts", () => {
 
     await Promise.all(
       accounts.map((account) => {
-        return assert.rejects(
-          () =>
-            web3.eth.sendTransaction({
-              from: account,
-              to: badAddress,
-              value: web3.utils.toWei("1", "ether"),
-              gasLimit: 90000
-            }),
-          /signer account is locked/,
-          "should not be able to unlock the count"
-        );
+        const tx = () =>
+          web3.eth.sendTransaction({
+            from: account,
+            to: badAddress,
+            value: web3.utils.toWei("1", "ether"),
+            gasLimit: 90000
+          });
+        return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
       })
     );
   });
