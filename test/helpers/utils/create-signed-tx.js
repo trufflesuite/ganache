@@ -4,18 +4,20 @@ const createSignedTx = (privateKey, params) => {
   function _createAndSign(params) {
     const signedTx = new Transaction(params);
     signedTx.sign(privateKey);
-    return signedTx.serialize();
+    return signedTx;
   }
 
   const validBuffer = privateKey && Buffer.isBuffer(privateKey);
   const validParams = params && typeof params === "object";
 
-  if (validBuffer && !validParams) {
-    return (params) => _createAndSign(params);
+  if (validBuffer) {
+    if (validParams) {
+      return _createAndSign(params);
+    } else {
+      return (params) => _createAndSign(params);
+    }
   }
-  if (validBuffer && validParams) {
-    return _createAndSign(params);
-  }
+
   throw new Error("Please use args: privateKey(Buffer), params(Object) ");
 };
 

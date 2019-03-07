@@ -217,8 +217,8 @@ describe("Gas", function() {
             value: "0x0",
             data: instance.methods.transfer(accounts, amountToTransfer).encodeABI()
           };
-          ({ result: txParams.gasLimit } = await send("eth_estimateGas", sign(txParams)));
-          const { gasUsed: signedGasUsed } = await web3.eth.sendSignedTransaction(sign(txParams));
+          ({ result: txParams.gasLimit } = await send("eth_estimateGas", sign(txParams).serialize()));
+          const { gasUsed: signedGasUsed } = await web3.eth.sendSignedTransaction(sign(txParams).serialize());
           const { result: newBalance } = await send("eth_getBalance", accounts[0]);
           // Gasprice * ( sum of gas used )
           const gas = toBN(gasPrice).mul(toBN(initialGasUsed).addn(signedGasUsed));
