@@ -1,10 +1,10 @@
 const assert = require("assert");
 const bootstrap = require("./helpers/contract/bootstrap");
 
-const contract = {};
-
 describe("Block Tags", function() {
   let context;
+  const contract = {};
+  const initialState = {};
 
   before("Setting up web3 and contract", async function() {
     this.timeout(10000);
@@ -18,13 +18,12 @@ describe("Block Tags", function() {
   });
 
   before("Customize contract data", async function() {
-    const { abi, bytecode, sources } = context;
+    const { abi, bytecode } = context;
 
     // Note: Certain properties of the following contract data are hardcoded to
     // maintain repeatable tests. If you significantly change the solidity code,
     // make sure to update the resulting contract data with the correct values.
     Object.assign(contract, {
-      solidity: sources["Example.sol"],
       abi,
       binary: bytecode,
       position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -43,8 +42,6 @@ describe("Block Tags", function() {
       }
     });
   });
-
-  const initialState = {};
 
   before("Get initial balance, nonce and block number", async function() {
     const { accounts, web3 } = context;
