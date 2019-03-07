@@ -1,30 +1,34 @@
 const assert = require("assert");
-const ethers = require("ethers");
 const BN = require("bn.js");
-const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
+const ethers = require("ethers");
+const intializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
 describe("ethers", async() => {
+  let ethersProvider, wallet, gasPrice, value;
   const secretKey = "46".repeat(32);
-  const ganacheOptions = {
-    accounts: [
-      {
-        secretKey: `0x${secretKey}`,
-        balance: `0x${new BN("1000000000000000000000").toString("hex")}`
-      }
-    ]
-  };
-  const provider = Ganache.provider(ganacheOptions);
 
-  const ethersProvider = new ethers.providers.Web3Provider(provider);
-  const privateKey = Buffer.from(secretKey, "hex");
-  const wallet = new ethers.Wallet(privateKey);
-  const gasPrice = `0x${new BN(10)
-    .pow(new BN(9))
-    .muln(20)
-    .toString("hex")}`;
-  const value = `0x${new BN(10).pow(new BN(18)).toString("hex")}`;
+  before("Setting up ethers wallet provider", async function() {
+    this.timeout(10000);
+    const ganacheOptions = {
+      accounts: [
+        {
+          secretKey: `0x${secretKey}`,
+          balance: `0x${new BN("1000000000000000000000").toString("hex")}`
+        }
+      ]
+    };
+
+    const { provider } = await intializeTestProvider(ganacheOptions);
+
+    ethersProvider = new ethers.providers.Web3Provider(provider);
+    const privateKey = Buffer.from(secretKey, "hex");
+    wallet = new ethers.Wallet(privateKey);
+    gasPrice = `0x${new BN(10)
+      .pow(new BN(9))
+      .muln(20)
+      .toString("hex")}`;
+    value = `0x${new BN(10).pow(new BN(18)).toString("hex")}`;
+  });
 
   it("ether.js transaction hash matches ganache transaction hash for chainId 1", async() => {
     // This tx mostly matches EIP-155 example except for the nonce
