@@ -13,7 +13,7 @@ describe("Debug", function() {
   let multipleCallsHashToTrace = null;
   const expectedValueBeforeTrace = "1234";
 
-  before("set up web3 and contract", async() => {
+  before("set up web3 and contract", async function() {
     this.timeout(10000);
     const contractRef = {
       contractFiles: ["DebugContract"],
@@ -48,8 +48,7 @@ describe("Debug", function() {
 
     it("should trace a successful transaction without changing state", function() {
       // We want to trace the transaction that sets the value to 26
-      const { accounts, instance, web3 } = context;
-      const provider = web3.currentProvider;
+      const { accounts, instance, provider } = context;
 
       return new Promise((resolve, reject) => {
         provider.send(
