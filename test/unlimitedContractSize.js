@@ -2,7 +2,6 @@ const assert = require("assert");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 const randomInteger = require("./helpers/utils/generateRandomInteger");
 const { compile, deploy } = require("./helpers/contract/compileAndDeploy");
-const { join } = require("path");
 
 const SEED_RANGE = 1000000;
 const seed = randomInteger(SEED_RANGE);
@@ -11,11 +10,11 @@ describe("Unlimited Contract Size", function() {
   let contract = {};
 
   before("compile contract", async function() {
+    this.timeout(10000);
     const contractSubdirectory = "customContracts";
     const contractFilename = "LargeContract";
     const subcontractFiles = [];
-    const contractPath = join(__dirname, "contracts", `${contractSubdirectory}/`);
-    const { abi, bytecode } = await compile(contractFilename, subcontractFiles, contractPath);
+    const { abi, bytecode } = await compile(contractFilename, subcontractFiles, contractSubdirectory);
     Object.assign(contract, {
       abi,
       bytecode
@@ -29,7 +28,7 @@ describe("Unlimited Contract Size", function() {
       const ganacheOptions = {
         seed,
         allowUnlimitedContractSize: false,
-        gasLimit: 20000000
+        gasLimit: 2e7
       };
       context = await initializeTestProvider(ganacheOptions);
     });
@@ -38,13 +37,11 @@ describe("Unlimited Contract Size", function() {
       this.timeout(10000);
       const { web3 } = context;
       const { abi, bytecode } = contract;
-      const errorMessage = "succeeded deployment when it should have failed";
-      try {
-        await deploy(abi, bytecode, web3, { gas: 20000000 });
-        assert.fail(errorMessage);
-      } catch (error) {
-        assert.notStrictEqual(error.message, errorMessage);
-      }
+      await assert.rejects(
+        () => deploy(abi, bytecode, web3, { gas: 2e7 }),
+        /VM Exception while processing transaction: out of gas/,
+        "should not be able to deploy a very large contract"
+      );
     });
   });
 
@@ -55,7 +52,7 @@ describe("Unlimited Contract Size", function() {
       const ganacheOptions = {
         seed,
         allowUnlimitedContractSize: true,
-        gasLimit: 20000000
+        gasLimit: 2e7
       };
 
       context = await initializeTestProvider(ganacheOptions);
@@ -64,7 +61,7 @@ describe("Unlimited Contract Size", function() {
     it("should succeed deployment", async function() {
       const { web3 } = context;
       const { abi, bytecode } = contract;
-      await deploy(abi, bytecode, web3, { gas: 20000000 });
+      await deploy(abi, bytecode, web3, { gas: 2e7 });
     });
   });
 });
