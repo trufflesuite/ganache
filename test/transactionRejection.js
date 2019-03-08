@@ -28,7 +28,6 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if nonce is incorrect", function(done) {
-    this.timeout(10000);
     testTransactionForRejection(
       {
         nonce: 0xffff
@@ -39,7 +38,6 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if from account is missing", function(done) {
-    this.timeout(10000);
     testTransactionForRejection(
       {
         from: undefined
@@ -50,7 +48,6 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if from account is invalid/unknown", function(done) {
-    this.timeout(10000);
     testTransactionForRejection(
       {
         from: "0x0000000000000000000000000000000000000001"
@@ -61,7 +58,6 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if from known account which is locked", function(done) {
-    this.timeout(10000);
     const { accounts } = context;
     testTransactionForRejection(
       {
@@ -73,7 +69,6 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if gas limit exceeds block gas limit", function(done) {
-    this.timeout(10000);
     testTransactionForRejection(
       {
         gas: 0xffffffff
@@ -84,7 +79,6 @@ describe("Transaction rejection", function() {
   });
 
   it("should reject transaction if insufficient funds", function(done) {
-    this.timeout(10000);
     const { web3 } = context;
     testTransactionForRejection(
       {
