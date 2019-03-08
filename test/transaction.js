@@ -3,7 +3,7 @@ const BN = require("bn.js");
 const Transaction = require("../lib/utils/transaction");
 
 describe("Transaction", function() {
-  it("Should adhere to EIP-115", function() {
+  it("Should adhere to EIP-155", function() {
     const gasPrice = 2e10;
     const value = `0x${new BN(10).pow(new BN(18)).toString("hex")}`;
 
