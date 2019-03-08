@@ -51,7 +51,7 @@ describe.skip("JSON-RPC Response", function() {
     let method = "eth_getTransactionCount";
     let params = [accounts[0], "pending"];
 
-    let result = send(method, params);
+    let result = await send(method, params);
     noLeadingZeros("eth_getTransactionCount", result);
 
     method = "eth_sendTransaction";
@@ -66,11 +66,11 @@ describe.skip("JSON-RPC Response", function() {
     // Ignore eth_sendTransaction result, it returns the transaction hash.
     // A transaction hash is a 'DATA' type, which can have leading zeroes
     // to pad it to an even string length (4 bit per char, so whole bytes).
-    send(method, params);
+    await send(method, params);
 
     method = "eth_getTransactionCount";
     params = [accounts[0], "pending"];
-    result = send(method, params);
+    result = await send(method, params);
     noLeadingZeros("eth_getTransactionCount", result);
   });
 });
