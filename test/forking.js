@@ -440,6 +440,42 @@ describe("Forking", function() {
     assert.strictEqual(mainNetwork, forkedNetwork);
   });
 
+  describe("fork_block_number", function() {
+    const initialValue = "123";
+    let forkedExample;
+    let forkBlockNumber;
+    let web3;
+    before("Set up the initial chain with the values we want to test", async function() {
+      forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+      await forkedExample.methods.setValue(initialValue).send({ from: forkedAccounts[0] });
+      forkBlockNumber = await forkedWeb3.eth.getBlockNumber();
+      await forkedExample.methods.setValue("999").send({ from: forkedAccounts[0] });
+    });
+
+    before("create provider", function() {
+      const provider = Ganache.provider({
+        fork: forkedTargetUrl.replace("ws", "http"),
+        fork_block_number: forkBlockNumber
+      });
+      web3 = new Web3(provider);
+    });
+
+    it("should create a provider who's initial block is immediately after the fork_block_number", async() => {
+      const blockNumber = await web3.eth.getBlockNumber();
+      // Because we (currently) mine a "genesis" block when forking, the current block immediately after
+      // initialization is 1 higher than the fork_block_number. This may change in the future by:
+      // https://github.com/trufflesuite/ganache-core/issues/341
+      assert(blockNumber - 1, forkBlockNumber, "Initial block number on forked chain is not as expected");
+    });
+
+    it("should return original chain data from before the fork", async() => {
+      const example = new web3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+      const result = await example.methods.value().call({ from: mainAccounts[0] });
+
+      assert(result, initialValue, "Value return on forked chain is not as expected");
+    });
+  });
+
   after("Shutdown server", (done) => {
     forkedWeb3._provider.connection.close();
     forkedServer.close(function(serverCloseErr) {
