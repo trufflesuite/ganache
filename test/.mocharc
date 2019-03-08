@@ -1,2 +1,2 @@
 # mocha.opts
-  --require ./utils/duck-punch.js
+  --require ./test/utils/duck-punch.js

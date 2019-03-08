@@ -9,8 +9,8 @@
     "lib": "./lib"
   },
   "scripts": {
-    "_mocha": "mocha --check-leaks --recursive --globals _scratch,sanitizedData --opts ./test/.mocha.js",
-    "nyc_mocha": "nyc mocha --check-leaks --recursive --globals _scratch,sanitizedData --opts ./test/.mocha.js",
+    "_mocha": "mocha --check-leaks --recursive --globals _scratch,sanitizedData --opts ./test/.mocharc",
+    "nyc_mocha": "nyc mocha --check-leaks --recursive --globals _scratch,sanitizedData --opts ./test/.mocharc",
     "_lint": "eslint --ignore-path .gitignore .",
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
