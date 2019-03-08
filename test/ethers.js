@@ -23,10 +23,7 @@ describe("ethers", async() => {
     ethersProvider = new ethers.providers.Web3Provider(provider);
     const privateKey = Buffer.from(secretKey, "hex");
     wallet = new ethers.Wallet(privateKey);
-    gasPrice = `0x${new BN(10)
-      .pow(new BN(9))
-      .muln(20)
-      .toString("hex")}`;
+    gasPrice = 20 * 10 ** 9; // 20000000000
     value = `0x${new BN(10).pow(new BN(18)).toString("hex")}`;
   });
 
