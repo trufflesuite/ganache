@@ -22,9 +22,9 @@ describe("eth_call", function() {
     const value = 5;
 
     // this call uses more than the default transaction gas limit and will
+    // therefore fail if the block gas limit isn't used for calls
     const status = await instance.methods.add(name, description, value).call({ from: accounts[0] });
 
-    // therefore fail if the block gas limit isn't used for calls
     assert.strictEqual(status, true);
   });
 });
