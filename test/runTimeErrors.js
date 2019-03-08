@@ -1,60 +1,27 @@
-const Web3 = require("web3");
 const assert = require("assert");
-const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-const fs = require("fs");
-const path = require("path");
-const solc = require("solc");
-const to = require("../lib/utils/to");
-const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
+const { hex, number } = require("../lib/utils/to");
+const bootstrap = require("./helpers/contract/bootstrap");
 
 describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
-  let web3, provider;
-
-  const testState = {
-    accounts: null,
-    ErrorContract: null,
-    errorInstance: null,
-    code: null
-  };
-
-  before("Setting up provider", async function() {
-    const context = await initializeTestProvider({
-      vmErrorsOnRPCResponse: true
-    });
-    web3 = context.web3;
-    provider = context.provider;
-  });
-
-  before("get accounts", async function() {
-    testState.accounts = await web3.eth.getAccounts();
-  });
+  let context;
 
   before("compile source", async function() {
     this.timeout(10000);
+    const contractRef = {
+      contractFiles: ["RuntimeError"],
+      contractSubdirectory: "runtime"
+    };
 
-    const source = fs.readFileSync(path.join(__dirname, "RuntimeError.sol"), "utf8");
-    const result = solc.compile({ sources: { "RuntimeError.sol": source } }, 1);
+    const ganacheProviderOptions = {
+      vmErrorsOnRPCResponse: true
+    };
 
-    testState.code = "0x" + result.contracts["RuntimeError.sol:RuntimeError"].bytecode;
-    const abi = JSON.parse(result.contracts["RuntimeError.sol:RuntimeError"].interface);
-
-    testState.ErrorContract = new web3.eth.Contract(abi);
-    testState.ErrorContract._code = testState.code;
-    const instance = await testState.ErrorContract.deploy({ data: testState.code }).send({
-      from: testState.accounts[0],
-      gas: 3141592
-    });
-
-    // TODO: ugly workaround - not sure why this is necessary.
-    if (!instance._requestManager.provider) {
-      instance._requestManager.setProvider(web3.eth._provider);
-    }
-    testState.errorInstance = instance;
+    context = await bootstrap(contractRef, ganacheProviderOptions);
   });
 
   it("should output the transaction hash even if an runtime error occurs (out of gas)", function(done) {
+    const { accounts, bytecode, provider, web3 } = context;
+
     // we can't use `web3.eth.sendTransaction` because it will obfuscate the result
     web3.currentProvider.send(
       {
@@ -62,8 +29,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
         method: "eth_sendTransaction",
         params: [
           {
-            from: testState.accounts[0],
-            data: testState.code
+            from: accounts[0],
+            data: bytecode
           }
         ],
         id: 1
@@ -90,6 +57,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
   });
 
   it("should output the transaction hash even if a runtime error occurs (revert)", function(done) {
+    const { accounts, instance, provider } = context;
+
     // we can't use `web3.eth.sendTransaction` because it will obfuscate the result
     provider.send(
       {
@@ -98,11 +67,11 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
         method: "eth_sendTransaction",
         params: [
           {
-            from: testState.accounts[0],
-            to: testState.errorInstance.options.address,
+            from: accounts[0],
+            to: instance.options.address,
             // calls error()
             data: "0xc79f8b62",
-            gas: to.hex(3141592)
+            gas: hex(3141592)
           }
         ]
       },
@@ -134,6 +103,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
   });
 
   it("should have correct return value when calling a method that reverts without message", function(done) {
+    const { accounts, instance, provider } = context;
+
     provider.send(
       {
         jsonrpc: "2.0",
@@ -141,11 +112,11 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
         method: "eth_call",
         params: [
           {
-            from: testState.accounts[0],
-            to: testState.errorInstance.options.address,
+            from: accounts[0],
+            to: instance.options.address,
             // calls error()
             data: "0xc79f8b62",
-            gas: to.hex(3141592)
+            gas: hex(3141592)
           }
         ]
       },
@@ -172,6 +143,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
   });
 
   it("should have correct return value when calling a method that reverts without message", function(done) {
+    const { accounts, instance, provider } = context;
+
     provider.send(
       {
         jsonrpc: "2.0",
@@ -179,11 +152,11 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
         method: "eth_call",
         params: [
           {
-            from: testState.accounts[0],
-            to: testState.errorInstance.options.address,
+            from: accounts[0],
+            to: instance.options.address,
             // calls error()
             data: "0xc79f8b62",
-            gas: to.hex(3141592)
+            gas: hex(3141592)
           }
         ]
       },
@@ -210,6 +183,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
   });
 
   it("should have correct return value when calling a method that reverts with message", function(done) {
+    const { accounts, instance, provider } = context;
+
     provider.send(
       {
         jsonrpc: "2.0",
@@ -217,11 +192,11 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
         method: "eth_call",
         params: [
           {
-            from: testState.accounts[0],
-            to: testState.errorInstance.options.address,
+            from: accounts[0],
+            to: instance.options.address,
             // calls error()
             data: "0xcd4aed30",
-            gas: to.hex(3141592)
+            gas: hex(3141592)
           }
         ]
       },
@@ -257,6 +232,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
   });
 
   it("should output instruction index on runtime errors", function(done) {
+    const { accounts, instance, provider } = context;
+
     provider.send(
       {
         jsonrpc: "2.0",
@@ -264,11 +241,11 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
         method: "eth_sendTransaction",
         params: [
           {
-            from: testState.accounts[0],
-            to: testState.errorInstance.options.address,
+            from: accounts[0],
+            to: instance.options.address,
             // calls error()
             data: "0xc79f8b62",
-            gas: to.hex(3141592)
+            gas: hex(3141592)
           }
         ]
       },
@@ -281,61 +258,39 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = true:", function() {
         assert(response.error);
         assert(response.error.data[txHash]);
         // magic number, will change if compiler changes.
-        assert.strictEqual(to.number(response.error.data[txHash].program_counter), 91);
+        assert.strictEqual(number(response.error.data[txHash].program_counter), 91);
         done();
       }
     );
   });
 
   after("shutdown", function(done) {
-    let provider = web3._provider;
-    web3.setProvider();
+    const { provider } = context;
+
     provider.close(done);
   });
 });
 
 describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
-  const provider = Ganache.provider({
-    vmErrorsOnRPCResponse: false
-  });
-
-  const web3 = new Web3(provider);
-
-  const testState = {
-    accounts: null,
-    ErrorContract: null,
-    errorInstance: null,
-    code: null
-  };
-
-  before("get accounts", async function() {
-    testState.accounts = await web3.eth.getAccounts();
-  });
+  let context;
 
   before("compile source", async function() {
     this.timeout(10000);
+    const contractRef = {
+      contractFiles: ["RuntimeError"],
+      contractSubdirectory: "runtime"
+    };
 
-    const source = fs.readFileSync(path.join(__dirname, "RuntimeError.sol"), "utf8");
-    const result = solc.compile({ sources: { "RuntimeError.sol": source } }, 1);
+    const ganacheProviderOptions = {
+      vmErrorsOnRPCResponse: true
+    };
 
-    testState.code = "0x" + result.contracts["RuntimeError.sol:RuntimeError"].bytecode;
-    const abi = JSON.parse(result.contracts["RuntimeError.sol:RuntimeError"].interface);
-
-    testState.ErrorContract = new web3.eth.Contract(abi);
-    testState.ErrorContract._code = testState.code;
-    const instance = await testState.ErrorContract.deploy({ data: testState.code }).send({
-      from: testState.accounts[0],
-      gas: 3141592
-    });
-
-    // TODO: ugly workaround - not sure why this is necessary.
-    if (!instance._requestManager.provider) {
-      instance._requestManager.setProvider(web3.eth._provider);
-    }
-    testState.errorInstance = instance;
+    context = await bootstrap(contractRef, ganacheProviderOptions);
   });
 
   it("should output the transaction hash even if an runtime error occurs (out of gas)", function(done) {
+    const { accounts, bytecode, provider, web3 } = context;
+
     // we can't use `web3.eth.sendTransaction` because it will obfuscate the result
     web3.currentProvider.send(
       {
@@ -343,8 +298,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
         method: "eth_sendTransaction",
         params: [
           {
-            from: testState.accounts[0],
-            data: testState.code
+            from: accounts[0],
+            data: bytecode
           }
         ],
         id: 1
@@ -371,6 +326,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
   });
 
   it("should output the transaction hash even if a runtime error occurs (revert)", function(done) {
+    const { accounts, instance, provider } = context;
+
     // we can't use `web3.eth.sendTransaction` because it will obfuscate the result
     provider.send(
       {
@@ -379,11 +336,11 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
         method: "eth_sendTransaction",
         params: [
           {
-            from: testState.accounts[0],
-            to: testState.errorInstance.options.address,
+            from: accounts[0],
+            to: instance.options.address,
             // calls error()
             data: "0xc79f8b62",
-            gas: to.hex(3141592)
+            gas: hex(3141592)
           }
         ]
       },
@@ -415,6 +372,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
   });
 
   it("should have correct return value when calling a method that reverts without message", function(done) {
+    const { accounts, instance, provider } = context;
+
     provider.send(
       {
         jsonrpc: "2.0",
@@ -422,11 +381,11 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
         method: "eth_call",
         params: [
           {
-            from: testState.accounts[0],
-            to: testState.errorInstance.options.address,
+            from: accounts[0],
+            to: instance.options.address,
             // calls error()
             data: "0xc79f8b62",
-            gas: to.hex(3141592)
+            gas: hex(3141592)
           }
         ]
       },
@@ -453,6 +412,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
   });
 
   it("should have correct return value when calling a method that reverts without message", function(done) {
+    const { accounts, instance, provider } = context;
+
     provider.send(
       {
         jsonrpc: "2.0",
@@ -460,11 +421,11 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
         method: "eth_call",
         params: [
           {
-            from: testState.accounts[0],
-            to: testState.errorInstance.options.address,
+            from: accounts[0],
+            to: instance.options.address,
             // calls error()
             data: "0xc79f8b62",
-            gas: to.hex(3141592)
+            gas: hex(3141592)
           }
         ]
       },
@@ -491,6 +452,8 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
   });
 
   it("should have correct return value when calling a method that reverts with message", function(done) {
+    const { accounts, instance, provider } = context;
+
     provider.send(
       {
         jsonrpc: "2.0",
@@ -498,11 +461,11 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
         method: "eth_call",
         params: [
           {
-            from: testState.accounts[0],
-            to: testState.errorInstance.options.address,
+            from: accounts[0],
+            to: instance.options.address,
             // calls error()
             data: "0xcd4aed30",
-            gas: to.hex(3141592)
+            gas: hex(3141592)
           }
         ]
       },
@@ -532,15 +495,13 @@ describe("Runtime Errors with vmErrorsOnRPCResponse = false:", function() {
                 "7361676500000000000000000000000000000000000000000000000000"
           );
         }
-
         done();
       }
     );
   });
 
   after("shutdown", function(done) {
-    let provider = web3._provider;
-    web3.setProvider();
+    const { provider } = context;
     provider.close(done);
   });
 });
