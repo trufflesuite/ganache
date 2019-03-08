@@ -4,10 +4,7 @@ const Transaction = require("../lib/utils/transaction");
 
 describe("Transaction", function() {
   it("Should adhere to EIP-115", function() {
-    const gasPrice = `0x${new BN(10)
-      .pow(new BN(9))
-      .muln(20)
-      .toString("hex")}`;
+    const gasPrice = 2e10;
     const value = `0x${new BN(10).pow(new BN(18)).toString("hex")}`;
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
