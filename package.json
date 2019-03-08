@@ -9,8 +9,8 @@
     "lib": "./lib"
   },
   "scripts": {
-    "_mocha": "mocha --check-leaks --recursive --globals _scratch,sanitizedData",
-    "nyc_mocha": "nyc mocha --check-leaks --recursive --globals _scratch,sanitizedData",
+    "_mocha": "mocha --check-leaks --recursive --globals _scratch,sanitizedData --opts ./test/.mocha.js",
+    "nyc_mocha": "nyc mocha --check-leaks --recursive --globals _scratch,sanitizedData --opts ./test/.mocha.js",
     "_lint": "eslint --ignore-path .gitignore .",
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
@@ -74,6 +74,7 @@
     "portfinder": "^1.0.18",
     "prettier": "^1.14.3",
     "request": "^2.88.0",
+    "semver": "5.6.0",
     "solc": "0.4.24",
     "temp": "0.8.3",
     "web3": "1.0.0-beta.35",
