@@ -17,7 +17,7 @@ describe("Block Tags", function() {
     context = await bootstrap(contractRef);
   });
 
-  before("Customize contract data", async function() {
+  before("Customize contract data", function() {
     const { abi, bytecode } = context;
 
     // Note: Certain properties of the following contract data are hardcoded to
