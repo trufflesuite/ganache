@@ -35,11 +35,11 @@ describe("Undefined", () => {
 
     it("should throw due to returned value of `0x` when eth_call fails (compiled contract call)", async() => {
       const { instance } = context;
-      try {
-        await instance.methods.causeReturnValueOfUndefined().call();
-      } catch (error) {
-        assert.strictEqual(error.message, "Couldn't decode bool from ABI: 0x");
-      }
+      await assert.rejects(
+        () => instance.methods.causeReturnValueOfUndefined().call(),
+        /Couldn't decode bool from ABI: 0x/,
+        "should not be able to decode bool from ABI"
+      );
     });
 
     it("should return a value when contract and method exists at block (web3.eth.call)", async() => {
