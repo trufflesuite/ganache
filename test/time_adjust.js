@@ -40,13 +40,13 @@ describe("Time adjustment", function() {
     const { web3 } = context;
 
     // Adjust time
-    send("evm_increaseTime", [SECONDSTOJUMP], function(err, result) {
+    send("evm_increaseTime", [SECONDSTOJUMP], function(err) {
       if (err) {
         return done(err);
       }
 
       // Mine a block so new time is recorded.
-      send("evm_mine", async function(err, result) {
+      send("evm_mine", async function(err) {
         if (err) {
           return done(err);
         }
@@ -70,7 +70,7 @@ describe("Time adjustment", function() {
     // Adjust time
     const expectedMinedTimestamp = 1000000;
 
-    send("evm_mine", [expectedMinedTimestamp], async function(err, result) {
+    send("evm_mine", [expectedMinedTimestamp], async function(err) {
       if (err) {
         return done(err);
       }
@@ -91,12 +91,12 @@ describe("Time adjustment", function() {
       }
       const originalTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
 
-      send("evm_snapshot", function(err, result) {
+      send("evm_snapshot", function(err) {
         if (err) {
           return done(err);
         }
         // jump forward another 5 hours
-        send("evm_increaseTime", [SECONDSTOJUMP], function(err, result) {
+        send("evm_increaseTime", [SECONDSTOJUMP], function(err) {
           if (err) {
             return done(err);
           }
@@ -105,12 +105,12 @@ describe("Time adjustment", function() {
           assert.equal(currentTimeAdjustment, originalTimeAdjustment + SECONDSTOJUMP);
 
           // Mine a block so new time is recorded.
-          send("evm_mine", function(err, result) {
+          send("evm_mine", function(err) {
             if (err) {
               return done(err);
             }
 
-            send("evm_revert", [1], function(err, result) {
+            send("evm_revert", [1], function(err) {
               if (err) {
                 return done(err);
               }
@@ -134,13 +134,13 @@ describe("Time adjustment", function() {
 
       const previousTime = block.timestamp;
 
-      send("evm_setTime", [new Date(previousTime - SECONDSTOJUMP)], function(err, result) {
+      send("evm_setTime", [new Date(previousTime - SECONDSTOJUMP)], function(err) {
         if (err) {
           return done(err);
         }
 
         // Mine a block so new time is recorded.
-        send("evm_mine", async function(err, result) {
+        send("evm_mine", async function(err) {
           if (err) {
             return done(err);
           }
