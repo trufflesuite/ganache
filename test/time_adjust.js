@@ -85,7 +85,7 @@ describe("Time adjustment", function() {
     const { provider, web3 } = context;
 
     // Adjust time
-    web3.eth.getBlock("latest", function(err, block) {
+    web3.eth.getBlock("latest", function(err) {
       if (err) {
         return done(err);
       }
@@ -127,12 +127,12 @@ describe("Time adjustment", function() {
   it("should allow setting of time", function(done) {
     const { web3 } = context;
 
-    web3.eth.getBlock("latest", function(err, block) {
+    web3.eth.getBlock("latest", function(err, { timestamp }) {
       if (err) {
         return done(err);
       }
 
-      const previousTime = block.timestamp;
+      const previousTime = timestamp;
 
       send("evm_setTime", [new Date(previousTime - SECONDSTOJUMP)], function(err) {
         if (err) {
