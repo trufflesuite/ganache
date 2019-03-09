@@ -1,7 +1,6 @@
 const assert = require("assert");
-const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
-const noLeadingZeros = require("./lib/noLeadingZeros");
-const to = require("../../lib/utils/to.js");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
+const to = require("../lib/utils/to.js");
 
 describe("to.rpcQuantityHexString", function() {
   it("should print '0x0' for input '0x'", function() {
@@ -42,6 +41,30 @@ describe("to.hex", function() {
 });
 
 describe.skip("JSON-RPC Response", function() {
+  const noLeadingZeros = (method, result, path) => {
+    if (!path) {
+      path = "result";
+    }
+
+    if (typeof result === "string") {
+      if (/^0x/.test(result)) {
+        const asHex = to.rpcQuantityHexString(result);
+        assert.strictEqual(result, asHex, `Field ${path} in ${method} response has leading zeroes.`);
+      }
+    } else if (typeof result === "object") {
+      for (var key in result) {
+        if (result.hasOwnProperty(key)) {
+          if (Array.isArray(result)) {
+            path += [key];
+          } else {
+            path += "." + key;
+          }
+          noLeadingZeros(method, result[key], path + (path ? "." : "") + key);
+        }
+      }
+    }
+  };
+
   // skipping this test for now as they aren't verifying the right thing that
   // is, leading zeroes are fine in some response fields. we need a better model
   // of expected response formatting/padding.
