@@ -1,132 +1,108 @@
-var Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-var assert = require("assert-match");
-var matchers = require("assert-match/matchers");
-var gte = matchers.gte;
-var lte = matchers.lte;
-var Web3 = require("web3");
+const assert = require("assert-match");
+const { gte, lte } = require("assert-match/matchers");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
+const generateSend = require("./helpers/utils/rpcWithCallback");
 
 describe("Time adjustment", function() {
-  var startTime = new Date("Wed Aug 24 2016 00:00:00 GMT-0700 (PDT)");
-  var provider = Ganache.provider({
-    time: startTime
-  });
-  var web3 = new Web3(provider);
-  var secondsToJump = 5 * 60 * 60;
+  let context, send, timestampBeforeJump;
+  const SECONDSTOJUMP = 5 * 60 * 60;
+  const startTime = new Date("Wed Aug 24 2016 00:00:00 GMT-0700 (PDT)");
 
-  var timestampBeforeJump;
-
-  function send(method, params, callback) {
-    if (typeof params === "function") {
-      callback = params;
-      params = [];
-    }
-
-    provider.send(
-      {
-        jsonrpc: "2.0",
-        method: method,
-        params: params || [],
-        id: new Date().getTime()
-      },
-      callback
-    );
-  }
-
-  before("get current time", function(done) {
-    web3.eth.getBlock("latest", function(err, block) {
-      if (err) {
-        return done(err);
-      }
-      timestampBeforeJump = block.timestamp;
-      done();
+  before("Setting up accounts and provider", async function() {
+    context = await initializeTestProvider({
+      time: startTime
     });
+
+    send = generateSend(context.provider);
   });
 
-  it("should mine the first block at the time provided", function(done) {
-    web3.eth.getBlock(0, function(err, result) {
-      if (err) {
-        return done(err);
-      }
-      // give ourselves a 25ms window for this to succeed
-      let acceptableStartTime = (startTime / 1000) | 0;
-      let acceptableEndTime = acceptableStartTime + 25;
-      assert.deepEqual(result.timestamp, gte(acceptableStartTime));
-      assert.deepEqual(result.timestamp, lte(acceptableEndTime));
-      done();
-    });
+  before("get current time", async function() {
+    const { web3 } = context;
+
+    const { timestamp } = await web3.eth.getBlock("latest");
+    timestampBeforeJump = timestamp;
+  });
+
+  it("should mine the first block at the time provided", async function() {
+    const { web3 } = context;
+
+    const { timestamp } = await web3.eth.getBlock(0);
+
+    // give ourselves a 25ms window for this to succeed
+    const acceptableStartTime = (startTime / 1000) | 0;
+    const acceptableEndTime = acceptableStartTime + 25;
+    assert.deepEqual(timestamp, gte(acceptableStartTime));
+    assert.deepEqual(timestamp, lte(acceptableEndTime));
   });
 
   it("should jump 5 hours", function(done) {
     this.timeout(5000); // this is timing out on travis for some reason :-(
+    const { web3 } = context;
+
     // Adjust time
-    send("evm_increaseTime", [secondsToJump], function(err, result) {
+    send("evm_increaseTime", [SECONDSTOJUMP], function(err, result) {
       if (err) {
         return done(err);
       }
 
       // Mine a block so new time is recorded.
-      send("evm_mine", function(err, result) {
+      send("evm_mine", async function(err, result) {
         if (err) {
           return done(err);
         }
 
-        web3.eth.getBlock("latest", function(err, block) {
-          if (err) {
-            return done(err);
-          }
-          var secondsJumped = block.timestamp - timestampBeforeJump;
+        const { timestamp } = await web3.eth.getBlock("latest");
+        const secondsJumped = timestamp - timestampBeforeJump;
 
-          // Somehow it jumps an extra 18 seconds, ish, when run inside the whole
-          // test suite. It might have something to do with when the before block
-          // runs and when the test runs. Likely the last block didn't occur for
-          // awhile.
-          assert(secondsJumped >= secondsToJump);
-          done();
-        });
-      });
-    });
-  });
-
-  it("should mine a block at the given timestamp", function(done) {
-    // Adjust time
-    var expectedMinedTimestamp = 1000000;
-    send("evm_mine", [expectedMinedTimestamp], function(err, result) {
-      if (err) {
-        return done(err);
-      }
-
-      web3.eth.getBlock("latest", function(err, block) {
-        if (err) {
-          return done(err);
-        }
-        assert(block.timestamp === expectedMinedTimestamp);
+        // Somehow it jumps an extra 18 seconds, ish, when run inside the whole
+        // test suite. It might have something to do with when the before block
+        // runs and when the test runs. Likely the last block didn't occur for
+        // awhile.
+        assert(secondsJumped >= SECONDSTOJUMP);
         done();
       });
     });
   });
 
+  it("should mine a block at the given timestamp", function(done) {
+    const { web3 } = context;
+
+    // Adjust time
+    const expectedMinedTimestamp = 1000000;
+
+    send("evm_mine", [expectedMinedTimestamp], async function(err, result) {
+      if (err) {
+        return done(err);
+      }
+
+      const { timestamp } = await web3.eth.getBlock("latest");
+      assert(timestamp === expectedMinedTimestamp);
+      done();
+    });
+  });
+
   it("should revert time adjustments when snapshot is reverted", function(done) {
+    const { provider, web3 } = context;
+
     // Adjust time
     web3.eth.getBlock("latest", function(err, block) {
       if (err) {
         return done(err);
       }
-      var originalTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
+      const originalTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
 
       send("evm_snapshot", function(err, result) {
         if (err) {
           return done(err);
         }
         // jump forward another 5 hours
-        send("evm_increaseTime", [secondsToJump], function(err, result) {
+        send("evm_increaseTime", [SECONDSTOJUMP], function(err, result) {
           if (err) {
             return done(err);
           }
 
-          var currentTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
-          assert.equal(currentTimeAdjustment, originalTimeAdjustment + secondsToJump);
+          const currentTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
+          assert.equal(currentTimeAdjustment, originalTimeAdjustment + SECONDSTOJUMP);
 
           // Mine a block so new time is recorded.
           send("evm_mine", function(err, result) {
@@ -138,7 +114,7 @@ describe("Time adjustment", function() {
               if (err) {
                 return done(err);
               }
-              var revertedTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
+              const revertedTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
               assert.equal(revertedTimeAdjustment, originalTimeAdjustment);
               done();
             });
@@ -149,31 +125,29 @@ describe("Time adjustment", function() {
   });
 
   it("should allow setting of time", function(done) {
+    const { web3 } = context;
+
     web3.eth.getBlock("latest", function(err, block) {
       if (err) {
         return done(err);
       }
 
-      var previousTime = block.timestamp;
+      const previousTime = block.timestamp;
 
-      send("evm_setTime", [new Date(previousTime - secondsToJump)], function(err, result) {
+      send("evm_setTime", [new Date(previousTime - SECONDSTOJUMP)], function(err, result) {
         if (err) {
           return done(err);
         }
 
         // Mine a block so new time is recorded.
-        send("evm_mine", function(err, result) {
+        send("evm_mine", async function(err, result) {
           if (err) {
             return done(err);
           }
 
-          web3.eth.getBlock("latest", function(err, block) {
-            if (err) {
-              return done(err);
-            }
-            assert(previousTime > block.timestamp);
-            done();
-          });
+          const { timestamp } = await web3.eth.getBlock("latest");
+          assert(previousTime > timestamp);
+          done();
         });
       });
     });
