@@ -1,27 +1,17 @@
-var Web3 = require("web3");
-var Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-var assert = require("assert");
-var to = require("../lib/utils/to.js");
+const assert = require("assert");
+const to = require("../lib/utils/to.js");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
 describe("Transaction Ordering", function() {
-  var accounts;
-  var web3 = new Web3(Ganache.provider());
+  let context;
 
-  before(function(done) {
-    web3.eth.getAccounts(function(err, accs) {
-      if (err) {
-        return done(err);
-      }
-
-      accounts = accs;
-      done();
-    });
+  before("Setting up accounts and provider", async function() {
+    context = await initializeTestProvider();
   });
 
   beforeEach(function(done) {
-    web3.currentProvider.send(
+    const { provider } = context;
+    provider.send(
       {
         jsonrpc: "2.0",
         method: "miner_stop"
@@ -31,7 +21,8 @@ describe("Transaction Ordering", function() {
   });
 
   afterEach(function(done) {
-    web3.currentProvider.send(
+    const { provider } = context;
+    provider.send(
       {
         jsonrpc: "2.0",
         method: "miner_start",
@@ -42,12 +33,16 @@ describe("Transaction Ordering", function() {
   });
 
   it("should order queued transactions correctly by nonce before adding to the block", function(done) {
-    var txData = {};
-    txData.to = accounts[1];
-    txData.from = accounts[0];
-    txData.value = 0x1;
-    txData.nonce = 0;
-    txData.gas = 21000;
+    const { accounts, web3 } = context;
+
+    const txData = {
+      to: accounts[1],
+      from: accounts[0],
+      value: 0x1,
+      nonce: 0,
+      gas: 21000
+    };
+
     web3.eth.sendTransaction(txData, function(err, tx) {
       if (err) {
         return done(err);
@@ -81,12 +76,16 @@ describe("Transaction Ordering", function() {
   });
 
   it("should order queued transactions correctly by price before adding to the block", function(done) {
-    var txData = {};
-    txData.to = accounts[1];
-    txData.from = accounts[0];
-    txData.value = 0x1;
-    txData.gas = 21000;
-    txData.gasPrice = 0x1;
+    const { accounts, web3 } = context;
+
+    const txData = {
+      to: accounts[1],
+      from: accounts[0],
+      value: 0x1,
+      gas: 21000,
+      gasPrice: 0x1
+    };
+
     web3.eth.sendTransaction(txData, function(err, tx) {
       if (err) {
         return done(err);
