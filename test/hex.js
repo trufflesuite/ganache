@@ -41,6 +41,9 @@ describe("to.hex", function() {
 });
 
 describe.skip("JSON-RPC Response", function() {
+  // skipping this test for now as they aren't verifying the right thing that
+  // is, leading zeroes are fine in some response fields. we need a better model
+  // of expected response formatting/padding.
   const noLeadingZeros = (method, result, path) => {
     if (!path) {
       path = "result";
@@ -52,12 +55,12 @@ describe.skip("JSON-RPC Response", function() {
         assert.strictEqual(result, asHex, `Field ${path} in ${method} response has leading zeroes.`);
       }
     } else if (typeof result === "object") {
-      for (var key in result) {
+      for (let key in result) {
         if (result.hasOwnProperty(key)) {
           if (Array.isArray(result)) {
             path += [key];
           } else {
-            path += "." + key;
+            path += `.${key}`;
           }
           noLeadingZeros(method, result[key], path + (path ? "." : "") + key);
         }
@@ -65,9 +68,6 @@ describe.skip("JSON-RPC Response", function() {
     }
   };
 
-  // skipping this test for now as they aren't verifying the right thing that
-  // is, leading zeroes are fine in some response fields. we need a better model
-  // of expected response formatting/padding.
   it("should not have leading zeros in rpc quantity hex strings", async function() {
     const { accounts, send } = await initializeTestProvider();
 
