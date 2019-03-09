@@ -33,7 +33,7 @@ describe("Transaction Ordering", function() {
   });
 
   it("should order queued transactions correctly by nonce before adding to the block", function(done) {
-    const { accounts, web3 } = context;
+    const { accounts, provider, web3 } = context;
 
     const txData = {
       to: accounts[1],
@@ -52,23 +52,19 @@ describe("Transaction Ordering", function() {
         if (err) {
           return done(err);
         }
-        web3.currentProvider.send(
+        provider.send(
           {
             jsonrpc: "2.0",
             method: "miner_start",
             params: [1]
           },
-          function(err, tx) {
+          async function(err, tx) {
             if (err) {
               return done(err);
             }
-            web3.eth.getBlock("latest", function(err, block) {
-              if (err) {
-                return done(err);
-              }
-              assert.strictEqual(block.transactions.length, 2, "Latest block should have two transactions");
-              done();
-            });
+            const block = await web3.eth.getBlock("latest");
+            assert.strictEqual(block.transactions.length, 2, "Latest block should have two transactions");
+            done();
           }
         );
       });
@@ -76,7 +72,7 @@ describe("Transaction Ordering", function() {
   });
 
   it("should order queued transactions correctly by price before adding to the block", function(done) {
-    const { accounts, web3 } = context;
+    const { accounts, provider, web3 } = context;
 
     const txData = {
       to: accounts[1],
@@ -96,25 +92,21 @@ describe("Transaction Ordering", function() {
         if (err) {
           return done(err);
         }
-        web3.currentProvider.send(
+        provider.send(
           {
             jsonrpc: "2.0",
             method: "miner_start",
             params: [1]
           },
-          function(err, tx) {
+          async function(err, tx) {
             if (err) {
               return done(err);
             }
-            web3.eth.getBlock("latest", true, function(err, block) {
-              if (err) {
-                return done(err);
-              }
-              assert.strictEqual(block.transactions.length, 2, "Latest block should have two transactions");
-              assert.strictEqual(to.number(block.transactions[0].gasPrice), 2);
-              assert.strictEqual(to.number(block.transactions[1].gasPrice), 1);
-              done();
-            });
+            const block = await web3.eth.getBlock("latest", true);
+            assert.strictEqual(block.transactions.length, 2, "Latest block should have two transactions");
+            assert.strictEqual(to.number(block.transactions[0].gasPrice), 2);
+            assert.strictEqual(to.number(block.transactions[1].gasPrice), 1);
+            done();
           }
         );
       });
