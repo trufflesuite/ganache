@@ -1,15 +1,15 @@
-var Ganache = require(process.env.TEST_BUILD
+const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var solc = require("solc");
-var Web3 = require("web3");
-var fs = require("fs");
-var assert = require("assert");
+const solc = require("solc");
+const Web3 = require("web3");
+const fs = require("fs");
+const assert = require("assert");
+const intializeTestProvider = require("./helpers/web3/initializeTestProvider");
+// const { compile } = require("./helpers/contract/compileAndDeploy");
 
-var logger = {
-  log: function(msg) {
-    /* noop */
-  }
+const logger = {
+  log: function(msg) {}
 };
 
 /**
@@ -21,21 +21,19 @@ var logger = {
  */
 
 describe("Forking using a Provider", function() {
-  var contract;
-  var forkedProvider = Ganache.provider({
+  let contract;
+  const forkedProvider = Ganache.provider({
     logger: logger,
     seed: "main provider"
   });
-  var mainProvider;
-  var forkedWeb3 = new Web3(forkedProvider);
-  var mainWeb3;
-  var forkedAccounts;
-  var contractAddress;
+  const forkedWeb3 = new Web3(forkedProvider);
+  let forkedAccounts;
+  let contractAddress;
 
   before("set up test data", function() {
     this.timeout(5000);
-    var source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
-    var result = solc.compile(source, 1);
+    const source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
+    const result = solc.compile(source, 1);
 
     // Note: Certain properties of the following contract data are hardcoded to
     // maintain repeatable tests. If you significantly change the solidity code,
@@ -61,77 +59,46 @@ describe("Forking using a Provider", function() {
     };
   });
 
-  before("Gather forked accounts", function(done) {
-    forkedWeb3.eth.getAccounts(function(err, f) {
-      if (err) {
-        return done(err);
-      }
-      forkedAccounts = f;
-      done();
+  before("Gather forked accounts", async function() {
+    forkedAccounts = await forkedWeb3.eth.getAccounts();
+  });
+
+  before("Deploy initial contracts", async function() {
+    const receipt = await forkedWeb3.eth.sendTransaction({
+      from: forkedAccounts[0],
+      data: contract.binary,
+      gas: 3141592
     });
+
+    contractAddress = receipt.contractAddress;
+
+    const code = await forkedWeb3.eth.getCode(contractAddress);
+    // Ensure there's *something* there.
+    assert.notStrictEqual(code, null);
+    assert.notStrictEqual(code, "0x");
+    assert.notStrictEqual(code, "0x0");
   });
 
-  before("Deploy initial contracts", function(done) {
-    forkedWeb3.eth.sendTransaction(
-      {
-        from: forkedAccounts[0],
-        data: contract.binary,
-        gas: 3141592
-      },
-      function(err, tx) {
-        if (err) {
-          return done(err);
-        }
-
-        forkedWeb3.eth.getTransactionReceipt(tx, function(err, receipt) {
-          if (err) {
-            return done(err);
-          }
-
-          contractAddress = receipt.contractAddress;
-
-          forkedWeb3.eth.getCode(contractAddress, function(err, code) {
-            if (err) {
-              return done(err);
-            }
-
-            // Ensure there's *something* there.
-            assert.notStrictEqual(code, null);
-            assert.notStrictEqual(code, "0x");
-            assert.notStrictEqual(code, "0x0");
-
-            done();
-          });
-        });
-      }
-    );
-  });
-
-  before("Set up main provider and web3 instance", function() {
-    mainProvider = Ganache.provider({
+  let context;
+  before("Set up main provider and web3 instance", async function() {
+    context = await intializeTestProvider({
       fork: forkedProvider,
-      logger: logger,
+      logger,
       seed: "forked provider"
     });
-    mainWeb3 = new Web3(mainProvider);
   });
 
   // NOTE: This is the only real test in this file. Since we have another forking test file filled
   // with good tests, this one simply ensures the forked feature still works by testing that we can
   // grab data from the forked chain when a provider instance is passed (instead of a URL). If this
   // one passes, it should follow that the rest of the forking features should work as normal.
-  it("gets code correctly via the main chain (i.e., internally requests it from forked chain)", function(done) {
-    mainWeb3.eth.getCode(contractAddress, function(err, code) {
-      if (err) {
-        return done(err);
-      }
+  it("gets code correctly via the main chain (i.e., internally requests it from forked chain)", async function() {
+    const { web3: mainWeb3 } = context;
+    const code = await mainWeb3.eth.getCode(contractAddress);
 
-      // Ensure there's *something* there.
-      assert.notStrictEqual(code, null);
-      assert.notStrictEqual(code, "0x");
-      assert.notStrictEqual(code, "0x0");
-
-      done();
-    });
+    // Ensure there's *something* there.
+    assert.notStrictEqual(code, null);
+    assert.notStrictEqual(code, "0x");
+    assert.notStrictEqual(code, "0x0");
   });
 });

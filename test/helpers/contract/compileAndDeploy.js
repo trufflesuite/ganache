@@ -9,7 +9,7 @@ const { readFileSync } = require("fs");
  * @param {String} contractPath  Path to contracts directory
  * @returns {Object} context: abi, bytecode, sources
  */
-function compile(mainContractName, contractFileNames = [], contractSubdirectory) {
+async function compile(mainContractName, contractFileNames = [], contractSubdirectory) {
   const contractPath = join(__dirname, "..", "..", "contracts", `${contractSubdirectory}/`);
   const selectedContracts = [mainContractName].concat(contractFileNames);
 
