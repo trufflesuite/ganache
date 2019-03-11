@@ -38,12 +38,37 @@ describe("Interval Mining", function() {
   it("shouldn't instamine when mining on an interval", function(done) {
     this.timeout(5000);
 
-    web3 = new Web3(
-      Ganache.provider({
-        blockTime: 0.25, // seconds
-        mnemonic: mnemonic
-      })
-    );
+    const provider = Ganache.provider({
+      blockTime: 0.25, // seconds
+      mnemonic
+    });
+
+    web3 = new Web3(provider);
+
+    /*
+    const { web3 } = await initializeTestProvider({
+      blockTime: 0.25, // seconds
+      mnemonic
+    });
+
+    const blockNumber = await web3.eth.getBlockNumber();
+    assert.strictEqual(blockNumber, 0);
+
+    const tx = await web3.eth.sendTransaction({
+      from: firstAddress,
+      to: "0x1234567890123456789012345678901234567890",
+      value: web3.utils.toWei(new BN(1), "ether"),
+      gas: 90000
+    });
+
+    const receipt = await web3.eth.getTransactionReceipt(tx);
+    assert.strictEqual(receipt, null);
+
+    await sleep(750);
+
+    const newReceipt = await web3.eth.getTransactionReceipt(tx);
+    assert.notStrictEqual(newReceipt, null);
+    */
 
     // Get the first block (pre-condition)
     web3.eth.getBlockNumber(function(err, number) {
@@ -95,15 +120,15 @@ describe("Interval Mining", function() {
   it("miner_stop should stop interval mining, and miner_start should start it again", function(done) {
     this.timeout(5000);
 
-    web3 = new Web3(
-      Ganache.provider({
-        blockTime: 0.5, // seconds
-        mnemonic: mnemonic
-      })
-    );
+    const provider = Ganache.provider({
+      blockTime: 0.5, // seconds
+      mnemonic
+    });
+
+    web3 = new Web3(provider);
 
     // Stop mining
-    web3.currentProvider.send(
+    provider.send(
       {
         jsonrpc: "2.0",
         method: "miner_stop",
