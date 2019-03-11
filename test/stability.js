@@ -10,22 +10,35 @@ describe("stability", function() {
     context = await initializeTestProvider();
   });
 
-  it("should be able to handle multiple transactions at once and manage nonces accordingly", async function() {
+  it("should be able to handle multiple transactions at once and manage nonces accordingly", function(done) {
     const { accounts, web3 } = context;
+
+    let received = 0;
     const expected = 5;
+    let receipts = {};
 
-    const concurrentTransactions = Array(expected);
+    const txHandler = function(err, result) {
+      assert.strictEqual(receipts[result], undefined);
 
-    // Generate multiple copies of the transaction
-    concurrentTransactions.fill(
-      web3.eth.sendTransaction({
-        from: accounts[0],
-        to: accounts[1],
-        value: `0x${new BN(10).pow(new BN(18)).toString("hex")}` // 1 ETH
-      })
-    );
+      receipts[result] = result;
+      received += 1;
 
-    await Promise.all(concurrentTransactions.map((tx) => tx));
+      if (err || received === expected) {
+        return done(err);
+      }
+    };
+
+    // Fire off transaction at once
+    for (let i = 0; i < expected; i++) {
+      web3.eth.sendTransaction(
+        {
+          from: accounts[0],
+          to: accounts[1],
+          value: web3.utils.toWei(new BN(1), "ether")
+        },
+        txHandler
+      );
+    }
   });
 
   it("should be able to handle batch transactions", function(done) {
