@@ -134,17 +134,17 @@ The RPC methods currently implemented are:
 * `bzz_hive`
 * `bzz_info`
 
-#### Management APIs
+#### Implemented Management API Methods
 
 * [debug_traceTransaction](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#debug_tracetransaction)
 * [miner_start](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#miner_start)
 * [miner_stop](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#miner_stop)
-* [personal_sendTransaction](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_sendTransaction)
-* [personal_unlockAccount](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_unlockAccount)
-* [personal_importRawKey](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_importRawKey)
-* [personal_newAccount](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_newAccount)
-* [personal_lockAccount](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_lockAccount)
-* [personal_listAccounts](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_listAccounts)
+* [personal_sendTransaction](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_sendTransaction)
+* [personal_unlockAccount](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_unlockAccount)
+* [personal_importRawKey](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_importRawKey)
+* [personal_newAccount](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_newAccount)
+* [personal_lockAccount](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_lockAccount)
+* [personal_listAccounts](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_listaccounts)
 
 ## Custom Methods
 
