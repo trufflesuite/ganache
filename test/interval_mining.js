@@ -1,49 +1,38 @@
-var BN = require("bn.js");
-var Web3 = require("web3");
-var Ganache = require(process.env.TEST_BUILD
+const BN = require("bn.js");
+const Web3 = require("web3");
+const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var assert = require("assert");
-var solc = require("solc");
+const assert = require("assert");
+const solc = require("solc");
+const sleep = require("./helpers/utils/sleep");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
 describe("Interval Mining", function() {
-  var web3;
+  let web3;
 
-  var mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
-  var firstAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
+  const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
+  const firstAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
 
-  it("should mine a block on the interval", function(done) {
+  it("should mine a block on the interval", async function() {
     this.timeout(5000);
 
-    web3 = new Web3(
-      Ganache.provider({
-        blockTime: 0.5, // seconds
-        mnemonic: mnemonic
-      })
-    );
+    const { web3 } = await initializeTestProvider({
+      blockTime: 0.5, // seconds
+      mnemonic
+    });
 
     // Get the first block (pre-condition)
-    web3.eth.getBlockNumber(function(err, number) {
-      if (err) {
-        return done(err);
-      }
-      assert.strictEqual(number, 0);
+    const blockNumber = await web3.eth.getBlockNumber();
+    assert.strictEqual(blockNumber, 0);
 
-      // Wait 1.25 seconds (two and a half mining intervals) then get the next block.
-      // It should be block number 2 (the third block). We wait more than one iteration
-      // to ensure the timeout gets reset.
+    // Wait 1.25 seconds (two and a half mining intervals) then get the next block.
+    // It should be block number 2 (the third block). We wait more than one iteration
+    // to ensure the timeout gets reset.
+    await sleep(1250);
 
-      setTimeout(function() {
-        // Get the first block (pre-condition)
-        web3.eth.getBlockNumber(function(err, latestNumber) {
-          if (err) {
-            return done(err);
-          }
-          assert.strictEqual(latestNumber, 2);
-          done();
-        });
-      }, 1250);
-    });
+    const latestNumber = await web3.eth.getBlockNumber();
+    assert.strictEqual(latestNumber, 2);
   });
 
   it("shouldn't instamine when mining on an interval", function(done) {
@@ -183,8 +172,8 @@ describe("Interval Mining", function() {
   it("should log runtime errors to the log", async function() {
     this.timeout(5000);
 
-    var logData = "";
-    var logger = {
+    let logData = "";
+    const logger = {
       log: function(message) {
         logData += message + "\n";
       }
@@ -198,11 +187,11 @@ describe("Interval Mining", function() {
       })
     );
 
-    var result = solc.compile(
+    const result = solc.compile(
       { sources: { "Example.sol": "pragma solidity ^0.4.2; contract Example { function Example() {throw;} }" } },
       1
     );
-    var bytecode = "0x" + result.contracts["Example.sol:Example"].bytecode;
+    const bytecode = "0x" + result.contracts["Example.sol:Example"].bytecode;
 
     try {
       await web3.eth.sendTransaction({
