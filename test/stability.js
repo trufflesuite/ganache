@@ -70,7 +70,7 @@ describe("stability", function(done) {
       value: "1000000000000000000" // 1 ETH
     };
 
-    assert.rejects(() => send(method, params), /The field to must have byte length of 20/);
+    await assert.rejects(() => send(method, params), /The field to must have byte length of 20/);
   });
 
   it("should not crash when receiving a request with too many arguments", async function() {
@@ -78,7 +78,10 @@ describe("stability", function(done) {
 
     const method = "evm_mine";
     const params = ["0x1", "0x2", "0x3", "0x4", "0x5", "0x6", "0x7", "0x8", "0x9", "0xA"];
-    await send(method, params);
+    await assert.doesNotReject(
+      () => send(method, params),
+      /Incorrect number of arguments\. Method 'evm_mine' requires between \d+ and \d+ arguments\. Request specified \d+ arguments: \[[^\]]*\]\./
+    );
   });
 
   // TODO: remove `.skip` when working on and/or submitting fix for issue trufflesuite/ganache-cli#453
