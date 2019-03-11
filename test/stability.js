@@ -21,7 +21,7 @@ describe("stability", function(done) {
       web3.eth.sendTransaction({
         from: accounts[0],
         to: accounts[1],
-        value: web3.utils.toWei(new BN(1), "ether")
+        value: `0x${new BN(10).pow(new BN(18)).toString("hex")}` // 1 ETH
       })
     );
 
@@ -41,7 +41,7 @@ describe("stability", function(done) {
       let req = web3.eth.sendTransaction.request({
         from: accounts[0],
         to: accounts[1],
-        value: web3.utils.toWei(new BN(1), "ether")
+        value: `0x${new BN(10).pow(new BN(18)).toString("hex")}` // 1 ETH
       });
 
       Object.assign(req, {
@@ -67,7 +67,7 @@ describe("stability", function(done) {
     const params = {
       from: accounts[0],
       to: "0x123", // bad address
-      value: "1000000000000000000" // 1 ETH
+      value: `0x${new BN(10).pow(new BN(18)).toString("hex")}` // 1 ETH
     };
 
     await assert.rejects(() => send(method, params), /The field to must have byte length of 20/);
