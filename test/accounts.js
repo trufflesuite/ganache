@@ -1,263 +1,291 @@
+const assert = require("assert");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 var BN = require("bn.js");
-var Web3 = require("web3");
 var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var assert = require("assert");
+const genSend = require("./helpers/utils/rpc");
+const Account = require("ethereumjs-account");
+const { promisify } = require("util");
+const utils = require("ethereumjs-util");
 
-describe("Accounts", function() {
-  var expectedAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
-  var mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
+describe("Accounts", () => {
+  const expectedAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
+  const badAddress = "0x1234567890123456789012345678901234567890";
+  const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 
-  it("should respect the BIP99 mnemonic", function(done) {
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        mnemonic: mnemonic
-      })
-    );
+  it("should respect the BIP99 mnemonic", async() => {
+    const options = { mnemonic };
+    const { accounts } = await initializeTestProvider(options);
 
-    web3.eth.getAccounts(function(err, accounts) {
-      if (err) {
-        return done(err);
-      }
-
-      assert(accounts[0].toLowerCase(), expectedAddress.toLowerCase());
-      done();
-    });
+    assert.strictEqual(accounts[0], expectedAddress);
   });
 
-  it("should lock all accounts when specified", function(done) {
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        mnemonic: mnemonic,
-        secure: true
+  it("should lock all accounts when specified", async() => {
+    const options = {
+      mnemonic,
+      secure: true
+    };
+
+    const { accounts, web3 } = await initializeTestProvider(options);
+
+    await Promise.all(
+      accounts.map((account) => {
+        const tx = () =>
+          web3.eth.sendTransaction({
+            from: account,
+            to: badAddress,
+            value: web3.utils.toWei("1", "ether"),
+            gasLimit: 90000
+          });
+        return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
       })
     );
+  });
 
-    web3.eth.sendTransaction(
-      {
-        from: expectedAddress,
-        to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
-        value: web3.utils.toWei(new BN(1), "ether"),
-        gasLimit: 90000
-      },
-      function(err) {
-        if (!err) {
-          return done(
-            new Error("We expected the account to be locked, which should throw an error when sending a transaction")
-          );
+  it("should unlock specified accounts, in conjunction with --secure", async() => {
+    const options = {
+      mnemonic,
+      secure: true,
+      unlocked_accounts: [expectedAddress]
+    };
+
+    const { accounts, web3 } = await initializeTestProvider(options);
+
+    await Promise.all(
+      accounts.map((account) => {
+        const tx = () =>
+          web3.eth.sendTransaction({
+            from: account,
+            to: badAddress,
+            value: web3.utils.toWei("1", "ether"),
+            gasLimit: 90000
+          });
+
+        if (account === expectedAddress) {
+          return assert.doesNotReject(tx, /signer account is locked/, "should not be able to unlock the count");
+        } else {
+          return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
         }
-        assert.strictEqual(err.message, "signer account is locked");
-        done();
-      }
+      })
     );
   });
 
-  it("should unlock specified accounts, in conjunction with --secure", function(done) {
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        mnemonic: mnemonic,
-        secure: true,
-        unlocked_accounts: [expectedAddress]
-      })
-    );
+  it("should unlock specified accounts, in conjunction with --secure, using array indexes", async() => {
+    const accountIndexToUnlock = 5;
+    const options = {
+      mnemonic,
+      secure: true,
+      unlocked_accounts: [accountIndexToUnlock]
+    };
 
-    web3.eth.sendTransaction(
-      {
-        from: expectedAddress,
-        to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
-        value: web3.utils.toWei(new BN(1), "ether"),
-        gasLimit: 90000
-      },
-      function(err, tx) {
-        if (err) {
-          return done(err);
+    const { accounts, web3 } = await initializeTestProvider(options);
+    const unlockedAccount = accounts[accountIndexToUnlock];
+
+    await Promise.all(
+      accounts.map((account) => {
+        const tx = () =>
+          web3.eth.sendTransaction({
+            from: account,
+            to: badAddress,
+            value: web3.utils.toWei("1", "ether"),
+            gasLimit: 90000
+          });
+
+        if (account === unlockedAccount) {
+          return assert.doesNotReject(tx, /signer account is locked/, "should not be able to unlock the count");
+        } else {
+          return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
         }
-        // We should have no error here because the account is unlocked.
-        done();
-      }
+      })
     );
   });
 
-  it("should unlock specified accounts, in conjunction with --secure, using array indexes", function(done) {
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        mnemonic: mnemonic,
-        secure: true,
-        unlocked_accounts: [0]
-      })
-    );
+  it("should unlock accounts even if private key isn't managed by the testrpc (impersonation)", async() => {
+    const options = {
+      mnemonic,
+      secure: true,
+      unlocked_accounts: [0, badAddress],
+      gasPrice: 0
+    };
 
-    web3.eth.sendTransaction(
-      {
-        from: expectedAddress,
-        to: "0x1234567890123456789012345678901234567890", // doesn't need to exist
-        value: web3.utils.toWei(new BN(1), "ether"),
-        gasLimit: 90000
-      },
-      function(err, tx) {
-        if (err) {
-          return done(err);
-        }
-        // We should have no error here because the account is unlocked.
-        done();
-      }
-    );
-  });
-
-  it("should unlock accounts even if private key isn't managed by the testrpc (impersonation)", function() {
-    var secondAddress = "0x1234567890123456789012345678901234567890";
-
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        mnemonic: mnemonic,
-        secure: true,
-        unlocked_accounts: [0, secondAddress]
-      })
-    );
+    const { web3 } = await initializeTestProvider(options);
 
     // Set up: give second address some ether
-    return web3.eth
-      .sendTransaction({
-        from: expectedAddress,
-        to: secondAddress,
-        value: web3.utils.toWei(new BN(10), "ether"),
-        gasLimit: 90000
-      })
-      .then(() => {
-        // Now we should be able to send a transaction from second address without issue.
-        return web3.eth.sendTransaction({
-          from: secondAddress,
-          to: expectedAddress,
-          value: web3.utils.toWei(new BN(5), "ether"),
-          gasLimit: 90000
-        });
-      })
-      .then((tx) => {
-        // And for the heck of it let's check the balance just to make sure it went through
-        return web3.eth.getBalance(secondAddress);
-      })
-      .then((balance) => {
-        var balanceInEther = web3.utils.fromWei(new BN(balance), "ether");
-
-        if (typeof balanceInEther === "string") {
-          balanceInEther = parseFloat(balanceInEther);
-        } else {
-          balanceInEther.toNumber();
-        }
-
-        // Can't check the balance exactly. It cost some ether to send the transaction.
-        assert(balanceInEther > 4);
-        assert(balanceInEther < 5);
-      });
-  });
-
-  it("errors when we try to sign a transaction from an account we're impersonating", function() {
-    var secondAddress = "0x1234567890123456789012345678901234567890";
-
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        mnemonic: mnemonic,
-        secure: true,
-        unlocked_accounts: [0, secondAddress]
-      })
-    );
-
-    return web3.eth
-      .sign("some data", secondAddress)
-      .then((result) => {
-        assert.fail("Expected an error while signing when not managing the private key");
-      })
-      .catch((err) => {
-        assert(err.message.toLowerCase().indexOf("cannot sign data; no private key") >= 0);
-      });
-  });
-
-  it("should create a 2 accounts when passing an object to provider", function(done) {
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        accounts: [{ balance: "0x12" }, { balance: "0x13" }]
-      })
-    );
-
-    web3.eth.getAccounts(function(err, result) {
-      if (err) {
-        return done(err);
-      }
-      assert(result.length, 2, "The number of accounts created should be 2");
-      done();
+    await web3.eth.sendTransaction({
+      from: expectedAddress,
+      to: badAddress,
+      value: web3.utils.toWei("10", "ether"),
+      gasLimit: 90000
     });
-  });
 
-  it("should create a 7 accounts when ", function(done) {
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        total_accounts: 7
-      })
-    );
-
-    web3.eth.getAccounts(function(err, result) {
-      if (err) {
-        return done(err);
-      }
-      assert(result.length, 7, "The number of accounts created should be 7");
-      done();
+    // Now we should be able to send a transaction from second address without issue.
+    await web3.eth.sendTransaction({
+      from: badAddress,
+      to: expectedAddress,
+      value: web3.utils.toWei("5", "ether"),
+      gasLimit: 90000
     });
+
+    // And for the heck of it let's check the balance just to make sure it went through
+    const balance = await web3.eth.getBalance(badAddress);
+    let balanceInEther = web3.utils.fromWei(balance, "ether");
+    balanceInEther = parseFloat(balanceInEther);
+    assert.strictEqual(balanceInEther, 5);
   });
 
-  it("should respect the default_balance_ether option", function(done) {
-    var web3 = new Web3();
-    web3.setProvider(
-      Ganache.provider({
-        default_balance_ether: 1.23456
-      })
+  it("errors when we try to sign a transaction from an account we're impersonating", async function() {
+    const options = {
+      mnemonic,
+      secure: true,
+      unlocked_accounts: [0, badAddress]
+    };
+
+    const { web3 } = await initializeTestProvider(options);
+
+    assert.rejects(
+      () => web3.eth.sign("some data", badAddress),
+      /cannot sign data; no private key/,
+      "should not be able to sign a transaction with an impersonated account"
     );
+  });
 
-    web3.eth.getAccounts(function(err, accounts) {
-      if (err) {
-        return done(err);
+  it("should create a 2 accounts when passing an object to provider", async() => {
+    const options = {
+      accounts: [{ balance: "0x12" }, { balance: "0x13" }]
+    };
+
+    const { accounts } = await initializeTestProvider(options);
+
+    assert.strictEqual(accounts.length, 2, "The number of accounts created should be 2");
+  });
+
+  it("should create the correct number of accounts as specified by total_accounts", async() => {
+    const options = {
+      total_accounts: 7
+    };
+
+    const { accounts } = await initializeTestProvider(options);
+
+    assert.strictEqual(accounts.length, 7, "The number of accounts created should be 7");
+  });
+
+  it("should respect the default_balance_ether option", async() => {
+    const options = {
+      default_balance_ether: 1.23456
+    };
+
+    const { accounts, web3 } = await initializeTestProvider(options);
+
+    await Promise.all(
+      accounts.map((account) =>
+        web3.eth.getBalance(account).then((balance) => {
+          const balanceInEther = web3.utils.fromWei(balance, "Ether");
+          assert.strictEqual(balanceInEther, "1.23456");
+        })
+      )
+    );
+  });
+
+  describe("Should handle large nonces", function() {
+    let provider;
+    let accounts;
+    let from;
+    let send;
+    let currentNonce;
+    let startingBlockNumber;
+    const sendTransaction = (payload) => send("eth_sendTransaction", payload);
+    const getTransactionByHash = (payload) => send("eth_getTransactionByHash", payload);
+
+    beforeEach("set up provider", async function() {
+      provider = Ganache.provider();
+      send = genSend(provider);
+      const { result: _accounts } = await send("eth_accounts");
+      accounts = _accounts;
+      from = accounts[9];
+    });
+
+    async function setUp(initialNonce) {
+      // Hack to seed the state with an account with a very high nonce
+      const stateManager = provider.manager.state.blockchain.vm.stateManager;
+      const putAccount = promisify(stateManager.putAccount.bind(stateManager));
+      await putAccount(
+        utils.toBuffer(from),
+        new Account({
+          balance: "0xffffffffffffffffffff",
+          nonce: new BN(initialNonce),
+          address: from
+        })
+      );
+      // we need to mine a block for the putAccount to take effect
+      await send("evm_mine");
+
+      const { result: count } = await send("eth_getTransactionCount", from, "latest");
+      currentNonce = new BN(count.slice(2), "hex");
+      assert.strictEqual(currentNonce.toNumber(), initialNonce, "nonce is not equal to" + initialNonce);
+      const {
+        result: { number: blockNumber }
+      } = await send("eth_getBlockByNumber", "latest", false);
+      startingBlockNumber = parseInt(blockNumber, 16);
+      assert.strictEqual(startingBlockNumber, 1, "latest block number is not expected (1)");
+    }
+
+    async function runTests(intervalMining = true) {
+      let expectedNonce = new BN(currentNonce);
+      let expectedBlockNum = startingBlockNumber + 1;
+
+      if (intervalMining) {
+        // mimic interval mining without out having to actually
+        // configure ganache to mine on an interval (slowing tests down)
+        // by just stopping the miner and then mining on command
+        await send("miner_stop");
       }
-
-      function checkBalance(account) {
-        return new Promise(function(resolve, reject) {
-          web3.eth.getBalance(accounts[0], function(err, balance) {
-            if (err) {
-              return reject(err);
+      // create some transactions that will increment the nonce
+      const tx = { value: 1, from, to: from };
+      // send of our transactions and get their tx info once ready
+      const pendingHashes = Array(3)
+        .fill(tx)
+        .map(sendTransaction);
+      if (intervalMining) {
+        await send("evm_mine");
+      }
+      const pendingTransactions = pendingHashes.map((tx) => tx.then(({ result }) => getTransactionByHash(result)));
+      await Promise.all(
+        pendingTransactions.map((tx) =>
+          tx.then(({ result }) => {
+            const nonce = new BN(result.nonce.slice(2), "hex");
+            const blockNum = parseInt(result.blockNumber, 16);
+            assert.strictEqual(nonce.toString(10), expectedNonce.toString(10), "Tx nonce is not as expected");
+            assert.strictEqual(blockNum, expectedBlockNum, "Tx blockNumber is not as expected");
+            expectedNonce.iaddn(1);
+            // the block number must be different for each treansaction is we
+            // we are instamining. This ensures we are testing the right code branch
+            if (!intervalMining) {
+              expectedBlockNum++;
             }
+          })
+        )
+      );
+    }
 
-            var balanceInEther = web3.utils.fromWei(balance, "Ether");
+    it("should handle nonces greater than 255 (interval)", async function() {
+      await setUp(255);
+      await runTests(true);
+    });
 
-            assert.strictEqual(balanceInEther, "1.23456");
-            return resolve(balance);
-          });
-        });
-      }
+    it("should handle nonces greater than 255 (instamining)", async function() {
+      await setUp(255);
+      await runTests(false);
+    });
 
-      accounts.reduce((promise, account, index) => {
-        var returnVal;
+    it("should handle nonces greater than MAX_SAFE_INTEGER (interval)", async function() {
+      await setUp(Number.MAX_SAFE_INTEGER);
+      await runTests(true);
+    });
 
-        if (promise) {
-          returnVal = promise.then(checkBalance(account));
-        } else {
-          returnVal = checkBalance(account);
-        }
-
-        if (index === accounts.length - 1) {
-          returnVal.then(done()).catch((err) => {
-            done(err);
-          });
-        }
-
-        return returnVal;
-      }, null);
+    it("should handle nonces greater than MAX_SAFE_INTEGER (instamining)", async function() {
+      await setUp(Number.MAX_SAFE_INTEGER);
+      await runTests(false);
     });
   });
 });

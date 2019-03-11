@@ -8,7 +8,7 @@ const initializeTestProvider = require("../web3/initializeTestProvider");
  * @returns {Object} abi, accounts, bytecode, contract, instance, provider, receipt, sources, web3
  */
 const bootstrap = async(contractRef = {}, options = {}) => {
-  const { accounts, provider, web3 } = await initializeTestProvider(options);
+  const { accounts, provider, send, web3 } = await initializeTestProvider(options);
 
   const { contractFiles, contractSubdirectory } = contractRef;
   const [mainContractName, ...subContractNames] = contractFiles;
@@ -20,7 +20,7 @@ const bootstrap = async(contractRef = {}, options = {}) => {
     accounts
   );
 
-  return Object.assign(testAssets, { provider, web3 });
+  return Object.assign(testAssets, { provider, send, web3 });
 };
 
 module.exports = bootstrap;
