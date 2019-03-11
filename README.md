@@ -4,12 +4,12 @@
 [![Coverage Status](https://coveralls.io/repos/github/trufflesuite/ganache-core/badge.svg?branch=develop)](https://coveralls.io/github/trufflesuite/ganache-core?branch=develop)
 # Ganache Core
 
-[Usage](#usage) | [Options](#options) | [Implemented Methods](#implemented-methods) | [Custom Methods](#custom-methods) | [Unsupported Methods](#unsupported-methods) | [Testing](#testing)
---- | --- | --- | --- | --- | ---
+This is the core code that powers the Ganache application and the the Ganache command line tool.
 
-This is the core code that powers the Ganache application and the Ganache command line tool.
+[Installation](#installation) | [Usage](#usage) | [Options](#options) | [Implemented Methods](#implemented-methods) | [Custom Methods](#custom-methods) | [Unsupported Methods](#unsupported-methods) | [Testing](#testing)
+--- | --- | --- | --- | --- | --- | ---
 
-# INSTALLATION
+## Installation
 
 `ganache-core` is written in JavaScript and distributed as a Node.js package via `npm`. Make sure you have Node.js (>= v8.9.0) installed, and your environment is capable of installing and compiling `npm` modules.
 
@@ -32,7 +32,7 @@ yarn add ganache-core
 ```
 
 
-# USAGE
+## Usage
 
 As a [Web3](https://github.com/ethereum/web3.js/) provider:
 
@@ -56,7 +56,7 @@ const server = ganache.server();
 server.listen(port, function(err, blockchain) {...});
 ```
 
-# OPTIONS
+## Options
 
 Both `.provider()` and `.server()` take a single object which allows you to specify behavior of the Ganache instance. This parameter is optional. Available options are:
 
@@ -81,73 +81,82 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"account_keys_path"`: `String` - Specifies a file to save accounts and private keys to, for testing.
 * `"vmErrorsOnRPCResponse"`: `boolean` - Whether or not to transmit transaction failures as RPC errors. Set to `false` for error reporting behaviour which is compatible with other clients such as geth and Parity. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
-* `"hardfork"`: `String` Allows users to specify which hardfork should be used. Supported hardforks are `byzantium`, `constantinople`, and `petersburg` (default).
+* `"hardfork"`: `String` Allows to specify which hardfork should be used. Supported hardforks are `byzantium`, `constantinople`, and `petersburg` (default).
 * `"allowUnlimitedContractSize"`: `boolean` - Allows unlimited contract sizes while debugging. By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
 * `"gasPrice"`: `String::hex` Sets the default gas price for transactions if not otherwise specified. Must be specified as a `hex` encoded string in `wei`. Defaults to `"0x77359400"` (2 gwei).
 * `"gasLimit"`: `String::hex` Sets the block gas limit. Must be specified as a `hex` string. Defaults to `"0x6691b7"`.
 * `"keepAliveTimeout"`:  `number` If using `.server()` - Sets the HTTP server's `keepAliveTimeout` in milliseconds. See the [NodeJS HTTP docs](https://nodejs.org/api/http.html#http_server_keepalivetimeout) for details. `5000` by default.
 
-# IMPLEMENTED METHODS
+## Implemented Methods
 
 The RPC methods currently implemented are:
 
-* `bzz_hive` (stub)
-* `bzz_info` (stub)
-* `debug_traceTransaction` (without support for `tracer` option)
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_accounts" target="_blank">eth_accounts</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_blockNumber" target="_blank">eth_blockNumber</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_call" target="_blank">eth_call</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_coinbase" target="_blank">eth_coinbase</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_estimateGas" target="_blank">eth_estimateGas</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gasPrice" target="_blank">eth_gasPrice</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBalance" target="_blank">eth_getBalance</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBlockByNumber" target="_blank">eth_getBlockByNumber</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBlockByHash" target="_blank">eth_getBlockByHash</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBlockTransactionCountByHash" target="_blank">eth_getBlockTransactionCountByHash</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBlockTransactionCountByNumber" target="_blank">eth_getBlockTransactionCountByNumber</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getCode" target="_blank">eth_getCode</a> (only supports block number “latest”)
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getCompilers" target="_blank">eth_getCompilers</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getFilterChanges" target="_blank">eth_getFilterChanges</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getFilterLogs" target="_blank">eth_getFilterLogs</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getLogs" target="_blank">eth_getLogs</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getStorageAt" target="_blank">eth_getStorageAt</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionByHash" target="_blank">eth_getTransactionByHash</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionByBlockHashAndIndex" target="_blank">eth_getTransactionByBlockHashAndIndex</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionByBlockNumberAndIndex" target="_blank">eth_getTransactionByBlockNumberAndIndex</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionCount" target="_blank">eth_getTransactionCount</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionReceipt" target="_blank">eth_getTransactionReceipt</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_hashrate" target="_blank">eth_hashrate</a></a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_mining" target="_blank">eth_mining</a></a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newBlockFilter" target="_blank">eth_newBlockFilter</a></a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newFilter" target="_blank">eth_newFilter</a> (includes log/event filters)
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_protocolVersion" target="_blank">eth_protocolVersion</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendTransaction" target="_blank">eth_sendTransaction</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendRawTransaction" target="_blank">eth_sendRawTransaction</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign" target="_blank">eth_sign</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_subscribe" target="_blank">eth_subscribe</a> (only for websocket connections.)
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_unsubscribe" target="_blank">eth_unsubscribe</a> (only for websocket connections.)
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_version" target="_blank">shh_version</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#personal_sendTransaction" target="_blank">personal_sendTransaction</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#personal_unlockAccount" target="_blank">personal_unlockAccount</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#personal_importRawKey" target="_blank">personal_importRawKey</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#personal_newAccount" target="_blank">personal_newAccount</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#personal_lockAccount" target="_blank">personal_lockAccount</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#personal_listAccounts" target="_blank">personal_listAccounts</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#net_version" target="_blank">net_version</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#net_peerCount" target="_blank">net_peerCount</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#net_listening" target="_blank">net_listening</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_uninstallFilter" target="_blank">eth_uninstallFilter</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_syncing" target="_blank">eth_syncing</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#web3_clientVersion" target="_blank">web3_clientVersion</a>
-* <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#web3_sha3" target="_blank">web3_sha3</a>
+* [eth_accounts](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_accounts)
+* [eth_blockNumber](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_blockNumber)
+* [eth_call](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_call)
+* [eth_coinbase](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_coinbase)
+* [eth_estimateGas](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_estimateGas)
+* [eth_gasPrice](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gasPrice)
+* [eth_getBalance](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBalance)
+* [eth_getBlockByNumber](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBlockByNumber)
+* [eth_getBlockByHash](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBlockByHash)
+* [eth_getBlockTransactionCountByHash](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBlockTransactionCountByHash)
+* [eth_getBlockTransactionCountByNumber](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getBlockTransactionCountByNumber)
+* [eth_getCode](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getCode)
+* [eth_getCompilers](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getCompilers)
+* [eth_getFilterChanges](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getFilterChanges)
+* [eth_getFilterLogs](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getFilterLogs)
+* [eth_getLogs](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getLogs)
+* [eth_getStorageAt](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getStorageAt)
+* [eth_getTransactionByHash](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionByHash)
+* [eth_getTransactionByBlockHashAndIndex](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionByBlockHashAndIndex)
+* [eth_getTransactionByBlockNumberAndIndex](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionByBlockNumberAndIndex)
+* [eth_getTransactionCount](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionCount)
+* [eth_getTransactionReceipt](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getTransactionReceipt)
+* [eth_hashrate](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_hashrate)
+* [eth_mining](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_mining)
+* [eth_newBlockFilter](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newBlockFilter)
+* [eth_newFilter](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newFilter)
+* [eth_protocolVersion](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_protocolVersion)
+* [eth_sendTransaction](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendTransaction)
+* [eth_sendRawTransaction](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendRawTransaction)
+* [eth_sign](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign)
+* [eth_subscribe](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_subscribe)
+* [eth_unsubscribe](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_unsubscribe)
+* [shh_version](https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_version)
+* [net_version](https://github.com/ethereum/wiki/wiki/JSON-RPC#net_version)
+* [net_peerCount](https://github.com/ethereum/wiki/wiki/JSON-RPC#net_peerCount)
+* [net_listening](https://github.com/ethereum/wiki/wiki/JSON-RPC#net_listening)
+* [eth_uninstallFilter](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_uninstallFilter)
+* [eth_syncing](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_syncing)
+* [web3_clientVersion](https://github.com/ethereum/wiki/wiki/JSON-RPC#web3_clientVersion)
+* [web3_sha3](https://github.com/ethereum/wiki/wiki/JSON-RPC#web3_sha3)
+* `bzz_hive`
+* `bzz_info`
 
-# CUSTOM METHODS
+#### Management APIs
+
+* [debug_traceTransaction](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#debug_tracetransaction)
+* [miner_start](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#miner_start)
+* [miner_stop](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#miner_stop)
+* [personal_sendTransaction](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_sendTransaction)
+* [personal_unlockAccount](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_unlockAccount)
+* [personal_importRawKey](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_importRawKey)
+* [personal_newAccount](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_newAccount)
+* [personal_lockAccount](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_lockAccount)
+* [personal_listAccounts](https://github.com/ethereum/wiki/wiki/Management-APIs#personal_listAccounts)
+
+## Custom Methods
+
 Special non-standard methods that aren’t included within the original RPC specification:
-* `evm_snapshot` : Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the integer id of the snapshot created. **A snapshot can only be used once**. After a successful `evm_revert`, the same snapshot id cannot be used again. As such, consider creating a new snapshot after each `evm_revert` *if you need to revert to the same point multiple times*.
+* `evm_snapshot` : Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the integer id of the snapshot created. A snapshot can only be used once. After a successful `evm_revert`, the same snapshot id cannot be used again. Consider creating a new snapshot after each `evm_revert` *if you need to revert to the same point multiple times*.
   ```bash
   curl -H "Content-Type: application/json" -X POST --data \
           '{"id":1337,"jsonrpc":"2.0","method":"evm_snapshot","params":[]}' \
           http://localhost:8545
+  ```
+  ```json
+  { "id": 1337, "jsonrpc": "2.0", "result": "0x1" }
   ```
 * `evm_revert` : Revert the state of the blockchain to a previous snapshot. Takes a single parameter, which is the snapshot id to revert to. If no snapshot id is passed it will revert to the latest snapshot. Returns `true`.
   ```bash
@@ -156,6 +165,9 @@ Special non-standard methods that aren’t included within the original RPC spec
           '{"id":1337,"jsonrpc":"2.0","method":"evm_revert","params":["0x1"]}' \
           http://localhost:8545
   ```
+  ```json
+  { "id": 1337, "jsonrpc": "2.0", "result": true }
+  ```
 * `evm_increaseTime` : Jump forward in time. Takes one parameter, which is the amount of time to increase in seconds. Returns the total time adjustment, in seconds.
   ```bash
   # Ex: 1 minute (number)
@@ -163,32 +175,27 @@ Special non-standard methods that aren’t included within the original RPC spec
           '{"id":1337,"jsonrpc":"2.0","method":"evm_increaseTime","params":[60]}' \
           http://localhost:8545
   ```
-* `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block **independent** of whether mining is *started* or *stopped*.
+  ```json
+  { "id": 1337, "jsonrpc": "2.0", "result": "060" }
+  ```
+* `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block independent of whether or not mining is started or stopped.
   ```bash
   # Ex: new Date("2009-01-03T18:15:05+00:00").getTime()
   curl -H "Content-Type: application/json" -X POST --data \
           '{"id":1337,"jsonrpc":"2.0","method":"evm_mine","params":[1231006505000]}' \
           http://localhost:8545
   ```
-* `miner_start` : Resumes mining within ganache.
-  ```bash
-  curl -H "Content-Type: application/json" -X POST --data \
-          '{"id":1337,"jsonrpc":"2.0","method":"miner_start","params":[]}' \
-          http://localhost:8545
-  ```
-* `miner_stop` : Halts ganache from mining.
-  ```bash
-  curl -H "Content-Type: application/json" -X POST --data \
-          '{"id":1337,"jsonrpc":"2.0","method":"miner_stop","params":[]}' \
-          http://localhost:8545
+
+  ```json
+  { "id": 1337, "jsonrpc": "2.0", "result": "0x0" }
   ```
 
-# UNSUPPORTED METHODS
+## Unsupported Methods
 
 * `eth_compileSolidity`: If you'd like Solidity compilation in Javascript, please see the [solc-js project](https://github.com/ethereum/solc-js).
 
 
-# TESTING
+## Testing
 
 Run tests via:
 
@@ -196,5 +203,5 @@ Run tests via:
 $ npm test
 ```
 
-# LICENSE
+## License
 [MIT](https://tldrlegal.com/license/mit-license)
