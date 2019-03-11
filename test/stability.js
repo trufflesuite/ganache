@@ -74,7 +74,7 @@ describe("stability", function() {
 
     const method = "evm_mine";
     const params = ["0x1", "0x2", "0x3", "0x4", "0x5", "0x6", "0x7", "0x8", "0x9", "0xA"];
-    send(method, params);
+    await send(method, params);
   });
 
   // TODO: remove `.skip` when working on and/or submitting fix for issue trufflesuite/ganache-cli#453
