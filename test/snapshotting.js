@@ -1,16 +1,16 @@
-var BN = require("bn.js");
-var Ganache = require("../");
-var Web3 = require("web3");
-var assert = require("assert");
+const BN = require("bn.js");
+const Ganache = require("../");
+const Web3 = require("web3");
+const assert = require("assert");
 const bootstrap = require("./helpers/contract/bootstrap");
 const send = require("./helpers/utils/rpc");
 
 describe("Checkpointing / Reverting", function() {
-  var provider;
-  var accounts;
-  var web3 = new Web3();
-  var startingBalance;
-  var snapshotId;
+  let provider;
+  let accounts;
+  const web3 = new Web3();
+  let startingBalance;
+  let snapshotId;
 
   before("create provider", function() {
     provider = Ganache.provider();
@@ -137,7 +137,8 @@ describe("Checkpointing / Reverting", function() {
     );
   });
 
-  it("checkpoints and reverts without persisting contract storage", async() => {
+  it("checkpoints and reverts without persisting contract storage", async function() {
+    this.timeout(10000);
     const contractRef = {
       contractFiles: ["snapshot"],
       contractSubdirectory: "snapshotting"
