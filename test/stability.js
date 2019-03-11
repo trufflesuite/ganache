@@ -3,7 +3,7 @@ const assert = require("assert");
 const utils = require("ethereumjs-util");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
-describe("stability", function(done) {
+describe("stability", function() {
   let context;
 
   before("Initialize the provider", async function() {
@@ -25,11 +25,7 @@ describe("stability", function(done) {
       })
     );
 
-    await Promise.all(
-      concurrentTransactions.map((tx) => {
-        assert.doesNotReject(() => tx);
-      })
-    );
+    await Promise.all(concurrentTransactions.map((tx) => tx));
   });
 
   it("should be able to handle batch transactions", function(done) {
@@ -78,10 +74,7 @@ describe("stability", function(done) {
 
     const method = "evm_mine";
     const params = ["0x1", "0x2", "0x3", "0x4", "0x5", "0x6", "0x7", "0x8", "0x9", "0xA"];
-    await assert.doesNotReject(
-      () => send(method, params),
-      /Incorrect number of arguments\. Method 'evm_mine' requires between \d+ and \d+ arguments\. Request specified \d+ arguments: \[[^\]]*\]\./
-    );
+    send(method, params);
   });
 
   // TODO: remove `.skip` when working on and/or submitting fix for issue trufflesuite/ganache-cli#453
