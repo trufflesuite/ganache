@@ -3,18 +3,20 @@ const assert = require("assert");
 const sleep = require("./helpers/utils/sleep");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 const { compile } = require("./helpers/contract/compileAndDeploy");
+const generateRandomInteger = require("./helpers/utils/generateRandomInteger");
+const seed = generateRandomInteger(1000000);
 
 describe("Interval Mining", function() {
-  const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
-  const firstAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
+  let firstAddress;
 
   describe("Interval mining", function() {
     let context;
     before("Setting up provider and web3 instance", async function() {
       context = await initializeTestProvider({
         blockTime: 0.5, // seconds
-        mnemonic
+        seed
       });
+      firstAddress = context.accounts[0];
     });
 
     it("should mine a block on the interval", async function() {
@@ -40,7 +42,7 @@ describe("Interval Mining", function() {
     before("Setting up provider and web3 instance", async function() {
       context = await initializeTestProvider({
         blockTime: 0.25, // seconds
-        mnemonic
+        seed
       });
     });
 
@@ -101,7 +103,7 @@ describe("Interval Mining", function() {
     before("Setting up provider and web3 instance", async function() {
       context = await initializeTestProvider({
         blockTime: 0.5, // seconds
-        mnemonic
+        seed
       });
     });
 
@@ -190,7 +192,7 @@ describe("Interval Mining", function() {
 
       context = await initializeTestProvider({
         blockTime: 0.5, // seconds
-        mnemonic,
+        seed,
         logger
       });
     });
