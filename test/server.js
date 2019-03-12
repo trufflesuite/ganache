@@ -1,7 +1,8 @@
 const assert = require("assert");
 const pify = require("pify");
-
-const Ganache = require("../index.js");
+const Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 const StateManager = require("../lib/statemanager.js");
 
 describe("server", () => {
