@@ -1,32 +1,24 @@
-var Web3 = require("web3");
-var Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-var assert = require("assert-match");
-var regex = require("assert-match/matchers").regex;
+const assert = require("assert-match");
+const { regex } = require("assert-match/matchers");
+const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
-var tests = function(web3) {
-  var accounts;
+describe("Provider:", function() {
+  let context;
+
+  before("Setup provider and web3 instance", async function() {
+    context = await initializeTestProvider();
+  });
 
   // The second request, after the first in each of these tests,
   // informs us whether or not the provider crashed.
   function secondRequest(callback) {
+    const { web3 } = context;
     web3.eth.getAccounts(callback);
   }
 
   describe("bad input", function() {
-    before(function(done) {
-      web3.eth.getAccounts(function(err, accs) {
-        if (err) {
-          return done(err);
-        }
-        accounts = accs;
-        done();
-      });
-    });
-
     it("recovers after to address that isn't a string", function(done) {
-      var provider = web3.currentProvider;
+      const { accounts, provider } = context;
 
       provider.send(
         {
@@ -57,9 +49,9 @@ var tests = function(web3) {
     });
 
     it("recovers after bad nonce (too high)", function(done) {
-      var provider = web3.currentProvider;
+      const { accounts, provider } = context;
 
-      var request = {
+      const request = {
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
         params: [
@@ -98,9 +90,9 @@ var tests = function(web3) {
     });
 
     it("recovers after bad nonce (too low)", function(done) {
-      var provider = web3.currentProvider;
+      const { accounts, provider } = context;
 
-      var request = {
+      const request = {
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
         params: [
@@ -139,10 +131,12 @@ var tests = function(web3) {
     });
 
     it("recovers after bad balance", function(done) {
-      web3.eth.getBalance(accounts[0], function(_, balance) {
-        var provider = web3.currentProvider;
+      const { accounts, web3 } = context;
 
-        var request = {
+      web3.eth.getBalance(accounts[0], function(_, balance) {
+        const provider = web3.currentProvider;
+
+        const request = {
           jsonrpc: "2.0",
           method: "eth_sendTransaction",
           params: [
@@ -184,30 +178,4 @@ var tests = function(web3) {
       });
     });
   });
-};
-
-describe("Provider:", function() {
-  var web3 = new Web3();
-  web3.setProvider(Ganache.provider({}));
-  tests(web3);
-});
-
-describe("Server:", function(done) {
-  var web3 = new Web3();
-  var port = 12345;
-  var server;
-
-  before("Initialize Ganache server", function(done) {
-    server = Ganache.server({});
-    server.listen(port, function() {
-      web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
-      done();
-    });
-  });
-
-  after("Shutdown server", function(done) {
-    server.close(done);
-  });
-
-  tests(web3);
 });
