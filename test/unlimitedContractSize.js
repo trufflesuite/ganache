@@ -61,7 +61,10 @@ describe("Unlimited Contract Size", function() {
     it("should succeed deployment", async function() {
       const { web3 } = context;
       const { abi, bytecode } = contract;
-      await deploy(abi, bytecode, web3, { gas: 2e7 });
+      await assert.doesNotReject(
+        () => deploy(abi, bytecode, web3, { gas: 2e7 }),
+        "should be able to deploy a very large contract"
+      );
     });
   });
 });
