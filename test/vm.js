@@ -1,74 +1,38 @@
-const Web3 = require("web3");
 const assert = require("assert");
-const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-const solc = require("solc");
-const fs = require("fs");
+const bootstrap = require("./helpers/contract/bootstrap");
 
 describe("revert opcode", function() {
-  const testContext = {};
-
-  const logger = {
-    log: function(message) {
-      // console.log(message);
-    }
-  };
-
-  const web3 = new Web3();
-  web3.setProvider(
-    Ganache.provider({
-      /* blockTime: 100, */
-      logger: logger,
-      seed: "1337"
-    })
-  );
-
-  before(function(done) {
+  let context;
+  before("Setting up web3 and contract", async function() {
     this.timeout(10000);
-    testContext.source = fs.readFileSync("./test/contracts/revert/Revert.sol", { encoding: "utf8" });
-    testContext.solcResult = solc.compile(testContext.source, false);
-
-    testContext.revertContract = {
-      solidity: testContext.source,
-      abi: testContext.solcResult.contracts[":Revert"].interface,
-      binary: "0x" + testContext.solcResult.contracts[":Revert"].bytecode,
-      runtimeBinary: "0x" + testContext.solcResult.contracts[":Revert"].runtimeBytecode
+    const logger = {
+      log: function(message) {}
     };
 
-    web3.eth.getAccounts(function(err, accs) {
-      if (err) {
-        return done(err);
-      }
+    const contractRef = {
+      contractFiles: ["Revert"],
+      contractSubdirectory: "revert"
+    };
 
-      testContext.accounts = accs;
-      return done();
-    });
+    const ganacheProviderOptions = {
+      logger,
+      seed: "1337"
+    };
+
+    context = await bootstrap(contractRef, ganacheProviderOptions);
   });
 
   it("should return a transaction receipt with status 0 on REVERT", async function() {
-    const revertCode = testContext.revertContract.binary;
-    const revertAbi = JSON.parse(testContext.revertContract.abi);
-
-    const RevertContract = new web3.eth.Contract(revertAbi);
-    RevertContract._code = revertCode;
-
+    const { accounts, instance, web3 } = context;
     let receipt;
-    try {
-      const instance = await RevertContract.deploy({ data: revertCode }).send({
-        from: testContext.accounts[0],
-        gas: 3141592
-      });
 
-      // TODO: ugly workaround - not sure why this is necessary.
-      if (!instance._requestManager.provider) {
-        instance._requestManager.setProvider(web3.eth._provider);
-      }
-      receipt = await instance.methods.alwaysReverts(5).send({ from: testContext.accounts[0] });
+    try {
+      await instance.methods.alwaysReverts(5).send({ from: accounts[0] });
     } catch (error) {
       assert.strictEqual(error.results[error.hashes[0]].error, "revert", "Expected error result not returned.");
-      return web3.eth.getTransactionReceipt(error.hashes[0]);
+      receipt = await web3.eth.getTransactionReceipt(error.hashes[0]);
     }
+
     assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
     assert.strictEqual(receipt.status, false, "Reverted (failed) transactions should have a status of FALSE.");
   });
