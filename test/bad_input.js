@@ -1,5 +1,4 @@
-const assert = require("assert-match");
-const { regex } = require("assert-match/matchers");
+const assert = require("assert");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 
 describe("Provider:", function() {
@@ -9,16 +8,9 @@ describe("Provider:", function() {
     context = await initializeTestProvider();
   });
 
-  // The second request, after the first in each of these tests,
-  // informs us whether or not the provider crashed.
-  function secondRequest(callback) {
-    const { web3 } = context;
-    web3.eth.getAccounts(callback);
-  }
-
   describe("bad input", function() {
     it("recovers after to address that isn't a string", function(done) {
-      const { accounts, provider } = context;
+      const { accounts, provider, web3 } = context;
 
       provider.send(
         {
@@ -43,7 +35,7 @@ describe("Provider:", function() {
         },
         function() {
           // Ignore any errors, but make sure we can make the second request
-          secondRequest(done);
+          web3.eth.getAccounts(done);
         }
       );
     });
@@ -131,11 +123,9 @@ describe("Provider:", function() {
     });
 
     it("recovers after bad balance", function(done) {
-      const { accounts, web3 } = context;
+      const { accounts, provider, web3 } = context;
 
       web3.eth.getBalance(accounts[0], function(_, balance) {
-        const provider = web3.currentProvider;
-
         const request = {
           jsonrpc: "2.0",
           method: "eth_sendTransaction",
@@ -152,25 +142,20 @@ describe("Provider:", function() {
 
         provider.send(request, function(err, result) {
           if (err) {
-            assert.deepEqual(
-              err.message,
-              regex(
-                /sender doesn't have enough funds to send tx. The upfront cost is: \d+ and the sender's account only has: \d+/
-              ),
-              `Unexpected error message. Got ${err.message}.`
+            const status = /sender doesn't have enough funds to send tx. The upfront cost is: \d+ and the sender's account only has: \d+/.test(
+              err.message
             );
+            assert(status, `Unexpected error message. Got ${err.message}.`);
           }
+
           // We're supposed to get an error the first time. Let's assert we get the right one.
           // Note that if using the Ganache as a provider, err will be non-null when there's
           // an error. However, when using it as a server it won't be. In both cases, however,
           // result.error should be set with the same error message. We'll check for that.
-          assert.deepEqual(
-            result.error.message,
-            regex(
-              /sender doesn't have enough funds to send tx. The upfront cost is: \d+ and the sender's account only has: \d+/
-            ),
-            `Unexpected error message. Got ${result.error.message}.`
+          const status = /sender doesn't have enough funds to send tx. The upfront cost is: \d+ and the sender's account only has: \d+/.test(
+            result.error.message
           );
+          assert(status, `Unexpected error message. Got ${result.error.message}.`);
 
           request.params[0].value = "0x5";
           provider.send(request, done);
