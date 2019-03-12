@@ -12,7 +12,7 @@ const SEED_RANGE = 1000000;
 const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
-const HARDFORKS = ["constantinople", "byzantium"];
+const HARDFORKS = ["petersburg", "constantinople", "byzantium"];
 
 describe("Gas", function() {
   HARDFORKS.forEach((hardfork) => {
@@ -57,6 +57,7 @@ describe("Gas", function() {
 
             switch (provider.options.hardfork) {
               case "byzantium":
+              case "petersburg":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
               case "constantinople":
@@ -91,6 +92,7 @@ describe("Gas", function() {
 
             switch (provider.options.hardfork) {
               case "byzantium":
+              case "petersburg":
                 // since we are resetting to a non-zero value, there is no gas added to the refund counter here
                 assert.strictEqual(receipt.gasUsed, gasEstimate);
                 break;
@@ -127,6 +129,7 @@ describe("Gas", function() {
 
             switch (provider.options.hardfork) {
               case "byzantium":
+              case "petersburg":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
               case "constantinople":
@@ -162,6 +165,7 @@ describe("Gas", function() {
 
             switch (provider.options.hardfork) {
               case "byzantium":
+              case "petersburg":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
               case "constantinople":
@@ -196,6 +200,7 @@ describe("Gas", function() {
 
             switch (provider.options.hardfork) {
               case "byzantium":
+              case "petersburg":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
               case "constantinople":
@@ -247,6 +252,7 @@ describe("Gas", function() {
 
           switch (provider.options.hardfork) {
             case "byzantium":
+            case "petersburg":
               assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
               break;
             case "constantinople":
@@ -332,6 +338,7 @@ describe("Gas", function() {
           let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
           switch (provider.options.hardfork) {
             case "byzantium":
+            case "petersburg":
               assert.strictEqual(gasUsed, transactionCostMinusRefund);
               break;
             case "constantinople":
