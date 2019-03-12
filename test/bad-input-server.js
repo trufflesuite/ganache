@@ -4,9 +4,9 @@ const intializeTestServer = require("./helpers/web3/initializeTestServer");
 intializeTestServer(tests);
 
 function tests(web3) {
-  let accounts;
-
   describe("bad input", function() {
+    let accounts;
+
     before(async function() {
       accounts = await web3.eth.getAccounts();
     });
