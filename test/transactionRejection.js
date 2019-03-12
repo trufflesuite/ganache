@@ -1,4 +1,3 @@
-const assert = require("assert");
 const bootstrap = require("./helpers/contract/bootstrap");
 const to = require("../lib/utils/to");
 
@@ -131,15 +130,17 @@ describe("Transaction rejection", function() {
       } else if (response.result) {
         const result = await web3.eth.getTransactionReceipt(response.result);
         if (to.number(result.status) === 0) {
-          assert.fail("TX rejections should return error, but returned receipt with zero status instead");
+          return new Error("TX rejections should return error, but returned receipt with zero status instead");
         } else {
-          assert.fail(
-            `TX should have rejected prior to running. Instead transaction ran successfully (receipt.status == 
-              ${to.number(result.status)})`
+          return done(
+            new Error(
+              `TX should have rejected prior to running. Instead transaction ran successfully (receipt.status == 
+                ${to.number(result.status)})`
+            )
           );
         }
       } else {
-        assert.fail(new Error("eth_sendTransaction responded with empty RPC response"));
+        return done(new Error("eth_sendTransaction responded with empty RPC response"));
       }
     });
   }
