@@ -1,5 +1,6 @@
 const solc = require("solc");
 const { readFileSync } = require("fs");
+const { join } = require("path");
 
 /**
  * Compile the specified contract(s)
@@ -13,7 +14,7 @@ async function compile(mainContractName, contractFileNames = [], contractPath) {
 
   const contractSources = selectedContracts.map((contractName) => {
     const _contractName = `${contractName.replace(/\.sol$/i, "")}.sol`;
-    return { [_contractName]: readFileSync(`${contractPath}${_contractName}`, "utf8") };
+    return { [_contractName]: readFileSync(join(contractPath, _contractName), "utf8") };
   });
 
   const sources = Object.assign({}, ...contractSources);
