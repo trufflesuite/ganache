@@ -7,7 +7,6 @@
 This is the core code that powers the Ganache application and the Ganache command line tool.
 
 [Usage](#usage) | [Options](#options) | [Implemented Methods](#implemented-methods) | [Custom Methods](#custom-methods) | [Unsupported Methods](#unsupported-methods) | [Testing](#testing)
---- | --- | --- | --- | --- | ---
 
 ## Installation
 
