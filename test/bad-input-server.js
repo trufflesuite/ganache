@@ -1,4 +1,4 @@
-const assert = require("assert-match");
+const assert = require("assert");
 const initializeTestServer = require("./helpers/web3/initializeTestServer");
 
 initializeTestServer(tests);
