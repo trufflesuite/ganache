@@ -3,7 +3,7 @@ const Ganache = require(process.env.TEST_BUILD
   : "../../../index.js");
 const Web3 = require("web3");
 
-const intiailizeTestServer = (tests, port = 12345) => {
+const initializeTestServer = (tests, port = 12345) => {
   describe("Server:", function() {
     const web3 = new Web3();
     const port = 12345;
@@ -25,4 +25,4 @@ const intiailizeTestServer = (tests, port = 12345) => {
   });
 };
 
-module.exports = intiailizeTestServer;
+module.exports = initializeTestServer;

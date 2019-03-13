@@ -1,7 +1,7 @@
 const assert = require("assert-match");
-const intializeTestServer = require("./helpers/web3/initializeTestServer");
+const initializeTestServer = require("./helpers/web3/initializeTestServer");
 
-intializeTestServer(tests);
+initializeTestServer(tests);
 
 function tests(web3) {
   describe("bad input", function() {
