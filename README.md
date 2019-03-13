@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/trufflesuite/ganache-core/badge.svg?branch=develop)](https://coveralls.io/github/trufflesuite/ganache-core?branch=develop)
 # Ganache Core
 
-This is the core code that powers the Ganache application and the the Ganache command line tool.
+This is the core code that powers the Ganache application and the Ganache command line tool.
 
 [Usage](#usage) | [Options](#options) | [Implemented Methods](#implemented-methods) | [Custom Methods](#custom-methods) | [Unsupported Methods](#unsupported-methods) | [Testing](#testing)
 --- | --- | --- | --- | --- | ---
@@ -83,7 +83,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
 * `"hardfork"`: `String` Allows to specify which hardfork should be used. Supported hardforks are `byzantium`, `constantinople`, and `petersburg` (default).
 * `"allowUnlimitedContractSize"`: `boolean` - Allows unlimited contract sizes while debugging. By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
-* `"gasPrice"`: `String::hex` Sets the default gas price for transactions if not otherwise specified. Must be specified as a `hex` encoded string in `wei`. Defaults to `"0x77359400"` (2 gwei).
+* `"gasPrice"`: `String::hex` Sets the default gas price for transactions if not otherwise specified. Must be specified as a `hex` encoded string in `wei`. Defaults to `"0x77359400"` (2 `gwei`).
 * `"gasLimit"`: `String::hex` Sets the block gas limit. Must be specified as a `hex` string. Defaults to `"0x6691b7"`.
 * `"keepAliveTimeout"`:  `number` If using `.server()` - Sets the HTTP server's `keepAliveTimeout` in milliseconds. See the [NodeJS HTTP docs](https://nodejs.org/api/http.html#http_server_keepalivetimeout) for details. `5000` by default.
 
@@ -134,7 +134,7 @@ The RPC methods currently implemented are:
 * `bzz_hive`
 * `bzz_info`
 
-#### Implemented Management API Methods
+#### Management API Methods
 
 * [debug_traceTransaction](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#debug_tracetransaction)
 * [miner_start](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#miner_start)
