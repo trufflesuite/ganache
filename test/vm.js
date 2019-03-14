@@ -1,7 +1,7 @@
 const assert = require("assert");
 const bootstrap = require("./helpers/contract/bootstrap");
 
-describe.only("revert opcode", function() {
+describe("revert opcode", function() {
   let context;
   before("Setting up web3 and contract", async function() {
     this.timeout(10000);
