@@ -15,10 +15,8 @@ describe("Unlimited Contract Size", function() {
     const contractFilename = "LargeContract";
     const subcontractFiles = [];
     const { abi, bytecode } = await compile(contractFilename, subcontractFiles, contractSubdirectory);
-    Object.assign(contract, {
-      abi,
-      bytecode
-    });
+    contract.abi = abi;
+    contract.bytecode = bytecode;
   });
 
   describe("Disallow Unlimited Contract Size", function() {
@@ -38,7 +36,7 @@ describe("Unlimited Contract Size", function() {
       const { web3 } = context;
       const { abi, bytecode } = contract;
       await assert.rejects(
-        () => deploy(abi, bytecode, web3, { gas: 2e7 }),
+        deploy(abi, bytecode, web3, { gas: 2e7 }),
         /VM Exception while processing transaction: out of gas/,
         "should not be able to deploy a very large contract"
       );
@@ -62,7 +60,7 @@ describe("Unlimited Contract Size", function() {
       const { web3 } = context;
       const { abi, bytecode } = contract;
       await assert.doesNotReject(
-        () => deploy(abi, bytecode, web3, { gas: 2e7 }),
+        deploy(abi, bytecode, web3, { gas: 2e7 }),
         "should be able to deploy a very large contract"
       );
     });
