@@ -9,7 +9,7 @@ const { readFileSync } = require("fs");
  * @param {String} contractPath  Path to contracts directory
  * @returns {Object} context: abi, bytecode, sources
  */
-async function compile(mainContractName, contractFileNames = [], contractSubdirectory) {
+function compile(mainContractName, contractFileNames = [], contractSubdirectory) {
   const contractPath = join(__dirname, "..", "..", "contracts", `${contractSubdirectory}/`);
   const selectedContracts = [mainContractName].concat(contractFileNames);
 
@@ -91,7 +91,7 @@ async function compileAndDeploy(
   options = {},
   accounts = []
 ) {
-  const { abi, bytecode, sources } = await compile(mainContractName, contractFileNames, contractPath);
+  const { abi, bytecode, sources } = compile(mainContractName, contractFileNames, contractPath);
   const context = await deploy(abi, bytecode, web3, options, accounts);
   return Object.assign(context, { sources });
 }
