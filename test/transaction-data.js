@@ -22,14 +22,13 @@ describe("Transaction Data", () => {
     const { instance, accounts, web3 } = context;
 
     await assert.rejects(
-      () =>
-        web3.eth.sendTransaction({
-          from: accounts[0],
-          to: instance._address,
-          gas: 31000,
-          data: "0x01",
-          value: 1
-        }),
+      web3.eth.sendTransaction({
+        from: accounts[0],
+        to: instance._address,
+        gas: 31000,
+        data: "0x01",
+        value: 1
+      }),
       /VM Exception while processing transaction: revert/,
       "Call did not fail execution like it was supposed to"
     );
@@ -39,14 +38,13 @@ describe("Transaction Data", () => {
     const { instance, accounts, web3 } = context;
 
     await assert.rejects(
-      () =>
-        web3.eth.sendTransaction({
-          from: accounts[0],
-          to: instance._address,
-          gas: 31000,
-          data: "0x1",
-          value: 1
-        }),
+      web3.eth.sendTransaction({
+        from: accounts[0],
+        to: instance._address,
+        gas: 31000,
+        data: "0x1",
+        value: 1
+      }),
       /VM Exception while processing transaction: revert/,
       "Call did not fail execution like it was supposed to"
     );

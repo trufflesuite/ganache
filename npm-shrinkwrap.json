@@ -3804,6 +3804,13 @@
             "prr": "~1.0.1",
             "semver": "~5.4.1",
             "xtend": "~4.0.0"
+          },
+          "dependencies": {
+            "semver": {
+              "version": "5.4.1",
+              "resolved": "https://registry.npmjs.org/semver/-/semver-5.4.1.tgz",
+              "integrity": "sha512-WfG/X9+oATh81XtllIo/I8gOiY9EXRdv1cQdyykeXK17YcUW3EXUAi2To4pcH6nZtJPr7ZOpM5OMyWJZm+8Rsg=="
+            }
           }
         },
         "merkle-patricia-tree": {
@@ -7055,6 +7062,13 @@
             "prr": "~1.0.1",
             "semver": "~5.4.1",
             "xtend": "~4.0.0"
+          },
+          "dependencies": {
+            "semver": {
+              "version": "5.4.1",
+              "resolved": "https://registry.npmjs.org/semver/-/semver-5.4.1.tgz",
+              "integrity": "sha512-WfG/X9+oATh81XtllIo/I8gOiY9EXRdv1cQdyykeXK17YcUW3EXUAi2To4pcH6nZtJPr7ZOpM5OMyWJZm+8Rsg=="
+            }
           }
         }
       }
@@ -9719,9 +9733,9 @@
       "integrity": "sha512-O4OZEaNtkMd/K0i6js9SL+gqy0ZCBMgUvlSqHKi4IBdjhe7wB8pwztUk1BbZ1fmrvpwFrPbHzqd2w5pTcJH6LA=="
     },
     "semver": {
-      "version": "5.4.1",
-      "resolved": "https://registry.npmjs.org/semver/-/semver-5.4.1.tgz",
-      "integrity": "sha512-WfG/X9+oATh81XtllIo/I8gOiY9EXRdv1cQdyykeXK17YcUW3EXUAi2To4pcH6nZtJPr7ZOpM5OMyWJZm+8Rsg=="
+      "version": "5.6.0",
+      "resolved": "https://registry.npmjs.org/semver/-/semver-5.6.0.tgz",
+      "integrity": "sha512-RS9R6R35NYgQn++fkDWaOmqGoj4Ek9gGs+DPxNUZKuwE183xjJroKvyo1IzVFeXvUrvmALy6FWD5xrdJT25gMg=="
     },
     "semver-compare": {
       "version": "1.0.0",
