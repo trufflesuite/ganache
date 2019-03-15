@@ -204,7 +204,7 @@ describe("Interval Mining", function() {
       const contractSubdirectory = "examples";
       const { bytecode } = await compile(contractFilename, subcontractFiles, contractSubdirectory);
 
-      Object.assign(context, { bytecode });
+      context.bytecode = bytecode;
     });
 
     it("should log runtime errors to the log", async function() {
@@ -212,7 +212,7 @@ describe("Interval Mining", function() {
       const { bytecode, web3 } = context;
 
       await assert.rejects(
-        () => web3.eth.sendTransaction({ from: firstAddress, data: bytecode, gas: 3141592 }),
+        web3.eth.sendTransaction({ from: firstAddress, data: bytecode, gas: 3141592 }),
         /The contract code couldn't be stored, please check your gas limit/
       );
 
