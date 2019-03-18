@@ -13,7 +13,7 @@ describe("Debug", function() {
   let multipleCallsHashToTrace = null;
   const expectedValueBeforeTrace = "1234";
 
-  before("set up web3 and contract", async() => {
+  before("set up web3 and contract", async function() {
     this.timeout(10000);
     const contractRef = {
       contractFiles: ["DebugContract"],
@@ -46,12 +46,11 @@ describe("Debug", function() {
       assert.strictEqual(value, expectedValueBeforeTrace);
     });
 
-    it("should trace a successful transaction without changing state", function() {
+    it("should trace a successful transaction without changing state", async function() {
       // We want to trace the transaction that sets the value to 26
-      const { accounts, instance, web3 } = context;
-      const provider = web3.currentProvider;
+      const { accounts, instance, provider } = context;
 
-      return new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         provider.send(
           {
             jsonrpc: "2.0",
@@ -98,11 +97,10 @@ describe("Debug", function() {
             resolve();
           }
         );
-      }).then(async() => {
-        // Now let's make sure rerunning this transaction trace didn't change state
-        const value = await instance.methods.value().call({ from: accounts[0], gas });
-        assert.strictEqual(value, expectedValueBeforeTrace);
       });
+
+      const value = await instance.methods.value().call({ from: accounts[0], gas });
+      assert.strictEqual(value, expectedValueBeforeTrace);
     });
   });
 

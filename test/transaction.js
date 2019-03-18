@@ -1,17 +1,21 @@
 const assert = require("assert");
-const Transaction = require("../../lib/utils/transaction");
+const BN = require("bn.js");
+const Transaction = require("../lib/utils/transaction");
 
-describe("Transaction", () => {
-  it("Should adhere to EIP-115", () => {
+describe("Transaction", function() {
+  it("Should adhere to EIP-155", function() {
+    const gasPrice = 20 * 10 ** 9; // 20000000000
+    const value = `0x${new BN(10).pow(new BN(18)).toString("hex")}`;
+
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
-    const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
+    const privateKey = Buffer.from("46".repeat(32), "hex");
 
     const txParams = {
       nonce: 9,
-      gasPrice: 20 * 10 ** 9,
+      gasPrice,
       gasLimit: 21000,
-      to: "0x3535353535353535353535353535353535353535",
-      value: 10 ** 18,
+      to: `0x${"35".repeat(20)}`,
+      value,
       data: "",
       chainId: 1 // EIP 155 chainId - mainnet: 1, ropsten: 3
     };

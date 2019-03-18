@@ -1,17 +1,25 @@
-const pify = require("pify");
+const { promisify } = require("util");
 
 /**
  * Generic RPC method
  * @param {Object} provider Ganache provider
- * @returns {Promise} Response object
+ * @returns {Function} Send method
  */
-const send = (provider) => (method = "", ...params) => {
-  return pify(provider.send.bind(provider))({
-    id: `${new Date().getTime()}`,
-    jsonrpc: "2.0",
-    method,
-    params: [...params]
-  });
+const generateSend = function(provider) {
+  /**
+   * Generic RPC method
+   * @param {String} method JSON RPC method
+   * @param {...*} params JSON RPC parameters
+   * @returns {Promise} Response object
+   */
+  return function(method = "", ...params) {
+    return promisify(provider.send.bind(provider))({
+      id: `${new Date().getTime()}`,
+      jsonrpc: "2.0",
+      method,
+      params: [...params]
+    });
+  };
 };
 
-module.exports = send;
+module.exports = generateSend;
