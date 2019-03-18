@@ -69,7 +69,7 @@ describe("Checkpointing / Reverting", function() {
     assert.strictEqual(oldReceipt, null, "Receipt should be null as it should have been removed");
   });
 
-  it.only("returns false when reverting a snapshot that doesn't exist", async() => {
+  it("returns false when reverting a snapshot that doesn't exist", async() => {
     const { send } = context;
 
     const snapShotId1 = await send("evm_snapshot");
