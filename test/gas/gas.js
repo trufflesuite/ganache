@@ -89,7 +89,6 @@ describe("Gas", function() {
           await assert.rejects(
             () => send("eth_sendTransaction", tx),
             {
-              name: "RuntimeError",
               message: "VM Exception while processing transaction: out of gas"
             },
             `SANITY CHECK: Gas estimate: ${estimate - 1} is too high.`
@@ -113,7 +112,6 @@ describe("Gas", function() {
           const estimate = new BN(estimateHex.substring(2), "hex");
           txParams.gasLimit = "0x" + estimate.subn(1).toString("hex");
           await assert.rejects(() => send("eth_sendTransaction", txParams), {
-            name: "RuntimeError",
             message: "VM Exception while processing transaction: revert"
           });
 
@@ -136,7 +134,6 @@ describe("Gas", function() {
                 gas: est - 1
               }),
             {
-              name: "RuntimeError",
               message: "VM Exception while processing transaction: revert"
             }
           );
@@ -163,7 +160,6 @@ describe("Gas", function() {
           const est = await instance.methods.moveFund(address, 5).estimateGas(tx);
           tx.gas = est - 1;
           await assert.rejects(() => instance.methods.moveFund(address, 5).send(tx), {
-            name: "RuntimeError",
             message: "VM Exception while processing transaction: out of gas"
           });
           tx.gas = est;

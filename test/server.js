@@ -1,8 +1,8 @@
 const assert = require("assert");
 const pify = require("pify");
-const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
+// this should not be a reference the built/lib Ganache as we intentially are checking
+// that it is returning an instance of an object in the test below.
+const Ganache = require("../index.js");
 const StateManager = require("../lib/statemanager.js");
 
 describe("server", () => {
