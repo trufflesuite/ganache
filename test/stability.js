@@ -10,35 +10,18 @@ describe("stability", function() {
     context = await initializeTestProvider();
   });
 
-  it("should be able to handle multiple transactions at once and manage nonces accordingly", function(done) {
+  it("should be able to handle multiple transactions at once and manage nonces accordingly", async function() {
     const { accounts, web3 } = context;
 
-    let received = 0;
-    const expected = 5;
-    let receipts = {};
-
-    const txHandler = function(err, result) {
-      assert.strictEqual(receipts[result], undefined);
-
-      receipts[result] = result;
-      received += 1;
-
-      if (err || received === expected) {
-        return done(err);
-      }
+    const txParams = {
+      from: accounts[0],
+      to: accounts[1],
+      value: web3.utils.toWei(new BN(1), "ether")
     };
+    const expected = 5;
+    const concurrentTransactions = Array(expected).fill(() => web3.eth.sendTransaction(txParams));
 
-    // Fire off transaction at once
-    for (let i = 0; i < expected; i++) {
-      web3.eth.sendTransaction(
-        {
-          from: accounts[0],
-          to: accounts[1],
-          value: web3.utils.toWei(new BN(1), "ether")
-        },
-        txHandler
-      );
-    }
+    await Promise.all(concurrentTransactions.map((txFn) => assert.doesNotReject(txFn())));
   });
 
   it("should be able to handle batch transactions", function(done) {
@@ -86,8 +69,10 @@ describe("stability", function() {
     const { send } = context;
 
     const method = "evm_mine";
-    const params = ["0x1", "0x2", "0x3", "0x4", "0x5", "0x6", "0x7", "0x8", "0x9", "0xA"];
-    await send(method, params);
+    const err = await send(method, "0x1", "0x2", "0x3", "0x4", "0x5", "0x6", "0x7", "0x8", "0x9", "0xA").catch(
+      (e) => e
+    );
+    assert(err.message.indexOf("Incorrect number of arguments.") !== -1);
   });
 
   // TODO: remove `.skip` when working on and/or submitting fix for issue trufflesuite/ganache-cli#453
