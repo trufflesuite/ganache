@@ -21,267 +21,201 @@ function tests(ganacheProviderOptions) {
       };
 
       context = await bootstrap(contractRef, ganacheProviderOptions);
+      const _send = context.provider.send.bind(context.provider.send);
+      let jsonRpcId = 1;
+      // we want to ignore the callback `err` so we are creating our own promisified send here
+      context.send = (method, ...params) =>
+        new Promise((resolve) => {
+          _send(
+            {
+              id: jsonRpcId++,
+              jsonrpc: "2.0",
+              method,
+              params: [...params]
+            },
+            (err, response) => resolve({ err, response })
+          );
+        });
     });
 
     it("should output the transaction hash even if a (out of gas) runtime error occurred", async function() {
-      const { accounts, bytecode, provider } = context;
+      const { accounts, bytecode, provider, send } = context;
 
-      await new Promise((resolve) => {
-        provider.send(
-          {
-            jsonrpc: "2.0",
-            method: "eth_sendTransaction",
-            params: [
-              {
-                from: accounts[0],
-                data: bytecode
-              }
-            ],
-            id: 1
-          },
-          function(_, response) {
-            if (provider.options.vmErrorsOnRPCResponse) {
-              // null & undefined are equivalent for equality tests, but I'm being
-              // pedantic here for readability's sake
-              assert(response.error !== null);
-              assert(response.error !== undefined);
-            } else {
-              assert(response.error === undefined);
-            }
-
-            // null & undefined are equivalent for equality tests, but I'm being
-            // pedantic here for readability's sake
-            assert(response.result !== null);
-            assert(response.result !== undefined);
-
-            assert.strictEqual(response.result.length, 66); // transaction hash
-            resolve();
-          }
-        );
+      const { response } = await send("eth_sendTransaction", {
+        from: accounts[0],
+        data: bytecode
       });
+
+      if (provider.options.vmErrorsOnRPCResponse) {
+        // null & undefined are equivalent for equality tests, but I'm being
+        // pedantic here for readability's sake
+        assert(response.error !== null);
+        assert(response.error !== undefined);
+      } else {
+        assert(response.error === undefined);
+      }
+
+      // null & undefined are equivalent for equality tests, but I'm being
+      // pedantic here for readability's sake
+      assert(response.result !== null);
+      assert(response.result !== undefined);
+
+      assert.strictEqual(response.result.length, 66); // transaction hash
     });
 
     it("should output the transaction hash even if a runtime error occurs (revert)", async function() {
-      const { accounts, instance, provider } = context;
+      const { accounts, instance, provider, send } = context;
 
-      await new Promise((resolve) => {
-        provider.send(
-          {
-            jsonrpc: "2.0",
-            id: new Date().getTime(),
-            method: "eth_sendTransaction",
-            params: [
-              {
-                from: accounts[0],
-                to: instance.options.address,
-                // calls error()
-                data: "0xc79f8b62",
-                gas: to.hex(3141592)
-              }
-            ]
-          },
-          function(_, response) {
-            if (provider.options.vmErrorsOnRPCResponse) {
-              // null & undefined are equivalent for equality tests, but I'm being
-              // pedantic here for readability's sake
-              assert(response.error !== null);
-              assert(response.error !== undefined);
-
-              assert(
-                /revert/.test(response.error.message),
-                `Expected error message (${response.error.message}) to contain 'revert'`
-              );
-            } else {
-              assert(response.error === undefined);
-            }
-
-            // null & undefined are equivalent for equality tests, but I'm being
-            // pedantic here for readability's sake
-            assert(response.result !== null);
-            assert(response.result !== undefined);
-
-            assert.strictEqual(response.result.length, 66); // transaction hash
-            resolve();
-          }
-        );
+      const { response } = await send("eth_sendTransaction", {
+        from: accounts[0],
+        to: instance.options.address,
+        // calls error()
+        data: "0xc79f8b62",
+        gas: to.hex(3141592)
       });
+
+      if (provider.options.vmErrorsOnRPCResponse) {
+        // null & undefined are equivalent for equality tests, but I'm being
+        // pedantic here for readability's sake
+        assert(response.error !== null);
+        assert(response.error !== undefined);
+
+        assert(
+          /revert/.test(response.error.message),
+          `Expected error message (${response.error.message}) to contain 'revert'`
+        );
+      } else {
+        assert(response.error === undefined);
+      }
+
+      // null & undefined are equivalent for equality tests, but I'm being
+      // pedantic here for readability's sake
+      assert(response.result !== null);
+      assert(response.result !== undefined);
+
+      assert.strictEqual(response.result.length, 66); // transaction hash
     });
 
     it("should have correct return value when calling a method that reverts without message", async function() {
-      const { accounts, instance, provider } = context;
+      const { accounts, instance, provider, send } = context;
 
-      await new Promise((resolve) => {
-        provider.send(
-          {
-            jsonrpc: "2.0",
-            id: new Date().getTime(),
-            method: "eth_call",
-            params: [
-              {
-                from: accounts[0],
-                to: instance.options.address,
-                // calls error()
-                data: "0xc79f8b62",
-                gas: to.hex(3141592)
-              }
-            ]
-          },
-          function(_, response) {
-            if (provider.options.vmErrorsOnRPCResponse) {
-              // null & undefined are equivalent for equality tests, but I'm being
-              // pedantic here for readability's sake
-              assert(response.error !== null);
-              assert(response.error !== undefined);
-              assert(response.result === undefined || response.result === null);
-
-              assert(
-                /revert/.test(response.error.message),
-                `Expected error message (${response.error.message}) to contain 'revert'`
-              );
-            } else {
-              assert(response.error === undefined);
-              assert(response.result === "0x");
-            }
-
-            resolve();
-          }
-        );
+      const { response } = await send("eth_call", {
+        from: accounts[0],
+        to: instance.options.address,
+        // calls error()
+        data: "0xc79f8b62",
+        gas: to.hex(3141592)
       });
+
+      if (provider.options.vmErrorsOnRPCResponse) {
+        // null & undefined are equivalent for equality tests, but I'm being
+        // pedantic here for readability's sake
+        assert(response.error !== null);
+        assert(response.error !== undefined);
+        assert(response.result === undefined || response.result === null);
+
+        assert(
+          /revert/.test(response.error.message),
+          `Expected error message (${response.error.message}) to contain 'revert'`
+        );
+      } else {
+        assert(response.error === undefined);
+        assert(response.result === "0x");
+      }
     });
 
     it("should have correct return value when calling a method that reverts without message", async function() {
-      const { accounts, instance, provider } = context;
+      const { accounts, instance, provider, send } = context;
 
-      await new Promise((resolve) => {
-        provider.send(
-          {
-            jsonrpc: "2.0",
-            id: new Date().getTime(),
-            method: "eth_call",
-            params: [
-              {
-                from: accounts[0],
-                to: instance.options.address,
-                // calls error()
-                data: "0xc79f8b62",
-                gas: to.hex(3141592)
-              }
-            ]
-          },
-          function(_, response) {
-            if (provider.options.vmErrorsOnRPCResponse) {
-              // null & undefined are equivalent for equality tests, but I'm being
-              // pedantic here for readability's sake
-              assert(response.error !== null);
-              assert(response.error !== undefined);
-              assert(response.result === undefined || response.result === null);
-
-              assert(
-                /revert/.test(response.error.message),
-                `Expected error message (${response.error.message}) to contain 'revert'`
-              );
-            } else {
-              assert(response.error === undefined);
-              assert(response.result === "0x");
-            }
-
-            resolve();
-          }
-        );
+      const { response } = await send("eth_call", {
+        from: accounts[0],
+        to: instance.options.address,
+        // calls error()
+        data: "0xc79f8b62",
+        gas: to.hex(3141592)
       });
+
+      if (provider.options.vmErrorsOnRPCResponse) {
+        // null & undefined are equivalent for equality tests, but I'm being
+        // pedantic here for readability's sake
+        assert(response.error !== null);
+        assert(response.error !== undefined);
+        assert(response.result === undefined || response.result === null);
+
+        assert(
+          /revert/.test(response.error.message),
+          `Expected error message (${response.error.message}) to contain 'revert'`
+        );
+      } else {
+        assert(response.error === undefined);
+        assert(response.result === "0x");
+      }
     });
 
     it("should have correct return value when calling a method that reverts with message", async function() {
-      const { accounts, instance, provider } = context;
+      const { accounts, instance, provider, send } = context;
 
-      await new Promise((resolve) => {
-        provider.send(
-          {
-            jsonrpc: "2.0",
-            id: new Date().getTime(),
-            method: "eth_call",
-            params: [
-              {
-                from: accounts[0],
-                to: instance.options.address,
-                // calls error()
-                data: "0xcd4aed30",
-                gas: to.hex(3141592)
-              }
-            ]
-          },
-          function(_, response) {
-            if (provider.options.vmErrorsOnRPCResponse) {
-              // null & undefined are equivalent for equality tests, but I'm being
-              // pedantic here for readability's sake
-              assert(response.error !== null);
-              assert(response.error !== undefined);
-              assert(response.result === undefined || response.result === null);
-
-              // RuntimeError.sol reverts with revert("Message")
-              assert(
-                /Message/.test(response.error.message),
-                `Expected error message (${response.error.message}) to contain revert reason "Message"`
-              );
-              assert(
-                /revert/.test(response.error.message),
-                `Expected error message (${response.error.message}) to contain 'revert'`
-              );
-            } else {
-              assert(response.error === undefined);
-              assert(
-                response.result ===
-                  "0x08c379a000000000000000000000000000000000000000000000000000000000000000" +
-                    "2000000000000000000000000000000000000000000000000000000000000000074d6573" +
-                    "7361676500000000000000000000000000000000000000000000000000"
-              );
-            }
-            resolve();
-          }
-        );
+      const { response } = await send("eth_call", {
+        from: accounts[0],
+        to: instance.options.address,
+        // calls error()
+        data: "0xcd4aed30",
+        gas: to.hex(3141592)
       });
+
+      if (provider.options.vmErrorsOnRPCResponse) {
+        // null & undefined are equivalent for equality tests, but I'm being
+        // pedantic here for readability's sake
+        assert(response.error !== null);
+        assert(response.error !== undefined);
+        assert(response.result === undefined || response.result === null);
+
+        // RuntimeError.sol reverts with revert("Message")
+        assert(
+          /Message/.test(response.error.message),
+          `Expected error message (${response.error.message}) to contain revert reason "Message"`
+        );
+        assert(
+          /revert/.test(response.error.message),
+          `Expected error message (${response.error.message}) to contain 'revert'`
+        );
+      } else {
+        assert(response.error === undefined);
+        assert(
+          response.result ===
+            "0x08c379a000000000000000000000000000000000000000000000000000000000000000" +
+              "2000000000000000000000000000000000000000000000000000000000000000074d6573" +
+              "7361676500000000000000000000000000000000000000000000000000"
+        );
+      }
     });
 
     if (ganacheProviderOptions.vmErrorsOnRPCResponse === true) {
       it("should output instruction index on runtime errors", async function() {
-        const { accounts, instance, provider } = context;
+        const { accounts, instance, send } = context;
 
-        await new Promise((resolve) => {
-          provider.send(
-            {
-              jsonrpc: "2.0",
-              id: new Date().getTime(),
-              method: "eth_sendTransaction",
-              params: [
-                {
-                  from: accounts[0],
-                  to: instance.options.address,
-                  // calls error()
-                  data: "0xc79f8b62",
-                  gas: to.hex(3141592)
-                }
-              ]
-            },
-            function(err, response) {
-              if (err) {
-                assert(err);
-              }
-              let txHash = response.result;
-
-              assert(response.error);
-              assert(response.error.data[txHash]);
-              // magic number, will change if compiler changes.
-              assert.strictEqual(to.number(response.error.data[txHash].program_counter), 91);
-              resolve();
-            }
-          );
+        const { err, response } = await send("eth_sendTransaction", {
+          from: accounts[0],
+          to: instance.options.address,
+          // calls error()
+          data: "0xc79f8b62",
+          gas: to.hex(3141592)
         });
+
+        if (err) {
+          assert(err);
+        }
+        const txHash = response.result;
+
+        assert(response.error);
+        assert(response.error.data[txHash]);
+        // magic number, will change if compiler changes.
+        assert.strictEqual(to.number(response.error.data[txHash].program_counter), 91);
       });
     }
 
     after("shutdown", function(done) {
-      const { provider } = context;
-      provider.close(done);
+      context.provider.close(done);
     });
   });
 }
