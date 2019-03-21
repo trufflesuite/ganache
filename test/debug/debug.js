@@ -1,17 +1,32 @@
 const assert = require("assert");
 const bootstrap = require("../helpers/contract/bootstrap");
+const { promisify } = require("util");
+var Ganache = require(process.env.TEST_BUILD
+  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../index.js");
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.
 process.removeAllListeners("uncaughtException");
 
-describe("Debug", function() {
+function test(forked) {
   let options = {};
   let context;
+  const mnemonic = "sweet candy treat";
   const gas = 3141592;
   let hashToTrace = null;
   let multipleCallsHashToTrace = null;
   const expectedValueBeforeTrace = "1234";
+  const forkedTargetUrl = "ws://localhost:21345";
+
+  if (forked) {
+    before("init forkedServer", async function() {
+      const forkedServer = Ganache.server({
+        mnemonic
+      });
+      await promisify(forkedServer.listen)(21345);
+    });
+  }
 
   before("set up web3 and contract", async function() {
     this.timeout(10000);
@@ -19,7 +34,8 @@ describe("Debug", function() {
       contractFiles: ["DebugContract"],
       contractSubdirectory: "debug"
     };
-    context = await bootstrap(contractRef);
+    const options = forked ? { fork: forkedTargetUrl.replace("ws", "http"), mnemonic } : { mnemonic };
+    context = await bootstrap(contractRef, options);
   });
 
   describe("Trace a successful transaction", function() {
@@ -168,5 +184,15 @@ describe("Debug", function() {
         }
       );
     });
+  });
+}
+
+describe("Debug", function() {
+  describe("Direct", function() {
+    test();
+  });
+
+  describe("Forked", function() {
+    test(true);
   });
 });
