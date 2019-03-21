@@ -1,7 +1,6 @@
 const solc = require("solc");
 const { join } = require("path");
 const { readFileSync } = require("fs");
-const { join } = require("path");
 
 /**
  * Compile the specified contract(s)
