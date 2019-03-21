@@ -46,11 +46,11 @@ describe("Debug", function() {
       assert.strictEqual(value, expectedValueBeforeTrace);
     });
 
-    it("should trace a successful transaction without changing state", function() {
+    it("should trace a successful transaction without changing state", async function() {
       // We want to trace the transaction that sets the value to 26
       const { accounts, instance, provider } = context;
 
-      return new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         provider.send(
           {
             jsonrpc: "2.0",
@@ -97,11 +97,10 @@ describe("Debug", function() {
             resolve();
           }
         );
-      }).then(async() => {
-        // Now let's make sure rerunning this transaction trace didn't change state
-        const value = await instance.methods.value().call({ from: accounts[0], gas });
-        assert.strictEqual(value, expectedValueBeforeTrace);
       });
+
+      const value = await instance.methods.value().call({ from: accounts[0], gas });
+      assert.strictEqual(value, expectedValueBeforeTrace);
     });
   });
 
