@@ -23,32 +23,29 @@ describe("Undefined", () => {
     it("should return `0x` when eth_call fails (web3.eth call)", async() => {
       const { instance, web3 } = context;
 
-      const signature = instance.methods.causeReturnValueOfUndefined()._method.signature;
-
       // test raw JSON RPC value:
       const result = await web3.eth.call({
         to: instance._address,
-        data: signature
+        data: instance.methods.causeReturnValueOfUndefined()._method.signature
       });
       assert.strictEqual(result, "0x");
     });
 
     it("should throw due to returned value of `0x` when eth_call fails (compiled contract call)", async() => {
       const { instance } = context;
-      try {
-        await instance.methods.causeReturnValueOfUndefined().call();
-      } catch (error) {
-        assert.strictEqual(error.message, "Couldn't decode bool from ABI: 0x");
-      }
+      await assert.rejects(
+        () => instance.methods.causeReturnValueOfUndefined().call(),
+        /Couldn't decode bool from ABI: 0x/,
+        "should not be able to decode bool from ABI"
+      );
     });
 
     it("should return a value when contract and method exists at block (web3.eth.call)", async() => {
       const { instance, web3 } = context;
 
-      const signature = instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature;
       const params = {
         to: instance._address,
-        data: signature
+        data: instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature
       };
       // test raw JSON RPC value:
       const result = await web3.eth.call(params, "latest");
@@ -68,10 +65,9 @@ describe("Undefined", () => {
     it("should return 0x when contract doesn't exist at block", async() => {
       const { instance, web3 } = context;
 
-      const signature = instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature;
       const params = {
         to: instance._address,
-        data: signature
+        data: instance.methods.theAnswerToLifeTheUniverseAndEverything()._method.signature
       };
       const result = await web3.eth.call(params, "earliest");
 

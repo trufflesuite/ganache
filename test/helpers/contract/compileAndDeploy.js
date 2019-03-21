@@ -1,5 +1,7 @@
 const solc = require("solc");
+const { join } = require("path");
 const { readFileSync } = require("fs");
+const { join } = require("path");
 
 /**
  * Compile the specified contract(s)
@@ -8,12 +10,13 @@ const { readFileSync } = require("fs");
  * @param {String} contractPath  Path to contracts directory
  * @returns {Object} context: abi, bytecode, sources
  */
-async function compile(mainContractName, contractFileNames = [], contractPath) {
+function compile(mainContractName, contractFileNames = [], contractSubdirectory) {
+  const contractPath = join(__dirname, "..", "..", "contracts", `${contractSubdirectory}/`);
   const selectedContracts = [mainContractName].concat(contractFileNames);
 
   const contractSources = selectedContracts.map((contractName) => {
     const _contractName = `${contractName.replace(/\.sol$/i, "")}.sol`;
-    return { [_contractName]: readFileSync(`${contractPath}${_contractName}`, "utf8") };
+    return { [_contractName]: readFileSync(join(contractPath, _contractName), "utf8") };
   });
 
   const sources = Object.assign({}, ...contractSources);
@@ -89,7 +92,7 @@ async function compileAndDeploy(
   options = {},
   accounts = []
 ) {
-  const { abi, bytecode, sources } = await compile(mainContractName, contractFileNames, contractPath);
+  const { abi, bytecode, sources } = compile(mainContractName, contractFileNames, contractPath);
   const context = await deploy(abi, bytecode, web3, options, accounts);
   return Object.assign(context, { sources });
 }
