@@ -28,7 +28,7 @@ describe("Constantinople Hardfork", function() {
       const { instance } = context;
 
       await assert.rejects(
-        () => instance.methods.test(2).call(),
+        instance.methods.test(2).call(),
         /VM Exception while processing transaction: invalid opcode/,
         "Call did not fail execution like it was supposed to"
       );

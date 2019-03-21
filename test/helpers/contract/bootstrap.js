@@ -1,4 +1,3 @@
-const { join } = require("path");
 const { compileAndDeploy } = require("./compileAndDeploy");
 const initializeTestProvider = require("../web3/initializeTestProvider");
 
@@ -12,13 +11,7 @@ const bootstrap = async(contractRef = {}, options = {}) => {
 
   const { contractFiles, contractSubdirectory } = contractRef;
   const [mainContractName, ...subContractNames] = contractFiles;
-  const testAssets = await compileAndDeploy(
-    mainContractName,
-    subContractNames,
-    join(__dirname, "..", "..", "contracts", `${contractSubdirectory}/`),
-    web3,
-    accounts
-  );
+  const testAssets = await compileAndDeploy(mainContractName, subContractNames, contractSubdirectory, web3, accounts);
 
   return Object.assign(testAssets, { provider, send, web3 });
 };
