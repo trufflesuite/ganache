@@ -21,7 +21,7 @@ describe("stability", function() {
     const expected = 5;
     const concurrentTransactions = Array(expected).fill(() => web3.eth.sendTransaction(txParams));
 
-    await Promise.all(concurrentTransactions.map((txFn) => assert.doesNotReject(txFn())));
+    await Promise.all(concurrentTransactions.map((txFn) => assert.doesNotReject(txFn)));
   });
 
   it("should be able to handle batch transactions", function(done) {
