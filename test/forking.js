@@ -7,6 +7,7 @@ var Ganache = require(process.env.TEST_BUILD
 var fs = require("fs");
 var solc = require("solc");
 var to = require("../lib/utils/to.js");
+var generateSend = require("./helpers/utils/rpc");
 
 var logger = {
   log: function(msg) {
@@ -438,6 +439,21 @@ describe("Forking", function() {
     const forkedNetwork = await forkedWeb3.eth.net.getId();
     const mainNetwork = await mainWeb3.eth.net.getId();
     assert.strictEqual(mainNetwork, forkedNetwork);
+  });
+
+  describe("Can debug a transaction", function() {
+    let send;
+    before("generate send", function() {
+      send = generateSend(mainWeb3.currentProvider);
+    });
+
+    // this test does NOT validate the state of the debugged transaction. It only checks that
+    // the debug_traceTransaction is callable on a forked Chain. We don't yet have tests
+    // for forked debug_traceTransaction, but when we do, they'll be in debug.js (or similar), not here.
+    it("can debug the transaction", async function() {
+      const receipt = await mainWeb3.eth.sendTransaction({ from: mainAccounts[0], to: mainAccounts[1], value: 1 });
+      await assert.doesNotReject(send("debug_traceTransaction", receipt.transactionHash, []));
+    });
   });
 
   describe("fork_block_number", function() {
