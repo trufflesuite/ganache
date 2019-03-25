@@ -86,6 +86,13 @@ const tests = function(web3) {
     });
   });
 
+  describe("eth_chainId", function() {
+    it("should return correct chainId", async function() {
+      const chainId = await web3.eth.net.getId();
+      assert.strictEqual(chainId, 23);
+    });
+  });
+
   describe("eth_coinbase", function() {
     it("should return correct address", async function() {
       const coinbase = await web3.eth.getCoinbase();
@@ -1564,6 +1571,7 @@ describe("Provider:", function() {
   web3.setProvider(
     Ganache.provider({
       logger: logger,
+      network_id: 23,
       seed: "1337"
       // so that the runtime errors on call test passes
     })
@@ -1586,6 +1594,7 @@ describe("HTTP Server:", function() {
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
       logger: logger,
+      network_id: 23,
       seed: "1337"
       // so that the runtime errors on call test passes
     });
@@ -1610,6 +1619,7 @@ describe("WebSockets Server:", function() {
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
       logger: logger,
+      network_id: 23,
       seed: "1337"
       // so that the runtime errors on call test passes
     });
