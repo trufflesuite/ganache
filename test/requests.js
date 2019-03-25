@@ -86,6 +86,21 @@ const tests = function(web3) {
     });
   });
 
+  describe.only("eth_chainId", function() {
+    it("should return a chainId very close to the current time", async function() {
+      const chainId = await web3.eth.net.getId();
+
+      const dateAsInt = new Date().getTime() + "";
+      const strResult = to.number(chainId) + "";
+
+      assert.strictEqual(
+        strResult.length,
+        dateAsInt.length,
+        `chainId, ${chainId} ` + `doesn't appear to be similar in length the current time as an integer, ${dateAsInt}`
+      );
+    });
+  });
+
   describe("eth_coinbase", function() {
     it("should return correct address", async function() {
       const coinbase = await web3.eth.getCoinbase();
