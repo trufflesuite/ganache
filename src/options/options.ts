@@ -1,12 +1,16 @@
 import Account from "../types/account";
 import HexData from "../types/hex-data";
 import HexQuantity from "../types/hex-quantity";
+import ILedger from "../interfaces/ledger";
+import Ethereum from "../ledgers/ethereum/ethereum";
+import JSBI from "jsbi";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
 }
 
 export default class Options {
+  public ledger: ILedger = new Ethereum({networkId: Date.now()});
   /**
    * Array of Accounts. Each object should have a balance key with a hexadecimal
    * value. The key secretKey can also be specified, which represents the 
@@ -39,12 +43,12 @@ export default class Options {
   /**
    * The default account balance, specified in ether. Defaults to `100` ether
    */
-  public default_balance_ether: number = 100
+  public default_balance_ether: JSBI = JSBI.BigInt(100)
 
   /**
    * Number of accounts to generate at startup. Default to `10`.
    */
-  public total_accounts: number = 10
+  public total_accounts: JSBI = JSBI.BigInt(10)
 
   /**
    * When a string, same as --fork option above. Can also be a Web3 Provider 
@@ -58,12 +62,12 @@ export default class Options {
    * sign and a block number, the block number in the fork parameter takes 
    * precedence.
    */
-  public fork_block_number: string | number = null
+  public fork_block_number: string | JSBI = null
 
   /**
    * Same as --networkId option above.
    */
-  public network_id: number = null
+  public network_id: number = Date.now()
 
   /**
    * Date that the first block should start. Use this feature, along with the
@@ -79,7 +83,7 @@ export default class Options {
   /**
    * Array of addresses or address indexes specifying which accounts should be unlocked.
    */
-  public unlocked_accounts: Array<HexData|number> = null
+  public unlocked_accounts: Array<HexData|JSBI> = null
 
   /**
    * Specify a path to a directory to save the chain database. If a database 

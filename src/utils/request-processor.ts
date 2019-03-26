@@ -1,4 +1,3 @@
-// todo: make this better
 export default class RequestProcessor {
   public limit: number = 0
   public pending: any[] = [];
@@ -45,10 +44,9 @@ export default class RequestProcessor {
     this._processing = false;
   }
 
-  public queue = async function(fn: ({}) => Promise<{}>, ...args: any[]): Promise<{}> {
-    const self = this;
+  public queue = async function(fn: (...args: any[]) => Promise<{}>, ...args: any[]): Promise<{}> {
     const executor = (resolve: (value?: {} | PromiseLike<{}>) => void, reject: (value?: {} | PromiseLike<{}>) => void) => {
-      fn.apply(self, args).then(resolve);
+      return fn.apply(null, args).then(resolve).catch(reject);
     }
     this.pending.push(executor);
     this.process();
