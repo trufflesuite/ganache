@@ -173,11 +173,11 @@ function test(forked) {
             arrayOfStorageKeyValues[0]["0000000000000000000000000000000000000000000000000000000000000000"],
             "0000000000000000000000000000000000000000000000000000000000000001"
           );
-          // // ensure the call to setValue with 1 was successfully stored for otherValue
-          // assert.strictEqual(
-          //   arrayOfStorageKeyValues[1]["0000000000000000000000000000000000000000000000000000000000000001"],
-          //   "00000000000000000000000000000000000000000000000000000000000004f2"
-          // );
+          // ensure the call to setValue with 1 was successfully stored for otherValue
+          assert.strictEqual(
+            arrayOfStorageKeyValues[1]["0000000000000000000000000000000000000000000000000000000000000001"],
+            "00000000000000000000000000000000000000000000000000000000000004f2"
+          );
 
           // ensure the call to setValue with 2 was successfully stored for value
           assert.strictEqual(
@@ -185,10 +185,10 @@ function test(forked) {
             "0000000000000000000000000000000000000000000000000000000000000002"
           );
           // ensure the call to setValue with 2 was successfully stored for otherValue
-          // assert.strictEqual(
-          //   arrayOfStorageKeyValues[3]["0000000000000000000000000000000000000000000000000000000000000001"],
-          //   "00000000000000000000000000000000000000000000000000000000000004f4"
-          // );
+          assert.strictEqual(
+            arrayOfStorageKeyValues[3]["0000000000000000000000000000000000000000000000000000000000000001"],
+            "00000000000000000000000000000000000000000000000000000000000004f4"
+          );
 
           done();
         }
