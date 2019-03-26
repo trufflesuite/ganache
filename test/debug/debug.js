@@ -198,9 +198,9 @@ function test(forked) {
 }
 
 describe("Debug", function() {
-  // describe("Direct", function() {
-  //   test();
-  // });
+  describe("Direct", function() {
+    test();
+  });
 
   describe("Forked", function() {
     test(true);
