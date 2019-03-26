@@ -15,7 +15,7 @@ function compile(mainContractName, contractFileNames = [], contractSubdirectory)
 
   const contractSources = selectedContracts.map((contractName) => {
     const _contractName = `${contractName.replace(/\.sol$/i, "")}.sol`;
-    return { [_contractName]: readFileSync(`${contractPath}${_contractName}`, "utf8") };
+    return { [_contractName]: readFileSync(join(contractPath, _contractName), "utf8") };
   });
 
   const sources = Object.assign({}, ...contractSources);
