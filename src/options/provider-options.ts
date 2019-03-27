@@ -7,9 +7,11 @@ export default interface ProviderOptions extends Options {
   subProviders: Array<any>
 }
 
-export const getDefault : () => ProviderOptions = () => {
-  return {
-    ...getDefaultOptions(),
-    subProviders: []
-  } as ProviderOptions;
+export const getDefault : (options: ProviderOptions) => ProviderOptions = (options) => {
+  return Object.assign(
+    {
+      subProviders: []
+    },
+    getDefaultOptions(options)
+  );
 }

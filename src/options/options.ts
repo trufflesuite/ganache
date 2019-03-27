@@ -2,7 +2,7 @@ import Account from "../types/account";
 import HexData from "../types/hex-data";
 import HexQuantity from "../types/hex-quantity";
 import ILedger from "../interfaces/ledger";
-import Ethereum from "../ledgers/ethereum/ethereum";
+import Ethereum from "../ledgers/ethereum/ledger";
 import JSBI from "jsbi";
 
 interface Logger {
@@ -67,7 +67,7 @@ export default interface Options {
   /**
    * Same as --networkId option above.
    */
-  network_id: number,
+  network_id: string,
 
   /**
    * Date that the first block should start. Use this feature, along with the
@@ -137,10 +137,10 @@ export default interface Options {
   asyncRequestProcessing: boolean,
 };
 
-export const getDefault: ()=> Options = () => {
-  const now = Date.now();
-  return {
-    ledger: new Ethereum({networkId: now}),
+export const getDefault: (options: Options)=> Options = (options) => {
+  const network_id = options.network_id || Date.now().toString();
+  return Object.assign({
+    ledger: new Ethereum({net_version: network_id}),
     accounts: null,
     debug: false,
     logger: {log: () => {}},
@@ -150,7 +150,7 @@ export const getDefault: ()=> Options = () => {
     total_accounts: JSBI.BigInt(10),
     fork: null,
     fork_block_number: null,
-    network_id: now,
+    network_id,
     time: null,
     locked: false,
     unlocked_accounts: null,
@@ -163,5 +163,5 @@ export const getDefault: ()=> Options = () => {
     gasLimit: new HexQuantity("0x6691b7"),
     verbose: false,
     asyncRequestProcessing: false
-  } as Options;
+  }, options);
 }

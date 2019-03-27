@@ -2,7 +2,7 @@ import Engine from "./engine";
 import RequestProcessor from "./utils/request-processor";
 import ProviderOptions, {getDefault as getDefaultProviderOptions} from "./options/provider-options";
 import { EventEmitter } from "events";
-import Ethereum from "./ledgers/ethereum/ethereum"
+import Ethereum from "./ledgers/ethereum/ledger"
 
 export type ProviderOptions = ProviderOptions;
 
@@ -21,12 +21,12 @@ export default class Provider extends EventEmitter {
   private _requestProcessor: RequestProcessor;
   constructor(options?: ProviderOptions) {
     super();
-    const _options = this._options = Object.assign(getDefaultProviderOptions(), options);
+    const _options = this._options = getDefaultProviderOptions(options);
 
     // set up our request processor to either use FIFO or or async request processing
     this._requestProcessor = new RequestProcessor(_options.asyncRequestProcessing ? 1 : 0);
 
-    this._engine = new Engine(_options.ledger || new Ethereum({networkId: Date.now()}));
+    this._engine = new Engine(_options.ledger || new Ethereum({net_version: _options.network_id}));
   }
 
   public send(payload: Payload, callback?: Callback): void 

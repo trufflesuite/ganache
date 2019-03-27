@@ -22,12 +22,14 @@ export default interface ServerOptions extends ProviderOptions {
   ws: boolean
 }
 
-export const getDefault : () => ServerOptions = () => {
-  return {
-    ...getDefaultProviderOptions(),
-    keepAliveTimeout: 5000,
-    port: 8545,
-    ws: true
-  } as ServerOptions;
+export const getDefault : (options: ServerOptions) => ServerOptions = (options) => {
+  return Object.assign(
+    {
+      keepAliveTimeout: 5000,
+      port: 8545,
+      ws: true
+    },
+    getDefaultProviderOptions(options as ProviderOptions)
+  ) as ServerOptions;
 }
 

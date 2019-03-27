@@ -1,20 +1,17 @@
 const createKeccakHash = require("keccak");
-import ILedger from "../../interfaces/ledger";
+import ILedger, {optionsSymbol} from "../../interfaces/ledger";
+import EthereumOptions, {getDefaultOptions as getDefaultEthereumOptions} from "./options"
 const hash = createKeccakHash("keccak256");
 import JSBI from "jsbi";
 
-export default class Ethereum implements ILedger{
-    readonly [index: string]: (...args: any) => Promise<{}>;
-
-    options: any;
-    private _netVersion: any;
-    constructor(options: any){
-        this.options = options;
-        this._netVersion = (this.options.networkId || Date.now()).toString();
+export default class Ethereum implements ILedger {
+    readonly [optionsSymbol]: EthereumOptions;
+    constructor(options: EthereumOptions){
+        this[optionsSymbol] = Object.assign(getDefaultEthereumOptions(), options);
     }
 
     async net_version(): Promise<string> {
-        return this._netVersion;
+        return this[optionsSymbol].net_version;
     }
 
     async net_listening(): Promise<Boolean> {
@@ -32,4 +29,6 @@ export default class Ethereum implements ILedger{
     async web3_sha3(string: string): Promise<Buffer> {
         return hash(string).digest();
     };
+
+    readonly [index: string]: (...args: any) => Promise<{}>;
 }
