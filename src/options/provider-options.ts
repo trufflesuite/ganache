@@ -1,8 +1,15 @@
-import Options from "./options";
+import Options, {getDefault as getDefaultOptions} from "./options";
 
-export default class ProviderOptions extends Options {
+export default interface ProviderOptions extends Options {
   /**
    * Array of strings to installed subproviders
    */
-  public subProviders: Array<any>
+  subProviders: Array<any>
+}
+
+export const getDefault : () => ProviderOptions = () => {
+  return {
+    ...getDefaultOptions(),
+    subProviders: []
+  } as ProviderOptions;
 }

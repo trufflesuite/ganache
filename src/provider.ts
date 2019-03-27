@@ -1,11 +1,10 @@
 import Engine from "./engine";
 import RequestProcessor from "./utils/request-processor";
-import _ProviderOptions from "./options/provider-options";
+import ProviderOptions, {getDefault as getDefaultProviderOptions} from "./options/provider-options";
 import { EventEmitter } from "events";
 import Ethereum from "./ledgers/ethereum/ethereum"
 
-export type ProviderOptions = _ProviderOptions;
-export const ProviderOptions = _ProviderOptions;
+export type ProviderOptions = ProviderOptions;
 
 interface Payload {
   method: string
@@ -17,17 +16,17 @@ interface Callback {
 }
 
 export default class Provider extends EventEmitter {
-  private options: ProviderOptions;
-  private engine: Engine;
-  private requestProcessor: RequestProcessor;
-  constructor(options = new ProviderOptions()) {
+  private _options: ProviderOptions;
+  private _engine: Engine;
+  private _requestProcessor: RequestProcessor;
+  constructor(options?: ProviderOptions) {
     super();
-    this.options = options;
+    const _options = this._options = Object.assign(getDefaultProviderOptions(), options);
 
     // set up our request processor to either use FIFO or or async request processing
-    this.requestProcessor = new RequestProcessor(options.asyncRequestProcessing ? 1 : 0);
+    this._requestProcessor = new RequestProcessor(_options.asyncRequestProcessing ? 1 : 0);
 
-    this.engine = new Engine(options.ledger || new Ethereum({networkId: Date.now()}));
+    this._engine = new Engine(_options.ledger || new Ethereum({networkId: Date.now()}));
   }
 
   public send(payload: Payload, callback?: Callback): void 
@@ -36,11 +35,11 @@ export default class Provider extends EventEmitter {
     let method: string;
     let params: Array<any>;
     let response: Promise<{}>;
-    const send = this.engine.send.bind(this.engine);
+    const send = this._engine.send.bind(this._engine);
     if (typeof arg1 === "string") {
       method = arg1;
       params = arg2;
-      response = this.requestProcessor.queue(send, method, params);
+      response = this._requestProcessor.queue(send, method, params);
     } else {
       // handle backward compatibility with callback-style ganache-core
       const payload: Payload = arg1 as Payload;
@@ -55,15 +54,15 @@ export default class Provider extends EventEmitter {
         );
       }
       
-      this.requestProcessor.queue(send, method, params).then((response: any)=>{
+      this._requestProcessor.queue(send, method, params).then((response: any)=>{
         callback(null, response);
       }).catch(callback);
       
       response = undefined;
     }
 
-    if (this.options.verbose) {
-      this.options.logger.log(`   >  ${method}: ${JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`);
+    if (this._options.verbose) {
+      this._options.logger.log(`   >  ${method}: ${JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`);
     }
 
     return response;

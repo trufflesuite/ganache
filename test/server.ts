@@ -7,6 +7,7 @@ import { ServerOptions } from "../src/server";
 
 
 describe("server", () => {
+  const port = 8545;
   const jsonRpcJson: any = {
     jsonrpc: "2.0",
     id: "1",
@@ -15,38 +16,77 @@ describe("server", () => {
   };
   let s: Server;
   beforeEach("setup", async ()=>{
-    s = Ganache.server();
-    await s.listen(8545);
-  })
-  it("returns things", async ()=>{
-    const s = Ganache.server();
-    await s.listen(8545);
-    const response = await request
-      .post('http://127.0.0.1:8545')
-      .send(jsonRpcJson)
-      .set('accept', 'json');
-    const json = JSON.stringify(response.text)
-    assert.ok(json);
-  });
-
-  it("returns things over a websocket", async ()=>{
-    const s = Ganache.server({
+    s = Ganache.server({
       network_id: 1234
     } as ServerOptions);
-    await s.listen(8545);
-    const ws = new WebSocket('ws://127.0.0.1:8545');
-
-    const result: any = await new Promise((resolve) => {
-      ws.on("open", function open() {
-        ws.send(JSON.stringify(jsonRpcJson));
-      });
-      ws.on('message', resolve);
-    });
-    const json = JSON.parse(result);
-    assert.ok(json);
+    await s.listen(port);
   })
+  describe("http", () => {
+    it.only("returns things", async () => {
+      const response = await request
+        .post('http://localhost:' + port)
+        .send(jsonRpcJson)
+        .set('accept', 'json');
+      const json = JSON.parse(response.text)
+      assert.ok(json);
+    });
+  });
+
+  describe("websocket", () => {
+    it("returns things over a websocket", async () => {
+      const ws = new WebSocket('ws://localhost:' + port);
+
+      const result: any = await new Promise((resolve) => {
+        ws.on("open", () => {
+          ws.send(JSON.stringify(jsonRpcJson));
+        });
+        ws.on('message', resolve);
+      });
+      const json = JSON.parse(result);
+      assert.ok(json);
+    });
+
+    it("returns things over a websocket as binary", async () => {
+      const ws = new WebSocket('ws://localhost:' + port);
+      const result: any = await new Promise((resolve) => {
+        ws.on("open", () => {
+          const strToAB = (str: string) => new Uint8Array(str.split('').map(c => c.charCodeAt(0))).buffer;
+          ws.send(strToAB(JSON.stringify(jsonRpcJson)));
+        });
+        ws.on('message', resolve);
+      });
+      const json = JSON.parse(result);
+      assert.ok(json);
+    });
+
+    it("doesn't crash when sending bad data over http", async () => {
+      await assert.rejects(request
+        .post('http://localhost:' + port)
+        .send("This is _not_ pudding")
+      , /^Error: Bad Request$/);
+
+      const response = await request
+        .post('http://localhost:' + port)
+        .send(jsonRpcJson)
+        .set('accept', 'json');
+      const json = JSON.parse(response.text)
+      assert.ok(json);
+    });
+
+    it("doesn't crash when sending bad data over websocket", async () => {
+      const ws = new WebSocket('ws://localhost:' + port);
+      const result: number = await new Promise((resolve) => {
+        ws.on("open", () => {
+          ws.on("close", resolve);
+          ws.send("What is it?");
+        });
+      });
+      assert.strictEqual(result, 1002, "Did not receive expected close code 1002");
+    });
+  });
 
   afterEach("teardown", ()=>{
     s && s.close();
+    s = undefined;
   })
 });
