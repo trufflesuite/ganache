@@ -9,7 +9,7 @@ export default class WebsocketServer {
     constructor(app: TemplatedApp, provider: Provider) {
         app.ws("/", {
             /* WS Options */
-            compression: (uWS as any).SHARED_COMPRESSOR, // Zero memory overhead compression
+            compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
             maxPayloadLength: 16 * 1024, // 128 Kibibits
             idleTimeout: 120, // in seconds
 

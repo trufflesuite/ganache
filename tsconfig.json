@@ -7,9 +7,7 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
-    "baseUrl": ".",
-    "lib": ["dom", "es2017"],
-    "rootDir": "./"
+    "lib": ["dom", "es2017"]
   },
   "include": [
     "./index.ts",

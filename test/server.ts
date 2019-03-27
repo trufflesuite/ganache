@@ -6,7 +6,7 @@ import Server from "../src/server";
 import { ServerOptions } from "../src/server";
 
 
-describe.only("server", () => {
+describe("server", () => {
   const port = 8545;
   const netVersion = "1234";
   const jsonRpcJson: any = {

@@ -26,7 +26,7 @@ export default class Provider extends EventEmitter {
     // set up our request processor to either use FIFO or or async request processing
     this._requestProcessor = new RequestProcessor(_options.asyncRequestProcessing ? 1 : 0);
 
-    this._engine = new Engine(_options.ledger || new Ethereum({net_version: _options.network_id}));
+    this._engine = new Engine(_options.ledger || new Ethereum({net_version: _options.network_id.toString()}));
   }
 
   public send(payload: Payload, callback?: Callback): void 
