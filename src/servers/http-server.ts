@@ -1,7 +1,7 @@
 import { TemplatedApp, HttpResponse, HttpRequest, RecognizedString } from "uWebSockets.js";
 import ContentTypes from "./utils/content-types";
-import rpcError from "./utils/rpc-error";
 import Provider from "../provider";
+import JsonRpc from "./utils/jsonrpc"
 
 const _handlePost = Symbol("handlePost");
 const _handleData = Symbol("handleData");
@@ -77,17 +77,6 @@ function sendResponse(response: HttpResponse, statusCode: number, contentType?: 
   response.end(data)
 }
 
-type JsonRpcRequest = {
-  id: string,
-  jsonrpc: string,
-  method: string,
-  params?: any[]
-}
-
-function parse(message: string): JsonRpcRequest {
-  return JSON.parse(message);
-}
-
 export default class HttpServer {
   private [_provider]: Provider;
   constructor(app: TemplatedApp, provider: Provider) {
@@ -130,32 +119,30 @@ export default class HttpServer {
   private [_handleData](buffer: Buffer, response: HttpResponse, writeHeaders: (response: HttpResponse) => void, message: ArrayBuffer, isLast: boolean) {
     const chunk = Buffer.from(message);
     if (isLast) {
-      let payload: JsonRpcRequest;
+      let payload: JsonRpc.Request;
       try {
         const message = (buffer ? Buffer.concat([buffer, chunk]) : chunk) as any;
-        payload = parse(message);
+        payload = JsonRpc.Request(JSON.parse(message));
       } catch (e) {
         sendResponse(response, 400, ContentTypes.PLAIN, "400 Bad Request: " + e.message, writeHeaders);
         return;
       }
       
+      const id = payload.id;
       const method = payload.method;
       switch (method) {
         // http connections do not support subscriptions
         case "eth_subscribe":
         case "eth_unsubscribe":
-          sendResponse(response, 400, ContentTypes.JSON, rpcError(payload.id, "-32000", "notifications not supported"), writeHeaders);
+          const error = JsonRpc.Error(id, "-32000", "notifications not supported")
+          sendResponse(response, 400, ContentTypes.JSON, JSON.stringify(error), writeHeaders);
           break;
         default:
-          // `await`ing the `provider.send` instead of using `then`
-          // causes uWS to delay cleaning up the `request` object
+          // `await`ing the `provider.send` instead of using `then` causes uWS 
+          // to delay cleaning up the `request` object, which we don't neccessarily want to delay.
           this[_provider].send(method, payload.params).then((result) => {
             if (response.aborted) return;
-            const json = {
-              "id": payload.id,
-              "jsonrpc": "2.0",
-              "result": result
-            };
+            const json = JsonRpc.Response(id, result);
             sendResponse(response, 200, ContentTypes.JSON, JSON.stringify(json), writeHeaders);
           });
           break;
