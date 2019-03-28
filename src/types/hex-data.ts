@@ -63,25 +63,3 @@ interface ExportableHexData<T extends bigint|string|Buffer> {
   from<T extends bigint|string|Buffer>(): ExportableHexData<T>
 }
 export default ExportableHexData;
-
-const num = ExportableHexData.from(123n);
-console.log(num.toString() === "0x7b");
-console.log(num.valueOf() === 123n);
-console.log(num + 1n);
-
-const hexString = ExportableHexData.from("0x12");
-console.log(hexString.toString() === "0x12"); 
-console.log(hexString.valueOf() === "0x12"); // true
-console.log(hexString + " world"); // hello world
-
-const text = ExportableHexData.from("hello");
-console.log(text.toString() === "0x68656c6c6f"); // true
-console.log(text.valueOf() === "hello"); // true
-console.log(text + " world"); // hello world
-
-
-const _buf = Buffer.from([123,123])
-const buf = ExportableHexData.from(_buf);
-console.log(buf.toString() === "0x7b7b"); // true
-console.log(buf.valueOf() === _buf); // true
-console.log(buf + " world"); // hello world
