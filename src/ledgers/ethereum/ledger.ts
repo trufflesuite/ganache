@@ -1,6 +1,6 @@
 import ILedger, {optionsSymbol as _options} from "../../interfaces/ledger";
 import EthereumOptions, {getDefaultOptions as getDefaultEthereumOptions} from "./options";
-import HexData from "../../types/hex-data";
+import HexData, {IndexableHexData} from "../../types/hex-data";
 import Blockchain from "./blockchain";
 import Tag from "../../types/tags";
 
@@ -134,9 +134,10 @@ export default class Ethereum implements ILedger {
      * @param address 20 Bytes - address to check for balance.
      * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block parameter
      */
-    async eth_getBalance(address: string, blockNumber: bigint|Tag = Tag.LATEST): Promise<bigint> {
+    async eth_getBalance(address: IndexableHexData, blockNumber: bigint|Tag = Tag.LATEST): Promise<bigint> {
         const chain = this[_blockchain];
-        const block = await chain.blocks[123];
+        const str = blockNumber.toString();
+        const block = await chain.blocks[str];
         const account = await block.accounts[address];
         return BigInt(123);
     }
@@ -144,5 +145,6 @@ export default class Ethereum implements ILedger {
     [index: string]: (...args: any) => Promise<{}>;
 }
 
-
 const e = new Ethereum(getDefaultEthereumOptions());
+const d = new HexData((123n);
+e.eth_getBalance(d, Tag.LATEST);

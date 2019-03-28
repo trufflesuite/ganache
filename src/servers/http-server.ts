@@ -2,6 +2,7 @@ import { TemplatedApp, HttpResponse, HttpRequest, RecognizedString } from "uWebS
 import ContentTypes from "./utils/content-types";
 import Provider from "../provider";
 import JsonRpc from "./utils/jsonrpc"
+import HttpResponseCodes from "./utils/http-response-codes";
 
 const _handlePost = Symbol("handlePost");
 const _handleData = Symbol("handleData");
@@ -89,7 +90,7 @@ export default class HttpServer {
 
     // because Easter Eggs are fun...
     app.get("/418", (response) => {
-      sendResponse(response, 418, ContentTypes.PLAIN, "418 I'm a teapot");
+      sendResponse(response, HttpResponseCodes.IM_A_TEAPOT, ContentTypes.PLAIN, "418 I'm a teapot");
     });
 
     // fallback routes...
@@ -97,11 +98,11 @@ export default class HttpServer {
       .any("/", (response) => {
         // TODO: send back the Ganache-UI
         // any other request to "/" is not allowed, so respond with `405 Method Not Allowed`...
-        sendResponse(response, 405, ContentTypes.PLAIN, "405 Method Not Allowed");
+        sendResponse(response, HttpResponseCodes.METHOD_NOT_ALLOWED, ContentTypes.PLAIN, "405 Method Not Allowed");
       })
       .any("/*", (response) => {
         // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
-        sendResponse(response, 404, ContentTypes.PLAIN, "404 Not Found");
+        sendResponse(response, HttpResponseCodes.NOT_FOUND, ContentTypes.PLAIN, "404 Not Found");
       });
   }
 
@@ -124,7 +125,7 @@ export default class HttpServer {
         const message = (buffer ? Buffer.concat([buffer, chunk]) : chunk) as any;
         payload = JsonRpc.Request(JSON.parse(message));
       } catch (e) {
-        sendResponse(response, 400, ContentTypes.PLAIN, "400 Bad Request: " + e.message, writeHeaders);
+        sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request: " + e.message, writeHeaders);
         return;
       }
       
@@ -135,7 +136,7 @@ export default class HttpServer {
         case "eth_subscribe":
         case "eth_unsubscribe":
           const error = JsonRpc.Error(id, "-32000", "notifications not supported")
-          sendResponse(response, 400, ContentTypes.JSON, JSON.stringify(error), writeHeaders);
+          sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.JSON, JSON.stringify(error), writeHeaders);
           break;
         default:
           // `await`ing the `provider.send` instead of using `then` causes uWS 
@@ -143,7 +144,7 @@ export default class HttpServer {
           this[_provider].send(method, payload.params).then((result) => {
             if (response.aborted) return;
             const json = JsonRpc.Response(id, result);
-            sendResponse(response, 200, ContentTypes.JSON, JSON.stringify(json), writeHeaders);
+            sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, JSON.stringify(json), writeHeaders);
           });
           break;
       }
@@ -160,7 +161,7 @@ export default class HttpServer {
     // handle CORS preflight requests...
     const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
     // OPTIONS responses don't have a body, so respond with `204 No Content`...
-    sendResponse(response, 204, null, null, writeHeaders);
+    sendResponse(response, HttpResponseCodes.NO_CONTENT, null, null, writeHeaders);
   }
   public close() {
     // currently a no op.

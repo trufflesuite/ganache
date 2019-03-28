@@ -1,7 +1,7 @@
 enum Tag {
-  EARLIEST,
-  LATEST,
-  PENDING  
+  EARLIEST = "earliest",
+  LATEST = "latest",
+  PENDING = "pending"
 }
 enum _Tag {
   earliest,

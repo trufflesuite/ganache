@@ -43,21 +43,24 @@ export default class Blockchain {
     constructor(){
         const self = this;
         this._blocks = {
-            async getBlock(number: bigint|Tag): Promise<Block> {
+            async getBlock(number: string): Promise<Block> {
                 const b = new Block(Buffer.from([]));
-                b.header.number = Buffer.from(number.toString(16));
+                b.header.number = Buffer.from([number]);
                 return b;
             }
         }
         this.blocks = new Proxy(this, {
-            async get (obj, key: any): Promise<Block>{
+            async get (obj, key: string|Tag): Promise<Block> {
+                if (key === "latest" || key === "earliest" || key === "pending") {
+                    return self._blocks.getBlock("111111");
+                }
                 return self._blocks.getBlock(key);
             }
         }) as any;
     }
     public async latest() {
         const block = new Block(Buffer.from([]));
-        block.header.number = Buffer.from([1]);
+        block.header.number = Buffer.from([111111]);
         return block;
     }
 }
