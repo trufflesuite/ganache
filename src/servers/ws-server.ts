@@ -1,11 +1,11 @@
 import uWS, { TemplatedApp, WebSocket } from "uWebSockets.js";
-import WebSocketCloseCodes from "./websocket-close-codes";
+import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import Provider from "../provider";
 
-const connections = Symbol("connections");
+const _connections = Symbol("connections");
 
 export default class WebsocketServer {
-    private [connections] = new Set<WebSocket>();
+    private [_connections] = new Set<WebSocket>();
     constructor(app: TemplatedApp, provider: Provider) {
         app.ws("/", {
             /* WS Options */
@@ -15,7 +15,7 @@ export default class WebsocketServer {
 
             /* Handlers */
             open: (ws: any) => {
-                this[connections].add(ws);
+                this[_connections].add(ws);
             },
             message: async (ws: any, message: ArrayBuffer, isBinary: boolean) => {
                 let payload: any;
@@ -43,12 +43,12 @@ export default class WebsocketServer {
                 console.log("WebSocket backpressure: " + ws.getBufferedAmount());
             },
             close: (ws: WebSocket) => {
-                this[connections].delete(ws);
+                this[_connections].delete(ws);
                 ws.closed = true;
             }
         });
     }
     close() {
-        this[connections].forEach(ws => ws.end(WebSocketCloseCodes.CLOSE_GOING_AWAY, "Server closed by client"));
+        this[_connections].forEach(ws => ws.end(WebSocketCloseCodes.CLOSE_GOING_AWAY, "Server closed by client"));
     }
 };

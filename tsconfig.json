@@ -2,15 +2,15 @@
   "compilerOptions": {
     "module": "commonjs",
     "esModuleInterop": true,
-    "target": "es6",
+    "target": "esnext",
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
-    "lib": ["dom", "es2017"]
+    "lib": ["esnext"]
   },
   "include": [
     "./index.ts",
-    "./typings/**/*.d.ts"
+    "./typings/**/*.d.ts", "typings/uWebsockets.js.ts"
   ]
 }

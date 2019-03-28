@@ -1,19 +1,23 @@
 import ILedger from "./interfaces/ledger";
 
+const _ledger = Symbol("ledger");
+
 export default class Engine {
-    private ledger:ILedger;
+    private [_ledger]:ILedger;
     constructor(ledger: ILedger){
         if (!ledger){
             throw new Error("yah, that's not right");
         }
-        this.ledger = ledger;
+        this[_ledger] = ledger;
     }
-    public async send(method: string, params: Array<any>): Promise<any> {
-        if(this.ledger.__proto__.hasOwnProperty(method)){
-            const fn = this.ledger[method];
+    public async send(method: string, params: any[]): Promise<any> {
+        const ledger = this[_ledger];
+        if (ledger.__proto__.hasOwnProperty(method)) {
+            const fn = ledger[method];
             if (typeof fn === "function") {
-                return this.ledger[method].apply(this.ledger, params);
+                return fn.apply(ledger, params);
             }
         }
+        throw new Error(`Invalid method: ${method}`);
     }
 }

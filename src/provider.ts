@@ -1,14 +1,18 @@
 import Engine from "./engine";
 import RequestProcessor from "./utils/request-processor";
-import ProviderOptions, {getDefault as getDefaultProviderOptions} from "./options/provider-options";
+import ProviderOptions, { getDefault as getDefaultProviderOptions } from "./options/provider-options";
 import { EventEmitter } from "events";
 import Ethereum from "./ledgers/ethereum/ledger"
 
 export type ProviderOptions = ProviderOptions;
 
+const options = Symbol("options");
+const engine = Symbol("engine");
+const requestProcessor = Symbol("requestProcessor");
+
 interface Payload {
   method: string
-  params: Array<any>
+  params: any[]
 }
 
 interface Callback {
@@ -16,30 +20,30 @@ interface Callback {
 }
 
 export default class Provider extends EventEmitter {
-  private _options: ProviderOptions;
-  private _engine: Engine;
-  private _requestProcessor: RequestProcessor;
-  constructor(options?: ProviderOptions) {
+  private [options]: ProviderOptions;
+  private [engine]: Engine;
+  private [requestProcessor]: RequestProcessor;
+  constructor(providerOptions?: ProviderOptions) {
     super();
-    const _options = this._options = getDefaultProviderOptions(options);
+    const _providerOptions = this[options] = getDefaultProviderOptions(providerOptions);
 
     // set up our request processor to either use FIFO or or async request processing
-    this._requestProcessor = new RequestProcessor(_options.asyncRequestProcessing ? 1 : 0);
+    this[requestProcessor] = new RequestProcessor(_providerOptions.asyncRequestProcessing ? 1 : 0);
 
-    this._engine = new Engine(_options.ledger || new Ethereum({net_version: _options.network_id.toString()}));
+    this[engine] = new Engine(_providerOptions.ledger || new Ethereum({ net_version: _providerOptions.network_id.toString() }));
   }
 
-  public send(payload: Payload, callback?: Callback): void 
-  public async send(method: string, params?: Array<any>): Promise<any>;
-  public async send(arg1: string | Payload, arg2?: any): Promise<any> {
+  public send(payload: Payload, callback?: Callback): void;
+  public send(method: string, params?: any[]): Promise<any>;
+  public send(arg1: string | Payload, arg2?: any): Promise<any> {
     let method: string;
-    let params: Array<any>;
+    let params: any[];
     let response: Promise<{}>;
-    const send = this._engine.send.bind(this._engine);
+    const send = this[engine].send.bind(this[engine]);
     if (typeof arg1 === "string") {
       method = arg1;
       params = arg2;
-      response = this._requestProcessor.queue(send, method, params);
+      response = this[requestProcessor].queue(send, method, params);
     } else {
       // handle backward compatibility with callback-style ganache-core
       const payload: Payload = arg1 as Payload;
@@ -50,19 +54,23 @@ export default class Provider extends EventEmitter {
       if (typeof callback !== "function") {
         throw new Error(
           "No callback provided to provider's send function. As of web3 1.0, provider.send " +
-            "is no longer synchronous and must be passed a callback as its final argument."
+          "is no longer synchronous and must be passed a callback as its final argument."
         );
       }
-      
-      this._requestProcessor.queue(send, method, params).then((response: any)=>{
-        callback(null, response);
+
+      this[requestProcessor].queue(send, method, params).then((response: any) => {
+        callback(null, {
+          id: (arg1 as any).id,
+          jsonrpc: "2.0",
+          result: response
+        });
       }).catch(callback);
-      
+
       response = undefined;
     }
 
-    if (this._options.verbose) {
-      this._options.logger.log(`   >  ${method}: ${JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`);
+    if (this[options].verbose) {
+      this[options].logger.log(`   >  ${method}: ${JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`);
     }
 
     return response;

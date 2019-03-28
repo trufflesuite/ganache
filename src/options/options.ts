@@ -3,7 +3,6 @@ import HexData from "../types/hex-data";
 import HexQuantity from "../types/hex-quantity";
 import ILedger from "../interfaces/ledger";
 import Ethereum from "../ledgers/ethereum/ledger";
-import JSBI from "jsbi";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -18,7 +17,7 @@ export default interface Options {
    * the given balance. If specified, the key is used to determine the account's
    * address.
    */
-  accounts?: Array<Account>,
+  accounts?: Account[],
 
   /**
    * Output VM opcodes for debugging. Defaults to `false`
@@ -43,12 +42,12 @@ export default interface Options {
   /**
    * The default account balance, specified in ether. Defaults to `100` ether
    */
-  default_balance_ether?: JSBI,
+  default_balance_ether?: bigint,
 
   /**
    * Number of accounts to generate at startup. Default to `10`.
    */
-  total_accounts?: JSBI,
+  total_accounts?: bigint,
 
   /**
    * When a string, same as --fork option above. Can also be a Web3 Provider 
@@ -62,7 +61,7 @@ export default interface Options {
    * sign and a block number, the block number in the fork parameter takes 
    * precedence.
    */
-  fork_block_number?: string | JSBI,
+  fork_block_number?: string | bigint,
 
   /**
    * Same as --networkId option above.
@@ -83,7 +82,7 @@ export default interface Options {
   /**
    * Array of addresses or address indexes specifying which accounts should be unlocked.
    */
-  unlocked_accounts?: Array<HexData|JSBI>,
+  unlocked_accounts?: HexData[]|bigint[],
 
   /**
    * Specify a path to a directory to save the chain database. If a database 
@@ -143,8 +142,8 @@ export const getDefault: (options: Options)=> Options = (options) => {
     ledger: new Ethereum({net_version: network_id}),
     debug: false,
     logger: {log: () => {}},
-    default_balance_ether: JSBI.BigInt(100),
-    total_accounts: JSBI.BigInt(10),
+    default_balance_ether: 100n,
+    total_accounts: 10n,
     network_id,
     locked: false,
     vmErrorsOnRPCResponse: true,

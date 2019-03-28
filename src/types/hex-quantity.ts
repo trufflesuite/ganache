@@ -1,25 +1,24 @@
-import JSBI from "jsbi";
-
 export default class HexQuantity {
-  private data: JSBI;
+  private data: bigint;
 
-  constructor(quantity: JSBI | Buffer | number | string) {
+  constructor(quantity: bigint | Buffer | number | string) {
     if (quantity instanceof Buffer) {
-      this.data = JSBI.BigInt(quantity.toString("hex"));
-    } else if (quantity instanceof JSBI) {
-        this.data = quantity;
+      const str = quantity.toString("hex") as string;
+      this.data = BigInt(str);
     } else {
       switch (typeof quantity) {
+        case "bigint":
+          this.data = quantity as bigint;
         case "number":
         case "string":
-          this.data = JSBI.BigInt(quantity);
+          this.data = BigInt(quantity);
           break;
         default:
           throw new TypeError("quantity is not a Buffer, number, or string");
       }
     }
   }
-  toBigNum(): JSBI {
+  toBigNum(): bigint {
     return this.data;
   }
   toString(): string {
