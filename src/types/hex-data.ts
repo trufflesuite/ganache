@@ -1,5 +1,7 @@
 const prefix = "0x";
 
+type Valid = bigint|string|Buffer;
+
 export type IndexableHexData = string & {
   new(value: bigint|string|Buffer): IndexableHexData,
   toString(): string 
@@ -54,10 +56,10 @@ class BaseHexData<T>  {
 
 type HexData<T> = BaseHexData<T> & IndexableHexData;
 const ExportableHexData = BaseHexData as ({
-  new<T extends bigint|string|Buffer> (data: T): HexData<T>,
-  from<T extends bigint|string|Buffer>(data: T): HexData<T>
+  new<T extends Valid> (data: T): HexData<T>,
+  from<T extends Valid>(data: T): HexData<T>
 });
-interface ExportableHexData<T extends bigint|string|Buffer> {
+interface ExportableHexData<T=bigint|string|Buffer>   {
   constructor(data: T): ExportableHexData<T>
   toString(): string
   from<T extends bigint|string|Buffer>(): ExportableHexData<T>

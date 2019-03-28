@@ -144,7 +144,3 @@ export default class Ethereum implements ILedger {
 
     [index: string]: (...args: any) => Promise<{}>;
 }
-
-const e = new Ethereum(getDefaultEthereumOptions());
-const d = new HexData((123n);
-e.eth_getBalance(d, Tag.LATEST);
