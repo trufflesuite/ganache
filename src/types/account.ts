@@ -1,11 +1,10 @@
-import HexData from "./hex-data";
-import HexQuantity from "./hex-quantity";
+import { JsonRpcData, JsonRpcQuantity } from "./hex-data";
 
 export default class Account {
-  public address: HexData
-  public balance: HexQuantity = new HexQuantity("0x0")
-  public secretKey: HexData
-  constructor(address: HexData) {
+  public address: JsonRpcData
+  public balance: JsonRpcQuantity = new JsonRpcQuantity("0x0")
+  public secretKey: JsonRpcData
+  constructor(address: JsonRpcData) {
     this.address = address;
   }
 }

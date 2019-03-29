@@ -1,6 +1,6 @@
 import EthereumJsBLock from "ethereumjs-block";
 import Tag from "../../types/tags";
-import HexData from "../../types/hex-data";
+import {JsonRpcData} from "../../types/hex-data";
 
 class Account {
     public balance: bigint
@@ -19,7 +19,7 @@ class Block extends EthereumJsBLock {
         const self = this;
 
         this._accounts = {
-            async getAccount(number: HexData): Promise<Account> {
+            async getAccount(number: JsonRpcData): Promise<Account> {
                 return new Account();
             }
         }

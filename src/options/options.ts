@@ -1,6 +1,5 @@
 import Account from "../types/account";
-import HexData from "../types/hex-data";
-import HexQuantity from "../types/hex-quantity";
+import {JsonRpcData, JsonRpcQuantity} from "../types/hex-data";
 import ILedger from "../interfaces/ledger";
 import Ethereum from "../ledgers/ethereum/ledger";
 
@@ -82,7 +81,7 @@ export default interface Options {
   /**
    * Array of addresses or address indexes specifying which accounts should be unlocked.
    */
-  unlocked_accounts?: HexData[]|bigint[],
+  unlocked_accounts?: JsonRpcData[]|bigint[],
 
   /**
    * Specify a path to a directory to save the chain database. If a database 
@@ -117,13 +116,13 @@ export default interface Options {
    * Sets the default gas price for transactions if not otherwise specified. 
    * Must be specified as a hex string in wei. Defaults to "0x77359400", or 2 gwei.
    */
-  gasPrice?: HexQuantity,
+  gasPrice?: JsonRpcQuantity,
 
   /**
    * Sets the block gas limit. Must be specified as a hex string. Defaults to 
    * "0x6691b7".
    */
-  gasLimit?: HexQuantity,
+  gasLimit?: JsonRpcQuantity,
 
   /**
    * 
@@ -149,8 +148,8 @@ export const getDefault: (options: Options)=> Options = (options) => {
     vmErrorsOnRPCResponse: true,
     hdPath: "m/44'/60'/0'/0/",
     allowUnlimitedContractSize: true,
-    gasPrice: new HexQuantity("0x77359400"),
-    gasLimit: new HexQuantity("0x6691b7"),
+    gasPrice: new JsonRpcQuantity("0x77359400"),
+    gasLimit: new JsonRpcQuantity("0x6691b7"),
     verbose: false,
     asyncRequestProcessing: false
   }, options);

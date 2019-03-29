@@ -1,6 +1,6 @@
 import ILedger, {optionsSymbol as _options} from "../../interfaces/ledger";
 import EthereumOptions, {getDefaultOptions as getDefaultEthereumOptions} from "./options";
-import HexData, {IndexableHexData} from "../../types/hex-data";
+import {JsonRpcData, IndexableHexData} from "../../types/hex-data";
 import Blockchain from "./blockchain";
 import Tag from "../../types/tags";
 
@@ -85,7 +85,7 @@ export default class Ethereum implements ILedger {
      * Returns the client coinbase address.
      * @returns 20 bytes - the current coinbase address.
      */
-    async eth_coinbase(): Promise<HexData>{
+    async eth_coinbase(): Promise<JsonRpcData>{
         return this[_options].coinbase;
     }
 
@@ -117,7 +117,7 @@ export default class Ethereum implements ILedger {
      * Returns a list of addresses owned by client.
      * @returns Array of 20 Bytes - addresses owned by the client.
      */
-    async eth_accounts(): Promise<HexData[]>{
+    async eth_accounts(): Promise<JsonRpcData[]>{
         return this[_options].accounts;
     }
 

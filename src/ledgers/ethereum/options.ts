@@ -1,9 +1,9 @@
 import LedgerOptions from "../../interfaces/ledger-options"
-import HexData from "../../types/hex-data";
+import {JsonRpcData} from "../../types/hex-data";
 
 interface EthereumOptions extends LedgerOptions {
     net_version: string,
-    coinbase?: HexData,
+    coinbase?: JsonRpcData,
     gasPrice?: bigint
 }
 
