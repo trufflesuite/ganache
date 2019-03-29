@@ -1,5 +1,5 @@
 import Account from "../types/account";
-import {JsonRpcData, JsonRpcQuantity} from "../types/hex-data";
+import {JsonRpcData, JsonRpcQuantity} from "../types/json-rpc";
 import ILedger from "../interfaces/ledger";
 import Ethereum from "../ledgers/ethereum/ledger";
 

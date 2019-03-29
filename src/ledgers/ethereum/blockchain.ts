@@ -1,13 +1,11 @@
 import EthereumJsBLock from "ethereumjs-block";
 import Tag from "../../types/tags";
-import {JsonRpcData} from "../../types/hex-data";
-
-class Account {
-    public balance: bigint
-}
+import {JsonRpcData} from "../../types/json-rpc";
+import Address from "../../types/address";
+import Account from "../../types/account";
 
 type AccountManager = {
-    readonly [index: string]: Promise<Block>;
+    readonly [index: string]: Promise<Account>;
 }
 
 class Block extends EthereumJsBLock {
@@ -19,8 +17,8 @@ class Block extends EthereumJsBLock {
         const self = this;
 
         this._accounts = {
-            async getAccount(number: JsonRpcData): Promise<Account> {
-                return new Account();
+            async getAccount(number: Address): Promise<Account> {
+                return new Account(number);
             }
         }
         this.accounts = new Proxy(this, {
@@ -40,21 +38,19 @@ export default class Blockchain {
     public blocks: BlockManager;
     private _blocks: any;
 
-    constructor(){
+    constructor() {
         const self = this;
-        this._blocks = {
-            async getBlock(number: string): Promise<Block> {
-                const b = new Block(Buffer.from([]));
-                b.header.number = Buffer.from([number]);
-                return b;
-            }
-        }
+        const getBlock = async(number: string): Promise<Block> => {
+            const b = new Block(Buffer.from([]));
+            b.header.number = Buffer.from([number]);
+            return b;
+        };
         this.blocks = new Proxy(this, {
             async get (obj, key: string|Tag): Promise<Block> {
                 if (key === "latest" || key === "earliest" || key === "pending") {
                     return self._blocks.getBlock("111111");
                 }
-                return self._blocks.getBlock(key);
+                return getBlock(key);
             }
         }) as any;
     }
