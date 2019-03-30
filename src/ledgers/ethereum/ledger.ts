@@ -1,8 +1,9 @@
 import ILedger, {optionsSymbol as _options} from "../../interfaces/ledger";
 import EthereumOptions, {getDefaultOptions as getDefaultEthereumOptions} from "./options";
-import {JsonRpcData, IndexableHexData, JsonRpcQuantity} from "../../types/json-rpc";
+import {JsonRpcData, JsonRpcQuantity, IndexableJsonRpcData} from "../../types/json-rpc";
 import Blockchain from "./blockchain";
 import Tag from "../../types/tags";
+import { IndexableAddress } from "../../types/address";
 
 const createKeccakHash = require("keccak");
 
@@ -134,12 +135,36 @@ export default class Ethereum implements ILedger {
      * @param address 20 Bytes - address to check for balance.
      * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block parameter
      */
-    async eth_getBalance(address: IndexableHexData, blockNumber: bigint|Tag = Tag.LATEST): Promise<JsonRpcQuantity> {
+    async eth_getBalance(address: IndexableAddress, blockNumber: bigint|Tag = Tag.LATEST): Promise<JsonRpcQuantity> {
         const chain = this[_blockchain];
         const str = blockNumber.toString();
         const block = await chain.blocks[str];
         const account = await block.accounts[address];
         return account.balance;
+    }
+
+    /**
+     * Returns the information about a transaction requested by transaction hash.
+     * 
+     * @param transasctionHash 32 Bytes - hash of a transaction
+     */
+    async eth_getTransactionByHash(transasctionHash: IndexableJsonRpcData) {
+        return {
+            blockHash: JsonRpcData.from("0x123456", 32), // 32 Bytes - hash of the block where this transaction was in. null when its pending.
+            blockNumber:  JsonRpcQuantity.from(123n),// QUANTITY - block number where this transaction was in. null when its pending.
+            from: JsonRpcData.from("0x123456", 32), // 20 Bytes - address of the sender.
+            gas: JsonRpcQuantity.from(123n),// QUANTITY - gas provided by the sender.
+            gasPrice:  JsonRpcQuantity.from(123n),// QUANTITY - gas price provided by the sender in Wei.
+            hash: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - hash of the transaction.
+            input: JsonRpcData.from("0x123"),// DATA - the data send along with the transaction.
+            nonce:  JsonRpcQuantity.from(123456n),// QUANTITY - the number of transactions made by the sender prior to this one.
+            to: JsonRpcData.from("0x123456", 20),// DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
+            transactionIndex: JsonRpcQuantity.from(99n),// QUANTITY - integer of the transaction's index position in the block. null when its pending.
+            value: JsonRpcQuantity.from(123n),// QUANTITY - value transferred in Wei.
+            v: JsonRpcQuantity.from(Buffer.from([27])), // QUANTITY - ECDSA recovery id
+            r: JsonRpcData.from(Buffer.from([12,34,46]), 32),// DATA, 32 Bytes - ECDSA signature r
+            s: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - ECDSA signature s
+        }
     }
 
     [index: string]: (...args: any) => Promise<{}>;

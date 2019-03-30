@@ -1,26 +1,29 @@
-import { BaseHexData, HexData, IndexableHexData } from ".";
+import { BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType } from ".";
+import { strCache, toStrings } from "./json-rpc-base-types";
 
 function validateByteLength(byteLength?: number){
-  if (byteLength !== undefined && (typeof byteLength !== "number" || byteLength < 0)) {
+  if (typeof byteLength !== "number" || byteLength < 0) {
     throw new Error(`byteLength must be a number greater than 0`);
   }
 }
-export class BaseJsonRpcData extends BaseHexData {
-  private _byteLength: number;
+const byteLengths = new WeakMap();
+export class JsonRpcData extends BaseJsonRpcType {
   constructor(value: string | Buffer, byteLength?: number) {
     if (typeof value === "bigint"){
       throw new Error(`Cannot create a ${typeof value} as a JsonRpcData`);
     }
     super(value);
-    validateByteLength(byteLength);
-    this._byteLength = byteLength | 0;
+    if(byteLength !== undefined){
+      validateByteLength(byteLength);
+      byteLengths.set(this, byteLength | 0);
+    }
   }
   public toString(byteLength?: number): string {
-    const str = this._str;
+    const str = strCache.get(this) as string;
     if (str !== undefined) {
       return str;
     } else {
-      let str = this._toString();
+      let str = toStrings.get(this)() as string;
       let length = str.length;
       if (length % 2 === 1) {
         length++;
@@ -30,7 +33,7 @@ export class BaseJsonRpcData extends BaseHexData {
       if (byteLength !== undefined) {
         validateByteLength(byteLength);
       } else {
-        byteLength = this._byteLength;
+        byteLength = byteLengths.get(this);
       }
       if (byteLength !== undefined) {
         const strLength = byteLength * 2;
@@ -40,28 +43,28 @@ export class BaseJsonRpcData extends BaseHexData {
           str = str.slice(0, strLength);
         } else if (padBy > 0) {
           // if our hex-encoded data is shorter than it should be, pad it:
-          str = "0".repeat(padBy);
+          str = "0".repeat(padBy) + str;
         }
       }
       return `0x${str}`;
     }
   }
-  public static from<T extends string|Buffer = string|Buffer>(value: T) {
-    return new JsonRpcData(value);
+  public static from<T extends string|Buffer = string|Buffer>(value: T, byteLength?: number) {
+    return new _JsonRpcData(value, byteLength);
   }
 }
 type $<T extends string|Buffer = string|Buffer> = {
-  new(value: T, byteLength?: number): JsonRpcData & HexData<T>,
-  from(value: T): JsonRpcData & HexData<T>,
+  new(value: T, byteLength?: number): _JsonRpcData<T> & JsonRpcType<T>,
+  from(value: T, byteLength?: number): _JsonRpcData<T> & JsonRpcType<T>,
   toString(byteLength?: number): string
 }
-const JsonRpcData = BaseJsonRpcData as any as $;
+const _JsonRpcData = JsonRpcData as $;
 
-interface JsonRpcData<T = string | Buffer> {
-  constructor(value: T, byteLength?: number): JsonRpcData
-  from(): JsonRpcData,
+interface _JsonRpcData<T extends string | Buffer = string | Buffer> {
+  constructor(value: T, byteLength?: number): _JsonRpcData
+  from(value: T, byteLength?: number): _JsonRpcData,
   toString(byteLength?: number): string
 }
 
-export type IndexableJsonRpcData = JsonRpcData & IndexableHexData;
-export default JsonRpcData;
+export type IndexableJsonRpcData = _JsonRpcData & IndexableJsonRpcType;
+export default _JsonRpcData;

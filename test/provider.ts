@@ -1,19 +1,25 @@
 import Ganache from "../index"
 import * as assert from "assert";
+import Provider from "../src/provider";
 
 describe("provider", () => {
   const networkId = "1234";
-  it("returns things via EIP-1193", async () => {
-    const p = Ganache.provider({
+  let p: Provider;
+  beforeEach("set up", () =>{
+    p = Ganache.provider({
       network_id: networkId
     });
+  })
+  it("returns a transaction", async () => {
+    var result = await p.send("eth_getTransactionByHash", ["0x123"]);
+    const v = result.blockNumber;
+    // todo: figure things out
+  })
+  it("returns things via EIP-1193", async () => {
     const version = await p.send("net_version");
     assert.strictEqual(version, networkId);
   });
   it("returns things via legacy", (done) => {
-    const p = Ganache.provider({
-      network_id: networkId
-    });
     const ret = p.send({
       id: "1",
       jsonrpc: "2.0",
@@ -26,9 +32,6 @@ describe("provider", () => {
   });
 
   it("returns rejects invalid rpc methods", async () => {
-    const p = Ganache.provider({
-      network_id: networkId
-    });
     await assert.rejects(p.send("toString"), {
       message: "Invalid method: toString"
     });

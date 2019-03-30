@@ -1,51 +1,20 @@
-import { BaseHexData, HexData, IndexableHexData } from ".";
+import { BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType } from ".";
 
-
-class BaseJsonRpcQuantity extends BaseHexData {
-
-
-
-
-
-  public toString(): string {
-    const str = this._str;
-    if (str !== undefined) {
-      return str;
-    } else {
-      return this._str = "0x" + this._toString();
-    }
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
+class JsonRpcQuantity extends BaseJsonRpcType {
   public static from(value: bigint | string | Buffer) {
-    return new JsonRpcQuantity(value);
+    return new _JsonRpcQuantity(value);
   }
 }
 type $<T extends bigint|string|Buffer = bigint|string|Buffer> = {
-  new(value: T): JsonRpcQuantity & HexData<T>,
-  from(value: T): JsonRpcQuantity & HexData<T>
+  new(value: T): _JsonRpcQuantity & JsonRpcType<T>,
+  from(value: T): _JsonRpcQuantity & JsonRpcType<T>
 }
-const JsonRpcQuantity = BaseJsonRpcQuantity as $;
+const _JsonRpcQuantity = JsonRpcQuantity as $;
 
-interface JsonRpcQuantity<T = bigint | string | Buffer> {
-  constructor(value: T): JsonRpcQuantity
-  from(): JsonRpcQuantity
+interface _JsonRpcQuantity<T = bigint | string | Buffer> {
+  constructor(value: T): _JsonRpcQuantity
+  from(): _JsonRpcQuantity
 }
 
-export type IndexableJsonRpcQuantity = JsonRpcQuantity & IndexableHexData;
-export default JsonRpcQuantity;
+export type IndexableJsonRpcQuantity = _JsonRpcQuantity & IndexableJsonRpcType;
+export default _JsonRpcQuantity;

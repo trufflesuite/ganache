@@ -15,7 +15,9 @@ export default class Engine {
         if (ledger.__proto__.hasOwnProperty(method)) {
             const fn = ledger[method];
             if (typeof fn === "function") {
-                return fn.apply(ledger, params);
+                return fn.apply(ledger, params).then((result: any) => {
+                    return JSON.stringify(result);
+                });
             }
         }
         throw new Error(`Invalid method: ${method}`);
