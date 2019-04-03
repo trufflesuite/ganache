@@ -55,6 +55,16 @@ const server = ganache.server();
 server.listen(port, function(err, blockchain) {...});
 ```
 
+### Notes
+
+Do not use `const provider = ganache.provider()` and `const server = ganache.server();` in the same process because it will create two separate blockchains. This is the correct way of accessing the provider when creating a server:
+
+```javascript
+const ganache = require("ganache-core");
+const server = ganache.server();
+const provider = server.provider;
+```
+
 ## Options
 
 Both `.provider()` and `.server()` take a single object which allows you to specify behavior of the Ganache instance. This parameter is optional. Available options are:
