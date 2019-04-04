@@ -69,6 +69,21 @@ describe("Checkpointing / Reverting", function() {
     assert.strictEqual(oldReceipt, null, "Receipt should be null as it should have been removed");
   });
 
+  it("returns false when reverting a snapshot that doesn't exist", async() => {
+    const { send } = context;
+
+    const snapShotId1 = await send("evm_snapshot");
+    const snapShotId2 = await send("evm_snapshot");
+    const response1 = await send("evm_revert", snapShotId1.result);
+    assert.strictEqual(response1.result, true, "Reverting a snapshot that exists does not work");
+    const response2 = await send("evm_revert", snapShotId2.result);
+    assert.strictEqual(response2.result, false, "Reverting a snapshot that no longer exists does not work");
+    const response3 = await send("evm_revert", snapShotId1.result);
+    assert.strictEqual(response3.result, false, "Reverting a snapshot that hasn't already been reverted does not work");
+    const response4 = await send("evm_revert", 999);
+    assert.strictEqual(response4.result, false, "Reverting a snapshot that has never existed does not work");
+  });
+
   it("checkpoints and reverts without persisting contract storage", async() => {
     const { accounts, instance, send } = context;
 

@@ -157,7 +157,7 @@ Special non-standard methods that aren’t included within the original RPC spec
   ```json
   { "id": 1337, "jsonrpc": "2.0", "result": "0x1" }
   ```
-* `evm_revert` : Revert the state of the blockchain to a previous snapshot. Takes a single parameter, which is the snapshot id to revert to. If no snapshot id is passed it will revert to the latest snapshot. Returns `true`.
+* `evm_revert` : Revert the state of the blockchain to a previous snapshot. Takes a single parameter, which is the snapshot id to revert to. This deletes the given snapshot, as well as any snapshots taken after (Ex: reverting to id `0x1` will delete snapshots with ids `0x1`, `0x2`, `etc`...  If no snapshot id is passed it will revert to the latest snapshot. Returns `true`.
   ```bash
   # Ex: ID "1" (hex encoded string)
   curl -H "Content-Type: application/json" -X POST --data \
