@@ -10,6 +10,10 @@ const _handleOptions = Symbol("handleOptions");
 const _provider = Symbol("provider");
 const noop = () => { };
 
+if (!process.env.NODE_ENV) {
+  require("marko/node-require");
+}
+
 /**
  * uWS doesn't let us use the request after the request method has completed.
  * But we can't set headers until after the statusCode is set. But we don't
@@ -78,6 +82,7 @@ function sendResponse(response: HttpResponse, statusCode: number, contentType?: 
   response.end(data)
 }
 
+const template = require("./views/index");
 export default class HttpServer {
   private [_provider]: Provider;
   constructor(app: TemplatedApp, provider: Provider) {
@@ -95,10 +100,26 @@ export default class HttpServer {
 
     // fallback routes...
     app
-      .any("/", (response) => {
+      .any("/", async (response) => {
+        response.onAborted(() => {});
+
         // TODO: send back the Ganache-UI
         // any other request to "/" is not allowed, so respond with `405 Method Not Allowed`...
-        sendResponse(response, HttpResponseCodes.METHOD_NOT_ALLOWED, ContentTypes.PLAIN, "405 Method Not Allowed");
+
+        const accounts = await provider.send("eth_accounts");
+    
+        // res.setHeader("content-type", "text/html");
+        // render the output to the `res` output stream
+        response.writeHeader("Content-Type", "text/html");
+        template.render({
+          accounts: accounts,
+          blocks: [],
+          transactions: [],
+          events: [],
+          logs: []
+        }, response);
+
+        // sendResponse(response, HttpResponseCodes.METHOD_NOT_ALLOWED, ContentTypes.PLAIN, "405 Method Not Allowed");        
       })
       .any("/*", (response) => {
         // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...

@@ -3,8 +3,8 @@ import {JsonRpcData} from "../../types/json-rpc";
 
 interface EthereumOptions extends LedgerOptions {
     net_version: string,
-    coinbase?: JsonRpcData,
-    gasPrice?: bigint
+    gasPrice?: bigint,
+    accounts: any[]
 }
 
 export default EthereumOptions;

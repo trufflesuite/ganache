@@ -4,20 +4,26 @@ import {JsonRpcData, JsonRpcQuantity, IndexableJsonRpcData} from "../../types/js
 import Blockchain from "./blockchain";
 import Tag from "../../types/tags";
 import { IndexableAddress } from "../../types/address";
+import Transaction from "../../types/transaction";
+import Account from "../../types/account";
 
 const createKeccakHash = require("keccak");
 
 const hash = createKeccakHash("keccak256");
 
+const _coinbase = Symbol("coinbase");
 const _isMining = Symbol("isMining");
 const _blockchain = Symbol("blockchain");
 
 export default class Ethereum implements ILedger {
+    readonly [_coinbase]: Account;
     readonly [_options]: EthereumOptions;
     private [_isMining]: boolean = false;
     private readonly [_blockchain]: Blockchain;
     constructor(options: EthereumOptions){
-        this[_options] = Object.assign(getDefaultEthereumOptions(), options);
+        const tmpOptions = Object.assign(getDefaultEthereumOptions(), options);
+        this[_coinbase] = tmpOptions.accounts[0];
+        this[_options] = tmpOptions;
         this[_blockchain] = new Blockchain();
     }
 
@@ -86,8 +92,8 @@ export default class Ethereum implements ILedger {
      * Returns the client coinbase address.
      * @returns 20 bytes - the current coinbase address.
      */
-    async eth_coinbase(): Promise<JsonRpcData>{
-        return this[_options].coinbase;
+    async eth_coinbase(): Promise<JsonRpcData> {
+        return this[_coinbase] ? this[_coinbase].address : null;
     }
 
     /**
@@ -148,23 +154,13 @@ export default class Ethereum implements ILedger {
      * 
      * @param transasctionHash 32 Bytes - hash of a transaction
      */
-    async eth_getTransactionByHash(transasctionHash: IndexableJsonRpcData) {
-        return {
-            blockHash: JsonRpcData.from("0x123456", 32), // 32 Bytes - hash of the block where this transaction was in. null when its pending.
-            blockNumber:  JsonRpcQuantity.from(123n),// QUANTITY - block number where this transaction was in. null when its pending.
-            from: JsonRpcData.from("0x123456", 32), // 20 Bytes - address of the sender.
-            gas: JsonRpcQuantity.from(123n),// QUANTITY - gas provided by the sender.
-            gasPrice:  JsonRpcQuantity.from(123n),// QUANTITY - gas price provided by the sender in Wei.
-            hash: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - hash of the transaction.
-            input: JsonRpcData.from("0x123"),// DATA - the data send along with the transaction.
-            nonce:  JsonRpcQuantity.from(123456n),// QUANTITY - the number of transactions made by the sender prior to this one.
-            to: JsonRpcData.from("0x123456", 20),// DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
-            transactionIndex: JsonRpcQuantity.from(99n),// QUANTITY - integer of the transaction's index position in the block. null when its pending.
-            value: JsonRpcQuantity.from(123n),// QUANTITY - value transferred in Wei.
-            v: JsonRpcQuantity.from(Buffer.from([27])), // QUANTITY - ECDSA recovery id
-            r: JsonRpcData.from(Buffer.from([12,34,46]), 32),// DATA, 32 Bytes - ECDSA signature r
-            s: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - ECDSA signature s
-        }
+    async eth_getTransactionByHash(transasctionHash: IndexableJsonRpcData): Promise<Transaction> {
+        transasctionHash = JsonRpcData.from(transasctionHash);
+        
+        const chain = this[_blockchain];
+        const block = chain.blocks[Tag.LATEST];
+        const transaction = block.transactions[transasctionHash];
+        return transaction;
     }
 
     [index: string]: (...args: any) => Promise<{}>;

@@ -1,0 +1,11 @@
+<ul class="top-nav-bar">
+    <for|tab| of=input.tabs>
+        <li>
+            <a href=`#${tab.label}` class=`${tab.active ? "active" : ""}`>
+                <svg width="46" height="46" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg"><g transform="translate(1 1)" stroke-width="2" fill="none" fill-rule="evenodd"><path d="M30.182 26.545c-1.722-.192-4.463-.91-8.182-.91-3.72 0-6.46.718-8.182.91-1.072.836-1.818 1.93-1.818 2.728v3.636h20v-3.637c0-.798-.746-1.892-1.818-2.728zm-12.727-8.181v-1.82c0-2.407 2.238-4.544 5.454-4.544 2.306 0 4.545 2.137 4.545 4.545v1.82c0 2.407-2.24 4.544-4.546 4.544-3.217 0-5.455-2.138-5.455-4.546z" stroke="gray" stroke-linecap="round" stroke-linejoin="round"></path><circle stroke="#979797" cx="22" cy="22" r="22"></circle></g></svg>
+                <if(typeof tab.label === "string")>${tab.label}</if>
+                <else><${tab}/></else>
+            </a>
+        </li>
+    </for>
+</ul>

@@ -1,0 +1,28 @@
+<info />
+<table>
+    <tbody>
+        <for|item, i| of=input.accounts>
+            <tr>
+                <td><div>
+                    <label>Address</label>
+                    <span>${item.address}</span>
+                </div></td>
+                <td width="40%"><div>
+                    <label>BALANCE</label>
+                    <span>${parseInt(item.balance)} ETH</span>
+                </div></td>
+                <td width="20%"><div>
+                    <label>TX COUNT</label>
+                    <span>0</span>
+                </div></td>
+                <td width="20%"><div>
+                    <label>Index</label>
+                    <span>${i}</span>
+                </div></td>
+                <td width="24"><div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" stroke-width="2"><g fill="none" stroke="#444" stroke-width="3" stroke-linecap="square" stroke-miterlimit="10"><path d="M50 2L23.8 28.1c-5.7-1.5-12.1-.1-16.5 4.4C.6 39.2.6 50 7.3 56.7s17.5 6.7 24.2 0c4.5-4.5 5.9-10.8 4.4-16.5L42 34v-8h8v-8h8l4-4V2H50z"></path><circle color="color-2" cx="15" cy="46" r="5"></circle></g></svg>
+                </div></td>
+            </tr>
+        </for>
+    </tbody>
+</table>

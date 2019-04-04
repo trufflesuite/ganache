@@ -136,9 +136,8 @@ export default interface Options {
 };
 
 export const getDefault: (options: Options)=> Options = (options) => {
-  const network_id = (options.network_id || Date.now()).toString();
+  const network_id = (options && options.network_id || Date.now()).toString();
   return Object.assign({
-    ledger: new Ethereum({net_version: network_id}),
     debug: false,
     logger: {log: () => {}},
     default_balance_ether: 100n,

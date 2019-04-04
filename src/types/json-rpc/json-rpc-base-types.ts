@@ -8,7 +8,7 @@ export const toStrings = new WeakMap();
 
 const inspect = Symbol.for('nodejs.util.inspect.custom');
 
-export class BaseJsonRpcType<T extends bigint | string | Buffer = bigint | string | Buffer>  {
+export class BaseJsonRpcType<T extends bigint | string | Buffer = bigint | string | Buffer> {
   protected value: T;
   // used to make console.log debugging a little easier
   private [inspect](depth: number, options: any):T {

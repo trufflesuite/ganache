@@ -14,7 +14,6 @@ const provider = Symbol("provider");
 const websocketServer = Symbol("websocketServer");
 const httpServer = Symbol("httpServer");
 
-
 export default class Server {
   private [app]: TemplatedApp;
   private [provider]: Provider;
