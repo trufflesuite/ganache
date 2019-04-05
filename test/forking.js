@@ -193,6 +193,11 @@ describe("Forking", function() {
     assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
   });
 
+  it("should get storage values on the forked provider via the main provider at a block number", async() => {
+    const result = await mainWeb3.eth.getStorageAt(contractAddress, contract.position_of_value, 1);
+    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
+  });
+
   it("should execute calls against a contract on the forked provider via the main provider", async() => {
     var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
 
