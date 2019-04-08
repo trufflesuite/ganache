@@ -4105,8 +4105,8 @@
       "dev": true
     },
     "uWebSockets.js": {
-      "version": "github:uNetworking/uWebSockets.js#d96159d2ffc1517cdab39fe169d88dd55a2aeba7",
-      "from": "github:uNetworking/uWebSockets.js#v15.8.0"
+      "version": "github:uNetworking/uWebSockets.js#32749187bfefb94de69f1aa5a8275647c7ccf3aa",
+      "from": "github:uNetworking/uWebSockets.js#v15.9.0"
     },
     "union-value": {
       "version": "1.0.0",
