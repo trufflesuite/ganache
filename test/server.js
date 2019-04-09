@@ -1,6 +1,7 @@
 const assert = require("assert");
 const pify = require("pify");
-
+// this should not be a reference the built/lib Ganache as we intentially are checking
+// that it is returning an instance of an object in the test below.
 const Ganache = require("../index.js");
 const StateManager = require("../lib/statemanager.js");
 
