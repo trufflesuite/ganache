@@ -1618,6 +1618,8 @@ describe("WebSockets Server:", function() {
     web3.setProvider(provider);
   });
 
+  tests(web3);
+
   it("Can also handle binary websocket data", async() => {
     // Python web3 only sends binary over websockets and we should
     // be able to handle it.
@@ -1664,8 +1666,6 @@ describe("WebSockets Server:", function() {
       "Accounts don't match between binary and utf8 websocket requests!"
     );
   }).timeout(500); // fail quick if our hacked-together websocket handler fails.
-
-  tests(web3);
 
   after("Shutdown server", async function() {
     let provider = web3._provider;
