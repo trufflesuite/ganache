@@ -159,6 +159,39 @@ describe("Accounts", () => {
 
   it("should create the correct number of accounts as specified by total_accounts", async() => {
     const options = {
+      total_accounts: 0
+    };
+
+    const { accounts } = await initializeTestProvider(options);
+
+    assert.strictEqual(accounts.length, 0, "The number of accounts created should be 0");
+  });
+
+  it("should fail when accounts and total_accounts are both null", async() => {
+    const options = {
+      total_accounts: null,
+      accounts: null
+    };
+
+    await assert.rejects(
+      initializeTestProvider(options),
+      /Cannot initialize chain: either options.accounts or options.total_accounts must be specified/
+    );
+  });
+
+  it("should fail when attempting to create a negative number of accounts", async() => {
+    const options = {
+      total_accounts: -10
+    };
+
+    await assert.rejects(
+      initializeTestProvider(options),
+      /Cannot initialize chain: either options.accounts or options.total_accounts must be specified/
+    );
+  });
+
+  it("should create the correct number of accounts as specified by total_accounts", async() => {
+    const options = {
       total_accounts: 7
     };
 
