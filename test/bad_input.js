@@ -187,15 +187,14 @@ var tests = function(web3) {
 };
 
 describe("Provider:", function() {
-  var web3 = new Web3();
-  web3.setProvider(Ganache.provider({}));
+  let web3 = new Web3(Ganache.provider({}));
   tests(web3);
 });
 
 describe("Server:", function(done) {
-  var web3 = new Web3();
-  var port = 12345;
-  var server;
+  let port = 12345;
+  let web3 = new Web3("http://localhost:" + port);
+  let server;
 
   before("Initialize Ganache server", function(done) {
     server = Ganache.server({});

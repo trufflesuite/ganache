@@ -59,7 +59,7 @@ const testWebSocket = function(web3) {
 
 describe("WebSockets Server:", function() {
   const Web3 = require("web3");
-  const web3 = new Web3();
+  const web3 = new Web3("ws://localhost:" + (PORT + 1));
   let server;
 
   before("Initialize Ganache server", async function() {
@@ -83,7 +83,7 @@ describe("WebSockets Server:", function() {
 
 describe("HTTP Server should not handle subscriptions:", function() {
   const Web3 = require("web3");
-  const web3 = new Web3();
+  const web3 = new Web3(HTTPADDRESS);
   let server;
 
   before("Initialize Ganache server", async function() {

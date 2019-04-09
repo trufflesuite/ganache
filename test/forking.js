@@ -33,12 +33,11 @@ describe("Forking", function() {
 
   var initialFallbackAccountState = {};
 
-  var forkedWeb3 = new Web3();
-  var mainWeb3 = new Web3();
-
   var forkedWeb3NetworkId = Date.now();
   var forkedWeb3Port = 21345;
   var forkedTargetUrl = "ws://localhost:" + forkedWeb3Port;
+  var forkedWeb3 = new Web3(forkedTargetUrl);
+  var mainWeb3 = new Web3("http://localhost:" + forkedWeb3Port);
   var forkBlockNumber;
 
   var initialDeployTransactionHash;

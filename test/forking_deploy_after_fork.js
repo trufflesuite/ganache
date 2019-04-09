@@ -27,8 +27,8 @@ describe("Contract Deployed on Main Chain After Fork", function() {
   var forkedServer;
   var mainAccounts;
 
-  var forkedWeb3 = new Web3();
-  var mainWeb3 = new Web3();
+  var forkedWeb3 = new Web3("ws://localhost:21345");
+  var mainWeb3 = new Web3("http://localhost:21345");
 
   var forkedTargetUrl = "ws://localhost:21345";
 

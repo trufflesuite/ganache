@@ -301,8 +301,7 @@ const tests = function(web3) {
 
     // Load account.
     before(async function() {
-      signingWeb3 = new Web3();
-      signingWeb3.setProvider(
+      signingWeb3 = new Web3(
         Ganache.provider({
           accounts: [acc]
         })
@@ -367,8 +366,7 @@ const tests = function(web3) {
 
     // Load account.
     before(async function() {
-      signingWeb3 = new Web3();
-      signingWeb3.setProvider(
+      signingWeb3 = new Web3(
         Ganache.provider({
           accounts: [acc]
         })
@@ -1560,8 +1558,7 @@ const logger = {
 
 describe("Provider:", function() {
   const Web3 = require("web3");
-  const web3 = new Web3();
-  web3.setProvider(
+  const web3 = new Web3(
     Ganache.provider({
       logger: logger,
       seed: "1337"
@@ -1579,8 +1576,8 @@ describe("Provider:", function() {
 
 describe("HTTP Server:", function() {
   const Web3 = require("web3");
-  const web3 = new Web3();
   const port = 12345;
+  const web3 = new Web3("http://localhost:" + port);
   let server;
 
   before("Initialize Ganache server", async function() {
@@ -1603,8 +1600,8 @@ describe("HTTP Server:", function() {
 
 describe("WebSockets Server:", function() {
   const Web3 = require("web3");
-  const web3 = new Web3();
   const port = 12345;
+  const web3 = new Web3("ws://localhost:" + port);
   let server;
 
   before("Initialize Ganache server", async function() {
