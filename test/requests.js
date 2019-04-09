@@ -1618,6 +1618,53 @@ describe("WebSockets Server:", function() {
     web3.setProvider(provider);
   });
 
+  it("Can also handle binary websocket data", async() => {
+    // Python web3 only sends binary over websockets and we should
+    // be able to handle it.
+
+    // web3.eth.getAccounts transmits over utf8, so use that as our baseline.
+    const accounts = await web3.eth.getAccounts();
+
+    // Listen for messages:
+    const pendingMessage = new Promise((resolve, reject) => {
+      function message(result) {
+        cleanup();
+        resolve(JSON.parse(result.data));
+      }
+      function close(err) {
+        cleanup();
+        reject(err.reason);
+      }
+      function cleanup() {
+        web3.currentProvider.connection.removeEventListener("message", message);
+        web3.currentProvider.connection.removeEventListener("close", close);
+      }
+      web3.currentProvider.connection.addEventListener("message", message);
+      web3.currentProvider.connection.addEventListener("close", close);
+    });
+
+    // generate a binary jsonrpc message:
+    const jsonRpc = Buffer.from(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id: 9999,
+        method: "eth_accounts",
+        params: []
+      })
+    );
+
+    // send the binary data:
+    web3.currentProvider.connection.send(jsonRpc);
+    const result = await pendingMessage;
+
+    // And compare
+    assert.deepStrictEqual(
+      result.result,
+      accounts.map((a) => a.toLocaleLowerCase()),
+      "Accounts don't match between binary and utf8 websocket requests!"
+    );
+  }).timeout(500); // fail quick if our hacked-together websocket handler fails.
+
   tests(web3);
 
   after("Shutdown server", async function() {
