@@ -3,9 +3,9 @@ import RequestProcessor from "./utils/request-processor";
 import ProviderOptions, { getDefault as getDefaultProviderOptions } from "./options/provider-options";
 import { EventEmitter } from "events";
 import Ethereum from "./ledgers/ethereum/ledger"
-import utils from "ethereumjs-util";
+import { privateToAddress } from "ethereumjs-util";
 import Account from "./types/account";
-const bip39 = require("bip39");
+import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import { JsonRpcQuantity, JsonRpcData } from "./types/json-rpc";
 import Address from "./types/address";
 import JsonRpc from "./servers/utils/jsonrpc";
@@ -39,9 +39,9 @@ export default class Provider extends EventEmitter {
 
     if(!_providerOptions.mnemonic){
       // TODO: this is a default and should be configured that way
-      _providerOptions.mnemonic = bip39.generateMnemonic();
+      _providerOptions.mnemonic = generateMnemonic();
     }
-    this.wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(_providerOptions.mnemonic, null));
+    this.wallet = hdkey.fromMasterSeed(mnemonicToSeedSync(_providerOptions.mnemonic, null));
 
     const accounts = this.initializeAccounts();
     const net_version = _providerOptions.network_id.toString();
@@ -50,6 +50,7 @@ export default class Provider extends EventEmitter {
       accounts
     }));
   }
+
   private initializeAccounts(): Account[]{
     const _providerOptions = this[options];
     let accounts: Account[];
@@ -76,8 +77,9 @@ export default class Provider extends EventEmitter {
     }
     return accounts;
   }
+  
   private createAccount(balance: JsonRpcQuantity, privateKey: JsonRpcData, address?: Address) {
-    address = address || Address.from(utils.privateToAddress(Buffer.from(privateKey.toString(), "hex")));
+    address = address || Address.from(privateToAddress(Buffer.from(privateKey.toString(), "hex")));
   
     const account = new Account(address);
     account.privateKey = privateKey;
@@ -94,32 +96,28 @@ export default class Provider extends EventEmitter {
     let response: Promise<{}>;
     const _engine = this[engine];
     const execute = _engine.execute.bind(_engine);
-    switch (typeof arg1) {
-      case "string": {
-        method = arg1;
-        params = arg2 as any[];
-        response = this[requestProcessor].queue(execute, method, params).then((result => {
-          // convert to JSON
-          return JSON.parse(JSON.stringify(result));
-        }));
-      }
-      break;
-      case "function": {
-        // handle backward compatibility with callback-style ganache-core
-        const callback = arg2 as Callback;
-        const payload = arg1 as JsonRpc.Request;
-        method = payload.method;
-        params = payload.params;
+    if (typeof arg1 === "string") {
+      method = arg1;
+      params = arg2 as any[];
+      response = this[requestProcessor].queue(execute, method, params).then((result => {
+        // convert to JSON
+        return JSON.parse(JSON.stringify(result));
+      }));
+    } else if (typeof arg2 === "function") {
+      // handle backward compatibility with callback-style ganache-core
+      const payload = arg1 as JsonRpc.Request;
+      const callback = arg2 as Callback;
+      method = payload.method;
+      params = payload.params;
 
-        this[requestProcessor].queue(execute, method, params).then((result) => {
-          callback(null, JsonRpc.Response(
-            payload.id, 
-            JSON.parse(JSON.stringify(result))
-          ));
-        }).catch(callback);
-      }
-      break;
-    default:
+      this[requestProcessor].queue(execute, method, params).then((result) => {
+        callback(null, JsonRpc.Response(
+          payload.id, 
+          JSON.parse(JSON.stringify(result))
+        ));
+      }).catch(callback);
+    }
+    else {
       throw new Error(
         "No callback provided to provider's send function. As of web3 1.0, provider.send " +
         "is no longer synchronous and must be passed a callback as its final argument."
