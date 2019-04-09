@@ -8,3 +8,6 @@ TODO
 .vscode
 build
 dist
+.nyc_output
+test/testdb/*
+**/*.marko.js
