@@ -1,9 +1,9 @@
 export default class RequestProcessor {
   public limit: number = 0
   public pending: any[] = [];
-  public running: any[] = [];
+  public runningTasks: number = 0;
   private _processing: boolean;
-  private _paused: boolean = false;
+  private _paused: boolean = true;
   public get paused(): boolean {
     return this._paused;
   }
@@ -29,27 +29,29 @@ export default class RequestProcessor {
   }
 
   private process() {
-    if(this._processing) return;
+    if (this._processing) return;
     this._processing = true;
 
     // if we aren't paused and the number of things we're processing is under
     // our limit and we have things to process: do it!
-    while(!this.paused && this.limit && this.running.length < this.limit && this.pending.length > 0) {
+    while(!this.paused && this.pending.length > 0 && (!this.limit || this.runningTasks < this.limit)) {
       let current = this.pending.shift();
-      this.running.push(current);
+      this.runningTasks++;
       current().then(() => {
-        this.running.slice();
+        this.runningTasks--;
       });
     }
     this._processing = false;
   }
 
-  public queue = async function(fn: (...args: any[]) => Promise<{}>, ...args: any[]): Promise<{}> {
-    const executor = (resolve: (value?: {} | PromiseLike<{}>) => void, reject: (value?: {} | PromiseLike<{}>) => void) => {
-      return fn.apply(null, args).then(resolve).catch(reject);
-    }
-    this.pending.push(executor);
-    this.process();
-    return new Promise(executor);
+  public queue = function(fn: (...args: any[]) => Promise<{}>, ...args: any[]): Promise<{}> {
+    const promise = new Promise((resolve: (value?: {} | PromiseLike<{}>) => void, reject: (value?: {} | PromiseLike<{}>) => void) => {
+      const executor = () => {
+        return fn.apply(null, args).then(resolve).catch(reject);
+      }
+      this.pending.push(executor);
+      this.process();
+    });
+    return promise;
   }
 }

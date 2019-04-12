@@ -1,10 +1,13 @@
 import ILedger from "./interfaces/ledger";
+import Emittery from "emittery";
 
 const _ledger = Symbol("ledger");
 
-export default class Engine {
+export default class Engine extends Emittery {
   private [_ledger]: ILedger;
   constructor(ledger: ILedger) {
+    super();
+
     if (!ledger) {
       throw new Error("yah, that's not right");
     }

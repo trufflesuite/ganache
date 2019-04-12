@@ -1,7 +1,7 @@
 import Engine from "./engine";
 import RequestProcessor from "./utils/request-processor";
 import ProviderOptions, { getDefault as getDefaultProviderOptions } from "./options/provider-options";
-import { EventEmitter } from "events";
+import Emittery from "emittery";
 import Ethereum from "./ledgers/ethereum/ledger"
 import { privateToAddress } from "ethereumjs-util";
 import Account from "./types/account";
@@ -23,7 +23,7 @@ interface Callback {
 }
 
 
-export default class Provider extends EventEmitter {
+export default class Provider extends Emittery {
   private [options]: ProviderOptions;
   private [engine]: Engine;
   private [requestProcessor]: RequestProcessor;
@@ -35,7 +35,7 @@ export default class Provider extends EventEmitter {
     const _providerOptions = this[options] = getDefaultProviderOptions(providerOptions);
 
     // set up our request processor to either use FIFO or or async request processing
-    this[requestProcessor] = new RequestProcessor(_providerOptions.asyncRequestProcessing ? 1 : 0);
+    const _requestProcessor = this[requestProcessor] = new RequestProcessor(_providerOptions.asyncRequestProcessing ? 1 : 0);
 
     if(!_providerOptions.mnemonic){
       // TODO: this is a default and should be configured that way
@@ -48,7 +48,7 @@ export default class Provider extends EventEmitter {
     const _engine = this[engine] = new Engine(_providerOptions.ledger || new Ethereum({
       net_version,
       accounts
-    }));
+    }, _requestProcessor.resume.bind(_requestProcessor)));
   }
 
   private initializeAccounts(): Account[]{

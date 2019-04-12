@@ -1,3 +1,4 @@
+import Emittery from "emittery";
 import ILedger, {optionsSymbol as _options} from "../../interfaces/ledger";
 import EthereumOptions, {getDefaultOptions as getDefaultEthereumOptions} from "./options";
 import {JsonRpcData, JsonRpcQuantity, IndexableJsonRpcData} from "../../types/json-rpc";
@@ -6,6 +7,7 @@ import Tag from "../../types/tags";
 import { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import Account from "../../types/account";
+import Block from "ethereumjs-block";
 
 const createKeccakHash = require("keccak");
 
@@ -20,11 +22,13 @@ export default class Ethereum implements ILedger {
     readonly [_options]: EthereumOptions;
     private [_isMining]: boolean = false;
     private readonly [_blockchain]: Blockchain;
-    constructor(options: EthereumOptions){
+    constructor(options: EthereumOptions, ready: ()=>{}) {
         const tmpOptions = Object.assign(getDefaultEthereumOptions(), options);
         this[_coinbase] = tmpOptions.accounts[0];
         this[_options] = tmpOptions;
-        this[_blockchain] = new Blockchain();
+        const chain = new Blockchain();
+        this[_blockchain] = chain;
+        chain.on("ready", ready);
     }
 
     /**
@@ -133,7 +137,7 @@ export default class Ethereum implements ILedger {
      * @returns integer of the current block number the client is on.
      */
     async eth_blockNumber(): Promise<bigint> {
-        return this[_blockchain].blocks[Tag.LATEST].then((block) => BigInt(block.header.number));
+        return this[_blockchain].blocks.get(Tag.LATEST).then((block) => BigInt(block.header.number));
     }
 
     /**
@@ -144,7 +148,8 @@ export default class Ethereum implements ILedger {
     async eth_getBalance(address: IndexableAddress, blockNumber: bigint|Tag = Tag.LATEST): Promise<JsonRpcQuantity> {
         const chain = this[_blockchain];
         const str = blockNumber.toString();
-        const block = await chain.blocks[str];
+        const block = await chain.blocks.get(str);
+        const r = chain.blocks.set("123", "123");
         const account = await block.accounts[address];
         return account.balance;
     }
@@ -158,10 +163,23 @@ export default class Ethereum implements ILedger {
         transasctionHash = JsonRpcData.from(transasctionHash);
         
         const chain = this[_blockchain];
-        const block = chain.blocks[Tag.LATEST];
+        const block = await chain.blocks.get(Tag.LATEST);
+
+        // TODO: just POC stuff i was working on...
+        if (!block) {
+            const b = new Block(null as any);
+            b.header.number = Buffer.from("1234", "hex");
+            const c = b.serialize(true);
+            const d = new Block(c);
+            await chain.blocks.set(Tag.LATEST, c);
+        }
+        const block2 = await chain.blocks.get(Tag.LATEST);
+        // END
+
+
         const transaction = block.transactions[transasctionHash];
         return transaction;
     }
 
-    [index: string]: (...args: any) => Promise<{}>;
+    readonly [index: string]: (...args: any) => Promise<{}>;
 }
