@@ -13,6 +13,7 @@ const fs = require("fs");
 const to = require("../lib/utils/to");
 const _ = require("lodash");
 const pify = require("pify");
+const generateSend = require("./helpers/utils/rpc");
 
 const source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
 const compilationResult = solc.compile(source, 1);
@@ -55,8 +56,10 @@ const contract = {
 const tests = function(web3) {
   let accounts;
   let personalAccount;
+  let send;
 
   before("create and fund personal account", async function() {
+    send = generateSend(web3.currentProvider);
     accounts = await web3.eth.getAccounts();
     accounts = accounts.map(function(val) {
       return val.toLowerCase();
@@ -234,9 +237,13 @@ const tests = function(web3) {
     it("should return the number of transactions given the block number (0 transactions)", async function() {
       // Block 0 should have 0 transactions as per test eth_getBlockByNumber
       const block = await web3.eth.getBlock(0, true);
-      const blockTransactionCount = await web3.eth.getBlockTransactionCount(0);
-      assert.strictEqual(block.transactions.length, blockTransactionCount, "Block transaction count should be 0.");
-      assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
+      const blockTransactionCount = await send("eth_getBlockTransactionCountByNumber", 0);
+      assert.strictEqual(
+        block.transactions.length,
+        parseInt(blockTransactionCount.result),
+        "Block transaction count should be 0."
+      );
+      assert.strictEqual(blockTransactionCount.result, "0x0", "Block transaction count should be 0.");
     });
 
     it("should return the number of transactions given the block number (1 transaction)", async function() {
@@ -256,14 +263,18 @@ const tests = function(web3) {
       assert.deepStrictEqual(txHash.length, 66);
 
       const block = await web3.eth.getBlock("latest", true);
-      const blockTransactionCount = await web3.eth.getBlockTransactionCount(block.number);
-      assert.strictEqual(block.transactions.length, blockTransactionCount, "Tx count should equal block tx's length.");
-      assert.strictEqual(1, blockTransactionCount, "Block transaction count should be 1.");
+      const blockTransactionCount = await send("eth_getBlockTransactionCountByNumber", block.number);
+      assert.strictEqual(
+        block.transactions.length,
+        parseInt(blockTransactionCount.result),
+        "Tx count should equal block tx's length."
+      );
+      assert.strictEqual(blockTransactionCount.result, "0x1", "Block transaction count should be 1.");
     });
 
     it("should return null transactions when the block doesn't exist", async function() {
-      const blockTransactionCount = await web3.eth.getBlockTransactionCount(1000000);
-      assert.strictEqual(null, blockTransactionCount, "Block transaction count should be null.");
+      const blockTransactionCount = await send("eth_getBlockTransactionCountByNumber", 1000000);
+      assert.strictEqual(blockTransactionCount.result, null, "Block transaction count should be null.");
     });
   });
 
@@ -379,7 +390,7 @@ const tests = function(web3) {
       });
     });
 
-    it("should produce a signature whose signer can be recovered", async function() {
+    it.only("should produce a signature whose signer can be recovered", async function() {
       const typedData = {
         types: {
           EIP712Domain: [
