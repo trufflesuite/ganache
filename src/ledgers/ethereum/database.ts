@@ -16,15 +16,15 @@ async function getDir(db_path: string) {
 
 export default class Database extends Emittery{
     private options: any;
-    private directory: string = null;
-    private db: levelup.LevelUp;
+    public directory: string = null;
+    private _db: levelup.LevelUp = null;
     public blocks: levelup.LevelUp;
-    private blockLogs: levelup.LevelUp;
-    private blockHashes: levelup.LevelUp;
-    private transactions: levelup.LevelUp;
-    private transactionReceipts: levelup.LevelUp;
-    private stateTrie: levelup.LevelUp;
-    private initialized: boolean;
+    public blockLogs: levelup.LevelUp;
+    public blockHashes: levelup.LevelUp;
+    public transactions: levelup.LevelUp;
+    public transactionReceipts: levelup.LevelUp;
+    public stateTrie: levelup.LevelUp;
+    public initialized: boolean;
     constructor(options: any) {
         super();
 
@@ -52,24 +52,30 @@ export default class Database extends Emittery{
         const self = this;
 
         // Blocks, keyed by array index (not necessarily by block number) (0-based)
-        self.blocks = sub(db, "blocks", {valueEncoding: "binary"});
+        self.blocks = sub(db, "blocks", levelupOptions);
 
         // Logs triggered in each block, keyed by block id (ids in the blocks array; not necessarily block number) (0-based)
-        self.blockLogs = sub(db, "blockLogs");
+        self.blockLogs = sub(db, "blockLogs", levelupOptions);
 
         // Block hashes -> block ids (ids in the blocks array; not necessarily block number) for quick lookup
-        self.blockHashes = sub(db, "blockHashes");
+        self.blockHashes = sub(db, "blockHashes", levelupOptions);
 
         // Transaction hash -> transaction objects
-        self.transactions = sub(db, "transactions");
+        self.transactions = sub(db, "transactions", levelupOptions);
 
         // Transaction hash -> transaction receipts
-        self.transactionReceipts = sub(db, "transactionReceipts");
+        self.transactionReceipts = sub(db, "transactionReceipts", levelupOptions);
 
-        self.stateTrie = sub(db, "stateTrie");
+        self.stateTrie = sub(db, "stateTrie", levelupOptions);
 
-        this.db = db;
+        this._db = db;
         await open;
         this.emit("ready");
+    }
+    public async close() {
+        const db = this._db;
+        if (db && db.isOpen()) {
+            db.close();
+        }
     }
 }

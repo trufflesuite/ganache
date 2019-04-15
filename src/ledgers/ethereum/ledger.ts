@@ -1,4 +1,3 @@
-import Emittery from "emittery";
 import ILedger, {optionsSymbol as _options} from "../../interfaces/ledger";
 import EthereumOptions, {getDefaultOptions as getDefaultEthereumOptions} from "./options";
 import {JsonRpcData, JsonRpcQuantity, IndexableJsonRpcData} from "../../types/json-rpc";
@@ -149,7 +148,6 @@ export default class Ethereum implements ILedger {
         const chain = this[_blockchain];
         const str = blockNumber.toString();
         const block = await chain.blocks.get(str);
-        const r = chain.blocks.set("123", "123");
         const account = await block.accounts[address];
         return account.balance;
     }
@@ -181,5 +179,25 @@ export default class Ethereum implements ILedger {
         return transaction;
     }
 
+    @sync
+    async eth_sendTransaction(transaction: any): Promise<string> {
+        // todo: transaction stuff
+        return "";
+    }
+
+    @sync
+    async eth_sendRawTransaction(transaction: any): Promise<string> {
+        // todo: transaction stuff
+        return "";
+    }
+
     readonly [index: string]: (...args: any) => Promise<{}>;
+}
+
+// make sync wrap the method in a FIFO queue
+function sync(target: any, name: any, descriptor: any) {
+    const method = descriptor.value;
+    descriptor.value = function(...args: any[]) {
+        return method.apply(args);
+    }
 }
