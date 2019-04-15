@@ -9,8 +9,8 @@
     "lib": "./lib"
   },
   "scripts": {
-    "_mocha": "mocha --check-leaks --recursive --globals _scratch,sanitizedData --opts ./test/.mocharc",
-    "nyc_mocha": "nyc mocha --check-leaks --recursive --globals _scratch,sanitizedData --opts ./test/.mocharc",
+    "_mocha": "mocha --check-leaks --recursive --globals _scratch --opts ./test/.mocharc",
+    "nyc_mocha": "nyc mocha --check-leaks --recursive --globals _scratch --opts ./test/.mocharc",
     "_lint": "eslint --ignore-path .gitignore .",
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
@@ -31,7 +31,7 @@
     "clone": "2.1.2",
     "debug": "3.1.0",
     "encoding-down": "5.0.4",
-    "eth-sig-util": "2.0.2",
+    "eth-sig-util": "2.1.2",
     "ethereumjs-abi": "0.6.5",
     "ethereumjs-account": "2.0.5",
     "ethereumjs-block": "2.1.0",
