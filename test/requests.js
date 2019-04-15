@@ -390,7 +390,7 @@ const tests = function(web3) {
       });
     });
 
-    it.only("should produce a signature whose signer can be recovered", async function() {
+    it("should produce a signature whose signer can be recovered", async function() {
       const typedData = {
         types: {
           EIP712Domain: [
