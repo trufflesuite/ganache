@@ -7,6 +7,7 @@ import { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import Account from "../../types/account";
 import Block from "ethereumjs-block";
+import { resolve } from "dns";
 
 const createKeccakHash = require("keccak");
 
@@ -136,7 +137,7 @@ export default class Ethereum implements ILedger {
      * @returns integer of the current block number the client is on.
      */
     async eth_blockNumber(): Promise<bigint> {
-        return this[_blockchain].blocks.get(Tag.LATEST).then((block) => BigInt(block.header.number));
+        return this[_blockchain].blocks.get(Tag.LATEST).then((block: any) => BigInt(block.value.header.number));
     }
 
     /**
@@ -147,6 +148,7 @@ export default class Ethereum implements ILedger {
     async eth_getBalance(address: IndexableAddress, blockNumber: bigint|Tag = Tag.LATEST): Promise<JsonRpcQuantity> {
         const chain = this[_blockchain];
         const str = blockNumber.toString();
+        var t = chain.blocks.get("str");
         const block = await chain.blocks.get(str);
         const account = await block.accounts[address];
         return account.balance;
@@ -169,7 +171,7 @@ export default class Ethereum implements ILedger {
             b.header.number = Buffer.from("1234", "hex");
             const c = b.serialize(true);
             const d = new Block(c);
-            await chain.blocks.set(Tag.LATEST, c);
+            // await chain.blocks.set(Tag.LATEST, c);
         }
         const block2 = await chain.blocks.get(Tag.LATEST);
         // END

@@ -5,7 +5,12 @@ export default class Account {
   public address: Address;
   public balance: JsonRpcQuantity = new JsonRpcQuantity(0n);
   public privateKey: JsonRpcData;
-  constructor(address: Address) {
-    this.address = address;
+  
+  constructor(address: Address)
+  constructor(buffer: Buffer)
+  constructor(arg: Address | Buffer) {
+    if (arg instanceof Address){
+      this.address = arg;
+    }
   }
 }

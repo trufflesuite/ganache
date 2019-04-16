@@ -15,16 +15,15 @@ async function getDir(db_path: string) {
   }
 
 export default class Database extends Emittery{
-    private options: any;
-    public directory: string = null;
-    private _db: levelup.LevelUp = null;
-    public blocks: levelup.LevelUp;
+    private readonly options: any;
+    public readonly directory: string = null;
+    public readonly db: levelup.LevelUp = null;
     public blockLogs: levelup.LevelUp;
     public blockHashes: levelup.LevelUp;
     public transactions: levelup.LevelUp;
     public transactionReceipts: levelup.LevelUp;
-    public stateTrie: levelup.LevelUp;
-    public initialized: boolean;
+    public readonly stateTrie: levelup.LevelUp;
+    public readonly initialized: boolean;
     constructor(options: any) {
         super();
 
@@ -51,9 +50,6 @@ export default class Database extends Emittery{
         const open = db.open();
         const self = this;
 
-        // Blocks, keyed by array index (not necessarily by block number) (0-based)
-        self.blocks = sub(db, "blocks", levelupOptions);
-
         // Logs triggered in each block, keyed by block id (ids in the blocks array; not necessarily block number) (0-based)
         self.blockLogs = sub(db, "blockLogs", levelupOptions);
 
@@ -68,7 +64,7 @@ export default class Database extends Emittery{
 
         self.stateTrie = sub(db, "stateTrie", levelupOptions);
 
-        this._db = db;
+        this.db = db;
         await open;
         this.emit("ready");
     }
