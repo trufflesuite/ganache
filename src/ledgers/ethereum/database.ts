@@ -4,25 +4,16 @@ import { dir } from "tmp-promise";
 const leveldown = require("leveldown");
 import levelup from "levelup";
 const encode = require("encoding-down");
-const cachedown = require("cachedown");
-
-async function getDir(db_path: string) {
-    if (db_path) {
-      return db_path;
-    } else {
-      await dir();
-    }
-  }
 
 export default class Database extends Emittery{
     private readonly options: any;
-    public readonly directory: string = null;
-    public readonly db: levelup.LevelUp = null;
+    public directory: string = null;
+    public db: levelup.LevelUp = null;
     public blockLogs: levelup.LevelUp;
     public blockHashes: levelup.LevelUp;
     public transactions: levelup.LevelUp;
     public transactionReceipts: levelup.LevelUp;
-    public readonly stateTrie: levelup.LevelUp;
+    public trie: levelup.LevelUp;
     public readonly initialized: boolean;
     constructor(options: any) {
         super();
@@ -48,28 +39,28 @@ export default class Database extends Emittery{
         }
 
         const open = db.open();
-        const self = this;
+        //const self = this;
 
         // Logs triggered in each block, keyed by block id (ids in the blocks array; not necessarily block number) (0-based)
-        self.blockLogs = sub(db, "blockLogs", levelupOptions);
+        //self.blockLogs = sub(db, "blockLogs", levelupOptions);
 
         // Block hashes -> block ids (ids in the blocks array; not necessarily block number) for quick lookup
-        self.blockHashes = sub(db, "blockHashes", levelupOptions);
+        //self.blockHashes = sub(db, "blockHashes", levelupOptions);
 
-        // Transaction hash -> transaction objects
-        self.transactions = sub(db, "transactions", levelupOptions);
+        // // Transaction hash -> transaction objects
+        // self.transactions = sub(db, "transactions", levelupOptions);
 
         // Transaction hash -> transaction receipts
-        self.transactionReceipts = sub(db, "transactionReceipts", levelupOptions);
+        //self.transactionReceipts = sub(db, "transactionReceipts", levelupOptions);
 
-        self.stateTrie = sub(db, "stateTrie", levelupOptions);
+        this.trie = sub(db, "trie", levelupOptions);
 
         this.db = db;
         await open;
         this.emit("ready");
     }
     public async close() {
-        const db = this._db;
+        const db = this.db;
         if (db && db.isOpen()) {
             db.close();
         }

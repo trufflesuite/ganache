@@ -3,23 +3,21 @@ import levelup from "levelup";
 import Database from "../database";
 const levelupOptions: any = { valueEncoding: "binary" };
 
-export type Executor<T> = (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void;
-
 export type Instantiable<T> = {new(...args: any[]): T};
 
-export default class Manager<T>{
+export default class Manager<T> {
     private Type: Instantiable<T>;
     public db: Database;
-    private base: levelup.LevelUp;
-    constructor(db: Database, type: Instantiable<T>){
+    protected base: levelup.LevelUp;
+    constructor(db: Database, type: Instantiable<T>, name: string){
         this.Type = type;
         this.db = db;
-        this.base = sub(db, "blocks", levelupOptions);
+        this.base = sub(db.db, name, levelupOptions);
     }
-    get(key: string): T {
-        return new this.Type(this.base.get(key));
+    get(key: string): Promise<T> {
+        return this.base.get(key).then((raw) => new this.Type(raw));
     }
-    set(key: string, value: Buffer): T {
-        return new this.Type(this.base.put(key, value));
+    set(key: string, value: Buffer): Promise<T> {
+        return this.base.put(key, value).then((raw) => new this.Type(raw));
     }
 }

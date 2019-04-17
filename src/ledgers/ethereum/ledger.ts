@@ -6,8 +6,6 @@ import Tag from "../../types/tags";
 import { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import Account from "../../types/account";
-import Block from "ethereumjs-block";
-import { resolve } from "dns";
 
 const createKeccakHash = require("keccak");
 
@@ -22,7 +20,7 @@ export default class Ethereum implements ILedger {
     readonly [_options]: EthereumOptions;
     private [_isMining]: boolean = false;
     private readonly [_blockchain]: Blockchain;
-    constructor(options: EthereumOptions, ready: ()=>{}) {
+    constructor(options: EthereumOptions, ready: () => {}) {
         const tmpOptions = Object.assign(getDefaultEthereumOptions(), options);
         this[_coinbase] = tmpOptions.accounts[0];
         this[_options] = tmpOptions;
@@ -137,7 +135,8 @@ export default class Ethereum implements ILedger {
      * @returns integer of the current block number the client is on.
      */
     async eth_blockNumber(): Promise<bigint> {
-        return this[_blockchain].blocks.get(Tag.LATEST).then((block: any) => BigInt(block.value.header.number));
+        const latest = this[_blockchain].blocks.get(Tag.LATEST);
+        return latest.then((block: any) => BigInt(block.value.header.number));
     }
 
     /**
@@ -150,8 +149,9 @@ export default class Ethereum implements ILedger {
         const str = blockNumber.toString();
         var t = chain.blocks.get("str");
         const block = await chain.blocks.get(str);
-        const account = await block.accounts[address];
-        return account.balance;
+        //const account = await block.accounts.get(address);
+        //return account.balance;
+        return JsonRpcQuantity.from(BigInt(0));
     }
 
     /**
@@ -163,21 +163,21 @@ export default class Ethereum implements ILedger {
         transasctionHash = JsonRpcData.from(transasctionHash);
         
         const chain = this[_blockchain];
-        const block = await chain.blocks.get(Tag.LATEST);
+        // const block = await chain.blocks.get(Tag.LATEST);
 
-        // TODO: just POC stuff i was working on...
-        if (!block) {
-            const b = new Block(null as any);
-            b.header.number = Buffer.from("1234", "hex");
-            const c = b.serialize(true);
-            const d = new Block(c);
-            // await chain.blocks.set(Tag.LATEST, c);
-        }
-        const block2 = await chain.blocks.get(Tag.LATEST);
-        // END
+        // // TODO: just POC stuff I was working on...
+        // if (!block) {
+        //     const b = new Block(null as any);
+        //     b.header.number = Buffer.from("1234", "hex");
+        //     const c = b.serialize(true);
+        //     const d = new Block(c);
+        //     // await chain.blocks.set(Tag.LATEST, c);
+        // }
+        // const block2 = await chain.blocks.get(Tag.LATEST);
+        // // END
 
 
-        const transaction = block.transactions[transasctionHash];
+        const transaction = await chain.transactions.get(transasctionHash);
         return transaction;
     }
 

@@ -1,19 +1,20 @@
 import _Transaction from "../../../types/transaction";
 
 import Database from "../database";
-import Manager, {Executor} from "./manager";
-import PromiseChain from "./promise-chain";
+import Manager from "./manager";
 
 export default class TransactionManager extends Manager<any> {
     constructor(db: Database) {
-        super(db, Transaction);
+        super(db, Transaction, "transactions");
     }
 }
 
-export class Transaction extends PromiseChain<Transaction, _Transaction> {
-    constructor(executor: Executor<Buffer>)
-    constructor(pendingRawBlock: Promise<Buffer>)
-    constructor(arg1: Executor<Buffer> | Promise<Buffer>, db?: Database) {
-        super(arg1, _Transaction, db);
+export class Transaction {
+    private readonly manager: TransactionManager;
+    public readonly value: _Transaction;
+    constructor(raw: Buffer, manager?: TransactionManager) {
+        // todo: make _Transaction take the raw Buffer
+        this.value = new _Transaction(/*raw*/);
+        this.manager = manager;
     }
 }

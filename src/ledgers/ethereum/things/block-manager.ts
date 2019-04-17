@@ -1,21 +1,30 @@
 import EthereumJsBlock from "ethereumjs-block";
 import Database from "../database";
-import Manager, {Executor} from "./manager";
-import PromiseChain from "./promise-chain";
+import Manager from "./manager";
 
 export default class BlockManager extends Manager<Block> {
+
+    // We cache these:
+    public earliest: Block;
+    public latest: Block;
+    public pending: Block;
+
     constructor(db: Database) {
-        super(db, Block);
+        super(db, Block, "block");
+
+        db.once("open").then(() => {
+            // TODO: get the last key, set as "earliest"
+            // TODO: get the first last key, set as "latest"
+        });
     }
 }
 
-export class Block extends PromiseChain<Block, EthereumJsBlock> {
-    // public accounts: AccountManager;
-
-    constructor(executor: Executor<Buffer>)
-    constructor(pendingRawBlock: Promise<Buffer>)
-    constructor(arg1: Executor<Buffer> | Promise<Buffer>, db?: Database)
+export class Block {
+    public readonly manager: BlockManager;
+    public readonly value: EthereumJsBlock;
+    constructor(raw: Buffer, manager?: BlockManager)
     {
-        super(arg1, EthereumJsBlock, db);
+        this.value = new EthereumJsBlock(raw);
+        this.manager = manager;
     }
 }

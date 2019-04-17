@@ -10,7 +10,7 @@ describe("provider", () => {
       network_id: networkId
     });
   })
-  it("returns a transaction", async () => {
+  it.skip("returns a transaction", async () => {
     var result = await p.send("eth_getTransactionByHash", ["0x123"]);
     const v = result.blockNumber;
     // todo: figure things out
