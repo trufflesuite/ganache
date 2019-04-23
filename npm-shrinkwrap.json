@@ -1761,6 +1761,12 @@
         "esprima": "^4.0.0"
       }
     },
+    "jsbi": {
+      "version": "2.0.5",
+      "resolved": "https://registry.npmjs.org/jsbi/-/jsbi-2.0.5.tgz",
+      "integrity": "sha512-TzO/62Hxeb26QMb4IGlI/5X+QLr9Uqp1FPkwp2+KOICW+Q+vSuFj61c8pkT6wAns4WcK56X7CmSHhJeDGWOqxQ==",
+      "dev": true
+    },
     "keccak": {
       "version": "2.0.0",
       "resolved": "https://registry.npmjs.org/keccak/-/keccak-2.0.0.tgz",
