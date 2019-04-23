@@ -1,6 +1,8 @@
 
-export const optionsSymbol = Symbol("options");
+/**
+ * Defines the interface for a Ledger.
+ * all properties must be `async` callable or return a `Promise`
+ */
 export default interface ILedger {
-    readonly [optionsSymbol]: any;
-    readonly [key: string]: (params?: any[]) => Promise<any> | any;
+    readonly [key: string]: (params?: any[]) => Promise<any>;
 }
