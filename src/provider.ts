@@ -37,7 +37,7 @@ export default class Provider extends Emittery {
     // set up our request processor to either use FIFO or or async request processing
     const _requestProcessor = this[requestProcessor] = new RequestProcessor(_providerOptions.asyncRequestProcessing ? 1 : 0);
 
-    if(!_providerOptions.mnemonic){
+    if (!_providerOptions.mnemonic) {
       // TODO: this is a default and should be configured that way
       _providerOptions.mnemonic = generateMnemonic();
     }
@@ -58,6 +58,8 @@ export default class Provider extends Emittery {
     this[engine] = new Engine(ledger);
   }
 
+  // TODO: this doesn't seem like a provider-level function. Maybe we should
+  // move this into the Ledger or it's Blockchain?
   private initializeAccounts(): Account[]{
     const _providerOptions = this[options];
     let accounts: Account[];
@@ -85,6 +87,7 @@ export default class Provider extends Emittery {
     return accounts;
   }
   
+  // TODO: this should probable be moved as well (see `initializeAccounts` above)
   private createAccount(balance: JsonRpcQuantity, privateKey: JsonRpcData, address?: Address) {
     address = address || Address.from(privateToAddress(Buffer.from(privateKey.toString(), "hex")));
   
