@@ -10,7 +10,7 @@ describe("provider", () => {
       network_id: networkId
     });
   })
-  it.only("sends a transaction", async () => {
+  it("sends a transaction", async () => {
     const accounts = await p.send("eth_accounts");
     const result = await p.send("eth_sendTransaction", [{
       from: accounts[0],
