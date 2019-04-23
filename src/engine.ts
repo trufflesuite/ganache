@@ -4,25 +4,41 @@ import Emittery from "emittery";
 const _ledger = Symbol("ledger");
 
 export default class Engine extends Emittery {
-  private [_ledger]: ILedger;
+  private readonly [_ledger]: ILedger;
+  /**
+   * The Engine handles execution of methods on the given Ledger
+   * @param ledger 
+   */
   constructor(ledger: ILedger) {
     super();
 
     if (!ledger) {
-      throw new Error("yah, that's not right");
+      throw new Error("You must provide a ledger");
     }
     this[_ledger] = ledger;
   }
-  public async execute(method: string, params: any[]): Promise<any> {
-    if (typeof method === "string") {
+
+  /**
+   * Executes the method with the given methodName on the Ledger
+   * @param methodName The name of the JSON-RPC method to execute.
+   * @param params The params to pass to the JSON-RPC method.
+   */
+  public async execute(methodName: string, params: any[]): Promise<any> {
+    // The methodName is user-entered data and can be all sorts of weird hackery
+    // Make sure we only accept what we expect to avoid headache and heartache
+    if (typeof methodName === "string") {
       const ledger = this[_ledger];
-      if (ledger.__proto__.hasOwnProperty(method)) {
-        const fn = ledger[method];
+      // Only allow executing our *own* methods:
+      if (ledger.__proto__.hasOwnProperty(methodName)) {
+        const fn = ledger[methodName];
+        // just double check, in case a Ledger breaks the rules and adds non-fns
+        // to their Ledger interface.
         if (typeof fn === "function") {
           return fn.apply(ledger, params);
         }
       }
     }
-    throw new Error(`Invalid method: ${method}`);
+
+    throw new Error(`Invalid or unsupported method: ${methodName}`);
   }
 }
