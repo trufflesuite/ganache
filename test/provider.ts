@@ -10,6 +10,15 @@ describe("provider", () => {
       network_id: networkId
     });
   })
+  it.only("sends a transaction", async () => {
+    const accounts = await p.send("eth_accounts");
+    const result = await p.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: accounts[1],
+      value: 123
+    }]);
+    console.log(result);
+  });
   it.skip("returns a transaction", async () => {
     var result = await p.send("eth_getTransactionByHash", ["0x123"]);
     const v = result.blockNumber;
@@ -33,10 +42,10 @@ describe("provider", () => {
 
   it("returns rejects invalid rpc methods", async () => {
     await assert.rejects(p.send("toString"), {
-      message: "Invalid method: toString"
+      message: "Invalid or unsupported method: toString"
     });
     await assert.rejects(p.send("yo_mamma!"), {
-      message: "Invalid method: yo_mamma!"
+      message: "Invalid or unsupported method: yo_mamma!"
     });
     const str = Buffer.from([1]) as any as string;
     await assert.rejects(new Promise((resolve, reject) => {
@@ -52,7 +61,7 @@ describe("provider", () => {
         }
       })
     }), {
-      message: "Invalid method: \u0001"
+      message: "Invalid or unsupported method: \u0001"
     });
   });
 });

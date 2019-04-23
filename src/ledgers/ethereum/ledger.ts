@@ -7,6 +7,7 @@ import { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import Account from "../../types/account";
 
+const BUFFER_ZERO = Buffer.from([0]);
 const createKeccakHash = require("keccak");
 
 const hash = createKeccakHash("keccak256");
@@ -143,7 +144,7 @@ export default class Ethereum implements ILedger {
      * @returns Array of 20 Bytes - addresses owned by the client.
      */
     async eth_accounts(): Promise<JsonRpcData[]>{
-        return this[_options].accounts;
+        return this[_options].accounts.map(account => account.address);
     }
 
     /**
@@ -197,26 +198,62 @@ export default class Ethereum implements ILedger {
         return transaction;
     }
 
-    @sync
-    async eth_sendTransaction(transaction: any): Promise<string> {
-        // todo: transaction stuff
-        return "";
+    async eth_sendTransaction(transaction: any): Promise<JsonRpcData> {
+        // TODO: rewrite this stuff
+
+
+
+        const from = transaction.from ? JsonRpcData.from(transaction.from) : null;
+
+        if (from == null) {
+            throw new Error("from not found; is required");
+        }
+
+        // Error checks. It's possible to JSON.stringify a Buffer to JSON.
+        // we actually now handle this "properly" (not sure about spec), but for
+        // legacy reasons we don't allow it.
+        if (transaction.to && typeof transaction.to !== "string") {
+            throw new Error("Invalid to address");
+        }
+
+        // TODO: accounts was an object in the previous ganache, now it is an array.
+        // fix it!
+        const isKnownAccount = this[_options].accounts.hasOwnProperty(from.toString().toLowerCase());
+
+        // todo: set up account locking unlocking and things...
+        // if (method === "eth_sendTransaction" && !this.unlocked_accounts.hasOwnProperty(from)) {
+        //     const msg = isKnownAccount ? "signer account is locked" : "sender account not recognized";
+        //     return callback(new Error(msg));
+        // }
+
+        let type = Transaction.types.none;
+        if (!isKnownAccount) {
+            type |= Transaction.types.fake;
+        }
+        
+        const tx = Transaction.fromJSON(transaction, type);
+        if (tx.gasLimit.length === 0) {
+            tx.gasLimit = Buffer.from("15f90", "hex");
+        }
+    
+        if (tx.gasPrice.length === 0) {
+            tx.gasPrice = JsonRpcQuantity.from(this[_options].gasPrice).toBuffer();
+        }
+    
+        if (tx.value.length === 0) {
+            tx.value = Buffer.from([0]);
+        }
+    
+        if (tx.to.length === 0 || tx.to.equals(BUFFER_ZERO)) {
+            tx.to = Buffer.allocUnsafe(0);
+        }
+
+        return await this[_blockchain].queueTransaction(tx);
     }
 
-    @sync
-    async eth_sendRawTransaction(transaction: any): Promise<string> {
-        // todo: transaction stuff
-        return "";
-    }
-
-    readonly [index: string]: (...args: any) => Promise<{}>;
-}
-
-// make sync wrap the method in a FIFO queue
-function sync(target: any, name: any, descriptor: any) {
-    const method = descriptor.value;
-    descriptor.value = function(...args: any[]) {
-        return method.apply(args);
+    async eth_sendRawTransaction(transaction: any): Promise<JsonRpcData> {
+        await this[_blockchain].queueTransaction(transaction);
+        return transaction.hash;
     }
 
     readonly [index: string]: (...args: any) => Promise<{}>;
