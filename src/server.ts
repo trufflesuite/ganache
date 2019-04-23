@@ -58,6 +58,7 @@ export default class Server {
       throw err;
     }
   }
+
   close() {
     const _listenSocket = this[listenSocket];
     if (_listenSocket) {
