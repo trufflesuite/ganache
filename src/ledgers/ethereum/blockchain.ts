@@ -1,97 +1,125 @@
 import Database from "./database";
 import Emittery from "emittery";
-import BlockManager from "./things/block-manager";
+import BlockManager, { Block } from "./things/block-manager";
 import TransactionManager from "./things/transaction-manager";
 import Trie from "merkle-patricia-tree";
 import { BN } from "ethereumjs-util";
+import Account from "../../types/account";
+import { promisify } from "util";
+import { JsonRpcQuantity, JsonRpcData } from "../../types/json-rpc";
+import EthereumJsAccount from "ethereumjs-account";
+
 const VM = require("ethereumjs-vm");
 
 export default class Blockchain extends Emittery {
     public blocks: BlockManager;
     public transactions: TransactionManager;
-    public vm: any;
-    public trie: Trie;
+    private vm: any;
+    private trie: Trie;
+    private readonly database: Database
 
-    constructor(hardfork: string, allowUnlimitedContractSize: boolean) {
+    /**
+     * Initializes the underlying Database and handles synchronization between
+     * the ledger and the database.
+     * 
+     * Emits a `ready` event once the database and
+     * all dependencies are fully initialized.
+     * @param db 
+     * @param dbPath 
+     * @param accounts 
+     * @param hardfork 
+     * @param allowUnlimitedContractSize 
+     * @param blockGasLimit 
+     * @param timestamp 
+     */
+    constructor(db: string | object, dbPath: string, accounts: Account[], hardfork: string, allowUnlimitedContractSize: boolean, blockGasLimit: JsonRpcQuantity, timestamp: Date) {
         super();
 
-        const db = new Database({});
-        db.on("ready", () => {
-            this.blocks = new BlockManager(db);
-            this.transactions = new TransactionManager(db);
+        const database = this.database = new Database({db, dbPath}, this); 
 
+        database.on("ready", async () => {
+            // TODO: get the latest block from the database
+            // if we have a latest block, `root` will be that block's header.stateRoot
+            // and we will skip creating the genesis block alltogether
             const root:any = null;
-            this.trie = new Trie(db.trie, root);
+            this.trie = new Trie(database.trie, root);
+            this.blocks = this.database.blocks;
+            this.transactions = this.database.transactions;
 
-            this.vm = new VM({
-                state: this.trie,
-                activatePrecompiles: true,
-                hardfork,
-                allowUnlimitedContractSize,
-                blockchain: {
-                    getBlock: async (number: BN, done) => {
-                        const hash = await this.blockNumberToHash(number);
+            this._initializeVM(hardfork, allowUnlimitedContractSize);
 
-                        hash(done);
-                    }
-                }
-            });
-            this.vm.on("step", this.emit.bind(this, "step"));
+            await this._initializeAccounts(accounts);
+            await this._initializeGenesisBlock(timestamp, blockGasLimit);
 
             this.emit("ready");
         });
     }
 
+    _initializeVM(hardfork: string, allowUnlimitedContractSize: boolean) {
+        this.vm = new VM({
+            state: this.trie,
+            activatePrecompiles: true,
+            hardfork,
+            allowUnlimitedContractSize,
+            blockchain: {
+                getBlock: async (number: BN, done: any) => {
+                    const hash = await this.blockNumberToHash(number);
+                    done(this.blocks.get(hash));
+                }
+            }
+        });
+        this.vm.on("step", this.emit.bind(this, "step"));
+    }
+
+    async _initializeAccounts(accounts: Account[]) : Promise<void>{
+        const stateManager = this.vm.stateManager;
+        const putAccount = promisify(stateManager.putAccount.bind(stateManager));
+        const checkpoint = promisify(stateManager.checkpoint.bind(stateManager))
+        const commit = promisify(stateManager.commit.bind(stateManager))
+        await checkpoint();
+        const pendingAccounts = accounts
+            .map(account => {
+                const ethereumJsAccount = new EthereumJsAccount();
+                ethereumJsAccount.nonce = account.nonce.toBuffer(),
+                ethereumJsAccount.balance = account.balance.toBuffer()
+                return {
+                    account: ethereumJsAccount,
+                    address: account.address
+                }
+            })
+            .map(account => putAccount(account.address.toString(), account.account));
+        await Promise.all(pendingAccounts);
+        return commit();
+    }
+
+    async _initializeGenesisBlock(timestamp: Date, blockGasLimit: JsonRpcQuantity): Promise<Block> {
+        // create the genesis block
+        const genesis = this.blocks.next({
+            // If we were given a timestamp, use it instead of the `currentTime`
+            timestamp: ((timestamp as any) / 1000 | 0) || this.currentTime(),
+            gasLimit: blockGasLimit.toBuffer(),
+            stateRoot: this.trie.root
+        });
+
+        // store the genesis block in the database
+        return this.blocks.set(genesis);
+    }
+
+    currentTime() {
+        // Take the floor of the current time
+        return (Date.now() / 1000) | 0;
+    }
+
+    /**
+     * Given a block number, find it's hash in the database
+     * @param number 
+     */
     blockNumberToHash(number: BN): Promise<Buffer> {
-        number.toString();
+        return number.toString() as any;
+    }
+
+    async queueTransaction(transaction: any): Promise<JsonRpcData> {
+        await this.transactions.push(transaction);
+        return JsonRpcData.from(transaction.hash());
     }
 }
-
-// BlockchainDouble.prototype.createVMFromStateTrie = function(state, activatePrecompiles) {
-//     const self = this;
-//     const vm = new VM({
-//       state: state,
-//       blockchain: {
-//         // EthereumJS VM needs a blockchain object in order to get block information.
-//         // When calling getBlock() it will pass a number that's of a Buffer type.
-//         // Unfortunately, it uses a 64-character buffer (when converted to hex) to
-//         // represent block numbers as well as block hashes. Since it's very unlikely
-//         // any block number will get higher than the maximum safe Javascript integer,
-//         // we can convert this buffer to a number ahead of time before calling our
-//         // own getBlock(). If the conversion succeeds, we have a block number.
-//         // If it doesn't, we have a block hash. (Note: Our implementation accepts both.)
-//         getBlock: function(number, done) {
-//           try {
-//             number = to.number(number);
-//           } catch (e) {
-//             // Do nothing; must be a block hash.
-//           }
-  
-//           self.getBlock(number, done);
-//         }
-//       },
-//       activatePrecompiles: activatePrecompiles || false,
-//       hardfork: self.options.hardfork,
-//       allowUnlimitedContractSize: self.options.allowUnlimitedContractSize
-//     });
-  
-//     if (self.options.debug === true) {
-//       // log executed opcodes, including args as hex
-//       vm.on("step", function(info) {
-//         var name = info.opcode.name;
-//         var argsNum = info.opcode.in;
-//         if (argsNum) {
-//           var args = info.stack
-//             .slice(-argsNum)
-//             .map((arg) => to.hex(arg))
-//             .join(" ");
-  
-//           self.logger.log(`${name} ${args}`);
-//         } else {
-//           self.logger.log(name);
-//         }
-//       });
-//     }
-  
-//     return vm;
-//   };

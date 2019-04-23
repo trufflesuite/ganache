@@ -45,10 +45,17 @@ export default class Provider extends Emittery {
 
     const accounts = this.initializeAccounts();
     const net_version = _providerOptions.network_id.toString();
-    const _engine = this[engine] = new Engine(_providerOptions.ledger || new Ethereum({
+    const ledger = _providerOptions.ledger || new Ethereum({
+      db: _providerOptions.db,
+      dbPath: _providerOptions.db_path,
       net_version,
-      accounts
-    }, _requestProcessor.resume.bind(_requestProcessor)));
+      accounts,
+      allowUnlimitedContractSize: _providerOptions.allowUnlimitedContractSize,
+      hardfork: _providerOptions.hardfork,
+      gasLimit: _providerOptions.gasLimit,
+      timestamp: _providerOptions.time
+    }, _requestProcessor.resume.bind(_requestProcessor));
+    this[engine] = new Engine(ledger);
   }
 
   private initializeAccounts(): Account[]{

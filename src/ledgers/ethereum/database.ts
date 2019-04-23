@@ -1,35 +1,53 @@
 import Emittery from "emittery";
-const sub = require( "subleveldown");
 import { dir } from "tmp-promise";
-const leveldown = require("leveldown");
 import levelup from "levelup";
+import AccountManager from "./things/account-manager";
+import BlockManager from "./things/block-manager";
+import TransactionManager from "./things/transaction-manager";
+import Blockchain from "./blockchain";
+const leveldown = require("leveldown");
+const sub = require( "subleveldown");
 const encode = require("encoding-down");
 
+type DatabaseOptions = {db: string | object, dbPath: string}
+
 export default class Database extends Emittery{
-    private readonly options: any;
+    private readonly blockchain: Blockchain;
+    private readonly options: DatabaseOptions;
     public directory: string = null;
     public db: levelup.LevelUp = null;
+    public blocks: BlockManager;
+    public accounts: AccountManager;
     public blockLogs: levelup.LevelUp;
     public blockHashes: levelup.LevelUp;
-    public transactions: levelup.LevelUp;
+    public transactions: TransactionManager;
     public transactionReceipts: levelup.LevelUp;
     public trie: levelup.LevelUp;
     public readonly initialized: boolean;
-    constructor(options: any) {
+    /**
+     * The Database handles the creation of the database, and all access to it.
+     * Once the database has been fully initialized it will emit a `ready`
+     * event.
+     * Emit's a `close` event once complete.
+     * @param options Supports one of two options: `db` (a leveldown compliant
+     * store instance) or `dbPath` (the path to store/read the db instance)
+     * @param blockchain 
+     */
+    constructor(options: DatabaseOptions, blockchain: Blockchain) {
         super();
 
         this.options = options;
+        this.blockchain = blockchain;
         this._initialize();
     }
     private async _initialize(){
         const levelupOptions: any = { valueEncoding: "binary" };
-        // delete levelupOptions.valueEncoding;
         const store = this.options.db;
         let db;
         if (store) {
-            db = await levelup(store, levelupOptions);
+            db = await levelup(store as any, levelupOptions);
         } else {
-            let directory = this.options.db_path;
+            let directory = this.options.dbPath;
             if (!directory) {
                 directory = (await dir()).path;
             }
@@ -39,30 +57,24 @@ export default class Database extends Emittery{
         }
 
         const open = db.open();
-        //const self = this;
-
-        // Logs triggered in each block, keyed by block id (ids in the blocks array; not necessarily block number) (0-based)
-        //self.blockLogs = sub(db, "blockLogs", levelupOptions);
-
-        // Block hashes -> block ids (ids in the blocks array; not necessarily block number) for quick lookup
-        //self.blockHashes = sub(db, "blockHashes", levelupOptions);
-
-        // // Transaction hash -> transaction objects
-        // self.transactions = sub(db, "transactions", levelupOptions);
-
-        // Transaction hash -> transaction receipts
-        //self.transactionReceipts = sub(db, "transactionReceipts", levelupOptions);
-
         this.trie = sub(db, "trie", levelupOptions);
 
         this.db = db;
         await open;
-        this.emit("ready");
+        this.blocks = new BlockManager(this);
+        this.transactions = new TransactionManager(this);
+        this.accounts = new AccountManager(this);
+        return this.emit("ready");
     }
+    /**
+     * Gracefully close the database and wait for it to fully shut down.
+     * Emit's a `close` event once complete.
+     */
     public async close() {
         const db = this.db;
         if (db && db.isOpen()) {
-            db.close();
+            await db.close();
         }
+        return this.emit("close");
     }
 }

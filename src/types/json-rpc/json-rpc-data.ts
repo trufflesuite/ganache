@@ -13,7 +13,7 @@ export class JsonRpcData extends BaseJsonRpcType {
       throw new Error(`Cannot create a ${typeof value} as a JsonRpcData`);
     }
     super(value);
-    if(byteLength !== undefined){
+    if (byteLength !== undefined) {
       validateByteLength(byteLength);
       byteLengths.set(this, byteLength | 0);
     }
@@ -56,14 +56,16 @@ export class JsonRpcData extends BaseJsonRpcType {
 type $<T extends string|Buffer = string|Buffer> = {
   new(value: T, byteLength?: number): _JsonRpcData<T> & JsonRpcType<T>,
   from(value: T, byteLength?: number): _JsonRpcData<T> & JsonRpcType<T>,
-  toString(byteLength?: number): string
+  toString(byteLength?: number): string,
+  toBuffer(): Buffer
 }
 const _JsonRpcData = JsonRpcData as $;
 
 interface _JsonRpcData<T extends string | Buffer = string | Buffer> {
   constructor(value: T, byteLength?: number): _JsonRpcData
   from(value: T, byteLength?: number): _JsonRpcData,
-  toString(byteLength?: number): string
+  toString(byteLength?: number): string,
+  toBuffer(): Buffer
 }
 
 export type IndexableJsonRpcData = _JsonRpcData & IndexableJsonRpcType;

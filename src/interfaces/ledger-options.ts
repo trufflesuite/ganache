@@ -1,5 +1,8 @@
-import {JsonRpcData} from "../types/json-rpc";
+import Account from "../types/account";
 
-export default interface LedgerOptions {
-    accounts?: JsonRpcData[]
+/**
+ * Options that ledger implementations must implement
+ */
+export default interface ILedgerOptions {
+    accounts?: Account[]
 }

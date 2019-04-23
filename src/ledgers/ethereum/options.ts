@@ -1,10 +1,17 @@
-import LedgerOptions from "../../interfaces/ledger-options"
-import {JsonRpcData} from "../../types/json-rpc";
+import ILedgerOptions from "../../interfaces/ledger-options"
+import Account from "../../types/account";
+import { JsonRpcQuantity } from "../../types/json-rpc";
 
-interface EthereumOptions extends LedgerOptions {
+type EthereumOptions = ILedgerOptions & {
     net_version: string,
     gasPrice?: bigint,
-    accounts: any[]
+    accounts: Account[],
+    allowUnlimitedContractSize: boolean,
+    hardfork: string,
+    gasLimit: JsonRpcQuantity,
+    timestamp?: Date,
+    db?: object,
+    dbPath?: string
 }
 
 export default EthereumOptions;

@@ -133,6 +133,8 @@ export default interface Options {
    * 
    */
   asyncRequestProcessing?: boolean,
+
+  hardfork?: "constantinople" | "byzantium" | "petersburg"
 };
 
 export const getDefault: (options: Options)=> Options = (options) => {
@@ -146,10 +148,11 @@ export const getDefault: (options: Options)=> Options = (options) => {
     locked: false,
     vmErrorsOnRPCResponse: true,
     hdPath: "m/44'/60'/0'/0/",
-    allowUnlimitedContractSize: true,
+    allowUnlimitedContractSize: false,
     gasPrice: new JsonRpcQuantity("0x77359400"),
     gasLimit: new JsonRpcQuantity("0x6691b7"),
     verbose: false,
-    asyncRequestProcessing: false
+    asyncRequestProcessing: false,
+    hardfork: "petersburg"
   }, options);
 }

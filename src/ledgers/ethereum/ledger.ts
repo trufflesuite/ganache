@@ -1,4 +1,4 @@
-import ILedger, {optionsSymbol as _options} from "../../interfaces/ledger";
+import ILedger from "../../interfaces/ledger";
 import EthereumOptions, {getDefaultOptions as getDefaultEthereumOptions} from "./options";
 import {JsonRpcData, JsonRpcQuantity, IndexableJsonRpcData} from "../../types/json-rpc";
 import Blockchain from "./blockchain";
@@ -11,21 +11,37 @@ const createKeccakHash = require("keccak");
 
 const hash = createKeccakHash("keccak256");
 
+const _options = Symbol("options");
 const _coinbase = Symbol("coinbase");
 const _isMining = Symbol("isMining");
 const _blockchain = Symbol("blockchain");
+const _accounts = Symbol("accounts");
+
 
 export default class Ethereum implements ILedger {
-    readonly [_coinbase]: Account;
-    readonly [_options]: EthereumOptions;
-    private [_isMining]: boolean = false;
+    private readonly [_options]: EthereumOptions;
+    private readonly [_coinbase]: Account;   
     private readonly [_blockchain]: Blockchain;
+    private [_isMining]: boolean = false;
+    /**
+     * This is the Ethereum ledger that the provider interacts with.
+     * The only methods permitted on the prototype are the supported json-rpc
+     * methods.
+     * @param options
+     * @param ready Callback for when the ledger is fully initialized
+     */
     constructor(options: EthereumOptions, ready: () => {}) {
-        const tmpOptions = Object.assign(getDefaultEthereumOptions(), options);
+        const tmpOptions = this[_options] = Object.assign(getDefaultEthereumOptions(), options);
         this[_coinbase] = tmpOptions.accounts[0];
-        this[_options] = tmpOptions;
-        const chain = new Blockchain();
-        this[_blockchain] = chain;
+        const chain = this[_blockchain] = new Blockchain(
+            tmpOptions.db,
+            tmpOptions.dbPath,
+            tmpOptions.accounts,
+            tmpOptions.hardfork,
+            tmpOptions.allowUnlimitedContractSize,
+            tmpOptions.gasLimit,
+            tmpOptions.timestamp
+        );
         chain.on("ready", ready);
     }
 
@@ -202,4 +218,6 @@ function sync(target: any, name: any, descriptor: any) {
     descriptor.value = function(...args: any[]) {
         return method.apply(args);
     }
+
+    readonly [index: string]: (...args: any) => Promise<{}>;
 }

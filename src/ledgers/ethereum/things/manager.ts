@@ -14,10 +14,10 @@ export default class Manager<T> {
         this.db = db;
         this.base = sub(db.db, name, levelupOptions);
     }
-    get(key: string): Promise<T> {
+    get(key: string | Buffer): Promise<T> {
         return this.base.get(key).then((raw) => new this.Type(raw));
     }
-    set(key: string, value: Buffer): Promise<T> {
+    set(key: string | Buffer, value: Buffer): Promise<T> {
         return this.base.put(key, value).then((raw) => new this.Type(raw));
     }
 }
