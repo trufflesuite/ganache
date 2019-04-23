@@ -132,6 +132,11 @@ export default class Provider extends Emittery {
     return response;
   }
 
+  /**
+   * Legacy callback style API
+   * @param payload JSON-RPC payload
+   * @param callback callback
+   */
   public sendAsync(payload: JsonRpc.Request, callback?: Callback): void {
     return this.send(payload, callback);
   }
