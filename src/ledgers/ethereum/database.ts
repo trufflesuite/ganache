@@ -12,7 +12,7 @@ const encode = require("encoding-down");
 type DatabaseOptions = {db: string | object, dbPath: string}
 
 export default class Database extends Emittery{
-    private readonly blockchain: Blockchain;
+    public readonly blockchain: Blockchain;
     private readonly options: DatabaseOptions;
     public directory: string = null;
     public db: levelup.LevelUp = null;

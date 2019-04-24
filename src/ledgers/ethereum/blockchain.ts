@@ -8,14 +8,16 @@ import Account from "../../types/account";
 import { promisify } from "util";
 import { JsonRpcQuantity, JsonRpcData } from "../../types/json-rpc";
 import EthereumJsAccount from "ethereumjs-account";
+import AccountManager from "./things/account-manager";
 
 const VM = require("ethereumjs-vm");
 
 export default class Blockchain extends Emittery {
     public blocks: BlockManager;
     public transactions: TransactionManager;
+    public accounts: AccountManager;
     private vm: any;
-    private trie: Trie;
+    public trie: Trie;
     private readonly database: Database
 
     /**
@@ -45,6 +47,7 @@ export default class Blockchain extends Emittery {
             this.trie = new Trie(database.trie, root);
             this.blocks = this.database.blocks;
             this.transactions = this.database.transactions;
+            this.accounts = this.database.accounts;
 
             this._initializeVM(hardfork, allowUnlimitedContractSize);
 
@@ -87,7 +90,7 @@ export default class Blockchain extends Emittery {
                     address: account.address
                 }
             })
-            .map(account => putAccount(account.address.toString(), account.account));
+            .map(account => putAccount(account.address.toBuffer(), account.account));
         await Promise.all(pendingAccounts);
         return commit();
     }
@@ -98,7 +101,8 @@ export default class Blockchain extends Emittery {
             // If we were given a timestamp, use it instead of the `currentTime`
             timestamp: ((timestamp as any) / 1000 | 0) || this.currentTime(),
             gasLimit: blockGasLimit.toBuffer(),
-            stateRoot: this.trie.root
+            stateRoot: this.trie.root,
+            number: "0x0"
         });
 
         // store the genesis block in the database

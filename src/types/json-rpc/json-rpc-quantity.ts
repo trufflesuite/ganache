@@ -1,11 +1,19 @@
 import { BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType } from ".";
+import { bufferToHex } from "ethereumjs-util";
+import { isBigIntLiteral } from "typescript";
 
 class JsonRpcQuantity extends BaseJsonRpcType {
   public static from(value: number | bigint | string | Buffer) {
     return new _JsonRpcQuantity(value);
   }
   public toBigInt(): bigint {
-    return BigInt(this.value);
+    const value = this.value;
+    if (Buffer.isBuffer(value)) {
+      const view = new DataView(value.buffer);
+      return view.getBigUint64(value.byteOffset as any) as bigint;
+    } else {
+      return BigInt(this.value);
+    }
   }
 }
 type $<T extends number|bigint|string|Buffer = number|bigint|string|Buffer> = {

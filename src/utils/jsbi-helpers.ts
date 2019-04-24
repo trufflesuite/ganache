@@ -3,7 +3,7 @@ import JSBI from "jsbi";
 declare global {
     interface DataView {
         setBigUint64(byteOffset: number, value: bigint | JSBI, littleEndian?: boolean): void;
-        getBigUint64(byteOffset: number, littleEndian?: boolean): void;
+        getBigUint64(byteOffset: number, littleEndian?: boolean): bigint | JSBI;
     }
 }
 

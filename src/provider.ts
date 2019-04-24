@@ -53,7 +53,9 @@ export default class Provider extends Emittery {
       allowUnlimitedContractSize: _providerOptions.allowUnlimitedContractSize,
       hardfork: _providerOptions.hardfork,
       gasLimit: _providerOptions.gasLimit,
-      timestamp: _providerOptions.time
+      timestamp: _providerOptions.time,
+      unlockedAccounts: _providerOptions.unlocked_accounts || [],
+      secure: _providerOptions.secure
     }, _requestProcessor.resume.bind(_requestProcessor));
     this[engine] = new Engine(ledger);
   }

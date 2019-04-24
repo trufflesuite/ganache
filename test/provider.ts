@@ -10,6 +10,11 @@ describe("provider", () => {
       network_id: networkId
     });
   })
+  it("gets balance", async() => {
+    const accounts = await p.send("eth_accounts");
+    const balance = await p.send("eth_getBalance", [accounts[0]]);
+    assert.strictEqual(balance, 100, "Heyo!");
+  })
   it("sends a transaction", async () => {
     const accounts = await p.send("eth_accounts");
     const result = await p.send("eth_sendTransaction", [{

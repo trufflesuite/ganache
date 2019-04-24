@@ -65,6 +65,11 @@ export default class BlockManager extends Manager<Block> {
         } else if (value instanceof Block) {
             value = value.value.serialize(true);
         }
+        
+        // ethereumjs-block treats [0] as [] :-()
+        if (Buffer.isBuffer(key) && key.equals(Buffer.from([]))){
+            key = Buffer.from([0]);
+        }
         return super.set(key, value);
     }
 }

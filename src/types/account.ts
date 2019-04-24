@@ -15,6 +15,12 @@ export default class Account {
   constructor(arg: Address | Buffer) {
     if (arg instanceof Address){
       this.address = arg;
+    } else if (Buffer.isBuffer(arg)){
+      const arr = rlp.decode(arg) as any as Buffer[];
+      this.nonce = JsonRpcQuantity.from(arr[0]);
+      this.balance = JsonRpcQuantity.from(arr[1]);
+      this.stateRoot = arr[2];
+      this.codeHash = arr[3];
     }
   }
   public serialize() {

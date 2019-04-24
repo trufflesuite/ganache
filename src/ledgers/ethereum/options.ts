@@ -6,12 +6,14 @@ type EthereumOptions = ILedgerOptions & {
     net_version: string,
     gasPrice?: bigint,
     accounts: Account[],
+    unlockedAccounts: string[] | number[],
     allowUnlimitedContractSize: boolean,
     hardfork: string,
     gasLimit: JsonRpcQuantity,
     timestamp?: Date,
     db?: object,
-    dbPath?: string
+    dbPath?: string,
+    secure: boolean
 }
 
 export default EthereumOptions;

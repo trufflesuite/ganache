@@ -81,7 +81,7 @@ export default interface Options {
   /**
    * Array of addresses or address indexes specifying which accounts should be unlocked.
    */
-  unlocked_accounts?: JsonRpcData[]|bigint[],
+  unlocked_accounts?: string[] | number[],
 
   /**
    * Specify a path to a directory to save the chain database. If a database 
@@ -89,6 +89,11 @@ export default interface Options {
    * one.
    */
   db_path?: string,
+
+  /**
+   * Lock available accounts by default (good for third party transaction signing. Defaults to `false`.
+   */
+  secure?: boolean,
 
   /**
    * Specify an alternative database instance, for instance MemDOWN.
@@ -153,6 +158,7 @@ export const getDefault: (options: Options)=> Options = (options) => {
     gasLimit: new JsonRpcQuantity("0x6691b7"),
     verbose: false,
     asyncRequestProcessing: false,
-    hardfork: "petersburg"
+    hardfork: "petersburg",
+    secure: false
   }, options);
 }
