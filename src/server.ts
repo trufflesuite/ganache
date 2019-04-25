@@ -10,28 +10,27 @@ import HttpServer from "./servers/http-server";
 const options = Symbol("options");
 const listenSocket = Symbol("listenSocket");
 const app = Symbol("app");
-const provider = Symbol("provider");
 const websocketServer = Symbol("websocketServer");
 const httpServer = Symbol("httpServer");
 
 export default class Server {
   private [app]: TemplatedApp;
-  private [provider]: Provider;
+  private provider: Provider;
   private [options]: ServerOptions;
   private [httpServer]: HttpServer;
   private [listenSocket]: us_listen_socket;
   private [websocketServer]: WebsocketServer;
   
   constructor(serverOptions?: ServerOptions) {
-    this[options] = getDefaultServerOptions(serverOptions);
-    this[provider] = new Provider(this[options]);
+    const opts = this[options] = getDefaultServerOptions(serverOptions);
+    const prov = this.provider = new Provider(opts);
 
     const _app = this[app] = uWS.App(null);
 
     if (this[options].ws) {
-      this[websocketServer] = new WebsocketServer(_app, this[provider]);
+      this[websocketServer] = new WebsocketServer(_app, prov);
     }
-    this[httpServer] = new HttpServer(_app, this[provider]);
+    this[httpServer] = new HttpServer(_app, prov);
   }
   
   async listen(port: number, callback?: (err: Error) => void): Promise<void> {
