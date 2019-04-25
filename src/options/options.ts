@@ -1,4 +1,3 @@
-import Account from "../types/account";
 import {JsonRpcQuantity} from "../types/json-rpc";
 import ILedger from "../interfaces/ledger";
 
@@ -9,8 +8,8 @@ interface Logger {
 // Okay, so a "bug" in TS treats types with the same shape as having the same 
 // name, so Intellisense would say that AccountType requires `[Address, Address]`
 // instead of `[Address, PrivateKey]`, flip flopping like this "fixes" it.
-type Address = {} & string;
-type PrivateKey = string & {};
+type Address = string & {};
+type PrivateKey =  {} & string;
 type AccountTuple = [Address, PrivateKey];
 
 export default interface Options {
@@ -22,7 +21,7 @@ export default interface Options {
    * the given balance. If specified, the key is used to determine the account's
    * address.
    */
-  accounts?: Array<AccountTuple>,
+  accounts?: AccountTuple[],
 
   /**
    * Output VM opcodes for debugging. Defaults to `false`

@@ -1,3 +1,4 @@
+import { JsonRpcQuantity, JsonRpcData } from "./types/json-rpc";
 import Engine from "./engine";
 import RequestProcessor from "./utils/request-processor";
 import ProviderOptions, { getDefault as getDefaultProviderOptions } from "./options/provider-options";
@@ -6,7 +7,6 @@ import Ethereum from "./ledgers/ethereum/ledger"
 import { privateToAddress } from "ethereumjs-util";
 import Account from "./types/account";
 import { generateMnemonic, mnemonicToSeedSync } from "bip39";
-import { JsonRpcQuantity, JsonRpcData } from "./types/json-rpc";
 import Address from "./types/address";
 import JsonRpc from "./servers/utils/jsonrpc";
 import EthereumOptions from "./ledgers/ethereum/options";

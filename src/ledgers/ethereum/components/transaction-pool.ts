@@ -4,6 +4,7 @@ import Errors from "./errors";
 import Heap from "../../../utils/heap";
 import Transaction from "../../../types/transaction";
 import { JsonRpcData, JsonRpcQuantity } from "../../../types/json-rpc";
+import Account from "ethereumjs-account";
 
 // OLD insertion sort:
 // function siftUp<T>(comparator: (a:T, b:T) => boolean, array: T[], value: T, startingIndex = 0, endingIndex = array.length) {
@@ -59,7 +60,7 @@ function calculateIntrinsicGas(data: Buffer): bigint {
 				nonZeroBytes++
 			}
 		}
-        // Make sure we don't exceed uint64 for all data combinations. This 
+        // Make sure we don't exceed uint64 for all data combinations.
 		if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
 			throw new Error(Errors.INTRINSIC_GAS_TOO_LOW);
 		}
@@ -159,7 +160,6 @@ export default class TransactionPool extends Emittery {
         //   this.pending ...
         //   return;
         // }
-
 
         // TODO: if we got here we have a transaction that *isn't* executable
         // insert the transaction in its origin's (i.e., the `from` address's)

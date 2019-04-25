@@ -80,9 +80,9 @@ export default class BlockManager extends Manager<Block> {
      * @param block 
      */
     set(block: Block): Promise<Block>
-    set(key: string | Buffer, value: Buffer): Promise<Block>
-    set(keyOrBlock: string | Buffer | Block, value?: Buffer | Block): Promise<Block> {
-        let key: string | Buffer;
+    set(key: Buffer, value: Buffer): Promise<Block>
+    set(keyOrBlock: Buffer | Block, value?: Buffer | Block): Promise<Block> {
+        let key: Buffer;
         if (keyOrBlock instanceof Block){
             key = keyOrBlock.value.header.number;
             value = keyOrBlock.value.serialize(true);

@@ -4,9 +4,9 @@ import { rlp, KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
 
 export default class Account {
   public address: Address;
-  public balance: JsonRpcQuantity = new JsonRpcQuantity(0n);
+  public balance: JsonRpcQuantity;
   public privateKey: JsonRpcData;
-  public nonce: JsonRpcQuantity = new JsonRpcQuantity(0n);
+  public nonce: JsonRpcQuantity;
   public stateRoot: Buffer = KECCAK256_RLP;
   public codeHash: Buffer = KECCAK256_NULL;
   
@@ -15,6 +15,8 @@ export default class Account {
   constructor(arg: Address | Buffer) {
     if (arg instanceof Address){
       this.address = arg;
+      this.balance = new JsonRpcQuantity(0n);
+      this.nonce = new JsonRpcQuantity(0n);
     } else if (Buffer.isBuffer(arg)){
       const arr = rlp.decode(arg) as any as Buffer[];
       this.nonce = JsonRpcQuantity.from(arr[0]);

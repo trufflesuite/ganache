@@ -1,14 +1,14 @@
 import Database from "./database";
 import Emittery from "emittery";
-import BlockManager, { Block } from "./things/block-manager";
-import TransactionManager from "./things/transaction-manager";
+import BlockManager, { Block } from "./components/block-manager";
+import TransactionManager from "./components/transaction-manager";
 import Trie from "merkle-patricia-tree";
 import { BN } from "ethereumjs-util";
 import Account from "../../types/account";
 import { promisify } from "util";
 import { JsonRpcQuantity, JsonRpcData } from "../../types/json-rpc";
 import EthereumJsAccount from "ethereumjs-account";
-import AccountManager from "./things/account-manager";
+import AccountManager from "./components/account-manager";
 
 const VM = require("ethereumjs-vm");
 

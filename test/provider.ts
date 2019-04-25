@@ -1,16 +1,18 @@
 import Ganache from "../index"
 import * as assert from "assert";
 import Provider from "../src/provider";
+import { JsonRpcQuantity } from "../src/types/json-rpc";
 
 describe("provider", () => {
   const networkId = "1234";
   let p: Provider;
+
   beforeEach("set up", () =>{
     p = Ganache.provider({
       network_id: networkId
     });
   })
-  it("gets balance", async() => {
+  it.only("gets balance", async() => {
     const accounts = await p.send("eth_accounts");
     const balance = await p.send("eth_getBalance", [accounts[0]]);
     assert.strictEqual(balance, 100, "Heyo!");

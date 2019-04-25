@@ -19,7 +19,7 @@ export default class Manager<T> {
         }
         return this.base.get(key).then((raw) => new this.Type(raw));
     }
-    set(key: string | Buffer, value: Buffer): Promise<T> {
+    set(key: Buffer, value: Buffer): Promise<T> {
         return this.base.put(key, value).then((raw) => new this.Type(raw));
     }
 }

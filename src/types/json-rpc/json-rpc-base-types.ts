@@ -1,3 +1,6 @@
+import JSBI from "jsbi";
+import { JsonRpcQuantity } from ".";
+
 export type IndexableJsonRpcType<T extends number | bigint | string | Buffer = number | bigint | string | Buffer> = string & {
   new(value: T): IndexableJsonRpcType<T>,
   toString(): string
@@ -39,10 +42,26 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
         case "bigint":
           toStrings.set(this, () => (value as bigint).toString(16));
           toBuffers.set(this, () => {
-            const arr = new ArrayBuffer(8);
-            const view = new DataView(arr);
-            view.setBigUint64(0, value as bigint);
-            return Buffer.from(arr);
+            //onst value = (2n**64n);
+            var max = (2n**64n)-1n;
+
+            var val = value as bigint;
+            var size = 4;
+            var buff = new ArrayBuffer(size * 8);
+            var view = new DataView(buff);
+            if(val > max) {
+                var long = val;
+                var index = size - 1;
+                while (long > 0) {
+                  var byte = long & max;
+                  view.setBigUint64(index * 8, byte);
+                  long = (long - byte) / max;
+                  index--;
+                }
+            } else {
+              view.setBigUint64(0, val);
+            }
+            return Buffer.from(buff.slice((index+1) * 8));
           });
           break;
         case "string": {

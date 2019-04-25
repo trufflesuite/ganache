@@ -270,6 +270,10 @@ export default class Ethereum implements ILedger {
     return transaction;
   }
 
+  /**
+   * 
+   * @param transaction 
+   */
   async eth_sendTransaction(transaction: any): Promise<JsonRpcData> {
     let fromString = transaction.from;
     let from;
@@ -331,6 +335,10 @@ export default class Ethereum implements ILedger {
     return this[_blockchain].queueTransaction(tx);
   }
 
+  /**
+   * 
+   * @param transaction 
+   */
   async eth_sendRawTransaction(transaction: any): Promise<JsonRpcData> {
     await this[_blockchain].queueTransaction(transaction);
     return transaction.hash;
