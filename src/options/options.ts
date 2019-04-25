@@ -1,8 +1,6 @@
 import Account from "../types/account";
-import {JsonRpcData, JsonRpcQuantity} from "../types/json-rpc";
+import {JsonRpcQuantity} from "../types/json-rpc";
 import ILedger from "../interfaces/ledger";
-import Ethereum from "../ledgers/ethereum/ledger";
-import { TupleType } from "typescript";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -14,7 +12,6 @@ interface Logger {
 type Address = {} & string;
 type PrivateKey = string & {};
 type AccountTuple = [Address, PrivateKey];
-
 
 export default interface Options {
   ledger?: ILedger,

@@ -1,6 +1,4 @@
 import { BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType } from ".";
-import { bufferToHex } from "ethereumjs-util";
-import { isBigIntLiteral } from "typescript";
 
 class JsonRpcQuantity extends BaseJsonRpcType {
   public static from(value: number | bigint | string | Buffer) {

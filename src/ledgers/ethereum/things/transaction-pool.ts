@@ -198,8 +198,6 @@ export default class TransactionPool extends Emittery {
         const transactor = await this.blockchain.accounts.get(from);
 
         // Transactor should have enough funds to cover the costs
-        // cost == V + GP * GL
-        console.log(transactor.balance.toBigInt());
         if (transactor.balance.toBigInt() < transaction.cost()) {
             return new Error("Account does not have enough funds to complete transaction");
         }

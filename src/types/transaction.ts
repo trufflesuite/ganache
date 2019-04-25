@@ -56,22 +56,22 @@ import { JsonRpcQuantity } from "./json-rpc";
 //     r: JsonRpcData<string | Buffer>;
 //     s: JsonRpcData<string | Buffer>;
 //     constructor(transaction: TransactionData) {
-//         const obj =  {
-//             blockHash: JsonRpcData.from("0x123456", 32), // 32 Bytes - hash of the block where this transaction was in. null when its pending.
-//             blockNumber:  JsonRpcQuantity.from(123n),// QUANTITY - block number where this transaction was in. null when its pending.
-//             from: JsonRpcData.from("0x123456", 32), // 20 Bytes - address of the sender.
-//             gas: JsonRpcQuantity.from(123n),// QUANTITY - gas provided by the sender.
-//             gasPrice:  JsonRpcQuantity.from(123n),// QUANTITY - gas price provided by the sender in Wei.
-//             hash: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - hash of the transaction.
-//             input: JsonRpcData.from("0x123"),// DATA - the data send along with the transaction.
-//             nonce:  JsonRpcQuantity.from(123456n),// QUANTITY - the number of transactions made by the sender prior to this one.
-//             to: JsonRpcData.from("0x123456", 20),// DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
-//             transactionIndex: JsonRpcQuantity.from(99n),// QUANTITY - integer of the transaction's index position in the block. null when its pending.
-//             value: JsonRpcQuantity.from(123n),// QUANTITY - value transferred in Wei.
-//             v: JsonRpcQuantity.from(Buffer.from([27])), // QUANTITY - ECDSA recovery id
-//             r: JsonRpcData.from(Buffer.from([12,34,46]), 32),// DATA, 32 Bytes - ECDSA signature r
-//             s: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - ECDSA signature s
-//         } as any;
+// const obj =  {
+//     blockHash: JsonRpcData.from("0x123456", 32), // 32 Bytes - hash of the block where this transaction was in. null when its pending.
+//     blockNumber:  JsonRpcQuantity.from(123n),// QUANTITY - block number where this transaction was in. null when its pending.
+//     from: JsonRpcData.from("0x123456", 32), // 20 Bytes - address of the sender.
+//     gas: JsonRpcQuantity.from(123n),// QUANTITY - gas provided by the sender.
+//     gasPrice:  JsonRpcQuantity.from(123n),// QUANTITY - gas price provided by the sender in Wei.
+//     hash: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - hash of the transaction.
+//     input: JsonRpcData.from("0x123"),// DATA - the data send along with the transaction.
+//     nonce:  JsonRpcQuantity.from(123456n),// QUANTITY - the number of transactions made by the sender prior to this one.
+//     to: JsonRpcData.from("0x123456", 20),// DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
+//     transactionIndex: JsonRpcQuantity.from(99n),// QUANTITY - integer of the transaction's index position in the block. null when its pending.
+//     value: JsonRpcQuantity.from(123n),// QUANTITY - value transferred in Wei.
+//     v: JsonRpcQuantity.from(Buffer.from([27])), // QUANTITY - ECDSA recovery id
+//     r: JsonRpcData.from(Buffer.from([12,34,46]), 32),// DATA, 32 Bytes - ECDSA signature r
+//     s: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - ECDSA signature s
+// } as any;
 //         Object.keys(obj).forEach((key) => {
 //             (this as any)[key] = obj[key] as any;
 //         });
@@ -277,7 +277,9 @@ export default class Transaction extends EthereumJsTransaction {
   }
 
   cost(): bigint {
-    return JsonRpcQuantity.from(this.gasPrice).toBigInt() * JsonRpcQuantity.from(this.gas).toBigInt() + JsonRpcQuantity.from(this.value).toBigInt();
+    return JsonRpcQuantity.from(this.gasPrice).toBigInt()
+      * JsonRpcQuantity.from(this.gas).toBigInt()
+      + JsonRpcQuantity.from(this.value).toBigInt();
   }
 
   /**

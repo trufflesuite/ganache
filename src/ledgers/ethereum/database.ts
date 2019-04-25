@@ -1,9 +1,6 @@
 import Emittery from "emittery";
 import { dir } from "tmp-promise";
 import levelup from "levelup";
-import AccountManager from "./things/account-manager";
-import BlockManager from "./things/block-manager";
-import TransactionManager from "./things/transaction-manager";
 import Blockchain from "./blockchain";
 const leveldown = require("leveldown");
 const sub = require( "subleveldown");

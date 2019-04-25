@@ -7,7 +7,6 @@ import Tag from "../../types/tags";
 import Address, { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import Account from "../../types/account";
-import JsonRpc from "../../servers/utils/jsonrpc";
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from the package.json
 const {name, version} = require("../../../package.json");

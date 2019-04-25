@@ -1,8 +1,6 @@
-import Database from "../database";
 import Account from "../../../types/account";
 import Address from "../../../types/address";
 import Trie from "merkle-patricia-tree/baseTrie";
-import { promisify } from "util";
 import Blockchain from "../blockchain";
 
 export default class AccountManager {
