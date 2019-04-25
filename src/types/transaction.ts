@@ -276,6 +276,10 @@ export default class Transaction extends EthereumJsTransaction {
     };
   }
 
+  cost(): bigint {
+    return JsonRpcQuantity.from(this.gasPrice).toBigInt() * JsonRpcQuantity.from(this.gas).toBigInt() + JsonRpcQuantity.from(this.value).toBigInt();
+  }
+
   /**
    * Prepares arbitrary JSON data for use in a Transaction.
    * @param {Object} json JSON object representing the Transaction
@@ -367,9 +371,9 @@ export default class Transaction extends EthereumJsTransaction {
    * Signs the transaction and sets the `type` bit for `signed` to 1,
    * i.e., `isSigned() === true`
    */
-  sign() {
-    sign.apply(this, arguments);
+  sign(secretKey: Buffer) {
     this.type |= Transaction.types.signed;
+    return sign.call(this, secretKey);
   }
 
   /**

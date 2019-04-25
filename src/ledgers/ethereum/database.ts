@@ -9,18 +9,17 @@ const leveldown = require("leveldown");
 const sub = require( "subleveldown");
 const encode = require("encoding-down");
 
-type DatabaseOptions = {db: string | object, dbPath: string}
+type DatabaseOptions = {db?: string | object, dbPath?: string};
 
 export default class Database extends Emittery{
     public readonly blockchain: Blockchain;
     private readonly options: DatabaseOptions;
     public directory: string = null;
     public db: levelup.LevelUp = null;
-    public blocks: BlockManager;
-    public accounts: AccountManager;
+    public blocks: levelup.LevelUp;
     public blockLogs: levelup.LevelUp;
     public blockHashes: levelup.LevelUp;
-    public transactions: TransactionManager;
+    public transactions: levelup.LevelUp;
     public transactionReceipts: levelup.LevelUp;
     public trie: levelup.LevelUp;
     public readonly initialized: boolean;
@@ -61,9 +60,8 @@ export default class Database extends Emittery{
 
         this.db = db;
         await open;
-        this.blocks = new BlockManager(this);
-        this.transactions = new TransactionManager(this);
-        this.accounts = new AccountManager(this);
+        this.blocks = sub(db, "blocks", levelupOptions);
+        this.transactions = sub(db, "transactions", levelupOptions);
         return this.emit("ready");
     }
     /**

@@ -3,17 +3,17 @@ import Account from "../../types/account";
 import { JsonRpcQuantity } from "../../types/json-rpc";
 
 type EthereumOptions = ILedgerOptions & {
-    net_version: string,
-    gasPrice?: bigint,
-    accounts: Account[],
-    unlockedAccounts: string[] | number[],
-    allowUnlimitedContractSize: boolean,
-    hardfork: string,
-    gasLimit: JsonRpcQuantity,
+    net_version?: string | number,
+    gasPrice?: JsonRpcQuantity,
+    accounts?: Account[],
+    unlocked_accounts?: string[] | number[],
+    allowUnlimitedContractSize?: boolean,
+    hardfork?: string,
+    gasLimit?: JsonRpcQuantity,
     timestamp?: Date,
     db?: object,
-    dbPath?: string,
-    secure: boolean
+    db_path?: string,
+    secure?: boolean
 }
 
 export default EthereumOptions;

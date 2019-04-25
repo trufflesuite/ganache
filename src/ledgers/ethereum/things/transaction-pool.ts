@@ -1,8 +1,9 @@
 import Emittery from "emittery";
-import Database from "../database";
+import Blockchain from "../blockchain";
 import Errors from "./errors";
 import Heap from "../../../utils/heap";
 import Transaction from "../../../types/transaction";
+import { JsonRpcData, JsonRpcQuantity } from "../../../types/json-rpc";
 
 // OLD insertion sort:
 // function siftUp<T>(comparator: (a:T, b:T) => boolean, array: T[], value: T, startingIndex = 0, endingIndex = array.length) {
@@ -13,6 +14,11 @@ import Transaction from "../../../types/transaction";
 //     array.splice(i, 0, value);
 //     return i;
 // }
+
+export type TransactionPoolOptions = {
+    gasPrice?: JsonRpcQuantity,
+    gasLimit?: JsonRpcQuantity
+};
 
 function byNonce(values: Transaction[], a: number, b: number) {
     return values[b].nonce.toBigInt() < values[a].nonce.toBigInt();
@@ -69,6 +75,8 @@ function calculateIntrinsicGas(data: Buffer): bigint {
 }
 
 export default class TransactionPool extends Emittery {
+    private options: TransactionPoolOptions;
+
     /**
      * Minimum gas price to enforce for acceptance into the pool
      */
@@ -104,10 +112,11 @@ export default class TransactionPool extends Emittery {
      */
     public lifetime: number = 3  * 24 * 60 * 60 * 1000
     
-    private db: Database;
-    constructor(db: Database) {
+    private blockchain: Blockchain;
+    constructor(blockchain: Blockchain, options: TransactionPoolOptions) {
         super();
-        this.db = db;
+        this.blockchain = blockchain;
+        this.options = options;
     }
     public length: number;
     private hashes = new Set<string>();
@@ -167,39 +176,38 @@ export default class TransactionPool extends Emittery {
     }
 
     public async validateTransaction(transaction: Transaction): Promise<Error> {
-        // // TODO: Check the transaction doesn't exceed the current block limit gas.
-        // if (this.blockchain.gasLimit < transaction.gasLimit) {
-        //     return new Error("Transaction gasLimit is too low");
-        // }
+        // Check the transaction doesn't exceed the current block limit gas.
+        if (this.options.gasLimit < JsonRpcQuantity.from(transaction.gasLimit)) {
+            return new Error("Transaction gasLimit is too low");
+        }
 
         // Transactions can't be negative. This may never happen using RLP
         // decoded transactions but may occur if you create a transaction using
         // the RPC for example.
-        // if (transaction.value.toBigInt() < 0) {
-        //     return new Error("Transaction value cannot be negative");
-        // }
+        if (transaction.value < 0) {
+            return new Error("Transaction value cannot be negative");
+        }
 
         // Should supply enough intrinsic gas
-        // const gas = calculateIntrinsicGas(transaction.input.toBuffer());
-        // if (transaction.gasPrice.toBigInt() < gas) {
-        //     return new Error("intrisic gas too low");
-        // }
+        const gas = calculateIntrinsicGas(transaction.input);
+        if (transaction.gasPrice < gas) {
+            return new Error("intrisic gas too low");
+        }
 
-        const from = transaction.from;
-        // todo: get the origin account
-        // const originAccount = await this.db.accounts.get(from);
+        const from = JsonRpcData.from(transaction.from);
+        const transactor = await this.blockchain.accounts.get(from);
 
-        // TODO: Transactor should have enough funds to cover the costs
+        // Transactor should have enough funds to cover the costs
         // cost == V + GP * GL
-        // if (originAccount.balance.toBigInt() < transaction.cost()) {
-        //     return new Error("Account does not have enough funds to complete transaction");
-        // }
+        console.log(transactor.balance.toBigInt());
+        if (transactor.balance.toBigInt() < transaction.cost()) {
+            return new Error("Account does not have enough funds to complete transaction");
+        }
 
-        // TODO: check that the nonce isn't too low
-        
-        // if ( currentaccount.nonce.toBigInt() > transaction.nonce.toBigInt()) {
-        //     return new Error("Transaction nonce is too low");
-        // }
+        // check that the nonce isn't too low
+        if (transactor.nonce > transaction.nonce) {
+            return new Error("Transaction nonce is too low");
+        }
         return null;
     }
 }

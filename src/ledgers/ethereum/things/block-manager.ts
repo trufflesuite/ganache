@@ -1,10 +1,10 @@
 import EthereumJsBlock from "ethereumjs-block";
-import Database from "../database";
 import Manager from "./manager";
-const Heap: any = require("heap")
+import Tag from "../../../types/tags";
+import levelup = require("levelup");
+import Blockchain from "../blockchain";
 
 export default class BlockManager extends Manager<Block> {
-
     /**
      * The earliest block
      */
@@ -20,10 +20,10 @@ export default class BlockManager extends Manager<Block> {
      */
     public pending: Block;
 
-    constructor(db: Database) {
-        super(db, Block, "block");
+    constructor(blockchain: Blockchain, base: levelup.LevelUp) {
+        super(blockchain, base, Block);
 
-        db.once("open").then(() => {
+        blockchain.on("open", () => {
             // TODO: get the last key, set as "earliest"
             // TODO: get the first last key, set as "latest"
         });
@@ -45,10 +45,34 @@ export default class BlockManager extends Manager<Block> {
      * @param header 
      */
     createBlock(header: {}): Block {
-        const block = new Block(null);
+        const block = new Block(null, this);
         // TODO: make better
         Object.assign(block.value.header, header);
         return block;
+    }
+
+    async get(keyOrBlock: string | Buffer | Tag): Promise<Block> {
+      if (typeof keyOrBlock === "string") {
+        const tag = Tag.normalize(keyOrBlock as Tag);
+        switch (tag) {
+          case Tag.LATEST:
+            return this.latest;
+          case undefined:
+          case null:
+            // the key is probably a hex string, let nature takes it's course.
+          break;
+          case Tag.PENDING:
+            return this.pending;
+          case Tag.EARLIEST:
+            return this.earliest;
+          default:
+            // this probably can't happen. but if someone passed something like
+            // `toString` in as a block tag and it got this far... maybe we'd
+            // get here...
+            throw new Error(`Invalid block Tag: ${keyOrBlock}`);
+        }
+      }
+      return super.get(keyOrBlock);
     }
 
     /**
@@ -77,47 +101,9 @@ export default class BlockManager extends Manager<Block> {
 export class Block {
     public readonly manager: BlockManager;
     public readonly value: EthereumJsBlock;
-    constructor(raw: Buffer, manager?: BlockManager)
+    constructor(raw: Buffer, manager: BlockManager)
     {
         this.value = new EthereumJsBlock(raw);
         this.manager = manager;
-        // const byAddresses:any = {};
-        // this._transactions.byPriceAndNonce = new Heap((a:any, b:any) => {
-        //     let aAccountOrder = byAddresses[a.address];
-        //     let first = aAccountOrder.peek();
-        //     if (first === a) {
-        //         // sort by gasPrice
-        //         return a.gasPrice - b.gasPrice;
-        //     }
-        //     if (a.address === b.address) {
-        //         return b.nonce - a.nonce;
-        //     } else {
-        //         // otherwise sort by gasPrice
-        //         return a.gasPrice - b.gasPrice;
-        //     }
-        // });
-        // this.transactions = {
-        //     push: (transaction: any) => {
-        //         // get the first tx by account (via nonce)
-        //         // then sort by price
-        //         let addressHeap = byAddresses[transaction.address];
-        //         if (!addressHeap) { // to check for equality and then compare by gasPrice.
-        //             addressHeap = new Heap((a:any, b:any) => {
-        //                 return b.nonce - a.nonce;
-        //             });
-        //             byAddresses[transaction.address] = addressHeap;
-        //         }
-        //         addressHeap.push(transaction);
-                
-        //         this.transactions.byPriceAndNonce.push(transaction);
-                
-        //     }
-        // };
     }
-    // _transactions: {
-    //     byAddresses: any,
-    //     byPriceAndNonce: any,
-    // }
-    // // TODO: https://ethereum.stackexchange.com/a/2809/44640
-    // transactions: any
 }

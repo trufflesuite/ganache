@@ -12,6 +12,16 @@ import AccountManager from "./things/account-manager";
 
 const VM = require("ethereumjs-vm");
 
+type BlockchainOptions = {
+    db?: string | object,
+    db_path?: string,
+    accounts?: Account[],
+    hardfork?: string,
+    allowUnlimitedContractSize?: boolean,
+    gasLimit?: JsonRpcQuantity,
+    timestamp?: Date
+};
+
 export default class Blockchain extends Emittery {
     public blocks: BlockManager;
     public transactions: TransactionManager;
@@ -34,10 +44,10 @@ export default class Blockchain extends Emittery {
      * @param blockGasLimit 
      * @param timestamp 
      */
-    constructor(db: string | object, dbPath: string, accounts: Account[], hardfork: string, allowUnlimitedContractSize: boolean, blockGasLimit: JsonRpcQuantity, timestamp: Date) {
+    constructor(options: BlockchainOptions) {
         super();
 
-        const database = this.database = new Database({db, dbPath}, this); 
+        const database = this.database = new Database(options, this); 
 
         database.on("ready", async () => {
             // TODO: get the latest block from the database
@@ -45,14 +55,14 @@ export default class Blockchain extends Emittery {
             // and we will skip creating the genesis block alltogether
             const root:any = null;
             this.trie = new Trie(database.trie, root);
-            this.blocks = this.database.blocks;
-            this.transactions = this.database.transactions;
-            this.accounts = this.database.accounts;
+            this.blocks = new BlockManager(this, database.blocks);
+            this.transactions = new TransactionManager(this, database.transactions, options);
+            this.accounts = new AccountManager(this);
 
-            this._initializeVM(hardfork, allowUnlimitedContractSize);
+            this._initializeVM(options.hardfork, options.allowUnlimitedContractSize);
 
-            await this._initializeAccounts(accounts);
-            await this._initializeGenesisBlock(timestamp, blockGasLimit);
+            await this._initializeAccounts(options.accounts);
+            await this._initializeGenesisBlock(options.timestamp, options.gasLimit);
 
             this.emit("ready");
         });
@@ -80,17 +90,15 @@ export default class Blockchain extends Emittery {
         const checkpoint = promisify(stateManager.checkpoint.bind(stateManager))
         const commit = promisify(stateManager.commit.bind(stateManager))
         await checkpoint();
-        const pendingAccounts = accounts
-            .map(account => {
-                const ethereumJsAccount = new EthereumJsAccount();
-                ethereumJsAccount.nonce = account.nonce.toBuffer(),
-                ethereumJsAccount.balance = account.balance.toBuffer()
-                return {
-                    account: ethereumJsAccount,
-                    address: account.address
-                }
-            })
-            .map(account => putAccount(account.address.toBuffer(), account.account));
+        const l = accounts.length;
+        const pendingAccounts = Array(l);
+        for (let i = 0; i < l; i++) {
+            const account = accounts[i];
+            const ethereumJsAccount = new EthereumJsAccount();
+            ethereumJsAccount.nonce = account.nonce.toBuffer(),
+            ethereumJsAccount.balance = account.balance.toBuffer()
+            pendingAccounts[i] = putAccount(account.address.toBuffer(), ethereumJsAccount);
+        }
         await Promise.all(pendingAccounts);
         return commit();
     }

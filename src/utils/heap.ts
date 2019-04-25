@@ -1,5 +1,3 @@
-import { updateArrayBindingPattern } from "typescript";
-
 type Comparator<T> = (values: T[], a: number, b: number) => boolean;
 class Heap<T> {
     public best: number = 0;

@@ -1,17 +1,28 @@
+//#region Imports
 import ILedger from "../../interfaces/ledger";
-import EthereumOptions, { getDefaultOptions as getDefaultEthereumOptions } from "./options";
+import EthereumOptions, { getDefaultOptions } from "./options";
 import { JsonRpcData, JsonRpcQuantity, IndexableJsonRpcData } from "../../types/json-rpc";
 import Blockchain from "./blockchain";
 import Tag from "../../types/tags";
 import Address, { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import Account from "../../types/account";
-
-const BUFFER_ZERO = Buffer.from([0]);
+import JsonRpc from "../../servers/utils/jsonrpc";
 const createKeccakHash = require("keccak");
+// Read in the current ganache version from the package.json
+const {name, version} = require("../../../package.json");
+//#endregion
+
+//#region Constants
+const CLIENT_VERSION = `EthereumJS ${name}/v${version}/ethereum-js`
+const PROTOCOL_VERSION = JsonRpcData.from("0x3f");
+const BUFFER_ZERO = Buffer.from([0]);
+const RPCQUANTITY_ZERO = JsonRpcQuantity.from("0x0");
+//#endregion
 
 const hash = createKeccakHash("keccak256");
 
+const _accounts = Symbol("accounts");
 const _options = Symbol("options");
 const _coinbase = Symbol("coinbase");
 const _isMining = Symbol("isMining");
@@ -19,9 +30,9 @@ const _blockchain = Symbol("blockchain");
 const _knownAccounts = Symbol("knownAccounts");
 const _unlockedAccounts = Symbol("unlockedAccounts");
 
-
 export default class Ethereum implements ILedger {
-  private readonly [_knownAccounts] = new Set<string>();
+  private readonly [_accounts]: Address[];
+  private readonly [_knownAccounts] = new Map<string, JsonRpcData>();
   private readonly [_unlockedAccounts] = new Set<string>();
   private readonly [_options]: EthereumOptions;
   private readonly [_coinbase]: Account;
@@ -36,61 +47,82 @@ export default class Ethereum implements ILedger {
    * @param ready Callback for when the ledger is fully initialized
    */
   constructor(options: EthereumOptions, ready: () => {}) {
-    const opts = this[_options]
-      = Object.assign(getDefaultEthereumOptions(), options);
-    this[_coinbase] = opts.accounts[0];
-    opts.accounts.forEach((account) => {
-      const address = account.address.toString().toLowerCase();
-      this[_knownAccounts].add(address);
+    const opts = this[_options] = Object.assign(getDefaultOptions(), options);
+    const accounts = opts.accounts;
+    const knownAccounts = this[_knownAccounts];
+    const unlockedAccounts = this[_unlockedAccounts];
+
+    //#region Configure Known and Unlocked Accounts
+    this[_coinbase] = accounts[0];
+    const l = accounts.length;
+    const accountsCache = this[_accounts] = Array(l);
+    for (let i = 0; i < l; i++) {
+      const account = accounts[i];
+      const address = account.address;
+      const strAddress = address.toString().toLowerCase();
+      accountsCache[i] = address;
+      knownAccounts.set(strAddress, account.privateKey);
 
       // if the `secure` option has been set do NOT add these accounts to the
       // _unlockedAccounts
-      if (opts.secure) return;
+      if (opts.secure) continue;
 
-      this[_unlockedAccounts].add(address);
-    });
-    opts.unlockedAccounts.forEach((addressOrIndex: string | number) => {
-      let address;
-      switch (typeof addressOrIndex) {
-        case "string":
-          if (addressOrIndex.indexOf("0x") === 0) {
-            address = addressOrIndex;
+      unlockedAccounts.add(strAddress);
+    }
+    //#endregion
+
+    //#region Unlocked Accounts
+    const givenUnlockedUaccounts = opts.unlocked_accounts;
+    if (givenUnlockedUaccounts) {
+      const ul = givenUnlockedUaccounts.length;
+      for (let i = 0; i < ul; i++) {
+        let arg = givenUnlockedUaccounts[i];
+        let address;
+        switch (typeof arg) {
+          case "string":
+            // `toLowerCase` so we handle uppercase `0X` formats
+            const addressOrIndex = arg.toLowerCase();
+            if (addressOrIndex.indexOf("0x") === 0) {
+              address = addressOrIndex;
+              break;
+            } else {
+              // try to convert the arg string to a number.
+              // don't use parseInt because strings like `"123abc"` parse
+              // to `123`, and there is probably an error on the user's side we'd
+              // want to uncover.
+              const index = (arg as any) / 1;
+              // if we don't have a valid number, or the number isn't an valid JS 
+              // integer (no bigints or decimals, please), throw an error.
+              if (!Number.isSafeInteger(index)) {
+                throw new Error(`Invalid value in unlocked_accounts: ${arg}`);
+              }
+              arg = index;
+              // not `break`ing here because I want this to fall through to the
+              //  `"number"` case below.
+              // Refactor it if you want.
+              // break; // no break, please.
+            }
+          case "number":
+            const account = accounts[arg];
+            if (account == null) {
+              throw new Error(
+                `Account at index ${addressOrIndex} not found. Max index available
+                is ${l - 1}.`
+              );
+            }
+            address = account.address.toString().toLowerCase();
             break;
-          } else {
-            addressOrIndex = parseInt(addressOrIndex as string, 10);
-            // not `break`ing here because I want this to fall
-            //  through to the `number` case.
-            // Refactor it if you want.
-            // break; // no break, please
-          }
-        case "number":
-          const account = opts.accounts[addressOrIndex];
-          if (!account) {
+          default:
             throw new Error(
-              `Account at index ${addressOrIndex} not found. Max 
-                            index available is
-                            ${opts.accounts.length - 1}.`
+              `Invalid value specified in unlocked_accounts`
             );
-          }
-          address = account.address.toString();
-          break;
-        default:
-          throw new Error(
-            `Invalid value specified in unlocked_accounts`
-          );
+        }
+        unlockedAccounts.add(address);
       }
-      this[_knownAccounts].add(address.toLowerCase());
-    });
+    }
+    //#endregion
 
-    const chain = this[_blockchain] = new Blockchain(
-      opts.db,
-      opts.dbPath,
-      opts.accounts,
-      opts.hardfork,
-      opts.allowUnlimitedContractSize,
-      opts.gasLimit,
-      opts.timestamp
-    );
+    const chain = this[_blockchain] = new Blockchain(options);
     chain.on("ready", ready);
   }
 
@@ -99,7 +131,7 @@ export default class Ethereum implements ILedger {
    * @returns The current client version.
    */
   async web3_clientVersion(): Promise<string> {
-    return "EthereumJS canache-core/v" + 0 + "/ethereum-js";
+    return CLIENT_VERSION;
   };
 
   /**
@@ -107,24 +139,17 @@ export default class Ethereum implements ILedger {
    * @param {string} the data to convert into a SHA3 hash.
    * @returns The SHA3 result of the given string.
    */
-  async web3_sha3(string: string): Promise<Buffer> {
-    return hash(string).digest();
+  async web3_sha3(string: string): Promise<JsonRpcData> {
+    return JsonRpcData.from(hash(string).digest());
   };
 
   /**
-   * Returns number of peers currently connected to the client.
-   * @returns {QUANTITY} integer of the number of connected peers.
-   */
-  async net_peerCount(): Promise<bigint> {
-    return 0n;
-  }
-
-  /**
    * Returns the current network id.
-   * @returns The current network id.
+   * @returns {string} The current network id. This value should NOT be JSON-RPC
+   * Quantity/Data encoded.
    */
   async net_version(): Promise<string> {
-    return this[_options].net_version;
+    return this[_options].net_version.toString();
   }
 
   /**
@@ -136,18 +161,27 @@ export default class Ethereum implements ILedger {
   }
 
   /**
+   * Returns number of peers currently connected to the client.
+   * @returns {QUANTITY} integer of the number of connected peers.
+   */
+  async net_peerCount(): Promise<JsonRpcQuantity> {
+    return RPCQUANTITY_ZERO;
+  }
+
+  /**
    * Returns the current ethereum protocol version.
    * @returns The current ethereum protocol version.
    */
-  async eth_protocolVersion(): Promise<string> {
-    return "63";
+  async eth_protocolVersion(): Promise<JsonRpcData> {
+    return PROTOCOL_VERSION;
   }
 
 
   /**
    * Returns an object with data about the sync status or false.
    * @returns An object with sync status data or false, when not syncing:
-   *   startingBlock: {bigint} - The block at which the import started (will only be reset, after the sync reached his head)
+   *   startingBlock: {bigint} - The block at which the import started (will 
+   *    only be reset, after the sync reached his head)
    *   currentBlock: {bigint} - The current block, same as eth_blockNumber
    *   highestBlock: {bigint} - The estimated highest block
    */
@@ -159,7 +193,7 @@ export default class Ethereum implements ILedger {
    * Returns the client coinbase address.
    * @returns 20 bytes - the current coinbase address.
    */
-  async eth_coinbase(): Promise<JsonRpcData> {
+  async eth_coinbase(): Promise<Address> {
     return this[_coinbase] ? this[_coinbase].address : null;
   }
 
@@ -175,15 +209,15 @@ export default class Ethereum implements ILedger {
    * Returns the number of hashes per second that the node is mining with.
    * @returns number of hashes per second.
    */
-  async eth_hashrate(): Promise<bigint> {
-    return 0n;
+  async eth_hashrate(): Promise<JsonRpcQuantity> {
+    return RPCQUANTITY_ZERO;
   }
 
   /**
    * Returns the current price per gas in wei.
    * @returns integer of the current gas price in wei.
    */
-  async eth_gasPrice(): Promise<bigint> {
+  async eth_gasPrice(): Promise<JsonRpcQuantity> {
     return this[_options].gasPrice;
   }
 
@@ -191,8 +225,8 @@ export default class Ethereum implements ILedger {
    * Returns a list of addresses owned by client.
    * @returns Array of 20 Bytes - addresses owned by the client.
    */
-  async eth_accounts(): Promise<JsonRpcData[]> {
-    return this[_options].accounts.map(account => account.address);
+  async eth_accounts(): Promise<Address[]> {
+    return this[_accounts];
   }
 
   /**
@@ -207,9 +241,13 @@ export default class Ethereum implements ILedger {
   /**
    * Returns the balance of the account of given address.
    * @param address 20 Bytes - address to check for balance.
-   * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block parameter
+   * @param blockNumber integer block number, or the string "latest", "earliest"
+   *  or "pending", see the default block parameter
    */
-  async eth_getBalance(address: IndexableAddress, blockNumber: bigint | Tag = Tag.LATEST): Promise<JsonRpcQuantity> {
+  async eth_getBalance(
+      address: IndexableAddress,
+      blockNumber: bigint | Tag = Tag.LATEST
+    ): Promise<JsonRpcQuantity> {
     const chain = this[_blockchain];
     const str = blockNumber.toString();
     const block = await chain.blocks.get(Buffer.from([0]));
@@ -229,28 +267,19 @@ export default class Ethereum implements ILedger {
     transasctionHash = JsonRpcData.from(transasctionHash);
 
     const chain = this[_blockchain];
-    // const block = await chain.blocks.get(Tag.LATEST);
-
-    // // TODO: just POC stuff I was working on...
-    // if (!block) {
-    //     const b = new Block(null as any);
-    //     b.header.number = Buffer.from("1234", "hex");
-    //     const c = b.serialize(true);
-    //     const d = new Block(c);
-    //     // await chain.blocks.set(Tag.LATEST, c);
-    // }
-    // const block2 = await chain.blocks.get(Tag.LATEST);
-    // // END
-
-
     const transaction = await chain.transactions.get(transasctionHash);
     return transaction;
   }
 
   async eth_sendTransaction(transaction: any): Promise<JsonRpcData> {
-    const from = transaction.from ? JsonRpcData.from(transaction.from).toString().toLowerCase() : null;
+    let fromString = transaction.from;
+    let from;
+    if (fromString) {
+      from = Address.from(transaction.from);
+      fromString = from.toString().toLowerCase();
+    }
 
-    if (from == null) {
+    if (fromString == null) {
       throw new Error("from not found; is required");
     }
 
@@ -261,8 +290,8 @@ export default class Ethereum implements ILedger {
       throw new Error("Invalid to address");
     }
 
-    const isKnownAccount = this[_knownAccounts].has(from);
-    const isUnlockedAccount = this[_knownAccounts].has(from);
+    const isKnownAccount = this[_knownAccounts].has(fromString);
+    const isUnlockedAccount = this[_unlockedAccounts].has(fromString);
 
     if (!isUnlockedAccount) {
       const msg = isKnownAccount ? "signer account is locked" : "sender account not recognized";
@@ -276,11 +305,11 @@ export default class Ethereum implements ILedger {
 
     const tx = Transaction.fromJSON(transaction, type);
     if (tx.gasLimit.length === 0) {
-      tx.gasLimit = Buffer.from("15f90", "hex");
+      tx.gasLimit = Buffer.from("015f90", "hex");
     }
 
     if (tx.gasPrice.length === 0) {
-      tx.gasPrice = JsonRpcQuantity.from(this[_options].gasPrice).toBuffer();
+      tx.gasPrice = this[_options].gasPrice.toBuffer();
     }
 
     if (tx.value.length === 0) {
@@ -289,6 +318,15 @@ export default class Ethereum implements ILedger {
 
     if (tx.to.length === 0 || tx.to.equals(BUFFER_ZERO)) {
       tx.to = Buffer.allocUnsafe(0);
+    }
+
+    if (isKnownAccount) {
+      if (tx.nonce.length === 0) {
+        const account = await this[_blockchain].accounts.get(from);
+        tx.nonce = JsonRpcQuantity.from(1n + account.nonce.toBigInt()).toBuffer();
+      }
+      const secretKey = this[_knownAccounts].get(fromString);
+      tx.sign(secretKey.toBuffer());
     }
 
     return this[_blockchain].queueTransaction(tx);

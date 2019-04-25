@@ -2,10 +2,19 @@ import Account from "../types/account";
 import {JsonRpcData, JsonRpcQuantity} from "../types/json-rpc";
 import ILedger from "../interfaces/ledger";
 import Ethereum from "../ledgers/ethereum/ledger";
+import { TupleType } from "typescript";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
 }
+
+// Okay, so a "bug" in TS treats types with the same shape as having the same 
+// name, so Intellisense would say that AccountType requires `[Address, Address]`
+// instead of `[Address, PrivateKey]`, flip flopping like this "fixes" it.
+type Address = {} & string;
+type PrivateKey = string & {};
+type AccountTuple = [Address, PrivateKey];
+
 
 export default interface Options {
   ledger?: ILedger,
@@ -16,7 +25,7 @@ export default interface Options {
    * the given balance. If specified, the key is used to determine the account's
    * address.
    */
-  accounts?: Account[],
+  accounts?: Array<AccountTuple>,
 
   /**
    * Output VM opcodes for debugging. Defaults to `false`
@@ -46,7 +55,7 @@ export default interface Options {
   /**
    * Number of accounts to generate at startup. Default to `10`.
    */
-  total_accounts?: bigint,
+  total_accounts?: number,
 
   /**
    * When a string, same as --fork option above. Can also be a Web3 Provider 
@@ -63,7 +72,12 @@ export default interface Options {
   fork_block_number?: string | bigint,
 
   /**
-   * Same as --networkId option above.
+   * Same as --networkId option above. Alias of network_id.
+   */
+  net_version?: string | number,
+
+  /**
+   * Same as --networkId option above. Alias of net_version.
    */
   network_id?: string | number,
 
@@ -79,7 +93,7 @@ export default interface Options {
   locked?: boolean,
 
   /**
-   * Array of addresses or address indexes specifying which accounts should be unlocked.
+   * Array of addresses or address indexes specifying which accounts should be unlocked. Alias of unlockedAccounts
    */
   unlocked_accounts?: string[] | number[],
 
@@ -143,13 +157,14 @@ export default interface Options {
 };
 
 export const getDefault: (options: Options)=> Options = (options) => {
-  const network_id = (options && options.network_id || Date.now()).toString();
+  const network_id = (options && options.net_version || options.network_id || Date.now()).toString();
   return Object.assign({
     debug: false,
     logger: {log: () => {}},
     default_balance_ether: 100n,
     total_accounts: 10n,
     network_id,
+    net_version: network_id,
     locked: false,
     vmErrorsOnRPCResponse: true,
     hdPath: "m/44'/60'/0'/0/",

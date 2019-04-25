@@ -3,6 +3,8 @@ export type IndexableJsonRpcType<T extends number | bigint | string | Buffer = n
   toString(): string
 }
 
+const EMPTY_BUFFER = Buffer.allocUnsafe(0);
+
 export const strCache = new WeakMap();
 export const bufCache = new WeakMap();
 export const toStrings = new WeakMap();
@@ -47,23 +49,34 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
           // handle hex-encoded string
           if ((value as string).indexOf("0x") === 0) {
             strCache.set(this, value);
-            toBuffers.set(this, () => Buffer.from((value as string).slice(2), "hex"));
+            toBuffers.set(this, () => {
+              let fixedValue = (value as string).slice(2);
+              if (fixedValue.length % 2 === 1) {
+                fixedValue = "0" + fixedValue;
+              }
+              return Buffer.from(fixedValue, "hex");
+            });
           } else {
             // handle a string
             toStrings.set(this, () => {
               const buf = this.toBuffer();
               return buf.toString("hex");
             });
+            // treat string without `0x` as just plain text. This is probably 
+            // wrong. TODO: look into this.
             toBuffers.set(this, () => Buffer.from(value as string));
           }
           break;
         }
-        case "undefined": {
-          strCache.set(this, value);
-          bufCache.set(this, Buffer.from([]));
-          break;
-        }
         default:
+          // handle undefined/null
+          if (value == null) {
+            // This is a weird thing that returns undefined/null for a call
+            // to toString().
+            this.toString = () => value as string;
+            bufCache.set(this, EMPTY_BUFFER);
+            break;
+          }
           throw new Error(`Cannot wrap a "${type}" as a json-rpc type`);
       }
       self[Symbol.toStringTag] = type;

@@ -9,10 +9,13 @@ import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import { JsonRpcQuantity, JsonRpcData } from "./types/json-rpc";
 import Address from "./types/address";
 import JsonRpc from "./servers/utils/jsonrpc";
+import EthereumOptions from "./ledgers/ethereum/options";
 
 const hdkey = require("ethereumjs-wallet/hdkey");
 
 export type ProviderOptions = ProviderOptions;
+
+const WEI = 1000000000000000000n;
 
 const options = Symbol("options");
 const engine = Symbol("engine");
@@ -44,19 +47,11 @@ export default class Provider extends Emittery {
     this.wallet = hdkey.fromMasterSeed(mnemonicToSeedSync(_providerOptions.mnemonic, null));
 
     const accounts = this.initializeAccounts();
-    const net_version = _providerOptions.network_id.toString();
-    const ledger = _providerOptions.ledger || new Ethereum({
-      db: _providerOptions.db,
-      dbPath: _providerOptions.db_path,
-      net_version,
-      accounts,
-      allowUnlimitedContractSize: _providerOptions.allowUnlimitedContractSize,
-      hardfork: _providerOptions.hardfork,
-      gasLimit: _providerOptions.gasLimit,
-      timestamp: _providerOptions.time,
-      unlockedAccounts: _providerOptions.unlocked_accounts || [],
-      secure: _providerOptions.secure
-    }, _requestProcessor.resume.bind(_requestProcessor));
+    // ethereum options' `accounts` are different than the provider options'
+    // `accounts`, fix that up here:
+    const ethereumOptions = _providerOptions as any as EthereumOptions;
+    ethereumOptions.accounts = accounts;
+    const ledger = _providerOptions.ledger || new Ethereum(ethereumOptions, _requestProcessor.resume.bind(_requestProcessor));
     this[engine] = new Engine(ledger);
   }
 
@@ -64,34 +59,41 @@ export default class Provider extends Emittery {
   // move this into the Ledger or it's Blockchain?
   private initializeAccounts(): Account[]{
     const _providerOptions = this[options];
+    const etherInWei = JsonRpcQuantity.from(JsonRpcQuantity.from(_providerOptions.default_balance_ether).toBigInt() * WEI);
     let accounts: Account[];
 
-    if (_providerOptions.accounts) {
-      accounts = _providerOptions.accounts.map((account) => {
-        return this.createAccount(account.balance, account.privateKey, account.address);
-      });
-    } else if(_providerOptions.total_accounts) {
-      accounts = [];
-      const hdPath = this[options].hdPath;
-      const wallet = this.wallet;
-
-      const ether = JsonRpcQuantity.from(_providerOptions.default_balance_ether);
-      for (let index = 0; index < _providerOptions.total_accounts; index++) {
-        const acct = wallet.derivePath(hdPath + index);
-        const accountWallet = acct.getWallet();
-        const address = Address.from(accountWallet.getAddress());
-        const privateKey = JsonRpcData.from(accountWallet.getPrivateKey());
-        accounts.push(this.createAccount(ether, privateKey, address));
+    let givenAccounts = _providerOptions.accounts
+    if (givenAccounts) {
+      const l = givenAccounts.length;
+      accounts = Array(l);
+      for (let i = 0; i < l; i++) {
+        const account = givenAccounts[i];
+        accounts[i] = this.createAccount(etherInWei, JsonRpcData.from(account[1]), JsonRpcData.from(account[0]));
       }
     } else {
-      throw new Error("Cannot initialize chain: either options.accounts or options.total_accounts must be specified");
+      const l =_providerOptions.total_accounts;
+      if (l) {
+        accounts = Array(l);
+        const hdPath = this[options].hdPath;
+        const wallet = this.wallet;
+
+        for (let index = 0; index < l; index++) {
+          const acct = wallet.derivePath(hdPath + index);
+          const accountWallet = acct.getWallet();
+          const address = Address.from(accountWallet.getAddress());
+          const privateKey = JsonRpcData.from(accountWallet.getPrivateKey());
+          accounts[index] = this.createAccount(etherInWei, privateKey, address);
+        }
+      } else {
+        throw new Error("Cannot initialize chain: either options.accounts or options.total_accounts must be specified");
+      }
     }
     return accounts;
   }
   
   // TODO: this should probable be moved as well (see `initializeAccounts` above)
   private createAccount(balance: JsonRpcQuantity, privateKey: JsonRpcData, address?: Address) {
-    address = address || Address.from(privateToAddress(Buffer.from(privateKey.toString(), "hex")));
+    address = address || Address.from(privateToAddress(privateKey.toBuffer()));
   
     const account = new Account(address);
     account.privateKey = privateKey;

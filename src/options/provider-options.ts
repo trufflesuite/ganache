@@ -5,10 +5,10 @@ const seedrandom = require("seedrandom");
 
 
 function randomBytes(length: any, rng: any): any {
-  var buf = [];
+  var buf = Array(length);
 
   for (var i = 0; i < length; i++) {
-    buf.push(rng() * 255);
+    buf[i] = rng() * 255;
   }
 
   return Buffer.from(buf);

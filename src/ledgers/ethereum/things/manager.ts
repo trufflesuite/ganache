@@ -1,20 +1,22 @@
-const sub = require("subleveldown");
 import levelup from "levelup";
-import Database from "../database";
-const levelupOptions: any = { valueEncoding: "binary" };
+import { JsonRpcData } from "../../../types/json-rpc";
+import Blockchain from "../blockchain";
 
 export type Instantiable<T> = {new(...args: any[]): T};
 
 export default class Manager<T> {
+    protected blockchain: Blockchain;
     private Type: Instantiable<T>;
-    public db: Database;
     protected base: levelup.LevelUp;
-    constructor(db: Database, type: Instantiable<T>, name: string){
+    constructor(blockchain: Blockchain, base: levelup.LevelUp, type: Instantiable<T>){
         this.Type = type;
-        this.db = db;
-        this.base = sub(db.db, name, levelupOptions);
+        this.blockchain = blockchain;
+        this.base = base;
     }
     get(key: string | Buffer): Promise<T> {
+        if (typeof key === "string") {
+            key = JsonRpcData.from(key).toBuffer();
+        }
         return this.base.get(key).then((raw) => new this.Type(raw));
     }
     set(key: string | Buffer, value: Buffer): Promise<T> {
