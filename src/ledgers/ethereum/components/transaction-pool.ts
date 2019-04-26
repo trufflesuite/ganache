@@ -4,17 +4,6 @@ import Errors from "./errors";
 import Heap from "../../../utils/heap";
 import Transaction from "../../../types/transaction";
 import { JsonRpcData, JsonRpcQuantity } from "../../../types/json-rpc";
-import Account from "ethereumjs-account";
-
-// OLD insertion sort:
-// function siftUp<T>(comparator: (a:T, b:T) => boolean, array: T[], value: T, startingIndex = 0, endingIndex = array.length) {
-//     let i = startingIndex;
-//     for (; i < endingIndex; i++) {
-//         if (!comparator(value, array[i])) break;
-//     }
-//     array.splice(i, 0, value);
-//     return i;
-// }
 
 export type TransactionPoolOptions = {
     gasPrice?: JsonRpcQuantity,
@@ -132,14 +121,17 @@ export default class TransactionPool extends Emittery {
             throw new Error(`known transaction: ${hash}`);
         }
 
-        const err = await this.validateTransaction(transaction);
+        let err: Error;
+        err = this.validateTransaction(transaction);
         if (err != null) {
             throw err;
         }
 
-        const origin = transaction.from.toString();
+        const from = JsonRpcData.from(transaction.from);
+
+        const origin = from.toString();
         const orgins = this.origins;
-        let pendingOriginTransactions = orgins.get(origin);
+        let queuedOriginTransactions = orgins.get(origin);
 
         // TODO: If the transaction pool is full, discard underpriced transactions
         if (this.length >= this.globalSlots + this.globalQueue) {
@@ -153,29 +145,64 @@ export default class TransactionPool extends Emittery {
         //  nonce matches the pending nonce 
         // AND the new tx's gasPrice is `this.priceBump` greater than the
         //  pending tx's.
-        // Also, if a transaction is at the correct `nonce` it is executable.
-        // we need to pull out the origin's transactions that are now executable
-        // from the `pendingOriginTransactions`, if it is available
-        // if (stuff) {
-        //   this.pending ...
-        //   return;
-        // }
+
+
+        
+        const transactor = await this.blockchain.accounts.get(from);
+        err = await this.validateTransactor(transaction, transactor);
+        if (err != null) {
+            throw err;
+        }
+
+        // If a transaction is at the correct `nonce` it is executable.
+        const transactionNonce = transaction.nonce.toBigInt();
+        if (transactor.nonce.toBigInt() + 1n === transactionNonce) {
+            // we need to pull out the origin's transactions that are now executable
+            // from the `pendingOriginTransactions`, if it is available
+            const pending = this.pending;
+            let pendingOriginTransactions = pending.get(origin);
+            if (!pendingOriginTransactions) {
+                pendingOriginTransactions = new Heap<Transaction>(byNonce);
+                pendingOriginTransactions.array = [transaction];
+                pendingOriginTransactions.length = 1;
+                pending.set(origin, pendingOriginTransactions);
+            } else {
+                pendingOriginTransactions.push(transaction);
+            }
+            if (queuedOriginTransactions) {
+                let nextTransaction: any;
+                let nextNonce: bigint = transactionNonce;
+                while (nextTransaction = queuedOriginTransactions.peek()) {
+                    nextNonce += 1n;
+                    if (nextTransaction.nonce.toBigInt() !== nextNonce) {
+                        break;
+                    } else {
+                        pendingOriginTransactions.push(nextTransaction);
+                        // remove this transaction from the queue
+                        queuedOriginTransactions.shift();
+                    }
+                }
+            }
+            // notify miner that we have pending transactions ready for it
+            this.emit("drain", pending);
+            return;
+        }
 
         // TODO: if we got here we have a transaction that *isn't* executable
         // insert the transaction in its origin's (i.e., the `from` address's)
         //   Heap, which sorts by nonce
         
-        if (!pendingOriginTransactions) {
-            pendingOriginTransactions = new Heap<Transaction>(byNonce);
-            pendingOriginTransactions.array = [transaction];
-            pendingOriginTransactions.length = 1;
-            orgins.set(origin, pendingOriginTransactions);
+        if (!queuedOriginTransactions) {
+            queuedOriginTransactions = new Heap<Transaction>(byNonce);
+            queuedOriginTransactions.array = [transaction];
+            queuedOriginTransactions.length = 1;
+            orgins.set(origin, queuedOriginTransactions);
         } else {
-            pendingOriginTransactions.insert(transaction);
+            queuedOriginTransactions.push(transaction);
         }
     }
 
-    public async validateTransaction(transaction: Transaction): Promise<Error> {
+    public validateTransaction(transaction: Transaction): Error {
         // Check the transaction doesn't exceed the current block limit gas.
         if (this.options.gasLimit < JsonRpcQuantity.from(transaction.gasLimit)) {
             return new Error("Transaction gasLimit is too low");
@@ -194,9 +221,10 @@ export default class TransactionPool extends Emittery {
             return new Error("intrisic gas too low");
         }
 
-        const from = JsonRpcData.from(transaction.from);
-        const transactor = await this.blockchain.accounts.get(from);
+        return null;
+    }
 
+    public async validateTransactor(transaction: Transaction, transactor: any): Promise<Error> {
         // Transactor should have enough funds to cover the costs
         if (transactor.balance.toBigInt() < transaction.cost()) {
             return new Error("Account does not have enough funds to complete transaction");
