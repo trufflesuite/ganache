@@ -1,105 +1,203 @@
 type Comparator<T> = (values: T[], a: number, b: number) => boolean;
+
 class Heap<T> {
-    public best: number = 0;
-    public length: number;
-    public array: T[];
-    protected readonly less: Comparator<T>;
+  public length: number;
+  public array: T[];
+  protected readonly less: Comparator<T>;
 
-    /**
-     * @param size the size of the heap
-     * @param less the comparator function
-     */
-    constructor(less: Comparator<T>) {
-        this.less = less;
+  /**
+   * Creates a priority-queue heap where the highest priority element,
+   * as determined by the `less` function, is at the tip/root of the heap.
+   * To read the highest priority element without removing it call peek(). To
+   * read and remove the element call `shift()`
+   * @param size the size of the heap
+   * @param less the comparator function
+   */
+  constructor(less: Comparator<T>) {
+    this.less = less;
+  }
+
+  public init(array: T[]) {
+    this.array = array;
+    const length = this.length = array.length;
+    for (let i = ((length / 2) | 0) - 1; i >= 0;) {
+      this.down(i--, length);
+    }
+  }
+
+  /**
+   * Pushes a new element onto the heap
+   * @param value 
+   */
+  public push(value: T) {
+    const i = this.length++;
+    this.array[i] = value;
+    this.up(i);
+  }
+
+  public size() {
+    return this.length;
+  }
+
+  /**
+   * Return the current best element. Do not remove it
+   */
+  public peek(): T {
+    return this.array[0];
+  }
+
+  /**
+   * Removes and returns the element with the highest priority from the heap.
+   * The complexity is O(log n) where n = this.size().
+   * @returns the element with the highest priority
+   */
+  public shift(): T {
+    const array = this.array;
+    const length = this.length;
+
+    // if we are empty or about to be empty...
+    if (length <= 1) {
+        if (length === 0) return;
+        const element = array[0];
+        // finaly clear the array
+        this.length = array.length = 0;
+        return element;
+    }
+    // otherwise...
+  
+    // remember the best element
+    const best = array[0];
+    const newLength = this.length = length - 1;
+    // put our last element at the start of the heap
+    array[0] = array[newLength];
+    // then sort from the new first element to the second to last element
+    this.down(0, newLength);
+    return best;
+  }
+
+  /**
+   * Removes the highest priority element from the queue, replacing it with
+   * the new element. This is equivalent to, but faster than, calling
+   * `replace(0, newValue);`.
+   * If you call this on an empty heap (`this.size() === 0`) you may find
+   * unexpected behavior.
+   * @param newValue 
+   */
+  public replaceBest(newValue: T) {
+    this.array[0] = newValue;
+    this.down(0, this.length);
+  }
+
+  /**
+   * Replaces the element at position `i` with the `newValue`. If the element at 
+   * position `i` doesn't exist, or if `i < 0` or `i > this.size()` you may
+   * find unexpected behavior.
+   * @param i 
+   * @param newValue 
+   */
+  public replace(i: number, newValue: T) {
+    this.array[i] = newValue;
+    this.fix(i);
+  }
+
+  /**
+   * Removes the element at position `i`.
+   * The complexity is O(log n) where n = this.size().
+   * @param i the element to remove
+   */
+  public remove(i: number) {
+    const newLength = --this.length;
+    if (newLength !== i) {
+      this.swap(i, newLength);
+      if (!this.down(i, newLength)) {
+        this.up(i);
+      }
+    }
+  }
+
+  /**
+   * Removes the element with the highest priority from the heap
+   * The complexity is O(log n) where n = this.size().
+   */
+  public removeBest() {
+    const array = this.array;
+    const length = this.length;
+    if (length === 1) {
+        // finally, clear the array	
+        this.length = array.length = 0		
+        return;		
     }
 
-    public init(values: T[]) {
-        this.array = values;
-        const l = this.length = values.length;
-        for (let i = ((l / 2) | 0) - 1; i >= 0;) {
-            this.down(i--, l);
-        }
-    }
+    const newLength = --this.length;
+    // put our last element at the start of the heap
+    array[0] = array[newLength];
+    // then sort from the new first element to the second to last element
+    this.down(0, newLength);
+  }
 
-    /**
-     * 
-     * @param value 
-     */
-    public insert(value: T) {
-        const i = this.length++;
-        this.array[i] = value;
-        this.up(i, this.best);
+  /**
+   * Re-establishes the heap ordering after the element at index `i` changes
+   * its value. Changing the value of the element at index `i` and then 
+   * calling fix is equivalent to, but faster than, calling
+   * `remove(i); push(newValue);`.
+   * The complexity is O(log n) where n = this.size().
+   * @param i 
+   */
+  public fix(i: number) {
+    if (!this.down(i, this.length)) {
+      this.up(i);
     }
+  }
 
-    public size() {
-        return this.length - this.best;
+  private up(j: number,) {
+    const less = this.less.bind(null, this.array);
+    for (let i: number; ((i = (j - 1) / 2 | 0), i !== j && less(j, i)); j = i) {
+      this.swap(i, j);
     }
+  }
 
-    /**
-     * Return the current best element. Do not remove it
-     */
-    public peek(): T {
-        return this.array[this.best];
+  private down(i0: number, l: number): boolean {
+    const less = this.less.bind(null, this.array);
+    let i = i0;
+    for (let j1: number; (j1 = 2 * i + 1) < l;) {
+      let j = j1; // left child
+      let j2 = j1 + 1;
+      if (j2 < l && less(j2, j1)) {
+        j = j2; // = 2 * i + 2  // right child
+      }
+      if (!less(j, i)) {
+        break;
+      }
+      this.swap(i, j);
+      i = j;
     }
+    return i > i0;
+  }
 
-    /**
-     * Remove the current best element
-     * @param map 
-     */
-    public shift() {
-        // TODO: fix the tree as the best is not neccessarily at best++
-        this.best++;
-    }
-
-    /**
-     * Removes the last element
-     */
-    public pop() {
-        this.length--;
-    }
-
-    public replaceBest(newValue: T) {
-        const i = this.best;
-        this.array[i] = newValue;
-        this.fix(i);
-    }
-
-    public fix(i: number) {
-        if (!this.down(i, this.length)) {
-            this.up(i, this.best);
-        }
-    }
-
-    private up(j: number, best: number) {
-        const values = this.array;
-        const less = this.less.bind(null, values);
-        for (let i: number; ((i = (j - 1) / 2 | 0 + best), i !== j && less(j, i)); j = i) {
-            this.swap(i, j);
-        }
-    }
-    private down(i0: number, l: number): boolean {
-        const values = this.array;
-        let i = i0;
-        for (let j1: number; (j1 = 2 * i + 1) < l;) {
-            let j = j1; // left child
-            let j2 = j1 + 1;
-            if (j2 < l && this.less(values, j2, j1)) {
-                j = j2; // = 2 * i + 2  // right child
-            }
-            if (!this.less(values, j, i)) {
-                break;
-            }
-            this.swap(i, j);
-            i = j;
-        }
-        return i > i0;
-    }
-
-    private swap(i: number, j: number) {
-        const values = this.array;
-        [values[j], values[i]] = [values[i], values[j]];
-    }
+  /**
+   * Swaps the elements in the heap
+   * @param i The first element
+   * @param j The second element
+   */
+  private swap(i: number, j: number) {
+    const array = this.array;
+    const first = array[i];
+    array[i] = array[j];
+    array[j] = first;
+  }
 }
+
+var d = new Heap<number>((values, a, b) => values[a] < values[b]);
+d.init([5,6,7,8,1,2,7,9,4,654,46,7,1,3,74,1,4,89,3621,74]);
+console.log(d.array.length)
+let c =  0;
+let i: number;
+while(i = d.shift()){
+  console.log(i);
+  c++;
+}
+console.log(c);
+console.log(d.array);
 
 // type HeapHeapMap<T, U extends Heap<T>> = {heap: U, value: T};
 
