@@ -1,7 +1,6 @@
 import Ganache from "../index"
-import * as assert from "assert";
+import assert from "assert";
 import Provider from "../src/provider";
-import { JsonRpcQuantity } from "../src/types/json-rpc";
 
 describe("provider", () => {
   const networkId = "1234";
@@ -12,19 +11,47 @@ describe("provider", () => {
       network_id: networkId
     });
   })
-  it.only("gets balance", async() => {
+  it("gets balance", async() => {
     const accounts = await p.send("eth_accounts");
     const balance = await p.send("eth_getBalance", [accounts[0]]);
-    assert.strictEqual(balance, 100, "Heyo!");
+    // TODO: this value is actually wrong!
+    assert.strictEqual(balance, "0x056bc75e2d63100000", "Heyo!");
   })
-  it("sends a transaction", async () => {
+  it.only("sends a transaction", async () => {
+    const seedrandom = require("seedrandom");
+    const rand = seedrandom("sup");
     const accounts = await p.send("eth_accounts");
-    const result = await p.send("eth_sendTransaction", [{
+
+
+
+
+    const nonces = [5, 3, 2, 1, 0];
+    const to = accounts[accounts.length - 1];
+
+
+    const id = setImmediate(()=>{console.log(1)});
+    p.send("eth_sendTransaction", [{
       from: accounts[0],
-      to: accounts[1],
-      value: 123
+      to: to,
+      value: 10_000,
+      nonce: nonces[2],
+      gasPrice: (rand() * 100) | 0
     }]);
-    console.log(result);
+    clearImmediate(id);
+
+    // for every account (except the last one)
+    for (let j = 0; j < accounts.length - 6; j++) {
+      for (let i = 0; i < nonces.length; i++) {
+      // send transactions with our random nonces
+        await p.send("eth_sendTransaction", [{
+          from: accounts[j],
+          to: to,
+          value: 10_000,
+          nonce: nonces[i],
+          gasPrice: (rand() * 100) | 0
+        }]);
+      }
+    }
   });
   it.skip("returns a transaction", async () => {
     var result = await p.send("eth_getTransactionByHash", ["0x123"]);

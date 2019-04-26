@@ -1,4 +1,5 @@
 import { BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType } from ".";
+const toBigIntBE = require('bigint-buffer').toBigIntBE;
 
 class JsonRpcQuantity extends BaseJsonRpcType {
   public static from(value: number | bigint | string | Buffer) {
@@ -17,6 +18,9 @@ class JsonRpcQuantity extends BaseJsonRpcType {
 
 
       const length = value.byteLength;
+      if (length === 0) {
+        return null;
+      }
       // Buffers that are 6 bytes or less can be converted with built-in methods
       if (length <= 6) {
         return BigInt(value.readUIntBE(0, length));
@@ -32,9 +36,10 @@ class JsonRpcQuantity extends BaseJsonRpcType {
       } else if (length === 8) {
         view = new DataView(value.buffer, value.byteOffset, length);
       } else {
+        return toBigIntBE(value);
         // TODO: handle bigint's stored as Buffers that are this big?
         // It's not too hard.
-        throw new Error(`Cannot convert Buffer of length ${length} to bigint!`);
+        // throw new Error(`Cannot convert Buffer of length ${length} to bigint!`);
       }
       return view.getBigUint64(0) as bigint;
     } else {

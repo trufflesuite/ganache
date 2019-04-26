@@ -1,14 +1,17 @@
+import Miner from "./miner";
 import Database from "./database";
 import Emittery from "emittery";
 import BlockManager, { Block } from "./components/block-manager";
 import TransactionManager from "./components/transaction-manager";
 import Trie from "merkle-patricia-tree";
-import { BN } from "ethereumjs-util";
+import { BN, MAX_INTEGER } from "ethereumjs-util";
 import Account from "../../types/account";
 import { promisify } from "util";
 import { JsonRpcQuantity, JsonRpcData } from "../../types/json-rpc";
 import EthereumJsAccount from "ethereumjs-account";
 import AccountManager from "./components/account-manager";
+import Heap from "../../utils/heap";
+import Transaction from "../../types/transaction";
 
 const VM = require("ethereumjs-vm");
 
@@ -26,7 +29,7 @@ export default class Blockchain extends Emittery {
     public blocks: BlockManager;
     public transactions: TransactionManager;
     public accounts: AccountManager;
-    private vm: any;
+    public vm: any;
     public trie: Trie;
     private readonly database: Database
 
@@ -36,13 +39,7 @@ export default class Blockchain extends Emittery {
      * 
      * Emits a `ready` event once the database and
      * all dependencies are fully initialized.
-     * @param db 
-     * @param dbPath 
-     * @param accounts 
-     * @param hardfork 
-     * @param allowUnlimitedContractSize 
-     * @param blockGasLimit 
-     * @param timestamp 
+     * @param options 
      */
     constructor(options: BlockchainOptions) {
         super();
@@ -60,6 +57,22 @@ export default class Blockchain extends Emittery {
             this.accounts = new AccountManager(this);
 
             this._initializeVM(options.hardfork, options.allowUnlimitedContractSize);
+
+            const miner = new Miner(this.vm, options);
+            
+            const instamining = true;
+            if(instamining){
+                this.transactions.transactionPool.on("drain", async (pending: Map<string, Heap<Transaction>>) => {
+                    await miner.mine(pending);
+                });
+            } else {
+                const minerInterval = 3 * 1000;
+                const mine = async (pending: Map<string, Heap<Transaction>>) => {
+                    await miner.mine(pending);
+                    setTimeout(mine, minerInterval, pending);
+                };
+                setTimeout(mine, minerInterval, this.transactions.transactionPool.pending);
+            }
 
             await this._initializeAccounts(options.accounts);
             await this._initializeGenesisBlock(options.timestamp, options.gasLimit);

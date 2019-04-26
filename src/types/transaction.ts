@@ -1,5 +1,10 @@
+import Errors from "./errors"
 import { JsonRpcData } from "./json-rpc/json-rpc-data";
 import { JsonRpcQuantity } from "./json-rpc";
+import params from "./params";
+
+const MAX_UINT64 = (1n << 64n) - 1n;
+
 
 // import { JsonRpcData, JsonRpcQuantity } from "./json-rpc";
 // import Address from "./address";
@@ -106,7 +111,7 @@ const assert = require("assert");
 const rlp = require("rlp");
 
 const sign = EthereumJsTransaction.prototype.sign;
-const fakeHash = function() {
+const fakeHash = function () {
   // this isn't memoization of the hash. previous versions of ganache-core
   // created hashes in a different/incorrect way and are recorded this way
   // in snapshot dbs. We are preserving the chain's immutability by using the
@@ -283,6 +288,41 @@ export default class Transaction extends EthereumJsTransaction {
   }
 
   /**
+   * Compute the 'intrinsic gas' for a message with the given data.
+   * @param data The transaction's data
+   */
+  public calculateIntrinsicGas(): bigint {
+    const data = this.input;
+
+    // Set the starting gas for the raw transaction
+    let gas = params.TRANSACTION_GAS;
+
+    // Bump the required gas by the amount of transactional data
+    const dataLength = data.byteLength;
+    if (dataLength > 0) {
+      // Zero and non-zero bytes are priced differently
+      let nonZeroBytes: bigint = 0n;
+      for (const b of data) {
+        if (b !== 0) {
+          nonZeroBytes++;
+        }
+      }
+      // Make sure we don't exceed uint64 for all data combinations.
+      if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
+        throw new Error(Errors.INTRINSIC_GAS_TOO_LOW);
+      }
+      gas += nonZeroBytes * params.TRANSACTION_DATA_NON_ZERO_GAS;
+
+      let z = BigInt(dataLength) - nonZeroBytes;
+      if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_ZERO_GAS < z) {
+        throw new Error(Errors.INTRINSIC_GAS_TOO_LOW);
+      }
+      gas += z * params.TRANSACTION_DATA_ZERO_GAS;
+    }
+    return gas;
+  }
+
+  /**
    * Prepares arbitrary JSON data for use in a Transaction.
    * @param {Object} json JSON object representing the Transaction
    * @param {Number} type The `Transaction.types` bit flag for this transaction
@@ -293,7 +333,7 @@ export default class Transaction extends EthereumJsTransaction {
     if (json.to) {
       // Remove all padding and make it easily comparible.
       const buf = JsonRpcData.from(json.to).toBuffer();
-      
+
       if (buf.equals(BUFFER_ZERO)) {
         // if the address is 0x0 make it 0x0{20}
         toAccount = ethUtil.setLengthLeft(buf, 20);

@@ -7,6 +7,7 @@ import Tag from "../../types/tags";
 import Address, { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import Account from "../../types/account";
+
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from the package.json
 const {name, version} = require("../../../package.json");
@@ -326,7 +327,8 @@ export default class Ethereum implements ILedger {
     if (isKnownAccount) {
       if (tx.nonce.length === 0) {
         const account = await this[_blockchain].accounts.get(from);
-        tx.nonce = JsonRpcQuantity.from(1n + account.nonce.toBigInt()).toBuffer();
+        const accountNonce = (account.nonce.toBigInt()) || 0n;
+        tx.nonce = JsonRpcQuantity.from(1n + accountNonce).toBuffer();
       }
       const secretKey = this[_knownAccounts].get(fromString);
       tx.sign(secretKey.toBuffer());

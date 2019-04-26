@@ -1,13 +1,13 @@
-let intToBuffer: (val: bigint | number) => Buffer;
+let intToBuffer: (val: bigint) => Buffer;
 try {
   const toBufferBE = require('bigint-buffer').toBufferBE;
-  intToBuffer = (val: bigint | number) => {
+  intToBuffer = (val: bigint) => {
     const buffer = toBufferBE(val, 128);
     for (let i = 0; i < buffer.length - 1; i++) if (buffer[i]) return buffer.slice(i)
     return buffer.slice(buffer.length - 1)
   }
 } catch(e) {
-  intToBuffer = (val: bigint | number): Buffer => {
+  intToBuffer = (val: bigint): Buffer => {
     const hex = val.toString(16);
     return Buffer.from(hex.length % 2 ? hex : `0${hex}`);
   }
@@ -45,17 +45,16 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
         case "number":
           toStrings.set(this, () => (value as number).toString(16));
           toBuffers.set(this, () => {
-            // const arr = new ArrayBuffer(4);
-            // const view = new DataView(arr);
-            // view.setInt32(0, value as number);
-            // return Buffer.from(arr);
-            return intToBuffer(value as number);
+            const arr = new ArrayBuffer(4);
+            const view = new DataView(arr);
+            view.setInt32(0, value as number);
+            return Buffer.from(arr);
           });
           break;
         case "bigint":
           toStrings.set(this, () => (value as bigint).toString(16));
           toBuffers.set(this, () => {
-            return intToBuffer(value as number);
+            return intToBuffer(value as bigint);
             //onst value = (2n**64n);
             var max = (2n**64n)-1n;
 

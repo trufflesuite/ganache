@@ -1,9 +1,9 @@
 import Emittery from "emittery";
 import Blockchain from "../blockchain";
-import Errors from "./errors";
 import Heap from "../../../utils/heap";
 import Transaction from "../../../types/transaction";
 import { JsonRpcData, JsonRpcQuantity } from "../../../types/json-rpc";
+import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "constants";
 
 export type TransactionPoolOptions = {
     gasPrice?: JsonRpcQuantity,
@@ -11,57 +11,7 @@ export type TransactionPoolOptions = {
 };
 
 function byNonce(values: Transaction[], a: number, b: number) {
-    return values[b].nonce.toBigInt() < values[a].nonce.toBigInt();
-}
-
-const params = {
-    /**
-     *  Per transaction not creating a contract. NOTE: Not payable on data of calls between transactions.
-     */
-    TRANSACTION_GAS: 21000n,
-
-    /**
-     * Per byte of data attached to a transaction that is not equal to zero. NOTE: Not payable on data of calls between transactions.
-     */
-    TRANSACTION_DATA_NON_ZERO_GAS: 68n,
-    /**
-     * Per byte of data attached to a transaction that equals zero. NOTE: Not payable on data of calls between transactions.
-     */
-    TRANSACTION_DATA_ZERO_GAS: 4n
-}
-
-const MAX_UINT64 = (1n<<64n) - 1n;
-/**
- * Compute the 'intrinsic gas' for a message with the given data.
- * @param data The transaction's data
- */
-function calculateIntrinsicGas(data: Buffer): bigint {
-	// Set the starting gas for the raw transaction
-	let gas = params.TRANSACTION_GAS;
-	
-    // Bump the required gas by the amount of transactional data
-    const dataLength = data.byteLength;
-	if (dataLength > 0) {
-		// Zero and non-zero bytes are priced differently
-		let nonZeroBytes: bigint = 0n;
-		for (const b of data) {
-			if (b !== 0) {
-				nonZeroBytes++
-			}
-		}
-        // Make sure we don't exceed uint64 for all data combinations.
-		if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
-			throw new Error(Errors.INTRINSIC_GAS_TOO_LOW);
-		}
-		gas += nonZeroBytes * params.TRANSACTION_DATA_NON_ZERO_GAS;
-
-		let z = BigInt(dataLength) - nonZeroBytes;
-		if ( (MAX_UINT64 - gas) / params.TRANSACTION_DATA_ZERO_GAS < z) {
-			throw new Error(Errors.INTRINSIC_GAS_TOO_LOW);
-		}
-		gas += z * params.TRANSACTION_DATA_ZERO_GAS;
-	}
-	return gas;
+    return (JsonRpcQuantity.from(values[b].nonce).toBigInt() || 0n) > (JsonRpcQuantity.from(values[a].nonce).toBigInt() || 0n);
 }
 
 export default class TransactionPool extends Emittery {
@@ -110,7 +60,7 @@ export default class TransactionPool extends Emittery {
     }
     public length: number;
     private hashes = new Set<string>();
-    private pending: Map<string, Heap<Transaction>> = new Map();
+    public pending: Map<string, Heap<Transaction>> = new Map();
     private origins: Map<string, Heap<Transaction>> = new Map();
     
     public async insert(transaction: Transaction) {
@@ -155,8 +105,12 @@ export default class TransactionPool extends Emittery {
         }
 
         // If a transaction is at the correct `nonce` it is executable.
-        const transactionNonce = transaction.nonce.toBigInt();
-        if (transactor.nonce.toBigInt() + 1n === transactionNonce) {
+        const transactionNonce = JsonRpcQuantity.from(transaction.nonce).toBigInt() || 0n;
+        let transactorNonce = transactor.nonce.toBigInt();
+        if (transactorNonce == null) {
+            transactorNonce = -1n;
+        }
+        if (transactorNonce + 1n === transactionNonce) {
             // we need to pull out the origin's transactions that are now executable
             // from the `pendingOriginTransactions`, if it is available
             const pending = this.pending;
@@ -174,12 +128,13 @@ export default class TransactionPool extends Emittery {
                 let nextNonce: bigint = transactionNonce;
                 while (nextTransaction = queuedOriginTransactions.peek()) {
                     nextNonce += 1n;
-                    if (nextTransaction.nonce.toBigInt() !== nextNonce) {
+                    const nextTxNonce = JsonRpcQuantity.from(nextTransaction.nonce).toBigInt() || 0n;
+                    if (nextTxNonce !== nextNonce) {
                         break;
                     } else {
                         pendingOriginTransactions.push(nextTransaction);
                         // remove this transaction from the queue
-                        queuedOriginTransactions.shift();
+                        queuedOriginTransactions.removeBest();
                     }
                 }
             }
@@ -216,7 +171,7 @@ export default class TransactionPool extends Emittery {
         }
 
         // Should supply enough intrinsic gas
-        const gas = calculateIntrinsicGas(transaction.input);
+        const gas = transaction.calculateIntrinsicGas();
         if (transaction.gasPrice < gas) {
             return new Error("intrisic gas too low");
         }
@@ -231,7 +186,11 @@ export default class TransactionPool extends Emittery {
         }
 
         // check that the nonce isn't too low
-        if (transactor.nonce > transaction.nonce) {
+        let transactorNonce = transactor.nonce.toBigInt();
+        if (transactorNonce == null) {
+            transactorNonce = -1n;
+        }
+        if (transactorNonce >= (JsonRpcQuantity.from(transaction.nonce).toBigInt() || 0n)) {
             return new Error("Transaction nonce is too low");
         }
         return null;
