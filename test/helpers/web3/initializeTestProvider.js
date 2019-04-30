@@ -10,7 +10,7 @@ const generateSend = require("../utils/rpc");
  * @returns {Object} accounts, provider, send, web3 Object
  */
 const initializeTestProvider = async(options = {}, provider = null) => {
-  provider = provider || Ganache.provider(options);
+  provider = provider || options.provider || Ganache.provider(options);
   const send = generateSend(provider);
   const web3 = new Web3(provider);
   const accounts = await web3.eth.getAccounts();

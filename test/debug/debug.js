@@ -10,7 +10,6 @@ var Ganache = require(process.env.TEST_BUILD
 process.removeAllListeners("uncaughtException");
 
 function test(forked) {
-  let options = {};
   let context;
   const mnemonic = "sweet candy treat";
   const gas = 3141592;
@@ -18,7 +17,15 @@ function test(forked) {
   let multipleCallsHashToTrace = null;
   const expectedValueBeforeTrace = "1234";
   const val = "26";
-  const forkedTargetUrl = "ws://localhost:21345";
+  const targetPort = 21345;
+  const forkedTargetUrl = "ws://localhost:" + targetPort;
+  let forkedTransactionHash;
+  let mainContext;
+
+  const contractRef = {
+    contractFiles: ["DebugContract"],
+    contractSubdirectory: "debug"
+  };
 
   // steps:
 
@@ -34,29 +41,49 @@ function test(forked) {
   */
 
   if (forked) {
-    let forkedServer;
     before("init forkedServer", async function() {
-      forkedServer = Ganache.server({
+      this.timeout(10000);
+
+      const contractRef = {
+        contractFiles: ["DebugContract"],
+        contractSubdirectory: "debug"
+      };
+
+      let forkedServer = Ganache.server({ mnemonic });
+      await promisify(forkedServer.listen)(targetPort);
+      mainContext = await bootstrap(contractRef, {
+        provider: forkedServer.provider,
         mnemonic
       });
-      await promisify(forkedServer.listen)(21345);
+      mainContext.server = forkedServer;
+    });
+    before("set up transaction that should be traced", async() => {
+      const { accounts, instance } = mainContext;
+      const options = { from: accounts[0], gas };
+
+      const result = await instance.methods.setValue(val).send(options);
+
+      forkedTransactionHash = result.transactionHash;
     });
     after("shutdown forkedServer", () => {
-      forkedServer.close();
+      mainContext.server.close();
     });
   }
 
   before("set up web3 and contract", async function() {
     this.timeout(10000);
-    const contractRef = {
-      contractFiles: ["DebugContract"],
-      contractSubdirectory: "debug"
-    };
-    const options = forked ? { fork: forkedTargetUrl.replace("ws", "http"), mnemonic } : { mnemonic };
+    // forked = false;
+    const options = forked
+      ? {
+        fork: forkedTargetUrl.replace("ws", "http"),
+        unlocked_accounts: mainContext.accounts
+      }
+      : { mnemonic };
     context = await bootstrap(contractRef, options);
   });
 
   describe("Trace a successful transaction", function() {
+    let options;
     before("set up transaction that should be traced", async() => {
       const { accounts, instance } = context;
       options = { from: accounts[0], gas };
@@ -129,7 +156,32 @@ function test(forked) {
     });
   });
 
+  if (forked) {
+    describe("Trace a transaction on the main chain through the forked chain", function() {
+      before("Increment nonce on original chain", async() => {
+        // we need to make sure we trace the transaction at the correct block number
+        // with the right state root. By incrementing the nonce we can ensure
+        // we don't try to read off the main chain at after the fork.
+        const { send, accounts } = mainContext;
+
+        // increment the account's nonce on the main chain by sending a transaction
+        await send("eth_sendTransaction", {
+          from: accounts[0],
+          to: accounts[1],
+          value: 100,
+          gas
+        });
+      });
+
+      it("traces it", async() => {
+        const result = await context.send("debug_traceTransaction", forkedTransactionHash, []);
+        assert(result, "Result should be defined");
+      });
+    });
+  }
+
   describe("Trace a successful transaction with multiple calls", function() {
+    let options;
     before("set up transaction with multiple calls to the same contract to be traced", async() => {
       const { accounts, instance } = context;
       options = { from: accounts[0], gas };
