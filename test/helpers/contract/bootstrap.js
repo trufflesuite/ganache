@@ -12,7 +12,7 @@ const bootstrap = async(contractRef = {}, options = {}) => {
   const [mainContractName, ...subContractNames] = contractFiles;
   const testAssets = await compileAndDeploy(mainContractName, subContractNames, contractSubdirectory, web3, accounts);
 
-  return Object.assign({ provider, send, web3, accounts }, testAssets);
+  return Object.assign({ provider, send, web3 }, testAssets);
 };
 
 module.exports = bootstrap;
