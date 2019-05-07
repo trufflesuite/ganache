@@ -2,39 +2,42 @@ import { Block } from "../../ledgers/ethereum/components/block-manager"
 import params from "../../types/params";
 import Heap from "../../utils/heap";
 import Transaction from "../../types/transaction";
-import { JsonRpcQuantity, JsonRpcData } from "../../types/json-rpc";
+import { Quantity, Data } from "../../types/json-rpc";
 import { promisify } from "util";
 import Trie from "merkle-patricia-tree";
 import { rlp } from "ethereumjs-util";
+import Emittery = require("emittery");
 
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
 function replaceFromHeap(priced: Heap<Transaction>, source: Heap<Transaction>, pending: Map<string, Heap<Transaction>>, key: string) {
-  // get the next best for this account:
-  const next = source.peek();
+  // get the next best for this account, removing from the source Heap:
+  const next = source.shift();
   if (next) {
-    // remove the current best priced transaction from this 
+    // remove the current best priced transaction from this
     // account and replace it with the account's next lowest
     // nonce transaction:
     priced.replaceBest(next);
   } else {
     // since we don't have a next, just remove this item from
-    // priced and delete the Heap from `pending` as it is now
-    // empty.
-    pending.delete(key)
+    // priced
     priced.removeBest();
   }
 }
 
 type MinerOptions = {
-  gasLimit?: JsonRpcQuantity
+  gasLimit?: Quantity
 }
 
 function byPrice(values: Transaction[], a: number, b: number) {
-  return JsonRpcQuantity.from(values[a].gasPrice) > JsonRpcQuantity.from(values[b].gasPrice);
+  return Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 }
 
-export default class Miner {
+export default class Miner extends Emittery {
+  private currentlyExecutingPrice = 0n;
+  private origins = new Set<string>();
+  private pending: Map<string, Heap<Transaction>>;
+  private _isMining: boolean = false;
   private readonly options: MinerOptions;
   private readonly vm: any
   private readonly _runTx: ({ tx: { } }) => Promise<any>;
@@ -43,8 +46,9 @@ export default class Miner {
   private readonly _revert: () => Promise<any>;
 
   // initialize a Heap that sorts by gasPrice
-  private readonly priced = new Heap<Transaction>(byPrice);;
+  private readonly priced = new Heap<Transaction>(byPrice);
   constructor(vm: any, options: MinerOptions) {
+    super();
     this.vm = vm;
     this.options = options;
     this._runTx = promisify(vm.runTx.bind(vm));
@@ -56,6 +60,7 @@ export default class Miner {
     // init the heap with an empty array
     this.priced.init([]);
   }
+
   /**
    * 
    * @param pending A live Map of pending transactions from the transaction
@@ -66,50 +71,80 @@ export default class Miner {
    * the pending pool to be eligible for mining in the future.
    */
   public async mine(pending: Map<string, Heap<Transaction>>) {
-    const priced = this.priced;
-    const blockTransactions: any[] = [];
-    for (let mapping of pending) {
-      const next = mapping[1].peek();
-      if (next) {
-        priced.push(next);
-      }
+    // only allow mining a single block at a time (per miner)
+    if (this._isMining) {
+      // if we are currently mining a block, set the `pending` property
+      // so the miner knows it should immediately mine another block once it is
+      //  done with its current work.
+      this.pending = pending;
+      this.updatePricedHeap(pending);
+      return;
+    } else {
+      this.setPricedHeap(pending);
     }
+    this._isMining = true;
+
+    const blockTransactions: Transaction[] = [];
 
     let blockGasLeft = this.options.gasLimit.toBigInt();
-    let best: Transaction;
+    
     let counter = 0;
-    const transactionTrie = new Trie(null, null);
+    const transactionsTrie = new Trie(null, null);
     const receiptTrie = new Trie(null, null);
     const promises: Promise<any>[] = [];
-    // Run until we run out of items, or until the inner loop stops us
+
+    await this._checkpoint();
+
+    const priced = this.priced;
+    const rejectedTransactions: Transaction[] = [];
+    let best: Transaction;
+    // Run until we run out of items, or until the inner loop stops us.
+    // we don't call `shift()` here because we will will probably need to
+    // `replace`this top transaction with the next top transaction from the same
+    // origin.
     while (best = priced.peek()) {
       // if the current best transaction can't possibly fit in this block
       // go ahead and run the next best transaction, ignoring all other
-      // pending transactions from this account.
+      // pending transactions from this account for this block.
       if (best.calculateIntrinsicGas() > blockGasLeft) {
         priced.removeBest();
+        rejectedTransactions.push(best);
         continue;
       }
-      const origin = JsonRpcData.from(best.from).toString();
+
+      const origin = Data.from(best.from).toString();
       const pendingFromOrigin = pending.get(origin);
 
       const runArgs = {
         tx: best
       };
+      this.currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
       await this._checkpoint();
       const result = await this._runTx(runArgs).catch((err: Error) => ({ err }));
+      // await new Promise((resolve)=>setTimeout(resolve, 2000));
       if (result.err) {
         await this._revert();
         const errorMessage = result.err.message;
         if (errorMessage.startsWith("the tx doesn't have the correct nonce. account has nonce of: ")) {
-          // update `priced` with the next best for this account:
+          // a race condition between the pool and the miner could potentially
+          // cause this issue.
+          // We do NOT want to re-run this transaction.
+          // Update the `priced` heap with the next best transaction from this
+          // account
           replaceFromHeap(priced, pendingFromOrigin, pending, origin);
+
+          // TODO: how do we surface this error to the caller?
+          throw result.err;
+        } else {
+          // TODO: handle all other errors!
+          // TODO: how do we surface this error to the caller?
+          throw result.err;
         }
         continue;
       }
-
       await this._commit();
-      const gasUsed = JsonRpcQuantity.from(result.gasUsed.toBuffer()).toBigInt();
+
+      const gasUsed = Quantity.from(result.gasUsed.toBuffer()).toBigInt();
       if (blockGasLeft >= gasUsed) {
         blockGasLeft -= gasUsed;
 
@@ -125,41 +160,112 @@ export default class Miner {
           txLogs
         ];
         const rcptBuffer = rlp.encode(rawReceipt);
-        const key = rlp.encode(counter);
-        promises.push(putInTrie(transactionTrie, key, best.serialize()));
+        const key = rlp.encode(counter++);
+        promises.push(putInTrie(transactionsTrie, key, best.serialize()));
         promises.push(putInTrie(receiptTrie, key, rcptBuffer));
 
-        // remove the current (`best`) item from the pending queue as we
+        // remove the current (`best`) item from the live pending queue as we
         // now know it will fit in the block.
-        pendingFromOrigin.removeBest();
-
-        // We've found ourselves a block. Yeehaw!
         blockTransactions.push(best);
 
-        await promises;
-
-        // if we don't have enough gas for even the smallest of
-        // transactions we're done, clear `priced` & break the loop
+        // if we don't have enough gas left for even the smallest of
+        // transactions we're done
         if (blockGasLeft <= params.TRANSACTION_GAS) {
-          // we ran out of space, so let's clear 
-          priced.clear();
           break;
         }
 
         // update `priced` with the next best for this account:
         replaceFromHeap(priced, pendingFromOrigin, pending, origin);
       } else {
-        // didn't fit. remove it from the priced transactions
-        // without replacing it with another from the account.
+        // didn't fit. remove it from the priced transactions without replacing
+        // it with another from the account. This transaction will have to be
+        // run again in the next block.
         priced.removeBest();
+        rejectedTransactions.push(best);
       }
     }
+    await Promise.all([promises, this._commit()]);
 
-    this.finalizeBlock(blockTransactions, transactionTrie, receiptTrie);
+    // put the rejected transactions back in their original origin heaps
+    rejectedTransactions.forEach(transaction => {
+      // TODO: this transaction should probably be validated again...?
+      console.log(transaction);
+    });
+
+    this.emit("block", {
+      blockTransactions,
+      transactionsTrie,
+      receiptTrie
+    });
+
+    // reset the miner
+    this.reset();
+
+    if (this.pending) {
+      this.mine(this.pending);
+      this.pending = null;
+    }
+  }
+  
+  private reset(){
+    this.origins.clear();
+    this.priced.clear();
+    this._isMining = false;
+    this.currentlyExecutingPrice = 0n;
   }
 
-  private async finalizeBlock(blockTransactions: Transaction[], transactionTrie: Trie, receiptTrie: Trie): Promise<Block> {
-    // TODO: create the block and save it to the database
-    return new Block(Buffer.from([0]), null);
+  private setPricedHeap(pending: Map<string, Heap<Transaction>>) {
+    const origins = this.origins;
+    const priced = this.priced;
+
+    for (let mapping of pending) {
+      const heap = mapping[1];
+      const next = heap.shift();
+      if (next) {
+        const origin = Data.from(next.from).toString();
+        origins.add(origin);
+        priced.push(next);
+      }
+    }
   }
+
+  private updatePricedHeap(pending: Map<string, Heap<Transaction>>) {
+    const origins = this.origins;
+    const priced = this.priced;
+    // Note: the `pending` Map passed here is "live", meaning it is constantly
+    // being updated by the `transactionPool`. This allows us to begin
+    // processing a block with the _current_ pending transactions, and while
+    // that is processing, to receive new transactions
+    // updated out `priced` heap with new pending transactions
+    for (let mapping of pending) {
+      const heap = mapping[1];
+      const next = heap.peek();
+      if (next) {
+        const price = Quantity.from(next.gasPrice).toBigInt();
+        if (this.currentlyExecutingPrice < price) {
+          // don't insert a tranaction into the miner's `priced` heap
+          // if it will be better than it's last 
+          continue;
+        }
+        const origin = Data.from(next.from).toString();
+        if (origins.has(origin)) {
+          // don't insert a transaction into the miner's `priced` heap if it
+          // has already queued up transactions for that origin
+          continue;
+        }
+        origins.add(origin);
+        priced.push(next);
+        heap.removeBest();
+      }
+    }
+  }
+  // private async finalizeBlock(blockTransactions: Transaction[], transactionTrie: Trie, receiptTrie: Trie) {
+  //   this.emit("block", {
+  //     blockTransactions,
+  //     transactionTrie,
+  //     receiptTrie
+  //   })
+  //   // TODO: create the block and save it to the database
+  //   //return new Block(Buffer.from([0]), null);
+  // }
 }

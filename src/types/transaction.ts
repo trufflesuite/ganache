@@ -1,12 +1,12 @@
 import Errors from "./errors"
-import { JsonRpcData } from "./json-rpc/json-rpc-data";
-import { JsonRpcQuantity } from "./json-rpc";
+import { Data } from "./json-rpc/json-rpc-data";
+import { Quantity } from "./json-rpc";
 import params from "./params";
 
 const MAX_UINT64 = (1n << 64n) - 1n;
 
 
-// import { JsonRpcData, JsonRpcQuantity } from "./json-rpc";
+// import { Data, Quantity } from "./json-rpc";
 // import Address from "./address";
 
 // type TransactionDataObject = {
@@ -27,55 +27,55 @@ const MAX_UINT64 = (1n << 64n) - 1n;
 // }
 
 // type TransactionData = {
-//     blockHash: JsonRpcData,
-//     blockNumber: JsonRpcData,
+//     blockHash: Data,
+//     blockNumber: Data,
 //     from: Address,
-//     gas: JsonRpcQuantity,
-//     gasPrice:  JsonRpcQuantity,
-//     hash: JsonRpcData,
-//     input: JsonRpcData,
-//     nonce:  JsonRpcQuantity,
+//     gas: Quantity,
+//     gasPrice:  Quantity,
+//     hash: Data,
+//     input: Data,
+//     nonce:  Quantity,
 //     to: Address,
-//     transactionIndex: JsonRpcQuantity,
-//     value: JsonRpcQuantity,
-//     v: JsonRpcQuantity,
-//     r: JsonRpcData,
-//     s: JsonRpcData
+//     transactionIndex: Quantity,
+//     value: Quantity,
+//     v: Quantity,
+//     r: Data,
+//     s: Data
 // }
 
 // export default class Transaction implements TransactionData {
-//     blockHash: JsonRpcData<string | Buffer>;
-//     blockNumber: JsonRpcData<string | Buffer>;
-//     from: JsonRpcData<string | Buffer>;
-//     gas: JsonRpcQuantity<string | bigint | Buffer>;
-//     gasPrice: JsonRpcQuantity<string | bigint | Buffer>;
-//     get hash(): JsonRpcData {
-//         return new JsonRpcData("0x123");
+//     blockHash: Data<string | Buffer>;
+//     blockNumber: Data<string | Buffer>;
+//     from: Data<string | Buffer>;
+//     gas: Quantity<string | bigint | Buffer>;
+//     gasPrice: Quantity<string | bigint | Buffer>;
+//     get hash(): Data {
+//         return new Data("0x123");
 //     };
-//     input: JsonRpcData<string | Buffer>;
-//     nonce: JsonRpcQuantity<string | bigint | Buffer>;
-//     to: JsonRpcData<string | Buffer>;
-//     transactionIndex: JsonRpcQuantity<string | bigint | Buffer>;
-//     value: JsonRpcQuantity<string | bigint | Buffer>;
-//     v: JsonRpcQuantity<string | bigint | Buffer>;
-//     r: JsonRpcData<string | Buffer>;
-//     s: JsonRpcData<string | Buffer>;
+//     input: Data<string | Buffer>;
+//     nonce: Quantity<string | bigint | Buffer>;
+//     to: Data<string | Buffer>;
+//     transactionIndex: Quantity<string | bigint | Buffer>;
+//     value: Quantity<string | bigint | Buffer>;
+//     v: Quantity<string | bigint | Buffer>;
+//     r: Data<string | Buffer>;
+//     s: Data<string | Buffer>;
 //     constructor(transaction: TransactionData) {
 // const obj =  {
-//     blockHash: JsonRpcData.from("0x123456", 32), // 32 Bytes - hash of the block where this transaction was in. null when its pending.
-//     blockNumber:  JsonRpcQuantity.from(123n),// QUANTITY - block number where this transaction was in. null when its pending.
-//     from: JsonRpcData.from("0x123456", 32), // 20 Bytes - address of the sender.
-//     gas: JsonRpcQuantity.from(123n),// QUANTITY - gas provided by the sender.
-//     gasPrice:  JsonRpcQuantity.from(123n),// QUANTITY - gas price provided by the sender in Wei.
-//     hash: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - hash of the transaction.
-//     input: JsonRpcData.from("0x123"),// DATA - the data send along with the transaction.
-//     nonce:  JsonRpcQuantity.from(123456n),// QUANTITY - the number of transactions made by the sender prior to this one.
-//     to: JsonRpcData.from("0x123456", 20),// DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
-//     transactionIndex: JsonRpcQuantity.from(99n),// QUANTITY - integer of the transaction's index position in the block. null when its pending.
-//     value: JsonRpcQuantity.from(123n),// QUANTITY - value transferred in Wei.
-//     v: JsonRpcQuantity.from(Buffer.from([27])), // QUANTITY - ECDSA recovery id
-//     r: JsonRpcData.from(Buffer.from([12,34,46]), 32),// DATA, 32 Bytes - ECDSA signature r
-//     s: JsonRpcData.from("0x123456", 32),// DATA, 32 Bytes - ECDSA signature s
+//     blockHash: Data.from("0x123456", 32), // 32 Bytes - hash of the block where this transaction was in. null when its pending.
+//     blockNumber:  Quantity.from(123n),// QUANTITY - block number where this transaction was in. null when its pending.
+//     from: Data.from("0x123456", 32), // 20 Bytes - address of the sender.
+//     gas: Quantity.from(123n),// QUANTITY - gas provided by the sender.
+//     gasPrice:  Quantity.from(123n),// QUANTITY - gas price provided by the sender in Wei.
+//     hash: Data.from("0x123456", 32),// DATA, 32 Bytes - hash of the transaction.
+//     input: Data.from("0x123"),// DATA - the data send along with the transaction.
+//     nonce:  Quantity.from(123456n),// QUANTITY - the number of transactions made by the sender prior to this one.
+//     to: Data.from("0x123456", 20),// DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
+//     transactionIndex: Quantity.from(99n),// QUANTITY - integer of the transaction's index position in the block. null when its pending.
+//     value: Quantity.from(123n),// QUANTITY - value transferred in Wei.
+//     v: Quantity.from(Buffer.from([27])), // QUANTITY - ECDSA recovery id
+//     r: Data.from(Buffer.from([12,34,46]), 32),// DATA, 32 Bytes - ECDSA signature r
+//     s: Data.from("0x123456", 32),// DATA, 32 Bytes - ECDSA signature s
 // } as any;
 //         Object.keys(obj).forEach((key) => {
 //             (this as any)[key] = obj[key] as any;
@@ -213,7 +213,7 @@ function fixProps(tx: any, data: any) {
 function initData(tx: any, data: any) {
   if (data) {
     if (typeof data === "string") {
-      data = JsonRpcData.from(data).toBuffer();
+      data = Data.from(data).toBuffer();
       data = rlp.decode(data);
     } else if (Buffer.isBuffer(data)) {
       data = rlp.decode(data);
@@ -282,9 +282,9 @@ export default class Transaction extends EthereumJsTransaction {
   }
 
   cost(): bigint {
-    return JsonRpcQuantity.from(this.gasPrice).toBigInt()
-      * JsonRpcQuantity.from(this.gas).toBigInt()
-      + JsonRpcQuantity.from(this.value).toBigInt();
+    return Quantity.from(this.gasPrice).toBigInt()
+      * Quantity.from(this.gas).toBigInt()
+      + Quantity.from(this.value).toBigInt();
   }
 
   /**
@@ -332,7 +332,7 @@ export default class Transaction extends EthereumJsTransaction {
     let toAccount;
     if (json.to) {
       // Remove all padding and make it easily comparible.
-      const buf = JsonRpcData.from(json.to).toBuffer();
+      const buf = Data.from(json.to).toBuffer();
 
       if (buf.equals(BUFFER_ZERO)) {
         // if the address is 0x0 make it 0x0{20}
@@ -343,20 +343,20 @@ export default class Transaction extends EthereumJsTransaction {
     }
     const data = json.data || json.input;
     const options = {
-      nonce: JsonRpcData.from(json.nonce).toBuffer(),
-      from: JsonRpcData.from(json.from).toBuffer(),
-      value: JsonRpcQuantity.from(json.value).toBuffer(),
-      gasLimit: JsonRpcQuantity.from(json.gas || json.gasLimit).toBuffer(),
-      gasPrice: JsonRpcQuantity.from(json.gasPrice).toBuffer(),
-      data: data ? JsonRpcData.from(data).toBuffer() : null,
+      nonce: Data.from(json.nonce).toBuffer(),
+      from: Data.from(json.from).toBuffer(),
+      value: Quantity.from(json.value).toBuffer(),
+      gasLimit: Quantity.from(json.gas || json.gasLimit).toBuffer(),
+      gasPrice: Quantity.from(json.gasPrice).toBuffer(),
+      data: data ? Data.from(data).toBuffer() : null,
       to: toAccount,
-      v: JsonRpcData.from(json.v).toBuffer(),
-      r: JsonRpcData.from(json.r).toBuffer(),
-      s: JsonRpcData.from(json.s).toBuffer()
+      v: Data.from(json.v).toBuffer(),
+      r: Data.from(json.r).toBuffer(),
+      s: Data.from(json.s).toBuffer()
     };
 
     const tx = new Transaction(options, type);
-    tx._hash = json.hash ? JsonRpcData.from(json.hash).toBuffer() : null;
+    tx._hash = json.hash ? Data.from(json.hash).toBuffer() : null;
     return tx;
   }
 
@@ -366,17 +366,17 @@ export default class Transaction extends EthereumJsTransaction {
    */
   encode() {
     const resultJSON = {
-      hash: JsonRpcData.from(this.hash()).toString(),
-      nonce: JsonRpcQuantity.from(this.nonce).toString() || "0x",
-      from: JsonRpcData.from(this.from).toString(),
-      to: JsonRpcData.from(this.to).toString(),
-      value: JsonRpcQuantity.from(this.value).toString(),
-      gas: JsonRpcQuantity.from(this.gasLimit).toString(),
-      gasPrice: JsonRpcQuantity.from(this.gasPrice).toString(),
+      hash: Data.from(this.hash()).toString(),
+      nonce: Quantity.from(this.nonce).toString() || "0x",
+      from: Data.from(this.from).toString(),
+      to: Data.from(this.to).toString(),
+      value: Quantity.from(this.value).toString(),
+      gas: Quantity.from(this.gasLimit).toString(),
+      gasPrice: Quantity.from(this.gasPrice).toString(),
       data: this.data ? this.data.toString("hex") : null,
-      v: JsonRpcData.from(this.v).toString(),
-      r: JsonRpcData.from(this.r).toString(),
-      s: JsonRpcData.from(this.s).toString(),
+      v: Data.from(this.v).toString(),
+      r: Data.from(this.r).toString(),
+      s: Data.from(this.s).toString(),
       _type: this.type
     };
     return resultJSON;
@@ -435,20 +435,20 @@ export default class Transaction extends EthereumJsTransaction {
     }
 
     const resultJSON = {
-      hash: JsonRpcData.from(hash).toString(),
-      nonce: JsonRpcQuantity.from(this.nonce).toString(),
-      blockHash: JsonRpcData.from(block.hash()).toString(),
-      blockNumber: JsonRpcData.from(block.header.number).toString(),
-      transactionIndex: JsonRpcQuantity.from(BigInt(transactionIndex)).toString(),
-      from: JsonRpcData.from(this.from).toString(),
-      to: JsonRpcData.from(this.to).toString(),
-      value: JsonRpcQuantity.from(this.value).toString(),
-      gas: JsonRpcQuantity.from(this.gasLimit).toString(),
-      gasPrice: JsonRpcQuantity.from(this.gasPrice).toString(),
-      input: JsonRpcData.from(this.data).toString(), // TODO: this output format probably needs the 0x stripped.
-      v: JsonRpcData.from(this.v).toString(),
-      r: JsonRpcData.from(this.r).toString(),
-      s: JsonRpcData.from(this.s).toString()
+      hash: Data.from(hash).toString(),
+      nonce: Quantity.from(this.nonce).toString(),
+      blockHash: Data.from(block.hash()).toString(),
+      blockNumber: Data.from(block.header.number).toString(),
+      transactionIndex: Quantity.from(BigInt(transactionIndex)).toString(),
+      from: Data.from(this.from).toString(),
+      to: Data.from(this.to).toString(),
+      value: Quantity.from(this.value).toString(),
+      gas: Quantity.from(this.gasLimit).toString(),
+      gasPrice: Quantity.from(this.gasPrice).toString(),
+      input: Data.from(this.data).toString(), // TODO: this output format probably needs the 0x stripped.
+      v: Data.from(this.v).toString(),
+      r: Data.from(this.r).toString(),
+      s: Data.from(this.s).toString()
     };
 
     return resultJSON;

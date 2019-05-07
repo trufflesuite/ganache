@@ -53,7 +53,8 @@ class Heap<T> {
   /**
    * Removes and returns the element with the highest priority from the heap.
    * The complexity is O(log n) where n = this.size().
-   * @returns the element with the highest priority
+   * @returns the element with the highest priority. returns `undefined` if
+   * there are no more elements in the heap.
    */
   public shift(): T {
     const length = this.length;
@@ -122,14 +123,17 @@ class Heap<T> {
   /**
    * Removes the element with the highest priority from the heap
    * The complexity is O(log n) where n = this.size().
+   * @returns `true` when there are more elements in the queue, `false` when the
+   * last element was just removed. Calling `removeBest` when there are no more
+   * elements in the queue will return `true`. So don't do that.
    */
   public removeBest() {
     const array = this.array;
     const length = this.length;
     if (length === 1) {
-        // finally, clear the array	
-        this.length = array.length = 0		
-        return;		
+        // finally, clear the array
+        this.length = array.length = 0;
+        return false;
     }
 
     const newLength = --this.length;
@@ -137,6 +141,7 @@ class Heap<T> {
     array[0] = array[newLength];
     // then sort from the new first element to the second to last element
     this.down(0, newLength);
+    return true;
   }
 
   /**
@@ -188,6 +193,13 @@ class Heap<T> {
     const first = array[i];
     array[i] = array[j];
     array[j] = first;
+  }
+
+  public static from<T>(item: T, less: Comparator<T>){
+    const heap = new Heap<T>(less);
+    heap.array = [item];
+    heap.length = 1;
+    return heap;
   }
 }
 

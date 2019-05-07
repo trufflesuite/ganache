@@ -18,6 +18,33 @@ describe("provider", () => {
     assert.strictEqual(balance, "0x056bc75e2d63100000", "Heyo!");
   })
   it.only("sends a transaction", async () => {
+    const accounts = await p.send("eth_accounts");
+    const to = accounts[accounts.length - 1];
+
+    await p.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: to,
+      value: 10_000,
+      nonce: 0,
+      gasPrice: 100
+    }]);
+    await p.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: to,
+      value: 20_000,
+      nonce: 0,
+      gasPrice: 200
+    }]);
+    await p.send("eth_sendTransaction", [{
+      from: accounts[2],
+      to: to,
+      value: 30_000,
+      nonce: 0,
+      gasPrice: 300
+    }]);
+
+  });
+  it("sends a transaction", async () => {
     const seedrandom = require("seedrandom");
     const rand = seedrandom("sup");
     const accounts = await p.send("eth_accounts");

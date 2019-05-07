@@ -1,7 +1,7 @@
-import {IndexableJsonRpcType, JsonRpcData} from "./json-rpc";
+import {IndexableJsonRpcType, Data} from "./json-rpc";
 
-const Address = JsonRpcData;
+const Address = Data;
 
-interface Address extends JsonRpcData {}
+interface Address extends Data {}
 export type IndexableAddress = Address & IndexableJsonRpcType;
 export default Address;

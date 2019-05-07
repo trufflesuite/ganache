@@ -2,197 +2,193 @@ import Emittery from "emittery";
 import Blockchain from "../blockchain";
 import Heap from "../../../utils/heap";
 import Transaction from "../../../types/transaction";
-import { JsonRpcData, JsonRpcQuantity } from "../../../types/json-rpc";
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "constants";
+import { Data, Quantity } from "../../../types/json-rpc";
 
 export type TransactionPoolOptions = {
-    gasPrice?: JsonRpcQuantity,
-    gasLimit?: JsonRpcQuantity
+  gasPrice?: Quantity,
+  gasLimit?: Quantity
 };
 
 function byNonce(values: Transaction[], a: number, b: number) {
-    return (JsonRpcQuantity.from(values[b].nonce).toBigInt() || 0n) > (JsonRpcQuantity.from(values[a].nonce).toBigInt() || 0n);
+  return (Quantity.from(values[b].nonce).toBigInt() || 0n) > (Quantity.from(values[a].nonce).toBigInt() || 0n);
 }
 
 export default class TransactionPool extends Emittery {
-    private options: TransactionPoolOptions;
+  private options: TransactionPoolOptions;
 
-    /**
-     * Minimum gas price to enforce for acceptance into the pool
-     */
-    public priceLimit: number = 1
+  /**
+   * Minimum gas price to enforce for acceptance into the pool
+   */
+  public priceLimit: number = 0
 
-    /**
-     * Minimum price bump percentage to replace an already existing transaction (nonce)
-     */
-	public priceBump: number = 10
+  /**
+   * Minimum price bump percentage to replace an already existing transaction (nonce)
+   */
+  public priceBump: bigint = 10n
 
-    /**
-     * Number of executable transaction slots guaranteed per account
-     */
-    public accountSlots: number = 16
-    
-    /**
-     * Maximum number of executable transaction slots for all accounts
-     */
-    public globalSlots: number = 4096
+  private blockchain: Blockchain;
+  constructor(blockchain: Blockchain, options: TransactionPoolOptions) {
+    super();
+    this.blockchain = blockchain;
+    this.options = options;
+  }
+  public executables: Map<string, Heap<Transaction>> = new Map();
+  private origins: Map<string, Heap<Transaction>> = new Map();
 
-    /**
-     * Maximum number of non-executable transaction slots permitted per account
-     */
-    public accountQueue: number = 64
+  public async insert(transaction: Transaction) {
+    let err: Error;
 
-    /**
-     * Maximum number of non-executable transaction slots for all accounts
-     */
-	public globalQueue: number = 1024
-
-    /**
-     * Maximum amount of time non-executable transaction are queued, in milliseconds
-     */
-    public lifetime: number = 3  * 24 * 60 * 60 * 1000
-    
-    private blockchain: Blockchain;
-    constructor(blockchain: Blockchain, options: TransactionPoolOptions) {
-        super();
-        this.blockchain = blockchain;
-        this.options = options;
+    err = this.validateTransaction(transaction);
+    if (err != null) {
+      throw err;
     }
-    public length: number;
-    private hashes = new Set<string>();
-    public pending: Map<string, Heap<Transaction>> = new Map();
-    private origins: Map<string, Heap<Transaction>> = new Map();
-    
-    public async insert(transaction: Transaction) {
-        const hash = transaction.hash().toString();
 
-        // if this transaction is a duplicate, discard it
-        if (this.hashes.has(hash)) {
-            throw new Error(`known transaction: ${hash}`);
+    const from = Data.from(transaction.from);
+    const transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
+
+    const origin = from.toString();
+    const origins = this.origins;
+    let queuedOriginTransactions = origins.get(origin);
+
+    let isExecutableTransaction = false;
+    const executables = this.executables;
+    let executableOriginTransactions = executables.get(origin);
+
+    if (executableOriginTransactions) {
+      // check if a transaction with the same nonce is in the origin's
+      // executables queue already. Replace the matching transaction or throw this
+      // new transaction away as neccessary.
+      const pendingArray = executableOriginTransactions.array;
+      const priceBump = this.priceBump;
+      const newGasPrice = Quantity.from(transaction.gasPrice).toBigInt()
+      // Notice: we're iterating over the raw heap array, which isn't
+      // neccessarily sorted
+      for (let i = 0, l = executableOriginTransactions.length; i < l; i++) {
+        const currentPendingTx = pendingArray[i];
+        const thisNonce = Quantity.from(currentPendingTx.nonce).toBigInt();
+        if (thisNonce === transactionNonce) {
+          const gasPrice = Quantity.from(currentPendingTx.gasPrice).toBigInt();
+          const thisPricePremium = gasPrice + ((gasPrice * priceBump) / 100n);
+
+          // TODO: how do we surface these transaction failures to the caller?!
+
+          // if our new price is `thisPrice * priceBumpPercent` better than our
+          // oldPrice, throw out the old now.
+          if (newGasPrice > thisPricePremium) {
+            isExecutableTransaction = true;
+            // do an in-place replace without triggering a resort because we
+            // already known where this tranassction should go in this byNonce
+            // heap.
+            executableOriginTransactions.array[i] = transaction;
+            throw new Error("That old transaction sucked, yo!");
+          } else {
+            throw new Error("That new transaction sucked, yo!");
+          }
+          break;
         }
+      }
+    }
 
-        let err: Error;
-        err = this.validateTransaction(transaction);
-        if (err != null) {
-            throw err;
-        }
+    const transactor = await this.blockchain.accounts.get(from);
+    err = await this.validateTransactor(transaction, transactor);
+    if (err != null) {
+      throw err;
+    }
 
-        const from = JsonRpcData.from(transaction.from);
+    if (!isExecutableTransaction) {
+      // If the transaction wasn't foudn in our origin's executables queue,
+      // check if it is at the correct `nonce` by looking up the origin's
+      // current nonce
+      const transactorNextNonce = (transactor.nonce.toBigInt() || 0n) + 1n;
+      isExecutableTransaction = transactorNextNonce === transactionNonce;
+    }
 
-        const origin = from.toString();
-        const orgins = this.origins;
-        let queuedOriginTransactions = orgins.get(origin);
+    // if it is executable add it to the executables queue
+    if (isExecutableTransaction) {
+      if (executableOriginTransactions) {
+        executableOriginTransactions.push(transaction);
+      } else {
+        // if we don't yet have a executables queue for this origin make one now
+        executableOriginTransactions = Heap.from(transaction, byNonce);
+        executables.set(origin, executableOriginTransactions);
+      }
 
-        // TODO: If the transaction pool is full, discard underpriced transactions
-        if (this.length >= this.globalSlots + this.globalQueue) {
-            // TODO: If the new transaction is underpriced, don't accept it
-            // TODO: if the new transaction is better than our worse one, make
-            //   room for it by discarding a cheaper transaction
-        }
-        // TODO: if the transaction is replacing an already pending transaction,
-        //  do it now...
-        // a transaction can replace a *pending* transaction if the new tx's
-        //  nonce matches the pending nonce 
-        // AND the new tx's gasPrice is `this.priceBump` greater than the
-        //  pending tx's.
-
-
-        
-        const transactor = await this.blockchain.accounts.get(from);
-        err = await this.validateTransactor(transaction, transactor);
-        if (err != null) {
-            throw err;
-        }
-
-        // If a transaction is at the correct `nonce` it is executable.
-        const transactionNonce = JsonRpcQuantity.from(transaction.nonce).toBigInt() || 0n;
-        let transactorNonce = transactor.nonce.toBigInt();
-        if (transactorNonce == null) {
-            transactorNonce = -1n;
-        }
-        if (transactorNonce + 1n === transactionNonce) {
-            // we need to pull out the origin's transactions that are now executable
-            // from the `pendingOriginTransactions`, if it is available
-            const pending = this.pending;
-            let pendingOriginTransactions = pending.get(origin);
-            if (!pendingOriginTransactions) {
-                pendingOriginTransactions = new Heap<Transaction>(byNonce);
-                pendingOriginTransactions.array = [transaction];
-                pendingOriginTransactions.length = 1;
-                pending.set(origin, pendingOriginTransactions);
+      // Now we need to drain any queued transacions that were previously
+      // not executable due to nonce gaps into the origin's queue...
+      if (queuedOriginTransactions) {
+        let nextExpectedNonce: bigint = transactionNonce + 1n;
+        while (true) {
+          const nextTx = queuedOriginTransactions.peek();
+          const nextTxNonce = Quantity.from(nextTx.nonce).toBigInt() || 0n;
+          if (nextTxNonce !== nextExpectedNonce) {
+            break;
+          } else {
+            // we've got a an executable nonce! Put it in the executables queue.
+            executableOriginTransactions.push(nextTx);
+            // And then remove this transaction from its origin's queue
+            if (queuedOriginTransactions.removeBest()) {
+              nextExpectedNonce += 1n;
             } else {
-                pendingOriginTransactions.push(transaction);
+              // removeBest() returns `false` when there are no more items after
+              // the remove item. Let's do some cleanup when that happens
+              origins.delete(origin);
+              break;
             }
-            if (queuedOriginTransactions) {
-                let nextTransaction: any;
-                let nextNonce: bigint = transactionNonce;
-                while (nextTransaction = queuedOriginTransactions.peek()) {
-                    nextNonce += 1n;
-                    const nextTxNonce = JsonRpcQuantity.from(nextTransaction.nonce).toBigInt() || 0n;
-                    if (nextTxNonce !== nextNonce) {
-                        break;
-                    } else {
-                        pendingOriginTransactions.push(nextTransaction);
-                        // remove this transaction from the queue
-                        queuedOriginTransactions.removeBest();
-                    }
-                }
-            }
-            // notify miner that we have pending transactions ready for it
-            this.emit("drain", pending);
-            return;
+          }
         }
+      }
 
-        // TODO: if we got here we have a transaction that *isn't* executable
-        // insert the transaction in its origin's (i.e., the `from` address's)
-        //   Heap, which sorts by nonce
-        
-        if (!queuedOriginTransactions) {
-            queuedOriginTransactions = new Heap<Transaction>(byNonce);
-            queuedOriginTransactions.array = [transaction];
-            queuedOriginTransactions.length = 1;
-            orgins.set(origin, queuedOriginTransactions);
-        } else {
-            queuedOriginTransactions.push(transaction);
-        }
+      // notify listeners (the miner, probably) that we have executables
+      // transactions ready for it
+      this.emit("drain", executables);
+      return;
     }
 
-    public validateTransaction(transaction: Transaction): Error {
-        // Check the transaction doesn't exceed the current block limit gas.
-        if (this.options.gasLimit < JsonRpcQuantity.from(transaction.gasLimit)) {
-            return new Error("Transaction gasLimit is too low");
-        }
+    if (queuedOriginTransactions) {
+      queuedOriginTransactions.push(transaction);
+    } else {
+      queuedOriginTransactions = Heap.from(transaction, byNonce);
+      origins.set(origin, queuedOriginTransactions);
+    }
+  }
 
-        // Transactions can't be negative. This may never happen using RLP
-        // decoded transactions but may occur if you create a transaction using
-        // the RPC for example.
-        if (transaction.value < 0) {
-            return new Error("Transaction value cannot be negative");
-        }
-
-        // Should supply enough intrinsic gas
-        const gas = transaction.calculateIntrinsicGas();
-        if (transaction.gasPrice < gas) {
-            return new Error("intrisic gas too low");
-        }
-
-        return null;
+  private validateTransaction(transaction: Transaction): Error {
+    // Check the transaction doesn't exceed the current block limit gas.
+    if (this.options.gasLimit < Quantity.from(transaction.gasLimit)) {
+      return new Error("Transaction gasLimit is too low");
     }
 
-    public async validateTransactor(transaction: Transaction, transactor: any): Promise<Error> {
-        // Transactor should have enough funds to cover the costs
-        if (transactor.balance.toBigInt() < transaction.cost()) {
-            return new Error("Account does not have enough funds to complete transaction");
-        }
-
-        // check that the nonce isn't too low
-        let transactorNonce = transactor.nonce.toBigInt();
-        if (transactorNonce == null) {
-            transactorNonce = -1n;
-        }
-        if (transactorNonce >= (JsonRpcQuantity.from(transaction.nonce).toBigInt() || 0n)) {
-            return new Error("Transaction nonce is too low");
-        }
-        return null;
+    // Transactions can't be negative. This may never happen using RLP
+    // decoded transactions but may occur if you create a transaction using
+    // the RPC for example.
+    if (transaction.value < 0) {
+      return new Error("Transaction value cannot be negative");
     }
+
+    // Should supply enough intrinsic gas
+    const gas = transaction.calculateIntrinsicGas();
+    if (transaction.gasPrice < gas) {
+      return new Error("intrisic gas too low");
+    }
+
+    return null;
+  }
+
+  private async validateTransactor(transaction: Transaction, transactor: any): Promise<Error> {
+    // Transactor should have enough funds to cover the costs
+    if (transactor.balance.toBigInt() < transaction.cost()) {
+      return new Error("Account does not have enough funds to complete transaction");
+    }
+
+    // check that the nonce isn't too low
+    let transactorNonce = transactor.nonce.toBigInt();
+    if (transactorNonce == null) {
+      transactorNonce = -1n;
+    }
+    const transactionNonce = (Quantity.from(transaction.nonce).toBigInt() || 0n);
+    if (transactorNonce >= transactionNonce) {
+      return new Error("Transaction nonce is too low");
+    }
+    return null;
+  }
 }

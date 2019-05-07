@@ -1,7 +1,7 @@
 //#region Imports
 import ILedger from "../../interfaces/ledger";
 import EthereumOptions, { getDefaultOptions } from "./options";
-import { JsonRpcData, JsonRpcQuantity, IndexableJsonRpcData } from "../../types/json-rpc";
+import { Data, Quantity, IndexableData } from "../../types/json-rpc";
 import Blockchain from "./blockchain";
 import Tag from "../../types/tags";
 import Address, { IndexableAddress } from "../../types/address";
@@ -15,9 +15,9 @@ const {name, version} = require("../../../package.json");
 
 //#region Constants
 const CLIENT_VERSION = `EthereumJS ${name}/v${version}/ethereum-js`
-const PROTOCOL_VERSION = JsonRpcData.from("0x3f");
+const PROTOCOL_VERSION = Data.from("0x3f");
 const BUFFER_ZERO = Buffer.from([0]);
-const RPCQUANTITY_ZERO = JsonRpcQuantity.from("0x0");
+const RPCQUANTITY_ZERO = Quantity.from("0x0");
 //#endregion
 
 const hash = createKeccakHash("keccak256");
@@ -32,7 +32,7 @@ const _unlockedAccounts = Symbol("unlockedAccounts");
 
 export default class Ethereum implements ILedger {
   private readonly [_accounts]: Address[];
-  private readonly [_knownAccounts] = new Map<string, JsonRpcData>();
+  private readonly [_knownAccounts] = new Map<string, Data>();
   private readonly [_unlockedAccounts] = new Set<string>();
   private readonly [_options]: EthereumOptions;
   private readonly [_coinbase]: Account;
@@ -139,8 +139,8 @@ export default class Ethereum implements ILedger {
    * @param {string} the data to convert into a SHA3 hash.
    * @returns The SHA3 result of the given string.
    */
-  async web3_sha3(string: string): Promise<JsonRpcData> {
-    return JsonRpcData.from(hash(string).digest());
+  async web3_sha3(string: string): Promise<Data> {
+    return Data.from(hash(string).digest());
   };
 
   /**
@@ -164,7 +164,7 @@ export default class Ethereum implements ILedger {
    * Returns number of peers currently connected to the client.
    * @returns {QUANTITY} integer of the number of connected peers.
    */
-  async net_peerCount(): Promise<JsonRpcQuantity> {
+  async net_peerCount(): Promise<Quantity> {
     return RPCQUANTITY_ZERO;
   }
 
@@ -172,7 +172,7 @@ export default class Ethereum implements ILedger {
    * Returns the current ethereum protocol version.
    * @returns The current ethereum protocol version.
    */
-  async eth_protocolVersion(): Promise<JsonRpcData> {
+  async eth_protocolVersion(): Promise<Data> {
     return PROTOCOL_VERSION;
   }
 
@@ -209,7 +209,7 @@ export default class Ethereum implements ILedger {
    * Returns the number of hashes per second that the node is mining with.
    * @returns number of hashes per second.
    */
-  async eth_hashrate(): Promise<JsonRpcQuantity> {
+  async eth_hashrate(): Promise<Quantity> {
     return RPCQUANTITY_ZERO;
   }
 
@@ -217,7 +217,7 @@ export default class Ethereum implements ILedger {
    * Returns the current price per gas in wei.
    * @returns integer of the current gas price in wei.
    */
-  async eth_gasPrice(): Promise<JsonRpcQuantity> {
+  async eth_gasPrice(): Promise<Quantity> {
     return this[_options].gasPrice;
   }
 
@@ -247,7 +247,7 @@ export default class Ethereum implements ILedger {
   async eth_getBalance(
       address: IndexableAddress,
       blockNumber: bigint | Tag = Tag.LATEST
-    ): Promise<JsonRpcQuantity> {
+    ): Promise<Quantity> {
     const chain = this[_blockchain];
     const str = blockNumber.toString();
     const block = await chain.blocks.get(Buffer.from([0]));
@@ -263,8 +263,8 @@ export default class Ethereum implements ILedger {
    * 
    * @param transasctionHash 32 Bytes - hash of a transaction
    */
-  async eth_getTransactionByHash(transasctionHash: IndexableJsonRpcData): Promise<Transaction> {
-    transasctionHash = JsonRpcData.from(transasctionHash);
+  async eth_getTransactionByHash(transasctionHash: IndexableData): Promise<Transaction> {
+    transasctionHash = Data.from(transasctionHash);
 
     const chain = this[_blockchain];
     const transaction = await chain.transactions.get(transasctionHash);
@@ -275,7 +275,7 @@ export default class Ethereum implements ILedger {
    * 
    * @param transaction 
    */
-  async eth_sendTransaction(transaction: any): Promise<JsonRpcData> {
+  async eth_sendTransaction(transaction: any): Promise<Data> {
     let fromString = transaction.from;
     let from;
     if (fromString) {
@@ -328,7 +328,7 @@ export default class Ethereum implements ILedger {
       if (tx.nonce.length === 0) {
         const account = await this[_blockchain].accounts.get(from);
         const accountNonce = (account.nonce.toBigInt()) || 0n;
-        tx.nonce = JsonRpcQuantity.from(1n + accountNonce).toBuffer();
+        tx.nonce = Quantity.from(1n + accountNonce).toBuffer();
       }
       const secretKey = this[_knownAccounts].get(fromString);
       tx.sign(secretKey.toBuffer());
@@ -341,7 +341,7 @@ export default class Ethereum implements ILedger {
    * 
    * @param transaction 
    */
-  async eth_sendRawTransaction(transaction: any): Promise<JsonRpcData> {
+  async eth_sendRawTransaction(transaction: any): Promise<Data> {
     await this[_blockchain].queueTransaction(transaction);
     return transaction.hash;
   }

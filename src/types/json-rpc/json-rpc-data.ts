@@ -7,10 +7,10 @@ function validateByteLength(byteLength?: number){
   }
 }
 const byteLengths = new WeakMap();
-export class JsonRpcData extends BaseJsonRpcType {
+export class Data extends BaseJsonRpcType {
   constructor(value: string | Buffer, byteLength?: number) {
     if (typeof value === "bigint"){
-      throw new Error(`Cannot create a ${typeof value} as a JsonRpcData`);
+      throw new Error(`Cannot create a ${typeof value} as a Data`);
     }
     super(value);
     if (byteLength !== undefined) {
@@ -50,23 +50,23 @@ export class JsonRpcData extends BaseJsonRpcType {
     }
   }
   public static from<T extends string|Buffer = string|Buffer>(value: T, byteLength?: number) {
-    return new _JsonRpcData(value, byteLength);
+    return new _Data(value, byteLength);
   }
 }
 type $<T extends string|Buffer = string|Buffer> = {
-  new(value: T, byteLength?: number): _JsonRpcData<T> & JsonRpcType<T>,
-  from(value: T, byteLength?: number): _JsonRpcData<T> & JsonRpcType<T>,
+  new(value: T, byteLength?: number): _Data<T> & JsonRpcType<T>,
+  from(value: T, byteLength?: number): _Data<T> & JsonRpcType<T>,
   toString(byteLength?: number): string,
   toBuffer(): Buffer
 }
-const _JsonRpcData = JsonRpcData as $;
+const _Data = Data as $;
 
-interface _JsonRpcData<T extends string | Buffer = string | Buffer> {
-  constructor(value: T, byteLength?: number): _JsonRpcData
-  from(value: T, byteLength?: number): _JsonRpcData,
+interface _Data<T extends string | Buffer = string | Buffer> {
+  constructor(value: T, byteLength?: number): _Data
+  from(value: T, byteLength?: number): _Data,
   toString(byteLength?: number): string,
   toBuffer(): Buffer
 }
 
-export type IndexableJsonRpcData = _JsonRpcData & IndexableJsonRpcType;
-export default _JsonRpcData;
+export type IndexableData = _Data & IndexableJsonRpcType;
+export default _Data;

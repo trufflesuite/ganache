@@ -1,4 +1,4 @@
-import {JsonRpcQuantity} from "../types/json-rpc";
+import {Quantity} from "../types/json-rpc";
 import ILedger from "../interfaces/ledger";
 
 interface Logger {
@@ -131,13 +131,13 @@ export default interface Options {
    * Sets the default gas price for transactions if not otherwise specified. 
    * Must be specified as a hex string in wei. Defaults to "0x77359400", or 2 gwei.
    */
-  gasPrice?: JsonRpcQuantity,
+  gasPrice?: Quantity,
 
   /**
    * Sets the block gas limit. Must be specified as a hex string. Defaults to 
    * "0x6691b7".
    */
-  gasLimit?: JsonRpcQuantity,
+  gasLimit?: Quantity,
 
   /**
    * 
@@ -165,8 +165,8 @@ export const getDefault: (options: Options)=> Options = (options) => {
     vmErrorsOnRPCResponse: true,
     hdPath: "m/44'/60'/0'/0/",
     allowUnlimitedContractSize: false,
-    gasPrice: new JsonRpcQuantity("0x77359400"),
-    gasLimit: new JsonRpcQuantity("0x6691b7"),
+    gasPrice: new Quantity("0x77359400"),
+    gasLimit: new Quantity("0x6691b7"),
     verbose: false,
     asyncRequestProcessing: false,
     hardfork: "petersburg",

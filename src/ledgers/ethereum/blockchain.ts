@@ -4,10 +4,10 @@ import Emittery from "emittery";
 import BlockManager, { Block } from "./components/block-manager";
 import TransactionManager from "./components/transaction-manager";
 import Trie from "merkle-patricia-tree";
-import { BN, MAX_INTEGER } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 import Account from "../../types/account";
 import { promisify } from "util";
-import { JsonRpcQuantity, JsonRpcData } from "../../types/json-rpc";
+import { Quantity, Data } from "../../types/json-rpc";
 import EthereumJsAccount from "ethereumjs-account";
 import AccountManager from "./components/account-manager";
 import Heap from "../../utils/heap";
@@ -21,7 +21,7 @@ type BlockchainOptions = {
     accounts?: Account[],
     hardfork?: string,
     allowUnlimitedContractSize?: boolean,
-    gasLimit?: JsonRpcQuantity,
+    gasLimit?: Quantity,
     timestamp?: Date
 };
 
@@ -61,7 +61,7 @@ export default class Blockchain extends Emittery {
             const miner = new Miner(this.vm, options);
             
             const instamining = true;
-            if(instamining){
+            if (instamining) {
                 this.transactions.transactionPool.on("drain", async (pending: Map<string, Heap<Transaction>>) => {
                     await miner.mine(pending);
                 });
@@ -71,11 +71,28 @@ export default class Blockchain extends Emittery {
                     await miner.mine(pending);
                     setTimeout(mine, minerInterval, pending);
                 };
-                setTimeout(mine, minerInterval, this.transactions.transactionPool.pending);
+                setTimeout(mine, minerInterval, this.transactions.transactionPool.executables);
             }
 
             await this._initializeAccounts(options.accounts);
-            await this._initializeGenesisBlock(options.timestamp, options.gasLimit);
+            let lastBlock = this._initializeGenesisBlock(options.timestamp, options.gasLimit);
+            await lastBlock;
+            miner.on("block", async (blockData: any) => {
+                const previousBlock = await lastBlock;
+                const previousHeader = previousBlock.value.header;
+                const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
+                const block = this.blocks.createBlock({
+                    number: Quantity.from(previousNumber + 1n).toBuffer(),
+                    gasLimit: options.gasLimit.toBuffer(),
+                    timestamp: this.currentTime(),
+                    parentHash: previousHeader.hash(),
+                    transactionsTrie: blockData.transactionsTrie.root,
+                    receiptTrie: blockData.receiptTrie.root
+                });
+                console.log( Quantity.from(block.value.header.number).toBigInt() );
+                
+                lastBlock = this.blocks.set(block);
+            });
 
             this.emit("ready");
         });
@@ -116,7 +133,7 @@ export default class Blockchain extends Emittery {
         return commit();
     }
 
-    async _initializeGenesisBlock(timestamp: Date, blockGasLimit: JsonRpcQuantity): Promise<Block> {
+    async _initializeGenesisBlock(timestamp: Date, blockGasLimit: Quantity): Promise<Block> {
         // create the genesis block
         const genesis = this.blocks.next({
             // If we were given a timestamp, use it instead of the `currentTime`
@@ -143,8 +160,8 @@ export default class Blockchain extends Emittery {
         return number.toString() as any;
     }
 
-    async queueTransaction(transaction: any): Promise<JsonRpcData> {
+    async queueTransaction(transaction: any): Promise<Data> {
         await this.transactions.push(transaction);
-        return JsonRpcData.from(transaction.hash());
+        return Data.from(transaction.hash());
     }
 }

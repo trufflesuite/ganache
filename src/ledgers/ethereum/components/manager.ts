@@ -1,5 +1,5 @@
 import levelup from "levelup";
-import { JsonRpcData } from "../../../types/json-rpc";
+import { Data } from "../../../types/json-rpc";
 import Blockchain from "../blockchain";
 
 export type Instantiable<T> = {new(...args: any[]): T};
@@ -15,11 +15,11 @@ export default class Manager<T> {
     }
     get(key: string | Buffer): Promise<T> {
         if (typeof key === "string") {
-            key = JsonRpcData.from(key).toBuffer();
+            key = Data.from(key).toBuffer();
         }
         return this.base.get(key).then((raw) => new this.Type(raw));
     }
     set(key: Buffer, value: Buffer): Promise<T> {
-        return this.base.put(key, value).then((raw) => new this.Type(raw));
+        return this.base.put(key, value).then((raw) => new this.Type(value));
     }
 }

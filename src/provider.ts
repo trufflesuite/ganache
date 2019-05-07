@@ -1,4 +1,4 @@
-import { JsonRpcQuantity, JsonRpcData } from "./types/json-rpc";
+import { Quantity, Data } from "./types/json-rpc";
 import Engine from "./engine";
 import RequestProcessor from "./utils/request-processor";
 import ProviderOptions, { getDefault as getDefaultProviderOptions } from "./options/provider-options";
@@ -59,7 +59,7 @@ export default class Provider extends Emittery {
   // move this into the Ledger or it's Blockchain?
   private initializeAccounts(): Account[]{
     const _providerOptions = this[options];
-    const etherInWei = JsonRpcQuantity.from(JsonRpcQuantity.from(_providerOptions.default_balance_ether).toBigInt() * WEI);
+    const etherInWei = Quantity.from(Quantity.from(_providerOptions.default_balance_ether).toBigInt() * WEI);
     let accounts: Account[];
 
     let givenAccounts = _providerOptions.accounts
@@ -68,7 +68,7 @@ export default class Provider extends Emittery {
       accounts = Array(l);
       for (let i = 0; i < l; i++) {
         const account = givenAccounts[i];
-        accounts[i] = this.createAccount(etherInWei, JsonRpcData.from(account[1]), JsonRpcData.from(account[0]));
+        accounts[i] = this.createAccount(etherInWei, Data.from(account[1]), Data.from(account[0]));
       }
     } else {
       const l =_providerOptions.total_accounts;
@@ -81,7 +81,7 @@ export default class Provider extends Emittery {
           const acct = wallet.derivePath(hdPath + index);
           const accountWallet = acct.getWallet();
           const address = Address.from(accountWallet.getAddress());
-          const privateKey = JsonRpcData.from(accountWallet.getPrivateKey());
+          const privateKey = Data.from(accountWallet.getPrivateKey());
           accounts[index] = this.createAccount(etherInWei, privateKey, address);
         }
       } else {
@@ -92,7 +92,7 @@ export default class Provider extends Emittery {
   }
   
   // TODO: this should probable be moved as well (see `initializeAccounts` above)
-  private createAccount(balance: JsonRpcQuantity, privateKey: JsonRpcData, address?: Address) {
+  private createAccount(balance: Quantity, privateKey: Data, address?: Address) {
     address = address || Address.from(privateToAddress(privateKey.toBuffer()));
   
     const account = new Account(address);

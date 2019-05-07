@@ -1,9 +1,9 @@
 import { BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType } from ".";
 const toBigIntBE = require('bigint-buffer').toBigIntBE;
 
-class JsonRpcQuantity extends BaseJsonRpcType {
+class Quantity extends BaseJsonRpcType {
   public static from(value: number | bigint | string | Buffer) {
-    return new _JsonRpcQuantity(value);
+    return new _Quantity(value);
   }
   public toBigInt(): bigint {
     const value = this.value;
@@ -51,19 +51,19 @@ class JsonRpcQuantity extends BaseJsonRpcType {
   }
 }
 type $<T extends number|bigint|string|Buffer = number|bigint|string|Buffer> = {
-  new(value: T): _JsonRpcQuantity & JsonRpcType<T>,
-  from(value: T): _JsonRpcQuantity & JsonRpcType<T>,
+  new(value: T): _Quantity & JsonRpcType<T>,
+  from(value: T): _Quantity & JsonRpcType<T>,
   toBigInt(): bigint,
   toBuffer(): Buffer
 }
-const _JsonRpcQuantity = JsonRpcQuantity as $;
+const _Quantity = Quantity as $;
 
-interface _JsonRpcQuantity<T = number | bigint | string | Buffer> {
-  constructor(value: T): _JsonRpcQuantity
-  from(): _JsonRpcQuantity,
+interface _Quantity<T = number | bigint | string | Buffer> {
+  constructor(value: T): _Quantity
+  from(): _Quantity,
   toBigInt(): bigint,
   toBuffer(): Buffer
 }
 
-export type IndexableJsonRpcQuantity = _JsonRpcQuantity & IndexableJsonRpcType;
-export default _JsonRpcQuantity;
+export type IndexableQuantity = _Quantity & IndexableJsonRpcType;
+export default _Quantity;
