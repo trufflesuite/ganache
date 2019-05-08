@@ -158,7 +158,7 @@ class Heap<T> {
     }
   }
 
-  private up(j: number,) {
+  private up(j: number) {
     const less = this.less.bind(null, this.array);
     for (let i: number; ((i = (j - 1) / 2 | 0), i !== j && less(j, i)); j = i) {
       this.swap(i, j);
@@ -195,6 +195,12 @@ class Heap<T> {
     array[j] = first;
   }
 
+  /**
+   * Heap initialization helper for when you only know of a single item for the 
+   * heap.
+   * @param item 
+   * @param less 
+   */
   public static from<T>(item: T, less: Comparator<T>){
     const heap = new Heap<T>(less);
     heap.array = [item];

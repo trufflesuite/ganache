@@ -5,7 +5,14 @@ import Transaction from "../../../types/transaction";
 import { Data, Quantity } from "../../../types/json-rpc";
 
 export type TransactionPoolOptions = {
+  /**
+   * TODO: use this value.
+   */
   gasPrice?: Quantity,
+
+  /**
+   * Minimum gas price to enforce for acceptance into the pool
+   */
   gasLimit?: Quantity
 };
 
@@ -15,11 +22,6 @@ function byNonce(values: Transaction[], a: number, b: number) {
 
 export default class TransactionPool extends Emittery {
   private options: TransactionPoolOptions;
-
-  /**
-   * Minimum gas price to enforce for acceptance into the pool
-   */
-  public priceLimit: number = 0
 
   /**
    * Minimum price bump percentage to replace an already existing transaction (nonce)
@@ -40,6 +42,7 @@ export default class TransactionPool extends Emittery {
 
     err = this.validateTransaction(transaction);
     if (err != null) {
+      // TODO: how do we surface these transaction failures to the caller?!
       throw err;
     }
 
@@ -60,10 +63,12 @@ export default class TransactionPool extends Emittery {
       // new transaction away as neccessary.
       const pendingArray = executableOriginTransactions.array;
       const priceBump = this.priceBump;
-      const newGasPrice = Quantity.from(transaction.gasPrice).toBigInt()
+      const newGasPrice = Quantity.from(transaction.gasPrice).toBigInt();
       // Notice: we're iterating over the raw heap array, which isn't
       // neccessarily sorted
-      for (let i = 0, l = executableOriginTransactions.length; i < l; i++) {
+      let highestNonce = 0n;
+      const length  = executableOriginTransactions.length;
+      for (let i = 0; i < length; i++) {
         const currentPendingTx = pendingArray[i];
         const thisNonce = Quantity.from(currentPendingTx.nonce).toBigInt();
         if (thisNonce === transactionNonce) {
@@ -85,18 +90,29 @@ export default class TransactionPool extends Emittery {
             throw new Error("That new transaction sucked, yo!");
           }
           break;
+        } else if (thisNonce > highestNonce) {
+          highestNonce = thisNonce;
         }
+      }
+      // if our transaction's nonce is 1 higher than the last transaction in the
+      // origin's heap we are executable.
+      if (transactionNonce === highestNonce + 1n) {
+        isExecutableTransaction = true;
       }
     }
 
+    // TODO: since this is the only async code in this `insert` fn, maybe we can
+    // put this into the miner? The VM itself does check for everything this
+    // validation function checks for.
     const transactor = await this.blockchain.accounts.get(from);
     err = await this.validateTransactor(transaction, transactor);
     if (err != null) {
+      // TODO: how do we surface these transaction failures to the caller?!
       throw err;
     }
 
     if (!isExecutableTransaction) {
-      // If the transaction wasn't foudn in our origin's executables queue,
+      // If the transaction wasn't found in our origin's executables queue,
       // check if it is at the correct `nonce` by looking up the origin's
       // current nonce
       const transactorNextNonce = (transactor.nonce.toBigInt() || 0n) + 1n;
@@ -113,43 +129,48 @@ export default class TransactionPool extends Emittery {
         executables.set(origin, executableOriginTransactions);
       }
 
-      // Now we need to drain any queued transacions that were previously
-      // not executable due to nonce gaps into the origin's queue...
-      if (queuedOriginTransactions) {
-        let nextExpectedNonce: bigint = transactionNonce + 1n;
-        while (true) {
-          const nextTx = queuedOriginTransactions.peek();
-          const nextTxNonce = Quantity.from(nextTx.nonce).toBigInt() || 0n;
-          if (nextTxNonce !== nextExpectedNonce) {
-            break;
-          } else {
-            // we've got a an executable nonce! Put it in the executables queue.
-            executableOriginTransactions.push(nextTx);
-            // And then remove this transaction from its origin's queue
-            if (queuedOriginTransactions.removeBest()) {
-              nextExpectedNonce += 1n;
-            } else {
-              // removeBest() returns `false` when there are no more items after
-              // the remove item. Let's do some cleanup when that happens
-              origins.delete(origin);
-              break;
-            }
-          }
-        }
-      }
-
-      // notify listeners (the miner, probably) that we have executables
-      // transactions ready for it
-      this.emit("drain", executables);
-      return;
-    }
-
-    if (queuedOriginTransactions) {
+      this.drainQueued(origin, queuedOriginTransactions, executableOriginTransactions, transactionNonce);
+    } else if (queuedOriginTransactions) {
       queuedOriginTransactions.push(transaction);
     } else {
       queuedOriginTransactions = Heap.from(transaction, byNonce);
       origins.set(origin, queuedOriginTransactions);
     }
+  }
+
+  private drainQueued(origin: string, queuedOriginTransactions: Heap<Transaction>, executableOriginTransactions: Heap<Transaction>, transactionNonce: bigint) {
+    // Now we need to drain any queued transacions that were previously
+    // not executable due to nonce gaps into the origin's queue...
+    if (queuedOriginTransactions) {
+      const origins = this.origins;
+
+      let nextExpectedNonce: bigint = transactionNonce + 1n;
+      while (true) {
+        const nextTx = queuedOriginTransactions.peek();
+        const nextTxNonce = Quantity.from(nextTx.nonce).toBigInt() || 0n;
+        if (nextTxNonce !== nextExpectedNonce) {
+          break;
+        }
+
+        // we've got a an executable nonce! Put it in the executables queue.
+        executableOriginTransactions.push(nextTx);
+
+        // And then remove this transaction from its origin's queue
+        if (!queuedOriginTransactions.removeBest()) {
+          // removeBest() returns `false` when there are no more items after
+          // the remove item. Let's do some cleanup when that happens
+          origins.delete(origin);
+          break;
+        }
+
+        nextExpectedNonce += 1n;
+      }
+    }
+
+
+    // notify listeners (the miner, probably) that we have executables
+    // transactions ready for it
+    this.emit("drain", this.executables);
   }
 
   private validateTransaction(transaction: Transaction): Error {
