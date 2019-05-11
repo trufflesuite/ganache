@@ -100,30 +100,16 @@ export default class HttpServer {
 
     // fallback routes...
     app
-      .any("/", async (response) => {
-        response.onAborted(() => {});
-
-        // TODO: send back the Ganache-UI
-        // any other request to "/" is not allowed, so respond with `405 Method Not Allowed`...
-
-        const accounts = await provider.send("eth_accounts");
-    
-        // res.setHeader("content-type", "text/html");
-        // render the output to the `res` output stream
-        response.writeHeader("Content-Type", "text/html");
-        template.render({
-          accounts: accounts,
-          blocks: [],
-          transactions: [],
-          events: [],
-          logs: []
-        }, response);
-
-        // sendResponse(response, HttpResponseCodes.METHOD_NOT_ALLOWED, ContentTypes.PLAIN, "405 Method Not Allowed");        
-      })
-      .any("/*", (response) => {
-        // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
-        sendResponse(response, HttpResponseCodes.NOT_FOUND, ContentTypes.PLAIN, "404 Not Found");
+      .any("/*", (response ,request) => {
+        const connectionHeader = request.getHeader("connection");
+        if (connectionHeader && connectionHeader.toLowerCase() === "upgrade") {
+          // if we got here it means the websocket server wasn't enabled but
+          // a client tried to connect via websocket. This is a Bad Request.
+          sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request");
+        } else {
+          // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
+          sendResponse(response, HttpResponseCodes.NOT_FOUND, ContentTypes.PLAIN, "404 Not Found");
+        }
       });
   }
 

@@ -7,6 +7,7 @@ import Tag from "../../types/tags";
 import Address, { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import Account from "../../types/account";
+const { toChecksumAddress } = require("ethereumjs-util");
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from the package.json
@@ -19,8 +20,6 @@ const PROTOCOL_VERSION = Data.from("0x3f");
 const BUFFER_ZERO = Buffer.from([0]);
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
 //#endregion
-
-const hash = createKeccakHash("keccak256");
 
 const _accounts = Symbol("accounts");
 const _options = Symbol("options");
@@ -59,8 +58,8 @@ export default class Ethereum implements ILedger {
     for (let i = 0; i < l; i++) {
       const account = accounts[i];
       const address = account.address;
-      const strAddress = address.toString().toLowerCase();
-      accountsCache[i] = address;
+      const strAddress = address.toString();
+      accountsCache[i] = toChecksumAddress(strAddress);
       knownAccounts.set(strAddress, account.privateKey);
 
       // if the `secure` option has been set do NOT add these accounts to the
@@ -140,7 +139,7 @@ export default class Ethereum implements ILedger {
    * @returns The SHA3 result of the given string.
    */
   async web3_sha3(string: string): Promise<Data> {
-    return Data.from(hash(string).digest());
+    return Data.from(createKeccakHash("keccak256").update(string).digest());
   };
 
   /**

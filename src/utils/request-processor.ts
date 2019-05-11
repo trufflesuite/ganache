@@ -57,6 +57,7 @@ export default class RequestProcessor {
       this.runningTasks++;
       current().finally(() => {
         this.runningTasks--;
+        this.process();
       });
     }
   }

@@ -18,7 +18,6 @@ export type ProviderOptions = ProviderOptions;
 const WEI = 1000000000000000000n;
 
 const options = Symbol("options");
-const engine = Symbol("engine");
 const requestProcessor = Symbol("requestProcessor");
 
 interface Callback {
@@ -28,22 +27,17 @@ interface Callback {
 
 export default class Provider extends Emittery {
   private [options]: ProviderOptions;
-  private [engine]: Engine;
+  private _engine: Engine;
   private [requestProcessor]: RequestProcessor;
 
   private wallet:any;
-  private hdPath:string;
   constructor(providerOptions?: ProviderOptions) {
     super();
     const _providerOptions = this[options] = getDefaultProviderOptions(providerOptions);
 
     // set up our request processor to either use FIFO or or async request processing
-    const _requestProcessor = this[requestProcessor] = new RequestProcessor(_providerOptions.asyncRequestProcessing ? 1 : 0);
+    const _requestProcessor = this[requestProcessor] = new RequestProcessor(_providerOptions.asyncRequestProcessing ? 0 : 1);
 
-    if (!_providerOptions.mnemonic) {
-      // TODO: this is a default and should be configured that way
-      _providerOptions.mnemonic = generateMnemonic();
-    }
     this.wallet = hdkey.fromMasterSeed(mnemonicToSeedSync(_providerOptions.mnemonic, null));
 
     const accounts = this.initializeAccounts();
@@ -52,7 +46,7 @@ export default class Provider extends Emittery {
     const ethereumOptions = _providerOptions as any as EthereumOptions;
     ethereumOptions.accounts = accounts;
     const ledger = _providerOptions.ledger || new Ethereum(ethereumOptions, _requestProcessor.resume.bind(_requestProcessor));
-    this[engine] = new Engine(ledger);
+    this._engine = new Engine(ledger);
   }
 
   // TODO: this doesn't seem like a provider-level function. Maybe we should
@@ -62,22 +56,35 @@ export default class Provider extends Emittery {
     const etherInWei = Quantity.from(Quantity.from(_providerOptions.default_balance_ether).toBigInt() * WEI);
     let accounts: Account[];
 
-    let givenAccounts = _providerOptions.accounts
-    if (givenAccounts) {
-      const l = givenAccounts.length;
-      accounts = Array(l);
-      for (let i = 0; i < l; i++) {
+    let givenAccounts = _providerOptions.accounts;
+    let accountsLength;
+    if (givenAccounts && (accountsLength = givenAccounts.length) !== 0) {
+      const wallet = this.wallet;
+      const hdPath = this[options].hdPath;
+      accounts = Array(accountsLength);
+      for (let i = 0; i < accountsLength; i++) {
         const account = givenAccounts[i];
-        accounts[i] = this.createAccount(etherInWei, Data.from(account[1]), Data.from(account[0]));
+        const secretKey = account.secretKey;
+        let secretKeyData;
+        let address: Address;
+        if (!secretKey) {
+          const acct = wallet.derivePath(hdPath + i);
+          const accountWallet = acct.getWallet();
+          address = Address.from(accountWallet.getAddress());
+          secretKeyData = Data.from(accountWallet.getPrivateKey());
+        } else {
+          secretKeyData = Data.from(secretKey);
+        }
+        accounts[i] = this.createAccount(Quantity.from(account.balance), secretKeyData, address);
       }
     } else {
-      const l =_providerOptions.total_accounts;
-      if (l) {
-        accounts = Array(l);
+      const numerOfAccounts =_providerOptions.total_accounts;
+      if (numerOfAccounts) {
+        accounts = Array(numerOfAccounts);
         const hdPath = this[options].hdPath;
         const wallet = this.wallet;
 
-        for (let index = 0; index < l; index++) {
+        for (let index = 0; index < numerOfAccounts; index++) {
           const acct = wallet.derivePath(hdPath + index);
           const accountWallet = acct.getWallet();
           const address = Address.from(accountWallet.getAddress());
@@ -108,8 +115,8 @@ export default class Provider extends Emittery {
     let method: string;
     let params: any[];
     let response: Promise<{}>;
-    const _engine = this[engine];
-    const execute = _engine.execute.bind(_engine);
+    const engine = this._engine;
+    const execute = engine.execute.bind(engine);
     if (typeof arg1 === "string") {
       method = arg1;
       params = arg2 as any[];
@@ -140,7 +147,7 @@ export default class Provider extends Emittery {
 
     const _options = this[options];
     if (_options.verbose) {
-      _options.logger.log(`   >  ${method}: ${JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`);
+      _options.logger.log(`   >  ${method}: ${params == null ? params : JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`);
     }
 
     return response;

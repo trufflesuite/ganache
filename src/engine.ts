@@ -1,10 +1,9 @@
 import ILedger from "./interfaces/ledger";
 import Emittery from "emittery";
 
-const _ledger = Symbol("ledger");
 
 export default class Engine extends Emittery {
-  private readonly [_ledger]: ILedger;
+  private readonly _ledger: ILedger;
   /**
    * The Engine handles execution of methods on the given Ledger
    * @param ledger 
@@ -12,10 +11,7 @@ export default class Engine extends Emittery {
   constructor(ledger: ILedger) {
     super();
 
-    if (!ledger) {
-      throw new Error("You must provide a ledger");
-    }
-    this[_ledger] = ledger;
+    this._ledger = ledger;
   }
 
   /**
@@ -27,9 +23,9 @@ export default class Engine extends Emittery {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
-      const ledger = this[_ledger];
+      const ledger = this._ledger;
       // Only allow executing our *own* methods:
-      if (ledger.__proto__.hasOwnProperty(methodName)) {
+      if (methodName !== "constructor" && ledger.__proto__.hasOwnProperty(methodName)) {
         const fn = ledger[methodName];
         // just double check, in case a Ledger breaks the rules and adds non-fns
         // to their Ledger interface.

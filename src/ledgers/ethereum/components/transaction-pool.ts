@@ -67,7 +67,7 @@ export default class TransactionPool extends Emittery {
       // Notice: we're iterating over the raw heap array, which isn't
       // neccessarily sorted
       let highestNonce = 0n;
-      const length  = executableOriginTransactions.length;
+      const length = executableOriginTransactions.length;
       for (let i = 0; i < length; i++) {
         const currentPendingTx = pendingArray[i];
         const thisNonce = Quantity.from(currentPendingTx.nonce).toBigInt();

@@ -26,7 +26,6 @@ export default class WebsocketServer {
                     return;
                 }
                 const method = payload.method;
-
                 const result = await provider.send(method, payload.params);
                 // The socket may have closed while we were waiting for the response
                 // Don't bother trying to send to it now.
@@ -39,7 +38,9 @@ export default class WebsocketServer {
                     ws.send(JSON.stringify(json), isBinary, true);
                 }
             },
+            /* istanbul ignore next */
             drain: (ws: WebSocket) => {
+                /* istanbul ignore next */
                 console.log("WebSocket backpressure: " + ws.getBufferedAmount());
             },
             close: (ws: WebSocket) => {

@@ -8,9 +8,7 @@ interface Logger {
 // Okay, so a "bug" in TS treats types with the same shape as having the same 
 // name, so Intellisense would say that AccountType requires `[Address, Address]`
 // instead of `[Address, PrivateKey]`, flip flopping like this "fixes" it.
-type Address = string & {};
-type PrivateKey =  {} & string;
-type AccountTuple = [Address, PrivateKey];
+type Account = {balance: string, secretKey?: string};
 
 export default interface Options {
   ledger?: ILedger,
@@ -21,7 +19,7 @@ export default interface Options {
    * the given balance. If specified, the key is used to determine the account's
    * address.
    */
-  accounts?: AccountTuple[],
+  accounts?: Account[],
 
   /**
    * Output VM opcodes for debugging. Defaults to `false`
@@ -153,7 +151,7 @@ export default interface Options {
 };
 
 export const getDefault: (options: Options)=> Options = (options) => {
-  const network_id = (options && options.net_version || options.network_id || Date.now()).toString();
+  const network_id = (options ? options.network_id || options.net_version || Date.now() : Date.now()).toString();
   return Object.assign({
     debug: false,
     logger: {log: () => {}},
@@ -168,7 +166,7 @@ export const getDefault: (options: Options)=> Options = (options) => {
     gasPrice: new Quantity("0x77359400"),
     gasLimit: new Quantity("0x6691b7"),
     verbose: false,
-    asyncRequestProcessing: false,
+    asyncRequestProcessing: true,
     hardfork: "petersburg",
     secure: false
   }, options);
