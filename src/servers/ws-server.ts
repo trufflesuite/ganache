@@ -38,7 +38,6 @@ export default class WebsocketServer {
                     ws.send(JSON.stringify(json), isBinary, true);
                 }
             },
-            /* istanbul ignore next */
             drain: (ws: WebSocket) => {
                 /* istanbul ignore next */
                 console.log("WebSocket backpressure: " + ws.getBufferedAmount());
