@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "nyc npm run mocha",
+    "test": "nyc npm run mocha -- --throw-deprecation",
     "mocha": "cross-env TS_NODE_FILES=true mocha --colors --require ts-node/register --require source-map-support/register --watch-extensions ts --recursive --check-leaks 'test/**.ts'"
   },
   "nyc": {
@@ -55,6 +55,7 @@
     "@types/ws": "6.0.1",
     "bufferutil": "4.0.1",
     "cross-env": "5.2.0",
+    "into-stream": "^5.1.0",
     "jsbi": "^2.0.5",
     "mocha": "^6.1.4",
     "nyc": "^14.1.0",

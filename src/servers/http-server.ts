@@ -5,7 +5,6 @@ import JsonRpc from "./utils/jsonrpc"
 import HttpResponseCodes from "./utils/http-response-codes";
 
 const _handlePost = Symbol("handlePost");
-const _handleData = Symbol("handleData");
 const _handleOptions = Symbol("handleOptions");
 const _provider = Symbol("provider");
 const noop = () => { };
@@ -82,7 +81,6 @@ function sendResponse(response: HttpResponse, statusCode: number, contentType?: 
   response.end(data)
 }
 
-const template = require("./views/index");
 export default class HttpServer {
   private [_provider]: Provider;
   constructor(app: TemplatedApp, provider: Provider) {
@@ -117,51 +115,50 @@ export default class HttpServer {
     // handle JSONRPC post requests...
     const writeHeaders = prepareCORSResponseHeaders("POST", request);
 
+    // TODO: pre-allocate the buffer when we know the Content-Length
     let buffer: Buffer;
-    response.onData(this[_handleData].bind(this, buffer, response, writeHeaders));
     response.onAborted(() => {
       response.aborted = true;
     });
-  }
-
-  private [_handleData](buffer: Buffer, response: HttpResponse, writeHeaders: (response: HttpResponse) => void, message: ArrayBuffer, isLast: boolean) {
-    const chunk = Buffer.from(message);
-    if (isLast) {
-      let payload: JsonRpc.Request;
-      try {
-        const message = (buffer ? Buffer.concat([buffer, chunk]) : chunk) as any;
-        payload = JsonRpc.Request(JSON.parse(message));
-      } catch (e) {
-        sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request: " + e.message, writeHeaders);
-        return;
-      }
-      
-      const id = payload.id;
-      const method = payload.method;
-      switch (method) {
-        // http connections do not support subscriptions
-        case "eth_subscribe":
-        case "eth_unsubscribe":
-          const error = JsonRpc.Error(id, "-32000", "notifications not supported")
-          sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.JSON, JSON.stringify(error), writeHeaders);
-          break;
-        default:
-          // `await`ing the `provider.send` instead of using `then` causes uWS 
-          // to delay cleaning up the `request` object, which we don't neccessarily want to delay.
-          this[_provider].send(method, payload.params).then((result) => {
-            if (response.aborted) return;
-            const json = JsonRpc.Response(id, result);
-            sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, JSON.stringify(json), writeHeaders);
-          });
-          break;
-      }
-    } else {
-      if (buffer) {
-        buffer = Buffer.concat([buffer, chunk]);
+    response.onData((message: ArrayBuffer, isLast: boolean) => {
+      const chunk = Buffer.from(message);
+      if (isLast) {
+        let payload: JsonRpc.Request;
+        try {
+          const message = (buffer ? Buffer.concat([buffer, chunk]) : chunk) as any;
+          payload = JsonRpc.Request(JSON.parse(message));
+        } catch (e) {
+          sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request: " + e.message, writeHeaders);
+          return;
+        }
+        
+        const id = payload.id;
+        const method = payload.method;
+        switch (method) {
+          // http connections do not support subscriptions
+          case "eth_subscribe":
+          case "eth_unsubscribe":
+            const error = JsonRpc.Error(id, "-32000", "notifications not supported")
+            sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.JSON, JSON.stringify(error), writeHeaders);
+            break;
+          default:
+            // `await`ing the `provider.send` instead of using `then` causes uWS 
+            // to delay cleaning up the `request` object, which we don't neccessarily want to delay.
+            this[_provider].send(method, payload.params).then((result) => {
+              if (response.aborted) return;
+              const json = JsonRpc.Response(id, result);
+              sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, JSON.stringify(json), writeHeaders);
+            });
+            break;
+        }
       } else {
-        buffer = Buffer.concat([chunk]);
+        if (buffer) {
+          buffer = Buffer.concat([buffer, chunk]);
+        } else {
+          buffer = Buffer.concat([chunk]);
+        }
       }
-    }
+    });
   }
 
   private [_handleOptions](response: HttpResponse, request: HttpRequest) {

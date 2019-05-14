@@ -6,7 +6,7 @@ const _connections = Symbol("connections");
 
 export default class WebsocketServer {
     private [_connections] = new Set<WebSocket>();
-    constructor(app: TemplatedApp, provider: Provider) {
+    constructor(app: TemplatedApp, provider: Provider, options: any) {
         app.ws("/", {
             /* WS Options */
             compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
@@ -39,8 +39,7 @@ export default class WebsocketServer {
                 }
             },
             drain: (ws: WebSocket) => {
-                /* istanbul ignore next */
-                console.log("WebSocket backpressure: " + ws.getBufferedAmount());
+                options.logger.log("WebSocket backpressure: " + ws.getBufferedAmount());
             },
             close: (ws: WebSocket) => {
                 this[_connections].delete(ws);

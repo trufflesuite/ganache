@@ -37,7 +37,7 @@ export default class Server {
     const _app = this[app] = uWS.App(null);
 
     if (this[options].ws) {
-      this[websocketServer] = new WebsocketServer(_app, prov);
+      this[websocketServer] = new WebsocketServer(_app, prov, opts);
     }
     this[httpServer] = new HttpServer(_app, prov);
   }
