@@ -20,21 +20,15 @@ export default class RequestProcessor {
   /**
    * Promise-based FIFO queue.
    * @param limit The number of requests that can be processed at a time. 
-   * Default value is is no limit (via `null`).
+   * Default value is is no limit (`0`).
    */
-  constructor(limit: number = null) {
-    if (limit !== null) {
-      if (!Number.isInteger(limit) || limit < 0 || limit > Number.MAX_SAFE_INTEGER) {
-        throw new RangeError("`limit` must be an integer and between 0 - Number.MAX_SAFE_INTEGER, inclusive.")
-      }
-      this.limit = limit;
-    }
-
+  constructor(limit: number) {
+    this.limit = limit;
     this.process();
   }
 
   /**
-   * Pause processing. This will *not* cancel or promises that are currently
+   * Pause processing. This will *not* cancel any promises that are currently
    * running.
    */
   public pause() {
