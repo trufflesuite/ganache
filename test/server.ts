@@ -28,18 +28,25 @@ describe("server", () => {
     return s.listen(port);
   };
   async function teardown(){
-    s && s.close();
+    s && await s.close();
     s = undefined;
   }
   describe("http", () => {
+    async function simpleTest(){
+      const response = await request
+        .post('http://localhost:' + port)
+        .send(jsonRpcJson);
+      assert.strictEqual(response.status, 200);
+
+      const json = JSON.parse(response.text);
+      assert.strictEqual(json.result, network_id);
+      return response;
+    }
+    
     it("returns the net_version", async () => {
       await setup();
       try {
-        const response = await request
-          .post('http://localhost:' + port)
-          .send(jsonRpcJson);
-        const json = JSON.parse(response.text);
-        assert.strictEqual(json.result, network_id);
+        await simpleTest();
       } finally {
         teardown();
       }
@@ -51,11 +58,7 @@ describe("server", () => {
       } as ServerOptions);
       s.listen(port, async () => {
         try {
-          const response = await request
-            .post('http://localhost:' + port)
-            .send(jsonRpcJson);
-          const json = JSON.parse(response.text);
-          assert.strictEqual(json.result, network_id);
+          await simpleTest();
         } finally {
           teardown();
         }
@@ -86,7 +89,7 @@ describe("server", () => {
         });
       } finally {
         teardown();
-        server.close();
+        await server.close();
       }
     });
 
@@ -135,12 +138,8 @@ describe("server", () => {
             assert.strictEqual(json.result, network_id);
             resolve();
           });
-          req.on("error", function(){
-            console.log(...arguments);
+          req.on("error", () => {
             reject();
-          });
-          req.on("progress", function(){
-            console.log(...arguments);
           });
 
           const readableStream = intoStream(json);
@@ -151,6 +150,205 @@ describe("server", () => {
       } finally {
         teardown();
       }
+    });
+
+    it("fails to subscribe and unsubscribe over HTTP", async () =>{
+      await setup();
+      const jsonRpcJson: any = {
+        jsonrpc: "2.0",
+        id: "1",
+        method: "eth_subscribe",
+        params: []
+      };
+      try {
+        // TODO: should we expect a 200 OK response with an `error` property
+        //  in a json rpc body? Probably, because we _do_ already send one. :-/
+        await assert.rejects(request
+          .post('http://localhost:' + port)
+          .send(jsonRpcJson)
+        , {
+            status: 400,
+            message: "Bad Request"
+        });
+        jsonRpcJson.method = "eth_unsubscribe";
+        await assert.rejects(request
+          .post('http://localhost:' + port)
+          .send(jsonRpcJson)
+        , {
+          message: "Bad Request"
+        });
+      } finally {
+        teardown();
+      }
+    });
+
+    it("returns a teapot", async () => {
+      await setup();
+      try {
+        const result = await request.get('http://localhost:' + port + "/418").catch(e => e);
+        assert.strictEqual(result.status, 418);
+        assert.strictEqual(result.message, "I'm a Teapot");
+      } finally {
+        teardown();
+      }
+    });
+
+    it("returns 404 for bad routes", async () => {
+      await setup();
+      const methods = ["get", "post", "head", "options", "put", "delete", "patch", "trace"];
+      try {
+        const requests = methods.map(async (method) => {
+          const result = await (request as any)[method]('http://localhost:' + port + "/there-is-no-spoon").catch((e: any) => e);
+          assert.strictEqual(result.status, 404);
+          assert.strictEqual(result.message, "Not Found");
+        });
+        await Promise.all(requests);
+      } finally {
+        teardown();
+      }
+    });
+
+    it("doesn't crash when the request is aborted while waiting for repsonse", async () => {
+      await setup();
+
+      try {
+        const oldSend = s.provider.send;
+        const req = request.post('http://localhost:' + port);
+        const abortPromise = new Promise(resolve => {
+          s.provider.send = () => {
+            // abort the request object after intercepting the request
+            req.abort();
+            return new Promise(innerResolve => {
+              // It takes 2 passes of the event loop to register the `abort`
+              // server-side:
+              setImmediate(setImmediate, () => {
+                  // resolve the `provider.send` to make sure the server can
+                  // handle _not_ responding to a request that has been aborted:
+                  innerResolve();
+                  // and finally, resolve the `abort` promise:
+                  resolve();
+              });
+            });
+          };
+        });
+        const result = await req.send(jsonRpcJson).catch(e => e);
+        assert.strictEqual(result.code, "ABORTED", "Response was not aborted");
+
+        // wait for the server to react to the requesrt's `abort`
+        await abortPromise;
+
+        s.provider.send = oldSend;
+
+        // now make sure we are still up and running:
+        await simpleTest();
+
+      } finally {
+        teardown();
+      }
+    });
+
+    it("server closes when told to", async () => {
+      await setup();
+
+      try {
+        await s.close();
+        const req = request.post('http://localhost:' + port);
+        await assert.rejects(req.send(jsonRpcJson), {
+          code: "ECONNREFUSED"
+        });
+      } finally {
+        teardown();
+      }
+    });
+
+    describe("CORS", () => {
+      const optionsHeaders = [
+        "Access-Control-Allow-Methods",
+        "Access-Control-Allow-Headers",
+        "Access-Control-Max-Age"
+      ];
+      const baseHeaders = [
+        "Access-Control-Allow-Credentials",
+        "Access-Control-Allow-Origin"
+      ];
+      const allCorsHeaders = optionsHeaders.concat(baseHeaders);;
+
+      it("does not return CORS headers for non-CORS requests", async() => {
+        await setup();
+        try {
+          const resp = await simpleTest();
+          allCorsHeaders.forEach((header) => {
+            assert.strictEqual(
+              resp.header[header.toLowerCase()],
+              undefined ,
+              `Non-CORS response should not contain header ${header}`
+            );
+          });
+        } finally {
+          teardown();
+        }
+      });
+
+      it("returns only base CORS headers for post request with origin header", async() => {
+        await setup();
+        const origin = "origin";
+        try {
+          const resp = await request
+            .post('http://localhost:' + port)
+            .set("origin", origin)
+            .send(jsonRpcJson);
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
+            assert.strictEqual(resp.header["access-control-allow-origin"], origin);
+            optionsHeaders.forEach((header) => {
+              assert.strictEqual(
+                resp.header[header.toLowerCase()],
+                undefined ,
+                `Non-CORS response should not contain header ${header}`
+              );
+            });
+        } finally {
+          teardown();
+        }
+      });
+
+      it("returns all CORS headers for request options request with origin header", async() => {
+        await setup();
+        const origin = "origin";
+        try {
+          const resp = await request
+            .options('http://localhost:' + port)
+            .set("origin", origin)
+            .send(jsonRpcJson);
+            assert.strictEqual(resp.status, 204);
+            assert.strictEqual(resp.header["access-control-allow-methods"], "POST");
+            assert.strictEqual(resp.header["access-control-allow-origin"], origin);
+            assert.strictEqual(resp.header["access-control-max-age"], "600");
+            assert.strictEqual(resp.header["content-length"], "0");
+            assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
+            assert.strictEqual(resp.header["access-control-allow-origin"], origin);
+        } finally {
+          teardown();
+        }
+      });
+
+      it("echos Access-Control-Request-Headers for options request", async() => {
+        await setup();
+        const origin = "origin";
+        const acrh = "origin, content-length, x-random";
+        try {
+          const resp = await request
+            .options('http://localhost:' + port)
+            .set("origin", origin)
+            .set("Access-Control-Request-Headers", acrh)
+            .send(jsonRpcJson);
+
+            assert.strictEqual(resp.status, 204);
+            assert.strictEqual(resp.header["access-control-allow-headers"], acrh);
+        } finally {
+          teardown();
+        }
+      });
     });
   });
 
@@ -212,9 +410,9 @@ describe("server", () => {
     });
 
     it("doesn't crash when the connection is closed while a request is in flight", async () => {
-      s.provider.send = async function() {
+      s.provider.send = async () => {
         // close our websocket after intercepting the request
-        s.close();
+        await s.close();
       };
 
       const ws = new WebSocket('ws://localhost:' + port);
@@ -236,12 +434,22 @@ describe("server", () => {
       });
     });
 
-    it("can handle backpressure", async () => {
+    it.skip("can handle backpressure", async () => {
       { // create tons of data to force websocket backpressure
         const huge = {} as any;
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
         s.provider.send = async () => huge;
       }
+      // {
+      //   return await new Promise((resolve) => {
+      //     const ws = new WebSocket('ws://localhost:8545');
+      //     ws.on("open", () => {
+      //       ws.send(JSON.stringify(jsonRpcJson));
+      //       ws.close();
+      //       resolve();
+      //     });
+      //   });
+      // }
       
       const ws = new WebSocket('ws://localhost:' + port);
       const oldLog = logger.log;
@@ -279,6 +487,6 @@ describe("server", () => {
         // don't break.
         logger.log = oldLog;
       }
-    });
+    }).timeout(10000);
   });
 });
