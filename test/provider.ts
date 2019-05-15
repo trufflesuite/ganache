@@ -81,7 +81,8 @@ describe("provider", () => {
     const balance = await p.send("eth_getBalance", [accounts[0]]);
     // TODO: this value is actually wrong!
     assert.strictEqual(balance, "0x056bc75e2d63100000", "Heyo!");
-  })
+  });
+
   it.skip("sends a transaction", async () => {
     const accounts = await p.send("eth_accounts");
     const to = accounts[accounts.length - 1];
@@ -107,8 +108,8 @@ describe("provider", () => {
       nonce: 0,
       gasPrice: 300
     }]);
-
   });
+
   it.skip("sends a transaction", async () => {
     const seedrandom = require("seedrandom");
     const rand = seedrandom("sup");
@@ -140,15 +141,18 @@ describe("provider", () => {
       }
     }
   });
+
   it.skip("returns a transaction", async () => {
     var result = await p.send("eth_getTransactionByHash", ["0x123"]);
     const v = result.blockNumber;
     // todo: figure things out
-  })
+  });
+
   it("returns things via EIP-1193", async () => {
     const version = await p.send("net_version");
     assert.strictEqual(version, networkId);
   });
+
   it("returns things via legacy", async() => {
     await new Promise((resolve) => {
       const ret = p.send({
