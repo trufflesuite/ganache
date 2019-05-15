@@ -6,7 +6,7 @@ enum Tag {
 enum _Tag {
   earliest,
   latest,
-  pending  
+  pending
 }
 
 namespace Tag {
@@ -15,11 +15,11 @@ namespace Tag {
     if (typeof tag === "string") {
       t = (<any>Tag)[tag.toUpperCase()];
     } else {
-      switch (tag) {  
+      switch (tag) {
         case _Tag.earliest:
           return Tag.EARLIEST;
         case _Tag.latest:
-          return Tag.LATEST; 
+          return Tag.LATEST;
         case _Tag.pending:
           return Tag.PENDING;
       }
