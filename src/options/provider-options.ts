@@ -1,30 +1,28 @@
 import Options, {getDefault as getDefaultOptions} from "./options";
 
 const bip39 = require("bip39");
-const seedrandom = require("seedrandom");
+import seedrandom, { seedrandom_prng } from "seedrandom";
 
-
-function randomBytes(length: any, rng: any): any {
-  var buf = Array(length);
-
-  for (var i = 0; i < length; i++) {
-    buf[i] = rng() * 255;
+function randomBytes(length: number, rng: () => number) {
+  const buf = Buffer.allocUnsafe(length);
+  for (let i = 0; i < length; i++) {
+    buf[i] = rng() * 255 | 0;
   }
-
-  return Buffer.from(buf);
+  return buf;
 }
 
-function randomAlphaNumericString (length:any, rng:any) {
+const randomAlphaNumericString = (() => {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const alphabetLength = alphabet.length;
+  return (length: number, rng: () => number) => {
+    let text = "";
+    for (let i = 0; i < length; i++) {
+      text += alphabet[rng() * alphabetLength | 0];
+    }
 
-  let text = "";
-
-  for (var i = 0; i < length; i++) {
-    text += alphabet.charAt(Math.floor((rng || Math.random)() * alphabet.length));
-  }
-
-  return text;
-}
+    return text;
+  };
+})();
 
 export default interface ProviderOptions extends Options {
   /**
@@ -41,16 +39,22 @@ export const getDefault : (options: ProviderOptions) => ProviderOptions = (optio
     getDefaultOptions(options)
   );
 
+  if (!_options.mnemonic) {
+    let rng: seedrandom_prng;
+    let seed = _options.seed;
+    if (!seed) {
       // do this so that we can use the same seed on our next run and get the same
-    // results without explicitly setting a seed up front
-    if (!_options.seed) {
-      _options.seed = randomAlphaNumericString(10, seedrandom());
+      // results without explicitly setting a seed up front.
+      // Use the alea PRNG for it's extra speed.
+      rng = seedrandom.alea as seedrandom_prng;
+      seed = _options.seed = randomAlphaNumericString(10, rng());
+    } else {
+      // Use the default seedrandom PRNG for ganache-core <= 2 back-compatibility
+      rng = seedrandom;
     }
-
     // generate a randomized default mnemonic
-    if (!_options.mnemonic) {
-      let _randomBytes = randomBytes(16, seedrandom(_options.seed));
-      _options.mnemonic = bip39.entropyToMnemonic(_randomBytes.toString("hex"));
-    }
+    const _randomBytes = randomBytes(16, rng(seed));
+    _options.mnemonic = bip39.entropyToMnemonic(_randomBytes);
+  }
   return _options;
 }
