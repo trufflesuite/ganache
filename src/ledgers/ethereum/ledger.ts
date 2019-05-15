@@ -121,9 +121,9 @@ export default class Ethereum implements ILedger {
     }
     //#endregion
 
-    const chain = this[_blockchain] = new Blockchain(options);
-    chain.on("ready", () => emitter.emit("ready"));
-    emitter.on("close", async () => chain.shutdown());
+    const blockchain = this[_blockchain] = new Blockchain(options);
+    blockchain.on("start", () => emitter.emit("ready"));
+    emitter.on("close", async () => await blockchain.stop());
   }
 
   /**

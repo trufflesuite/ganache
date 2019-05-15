@@ -10,12 +10,12 @@ type DatabaseOptions = {db?: string | object, dbPath?: string};
 
 
 const tmpOptions = {prefix: "ganache-core_", unsafeCleanup: true};
-const noop = (): void => {};
+const noop = (callback: () => void): void => callback();
 
-export default class Database extends Emittery{
+export default class Database extends Emittery {
   public readonly blockchain: Blockchain;
   private readonly options: DatabaseOptions;
-  private _cleanup = noop;
+  private _cleanupDirectory = noop;
   private closed = false;
   public directory: string = null;
   public db: levelup.LevelUp = null;
@@ -30,7 +30,6 @@ export default class Database extends Emittery{
    * The Database handles the creation of the database, and all access to it.
    * Once the database has been fully initialized it will emit a `ready`
    * event.
-   * Emit's a `close` event once complete.
    * @param options Supports one of two options: `db` (a leveldown compliant
    * store instance) or `dbPath` (the path to store/read the db instance)
    * @param blockchain 
@@ -53,10 +52,10 @@ export default class Database extends Emittery{
       if (!directory) {
         const dirInfo = await dir(tmpOptions);
         directory = dirInfo.path;
-        this._cleanup = dirInfo.cleanup;
+        this._cleanupDirectory = dirInfo.cleanup;
 
         // don't continue if we closed while we were waiting for the dir
-        if (this.closed) return this.cleanup();
+        if (this.closed) return this._cleanup();
       }
       this.directory = directory;
       const store = encode(leveldown(directory), levelupOptions);
@@ -64,7 +63,7 @@ export default class Database extends Emittery{
     }
 
     // don't continue if we closed while we were waiting for the db
-    if (this.closed) return this.cleanup();
+    if (this.closed) return this._cleanup();
 
     const open = db.open();
     this.trie = sub(db, "trie", levelupOptions);
@@ -73,22 +72,23 @@ export default class Database extends Emittery{
     await open;
 
     // don't continue if we closed while we were waiting for it to open
-    if (this.closed) return this.cleanup();
+    if (this.closed) return this._cleanup();
     
     this.blocks = sub(db, "blocks", levelupOptions);
     this.transactions = sub(db, "transactions", levelupOptions);
 
-    this.emit("ready");
+    await this.emit("ready");
     return;
   }
   /**
-   * Gracefully close the database and wait for it to fully shut down.
-   * Emit's a `close` event once complete.
+   * Gracefully closes the database and cleans up the file system and waits for
+   * it to fully shut down. Emit's a `close` event once complete.
+   * Note: only emits `close` once.
    */
   public async close() {
     const wasClosed = this.closed;
     this.closed = true;
-    await this.cleanup();
+    await this._cleanup();
 
     // only emit `close` once
     if (!wasClosed) {
@@ -96,11 +96,22 @@ export default class Database extends Emittery{
       return;
     }
   }
-  private async cleanup(){
-    // const db = this.db;
-    // if (db && db.isOpen()) {
-    //    await db.close();
-    // }
-    // this._cleanup();
+
+  /**
+   * Cleans up the database connections and our tmp directory.
+   */
+  private async _cleanup(){
+    const db = this.db;
+    if (db) {
+      await db.close();
+      await Promise.all(
+        [
+          this.blocks.close(),
+          this.transactions.close(),
+          this.trie.close()
+        ]
+      );
+    }
+    return new Promise(resolve => this._cleanupDirectory(resolve));
   }
 }
