@@ -19,7 +19,8 @@
       ".ts"
     ],
     "exclude": [
-      "**/*.d.ts"
+      "**/*.d.ts",
+      "test/**"
     ]
   },
   "dependencies": {
