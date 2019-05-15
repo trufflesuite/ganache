@@ -48,7 +48,7 @@ describe("server", () => {
       try {
         await simpleTest();
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -60,7 +60,7 @@ describe("server", () => {
         try {
           await simpleTest();
         } finally {
-          teardown();
+          await teardown();
         }
         done();
       });
@@ -75,7 +75,7 @@ describe("server", () => {
           message: `Server is already listening on port: ${port}`
         });
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -88,7 +88,7 @@ describe("server", () => {
           message: `Failed to listen on port: ${port}`
         });
       } finally {
-        teardown();
+        await teardown();
         await server.close();
       }
     });
@@ -103,7 +103,7 @@ describe("server", () => {
           message: `Failed to listen on port: ${port}`
         });
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -118,7 +118,7 @@ describe("server", () => {
           message: "Unexpected server response: 400"
         });
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -148,7 +148,7 @@ describe("server", () => {
           readableStream.pipe(req as any);
         });
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -178,7 +178,7 @@ describe("server", () => {
           message: "Bad Request"
         });
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -189,7 +189,7 @@ describe("server", () => {
         assert.strictEqual(result.status, 418);
         assert.strictEqual(result.message, "I'm a Teapot");
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -204,7 +204,7 @@ describe("server", () => {
         });
         await Promise.all(requests);
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -243,7 +243,7 @@ describe("server", () => {
         await simpleTest();
 
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -257,7 +257,7 @@ describe("server", () => {
           code: "ECONNREFUSED"
         });
       } finally {
-        teardown();
+        await teardown();
       }
     });
 
@@ -285,7 +285,7 @@ describe("server", () => {
             );
           });
         } finally {
-          teardown();
+          await teardown();
         }
       });
 
@@ -308,7 +308,7 @@ describe("server", () => {
               );
             });
         } finally {
-          teardown();
+          await teardown();
         }
       });
 
@@ -328,7 +328,7 @@ describe("server", () => {
             assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
             assert.strictEqual(resp.header["access-control-allow-origin"], origin);
         } finally {
-          teardown();
+          await teardown();
         }
       });
 
@@ -346,7 +346,7 @@ describe("server", () => {
             assert.strictEqual(resp.status, 204);
             assert.strictEqual(resp.header["access-control-allow-headers"], acrh);
         } finally {
-          teardown();
+          await teardown();
         }
       });
     });
@@ -421,7 +421,7 @@ describe("server", () => {
           // If we get a message that means things didn't get closed as they
           // should have OR they are closing too late for some reason and
           // this test isn't testing anything.
-          ws.on("message", () => reject("Got a message when we should have!"));
+          ws.on("message", () => reject("Got a message when we shouldn't have!"));
 
           // make sure we leave enough time for things to crash if it does end
           // up crashing.
@@ -438,7 +438,9 @@ describe("server", () => {
       { // create tons of data to force websocket backpressure
         const huge = {} as any;
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
-        s.provider.send = async () => huge;
+        s.provider.send = async () => {
+          return huge
+        };
       }
       
       const ws = new WebSocket('ws://localhost:' + port);
