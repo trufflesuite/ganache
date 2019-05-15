@@ -434,22 +434,12 @@ describe("server", () => {
       });
     });
 
-    it.skip("can handle backpressure", async () => {
+    it("can handle backpressure", async () => {
       { // create tons of data to force websocket backpressure
         const huge = {} as any;
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
         s.provider.send = async () => huge;
       }
-      // {
-      //   return await new Promise((resolve) => {
-      //     const ws = new WebSocket('ws://localhost:8545');
-      //     ws.on("open", () => {
-      //       ws.send(JSON.stringify(jsonRpcJson));
-      //       ws.close();
-      //       resolve();
-      //     });
-      //   });
-      // }
       
       const ws = new WebSocket('ws://localhost:' + port);
       const oldLog = logger.log;
