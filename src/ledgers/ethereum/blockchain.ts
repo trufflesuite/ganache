@@ -164,4 +164,8 @@ export default class Blockchain extends Emittery {
         await this.transactions.push(transaction);
         return Data.from(transaction.hash());
     }
+
+    public async shutdown() {
+        return this.database.close();
+    }
 }
