@@ -39,7 +39,7 @@
     "merkle-patricia-tree": "3.0.0",
     "seedrandom": "3.0.1",
     "subleveldown": "4.0.0",
-    "tmp-promise": "2.0.0",
+    "tmp-promise": "1.1.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v15.9.0"
   },
   "devDependencies": {

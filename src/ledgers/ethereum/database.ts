@@ -97,11 +97,10 @@ export default class Database extends Emittery{
     }
   }
   private async cleanup(){
-    const db = this.db;
-    if (db && db.isOpen()) {
-      // await new Promise(resolve => setTimeout(resolve, 1000));
-      // await db.close();
-    }
-    this._cleanup();
+    // const db = this.db;
+    // if (db && db.isOpen()) {
+    //    await db.close();
+    // }
+    // this._cleanup();
   }
 }

@@ -349,6 +349,11 @@
         "safe-buffer": "^5.0.1"
       }
     },
+    "bluebird": {
+      "version": "3.5.4",
+      "resolved": "https://registry.npmjs.org/bluebird/-/bluebird-3.5.4.tgz",
+      "integrity": "sha512-FG+nFEZChJrbQ9tIccIfZJBz3J7mLrAhxakAbnrJWn8d7aKOC+LWifa0G+p4ZqKp4y13T7juYvdhq9NzKdsrjw=="
+    },
     "bn.js": {
       "version": "4.11.8",
       "resolved": "https://registry.npmjs.org/bn.js/-/bn.js-4.11.8.tgz",
@@ -3326,10 +3331,11 @@
       }
     },
     "tmp-promise": {
-      "version": "2.0.0",
-      "resolved": "https://registry.npmjs.org/tmp-promise/-/tmp-promise-2.0.0.tgz",
-      "integrity": "sha512-kChVEhT3MTvFKrFEiKZEgDpIzUDj/EAsivMW/x0dFYPtymbLU0IkJeEJLHQ5UZfxacV3fi85NBqDDI4vT0QsYA==",
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/tmp-promise/-/tmp-promise-1.1.0.tgz",
+      "integrity": "sha512-8+Ah9aB1IRXCnIOxXZ0uFozV1nMU5xiu7hhFVUSxZ3bYu+psD4TzagCzVbexUCgNNGJnsmNDQlS4nG3mTyoNkw==",
       "requires": {
+        "bluebird": "^3.5.0",
         "tmp": "0.1.0"
       }
     },

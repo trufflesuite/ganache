@@ -70,7 +70,7 @@ export default class Server {
     }
   }
 
-  close() {
+  async close() {
     const _listenSocket = this[listenSocket];
     this.status = ConnectionStatus.closing;
     if (_listenSocket) {
@@ -86,6 +86,7 @@ export default class Server {
     // and do all http cleanup, if any
     this[httpServer].close();
     this.status = ConnectionStatus.closed;
+    await this.provider.close();
   }
 }
 
