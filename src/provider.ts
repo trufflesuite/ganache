@@ -165,6 +165,13 @@ export default class Provider extends Emittery {
   }
 
   public async close() {
-    return this.emit("close");
+    // wait for anything that subscribed to this close event (like the ledger)
+    // to finish before returning
+
+    // stop accepting new requests
+    this[requestProcessor].pause();
+
+    await this.emit("close");
+    return;
   }
 }
