@@ -9,10 +9,6 @@ const _handleOptions = Symbol("handleOptions");
 const _provider = Symbol("provider");
 const noop = () => { };
 
-if (!process.env.NODE_ENV) {
-  require("marko/node-require");
-}
-
 /**
  * uWS doesn't let us use the request after the request method has completed.
  * But we can't set headers until after the statusCode is set. But we don't
@@ -27,7 +23,7 @@ function prepareCORSResponseHeaders(method: string, request: HttpRequest) {
   const origin = request.getHeader("origin");
   const acrh = request.getHeader("access-control-request-headers");
   return (response: HttpResponse) => {
-    const isCORSRequest = true || origin !== "";
+    const isCORSRequest = origin !== "";
     if (isCORSRequest) {
       // OPTIONS preflight requests need a little extra treatment
       if (method === "OPTIONS") {
@@ -37,9 +33,6 @@ function prepareCORSResponseHeaders(method: string, request: HttpRequest) {
         if (acrh !== "") {
           response.writeHeader("Access-Control-Allow-Headers", acrh);
         }
-        // Safari needs Content-Length = 0 for a 204 response otherwise it hangs forever
-        // https://github.com/expressjs/cors/pull/121#issue-130260174
-        response.writeHeader("Content-Length", "0");
 
         // Make browsers and compliant clients cache the OPTIONS preflight response for 10
         // minutes (this is the maximum time Chromium allows)
@@ -97,18 +90,17 @@ export default class HttpServer {
     });
 
     // fallback routes...
-    app
-      .any("/*", (response ,request) => {
-        const connectionHeader = request.getHeader("connection");
-        if (connectionHeader && connectionHeader.toLowerCase() === "upgrade") {
-          // if we got here it means the websocket server wasn't enabled but
-          // a client tried to connect via websocket. This is a Bad Request.
-          sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request");
-        } else {
-          // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
-          sendResponse(response, HttpResponseCodes.NOT_FOUND, ContentTypes.PLAIN, "404 Not Found");
-        }
-      });
+    app.any("/*", (response ,request) => {
+      const connectionHeader = request.getHeader("connection");
+      if (connectionHeader && connectionHeader.toLowerCase() === "upgrade") {
+        // if we got here it means the websocket server wasn't enabled but
+        // a client tried to connect via websocket. This is a Bad Request.
+        sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request");
+      } else {
+        // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
+        sendResponse(response, HttpResponseCodes.NOT_FOUND, ContentTypes.PLAIN, "404 Not Found");
+      }
+    });
   }
 
   private [_handlePost](response: HttpResponse, request: HttpRequest) {
@@ -138,14 +130,18 @@ export default class HttpServer {
           // http connections do not support subscriptions
           case "eth_subscribe":
           case "eth_unsubscribe":
-            const error = JsonRpc.Error(id, "-32000", "notifications not supported")
+            const error = JsonRpc.Error(id, "-32000", "notifications not supported");
             sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.JSON, JSON.stringify(error), writeHeaders);
             break;
           default:
             // `await`ing the `provider.send` instead of using `then` causes uWS 
             // to delay cleaning up the `request` object, which we don't neccessarily want to delay.
             this[_provider].send(method, payload.params).then((result) => {
-              if (response.aborted) return;
+              if (response.aborted) {
+                // if the request has been aborted don't try sending (it'll
+                // cause an `Unhandled promise rejection` if we try)
+                return;
+              }
               const json = JsonRpc.Response(id, result);
               sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, JSON.stringify(json), writeHeaders);
             });
@@ -165,7 +161,7 @@ export default class HttpServer {
     // handle CORS preflight requests...
     const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
     // OPTIONS responses don't have a body, so respond with `204 No Content`...
-    sendResponse(response, HttpResponseCodes.NO_CONTENT, null, null, writeHeaders);
+    sendResponse(response, HttpResponseCodes.NO_CONTENT, null, "", writeHeaders);
   }
   public close() {
     // currently a no op.
