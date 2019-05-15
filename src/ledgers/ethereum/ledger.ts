@@ -1,5 +1,5 @@
 //#region Imports
-import ILedger from "../../interfaces/ledger";
+import ILedger, {Emitter} from "../../interfaces/ledger";
 import EthereumOptions, { getDefaultOptions } from "./options";
 import { Data, Quantity, IndexableData } from "../../types/json-rpc";
 import Blockchain from "./blockchain";
@@ -45,7 +45,7 @@ export default class Ethereum implements ILedger {
    * @param options
    * @param ready Callback for when the ledger is fully initialized
    */
-  constructor(options: EthereumOptions, ready: () => {}) {
+  constructor(options: EthereumOptions, emitter: Emitter) {
     const opts = this[_options] = Object.assign(getDefaultOptions(), options);
     const accounts = opts.accounts;
     const knownAccounts = this[_knownAccounts];
@@ -122,7 +122,8 @@ export default class Ethereum implements ILedger {
     //#endregion
 
     const chain = this[_blockchain] = new Blockchain(options);
-    chain.on("ready", ready);
+    chain.on("ready", () => emitter.emit("ready"));
+    emitter.on("close", async () => chain.shutdown());
   }
 
   /**
