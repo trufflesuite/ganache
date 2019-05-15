@@ -13,7 +13,7 @@ const app = Symbol("app");
 const websocketServer = Symbol("websocketServer");
 const httpServer = Symbol("httpServer");
 
-export enum ConnectionStatus {
+export enum Status {
   // Flags
   open = 1,
   opening = 3,
@@ -28,7 +28,7 @@ export default class Server {
   private [httpServer]: HttpServer;
   private [listenSocket]: us_listen_socket;
   private [websocketServer]: WebsocketServer;
-  public status = ConnectionStatus.closed;
+  public status = Status.closed;
   
   constructor(serverOptions?: ServerOptions) {
     const opts = this[options] = getDefaultServerOptions(serverOptions);
@@ -44,20 +44,21 @@ export default class Server {
   
   async listen(port: number, callback?: (err: Error) => void): Promise<void> {
     let err;
-    if (this.status & ConnectionStatus.open) {
+    // if open or opening
+    if (this.status & Status.open) {
       err = new Error(`Server is already listening on port: ${port}`);
     } else {
-      this.status = ConnectionStatus.opening;
+      this.status = Status.opening;
       const _listenSocket = await new Promise((resolve) => {
         this[app].listen(port, resolve);
       });
       
       if (_listenSocket) {
-        this.status = ConnectionStatus.open;
+        this.status = Status.open;
         this[listenSocket] = _listenSocket;
         err = null;
       } else {
-        this.status = ConnectionStatus.closed;
+        this.status = Status.closed;
         err = new Error("Failed to listen on port: " + port);
       }
     }
@@ -70,9 +71,9 @@ export default class Server {
     }
   }
 
-  async close() {
+  public async close() {
     const _listenSocket = this[listenSocket];
-    this.status = ConnectionStatus.closing;
+    this.status = Status.closing;
     if (_listenSocket) {
       this[listenSocket] = undefined;
       // close the socket to prevent any more connections
@@ -85,7 +86,7 @@ export default class Server {
     }
     // and do all http cleanup, if any
     this[httpServer].close();
-    this.status = ConnectionStatus.closed;
+    this.status = Status.closed;
     await this.provider.close();
   }
 }
