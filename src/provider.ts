@@ -6,7 +6,7 @@ import Emittery from "emittery";
 import Ethereum from "./ledgers/ethereum/ledger"
 import { privateToAddress } from "ethereumjs-util";
 import Account from "./types/account";
-import { generateMnemonic, mnemonicToSeedSync } from "bip39";
+import { mnemonicToSeedSync } from "bip39";
 import Address from "./types/address";
 import JsonRpc from "./servers/utils/jsonrpc";
 import EthereumOptions from "./ledgers/ethereum/options";
@@ -45,7 +45,9 @@ export default class Provider extends Emittery {
     // `accounts`, fix that up here:
     const ethereumOptions = _providerOptions as any as EthereumOptions;
     ethereumOptions.accounts = accounts;
-    const ledger = _providerOptions.ledger || new Ethereum(ethereumOptions, _requestProcessor.resume.bind(_requestProcessor));
+    const emitter = this as any;
+    const ledger = _providerOptions.ledger || new Ethereum(ethereumOptions, emitter);
+    emitter.on("ready", _requestProcessor.resume.bind(_requestProcessor));
     this._engine = new Engine(ledger);
   }
 
@@ -160,5 +162,9 @@ export default class Provider extends Emittery {
    */
   public sendAsync(payload: JsonRpc.Request, callback?: Callback): void {
     return this.send(payload, callback);
+  }
+
+  public async close() {
+    return this.emit("close");
   }
 }
