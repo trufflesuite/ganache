@@ -70,6 +70,12 @@ describe("provider", () => {
     assert.strictEqual(result, "0x056bc75e2d63100000");
   });
 
+  it("generates predictable accounts when given a seed", async() => {
+    const p = Ganache.provider({seed: "temet nosce"});
+    const accounts = await p.send("eth_accounts");
+    assert.strictEqual(accounts[0], "0x59eF313E6Ee26BaB6bcb1B5694e59613Debd88DA");
+  });
+
   it("gets balance", async() => {
     const accounts = await p.send("eth_accounts");
     const balance = await p.send("eth_getBalance", [accounts[0]]);
@@ -112,7 +118,6 @@ describe("provider", () => {
     const to = accounts[accounts.length - 1];
 
 
-    const id = setImmediate(()=>{console.log(1)});
     p.send("eth_sendTransaction", [{
       from: accounts[0],
       to: to,
@@ -120,7 +125,6 @@ describe("provider", () => {
       nonce: nonces[2],
       gasPrice: (rand() * 100) | 0
     }]);
-    clearImmediate(id);
 
     // for every account (except the last one)
     for (let j = 0; j < accounts.length - 6; j++) {
