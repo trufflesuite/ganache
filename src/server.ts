@@ -72,20 +72,20 @@ export default class Server {
 
   close() {
     const _listenSocket = this[listenSocket];
+    this.status = ConnectionStatus.closing;
     if (_listenSocket) {
-      this.status = ConnectionStatus.closing;
       this[listenSocket] = undefined;
       // close the socket to prevent any more connections
       uWS.us_listen_socket_close(_listenSocket);
-
-      // close all the currently connection websockets:
-      const ws = this[websocketServer]
-      if (ws) {
-        ws.close();
-      }
-      // and do all http cleanup, if any
-      this[httpServer].close();
-      this.status = ConnectionStatus.closed;
     }
+    // close all the currently connection websockets:
+    const ws = this[websocketServer]
+    if (ws) {
+      ws.close();
+    }
+    // and do all http cleanup, if any
+    this[httpServer].close();
+    this.status = ConnectionStatus.closed;
   }
 }
+
