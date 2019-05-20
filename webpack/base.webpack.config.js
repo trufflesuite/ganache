@@ -15,7 +15,7 @@ module.exports = (override) => {
         // webpack these modules:
         // we actually only care about scrypt and eth-block-tracker here, as those are the only native modules
         // but webpack won't detect them if we don't traverse the dependency tree to get to them
-        if (/^(ethereumjs-wallet|scrypt|web3|eth-block-tracker)(\/.*)?$/.test(request)) {
+        if (/^(ethereumjs-wallet|scrypt|web3|web3-eth|web3-eth-accounts|eth-block-tracker)(\/.*)?$/.test(request)) {
           return callback();
         }
 
