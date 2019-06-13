@@ -10,7 +10,6 @@ export default class Engine extends Emittery {
    */
   constructor(ledger: ILedger) {
     super();
-
     this._ledger = ledger;
   }
 
