@@ -110,12 +110,12 @@ describe("Gas", function() {
           };
           const { result: estimateHex } = await send("eth_estimateGas", txParams);
           const estimate = new BN(estimateHex.substring(2), "hex");
-          txParams.gasLimit = "0x" + estimate.subn(1).toString("hex");
+          txParams.gas = "0x" + estimate.subn(1).toString("hex");
           await assert.rejects(() => send("eth_sendTransaction", txParams), {
             message: "VM Exception while processing transaction: revert"
           });
 
-          txParams.gasLimit = estimateHex;
+          txParams.gas = estimateHex;
           await assert.doesNotReject(
             () => send("eth_sendTransaction", txParams),
             undefined,
