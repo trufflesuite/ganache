@@ -125,7 +125,7 @@ describe("Gas", function() {
 
         it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async() => {
           const { accounts, instance } = TestDepth;
-          const depth = 2;
+          const depth = 10;
           const est = await instance.methods.depth(depth).estimateGas();
           await assert.rejects(
             () =>
