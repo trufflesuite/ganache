@@ -4010,8 +4010,8 @@
       }
     },
     "ethereumjs-vm": {
-      "version": "git://github.com/runtimeverification/ethereumjs-vm.git#cb24dded2e7faa2a32241aee06808708f2e34ce3",
-      "from": "git://github.com/runtimeverification/ethereumjs-vm.git",
+      "version": "github:runtimeverification/ethereumjs-vm#cb24dded2e7faa2a32241aee06808708f2e34ce3",
+      "from": "github:runtimeverification/ethereumjs-vm",
       "requires": {
         "async": "^2.1.2",
         "async-eventemitter": "^0.2.2",
