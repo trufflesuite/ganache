@@ -1,7 +1,7 @@
 pragma solidity ^0.4.13;
 
 contract TestDepth {
-    uint256 public x;
+    uint256 public x = 1;
 
     function depth(uint256 y) public {
         // bool result;
@@ -11,7 +11,7 @@ contract TestDepth {
         }
         else {
              // Save the remaining gas in storage so that we can access it later
-            x = msg.gas;
+             x = msg.gas;
         }
     }
 }
