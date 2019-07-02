@@ -89,6 +89,21 @@ const tests = function(web3) {
     });
   });
 
+  describe("eth_chainId", function() {
+    it("should return a default chain id of a private network", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+
+      const result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_chainId",
+        params: []
+      });
+
+      assert.strictEqual(result.result, "0x539"); // 0x539 === 1337
+    });
+  });
+
   describe("eth_coinbase", function() {
     it("should return correct address", async function() {
       const coinbase = await web3.eth.getCoinbase();

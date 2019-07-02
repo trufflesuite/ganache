@@ -93,6 +93,7 @@ The RPC methods currently implemented are:
 * [eth_accounts](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_accounts)
 * [eth_blockNumber](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_blockNumber)
 * [eth_call](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_call)
+* `eth_chainId`
 * [eth_coinbase](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_coinbase)
 * [eth_estimateGas](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_estimateGas)
 * [eth_gasPrice](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gasPrice)
