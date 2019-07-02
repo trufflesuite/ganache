@@ -110,12 +110,12 @@ describe("Gas", function() {
           };
           const { result: estimateHex } = await send("eth_estimateGas", txParams);
           const estimate = new BN(estimateHex.substring(2), "hex");
-          txParams.gasLimit = "0x" + estimate.subn(1).toString("hex");
+          txParams.gas = "0x" + estimate.subn(1).toString("hex");
           await assert.rejects(() => send("eth_sendTransaction", txParams), {
             message: "VM Exception while processing transaction: revert"
           });
 
-          txParams.gasLimit = estimateHex;
+          txParams.gas = estimateHex;
           await assert.doesNotReject(
             () => send("eth_sendTransaction", txParams),
             undefined,
@@ -125,28 +125,37 @@ describe("Gas", function() {
 
         it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async() => {
           const { accounts, instance } = TestDepth;
-          const depth = 2;
-          const est = await instance.methods.depth(depth).estimateGas();
-          await assert.rejects(
-            () =>
-              instance.methods.depth(depth).send({
-                from: accounts[0],
-                gas: est - 1
-              }),
-            {
-              message: "VM Exception while processing transaction: revert"
-            }
-          );
-
-          await assert.doesNotReject(
-            () =>
-              instance.methods.depth(depth).send({
-                from: accounts[0],
-                gas: est
-              }),
-            undefined,
-            `SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`
-          );
+          const depth = 10;
+          const promises = Array(depth)
+            .fill(0)
+            .map((_, i) => {
+              const depth = i + 1;
+              return instance.methods
+                .depth(depth)
+                .estimateGas()
+                .then(async(est) => {
+                  return Promise.all([
+                    assert.doesNotReject(
+                      instance.methods.depth(depth).send({
+                        from: accounts[5],
+                        gas: est
+                      }),
+                      undefined,
+                      `SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`
+                    ),
+                    assert.rejects(
+                      instance.methods.depth(depth).send({
+                        from: accounts[5],
+                        gas: est - 1
+                      }),
+                      {
+                        message: "VM Exception while processing transaction: revert"
+                      }
+                    )
+                  ]);
+                });
+            });
+          await Promise.all(promises);
         });
 
         it("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async() => {
