@@ -8,15 +8,14 @@ const assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-const solc = require("solc");
-const fs = require("fs");
 const to = require("../lib/utils/to");
 const _ = require("lodash");
 const pify = require("pify");
 const generateSend = require("./helpers/utils/rpc");
+const compile = require("./helpers/contract/singleFileCompile");
 
-const source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
-const compilationResult = solc.compile(source, 1);
+const { result: compilationResult, source } = compile("./test/contracts/examples/", "Example");
+
 const secretKeys = [
   "0xda09f8cdec20b7c8334ce05b27e6797bef01c1ad79c59381666467552c5012e3",
   "0x0d14f32c8e3ed7417fb7db52ebab63572bf7cfcd557351d4ccf19a05edeecfa5",
@@ -35,9 +34,9 @@ const secretKeys = [
 // make sure to update the resulting contract data with the correct values.
 const contract = {
   solidity: source,
-  abi: compilationResult.contracts[":Example"].interface,
-  binary: "0x" + compilationResult.contracts[":Example"].bytecode,
-  runtimeBinary: "0x" + compilationResult.contracts[":Example"].runtimeBytecode,
+  abi: compilationResult.contracts["Example.sol"].Example.abi,
+  binary: "0x" + compilationResult.contracts["Example.sol"].Example.evm.bytecode.object,
+  runtimeBinary: "0x" + compilationResult.contracts["Example.sol"].Example.evm.deployedBytecode.object,
   position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
   expected_default_value: 5,
   callData: {
@@ -878,14 +877,13 @@ const tests = function(web3) {
     });
 
     it("should represent the block number correctly in the Oracle contract (oracle.blockhash0)", async function() {
-      const oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
-      const oracleOutput = solc.compile(oracleSol).contracts[":Oracle"];
+      const { result: oracleOutput } = compile("./test/contracts/misc/", "Oracle");
       await web3.eth.personal.unlockAccount(accounts[0], "password");
 
-      const contract = new web3.eth.Contract(JSON.parse(oracleOutput.interface));
+      const contract = new web3.eth.Contract(oracleOutput.contracts["Oracle.sol"].Oracle.abi);
       const oracle = await contract
         .deploy({
-          data: oracleOutput.bytecode
+          data: oracleOutput.contracts["Oracle.sol"].Oracle.evm.bytecode.object
         })
         .send({
           from: accounts[0],
@@ -904,7 +902,7 @@ const tests = function(web3) {
       const startingBlockNumber = await web3.eth.getBlockNumber();
 
       const gasEstimate = await web3.eth.estimateGas(txData);
-      assert.strictEqual(gasEstimate, 27693);
+      assert.strictEqual(gasEstimate, 27773);
 
       const blockNumber = await web3.eth.getBlockNumber();
 
@@ -921,7 +919,7 @@ const tests = function(web3) {
       txData.from = "0x1234567890123456789012345678901234567890";
 
       const result = await web3.eth.estimateGas(txData);
-      assert.strictEqual(result, 27693);
+      assert.strictEqual(result, 27773);
     });
 
     it("should estimate gas when no account is listed (eth_estimateGas)", async function() {
@@ -930,7 +928,7 @@ const tests = function(web3) {
       delete txData.from;
 
       const result = await web3.eth.estimateGas(txData);
-      assert.strictEqual(result, 27693);
+      assert.strictEqual(result, 27773);
     });
 
     it("should send a state changing transaction (eth_sendTransaction)", async function() {

@@ -138,7 +138,7 @@ function test(forked) {
 
       assert.strictEqual(lastop.op, "STOP");
       assert.strictEqual(lastop.gasCost, 1);
-      assert.strictEqual(lastop.pc, 209);
+      assert.strictEqual(lastop.pc, 208);
       assert.strictEqual(
         lastop.storage["0000000000000000000000000000000000000000000000000000000000000000"],
         "000000000000000000000000000000000000000000000000000000000000001a"

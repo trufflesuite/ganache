@@ -4,8 +4,8 @@ var assert = require("assert");
 var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var fs = require("fs");
-var solc = require("solc");
+
+const compile = require("./helpers/contract/singleFileCompile");
 var to = require("../lib/utils/to.js");
 var generateSend = require("./helpers/utils/rpc");
 
@@ -45,16 +45,15 @@ describe("Forking", function() {
 
   before("set up test data", function() {
     this.timeout(10000);
-    var source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
-    var result = solc.compile(source, 1);
+    const { result, source } = compile("./test/contracts/examples/", "Example");
 
     // Note: Certain properties of the following contract data are hardcoded to
     // maintain repeatable tests. If you significantly change the solidity code,
     // make sure to update the resulting contract data with the correct values.
     contract = {
       solidity: source,
-      abi: result.contracts[":Example"].interface,
-      binary: "0x" + result.contracts[":Example"].bytecode,
+      abi: result.contracts["Example.sol"].Example.abi,
+      binary: "0x" + result.contracts["Example.sol"].Example.evm.bytecode.object,
       position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
       expected_default_value: 5,
       call_data: {
@@ -120,7 +119,7 @@ describe("Forking", function() {
   });
 
   before("Make a transaction on the forked chain that produces a log", async() => {
-    var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    var forkedExample = new forkedWeb3.eth.Contract(contract.abi, contractAddress);
     var event = forkedExample.events.ValueSet({});
 
     const eventData = new Promise((resolve, reject) => {
@@ -199,7 +198,7 @@ describe("Forking", function() {
   });
 
   it("should execute calls against a contract on the forked provider via the main provider", async() => {
-    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    var example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
 
     const result = await example.methods.value().call({ from: mainAccounts[0] });
     assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
@@ -210,9 +209,9 @@ describe("Forking", function() {
   });
 
   it("should make a transaction on the main provider while not transacting on the forked provider", async() => {
-    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    var example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
 
-    var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    var forkedExample = new forkedWeb3.eth.Contract(contract.abi, contractAddress);
 
     // TODO: ugly workaround - not sure why this is necessary.
     if (!forkedExample._requestManager.provider) {
@@ -236,9 +235,9 @@ describe("Forking", function() {
     // yet, and it will require it forked to the forked provider at a specific block.
     // If that block handling is done improperly, this should fail.
 
-    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), secondContractAddress);
+    var example = new mainWeb3.eth.Contract(contract.abi, secondContractAddress);
 
-    var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), secondContractAddress);
+    var forkedExample = new forkedWeb3.eth.Contract(contract.abi, secondContractAddress);
 
     // TODO: ugly workaround - not sure why this is necessary.
     if (!forkedExample._requestManager.provider) {
@@ -293,12 +292,11 @@ describe("Forking", function() {
     "should represent the block number correctly in the Oracle contract (oracle.blockhash0)," +
       " providing forked block hash and number",
     async() => {
-      const oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
-      const solcResult = solc.compile(oracleSol);
-      const oracleOutput = solcResult.contracts[":Oracle"];
+      const { result: solcResult } = compile("./test/contracts/misc/", "Oracle");
+      const oracleOutput = solcResult.contracts["Oracle.sol"].Oracle;
 
-      const contract = new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface));
-      const deployTxn = contract.deploy({ data: oracleOutput.bytecode });
+      const contract = new mainWeb3.eth.Contract(oracleOutput.abi);
+      const deployTxn = contract.deploy({ data: oracleOutput.evm.bytecode.object });
       const oracle = await deployTxn.send({ from: mainAccounts[0], gas: 3141592 });
 
       const block = await mainWeb3.eth.getBlock(0);
@@ -318,7 +316,7 @@ describe("Forking", function() {
 
   // TODO
   it("should be able to get logs across the fork boundary", async() => {
-    const example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    const example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
     const event = example.events.ValueSet({ fromBlock: 0, toBlock: "latest" });
     let callcount = 0;
     const eventData = new Promise((resolve, reject) => {
@@ -467,7 +465,7 @@ describe("Forking", function() {
     let forkBlockNumber;
     let web3;
     before("Set up the initial chain with the values we want to test", async function() {
-      forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+      forkedExample = new forkedWeb3.eth.Contract(contract.abi, contractAddress);
       await forkedExample.methods.setValue(initialValue).send({ from: forkedAccounts[0] });
       forkBlockNumber = await forkedWeb3.eth.getBlockNumber();
       await forkedExample.methods.setValue("999").send({ from: forkedAccounts[0] });
@@ -490,7 +488,7 @@ describe("Forking", function() {
     });
 
     it("should return original chain data from before the fork", async() => {
-      const example = new web3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+      const example = new web3.eth.Contract(contract.abi, contractAddress);
       const result = await example.methods.value().call({ from: mainAccounts[0] });
 
       assert(result, initialValue, "Value return on forked chain is not as expected");

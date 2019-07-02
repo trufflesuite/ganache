@@ -4,9 +4,7 @@ var assert = require("assert");
 var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var fs = require("fs");
-var solc = require("solc");
-
+const compile = require("./helpers/contract/singleFileCompile");
 var logger = {
   log: function(msg) {
     /* console.log(msg) */
@@ -34,16 +32,15 @@ describe("Contract Deployed on Main Chain After Fork", function() {
 
   before("set up test data", function() {
     this.timeout(10000);
-    var source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
-    var result = solc.compile(source, 1);
+    const { result, source } = compile("./test/contracts/examples/", "Example");
 
     // Note: Certain properties of the following contract data are hardcoded to
     // maintain repeatable tests. If you significantly change the solidity code,
     // make sure to update the resulting contract data with the correct values.
     contract = {
       solidity: source,
-      abi: result.contracts[":Example"].interface,
-      binary: "0x" + result.contracts[":Example"].bytecode,
+      abi: result.contracts["Example.sol"].Example.abi,
+      binary: "0x" + result.contracts["Example.sol"].Example.evm.bytecode.object,
       position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
       expected_default_value: 5,
       call_data: {
