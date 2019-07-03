@@ -118,16 +118,6 @@ describe("Forking", function() {
     });
 
     secondContractAddress = receipt2.contractAddress;
-
-    // Deploy a third one, which is used to verify the forked storage provider's duck punching
-    // works as expected on it's own data.
-    const receipt3 = await mainWeb3.eth.sendTransaction({
-      from: forkedAccounts[0],
-      data: contract.binary,
-      gas: 3141592
-    });
-
-    thirdContractAddress = receipt3.contractAddress;
   });
 
   before("Make a transaction on the forked chain that produces a log", async() => {
@@ -136,20 +126,6 @@ describe("Forking", function() {
 
     const eventData = new Promise((resolve, reject) => {
       event.once("data", function(logs) {
-        resolve();
-      });
-    });
-
-    await forkedExample.methods.setValue(7).send({ from: forkedAccounts[0] });
-    await eventData;
-  });
-
-  before("Make a transaction on the main chain using the it's own contract", async() => {
-    var mainExample = new mainWeb3.eth.Contract(JSON.parse(contract.abi), thirdContractAddress);
-    var event = mainExample.events.ValueSet({});
-
-    const eventData = new Promise(resolve => {
-      event.once("data", () => {
         resolve();
       });
     });
@@ -184,6 +160,31 @@ describe("Forking", function() {
 
   before("Gather main accounts", async() => {
     mainAccounts = await mainWeb3.eth.getAccounts();
+  });
+  before("Deploy a conttact to the main chain", async() => {
+    // Deploy a third one, which is used to verify the forked storage provider's duck punching
+    // works as expected on it's own data.
+    const receipt3 = await mainWeb3.eth.sendTransaction({
+      from: mainAccounts[0],
+      data: contract.binary,
+      gas: 3141592
+    });
+
+    thirdContractAddress = receipt3.contractAddress;
+  });
+
+  before("Make a transaction on the main chain using the it's own contract", async() => {
+    var mainExample = new mainWeb3.eth.Contract(JSON.parse(contract.abi), thirdContractAddress);
+    var event = mainExample.events.ValueSet({});
+
+    const eventData = new Promise((resolve) => {
+      event.once("data", () => {
+        resolve();
+      });
+    });
+
+    await mainExample.methods.setValue(7).send({ from: mainAccounts[0] });
+    await eventData;
   });
 
   it("should get the id of the forked chain", async() => {
@@ -288,15 +289,17 @@ describe("Forking", function() {
   });
 
   it("should maintain a block number that includes new blocks PLUS the existing chain", async() => {
-    // Note: The main provider should be at block 5 at this test. Reasoning:
+    // Note: The main provider should be at block 7 at this test. Reasoning:
     // - The forked chain has an initial block, which is block 0.
     // - The forked chain performed a transaction that produced a log, resulting in block 1.
     // - The forked chain had two transactions initially, resulting blocks 2 and 3.
     // - The main chain forked from there, creating its own initial block, block 4.
-    // - Then the main chain performed a transaction, putting it at block 5.
+    // - Then the main chain deploy a contract, putting it at block 5.
+    // - Then the main chain sent a transaction to that contract, block 6.
+    // - Then the main chain performed a transaction, putting it at block 7.
 
     const result = await mainWeb3.eth.getBlockNumber();
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
+    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
 
     // Now lets get a block that exists on the forked chain.
     const mainBlock = await mainWeb3.eth.getBlock(0);
