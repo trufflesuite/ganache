@@ -50,10 +50,11 @@ describe("Forking", function() {
     // Note: Certain properties of the following contract data are hardcoded to
     // maintain repeatable tests. If you significantly change the solidity code,
     // make sure to update the resulting contract data with the correct values.
+    const example = result.contracts["Example.sol"].Example;
     contract = {
       solidity: source,
-      abi: result.contracts["Example.sol"].Example.abi,
-      binary: "0x" + result.contracts["Example.sol"].Example.evm.bytecode.object,
+      abi: example.abi,
+      binary: "0x" + example.evm.bytecode.object,
       position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
       expected_default_value: 5,
       call_data: {

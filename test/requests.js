@@ -32,11 +32,12 @@ const secretKeys = [
 // Note: Certain properties of the following contract data are hardcoded to
 // maintain repeatable tests. If you significantly change the solidity code,
 // make sure to update the resulting contract data with the correct values.
+const example = compilationResult.contracts["Example.sol"].Example;
 const contract = {
   solidity: source,
-  abi: compilationResult.contracts["Example.sol"].Example.abi,
-  binary: "0x" + compilationResult.contracts["Example.sol"].Example.evm.bytecode.object,
-  runtimeBinary: "0x" + compilationResult.contracts["Example.sol"].Example.evm.deployedBytecode.object,
+  abi: example.abi,
+  binary: "0x" + example.evm.bytecode.object,
+  runtimeBinary: "0x" + example.evm.deployedBytecode.object,
   position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
   expected_default_value: 5,
   callData: {

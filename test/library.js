@@ -48,11 +48,13 @@ describe("Libraries", function() {
     };
     const result = JSON.parse(solc.compile(JSON.stringify(input)));
 
-    libraryData = "0x" + result.contracts["Library.sol"].Library.evm.bytecode.object;
-    libraryAbi = result.contracts["Library.sol"].Library.abi;
+    const lib = result.contracts["Library.sol"].Library;
+    libraryData = "0x" + lib.evm.bytecode.object;
+    libraryAbi = lib.abi;
 
-    contractBytecode = result.contracts["CallLibrary.sol"].CallLibrary.evm.bytecode.object;
-    contractAbi = result.contracts["CallLibrary.sol"].CallLibrary.abi;
+    const callLib = result.contracts["CallLibrary.sol"].CallLibrary;
+    contractBytecode = callLib.evm.bytecode.object;
+    contractAbi = callLib.abi;
   });
 
   before("deploy library", async() => {
