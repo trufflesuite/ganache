@@ -174,7 +174,7 @@ describe("Forking", function() {
   });
 
   before("Make a transaction on the main chain using the it's own contract", async() => {
-    var mainExample = new mainWeb3.eth.Contract(JSON.parse(contract.abi), thirdContractAddress);
+    var mainExample = new mainWeb3.eth.Contract(contract.abi, thirdContractAddress);
     var event = mainExample.events.ValueSet({});
 
     const eventData = new Promise((resolve) => {
