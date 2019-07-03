@@ -61,6 +61,7 @@ As a general HTTP and WebSocket server:
 ```javascript
 const ganache = require("ganache-core");
 const server = ganache.server();
+const provider = server.provider;
 server.listen(port, function(err, blockchain) { ... });
 ```
 
