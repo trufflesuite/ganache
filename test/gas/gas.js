@@ -288,11 +288,7 @@ describe("Gas", function() {
             const options = { from, gas: 5000000 };
 
             // prime storage by making sure it is set to 0
-            try {
-              await instance.methods.reset().send(options);
-            } catch (error) {
-              console.log(error);
-            }
+            await instance.methods.reset().send(options);
 
             // update storage and then reset it back to 0
             const method = instance.methods.triggerRsclearRefund();
