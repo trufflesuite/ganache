@@ -27,6 +27,7 @@ describe("Forking", function() {
   var contract;
   var contractAddress;
   var secondContractAddress; // used sparingly
+  var thirdContractAddress; // the same contract deployed to the fork ("mainWeb3")
   var forkedServer;
   var mainAccounts;
   var forkedAccounts;
@@ -117,6 +118,16 @@ describe("Forking", function() {
     });
 
     secondContractAddress = receipt2.contractAddress;
+
+    // Deploy a third one, which is used to verify the forked storage provider's duck punching
+    // works as expected on it's own data.
+    const receipt3 = await mainWeb3.eth.sendTransaction({
+      from: forkedAccounts[0],
+      data: contract.binary,
+      gas: 3141592
+    });
+
+    thirdContractAddress = receipt3.contractAddress;
   });
 
   before("Make a transaction on the forked chain that produces a log", async() => {
@@ -125,6 +136,20 @@ describe("Forking", function() {
 
     const eventData = new Promise((resolve, reject) => {
       event.once("data", function(logs) {
+        resolve();
+      });
+    });
+
+    await forkedExample.methods.setValue(7).send({ from: forkedAccounts[0] });
+    await eventData;
+  });
+
+  before("Make a transaction on the main chain using the it's own contract", async() => {
+    var mainExample = new mainWeb3.eth.Contract(JSON.parse(contract.abi), thirdContractAddress);
+    var event = mainExample.events.ValueSet({});
+
+    const eventData = new Promise(resolve => {
+      event.once("data", () => {
         resolve();
       });
     });
@@ -188,9 +213,19 @@ describe("Forking", function() {
     assert(balance > 999999);
   });
 
+  it("should get storage values on the forked provider itself", async() => {
+    const result = await mainWeb3.eth.getStorageAt(thirdContractAddress, contract.position_of_value);
+    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+  });
+
   it("should get storage values on the forked provider via the main provider", async() => {
     const result = await mainWeb3.eth.getStorageAt(contractAddress, contract.position_of_value);
     assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+  });
+
+  it("should get storage values on the forked provider via the main provider at a block number", async() => {
+    const result = await mainWeb3.eth.getStorageAt(contractAddress, contract.position_of_value, 1);
+    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
   });
 
   it("should execute calls against a contract on the forked provider via the main provider", async() => {

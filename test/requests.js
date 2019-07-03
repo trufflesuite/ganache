@@ -13,6 +13,7 @@ const fs = require("fs");
 const to = require("../lib/utils/to");
 const _ = require("lodash");
 const pify = require("pify");
+const generateSend = require("./helpers/utils/rpc");
 
 const source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
 const compilationResult = solc.compile(source, 1);
@@ -55,8 +56,10 @@ const contract = {
 const tests = function(web3) {
   let accounts;
   let personalAccount;
+  let send;
 
   before("create and fund personal account", async function() {
+    send = generateSend(web3.currentProvider);
     accounts = await web3.eth.getAccounts();
     accounts = accounts.map(function(val) {
       return val.toLowerCase();
@@ -83,6 +86,21 @@ const tests = function(web3) {
     it("should return initial block number of zero", async function() {
       const result = await web3.eth.getBlockNumber();
       assert.deepStrictEqual(result, 0);
+    });
+  });
+
+  describe("eth_chainId", function() {
+    it("should return a default chain id of a private network", async function() {
+      const send = pify(web3._provider.send.bind(web3._provider));
+
+      const result = await send({
+        id: new Date().getTime(),
+        jsonrpc: "2.0",
+        method: "eth_chainId",
+        params: []
+      });
+
+      assert.strictEqual(result.result, "0x539"); // 0x539 === 1337
     });
   });
 
@@ -234,9 +252,13 @@ const tests = function(web3) {
     it("should return the number of transactions given the block number (0 transactions)", async function() {
       // Block 0 should have 0 transactions as per test eth_getBlockByNumber
       const block = await web3.eth.getBlock(0, true);
-      const blockTransactionCount = await web3.eth.getBlockTransactionCount(0);
-      assert.strictEqual(block.transactions.length, blockTransactionCount, "Block transaction count should be 0.");
-      assert.strictEqual(0, blockTransactionCount, "Block transaction count should be 0.");
+      const blockTransactionCount = await send("eth_getBlockTransactionCountByNumber", 0);
+      assert.strictEqual(
+        block.transactions.length,
+        parseInt(blockTransactionCount.result),
+        "Block transaction count should be 0."
+      );
+      assert.strictEqual(blockTransactionCount.result, "0x0", "Block transaction count should be 0.");
     });
 
     it("should return the number of transactions given the block number (1 transaction)", async function() {
@@ -256,14 +278,18 @@ const tests = function(web3) {
       assert.deepStrictEqual(txHash.length, 66);
 
       const block = await web3.eth.getBlock("latest", true);
-      const blockTransactionCount = await web3.eth.getBlockTransactionCount(block.number);
-      assert.strictEqual(block.transactions.length, blockTransactionCount, "Tx count should equal block tx's length.");
-      assert.strictEqual(1, blockTransactionCount, "Block transaction count should be 1.");
+      const blockTransactionCount = await send("eth_getBlockTransactionCountByNumber", block.number);
+      assert.strictEqual(
+        block.transactions.length,
+        parseInt(blockTransactionCount.result),
+        "Tx count should equal block tx's length."
+      );
+      assert.strictEqual(blockTransactionCount.result, "0x1", "Block transaction count should be 1.");
     });
 
     it("should return null transactions when the block doesn't exist", async function() {
-      const blockTransactionCount = await web3.eth.getBlockTransactionCount(1000000);
-      assert.strictEqual(null, blockTransactionCount, "Block transaction count should be null.");
+      const blockTransactionCount = await send("eth_getBlockTransactionCountByNumber", 1000000);
+      assert.strictEqual(blockTransactionCount.result, null, "Block transaction count should be null.");
     });
   });
 
@@ -1619,6 +1645,53 @@ describe("WebSockets Server:", function() {
   });
 
   tests(web3);
+
+  it("Can also handle binary websocket data", async() => {
+    // Python web3 only sends binary over websockets and we should
+    // be able to handle it.
+
+    // web3.eth.getAccounts transmits over utf8, so use that as our baseline.
+    const accounts = await web3.eth.getAccounts();
+
+    // Listen for messages:
+    const pendingMessage = new Promise((resolve, reject) => {
+      function message(result) {
+        cleanup();
+        resolve(JSON.parse(result.data));
+      }
+      function close(err) {
+        cleanup();
+        reject(err.reason);
+      }
+      function cleanup() {
+        web3.currentProvider.connection.removeEventListener("message", message);
+        web3.currentProvider.connection.removeEventListener("close", close);
+      }
+      web3.currentProvider.connection.addEventListener("message", message);
+      web3.currentProvider.connection.addEventListener("close", close);
+    });
+
+    // generate a binary jsonrpc message:
+    const jsonRpc = Buffer.from(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id: 9999,
+        method: "eth_accounts",
+        params: []
+      })
+    );
+
+    // send the binary data:
+    web3.currentProvider.connection.send(jsonRpc);
+    const result = await pendingMessage;
+
+    // And compare
+    assert.deepStrictEqual(
+      result.result,
+      accounts.map((a) => a.toLocaleLowerCase()),
+      "Accounts don't match between binary and utf8 websocket requests!"
+    );
+  }).timeout(500); // fail quick if our hacked-together websocket handler fails.
 
   after("Shutdown server", async function() {
     let provider = web3._provider;

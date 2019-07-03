@@ -37,7 +37,16 @@ As a [Web3](https://github.com/ethereum/web3.js/) provider:
 
 ```javascript
 const ganache = require("ganache-core");
+const web3 = new Web3(ganache.provider());
+```
+If web3 is already initialized:
+```javascript
+const ganache = require("ganache-core");
 web3.setProvider(ganache.provider());
+```
+NOTE: depending on your web3 version, you may need to set a number of confirmation blocks
+```javascript
+const web3 = new Web3(provider, null, { transactionConfirmationBlocks: 1 });
 ```
 
 As an [ethers.js](https://github.com/ethers-io/ethers.js/) provider:
@@ -53,7 +62,7 @@ As a general HTTP and WebSocket server:
 const ganache = require("ganache-core");
 const server = ganache.server();
 const provider = server.provider;
-server.listen(port, function(err, blockchain) {...});
+server.listen(port, function(err, blockchain) { ... });
 ```
 
 ## Options
@@ -82,7 +91,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"vmErrorsOnRPCResponse"`: `boolean` - Whether or not to transmit transaction failures as RPC errors. Set to `false` for error reporting behaviour which is compatible with other clients such as geth and Parity. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
 * `"hardfork"`: `String` Allows to specify which hardfork should be used. Supported hardforks are `byzantium`, `constantinople`, and `petersburg` (default).
-* `"allowUnlimitedContractSize"`: `boolean` - Allows unlimited contract sizes while debugging. By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
+* `"allowUnlimitedContractSize"`: `boolean` - Allows unlimited contract sizes while debugging (NOTE: this setting is often used in conjuction with an increased `gasLimit`). By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
 * `"gasPrice"`: `String::hex` Sets the default gas price for transactions if not otherwise specified. Must be specified as a `hex` encoded string in `wei`. Defaults to `"0x77359400"` (2 `gwei`).
 * `"gasLimit"`: `String::hex` Sets the block gas limit. Must be specified as a `hex` string. Defaults to `"0x6691b7"`.
 * `"keepAliveTimeout"`:  `number` If using `.server()` - Sets the HTTP server's `keepAliveTimeout` in milliseconds. See the [NodeJS HTTP docs](https://nodejs.org/api/http.html#http_server_keepalivetimeout) for details. `5000` by default.
@@ -94,6 +103,7 @@ The RPC methods currently implemented are:
 * [eth_accounts](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_accounts)
 * [eth_blockNumber](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_blockNumber)
 * [eth_call](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_call)
+* `eth_chainId`
 * [eth_coinbase](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_coinbase)
 * [eth_estimateGas](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_estimateGas)
 * [eth_gasPrice](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gasPrice)
