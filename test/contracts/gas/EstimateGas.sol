@@ -99,4 +99,8 @@ contract EstimateGas {
 
         return true;
     }
+
+    function currentBlock() returns (uint) {
+        return block.number;
+    }
 }

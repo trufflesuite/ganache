@@ -4,10 +4,12 @@ pragma solidity ^0.4.2;
 contract DebugContract {
     uint public value = 5;
     uint public otherValue = 5;
+    uint public currentBlock = 0;
 
     function setValue(uint _val) public {
         value = _val;
         otherValue += _val;
+        currentBlock = block.number;
     }
 
     function callSetValueTwice() public {

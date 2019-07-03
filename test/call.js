@@ -27,4 +27,11 @@ describe("eth_call", function() {
 
     assert.strictEqual(status, true);
   });
+
+  it("should use the current block number via `eth_call`", async() => {
+    const actualBlockNumber = await context.web3.eth.getBlockNumber();
+    // should read the block number, too
+    const callBlockNumber = await context.instance.methods.currentBlock().call();
+    assert.strictEqual(parseInt(callBlockNumber, 10), actualBlockNumber);
+  });
 });
