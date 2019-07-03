@@ -37,7 +37,16 @@ As a [Web3](https://github.com/ethereum/web3.js/) provider:
 
 ```javascript
 const ganache = require("ganache-core");
+const web3 = new Web3(ganache.provider());
+```
+If web3 is already initialized:
+```javascript
+const ganache = require("ganache-core");
 web3.setProvider(ganache.provider());
+```
+NOTE: depending on your web3 version, you may need to set a number of confirmation blocks
+```javascript
+const web3 = new Web3(provider, null, { transactionConfirmationBlocks: 1 });
 ```
 
 As an [ethers.js](https://github.com/ethers-io/ethers.js/) provider:
@@ -52,7 +61,7 @@ As a general HTTP and WebSocket server:
 ```javascript
 const ganache = require("ganache-core");
 const server = ganache.server();
-server.listen(port, function(err, blockchain) {...});
+server.listen(port, function(err, blockchain) { ... });
 ```
 
 ## Options
