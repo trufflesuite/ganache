@@ -308,7 +308,7 @@ describe("Forking", function() {
       const expectedNumber = await mainWeb3.eth.getBlockNumber();
 
       const number = await oracle.methods.currentBlock().call();
-      assert.strictEqual(to.number(number), expectedNumber + 1);
+      assert.strictEqual(to.number(number), expectedNumber);
 
       await oracle.methods.setCurrentBlock().send({ from: mainAccounts[0], gas: 3141592 });
       const val = await oracle.methods.lastBlock().call({ from: mainAccounts[0] });
