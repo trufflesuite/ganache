@@ -1,4 +1,4 @@
-pragma solidity ^0.4.2;
+pragma solidity ^0.5.0;
 
 // From https://github.com/ethereumjs/testrpc/issues/58
 contract EstimateGas {
@@ -50,11 +50,11 @@ contract EstimateGas {
     mapping(bytes32 => uint) index;
     Test[] tests;
 
-    function EstimateGas() {
+    constructor() public {
         tests.length++;
     }
 
-    function add(bytes32 _name, bytes32 _description, uint _value) returns(bool) {
+    function add(bytes32 _name, bytes32 _description, uint _value) public returns(bool) {
         if (index[_name] != 0) {
             return false;
         }
@@ -65,11 +65,11 @@ contract EstimateGas {
         tests[pos].balances[1] = _value;
         tests[pos].owners[msg.sender] = 1;
         index[_name] = pos;
-        Add(_name, _description, _value, msg.sender);
+        emit Add(_name, _description, _value, msg.sender);
         return true;
     }
 
-    function transfer(address _to, uint _value, bytes32 _name) returns(bool) {
+    function transfer(address _to, uint _value, bytes32 _name) public returns(bool) {
         uint pos = index[_name];
         if (pos == 0) {
             return false;

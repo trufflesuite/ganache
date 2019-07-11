@@ -9,29 +9,42 @@ const { readFileSync } = require("fs");
  * @param {String} contractPath  Path to contracts directory
  * @returns {Object} context: abi, bytecode, sources
  */
-function compile(mainContractName, contractFileNames = [], contractSubdirectory) {
+function compile(mainContractName, contractFileNames = [], contractSubdirectory, hardfork = "petersburg") {
   const contractPath = join(__dirname, "..", "..", "contracts", `${contractSubdirectory}/`);
   const selectedContracts = [mainContractName].concat(contractFileNames);
 
   const contractSources = selectedContracts.map((contractName) => {
     const _contractName = `${contractName.replace(/\.sol$/i, "")}.sol`;
-    return { [_contractName]: readFileSync(join(contractPath, _contractName), "utf8") };
+    return { [_contractName]: { content: readFileSync(join(contractPath, _contractName), "utf8") } };
   });
 
-  const sources = Object.assign({}, ...contractSources);
+  const input = {
+    language: "Solidity",
+    sources: Object.assign({}, ...contractSources),
+    settings: {
+      outputSelection: {
+        "*": {
+          "*": ["*"]
+        }
+      }
+    }
+  };
+  input.settings.evmVersion = hardfork;
 
-  // Second parameter configures solc to optimize compiled code
-  const { contracts } = solc.compile({ sources }, 1);
+  const result = JSON.parse(solc.compile(JSON.stringify(input)));
 
-  const _mainContractName = mainContractName.replace(/\.sol$/i, "");
-  const compiledMainContract = contracts[`${_mainContractName}.sol:${_mainContractName}`];
-  const bytecode = `0x${compiledMainContract.bytecode}`;
-  const abi = JSON.parse(compiledMainContract.interface);
+  const _mainContractName = mainContractName.endsWith(".sol")
+    ? mainContractName.replace(/\.sol$/i, "")
+    : mainContractName;
+  const compiledMainContract = result.contracts[`${_mainContractName}.sol`][`${_mainContractName}`];
+  const bytecode = `0x${compiledMainContract.evm.bytecode.object}`;
+  const abi = compiledMainContract.abi;
 
   return {
     abi,
     bytecode,
-    sources
+    input,
+    result
   };
 }
 
@@ -49,6 +62,7 @@ async function deploy(abi, bytecode, web3, options = {}, existingAccounts = []) 
 
   if (existingAccounts.length) {
     block = await web3.eth.getBlock("latest");
+    accounts = existingAccounts;
   } else {
     const initialAssets = [web3.eth.getAccounts(), web3.eth.getBlock("latest")];
     [accounts, block] = await Promise.all(initialAssets);
@@ -88,12 +102,13 @@ async function compileAndDeploy(
   contractFileNames = [],
   contractPath,
   web3,
-  options = {},
-  accounts = []
+  web3Options = {},
+  accounts = [],
+  hardfork
 ) {
-  const { abi, bytecode, sources } = compile(mainContractName, contractFileNames, contractPath);
-  const context = await deploy(abi, bytecode, web3, options, accounts);
-  return Object.assign(context, { sources });
+  const { abi, bytecode, options, result } = compile(mainContractName, contractFileNames, contractPath, hardfork);
+  const context = await deploy(abi, bytecode, web3, web3Options, accounts);
+  return Object.assign(context, options, result);
 }
 
 module.exports = {

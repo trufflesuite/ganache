@@ -1,40 +1,19 @@
 const Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-const { readFileSync } = require("fs");
 const temp = require("temp").track();
-const { compile } = require("solc");
 const memdown = require("memdown");
 const { join } = require("path");
 const assert = require("assert");
 const Web3 = require("web3");
 const generateSend = require("./helpers/utils/rpc");
+const compile = require("./helpers/contract/singleFileCompile");
 
-const source = readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
-const result = compile(source, 1);
+const { result } = compile("./test/contracts/examples/", "Example");
 
 // Note: Certain properties of the following contract data are hardcoded to
 // maintain repeatable tests. If you significantly change the solidity code,
 // make sure to update the resulting contract data with the correct values.
-const contract = {
-  solidity: source,
-  abi: result.contracts[":Example"].interface,
-  binary: "0x" + result.contracts[":Example"].bytecode,
-  position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
-  expected_default_value: 5,
-  call_data: {
-    gas: "0x2fefd8",
-    gasPrice: "0x1", // This is important, as passing it has exposed errors in the past.
-    to: null, // set by test
-    data: "0x3fa4f245"
-  },
-  transaction_data: {
-    from: null, // set by test
-    gas: "0x2fefd8",
-    to: null, // set by test
-    data: "0x552410770000000000000000000000000000000000000000000000000000000000000019" // sets value to 25 (base 10)
-  }
-};
 
 const runTests = function(providerInit) {
   describe("Persistence ", function() {
@@ -58,7 +37,7 @@ const runTests = function(providerInit) {
       tx = await web3.eth.sendTransaction({
         from: accounts[0],
         gas: "0x2fefd8",
-        data: contract.binary
+        data: result.contracts["Example.sol"].Example.evm.bytecode.object
       });
     });
 

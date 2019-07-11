@@ -1,19 +1,17 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.5.0;
 
 contract Fib {
-    function Fib() public {
-    }
+    constructor() public {}
     uint public value = 0;
 
-    function() public payable {
+    function() external payable {
         Bif bif = new Bif();
         value = bif.calc(5);
     }
 }
 
 contract Bif {
-    function Bif() public {
-    }
+    constructor() public {}
 
     function calc(uint index) public returns(uint){
         if (index <= 1) {

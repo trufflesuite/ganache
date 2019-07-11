@@ -33,16 +33,28 @@ describe("Libraries", function() {
     const librarySource = fs.readFileSync(path.join(__dirname, "Library.sol"), "utf8");
     const contractSource = fs.readFileSync(path.join(__dirname, "CallLibrary.sol"), "utf8");
     const input = {
-      "Library.sol": librarySource,
-      "CallLibrary.sol": contractSource
+      language: "Solidity",
+      sources: {
+        "Library.sol": { content: librarySource },
+        "CallLibrary.sol": { content: contractSource }
+      },
+      settings: {
+        outputSelection: {
+          "*": {
+            "*": ["*"]
+          }
+        }
+      }
     };
-    const result = solc.compile({ sources: input }, 1);
+    const result = JSON.parse(solc.compile(JSON.stringify(input)));
 
-    libraryData = "0x" + result.contracts["Library.sol:Library"].bytecode;
-    libraryAbi = JSON.parse(result.contracts["Library.sol:Library"].interface);
+    const lib = result.contracts["Library.sol"].Library;
+    libraryData = "0x" + lib.evm.bytecode.object;
+    libraryAbi = lib.abi;
 
-    contractBytecode = result.contracts["CallLibrary.sol:CallLibrary"].bytecode;
-    contractAbi = JSON.parse(result.contracts["CallLibrary.sol:CallLibrary"].interface);
+    const callLib = result.contracts["CallLibrary.sol"].CallLibrary;
+    contractBytecode = callLib.evm.bytecode.object;
+    contractAbi = callLib.abi;
   });
 
   before("deploy library", async() => {
