@@ -348,7 +348,7 @@ const tests = function(web3) {
 
       const r = Buffer.from(sgn.slice(0, 64), "hex");
       const s = Buffer.from(sgn.slice(64, 128), "hex");
-      const v = parseInt(sgn.slice(128, 130), 16);
+      const v = parseInt(sgn.slice(128, 130), 16) + 27;
       const pub = utils.ecrecover(msgHash, v, r, s);
       let addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
       addr = to.hex(addr);
@@ -367,7 +367,7 @@ const tests = function(web3) {
 
       const r = Buffer.from(sgn.slice(0, 64), "hex");
       const s = Buffer.from(sgn.slice(64, 128), "hex");
-      const v = parseInt(sgn.slice(128, 130), 16);
+      const v = parseInt(sgn.slice(128, 130), 16) + 27;
       const pub = utils.ecrecover(msgHash, v, r, s);
       let addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
       addr = to.hex(addr);
