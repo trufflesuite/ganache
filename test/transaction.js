@@ -1,5 +1,5 @@
 const assert = require("assert");
-const BN = require("bn.js");
+const { BN } = require("ethereumjs-util");
 const Transaction = require("../lib/utils/transaction");
 
 describe("Transaction", function() {

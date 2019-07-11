@@ -187,7 +187,9 @@ function test(forked) {
       options = { from: accounts[0], gas };
 
       // from previous tests, otherValue should be 26 + 1234
-      let otherValue = await instance.methods.otherValue().call(options);
+      const ov = instance.methods.otherValue();
+      const c = ov.call(options);
+      let otherValue = await c;
       assert.strictEqual(otherValue, "1265");
 
       let tx = await instance.methods.callSetValueTwice().send(options);
