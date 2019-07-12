@@ -52,6 +52,7 @@
     "websocket": "1.0.26"
   },
   "devDependencies": {
+    "@types/web3": "^1.0.19",
     "assert-match": "^1.1.1",
     "browserfs": "1.4.3",
     "coveralls": "^3.0.2",
