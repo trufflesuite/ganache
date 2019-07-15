@@ -4,8 +4,8 @@ var assert = require("assert");
 var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
-var fs = require("fs");
-var solc = require("solc");
+
+const compile = require("./helpers/contract/singleFileCompile");
 var to = require("../lib/utils/to.js");
 var generateSend = require("./helpers/utils/rpc");
 
@@ -27,6 +27,7 @@ describe("Forking", function() {
   var contract;
   var contractAddress;
   var secondContractAddress; // used sparingly
+  var thirdContractAddress; // the same contract deployed to the fork ("mainWeb3")
   var forkedServer;
   var mainAccounts;
   var forkedAccounts;
@@ -45,16 +46,16 @@ describe("Forking", function() {
 
   before("set up test data", function() {
     this.timeout(10000);
-    var source = fs.readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
-    var result = solc.compile(source, 1);
+    const { result, source } = compile("./test/contracts/examples/", "Example");
 
     // Note: Certain properties of the following contract data are hardcoded to
     // maintain repeatable tests. If you significantly change the solidity code,
     // make sure to update the resulting contract data with the correct values.
+    const example = result.contracts["Example.sol"].Example;
     contract = {
       solidity: source,
-      abi: result.contracts[":Example"].interface,
-      binary: "0x" + result.contracts[":Example"].bytecode,
+      abi: example.abi,
+      binary: "0x" + example.evm.bytecode.object,
       position_of_value: "0x0000000000000000000000000000000000000000000000000000000000000000",
       expected_default_value: 5,
       call_data: {
@@ -120,7 +121,7 @@ describe("Forking", function() {
   });
 
   before("Make a transaction on the forked chain that produces a log", async() => {
-    var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    var forkedExample = new forkedWeb3.eth.Contract(contract.abi, contractAddress);
     var event = forkedExample.events.ValueSet({});
 
     const eventData = new Promise((resolve, reject) => {
@@ -160,6 +161,31 @@ describe("Forking", function() {
   before("Gather main accounts", async() => {
     mainAccounts = await mainWeb3.eth.getAccounts();
   });
+  before("Deploy a conttact to the main chain", async() => {
+    // Deploy a third one, which is used to verify the forked storage provider's duck punching
+    // works as expected on it's own data.
+    const receipt3 = await mainWeb3.eth.sendTransaction({
+      from: mainAccounts[0],
+      data: contract.binary,
+      gas: 3141592
+    });
+
+    thirdContractAddress = receipt3.contractAddress;
+  });
+
+  before("Make a transaction on the main chain using the it's own contract", async() => {
+    var mainExample = new mainWeb3.eth.Contract(contract.abi, thirdContractAddress);
+    var event = mainExample.events.ValueSet({});
+
+    const eventData = new Promise((resolve) => {
+      event.once("data", () => {
+        resolve();
+      });
+    });
+
+    await mainExample.methods.setValue(7).send({ from: mainAccounts[0] });
+    await eventData;
+  });
 
   it("should get the id of the forked chain", async() => {
     const id = await mainWeb3.eth.net.getId();
@@ -188,6 +214,11 @@ describe("Forking", function() {
     assert(balance > 999999);
   });
 
+  it("should get storage values on the forked provider itself", async() => {
+    const result = await mainWeb3.eth.getStorageAt(thirdContractAddress, contract.position_of_value);
+    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+  });
+
   it("should get storage values on the forked provider via the main provider", async() => {
     const result = await mainWeb3.eth.getStorageAt(contractAddress, contract.position_of_value);
     assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
@@ -199,7 +230,7 @@ describe("Forking", function() {
   });
 
   it("should execute calls against a contract on the forked provider via the main provider", async() => {
-    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    var example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
 
     const result = await example.methods.value().call({ from: mainAccounts[0] });
     assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
@@ -210,9 +241,9 @@ describe("Forking", function() {
   });
 
   it("should make a transaction on the main provider while not transacting on the forked provider", async() => {
-    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    var example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
 
-    var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    var forkedExample = new forkedWeb3.eth.Contract(contract.abi, contractAddress);
 
     // TODO: ugly workaround - not sure why this is necessary.
     if (!forkedExample._requestManager.provider) {
@@ -236,9 +267,9 @@ describe("Forking", function() {
     // yet, and it will require it forked to the forked provider at a specific block.
     // If that block handling is done improperly, this should fail.
 
-    var example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), secondContractAddress);
+    var example = new mainWeb3.eth.Contract(contract.abi, secondContractAddress);
 
-    var forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), secondContractAddress);
+    var forkedExample = new forkedWeb3.eth.Contract(contract.abi, secondContractAddress);
 
     // TODO: ugly workaround - not sure why this is necessary.
     if (!forkedExample._requestManager.provider) {
@@ -258,15 +289,17 @@ describe("Forking", function() {
   });
 
   it("should maintain a block number that includes new blocks PLUS the existing chain", async() => {
-    // Note: The main provider should be at block 5 at this test. Reasoning:
+    // Note: The main provider should be at block 7 at this test. Reasoning:
     // - The forked chain has an initial block, which is block 0.
     // - The forked chain performed a transaction that produced a log, resulting in block 1.
     // - The forked chain had two transactions initially, resulting blocks 2 and 3.
     // - The main chain forked from there, creating its own initial block, block 4.
-    // - Then the main chain performed a transaction, putting it at block 5.
+    // - Then the main chain deploy a contract, putting it at block 5.
+    // - Then the main chain sent a transaction to that contract, block 6.
+    // - Then the main chain performed a transaction, putting it at block 7.
 
     const result = await mainWeb3.eth.getBlockNumber();
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
+    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
 
     // Now lets get a block that exists on the forked chain.
     const mainBlock = await mainWeb3.eth.getBlock(0);
@@ -293,12 +326,11 @@ describe("Forking", function() {
     "should represent the block number correctly in the Oracle contract (oracle.blockhash0)," +
       " providing forked block hash and number",
     async() => {
-      const oracleSol = fs.readFileSync("./test/Oracle.sol", { encoding: "utf8" });
-      const solcResult = solc.compile(oracleSol);
-      const oracleOutput = solcResult.contracts[":Oracle"];
+      const { result: solcResult } = compile("./test/contracts/misc/", "Oracle");
+      const oracleOutput = solcResult.contracts["Oracle.sol"].Oracle;
 
-      const contract = new mainWeb3.eth.Contract(JSON.parse(oracleOutput.interface));
-      const deployTxn = contract.deploy({ data: oracleOutput.bytecode });
+      const contract = new mainWeb3.eth.Contract(oracleOutput.abi);
+      const deployTxn = contract.deploy({ data: oracleOutput.evm.bytecode.object });
       const oracle = await deployTxn.send({ from: mainAccounts[0], gas: 3141592 });
 
       const block = await mainWeb3.eth.getBlock(0);
@@ -318,7 +350,7 @@ describe("Forking", function() {
 
   // TODO
   it("should be able to get logs across the fork boundary", async() => {
-    const example = new mainWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+    const example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
     const event = example.events.ValueSet({ fromBlock: 0, toBlock: "latest" });
     let callcount = 0;
     const eventData = new Promise((resolve, reject) => {
@@ -467,7 +499,7 @@ describe("Forking", function() {
     let forkBlockNumber;
     let web3;
     before("Set up the initial chain with the values we want to test", async function() {
-      forkedExample = new forkedWeb3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+      forkedExample = new forkedWeb3.eth.Contract(contract.abi, contractAddress);
       await forkedExample.methods.setValue(initialValue).send({ from: forkedAccounts[0] });
       forkBlockNumber = await forkedWeb3.eth.getBlockNumber();
       await forkedExample.methods.setValue("999").send({ from: forkedAccounts[0] });
@@ -490,7 +522,7 @@ describe("Forking", function() {
     });
 
     it("should return original chain data from before the fork", async() => {
-      const example = new web3.eth.Contract(JSON.parse(contract.abi), contractAddress);
+      const example = new web3.eth.Contract(contract.abi, contractAddress);
       const result = await example.methods.value().call({ from: mainAccounts[0] });
 
       assert(result, initialValue, "Value return on forked chain is not as expected");

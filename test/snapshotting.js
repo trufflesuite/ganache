@@ -105,4 +105,29 @@ describe("Checkpointing / Reverting", function() {
     let n4 = await instance.methods.n().call();
     assert.strictEqual(n4, "43", "n is not 43 after calling `inc` again");
   });
+
+  it("evm_revert rejects invalid subscriptionId types without crashing", async() => {
+    const { send } = context;
+    const ids = [{ foo: "bar" }, true, false];
+    await Promise.all(
+      ids.map((id) => assert.rejects(send("evm_revert", id), /invalid type/, "evm_revert did not reject as expected"))
+    );
+  });
+
+  it("evm_revert rejects null/undefined subscriptionId values", async() => {
+    const { send } = context;
+    const ids = [null, undefined];
+    await Promise.all(
+      ids.map((id) =>
+        assert.rejects(send("evm_revert", id), /invalid snapshotId/, "evm_revert did not reject as expected")
+      )
+    );
+  });
+
+  it("evm_revert returns false for out-of-range subscriptionId values", async() => {
+    const { send } = context;
+    const ids = [-1, Infinity, -Infinity, Buffer.from([0]), 0.5];
+    const promises = ids.map((id) => send("evm_revert", id).then((r) => assert(r, false)));
+    await Promise.all(promises);
+  });
 });

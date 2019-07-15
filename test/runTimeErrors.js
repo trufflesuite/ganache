@@ -210,7 +210,7 @@ function tests(ganacheProviderOptions) {
         assert(response.error);
         assert(response.error.data[txHash]);
         // magic number, will change if compiler changes.
-        assert.strictEqual(to.number(response.error.data[txHash].program_counter), 91);
+        assert.strictEqual(to.number(response.error.data[txHash].program_counter), 136);
       });
     }
 

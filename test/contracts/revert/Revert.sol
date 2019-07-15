@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.5.0;
 
 contract Revert {
   uint public value;
@@ -7,7 +7,7 @@ contract Revert {
 
   function alwaysReverts(uint val) public {
     value = val;
-    ValueSet(val);
+    emit ValueSet(val);
     revert();
   }
 }

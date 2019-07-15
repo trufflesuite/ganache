@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.5.0;
 
 contract Donation {
     address owner;
@@ -7,7 +7,7 @@ contract Donation {
     address[] _giver;
     uint[] _values;
 
-    function Donation() public {
+    constructor() public {
         owner = msg.sender;
     }
 
@@ -17,7 +17,7 @@ contract Donation {
 
     function moveFund(address _to, uint _amount) public onlyowner {
         uint _balance = address(this).balance;
-        address inst = new Fib();
+        address payable inst = address(new Fib());
         bool _tosendbal = inst.send(_amount);
         if (_amount <= _balance) {
             if (_tosendbal) {
@@ -30,7 +30,7 @@ contract Donation {
         }
     }
 
-    function moveFund2(address _to, uint _amount) public onlyowner {
+    function moveFund2(address payable _to, uint _amount) public onlyowner {
         uint _balance = address(this).balance;
         if (_amount <= _balance) {
             require(_to.send(_amount));
@@ -47,11 +47,10 @@ contract Donation {
 }
 
 contract Fib {
-    function Fib() public {
-    }
+    constructor() public {}
     uint public value = 0;
 
-    function() public payable {
+    function() external payable {
         calc(5);
     }
 
