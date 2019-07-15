@@ -1,5 +1,5 @@
 const assert = require("assert");
-const BN = require("bn.js");
+const { BN } = require("ethereumjs-util");
 const ethers = require("ethers");
 const intializeTestProvider = require("./helpers/web3/initializeTestProvider");
 

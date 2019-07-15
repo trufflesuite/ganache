@@ -1,4 +1,4 @@
-const BN = require("bn.js");
+const { BN } = require("ethereumjs-util");
 const assert = require("assert");
 const sleep = require("./helpers/utils/sleep");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");

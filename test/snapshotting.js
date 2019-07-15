@@ -1,4 +1,4 @@
-const BN = require("bn.js");
+const { BN } = require("ethereumjs-util");
 const assert = require("assert");
 const bootstrap = require("./helpers/contract/bootstrap");
 
