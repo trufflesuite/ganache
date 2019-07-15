@@ -2,14 +2,13 @@ const assert = require("assert");
 const bootstrap = require("./helpers/contract/bootstrap");
 
 describe("eth_call", function() {
-  it("should use the call gas limit if no call gas limit is specified in the call", async function() {
-    const contractRef = {
-      contractFiles: ["EstimateGas"],
-      contractSubdirectory: "gas"
-    };
-    let context;
+  const contractRef = {
+    contractFiles: ["EstimateGas"],
+    contractSubdirectory: "gas"
+  };
 
-    context = await bootstrap(contractRef, {
+  it("should use the call gas limit if no call gas limit is specified in the call", async function() {
+    const context = await bootstrap(contractRef, {
       callGasLimit: "0x6691b7"
     });
     const { accounts, instance } = context;
@@ -25,14 +24,12 @@ describe("eth_call", function() {
     assert.strictEqual(status, true);
   });
 
-  it("should use maxUInt64 call gas limit if no gas limit is specified in the provider or the call", async function() {
+  it("should use max call gas limit if no gas limit is specified in the provider or the call", async function() {
     const contractRef = {
       contractFiles: ["EstimateGas"],
       contractSubdirectory: "gas"
     };
-    let context;
-
-    context = await bootstrap(contractRef);
+    const context = await bootstrap(contractRef);
     const { accounts, instance } = context;
 
     const name = "0x54696d"; // Byte code for "Tim"
@@ -44,5 +41,14 @@ describe("eth_call", function() {
     const status = await instance.methods.add(name, description, value).call({ from: accounts[0] });
 
     assert.strictEqual(status, true);
+  });
+
+  it("should use the current block number via `eth_call`", async() => {
+    const context = await bootstrap(contractRef);
+
+    const actualBlockNumber = await context.web3.eth.getBlockNumber();
+    // should read the block number, too
+    const callBlockNumber = await context.instance.methods.currentBlock().call();
+    assert.strictEqual(parseInt(callBlockNumber, 10), actualBlockNumber);
   });
 });

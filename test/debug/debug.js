@@ -84,6 +84,9 @@ function test(forked) {
 
   describe("Trace a successful transaction", function() {
     let options;
+    let originalStoredBlockNumber;
+    let latestStoredBlockNumber;
+    let latestBlockNumber;
     before("set up transaction that should be traced", async() => {
       const { accounts, instance } = context;
       options = { from: accounts[0], gas };
@@ -91,6 +94,14 @@ function test(forked) {
 
       // set hashToTrace to the tx we made, so we know preconditions are correctly set
       hashToTrace = tx.transactionHash;
+    });
+
+    it("sets the blockNumber in storage", async() => {
+      const { instance, web3 } = context;
+      // check the value is what we expect it to be: 26
+      originalStoredBlockNumber = await instance.methods.currentBlock().call(options);
+      const blockNumber = await web3.eth.getBlockNumber();
+      assert.strictEqual(parseInt(originalStoredBlockNumber, 10), blockNumber);
     });
 
     it("sets the value to 26", async() => {
@@ -101,9 +112,12 @@ function test(forked) {
     });
 
     it("changes state of contract to ensure trace doesn't overwrite data", async() => {
-      const { accounts, instance } = context;
+      const { accounts, instance, web3 } = context;
       options = { from: accounts[0], gas };
       await instance.methods.setValue(expectedValueBeforeTrace).send(options);
+      latestStoredBlockNumber = await instance.methods.currentBlock().call(options);
+
+      latestBlockNumber = await web3.eth.getBlockNumber();
 
       // check the value is what we expect it to be: 1234
       const value = await instance.methods.value().call(options);
@@ -112,7 +126,7 @@ function test(forked) {
 
     it("should trace a successful transaction without changing state", async function() {
       // We want to trace the transaction that sets the value to 26
-      const { accounts, instance, send } = context;
+      const { accounts, instance, send, web3 } = context;
 
       const response = await send("debug_traceTransaction", hashToTrace, []);
 
@@ -138,7 +152,7 @@ function test(forked) {
 
       assert.strictEqual(lastop.op, "STOP");
       assert.strictEqual(lastop.gasCost, 1);
-      assert.strictEqual(lastop.pc, 208);
+      assert.strictEqual(lastop.pc, 235);
       assert.strictEqual(
         lastop.storage["0000000000000000000000000000000000000000000000000000000000000000"],
         "000000000000000000000000000000000000000000000000000000000000001a"
@@ -147,12 +161,24 @@ function test(forked) {
         lastop.storage["0000000000000000000000000000000000000000000000000000000000000001"],
         "000000000000000000000000000000000000000000000000000000000000001f"
       );
+      assert.strictEqual(
+        lastop.storage["0000000000000000000000000000000000000000000000000000000000000002"],
+        originalStoredBlockNumber.padStart(64, "0")
+      );
       console.log("--------------------------------------------------");
       const value = await instance.methods.value().call({ from: accounts[0], gas });
       assert.strictEqual(value, expectedValueBeforeTrace);
 
       const otherValue = await instance.methods.otherValue().call({ from: accounts[0], gas });
       assert.strictEqual(otherValue, "1265");
+
+      // stored block number should not have changed:
+      const storedBlockNumber = await instance.methods.currentBlock().call({ from: accounts[0], gas });
+      assert.strictEqual(storedBlockNumber, latestStoredBlockNumber);
+
+      // block number should not have incremented because of `debug_traceTransaction`
+      const currentBlockNumber = await web3.eth.getBlockNumber();
+      assert.strictEqual(currentBlockNumber, latestBlockNumber);
     });
   });
 
@@ -233,12 +259,12 @@ function test(forked) {
 
           // ensure the call to setValue with 2 was successfully stored for value
           assert.strictEqual(
-            arrayOfStorageKeyValues[2]["0000000000000000000000000000000000000000000000000000000000000000"],
+            arrayOfStorageKeyValues[3]["0000000000000000000000000000000000000000000000000000000000000000"],
             "0000000000000000000000000000000000000000000000000000000000000002"
           );
           // ensure the call to setValue with 2 was successfully stored for otherValue
           assert.strictEqual(
-            arrayOfStorageKeyValues[3]["0000000000000000000000000000000000000000000000000000000000000001"],
+            arrayOfStorageKeyValues[4]["0000000000000000000000000000000000000000000000000000000000000001"],
             "00000000000000000000000000000000000000000000000000000000000004f4"
           );
 
