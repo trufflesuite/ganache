@@ -1,7 +1,6 @@
 const assert = require("assert");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
-const { readFileSync } = require("fs");
-const { compile } = require("solc");
+const compile = require("./helpers/contract/singleFileCompile");
 
 describe("Block Tags", function() {
   let context;
@@ -38,11 +37,10 @@ describe("Block Tags", function() {
 
   before("Make a transaction that changes the balance, code and nonce", async function() {
     const { accounts, web3 } = context;
-    const source = readFileSync("./test/contracts/examples/Example.sol", { encoding: "utf8" });
-    const result = compile(source, 1);
+    const { result } = compile("./test/contracts/examples/", "Example");
     const { contractAddress } = await web3.eth.sendTransaction({
       from: accounts[0],
-      data: "0x" + result.contracts[":Example"].bytecode,
+      data: "0x" + result.contracts["Example.sol"].Example.evm.bytecode.object,
       gas: 3141592
     });
 
@@ -95,12 +93,12 @@ describe("Block Tags", function() {
     assert.notStrictEqual(block.transactionsRoot, block.receiptsRoot, "Trie roots should not be equal.");
     assert.strictEqual(
       block.transactionsRoot,
-      "0xce8a25092b27c67e802dff9e3ec66aacf6232da66e2796243aaccdc0deaaa1db",
+      "0x474793ee3373c6d26f28a1f2d2f3250bdabb45cecb1363878faaf741e452fc6e",
       "Should produce correct transactionsRoot"
     );
     assert.strictEqual(
       block.receiptsRoot,
-      "0xa63df9d6e2147dbffa164b173ead7c10d14d95c6e83dbb879ddc45ad7e8dfc89",
+      "0xc892acfe66c3eccdc78fba6505871bc47a64fceb076d8aff440fb3545ef4a285",
       "Should produce correct receiptsRoot"
     );
   });

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.2;
+pragma solidity ^0.5.0;
 
 // Changes to this file will make tests fail.
 contract ConstantinopleContract {

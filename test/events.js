@@ -4,18 +4,7 @@ var Ganache = require(process.env.TEST_BUILD
   ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
   : "../index.js");
 var assert = require("assert");
-var solc = require("solc");
-
-var source =
-  "                      \n" +
-  "pragma solidity ^0.4.24;            \n" +
-  "contract EventTest {                \n" +
-  "  event ExampleEvent(uint indexed first, uint indexed second);   \n" +
-  "                                    \n" +
-  "  function triggerEvent(uint _first, uint _second) public { \n" +
-  "    emit ExampleEvent(_first, _second);      \n" +
-  "  }                                 \n" +
-  "}";
+const compile = require("./helpers/contract/singleFileCompile");
 
 var tests = function(web3, EventTest) {
   var accounts;
@@ -34,16 +23,16 @@ var tests = function(web3, EventTest) {
 
     before(function(done) {
       this.timeout(10000);
-      var result = solc.compile(source, 1);
+      var { result } = compile("./test/contracts/events/", "EventTest");
 
       if (result.errors != null) {
         done(result.errors[0]);
         return;
       }
 
-      var abi = JSON.parse(result.contracts[":EventTest"].interface);
+      var abi = result.contracts["EventTest.sol"].EventTest.abi;
       EventTest = new web3.eth.Contract(abi);
-      EventTest._data = "0x" + result.contracts[":EventTest"].bytecode;
+      EventTest._data = "0x" + result.contracts["EventTest.sol"].EventTest.evm.bytecode.object;
       done();
     });
 

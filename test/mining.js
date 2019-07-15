@@ -20,16 +20,44 @@ describe("Mining", function() {
   var badBytecode;
   var goodBytecode;
 
+  function compileSolidity(source) {
+    let result = JSON.parse(
+      solc.compile(
+        JSON.stringify({
+          language: "Solidity",
+          sources: {
+            "Contract.sol": {
+              content: source
+            }
+          },
+          settings: {
+            outputSelection: {
+              "*": {
+                "*": ["*"]
+              }
+            }
+          }
+        })
+      )
+    );
+
+    return Promise.resolve({
+      code: "0x" + result.contracts["Contract.sol"].Example.evm.bytecode.object
+    });
+  }
+
   before("compile solidity code that causes runtime errors", async function() {
     this.timeout(10000);
-    let result = await compileSolidity("pragma solidity ^0.4.2; contract Example { function Example() {throw;} }");
+    let result = await compileSolidity(
+      "pragma solidity ^0.5.0; contract Example { constructor() public {require(false);} }"
+    );
     badBytecode = result.code;
   });
 
   before("compile solidity code that causes an event", async function() {
     this.timeout(10000);
     let result = await compileSolidity(
-      "pragma solidity ^0.4.2; contract Example { event Event(); function Example() { Event(); } }"
+      "pragma solidity ^0.5.0; contract Example { event Event(); constructor() public { emit Event(); } }"
     );
     goodBytecode = result.code;
   });
@@ -117,13 +145,6 @@ describe("Mining", function() {
 
   async function getCode(address) {
     return web3.eth.getCode(address);
-  }
-
-  function compileSolidity(source) {
-    let result = solc.compile({ sources: { "Contract.sol": source } });
-    return Promise.resolve({
-      code: "0x" + result.contracts[Object.keys(result.contracts)[0]].bytecode
-    });
   }
 
   before(async function() {

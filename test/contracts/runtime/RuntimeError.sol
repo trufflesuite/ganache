@@ -1,22 +1,22 @@
-pragma solidity ^0.4.2;
+pragma solidity ^0.5.0;
 
 // Changes to this file will make tests fail.
 contract RuntimeError {
-  function error() {
+  function error() public {
     for (uint i = 0; i < 3; ) {
       i++;
     }
-    throw;
+    revert();
   }
 
-  function errorWithMessage() {
+  function errorWithMessage() public {
     for (uint i = 0; i < 3; ) {
       i++;
     }
     revert("Message");
   }
 
-  function success() {
+  function success() public {
 
   }
 }
