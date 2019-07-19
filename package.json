@@ -1,6 +1,6 @@
 {
-  "name": "ganache-core",
-  "version": "2.5.6",
+  "name": "kevm-ganache-core",
+  "version": "0.0.1",
   "main": "./index.js",
   "engines": {
     "node": ">=8.9.0"
@@ -15,7 +15,6 @@
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
     "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
-    "prepublishOnly": "npm run test && npm run build && npm run test-build && cp npm-shrinkwrap.json npm-shrinkwrap.json.bak && rm -rf node_modules/web3-providers-ws/node_modules/websocket/.git && npm prune --only=prod",
     "postpublish": "rm npm-shrinkwrap.json && mv npm-shrinkwrap.json.bak npm-shrinkwrap.json && npm ci",
     "test": "npm run _lint && npm run nyc_mocha",
     "test-build": "cross-env TEST_BUILD=node npm run _mocha",
@@ -37,7 +36,7 @@
     "ethereumjs-block": "2.1.0",
     "ethereumjs-tx": "1.3.7",
     "ethereumjs-util": "5.2.0",
-    "ethereumjs-vm": "runtimeverification/ethereumjs-vm",
+    "kevm-ethereumjs-vm": "0.0.2",
     "heap": "0.2.6",
     "level-sublevel": "6.6.4",
     "levelup": "3.1.1",
@@ -88,7 +87,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core"
+    "url": "https://github.com/runtimeverification/kevm-ganache-core"
   },
   "license": "MIT",
   "husky": {
