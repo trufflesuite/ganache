@@ -177,7 +177,7 @@ export default class Blockchain extends Emittery {
   }
 
   public async simulateTransaction(transaction: any, parentBlock: Block, block: Block): Promise<Data> {
-    // TODO: this is basically pseudo code:
+    // TODO: this is just a prototype implementation
     const vm = this.vm.copy();
     const stateManager = vm.stateManager;
     await promisify(stateManager.setStateRoot.bind(stateManager))(parentBlock.value.header.stateRoot);
