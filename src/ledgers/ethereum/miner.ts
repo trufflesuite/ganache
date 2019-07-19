@@ -13,13 +13,11 @@ function replaceFromHeap(priced: Heap<Transaction>, source: Heap<Transaction>, p
   // get the next best for this account, removing from the source Heap:
   const next = source.shift();
   if (next) {
-    // remove the current best priced transaction from this
-    // account and replace it with the account's next lowest
-    // nonce transaction:
+    // remove the current best priced transaction from this account and replace
+    // replace it with the account's next lowest nonce transaction:
     priced.replaceBest(next);
   } else {
-    // since we don't have a next, just remove this item from
-    // priced
+    // since we don't have a next, just remove this item from priced
     priced.removeBest();
   }
 }
