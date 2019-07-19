@@ -45,7 +45,7 @@ export const getDefault : (options: ProviderOptions) => ProviderOptions = (optio
     if (!seed) {
       // do this so that we can use the same seed on our next run and get the same
       // results without explicitly setting a seed up front.
-      // Use the alea PRNG for it's extra speed.
+      // Use the alea PRNG for its extra speed.
       rng = seedrandom.alea as seedrandom_prng;
       seed = _options.seed = randomAlphaNumericString(10, rng());
     } else {

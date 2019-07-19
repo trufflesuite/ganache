@@ -94,7 +94,7 @@ describe("server", () => {
     });
 
     // TODO: un-skip this test once uWebsockets is updated to include seese's fix
-    it.skip("fails to listen if the socket is already in use by Ganache", async () => {
+    it("fails to listen if the socket is already in use by Ganache", async () => {
       await setup();
       const s2 = Ganache.server();
 
@@ -102,6 +102,8 @@ describe("server", () => {
         await assert.rejects(s2.listen(port), {
           message: `Failed to listen on port: ${port}`
         });
+      } catch(e) {
+        console.log(e);
       } finally {
         await teardown();
       }

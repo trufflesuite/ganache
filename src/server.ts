@@ -50,7 +50,10 @@ export default class Server {
     } else {
       this.status = Status.opening;
       const _listenSocket = await new Promise((resolve) => {
-        this[app].listen(port, resolve);
+        // Make sure we have *exclusive* use of this port.
+        // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
+        const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
+        this[app].listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
       });
       
       if (_listenSocket) {

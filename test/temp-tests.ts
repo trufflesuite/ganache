@@ -18,7 +18,7 @@ describe("Accounts", () => {
     assert.strictEqual(accounts[0], expectedAddress);
   });
 
-  it("should create it's own mnemonic", async() => {
+  it("should create its own mnemonic", async() => {
     const p = Ganache.provider();
     const options = (p as any)[Object.getOwnPropertySymbols(p)[0] as any];
     assert.deepStrictEqual(typeof options.mnemonic, "string");
@@ -43,5 +43,14 @@ describe("Accounts", () => {
     });
     const accounts = await p.send("eth_accounts");
     assert.strictEqual(accounts.length, 2);
+  });
+
+  it("runs eth_call", async () => {
+    const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
+    const p = Ganache.provider({
+      accounts: [{balance: "0x123", secretKey: "0x" + privateKey.toString("hex")}, {balance: "0x456"}]
+    });
+    const accounts = await p.send("eth_accounts");
+    const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
   });
 });

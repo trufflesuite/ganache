@@ -2166,9 +2166,9 @@
       }
     },
     "lodash": {
-      "version": "4.17.11",
-      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.11.tgz",
-      "integrity": "sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg=="
+      "version": "4.17.14",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.14.tgz",
+      "integrity": "sha512-mmKYbW3GLuJeX+iGP+Y7Gp1AiGHGbXHCOh/jZmrawMmsE7MS4znI3RL2FsjbqOyMayHInjOeykW7PEajUk1/xw=="
     },
     "lodash.flattendeep": {
       "version": "4.4.0",
@@ -3407,8 +3407,8 @@
       "dev": true
     },
     "uWebSockets.js": {
-      "version": "github:uNetworking/uWebSockets.js#32749187bfefb94de69f1aa5a8275647c7ccf3aa",
-      "from": "github:uNetworking/uWebSockets.js#v15.9.0"
+      "version": "github:uNetworking/uWebSockets.js#e7552889a50a7ffa654c41c99a9bad46dd0024c5",
+      "from": "github:uNetworking/uWebSockets.js#v15.11.0"
     },
     "uglify-js": {
       "version": "3.5.12",

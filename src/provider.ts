@@ -52,7 +52,7 @@ export default class Provider extends Emittery {
   }
 
   // TODO: this doesn't seem like a provider-level function. Maybe we should
-  // move this into the Ledger or it's Blockchain?
+  // move this into the Ledger or its Blockchain?
   private initializeAccounts(): Account[]{
     const _providerOptions = this[options];
     const etherInWei = Quantity.from(Quantity.from(_providerOptions.default_balance_ether).toBigInt() * WEI);

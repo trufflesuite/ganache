@@ -1,4 +1,3 @@
-import { Block } from "../../ledgers/ethereum/components/block-manager"
 import params from "../../types/params";
 import Heap from "../../utils/heap";
 import Transaction from "../../types/transaction";
@@ -39,7 +38,7 @@ export default class Miner extends Emittery {
   private pending: Map<string, Heap<Transaction>>;
   private _isMining: boolean = false;
   private readonly options: MinerOptions;
-  private readonly vm: any
+  private readonly vm: any;
   private readonly _runTx: ({ tx: { } }) => Promise<any>;
   private readonly _checkpoint: () => Promise<any>;
   private readonly _commit: () => Promise<any>;
@@ -115,6 +114,8 @@ export default class Miner extends Emittery {
       const origin = Data.from(best.from).toString();
       const pendingFromOrigin = pending.get(origin);
 
+      // TODO: construct a Block (outside this while loop)
+      // and use it in these runArgs:
       const runArgs = {
         tx: best
       };
@@ -150,7 +151,6 @@ export default class Miner extends Emittery {
 
         const resultVm = result.vm;
         const txLogs = resultVm.logs || [];
-        // result.vm.exception is flipped so 1=0 and 0=1. :facepalm:
         const status = resultVm.exception ? 1 : 0;
         const bitVector = result.bloom.bitvector;
         const rawReceipt = [
@@ -186,7 +186,7 @@ export default class Miner extends Emittery {
     }
     await Promise.all([promises, this._commit()]);
 
-    // put the rejected transactions back in their original origin heaps
+    // TODO: put the rejected transactions back in their original origin heaps
     rejectedTransactions.forEach(transaction => {
       // TODO: this transaction should probably be validated again...?
       console.log(transaction);
@@ -198,7 +198,7 @@ export default class Miner extends Emittery {
       receiptTrie
     });
 
-    // reset the miner
+    // reset the miner (tis sets _isMining back to false)
     this.reset();
 
     if (this.pending) {
@@ -235,16 +235,16 @@ export default class Miner extends Emittery {
     // Note: the `pending` Map passed here is "live", meaning it is constantly
     // being updated by the `transactionPool`. This allows us to begin
     // processing a block with the _current_ pending transactions, and while
-    // that is processing, to receive new transactions
-    // updated out `priced` heap with new pending transactions
+    // that is processing, to receive new transactions, updating our `priced`
+    // heap with these new pending transactions.
     for (let mapping of pending) {
       const heap = mapping[1];
       const next = heap.peek();
       if (next) {
         const price = Quantity.from(next.gasPrice).toBigInt();
         if (this.currentlyExecutingPrice < price) {
-          // don't insert a tranaction into the miner's `priced` heap
-          // if it will be better than it's last 
+          // don't insert a transaction into the miner's `priced` heap
+          // if it will be better than its last 
           continue;
         }
         const origin = Data.from(next.from).toString();

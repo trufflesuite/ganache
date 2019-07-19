@@ -62,7 +62,7 @@ export default class Blockchain extends Emittery {
       const root: Buffer = null;
       this.trie = new Trie(database.trie, root);
       this.blocks = new BlockManager(this, database.blocks);
-      this._initializeVM(options.hardfork, options.allowUnlimitedContractSize);
+      this.vm = this.createVmFromStateTrie(this.trie, options.hardfork, options.allowUnlimitedContractSize);
 
       const miner = new Miner(this.vm, options);
       this.transactions = new TransactionManager(this, database.transactions, options);
@@ -83,7 +83,7 @@ export default class Blockchain extends Emittery {
       }
 
       await this._initializeAccounts(options.accounts);
-      let lastBlock = this._initializeGenesisBlock(options.timestamp, options.gasLimit);
+      let lastBlock = this._initializeGenesisBlock(options.timestamp, options.gasLimit);;
       miner.on("block", async (blockData: any) => {
         const previousBlock = await lastBlock;
         const previousHeader = previousBlock.value.header;
@@ -98,18 +98,19 @@ export default class Blockchain extends Emittery {
         });
         console.log(Quantity.from(block.value.header.number).toBigInt());
 
+        this.blocks.latest = block;
         lastBlock = this.blocks.set(block);
       });
 
-      await lastBlock;
+      this.blocks.earliest = this.blocks.latest = await lastBlock;
       this.state = Status.started;
       this.emit("start");
     });
   }
 
-  private _initializeVM(hardfork: string, allowUnlimitedContractSize: boolean) {
-    this.vm = new VM({
-      state: this.trie,
+  private createVmFromStateTrie(stateTrie: Trie, hardfork: string, allowUnlimitedContractSize: boolean): any {
+    const vm = new VM({
+      state: stateTrie,
       activatePrecompiles: true,
       hardfork,
       allowUnlimitedContractSize,
@@ -120,7 +121,8 @@ export default class Blockchain extends Emittery {
         }
       }
     });
-    this.vm.on("step", this.emit.bind(this, "step"));
+    vm.on("step", this.emit.bind(this, "step"));
+    return vm;
   }
 
   private async _initializeAccounts(accounts: Account[]): Promise<void> {
@@ -162,7 +164,7 @@ export default class Blockchain extends Emittery {
   }
 
   /**
-   * Given a block number, find it's hash in the database
+   * Given a block number, find its hash in the database
    * @param number 
    */
   private _blockNumberToHash(number: BN): Promise<Buffer> {
@@ -174,12 +176,23 @@ export default class Blockchain extends Emittery {
     return Data.from(transaction.hash());
   }
 
+  public async simulateTransaction(transaction: any, parentBlock: Block, block: Block): Promise<Data> {
+    // TODO: this is basically pseudo code:
+    const vm = this.vm.copy();
+    const stateManager = vm.stateManager;
+    await promisify(stateManager.setStateRoot.bind(stateManager))(parentBlock.value.header.stateRoot);
+    transaction.block = block;
+    transaction.caller = transaction.from;
+    const result = await promisify(vm.runCall.bind(vm))(transaction);
+    return result.vm.returnValue || "0x";
+  }
+
   /**
-   * Gracefully shuts down the blockchain service and all of it's dependencies.
+   * Gracefully shuts down the blockchain service and all of its dependencies.
    */
   public async stop() {
     // If the blockchain is still initalizing we don't want to shut down
-    // yet because tehre may still be database calls in flight. Leveldb may
+    // yet because there may still be database calls in flight. Leveldb may
     // cause a segfault due to a race condition between a db write and the close
     // call.
     if (this.state === Status.starting) {

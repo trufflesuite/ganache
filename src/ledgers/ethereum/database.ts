@@ -26,6 +26,7 @@ export default class Database extends Emittery {
   public transactionReceipts: levelup.LevelUp;
   public trie: levelup.LevelUp;
   public readonly initialized: boolean;
+
   /**
    * The Database handles the creation of the database, and all access to it.
    * Once the database has been fully initialized it will emit a `ready`
@@ -41,6 +42,7 @@ export default class Database extends Emittery {
     this.blockchain = blockchain;
     this._initialize();
   }
+  
   private async _initialize() {
     const levelupOptions: any = { valueEncoding: "binary" };
     const store = this.options.db;
@@ -80,9 +82,10 @@ export default class Database extends Emittery {
     await this.emit("ready");
     return;
   }
+
   /**
    * Gracefully closes the database and cleans up the file system and waits for
-   * it to fully shut down. Emit's a `close` event once complete.
+   * it to fully shut down. Emits a `close` event once complete.
    * Note: only emits `close` once.
    */
   public async close() {

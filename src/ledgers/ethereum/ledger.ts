@@ -7,6 +7,7 @@ import Tag from "../../types/tags";
 import Address, { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import Account from "../../types/account";
+import { Block } from "./components/block-manager";
 const { toChecksumAddress } = require("ethereumjs-util");
 
 const createKeccakHash = require("keccak");
@@ -239,6 +240,15 @@ export default class Ethereum implements ILedger {
   }
 
   /**
+   * Returns the currently configured chain id, a value used in
+   * replay-protected transaction signing as introduced by EIP-155.
+   * @returns big integer of the current chain id. Defaults are mainnet=61, morden=62, custom=1337.
+   */
+  async eth_chainId(): Promise<bigint> {
+    return 1337n;
+  }
+
+  /**
    * Returns the balance of the account of given address.
    * @param address 20 Bytes - address to check for balance.
    * @param blockNumber integer block number, or the string "latest", "earliest"
@@ -246,15 +256,10 @@ export default class Ethereum implements ILedger {
    */
   async eth_getBalance(
       address: IndexableAddress,
-      blockNumber: bigint | Tag = Tag.LATEST
+      blockNumber: Buffer | Tag = Tag.LATEST
     ): Promise<Quantity> {
     const chain = this[_blockchain];
-    const str = blockNumber.toString();
-    const block = await chain.blocks.get(Buffer.from([0]));
-    //const block = await chain.blocks.get(str);
-    const account = await chain.accounts.get(Address.from(address));
-    //const account = await block.accounts.get(address);
-    //return account.balance;
+    const account = await chain.accounts.get(Address.from(address), blockNumber);
     return account.balance;
   }
 
@@ -272,8 +277,9 @@ export default class Ethereum implements ILedger {
   }
 
   /**
-   * 
+   * Creates new message call transaction or a contract creation, if the data field contains code.
    * @param transaction 
+   * @returns The transaction hash
    */
   async eth_sendTransaction(transaction: any): Promise<Data> {
     let fromString = transaction.from;
@@ -338,13 +344,29 @@ export default class Ethereum implements ILedger {
   }
 
   /**
-   * 
+   * Creates new message call transaction or a contract creation for signed transactions.
    * @param transaction 
+   * @returns The transaction hash
    */
   async eth_sendRawTransaction(transaction: any): Promise<Data> {
-    await this[_blockchain].queueTransaction(transaction);
-    return transaction.hash;
+    return await this[_blockchain].queueTransaction(transaction);
   }
+
+  async eth_call(transaction: any, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Data> {
+    const blocks = this[_blockchain].blocks;
+    const block = await blocks.get(blockNumber);
+    const blockCopy = blocks.createBlock(block.value.header);
+    const currentNumber = Quantity.from(blockCopy.value.header.number).toBigInt() || 0n;
+    let parentBlock: Block;
+    if (currentNumber > 0n) {
+      const previousBlockNumber = Quantity.from(currentNumber - 1n);
+      parentBlock = await blocks.get(previousBlockNumber.toBuffer());
+    } else {
+      parentBlock = blockCopy;
+    }
+    return this[_blockchain].simulateTransaction(transaction, parentBlock, blockCopy);
+  }
+
 
   readonly [index: string]: (...args: any) => Promise<{}>;
 }

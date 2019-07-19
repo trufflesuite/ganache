@@ -59,7 +59,7 @@ export default class BlockManager extends Manager<Block> {
             return this.latest;
           case undefined:
           case null:
-            // the key is probably a hex string, let nature takes it's course.
+            // the key is probably a hex string, let nature takes its course.
           break;
           case Tag.PENDING:
             return this.pending;
