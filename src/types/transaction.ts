@@ -258,6 +258,12 @@ function initData(tx: any, data: any) {
 }
 
 export default class Transaction extends EthereumJsTransaction {
+  type: number;
+  v: number;
+  r: number;
+  s: number;
+  raw: any;
+  _chainId: any;
   /**
    * @param {Object} [data] The data for this Transaction.
    * @param {Number} type The `Transaction.types` bit flag for this transaction
@@ -374,9 +380,9 @@ export default class Transaction extends EthereumJsTransaction {
       gas: Quantity.from(this.gasLimit).toString(),
       gasPrice: Quantity.from(this.gasPrice).toString(),
       data: this.data ? this.data.toString("hex") : null,
-      v: Data.from(this.v).toString(),
-      r: Data.from(this.r).toString(),
-      s: Data.from(this.s).toString(),
+      v: Quantity.from(this.v).toString(),
+      r: Quantity.from(this.r).toString(),
+      s: Quantity.from(this.s).toString(),
       _type: this.type
     };
     return resultJSON;
@@ -446,9 +452,9 @@ export default class Transaction extends EthereumJsTransaction {
       gas: Quantity.from(this.gasLimit).toString(),
       gasPrice: Quantity.from(this.gasPrice).toString(),
       input: Data.from(this.data).toString(), // TODO: this output format probably needs the 0x stripped.
-      v: Data.from(this.v).toString(),
-      r: Data.from(this.r).toString(),
-      s: Data.from(this.s).toString()
+      v: Quantity.from(this.v).toString(),
+      r: Quantity.from(this.r).toString(),
+      s: Quantity.from(this.s).toString()
     };
 
     return resultJSON;
