@@ -57,6 +57,7 @@
     "jsbi": "^2.0.5",
     "mocha": "^6.1.4",
     "nyc": "^14.1.1",
+    "solc": "0.5.10",
     "source-map-support": "^0.5.12",
     "superagent": "5.0.5",
     "ts-node": "^8.1.0",
