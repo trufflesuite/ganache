@@ -115,7 +115,7 @@ export default class TransactionPool extends Emittery {
       // If the transaction wasn't found in our origin's executables queue,
       // check if it is at the correct `nonce` by looking up the origin's
       // current nonce
-      const transactorNextNonce = (transactor.nonce.toBigInt() || 0n) + 1n;
+      const transactorNextNonce = transactor.nonce.toBigInt() || 0n;
       isExecutableTransaction = transactorNextNonce === transactionNonce;
     }
 
