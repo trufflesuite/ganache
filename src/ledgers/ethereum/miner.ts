@@ -6,6 +6,7 @@ import { promisify } from "util";
 import Trie from "merkle-patricia-tree";
 import { rlp } from "ethereumjs-util";
 import Emittery = require("emittery");
+import Block from "ethereumjs-block";
 
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
@@ -67,7 +68,7 @@ export default class Miner extends Emittery {
    * transactions within a single block. The remaining items will be left in
    * the pending pool to be eligible for mining in the future.
    */
-  public async mine(pending: Map<string, Heap<Transaction>>) {
+  public async mine(pending: Map<string, Heap<Transaction>>, block: Block) {
     // only allow mining a single block at a time (per miner)
     if (this._isMining) {
       // if we are currently mining a block, set the `pending` property
@@ -89,16 +90,25 @@ export default class Miner extends Emittery {
     const transactionsTrie = new Trie(null, null);
     const receiptTrie = new Trie(null, null);
     const promises: Promise<any>[] = [];
+    const receipts: any[] = [];
 
     await this._checkpoint();
 
     const priced = this.priced;
     const rejectedTransactions: Transaction[] = [];
-    let best: Transaction;
+    const blockData = {
+      blockTransactions,
+      transactionsTrie,
+      receiptTrie,
+      gasUsed: 0n,
+      receipts
+    };
+
     // Run until we run out of items, or until the inner loop stops us.
     // we don't call `shift()` here because we will will probably need to
-    // `replace`this top transaction with the next top transaction from the same
+    // `replace` this top transaction with the next top transaction from the same
     // origin.
+    let best: Transaction;
     while (best = priced.peek()) {
       // if the current best transaction can't possibly fit in this block
       // go ahead and run the next best transaction, ignoring all other
@@ -109,18 +119,21 @@ export default class Miner extends Emittery {
         continue;
       }
 
+      // TODO: get a real block
+      const blockHeader = block.header;
+      const blockBloom = blockHeader.bloom;
+
       const origin = Data.from(best.from).toString();
       const pendingFromOrigin = pending.get(origin);
 
-      // TODO: construct a Block (outside this while loop)
-      // and use it in these runArgs:
-      const runArgs = {
-        tx: best
-      };
       this.currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
+
+      const runArgs = {
+        tx: best,
+        block
+      };
       await this._checkpoint();
       const result = await this._runTx(runArgs).catch((err: Error) => ({ err }));
-      // await new Promise((resolve)=>setTimeout(resolve, 2000));
       if (result.err) {
         await this._revert();
         const errorMessage = result.err.message;
@@ -141,30 +154,29 @@ export default class Miner extends Emittery {
         }
         continue;
       }
-      await this._commit();
 
       const gasUsed = Quantity.from(result.gasUsed.toBuffer()).toBigInt();
       if (blockGasLeft >= gasUsed) {
+        await this._commit();
+
         blockGasLeft -= gasUsed;
+        blockData.gasUsed += gasUsed;
 
-        const resultVm = result.vm;
-        const txLogs = resultVm.logs || [];
-        const status = resultVm.exception ? 1 : 0;
-        const bitVector = result.bloom.bitvector;
-        const rawReceipt = [
-          status,
-          result.gasUsed.toBuffer(),
-          bitVector,
-          txLogs
-        ];
-        const rcptBuffer = rlp.encode(rawReceipt);
-        const key = rlp.encode(counter++);
-        promises.push(putInTrie(transactionsTrie, key, best.serialize()));
-        promises.push(putInTrie(receiptTrie, key, rcptBuffer));
+        // calculate receipts and tries
+        const receipt = best.generateReceipt(result, block, counter);
+        const txKey = rlp.encode(counter);
+        promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
+        promises.push(putInTrie(receiptTrie, txKey, receipt.raw));
+        receipts.push(receipt);
 
-        // remove the current (`best`) item from the live pending queue as we
-        // now know it will fit in the block.
-        blockTransactions.push(best);
+        // update the block's bloom
+        const bloom = receipt.logsBloom;
+        for (let i = 0; i < 256; i++) {
+          blockBloom[i] |= bloom[i];
+        }
+
+        block.transactions[counter] = best as any;
+        counter++
 
         // if we don't have enough gas left for even the smallest of
         // transactions we're done
@@ -172,9 +184,13 @@ export default class Miner extends Emittery {
           break;
         }
 
+        // remove the current (`best`) item from the live pending queue as we
+        // now know it will fit in the block.
         // update `priced` with the next best for this account:
         replaceFromHeap(priced, pendingFromOrigin, pending, origin);
       } else {
+        await this._revert();
+
         // didn't fit. remove it from the priced transactions without replacing
         // it with another from the account. This transaction will have to be
         // run again in the next block.
@@ -189,18 +205,27 @@ export default class Miner extends Emittery {
       // TODO: this transaction should probably be validated again...?
       console.log(transaction);
     });
+    
+    this.emit("block", blockData);
 
-    this.emit("block", {
-      blockTransactions,
-      transactionsTrie,
-      receiptTrie
-    });
-
-    // reset the miner (tis sets _isMining back to false)
+    // reset the miner (this sets _isMining back to false)
     this.reset();
 
     if (this.pending) {
-      this.mine(this.pending);
+      // TODO: hm... tricky... we know we need to mine a new block
+      // but at what timestamp. We need to get the timestamp from `blockchain`, but so far,
+      // we don't require the miner to know about the blockchain.
+      // also, what if the previous block was mined with a timestamp, do we need to mine two blocks with that
+      // same timestamp? uh, I think not.
+      const nextBlock = new Block({
+        parentHash: block.header.hash,
+        number: Quantity.from(Quantity.from(block.header.number).toBigInt() + 1n).toBuffer(),
+        coinbase: block.header.coinbase,
+        timestamp: block.header.timestamp,
+        difficulty: block.header.difficulty,
+        gasLimit: block.header.gasLimit,
+      } as any);
+      this.mine(this.pending, nextBlock);
       this.pending = null;
     }
   }

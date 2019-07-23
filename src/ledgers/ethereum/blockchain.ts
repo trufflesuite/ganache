@@ -68,34 +68,55 @@ export default class Blockchain extends Emittery {
       this.transactions = new TransactionManager(this, database.transactions, options);
       this.accounts = new AccountManager(this);
 
+      await this._initializeAccounts(options.accounts);
+      let lastBlock = this._initializeGenesisBlock(options.timestamp, options.gasLimit);
+
+      const readyNextBlock = async () => {
+        const previousBlock = await lastBlock;
+        const previousHeader = previousBlock.value.header;
+        const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
+        return this.blocks.createBlock({
+          number: Quantity.from(previousNumber + 1n).toBuffer(),
+          gasLimit: options.gasLimit.toBuffer(),
+          timestamp: this._currentTime(),
+          parentHash: previousHeader.hash(),
+        });
+      }
       const instamining = true;
       if (instamining) {
         this.transactions.transactionPool.on("drain", async (pending: Map<string, Heap<Transaction>>) => {
-          await miner.mine(pending);
+          const block = await readyNextBlock();
+          await miner.mine(pending, block.value);
         });
       } else {
+        // TODO: the interval needs to be from the `options`
         const minerInterval = 3 * 1000;
         const mine = async (pending: Map<string, Heap<Transaction>>) => {
-          await miner.mine(pending);
+          const block = await readyNextBlock();
+          await miner.mine(pending, block.value);
           setTimeout(mine, minerInterval, pending);
         };
         setTimeout(mine, minerInterval, this.transactions.transactionPool.executables);
       }
 
-      await this._initializeAccounts(options.accounts);
-      let lastBlock = this._initializeGenesisBlock(options.timestamp, options.gasLimit);;
+      
       miner.on("block", async (blockData: any) => {
         const previousBlock = await lastBlock;
         const previousHeader = previousBlock.value.header;
         const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
         const block = this.blocks.createBlock({
-          number: Quantity.from(previousNumber + 1n).toBuffer(),
-          gasLimit: options.gasLimit.toBuffer(),
-          timestamp: this._currentTime(),
           parentHash: previousHeader.hash(),
+          number: Quantity.from(previousNumber + 1n).toBuffer(),
+          // coinbase: 
+          timestamp: this._currentTime(),
+          // difficulty: 
+          gasLimit: options.gasLimit.toBuffer(),
           transactionsTrie: blockData.transactionsTrie.root,
           receiptTrie: blockData.receiptTrie.root
         });
+        // TODO: save the transactions, et al, too
+        // blockData.blockTransactions
+
         console.log(Quantity.from(block.value.header.number).toBigInt());
 
         this.blocks.latest = block;

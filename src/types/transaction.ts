@@ -505,4 +505,39 @@ export default class Transaction extends EthereumJsTransaction {
     // create hash
     return ethUtil.rlphash(items);
   }
+
+  generateReceipt = (result: any, block: any, transactionIndex: number) => {
+    const status = result.vm.exception;
+    const bitvector = result.bloom.bitvector;
+    const gasUsed = result.gasUsed;
+    const logs = result.vm.logs;
+    const rawReceipt = rlp.encode([
+      status,
+      gasUsed,
+      bitvector,
+      logs
+    ]);
+    return {
+      transactionHash: this.hash(),
+      transactionIndex: transactionIndex,
+      blockHash: null as Buffer,
+      blockNumber: block.header.number,
+      from: this.from,
+      to: this.to,
+      gasUsed: gasUsed,
+      cumulativeGasUsed: block.gasUsed,
+      contractAddress: result.createdAddress,
+      logs: result.vm.logs,
+      status: result.vm.exception,
+      logsBloom: bitvector,
+      v: this.v,
+      r: this.r,
+      s: this.s,
+      toJSON: (blockHash: Buffer) => {
+        // TODO: make this return this things
+        return {};
+      },
+      raw: rawReceipt
+    }
+  }
 };
