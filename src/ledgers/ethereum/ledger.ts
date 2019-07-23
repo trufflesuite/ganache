@@ -332,9 +332,9 @@ export default class Ethereum implements ILedger {
 
     if (isKnownAccount) {
       if (tx.nonce.length === 0) {
+        // TODO: check pending transactions and get the nonce from there
         const account = await this[_blockchain].accounts.get(from);
-        const accountNonce = (account.nonce.toBigInt()) || 0n;
-        tx.nonce = Quantity.from(1n + accountNonce).toBuffer();
+        tx.nonce = account.nonce.toBuffer();
       }
       const secretKey = this[_knownAccounts].get(fromString);
       tx.sign(secretKey.toBuffer());
