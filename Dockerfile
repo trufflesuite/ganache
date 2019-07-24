@@ -1,12 +1,21 @@
-FROM mhart/alpine-node:7.9.0
+FROM ubuntu:bionic
 
-RUN apk add --no-cache make gcc g++ python git bash
-COPY package.json /src/package.json
-WORKDIR /src
-RUN npm install
+ENV TZ=America/Chicago
+RUN    ln --symbolic --no-dereference --force /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone
 
-ADD . .
+RUN    apt-get update        \
+    && apt-get upgrade --yes
 
-EXPOSE 8545
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN apt-get install --yes nodejs
+RUN npm install -g yarn
 
-ENTRYPOINT ["node", "./bin/testrpc"]
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+RUN    groupadd --gid $GROUP_ID user                                        \
+    && useradd --create-home --uid $USER_ID --shell /bin/sh --gid user user
+
+ENV NPM_PACKAGES=/home/user/.npm-packages
+ENV PATH=$NPM_PACKAGES/bin:$PATH
+RUN npm config set prefix $NPM_PACKAGES
