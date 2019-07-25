@@ -507,10 +507,11 @@ export default class Transaction extends EthereumJsTransaction {
   }
 
   generateReceipt = (result: any, block: any, transactionIndex: number) => {
-    const status = result.vm.exception;
+    const vmResult = result.vm;
+    const status = vmResult.exception;
     const bitvector = result.bloom.bitvector;
     const gasUsed = result.gasUsed;
-    const logs = result.vm.logs;
+    const logs = vmResult.logs;
     const rawReceipt = rlp.encode([
       status,
       gasUsed,
@@ -527,14 +528,14 @@ export default class Transaction extends EthereumJsTransaction {
       gasUsed: gasUsed,
       cumulativeGasUsed: block.gasUsed,
       contractAddress: result.createdAddress,
-      logs: result.vm.logs,
-      status: result.vm.exception,
+      logs: logs,
+      status: status,
       logsBloom: bitvector,
       v: this.v,
       r: this.r,
       s: this.s,
       toJSON: (blockHash: Buffer) => {
-        // TODO: make this return this things
+        // TODO: make this return the things
         return {};
       },
       raw: rawReceipt
