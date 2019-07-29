@@ -4039,9 +4039,9 @@
       }
     },
     "eth-sig-util": {
-      "version": "2.2.0",
-      "resolved": "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-2.2.0.tgz",
-      "integrity": "sha512-bAxW35bL4U2lrtjjV8rFGJ8B27z4Sn5v9eIaNdpPUnPfUAtrvx5j8atfyV+k+JOnbppcvKhWCO1rQSBk4kkAhw==",
+      "version": "2.3.0",
+      "resolved": "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-2.3.0.tgz",
+      "integrity": "sha512-ugD1AvaggvKaZDgnS19W5qOfepjGc7qHrt7TrAaL54gJw9SHvgIXJ3r2xOMW30RWJZNP+1GlTOy5oye7yXA4xA==",
       "requires": {
         "buffer": "^5.2.1",
         "elliptic": "^6.4.0",
