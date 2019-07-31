@@ -131,6 +131,7 @@ The RPC methods currently implemented are:
 * [eth_sendTransaction](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendTransaction)
 * [eth_sendRawTransaction](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendRawTransaction)
 * [eth_sign](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign)
+* `eth_signTypedData`
 * [eth_subscribe](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_subscribe)
 * [eth_unsubscribe](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_unsubscribe)
 * [shh_version](https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_version)
