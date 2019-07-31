@@ -213,11 +213,36 @@
         "any-observable": "^0.3.0"
       }
     },
+    "@types/bn.js": {
+      "version": "4.11.5",
+      "resolved": "https://registry.npmjs.org/@types/bn.js/-/bn.js-4.11.5.tgz",
+      "integrity": "sha512-AEAZcIZga0JgVMHNtl1CprA/hXX7/wPt79AgR4XqaDt7jyj3QWYw6LPoOiznPtugDmlubUnAahMs2PFxGcQrng==",
+      "dev": true,
+      "requires": {
+        "@types/node": "*"
+      }
+    },
     "@types/node": {
       "version": "10.14.13",
       "resolved": "https://registry.npmjs.org/@types/node/-/node-10.14.13.tgz",
       "integrity": "sha512-yN/FNNW1UYsRR1wwAoyOwqvDuLDtVXnaJTZ898XIw/Q5cCaeVAlVwvsmXLX5PuiScBYwZsZU4JYSHB3TvfdwvQ==",
       "dev": true
+    },
+    "@types/underscore": {
+      "version": "1.9.2",
+      "resolved": "https://registry.npmjs.org/@types/underscore/-/underscore-1.9.2.tgz",
+      "integrity": "sha512-KgOKTAD+9X+qvZnB5S1+onqKc4E+PZ+T6CM/NA5ohRPLHJXb+yCJMVf8pWOnvuBuKFNUAJW8N97IA6lba6mZGg==",
+      "dev": true
+    },
+    "@types/web3": {
+      "version": "1.0.19",
+      "resolved": "https://registry.npmjs.org/@types/web3/-/web3-1.0.19.tgz",
+      "integrity": "sha512-fhZ9DyvDYDwHZUp5/STa9XW2re0E8GxoioYJ4pEUZ13YHpApSagixj7IAdoYH5uAK+UalGq6Ml8LYzmgRA/q+A==",
+      "dev": true,
+      "requires": {
+        "@types/bn.js": "*",
+        "@types/underscore": "*"
+      }
     },
     "@webassemblyjs/ast": {
       "version": "1.5.13",

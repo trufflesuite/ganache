@@ -2,6 +2,7 @@
   "name": "ganache-core",
   "version": "2.6.1-beta.0",
   "main": "./index.js",
+  "types": "./typings/index.d.ts",
   "engines": {
     "node": ">=8.9.0"
   },
@@ -49,6 +50,7 @@
     "websocket": "1.0.29"
   },
   "devDependencies": {
+    "@types/web3": "^1.0.19",
     "assert-match": "^1.1.1",
     "browserfs": "1.4.3",
     "coveralls": "^3.0.4",
