@@ -76,7 +76,7 @@ const tests = function(web3) {
 
   describe("eth_getCompilers", function() {
     it("should return an empty array", async function() {
-      const compilers = await web3.eth.getCompilers();
+      const compilers = (await send("eth_getCompilers")).result;
       assert(Array.isArray(compilers));
       assert.strictEqual(0, compilers.length);
     });
@@ -1401,12 +1401,8 @@ const tests = function(web3) {
     this.timeout(5000);
 
     it("errors on compile solidity request", async function() {
-      try {
-        await web3.eth.compile.solidity(source);
-        assert.fail("expected promise rejection");
-      } catch (err) {
-        assert(err.message.indexOf("Method eth_compileSolidity not supported") >= 0);
-      }
+      const result = await send("eth_compileSolidity", [source]).catch((error) => ({ error }));
+      assert(result.error.message.indexOf("Method eth_compileSolidity not supported") >= 0);
     });
   });
 
