@@ -1,6 +1,6 @@
 {
   "name": "ganache-core",
-  "version": "2.7.0-beta.0",
+  "version": "2.7.0",
   "main": "./index.js",
   "types": "./typings/index.d.ts",
   "engines": {
