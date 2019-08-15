@@ -2577,6 +2577,11 @@
       "resolved": "https://registry.npmjs.org/core-js/-/core-js-2.6.9.tgz",
       "integrity": "sha512-HOpZf6eXmnl7la+cUdMnLvUxKNqLUzJvgIziQ0DiF3JwSImNphIqdGqzj6hIKyX04MmV0poclQ7+wjWvxQyR2A=="
     },
+    "core-js-pure": {
+      "version": "3.2.1",
+      "resolved": "https://registry.npmjs.org/core-js-pure/-/core-js-pure-3.2.1.tgz",
+      "integrity": "sha512-+qpvnYrsi/JDeQTArB7NnNc2VoMYLE1YSkziCDHgjexC2KH7OFiGhLUd3urxfyWmNjSwSW7NYXPWHMhuIJx9Ow=="
+    },
     "core-util-is": {
       "version": "1.0.2",
       "resolved": "https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.2.tgz",
@@ -4288,36 +4293,22 @@
       }
     },
     "ethereumjs-blockchain": {
-      "version": "3.4.0",
-      "resolved": "https://registry.npmjs.org/ethereumjs-blockchain/-/ethereumjs-blockchain-3.4.0.tgz",
-      "integrity": "sha512-wxPSmt6EQjhbywkFbftKcb0qRFIZWocHMuDa8/AB4eWL/UPYalNcDyLaxYbrDytmhHid3Uu8G/tA3C/TxZBuOQ==",
+      "version": "4.0.1",
+      "resolved": "https://registry.npmjs.org/ethereumjs-blockchain/-/ethereumjs-blockchain-4.0.1.tgz",
+      "integrity": "sha512-twf2yeyzeBXzCgclLyF9wZEyCKbCweM2KZdZkTsnlqGgaffgnSgY44+z+9BHUIVoWY+gxMj+XsTlTgVcbha8rg==",
       "requires": {
         "async": "^2.6.1",
         "ethashjs": "~0.0.7",
         "ethereumjs-block": "~2.2.0",
         "ethereumjs-common": "^1.1.0",
-        "ethereumjs-util": "~6.0.0",
+        "ethereumjs-util": "~6.1.0",
         "flow-stoplight": "^1.0.0",
         "level-mem": "^3.0.1",
         "lru-cache": "^5.1.1",
-        "safe-buffer": "^5.1.2",
+        "rlp": "^2.2.2",
         "semaphore": "^1.1.0"
       },
       "dependencies": {
-        "ethereumjs-util": {
-          "version": "6.0.0",
-          "resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-6.0.0.tgz",
-          "integrity": "sha512-E3yKUyl0Fs95nvTFQZe/ZSNcofhDzUsDlA5y2uoRmf1+Ec7gpGhNCsgKkZBRh7Br5op8mJcYF/jFbmjj909+nQ==",
-          "requires": {
-            "bn.js": "^4.11.0",
-            "create-hash": "^1.1.2",
-            "ethjs-util": "^0.1.6",
-            "keccak": "^1.0.2",
-            "rlp": "^2.0.0",
-            "safe-buffer": "^5.1.1",
-            "secp256k1": "^3.0.1"
-          }
-        },
         "lru-cache": {
           "version": "5.1.1",
           "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-5.1.1.tgz",
@@ -4373,48 +4364,34 @@
       }
     },
     "ethereumjs-vm": {
-      "version": "3.0.0",
-      "resolved": "https://registry.npmjs.org/ethereumjs-vm/-/ethereumjs-vm-3.0.0.tgz",
-      "integrity": "sha512-lNu+G/RWPRCrQM5s24MqgU75PEGiAhL4Ombw0ew6m08d+amsxf/vGAb98yDNdQqqHKV6JbwO/tCGfdqXGI6Cug==",
+      "version": "4.0.0",
+      "resolved": "https://registry.npmjs.org/ethereumjs-vm/-/ethereumjs-vm-4.0.0.tgz",
+      "integrity": "sha512-ALqlz/9PsPF3Tn5XROpLxdx5rECIFb6p3T3h2r9+OnKoEXz8kDjTveYjQXsq/9/oWkVF+D0oGPImuTdgytb7eQ==",
       "requires": {
         "async": "^2.1.2",
         "async-eventemitter": "^0.2.2",
-        "ethereumjs-account": "^2.0.3",
+        "core-js-pure": "^3.0.1",
+        "ethereumjs-account": "^3.0.0",
         "ethereumjs-block": "~2.2.0",
-        "ethereumjs-blockchain": "^3.4.0",
-        "ethereumjs-common": "^1.1.0",
-        "ethereumjs-util": "^6.0.0",
+        "ethereumjs-blockchain": "^4.0.1",
+        "ethereumjs-common": "^1.3.0",
+        "ethereumjs-tx": "^2.1.0",
+        "ethereumjs-util": "^6.1.0",
         "fake-merkle-patricia-tree": "^1.0.1",
         "functional-red-black-tree": "^1.0.1",
         "merkle-patricia-tree": "^2.3.2",
         "rustbn.js": "~0.2.0",
-        "safe-buffer": "^5.1.1"
+        "safe-buffer": "^5.1.1",
+        "util.promisify": "^1.0.0"
       },
       "dependencies": {
-        "ethereumjs-account": {
-          "version": "2.0.5",
-          "resolved": "https://registry.npmjs.org/ethereumjs-account/-/ethereumjs-account-2.0.5.tgz",
-          "integrity": "sha512-bgDojnXGjhMwo6eXQC0bY6UK2liSFUSMwwylOmQvZbSl/D7NXQ3+vrGO46ZeOgjGfxXmgIeVNDIiHw7fNZM4VA==",
+        "ethereumjs-tx": {
+          "version": "2.1.0",
+          "resolved": "https://registry.npmjs.org/ethereumjs-tx/-/ethereumjs-tx-2.1.0.tgz",
+          "integrity": "sha512-q1PFhR5i93OjcoE0G3GGz7XvnpLiddcUSKr28hmMUzVHvvc/+PHmQTx4NrGQUUny7qBq9tEIcvMivdB7uphKtA==",
           "requires": {
-            "ethereumjs-util": "^5.0.0",
-            "rlp": "^2.0.0",
-            "safe-buffer": "^5.1.1"
-          },
-          "dependencies": {
-            "ethereumjs-util": {
-              "version": "5.2.0",
-              "resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-5.2.0.tgz",
-              "integrity": "sha512-CJAKdI0wgMbQFLlLRtZKGcy/L6pzVRgelIZqRqNbuVFM3K9VEnyfbcvz0ncWMRNCe4kaHWjwRYQcYMucmwsnWA==",
-              "requires": {
-                "bn.js": "^4.11.0",
-                "create-hash": "^1.1.2",
-                "ethjs-util": "^0.1.3",
-                "keccak": "^1.0.2",
-                "rlp": "^2.0.0",
-                "safe-buffer": "^5.1.1",
-                "secp256k1": "^3.0.1"
-              }
-            }
+            "ethereumjs-common": "^1.3.0",
+            "ethereumjs-util": "^6.0.0"
           }
         }
       }
@@ -9182,6 +9159,15 @@
         "isobject": "^3.0.0"
       }
     },
+    "object.getownpropertydescriptors": {
+      "version": "2.0.3",
+      "resolved": "https://registry.npmjs.org/object.getownpropertydescriptors/-/object.getownpropertydescriptors-2.0.3.tgz",
+      "integrity": "sha1-h1jIRvW0B62rDyNuCYbxSwUcqhY=",
+      "requires": {
+        "define-properties": "^1.1.2",
+        "es-abstract": "^1.5.1"
+      }
+    },
     "object.map": {
       "version": "1.0.1",
       "resolved": "https://registry.npmjs.org/object.map/-/object.map-1.0.1.tgz",
@@ -12436,6 +12422,15 @@
       "version": "1.0.2",
       "resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
       "integrity": "sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8="
+    },
+    "util.promisify": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/util.promisify/-/util.promisify-1.0.0.tgz",
+      "integrity": "sha512-i+6qA2MPhvoKLuxnJNpXAGhg7HphQOSUq2LKMZD0m15EiskXUkMvKdF4Uui0WYeCUGea+o2cw/ZuwehtfsrNkA==",
+      "requires": {
+        "define-properties": "^1.1.2",
+        "object.getownpropertydescriptors": "^2.0.3"
+      }
     },
     "utils-merge": {
       "version": "1.0.1",

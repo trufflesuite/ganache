@@ -83,6 +83,15 @@ describe("Gas", function() {
           }
         });
 
+        it("Should not timeout when running a long test", async() => {
+          try {
+            await context.instance.methods.runsOutOfGas().send({ from: context.accounts[0] });
+            assert.fail();
+          } catch (e) {
+            assert(e.message.includes("out of gas"));
+          }
+        }).timeout(5000);
+
         it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
           const { accounts, instance, send } = Fib;
           const txParams = {
