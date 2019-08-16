@@ -31,7 +31,7 @@
     "clone": "2.1.2",
     "debug": "3.2.6",
     "encoding-down": "5.0.4",
-    "eth-sig-util": "2.2.0",
+    "eth-sig-util": "2.3.0",
     "ethereumjs-abi": "0.6.7",
     "ethereumjs-account": "3.0.0",
     "ethereumjs-block": "2.2.0",
