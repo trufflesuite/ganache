@@ -1398,13 +1398,6 @@
         "browserslist": "^3.2.6",
         "invariant": "^2.2.2",
         "semver": "^5.3.0"
-      },
-      "dependencies": {
-        "semver": {
-          "version": "5.7.1",
-          "resolved": "https://registry.npmjs.org/semver/-/semver-5.7.1.tgz",
-          "integrity": "sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ=="
-        }
       }
     },
     "babel-register": {
@@ -3230,9 +3223,9 @@
       "optional": true
     },
     "electron-to-chromium": {
-      "version": "1.3.225",
-      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.225.tgz",
-      "integrity": "sha512-7W/L3jw7HYE+tUPbcVOGBmnSrlUmyZ/Uyg24QS7Vx0a9KodtNrN0r0Q/LyGHrcYMtw2rv7E49F/vTXwlV/fuaA=="
+      "version": "1.3.237",
+      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.237.tgz",
+      "integrity": "sha512-SPAFjDr/7iiVK2kgTluwxela6eaWjjFkS9rO/iYpB/KGXgccUom5YC7OIf19c8m8GGptWxLU0Em8xM64A/N7Fg=="
     },
     "elegant-spinner": {
       "version": "1.0.1",
@@ -10467,8 +10460,7 @@
     "semver": {
       "version": "5.6.0",
       "resolved": "https://registry.npmjs.org/semver/-/semver-5.6.0.tgz",
-      "integrity": "sha512-RS9R6R35NYgQn++fkDWaOmqGoj4Ek9gGs+DPxNUZKuwE183xjJroKvyo1IzVFeXvUrvmALy6FWD5xrdJT25gMg==",
-      "dev": true
+      "integrity": "sha512-RS9R6R35NYgQn++fkDWaOmqGoj4Ek9gGs+DPxNUZKuwE183xjJroKvyo1IzVFeXvUrvmALy6FWD5xrdJT25gMg=="
     },
     "semver-compare": {
       "version": "1.0.0",
@@ -12901,9 +12893,9 @@
       }
     },
     "web3-provider-engine": {
-      "version": "14.2.0",
-      "resolved": "https://registry.npmjs.org/web3-provider-engine/-/web3-provider-engine-14.2.0.tgz",
-      "integrity": "sha512-sfLH5VhGjJrJJT5WcF8aGehcIKRUQ553q9tjQkkLaKU2AaLsRcwffnnWvrgeTkmKSf0y9dwkDTa48RVp+GUCSg==",
+      "version": "14.2.1",
+      "resolved": "https://registry.npmjs.org/web3-provider-engine/-/web3-provider-engine-14.2.1.tgz",
+      "integrity": "sha512-iSv31h2qXkr9vrL6UZDm4leZMc32SjWJFGOp/D92JXfcEboCqraZyuExDkpxKw8ziTufXieNM7LSXNHzszYdJw==",
       "requires": {
         "async": "^2.5.0",
         "backoff": "^2.5.0",
@@ -13140,7 +13132,6 @@
           "requires": {
             "debug": "^2.2.0",
             "es5-ext": "^0.10.50",
-            "gulp": "^4.0.2",
             "nan": "^2.14.0",
             "typedarray-to-buffer": "^3.1.5",
             "yaeti": "^0.0.6"
