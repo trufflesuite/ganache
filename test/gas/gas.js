@@ -83,6 +83,23 @@ describe("Gas", function() {
           }
         });
 
+        it("Should fail to estimate gas when the transaction is invalid", async() => {
+          const { accounts, instance, send } = ContractFactory;
+          const txParams = {
+            from: accounts[0],
+            to: instance._address,
+            data: instance.methods.createInstance().encodeABI(),
+            // because ContractFactory's `createInstance` method isn't payable
+            // passing in a `value` will cause the execution to fail with a `revert`
+            value: 1000
+          };
+          await assert.rejects(
+            send("eth_estimateGas", txParams),
+            /^execution error: revert$/,
+            "Failling transaction doesn't reject"
+          );
+        });
+
         it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
           const { accounts, instance, send } = Fib;
           const txParams = {
