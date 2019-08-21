@@ -95,8 +95,8 @@ describe("Gas", function() {
           };
           await assert.rejects(
             send("eth_estimateGas", txParams),
-            /^execution error: revert$/,
-            "Failling transaction doesn't reject"
+            /^Error: execution error: revert$/,
+            "Failing transaction doesn't reject"
           );
         });
 
