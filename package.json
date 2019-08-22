@@ -11,7 +11,7 @@
   },
   "scripts": {
     "_mocha": "mocha --check-leaks --recursive --globals _scratch --opts ./test/.mocharc",
-    "nyc_mocha": "nyc mocha --check-leaks --recursive --globals _scratch --opts ./test/.mocharc",
+    "nyc_mocha": "nyc npm run _mocha",
     "_lint": "eslint --ignore-path .gitignore .",
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",

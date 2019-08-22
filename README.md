@@ -1,5 +1,5 @@
-[![npm](https://img.shields.io/npm/v/ganache-core.svg)]()
-[![npm](https://img.shields.io/npm/dm/ganache-core.svg)]()
+[![npm Version](https://img.shields.io/npm/v/ganache-core.svg)](https://www.npmjs.com/package/ganache-core)
+[![npm Downloads](https://img.shields.io/npm/dm/ganache-core.svg)](https://www.npmjs.com/package/ganache-core)
 [![Build Status](https://travis-ci.org/trufflesuite/ganache-core.svg?branch=master)](https://travis-ci.org/trufflesuite/ganache-core)
 [![Coverage Status](https://coveralls.io/repos/github/trufflesuite/ganache-core/badge.svg?branch=develop)](https://coveralls.io/github/trufflesuite/ganache-core?branch=develop)
 # Ganache Core
