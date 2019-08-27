@@ -1,5 +1,5 @@
 import Emittery from "emittery";
-import { dir } from "tmp-promise";
+import { dir, setGracefulCleanup } from "tmp-promise";
 import levelup from "levelup";
 import Blockchain from "./blockchain";
 const leveldown = require("leveldown");
@@ -8,7 +8,7 @@ const encode = require("encoding-down");
 
 type DatabaseOptions = {db?: string | object, dbPath?: string};
 
-
+setGracefulCleanup();
 const tmpOptions = {prefix: "ganache-core_", unsafeCleanup: true};
 const noop = (callback: () => void): void => callback();
 
