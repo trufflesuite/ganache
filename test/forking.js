@@ -478,6 +478,19 @@ describe("Forking", function() {
     assert.strictEqual(mainNetwork, forkedNetwork);
   });
 
+  it("should be able to delete data", async() => {
+    const from = mainAccounts[0];
+    const example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
+
+    // delete the data from our fork
+    await example.methods.setValue(0).send({ from });
+    const result = await example.methods.value().call();
+    assert.strictEqual(result, "0");
+    await example.methods.setValue(7).send({ from });
+    const result2 = await example.methods.value().call();
+    assert.strictEqual(result2, "7");
+  });
+
   describe("Can debug a transaction", function() {
     let send;
     before("generate send", function() {
