@@ -491,6 +491,17 @@ describe("Forking", function() {
     assert.strictEqual(result2, "7");
   });
 
+  it("should be able to selfdestruct a contract", async() => {
+    const from = mainAccounts[0];
+    const example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
+
+    // delete the data from our fork
+    console.log(contractAddress);
+    await example.methods.destruct().send({ from });
+    const code = await mainWeb3.eth.getCode(contractAddress);
+    assert.strictEqual(code, "0x");
+  });
+
   describe("Can debug a transaction", function() {
     let send;
     before("generate send", function() {
