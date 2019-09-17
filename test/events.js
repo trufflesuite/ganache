@@ -250,7 +250,6 @@ var tests = function(web3, EventTest) {
         });
     });
 
-    // TODO: web3 1.0 drops fromBlock on a subscription request - stop skipping this when that is fixed
     it("will not fire if logs are requested when fromBlock doesn't exist", function(done) {
       var event = instance.events.ExampleEvent({ fromBlock: 100000 });
 
@@ -271,7 +270,7 @@ var tests = function(web3, EventTest) {
             done();
           }, 2500);
         });
-    });
+    }).timeout(2750);
   });
 };
 
