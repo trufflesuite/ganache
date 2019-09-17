@@ -290,7 +290,7 @@ describe("Gas", function() {
       describe("Refunds", function() {
         it(
           "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
-            " value is 0",
+            "value is 0",
           async function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];
