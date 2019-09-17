@@ -194,7 +194,7 @@ describe("Gas", function() {
                   });
               });
             await Promise.all(promises);
-          });
+          }).timeout(3000);
 
           it("Should estimate gas perfectly with EIP150 - CREATE2", async() => {
             const { accounts, instance, web3 } = Create2;
