@@ -268,9 +268,9 @@ var tests = function(web3, EventTest) {
           setTimeout(() => {
             event.removeAllListeners();
             done();
-          }, 2500);
+          }, 250);
         });
-    }).timeout(2750);
+    });
   });
 };
 
