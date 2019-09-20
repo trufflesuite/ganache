@@ -83,6 +83,15 @@ describe("Gas", function() {
           }
         });
 
+        it("Should not timeout when running a long test", async() => {
+          try {
+            await context.instance.methods.runsOutOfGas().send({ from: context.accounts[0] });
+            assert.fail();
+          } catch (e) {
+            assert(e.message.includes("out of gas"));
+          }
+        }).timeout(5000);
+
         it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
           const { accounts, instance, send } = Fib;
           const txParams = {
@@ -185,7 +194,7 @@ describe("Gas", function() {
                   });
               });
             await Promise.all(promises);
-          });
+          }).timeout(3000);
 
           it("Should estimate gas perfectly with EIP150 - CREATE2", async() => {
             const { accounts, instance, web3 } = Create2;
@@ -281,7 +290,7 @@ describe("Gas", function() {
       describe("Refunds", function() {
         it(
           "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
-            " value is 0",
+            "value is 0",
           async function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];
