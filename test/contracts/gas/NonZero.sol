@@ -1,11 +1,11 @@
 pragma solidity ^0.5.0;
-contract Target{
-    function () external payable { }//fallback function
+contract Target {
+    function () external payable { }
 }
-contract NonZero{
+contract NonZero {
     Target private theInstance;
     constructor() public{
-        theInstance=new Target();
+        theInstance = new Target();
     }
     function doCall() external payable {
         address(theInstance).call.value(msg.value).gas(123456)("");
@@ -16,5 +16,4 @@ contract NonZero{
     function doSend() external payable {
         address(theInstance).send(msg.value);
     }
-    function () external payable { }
 }
