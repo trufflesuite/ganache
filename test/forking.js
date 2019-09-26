@@ -552,6 +552,27 @@ describe("Forking", function() {
     });
   });
 
+  describe("Intra block state", function() {
+    it("should be aware of the vm cache", async() => {
+      const { result } = compile("./test/contracts/forking/", "IntraBlockCache");
+      const contract = new mainWeb3.eth.Contract(result.contracts["IntraBlockCache.sol"].IntraBlockCache.abi);
+      const accounts = await mainWeb3.eth.getAccounts();
+      const ibc = await contract
+        .deploy({
+          data: result.contracts["IntraBlockCache.sol"].IntraBlockCache.evm.bytecode.object
+        })
+        .send({
+          from: accounts[0],
+          gas: 190941
+        });
+      return assert.doesNotReject(
+        ibc.methods.deploy().send({ from: accounts[0] }),
+        undefined,
+        "Should reference state in the VM's cache"
+      );
+    });
+  });
+
   after("Shutdown server", (done) => {
     forkedWeb3._provider.connection.close();
     forkedServer.close(function(serverCloseErr) {
