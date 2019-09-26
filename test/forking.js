@@ -552,7 +552,7 @@ describe("Forking", function() {
     });
   });
 
-  describe.only("Intra block state", function() {
+  describe("Intra block state", function() {
     it("should be aware of the vm cache", async() => {
       const { result } = compile("./test/contracts/forking/", "IntraBlockCache");
       const contract = new mainWeb3.eth.Contract(result.contracts["IntraBlockCache.sol"].IntraBlockCache.abi);
@@ -565,8 +565,11 @@ describe("Forking", function() {
           from: accounts[0],
           gas: 190941
         });
-      const receipt = await ibc.methods.deploy().send({ from: accounts[0] });
-      console.log(receipt);
+      return assert.doesNotReject(
+        ibc.methods.deploy().send({ from: accounts[0] }),
+        undefined,
+        "Should reference state in the VM's cache"
+      );
     });
   });
 
