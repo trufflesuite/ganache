@@ -4,7 +4,7 @@ contract Target {
 }
 contract NonZero {
     Target private theInstance;
-    constructor() public{
+    constructor() public {
         theInstance = new Target();
     }
     function doCall() external payable {
