@@ -8,9 +8,9 @@ This is the core code that powers the Ganache application and the Ganache comman
 
 [Usage](#usage) | [Options](#options) | [Implemented Methods](#implemented-methods) | [Custom Methods](#custom-methods) | [Unsupported Methods](#unsupported-methods) | [Testing](#testing)
 
-## Installation
+**ganache-core** is written in JavaScript and distributed as a Node.js package via `npm`. Make sure you have Node.js (>= v8.9.0) installed, and your environment is capable of installing and compiling `npm` modules.
 
-`ganache-core` is written in JavaScript and distributed as a Node.js package via `npm`. Make sure you have Node.js (>= v8.9.0) installed, and your environment is capable of installing and compiling `npm` modules.
+## Installation
 
 **macOS** Make sure you have the XCode Command Line Tools installed. These are needed in general to be able to compile most C based languages on your machine, as well as many npm modules.
 
@@ -84,7 +84,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"time"`: `Date` - Date that the first block should start. Use this feature, along with the `evm_increaseTime` method to test time-dependent code.
 * `"locked"`: `boolean` - whether or not accounts are locked by default.
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
-* `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, `ganache-core` will initialize that chain instead of creating a new one.
+* `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, `ganache-core` will initialize that chain instead of creating a new one. Note: You will not be able to modify state (accounts, balances, etc) on startup when you initialize ganache-core with a pre-existing database.
 * `"db"`: `Object` - Specify an alternative database instance, for instance [MemDOWN](https://github.com/level/memdown).
 * `"ws"`: `boolean` Enable a websocket server. This is `true` by default.
 * `"account_keys_path"`: `String` - Specifies a file to save accounts and private keys to, for testing.
