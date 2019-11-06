@@ -103,4 +103,14 @@ contract EstimateGas {
     function currentBlock() public returns (uint) {
         return block.number;
     }
+
+    uint public counter;
+    function runsOutOfGas() public {
+        consumesGas();
+    }
+    function consumesGas() public {
+        for(uint i = 0; i < 100000; i++){
+            counter = i;
+        }
+    }
 }

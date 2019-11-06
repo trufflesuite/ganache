@@ -46,6 +46,7 @@ describe("Gas", function() {
         let Fib;
         let SendContract;
         let Create2;
+        let NonZero;
         before("Setting up EIP150 contracts", async function() {
           this.timeout(10000);
 
@@ -56,6 +57,7 @@ describe("Gas", function() {
           const donation = Object.assign({ contractFiles: ["Donation"] }, subDirectory);
           const fib = Object.assign({ contractFiles: ["Fib"] }, subDirectory);
           const sendContract = Object.assign({ contractFiles: ["SendContract"] }, subDirectory);
+          const nonZero = Object.assign({ contractFiles: ["NonZero"] }, subDirectory);
 
           const ganacheProviderOptions = { seed, hardfork };
 
@@ -63,6 +65,7 @@ describe("Gas", function() {
           TestDepth = await bootstrap(testDepth, ganacheProviderOptions, hardfork);
           Donation = await bootstrap(donation, ganacheProviderOptions, hardfork);
           Fib = await bootstrap(fib, ganacheProviderOptions, hardfork);
+          NonZero = await bootstrap(nonZero, ganacheProviderOptions, hardfork);
           SendContract = await bootstrap(
             sendContract,
             Object.assign(
@@ -82,6 +85,15 @@ describe("Gas", function() {
             Create2 = await bootstrap(create2, ganacheProviderOptions);
           }
         });
+
+        it("Should not timeout when running a long test", async() => {
+          try {
+            await context.instance.methods.runsOutOfGas().send({ from: context.accounts[0] });
+            assert.fail();
+          } catch (e) {
+            assert(e.message.includes("out of gas"));
+          }
+        }).timeout(5000);
 
         it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
           const { accounts, instance, send } = Fib;
@@ -185,7 +197,7 @@ describe("Gas", function() {
                   });
               });
             await Promise.all(promises);
-          });
+          }).timeout(5000);
 
           it("Should estimate gas perfectly with EIP150 - CREATE2", async() => {
             const { accounts, instance, web3 } = Create2;
@@ -276,12 +288,40 @@ describe("Gas", function() {
             assert.strictEqual(newContractBalance, "0", "balance is not 0");
           }).timeout(10000);
         }
+
+        it("should correctly handle non-zero value child messages", async() => {
+          const {
+            accounts: [from],
+            instance: { _address: to, methods },
+            send
+          } = NonZero;
+          const fns = [methods.doSend, methods.doTransfer, methods.doCall];
+          for (let i = 0, l = fns; i < l.length; i++) {
+            const tx = {
+              from,
+              to,
+              value: "1000000000000000000",
+              data: fns[i]().encodeABI()
+            };
+            const { result: gasLimit } = await send("eth_estimateGas", tx);
+            tx.gasLimit = "0x" + (parseInt(gasLimit) - 1).toString(16);
+            await assert.rejects(() => send("eth_sendTransaction", tx), {
+              message: "VM Exception while processing transaction: out of gas"
+            });
+            tx.gasLimit = gasLimit;
+            await assert.doesNotReject(
+              () => send("eth_sendTransaction", tx),
+              undefined,
+              `SANITY CHECK. Still not enough gas? ${gasLimit} Our estimate is still too low`
+            );
+          }
+        });
       });
 
       describe("Refunds", function() {
         it(
           "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
-            " value is 0",
+            "value is 0",
           async function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];

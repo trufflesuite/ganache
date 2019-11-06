@@ -13,4 +13,8 @@ contract Example {
     value = val;
     emit ValueSet(val);
   }
+
+  function destruct() public {
+    selfdestruct(msg.sender);
+  }
 }

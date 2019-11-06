@@ -478,6 +478,29 @@ describe("Forking", function() {
     assert.strictEqual(mainNetwork, forkedNetwork);
   });
 
+  it("should be able to delete data", async() => {
+    const from = mainAccounts[0];
+    const example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
+
+    // delete the data from our fork
+    await example.methods.setValue(0).send({ from });
+    const result = await example.methods.value().call();
+    assert.strictEqual(result, "0");
+    await example.methods.setValue(7).send({ from });
+    const result2 = await example.methods.value().call();
+    assert.strictEqual(result2, "7");
+  });
+
+  it("should be able to selfdestruct a contract", async() => {
+    const from = mainAccounts[0];
+    const example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
+
+    // delete the contract from our fork
+    await example.methods.destruct().send({ from });
+    const code = await mainWeb3.eth.getCode(contractAddress);
+    assert.strictEqual(code, "0x");
+  });
+
   describe("Can debug a transaction", function() {
     let send;
     before("generate send", function() {
@@ -526,6 +549,27 @@ describe("Forking", function() {
       const result = await example.methods.value().call({ from: mainAccounts[0] });
 
       assert(result, initialValue, "Value return on forked chain is not as expected");
+    });
+  });
+
+  describe("Intra block state", function() {
+    it("should be aware of the vm cache", async() => {
+      const { result } = compile("./test/contracts/forking/", "IntraBlockCache");
+      const contract = new mainWeb3.eth.Contract(result.contracts["IntraBlockCache.sol"].IntraBlockCache.abi);
+      const accounts = await mainWeb3.eth.getAccounts();
+      const ibc = await contract
+        .deploy({
+          data: result.contracts["IntraBlockCache.sol"].IntraBlockCache.evm.bytecode.object
+        })
+        .send({
+          from: accounts[0],
+          gas: 190941
+        });
+      return assert.doesNotReject(
+        ibc.methods.deploy().send({ from: accounts[0] }),
+        undefined,
+        "Should reference state in the VM's cache"
+      );
     });
   });
 
