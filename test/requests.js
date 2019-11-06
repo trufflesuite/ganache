@@ -1151,6 +1151,21 @@ const tests = function(web3) {
       assert.strictEqual(result, null, "Result should be null");
     });
 
+    it("should not error when using an invalid nonce (eth_call/eth_estimateGas)", async function() {
+      const callData = {
+        nonce: 999999,
+        from: accounts[0],
+        to: accounts[1],
+        value: 1
+      };
+
+      const pendingCall = web3.eth.call(callData);
+      await assert.doesNotReject(pendingCall);
+
+      const pendingEstimate = web3.eth.estimateGas(callData);
+      await assert.doesNotReject(pendingEstimate);
+    });
+
     it("should only accept unsigned transaction from known accounts eth_sendTransaction)", async function() {
       const badAddress = "0x1234567890123456789012345678901234567890";
 
