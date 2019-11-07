@@ -481,11 +481,20 @@ describe("Forking", function() {
   it("should be able to delete data", async() => {
     const from = mainAccounts[0];
     const example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
+    const example2 = new mainWeb3.eth.Contract(contract.abi, secondContractAddress);
+
+    const example2value = await example2.methods.value().call();
+    assert.strictEqual(example2value, "5");
 
     // delete the data from our fork
     await example.methods.setValue(0).send({ from });
     const result = await example.methods.value().call();
     assert.strictEqual(result, "0");
+
+    // Check this hasn't clobbered data in the same slot in other contracts
+    const example2valueAfter = await example2.methods.value().call();
+    assert.strictEqual(example2valueAfter, "5");
+
     await example.methods.setValue(7).send({ from });
     const result2 = await example.methods.value().call();
     assert.strictEqual(result2, "7");
