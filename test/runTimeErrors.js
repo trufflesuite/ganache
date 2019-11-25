@@ -49,7 +49,7 @@ function tests(ganacheProviderOptions) {
       assert.deepStrictEqual(result.response.error.code, -32000, "Gas estimation error code is not as expected");
       assert.deepStrictEqual(
         result.response.error.message,
-        "execution error: revert",
+        "VM Exception while processing transaction: revert",
         "Gas estimation error message is not as expected"
       );
     });
