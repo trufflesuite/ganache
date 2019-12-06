@@ -49,7 +49,7 @@ function test(forked) {
         contractSubdirectory: "debug"
       };
 
-      let forkedServer = Ganache.server({ mnemonic });
+      let forkedServer = Ganache.server({ mnemonic, logger: console, verbose: true });
       await promisify(forkedServer.listen)(targetPort);
       mainContext = await bootstrap(contractRef, {
         provider: forkedServer.provider,
@@ -200,8 +200,18 @@ function test(forked) {
       });
 
       it("traces it", async() => {
-        const result = await context.send("debug_traceTransaction", forkedTransactionHash, []);
-        assert(result, "Result should be defined");
+        try {
+          // console.log(await mainContext.send("eth_accounts"));
+          console.log(await mainContext.web3.eth.getAccounts());
+          const result = await context.send("debug_traceTransaction", forkedTransactionHash, []);
+          assert(result, "Result should be defined");
+        } catch (error) {
+          // console.log(await mainContext.send("eth_accounts"));
+          console.log(await mainContext.web3.eth.getAccounts());
+          console.log(error);
+        }
+        // const result = await context.send("debug_traceTransaction", forkedTransactionHash, []);
+        // assert(result, "Result should be defined");
       });
     });
   }

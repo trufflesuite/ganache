@@ -11,7 +11,8 @@ describe("Block Tags", function() {
 
     const options = {
       mnemonic: "candy maple velvet cake sugar cream honey rich smooth crumble sweet treat",
-      time: new Date(0) // Testing features that rely on determinate conditions
+      time: new Date(0), // Testing features that rely on determinate conditions
+      networkId: 1
     };
 
     context = await initializeTestProvider(options);
@@ -93,12 +94,12 @@ describe("Block Tags", function() {
     assert.notStrictEqual(block.transactionsRoot, block.receiptsRoot, "Trie roots should not be equal.");
     assert.strictEqual(
       block.transactionsRoot,
-      "0xac9fd78357964d268cecfafaab179473c0f02dda08edb172bf446fbe9c4aafc2",
+      "0x640ef2dc816947c37f8d21e998c5d6f1f51be8a1d236cfb2597944c1a71ffbba",
       "Should produce correct transactionsRoot"
     );
     assert.strictEqual(
       block.receiptsRoot,
-      "0x281d7cb7302acfc7cc33b1f2d06cad99650882ff1b0abebbdd32f77c14c9b98e",
+      "0x8183b8e21f87a0d39954f7b6f3025c9a8e26c38d47976c39df4d2d690b49fc74",
       "Should produce correct receiptsRoot"
     );
   });
