@@ -49,7 +49,7 @@ function test(forked) {
         contractSubdirectory: "debug"
       };
 
-      let forkedServer = Ganache.server({ mnemonic, logger: console, verbose: true });
+      let forkedServer = Ganache.server({ mnemonic });
       await promisify(forkedServer.listen)(targetPort);
       mainContext = await bootstrap(contractRef, {
         provider: forkedServer.provider,

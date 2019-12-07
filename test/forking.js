@@ -233,11 +233,11 @@ describe("Forking", function() {
     var example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
 
     const result = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+    assert.strictEqual(parseInt(result, 10), 7);
 
     // Make the call again to ensure caches updated and the call still works.
     const result2 = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result2), 7);
+    assert.strictEqual(parseInt(result2, 10), 7);
   });
 
   it("should make a transaction on the main provider while not transacting on the forked provider", async() => {
@@ -254,11 +254,11 @@ describe("Forking", function() {
 
     // It insta-mines, so we can make a call directly after.
     const result = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 25);
+    assert.strictEqual(parseInt(result, 10), 25);
 
     // Now call back to the forked to ensure it's value stayed 5
     const forkedResult = await forkedExample.methods.value().call({ from: forkedAccounts[0] });
-    assert.strictEqual(forkedWeb3.utils.hexToNumber(forkedResult), 7);
+    assert.strictEqual(parseInt(forkedResult, 10), 7);
   });
 
   it("should ignore continued transactions on the forked blockchain by pegging the forked block number", async() => {
@@ -281,11 +281,11 @@ describe("Forking", function() {
     await forkedExample.methods.setValue(800).send({ from: forkedAccounts[0] });
     // Let's assert the value was set correctly.
     const result = await forkedExample.methods.value().call({ from: forkedAccounts[0] });
-    assert.strictEqual(forkedWeb3.utils.hexToNumber(result), 800);
+    assert.strictEqual(parseInt(result, 10), 800);
 
     // Now lets check the value on the main chain. It shouldn't be 800.
     const mainResult = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(mainResult), 5);
+    assert.strictEqual(parseInt(mainResult, 10), 5);
   });
 
   it("should maintain a block number that includes new blocks PLUS the existing chain", async() => {

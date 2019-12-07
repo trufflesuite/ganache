@@ -90,7 +90,7 @@ const tests = function(web3) {
   });
 
   describe("eth_chainId", function() {
-    it("should return a default chain id of a private network", async function() {
+    it("should return a default chain id", async function() {
       const send = pify(web3._provider.send.bind(web3._provider));
 
       const result = await send({
@@ -100,7 +100,7 @@ const tests = function(web3) {
         params: []
       });
 
-      assert.strictEqual(result.result, "0x539"); // 0x539 === 1337
+      assert.strictEqual(result.result, "0x1"); // 0x539 === 1337
     });
   });
 
