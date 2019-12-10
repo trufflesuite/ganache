@@ -959,7 +959,7 @@ const tests = function(web3) {
       const startingBlockNumber = await web3.eth.getBlockNumber();
 
       const gasEstimate = await web3.eth.estimateGas(txData);
-      assert.strictEqual(gasEstimate, 27795);
+      assert.strictEqual(gasEstimate, 27535);
 
       const blockNumber = await web3.eth.getBlockNumber();
 
@@ -976,7 +976,7 @@ const tests = function(web3) {
       txData.from = "0x1234567890123456789012345678901234567890";
 
       const result = await web3.eth.estimateGas(txData);
-      assert.strictEqual(result, 27795);
+      assert.strictEqual(result, 27535);
     });
 
     it("should estimate gas when no account is listed (eth_estimateGas)", async function() {
@@ -985,7 +985,7 @@ const tests = function(web3) {
       delete txData.from;
 
       const result = await web3.eth.estimateGas(txData);
-      assert.strictEqual(result, 27795);
+      assert.strictEqual(result, 27535);
     });
 
     it("should send a state changing transaction (eth_sendTransaction)", async function() {
