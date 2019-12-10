@@ -200,18 +200,8 @@ function test(forked) {
       });
 
       it("traces it", async() => {
-        try {
-          // console.log(await mainContext.send("eth_accounts"));
-          console.log(await mainContext.web3.eth.getAccounts());
-          const result = await context.send("debug_traceTransaction", forkedTransactionHash, []);
-          assert(result, "Result should be defined");
-        } catch (error) {
-          // console.log(await mainContext.send("eth_accounts"));
-          console.log(await mainContext.web3.eth.getAccounts());
-          console.log(error);
-        }
-        // const result = await context.send("debug_traceTransaction", forkedTransactionHash, []);
-        // assert(result, "Result should be defined");
+        const result = await context.send("debug_traceTransaction", forkedTransactionHash, []);
+        assert(result, "Result should be defined");
       });
     });
   }
