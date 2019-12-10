@@ -11,8 +11,7 @@ describe("Block Tags", function() {
 
     const options = {
       mnemonic: "candy maple velvet cake sugar cream honey rich smooth crumble sweet treat",
-      time: new Date(0), // Testing features that rely on determinate conditions
-      networkId: 1
+      time: new Date(0) // Testing features that rely on determinate conditions
     };
 
     context = await initializeTestProvider(options);
