@@ -78,12 +78,12 @@ describe("Gas", function() {
                   }
                 ]
               },
-              ganacheProviderOptions,
-              hardfork
-            )
+              ganacheProviderOptions
+            ),
+            hardfork
           );
           if (hardfork !== "byzantium") {
-            Create2 = await bootstrap(create2, ganacheProviderOptions);
+            Create2 = await bootstrap(create2, ganacheProviderOptions, hardfork);
           }
         });
 
@@ -271,7 +271,8 @@ describe("Gas", function() {
               nonce: "0x2",
               to: instance._address,
               value: "0x0",
-              data: instance.methods.transfer(accounts, amountToTransfer).encodeABI()
+              data: instance.methods.transfer(accounts, amountToTransfer).encodeABI(),
+              chainId: 1337
             };
             ({ result: txParams.gasLimit } = await send("eth_estimateGas", sign(txParams).serialize()));
             const { gasUsed: signedGasUsed } = await web3.eth.sendSignedTransaction(sign(txParams).serialize());
