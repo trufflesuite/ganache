@@ -100,7 +100,7 @@ const tests = function(web3) {
         params: []
       });
 
-      assert.strictEqual(result.result, "0x539"); // 0x539 === 1337
+      assert.strictEqual(result.result, "0x1");
     });
   });
 
@@ -646,8 +646,7 @@ const tests = function(web3) {
         gasLimit: "0x33450",
         from: accounts[0],
         to: accounts[1],
-        nonce: "0x0", // too low nonce
-        chainId: 1337
+        nonce: "0x0" // too low nonce
       });
 
       const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
@@ -670,8 +669,7 @@ const tests = function(web3) {
         gasLimit: "0x33450",
         from: accounts[0],
         to: accounts[1],
-        nonce: "0xff", // too high nonce
-        chainId: 1337
+        nonce: "0xff" // too high nonce
       });
 
       const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
@@ -696,8 +694,7 @@ const tests = function(web3) {
         gasLimit: "0x33450",
         from: accounts[0],
         to: accounts[1],
-        nonce: to.rpcQuantityHexString(nonce),
-        chainId: 1337
+        nonce: to.rpcQuantityHexString(nonce)
       });
 
       const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
@@ -715,8 +712,7 @@ const tests = function(web3) {
         gasLimit: "0x33450",
         from: accounts[0],
         to: accounts[1],
-        nonce: to.rpcQuantityHexString(nonce + 1), // Skipped nonce
-        chainId: 1337
+        nonce: to.rpcQuantityHexString(nonce + 1) // Skipped nonce
       });
 
       const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
@@ -736,8 +732,7 @@ const tests = function(web3) {
         gasLimit: "0x5208",
         from: accounts[0],
         to: accounts[1],
-        nonce: "0x3",
-        chainId: 1337
+        nonce: "0x3"
       });
 
       const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
@@ -753,8 +748,7 @@ const tests = function(web3) {
         gasLimit: "0x33450",
         from: accounts[6],
         to: accounts[8],
-        data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675",
-        chainId: 1337
+        data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"
       });
 
       const secretKeyBuffer = Buffer.from(secretKeys[6].substr(2), "hex");
@@ -771,8 +765,7 @@ const tests = function(web3) {
         gasPrice: "0x0",
         from: accounts[5],
         to: accounts[1],
-        nonce: "0x1",
-        chainId: 1337
+        nonce: "0x1"
       });
 
       const secretKeyBuffer = Buffer.from(secretKeys[5].substr(2), "hex");
@@ -1211,8 +1204,7 @@ const tests = function(web3) {
   describe("contract scenario (raw tx)", function() {
     const tx = new Transaction({
       data: contract.binary,
-      gasLimit: to.hex(3141592),
-      chainId: 1337
+      gasLimit: to.hex(3141592)
     });
     const privateKey = Buffer.from("e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109", "hex");
     const senderAddress = "0x" + utils.privateToAddress(privateKey).toString("hex");

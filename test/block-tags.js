@@ -93,7 +93,7 @@ describe("Block Tags", function() {
     assert.notStrictEqual(block.transactionsRoot, block.receiptsRoot, "Trie roots should not be equal.");
     assert.strictEqual(
       block.transactionsRoot,
-      "0xe5162dfc612e1e4d10e001737433bbcf7a4bdfca75c8b1d7fb7484e5af0d0358",
+      "0x640ef2dc816947c37f8d21e998c5d6f1f51be8a1d236cfb2597944c1a71ffbba",
       "Should produce correct transactionsRoot"
     );
     assert.strictEqual(

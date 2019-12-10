@@ -271,8 +271,7 @@ describe("Gas", function() {
               nonce: "0x2",
               to: instance._address,
               value: "0x0",
-              data: instance.methods.transfer(accounts, amountToTransfer).encodeABI(),
-              chainId: 1337
+              data: instance.methods.transfer(accounts, amountToTransfer).encodeABI()
             };
             ({ result: txParams.gasLimit } = await send("eth_estimateGas", sign(txParams).serialize()));
             const { gasUsed: signedGasUsed } = await web3.eth.sendSignedTransaction(sign(txParams).serialize());

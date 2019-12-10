@@ -15,8 +15,7 @@ describe("ethers", async() => {
           secretKey: `0x${secretKey}`,
           balance: `0x${new BN("1000000000000000000000").toString("hex")}`
         }
-      ],
-      chainId: 1
+      ]
     };
 
     const { provider } = await intializeTestProvider(ganacheOptions);
