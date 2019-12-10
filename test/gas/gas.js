@@ -12,6 +12,7 @@ const compile = require("../helpers/contract/singleFileCompile");
 const createSignedTx = require("../helpers/utils/create-signed-tx");
 const SEED_RANGE = 1000000;
 const RSCLEAR_REFUND = 15000;
+const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL = 19200;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
 const HARDFORKS = ["petersburg", "constantinople", "byzantium", "istanbul"];
@@ -335,7 +336,7 @@ describe("Gas", function() {
 
             const gasEstimate = await method.estimateGas(options);
 
-            const receipt = await method.send({ from, gas: gasEstimate * 3 });
+            const receipt = await method.send({ from, gas: gasEstimate });
 
             switch (provider.options.hardfork) {
               case "byzantium":
@@ -343,6 +344,11 @@ describe("Gas", function() {
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
               case "istanbul":
+                // EIP-2200
+                const result =
+                  receipt.gasUsed <= gasEstimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL + 2300;
+                assert(result);
+                break;
               case "constantinople":
                 // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
                 // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
@@ -362,6 +368,7 @@ describe("Gas", function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];
             const rsclearRefundForResettingDirtySlotToNonZeroValue = 4800;
+            const rsclearRefundForResettingDirtySlotToNonZeroValueIstanbul = 4200;
             const options = { from, gas: 5000000 };
 
             await instance.methods.reset().send(options); // prime storage by making sure y is set to 1
@@ -376,9 +383,13 @@ describe("Gas", function() {
             switch (provider.options.hardfork) {
               case "byzantium":
               case "petersburg":
-              case "istanbul":
                 // since we are resetting to a non-zero value, there is no gas added to the refund counter here
                 assert.strictEqual(receipt.gasUsed, gasEstimate);
+                break;
+              case "istanbul": // EIP-2200
+                const result =
+                  receipt.gasUsed <= gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValueIstanbul + 2300;
+                assert(result);
                 break;
               case "constantinople":
                 // since storage was initially primed to 1 and we call triggerRsclearRefundForY(), which then
@@ -398,7 +409,6 @@ describe("Gas", function() {
           async function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];
-            const rsclearRefundForUpdatingFreshSlotToZero = 15000;
             const options = { from, gas: 5000000 };
 
             // prime storage by making sure storage is set to 1
@@ -414,13 +424,12 @@ describe("Gas", function() {
             switch (provider.options.hardfork) {
               case "byzantium":
               case "petersburg":
-              case "istanbul":
+              case "constantinople":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
-              case "constantinople":
-                // since storage was initially primed to 1 and we call reset(), which then sets
-                // storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-                assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingFreshSlotToZero);
+              case "istanbul": // EIP-2200
+                const result = receipt.gasUsed <= gasEstimate - RSCLEAR_REFUND + 2300;
+                assert(result);
                 break;
               default:
                 throw new Error("Invalid hardfork option: " + provider.options.hardfork);
@@ -435,7 +444,6 @@ describe("Gas", function() {
           async function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];
-            const rsclearRefundForUpdatingDirtySlotToZero = 15000;
             const options = { from, gas: 5000000 };
 
             // prime storage by making sure storage is set to 1
@@ -451,13 +459,12 @@ describe("Gas", function() {
             switch (provider.options.hardfork) {
               case "byzantium":
               case "petersburg":
-              case "istanbul":
+              case "constantinople":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
-              case "constantinople":
-                // since storage was initially primed to 1 and we call triggerRsclearRefund(), which then
-                // sets storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-                assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingDirtySlotToZero);
+              case "istanbul": // EIP-2200
+                const result = receipt.gasUsed <= gasEstimate - RSCLEAR_REFUND + 2300;
+                assert(result);
                 break;
               default:
                 throw new Error("Invalid hardfork option: " + provider.options.hardfork);
@@ -487,8 +494,11 @@ describe("Gas", function() {
             switch (provider.options.hardfork) {
               case "byzantium":
               case "petersburg":
-              case "istanbul":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+                break;
+              case "istanbul":
+                const result = receipt.gasUsed <= gasEstimate + 2300;
+                assert(result);
                 break;
               case "constantinople":
                 // since storage was initially primed to 1 and we call triggerRsclearRefundForX(), which then
@@ -542,7 +552,12 @@ describe("Gas", function() {
             case "petersburg":
               assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
               break;
-            case "istanbul":
+            case "istanbul": // EIP-2200
+              assert.strictEqual(
+                receipt.gasUsed,
+                gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL
+              );
+              break;
             case "constantinople":
               // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
               // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
@@ -630,6 +645,11 @@ describe("Gas", function() {
               assert.strictEqual(gasUsed, transactionCostMinusRefund);
               break;
             case "istanbul":
+              // EIP-2200
+              transactionCostMinusRefund =
+                gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL;
+              assert.strictEqual(gasUsed, transactionCostMinusRefund);
+              break;
             case "constantinople":
               // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
               // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
