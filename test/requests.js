@@ -100,7 +100,9 @@ const tests = function(web3) {
         params: []
       });
 
-      assert.strictEqual(result.result, "0x1");
+      // For legacy reasons, we return 1337 regardless of the actual chain id
+      // next major release this will be fixed.
+      assert.strictEqual(result.result, "0x539");
     });
   });
 
