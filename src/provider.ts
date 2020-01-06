@@ -13,8 +13,6 @@ import EthereumOptions from "./ledgers/ethereum/options";
 
 const hdkey = require("ethereumjs-wallet/hdkey");
 
-export type ProviderOptions = ProviderOptions;
-
 const WEI = 1000000000000000000n;
 
 const options = Symbol("options");
