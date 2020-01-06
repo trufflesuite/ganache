@@ -3,10 +3,10 @@ import { dir, setGracefulCleanup } from "tmp-promise";
 import levelup from "levelup";
 import Blockchain from "./blockchain";
 const leveldown = require("leveldown");
-const sub = require( "subleveldown");
+const sub = require("subleveldown");
 const encode = require("encoding-down");
 
-type DatabaseOptions = {db?: string | object, dbPath?: string};
+type DatabaseOptions = {db?: string | object, db_path?: string};
 
 setGracefulCleanup();
 const tmpOptions = {prefix: "ganache-core_", unsafeCleanup: true};
@@ -32,7 +32,7 @@ export default class Database extends Emittery {
    * Once the database has been fully initialized it will emit a `ready`
    * event.
    * @param options Supports one of two options: `db` (a leveldown compliant
-   * store instance) or `dbPath` (the path to store/read the db instance)
+   * store instance) or `db_path` (the path to store/read the db instance)
    * @param blockchain 
    */
   constructor(options: DatabaseOptions, blockchain: Blockchain) {
@@ -50,7 +50,7 @@ export default class Database extends Emittery {
     if (store) {
       db = await levelup(store as any, levelupOptions);
     } else {
-      let directory = this.options.dbPath;
+      let directory = this.options.db_path;
       if (!directory) {
         const dirInfo = await dir(tmpOptions);
         directory = dirInfo.path;
