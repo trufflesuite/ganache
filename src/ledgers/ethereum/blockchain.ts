@@ -158,7 +158,7 @@ export default class Blockchain extends Emittery {
       const account = accounts[i];
       const ethereumJsAccount = new EthereumJsAccount();
       ethereumJsAccount.nonce = account.nonce.toBuffer(),
-        ethereumJsAccount.balance = account.balance.toBuffer()
+      ethereumJsAccount.balance = account.balance.toBuffer()
       pendingAccounts[i] = putAccount(account.address.toBuffer(), ethereumJsAccount);
     }
     await Promise.all(pendingAccounts);
