@@ -89,7 +89,7 @@ describe("Accounts", () => {
     assert.strictEqual(accounts.length, 2);
   });
 
-  it.only("deploys contracts", async () => {
+  it("deploys contracts", async () => {
     const contract = await compileSolidity("pragma solidity ^0.5.0; contract Example { event Event(); constructor() public { emit Event(); } }");
     const p = Ganache.provider();
     const accounts = await p.send("eth_accounts");
