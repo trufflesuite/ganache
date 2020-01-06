@@ -1,4 +1,4 @@
-import ILedger from "./interfaces/ledger";
+import {ILedger} from "./interfaces/base-ledger";
 import Emittery from "emittery";
 
 

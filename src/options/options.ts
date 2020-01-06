@@ -1,5 +1,5 @@
 import {Quantity} from "../types/json-rpc";
-import ILedger from "../interfaces/ledger";
+import {ILedger} from "../interfaces/base-ledger";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;

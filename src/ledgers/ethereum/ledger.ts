@@ -1,14 +1,13 @@
 //#region Imports
-import ILedger, {Emitter} from "../../interfaces/ledger";
+import BaseLedger, {Emitter} from "../../interfaces/base-ledger";
 import EthereumOptions, { getDefaultOptions } from "./options";
 import { Data, Quantity, IndexableData } from "../../types/json-rpc";
 import Blockchain from "./blockchain";
 import Tag from "../../types/tags";
 import Address, { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
-import Account from "../../types/account";
 import { Block } from "./components/block-manager";
-const { toChecksumAddress } = require("ethereumjs-util");
+import Wallet from "./wallet";
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from the package.json
@@ -22,20 +21,14 @@ const BUFFER_ZERO = Buffer.from([0]);
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
 //#endregion
 
-const _accounts = Symbol("accounts");
 const _options = Symbol("options");
-const _coinbase = Symbol("coinbase");
+const _wallet = Symbol("wallet");
 const _isMining = Symbol("isMining");
 const _blockchain = Symbol("blockchain");
-const _knownAccounts = Symbol("knownAccounts");
-const _unlockedAccounts = Symbol("unlockedAccounts");
 
-export default class Ethereum implements ILedger {
-  private readonly [_accounts]: Address[];
-  private readonly [_knownAccounts] = new Map<string, Data>();
-  private readonly [_unlockedAccounts] = new Set<string>();
+export default class Ethereum extends BaseLedger {
+  private readonly [_wallet]: Wallet;
   private readonly [_options]: EthereumOptions;
-  private readonly [_coinbase]: Account;
   private readonly [_blockchain]: Blockchain;
   private [_isMining] = false;
 
@@ -47,86 +40,18 @@ export default class Ethereum implements ILedger {
    * @param ready Callback for when the ledger is fully initialized
    */
   constructor(options: EthereumOptions, emitter: Emitter) {
+    super();
+
     const opts = this[_options] = Object.assign(getDefaultOptions(), options);
-    const accounts = opts.accounts;
-    const knownAccounts = this[_knownAccounts];
-    const unlockedAccounts = this[_unlockedAccounts];
 
-    //#region Configure Known and Unlocked Accounts
-    this[_coinbase] = accounts[0];
-    const l = accounts.length;
-    const accountsCache = this[_accounts] = Array(l);
-    for (let i = 0; i < l; i++) {
-      const account = accounts[i];
-      const address = account.address;
-      const strAddress = address.toString();
-      accountsCache[i] = toChecksumAddress(strAddress);
-      knownAccounts.set(strAddress, account.privateKey);
-
-      // if the `secure` option has been set do NOT add these accounts to the
-      // _unlockedAccounts
-      if (opts.secure) continue;
-
-      unlockedAccounts.add(strAddress);
-    }
-    //#endregion
-
-    //#region Unlocked Accounts
-    const givenUnlockedUaccounts = opts.unlocked_accounts;
-    if (givenUnlockedUaccounts) {
-      const ul = givenUnlockedUaccounts.length;
-      for (let i = 0; i < ul; i++) {
-        let arg = givenUnlockedUaccounts[i];
-        let address;
-        switch (typeof arg) {
-          case "string":
-            // `toLowerCase` so we handle uppercase `0X` formats
-            const addressOrIndex = arg.toLowerCase();
-            if (addressOrIndex.indexOf("0x") === 0) {
-              address = addressOrIndex;
-              break;
-            } else {
-              // try to convert the arg string to a number.
-              // don't use parseInt because strings like `"123abc"` parse
-              // to `123`, and there is probably an error on the user's side we'd
-              // want to uncover.
-              const index = (arg as any) / 1;
-              // if we don't have a valid number, or the number isn't an valid JS 
-              // integer (no bigints or decimals, please), throw an error.
-              if (!Number.isSafeInteger(index)) {
-                throw new Error(`Invalid value in unlocked_accounts: ${arg}`);
-              }
-              arg = index;
-              // not `break`ing here because I want this to fall through to the
-              //  `"number"` case below.
-              // Refactor it if you want.
-              // break; // no break, please.
-            }
-          case "number":
-            const account = accounts[arg];
-            if (account == null) {
-              throw new Error(
-                `Account at index ${addressOrIndex} not found. Max index available
-                is ${l - 1}.`
-              );
-            }
-            address = account.address.toString().toLowerCase();
-            break;
-          default:
-            throw new Error(
-              `Invalid value specified in unlocked_accounts`
-            );
-        }
-        unlockedAccounts.add(address);
-      }
-    }
-    //#endregion
+    this[_wallet] = new Wallet(opts);
 
     const blockchain = this[_blockchain] = new Blockchain(options);
     blockchain.on("start", () => emitter.emit("ready"));
     emitter.on("close", async () => await blockchain.stop());
   }
 
+  //#region web3
   /**
    * Returns the current client version.
    * @returns The current client version.
@@ -143,7 +68,9 @@ export default class Ethereum implements ILedger {
   async web3_sha3(string: string): Promise<Data> {
     return Data.from(createKeccakHash("keccak256").update(string).digest());
   };
+  //#endregion
 
+  //#region net
   /**
    * Returns the current network id.
    * @returns {string} The current network id. This value should NOT be JSON-RPC
@@ -168,6 +95,7 @@ export default class Ethereum implements ILedger {
   async net_peerCount(): Promise<Quantity> {
     return RPCQUANTITY_ZERO;
   }
+  //#endregion
 
   /**
    * Returns the current ethereum protocol version.
@@ -176,7 +104,6 @@ export default class Ethereum implements ILedger {
   async eth_protocolVersion(): Promise<Data> {
     return PROTOCOL_VERSION;
   }
-
 
   /**
    * Returns an object with data about the sync status or false.
@@ -195,7 +122,7 @@ export default class Ethereum implements ILedger {
    * @returns 20 bytes - the current coinbase address.
    */
   async eth_coinbase(): Promise<Address> {
-    return this[_coinbase] ? this[_coinbase].address : null;
+    return this[_wallet].coinbase ? this[_wallet].coinbase.address : null;
   }
 
   /**
@@ -227,7 +154,7 @@ export default class Ethereum implements ILedger {
    * @returns Array of 20 Bytes - addresses owned by the client.
    */
   async eth_accounts(): Promise<Address[]> {
-    return this[_accounts];
+    return this[_wallet].accounts;
   }
 
   /**
@@ -300,8 +227,8 @@ export default class Ethereum implements ILedger {
       throw new Error("Invalid to address");
     }
 
-    const isKnownAccount = this[_knownAccounts].has(fromString);
-    const isUnlockedAccount = this[_unlockedAccounts].has(fromString);
+    const isKnownAccount = this[_wallet].knownAccounts.has(fromString);
+    const isUnlockedAccount = this[_wallet].unlockedAccounts.has(fromString);
 
     if (!isUnlockedAccount) {
       const msg = isKnownAccount ? "signer account is locked" : "sender account not recognized";
@@ -336,7 +263,7 @@ export default class Ethereum implements ILedger {
         const account = await this[_blockchain].accounts.get(from);
         tx.nonce = account.nonce.toBuffer();
       }
-      const secretKey = this[_knownAccounts].get(fromString);
+      const secretKey = this[_wallet].knownAccounts.get(fromString);
       tx.sign(secretKey.toBuffer());
     }
 
@@ -366,7 +293,4 @@ export default class Ethereum implements ILedger {
     }
     return this[_blockchain].simulateTransaction(transaction, parentBlock, blockCopy);
   }
-
-
-  readonly [index: string]: (...args: any) => Promise<{}>;
 }
