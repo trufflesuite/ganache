@@ -90,6 +90,24 @@ describe("Accounts", () => {
     assert.strictEqual(accounts.length, 2);
   });
 
+  it("sets errors when unlocked_accounts index is too high", async () => {
+    const ganacheInitFn = Ganache.provider.bind(Ganache, {
+      unlocked_accounts: [99]
+    });
+    assert.throws(ganacheInitFn, {
+      message: "addressOrIndex is not defined"
+    });
+  });
+
+  it("sets errors when unlocked_accounts index is a (big) bigint", async () => {
+    const bigNumber = BigInt(Number.MAX_SAFE_INTEGER) + 1n;
+    const ganacheInitFn = Ganache.provider.bind(Ganache, {
+      unlocked_accounts: [bigNumber.toString()]
+    });
+    assert.throws(ganacheInitFn, {
+      message: `Invalid value in unlocked_accounts: ${bigNumber}`
+    });
+  });
   it.skip("deploys contracts", async () => {
     const contract = await compileSolidity("pragma solidity ^0.5.0; contract Example { event Event(); constructor() public { emit Event(); } }");
     const p = Ganache.provider();
