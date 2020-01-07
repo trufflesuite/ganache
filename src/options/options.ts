@@ -89,7 +89,7 @@ export default interface Options {
   /**
    * Array of addresses or address indexes specifying which accounts should be unlocked. Alias of unlockedAccounts
    */
-  unlocked_accounts?: string[] | number[],
+  unlocked_accounts?: Array<string | number>,
 
   /**
    * Specify a path to a directory to save the chain database. If a database 

@@ -53,7 +53,7 @@ export default class Wallet {
               // don't use parseInt because strings like `"123abc"` parse
               // to `123`, and there is probably an error on the user's side we'd
               // want to uncover.
-              const index = (arg as any) / 1;
+              const index = (arg as any) - 0;
               // if we don't have a valid number, or the number isn't an valid JS 
               // integer (no bigints or decimals, please), throw an error.
               if (!Number.isSafeInteger(index)) {
