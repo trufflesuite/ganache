@@ -50,16 +50,17 @@ describe("Accounts", () => {
     const options = { mnemonic };
     const p = Ganache.provider(options);
     const accounts = await p.send("eth_accounts");
-    const result = await p.send("eth_sendTransaction", [{
+    const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
+    await p.send("eth_sendTransaction", [{
       from: accounts[0],
       to: accounts[1],
       value: 1
     }]);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // TODO: remove and replace with something that detects with the block is "mined"
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    const balance1 = await p.send("eth_getBalance", [accounts[0]]);
-    const balance2 = await p.send("eth_getBalance", [accounts[1]]);
-    console.log(result, balance1, balance2);
+    const balance1_2 = await p.send("eth_getBalance", [accounts[1]]);
+    assert.strictEqual(parseInt(balance1_1) + 1, parseInt(balance1_2));
   });
 
   it("should create its own mnemonic", async() => {
