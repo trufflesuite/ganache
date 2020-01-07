@@ -8,6 +8,7 @@ import Address, { IndexableAddress } from "../../types/address";
 import Transaction from "../../types/transaction";
 import { Block } from "./components/block-manager";
 import Wallet from "./wallet";
+import Account from "ethereumjs-account";
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from the package.json
@@ -77,7 +78,7 @@ export default class Ethereum extends BaseLedger {
    * Quantity/Data encoded.
    */
   async net_version(): Promise<string> {
-    return this[_options].net_version.toString();
+    return this[_options].networkId.toString();
   }
 
   /**
@@ -122,7 +123,7 @@ export default class Ethereum extends BaseLedger {
    * @returns 20 bytes - the current coinbase address.
    */
   async eth_coinbase(): Promise<Address> {
-    return this[_wallet].coinbase ? this[_wallet].coinbase.address : null;
+    return this[_wallet].coinbase.address;
   }
 
   /**
@@ -169,10 +170,10 @@ export default class Ethereum extends BaseLedger {
   /**
    * Returns the currently configured chain id, a value used in
    * replay-protected transaction signing as introduced by EIP-155.
-   * @returns big integer of the current chain id. Defaults are mainnet=61, morden=62, custom=1337.
+   * @returns The chain id as a string.
    */
-  async eth_chainId(): Promise<bigint> {
-    return 1337n;
+  async eth_chainId(): Promise<string> {
+    return this[_options].chainId.toString();
   }
 
   /**

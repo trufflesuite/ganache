@@ -66,25 +66,47 @@ export default interface Options {
   fork_block_number?: string | bigint,
 
   /**
-   * Same as --networkId option above. Alias of network_id.
+   * The currently configured chain id, a value used in replay-protected
+   * transaction signing as introduced by EIP-155. Default's to `1337`
+   */
+  chainId?: string | number,
+
+  /**
+   * Alias of `networkId`.
+   */
+  netVersion?: string | number,
+  
+  /**
+   * Alias of `networkId`.
    */
   net_version?: string | number,
 
   /**
-   * Same as --networkId option above. Alias of net_version.
+   * The id of the network returned by the RPC method `net_version`.
+   * Defaults to the current timestamp (`Date.now()`).
+   */
+  networkId?: string | number,
+
+  /**
+   * Alias of `networkId`.
    */
   network_id?: string | number,
 
   /**
    * Date that the first block should start. Use this feature, along with the
-   * evm_increaseTime method to test time-dependent code.
+   * `evm_increaseTime` RPC, to test time-dependent code.
    */
   time?: Date,
 
   /**
-   * Whether or not accounts are locked by default. Defaults to `false`
+   * Alias of `secure`
    */
   locked?: boolean,
+
+  /**
+   * Lock available accounts by default (good for third party transaction signing). Defaults to `false`.
+   */
+  secure?: boolean,
 
   /**
    * Array of addresses or address indexes specifying which accounts should be unlocked. Alias of unlockedAccounts
@@ -97,11 +119,6 @@ export default interface Options {
    * one.
    */
   db_path?: string,
-
-  /**
-   * Lock available accounts by default (good for third party transaction signing. Defaults to `false`.
-   */
-  secure?: boolean,
 
   /**
    * Specify an alternative database instance, for instance MemDOWN.
@@ -151,23 +168,25 @@ export default interface Options {
 };
 
 export const getDefault: (options: Options)=> Options = (options) => {
-  const network_id = (options ? options.network_id || options.net_version || Date.now() : Date.now()).toString();
+  // TODO: convert to null propagation operator after updating TS to a version that supports it
+  const networkId = (options ? options.networkId || options.netVersion || options.network_id || options.net_version || Date.now() : Date.now()).toString();
+  const chainId = options ? (options.chainId) || 1337 : 1337;
+  const secure = options ? options.secure || options.locked || false : false;
   return Object.assign({
+    chainId,
     debug: false,
     logger: {log: () => {}},
     default_balance_ether: 100n,
     total_accounts: 10n,
-    network_id,
-    net_version: network_id,
-    locked: false,
+    networkId,
     vmErrorsOnRPCResponse: true,
     hdPath: "m/44'/60'/0'/0/",
     allowUnlimitedContractSize: false,
-    gasPrice: new Quantity("0x77359400"),
-    gasLimit: new Quantity("0x6691b7"),
+    gasPrice: new Quantity(2000000000),
+    gasLimit: new Quantity(6721975),
     verbose: false,
     asyncRequestProcessing: true,
     hardfork: "petersburg",
-    secure: false
+    secure
   }, options);
 }
