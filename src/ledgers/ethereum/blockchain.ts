@@ -118,8 +118,6 @@ export default class Blockchain extends Emittery {
         // TODO: save the transactions, et al, too
         // blockData.blockTransactions
 
-        console.log(Quantity.from(block.value.header.number).toBigInt());
-
         this.blocks.latest = block;
         lastBlock = this.blocks.set(block);
       });
