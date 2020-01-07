@@ -112,7 +112,8 @@ export default class Blockchain extends Emittery {
           // difficulty: 
           gasLimit: options.gasLimit.toBuffer(),
           transactionsTrie: blockData.transactionsTrie.root,
-          receiptTrie: blockData.receiptTrie.root
+          receiptTrie: blockData.receiptTrie.root,
+          stateRoot: this.trie.root
         });
         // TODO: save the transactions, et al, too
         // blockData.blockTransactions
