@@ -108,6 +108,49 @@ describe("Accounts", () => {
       message: `Invalid value in unlocked_accounts: ${bigNumber}`
     });
   });
+
+  it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
+    const p = Ganache.provider({
+      locked: true,
+      unlocked_accounts: ["0", 1]
+    });
+    
+    const accounts = await p.send("eth_accounts");
+    const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
+    const badSend = () => {
+      return p.send("eth_sendTransaction", [{
+        from: accounts[2],
+        to: accounts[1],
+        value: 123
+      }]);
+    };
+    await assert.rejects(badSend, "Error: signer account is locked");
+
+    await p.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: accounts[1],
+      value: 123
+    }]);
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    const balance1_2 = await p.send("eth_getBalance", [accounts[1]]);
+    assert.strictEqual(BigInt(balance1_1) + 123n, BigInt(balance1_2));
+
+    const balance0_1 = await p.send("eth_getBalance", [accounts[0]]);
+
+    await p.send("eth_sendTransaction", [{
+      from: accounts[1],
+      to: accounts[0],
+      value: 123
+    }]);
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    const balance0_2 = await p.send("eth_getBalance", [accounts[0]]);
+    assert.strictEqual(BigInt(balance0_1) + 123n, BigInt(balance0_2));
+  });
+
   it.skip("deploys contracts", async () => {
     const contract = await compileSolidity("pragma solidity ^0.5.0; contract Example { event Event(); constructor() public { emit Event(); } }");
     const p = Ganache.provider();
