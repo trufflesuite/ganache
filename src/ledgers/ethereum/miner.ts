@@ -198,7 +198,8 @@ export default class Miner extends Emittery {
         rejectedTransactions.push(best);
       }
     }
-    await Promise.all([promises, this._commit()]);
+    promises.push(this._commit());
+    await Promise.all(promises);
 
     // TODO: put the rejected transactions back in their original origin heaps
     rejectedTransactions.forEach(transaction => {
