@@ -1,6 +1,6 @@
 //#region Imports
 import BaseLedger, {Emitter} from "../../interfaces/base-ledger";
-import EthereumOptions, { getDefaultOptions } from "./options";
+import EthereumOptions from "./options";
 import { Data, Quantity, IndexableData } from "../../types/json-rpc";
 import Blockchain from "./blockchain";
 import Tag from "../../types/tags";
@@ -42,7 +42,7 @@ export default class Ethereum extends BaseLedger {
   constructor(options: EthereumOptions, emitter: Emitter) {
     super();
 
-    const opts = this[_options] = Object.assign(getDefaultOptions(), options);
+    const opts = this[_options] = options;
 
     this[_wallet] = new Wallet(opts);
 

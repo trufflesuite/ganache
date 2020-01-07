@@ -7,6 +7,3 @@ type EthereumOptions = Pick<Options, "net_version" | "gasPrice" | "unlocked_acco
 };
 
 export default EthereumOptions;
-export const getDefaultOptions: () => EthereumOptions = () => {
-  return {} as EthereumOptions;
-}
