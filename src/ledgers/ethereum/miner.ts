@@ -176,6 +176,7 @@ export default class Miner extends Emittery {
         }
 
         block.transactions[counter] = best as any;
+        blockData.blockTransactions[counter] = best;
         counter++
 
         // if we don't have enough gas left for even the smallest of
