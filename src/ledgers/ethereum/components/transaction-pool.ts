@@ -182,13 +182,13 @@ export default class TransactionPool extends Emittery {
     // Transactions can't be negative. This may never happen using RLP
     // decoded transactions but may occur if you create a transaction using
     // the RPC for example.
-    if (transaction.value < 0) {
+    if (Quantity.from(transaction.value).toBigInt() < 0) {
       return new Error("Transaction value cannot be negative");
     }
 
     // Should supply enough intrinsic gas
     const gas = transaction.calculateIntrinsicGas();
-    if (transaction.gasPrice < gas) {
+    if (Quantity.from(transaction.gasPrice).toBigInt() < gas) {
       return new Error("intrisic gas too low");
     }
 
