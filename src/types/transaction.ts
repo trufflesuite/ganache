@@ -101,14 +101,13 @@ const MAX_UINT64 = (1n << 64n) - 1n;
 //     }
 // }
 
-
-
-
-const EthereumJsTransaction = require("ethereumjs-tx");
-const EthereumJsFakeTransaction = require("ethereumjs-tx/fake");
-const ethUtil = require("ethereumjs-util");
-const assert = require("assert");
-const rlp = require("rlp");
+// const EthereumJsTransaction = require('ethereumjs-tx').Transaction
+// const EthereumJsFakeTransaction = require('ethereumjs-tx').FakeTransaction
+import { Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction } from "ethereumjs-tx";
+// import EthereumJsFakeTransaction from "ethereumjs-tx/dist/fake";
+import * as ethUtil from "ethereumjs-util";
+import assert from "assert";
+import rlp from "rlp";
 
 const sign = EthereumJsTransaction.prototype.sign;
 const fakeHash = function () {
@@ -259,11 +258,13 @@ function initData(tx: any, data: any) {
 
 export default class Transaction extends EthereumJsTransaction {
   type: number;
-  v: number;
-  r: number;
-  s: number;
+  v: Buffer;
+  r: Buffer;
+  s: Buffer;
   raw: any;
   _chainId: any;
+  _hash: Buffer;
+  readonly from: Buffer;
   /**
    * @param {Object} [data] The data for this Transaction.
    * @param {Number} type The `Transaction.types` bit flag for this transaction
@@ -289,7 +290,7 @@ export default class Transaction extends EthereumJsTransaction {
 
   cost(): bigint {
     return Quantity.from(this.gasPrice).toBigInt()
-      * Quantity.from(this.gas).toBigInt()
+      * Quantity.from(this.gasLimit).toBigInt()
       + Quantity.from(this.value).toBigInt();
   }
 
@@ -298,7 +299,7 @@ export default class Transaction extends EthereumJsTransaction {
    * @param data The transaction's data
    */
   public calculateIntrinsicGas(): bigint {
-    const data = this.input;
+    const data = this.data;
 
     // Set the starting gas for the raw transaction
     let gas = params.TRANSACTION_GAS;
@@ -458,52 +459,6 @@ export default class Transaction extends EthereumJsTransaction {
     };
 
     return resultJSON;
-  }
-
-  /**
-   * Computes a sha3-256 hash of the serialized tx
-   *
-   * This method is nearly identical to ethereumjs-tx hash with the exception of
-   * the v,r,s value setting when _chainId > 0. Because the `_chainId` in our
-   * implementation is calculated whenever the v is updated we have to make sure
-   * we don't recalc the chainId when we set the v to soemthing else.
-   *
-   * Note: If the transaction is a fake transaction this hash method gets
-   * overridden in the constructor.
-   *
-   * @param {Boolean} [includeSignature=true] whether or not to inculde the signature
-   * @return {Buffer}
-   */
-  hash(includeSignature = true) {
-    // EIP155 spec:
-    // when computing the hash of a transaction for purposes of signing or recovering,
-    // instead of hashing only the first six elements (ie. nonce, gasprice, startgas, to, value, data),
-    // hash nine elements, with v replaced by CHAIN_ID, r = 0 and s = 0
-
-    let items;
-    if (includeSignature) {
-      items = this.raw;
-    } else {
-      // cache the chainId here
-      const chainId = this._chainId;
-      if (chainId > 0) {
-        const cacheRaw = this.raw.slice();
-        // Setting `this.v` changes the value of `this._chainId`
-        this.v = chainId;
-        this.r = 0;
-        this.s = 0;
-
-        items = this.raw;
-        this.raw = cacheRaw;
-        // set the chainId back to its original value here.
-        this._chainId = chainId;
-      } else {
-        items = this.raw.slice(0, 6);
-      }
-    }
-
-    // create hash
-    return ethUtil.rlphash(items);
   }
 
   generateReceipt = (result: any, block: any, transactionIndex: number) => {
