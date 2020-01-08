@@ -1,7 +1,7 @@
 import Transaction from "../../../types/transaction";
 import Manager from "./manager";
 import TransactionPool, {TransactionPoolOptions} from "./transaction-pool";
-import levelup = require("levelup");
+import levelup from "levelup";
 import Blockchain from "../blockchain";
 
 export type TransactionManagerOptions = TransactionPoolOptions;

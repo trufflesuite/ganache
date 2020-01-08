@@ -1,7 +1,7 @@
 import EthereumJsBlock from "ethereumjs-block";
 import Manager from "./manager";
 import Tag from "../../../types/tags";
-import levelup = require("levelup");
+import levelup from "levelup";
 import Blockchain from "../blockchain";
 
 export default class BlockManager extends Manager<Block> {
