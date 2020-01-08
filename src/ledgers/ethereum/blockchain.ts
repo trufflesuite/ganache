@@ -13,7 +13,7 @@ import AccountManager from "./components/account-manager";
 import Heap from "../../utils/heap";
 import Transaction from "../../types/transaction";
 
-const VM = require("ethereumjs-vm");
+const VM = require("ethereumjs-vm").default;
 
 export enum Status {
   // Flags

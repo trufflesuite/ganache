@@ -26,6 +26,6 @@ export default class Account {
     }
   }
   public serialize() {
-    return rlp.encode(Buffer.from([this.nonce, this.balance, this.stateRoot, this.codeHash]));
+    return rlp.encode(Buffer.concat([this.nonce.toBuffer(), this.balance.toBuffer(), this.stateRoot, this.codeHash]));
   }
 }
