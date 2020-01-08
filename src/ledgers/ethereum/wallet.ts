@@ -69,8 +69,7 @@ export default class Wallet {
             const account = accounts[arg];
             if (account == null) {
               throw new Error(
-                `Account at index ${addressOrIndex} not found. Max index available
-                    is ${l - 1}.`
+                `Account at index ${arg} not found. Max index available is ${l - 1}.`
               );
             }
             address = account.address.toString().toLowerCase();

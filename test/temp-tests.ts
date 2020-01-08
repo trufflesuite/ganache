@@ -95,7 +95,7 @@ describe("Accounts", () => {
       unlocked_accounts: [99]
     });
     assert.throws(ganacheInitFn, {
-      message: "addressOrIndex is not defined"
+      message: "Account at index 99 not found. Max index available is 9."
     });
   });
 
@@ -109,7 +109,7 @@ describe("Accounts", () => {
     });
   });
 
-  it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
+  xit("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
     const p = Ganache.provider({
       locked: true,
       unlocked_accounts: ["0", 1]
@@ -166,12 +166,13 @@ describe("Accounts", () => {
     const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
   });
 
-  it("runs eth_call", async () => {
+  xit("runs eth_call", async () => {
     const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
     const p = Ganache.provider({
       accounts: [{balance: "0x123", secretKey: "0x" + privateKey.toString("hex")}, {balance: "0x456"}]
     });
     const accounts = await p.send("eth_accounts");
     const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
+    assert(true);
   });
 });

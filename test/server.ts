@@ -3,7 +3,7 @@ import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
 import Server from "../src/server";
-import { ServerOptions } from "../src/server";
+import ServerOptions from "../src/options/server-options";
 import http from "http";
 import intoStream from "into-stream";
 

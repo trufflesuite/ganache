@@ -1,7 +1,5 @@
 import ServerOptions, {getDefault as getDefaultServerOptions} from "./options/server-options";
 
-export type ServerOptions = ServerOptions;
-
 import uWS, { TemplatedApp, us_listen_socket } from "uWebSockets.js";
 import Provider from "./provider";
 import WebsocketServer from "./servers/ws-server";
