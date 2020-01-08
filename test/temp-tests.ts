@@ -108,7 +108,7 @@ describe("Accounts", () => {
     });
   });
 
-  xit("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
+  it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
     const p = Ganache.provider({
       locked: true,
       unlocked_accounts: ["0", 1]
@@ -159,10 +159,10 @@ describe("Accounts", () => {
         from: accounts[0],
         data: contract.code
       }
-    ]); 
-    console.log(transactionHash);
-    await new Promise((resolve) => setTimeout(resolve, 1000000));
-    const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
+    ]);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    const result = await p.send("eth_getTransactionByHash", [transactionHash]);
+    console.log(result);
   });
 
   it("runs eth_call", async () => {
@@ -174,4 +174,19 @@ describe("Accounts", () => {
     const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
     assert(true);
   });
+
+  it.skip("eth_getStorageAt", async () => {
+    const p = Ganache.provider();
+    const accounts = await p.send("eth_accounts");
+    await p.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: accounts[1],
+      value: 1
+    }]);
+    // TODO: remove and replace with something that detects with the block is "mined"
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const storage = await p.send("eth_getStorageAt", [accounts[0], 0]);
+    console.log(storage)
+  })
 });

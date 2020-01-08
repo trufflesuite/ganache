@@ -124,7 +124,7 @@ export default class Blockchain extends Emittery {
           // TODO: figure out transaction receipts!
           // promises.push(this.transactionReceipts.set(hash, s));
         });
-        const pendingLastBlock = this.blocks.set(block);
+        const pendingLastBlock = this.blocks.putBlock(block);
         lastBlock = Promise.all(promises).then(() => pendingLastBlock);
       });
 
@@ -181,7 +181,7 @@ export default class Blockchain extends Emittery {
     });
 
     // store the genesis block in the database
-    return this.blocks.set(genesis);
+    return this.blocks.putBlock(genesis);
   }
 
   private _currentTime() {

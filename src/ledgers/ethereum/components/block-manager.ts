@@ -79,22 +79,19 @@ export default class BlockManager extends Manager<Block> {
      * Writes the block object to the underlying database.
      * @param block 
      */
-    set(block: Block): Promise<Block>
-    set(key: Buffer, value: Buffer): Promise<Block>
-    set(keyOrBlock: Buffer | Block, value?: Buffer | Block): Promise<Block> {
-        let key: Buffer;
-        if (keyOrBlock instanceof Block){
-            key = keyOrBlock.value.header.number;
-            value = keyOrBlock.value.serialize(true);
-        } else if (value instanceof Block) {
-            value = value.value.serialize(true);
-        }
-        
-        // ethereumjs-block treats [0] as [] :-()
-        if (Buffer.isBuffer(key) && key.equals(Buffer.from([]))){
-            key = Buffer.from([0]);
-        }
-        return super.set(key, value);
+    async putBlock(block: Block) {
+      let key = block.value.header.number;        
+      if (Buffer.isBuffer(key) && key.equals(Buffer.from([]))){
+          key = Buffer.from([0]);
+      }
+      const secondaryKey = block.value.header.hash();
+      const value = block.value.serialize(true);
+
+      const results = await Promise.all([
+        super.set(secondaryKey, key),
+        super.set(key, value)
+      ]);
+      return results[1];
     }
 }
 
