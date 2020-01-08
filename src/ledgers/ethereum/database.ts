@@ -48,7 +48,7 @@ export default class Database extends Emittery {
     const store = this.options.db;
     let db;
     if (store) {
-      db = await levelup(store as any, levelupOptions);
+      db = levelup(store as any, levelupOptions);
     } else {
       let directory = this.options.db_path;
       if (!directory) {
@@ -61,14 +61,14 @@ export default class Database extends Emittery {
       }
       this.directory = directory;
       const store = encode(leveldown(directory), levelupOptions);
-      db = await levelup(store, {});
+      db = levelup(store, {});
     }
 
     // don't continue if we closed while we were waiting for the db
     if (this.closed) return this._cleanup();
 
     const open = db.open();
-    this.trie = sub(db, "trie", levelupOptions);
+    this.trie = sub(db, "T", levelupOptions);
 
     this.db = db;
     await open;
@@ -76,11 +76,11 @@ export default class Database extends Emittery {
     // don't continue if we closed while we were waiting for it to open
     if (this.closed) return this._cleanup();
     
-    this.blocks = sub(db, "blocks", levelupOptions);
-    this.transactions = sub(db, "transactions", levelupOptions);
+    this.blocks = sub(db, "b", levelupOptions);
+    this.transactions = sub(db, "t", levelupOptions);
+    this.transactionReceipts = sub(db, "r", levelupOptions);
 
-    await this.emit("ready");
-    return;
+    return this.emit("ready");
   }
 
   /**
