@@ -209,8 +209,8 @@ export default class Blockchain extends Emittery {
     await promisify(stateManager.setStateRoot.bind(stateManager))(parentBlock.value.header.stateRoot);
     transaction.block = block;
     transaction.caller = transaction.from;
-    const result = await promisify(vm.runCall.bind(vm))(transaction);
-    return result.vm.returnValue || "0x";
+    const result = await vm.runCall(transaction);
+    return result.execResult.returnValue || "0x";
   }
 
   /**

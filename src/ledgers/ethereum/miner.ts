@@ -38,7 +38,6 @@ export default class Miner extends Emittery {
   private _isMining: boolean = false;
   private readonly options: MinerOptions;
   private readonly vm: any;
-  private readonly _runTx: ({ tx: { } }) => Promise<any>;
   private readonly _checkpoint: () => Promise<any>;
   private readonly _commit: () => Promise<any>;
   private readonly _revert: () => Promise<any>;
@@ -49,7 +48,6 @@ export default class Miner extends Emittery {
     super();
     this.vm = vm;
     this.options = options;
-    this._runTx = promisify(vm.runTx.bind(vm));
     const stateManager = vm.stateManager;
     this._checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
     this._commit = promisify(stateManager.commit.bind(stateManager));
@@ -133,7 +131,7 @@ export default class Miner extends Emittery {
         block
       };
       await this._checkpoint();
-      const result = await this._runTx(runArgs).catch((err: Error) => ({ err }));
+      const result = await this.vm.runTx(runArgs).catch((err: Error) => ({ err }));
       if (result.err) {
         await this._revert();
         const errorMessage = result.err.message;

@@ -107,7 +107,7 @@ import { Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFake
 // import EthereumJsFakeTransaction from "ethereumjs-tx/dist/fake";
 import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
-import rlp from "rlp";
+import {decode as rlpDecode, encode as rlpEncode} from "rlp";
 
 const sign = EthereumJsTransaction.prototype.sign;
 const fakeHash = function () {
@@ -213,9 +213,9 @@ function initData(tx: any, data: any) {
   if (data) {
     if (typeof data === "string") {
       data = Data.from(data).toBuffer();
-      data = rlp.decode(data);
+      data = rlpDecode(data);
     } else if (Buffer.isBuffer(data)) {
-      data = rlp.decode(data);
+      data = rlpDecode(data);
     }
     const self = tx;
     if (Array.isArray(data)) {
@@ -462,30 +462,30 @@ export default class Transaction extends EthereumJsTransaction {
   }
 
   generateReceipt = (result: any, block: any, transactionIndex: number) => {
-    const vmResult = result.vm;
-    const status = vmResult.exception;
-    const bitvector = result.bloom.bitvector;
+    const vmResult = result.execResult;
+    const status = vmResult.exceptionError ? 0 : 1;
     const gasUsed = result.gasUsed;
-    const logs = vmResult.logs;
-    const rawReceipt = rlp.encode([
+    const logsBloom = result.bloom.bitvector;
+    const logs = vmResult.logs || Buffer.alloc(0);
+    const raw = rlpEncode([
       status,
       gasUsed,
-      bitvector,
+      logsBloom,
       logs
     ]);
     return {
       transactionHash: this.hash(),
-      transactionIndex: transactionIndex,
+      transactionIndex,
       blockHash: null as Buffer,
       blockNumber: block.header.number,
       from: this.from,
       to: this.to,
-      gasUsed: gasUsed,
+      gasUsed,
       cumulativeGasUsed: block.gasUsed,
       contractAddress: result.createdAddress,
-      logs: logs,
-      status: status,
-      logsBloom: bitvector,
+      logs,
+      status,
+      logsBloom,
       v: this.v,
       r: this.r,
       s: this.s,
@@ -493,7 +493,7 @@ export default class Transaction extends EthereumJsTransaction {
         // TODO: make this return the things
         return {};
       },
-      raw: rawReceipt
+      raw
     }
   }
 };
