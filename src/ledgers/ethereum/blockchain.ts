@@ -99,7 +99,6 @@ export default class Blockchain extends Emittery {
         setTimeout(mine, minerInterval, this.transactions.transactionPool.executables);
       }
 
-      
       miner.on("block", async (blockData: any) => {
         const previousBlock = await lastBlock;
         const previousHeader = previousBlock.value.header;
@@ -115,11 +114,18 @@ export default class Blockchain extends Emittery {
           receiptTrie: blockData.receiptTrie.root,
           stateRoot: this.trie.root
         });
-        // TODO: save the transactions, et al, too
-        // blockData.blockTransactions
 
         this.blocks.latest = block;
-        lastBlock = this.blocks.set(block);
+        let promises: Promise<any>[] = [];
+        blockData.blockTransactions.forEach((tx: Transaction) => {
+          const hash = tx.hash();
+          const s = tx.serialize();
+          promises.push(this.transactions.set(hash, s));
+          // TODO: figure out transaction receipts!
+          // promises.push(this.transactionReceipts.set(hash, s));
+        });
+        const pendingLastBlock = this.blocks.set(block);
+        lastBlock = Promise.all(promises).then(() => pendingLastBlock);
       });
 
       this.blocks.earliest = this.blocks.latest = await lastBlock;
