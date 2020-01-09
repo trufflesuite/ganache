@@ -108,6 +108,7 @@ import { Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFake
 import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
 import {decode as rlpDecode, encode as rlpEncode} from "rlp";
+import { Block } from "../ledgers/ethereum/components/block-manager";
 
 const sign = EthereumJsTransaction.prototype.sign;
 const fakeHash = function () {
@@ -431,8 +432,7 @@ class Transaction extends (EthereumJsTransaction as any) {
    *
    * @param {Object} block The block this Transaction appears in.
    */
-  toJSON(block: Block)
-  {
+  toJSON(block: Block) {
     if (typeof block === "boolean") {
       throw new Error("block must be a Block type, boolean isn't allowed. Sorry about TypeScript");
     }
