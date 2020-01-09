@@ -256,7 +256,8 @@ function initData(tx: any, data: any) {
   }
 }
 
-export default class Transaction extends EthereumJsTransaction {
+interface Transaction extends Omit<EthereumJsTransaction, "toJSON"> {}
+class Transaction extends (EthereumJsTransaction as any) {
   type: number;
   v: Buffer;
   r: Buffer;
@@ -430,11 +431,16 @@ export default class Transaction extends EthereumJsTransaction {
    *
    * @param {Object} block The block this Transaction appears in.
    */
-  toJSON(block: any) {
+  toJSON(block: Block)
+  {
+    if (typeof block === "boolean") {
+      throw new Error("block must be a Block type, boolean isn't allowed. Sorry about TypeScript");
+    }
+    const blockValue = block.value;
     const hash = this.hash();
 
     let transactionIndex = null;
-    for (let i = 0, txns = block.transactions, l = txns.length; i < l; i++) {
+    for (let i = 0, txns = blockValue.transactions, l = txns.length; i < l; i++) {
       if (txns[i].hash().equals(hash)) {
         transactionIndex = i;
         break;
@@ -444,8 +450,8 @@ export default class Transaction extends EthereumJsTransaction {
     const resultJSON = {
       hash: Data.from(hash).toString(),
       nonce: Quantity.from(this.nonce).toString(),
-      blockHash: Data.from(block.hash()).toString(),
-      blockNumber: Data.from(block.header.number).toString(),
+      blockHash: Data.from(blockValue.hash()).toString(),
+      blockNumber: Data.from(blockValue.header.number).toString(),
       transactionIndex: Quantity.from(BigInt(transactionIndex)).toString(),
       from: Data.from(this.from).toString(),
       to: Data.from(this.to).toString(),
