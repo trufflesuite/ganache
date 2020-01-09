@@ -127,7 +127,7 @@ export default class Miner extends Emittery {
       this.currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
 
       const runArgs = {
-        tx: best,
+        tx: best as any as EthereumJsTransaction,
         block
       };
       await this._checkpoint();
