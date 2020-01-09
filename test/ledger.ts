@@ -2,7 +2,7 @@ import assert from "assert";
 import GetProvider, { Provider } from "./helpers/getProvider";
 import sleep from "./helpers/sleep";
 
-describe.only("ledger", () => {
+describe("ledger", () => {
   let provider: Provider;
   let accounts: string[];
 
