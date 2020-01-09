@@ -272,8 +272,8 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Number} type The `Transaction.types` bit flag for this transaction
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
-  constructor(data: any, type = Transaction.types.none) {
-    super();
+  constructor(data: any, type = Transaction.types.none, options: any) {
+    super(undefined, options);
 
     this.type = type;
 
