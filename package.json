@@ -30,6 +30,7 @@
     "emittery": "0.5.1",
     "ethereumjs-account": "3.0.0",
     "ethereumjs-block": "2.2.2",
+    "ethereumjs-common": "^1.5.0",
     "ethereumjs-tx": "^2.1.2",
     "ethereumjs-util": "6.2.0",
     "ethereumjs-vm": "4.1.2",

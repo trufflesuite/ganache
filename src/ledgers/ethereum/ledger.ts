@@ -127,6 +127,28 @@ export default class Ethereum extends BaseLedger {
   }
 
   /**
+   * 
+   * @param id string | Buffer identifier for a block
+   * @returns Block
+   */
+  async eth_getBlockByNumber(id : string | Buffer, transactions = false) {
+    const block = await this[_blockchain].blocks.get(id);
+    return block.toJsonRpc(transactions);
+  }
+
+  // async eth_getBlockByHash(id : string | Buffer) {
+  //   return this[_blockchain].blocks.get(id);
+  // }
+
+  // async eth_getBlockTransactionCountByNumber(id : string | Buffer) {
+  //   return this[_blockchain].blocks.get(id);
+  // }
+
+  // async eth_getBlockTransactionCountByHash(id : string | Buffer) {
+  //   return this[_blockchain].blocks.get(id);
+  // }
+
+  /**
    * Returns true if client is actively mining new blocks.
    * @returns returns true of the client is mining, otherwise false.
    */

@@ -124,6 +124,7 @@ export default class Blockchain extends Emittery {
           // TODO: figure out transaction receipts!
           // promises.push(this.transactionReceipts.set(hash, s));
         });
+        block.value.transactions = blockData.blockTransactions;
         const pendingLastBlock = this.blocks.putBlock(block);
         lastBlock = Promise.all(promises).then(() => pendingLastBlock);
       });

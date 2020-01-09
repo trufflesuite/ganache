@@ -75,7 +75,7 @@ export default class Provider extends Emittery {
         } else {
           secretKeyData = Data.from(secretKey);
         }
-        accounts[i] = this.createAccount(Quantity.from(account.balance), secretKeyData, address);
+        accounts[i] = Provider.createAccount(Quantity.from(account.balance), secretKeyData, address);
       }
     } else {
       const numerOfAccounts =_providerOptions.total_accounts;
@@ -89,7 +89,7 @@ export default class Provider extends Emittery {
           const accountWallet = acct.getWallet();
           const address = Address.from(accountWallet.getAddress());
           const privateKey = Data.from(accountWallet.getPrivateKey());
-          accounts[index] = this.createAccount(etherInWei, privateKey, address);
+          accounts[index] = Provider.createAccount(etherInWei, privateKey, address);
         }
       } else {
         throw new Error("Cannot initialize chain: either options.accounts or options.total_accounts must be specified");
@@ -99,7 +99,7 @@ export default class Provider extends Emittery {
   }
   
   // TODO: this should probable be moved as well (see `initializeAccounts` above)
-  private createAccount(balance: Quantity, privateKey: Data, address?: Address) {
+  private static createAccount(balance: Quantity, privateKey: Data, address?: Address) {
     address = address || Address.from(privateToAddress(privateKey.toBuffer()));
   
     const account = new Account(address);

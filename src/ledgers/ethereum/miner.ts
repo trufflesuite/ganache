@@ -127,7 +127,7 @@ export default class Miner extends Emittery {
       this.currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
 
       const runArgs = {
-        tx: best as any as EthereumJsTransaction,
+        tx: best as any,
         block
       };
       await this._checkpoint();
@@ -150,7 +150,6 @@ export default class Miner extends Emittery {
           // TODO: how do we surface this error to the caller?
           throw result.err;
         }
-        continue;
       }
 
       const gasUsed = Quantity.from(result.gasUsed.toBuffer()).toBigInt();

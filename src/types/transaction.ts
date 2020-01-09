@@ -272,7 +272,7 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Number} type The `Transaction.types` bit flag for this transaction
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
-  constructor(data: any, type = Transaction.types.none, options: any) {
+  constructor(data: any, type = Transaction.types.none, options?: any) {
     super(undefined, options);
 
     this.type = type;
@@ -448,20 +448,20 @@ class Transaction extends (EthereumJsTransaction as any) {
     }
 
     const resultJSON = {
-      hash: Data.from(hash).toString(),
-      nonce: Quantity.from(this.nonce).toString(),
-      blockHash: Data.from(blockValue.hash()).toString(),
-      blockNumber: Data.from(blockValue.header.number).toString(),
-      transactionIndex: Quantity.from(BigInt(transactionIndex)).toString(),
-      from: Data.from(this.from).toString(),
-      to: Data.from(this.to).toString(),
-      value: Quantity.from(this.value).toString(),
-      gas: Quantity.from(this.gasLimit).toString(),
-      gasPrice: Quantity.from(this.gasPrice).toString(),
-      input: Data.from(this.data).toString(), // TODO: this output format probably needs the 0x stripped.
-      v: Quantity.from(this.v).toString(),
-      r: Quantity.from(this.r).toString(),
-      s: Quantity.from(this.s).toString()
+      hash: Data.from(hash),
+      nonce: Quantity.from(this.nonce),
+      blockHash: Data.from(block.value.hash()),
+      blockNumber: Data.from(block.value.header.number),
+      transactionIndex: Quantity.from(BigInt(transactionIndex)),
+      from: Data.from(this.from),
+      to: Data.from(this.to),
+      value: Quantity.from(this.value),
+      gas: Quantity.from(this.gasLimit),
+      gasPrice: Quantity.from(this.gasPrice),
+      input: Data.from(this.data), // TODO: this output format probably needs the 0x stripped.
+      v: Quantity.from(this.v),
+      r: Quantity.from(this.r),
+      s: Quantity.from(this.s)
     };
 
     return resultJSON;

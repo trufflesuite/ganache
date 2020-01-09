@@ -3,6 +3,10 @@ import Manager from "./manager";
 import Tag from "../../../types/tags";
 import levelup from "levelup";
 import Blockchain from "../blockchain";
+import { Quantity, Data } from "../../../types/json-rpc";
+import Transaction from "../../../types/transaction";
+import { rlp } from "ethereumjs-util";
+import Common from "ethereumjs-common";
 
 export default class BlockManager extends Manager<Block> {
     /**
@@ -86,12 +90,11 @@ export default class BlockManager extends Manager<Block> {
       }
       const secondaryKey = block.value.header.hash();
       const value = block.value.serialize(true);
-
-      const results = await Promise.all([
+      await Promise.all([
         super.set(secondaryKey, key),
         super.set(key, value)
       ]);
-      return results[1];
+      return block;
     }
 }
 
@@ -100,7 +103,56 @@ export class Block {
     public readonly value: EthereumJsBlock;
     constructor(raw: Buffer, manager: BlockManager)
     {
-        this.value = new EthereumJsBlock(raw);
-        this.manager = manager;
+      const common = {common: new Common("mainnet", "istanbul")};
+      if(raw) {
+        const data = rlp.decode(raw) as any as [Buffer[], Buffer[], Buffer[]];
+        this.value = new EthereumJsBlock({header: data[0], uncleHeaders: data[2]}, common);
+        const rawTransactions = data[1];
+  
+        // parse transactions so we can use our own transaction class
+        for (let i = 0; i < rawTransactions.length; i++) {
+          // TODO: Pass the common object instead of the options. It can't be implemented right now
+          // because the hardfork may be `null`. Read the above TODO for more info.
+          const tx = new Transaction(rawTransactions[i]);
+          this.value.transactions.push(tx)
+        }
+      } else {
+        this.value = new EthereumJsBlock(null, common);
+      }
+      
+      this.manager = manager;
     }
+
+  private getTxFn(include = false): (tx: Transaction) => {[key: string] : string} | Data {
+    if (include) {
+      return (tx: Transaction) => tx.toJSON(this)
+    } else {
+      return (tx: Transaction) => Data.from(tx.hash());
+    }
+  }
+
+  toJsonRpc(includeFullTransactions = false) {
+    return {
+      number: Quantity.from(this.value.header.number),
+      hash: Data.from(this.value.hash()),
+      parentHash: Data.from(this.value.header.parentHash), // common.hash
+      mixHash: Data.from(this.value.header.mixHash),
+      nonce: Data.from(this.value.header.nonce, 16),
+      sha3Uncles: Data.from(this.value.header.uncleHash),
+      logsBloom: Data.from(this.value.header.bloom),
+      transactionsRoot: Data.from(this.value.header.transactionsTrie),
+      stateRoot: Data.from(this.value.header.stateRoot),
+      receiptsRoot: Data.from(this.value.header.receiptTrie),
+      miner: Data.from(this.value.header.coinbase),
+      difficulty: Quantity.from(this.value.header.difficulty),
+      totalDifficulty: Quantity.from(this.value.header.difficulty), // TODO: Figure out what to do here.
+      extraData: Data.from(this.value.header.extraData),
+      size: Quantity.from(1000), // TODO: Do something better here
+      gasLimit: Quantity.from(this.value.header.gasLimit),
+      gasUsed: Quantity.from(this.value.header.gasUsed),
+      timestamp: Quantity.from(this.value.header.timestamp),
+      transactions: this.value.transactions.map(this.getTxFn(includeFullTransactions)),
+      uncles: [] as string[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
+    };
+  }
 }

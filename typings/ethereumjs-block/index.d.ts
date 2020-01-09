@@ -22,7 +22,10 @@ declare module 'ethereumjs-block' {
       header: BlockHeader
       raw: Buffer[]
   
-      constructor(data: string | Buffer | number[] | IBlock)
+      constructor(
+        data: Buffer | [Buffer[], Buffer[], Buffer[]] | BlockData = {},
+        opts: ChainOptions = {},
+      )
       hash(): Buffer
       isGenesis(): boolean
       setGenesisParams(): void
