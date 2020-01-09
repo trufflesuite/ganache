@@ -128,26 +128,41 @@ export default class Ethereum extends BaseLedger {
   }
 
   /**
-   * 
-   * @param number string | Buffer identifier for a block
+   * Returns information about a block by block number.
+   * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in th e default block parameter.
+   * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the transactions.
    * @returns Block
    */
   async eth_getBlockByNumber(number: string | Buffer, transactions = false) {
     const block = await this[_blockchain].blocks.get(number);
     return block.toJSON(transactions);
   }
-
+  
+  /**
+   * Returns information about a block by block hash.
+   * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in th e default block parameter.
+   * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the transactions.
+   * @returns Block
+   */
   async eth_getBlockByHash(hash: string | Buffer, transactions = false) {
      const block = await this[_blockchain].blocks.getByHash(hash);
      return block.toJSON(transactions);
   }
 
+  /**
+   * Returns the number of transactions in a block from a block matching the given block number.
+   * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
+   */
   async eth_getBlockTransactionCountByNumber(number: string | Buffer) {
     const rawBlock = await this[_blockchain].blocks.getRaw(number);
     const data = rlpDecode(rawBlock);
     return (data[1] as any).length;
   }
-
+  
+  /**
+   * Returns the number of transactions in a block from a block matching the given block hash.
+   * @param hash DATA, 32 Bytes - hash of a block.
+   */
   async eth_getBlockTransactionCountByHash(hash: string | Buffer) {
     const number = await this[_blockchain].blocks.getNumberFromHash(hash);
     return this.eth_getBlockTransactionCountByNumber(number);

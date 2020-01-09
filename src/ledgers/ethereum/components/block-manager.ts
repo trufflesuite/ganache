@@ -121,8 +121,6 @@ export class Block {
   
         // parse transactions so we can use our own transaction class
         for (let i = 0; i < rawTransactions.length; i++) {
-          // TODO: Pass the common object instead of the options. It can't be implemented right now
-          // because the hardfork may be `null`. Read the above TODO for more info.
           const tx = new Transaction(rawTransactions[i]);
           this.value.transactions.push(tx)
         }
