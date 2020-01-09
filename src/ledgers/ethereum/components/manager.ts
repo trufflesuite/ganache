@@ -13,11 +13,14 @@ export default class Manager<T> {
         this.blockchain = blockchain;
         this.base = base;
     }
-    get(key: string | Buffer): Promise<T> {
+    getRaw(key: string | Buffer): Promise<Buffer> {
         if (typeof key === "string") {
             key = Data.from(key).toBuffer();
         }
-        return this.base.get(key).then((raw) => new this.Type(raw));
+        return this.base.get(key);
+    }
+    get(key: string | Buffer) {    
+        return this.getRaw(key).then((raw) => new this.Type(raw));
     }
     set(key: Buffer, value: Buffer): Promise<T> {
         return this.base.put(key, value);

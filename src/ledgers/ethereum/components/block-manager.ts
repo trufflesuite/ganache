@@ -5,7 +5,7 @@ import levelup from "levelup";
 import Blockchain from "../blockchain";
 import { Quantity, Data } from "../../../types/json-rpc";
 import Transaction from "../../../types/transaction";
-import { rlp } from "ethereumjs-util";
+import {decode as rlpDecode} from "rlp";
 import Common from "ethereumjs-common";
 
 export default class BlockManager extends Manager<Block> {
@@ -55,9 +55,18 @@ export default class BlockManager extends Manager<Block> {
         return block;
     }
 
-    async get(keyOrBlock: string | Buffer | Tag): Promise<Block> {
-      if (typeof keyOrBlock === "string") {
-        const tag = Tag.normalize(keyOrBlock as Tag);
+    async getNumberFromHash(hash: string | Buffer | Tag): Promise<Buffer> {
+      return this.base.get(Data.from(hash).toBuffer());
+    }
+
+    async getByHash(hash: string | Buffer | Tag): Promise<Block> {
+      const number = await this.getNumberFromHash(hash);
+      return super.get(number);
+    }
+
+    async get(tagOrBlockNumber: string | Buffer | Tag): Promise<Block> {
+      if (typeof tagOrBlockNumber === "string") {
+        const tag = Tag.normalize(tagOrBlockNumber as Tag);
         switch (tag) {
           case Tag.LATEST:
             return this.latest;
@@ -73,10 +82,11 @@ export default class BlockManager extends Manager<Block> {
             // this probably can't happen. but if someone passed something like
             // `toString` in as a block tag and it got this far... maybe we'd
             // get here...
-            throw new Error(`Invalid block Tag: ${keyOrBlock}`);
+            throw new Error(`Invalid block Tag: ${tagOrBlockNumber}`);
         }
       }
-      return super.get(keyOrBlock);
+
+      return super.get(tagOrBlockNumber);
     }
 
     /**
@@ -104,8 +114,8 @@ export class Block {
     constructor(raw: Buffer, manager: BlockManager)
     {
       const common = {common: new Common("mainnet", "istanbul")};
-      if(raw) {
-        const data = rlp.decode(raw) as any as [Buffer[], Buffer[], Buffer[]];
+      if (raw) {
+        const data = rlpDecode(raw) as any as [Buffer[], Buffer[], Buffer[]];
         this.value = new EthereumJsBlock({header: data[0], uncleHeaders: data[2]}, common);
         const rawTransactions = data[1];
   
@@ -131,26 +141,27 @@ export class Block {
     }
   }
 
-  toJsonRpc(includeFullTransactions = false) {
+  toJSON(includeFullTransactions = false) {
+    const header = this.value.header;
     return {
-      number: Quantity.from(this.value.header.number),
+      number: Quantity.from(header.number),
       hash: Data.from(this.value.hash()),
-      parentHash: Data.from(this.value.header.parentHash), // common.hash
-      mixHash: Data.from(this.value.header.mixHash),
-      nonce: Data.from(this.value.header.nonce, 16),
-      sha3Uncles: Data.from(this.value.header.uncleHash),
-      logsBloom: Data.from(this.value.header.bloom),
-      transactionsRoot: Data.from(this.value.header.transactionsTrie),
-      stateRoot: Data.from(this.value.header.stateRoot),
-      receiptsRoot: Data.from(this.value.header.receiptTrie),
-      miner: Data.from(this.value.header.coinbase),
-      difficulty: Quantity.from(this.value.header.difficulty),
-      totalDifficulty: Quantity.from(this.value.header.difficulty), // TODO: Figure out what to do here.
-      extraData: Data.from(this.value.header.extraData),
+      parentHash: Data.from(header.parentHash),
+      mixHash: Data.from(header.mixHash),
+      nonce: Data.from(header.nonce, 16),
+      sha3Uncles: Data.from(header.uncleHash),
+      logsBloom: Data.from(header.bloom),
+      transactionsRoot: Data.from(header.transactionsTrie),
+      stateRoot: Data.from(header.stateRoot),
+      receiptsRoot: Data.from(header.receiptTrie),
+      miner: Data.from(header.coinbase),
+      difficulty: Quantity.from(header.difficulty),
+      totalDifficulty: Quantity.from(header.difficulty), // TODO: Figure out what to do here.
+      extraData: Data.from(header.extraData),
       size: Quantity.from(1000), // TODO: Do something better here
-      gasLimit: Quantity.from(this.value.header.gasLimit),
-      gasUsed: Quantity.from(this.value.header.gasUsed),
-      timestamp: Quantity.from(this.value.header.timestamp),
+      gasLimit: Quantity.from(header.gasLimit),
+      gasUsed: Quantity.from(header.gasUsed),
+      timestamp: Quantity.from(header.timestamp),
       transactions: this.value.transactions.map(this.getTxFn(includeFullTransactions)),
       uncles: [] as string[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
     };

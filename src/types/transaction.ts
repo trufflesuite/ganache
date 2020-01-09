@@ -275,6 +275,9 @@ class Transaction extends (EthereumJsTransaction as any) {
   constructor(data: any, type = Transaction.types.none, options?: any) {
     super(undefined, options);
 
+    // EthereumJS-TX Transaction overwrites our `toJSON`, so we overwrite it back here:
+    this.toJSON = Transaction.prototype.toJSON.bind(this);
+
     this.type = type;
 
     fixProps(this, data);
@@ -433,9 +436,6 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Object} block The block this Transaction appears in.
    */
   toJSON(block: Block) {
-    if (typeof block === "boolean") {
-      throw new Error("block must be a Block type, boolean isn't allowed. Sorry about TypeScript");
-    }
     const blockValue = block.value;
     const hash = this.hash();
 

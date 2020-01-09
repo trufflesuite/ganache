@@ -9,6 +9,7 @@ import Transaction from "../../types/transaction";
 import { Block } from "./components/block-manager";
 import Wallet from "./wallet";
 import Account from "ethereumjs-account";
+import {decode as rlpDecode} from "rlp";
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from the package.json
@@ -128,25 +129,29 @@ export default class Ethereum extends BaseLedger {
 
   /**
    * 
-   * @param id string | Buffer identifier for a block
+   * @param number string | Buffer identifier for a block
    * @returns Block
    */
-  async eth_getBlockByNumber(id : string | Buffer, transactions = false) {
-    const block = await this[_blockchain].blocks.get(id);
-    return block.toJsonRpc(transactions);
+  async eth_getBlockByNumber(number: string | Buffer, transactions = false) {
+    const block = await this[_blockchain].blocks.get(number);
+    return block.toJSON(transactions);
   }
 
-  // async eth_getBlockByHash(id : string | Buffer) {
-  //   return this[_blockchain].blocks.get(id);
-  // }
+  async eth_getBlockByHash(hash: string | Buffer, transactions = false) {
+     const block = await this[_blockchain].blocks.getByHash(hash);
+     return block.toJSON(transactions);
+  }
 
-  // async eth_getBlockTransactionCountByNumber(id : string | Buffer) {
-  //   return this[_blockchain].blocks.get(id);
-  // }
+  async eth_getBlockTransactionCountByNumber(number: string | Buffer) {
+    const rawBlock = await this[_blockchain].blocks.getRaw(number);
+    const data = rlpDecode(rawBlock);
+    return (data[1] as any).length;
+  }
 
-  // async eth_getBlockTransactionCountByHash(id : string | Buffer) {
-  //   return this[_blockchain].blocks.get(id);
-  // }
+  async eth_getBlockTransactionCountByHash(hash: string | Buffer) {
+    const number = await this[_blockchain].blocks.getNumberFromHash(hash);
+    return this.eth_getBlockTransactionCountByNumber(number);
+  }
 
   /**
    * Returns true if client is actively mining new blocks.
