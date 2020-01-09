@@ -430,7 +430,7 @@ export default class Transaction extends EthereumJsTransaction {
    *
    * @param {Object} block The block this Transaction appears in.
    */
-  toJsonRpc(block: any) {
+  toJSON(block: any) {
     const hash = this.hash();
 
     let transactionIndex = null;
