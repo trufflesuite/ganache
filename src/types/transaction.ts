@@ -503,3 +503,5 @@ class Transaction extends (EthereumJsTransaction as any) {
     }
   }
 };
+
+export default Transaction;
