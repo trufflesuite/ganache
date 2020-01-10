@@ -35,6 +35,9 @@ describe("ledger", () => {
 
     const blocks = await Promise.all([provider.send("eth_getBlockByHash", [block.hash, true]), provider.send("eth_getBlockByHash", [block.hash])]);
     assert(blocks[0].hash, blocks[1].hash);
+    const counts = await Promise.all([provider.send("eth_getBlockTransactionCountByNumber", ["0x1"]), provider.send("eth_getBlockTransactionCountByHash", [blocks[0].hash])]);
+
+    assert(true);
   });
 
   it("eth_getBlockTransactionCountByHash", async() => {
