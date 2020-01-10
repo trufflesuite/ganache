@@ -67,7 +67,7 @@ describe("provider", () => {
     const result = await Promise.race([callA, callB]);
     assert.strictEqual(typeof result, "string");
     // TODO: this value is wrong:
-    assert.strictEqual(result, "0x056bc75e2d63100000");
+    assert.strictEqual(result, "0x56bc75e2d63100000");
   });
 
   it("generates predictable accounts when given a seed", async() => {
@@ -80,7 +80,7 @@ describe("provider", () => {
     const accounts = await p.send("eth_accounts");
     const balance = await p.send("eth_getBalance", [accounts[0]]);
     // TODO: this value is actually wrong!
-    assert.strictEqual(balance, "0x056bc75e2d63100000", "Heyo!");
+    assert.strictEqual(balance, "0x56bc75e2d63100000", "Heyo!");
   });
 
   it("returns things via EIP-1193", async () => {

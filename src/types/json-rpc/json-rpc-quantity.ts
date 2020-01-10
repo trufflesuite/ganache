@@ -2,8 +2,27 @@ import { BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType } from ".";
 const toBigIntBE = require('bigint-buffer').toBigIntBE;
 
 class Quantity extends BaseJsonRpcType {
-  public static from(value: number | bigint | string | Buffer) {
-    return new _Quantity(value);
+  _nullable: boolean;
+  public static from(value: number | bigint | string | Buffer, nullable = false) {
+    const q =  new _Quantity(value, nullable);
+    q._nullable = nullable;
+    return q;
+  }
+  public toString(): string {
+    if (Buffer.isBuffer(this.value)) {
+      let val =  this.value.toString("hex").replace(/^(?:0+(.+?))?$/, "$1");;
+
+      if (val === "") {
+        if (this._nullable) {
+          return null;
+        }
+        // RPC Quantities must represent `0` as `0x0`
+        val = "0";
+      }
+      return "0x" + val;
+    } else {
+      return super.toString();
+    }
   }
   public toBigInt(): bigint {
     const value = this.value;
@@ -51,19 +70,20 @@ class Quantity extends BaseJsonRpcType {
   }
 }
 type $<T extends number|bigint|string|Buffer = number|bigint|string|Buffer> = {
-  new(value: T): _Quantity & JsonRpcType<T>,
-  from(value: T): _Quantity & JsonRpcType<T>,
+  _nullable: boolean
+  new(value: T, nullable?: boolean): _Quantity & JsonRpcType<T>,
+  from(value: T, nullable?: boolean): _Quantity & JsonRpcType<T>,
   toBigInt(): bigint,
   toBuffer(): Buffer
 }
 const _Quantity = Quantity as $;
 
 interface _Quantity<T = number | bigint | string | Buffer> {
-  constructor(value: T): _Quantity
+  _nullable: boolean
+  constructor(value: T, nullable?: boolean): _Quantity
   from(): _Quantity,
   toBigInt(): bigint,
   toBuffer(): Buffer
 }
 
-export type IndexableQuantity = _Quantity & IndexableJsonRpcType;
 export default _Quantity;
