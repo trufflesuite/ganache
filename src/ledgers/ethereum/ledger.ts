@@ -242,9 +242,9 @@ export default class Ethereum extends BaseLedger {
    * Returns the number of most recent block.
    * @returns integer of the current block number the client is on.
    */
-  async eth_blockNumber(): Promise<bigint> {
-    const latest = this[_blockchain].blocks.get(Tag.LATEST);
-    return latest.then((block: any) => BigInt(block.value.header.number));
+  async eth_blockNumber() {
+    const latest = await this[_blockchain].blocks.get(Tag.LATEST);
+    return Quantity.from(latest.value.header.number);
   }
 
   /**

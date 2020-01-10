@@ -11,6 +11,19 @@ describe("ledger", () => {
     accounts = await provider.send("eth_accounts");
   });
 
+  it("eth_blockNumber", async () => {
+    const blockNumber = parseInt(await provider.send("eth_blockNumber"), 10);
+    await provider.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: accounts[1],
+      value: 1
+    }]);
+    // TODO: remove and replace with something that detects with the block is "mined"
+    await sleep();
+    const nextBlockNumber = await provider.send("eth_blockNumber");
+    assert.equal(blockNumber, nextBlockNumber - 1);
+  });
+
   it("eth_getBlockByNumber", async() => {
     await provider.send("eth_sendTransaction", [{
       from: accounts[0],
