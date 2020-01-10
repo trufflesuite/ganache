@@ -168,6 +168,25 @@ export default class Ethereum extends BaseLedger {
     return this.eth_getBlockTransactionCountByNumber(number);
   }
 
+  /**
+   * Returns information about a transaction by block hash and transaction index position.
+   * @param hash DATA, 32 Bytes - hash of a block.
+   * @param index QUANTITY - integer of the transaction index position.
+   */
+  async eth_getTransactionByBlockHashAndIndex(hash: string | Buffer, index: string) {
+    const block = await this.eth_getBlockByHash(hash, true);
+    return block.transactions[parseInt(index, 10)];
+  }
+
+  /**
+   * Returns information about a transaction by block number and transaction index position.
+   * @param number QUANTITY|TAG - a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
+   * @param index QUANTITY - integer of the transaction index position.
+   */
+  async eth_getTransactionByBlockNumberAndIndex(number: string | Buffer, index: string) {
+    const block = await this.eth_getBlockByNumber(number, true);
+    return block.transactions[parseInt(index, 10)];
+  }
 
   /**
    * Returns the number of uncles in a block from a block matching the given block hash.
