@@ -1,3 +1,4 @@
+import { AbstractLevelDOWN } from 'abstract-leveldown';
 import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
 import levelup from "levelup";
@@ -26,6 +27,7 @@ export default class Database extends Emittery {
   public transactionReceipts: levelup.LevelUp;
   public trie: levelup.LevelUp;
   public readonly initialized: boolean;
+  private _rootStore: AbstractLevelDOWN;
 
   /**
    * The Database handles the creation of the database, and all access to it.
@@ -48,6 +50,7 @@ export default class Database extends Emittery {
     const store = this.options.db;
     let db;
     if (store) {
+      this._rootStore = store as any;
       db = levelup(store as any, levelupOptions);
     } else {
       let directory = this.options.db_path;
@@ -61,6 +64,7 @@ export default class Database extends Emittery {
       }
       this.directory = directory;
       const store = encode(leveldown(directory), levelupOptions);
+      this._rootStore = store;
       db = levelup(store, {});
     }
 
@@ -68,6 +72,7 @@ export default class Database extends Emittery {
     if (this.closed) return this._cleanup();
 
     const open = db.open();
+    (db as any).___aaaa____ = true;
     this.trie = sub(db, "T", levelupOptions);
 
     this.db = db;
@@ -81,6 +86,39 @@ export default class Database extends Emittery {
     this.transactionReceipts = sub(db, "r", levelupOptions);
 
     return this.emit("ready");
+  }
+
+  /**
+   * Call `batch` to batch `put` and `del` operations within the same
+   * event loop tick of the provided function. All db operations within the 
+   * batch _must_ be executed synchronously.
+   * @param fn {Function} Within this function's event loop tick, all `put` and
+   * `del` database operations are applied in a single atomic operation. This
+   * provides a single write call and if any individual put/del's fail the
+   * entire operation fails and no modifications are made.
+   * @returns {Promise<T>} returns a Promise that resolves to the return value
+   * of the provided function.
+   */
+  batch<T>(fn: () => T): Promise<T> {
+    const rootDb = this._rootStore.db;
+    const batch = this.db.batch();
+
+    const originalPut = rootDb.put;
+    const originalDel = rootDb.del;
+
+    rootDb.put = batch.put.bind(batch);
+    rootDb.del = batch.del.bind(batch);
+    let prom;
+    try {
+      const ret = fn();
+      // PSA: don't let vscode (or yourself) rewrite this to `await` the `batch.write` call.
+      // The `finally` block needs to run _ebfore_ the write promise has resolved.
+      prom = batch.write().then(() => ret);
+    } finally {
+      rootDb.put = originalPut;
+      rootDb.del = originalDel;
+    }
+    return prom;
   }
 
   /**

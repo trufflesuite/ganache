@@ -2,114 +2,19 @@ import Errors from "./errors"
 import { Data } from "./json-rpc/json-rpc-data";
 import { Quantity } from "./json-rpc";
 import params from "./params";
-
-const MAX_UINT64 = (1n << 64n) - 1n;
-
-
-// import { Data, Quantity } from "./json-rpc";
-// import Address from "./address";
-
-// type TransactionDataObject = {
-//     blockHash: string,
-//     blockNumber: string,
-//     from: string,
-//     gas: string,
-//     gasPrice:  string,
-//     hash: string,
-//     input: string,
-//     nonce:  string,
-//     to: string,
-//     transactionIndex: string,
-//     value: string,
-//     v: string,
-//     r: string,
-//     s: string
-// }
-
-// type TransactionData = {
-//     blockHash: Data,
-//     blockNumber: Data,
-//     from: Address,
-//     gas: Quantity,
-//     gasPrice:  Quantity,
-//     hash: Data,
-//     input: Data,
-//     nonce:  Quantity,
-//     to: Address,
-//     transactionIndex: Quantity,
-//     value: Quantity,
-//     v: Quantity,
-//     r: Data,
-//     s: Data
-// }
-
-// export default class Transaction implements TransactionData {
-//     blockHash: Data<string | Buffer>;
-//     blockNumber: Data<string | Buffer>;
-//     from: Data<string | Buffer>;
-//     gas: Quantity<string | bigint | Buffer>;
-//     gasPrice: Quantity<string | bigint | Buffer>;
-//     get hash(): Data {
-//         return new Data("0x123");
-//     };
-//     input: Data<string | Buffer>;
-//     nonce: Quantity<string | bigint | Buffer>;
-//     to: Data<string | Buffer>;
-//     transactionIndex: Quantity<string | bigint | Buffer>;
-//     value: Quantity<string | bigint | Buffer>;
-//     v: Quantity<string | bigint | Buffer>;
-//     r: Data<string | Buffer>;
-//     s: Data<string | Buffer>;
-//     constructor(transaction: TransactionData) {
-// const obj =  {
-//     blockHash: Data.from("0x123456", 32), // 32 Bytes - hash of the block where this transaction was in. null when its pending.
-//     blockNumber:  Quantity.from(123n),// QUANTITY - block number where this transaction was in. null when its pending.
-//     from: Data.from("0x123456", 32), // 20 Bytes - address of the sender.
-//     gas: Quantity.from(123n),// QUANTITY - gas provided by the sender.
-//     gasPrice:  Quantity.from(123n),// QUANTITY - gas price provided by the sender in Wei.
-//     hash: Data.from("0x123456", 32),// DATA, 32 Bytes - hash of the transaction.
-//     input: Data.from("0x123"),// DATA - the data send along with the transaction.
-//     nonce:  Quantity.from(123456n),// QUANTITY - the number of transactions made by the sender prior to this one.
-//     to: Data.from("0x123456", 20),// DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
-//     transactionIndex: Quantity.from(99n),// QUANTITY - integer of the transaction's index position in the block. null when its pending.
-//     value: Quantity.from(123n),// QUANTITY - value transferred in Wei.
-//     v: Quantity.from(Buffer.from([27])), // QUANTITY - ECDSA recovery id
-//     r: Data.from(Buffer.from([12,34,46]), 32),// DATA, 32 Bytes - ECDSA signature r
-//     s: Data.from("0x123456", 32),// DATA, 32 Bytes - ECDSA signature s
-// } as any;
-//         Object.keys(obj).forEach((key) => {
-//             (this as any)[key] = obj[key] as any;
-//         });
-//     }
-//     // https://github.com/fastify/fast-json-stringify
-//     // https://github.com/YousefED/typescript-json-schema
-//     toObject(): TransactionDataObject {
-//         const a = JSON.stringify({
-//             gasPrice: this.gasPrice
-//         });
-//         console.log(a);
-//         return {
-//             gasPrice: this.gasPrice.toString()
-//         } as TransactionDataObject;
-//     }
-//     /**
-//      * 
-//      * @param tx Cost returns gasPrice * gas + value.
-//      */
-//     cost(): bigint {
-//         return this.gasPrice.toBigInt() * this.gas.toBigInt() + this.value.toBigInt();
-//     }
-// }
-
-// const EthereumJsTransaction = require('ethereumjs-tx').Transaction
-// const EthereumJsFakeTransaction = require('ethereumjs-tx').FakeTransaction
 import { Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction } from "ethereumjs-tx";
-// import EthereumJsFakeTransaction from "ethereumjs-tx/dist/fake";
 import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
-import {decode as rlpDecode, encode as rlpEncode} from "rlp";
+import {decode as rlpDecode} from "rlp";
+import { RunTxResult } from "ethereumjs-vm/dist/runTx";
 import { Block } from "../ledgers/ethereum/components/block-manager";
+import Receipt from "./receipt";
 
+const MAX_UINT64 = (1n << 64n) - 1n;
+const ZERO_BUFFER = Buffer.from([0]);
+const ONE_BUFFER = Buffer.from([0]);
+
+//#region helpers
 const sign = EthereumJsTransaction.prototype.sign;
 const fakeHash = function () {
   // this isn't memoization of the hash. previous versions of ganache-core
@@ -220,6 +125,12 @@ function initData(tx: any, data: any) {
     }
     const self = tx;
     if (Array.isArray(data)) {
+      // add in our hacked-in `_index` property
+      // which is the index in the block the transaciton
+      // was mined in
+      if (data.length > tx._fields.length){
+        tx._index = data.pop();
+      }
       if (data.length > tx._fields.length) {
         throw new Error("wrong number of fields in data");
       }
@@ -257,6 +168,8 @@ function initData(tx: any, data: any) {
   }
 }
 
+//#endregion
+
 interface Transaction extends Omit<EthereumJsTransaction, "toJSON"> {}
 class Transaction extends (EthereumJsTransaction as any) {
   type: number;
@@ -267,12 +180,13 @@ class Transaction extends (EthereumJsTransaction as any) {
   _chainId: any;
   _hash: Buffer;
   readonly from: Buffer;
+  private _receipt: any;
   /**
    * @param {Object} [data] The data for this Transaction.
    * @param {Number} type The `Transaction.types` bit flag for this transaction
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
-  constructor(data: any, type = Transaction.types.none, options?: any) {
+  constructor(data: any, type: number = Transaction.types.none, options?: any) {
     super(undefined, options);
 
     // EthereumJS-TX Transaction overwrites our `toJSON`, so we overwrite it back here:
@@ -348,7 +262,7 @@ class Transaction extends (EthereumJsTransaction as any) {
 
       if (buf.equals(BUFFER_ZERO)) {
         // if the address is 0x0 make it 0x0{20}
-        toAccount = ethUtil.setLengthLeft(buf, 20);
+        toAccount = Buffer.alloc(20, 0);
       } else {
         toAccount = buf;
       }
@@ -467,40 +381,28 @@ class Transaction extends (EthereumJsTransaction as any) {
     return resultJSON;
   }
 
-  generateReceipt = (result: any, block: any, transactionIndex: number) => {
+  initializeReceipt = (result: RunTxResult) => {
     const vmResult = result.execResult;
-    const status = vmResult.exceptionError ? 0 : 1;
-    const gasUsed = result.gasUsed;
+    const status = vmResult.exceptionError ? ZERO_BUFFER : ONE_BUFFER;
+    const gasUsed = result.gasUsed.toBuffer();
     const logsBloom = result.bloom.bitvector;
-    const logs = vmResult.logs || Buffer.alloc(0);
-    const raw = rlpEncode([
+    const logs = vmResult.logs || [];
+
+    this._receipt = Receipt.fromValues(
       status,
       gasUsed,
       logsBloom,
-      logs
-    ]);
-    return {
-      transactionHash: this.hash(),
-      transactionIndex,
-      blockHash: null as Buffer,
-      blockNumber: block.header.number,
-      from: this.from,
-      to: this.to,
-      gasUsed,
-      cumulativeGasUsed: block.gasUsed,
-      contractAddress: result.createdAddress,
       logs,
-      status,
-      logsBloom,
-      v: this.v,
-      r: this.r,
-      s: this.s,
-      toJSON: (blockHash: Buffer) => {
-        // TODO: make this return the things
-        return {};
-      },
-      raw
-    }
+      result.createdAddress
+    );
+
+    // returns RLP encoded data for use in a transaction trie
+    return this._receipt.serialize(false);
+  }
+
+
+  getReceipt = () => {
+    return this._receipt;
   }
 };
 

@@ -12,6 +12,9 @@ import EthereumJsAccount from "ethereumjs-account";
 import AccountManager from "./components/account-manager";
 import Heap from "../../utils/heap";
 import Transaction from "../../types/transaction";
+import Manager from "./components/manager";
+import Receipt from "../../types/receipt";
+import {encode as rlpEncode} from "rlp";
 
 const VM = require("ethereumjs-vm").default;
 
@@ -37,6 +40,7 @@ export default class Blockchain extends Emittery {
   private state: Status = Status.starting;
   public blocks: BlockManager;
   public transactions: TransactionManager;
+  public transactionReceipts: Manager<Receipt>;
   public accounts: AccountManager;
   public vm: any;
   public trie: Trie;
@@ -66,6 +70,7 @@ export default class Blockchain extends Emittery {
 
       const miner = new Miner(this.vm, options);
       this.transactions = new TransactionManager(this, database.transactions, options);
+      this.transactionReceipts = new Manager<Receipt>(this, database.transactionReceipts, Receipt);
       this.accounts = new AccountManager(this);
 
       await this._initializeAccounts(options.accounts);
@@ -112,21 +117,25 @@ export default class Blockchain extends Emittery {
           gasLimit: options.gasLimit.toBuffer(),
           transactionsTrie: blockData.transactionsTrie.root,
           receiptTrie: blockData.receiptTrie.root,
-          stateRoot: this.trie.root
+          stateRoot: this.trie.root,
+          gasUsed: Quantity.from(blockData.gasUsed).toBuffer()
         });
 
         this.blocks.latest = block;
-        let promises: Promise<any>[] = [];
-        blockData.blockTransactions.forEach((tx: Transaction) => {
-          const hash = tx.hash();
-          const s = tx.serialize();
-          promises.push(this.transactions.set(hash, s));
-          // TODO: figure out transaction receipts!
-          // promises.push(this.transactionReceipts.set(hash, s));
+        lastBlock = this.database.batch(() => {
+          blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
+            const hash = tx.hash();
+            const encoded = rlpEncode([...tx.raw, Quantity.from(i).toBuffer()]);
+            this.transactions.set(hash, encoded);
+
+            const receipt = tx.getReceipt();
+            const r = receipt.serialize(block, tx);
+            this.transactionReceipts.set(hash, r);
+          });
+          block.value.transactions = blockData.blockTransactions;
+          this.blocks.putBlock(block);
+          return block;
         });
-        block.value.transactions = blockData.blockTransactions;
-        const pendingLastBlock = this.blocks.putBlock(block);
-        lastBlock = Promise.all(promises).then(() => pendingLastBlock);
       });
 
       this.blocks.earliest = this.blocks.latest = await lastBlock;

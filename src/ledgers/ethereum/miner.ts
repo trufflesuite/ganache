@@ -4,9 +4,11 @@ import Transaction from "../../types/transaction";
 import { Quantity, Data } from "../../types/json-rpc";
 import { promisify } from "util";
 import Trie from "merkle-patricia-tree";
-import { rlp } from "ethereumjs-util";
-import Emittery = require("emittery");
+import Emittery from "emittery";
 import Block from "ethereumjs-block";
+import VM from "ethereumjs-vm";
+import { RunTxResult } from "ethereumjs-vm/dist/runTx";
+import {encode as rlpEncode} from "rlp";
 
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
@@ -37,14 +39,14 @@ export default class Miner extends Emittery {
   private pending: Map<string, Heap<Transaction>>;
   private _isMining: boolean = false;
   private readonly options: MinerOptions;
-  private readonly vm: any;
+  private readonly vm: VM;
   private readonly _checkpoint: () => Promise<any>;
   private readonly _commit: () => Promise<any>;
   private readonly _revert: () => Promise<any>;
 
   // initialize a Heap that sorts by gasPrice
   private readonly priced = new Heap<Transaction>(byPrice);
-  constructor(vm: any, options: MinerOptions) {
+  constructor(vm: VM, options: MinerOptions) {
     super();
     this.vm = vm;
     this.options = options;
@@ -88,7 +90,6 @@ export default class Miner extends Emittery {
     const transactionsTrie = new Trie(null, null);
     const receiptTrie = new Trie(null, null);
     const promises: Promise<any>[] = [];
-    const receipts: any[] = [];
 
     await this._checkpoint();
 
@@ -98,8 +99,7 @@ export default class Miner extends Emittery {
       blockTransactions,
       transactionsTrie,
       receiptTrie,
-      gasUsed: 0n,
-      receipts
+      gasUsed: 0n
     };
 
     // Run until we run out of items, or until the inner loop stops us.
@@ -131,10 +131,12 @@ export default class Miner extends Emittery {
         block
       };
       await this._checkpoint();
-      const result = await this.vm.runTx(runArgs).catch((err: Error) => ({ err }));
-      if (result.err) {
+      let result: RunTxResult;
+      try {
+        result = await this.vm.runTx(runArgs);
+      } catch(err) {
         await this._revert();
-        const errorMessage = result.err.message;
+        const errorMessage = err.message;
         if (errorMessage.startsWith("the tx doesn't have the correct nonce. account has nonce of: ")) {
           // a race condition between the pool and the miner could potentially
           // cause this issue.
@@ -144,11 +146,11 @@ export default class Miner extends Emittery {
           replaceFromHeap(priced, pendingFromOrigin, pending, origin);
 
           // TODO: how do we surface this error to the caller?
-          throw result.err;
+          throw err;
         } else {
           // TODO: handle all other errors!
           // TODO: how do we surface this error to the caller?
-          throw result.err;
+          throw err;
         }
       }
 
@@ -160,20 +162,19 @@ export default class Miner extends Emittery {
         blockData.gasUsed += gasUsed;
 
         // calculate receipts and tries
-        const receipt = best.generateReceipt(result, block, counter);
-        const txKey = rlp.encode(counter);
+        const rawReceipt = best.initializeReceipt(result);
+        const txKey = rlpEncode(counter);
         promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
-        promises.push(putInTrie(receiptTrie, txKey, receipt.raw));
-        receipts.push(receipt);
+        promises.push(putInTrie(receiptTrie, txKey, rawReceipt));
 
         // update the block's bloom
-        const bloom = receipt.logsBloom;
+        const bloom = result.bloom.bitvector;
         for (let i = 0; i < 256; i++) {
           blockBloom[i] |= bloom[i];
         }
 
-        block.transactions[counter] = best as any;
-        blockData.blockTransactions[counter] = best;
+        blockTransactions[counter] = best;
+        
         counter++
 
         // if we don't have enough gas left for even the smallest of
@@ -196,8 +197,8 @@ export default class Miner extends Emittery {
         rejectedTransactions.push(best);
       }
     }
-    promises.push(this._commit());
     await Promise.all(promises);
+    await this._commit();
 
     // TODO: put the rejected transactions back in their original origin heaps
     rejectedTransactions.forEach(transaction => {
@@ -281,13 +282,4 @@ export default class Miner extends Emittery {
       }
     }
   }
-  // private async finalizeBlock(blockTransactions: Transaction[], transactionTrie: Trie, receiptTrie: Trie) {
-  //   this.emit("block", {
-  //     blockTransactions,
-  //     transactionTrie,
-  //     receiptTrie
-  //   })
-  //   // TODO: create the block and save it to the database
-  //   //return new Block(Buffer.from([0]), null);
-  // }
 }
