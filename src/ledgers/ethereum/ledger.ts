@@ -168,6 +168,25 @@ export default class Ethereum extends BaseLedger {
     return this.eth_getBlockTransactionCountByNumber(number);
   }
 
+
+  /**
+   * Returns the number of uncles in a block from a block matching the given block hash.
+   * @param hash DATA, 32 Bytes - hash of a block.
+   */
+  async eth_getUncleCountByBlockHash(hash: string | Buffer) {
+    const block = await this.eth_getBlockByHash(hash);
+    return block.uncles.length.toString();
+  }
+
+  /**
+   * Returns the number of uncles in a block from a block matching the given block hash.
+   * @param hash DATA, 32 Bytes - hash of a block.
+   */
+  async eth_getUncleCountByBlockNumber(number: string | Buffer) {
+    const block = await this.eth_getBlockByNumber(number);
+    return block.uncles.length.toString();
+  }
+
   /**
    * Returns true if client is actively mining new blocks.
    * @returns returns true of the client is mining, otherwise false.

@@ -63,4 +63,31 @@ describe("ledger", () => {
     const count = await provider.send("eth_getBlockTransactionCountByNumber", ["0x1"]);
     assert(count, "1");
   });
+
+  it("eth_getUncleCountByBlockHash", async() => {
+    await provider.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: accounts[1],
+      value: 1
+    }]);
+    // TODO: remove and replace with something that detects with the block is "mined"
+    await sleep();
+    const block = await provider.send("eth_getBlockByNumber", ["0x1"]);
+
+    const count = await provider.send("eth_getUncleCountByBlockHash", [block.hash]);
+    assert(count, "0");
+  });
+
+  it("eth_getUncleCountByBlockNumber", async() => {
+    await provider.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: accounts[1],
+      value: 1
+    }]);
+    // TODO: remove and replace with something that detects with the block is "mined"
+    await sleep();
+
+    const count = await provider.send("eth_getUncleCountByBlockNumber", ["0x1"]);
+    assert(count, "0");
+  });
 })
