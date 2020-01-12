@@ -154,6 +154,8 @@ export default interface Options {
    */
   gasLimit?: Quantity,
 
+  defaultTransactionGasLimit?:  Quantity,
+
   /**
    * 
    */
@@ -184,6 +186,7 @@ export const getDefault: (options: Options)=> Options = (options) => {
     allowUnlimitedContractSize: false,
     gasPrice: new Quantity(2000000000),
     gasLimit: new Quantity(6721975),
+    defaultTransactionGasLimit: new Quantity(90000),
     verbose: false,
     asyncRequestProcessing: true,
     hardfork: "petersburg",

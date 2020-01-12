@@ -19,6 +19,7 @@ const {name, version} = require("../../../package.json");
 //#region Constants
 const CLIENT_VERSION = `EthereumJS ${name}/v${version}/ethereum-js`
 const PROTOCOL_VERSION = Data.from("0x3f");
+const BUFFER_EMPTY = Buffer.allocUnsafe(0);
 const BUFFER_ZERO = Buffer.from([0]);
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
 //#endregion
@@ -327,14 +328,33 @@ export default class Ethereum extends BaseLedger {
   /**
    * Returns the information about a transaction requested by transaction hash.
    * 
-   * @param transasctionHash 32 Bytes - hash of a transaction
+   * @param transactionHash 32 Bytes - hash of a transaction
    */
-  async eth_getTransactionByHash(transasctionHash: IndexableData): Promise<Transaction> {
-    transasctionHash = Data.from(transasctionHash);
-
+  async eth_getTransactionByHash(transactionHash: string): Promise<Transaction> {
     const chain = this[_blockchain];
-    const transaction = await chain.transactions.get(transasctionHash);
+    const transaction = await chain.transactions.get(Data.from(transactionHash).toBuffer());
     return transaction;
+  }
+
+  /**
+   * Returns the receipt of a transaction by transaction hash.
+   *
+   * Note That the receipt is not available for pending transactions.
+   *
+   * @param transactionHash 32 Bytes - hash of a transaction
+   * @returns Returns the receipt of a transaction by transaction hash.
+   */
+  async eth_getTransactionReceipt(transactionHash: string): Promise<{}> {
+    const blockchain = this[_blockchain];
+    const transactionPromise = blockchain.transactions.get(transactionHash);
+    const receiptPromise = blockchain.transactionReceipts.get(transactionHash);
+    const blockPromise = transactionPromise.then(t => t ? blockchain.blocks.get(t._blockNum) : null);
+    const [transaction, receipt, block] = await Promise.all([transactionPromise, receiptPromise, blockPromise]);
+    if (receipt && block && transaction) {
+      return receipt.toJSON(block, transaction);
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -376,7 +396,7 @@ export default class Ethereum extends BaseLedger {
 
     const tx = Transaction.fromJSON(transaction, type);
     if (tx.gasLimit.length === 0) {
-      tx.gasLimit = Buffer.from("015f90", "hex");
+      tx.gasLimit = this[_options].defaultTransactionGasLimit.toBuffer();
     }
 
     if (tx.gasPrice.length === 0) {
@@ -388,7 +408,7 @@ export default class Ethereum extends BaseLedger {
     }
 
     if (tx.to.length === 0 || tx.to.equals(BUFFER_ZERO)) {
-      tx.to = Buffer.allocUnsafe(0);
+      tx.to = BUFFER_EMPTY;
     }
 
     if (isKnownAccount) {
@@ -415,16 +435,13 @@ export default class Ethereum extends BaseLedger {
 
   async eth_call(transaction: any, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Data> {
     const blocks = this[_blockchain].blocks;
-    const block = await blocks.get(blockNumber);
-    const blockCopy = blocks.createBlock(block.value.header);
-    const currentNumber = Quantity.from(blockCopy.value.header.number).toBigInt() || 0n;
-    let parentBlock: Block;
-    if (currentNumber > 0n) {
-      const previousBlockNumber = Quantity.from(currentNumber - 1n);
-      parentBlock = await blocks.get(previousBlockNumber.toBuffer());
-    } else {
-      parentBlock = blockCopy;
-    }
-    return this[_blockchain].simulateTransaction(transaction, parentBlock, blockCopy);
+    const parentBlock = await blocks.get(blockNumber);
+    const parentHeader = parentBlock.value.header;
+    const newBlock = blocks.createBlock({
+      number: parentHeader.number,
+      timestamp: parentHeader.timestamp,
+      parentHash: parentHeader.parentHash
+    });
+    return this[_blockchain].simulateTransaction(transaction, parentBlock, newBlock);
   }
 }

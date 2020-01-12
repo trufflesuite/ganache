@@ -13,8 +13,9 @@ import AccountManager from "./components/account-manager";
 import Heap from "../../utils/heap";
 import Transaction from "../../types/transaction";
 import Manager from "./components/manager";
-import Receipt from "../../types/receipt";
+import TransactionReceipt from "../../types/transaction-receipt";
 import {encode as rlpEncode} from "rlp";
+import Common from "ethereumjs-common";
 
 const VM = require("ethereumjs-vm").default;
 
@@ -40,7 +41,7 @@ export default class Blockchain extends Emittery {
   private state: Status = Status.starting;
   public blocks: BlockManager;
   public transactions: TransactionManager;
-  public transactionReceipts: Manager<Receipt>;
+  public transactionReceipts: Manager<TransactionReceipt>;
   public accounts: AccountManager;
   public vm: any;
   public trie: Trie;
@@ -70,7 +71,7 @@ export default class Blockchain extends Emittery {
 
       const miner = new Miner(this.vm, options);
       this.transactions = new TransactionManager(this, database.transactions, options);
-      this.transactionReceipts = new Manager<Receipt>(this, database.transactionReceipts, Receipt);
+      this.transactionReceipts = new Manager<TransactionReceipt>(this, database.transactionReceipts, TransactionReceipt);
       this.accounts = new AccountManager(this);
 
       await this._initializeAccounts(options.accounts);
@@ -125,12 +126,19 @@ export default class Blockchain extends Emittery {
         lastBlock = this.database.batch(() => {
           blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
             const hash = tx.hash();
-            const encoded = rlpEncode([...tx.raw, Quantity.from(i).toBuffer()]);
-            this.transactions.set(hash, encoded);
+            // todo: clean up transction extra data stuffs because this is gross:
+            const extraData = [
+              ...tx.raw,
+              block.value.hash(),
+              block.value.header.number,
+              Quantity.from(i).toBuffer()
+            ];
+            const encodedTx = rlpEncode(extraData);
+            this.transactions.set(hash, encodedTx);
 
             const receipt = tx.getReceipt();
-            const r = receipt.serialize(block, tx);
-            this.transactionReceipts.set(hash, r);
+            const encodedReceipt = receipt.serialize(true);
+            this.transactionReceipts.set(hash, encodedReceipt);
           });
           block.value.transactions = blockData.blockTransactions;
           this.blocks.putBlock(block);
@@ -145,10 +153,21 @@ export default class Blockchain extends Emittery {
   }
 
   private createVmFromStateTrie(stateTrie: Trie, hardfork: string, allowUnlimitedContractSize: boolean): any {
+    const common = Common.forCustomChain(
+      "mainnet", // TODO needs to match chain id
+      {
+        name: "ganache",
+        networkId: 1,
+        chainId: 1,
+        comment: "Local test network",
+        bootstrapNodes: []
+      },
+      hardfork
+    );
     const vm = new VM({
       state: stateTrie,
       activatePrecompiles: true,
-      hardfork,
+      common,
       allowUnlimitedContractSize,
       blockchain: {
         getBlock: async (number: BN, done: any) => {
@@ -216,11 +235,12 @@ export default class Blockchain extends Emittery {
     // TODO: this is just a prototype implementation
     const vm = this.vm.copy();
     const stateManager = vm.stateManager;
-    await promisify(stateManager.setStateRoot.bind(stateManager))(parentBlock.value.header.stateRoot);
-    transaction.block = block;
+    const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(parentBlock.value.header.stateRoot);
+    transaction.block = block.value;
     transaction.caller = transaction.from;
+    await settingStateRootProm;
     const result = await vm.runCall(transaction);
-    return result.execResult.returnValue || "0x";
+    return Data.from(result.execResult.returnValue || "0x");
   }
 
   /**

@@ -8,7 +8,7 @@ import assert from "assert";
 import {decode as rlpDecode} from "rlp";
 import { RunTxResult } from "ethereumjs-vm/dist/runTx";
 import { Block } from "../ledgers/ethereum/components/block-manager";
-import Receipt from "./receipt";
+import TransactionReceipt from "./transaction-receipt";
 
 const MAX_UINT64 = (1n << 64n) - 1n;
 const ZERO_BUFFER = Buffer.from([0]);
@@ -125,11 +125,13 @@ function initData(tx: any, data: any) {
     }
     const self = tx;
     if (Array.isArray(data)) {
-      // add in our hacked-in `_index` property
+      // add in our hacked-in properties
       // which is the index in the block the transaciton
       // was mined in
-      if (data.length > tx._fields.length){
+      if (data.length === tx._fields.length + 3){
         tx._index = data.pop();
+        tx._blockNum = data.pop();
+        tx._blockHash = data.pop();
       }
       if (data.length > tx._fields.length) {
         throw new Error("wrong number of fields in data");
@@ -349,24 +351,13 @@ class Transaction extends (EthereumJsTransaction as any) {
    *
    * @param {Object} block The block this Transaction appears in.
    */
-  toJSON(block: Block) {
-    const blockValue = block.value;
-    const hash = this.hash();
-
-    let transactionIndex = null;
-    for (let i = 0, txns = blockValue.transactions, l = txns.length; i < l; i++) {
-      if (txns[i].hash().equals(hash)) {
-        transactionIndex = i;
-        break;
-      }
-    }
-
-    const resultJSON = {
-      hash: Data.from(hash),
+  toJSON(block?: Block) {
+    return {
+      hash: Data.from(this.hash()),
       nonce: Quantity.from(this.nonce),
-      blockHash: Data.from(block.value.hash()),
-      blockNumber: Data.from(block.value.header.number),
-      transactionIndex: Quantity.from(BigInt(transactionIndex)),
+      blockHash: Data.from(block ? block.value.hash() : this._blockHash),
+      blockNumber: Data.from(block ? block.value.header.number : this._blockNum),
+      transactionIndex: Quantity.from(this._index),
       from: Data.from(this.from),
       to: Data.from(this.to),
       value: Quantity.from(this.value),
@@ -377,8 +368,6 @@ class Transaction extends (EthereumJsTransaction as any) {
       r: Quantity.from(this.r),
       s: Quantity.from(this.s)
     };
-
-    return resultJSON;
   }
 
   initializeReceipt = (result: RunTxResult) => {
@@ -388,7 +377,7 @@ class Transaction extends (EthereumJsTransaction as any) {
     const logsBloom = result.bloom.bitvector;
     const logs = vmResult.logs || [];
 
-    this._receipt = Receipt.fromValues(
+    this._receipt = TransactionReceipt.fromValues(
       status,
       gasUsed,
       logsBloom,
@@ -399,7 +388,6 @@ class Transaction extends (EthereumJsTransaction as any) {
     // returns RLP encoded data for use in a transaction trie
     return this._receipt.serialize(false);
   }
-
 
   getReceipt = () => {
     return this._receipt;
