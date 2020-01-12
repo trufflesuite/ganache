@@ -272,6 +272,59 @@ export default class Ethereum extends BaseLedger {
   }
 
   /**
+   * Returns the value from a storage position at a given address.
+   * @param data 20 Bytes - address of the storage.
+   * @param quantity integer of the position in the storage.
+   * @param blockNumber integer block number, or the string "latest", "earliest"
+   *  or "pending", see the default block parameter
+   */
+  async eth_getStorageAt(
+    address: IndexableAddress,
+    position: bigint,
+    blockNumber: Buffer | Tag = Tag.LATEST
+  ): Promise<Data> {
+    const blockProm = this[_blockchain].blocks.getRaw(blockNumber);
+
+    const trie = this[_blockchain].trie.copy();
+    const getFromTrie = (address: Buffer): Promise<Buffer> => new Promise((resolve, reject) => {
+      trie.get(address, (err, data) => {
+        if(err) return reject(err);
+        resolve(data);
+      });
+    });
+    const block = await blockProm;
+    if (!block) return Data.from("0x");
+
+    const blockData = rlpDecode(block) as any as [[Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */, Buffer[], Buffer[]];
+    const headerData = blockData[0];
+    const blockStateRoot = headerData[3];
+    trie.root = blockStateRoot;
+
+    const addressDataPromise = getFromTrie(Address.from(address).toBuffer());
+
+    const posBuff = Quantity.from(position).toBuffer();
+    // if the provided `position` is > 32 bytes it's invalid.
+    // TODO: should we ignore or just return an RPC exception of some sort?
+    const length = posBuff.length;
+    if (length > 32) return Data.from("0x");
+    let paddedPosBuff: Buffer;
+    if (length !== 32) {
+      // storage locations are 32 byte wide Buffers, so we need to
+      // expand any value given to at least 32 bytes
+      paddedPosBuff = Buffer.alloc(32);
+      posBuff.copy(paddedPosBuff, 32 - length);
+    } else {
+      paddedPosBuff = posBuff;
+    }
+
+    const addressData = await addressDataPromise;
+    // An address's stateRoot is stored in the 3rd rlp entry
+    trie.root = (rlpDecode(addressData) as any as [Buffer /*nonce*/, Buffer /*amount*/, Buffer /*stateRoot*/, Buffer /*codeHash*/])[2];
+    const value = await getFromTrie(paddedPosBuff);
+    return Data.from(value);
+  }
+
+  /**
    * Returns the information about a transaction requested by transaction hash.
    * 
    * @param transasctionHash 32 Bytes - hash of a transaction
