@@ -133,4 +133,30 @@ describe("ledger", () => {
     const count = await provider.send("eth_getUncleCountByBlockNumber", ["0x1"]);
     assert(count, "0");
   });
+
+  it("eth_getTransactionReceipt", async() => {
+    const hash = await provider.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: accounts[1],
+      value: 1
+    }]);
+    // TODO: remove and replace with something that detects with the block is "mined"
+    await sleep();
+
+    const receipt = await provider.send("eth_getTransactionReceipt", [hash]);
+    assert(receipt.transactionIndex, "0x0");
+  });
+
+  it("eth_getTransactionByHash", async() => {
+    const hash = await provider.send("eth_sendTransaction", [{
+      from: accounts[0],
+      to: accounts[1],
+      value: 1
+    }]);
+    // TODO: remove and replace with something that detects with the block is "mined"
+    await sleep();
+
+    const tx = await provider.send("eth_getTransactionByHash", [hash]);
+    assert(tx.transactionIndex, "0x0");
+  });
 })

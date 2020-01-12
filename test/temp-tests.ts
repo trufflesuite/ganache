@@ -1,5 +1,6 @@
 import Ganache from "../index"
 import assert from "assert";
+import { Quantity } from "../src/types/json-rpc";
 const solc = require("solc");
 
 function compileSolidity(source: string) {
@@ -150,9 +151,11 @@ describe("Accounts", () => {
     assert.strictEqual(BigInt(balance0_1) + 123n, BigInt(balance0_2));
   });
 
-  it.skip("deploys contracts", async () => {
-    const contract = await compileSolidity("pragma solidity ^0.5.0; contract Example { event Event(); constructor() public { emit Event(); } }");
-    const p = Ganache.provider();
+  it("deploys contracts", async () => {
+    const contract = await compileSolidity("pragma solidity ^0.6.1; contract Example { uint public value; event Event(); constructor() public { value = 5; emit Event(); } function getVal() public pure returns (uint8) { return 123; } }");
+    const p = Ganache.provider({
+      defaultTransactionGasLimit: Quantity.from(6721975)
+    });
     const accounts = await p.send("eth_accounts");
     const transactionHash = await p.send("eth_sendTransaction", [
       {
@@ -160,9 +163,31 @@ describe("Accounts", () => {
         data: contract.code
       }
     ]);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const result = await p.send("eth_getTransactionByHash", [transactionHash]);
-    console.log(result);
+
+    // TODO: we need events so badly!
+    let result = null;
+    while (!result) {
+      result = await p.send("eth_getTransactionReceipt", [transactionHash]);
+    }
+
+    assert.strictEqual(result.blockNumber, "0x1");
+
+    const hash = await p.send("eth_sendTransaction", [{
+      from: accounts[1],
+      to: accounts[2],
+      value: 1
+    }]);
+    let result2 = null;
+    while (!result2) {
+      result2 = await p.send("eth_getTransactionReceipt", [hash]);
+    }
+
+    const ret = await p.send("eth_call", [{from: accounts[3], to: result.contractAddress, gasLimit: 6721975, data: "0xe1cb0e52"}]);
+
+    assert.strictEqual(ret, "0x000000000000000000000000000000000000000000000000000000000000007b");
+
+    const storage = await p.send("eth_getStorageAt", [result.contractAddress, 0, "0x2"]);
+    assert.strictEqual(storage, "0x05");
   });
 
   it("runs eth_call", async () => {
@@ -174,19 +199,4 @@ describe("Accounts", () => {
     const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
     assert(true);
   });
-
-  it.skip("eth_getStorageAt", async () => {
-    const p = Ganache.provider();
-    const accounts = await p.send("eth_accounts");
-    await p.send("eth_sendTransaction", [{
-      from: accounts[0],
-      to: accounts[1],
-      value: 1
-    }]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    const storage = await p.send("eth_getStorageAt", [accounts[0], 0]);
-    console.log(storage)
-  })
 });
