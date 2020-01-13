@@ -61,7 +61,7 @@ describe("Accounts", () => {
 
     const balance1_2 = await p.send("eth_getBalance", [accounts[1]]);
     assert.strictEqual(parseInt(balance1_1) + 1, parseInt(balance1_2));
-  });
+  }).timeout(5000);
 
   it("should create its own mnemonic", async() => {
     const p = Ganache.provider();
@@ -149,7 +149,7 @@ describe("Accounts", () => {
 
     const balance0_2 = await p.send("eth_getBalance", [accounts[0]]);
     assert.strictEqual(BigInt(balance0_1) + 123n, BigInt(balance0_2));
-  });
+  }).timeout(12000);
 
   it("deploys contracts", async () => {
     const contract = await compileSolidity("pragma solidity ^0.6.1; contract Example { uint public value; event Event(); constructor() public { value = 5; emit Event(); } function getVal() public pure returns (uint8) { return 123; } }");
