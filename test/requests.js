@@ -90,7 +90,7 @@ const tests = function(web3) {
   });
 
   describe("eth_chainId", function() {
-    it("should return a default chain id of a private network", async function() {
+    it("should return a default chain id", async function() {
       const send = pify(web3._provider.send.bind(web3._provider));
 
       const result = await send({
@@ -100,7 +100,9 @@ const tests = function(web3) {
         params: []
       });
 
-      assert.strictEqual(result.result, "0x539"); // 0x539 === 1337
+      // For legacy reasons, we return 1337 regardless of the actual chain id
+      // next major release this will be fixed.
+      assert.strictEqual(result.result, "0x539");
     });
   });
 
@@ -959,7 +961,7 @@ const tests = function(web3) {
       const startingBlockNumber = await web3.eth.getBlockNumber();
 
       const gasEstimate = await web3.eth.estimateGas(txData);
-      assert.strictEqual(gasEstimate, 27795);
+      assert.strictEqual(gasEstimate, 27535);
 
       const blockNumber = await web3.eth.getBlockNumber();
 
@@ -976,7 +978,7 @@ const tests = function(web3) {
       txData.from = "0x1234567890123456789012345678901234567890";
 
       const result = await web3.eth.estimateGas(txData);
-      assert.strictEqual(result, 27795);
+      assert.strictEqual(result, 27535);
     });
 
     it("should estimate gas when no account is listed (eth_estimateGas)", async function() {
@@ -985,7 +987,7 @@ const tests = function(web3) {
       delete txData.from;
 
       const result = await web3.eth.estimateGas(txData);
-      assert.strictEqual(result, 27795);
+      assert.strictEqual(result, 27535);
     });
 
     it("should send a state changing transaction (eth_sendTransaction)", async function() {
@@ -1149,6 +1151,21 @@ const tests = function(web3) {
       const nonExistentBlock = (await web3.eth.getBlockNumber()) + 1;
       const result = await web3.eth.call(callData, nonExistentBlock);
       assert.strictEqual(result, null, "Result should be null");
+    });
+
+    it("should not error when using an invalid nonce (eth_call/eth_estimateGas)", async function() {
+      const callData = {
+        nonce: 999999,
+        from: accounts[0],
+        to: accounts[1],
+        value: 1
+      };
+
+      const pendingCall = web3.eth.call(callData);
+      await assert.doesNotReject(pendingCall);
+
+      const pendingEstimate = web3.eth.estimateGas(callData);
+      await assert.doesNotReject(pendingEstimate);
     });
 
     it("should only accept unsigned transaction from known accounts eth_sendTransaction)", async function() {
