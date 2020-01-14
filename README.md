@@ -190,7 +190,7 @@ Special non-standard methods that aren’t included within the original RPC spec
   ```json
   { "id": 1337, "jsonrpc": "2.0", "result": "060" }
   ```
-* `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block independent of whether or not mining is started or stopped.
+* `evm_mine` : Force a block to be mined (independent of mining status: started | stopped). Takes one **optional** parameter, which is the timestamp a block should setup as the mining time. NOTE: block timestamps should be truncated to `seconds` and **not** `milliseconds` precision.
   ```bash
   # Ex: new Date("2009-01-03T18:15:05+00:00").getTime()
   curl -H "Content-Type: application/json" -X POST --data \
