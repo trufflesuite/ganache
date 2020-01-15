@@ -23,8 +23,6 @@ before_install:
       export LINK="gcc-5";
       export LINKXX="g++-5";
     fi
-  - node --version
-  - npm --version
 
 after_success:
   npm run coverage
