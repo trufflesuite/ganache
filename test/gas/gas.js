@@ -61,7 +61,7 @@ describe("Gas", function() {
           const sendContract = Object.assign({ contractFiles: ["SendContract"] }, subDirectory);
           const nonZero = Object.assign({ contractFiles: ["NonZero"] }, subDirectory);
 
-          const ganacheProviderOptions = { seed, hardfork };
+          const ganacheProviderOptions = { seed, hardfork, db: memdown() };
 
           ContractFactory = await bootstrap(factory, ganacheProviderOptions, hardfork);
           TestDepth = await bootstrap(testDepth, ganacheProviderOptions, hardfork);
