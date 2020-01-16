@@ -8,6 +8,7 @@ os:
   - linux
   - osx
   - windows
+osx_image: xcode9.2
 git:
   autocrlf: false
 
