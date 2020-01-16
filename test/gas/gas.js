@@ -61,7 +61,7 @@ describe("Gas", function() {
           const sendContract = Object.assign({ contractFiles: ["SendContract"] }, subDirectory);
           const nonZero = Object.assign({ contractFiles: ["NonZero"] }, subDirectory);
 
-          const getOpts = () => Object.assign({ db: memdown() }, { seed, hardfork, db: memdown() });
+          const getOpts = () => Object.assign({ db: memdown() }, { seed, hardfork });
 
           ContractFactory = await bootstrap(factory, getOpts(), hardfork);
           TestDepth = await bootstrap(testDepth, getOpts(), hardfork);
