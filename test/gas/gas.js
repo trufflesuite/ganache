@@ -615,8 +615,6 @@ describe("Gas", function() {
 
           // prime storage by making sure it is set to 0
           await instance.methods.reset().send({ from: accounts[0], gas: 5000000 });
-          const method = instance.methods.triggerAllRefunds();
-          const gasEstimate = await method.estimateGas({ from: accounts[0] });
 
           const hashes = await Promise.all(
             transactions.map((transaction) => {
@@ -635,6 +633,9 @@ describe("Gas", function() {
 
           const currentBlockNumber = await web3.eth.getBlockNumber();
           assert.deepStrictEqual(currentBlockNumber, 2, "Current Block Should be 2");
+
+          const method = instance.methods.triggerAllRefunds();
+          const gasEstimate = await method.estimateGas({ from: accounts[0] });
 
           const { gasUsed } = await method.send({ from: accounts[0], gas: gasEstimate });
 
