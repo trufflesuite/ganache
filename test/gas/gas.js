@@ -717,7 +717,7 @@ describe("Gas", function() {
             currentBlock.gasUsed,
             "Total Gas should be equal to the currentBlock.gasUsed"
           );
-        }).timeout(4000);
+        }).timeout(10000);
 
         it("clears mapping storage slots", async function() {
           const { accounts, instance } = context;
