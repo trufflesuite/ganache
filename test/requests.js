@@ -780,6 +780,24 @@ const tests = function(web3) {
       const balanceEnd = new BN(await web3.eth.getBalance(accounts[5]));
       assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
     });
+
+    it("should succeed with wrong v value (temp until next breaking change)", async function() {
+      const transaction = new Transaction({
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[7],
+        to: accounts[8],
+        nonce: "0x4",
+        chainId: 123456789
+      });
+
+      const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
+      transaction.sign(secretKeyBuffer);
+
+      await assert.doesNotReject(web3.eth.sendSignedTransaction(transaction.serialize()));
+
+      assert(require("../package.json").version.startsWith("2."), "Version 3 should change this so the test fails!");
+    });
   });
 
   describe("eth_newFilter", function() {
