@@ -1,6 +1,5 @@
 const memdown = require("memdown");
 const assert = require("assert");
-const sleep = require("../helpers/utils/sleep");
 const bootstrap = require("../helpers/contract/bootstrap");
 const confirmGasPrice = require("./lib/confirmGasPrice");
 const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
@@ -823,7 +822,8 @@ describe("Gas", function() {
             blockTime: 0.5, // seconds
             seed
           };
-          const { accounts, web3 } = await initializeTestProvider(options);
+          const { send, accounts, web3 } = await initializeTestProvider(options);
+          await send("miner_stop");
 
           const transactions = [
             {
@@ -869,15 +869,15 @@ describe("Gas", function() {
             })
           );
 
-          // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
-          await sleep(750);
+          await send("evm_mine");
 
           const currentBlockNumber = await web3.eth.getBlockNumber();
           assert.deepStrictEqual(currentBlockNumber, 1, "Current Block Should be 1");
 
-          const currentBlock = await web3.eth.getBlock(currentBlockNumber);
-
-          const receipt = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
+          const [currentBlock, receipt] = await Promise.all([
+            web3.eth.getBlock(currentBlockNumber),
+            Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)))
+          ]);
 
           assert.deepStrictEqual(receipt[0].gasUsed, receipt[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
           assert.deepStrictEqual(

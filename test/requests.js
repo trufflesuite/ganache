@@ -1363,7 +1363,7 @@ const tests = function(web3) {
       });
 
       assert.strictEqual(result.result.nonce, "0x0");
-    });
+    }).timeout(4000);
 
     it("should return nonce as a number when requested via web3 method", async function() {
       let txHash = await web3.eth.sendTransaction({
