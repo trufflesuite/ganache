@@ -1,4 +1,3 @@
-const memdown = require("memdown");
 const assert = require("assert");
 const bootstrap = require("../helpers/contract/bootstrap");
 const confirmGasPrice = require("./lib/confirmGasPrice");
@@ -33,8 +32,7 @@ describe("Gas", function() {
 
         const ganacheProviderOptions = {
           seed,
-          hardfork,
-          db: memdown() // make things faster
+          hardfork
         };
 
         context = await bootstrap(contractRef, ganacheProviderOptions, hardfork);
@@ -61,13 +59,16 @@ describe("Gas", function() {
           const sendContract = Object.assign({ contractFiles: ["SendContract"] }, subDirectory);
           const nonZero = Object.assign({ contractFiles: ["NonZero"] }, subDirectory);
 
-          const getOpts = () => Object.assign({ db: memdown() }, { seed, hardfork });
+          const ganacheProviderOptions = {
+            seed,
+            hardfork
+          };
 
-          ContractFactory = await bootstrap(factory, getOpts(), hardfork);
-          TestDepth = await bootstrap(testDepth, getOpts(), hardfork);
-          Donation = await bootstrap(donation, getOpts(), hardfork);
-          Fib = await bootstrap(fib, getOpts(), hardfork);
-          NonZero = await bootstrap(nonZero, getOpts(), hardfork);
+          ContractFactory = await bootstrap(factory, ganacheProviderOptions, hardfork);
+          TestDepth = await bootstrap(testDepth, ganacheProviderOptions, hardfork);
+          Donation = await bootstrap(donation, ganacheProviderOptions, hardfork);
+          Fib = await bootstrap(fib, ganacheProviderOptions, hardfork);
+          NonZero = await bootstrap(nonZero, ganacheProviderOptions, hardfork);
           SendContract = await bootstrap(
             sendContract,
             Object.assign(
@@ -79,12 +80,12 @@ describe("Gas", function() {
                   }
                 ]
               },
-              getOpts()
+              ganacheProviderOptions
             ),
             hardfork
           );
           if (hardfork !== "byzantium") {
-            Create2 = await bootstrap(create2, getOpts(), hardfork);
+            Create2 = await bootstrap(create2, ganacheProviderOptions, hardfork);
           }
         });
 

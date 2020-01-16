@@ -5,7 +5,6 @@ const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 const { compile } = require("./helpers/contract/compileAndDeploy");
 const generateRandomInteger = require("./helpers/utils/generateRandomInteger");
 const seed = generateRandomInteger(1000000);
-const memdown = require("memdown");
 
 describe("Interval Mining", function() {
   let firstAddress;
@@ -15,10 +14,7 @@ describe("Interval Mining", function() {
     before("Setting up provider and web3 instance", async function() {
       context = await initializeTestProvider({
         blockTime: 0.5, // seconds
-        seed,
-        // speed things up since travis has problems with
-        // this test because of disk IO being slow at times.
-        db: memdown()
+        seed
       });
       firstAddress = context.accounts[0];
     });
