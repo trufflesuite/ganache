@@ -5,9 +5,9 @@ node_js:
   - "10"
   - "12"
 os:
-  - windows
   - linux
   - osx
+  - windows
 git:
   autocrlf: false
 
