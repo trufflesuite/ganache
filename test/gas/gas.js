@@ -717,7 +717,7 @@ describe("Gas", function() {
             currentBlock.gasUsed,
             "Total Gas should be equal to the currentBlock.gasUsed"
           );
-        });
+        }).timeout(4000);
 
         it("clears mapping storage slots", async function() {
           const { accounts, instance } = context;
@@ -741,7 +741,7 @@ describe("Gas", function() {
           const uintsc = await instance.methods.uints(1).call();
           assert.strictEqual(uintsc, "0", "cleared value is not correct");
         });
-      });
+      }).timeout(4000);
 
       describe("Estimation", function() {
         it("matches estimate for deployment", async function() {
@@ -752,7 +752,7 @@ describe("Gas", function() {
 
           assert.deepStrictEqual(receipt.gasUsed, gasEstimate);
           assert.deepStrictEqual(receipt.cumulativeGasUsed, gasEstimate);
-        });
+        }).timeout(4000);
 
         it("matches usage for complex function call (add)", async function() {
           const { accounts, instance } = context;
