@@ -8,6 +8,8 @@ os:
   - windows
   - linux
   - osx
+git:
+  autocrlf: false
 
 addons:
   apt:
@@ -24,7 +26,6 @@ before_install:
       export LINK="gcc-5";
       export LINKXX="g++-5";
     fi
-  - git config --global core.autocrlf false
 
 after_success:
   npm run coverage
