@@ -1,3 +1,4 @@
+const memdown = require("memdown");
 const assert = require("assert");
 const sleep = require("../helpers/utils/sleep");
 const bootstrap = require("../helpers/contract/bootstrap");
@@ -33,7 +34,8 @@ describe("Gas", function() {
 
         const ganacheProviderOptions = {
           seed,
-          hardfork
+          hardfork,
+          db: memdown() // make things faster
         };
 
         context = await bootstrap(contractRef, ganacheProviderOptions, hardfork);
@@ -925,7 +927,7 @@ describe("Gas", function() {
             currentBlock.gasUsed,
             "Total Gas should be equal to the currentBlock.gasUsed"
           );
-        });
+        }).timeout(4000);
       });
     });
   });
