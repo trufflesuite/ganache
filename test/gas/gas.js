@@ -61,13 +61,13 @@ describe("Gas", function() {
           const sendContract = Object.assign({ contractFiles: ["SendContract"] }, subDirectory);
           const nonZero = Object.assign({ contractFiles: ["NonZero"] }, subDirectory);
 
-          const ganacheProviderOptions = { seed, hardfork, db: memdown() };
+          const getOpts = () => Object.assign({ db: memdown() }, { seed, hardfork, db: memdown() });
 
-          ContractFactory = await bootstrap(factory, ganacheProviderOptions, hardfork);
-          TestDepth = await bootstrap(testDepth, ganacheProviderOptions, hardfork);
-          Donation = await bootstrap(donation, ganacheProviderOptions, hardfork);
-          Fib = await bootstrap(fib, ganacheProviderOptions, hardfork);
-          NonZero = await bootstrap(nonZero, ganacheProviderOptions, hardfork);
+          ContractFactory = await bootstrap(factory, getOpts(), hardfork);
+          TestDepth = await bootstrap(testDepth, getOpts(), hardfork);
+          Donation = await bootstrap(donation, getOpts(), hardfork);
+          Fib = await bootstrap(fib, getOpts(), hardfork);
+          NonZero = await bootstrap(nonZero, getOpts(), hardfork);
           SendContract = await bootstrap(
             sendContract,
             Object.assign(
@@ -79,12 +79,12 @@ describe("Gas", function() {
                   }
                 ]
               },
-              ganacheProviderOptions
+              getOpts()
             ),
             hardfork
           );
           if (hardfork !== "byzantium") {
-            Create2 = await bootstrap(create2, ganacheProviderOptions, hardfork);
+            Create2 = await bootstrap(create2, getOpts(), hardfork);
           }
         });
 
