@@ -1,5 +1,4 @@
 const assert = require("assert");
-const sleep = require("../helpers/utils/sleep");
 const bootstrap = require("../helpers/contract/bootstrap");
 const confirmGasPrice = require("./lib/confirmGasPrice");
 const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
@@ -60,7 +59,10 @@ describe("Gas", function() {
           const sendContract = Object.assign({ contractFiles: ["SendContract"] }, subDirectory);
           const nonZero = Object.assign({ contractFiles: ["NonZero"] }, subDirectory);
 
-          const ganacheProviderOptions = { seed, hardfork };
+          const ganacheProviderOptions = {
+            seed,
+            hardfork
+          };
 
           ContractFactory = await bootstrap(factory, ganacheProviderOptions, hardfork);
           TestDepth = await bootstrap(testDepth, ganacheProviderOptions, hardfork);
@@ -615,8 +617,6 @@ describe("Gas", function() {
 
           // prime storage by making sure it is set to 0
           await instance.methods.reset().send({ from: accounts[0], gas: 5000000 });
-          const method = instance.methods.triggerAllRefunds();
-          const gasEstimate = await method.estimateGas({ from: accounts[0] });
 
           const hashes = await Promise.all(
             transactions.map((transaction) => {
@@ -635,6 +635,9 @@ describe("Gas", function() {
 
           const currentBlockNumber = await web3.eth.getBlockNumber();
           assert.deepStrictEqual(currentBlockNumber, 2, "Current Block Should be 2");
+
+          const method = instance.methods.triggerAllRefunds();
+          const gasEstimate = await method.estimateGas({ from: accounts[0] });
 
           const { gasUsed } = await method.send({ from: accounts[0], gas: gasEstimate });
 
@@ -716,7 +719,7 @@ describe("Gas", function() {
             currentBlock.gasUsed,
             "Total Gas should be equal to the currentBlock.gasUsed"
           );
-        });
+        }).timeout(10000);
 
         it("clears mapping storage slots", async function() {
           const { accounts, instance } = context;
@@ -740,7 +743,7 @@ describe("Gas", function() {
           const uintsc = await instance.methods.uints(1).call();
           assert.strictEqual(uintsc, "0", "cleared value is not correct");
         });
-      });
+      }).timeout(4000);
 
       describe("Estimation", function() {
         it("matches estimate for deployment", async function() {
@@ -751,7 +754,7 @@ describe("Gas", function() {
 
           assert.deepStrictEqual(receipt.gasUsed, gasEstimate);
           assert.deepStrictEqual(receipt.cumulativeGasUsed, gasEstimate);
-        });
+        }).timeout(4000);
 
         it("matches usage for complex function call (add)", async function() {
           const { accounts, instance } = context;
@@ -820,7 +823,8 @@ describe("Gas", function() {
             blockTime: 0.5, // seconds
             seed
           };
-          const { accounts, web3 } = await initializeTestProvider(options);
+          const { send, accounts, web3 } = await initializeTestProvider(options);
+          await send("miner_stop");
 
           const transactions = [
             {
@@ -866,15 +870,15 @@ describe("Gas", function() {
             })
           );
 
-          // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
-          await sleep(750);
+          await send("evm_mine");
 
           const currentBlockNumber = await web3.eth.getBlockNumber();
           assert.deepStrictEqual(currentBlockNumber, 1, "Current Block Should be 1");
 
-          const currentBlock = await web3.eth.getBlock(currentBlockNumber);
-
-          const receipt = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
+          const [currentBlock, receipt] = await Promise.all([
+            web3.eth.getBlock(currentBlockNumber),
+            Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)))
+          ]);
 
           assert.deepStrictEqual(receipt[0].gasUsed, receipt[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
           assert.deepStrictEqual(
@@ -924,7 +928,7 @@ describe("Gas", function() {
             currentBlock.gasUsed,
             "Total Gas should be equal to the currentBlock.gasUsed"
           );
-        });
+        }).timeout(4000);
       });
     });
   });

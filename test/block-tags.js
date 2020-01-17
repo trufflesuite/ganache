@@ -17,6 +17,10 @@ describe("Block Tags", function() {
     context = await initializeTestProvider(options);
   });
 
+  before("Stop automatic miner", async function() {
+    await context.send("miner_stop");
+  });
+
   before("Get initial balance, nonce and block number", async function() {
     const { accounts, web3 } = context;
 
@@ -38,11 +42,15 @@ describe("Block Tags", function() {
   before("Make a transaction that changes the balance, code and nonce", async function() {
     const { accounts, web3 } = context;
     const { result } = compile("./test/contracts/examples/", "Example");
-    const { contractAddress } = await web3.eth.sendTransaction({
+    const contractPromise = web3.eth.sendTransaction({
       from: accounts[0],
       data: "0x" + result.contracts["Example.sol"].Example.evm.bytecode.object,
       gas: 3141592
     });
+    contractPromise.on("transactionHash", () => {
+      context.send("evm_mine", 1);
+    });
+    const { contractAddress } = await contractPromise;
 
     initialState.contractAddress = contractAddress;
   });
