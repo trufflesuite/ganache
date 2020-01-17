@@ -1,8 +1,18 @@
+version: ~> 1.0
 language: node_js
 node_js:
   - "8"
   - "10"
   - "12"
+os:
+  - linux
+  - osx
+  - windows
+# using xcode9.2 forces osx 10.12, which is WAAAYYYYYY faster than 10.13
+# in fact, we couldn't get osx 10.13 to ever finish the running the tests
+osx_image: xcode9.2
+git:
+  autocrlf: false
 
 addons:
   apt:
@@ -19,11 +29,6 @@ before_install:
       export LINK="gcc-5";
       export LINKXX="g++-5";
     fi
-  - nvm --version
-  - node --version
-  - npm --version
-  - gcc --version
-  - g++ --version
 
 after_success:
   npm run coverage
