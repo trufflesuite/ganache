@@ -10,7 +10,7 @@
     "lib": "./lib"
   },
   "scripts": {
-    "_mocha": "mocha --timeout 60000 --check-leaks --recursive --globals _scratch --opts ./test/.mocharc",
+    "_mocha": "mocha --check-leaks --recursive --globals _scratch --opts ./test/.mocharc",
     "nyc_mocha": "nyc npm run _mocha",
     "_lint": "eslint --ignore-path .gitignore .",
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",

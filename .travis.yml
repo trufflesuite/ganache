@@ -8,6 +8,8 @@ os:
   - linux
   - osx
   - windows
+# using xcode9.2 forces osx 10.12, which is WAAAYYYYYY faster than 10.13
+# in fact, we couldn't get osx 10.13 to ever finish the running the tests
 osx_image: xcode9.2
 git:
   autocrlf: false
