@@ -1,3 +1,4 @@
+const memdown = require("memdown");
 const assert = require("assert");
 const bootstrap = require("../helpers/contract/bootstrap");
 const confirmGasPrice = require("./lib/confirmGasPrice");
@@ -65,7 +66,8 @@ describe("Gas", function() {
           };
 
           ContractFactory = await bootstrap(factory, ganacheProviderOptions, hardfork);
-          TestDepth = await bootstrap(testDepth, ganacheProviderOptions, hardfork);
+          // memdown makes the test that uses TestDepth about 20% faster, so we use it here because CI makes us sad.
+          TestDepth = await bootstrap(testDepth, Object.assign({ db: memdown() }, ganacheProviderOptions), hardfork);
           Donation = await bootstrap(donation, ganacheProviderOptions, hardfork);
           Fib = await bootstrap(fib, ganacheProviderOptions, hardfork);
           NonZero = await bootstrap(nonZero, ganacheProviderOptions, hardfork);
@@ -169,7 +171,7 @@ describe("Gas", function() {
         if (hardfork !== "byzantium") {
           it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async() => {
             const { accounts, instance } = TestDepth;
-            const depth = 10;
+            const depth = 3;
             const promises = Array(depth)
               .fill(0)
               .map((_, i) => {
@@ -200,7 +202,7 @@ describe("Gas", function() {
                   });
               });
             await Promise.all(promises);
-          }).timeout(5000);
+          }).timeout(3000);
 
           it("Should estimate gas perfectly with EIP150 - CREATE2", async() => {
             const { accounts, instance, web3 } = Create2;
@@ -574,15 +576,13 @@ describe("Gas", function() {
           assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
         });
 
-        // Unskip this test once byzantium passes
         it("account Rsclear/Rselfdestruct/Refunds in gasEstimate w/many transactions in a block", async function() {
           const { abi, bytecode, provider } = context;
           const options = {
-            blockTime: 0.5, // seconds
             seed,
             hardfork
           };
-          const { accounts, web3 } = await initializeTestProvider(options);
+          const { send, accounts, web3 } = await initializeTestProvider(options);
 
           const transactions = [
             {
@@ -617,7 +617,7 @@ describe("Gas", function() {
 
           // prime storage by making sure it is set to 0
           await instance.methods.reset().send({ from: accounts[0], gas: 5000000 });
-
+          await send("miner_stop");
           const hashes = await Promise.all(
             transactions.map((transaction) => {
               const promiEvent = web3.eth.sendTransaction(transaction);
@@ -638,8 +638,16 @@ describe("Gas", function() {
 
           const method = instance.methods.triggerAllRefunds();
           const gasEstimate = await method.estimateGas({ from: accounts[0] });
-
-          const { gasUsed } = await method.send({ from: accounts[0], gas: gasEstimate });
+          const prom = method.send({ from: accounts[0], gas: gasEstimate });
+          await new Promise((resolve) => {
+            prom.once("transactionHash", resolve);
+          });
+          await send("evm_mine");
+          // web3 doesn't subscribe fast enough to newHeads after issuing the previous send
+          // we we mine another block to give it an additional newHeads notification. /shrug
+          await send("evm_mine");
+          const rec = await prom;
+          const { gasUsed } = rec;
 
           let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
           switch (provider.options.hardfork) {
@@ -719,7 +727,7 @@ describe("Gas", function() {
             currentBlock.gasUsed,
             "Total Gas should be equal to the currentBlock.gasUsed"
           );
-        }).timeout(10000);
+        });
 
         it("clears mapping storage slots", async function() {
           const { accounts, instance } = context;
