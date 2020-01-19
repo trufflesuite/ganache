@@ -62,8 +62,7 @@ contract EstimateGas {
         tests[pos].name = _name;
         tests[pos].description = _description;
         tests[pos].balances.push();
-        tests[pos].balances.push();
-        tests[pos].balances[1] = _value;
+        tests[pos].balances.push(_value);
         tests[pos].owners[msg.sender] = 1;
         index[_name] = pos;
         emit Add(_name, _description, _value, msg.sender);
