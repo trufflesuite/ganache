@@ -1,6 +1,6 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 contract Target {
-    function () external payable { }
+    fallback () external payable { }
 }
 contract NonZero {
     Target private theInstance;
