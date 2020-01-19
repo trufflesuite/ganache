@@ -101,12 +101,12 @@ describe("Block Tags", function() {
     assert.notStrictEqual(block.transactionsRoot, block.receiptsRoot, "Trie roots should not be equal.");
     assert.strictEqual(
       block.transactionsRoot,
-      "0x640ef2dc816947c37f8d21e998c5d6f1f51be8a1d236cfb2597944c1a71ffbba",
+      "0x1d790d78fb45a013f23735cdb280258bd773392ea52913c939ed48eb916362db",
       "Should produce correct transactionsRoot"
     );
     assert.strictEqual(
       block.receiptsRoot,
-      "0xfc83d70860b2ea62a20c8a9618b615548fa0cf6ddd9a456994f53652c51725df",
+      "0x9b620919250d3ae8b3096dcda9152491c92f98ca0e7a8cfc756a46a88e49156a",
       "Should produce correct receiptsRoot"
     );
   });
