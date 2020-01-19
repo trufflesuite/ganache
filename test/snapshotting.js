@@ -88,21 +88,21 @@ describe("Checkpointing / Reverting", function() {
     const { accounts, instance, send } = context;
 
     const snapShotId = await send("evm_snapshot");
-    let n1 = await instance.methods.n().call();
+    const n1 = await instance.methods.n().call();
     assert.strictEqual(n1, "42", "Initial n is not 42");
 
     await instance.methods.inc().send({ from: accounts[0] });
-    let n2 = await instance.methods.n().call();
+    const n2 = await instance.methods.n().call();
     assert.strictEqual(n2, "43", "n is not 43 after first call to `inc`");
 
     await send("evm_revert", snapShotId.result);
-    let n3 = await instance.methods.n().call();
+    const n3 = await instance.methods.n().call();
     assert.strictEqual(n3, "42", "n is not 42 after reverting snapshot");
 
     // this is the real test. what happened was that the vm's contract storage
     // trie cache wasn't cleared when the vm's stateManager cache was cleared.
     await instance.methods.inc().send({ from: accounts[0] });
-    let n4 = await instance.methods.n().call();
+    const n4 = await instance.methods.n().call();
     assert.strictEqual(n4, "43", "n is not 43 after calling `inc` again");
   });
 

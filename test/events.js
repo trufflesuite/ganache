@@ -93,7 +93,7 @@ var tests = function(web3, EventTest) {
       waitingFor[expectedValueB] = true;
 
       var listener = function(result) {
-        assert(waitingFor.hasOwnProperty(result.returnValues.first));
+        assert(Object.prototype.hasOwnProperty.call(waitingFor, result.returnValues.first));
         delete waitingFor[result.returnValues.first];
 
         if (Object.keys(waitingFor).length === 0) {
@@ -194,14 +194,14 @@ var tests = function(web3, EventTest) {
             return done(err);
           }
 
-          let listener = function(err, result) {
+          const listener = function(err, result) {
             if (result === undefined) {
               // If there's only one argument, it's the result, not an error
               result = err;
             } else if (err) {
               return done(err);
             }
-            let firstChanges = result.params.result.hash;
+            const firstChanges = result.params.result.hash;
             assert.strictEqual(firstChanges.length, 66); // Ensure we have a hash
             provider.removeAllListeners("data");
             done();

@@ -42,7 +42,7 @@ const runTests = function(providerInit) {
     });
 
     it("should have block height 1", async function() {
-      let res = await web3.eth.getBlockNumber();
+      const res = await web3.eth.getBlockNumber();
       assert(res === 1);
       // Close the first provider now that we've gotten where we need to be.
       // Note: we specifically close the provider so we can read from the same db.
@@ -85,7 +85,7 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
     const str = JSON.stringify;
     const memdbBlocks = [];
     const blocks = [];
-    let blockHeight = 2;
+    const blockHeight = 2;
     let accounts;
     let memdbSend;
 
