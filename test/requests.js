@@ -1072,7 +1072,6 @@ const tests = function(web3) {
 
       // queue some transactions
       const pendingTransactionHashes = [send("eth_sendTransaction", [txData]), send("eth_sendTransaction", [txData])];
-      const transactionHashes = (await Promise.all(pendingTransactionHashes)).map((response) => response.result);
 
       let pendingNextBlockNumber;
       if (hasSubscriptions) {
@@ -1105,6 +1104,7 @@ const tests = function(web3) {
 
       // subscribe to `newHeads` if subscriptions are supported
       const subscriptionId = hasSubscriptions ? (await send("eth_subscribe", ["newHeads"])).result : null;
+      const transactionHashes = (await Promise.all(pendingTransactionHashes)).map((response) => response.result);
 
       // start the miner again
       await send("miner_start");
