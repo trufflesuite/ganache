@@ -30,7 +30,7 @@ describe("stability", function() {
     const requests = [];
 
     for (let i = 0; i < expected; i++) {
-      let req = web3.eth.sendTransaction.request({
+      const req = web3.eth.sendTransaction.request({
         from: accounts[0],
         to: accounts[1],
         value: `0x${new BN(10).pow(new BN(18)).toString("hex")}` // 1 ETH

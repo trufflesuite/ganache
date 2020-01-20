@@ -13,6 +13,7 @@ const _ = require("lodash");
 const pify = require("pify");
 const generateSend = require("./helpers/utils/rpc");
 const compile = require("./helpers/contract/singleFileCompile");
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 const { result: compilationResult, source } = compile("./test/contracts/examples/", "Example");
 
@@ -377,7 +378,7 @@ const tests = function(web3) {
     });
 
     after("shutdown", async function() {
-      let provider = signingWeb3._provider;
+      const provider = signingWeb3._provider;
       signingWeb3.setProvider();
       await pify(provider.close)();
     });
@@ -416,8 +417,15 @@ const tests = function(web3) {
             { name: "chainId", type: "uint256" },
             { name: "verifyingContract", type: "address" }
           ],
-          Person: [{ name: "name", type: "string" }, { name: "wallet", type: "address" }],
-          Mail: [{ name: "from", type: "Person" }, { name: "to", type: "Person" }, { name: "contents", type: "string" }]
+          Person: [
+            { name: "name", type: "string" },
+            { name: "wallet", type: "address" }
+          ],
+          Mail: [
+            { name: "from", type: "Person" },
+            { name: "to", type: "Person" },
+            { name: "contents", type: "string" }
+          ]
         },
         primaryType: "Mail",
         domain: {
@@ -455,13 +463,19 @@ const tests = function(web3) {
             { name: "chainId", type: "uint256" },
             { name: "verifyingContract", type: "address" }
           ],
-          Person: [{ name: "name", type: "string" }, { name: "wallets", type: "address[]" }],
+          Person: [
+            { name: "name", type: "string" },
+            { name: "wallets", type: "address[]" }
+          ],
           Mail: [
             { name: "from", type: "Person" },
             { name: "to", type: "Person[]" },
             { name: "contents", type: "string" }
           ],
-          Group: [{ name: "name", type: "string" }, { name: "members", type: "Person[]" }]
+          Group: [
+            { name: "name", type: "string" },
+            { name: "members", type: "Person[]" }
+          ]
         },
         domain: {
           name: "Ether Mail",
@@ -503,7 +517,7 @@ const tests = function(web3) {
     });
 
     after("shutdown", async function() {
-      let provider = signingWeb3._provider;
+      const provider = signingWeb3._provider;
       signingWeb3.setProvider();
       await pify(provider.close)();
     });
@@ -632,7 +646,7 @@ const tests = function(web3) {
         to: accounts[8]
       };
 
-      let result = await web3.eth.sendTransaction(transaction);
+      const result = await web3.eth.sendTransaction(transaction);
 
       assert.notStrictEqual(typeof result.from, "undefined");
       assert.notStrictEqual(typeof result.to, "undefined");
@@ -851,7 +865,7 @@ const tests = function(web3) {
     });
 
     it("should return null for the to field due to contract creation (eth_getTransactionReceipt)", async function() {
-      let receipt = await web3.eth.getTransactionReceipt(initialTransactionHash);
+      const receipt = await web3.eth.getTransactionReceipt(initialTransactionHash);
       assert.strictEqual(receipt.to, null);
     });
 
@@ -885,7 +899,7 @@ const tests = function(web3) {
     });
 
     it("should have balance of 1 (eth_getBalance)", async function() {
-      let result = await web3.eth.getBalance(contractAddress);
+      const result = await web3.eth.getBalance(contractAddress);
       assert.strictEqual(result, "1");
     });
 
@@ -1059,8 +1073,9 @@ const tests = function(web3) {
       // queue some transactions
       const pendingTransactionHashes = [send("eth_sendTransaction", [txData]), send("eth_sendTransaction", [txData])];
 
-      const pendingNextBlockNumber = new Promise(async(resolve) => {
-        if (hasSubscriptions) {
+      let pendingNextBlockNumber;
+      if (hasSubscriptions) {
+        pendingNextBlockNumber = new Promise((resolve) => {
           // Ganache.provider and WebSocket servers can use the EventEmitter
           provider.on("data", function newHeads(_, newHead) {
             if (newHead == null) {
@@ -1073,7 +1088,9 @@ const tests = function(web3) {
               provider.removeListener("data", newHeads);
             }
           });
-        } else {
+        });
+      } else {
+        pendingNextBlockNumber = (async() => {
           // for the HttpServer tests we need to poll for the next block
           const startingBlockNumber = await web3.eth.getBlockNumber();
           let currrentBlockNumber;
@@ -1081,9 +1098,9 @@ const tests = function(web3) {
             currrentBlockNumber = await web3.eth.getBlockNumber();
           } while (currrentBlockNumber === startingBlockNumber);
 
-          resolve(currrentBlockNumber);
-        }
-      });
+          return currrentBlockNumber;
+        })();
+      }
 
       // subscribe to `newHeads` if subscriptions are supported
       const subscriptionId = hasSubscriptions ? (await send("eth_subscribe", ["newHeads"])).result : null;
@@ -1107,8 +1124,14 @@ const tests = function(web3) {
         // their own logs, and not each others. We only checking the blockNumber here to make sure they are the same.
         assert.strictEqual(receiptBlockNumber, blockNumber, "Receipt blockNumber doesn't match expected block number");
         assert.strictEqual(logs.length, 1, "Receipt had wrong amount of logs");
-        assert(logs.every((l) => l.transactionHash === receipt.transactionHash), "Receipt log isn't valid");
-        assert(logs.every((l) => l.blockHash === receipt.blockHash), "Logs blockhash doesn't match block blockhash");
+        assert(
+          logs.every((l) => l.transactionHash === receipt.transactionHash),
+          "Receipt log isn't valid"
+        );
+        assert(
+          logs.every((l) => l.blockHash === receipt.blockHash),
+          "Logs blockhash doesn't match block blockhash"
+        );
       });
     });
 
@@ -1257,9 +1280,9 @@ const tests = function(web3) {
 
       assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
       assert.notStrictEqual(contractAddress, null, "Transaction did not create a contract");
-      assert.strictEqual(receipt.hasOwnProperty("v"), true, "Transaction includes v signature parameter");
-      assert.strictEqual(receipt.hasOwnProperty("r"), true, "Transaction includes r signature parameter");
-      assert.strictEqual(receipt.hasOwnProperty("s"), true, "Transaction includes s signature parameter");
+      assert.strictEqual(hasOwnProperty.call(receipt, "v"), true, "Transaction includes v signature parameter");
+      assert.strictEqual(hasOwnProperty.call(receipt, "r"), true, "Transaction includes r signature parameter");
+      assert.strictEqual(hasOwnProperty.call(receipt, "s"), true, "Transaction includes s signature parameter");
     });
 
     it("should verify the transaction immediately (eth_getTransactionByHash)", async function() {
@@ -1268,10 +1291,9 @@ const tests = function(web3) {
       assert.notStrictEqual(result, null, "Transaction result shouldn't be null");
       assert.strictEqual(result.hash, initialTransactionHash, "Resultant hash isn't what we expected");
       assert.strictEqual(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
-
-      assert.strictEqual(result.hasOwnProperty("v"), true, "Transaction includes v signature parameter");
-      assert.strictEqual(result.hasOwnProperty("r"), true, "Transaction includes r signature parameter");
-      assert.strictEqual(result.hasOwnProperty("s"), true, "Transaction includes s signature parameter");
+      assert.strictEqual(hasOwnProperty.call(result, "v"), true, "Transaction includes v signature parameter");
+      assert.strictEqual(hasOwnProperty.call(result, "r"), true, "Transaction includes r signature parameter");
+      assert.strictEqual(hasOwnProperty.call(result, "s"), true, "Transaction includes s signature parameter");
     });
 
     it("should return null if transaction doesn't exist (eth_getTransactionByHash)", async function() {
@@ -1360,7 +1382,7 @@ const tests = function(web3) {
   describe("eth_getTransactionByHash", function() {
     it("should return nonce as a quantity datatype when requested via RPC method", async function() {
       const send = pify(web3._provider.send.bind(web3._provider));
-      let txHash = await send({
+      const txHash = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
@@ -1373,7 +1395,7 @@ const tests = function(web3) {
         ]
       });
 
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_getTransactionByHash",
@@ -1384,20 +1406,20 @@ const tests = function(web3) {
     }).timeout(4000);
 
     it("should return nonce as a number when requested via web3 method", async function() {
-      let txHash = await web3.eth.sendTransaction({
+      const txHash = await web3.eth.sendTransaction({
         from: accounts[8],
         to: accounts[9],
         value: 0
       });
 
-      let result = await web3.eth.getTransaction(txHash.transactionHash);
+      const result = await web3.eth.getTransaction(txHash.transactionHash);
 
       assert.strictEqual(result.nonce, 1);
     });
 
     it("should return input as an unformatted datatype when requested via RPC method", async function() {
       const send = pify(web3._provider.send.bind(web3._provider));
-      let txHash = await send({
+      const txHash = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
@@ -1410,7 +1432,7 @@ const tests = function(web3) {
         ]
       });
 
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_getTransactionByHash",
@@ -1434,14 +1456,14 @@ const tests = function(web3) {
         method: "miner_stop"
       });
 
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
         params: [txData]
       });
 
-      let transactionObject = await send({
+      const transactionObject = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_getTransactionByHash",
@@ -1468,14 +1490,14 @@ const tests = function(web3) {
         params: []
       });
 
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
         params: [txData]
       });
 
-      let transactionObject = await send({
+      const transactionObject = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_getTransactionByHash",
@@ -1506,23 +1528,23 @@ const tests = function(web3) {
         method: "miner_stop"
       });
 
-      let txData = {};
+      const txData = {};
       txData.to = accounts[1];
       txData.from = accounts[0];
       txData.value = "0x1";
 
       // we don't use web3.eth.sendTransaction here because it gets huffy waiting for a receipt,
       // then winds up w/ an unhandled rejection on server.close later on
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
         params: [txData]
       });
 
-      let txHash = result.result;
+      const txHash = result.result;
 
-      let receipt = await web3.eth.getTransactionReceipt(txHash);
+      const receipt = await web3.eth.getTransactionReceipt(txHash);
 
       assert.strictEqual(receipt, null);
       await send({
@@ -1780,7 +1802,7 @@ describe("WebSockets Server:", function() {
   }).timeout(500); // fail quick if our hacked-together websocket handler fails.
 
   after("Shutdown server", async function() {
-    let provider = web3._provider;
+    const provider = web3._provider;
     web3.setProvider();
     provider.connection.close();
     await pify(server.close)();

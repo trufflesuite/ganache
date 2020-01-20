@@ -125,7 +125,7 @@ describe("Contract Deployed on Main Chain After Fork", function() {
     forkedWeb3._provider.connection.close();
     forkedServer.close(function(serverCloseErr) {
       forkedWeb3.setProvider();
-      let mainProvider = mainWeb3._provider;
+      const mainProvider = mainWeb3._provider;
       mainWeb3.setProvider();
       mainProvider.close(function(providerCloseErr) {
         if (serverCloseErr) {

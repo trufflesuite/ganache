@@ -7,7 +7,7 @@ const SEED_RANGE = 1000000;
 const seed = randomInteger(SEED_RANGE);
 
 describe("Unlimited Contract Size", function() {
-  let contract = {};
+  const contract = {};
 
   before("compile contract", async function() {
     this.timeout(10000);

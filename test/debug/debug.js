@@ -49,7 +49,7 @@ function test(forked) {
         contractSubdirectory: "debug"
       };
 
-      let forkedServer = Ganache.server({ mnemonic });
+      const forkedServer = Ganache.server({ mnemonic });
       await promisify(forkedServer.listen)(targetPort);
       mainContext = await bootstrap(contractRef, {
         provider: forkedServer.provider,
@@ -139,7 +139,7 @@ function test(forked) {
       // To at least assert SOMETHING, let's assert the last opcode
       assert(structLogs.length > 0);
 
-      for (let op of structLogs) {
+      for (const op of structLogs) {
         if (op.stack.length > 0) {
           // check formatting of stack - it was broken when updating to ethereumjs-vm v2.3.3
           assert.strictEqual(op.stack[0].length, 64);
@@ -215,21 +215,21 @@ function test(forked) {
       // from previous tests, otherValue should be 26 + 1234
       const ov = instance.methods.otherValue();
       const c = ov.call(options);
-      let otherValue = await c;
+      const otherValue = await c;
       assert.strictEqual(otherValue, "1265");
 
-      let tx = await instance.methods.callSetValueTwice().send(options);
+      const tx = await instance.methods.callSetValueTwice().send(options);
       multipleCallsHashToTrace = tx.transactionHash;
 
       // we add 1 + 2 to otherValue, so now it should be 1268
-      let updatedValue = await instance.methods.otherValue().call(options);
+      const updatedValue = await instance.methods.otherValue().call(options);
       assert.strictEqual(updatedValue, "1268");
     });
 
     it("should trace a transaction with multiple calls to the same contract", function(done) {
       const { web3 } = context;
       const provider = web3.currentProvider;
-      let arrayOfStorageKeyValues = [];
+      const arrayOfStorageKeyValues = [];
 
       provider.send(
         {
@@ -240,8 +240,8 @@ function test(forked) {
         },
         function(_, result) {
           for (var i = 0; i < result.result.structLogs.length; i++) {
-            let op = result.result.structLogs[i];
-            let nextOp = result.result.structLogs[i + 1];
+            const op = result.result.structLogs[i];
+            const nextOp = result.result.structLogs[i + 1];
             if (op.op === "SSTORE") {
               // we want the nextOp because the storage changes doesn't take affect until after the SSTORE opcode
               arrayOfStorageKeyValues.push(nextOp.storage);

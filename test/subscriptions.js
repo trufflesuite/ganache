@@ -31,7 +31,7 @@ const testHttp = function(web3) {
       // Issue a sendTransaction - ganache should not attempt to issue a message to http subscriptions
       const { result } = await web3send("eth_sendTransaction", { from: accounts[0], value: "0x1" });
       // Get receipt -- ensure ganache is still running/accepting calls
-      let receipt = await web3send("eth_getTransactionReceipt", result);
+      const receipt = await web3send("eth_getTransactionReceipt", result);
       // Receipt indicates that ganache has NOT crashed and continues to handle RPC requests
       assert(!receipt.error, "Should not respond with an error.");
       assert(receipt.result, "Should respond with a receipt.");
@@ -74,7 +74,7 @@ describe("WebSockets Server:", function() {
   testWebSocket(web3);
 
   after("Shutdown server", async function() {
-    let provider = web3._provider;
+    const provider = web3._provider;
     web3.setProvider();
     provider.connection.close();
     await promisify(server.close)();
