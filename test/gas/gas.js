@@ -14,8 +14,7 @@ const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL = 19200;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
-const HARDFORKS = ["muirGlacier"];
-// const HARDFORKS = ["byzantium", "constantinople", "petersburg", "istanbul", "muirGlacier"];
+const HARDFORKS = ["byzantium", "constantinople", "petersburg", "istanbul", "muirGlacier"];
 
 describe("Gas", function() {
   HARDFORKS.forEach((hardfork) => {
