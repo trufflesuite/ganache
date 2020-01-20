@@ -29,7 +29,7 @@ function compile(mainContractName, contractFileNames = [], contractSubdirectory,
       }
     }
   };
-  input.settings.evmVersion = hardfork;
+  input.settings.evmVersion = hardfork === "muirGlacier" ? "istanbul" : hardfork;
 
   const result = JSON.parse(solc.compile(JSON.stringify(input)));
 

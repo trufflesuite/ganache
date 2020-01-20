@@ -49,7 +49,7 @@ describe("Mining", function() {
   before("compile solidity code that causes runtime errors", async function() {
     this.timeout(10000);
     let result = await compileSolidity(
-      "pragma solidity ^0.5.0; contract Example { constructor() public {require(false);} }"
+      "pragma solidity ^0.6.0; contract Example { constructor() public {require(false);} }"
     );
     badBytecode = result.code;
   });
@@ -57,7 +57,7 @@ describe("Mining", function() {
   before("compile solidity code that causes an event", async function() {
     this.timeout(10000);
     let result = await compileSolidity(
-      "pragma solidity ^0.5.0; contract Example { event Event(); constructor() public { emit Event(); } }"
+      "pragma solidity ^0.6.0; contract Example { event Event(); constructor() public { emit Event(); } }"
     );
     goodBytecode = result.code;
   });

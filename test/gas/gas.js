@@ -14,7 +14,7 @@ const RSCLEAR_REFUND = 15000;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL = 19200;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
-const HARDFORKS = ["petersburg", "constantinople", "byzantium", "istanbul"];
+const HARDFORKS = ["byzantium", "constantinople", "petersburg", "istanbul", "muirGlacier"];
 
 describe("Gas", function() {
   HARDFORKS.forEach((hardfork) => {
@@ -345,6 +345,7 @@ describe("Gas", function() {
               case "petersburg":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
+              case "muirGlacier":
               case "istanbul":
                 // EIP-2200
                 const result =
@@ -388,7 +389,8 @@ describe("Gas", function() {
                 // since we are resetting to a non-zero value, there is no gas added to the refund counter here
                 assert.strictEqual(receipt.gasUsed, gasEstimate);
                 break;
-              case "istanbul": // EIP-2200
+              case "muirGlacier":
+              case "istanbul": // EIP-2200:
                 const result =
                   receipt.gasUsed <= gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValueIstanbul + 2300;
                 assert(result);
@@ -429,6 +431,7 @@ describe("Gas", function() {
               case "constantinople":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
+              case "muirGlacier":
               case "istanbul": // EIP-2200
                 const result = receipt.gasUsed <= gasEstimate - RSCLEAR_REFUND + 2300;
                 assert(result);
@@ -464,6 +467,7 @@ describe("Gas", function() {
               case "constantinople":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
+              case "muirGlacier":
               case "istanbul": // EIP-2200
                 const result = receipt.gasUsed <= gasEstimate - RSCLEAR_REFUND + 2300;
                 assert(result);
@@ -498,6 +502,7 @@ describe("Gas", function() {
               case "petersburg":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
+              case "muirGlacier":
               case "istanbul":
                 const result = receipt.gasUsed <= gasEstimate + 2300;
                 assert(result);
@@ -554,6 +559,7 @@ describe("Gas", function() {
             case "petersburg":
               assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
               break;
+            case "muirGlacier":
             case "istanbul": // EIP-2200
               assert.strictEqual(
                 receipt.gasUsed,
@@ -647,6 +653,7 @@ describe("Gas", function() {
             case "petersburg":
               assert.strictEqual(gasUsed, transactionCostMinusRefund);
               break;
+            case "muirGlacier":
             case "istanbul":
               // EIP-2200
               transactionCostMinusRefund =

@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 contract Donation {
     address owner;
@@ -50,7 +50,7 @@ contract Fib {
     constructor() public {}
     uint public value = 0;
 
-    function() external payable {
+    fallback() external payable {
         calc(5);
     }
 

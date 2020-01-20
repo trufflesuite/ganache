@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 library Library {
     function checkMsgSender() internal view returns (address) {
