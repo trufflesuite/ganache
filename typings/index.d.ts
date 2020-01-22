@@ -14,7 +14,7 @@ declare module "ganache-core" {
       fork_block_number?: string | number;
       gasLimit?: string | number;
       gasPrice?: string;
-      hardfork?: "byzantium" | "constantinople" | "petersburg" | "istanbul";
+      hardfork?: "byzantium" | "constantinople" | "petersburg" | "istanbul" | "muirGlacier";
       hd_path?: string;
       locked?: boolean;
       logger?: {
