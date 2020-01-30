@@ -310,6 +310,10 @@ describe("Server:", function(done) {
 
   after("Shutdown server", function(done) {
     web3._provider.connection.close();
-    server.close(done);
+
+    // Give web3 a little time to close connection.
+    setTimeout(function() {
+      server.close(done);
+    }, 150);
   });
 });
