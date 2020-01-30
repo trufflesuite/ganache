@@ -1801,10 +1801,11 @@ describe("WebSockets Server:", function() {
     );
   }).timeout(500); // fail quick if our hacked-together websocket handler fails.
 
-  after("Shutdown server", async function() {
-    const provider = web3._provider;
-    web3.setProvider();
-    provider.connection.close();
-    await pify(server.close)();
+  after("Shutdown server - Can shutdown gracefully", function(done) {
+    web3.currentProvider.connection.addEventListener("close", event => {
+      assert.strictEqual(event.code, 1001);
+      done();
+    });
+    server.close();
   });
 });

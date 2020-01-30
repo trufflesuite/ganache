@@ -309,7 +309,6 @@ describe("Server:", function(done) {
   tests(web3);
 
   after("Shutdown server", function(done) {
-    web3._provider.connection.close();
     server.close(done);
   });
 });
