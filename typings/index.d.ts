@@ -1,5 +1,5 @@
 declare module "ganache-core" {
-  import { Provider as Web3Provider } from "web3/providers";
+  import { Provider as Web3Provider } from "web3";
 
   namespace Ganache {
     export interface IProviderOptions {
