@@ -1280,9 +1280,6 @@ const tests = function(web3) {
 
       assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
       assert.notStrictEqual(contractAddress, null, "Transaction did not create a contract");
-      assert.strictEqual(hasOwnProperty.call(receipt, "v"), true, "Transaction includes v signature parameter");
-      assert.strictEqual(hasOwnProperty.call(receipt, "r"), true, "Transaction includes r signature parameter");
-      assert.strictEqual(hasOwnProperty.call(receipt, "s"), true, "Transaction includes s signature parameter");
     });
 
     it("should verify the transaction immediately (eth_getTransactionByHash)", async function() {
