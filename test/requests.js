@@ -343,7 +343,7 @@ const tests = function(web3) {
     });
 
     it("should produce a signature whose signer can be recovered", async function() {
-      const msg = utils.toBuffer("asparagus");
+      const msg = utils.toBuffer("0xffffffffff");
       const msgHash = utils.hashPersonalMessage(msg);
 
       let sgn = await signingWeb3.eth.sign(utils.bufferToHex(msg), accounts[0]);
