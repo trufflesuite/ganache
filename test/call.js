@@ -22,7 +22,7 @@ describe("eth_call", function() {
     const status = await instance.methods.add(name, description, value).call({ from: accounts[0] });
 
     assert.strictEqual(status, true);
-  });
+  }).timeout(4000);
 
   it("should use max call gas limit if no gas limit is specified in the provider or the call", async function() {
     const contractRef = {

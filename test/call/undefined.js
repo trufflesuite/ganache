@@ -35,8 +35,8 @@ describe("Undefined", () => {
       const { instance } = context;
       await assert.rejects(
         () => instance.methods.causeReturnValueOfUndefined().call(),
-        /Couldn't decode bool from ABI: 0x/,
-        "should not be able to decode bool from ABI"
+        /Returned values aren't valid, did it run Out of Gas\?/,
+        "web3 should throw when receiving a return value of 0x"
       );
     });
 

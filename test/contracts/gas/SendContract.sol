@@ -1,11 +1,11 @@
 // FROM: https://github.com/trufflesuite/ganache-cli/issues/585
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 contract SendContract {
     function Send() public payable{
 
     }
 
-    function () external payable{
+    fallback () external payable{
     }
 
     function getBalance() public view returns (uint balance){

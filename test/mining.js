@@ -21,7 +21,7 @@ describe("Mining", function() {
   var goodBytecode;
 
   function compileSolidity(source) {
-    let result = JSON.parse(
+    const result = JSON.parse(
       solc.compile(
         JSON.stringify({
           language: "Solidity",
@@ -48,22 +48,22 @@ describe("Mining", function() {
 
   before("compile solidity code that causes runtime errors", async function() {
     this.timeout(10000);
-    let result = await compileSolidity(
-      "pragma solidity ^0.5.0; contract Example { constructor() public {require(false);} }"
+    const result = await compileSolidity(
+      "pragma solidity ^0.6.0; contract Example { constructor() public {require(false);} }"
     );
     badBytecode = result.code;
   });
 
   before("compile solidity code that causes an event", async function() {
     this.timeout(10000);
-    let result = await compileSolidity(
-      "pragma solidity ^0.5.0; contract Example { event Event(); constructor() public { emit Event(); } }"
+    const result = await compileSolidity(
+      "pragma solidity ^0.6.0; contract Example { event Event(); constructor() public { emit Event(); } }"
     );
     goodBytecode = result.code;
   });
 
   beforeEach("checkpoint, so that we can revert later", async function() {
-    let res = await pify(web3.currentProvider.send)({
+    const res = await pify(web3.currentProvider.send)({
       jsonrpc: "2.0",
       method: "evm_snapshot",
       id: new Date().getTime()
@@ -104,7 +104,7 @@ describe("Mining", function() {
   }
 
   async function checkMining() {
-    let response = await pify(web3.currentProvider.send)({
+    const response = await pify(web3.currentProvider.send)({
       jsonrpc: "2.0",
       method: "eth_mining",
       id: new Date().getTime()
@@ -114,7 +114,7 @@ describe("Mining", function() {
   }
 
   async function mineSingleBlock() {
-    let result = await pify(web3.currentProvider.send)({
+    const result = await pify(web3.currentProvider.send)({
       jsonrpc: "2.0",
       method: "evm_mine",
       id: new Date().getTime()
@@ -123,7 +123,7 @@ describe("Mining", function() {
   }
 
   async function queueTransaction(from, to, gasLimit, value, data) {
-    let response = await pify(web3.currentProvider.send)({
+    const response = await pify(web3.currentProvider.send)({
       jsonrpc: "2.0",
       method: "eth_sendTransaction",
       id: new Date().getTime(),
@@ -153,19 +153,19 @@ describe("Mining", function() {
 
   it("should mine a single block with two queued transactions", async function() {
     await stopMining();
-    let blockNumber = await getBlockNumber();
+    const blockNumber = await getBlockNumber();
 
-    let tx1 = await queueTransaction(accounts[0], accounts[1], 90000, web3.utils.toWei(new BN(2), "ether"));
-    let receipt1 = await web3.eth.getTransactionReceipt(tx1);
+    const tx1 = await queueTransaction(accounts[0], accounts[1], 90000, web3.utils.toWei(new BN(2), "ether"));
+    const receipt1 = await web3.eth.getTransactionReceipt(tx1);
     assert.strictEqual(receipt1, null);
 
-    let tx2 = await queueTransaction(accounts[0], accounts[1], 90000, web3.utils.toWei(new BN(3), "ether"));
-    let receipt2 = await web3.eth.getTransactionReceipt(tx2);
+    const tx2 = await queueTransaction(accounts[0], accounts[1], 90000, web3.utils.toWei(new BN(3), "ether"));
+    const receipt2 = await web3.eth.getTransactionReceipt(tx2);
     assert.strictEqual(receipt2, null);
 
     await startMining();
 
-    let receipts = await Promise.all([web3.eth.getTransactionReceipt(tx1), web3.eth.getTransactionReceipt(tx2)]);
+    const receipts = await Promise.all([web3.eth.getTransactionReceipt(tx1), web3.eth.getTransactionReceipt(tx2)]);
 
     assert.strictEqual(receipts.length, 2);
 
@@ -179,7 +179,7 @@ describe("Mining", function() {
       "Transactions should be mined in the same block."
     );
 
-    let number = await getBlockNumber();
+    const number = await getBlockNumber();
     assert.strictEqual(number, blockNumber + 1);
   });
 
@@ -189,19 +189,19 @@ describe("Mining", function() {
     // each transaction it its own block.
 
     await stopMining();
-    let blockNumber = await getBlockNumber();
+    const blockNumber = await getBlockNumber();
 
-    let tx1 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
-    let receipt1 = await web3.eth.getTransactionReceipt(tx1);
+    const tx1 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
+    const receipt1 = await web3.eth.getTransactionReceipt(tx1);
     assert.strictEqual(receipt1, null);
 
-    let tx2 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
-    let receipt2 = await web3.eth.getTransactionReceipt(tx2);
+    const tx2 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
+    const receipt2 = await web3.eth.getTransactionReceipt(tx2);
     assert.strictEqual(receipt2, null);
 
     await startMining();
 
-    let receipts = await Promise.all([web3.eth.getTransactionReceipt(tx1), web3.eth.getTransactionReceipt(tx2)]);
+    const receipts = await Promise.all([web3.eth.getTransactionReceipt(tx1), web3.eth.getTransactionReceipt(tx2)]);
 
     assert.strictEqual(receipts.length, 2);
 
@@ -217,7 +217,7 @@ describe("Mining", function() {
       "Transactions should not be mined in the same block."
     );
 
-    let number = await getBlockNumber();
+    const number = await getBlockNumber();
     assert.strictEqual(number, blockNumber + 2);
   });
 
@@ -229,18 +229,18 @@ describe("Mining", function() {
       // we only mine one block by request.
 
       await stopMining();
-      let blockNumber = await getBlockNumber();
-      let tx1 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
-      let receipt1 = await web3.eth.getTransactionReceipt(tx1);
+      const blockNumber = await getBlockNumber();
+      const tx1 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
+      const receipt1 = await web3.eth.getTransactionReceipt(tx1);
       assert.strictEqual(receipt1, null);
 
-      let tx2 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
-      let receipt2 = await web3.eth.getTransactionReceipt(tx2);
+      const tx2 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
+      const receipt2 = await web3.eth.getTransactionReceipt(tx2);
       assert.strictEqual(receipt2, null);
 
       await mineSingleBlock();
 
-      let receipts = await Promise.all([web3.eth.getTransactionReceipt(tx1), web3.eth.getTransactionReceipt(tx2)]);
+      const receipts = await Promise.all([web3.eth.getTransactionReceipt(tx1), web3.eth.getTransactionReceipt(tx2)]);
 
       assert.strictEqual(receipts.length, 2);
 
@@ -249,7 +249,7 @@ describe("Mining", function() {
 
       assert.strictEqual(receipts[1], null);
 
-      let number = await getBlockNumber();
+      const number = await getBlockNumber();
       assert.strictEqual(number, blockNumber + 1);
     }
   );
@@ -347,7 +347,7 @@ describe("Mining", function() {
       }
 
       // We got the error we wanted. Now check to see if the transaction was processed correctly.
-      let receiptTx2 = await web3.eth.getTransactionReceipt(tx2);
+      const receiptTx2 = await web3.eth.getTransactionReceipt(tx2);
 
       // We should have a receipt for the second transaction - it should have been processed.
       assert.notStrictEqual(receiptTx2, null);
@@ -357,7 +357,7 @@ describe("Mining", function() {
       assert.notStrictEqual(receiptTx2.logs.length, 0);
 
       // Now check that there's code at the address, which means it deployed successfully.
-      let code = await getCode(receiptTx2.contractAddress);
+      const code = await getCode(receiptTx2.contractAddress);
 
       // Convert hex to a big number and ensure it's not zero.
       assert(web3.utils.toBN(code).eq(0) === false);

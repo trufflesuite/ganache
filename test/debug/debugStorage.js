@@ -31,17 +31,17 @@ describe("Debug Storage", function() {
     };
 
     // check initial value and initial other value to ensure we know what we are starting with
-    let initialValue = await instance.methods.getValue().call(options);
-    let initialOtherValue = await instance.methods.getOtherValue().call(options);
+    const initialValue = await instance.methods.getValue().call(options);
+    const initialOtherValue = await instance.methods.getOtherValue().call(options);
     assert.strictEqual(initialValue, expectedValueBeforeTrace);
     assert.strictEqual(initialOtherValue, expectedValueBeforeTrace);
 
-    let tx = await instance.methods.set().send(options);
+    const tx = await instance.methods.set().send(options);
     hashToTrace = tx.transactionHash;
 
     // check value and other value to see if it updated
-    let updatedValue = await instance.methods.getValue().call(options);
-    let updatedOtherValue = await instance.methods.getOtherValue().call(options);
+    const updatedValue = await instance.methods.getValue().call(options);
+    const updatedOtherValue = await instance.methods.getOtherValue().call(options);
     assert.strictEqual(updatedValue, "2");
     // otherValue should be the total of the initial value (5) plus 3 from calling set()
     assert.strictEqual(updatedOtherValue, "8");
@@ -51,7 +51,7 @@ describe("Debug Storage", function() {
     const { web3 } = context;
     const provider = web3.currentProvider;
 
-    let arrayOfStorageKeyValues = [];
+    const arrayOfStorageKeyValues = [];
 
     provider.send(
       {
@@ -62,8 +62,8 @@ describe("Debug Storage", function() {
       },
       function(_, result) {
         for (var i = 0; i < result.result.structLogs.length; i++) {
-          let op = result.result.structLogs[i];
-          let nextOp = result.result.structLogs[i + 1];
+          const op = result.result.structLogs[i];
+          const nextOp = result.result.structLogs[i + 1];
           if (op.op === "SSTORE") {
             // we want the nextOp because the storage changes doesn't take affect until after the SSTORE opcode
             arrayOfStorageKeyValues.push(nextOp.storage);

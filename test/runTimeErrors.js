@@ -38,6 +38,22 @@ function tests(ganacheProviderOptions) {
         });
     });
 
+    it("Should fail to estimate gas when the transaction is invalid", async() => {
+      const { accounts, instance, send } = context;
+      const txParams = {
+        from: accounts[0],
+        // this errors:
+        to: instance.options.address
+      };
+      const result = await send("eth_estimateGas", txParams);
+      assert.deepStrictEqual(result.response.error.code, -32000, "Gas estimation error code is not as expected");
+      assert.deepStrictEqual(
+        result.response.error.message,
+        "VM Exception while processing transaction: revert",
+        "Gas estimation error message is not as expected"
+      );
+    });
+
     it("should output the transaction hash even if a (out of gas) runtime error occurred", async function() {
       const { accounts, bytecode, provider, send } = context;
 

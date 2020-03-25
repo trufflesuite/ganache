@@ -1,5 +1,5 @@
+const memdown = require("memdown");
 const assert = require("assert");
-const sleep = require("../helpers/utils/sleep");
 const bootstrap = require("../helpers/contract/bootstrap");
 const confirmGasPrice = require("./lib/confirmGasPrice");
 const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
@@ -12,9 +12,10 @@ const compile = require("../helpers/contract/singleFileCompile");
 const createSignedTx = require("../helpers/utils/create-signed-tx");
 const SEED_RANGE = 1000000;
 const RSCLEAR_REFUND = 15000;
+const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL = 19200;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800;
 const RSELFDESTRUCT_REFUND = 24000;
-const HARDFORKS = ["petersburg", "constantinople", "byzantium"];
+const HARDFORKS = ["byzantium", "constantinople", "petersburg", "istanbul", "muirGlacier"];
 
 describe("Gas", function() {
   HARDFORKS.forEach((hardfork) => {
@@ -46,6 +47,7 @@ describe("Gas", function() {
         let Fib;
         let SendContract;
         let Create2;
+        let NonZero;
         before("Setting up EIP150 contracts", async function() {
           this.timeout(10000);
 
@@ -56,13 +58,19 @@ describe("Gas", function() {
           const donation = Object.assign({ contractFiles: ["Donation"] }, subDirectory);
           const fib = Object.assign({ contractFiles: ["Fib"] }, subDirectory);
           const sendContract = Object.assign({ contractFiles: ["SendContract"] }, subDirectory);
+          const nonZero = Object.assign({ contractFiles: ["NonZero"] }, subDirectory);
 
-          const ganacheProviderOptions = { seed, hardfork };
+          const ganacheProviderOptions = {
+            seed,
+            hardfork
+          };
 
           ContractFactory = await bootstrap(factory, ganacheProviderOptions, hardfork);
-          TestDepth = await bootstrap(testDepth, ganacheProviderOptions, hardfork);
+          // memdown makes the test that uses TestDepth about 20% faster, so we use it here because CI makes us sad.
+          TestDepth = await bootstrap(testDepth, Object.assign({ db: memdown() }, ganacheProviderOptions), hardfork);
           Donation = await bootstrap(donation, ganacheProviderOptions, hardfork);
           Fib = await bootstrap(fib, ganacheProviderOptions, hardfork);
+          NonZero = await bootstrap(nonZero, ganacheProviderOptions, hardfork);
           SendContract = await bootstrap(
             sendContract,
             Object.assign(
@@ -74,14 +82,23 @@ describe("Gas", function() {
                   }
                 ]
               },
-              ganacheProviderOptions,
-              hardfork
-            )
+              ganacheProviderOptions
+            ),
+            hardfork
           );
           if (hardfork !== "byzantium") {
-            Create2 = await bootstrap(create2, ganacheProviderOptions);
+            Create2 = await bootstrap(create2, ganacheProviderOptions, hardfork);
           }
         });
+
+        it("Should not timeout when running a long test", async() => {
+          try {
+            await context.instance.methods.runsOutOfGas().send({ from: context.accounts[0] });
+            assert.fail();
+          } catch (e) {
+            assert(e.message.includes("out of gas"));
+          }
+        }).timeout(5000);
 
         it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
           const { accounts, instance, send } = Fib;
@@ -154,7 +171,7 @@ describe("Gas", function() {
         if (hardfork !== "byzantium") {
           it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async() => {
             const { accounts, instance } = TestDepth;
-            const depth = 10;
+            const depth = 3;
             const promises = Array(depth)
               .fill(0)
               .map((_, i) => {
@@ -185,7 +202,7 @@ describe("Gas", function() {
                   });
               });
             await Promise.all(promises);
-          });
+          }).timeout(3000);
 
           it("Should estimate gas perfectly with EIP150 - CREATE2", async() => {
             const { accounts, instance, web3 } = Create2;
@@ -276,12 +293,40 @@ describe("Gas", function() {
             assert.strictEqual(newContractBalance, "0", "balance is not 0");
           }).timeout(10000);
         }
+
+        it("should correctly handle non-zero value child messages", async() => {
+          const {
+            accounts: [from],
+            instance: { _address: to, methods },
+            send
+          } = NonZero;
+          const fns = [methods.doSend, methods.doTransfer, methods.doCall];
+          for (let i = 0, l = fns; i < l.length; i++) {
+            const tx = {
+              from,
+              to,
+              value: "1000000000000000000",
+              data: fns[i]().encodeABI()
+            };
+            const { result: gasLimit } = await send("eth_estimateGas", tx);
+            tx.gasLimit = "0x" + (parseInt(gasLimit) - 1).toString(16);
+            await assert.rejects(() => send("eth_sendTransaction", tx), {
+              message: "VM Exception while processing transaction: out of gas"
+            });
+            tx.gasLimit = gasLimit;
+            await assert.doesNotReject(
+              () => send("eth_sendTransaction", tx),
+              undefined,
+              `SANITY CHECK. Still not enough gas? ${gasLimit} Our estimate is still too low`
+            );
+          }
+        });
       });
 
       describe("Refunds", function() {
         it(
           "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
-            " value is 0",
+            "value is 0",
           async function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];
@@ -293,19 +338,24 @@ describe("Gas", function() {
             // update storage and then reset it back to 0
             const method = instance.methods.triggerRsclearRefund();
 
-            const gasEstimate = await method.estimateGas(options);
+            const estimate = await method.estimateGas(options);
 
-            const receipt = await method.send({ from, gas: gasEstimate });
+            const receipt = await method.send({ from, gas: estimate });
 
             switch (provider.options.hardfork) {
               case "byzantium":
               case "petersburg":
-                assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+                assert.strictEqual(receipt.gasUsed, estimate - RSCLEAR_REFUND);
+                break;
+              case "muirGlacier":
+              case "istanbul":
+                // EIP-2200
+                assert(receipt.gasUsed <= estimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL + 2300);
                 break;
               case "constantinople":
                 // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
                 // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
-                assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
+                assert.strictEqual(receipt.gasUsed, estimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
                 break;
               default:
                 throw new Error("Invalid hardfork option: " + provider.options.hardfork);
@@ -321,6 +371,7 @@ describe("Gas", function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];
             const rsclearRefundForResettingDirtySlotToNonZeroValue = 4800;
+            const rsclearRefundForResettingDirtySlotToNonZeroValueIstanbul = 4200;
             const options = { from, gas: 5000000 };
 
             await instance.methods.reset().send(options); // prime storage by making sure y is set to 1
@@ -337,6 +388,12 @@ describe("Gas", function() {
               case "petersburg":
                 // since we are resetting to a non-zero value, there is no gas added to the refund counter here
                 assert.strictEqual(receipt.gasUsed, gasEstimate);
+                break;
+              case "muirGlacier":
+              case "istanbul": // EIP-2200
+                assert(
+                  receipt.gasUsed <= gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValueIstanbul + 2300
+                );
                 break;
               case "constantinople":
                 // since storage was initially primed to 1 and we call triggerRsclearRefundForY(), which then
@@ -356,7 +413,6 @@ describe("Gas", function() {
           async function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];
-            const rsclearRefundForUpdatingFreshSlotToZero = 15000;
             const options = { from, gas: 5000000 };
 
             // prime storage by making sure storage is set to 1
@@ -372,12 +428,12 @@ describe("Gas", function() {
             switch (provider.options.hardfork) {
               case "byzantium":
               case "petersburg":
+              case "constantinople":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
-              case "constantinople":
-                // since storage was initially primed to 1 and we call reset(), which then sets
-                // storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-                assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingFreshSlotToZero);
+              case "muirGlacier":
+              case "istanbul": // EIP-2200
+                assert(receipt.gasUsed <= gasEstimate - RSCLEAR_REFUND + 2300);
                 break;
               default:
                 throw new Error("Invalid hardfork option: " + provider.options.hardfork);
@@ -392,7 +448,6 @@ describe("Gas", function() {
           async function() {
             const { accounts, instance, provider } = context;
             const from = accounts[0];
-            const rsclearRefundForUpdatingDirtySlotToZero = 15000;
             const options = { from, gas: 5000000 };
 
             // prime storage by making sure storage is set to 1
@@ -408,12 +463,12 @@ describe("Gas", function() {
             switch (provider.options.hardfork) {
               case "byzantium":
               case "petersburg":
+              case "constantinople":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
                 break;
-              case "constantinople":
-                // since storage was initially primed to 1 and we call triggerRsclearRefund(), which then
-                // sets storage to 0, 15000 gas is added to the refund counter per Constantinople EIP 1283
-                assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForUpdatingDirtySlotToZero);
+              case "muirGlacier":
+              case "istanbul": // EIP-2200
+                assert(receipt.gasUsed <= gasEstimate - RSCLEAR_REFUND + 2300);
                 break;
               default:
                 throw new Error("Invalid hardfork option: " + provider.options.hardfork);
@@ -444,6 +499,10 @@ describe("Gas", function() {
               case "byzantium":
               case "petersburg":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
+                break;
+              case "muirGlacier":
+              case "istanbul":
+                assert(receipt.gasUsed <= gasEstimate + 2300);
                 break;
               case "constantinople":
                 // since storage was initially primed to 1 and we call triggerRsclearRefundForX(), which then
@@ -497,6 +556,13 @@ describe("Gas", function() {
             case "petersburg":
               assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
               break;
+            case "muirGlacier":
+            case "istanbul": // EIP-2200
+              assert.strictEqual(
+                receipt.gasUsed,
+                gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL
+              );
+              break;
             case "constantinople":
               // since storage was initially primed to 0 and we call triggerAllRefunds(), which then
               // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
@@ -511,15 +577,13 @@ describe("Gas", function() {
           assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
         });
 
-        // Unskip this test once byzantium passes
         it("account Rsclear/Rselfdestruct/Refunds in gasEstimate w/many transactions in a block", async function() {
           const { abi, bytecode, provider } = context;
           const options = {
-            blockTime: 0.5, // seconds
             seed,
             hardfork
           };
-          const { accounts, web3 } = await initializeTestProvider(options);
+          const { send, accounts, web3 } = await initializeTestProvider(options);
 
           const transactions = [
             {
@@ -554,9 +618,7 @@ describe("Gas", function() {
 
           // prime storage by making sure it is set to 0
           await instance.methods.reset().send({ from: accounts[0], gas: 5000000 });
-          const method = instance.methods.triggerAllRefunds();
-          const gasEstimate = await method.estimateGas({ from: accounts[0] });
-
+          await send("miner_stop");
           const hashes = await Promise.all(
             transactions.map((transaction) => {
               const promiEvent = web3.eth.sendTransaction(transaction);
@@ -575,12 +637,30 @@ describe("Gas", function() {
           const currentBlockNumber = await web3.eth.getBlockNumber();
           assert.deepStrictEqual(currentBlockNumber, 2, "Current Block Should be 2");
 
-          const { gasUsed } = await method.send({ from: accounts[0], gas: gasEstimate });
+          const method = instance.methods.triggerAllRefunds();
+          const gasEstimate = await method.estimateGas({ from: accounts[0] });
+          const prom = method.send({ from: accounts[0], gas: gasEstimate });
+          await new Promise((resolve) => {
+            prom.once("transactionHash", resolve);
+          });
+          await send("evm_mine");
+          // web3 doesn't subscribe fast enough to newHeads after issuing the previous send
+          // we we mine another block to give it an additional newHeads notification. /shrug
+          await send("evm_mine");
+          const rec = await prom;
+          const { gasUsed } = rec;
 
           let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
           switch (provider.options.hardfork) {
             case "byzantium":
             case "petersburg":
+              assert.strictEqual(gasUsed, transactionCostMinusRefund);
+              break;
+            case "muirGlacier":
+            case "istanbul":
+              // EIP-2200
+              transactionCostMinusRefund =
+                gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL;
               assert.strictEqual(gasUsed, transactionCostMinusRefund);
               break;
             case "constantinople":
@@ -673,7 +753,7 @@ describe("Gas", function() {
           const uintsc = await instance.methods.uints(1).call();
           assert.strictEqual(uintsc, "0", "cleared value is not correct");
         });
-      });
+      }).timeout(4000);
 
       describe("Estimation", function() {
         it("matches estimate for deployment", async function() {
@@ -684,7 +764,7 @@ describe("Gas", function() {
 
           assert.deepStrictEqual(receipt.gasUsed, gasEstimate);
           assert.deepStrictEqual(receipt.cumulativeGasUsed, gasEstimate);
-        });
+        }).timeout(4000);
 
         it("matches usage for complex function call (add)", async function() {
           const { accounts, instance } = context;
@@ -753,7 +833,8 @@ describe("Gas", function() {
             blockTime: 0.5, // seconds
             seed
           };
-          const { accounts, web3 } = await initializeTestProvider(options);
+          const { send, accounts, web3 } = await initializeTestProvider(options);
+          await send("miner_stop");
 
           const transactions = [
             {
@@ -799,15 +880,15 @@ describe("Gas", function() {
             })
           );
 
-          // Wait .75 seconds (1.5x the mining interval) then get the receipt. It should be processed.
-          await sleep(750);
+          await send("evm_mine");
 
           const currentBlockNumber = await web3.eth.getBlockNumber();
           assert.deepStrictEqual(currentBlockNumber, 1, "Current Block Should be 1");
 
-          const currentBlock = await web3.eth.getBlock(currentBlockNumber);
-
-          const receipt = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));
+          const [currentBlock, receipt] = await Promise.all([
+            web3.eth.getBlock(currentBlockNumber),
+            Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)))
+          ]);
 
           assert.deepStrictEqual(receipt[0].gasUsed, receipt[1].gasUsed, "Tx1 and Tx2 should cost the same gas.");
           assert.deepStrictEqual(
@@ -857,7 +938,7 @@ describe("Gas", function() {
             currentBlock.gasUsed,
             "Total Gas should be equal to the currentBlock.gasUsed"
           );
-        });
+        }).timeout(4000);
       });
     });
   });

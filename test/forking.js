@@ -233,11 +233,11 @@ describe("Forking", function() {
     var example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
 
     const result = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+    assert.strictEqual(parseInt(result, 10), 7);
 
     // Make the call again to ensure caches updated and the call still works.
     const result2 = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result2), 7);
+    assert.strictEqual(parseInt(result2, 10), 7);
   });
 
   it("should make a transaction on the main provider while not transacting on the forked provider", async() => {
@@ -254,11 +254,11 @@ describe("Forking", function() {
 
     // It insta-mines, so we can make a call directly after.
     const result = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 25);
+    assert.strictEqual(parseInt(result, 10), 25);
 
     // Now call back to the forked to ensure it's value stayed 5
     const forkedResult = await forkedExample.methods.value().call({ from: forkedAccounts[0] });
-    assert.strictEqual(forkedWeb3.utils.hexToNumber(forkedResult), 7);
+    assert.strictEqual(parseInt(forkedResult, 10), 7);
   });
 
   it("should ignore continued transactions on the forked blockchain by pegging the forked block number", async() => {
@@ -281,11 +281,11 @@ describe("Forking", function() {
     await forkedExample.methods.setValue(800).send({ from: forkedAccounts[0] });
     // Let's assert the value was set correctly.
     const result = await forkedExample.methods.value().call({ from: forkedAccounts[0] });
-    assert.strictEqual(forkedWeb3.utils.hexToNumber(result), 800);
+    assert.strictEqual(parseInt(result, 10), 800);
 
     // Now lets check the value on the main chain. It shouldn't be 800.
     const mainResult = await example.methods.value().call({ from: mainAccounts[0] });
-    assert.strictEqual(mainWeb3.utils.hexToNumber(mainResult), 5);
+    assert.strictEqual(parseInt(mainResult, 10), 5);
   });
 
   it("should maintain a block number that includes new blocks PLUS the existing chain", async() => {
@@ -478,6 +478,38 @@ describe("Forking", function() {
     assert.strictEqual(mainNetwork, forkedNetwork);
   });
 
+  it("should be able to delete data", async() => {
+    const from = mainAccounts[0];
+    const example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
+    const example2 = new mainWeb3.eth.Contract(contract.abi, secondContractAddress);
+
+    const example2value = await example2.methods.value().call();
+    assert.strictEqual(example2value, "5");
+
+    // delete the data from our fork
+    await example.methods.setValue(0).send({ from });
+    const result = await example.methods.value().call();
+    assert.strictEqual(result, "0");
+
+    // Check this hasn't clobbered data in the same slot in other contracts
+    const example2valueAfter = await example2.methods.value().call();
+    assert.strictEqual(example2valueAfter, "5");
+
+    await example.methods.setValue(7).send({ from });
+    const result2 = await example.methods.value().call();
+    assert.strictEqual(result2, "7");
+  });
+
+  it("should be able to selfdestruct a contract", async() => {
+    const from = mainAccounts[0];
+    const example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
+
+    // delete the contract from our fork
+    await example.methods.destruct().send({ from });
+    const code = await mainWeb3.eth.getCode(contractAddress);
+    assert.strictEqual(code, "0x");
+  });
+
   describe("Can debug a transaction", function() {
     let send;
     before("generate send", function() {
@@ -529,11 +561,32 @@ describe("Forking", function() {
     });
   });
 
+  describe("Intra block state", function() {
+    it("should be aware of the vm cache", async() => {
+      const { result } = compile("./test/contracts/forking/", "IntraBlockCache");
+      const contract = new mainWeb3.eth.Contract(result.contracts["IntraBlockCache.sol"].IntraBlockCache.abi);
+      const accounts = await mainWeb3.eth.getAccounts();
+      const ibc = await contract
+        .deploy({
+          data: result.contracts["IntraBlockCache.sol"].IntraBlockCache.evm.bytecode.object
+        })
+        .send({
+          from: accounts[0],
+          gas: 190941
+        });
+      return assert.doesNotReject(
+        ibc.methods.deploy().send({ from: accounts[0] }),
+        undefined,
+        "Should reference state in the VM's cache"
+      );
+    });
+  });
+
   after("Shutdown server", (done) => {
     forkedWeb3._provider.connection.close();
     forkedServer.close(function(serverCloseErr) {
       forkedWeb3.setProvider();
-      let mainProvider = mainWeb3._provider;
+      const mainProvider = mainWeb3._provider;
       mainWeb3.setProvider();
       mainProvider.close(function(providerCloseErr) {
         if (serverCloseErr) {

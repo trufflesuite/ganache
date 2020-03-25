@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 // From https://github.com/ethereumjs/testrpc/issues/58
 contract EstimateGas {
@@ -40,7 +40,6 @@ contract EstimateGas {
         triggerRselfdestructRefund();
     }
 
-    
     // https://github.com/trufflesuite/ganache-cli/issues/294
     mapping (uint => uint) public uints;
     // Sets the uints[1] slot to a value;
@@ -51,18 +50,19 @@ contract EstimateGas {
     Test[] tests;
 
     constructor() public {
-        tests.length++;
+        tests.push();
     }
 
     function add(bytes32 _name, bytes32 _description, uint _value) public returns(bool) {
         if (index[_name] != 0) {
             return false;
         }
-        uint pos = tests.length++;
+        uint pos = tests.length;
+        tests.push();
         tests[pos].name = _name;
         tests[pos].description = _description;
-        tests[pos].balances.length = 2;
-        tests[pos].balances[1] = _value;
+        tests[pos].balances.push();
+        tests[pos].balances.push(_value);
         tests[pos].owners[msg.sender] = 1;
         index[_name] = pos;
         emit Add(_name, _description, _value, msg.sender);
@@ -86,7 +86,8 @@ contract EstimateGas {
 
         uint posTo = tests[pos].owners[_to];
         if (posTo == 0) {
-            uint posBal = tests[pos].balances.length++;
+            uint posBal = tests[pos].balances.length;
+            tests[pos].balances.push();
             tests[pos].owners[_to] = posBal;
             posTo = posBal;
         }
@@ -100,7 +101,17 @@ contract EstimateGas {
         return true;
     }
 
-    function currentBlock() public returns (uint) {
+    function currentBlock() public view returns (uint) {
         return block.number;
+    }
+
+    uint public counter;
+    function runsOutOfGas() public {
+        consumesGas();
+    }
+    function consumesGas() public {
+        for(uint i = 0; i < 100000; i++){
+            counter = i;
+        }
     }
 }

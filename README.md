@@ -1,5 +1,5 @@
-[![npm](https://img.shields.io/npm/v/ganache-core.svg)]()
-[![npm](https://img.shields.io/npm/dm/ganache-core.svg)]()
+[![npm Version](https://img.shields.io/npm/v/ganache-core.svg)](https://www.npmjs.com/package/ganache-core)
+[![npm Downloads](https://img.shields.io/npm/dm/ganache-core.svg)](https://www.npmjs.com/package/ganache-core)
 [![Build Status](https://travis-ci.org/trufflesuite/ganache-core.svg?branch=master)](https://travis-ci.org/trufflesuite/ganache-core)
 [![Coverage Status](https://coveralls.io/repos/github/trufflesuite/ganache-core/badge.svg?branch=develop)](https://coveralls.io/github/trufflesuite/ganache-core?branch=develop)
 # Ganache Core
@@ -84,16 +84,17 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"time"`: `Date` - Date that the first block should start. Use this feature, along with the `evm_increaseTime` method to test time-dependent code.
 * `"locked"`: `boolean` - whether or not accounts are locked by default.
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
-* `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, `ganache-core` will initialize that chain instead of creating a new one.
+* `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, `ganache-core` will initialize that chain instead of creating a new one. Note: You will not be able to modify state (accounts, balances, etc) on startup when you initialize ganache-core with a pre-existing database.
 * `"db"`: `Object` - Specify an alternative database instance, for instance [MemDOWN](https://github.com/level/memdown).
 * `"ws"`: `boolean` Enable a websocket server. This is `true` by default.
 * `"account_keys_path"`: `String` - Specifies a file to save accounts and private keys to, for testing.
 * `"vmErrorsOnRPCResponse"`: `boolean` - Whether or not to transmit transaction failures as RPC errors. Set to `false` for error reporting behaviour which is compatible with other clients such as geth and Parity. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
-* `"hardfork"`: `String` Allows to specify which hardfork should be used. Supported hardforks are `byzantium`, `constantinople`, and `petersburg` (default).
+* `"hardfork"`: `String` Allows users to specify which hardfork should be used. Supported hardforks are `byzantium`, `constantinople`, `petersburg`, `istanbul`, and `muirGlacier` (default).
 * `"allowUnlimitedContractSize"`: `boolean` - Allows unlimited contract sizes while debugging (NOTE: this setting is often used in conjuction with an increased `gasLimit`). By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
 * `"gasPrice"`: `String::hex` Sets the default gas price for transactions if not otherwise specified. Must be specified as a `hex` encoded string in `wei`. Defaults to `"0x77359400"` (2 `gwei`).
-* `"gasLimit"`: `String::hex` Sets the block gas limit. Must be specified as a `hex` string. Defaults to `"0x6691b7"`.
+* `"gasLimit"`: `String::hex | number` Sets the block gas limit. Must be specified as a `hex` string or `number`(integer). Defaults to `"0x6691b7"`.
+* `"callGasLimit"`: `number` Sets the transaction gas limit for `eth_call` and `eth_estimateGas` calls. Must be specified as a `hex` string. Defaults to `"0x1fffffffffffff"` (`Number.MAX_SAFE_INTEGER`).
 * `"keepAliveTimeout"`:  `number` If using `.server()` - Sets the HTTP server's `keepAliveTimeout` in milliseconds. See the [NodeJS HTTP docs](https://nodejs.org/api/http.html#http_server_keepalivetimeout) for details. `5000` by default.
 
 ## Implemented Methods
@@ -131,6 +132,7 @@ The RPC methods currently implemented are:
 * [eth_sendTransaction](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendTransaction)
 * [eth_sendRawTransaction](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendRawTransaction)
 * [eth_sign](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign)
+* `eth_signTypedData`
 * [eth_subscribe](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_subscribe)
 * [eth_unsubscribe](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_unsubscribe)
 * [shh_version](https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_version)
@@ -188,7 +190,7 @@ Special non-standard methods that aren’t included within the original RPC spec
   ```json
   { "id": 1337, "jsonrpc": "2.0", "result": "060" }
   ```
-* `evm_mine` : Force a block to be mined. Takes one optional parameter, which is the timestamp a block should setup as the mining time. Mines a block independent of whether or not mining is started or stopped.
+* `evm_mine` : Force a block to be mined (independent of mining status: started | stopped). Takes one **optional** parameter, which is the timestamp a block should setup as the mining time. NOTE: the timestamp parameter should be specified in `seconds`. In JavaScript you would calculate it like this: `Math.floor(Date.now() / 1000);`
   ```bash
   # Ex: new Date("2009-01-03T18:15:05+00:00").getTime()
   curl -H "Content-Type: application/json" -X POST --data \

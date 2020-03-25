@@ -228,7 +228,7 @@ describe("Accounts", () => {
     }
 
     async function runTests(intervalMining = true) {
-      let expectedNonce = new BN(currentNonce);
+      const expectedNonce = new BN(currentNonce);
       let expectedBlockNum = startingBlockNumber + 1;
 
       if (intervalMining) {

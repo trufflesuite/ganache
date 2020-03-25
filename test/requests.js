@@ -13,6 +13,7 @@ const _ = require("lodash");
 const pify = require("pify");
 const generateSend = require("./helpers/utils/rpc");
 const compile = require("./helpers/contract/singleFileCompile");
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 const { result: compilationResult, source } = compile("./test/contracts/examples/", "Example");
 
@@ -76,7 +77,7 @@ const tests = function(web3) {
 
   describe("eth_getCompilers", function() {
     it("should return an empty array", async function() {
-      const compilers = await web3.eth.getCompilers();
+      const compilers = (await send("eth_getCompilers")).result;
       assert(Array.isArray(compilers));
       assert.strictEqual(0, compilers.length);
     });
@@ -90,7 +91,7 @@ const tests = function(web3) {
   });
 
   describe("eth_chainId", function() {
-    it("should return a default chain id of a private network", async function() {
+    it("should return a default chain id", async function() {
       const send = pify(web3._provider.send.bind(web3._provider));
 
       const result = await send({
@@ -100,7 +101,9 @@ const tests = function(web3) {
         params: []
       });
 
-      assert.strictEqual(result.result, "0x539"); // 0x539 === 1337
+      // For legacy reasons, we return 1337 regardless of the actual chain id
+      // next major release this will be fixed.
+      assert.strictEqual(result.result, "0x539");
     });
   });
 
@@ -340,7 +343,7 @@ const tests = function(web3) {
     });
 
     it("should produce a signature whose signer can be recovered", async function() {
-      const msg = utils.toBuffer("asparagus");
+      const msg = utils.toBuffer("0xffffffffff");
       const msgHash = utils.hashPersonalMessage(msg);
 
       let sgn = await signingWeb3.eth.sign(utils.bufferToHex(msg), accounts[0]);
@@ -375,7 +378,7 @@ const tests = function(web3) {
     });
 
     after("shutdown", async function() {
-      let provider = signingWeb3._provider;
+      const provider = signingWeb3._provider;
       signingWeb3.setProvider();
       await pify(provider.close)();
     });
@@ -414,8 +417,15 @@ const tests = function(web3) {
             { name: "chainId", type: "uint256" },
             { name: "verifyingContract", type: "address" }
           ],
-          Person: [{ name: "name", type: "string" }, { name: "wallet", type: "address" }],
-          Mail: [{ name: "from", type: "Person" }, { name: "to", type: "Person" }, { name: "contents", type: "string" }]
+          Person: [
+            { name: "name", type: "string" },
+            { name: "wallet", type: "address" }
+          ],
+          Mail: [
+            { name: "from", type: "Person" },
+            { name: "to", type: "Person" },
+            { name: "contents", type: "string" }
+          ]
         },
         primaryType: "Mail",
         domain: {
@@ -444,8 +454,70 @@ const tests = function(web3) {
       );
     });
 
+    it("should produce a signature whose signer can be recovered (for arrays)", async function() {
+      const typedData = {
+        types: {
+          EIP712Domain: [
+            { name: "name", type: "string" },
+            { name: "version", type: "string" },
+            { name: "chainId", type: "uint256" },
+            { name: "verifyingContract", type: "address" }
+          ],
+          Person: [
+            { name: "name", type: "string" },
+            { name: "wallets", type: "address[]" }
+          ],
+          Mail: [
+            { name: "from", type: "Person" },
+            { name: "to", type: "Person[]" },
+            { name: "contents", type: "string" }
+          ],
+          Group: [
+            { name: "name", type: "string" },
+            { name: "members", type: "Person[]" }
+          ]
+        },
+        domain: {
+          name: "Ether Mail",
+          version: "1",
+          chainId: 1,
+          verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        primaryType: "Mail",
+        message: {
+          from: {
+            name: "Cow",
+            wallets: ["0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826", "0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF"]
+          },
+          to: [
+            {
+              name: "Bob",
+              wallets: [
+                "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+                "0xB0BdaBea57B0BDABeA57b0bdABEA57b0BDabEa57",
+                "0xB0B0b0b0b0b0B000000000000000000000000000"
+              ]
+            }
+          ],
+          contents: "Hello, Bob!"
+        }
+      };
+
+      const response = await pify(signingWeb3.currentProvider.send)({
+        jsonrpc: "2.0",
+        method: "eth_signTypedData",
+        params: [accounts[0], typedData],
+        id: new Date().getTime()
+      });
+      assert.strictEqual(
+        response.result,
+        "0x65cbd956f2fae28a601bebc9b906cea0191744bd4c4247bcd27cd08f8eb6b71c" +
+          "78efdf7a31dc9abee78f492292721f362d296cf86b4538e07b51303b67f749061b"
+      );
+    });
+
     after("shutdown", async function() {
-      let provider = signingWeb3._provider;
+      const provider = signingWeb3._provider;
       signingWeb3.setProvider();
       await pify(provider.close)();
     });
@@ -574,7 +646,7 @@ const tests = function(web3) {
         to: accounts[8]
       };
 
-      let result = await web3.eth.sendTransaction(transaction);
+      const result = await web3.eth.sendTransaction(transaction);
 
       assert.notStrictEqual(typeof result.from, "undefined");
       assert.notStrictEqual(typeof result.to, "undefined");
@@ -722,6 +794,24 @@ const tests = function(web3) {
       const balanceEnd = new BN(await web3.eth.getBalance(accounts[5]));
       assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
     });
+
+    it("should succeed with wrong v value (temp until next breaking change)", async function() {
+      const transaction = new Transaction({
+        value: "0x10000000",
+        gasLimit: "0x33450",
+        from: accounts[7],
+        to: accounts[8],
+        nonce: "0x4",
+        chainId: 123456789
+      });
+
+      const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
+      transaction.sign(secretKeyBuffer);
+
+      await assert.doesNotReject(web3.eth.sendSignedTransaction(transaction.serialize()));
+
+      assert(require("../package.json").version.startsWith("2."), "Version 3 should change this so the test fails!");
+    });
   });
 
   describe("eth_newFilter", function() {
@@ -775,7 +865,7 @@ const tests = function(web3) {
     });
 
     it("should return null for the to field due to contract creation (eth_getTransactionReceipt)", async function() {
-      let receipt = await web3.eth.getTransactionReceipt(initialTransactionHash);
+      const receipt = await web3.eth.getTransactionReceipt(initialTransactionHash);
       assert.strictEqual(receipt.to, null);
     });
 
@@ -809,7 +899,7 @@ const tests = function(web3) {
     });
 
     it("should have balance of 1 (eth_getBalance)", async function() {
-      let result = await web3.eth.getBalance(contractAddress);
+      const result = await web3.eth.getBalance(contractAddress);
       assert.strictEqual(result, "1");
     });
 
@@ -903,7 +993,7 @@ const tests = function(web3) {
       const startingBlockNumber = await web3.eth.getBlockNumber();
 
       const gasEstimate = await web3.eth.estimateGas(txData);
-      assert.strictEqual(gasEstimate, 27773);
+      assert.strictEqual(gasEstimate, 27535);
 
       const blockNumber = await web3.eth.getBlockNumber();
 
@@ -920,7 +1010,7 @@ const tests = function(web3) {
       txData.from = "0x1234567890123456789012345678901234567890";
 
       const result = await web3.eth.estimateGas(txData);
-      assert.strictEqual(result, 27773);
+      assert.strictEqual(result, 27535);
     });
 
     it("should estimate gas when no account is listed (eth_estimateGas)", async function() {
@@ -929,7 +1019,7 @@ const tests = function(web3) {
       delete txData.from;
 
       const result = await web3.eth.estimateGas(txData);
-      assert.strictEqual(result, 27773);
+      assert.strictEqual(result, 27535);
     });
 
     it("should send a state changing transaction (eth_sendTransaction)", async function() {
@@ -983,8 +1073,9 @@ const tests = function(web3) {
       // queue some transactions
       const pendingTransactionHashes = [send("eth_sendTransaction", [txData]), send("eth_sendTransaction", [txData])];
 
-      const pendingNextBlockNumber = new Promise(async(resolve) => {
-        if (hasSubscriptions) {
+      let pendingNextBlockNumber;
+      if (hasSubscriptions) {
+        pendingNextBlockNumber = new Promise((resolve) => {
           // Ganache.provider and WebSocket servers can use the EventEmitter
           provider.on("data", function newHeads(_, newHead) {
             if (newHead == null) {
@@ -997,7 +1088,9 @@ const tests = function(web3) {
               provider.removeListener("data", newHeads);
             }
           });
-        } else {
+        });
+      } else {
+        pendingNextBlockNumber = (async() => {
           // for the HttpServer tests we need to poll for the next block
           const startingBlockNumber = await web3.eth.getBlockNumber();
           let currrentBlockNumber;
@@ -1005,9 +1098,9 @@ const tests = function(web3) {
             currrentBlockNumber = await web3.eth.getBlockNumber();
           } while (currrentBlockNumber === startingBlockNumber);
 
-          resolve(currrentBlockNumber);
-        }
-      });
+          return currrentBlockNumber;
+        })();
+      }
 
       // subscribe to `newHeads` if subscriptions are supported
       const subscriptionId = hasSubscriptions ? (await send("eth_subscribe", ["newHeads"])).result : null;
@@ -1031,8 +1124,14 @@ const tests = function(web3) {
         // their own logs, and not each others. We only checking the blockNumber here to make sure they are the same.
         assert.strictEqual(receiptBlockNumber, blockNumber, "Receipt blockNumber doesn't match expected block number");
         assert.strictEqual(logs.length, 1, "Receipt had wrong amount of logs");
-        assert(logs.every((l) => l.transactionHash === receipt.transactionHash), "Receipt log isn't valid");
-        assert(logs.every((l) => l.blockHash === receipt.blockHash), "Logs blockhash doesn't match block blockhash");
+        assert(
+          logs.every((l) => l.transactionHash === receipt.transactionHash),
+          "Receipt log isn't valid"
+        );
+        assert(
+          logs.every((l) => l.blockHash === receipt.blockHash),
+          "Logs blockhash doesn't match block blockhash"
+        );
       });
     });
 
@@ -1093,6 +1192,21 @@ const tests = function(web3) {
       const nonExistentBlock = (await web3.eth.getBlockNumber()) + 1;
       const result = await web3.eth.call(callData, nonExistentBlock);
       assert.strictEqual(result, null, "Result should be null");
+    });
+
+    it("should not error when using an invalid nonce (eth_call/eth_estimateGas)", async function() {
+      const callData = {
+        nonce: 999999,
+        from: accounts[0],
+        to: accounts[1],
+        value: 1
+      };
+
+      const pendingCall = web3.eth.call(callData);
+      await assert.doesNotReject(pendingCall);
+
+      const pendingEstimate = web3.eth.estimateGas(callData);
+      await assert.doesNotReject(pendingEstimate);
     });
 
     it("should only accept unsigned transaction from known accounts eth_sendTransaction)", async function() {
@@ -1166,9 +1280,9 @@ const tests = function(web3) {
 
       assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
       assert.notStrictEqual(contractAddress, null, "Transaction did not create a contract");
-      assert.strictEqual(receipt.hasOwnProperty("v"), true, "Transaction includes v signature parameter");
-      assert.strictEqual(receipt.hasOwnProperty("r"), true, "Transaction includes r signature parameter");
-      assert.strictEqual(receipt.hasOwnProperty("s"), true, "Transaction includes s signature parameter");
+      assert.strictEqual(hasOwnProperty.call(receipt, "v"), false, "Transaction includes v signature parameter");
+      assert.strictEqual(hasOwnProperty.call(receipt, "r"), false, "Transaction includes r signature parameter");
+      assert.strictEqual(hasOwnProperty.call(receipt, "s"), false, "Transaction includes s signature parameter");
     });
 
     it("should verify the transaction immediately (eth_getTransactionByHash)", async function() {
@@ -1177,10 +1291,9 @@ const tests = function(web3) {
       assert.notStrictEqual(result, null, "Transaction result shouldn't be null");
       assert.strictEqual(result.hash, initialTransactionHash, "Resultant hash isn't what we expected");
       assert.strictEqual(result.to, null, "Transaction receipt's `to` isn't `null` for a contract deployment");
-
-      assert.strictEqual(result.hasOwnProperty("v"), true, "Transaction includes v signature parameter");
-      assert.strictEqual(result.hasOwnProperty("r"), true, "Transaction includes r signature parameter");
-      assert.strictEqual(result.hasOwnProperty("s"), true, "Transaction includes s signature parameter");
+      assert.strictEqual(hasOwnProperty.call(result, "v"), true, "Transaction includes v signature parameter");
+      assert.strictEqual(hasOwnProperty.call(result, "r"), true, "Transaction includes r signature parameter");
+      assert.strictEqual(hasOwnProperty.call(result, "s"), true, "Transaction includes s signature parameter");
     });
 
     it("should return null if transaction doesn't exist (eth_getTransactionByHash)", async function() {
@@ -1269,7 +1382,7 @@ const tests = function(web3) {
   describe("eth_getTransactionByHash", function() {
     it("should return nonce as a quantity datatype when requested via RPC method", async function() {
       const send = pify(web3._provider.send.bind(web3._provider));
-      let txHash = await send({
+      const txHash = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
@@ -1282,7 +1395,7 @@ const tests = function(web3) {
         ]
       });
 
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_getTransactionByHash",
@@ -1290,23 +1403,23 @@ const tests = function(web3) {
       });
 
       assert.strictEqual(result.result.nonce, "0x0");
-    });
+    }).timeout(4000);
 
     it("should return nonce as a number when requested via web3 method", async function() {
-      let txHash = await web3.eth.sendTransaction({
+      const txHash = await web3.eth.sendTransaction({
         from: accounts[8],
         to: accounts[9],
         value: 0
       });
 
-      let result = await web3.eth.getTransaction(txHash.transactionHash);
+      const result = await web3.eth.getTransaction(txHash.transactionHash);
 
       assert.strictEqual(result.nonce, 1);
     });
 
     it("should return input as an unformatted datatype when requested via RPC method", async function() {
       const send = pify(web3._provider.send.bind(web3._provider));
-      let txHash = await send({
+      const txHash = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
@@ -1319,7 +1432,7 @@ const tests = function(web3) {
         ]
       });
 
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_getTransactionByHash",
@@ -1343,14 +1456,14 @@ const tests = function(web3) {
         method: "miner_stop"
       });
 
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
         params: [txData]
       });
 
-      let transactionObject = await send({
+      const transactionObject = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_getTransactionByHash",
@@ -1377,14 +1490,14 @@ const tests = function(web3) {
         params: []
       });
 
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
         params: [txData]
       });
 
-      let transactionObject = await send({
+      const transactionObject = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_getTransactionByHash",
@@ -1401,12 +1514,8 @@ const tests = function(web3) {
     this.timeout(5000);
 
     it("errors on compile solidity request", async function() {
-      try {
-        await web3.eth.compile.solidity(source);
-        assert.fail("expected promise rejection");
-      } catch (err) {
-        assert(err.message.indexOf("Method eth_compileSolidity not supported") >= 0);
-      }
+      const result = await send("eth_compileSolidity", [source]).catch((error) => ({ error }));
+      assert(result.error.message.indexOf("Method eth_compileSolidity not supported") >= 0);
     });
   });
 
@@ -1419,23 +1528,23 @@ const tests = function(web3) {
         method: "miner_stop"
       });
 
-      let txData = {};
+      const txData = {};
       txData.to = accounts[1];
       txData.from = accounts[0];
       txData.value = "0x1";
 
       // we don't use web3.eth.sendTransaction here because it gets huffy waiting for a receipt,
       // then winds up w/ an unhandled rejection on server.close later on
-      let result = await send({
+      const result = await send({
         id: new Date().getTime(),
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
         params: [txData]
       });
 
-      let txHash = result.result;
+      const txHash = result.result;
 
-      let receipt = await web3.eth.getTransactionReceipt(txHash);
+      const receipt = await web3.eth.getTransactionReceipt(txHash);
 
       assert.strictEqual(receipt, null);
       await send({
@@ -1693,7 +1802,7 @@ describe("WebSockets Server:", function() {
   }).timeout(500); // fail quick if our hacked-together websocket handler fails.
 
   after("Shutdown server", async function() {
-    let provider = web3._provider;
+    const provider = web3._provider;
     web3.setProvider();
     provider.connection.close();
     await pify(server.close)();

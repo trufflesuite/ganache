@@ -1,10 +1,10 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 contract Fib {
     constructor() public {}
     uint public value = 0;
 
-    function() external payable {
+    fallback() external payable {
         Bif bif = new Bif();
         value = bif.calc(5);
     }

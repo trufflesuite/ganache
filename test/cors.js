@@ -8,7 +8,7 @@ const customRequestHeader = "X-PINGOTHER";
 function test(host, port) {
   describe("CORS", () => {
     it("should set response headers correctly in a preflight request", (done) => {
-      let req = request.options(
+      const req = request.options(
         {
           url: "http://" + host + ":" + port,
           headers: {
@@ -50,8 +50,8 @@ function test(host, port) {
     });
 
     it("should set response.Access-Control-Allow-Origin to equal request.Origin if request.Origin is set", (done) => {
-      let origin = "https://localhost:3000";
-      let req = request.options(
+      const origin = "https://localhost:3000";
+      const req = request.options(
         {
           url: "http://" + host + ":" + port,
           headers: {
@@ -65,8 +65,8 @@ function test(host, port) {
           }
 
           let accessControlAllowOrigin = "";
-
-          if (response.headers.hasOwnProperty("access-control-allow-origin")) {
+          const hasOwnProperty = Object.prototype.hasOwnProperty;
+          if (hasOwnProperty.call(response.headers, "access-control-allow-origin")) {
             accessControlAllowOrigin = response.headers["access-control-allow-origin"];
           }
 
@@ -84,8 +84,8 @@ function test(host, port) {
     });
 
     it("should set Access-Control-Allow-Credentials=true if the Origin is set.", (done) => {
-      let origin = "https://localhost:3000";
-      let req = request.options(
+      const origin = "https://localhost:3000";
+      const req = request.options(
         {
           url: "http://" + host + ":" + port,
           headers: {
