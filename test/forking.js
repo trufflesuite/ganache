@@ -1,3 +1,4 @@
+const Transaction = require("../lib/utils/transaction");
 var Web3 = require("web3");
 var Web3WsProvider = require("web3-providers-ws");
 var assert = require("assert");
@@ -508,6 +509,22 @@ describe("Forking", function() {
     await example.methods.destruct().send({ from });
     const code = await mainWeb3.eth.getCode(contractAddress);
     assert.strictEqual(code, "0x");
+  });
+
+  it("should be able to send a signed transaction", async() => {
+    const transaction = new Transaction({
+      value: "0x10000000",
+      gasLimit: "0x33450",
+      from: mainAccounts[8],
+      to: mainAccounts[7],
+      nonce: "0x0"
+    });
+
+    const secretKey = mainWeb3.currentProvider.manager.state.accounts[mainAccounts[8].toLowerCase()].secretKey;
+    transaction.sign(secretKey);
+
+    const result = await mainWeb3.eth.sendSignedTransaction(transaction.serialize());
+    assert.strictEqual(result.status, true);
   });
 
   describe("Can debug a transaction", function() {
