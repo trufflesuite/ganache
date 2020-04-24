@@ -131,7 +131,7 @@ export class Block {
       this.manager = manager;
     }
 
-  private getTxFn(include = false): (tx: Transaction) => {[key: string] : string} | Data {
+  getTxFn = (include = false): (tx: Transaction) => {[key: string] : string} | Data => {
     if (include) {
       return (tx: Transaction) => tx.toJSON(this)
     } else {

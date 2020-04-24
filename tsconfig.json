@@ -4,13 +4,14 @@
     "experimentalDecorators": true,
     "module": "commonjs",
     "esModuleInterop": true,
-    "target": "esnext",
+    "target": "ESNext",
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
-    "lib": ["esnext"],
-    "incremental": true
+    "lib": ["ESNext"],
+    "incremental": true,
+    "resolveJsonModule": true
   },
   "include": [
     "./index.ts",

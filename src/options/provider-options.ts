@@ -1,6 +1,6 @@
 import Options, {getDefault as getDefaultOptions} from "./options";
 
-const bip39 = require("bip39");
+import { entropyToMnemonic } from "bip39";
 import seedrandom, { seedrandom_prng } from "seedrandom";
 
 function randomBytes(length: number, rng: () => number) {
@@ -49,12 +49,12 @@ export const getDefault : (options: ProviderOptions) => ProviderOptions = (optio
       rng = seedrandom.alea as seedrandom_prng;
       seed = _options.seed = randomAlphaNumericString(10, rng());
     } else {
-      // Use the default seedrandom PRNG for ganache-core <= 2 back-compatibility
+      // Use the default seedrandom PRNG for ganache-core < 3.0 back-compatibility
       rng = seedrandom;
     }
     // generate a randomized default mnemonic
     const _randomBytes = randomBytes(16, rng(seed));
-    _options.mnemonic = bip39.entropyToMnemonic(_randomBytes);
+    _options.mnemonic = entropyToMnemonic(_randomBytes);
   }
   return _options;
 }

@@ -7,10 +7,10 @@ export type Instantiable<T> = { new(...args: any[]): T };
 
 export default class Manager<T> {
   protected blockchain: Blockchain;
-  private Type: Instantiable<T>;
+  #Type: Instantiable<T>;
   protected base: levelup.LevelUp;
   constructor(blockchain: Blockchain, base: levelup.LevelUp, type: Instantiable<T>) {
-    this.Type = type;
+    this.#Type = type;
     this.blockchain = blockchain;
     this.base = base;
   }
@@ -27,7 +27,7 @@ export default class Manager<T> {
   async get(key: string | Buffer) {
     const raw = await this.getRaw(key);
     if (!raw) return null;
-    return new this.Type(raw);
+    return new this.#Type(raw);
   }
   set(key: Buffer, value: Buffer): Promise<T> {
     return this.base.put(key, value);

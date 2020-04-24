@@ -56,7 +56,7 @@ describe("Accounts", () => {
       to: accounts[1],
       value: 1
     }]);
-    // TODO: remove and replace with something that detects with the block is "mined"
+    // TODO: remove and replace with something that detects when the block is "mined"
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const balance1_2 = await p.send("eth_getBalance", [accounts[1]]);
@@ -65,7 +65,7 @@ describe("Accounts", () => {
 
   it("should create its own mnemonic", async() => {
     const p = Ganache.provider();
-    const options = (p as any)[Object.getOwnPropertySymbols(p)[0] as any];
+    const options = p.getOptions();
     assert.deepStrictEqual(typeof options.mnemonic, "string");
   });
 

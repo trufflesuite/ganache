@@ -4,19 +4,17 @@ import RequestProcessor from "./utils/request-processor";
 import ProviderOptions, { getDefault as getDefaultProviderOptions } from "./options/provider-options";
 import Emittery from "emittery";
 import Ethereum from "./ledgers/ethereum/ledger"
-import { privateToAddress } from "ethereumjs-util";
+import { publicToAddress, privateToAddress } from "ethereumjs-util";
 import Account from "./types/account";
 import { mnemonicToSeedSync } from "bip39";
 import Address from "./types/address";
 import JsonRpc from "./servers/utils/jsonrpc";
 import EthereumOptions from "./ledgers/ethereum/options";
-
-const hdkey = require("ethereumjs-wallet/hdkey");
+import cloneDeep from "lodash.clonedeep";
+import secp256k1 from "secp256k1";
+import HDKey from "hdkey";
 
 const WEI = 1000000000000000000n;
-
-const options = Symbol("options");
-const requestProcessor = Symbol("requestProcessor");
 
 interface Callback {
   (err?: Error, response?: JsonRpc.Response): void;
@@ -24,21 +22,21 @@ interface Callback {
 
 
 export default class Provider extends Emittery {
-  private [options]: ProviderOptions;
-  private _engine: Engine;
-  private [requestProcessor]: RequestProcessor;
+  #options: ProviderOptions;
+  #engine: Engine;
+  #requestProcessor: RequestProcessor;
 
-  private wallet:any;
+  #wallet: HDKey;
   constructor(providerOptions?: ProviderOptions) {
     super();
-    const _providerOptions = this[options] = getDefaultProviderOptions(providerOptions);
+    const _providerOptions = this.#options = getDefaultProviderOptions(providerOptions);
 
     // set up our request processor to either use FIFO or or async request processing
-    const _requestProcessor = this[requestProcessor] = new RequestProcessor(_providerOptions.asyncRequestProcessing ? 0 : 1);
+    const _requestProcessor = this.#requestProcessor = new RequestProcessor(_providerOptions.asyncRequestProcessing ? 0 : 1);
 
-    this.wallet = hdkey.fromMasterSeed(mnemonicToSeedSync(_providerOptions.mnemonic, null));
+    this.#wallet = HDKey.fromMasterSeed(mnemonicToSeedSync(_providerOptions.mnemonic, null));
 
-    const accounts = this.initializeAccounts();
+    const accounts = this.#initializeAccounts();
     // ethereum options' `accounts` are different than the provider options'
     // `accounts`, fix that up here:
     const ethereumOptions = _providerOptions as any as EthereumOptions;
@@ -46,49 +44,49 @@ export default class Provider extends Emittery {
     const emitter = this as any;
     const ledger = _providerOptions.ledger || new Ethereum(ethereumOptions, emitter);
     emitter.on("ready", _requestProcessor.resume.bind(_requestProcessor));
-    this._engine = new Engine(ledger);
+    this.#engine = new Engine(ledger);
   }
 
   // TODO: this doesn't seem like a provider-level function. Maybe we should
   // move this into the Ledger or its Blockchain?
-  private initializeAccounts(): Account[]{
-    const _providerOptions = this[options];
+  #initializeAccounts = (): Account[] => {
+    const _providerOptions = this.#options;
     const etherInWei = Quantity.from(Quantity.from(_providerOptions.default_balance_ether).toBigInt() * WEI);
     let accounts: Account[];
 
     let givenAccounts = _providerOptions.accounts;
     let accountsLength;
     if (givenAccounts && (accountsLength = givenAccounts.length) !== 0) {
-      const wallet = this.wallet;
-      const hdPath = this[options].hdPath;
+      const wallet = this.#wallet;
+      const hdPath = this.#options.hdPath;
       accounts = Array(accountsLength);
       for (let i = 0; i < accountsLength; i++) {
         const account = givenAccounts[i];
         const secretKey = account.secretKey;
-        let secretKeyData;
+        let privateKey;
         let address: Address;
         if (!secretKey) {
-          const acct = wallet.derivePath(hdPath + i);
-          const accountWallet = acct.getWallet();
-          address = Address.from(accountWallet.getAddress());
-          secretKeyData = Data.from(accountWallet.getPrivateKey());
+          const acct = wallet.derive(hdPath + i);
+          const publicKey = secp256k1.publicKeyConvert(acct.publicKey as Buffer, false).slice(1);
+          address = Address.from(publicToAddress(publicKey));
+          privateKey = Data.from(acct.privateKey);
         } else {
-          secretKeyData = Data.from(secretKey);
+          privateKey = Data.from(secretKey);
         }
-        accounts[i] = Provider.createAccount(Quantity.from(account.balance), secretKeyData, address);
+        accounts[i] = Provider.createAccount(Quantity.from(account.balance), privateKey, address);
       }
     } else {
       const numerOfAccounts =_providerOptions.total_accounts;
       if (numerOfAccounts) {
         accounts = Array(numerOfAccounts);
-        const hdPath = this[options].hdPath;
-        const wallet = this.wallet;
+        const hdPath = this.#options.hdPath;
+        const wallet = this.#wallet;
 
         for (let index = 0; index < numerOfAccounts; index++) {
-          const acct = wallet.derivePath(hdPath + index);
-          const accountWallet = acct.getWallet();
-          const address = Address.from(accountWallet.getAddress());
-          const privateKey = Data.from(accountWallet.getPrivateKey());
+          const acct = wallet.derive(hdPath + index);
+          const publicKey = secp256k1.publicKeyConvert(acct.publicKey as Buffer, false).slice(1);
+          const address = Address.from(publicToAddress(publicKey));
+          const privateKey = Data.from(acct.privateKey);
           accounts[index] = Provider.createAccount(etherInWei, privateKey, address);
         }
       } else {
@@ -99,7 +97,7 @@ export default class Provider extends Emittery {
   }
   
   // TODO: this should probable be moved as well (see `initializeAccounts` above)
-  private static createAccount(balance: Quantity, privateKey: Data, address?: Address) {
+  static createAccount(balance: Quantity, privateKey: Data, address?: Address) {
     address = address || Address.from(privateToAddress(privateKey.toBuffer()));
   
     const account = new Account(address);
@@ -109,18 +107,22 @@ export default class Provider extends Emittery {
     return account;
   }
 
+  public getOptions(){
+    return cloneDeep(this.#options);
+  }
+
   public send(payload: JsonRpc.Request, callback?: Callback): void;
   public send(method: string, params?: any[]): Promise<any>;
   public send(arg1: string | JsonRpc.Request, arg2?: Callback | any[]): Promise<any> {
     let method: string;
     let params: any[];
     let response: Promise<{}>;
-    const engine = this._engine;
+    const engine = this.#engine;
     const execute = engine.execute.bind(engine);
     if (typeof arg1 === "string") {
       method = arg1;
       params = arg2 as any[];
-      response = this[requestProcessor].queue(execute, method, params).then((result => {
+      response = this.#requestProcessor.queue(execute, method, params).then((result => {
         // convert to JSON
         return JSON.parse(JSON.stringify(result));
       }));
@@ -131,7 +133,7 @@ export default class Provider extends Emittery {
       method = payload.method;
       params = payload.params;
 
-      this[requestProcessor].queue(execute, method, params).then((result) => {
+      this.#requestProcessor.queue(execute, method, params).then((result) => {
         callback(null, JsonRpc.Response(
           payload.id, 
           JSON.parse(JSON.stringify(result))
@@ -145,7 +147,7 @@ export default class Provider extends Emittery {
       );
     }
 
-    const _options = this[options];
+    const _options = this.#options;
     if (_options.verbose) {
       _options.logger.log(`   >  ${method}: ${params == null ? params : JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`);
     }
@@ -167,7 +169,7 @@ export default class Provider extends Emittery {
     // to finish before returning
 
     // stop accepting new requests
-    this[requestProcessor].pause();
+    this.#requestProcessor.pause();
 
     await this.emit("close");
     return;

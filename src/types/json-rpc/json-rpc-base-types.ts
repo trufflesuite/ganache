@@ -25,12 +25,12 @@ export const bufCache = new WeakMap();
 export const toStrings = new WeakMap();
 export const toBuffers = new WeakMap();
 
-const inspect = Symbol.for('nodejs.util.inspect.custom');
+const inspect = Symbol.for("nodejs.util.inspect.custom");
 
 export class BaseJsonRpcType<T extends number | bigint | string | Buffer = number | bigint | string | Buffer> {
   protected value: T;
   // used to make console.log debugging a little easier
-  private [inspect](depth: number, options: any):T {
+  private [inspect](_depth: number, _options: any):T {
     return this.value;
   }
   constructor(value: T) {

@@ -38,14 +38,14 @@ type BlockchainOptions = {
 };
 
 export default class Blockchain extends Emittery {
-  private state: Status = Status.starting;
+  #state: Status = Status.starting;
   public blocks: BlockManager;
   public transactions: TransactionManager;
   public transactionReceipts: Manager<TransactionReceipt>;
   public accounts: AccountManager;
   public vm: any;
   public trie: Trie;
-  private readonly database: Database
+  readonly #database: Database
 
   /**
    * Initializes the underlying Database and handles synchronization between
@@ -58,7 +58,7 @@ export default class Blockchain extends Emittery {
   constructor(options: BlockchainOptions) {
     super();
 
-    const database = this.database = new Database(options, this);
+    const database = this.#database = new Database(options, this);
 
     database.on("ready", async () => {
       // TODO: get the latest block from the database
@@ -72,10 +72,10 @@ export default class Blockchain extends Emittery {
       const miner = new Miner(this.vm, options);
       this.transactions = new TransactionManager(this, database.transactions, options);
       this.transactionReceipts = new Manager<TransactionReceipt>(this, database.transactionReceipts, TransactionReceipt);
-      this.accounts = new AccountManager(this);
+      this.accounts = new AccountManager(this, database.trie);
 
-      await this._initializeAccounts(options.accounts);
-      let lastBlock = this._initializeGenesisBlock(options.timestamp, options.gasLimit);
+      await this.#initializeAccounts(options.accounts);
+      let lastBlock = this.#initializeGenesisBlock(options.timestamp, options.gasLimit);
 
       const readyNextBlock = async () => {
         const previousBlock = await lastBlock;
@@ -84,7 +84,7 @@ export default class Blockchain extends Emittery {
         return this.blocks.createBlock({
           number: Quantity.from(previousNumber + 1n).toBuffer(),
           gasLimit: options.gasLimit.toBuffer(),
-          timestamp: this._currentTime(),
+          timestamp: this.#currentTime(),
           parentHash: previousHeader.hash(),
         });
       }
@@ -113,7 +113,7 @@ export default class Blockchain extends Emittery {
           parentHash: previousHeader.hash(),
           number: Quantity.from(previousNumber + 1n).toBuffer(),
           // coinbase: 
-          timestamp: this._currentTime(),
+          timestamp: this.#currentTime(),
           // difficulty: 
           gasLimit: options.gasLimit.toBuffer(),
           transactionsTrie: blockData.transactionsTrie.root,
@@ -123,7 +123,7 @@ export default class Blockchain extends Emittery {
         });
 
         this.blocks.latest = block;
-        lastBlock = this.database.batch(() => {
+        lastBlock = this.#database.batch(() => {
           blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
             const hash = tx.hash();
             // todo: clean up transction extra data stuffs because this is gross:
@@ -147,12 +147,12 @@ export default class Blockchain extends Emittery {
       });
 
       this.blocks.earliest = this.blocks.latest = await lastBlock;
-      this.state = Status.started;
+      this.#state = Status.started;
       this.emit("start");
     });
   }
 
-  private createVmFromStateTrie(stateTrie: Trie, hardfork: string, allowUnlimitedContractSize: boolean): any {
+  createVmFromStateTrie = (stateTrie: Trie, hardfork: string, allowUnlimitedContractSize: boolean): any => {
     const common = Common.forCustomChain(
       "mainnet", // TODO needs to match chain id
       {
@@ -171,7 +171,7 @@ export default class Blockchain extends Emittery {
       allowUnlimitedContractSize,
       blockchain: {
         getBlock: async (number: BN, done: any) => {
-          const hash = await this._blockNumberToHash(number);
+          const hash = await this.#blockNumberToHash(number);
           done(this.blocks.get(hash));
         }
       }
@@ -180,7 +180,7 @@ export default class Blockchain extends Emittery {
     return vm;
   }
 
-  private async _initializeAccounts(accounts: Account[]): Promise<void> {
+   #initializeAccounts = async (accounts: Account[]): Promise<void> => {
     const stateManager = this.vm.stateManager;
     const putAccount = promisify(stateManager.putAccount.bind(stateManager));
     const checkpoint = promisify(stateManager.checkpoint.bind(stateManager))
@@ -199,11 +199,11 @@ export default class Blockchain extends Emittery {
     return commit();
   }
 
-  private async _initializeGenesisBlock(timestamp: Date, blockGasLimit: Quantity): Promise<Block> {
+  #initializeGenesisBlock = async (timestamp: Date, blockGasLimit: Quantity): Promise<Block> => {
     // create the genesis block
     const genesis = this.blocks.next({
       // If we were given a timestamp, use it instead of the `_currentTime`
-      timestamp: ((timestamp as any) / 1000 | 0) || this._currentTime(),
+      timestamp: ((timestamp as any) / 1000 | 0) || this.#currentTime(),
       gasLimit: blockGasLimit.toBuffer(),
       stateRoot: this.trie.root,
       number: "0x0"
@@ -213,7 +213,7 @@ export default class Blockchain extends Emittery {
     return this.blocks.putBlock(genesis);
   }
 
-  private _currentTime() {
+  #currentTime = () => {
     // Take the floor of the current time
     return (Date.now() / 1000) | 0;
   }
@@ -222,7 +222,7 @@ export default class Blockchain extends Emittery {
    * Given a block number, find its hash in the database
    * @param number 
    */
-  private _blockNumberToHash(number: BN): Promise<Buffer> {
+  #blockNumberToHash = (number: BN): Promise<Buffer> => {
     return number.toString() as any;
   }
 
@@ -251,15 +251,15 @@ export default class Blockchain extends Emittery {
     // yet because there may still be database calls in flight. Leveldb may
     // cause a segfault due to a race condition between a db write and the close
     // call.
-    if (this.state === Status.starting) {
+    if (this.#state === Status.starting) {
       await new Promise((resolve) => {
         this.on("start", resolve);
       });
     }
-    if (this.state === Status.started) {
-      this.state = Status.stopping;
-      await this.database.close();
-      this.state = Status.stopped;
+    if (this.#state === Status.started) {
+      this.#state = Status.stopping;
+      await this.#database.close();
+      this.#state = Status.stopped;
     }
     this.emit("stop");
   }

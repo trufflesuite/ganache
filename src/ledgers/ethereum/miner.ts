@@ -34,29 +34,29 @@ function byPrice(values: Transaction[], a: number, b: number) {
 }
 
 export default class Miner extends Emittery {
-  private currentlyExecutingPrice = 0n;
-  private origins = new Set<string>();
-  private pending: Map<string, Heap<Transaction>>;
-  private _isMining: boolean = false;
-  private readonly options: MinerOptions;
-  private readonly vm: VM;
-  private readonly _checkpoint: () => Promise<any>;
-  private readonly _commit: () => Promise<any>;
-  private readonly _revert: () => Promise<any>;
+  #currentlyExecutingPrice = 0n;
+  #origins = new Set<string>();
+  #pending: Map<string, Heap<Transaction>>;
+  #isMining: boolean = false;
+  readonly #options: MinerOptions;
+  readonly #vm: VM;
+  readonly #checkpoint: () => Promise<any>;
+  readonly #commit: () => Promise<any>;
+  readonly #revert: () => Promise<any>;
 
   // initialize a Heap that sorts by gasPrice
-  private readonly priced = new Heap<Transaction>(byPrice);
+  readonly #priced = new Heap<Transaction>(byPrice);
   constructor(vm: VM, options: MinerOptions) {
     super();
-    this.vm = vm;
-    this.options = options;
+    this.#vm = vm;
+    this.#options = options;
     const stateManager = vm.stateManager;
-    this._checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
-    this._commit = promisify(stateManager.commit.bind(stateManager));
-    this._revert = promisify(stateManager.revert.bind(stateManager));
+    this.#checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
+    this.#commit = promisify(stateManager.commit.bind(stateManager));
+    this.#revert = promisify(stateManager.revert.bind(stateManager));
 
     // init the heap with an empty array
-    this.priced.init([]);
+    this.#priced.init([]);
   }
 
   /**
@@ -70,30 +70,30 @@ export default class Miner extends Emittery {
    */
   public async mine(pending: Map<string, Heap<Transaction>>, block: Block) {
     // only allow mining a single block at a time (per miner)
-    if (this._isMining) {
+    if (this.#isMining) {
       // if we are currently mining a block, set the `pending` property
       // so the miner knows it should immediately mine another block once it is
       //  done with its current work.
-      this.pending = pending;
-      this.updatePricedHeap(pending);
+      this.#pending = pending;
+      this.#updatePricedHeap(pending);
       return;
     } else {
-      this.setPricedHeap(pending);
+      this.#setPricedHeap(pending);
     }
-    this._isMining = true;
+    this.#isMining = true;
 
     const blockTransactions: Transaction[] = [];
 
-    let blockGasLeft = this.options.gasLimit.toBigInt();
+    let blockGasLeft = this.#options.gasLimit.toBigInt();
     
     let counter = 0;
     const transactionsTrie = new Trie(null, null);
     const receiptTrie = new Trie(null, null);
     const promises: Promise<any>[] = [];
 
-    await this._checkpoint();
+    await this.#checkpoint();
 
-    const priced = this.priced;
+    const priced = this.#priced;
     const rejectedTransactions: Transaction[] = [];
     const blockData = {
       blockTransactions,
@@ -124,18 +124,18 @@ export default class Miner extends Emittery {
       const origin = Data.from(best.from).toString();
       const pendingFromOrigin = pending.get(origin);
 
-      this.currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
+      this.#currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
 
       const runArgs = {
         tx: best as any,
         block
       };
-      await this._checkpoint();
+      await this.#checkpoint();
       let result: RunTxResult;
       try {
-        result = await this.vm.runTx(runArgs);
+        result = await this.#vm.runTx(runArgs);
       } catch(err) {
-        await this._revert();
+        await this.#revert();
         const errorMessage = err.message;
         if (errorMessage.startsWith("the tx doesn't have the correct nonce. account has nonce of: ")) {
           // a race condition between the pool and the miner could potentially
@@ -156,7 +156,7 @@ export default class Miner extends Emittery {
 
       const gasUsed = Quantity.from(result.gasUsed.toBuffer()).toBigInt();
       if (blockGasLeft >= gasUsed) {
-        await this._commit();
+        await this.#commit();
 
         blockGasLeft -= gasUsed;
         blockData.gasUsed += gasUsed;
@@ -188,7 +188,7 @@ export default class Miner extends Emittery {
         // update `priced` with the next best for this account:
         replaceFromHeap(priced, pendingFromOrigin, pending, origin);
       } else {
-        await this._revert();
+        await this.#revert();
 
         // didn't fit. remove it from the priced transactions without replacing
         // it with another from the account. This transaction will have to be
@@ -198,7 +198,7 @@ export default class Miner extends Emittery {
       }
     }
     await Promise.all(promises);
-    await this._commit();
+    await this.#commit();
 
     // TODO: put the rejected transactions back in their original origin heaps
     rejectedTransactions.forEach(transaction => {
@@ -209,9 +209,9 @@ export default class Miner extends Emittery {
     this.emit("block", blockData);
 
     // reset the miner (this sets _isMining back to false)
-    this.reset();
+    this.#reset();
 
-    if (this.pending) {
+    if (this.#pending) {
       // TODO: hm... tricky... we know we need to mine a new block
       // but at what timestamp. We need to get the timestamp from `blockchain`, but so far,
       // we don't require the miner to know about the blockchain.
@@ -225,21 +225,21 @@ export default class Miner extends Emittery {
         difficulty: block.header.difficulty,
         gasLimit: block.header.gasLimit,
       } as any);
-      this.mine(this.pending, nextBlock);
-      this.pending = null;
+      this.mine(this.#pending, nextBlock);
+      this.#pending = null;
     }
   }
   
-  private reset(){
-    this.origins.clear();
-    this.priced.clear();
-    this._isMining = false;
-    this.currentlyExecutingPrice = 0n;
+  #reset = () => {
+    this.#origins.clear();
+    this.#priced.clear();
+    this.#isMining = false;
+    this.#currentlyExecutingPrice = 0n;
   }
 
-  private setPricedHeap(pending: Map<string, Heap<Transaction>>) {
-    const origins = this.origins;
-    const priced = this.priced;
+  #setPricedHeap = (pending: Map<string, Heap<Transaction>>) => {
+    const origins = this.#origins;
+    const priced = this.#priced;
 
     for (let mapping of pending) {
       const heap = mapping[1];
@@ -252,9 +252,9 @@ export default class Miner extends Emittery {
     }
   }
 
-  private updatePricedHeap(pending: Map<string, Heap<Transaction>>) {
-    const origins = this.origins;
-    const priced = this.priced;
+  #updatePricedHeap = (pending: Map<string, Heap<Transaction>>) => {
+    const origins = this.#origins;
+    const priced = this.#priced;
     // Note: the `pending` Map passed here is "live", meaning it is constantly
     // being updated by the `transactionPool`. This allows us to begin
     // processing a block with the _current_ pending transactions, and while
@@ -265,7 +265,7 @@ export default class Miner extends Emittery {
       const next = heap.peek();
       if (next) {
         const price = Quantity.from(next.gasPrice).toBigInt();
-        if (this.currentlyExecutingPrice < price) {
+        if (this.#currentlyExecutingPrice < price) {
           // don't insert a transaction into the miner's `priced` heap
           // if it will be better than its last 
           continue;

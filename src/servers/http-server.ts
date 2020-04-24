@@ -4,9 +4,6 @@ import Provider from "../provider";
 import JsonRpc from "./utils/jsonrpc"
 import HttpResponseCodes from "./utils/http-response-codes";
 
-const _handlePost = Symbol("handlePost");
-const _handleOptions = Symbol("handleOptions");
-const _provider = Symbol("provider");
 const noop = () => { };
 
 /**
@@ -77,14 +74,14 @@ function sendResponse(response: HttpResponse, statusCode: HttpResponseCodes, con
 }
 
 export default class HttpServer {
-  private [_provider]: Provider;
+  #provider: Provider;
   constructor(app: TemplatedApp, provider: Provider) {
-    this[_provider] = provider;
+    this.#provider = provider;
 
     // JSON-RPC routes...
     app
-      .post("/", this[_handlePost].bind(this))
-      .options("/", this[_handleOptions].bind(this));
+      .post("/", this.#handlePost)
+      .options("/", this.#handleOptions);
 
     // because Easter Eggs are fun...
     app.get("/418", (response) => {
@@ -105,7 +102,7 @@ export default class HttpServer {
     });
   }
 
-  private [_handlePost](response: HttpResponse, request: HttpRequest) {
+  #handlePost = (response: HttpResponse, request: HttpRequest) => {
     // handle JSONRPC post requests...
     const writeHeaders = prepareCORSResponseHeaders("POST", request);
 
@@ -138,7 +135,7 @@ export default class HttpServer {
           default:
             // `await`ing the `provider.send` instead of using `then` causes uWS 
             // to delay cleaning up the `request` object, which we don't neccessarily want to delay.
-            this[_provider].send(method, payload.params).then((result) => {
+            this.#provider.send(method, payload.params).then((result) => {
               if (response.aborted) {
                 // if the request has been aborted don't try sending (it'll
                 // cause an `Unhandled promise rejection` if we try)
@@ -159,7 +156,7 @@ export default class HttpServer {
     });
   }
 
-  private [_handleOptions](response: HttpResponse, request: HttpRequest) {
+  #handleOptions = (response: HttpResponse, request: HttpRequest) => {
     // handle CORS preflight requests...
     const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
     // OPTIONS responses don't have a body, so respond with `204 No Content`...

@@ -182,7 +182,7 @@ class Transaction extends (EthereumJsTransaction as any) {
   _chainId: any;
   _hash: Buffer;
   readonly from: Buffer;
-  private _receipt: any;
+  #receipt: any;
   /**
    * @param {Object} [data] The data for this Transaction.
    * @param {Number} type The `Transaction.types` bit flag for this transaction

@@ -3,14 +3,14 @@ import Emittery from "emittery";
 
 
 export default class Engine extends Emittery {
-  private readonly _ledger: ILedger;
+  readonly #ledger: ILedger;
   /**
    * The Engine handles execution of methods on the given Ledger
    * @param ledger 
    */
   constructor(ledger: ILedger) {
     super();
-    this._ledger = ledger;
+    this.#ledger = ledger;
   }
 
   /**
@@ -22,7 +22,7 @@ export default class Engine extends Emittery {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
-      const ledger = this._ledger;
+      const ledger = this.#ledger;
       // Only allow executing our *own* methods:
       if (methodName !== "constructor" && ledger.__proto__.hasOwnProperty(methodName)) {
         const fn = ledger[methodName];

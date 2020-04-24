@@ -21,21 +21,21 @@ function byNonce(values: Transaction[], a: number, b: number) {
 }
 
 export default class TransactionPool extends Emittery {
-  private options: TransactionPoolOptions;
+  #options: TransactionPoolOptions;
 
   /**
    * Minimum price bump percentage to replace an already existing transaction (nonce)
    */
   public priceBump: bigint = 10n
 
-  private blockchain: Blockchain;
+  #blockchain: Blockchain;
   constructor(blockchain: Blockchain, options: TransactionPoolOptions) {
     super();
-    this.blockchain = blockchain;
-    this.options = options;
+    this.#blockchain = blockchain;
+    this.#options = options;
   }
   public executables: Map<string, Heap<Transaction>> = new Map();
-  private origins: Map<string, Heap<Transaction>> = new Map();
+  #origins: Map<string, Heap<Transaction>> = new Map();
 
   public async insert(transaction: Transaction) {
     let err: Error;
@@ -50,7 +50,7 @@ export default class TransactionPool extends Emittery {
     const transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
 
     const origin = from.toString();
-    const origins = this.origins;
+    const origins = this.#origins;
     let queuedOriginTransactions = origins.get(origin);
 
     let isExecutableTransaction = false;
@@ -104,8 +104,8 @@ export default class TransactionPool extends Emittery {
     // TODO: since this is the only async code in this `insert` fn, maybe we can
     // put this into the miner? The VM itself does check for everything this
     // validation function checks for.
-    const transactor = await this.blockchain.accounts.get(from);
-    err = await this.validateTransactor(transaction, transactor);
+    const transactor = await this.#blockchain.accounts.get(from);
+    err = await this.#validateTransactor(transaction, transactor);
     if (err != null) {
       // TODO: how do we surface these transaction failures to the caller?!
       throw err;
@@ -129,7 +129,7 @@ export default class TransactionPool extends Emittery {
         executables.set(origin, executableOriginTransactions);
       }
 
-      this.drainQueued(origin, queuedOriginTransactions, executableOriginTransactions, transactionNonce);
+      this.#drainQueued(origin, queuedOriginTransactions, executableOriginTransactions, transactionNonce);
     } else if (queuedOriginTransactions) {
       queuedOriginTransactions.push(transaction);
     } else {
@@ -138,11 +138,11 @@ export default class TransactionPool extends Emittery {
     }
   }
 
-  private drainQueued(origin: string, queuedOriginTransactions: Heap<Transaction>, executableOriginTransactions: Heap<Transaction>, transactionNonce: bigint) {
+  #drainQueued = (origin: string, queuedOriginTransactions: Heap<Transaction>, executableOriginTransactions: Heap<Transaction>, transactionNonce: bigint) => {
     // Now we need to drain any queued transacions that were previously
     // not executable due to nonce gaps into the origin's queue...
     if (queuedOriginTransactions) {
-      const origins = this.origins;
+      const origins = this.#origins;
 
       let nextExpectedNonce: bigint = transactionNonce + 1n;
       while (true) {
@@ -173,9 +173,9 @@ export default class TransactionPool extends Emittery {
     this.emit("drain", this.executables);
   }
 
-  private validateTransaction(transaction: Transaction): Error {
+  validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
-    if (this.options.gasLimit < Quantity.from(transaction.gasLimit)) {
+    if (this.#options.gasLimit < Quantity.from(transaction.gasLimit)) {
       return new Error("Transaction gasLimit is too low");
     }
 
@@ -195,7 +195,7 @@ export default class TransactionPool extends Emittery {
     return null;
   }
 
-  private async validateTransactor(transaction: Transaction, transactor: any): Promise<Error> {
+  #validateTransactor = async (transaction: Transaction, transactor: any): Promise<Error> => {
     // Transactor should have enough funds to cover the costs
     if (transactor.balance.toBigInt() < transaction.cost()) {
       return new Error("Account does not have enough funds to complete transaction");

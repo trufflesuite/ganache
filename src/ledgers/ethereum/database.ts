@@ -15,9 +15,9 @@ const noop = (callback: () => void): void => callback();
 
 export default class Database extends Emittery {
   public readonly blockchain: Blockchain;
-  private readonly options: DatabaseOptions;
-  private _cleanupDirectory = noop;
-  private closed = false;
+  readonly #options: DatabaseOptions;
+  #cleanupDirectory = noop;
+  #closed = false;
   public directory: string = null;
   public db: levelup.LevelUp = null;
   public blocks: levelup.LevelUp;
@@ -27,7 +27,7 @@ export default class Database extends Emittery {
   public transactionReceipts: levelup.LevelUp;
   public trie: levelup.LevelUp;
   public readonly initialized: boolean;
-  private _rootStore: AbstractLevelDOWN;
+  #rootStore: AbstractLevelDOWN;
 
   /**
    * The Database handles the creation of the database, and all access to it.
@@ -40,46 +40,45 @@ export default class Database extends Emittery {
   constructor(options: DatabaseOptions, blockchain: Blockchain) {
     super();
 
-    this.options = options;
+    this.#options = options;
     this.blockchain = blockchain;
-    this._initialize();
+    this.#initialize();
   }
   
-  private async _initialize() {
+  #initialize = async () => {
     const levelupOptions: any = { valueEncoding: "binary" };
-    const store = this.options.db;
+    const store = this.#options.db;
     let db;
     if (store) {
-      this._rootStore = store as any;
+      this.#rootStore = store as any;
       db = levelup(store as any, levelupOptions);
     } else {
-      let directory = this.options.db_path;
+      let directory = this.#options.db_path;
       if (!directory) {
         const dirInfo = await dir(tmpOptions);
         directory = dirInfo.path;
-        this._cleanupDirectory = dirInfo.cleanup;
+        this.#cleanupDirectory = dirInfo.cleanup;
 
         // don't continue if we closed while we were waiting for the dir
-        if (this.closed) return this._cleanup();
+        if (this.#closed) return this.#cleanup();
       }
       this.directory = directory;
       const store = encode(leveldown(directory), levelupOptions);
-      this._rootStore = store;
+      this.#rootStore = store;
       db = levelup(store, {});
     }
 
     // don't continue if we closed while we were waiting for the db
-    if (this.closed) return this._cleanup();
+    if (this.#closed) return this.#cleanup();
 
     const open = db.open();
-    (db as any).___aaaa____ = true;
     this.trie = sub(db, "T", levelupOptions);
 
     this.db = db;
     await open;
 
     // don't continue if we closed while we were waiting for it to open
-    if (this.closed) return this._cleanup();
+    if (this.#closed) return this.#cleanup();
     
     this.blocks = sub(db, "b", levelupOptions);
     this.transactions = sub(db, "t", levelupOptions);
@@ -99,8 +98,8 @@ export default class Database extends Emittery {
    * @returns {Promise<T>} returns a Promise that resolves to the return value
    * of the provided function.
    */
-  batch<T>(fn: () => T): Promise<T> {
-    const rootDb = this._rootStore.db;
+  public batch<T>(fn: () => T): Promise<T> {
+    const rootDb = this.#rootStore.db;
     const batch = this.db.batch();
 
     const originalPut = rootDb.put;
@@ -127,9 +126,9 @@ export default class Database extends Emittery {
    * Note: only emits `close` once.
    */
   public async close() {
-    const wasClosed = this.closed;
-    this.closed = true;
-    await this._cleanup();
+    const wasClosed = this.#closed;
+    this.#closed = true;
+    await this.#cleanup();
 
     // only emit `close` once
     if (!wasClosed) {
@@ -141,7 +140,7 @@ export default class Database extends Emittery {
   /**
    * Cleans up the database connections and our tmp directory.
    */
-  private async _cleanup(){
+  #cleanup = async() => {
     const db = this.db;
     if (db) {
       await db.close();
@@ -153,6 +152,6 @@ export default class Database extends Emittery {
         ]
       );
     }
-    return new Promise(resolve => this._cleanupDirectory(resolve));
+    return new Promise(resolve => this.#cleanupDirectory(resolve));
   }
 }

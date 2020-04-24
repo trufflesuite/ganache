@@ -13,27 +13,29 @@ import {decode as rlpDecode} from "rlp";
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from the package.json
-const {name, version} = require("../../../package.json");
+import {name, version} from "../../../package.json";
 //#endregion
 
 //#region Constants
-const CLIENT_VERSION = `EthereumJS ${name}/v${version}/ethereum-js`
-const PROTOCOL_VERSION = Data.from("0x3f");
 const BUFFER_EMPTY = Buffer.allocUnsafe(0);
 const BUFFER_ZERO = Buffer.from([0]);
+const CLIENT_VERSION = `EthereumJS ${name}/v${version}/ethereum-js`
+const PROTOCOL_VERSION = Data.from("0x3f");
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
 //#endregion
 
+// We use symbols for private properties because BaseLedger
+// only allows index types of index type '(...args: any) => Promise<any>'
+const _blockchain = Symbol("blockchain");
+const _isMining = Symbol("isMining");
 const _options = Symbol("options");
 const _wallet = Symbol("wallet");
-const _isMining = Symbol("isMining");
-const _blockchain = Symbol("blockchain");
 
 export default class Ethereum extends BaseLedger {
-  private readonly [_wallet]: Wallet;
-  private readonly [_options]: EthereumOptions;
   private readonly [_blockchain]: Blockchain;
   private [_isMining] = false;
+  private readonly [_options]: EthereumOptions;
+  private readonly [_wallet]: Wallet;
 
   /**
    * This is the Ethereum ledger that the provider interacts with.

@@ -12,9 +12,9 @@ export default class RequestProcessor {
    * The number of tasks currently being processed.
    */
   public runningTasks: number = 0;
-  private _paused: boolean = true;
+  #paused: boolean = true;
   public get paused(): boolean {
-    return this._paused;
+    return this.#paused;
   }
 
   /**
@@ -24,7 +24,7 @@ export default class RequestProcessor {
    */
   constructor(limit: number) {
     this.limit = limit;
-    this.process();
+    this.#process();
   }
 
   /**
@@ -32,18 +32,18 @@ export default class RequestProcessor {
    * running.
    */
   public pause() {
-    this._paused = true;
+    this.#paused = true;
   }
 
   /**
    * Resume processing.
    */
   public resume() {
-    this._paused = false;
-    this.process();
+    this.#paused = false;
+    this.#process();
   }
 
-  private process() {
+  #process = () => {
     // if we aren't paused and the number of things we're processing is under
     // our limit and we have things to process: do it!
     while (!this.paused && this.pending.length > 0 && (!this.limit || this.runningTasks < this.limit)) {
@@ -51,7 +51,7 @@ export default class RequestProcessor {
       this.runningTasks++;
       current().finally(() => {
         this.runningTasks--;
-        this.process();
+        this.#process();
       });
     }
   }
@@ -59,13 +59,13 @@ export default class RequestProcessor {
   /**
    * Insert a new function into the queue.
    */
-  public queue = function(fn: (...args: any[]) => Promise<{}>, ...args: any[]): Promise<{}> {
+  public queue = (fn: (...args: any[]) => Promise<{}>, ...args: any[]): Promise<{}> => {
     const promise = new Promise((resolve: (value?: {} | PromiseLike<{}>) => void, reject: (value?: {} | PromiseLike<{}>) => void) => {
       const executor = () => {
         return fn.apply(null, args).then(resolve).catch(reject);
       }
       this.pending.push(executor);
-      this.process();
+      this.#process();
     });
     return promise;
   }
