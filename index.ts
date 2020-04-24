@@ -1,6 +1,3 @@
-import * as jsbiHelpers from "./src/utils/jsbi-helpers";
-jsbiHelpers.install();
-
 import Provider from "./src/provider";
 import ProviderOptions from "./src/options/provider-options";
 import ServerOptions from "./src/options/server-options";

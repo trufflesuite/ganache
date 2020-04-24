@@ -1,5 +1,5 @@
 import { BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType } from ".";
-const toBigIntBE = require('bigint-buffer').toBigIntBE;
+const toBigIntBE = require("bigint-buffer").toBigIntBE;
 
 class Quantity extends BaseJsonRpcType {
   _nullable: boolean;
@@ -55,6 +55,7 @@ class Quantity extends BaseJsonRpcType {
       } else if (length === 8) {
         view = new DataView(value.buffer, value.byteOffset, length);
       } else {
+        // TODO: toBigIntBE is a native lib with no pure JS fallback yet.
         return toBigIntBE(value);
         // TODO: handle bigint's stored as Buffers that are this big?
         // It's not too hard.

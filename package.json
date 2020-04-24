@@ -58,7 +58,6 @@
     "bufferutil": "4.0.1",
     "cross-env": "7.0.2",
     "into-stream": "5.1.1",
-    "jsbi": "3.1.2",
     "mocha": "7.1.1",
     "nyc": "15.0.1",
     "solc": "0.6.6",

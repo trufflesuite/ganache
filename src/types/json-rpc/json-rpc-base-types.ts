@@ -1,17 +1,4 @@
-let intToBuffer: (val: bigint) => Buffer;
-try {
-  const toBufferBE = require('bigint-buffer').toBufferBE;
-  intToBuffer = (val: bigint) => {
-    const buffer = toBufferBE(val, 128);
-    for (let i = 0; i < buffer.length - 1; i++) if (buffer[i]) return buffer.slice(i)
-    return buffer.slice(buffer.length - 1)
-  }
-} catch(e) {
-  intToBuffer = (val: bigint): Buffer => {
-    const hex = val.toString(16);
-    return Buffer.from(hex.length % 2 ? hex : `0${hex}`);
-  }
-}
+import bigintToBuffer from "../../utils/bigint-to-buffer";
 
 export type IndexableJsonRpcType<T extends number | bigint | string | Buffer = number | bigint | string | Buffer> = string & {
   new(value: T): IndexableJsonRpcType<T>,
@@ -54,7 +41,7 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
         case "bigint":
           toStrings.set(this, () => (value as bigint).toString(16));
           toBuffers.set(this, () => {
-            return intToBuffer(value as bigint);
+            return bigintToBuffer(value as bigint);
             //onst value = (2n**64n);
             var max = (2n**64n)-1n;
 

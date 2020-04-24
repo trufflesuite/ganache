@@ -2046,12 +2046,6 @@
         "esprima": "^4.0.0"
       }
     },
-    "jsbi": {
-      "version": "3.1.2",
-      "resolved": "https://registry.npmjs.org/jsbi/-/jsbi-3.1.2.tgz",
-      "integrity": "sha512-5nDXo1X9QVaXK/Cpb5VECV9ss1QPbjUuk1qSruHB1PK/g39Sd414K4nci99ElFDZv0vzxDEnKn3o49/Tn9Yagw==",
-      "dev": true
-    },
     "jsesc": {
       "version": "2.5.2",
       "resolved": "https://registry.npmjs.org/jsesc/-/jsesc-2.5.2.tgz",
