@@ -66,7 +66,7 @@ function prepareCORSResponseHeaders(method: string, request: HttpRequest) {
 
 
 function sendResponse(response: HttpResponse, statusCode: HttpResponseCodes, contentType?: RecognizedString, data?: RecognizedString, writeHeaders: (response: HttpResponse) => void = noop): void {
-  response.experimental_cork(()=>{
+  response.cork(()=>{
     response.writeStatus(statusCode);
     writeHeaders(response);
     if (contentType) {

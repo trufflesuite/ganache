@@ -32,7 +32,7 @@ export default class Server {
     const opts = this[options] = getDefaultServerOptions(serverOptions);
     const prov = this.provider = new Provider(opts);
 
-    const _app = this[app] = uWS.App(null);
+    const _app = this[app] = uWS.App();
 
     if (this[options].ws) {
       this[websocketServer] = new WebsocketServer(_app, prov, opts);
