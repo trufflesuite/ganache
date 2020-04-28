@@ -1,3 +1,9 @@
+import { ILedger } from "../../interfaces/base-ledger";
+
+type KnownKeys<T> = {
+    [K in keyof T]: string extends K ? never : number extends K ? never : K
+  } extends { [_ in keyof T]: infer U } ? U : never;
+
 namespace JsonRpc {
     const jsonrpc = "2.0";
     type JsonRpc = {
@@ -5,10 +11,10 @@ namespace JsonRpc {
         jsonrpc: string,
         toString(): string
     }
-    export type Request = JsonRpc & {
+    export type Request<Ledger extends ILedger> = JsonRpc & {
         id: string,
         jsonrpc: string,
-        method: string,
+        method: KnownKeys<Ledger>,
         params?: any[]
     };
     export type Response = JsonRpc & {
@@ -20,7 +26,7 @@ namespace JsonRpc {
             message: any
         }
     };
-    export const Request = (json: any): Request => {
+    export const Request = <Ledger extends ILedger>(json: any): Request<Ledger> => {
         return {
             id: json.id,
             jsonrpc,

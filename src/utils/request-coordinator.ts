@@ -1,4 +1,4 @@
-export default class RequestProcessor {
+export default class RequestCoordinator {
   /**
    * The number of concurrent requests. Set to null for no limit.
    */
@@ -8,6 +8,7 @@ export default class RequestProcessor {
    * The pending requests. You can't do anything with this array.
    */
   public readonly pending: any[] = [];
+
   /**
    * The number of tasks currently being processed.
    */
@@ -31,14 +32,14 @@ export default class RequestProcessor {
    * Pause processing. This will *not* cancel any promises that are currently
    * running.
    */
-  public pause() {
+  public pause = () => {
     this.#paused = true;
   }
 
   /**
    * Resume processing.
    */
-  public resume() {
+  public resume = () => {
     this.#paused = false;
     this.#process();
   }
@@ -59,7 +60,7 @@ export default class RequestProcessor {
   /**
    * Insert a new function into the queue.
    */
-  public queue = (fn: (...args: any[]) => Promise<{}>, ...args: any[]): Promise<{}> => {
+  public queue = (fn: (...args: any[]) => Promise<any>, ...args: any[]): Promise<any> => {
     const promise = new Promise((resolve: (value?: {} | PromiseLike<{}>) => void, reject: (value?: {} | PromiseLike<{}>) => void) => {
       const executor = () => {
         return fn.apply(null, args).then(resolve).catch(reject);

@@ -1,16 +1,13 @@
-import {ILedger} from "./interfaces/base-ledger";
+import {ILedger} from "../interfaces/base-ledger";
 import Emittery from "emittery";
 
 
-export default class Engine extends Emittery {
-  readonly #ledger: ILedger;
+export default class Executor extends Emittery {
   /**
-   * The Engine handles execution of methods on the given Ledger
-   * @param ledger 
+   * The Executor handles execution of methods on the given Ledger
    */
-  constructor(ledger: ILedger) {
+  constructor() {
     super();
-    this.#ledger = ledger;
   }
 
   /**
@@ -18,11 +15,10 @@ export default class Engine extends Emittery {
    * @param methodName The name of the JSON-RPC method to execute.
    * @param params The params to pass to the JSON-RPC method.
    */
-  public async execute(methodName: string, params: any[]): Promise<any> {
+  public execute = async <T extends ILedger, M = keyof T>(ledger: T, methodName: M, params: Parameters<T[keyof T]>): Promise<ReturnType<T[keyof T]>> => {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
-      const ledger = this.#ledger;
       // Only allow executing our *own* methods:
       if (methodName !== "constructor" && ledger.__proto__.hasOwnProperty(methodName)) {
         const fn = ledger[methodName];

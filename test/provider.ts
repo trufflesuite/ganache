@@ -1,6 +1,6 @@
 import Ganache from "../index"
 import assert from "assert";
-import Provider from "../src/provider";
+import Provider from "../src/ledgers/ethereum";
 
 describe("provider", () => {
   const networkId = "1234";
@@ -72,19 +72,19 @@ describe("provider", () => {
 
   it("generates predictable accounts when given a seed", async() => {
     const p = Ganache.provider({seed: "temet nosce"});
-    const accounts = await p.send("eth_accounts");
+    const accounts = await p.request("eth_accounts");
     assert.strictEqual(accounts[0], "0x59eF313E6Ee26BaB6bcb1B5694e59613Debd88DA");
   });
 
   it("gets balance", async() => {
-    const accounts = await p.send("eth_accounts");
-    const balance = await p.send("eth_getBalance", [accounts[0]]);
+    const accounts = await p.request("eth_accounts");
+    const balance = await p.request("eth_getBalance", [accounts[0]]);
     // TODO: this value is actually wrong!
     assert.strictEqual(balance, "0x56bc75e2d63100000", "Heyo!");
   });
 
   it("returns things via EIP-1193", async () => {
-    const version = await p.send("net_version");
+    const version = await p.request("net_version");
     assert.strictEqual(version, networkId);
   });
 
@@ -118,8 +118,8 @@ describe("provider", () => {
       "toString", "toValue", "__proto__", "prototype", "notAFunction", "", " ",
       "constructor", 
     ];
-    await Promise.all(illegalMethodNames.map((name) => {
-      return assert.rejects(p.send(name), {
+    await Promise.all(illegalMethodNames.map((name: any) => {
+      return assert.rejects(p.request(name), {
         message: `Invalid or unsupported method: ${name}`
       });
     }));
@@ -129,7 +129,7 @@ describe("provider", () => {
     // in the foot on accident
     it.skip("TODO: allow 'injecting' our own engine or ledger into a provider!", async () => { 
       (p as any)._engine._ledger.__proto__.illegalProperty = true;
-      await assert.rejects(p.send("illegalProperty"), {
+      await assert.rejects(p.request("illegalProperty" as any), {
         message: "Invalid or unsupported method: illegalProperty"
       });
     });
@@ -163,7 +163,7 @@ describe("provider", () => {
 
     // make sure we reject non-strings over the EIP-1193 send interface
     illegalMethodTypes.map((methodType) => {
-      assert.throws(() => p.send(methodType as string), {
+      assert.throws(() => p.send(methodType as any), {
         message: "No callback provided to provider's send function. As of " +
           "web3 1.0, provider.send is no longer synchronous and must be " +
           "passed a callback as its final argument."

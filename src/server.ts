@@ -4,6 +4,8 @@ import uWS, { TemplatedApp, us_listen_socket } from "uWebSockets.js";
 import Provider from "./provider";
 import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
+import { ILedger } from "./interfaces/base-ledger";
+import Ethereum from "./ledgers/ethereum";
 
 export enum Status {
   // Flags
@@ -15,16 +17,17 @@ export enum Status {
 
 export default class Server {
   #app: TemplatedApp;
-  public provider: Provider;
+  // TODO: make this a generic IProvider
+  public provider: Ethereum;
   #options: ServerOptions;
   #httpServer: HttpServer;
   #listenSocket: us_listen_socket;
-  #websocketServer: WebsocketServer;
+  #websocketServer: WebsocketServer<ILedger>;
   public status = Status.closed;
   
   constructor(serverOptions?: ServerOptions) {
     const opts = this.#options = getDefaultServerOptions(serverOptions);
-    const prov = this.provider = new Provider(opts);
+    const prov = this.provider = Provider.initialize(opts);
 
     const _app = this.#app = uWS.App();
 

@@ -3,6 +3,8 @@ import ContentTypes from "./utils/content-types";
 import Provider from "../provider";
 import JsonRpc from "./utils/jsonrpc"
 import HttpResponseCodes from "./utils/http-response-codes";
+import { IProvider } from "../interfaces/IProvider";
+import { ILedger } from "../interfaces/base-ledger";
 
 const noop = () => { };
 
@@ -74,8 +76,8 @@ function sendResponse(response: HttpResponse, statusCode: HttpResponseCodes, con
 }
 
 export default class HttpServer {
-  #provider: Provider;
-  constructor(app: TemplatedApp, provider: Provider) {
+  #provider: IProvider<ILedger>;
+  constructor(app: TemplatedApp, provider: IProvider<ILedger>) {
     this.#provider = provider;
 
     // JSON-RPC routes...
@@ -106,15 +108,16 @@ export default class HttpServer {
     // handle JSONRPC post requests...
     const writeHeaders = prepareCORSResponseHeaders("POST", request);
 
-    // TODO: pre-allocate the buffer when we know the Content-Length
+    // TODO: pre-allocate the buffer if we know the Content-Length
     let buffer: Buffer;
+    let aborted = false;
     response.onAborted(() => {
-      response.aborted = true;
+      aborted = true;
     });
     response.onData((message: ArrayBuffer, isLast: boolean) => {
       const chunk = Buffer.from(message);
       if (isLast) {
-        let payload: JsonRpc.Request;
+        let payload: JsonRpc.Request<ILedger>;
         try {
           const message = (buffer ? Buffer.concat([buffer, chunk]) : chunk) as any;
           payload = JsonRpc.Request(JSON.parse(message));
@@ -135,8 +138,8 @@ export default class HttpServer {
           default:
             // `await`ing the `provider.send` instead of using `then` causes uWS 
             // to delay cleaning up the `request` object, which we don't neccessarily want to delay.
-            this.#provider.send(method, payload.params).then((result) => {
-              if (response.aborted) {
+            this.#provider.request(method, payload.params).then((result) => {
+              if (aborted) {
                 // if the request has been aborted don't try sending (it'll
                 // cause an `Unhandled promise rejection` if we try)
                 return;

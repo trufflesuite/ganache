@@ -28,7 +28,7 @@ export default interface ProviderOptions extends Options {
   /**
    * Array of strings to installed subproviders
    */
-  subProviders?: any[]
+  subProviders?: any[],
 }
 
 export const getDefault : (options: ProviderOptions) => ProviderOptions = (options) => {

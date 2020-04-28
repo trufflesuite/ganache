@@ -31,7 +31,7 @@ const _isMining = Symbol("isMining");
 const _options = Symbol("options");
 const _wallet = Symbol("wallet");
 
-export default class Ethereum extends BaseLedger {
+export default class Ledger extends BaseLedger {
   private readonly [_blockchain]: Blockchain;
   private [_isMining] = false;
   private readonly [_options]: EthereumOptions;

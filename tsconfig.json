@@ -15,6 +15,6 @@
   },
   "include": [
     "./index.ts",
-    "./typings/**/*.d.ts", "typings/uWebsockets.js.ts"
+    "./typings/**/*.d.ts"
   ]
 }

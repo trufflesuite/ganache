@@ -1,11 +1,12 @@
 import uWS, { TemplatedApp, WebSocket } from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import Provider from "../provider";
 import JsonRpc from "./utils/jsonrpc";
+import { IProvider } from "../interfaces/IProvider";
+import { ILedger } from "../interfaces/base-ledger";
 
-export default class WebsocketServer {
+export default class WebsocketServer<T extends ILedger> {
   #connections = new Set<WebSocket>();
-  constructor(app: TemplatedApp, provider: Provider, options: any) {
+  constructor(app: TemplatedApp, provider: IProvider<T>, options: any) {
     app.ws("/", {
       /* WS Options */
       compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
@@ -17,7 +18,7 @@ export default class WebsocketServer {
         this.#connections.add(ws);
       },
       message: async (ws: any, message: ArrayBuffer, isBinary: boolean) => {
-        let payload: JsonRpc.Request;
+        let payload: JsonRpc.Request<T>;
         try {
           payload = JSON.parse(Buffer.from(message) as any);
         } catch (e) {
@@ -25,7 +26,7 @@ export default class WebsocketServer {
           return;
         }
         const method = payload.method;
-        const result = await provider.send(method, payload.params);
+        const result = await provider.request(method, payload.params);
         // The socket may have closed while we were waiting for the response
         // Don't bother trying to send to it now.
         if (!ws.closed) {
