@@ -1,4 +1,4 @@
-# JUST FOR EXPERIEMENTS
+# JUST FOR EXPERIMENTS
 
 [![npm](https://img.shields.io/npm/v/ganache-core.svg)]()
 [![npm](https://img.shields.io/npm/dm/ganache-core.svg)]()
