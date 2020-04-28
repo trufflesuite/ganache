@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
     "skipLibCheck": true,
-    "experimentalDecorators": true,
-    "module": "commonjs",
+
+    "module": "CommonJS",
     "esModuleInterop": true,
     "target": "ES2020",
     "noImplicitAny": true,
     "moduleResolution": "node",
+    "noImplicitThis": true,
+    "noErrorTruncation": true,
     "sourceMap": true,
     "outDir": "dist",
-    "lib": ["ESNext"],
-    "incremental": true,
     "resolveJsonModule": true
   },
   "include": [
