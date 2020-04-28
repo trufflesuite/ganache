@@ -1,4 +1,5 @@
 import ProviderOptions, {getDefault as getDefaultProviderOptions} from "./provider-options";
+export { Flavors } from "./provider-options";
 
 export default interface ServerOptions extends ProviderOptions {
   /**

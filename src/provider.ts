@@ -1,17 +1,12 @@
 import Executor from "./utils/executor";
 import RequestCoordinator from "./utils/request-coordinator";
-import ProviderOptions, { getDefault as getDefaultProviderOptions } from "./options/provider-options";
+import ProviderOptions, { Flavors } from "./options/provider-options";
 import Emittery from "emittery";
-import Ethereum from "./ledgers/ethereum";
-import JsonRpc from "./servers/utils/jsonrpc";
-
-interface Callback {
-  (err?: Error, response?: JsonRpc.Response): void;
-}
 
 export default class Provider extends Emittery {
-  public static initialize(providerOptions: ProviderOptions = {asyncRequestProcessing: true}) {
-    const provider = new Ethereum(providerOptions);
+  // TODO: set missing defaults automatically
+  public static initialize(providerOptions: ProviderOptions = {flavor: "ethereum", asyncRequestProcessing: true}) {
+    const provider = new Flavors[providerOptions.flavor || "ethereum"](providerOptions);;
     
     // Set up our request coordinator to either use FIFO or or async request processing.
     //   The RequestCoordinator _can_ be used to coordinate the number of requests being processed, but we don't use it

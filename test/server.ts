@@ -20,7 +20,7 @@ describe("server", () => {
     log: (_message: string) => {}
   }
   let s: Server;
-  async function setup(options: ServerOptions = {
+  async function setup(options = {
     network_id,
     logger
   } as ServerOptions) {

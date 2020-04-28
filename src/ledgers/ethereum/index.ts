@@ -26,7 +26,7 @@ type KnownKeys<T> = {
 
 type RequestType<T extends ILedger = ILedger> = (eventDetails: {ledger: T, method: KnownKeys<T>, params?: Parameters<T[keyof T]>}) => ReturnType<T[keyof T]>;
 
-export default class Provider extends Emittery.Typed<{request: RequestType<Ledger>}, "ready" | "close"> implements IProvider<Ledger>  {
+export default class EthereumProvider extends Emittery.Typed<{request: RequestType<Ledger>}, "ready" | "close"> implements IProvider<Ledger>  {
   #options: ProviderOptions;
   #ledger: Ledger;
   #wallet: HDKey;
@@ -72,7 +72,7 @@ export default class Provider extends Emittery.Typed<{request: RequestType<Ledge
         } else {
           privateKey = Data.from(secretKey);
         }
-        accounts[i] = Provider.createAccount(Quantity.from(account.balance), privateKey, address);
+        accounts[i] = EthereumProvider.createAccount(Quantity.from(account.balance), privateKey, address);
       }
     } else {
       const numerOfAccounts =_providerOptions.total_accounts;
@@ -86,7 +86,7 @@ export default class Provider extends Emittery.Typed<{request: RequestType<Ledge
           const publicKey = secp256k1.publicKeyConvert(acct.publicKey as Buffer, false).slice(1);
           const address = Address.from(publicToAddress(publicKey));
           const privateKey = Data.from(acct.privateKey);
-          accounts[index] = Provider.createAccount(etherInWei, privateKey, address);
+          accounts[index] = EthereumProvider.createAccount(etherInWei, privateKey, address);
         }
       } else {
         throw new Error("Cannot initialize chain: either options.accounts or options.total_accounts must be specified");

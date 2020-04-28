@@ -1,11 +1,10 @@
-import ServerOptions, {getDefault as getDefaultServerOptions} from "./options/server-options";
+import ServerOptions, {Flavors, getDefault as getDefaultServerOptions} from "./options/server-options";
 
 import uWS, { TemplatedApp, us_listen_socket } from "uWebSockets.js";
 import Provider from "./provider";
 import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import { ILedger } from "./interfaces/base-ledger";
-import Ethereum from "./ledgers/ethereum";
 
 export enum Status {
   // Flags
@@ -15,17 +14,19 @@ export enum Status {
   closing = 12
 }
 
-export default class Server {
+export default class Server<T extends ServerOptions = ServerOptions> {
   #app: TemplatedApp;
   // TODO: make this a generic IProvider
-  public provider: Ethereum;
+  public provider: Flavors[T["flavor"]];
   #options: ServerOptions;
   #httpServer: HttpServer;
   #listenSocket: us_listen_socket;
   #websocketServer: WebsocketServer<ILedger>;
   public status = Status.closed;
   
-  constructor(serverOptions?: ServerOptions) {
+  constructor(serverOptions?: T) {
+    type g = T["flavor"];
+    type f = typeof Flavors[g];
     const opts = this.#options = getDefaultServerOptions(serverOptions);
     const prov = this.provider = Provider.initialize(opts);
 
@@ -88,4 +89,3 @@ export default class Server {
     await this.provider.close();
   }
 }
-

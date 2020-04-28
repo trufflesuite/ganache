@@ -166,7 +166,7 @@ export default interface Options {
    */
   asyncRequestProcessing?: boolean,
 
-  hardfork?: "constantinople" | "byzantium" | "petersburg"
+  hardfork?: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier"
 };
 
 export const getDefault: (options: Options)=> Options = (options) => {
@@ -189,7 +189,7 @@ export const getDefault: (options: Options)=> Options = (options) => {
     defaultTransactionGasLimit: new Quantity(90000),
     verbose: false,
     asyncRequestProcessing: true,
-    hardfork: "petersburg",
+    hardfork: "muirGlacier",
     secure
   }, options);
 }
