@@ -83,8 +83,11 @@ export default class Server<T extends ServerOptions = ServerOptions> {
       // close the socket to prevent any more connections
       uWS.us_listen_socket_close(_listenSocket);
     }
-    // close all the currently connection websockets:
-    this.#websocketServer?.close();
+    // close all the connected websockets:
+    const ws = this.#websocketServer;
+    if (ws) {
+      ws.close();
+    }
 
     // and do all http cleanup, if any
     this.#httpServer.close();
