@@ -7,28 +7,33 @@ import HttpServer from "./servers/http-server";
 import { ILedger } from "./interfaces/base-ledger";
 
 export enum Status {
-  // Flags
+  // These are bit flags
   open = 1,
   opening = 3,
   closed = 4,
   closing = 12
-}
+};
 
 export default class Server<T extends ServerOptions = ServerOptions> {
   #app: TemplatedApp;
-  // TODO: make this a generic IProvider
-  public provider: Flavors[T["flavor"]];
-  #options: ServerOptions;
   #httpServer: HttpServer;
   #listenSocket: us_listen_socket;
+  #options: ServerOptions;
+  #provider: Flavors[T["flavor"]];
+  #status = Status.closed;
   #websocketServer: WebsocketServer<ILedger>;
-  public status = Status.closed;
-  
+
+  public get provider () {
+    return this.#provider;
+  }
+
+  public get status() {
+    return this.#status;
+  }
+
   constructor(serverOptions?: T) {
-    type g = T["flavor"];
-    type f = typeof Flavors[g];
     const opts = this.#options = getDefaultServerOptions(serverOptions);
-    const prov = this.provider = Provider.initialize(opts);
+    const prov = this.#provider = Provider.initialize(opts);
 
     const _app = this.#app = uWS.App();
 
@@ -39,12 +44,12 @@ export default class Server<T extends ServerOptions = ServerOptions> {
   }
   
   async listen(port: number, callback?: (err: Error) => void): Promise<void> {
-    let err;
+    let err: Error;
     // if open or opening
-    if (this.status & Status.open) {
+    if (this.#status & Status.open) {
       err = new Error(`Server is already listening on port: ${port}`);
     } else {
-      this.status = Status.opening;
+      this.#status = Status.opening;
       const _listenSocket = await new Promise((resolve) => {
         // Make sure we have *exclusive* use of this port.
         // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
@@ -53,11 +58,11 @@ export default class Server<T extends ServerOptions = ServerOptions> {
       });
       
       if (_listenSocket) {
-        this.status = Status.open;
+        this.#status = Status.open;
         this.#listenSocket = _listenSocket;
         err = null;
       } else {
-        this.status = Status.closed;
+        this.#status = Status.closed;
         err = new Error("Failed to listen on port: " + port);
       }
     }
@@ -72,20 +77,18 @@ export default class Server<T extends ServerOptions = ServerOptions> {
 
   public async close() {
     const _listenSocket = this.#listenSocket;
-    this.status = Status.closing;
+    this.#status = Status.closing;
     if (_listenSocket) {
       this.#listenSocket = undefined;
       // close the socket to prevent any more connections
       uWS.us_listen_socket_close(_listenSocket);
     }
     // close all the currently connection websockets:
-    const ws = this.#websocketServer;
-    if (ws) {
-      ws.close();
-    }
+    this.#websocketServer?.close();
+
     // and do all http cleanup, if any
     this.#httpServer.close();
-    this.status = Status.closed;
-    await this.provider.close();
+    this.#status = Status.closed;
+    await this.#provider.close();
   }
 }

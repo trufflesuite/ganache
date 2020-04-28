@@ -3,12 +3,11 @@ import EthereumProvider from "../ledgers/ethereum";
 import { entropyToMnemonic } from "bip39";
 import seedrandom, { seedrandom_prng } from "seedrandom";
 
-
-export type Flavors = {
+export const Flavors = {
   ethereum: EthereumProvider
 };
 
-export const Flavors = {
+export type Flavors = {
   ethereum: EthereumProvider
 };
 

@@ -16,7 +16,7 @@ const ONE_BUFFER = Buffer.from([0]);
 
 //#region helpers
 const sign = EthereumJsTransaction.prototype.sign;
-const fakeHash = function () {
+const fakeHash = function (this: Transaction) {
   // this isn't memoization of the hash. previous versions of ganache-core
   // created hashes in a different/incorrect way and are recorded this way
   // in snapshot dbs. We are preserving the chain's immutability by using the
