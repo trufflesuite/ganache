@@ -1,13 +1,11 @@
 import Executor from "./utils/executor";
 import RequestCoordinator from "./utils/request-coordinator";
-import ProviderOptions, {FlavorMap} from "./options/provider-options";
+import ProviderOptions, {FlavorMap, Apis} from "./options/provider-options";
 import Emittery from "emittery";
-import Connector from "./interfaces/connector";
-import {Provider} from "./interfaces/provider";
-import EthereumApi from "./ledgers/ethereum/api";
 import EthereumProvider from "./ledgers/ethereum/provider";
+import { Provider } from "./interfaces/provider";
 
-export default class Connector2 extends Emittery {
+export default class Connector extends Emittery {
   // TODO: set missing defaults automatically
   public static initialize(providerOptions: ProviderOptions = {flavor: "ethereum", asyncRequestProcessing: true}) {
     const flavor = providerOptions.flavor || "ethereum";
@@ -24,11 +22,11 @@ export default class Connector2 extends Emittery {
 
     // The request coordinator is initialized in a "paused" state, when the provider is ready we unpause
     // this lets us accept queue requests before we've even fully initialized.
-    (connector.provider as EthereumProvider).on("ready", requestCoordinator.resume);
+    connector.provider.on("ready", requestCoordinator.resume);
 
     // A provider should _not_ execute its own methods, but should delegate that responsiblity here.
     // Need to cast here because of https://github.com/microsoft/TypeScript/issues/7294
-    (connector.provider as EthereumProvider).on("request", ({api, method, params}) => {
+    (connector.provider as Provider<Apis>).on("request", ({api, method, params}) => {
       return requestCoordinator.queue(executor.execute, api, method, params);
     });
 
