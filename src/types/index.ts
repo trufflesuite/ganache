@@ -7,8 +7,7 @@ export type KnownKeys<T> = {
   : never;
 
 export type RequestType<T extends Api = Api> = (eventDetails: {
-    api: T;
-    method: KnownKeys<T>;
-    params?: Parameters<T[keyof T]>;
-  }) => ReturnType<T[keyof T]>;
-  
+  api: T;
+  method: KnownKeys<T>;
+  params?: Parameters<T[keyof T]>;
+}) => ReturnType<T[keyof T]>;

@@ -1,15 +1,12 @@
 import Emittery from "emittery";
-import { RequestType } from "../../types";
+import {RequestType} from "../../types";
 import Connector from "../../interfaces/connector";
 import TezosProvider from "./provider";
 import JsonRpc from "../../servers/utils/jsonrpc";
 import ProviderOptions from "../../options/provider-options";
 import TezosApi from "./api";
 
-
-
-
-export default class TezosConnector    extends Emittery.Typed<{request: RequestType<TezosApi   >}, "ready" | "close">
+export default class TezosConnector extends Emittery.Typed<{request: RequestType<TezosApi>}, "ready" | "close">
   implements Connector<TezosApi> {
   provider: TezosProvider;
   #api: TezosApi;
@@ -17,7 +14,7 @@ export default class TezosConnector    extends Emittery.Typed<{request: RequestT
   constructor(providerOptions: ProviderOptions) {
     super();
 
-    const api = this.#api = new TezosApi();
+    const api = (this.#api = new TezosApi());
     this.provider = new TezosProvider();
   }
 
@@ -26,13 +23,13 @@ export default class TezosConnector    extends Emittery.Typed<{request: RequestT
   }
 
   parse = (message: Buffer) => {
-    return JsonRpc.Request(JSON.parse(message as any))
-  }
+    return JsonRpc.Request(JSON.parse(message as any));
+  };
 
   handle = async (payload: any) => {
-    const [result] = await this.emit("request", { api: this.#api, method: payload.method, params: payload.params });
+    const [result] = await this.emit("request", {api: this.#api, method: payload.method, params: payload.params});
     return result;
-  }
+  };
 
   close() {
     return {} as any;

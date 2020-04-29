@@ -9,7 +9,7 @@ describe("provider", () => {
   beforeEach("set up", () => {
     p = Ganache.provider({
       network_id: networkId
-    }) as EthereumProvider
+    }) as EthereumProvider;
   });
 
   it("works without passing options", async () => {

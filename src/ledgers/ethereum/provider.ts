@@ -11,15 +11,14 @@ import EthereumOptions from "../../ledgers/ethereum/options";
 import cloneDeep from "lodash.clonedeep";
 import secp256k1 from "secp256k1";
 import HDKey from "hdkey";
-import { RequestType, KnownKeys } from "../../types";
-import { Provider } from "../../interfaces/provider";
+import {RequestType, KnownKeys} from "../../types";
+import {Provider} from "../../interfaces/provider";
 
 const WEI = 1000000000000000000n;
 
 interface Callback {
   (err?: Error, response?: JsonRpc.Response): void;
 }
-
 
 export default class EthereumProvider extends Emittery.Typed<{request: RequestType<EthereumApi>}, "ready" | "close">
   implements Provider<EthereumApi> {

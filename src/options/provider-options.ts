@@ -7,7 +7,7 @@ import Connector from "../interfaces/connector";
 
 export const FlavorMap = {
   tezos: TezosConnector,
-  ethereum: EthereumConnector,
+  ethereum: EthereumConnector
 };
 
 export type FlavorMap = {
@@ -16,7 +16,7 @@ export type FlavorMap = {
 };
 
 export type Flavors = {
-  [k in keyof FlavorMap]: FlavorMap[k]
+  [k in keyof FlavorMap]: FlavorMap[k];
 }[keyof FlavorMap];
 
 export type Apis<T extends Flavors = Flavors> = T extends Connector<infer R> ? R : never;

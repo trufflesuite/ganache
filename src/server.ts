@@ -4,7 +4,7 @@ import uWS, {TemplatedApp, us_listen_socket} from "uWebSockets.js";
 import Connector from "./connector";
 import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
-import { FlavorMap } from "./options/provider-options";
+import {FlavorMap} from "./options/provider-options";
 
 export enum Status {
   // These are bit flags

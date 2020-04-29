@@ -3,7 +3,7 @@ import RequestCoordinator from "./utils/request-coordinator";
 import ProviderOptions, {FlavorMap} from "./options/provider-options";
 import Emittery from "emittery";
 import Connector from "./interfaces/connector";
-import { Provider } from "./interfaces/provider";
+import {Provider} from "./interfaces/provider";
 import EthereumApi from "./ledgers/ethereum/api";
 import EthereumProvider from "./ledgers/ethereum/provider";
 
