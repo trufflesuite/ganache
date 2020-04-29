@@ -1,4 +1,4 @@
-import Ganache from "../index";
+import Ganache from "../src/";
 import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";

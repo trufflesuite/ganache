@@ -1,4 +1,4 @@
-import Ganache from "../../index";
+import Ganache from "../../src/";
 import Provider from "../../src/provider";
 import ProviderOptions from "../../src/options/provider-options";
 

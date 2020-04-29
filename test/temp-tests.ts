@@ -1,4 +1,4 @@
-import Ganache from "../index";
+import Ganache from "../src";
 import assert from "assert";
 import {Quantity} from "../src/types/json-rpc";
 const solc = require("solc");

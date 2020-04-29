@@ -1,4 +1,4 @@
-import Ganache from "../index";
+import Ganache from "../src/";
 import assert from "assert";
 import Provider from "../src/ledgers/ethereum";
 
