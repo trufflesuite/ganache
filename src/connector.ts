@@ -3,7 +3,7 @@ import RequestCoordinator from "./utils/request-coordinator";
 import ProviderOptions, {FlavorMap, Apis} from "./options/provider-options";
 import Emittery from "emittery";
 import EthereumProvider from "./ledgers/ethereum/provider";
-import { Provider } from "./interfaces/provider";
+import {Provider} from "./interfaces/provider";
 
 export default class Connector extends Emittery {
   // TODO: set missing defaults automatically
