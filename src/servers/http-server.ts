@@ -80,108 +80,108 @@ function sendResponse(
 }
 
 export default class HttpServer {
-                 #connector: Connector<Apis>;
-                 constructor(app: TemplatedApp, connector: Connector<Apis>) {
-                   this.#connector = connector;
+  #connector: Connector<Apis>;
+  constructor(app: TemplatedApp, connector: Connector<Apis>) {
+    this.#connector = connector;
 
-                   // JSON-RPC routes...
-                   app.post("/", this.#handlePost).options("/", this.#handleOptions);
+    // JSON-RPC routes...
+    app.post("/", this.#handlePost).options("/", this.#handleOptions);
 
-                   // because Easter Eggs are fun...
-                   app.get("/418", response => {
-                     sendResponse(response, HttpResponseCodes.IM_A_TEAPOT, ContentTypes.PLAIN, "418 I'm a teapot");
-                   });
+    // because Easter Eggs are fun...
+    app.get("/418", response => {
+      sendResponse(response, HttpResponseCodes.IM_A_TEAPOT, ContentTypes.PLAIN, "418 I'm a teapot");
+    });
 
-                   // fallback routes...
-                   app.any("/*", (response, request) => {
-                     const connectionHeader = request.getHeader("connection");
-                     if (connectionHeader && connectionHeader.toLowerCase() === "upgrade") {
-                       // if we got here it means the websocket server wasn't enabled but
-                       // a client tried to connect via websocket. This is a Bad Request.
-                       sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request");
-                     } else {
-                       // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
-                       sendResponse(response, HttpResponseCodes.NOT_FOUND, ContentTypes.PLAIN, "404 Not Found");
-                     }
-                   });
-                 }
+    // fallback routes...
+    app.any("/*", (response, request) => {
+      const connectionHeader = request.getHeader("connection");
+      if (connectionHeader && connectionHeader.toLowerCase() === "upgrade") {
+        // if we got here it means the websocket server wasn't enabled but
+        // a client tried to connect via websocket. This is a Bad Request.
+        sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request");
+      } else {
+        // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
+        sendResponse(response, HttpResponseCodes.NOT_FOUND, ContentTypes.PLAIN, "404 Not Found");
+      }
+    });
+  }
 
-                 #handlePost = (response: HttpResponse, request: HttpRequest) => {
-                   // handle JSONRPC post requests...
-                   const writeHeaders = prepareCORSResponseHeaders("POST", request);
+  #handlePost = (response: HttpResponse, request: HttpRequest) => {
+    // handle JSONRPC post requests...
+    const writeHeaders = prepareCORSResponseHeaders("POST", request);
 
-                   // TODO: pre-allocate the buffer if we know the Content-Length
-                   let buffer: Bu;
-                   let aborted = false;
-                   response.onAborted(() => {
-                     aborted = true;
-                   });
-                   response.onData((message: ArrayBuffer, isLast: boolean) => {
-                     const chunk = Buffer.from(message);
-                     if (isLast) {
-                       const connector = this.#connector;
-                       let payload: ReturnType<typeof connector.parse>;
-                       try {
-                         const message = buffer ? Buffer.concat([buffer, chunk]) : chunk;
-                         payload = connector.parse(message);
-                       } catch (e) {
-                         sendResponse(
-                           response,
-                           HttpResponseCodes.BAD_REQUEST,
-                           ContentTypes.PLAIN,
-                           "400 Bad Request: " + e.message,
-                           writeHeaders
-                        );
-                         return;
-                       }
+    // TODO: pre-allocate the buffer if we know the Content-Length
+    let buffer: Bu;
+    let aborted = false;
+    response.onAborted(() => {
+      aborted = true;
+    });
+    response.onData((message: ArrayBuffer, isLast: boolean) => {
+      const chunk = Buffer.from(message);
+      if (isLast) {
+        const connector = this.#connector;
+        let payload: ReturnType<typeof connector.parse>;
+        try {
+          const message = buffer ? Buffer.concat([buffer, chunk]) : chunk;
+          payload = connector.parse(message);
+        } catch (e) {
+          sendResponse(
+            response,
+            HttpResponseCodes.BAD_REQUEST,
+            ContentTypes.PLAIN,
+            "400 Bad Request: " + e.message,
+            writeHeaders
+          );
+          return;
+        }
 
-                       const id = payload.id;
-                       const method = payload.method;
-                       switch (method) {
-                         // http connections do not support subscriptions
-                         case "eth_subscribe":
-                         case "eth_unsubscribe":
-                           const error = JsonRpc.Error(id, "-32000", "notifications not supported");
-                           sendResponse(
-                             response,
-                             HttpResponseCodes.BAD_REQUEST,
-                             ContentTypes.JSON,
-                             JSON.stringify(error),
-                             writeHeaders
-                           );
-                           break;
-                         default:
-                           // `await`ing the `connector.handle` instead of using `then` causes
-                           // uWS to delay cleaning up the `request` object, which we don't
-                           // neccessarily want to delay.
-                           connector.handle(payload).then(result => {
-                             if (aborted) {
-                               // if the request has been aborted don't try sending (it'll
-                               // cause an `Unhandled promise rejection` if we try)
-                               return;
-                             }
-                             const data = connector.format(result, payload);
-                             sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
-                           });
-                           break;
-                       }
-                     } else {
-                       if (buffer) {
-                         buffer = Buffer.concat([buffer, chunk]);
-                       } else {
-                         buffer = Buffer.concat([chunk]);
-                       }
-                     }
-                   });
-                 };
+        const id = payload.id;
+        const method = payload.method;
+        switch (method) {
+          // http connections do not support subscriptions
+          case "eth_subscribe":
+          case "eth_unsubscribe":
+            const error = JsonRpc.Error(id, "-32000", "notifications not supported");
+            sendResponse(
+              response,
+              HttpResponseCodes.BAD_REQUEST,
+              ContentTypes.JSON,
+              JSON.stringify(error),
+              writeHeaders
+            );
+            break;
+          default:
+            // `await`ing the `connector.handle` instead of using `then` causes
+            // uWS to delay cleaning up the `request` object, which we don't
+            // neccessarily want to delay.
+            connector.handle(payload).then(result => {
+              if (aborted) {
+                // if the request has been aborted don't try sending (it'll
+                // cause an `Unhandled promise rejection` if we try)
+                return;
+              }
+              const data = connector.format(result, payload);
+              sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
+            });
+            break;
+        }
+      } else {
+        if (buffer) {
+          buffer = Buffer.concat([buffer, chunk]);
+        } else {
+          buffer = Buffer.concat([chunk]);
+        }
+      }
+    });
+  };
 
-                 #handleOptions = (response: HttpResponse, request: HttpRequest) => {
-                   // handle CORS preflight requests...
-                   const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
-                   // OPTIONS responses don't have a body, so respond with `204 No Content`...
-                   sendResponse(response, HttpResponseCodes.NO_CONTENT, null, "", writeHeaders);
-                 };
-                 public close() {
-                   // currently a no op.
-                 }
-               }
+  #handleOptions = (response: HttpResponse, request: HttpRequest) => {
+    // handle CORS preflight requests...
+    const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
+    // OPTIONS responses don't have a body, so respond with `204 No Content`...
+    sendResponse(response, HttpResponseCodes.NO_CONTENT, null, "", writeHeaders);
+  };
+  public close() {
+    // currently a no op.
+  }
+}
