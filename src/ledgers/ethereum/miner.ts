@@ -1,7 +1,7 @@
-import params from "../../types/params";
+import params from "../../things/params";
 import Heap from "../../utils/heap";
-import Transaction from "../../types/transaction";
-import {Quantity, Data} from "../../types/json-rpc";
+import Transaction from "../../things/transaction";
+import {Quantity, Data} from "../../things/json-rpc";
 import {promisify} from "util";
 import Trie from "merkle-patricia-tree";
 import Emittery from "emittery";

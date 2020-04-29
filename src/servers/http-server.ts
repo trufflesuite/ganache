@@ -1,10 +1,9 @@
 import {TemplatedApp, HttpResponse, HttpRequest, RecognizedString} from "uWebSockets.js";
 import ContentTypes from "./utils/content-types";
-import Provider from "../provider";
 import JsonRpc from "./utils/jsonrpc";
 import HttpResponseCodes from "./utils/http-response-codes";
-import {IProvider} from "../interfaces/IProvider";
-import {ILedger} from "../interfaces/base-ledger";
+import Connector from "../interfaces/connector";
+import { Apis } from "../options/server-options";
 
 const noop = () => {};
 
@@ -81,9 +80,9 @@ function sendResponse(
 }
 
 export default class HttpServer {
-  #provider: IProvider<ILedger>;
-  constructor(app: TemplatedApp, provider: IProvider<ILedger>) {
-    this.#provider = provider;
+  #connector: Connector<Apis>;
+  constructor(app: TemplatedApp, connector: Connector<Apis>) {
+    this.#connector = connector;
 
     // JSON-RPC routes...
     app.post("/", this.#handlePost).options("/", this.#handleOptions);
@@ -120,10 +119,11 @@ export default class HttpServer {
     response.onData((message: ArrayBuffer, isLast: boolean) => {
       const chunk = Buffer.from(message);
       if (isLast) {
-        let payload: JsonRpc.Request<ILedger>;
+        const connector = this.#connector;
+        let payload: ReturnType<typeof connector.parse>;
         try {
-          const message = (buffer ? Buffer.concat([buffer, chunk]) : chunk) as any;
-          payload = JsonRpc.Request(JSON.parse(message));
+          const message = (buffer ? Buffer.concat([buffer, chunk]) : chunk);
+          payload = connector.parse(message);
         } catch (e) {
           sendResponse(
             response,
@@ -151,16 +151,17 @@ export default class HttpServer {
             );
             break;
           default:
-            // `await`ing the `provider.send` instead of using `then` causes uWS
-            // to delay cleaning up the `request` object, which we don't neccessarily want to delay.
-            this.#provider.request(method, payload.params).then(result => {
+            // `await`ing the `connector.handle` instead of using `then` causes 
+            // uWS to delay cleaning up the `request` object, which we don't
+            // neccessarily want to delay.
+            connector.handle(payload).then(result => {
               if (aborted) {
                 // if the request has been aborted don't try sending (it'll
                 // cause an `Unhandled promise rejection` if we try)
                 return;
               }
-              const json = JsonRpc.Response(id, result);
-              sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, JSON.stringify(json), writeHeaders);
+              const data = connector.format(result, payload);
+              sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
             });
             break;
         }

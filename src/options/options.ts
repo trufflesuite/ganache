@@ -1,5 +1,5 @@
-import {Quantity} from "../types/json-rpc";
-import {ILedger} from "../interfaces/base-ledger";
+import {Quantity} from "../things/json-rpc";
+import Api from "../interfaces/api";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -11,7 +11,7 @@ interface Logger {
 type Account = {balance: string; secretKey?: string};
 
 export default interface Options {
-  ledger?: ILedger;
+  api?: Api;
   /**
    * Array of Accounts. Each object should have a balance key with a hexadecimal
    * value. The key secretKey can also be specified, which represents the

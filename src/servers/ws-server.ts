@@ -1,12 +1,11 @@
 import uWS, {TemplatedApp, WebSocket} from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import JsonRpc from "./utils/jsonrpc";
-import {IProvider} from "../interfaces/IProvider";
-import {ILedger} from "../interfaces/base-ledger";
+import Connector from "../interfaces/connector";
+import { Apis } from "../options/server-options";
 
-export default class WebsocketServer<T extends ILedger> {
+export default class WebsocketServer {
   #connections = new Set<WebSocket>();
-  constructor(app: TemplatedApp, provider: IProvider<T>, options: any) {
+  constructor(app: TemplatedApp, connector: Connector<Apis>, options: any) {
     app.ws("/", {
       /* WS Options */
       compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
@@ -14,28 +13,23 @@ export default class WebsocketServer<T extends ILedger> {
       idleTimeout: 120, // in seconds
 
       /* Handlers */
-      open: (ws: any) => {
+      open: (ws: WebSocket) => {
         this.#connections.add(ws);
       },
-      message: async (ws: any, message: ArrayBuffer, isBinary: boolean) => {
-        let payload: JsonRpc.Request<T>;
+      message: async (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
+        let payload: ReturnType<typeof connector.parse>;
         try {
-          payload = JSON.parse(Buffer.from(message) as any);
+          payload = connector.parse(Buffer.from(message));
         } catch (e) {
           ws.end(WebSocketCloseCodes.CLOSE_PROTOCOL_ERROR, "Received a malformed frame: " + e.message);
           return;
         }
-        const method = payload.method;
-        const result = await provider.request(method, payload.params);
+        const result = await connector.handle(payload);
         // The socket may have closed while we were waiting for the response
-        // Don't bother trying to send to it now.
+        // Don't bother trying to send to it if it was.
         if (!ws.closed) {
-          const json = {
-            id: payload.id,
-            jsonrpc: "2.0",
-            result: result
-          };
-          ws.send(JSON.stringify(json), isBinary, true);
+          const message = connector.format(result, payload);
+          ws.send(message, isBinary, true);
         }
       },
       drain: (ws: WebSocket) => {

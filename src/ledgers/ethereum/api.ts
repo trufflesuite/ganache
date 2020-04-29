@@ -1,11 +1,11 @@
 //#region Imports
-import BaseLedger, {Emitter} from "../../interfaces/base-ledger";
+import Api, { Emitter } from "../../interfaces/api";
 import EthereumOptions from "./options";
-import {Data, Quantity, IndexableData} from "../../types/json-rpc";
+import {Data, Quantity} from "../../things/json-rpc";
 import Blockchain from "./blockchain";
-import Tag from "../../types/tags";
-import Address, {IndexableAddress} from "../../types/address";
-import Transaction from "../../types/transaction";
+import Tag from "../../things/tags";
+import Address, {IndexableAddress} from "../../things/address";
+import Transaction from "../../things/transaction";
 import {Block} from "./components/block-manager";
 import Wallet from "./wallet";
 import Account from "ethereumjs-account";
@@ -31,7 +31,9 @@ const _isMining = Symbol("isMining");
 const _options = Symbol("options");
 const _wallet = Symbol("wallet");
 
-export default class Ledger extends BaseLedger {
+export default class EthereumApi implements Api {
+  readonly [index: string]: (...args: any) => Promise<any>;
+
   private readonly [_blockchain]: Blockchain;
   private [_isMining] = false;
   private readonly [_options]: EthereumOptions;
@@ -45,8 +47,6 @@ export default class Ledger extends BaseLedger {
    * @param ready Callback for when the ledger is fully initialized
    */
   constructor(options: EthereumOptions, emitter: Emitter) {
-    super();
-
     const opts = (this[_options] = options);
 
     this[_wallet] = new Wallet(opts);

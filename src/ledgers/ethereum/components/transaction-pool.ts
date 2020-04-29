@@ -1,8 +1,8 @@
 import Emittery from "emittery";
 import Blockchain from "../blockchain";
 import Heap from "../../../utils/heap";
-import Transaction from "../../../types/transaction";
-import {Data, Quantity} from "../../../types/json-rpc";
+import Transaction from "../../../things/transaction";
+import {Data, Quantity} from "../../../things/json-rpc";
 
 export type TransactionPoolOptions = {
   /**

@@ -24,3 +24,4 @@ These are guidelines, not rules. :-)
 - Ensure a smooth development experience on Windows, Mac, and Linux.
 - Do not use bash scripts.
 - Do not use CLI commands in npm scripts or build scripts that aren't available by default on supported platforms.
+- Push your code often (at least every-other day!), even broken WIP code (to your own branch, of course).

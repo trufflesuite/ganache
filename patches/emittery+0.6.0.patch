@@ -1,0 +1,59 @@
+diff --git a/node_modules/emittery/index.d.ts b/node_modules/emittery/index.d.ts
+index d386ddb..0cb4161 100644
+--- a/node_modules/emittery/index.d.ts
++++ b/node_modules/emittery/index.d.ts
+@@ -259,11 +259,15 @@ declare namespace Emittery {
+ 	/**
+ 	Maps event names to their emitted data type.
+ 	*/
+-	interface Events {
++	interface Args {
+ 		// Blocked by https://github.com/microsoft/TypeScript/issues/1863, should be
+ 		// `[eventName: EventName]: unknown;`
+ 	}
+ 
++	interface Events {
++		[eventName: string]: (args: Args) => Promise<any>;
++	}
++
+ 	/**
+ 	The data provided as `eventData` when listening for `Emittery.listenerAdded` or `Emittery.listenerRemoved`.
+ 	*/
+@@ -296,27 +300,27 @@ declare namespace Emittery {
+ 	emitter.emit('end'); // TS compilation error
+ 	```
+ 	*/
+-	class Typed<EventDataMap extends Events, EmptyEvents extends EventName = never> extends Emittery {
+-		on<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: EventDataMap[Name]) => void): Emittery.UnsubscribeFn;
++	class Typed<EventDataMap extends Events, EmptyEvents extends EventName = never> {
++		on<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: Parameters<EventDataMap[Name]>[0]) => ReturnType<EventDataMap[Name]>): Emittery.UnsubscribeFn;
+ 		on<Name extends EmptyEvents>(eventName: Name, listener: () => void): Emittery.UnsubscribeFn;
+ 
+-		events<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name): AsyncIterableIterator<EventDataMap[Name]>;
++		events<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name): AsyncIterableIterator<Parameters<EventDataMap[Name]>[0]>;
+ 
+-		once<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name): Promise<EventDataMap[Name]>;
+-		once<Name extends EmptyEvents>(eventName: Name): Promise<void>;
++		once<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: Parameters<EventDataMap[Name]>[0]) => ReturnType<EventDataMap[Name]>): Emittery.UnsubscribeFn;
++		once<Name extends EmptyEvents>(eventName: Name, listener: () => void): Emittery.UnsubscribeFn;
+ 
+-		off<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: EventDataMap[Name]) => void): void;
++		off<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: Parameters<EventDataMap[Name]>[0]) => ReturnType<EventDataMap[Name]>): void;
+ 		off<Name extends EmptyEvents>(eventName: Name, listener: () => void): void;
+ 
+-		onAny(listener: (eventName: EventNameFromDataMap<EventDataMap> | EmptyEvents, eventData?: EventDataMap[EventNameFromDataMap<EventDataMap>]) => void): Emittery.UnsubscribeFn;
++		onAny(listener: (eventName: EventNameFromDataMap<EventDataMap> | EmptyEvents, eventData?: EventDataMap[EventNameFromDataMap<EventDataMap>]) => ReturnType<EventDataMap[Name]>): Emittery.UnsubscribeFn;
+ 		anyEvent(): AsyncIterableIterator<[EventNameFromDataMap<EventDataMap>, EventDataMap[EventNameFromDataMap<EventDataMap>]]>;
+ 
+-		offAny(listener: (eventName: EventNameFromDataMap<EventDataMap> | EmptyEvents, eventData?: EventDataMap[EventNameFromDataMap<EventDataMap>]) => void): void;
++		offAny(listener: (eventName: EventNameFromDataMap<EventDataMap> | EmptyEvents, eventData?: EventDataMap[EventNameFromDataMap<EventDataMap>]) => ReturnType<EventDataMap[Name]>): void;
+ 
+-		emit<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, eventData: EventDataMap[Name]): Promise<void>;
++		emit<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, eventData: Parameters<EventDataMap[Name]>[0]): Promise<[ReturnType<EventDataMap[Name]>]>;
+ 		emit<Name extends EmptyEvents>(eventName: Name): Promise<void>;
+ 
+-		emitSerial<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, eventData: EventDataMap[Name]): Promise<void>;
++		emitSerial<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, eventData: Parameters<EventDataMap[Name]>[0]): Promise<[ReturnType<EventDataMap[Name]>]>;
+ 		emitSerial<Name extends EmptyEvents>(eventName: Name): Promise<void>;
+ 	}
+ }

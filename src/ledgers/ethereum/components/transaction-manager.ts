@@ -1,4 +1,4 @@
-import Transaction from "../../../types/transaction";
+import Transaction from "../../../things/transaction";
 import Manager from "./manager";
 import TransactionPool, {TransactionPoolOptions} from "./transaction-pool";
 import levelup from "levelup";

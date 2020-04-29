@@ -1,10 +1,10 @@
 import EthereumJsBlock from "ethereumjs-block";
 import Manager from "./manager";
-import Tag from "../../../types/tags";
+import Tag from "../../../things/tags";
 import levelup from "levelup";
 import Blockchain from "../blockchain";
-import {Quantity, Data} from "../../../types/json-rpc";
-import Transaction from "../../../types/transaction";
+import {Quantity, Data} from "../../../things/json-rpc";
+import Transaction from "../../../things/transaction";
 import {decode as rlpDecode} from "rlp";
 import Common from "ethereumjs-common";
 

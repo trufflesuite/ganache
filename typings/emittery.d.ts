@@ -12,8 +12,9 @@ interface Events {
   [eventName: any]: (args: Events) => Promise<any>;
 }
 
-declare module "emittery" {
-  export class Typed<EventDataMap extends Events, EmptyEvents extends EventName = never> extends Emittery.Typed {
+declare namespace Emittery {
+  declare class Typed<EventDataMap extends Events, EmptyEvents extends EventName = never> {
+    hey: number;
     on<Name extends EventNameFromDataMap<EventDataMap>>(
       eventName: Name,
       listener: (eventData: Parameters<EventDataMap[Name]>[0]) => void

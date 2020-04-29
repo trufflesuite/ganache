@@ -1,7 +1,7 @@
-import {Data} from "../../types/json-rpc";
-import Address from "../../types/address";
+import {Data} from "../../things/json-rpc";
+import Address from "../../things/address";
 import EthereumOptions from "./options";
-import Account from "../../types/account";
+import Account from "../../things/account";
 import {toChecksumAddress} from "ethereumjs-util";
 
 export default class Wallet {

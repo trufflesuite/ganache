@@ -1,15 +1,25 @@
 import Options, {getDefault as getDefaultOptions} from "./options";
-import EthereumProvider from "../ledgers/ethereum";
+import TezosConnector from "../ledgers/tezos";
+import EthereumConnector from "../ledgers/ethereum";
 import {entropyToMnemonic} from "bip39";
 import seedrandom, {seedrandom_prng} from "seedrandom";
+import Connector from "../interfaces/connector";
 
-export const Flavors = {
-  ethereum: EthereumProvider
+export const FlavorMap = {
+  tezos: TezosConnector,
+  ethereum: EthereumConnector,
+};
+
+export type FlavorMap = {
+  tezos: TezosConnector;
+  ethereum: EthereumConnector;
 };
 
 export type Flavors = {
-  ethereum: EthereumProvider;
-};
+  [k in keyof FlavorMap]: FlavorMap[k]
+}[keyof FlavorMap];
+
+export type Apis<T extends Flavors = Flavors> = T extends Connector<infer R> ? R : never;
 
 function randomBytes(length: number, rng: () => number) {
   const buf = Buffer.allocUnsafe(length);
@@ -38,14 +48,14 @@ export default interface ProviderOptions extends Options {
    */
   subProviders?: any[];
 
-  flavor?: keyof typeof Flavors;
+  flavor?: keyof typeof FlavorMap;
 }
 
 export const getDefault: (options: ProviderOptions) => ProviderOptions = options => {
   const _options = Object.assign(
     {
       subProviders: [],
-      flavor: "ethereum" as keyof typeof Flavors
+      flavor: "ethereum" as keyof typeof FlavorMap
     },
     getDefaultOptions(options)
   );

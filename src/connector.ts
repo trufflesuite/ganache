@@ -1,12 +1,17 @@
 import Executor from "./utils/executor";
 import RequestCoordinator from "./utils/request-coordinator";
-import ProviderOptions, {Flavors} from "./options/provider-options";
+import ProviderOptions, {FlavorMap} from "./options/provider-options";
 import Emittery from "emittery";
+import Connector from "./interfaces/connector";
+import { Provider } from "./interfaces/provider";
+import EthereumApi from "./ledgers/ethereum/api";
+import EthereumProvider from "./ledgers/ethereum/provider";
 
-export default class Provider extends Emittery {
+export default class Connector2 extends Emittery {
   // TODO: set missing defaults automatically
   public static initialize(providerOptions: ProviderOptions = {flavor: "ethereum", asyncRequestProcessing: true}) {
-    const provider = new Flavors[providerOptions.flavor || "ethereum"](providerOptions);
+    const flavor = providerOptions.flavor || "ethereum";
+    const connector = new FlavorMap[flavor](providerOptions);
 
     // Set up our request coordinator to either use FIFO or or async request processing.
     //   The RequestCoordinator _can_ be used to coordinate the number of requests being processed, but we don't use it
@@ -19,13 +24,14 @@ export default class Provider extends Emittery {
 
     // The request coordinator is initialized in a "paused" state, when the provider is ready we unpause
     // this lets us accept queue requests before we've even fully initialized.
-    provider.on("ready", requestCoordinator.resume);
+    (connector.provider as EthereumProvider).on("ready", requestCoordinator.resume);
 
-    // A provider should _not_ execute it's own methods, but should delegate that responsiblity here.
-    provider.on("request", ({ledger, method, params}) => {
-      return requestCoordinator.queue(executor.execute, ledger, method, params);
+    // A provider should _not_ execute its own methods, but should delegate that responsiblity here.
+    // Need to cast here because of https://github.com/microsoft/TypeScript/issues/7294
+    (connector.provider as EthereumProvider).on("request", ({api, method, params}) => {
+      return requestCoordinator.queue(executor.execute, api, method, params);
     });
 
-    return provider;
+    return connector;
   }
 }

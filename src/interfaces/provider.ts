@@ -1,6 +1,4 @@
-import Emittery from "emittery";
-import {ILedger} from "./base-ledger";
-import ProviderOptions from "../options/provider-options";
+import Api from "./api";
 
 type KnownKeys<T> = {
   [K in keyof T]: string extends K ? never : number extends K ? never : K;
@@ -8,7 +6,7 @@ type KnownKeys<T> = {
   ? U
   : never;
 
-export interface IProvider<T extends ILedger> {
+export interface Provider<T extends Api> {
   request: (method: KnownKeys<T>, params?: any[]) => Promise<any>;
   close: () => Promise<void>;
 }
