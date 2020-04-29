@@ -111,7 +111,7 @@ export default class HttpServer {
     const writeHeaders = prepareCORSResponseHeaders("POST", request);
 
     // TODO: pre-allocate the buffer if we know the Content-Length
-    let buffer: Bu;
+    let buffer: Buffer;
     let aborted = false;
     response.onAborted(() => {
       aborted = true;
