@@ -1,13 +1,13 @@
 import Miner from "./miner";
 import Database from "./database";
 import Emittery from "emittery";
-import BlockManager, { Block } from "./components/block-manager";
+import BlockManager, {Block} from "./components/block-manager";
 import TransactionManager from "./components/transaction-manager";
 import Trie from "merkle-patricia-tree";
-import { BN } from "ethereumjs-util";
+import {BN} from "ethereumjs-util";
 import Account from "../../types/account";
-import { promisify } from "util";
-import { Quantity, Data } from "../../types/json-rpc";
+import {promisify} from "util";
+import {Quantity, Data} from "../../types/json-rpc";
 import EthereumJsAccount from "ethereumjs-account";
 import AccountManager from "./components/account-manager";
 import Heap from "../../utils/heap";
@@ -28,13 +28,13 @@ export enum Status {
 }
 
 type BlockchainOptions = {
-  db?: string | object,
-  db_path?: string,
-  accounts?: Account[],
-  hardfork?: string,
-  allowUnlimitedContractSize?: boolean,
-  gasLimit?: Quantity,
-  timestamp?: Date
+  db?: string | object;
+  db_path?: string;
+  accounts?: Account[];
+  hardfork?: string;
+  allowUnlimitedContractSize?: boolean;
+  gasLimit?: Quantity;
+  timestamp?: Date;
 };
 
 export default class Blockchain extends Emittery {
@@ -45,20 +45,20 @@ export default class Blockchain extends Emittery {
   public accounts: AccountManager;
   public vm: any;
   public trie: Trie;
-  readonly #database: Database
+  readonly #database: Database;
 
   /**
    * Initializes the underlying Database and handles synchronization between
    * the ledger and the database.
-   * 
+   *
    * Emits a `ready` event once the database and
    * all dependencies are fully initialized.
-   * @param options 
+   * @param options
    */
   constructor(options: BlockchainOptions) {
     super();
 
-    const database = this.#database = new Database(options, this);
+    const database = (this.#database = new Database(options, this));
 
     database.on("ready", async () => {
       // TODO: get the latest block from the database
@@ -71,7 +71,11 @@ export default class Blockchain extends Emittery {
 
       const miner = new Miner(this.vm, options);
       this.transactions = new TransactionManager(this, database.transactions, options);
-      this.transactionReceipts = new Manager<TransactionReceipt>(this, database.transactionReceipts, TransactionReceipt);
+      this.transactionReceipts = new Manager<TransactionReceipt>(
+        this,
+        database.transactionReceipts,
+        TransactionReceipt
+      );
       this.accounts = new AccountManager(this, database.trie);
 
       await this.#initializeAccounts(options.accounts);
@@ -85,9 +89,9 @@ export default class Blockchain extends Emittery {
           number: Quantity.from(previousNumber + 1n).toBuffer(),
           gasLimit: options.gasLimit.toBuffer(),
           timestamp: this.#currentTime(),
-          parentHash: previousHeader.hash(),
+          parentHash: previousHeader.hash()
         });
-      }
+      };
       const instamining = true;
       if (instamining) {
         this.transactions.transactionPool.on("drain", async (pending: Map<string, Heap<Transaction>>) => {
@@ -112,9 +116,9 @@ export default class Blockchain extends Emittery {
         const block = this.blocks.createBlock({
           parentHash: previousHeader.hash(),
           number: Quantity.from(previousNumber + 1n).toBuffer(),
-          // coinbase: 
+          // coinbase:
           timestamp: this.#currentTime(),
-          // difficulty: 
+          // difficulty:
           gasLimit: options.gasLimit.toBuffer(),
           transactionsTrie: blockData.transactionsTrie.root,
           receiptTrie: blockData.receiptTrie.root,
@@ -127,12 +131,7 @@ export default class Blockchain extends Emittery {
           blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
             const hash = tx.hash();
             // todo: clean up transction extra data stuffs because this is gross:
-            const extraData = [
-              ...tx.raw,
-              block.value.hash(),
-              block.value.header.number,
-              Quantity.from(i).toBuffer()
-            ];
+            const extraData = [...tx.raw, block.value.hash(), block.value.header.number, Quantity.from(i).toBuffer()];
             const encodedTx = rlpEncode(extraData);
             this.transactions.set(hash, encodedTx);
 
@@ -178,32 +177,31 @@ export default class Blockchain extends Emittery {
     });
     vm.on("step", this.emit.bind(this, "step"));
     return vm;
-  }
+  };
 
-   #initializeAccounts = async (accounts: Account[]): Promise<void> => {
+  #initializeAccounts = async (accounts: Account[]): Promise<void> => {
     const stateManager = this.vm.stateManager;
     const putAccount = promisify(stateManager.putAccount.bind(stateManager));
-    const checkpoint = promisify(stateManager.checkpoint.bind(stateManager))
-    const commit = promisify(stateManager.commit.bind(stateManager))
+    const checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
+    const commit = promisify(stateManager.commit.bind(stateManager));
     await checkpoint();
     const l = accounts.length;
     const pendingAccounts = Array(l);
     for (let i = 0; i < l; i++) {
       const account = accounts[i];
       const ethereumJsAccount = new EthereumJsAccount();
-      ethereumJsAccount.nonce = account.nonce.toBuffer(),
-      ethereumJsAccount.balance = account.balance.toBuffer()
+      (ethereumJsAccount.nonce = account.nonce.toBuffer()), (ethereumJsAccount.balance = account.balance.toBuffer());
       pendingAccounts[i] = putAccount(account.address.toBuffer(), ethereumJsAccount);
     }
     await Promise.all(pendingAccounts);
     return commit();
-  }
+  };
 
   #initializeGenesisBlock = async (timestamp: Date, blockGasLimit: Quantity): Promise<Block> => {
     // create the genesis block
     const genesis = this.blocks.next({
       // If we were given a timestamp, use it instead of the `_currentTime`
-      timestamp: ((timestamp as any) / 1000 | 0) || this.#currentTime(),
+      timestamp: ((timestamp as any) / 1000) | 0 || this.#currentTime(),
       gasLimit: blockGasLimit.toBuffer(),
       stateRoot: this.trie.root,
       number: "0x0"
@@ -211,20 +209,20 @@ export default class Blockchain extends Emittery {
 
     // store the genesis block in the database
     return this.blocks.putBlock(genesis);
-  }
+  };
 
   #currentTime = () => {
     // Take the floor of the current time
     return (Date.now() / 1000) | 0;
-  }
+  };
 
   /**
    * Given a block number, find its hash in the database
-   * @param number 
+   * @param number
    */
   #blockNumberToHash = (number: BN): Promise<Buffer> => {
     return number.toString() as any;
-  }
+  };
 
   public async queueTransaction(transaction: any): Promise<Data> {
     await this.transactions.push(transaction);
@@ -235,7 +233,9 @@ export default class Blockchain extends Emittery {
     // TODO: this is just a prototype implementation
     const vm = this.vm.copy();
     const stateManager = vm.stateManager;
-    const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(parentBlock.value.header.stateRoot);
+    const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(
+      parentBlock.value.header.stateRoot
+    );
     transaction.block = block.value;
     transaction.caller = transaction.from;
     await settingStateRootProm;
@@ -252,7 +252,7 @@ export default class Blockchain extends Emittery {
     // cause a segfault due to a race condition between a db write and the close
     // call.
     if (this.#state === Status.starting) {
-      await new Promise((resolve) => {
+      await new Promise(resolve => {
         this.on("start", resolve);
       });
     }

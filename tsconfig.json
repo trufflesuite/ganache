@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "skipLibCheck": true,
-
     "module": "CommonJS",
     "esModuleInterop": true,
     "target": "ES2020",
@@ -13,8 +12,5 @@
     "outDir": "dist",
     "resolveJsonModule": true
   },
-  "include": [
-    "./index.ts",
-    "./typings/**/*.d.ts"
-  ]
+  "include": ["./src/**.*.ts", "./typings/**/*.d.ts"]
 }

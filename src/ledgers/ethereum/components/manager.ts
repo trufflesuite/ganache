@@ -1,9 +1,9 @@
 import levelup from "levelup";
-import { Data } from "../../../types/json-rpc";
+import {Data} from "../../../types/json-rpc";
 import Blockchain from "../blockchain";
 const NOTFOUND = 404;
 
-export type Instantiable<T> = { new(...args: any[]): T };
+export type Instantiable<T> = {new (...args: any[]): T};
 
 export default class Manager<T> {
   protected blockchain: Blockchain;
@@ -18,8 +18,8 @@ export default class Manager<T> {
     if (typeof key === "string") {
       key = Data.from(key).toBuffer();
     }
-    
-    return this.base.get(key).catch(e =>{
+
+    return this.base.get(key).catch(e => {
       if (e.status === NOTFOUND) return null;
       throw e;
     });

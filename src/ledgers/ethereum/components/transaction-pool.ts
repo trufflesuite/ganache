@@ -2,18 +2,18 @@ import Emittery from "emittery";
 import Blockchain from "../blockchain";
 import Heap from "../../../utils/heap";
 import Transaction from "../../../types/transaction";
-import { Data, Quantity } from "../../../types/json-rpc";
+import {Data, Quantity} from "../../../types/json-rpc";
 
 export type TransactionPoolOptions = {
   /**
    * TODO: use this value.
    */
-  gasPrice?: Quantity,
+  gasPrice?: Quantity;
 
   /**
    * Minimum gas price to enforce for acceptance into the pool
    */
-  gasLimit?: Quantity
+  gasLimit?: Quantity;
 };
 
 function byNonce(values: Transaction[], a: number, b: number) {
@@ -26,7 +26,7 @@ export default class TransactionPool extends Emittery {
   /**
    * Minimum price bump percentage to replace an already existing transaction (nonce)
    */
-  public priceBump: bigint = 10n
+  public priceBump: bigint = 10n;
 
   #blockchain: Blockchain;
   constructor(blockchain: Blockchain, options: TransactionPoolOptions) {
@@ -73,7 +73,7 @@ export default class TransactionPool extends Emittery {
         const thisNonce = Quantity.from(currentPendingTx.nonce).toBigInt();
         if (thisNonce === transactionNonce) {
           const gasPrice = Quantity.from(currentPendingTx.gasPrice).toBigInt();
-          const thisPricePremium = gasPrice + ((gasPrice * priceBump) / 100n);
+          const thisPricePremium = gasPrice + (gasPrice * priceBump) / 100n;
 
           // TODO: how do we surface these transaction failures to the caller?!
 
@@ -138,7 +138,12 @@ export default class TransactionPool extends Emittery {
     }
   }
 
-  #drainQueued = (origin: string, queuedOriginTransactions: Heap<Transaction>, executableOriginTransactions: Heap<Transaction>, transactionNonce: bigint) => {
+  #drainQueued = (
+    origin: string,
+    queuedOriginTransactions: Heap<Transaction>,
+    executableOriginTransactions: Heap<Transaction>,
+    transactionNonce: bigint
+  ) => {
     // Now we need to drain any queued transacions that were previously
     // not executable due to nonce gaps into the origin's queue...
     if (queuedOriginTransactions) {
@@ -167,11 +172,10 @@ export default class TransactionPool extends Emittery {
       }
     }
 
-
     // notify listeners (the miner, probably) that we have executables
     // transactions ready for it
     this.emit("drain", this.executables);
-  }
+  };
 
   validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
@@ -193,7 +197,7 @@ export default class TransactionPool extends Emittery {
     }
 
     return null;
-  }
+  };
 
   #validateTransactor = async (transaction: Transaction, transactor: any): Promise<Error> => {
     // Transactor should have enough funds to cover the costs
@@ -206,10 +210,10 @@ export default class TransactionPool extends Emittery {
     if (transactorNonce == null) {
       transactorNonce = -1n;
     }
-    const transactionNonce = (Quantity.from(transaction.nonce).toBigInt() || 0n);
+    const transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
     if (transactorNonce >= transactionNonce) {
       return new Error("Transaction nonce is too low");
     }
     return null;
-  }
+  };
 }

@@ -1,8 +1,8 @@
-import { Data } from "../../types/json-rpc";
+import {Data} from "../../types/json-rpc";
 import Address from "../../types/address";
 import EthereumOptions from "./options";
 import Account from "../../types/account";
-const { toChecksumAddress } = require("ethereumjs-util");
+import {toChecksumAddress} from "ethereumjs-util";
 
 export default class Wallet {
   readonly accounts: Address[];
@@ -18,7 +18,7 @@ export default class Wallet {
     //#region Configure Known and Unlocked Accounts
     this.coinbase = accounts[0];
     const l = accounts.length;
-    const accountsCache = this.accounts = Array(l);
+    const accountsCache = (this.accounts = Array(l));
     for (let i = 0; i < l; i++) {
       const account = accounts[i];
       const address = account.address;
@@ -54,7 +54,7 @@ export default class Wallet {
               // to `123`, and there is probably an error on the user's side we'd
               // want to uncover.
               const index = (arg as any) - 0;
-              // if we don't have a valid number, or the number isn't an valid JS 
+              // if we don't have a valid number, or the number isn't an valid JS
               // integer (no bigints or decimals, please), throw an error.
               if (!Number.isSafeInteger(index)) {
                 throw new Error(`Invalid value in unlocked_accounts: ${arg}`);
@@ -68,21 +68,16 @@ export default class Wallet {
           case "number":
             const account = accounts[arg];
             if (account == null) {
-              throw new Error(
-                `Account at index ${arg} not found. Max index available is ${l - 1}.`
-              );
+              throw new Error(`Account at index ${arg} not found. Max index available is ${l - 1}.`);
             }
             address = account.address.toString().toLowerCase();
             break;
           default:
-            throw new Error(
-              `Invalid value specified in unlocked_accounts`
-            );
+            throw new Error(`Invalid value specified in unlocked_accounts`);
         }
         unlockedAccounts.add(address);
       }
     }
     //#endregion
-
   }
 }

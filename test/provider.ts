@@ -1,4 +1,4 @@
-import Ganache from "../index"
+import Ganache from "../index";
 import assert from "assert";
 import Provider from "../src/ledgers/ethereum";
 
@@ -6,17 +6,17 @@ describe("provider", () => {
   const networkId = "1234";
   let p: Provider;
 
-  beforeEach("set up", () =>{
+  beforeEach("set up", () => {
     p = Ganache.provider({
       network_id: networkId
     });
   });
 
-  it("works without passing options", async() => {
+  it("works without passing options", async () => {
     assert.doesNotThrow(() => Ganache.provider());
   });
 
-  it("it logs when `options.verbose` is `true`", async() => {
+  it("it logs when `options.verbose` is `true`", async () => {
     const logger = {
       log: (msg: string) => {
         assert.strictEqual(msg, "   >  net_version: undefined");
@@ -24,16 +24,14 @@ describe("provider", () => {
     };
     const p = Ganache.provider({logger, verbose: true});
 
-    logger.log = (msg) => {
+    logger.log = msg => {
       assert.strictEqual(msg, "   >  net_version: undefined", "doesn't work when no params");
     };
     await p.send("net_version");
 
-    return new Promise(async (resolve) => {
-      logger.log = (msg) => {
-        const expected = "   >  web3_sha3: [\n" +
-          "   >   \"Tim is a swell guy.\"\n" +
-          "   > ]";
+    return new Promise(async resolve => {
+      logger.log = msg => {
+        const expected = "   >  web3_sha3: [\n" + '   >   "Tim is a swell guy."\n' + "   > ]";
         assert.strictEqual(msg, expected, "doesn't work with params");
         resolve();
       };
@@ -41,11 +39,11 @@ describe("provider", () => {
     });
   }).timeout(500);
 
-  it("it logs with options.verbose", async() => {
+  it("it logs with options.verbose", async () => {
     assert.doesNotThrow(() => Ganache.provider());
   });
 
-  it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async() => {
+  it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
     const p = Ganache.provider();
     const accounts = await p.send("eth_accounts");
     // eth_accounts should always be faster than eth_getBalance; it should
@@ -57,7 +55,7 @@ describe("provider", () => {
     assert.strictEqual(result.length, 10);
   });
 
-  it("it processes requests in order when `asyncRequestProcessing` is false", async() => {
+  it("it processes requests in order when `asyncRequestProcessing` is false", async () => {
     const p = Ganache.provider({asyncRequestProcessing: false});
     const accounts = await p.send("eth_accounts");
     // eth_accounts should always be faster than eth_getBalance, but shouldn't
@@ -70,13 +68,13 @@ describe("provider", () => {
     assert.strictEqual(result, "0x56bc75e2d63100000");
   });
 
-  it("generates predictable accounts when given a seed", async() => {
+  it("generates predictable accounts when given a seed", async () => {
     const p = Ganache.provider({seed: "temet nosce"});
     const accounts = await p.request("eth_accounts");
     assert.strictEqual(accounts[0], "0x59eF313E6Ee26BaB6bcb1B5694e59613Debd88DA");
   });
 
-  it("gets balance", async() => {
+  it("gets balance", async () => {
     const accounts = await p.request("eth_accounts");
     const balance = await p.request("eth_getBalance", [accounts[0]]);
     // TODO: this value is actually wrong!
@@ -88,46 +86,60 @@ describe("provider", () => {
     assert.strictEqual(version, networkId);
   });
 
-  it("returns things via legacy", async() => {
-    await new Promise((resolve) => {
-      const ret = p.send({
-        id: "1",
-        jsonrpc: "2.0",
-        method: "net_version"
-      } as any, (_err: Error, result: any): void => {
-        assert.strictEqual(result.result, networkId);
-        resolve();
-      });
+  it("returns things via legacy", async () => {
+    await new Promise(resolve => {
+      const ret = p.send(
+        {
+          id: "1",
+          jsonrpc: "2.0",
+          method: "net_version"
+        } as any,
+        (_err: Error, result: any): void => {
+          assert.strictEqual(result.result, networkId);
+          resolve();
+        }
+      );
       assert.strictEqual(ret, undefined);
     });
-    return new Promise((resolve) => {
-      const ret = p.sendAsync({
-        id: "1",
-        jsonrpc: "2.0",
-        method: "net_version"
-      } as any, (_err: Error, result: any): void => {
-        assert.strictEqual(result.result, networkId);
-        resolve();
-      });
+    return new Promise(resolve => {
+      const ret = p.sendAsync(
+        {
+          id: "1",
+          jsonrpc: "2.0",
+          method: "net_version"
+        } as any,
+        (_err: Error, result: any): void => {
+          assert.strictEqual(result.result, networkId);
+          resolve();
+        }
+      );
       assert.strictEqual(ret, undefined);
     });
   });
 
   it("rejects invalid rpc methods", async () => {
     const illegalMethodNames = [
-      "toString", "toValue", "__proto__", "prototype", "notAFunction", "", " ",
-      "constructor", 
+      "toString",
+      "toValue",
+      "__proto__",
+      "prototype",
+      "notAFunction",
+      "",
+      " ",
+      "constructor"
     ];
-    await Promise.all(illegalMethodNames.map((name: any) => {
-      return assert.rejects(p.request(name), {
-        message: `Invalid or unsupported method: ${name}`
-      });
-    }));
+    await Promise.all(
+      illegalMethodNames.map((name: any) => {
+        return assert.rejects(p.request(name), {
+          message: `Invalid or unsupported method: ${name}`
+        });
+      })
+    );
 
     // duck punch a property that shouldn't appear on the ledger. we test this
     // to make sure that 3rd party ledger implementations can't shoot themselves
     // in the foot on accident
-    it.skip("TODO: allow 'injecting' our own engine or ledger into a provider!", async () => { 
+    it.skip("TODO: allow 'injecting' our own engine or ledger into a provider!", async () => {
       (p as any)._engine._ledger.__proto__.illegalProperty = true;
       await assert.rejects(p.request("illegalProperty" as any), {
         message: "Invalid or unsupported method: illegalProperty"
@@ -138,33 +150,50 @@ describe("provider", () => {
     const circular = {} as any;
     circular.circular = circular;
     const illegalMethodTypes = [
-      123, Buffer.from([1]) as any as string, null, undefined, {}, [],
-      {foo: "bar"}, [1,2], new Date(), Infinity, NaN, circular
+      123,
+      (Buffer.from([1]) as any) as string,
+      null,
+      undefined,
+      {},
+      [],
+      {foo: "bar"},
+      [1, 2],
+      new Date(),
+      Infinity,
+      NaN,
+      circular
     ];
-    await Promise.all(illegalMethodTypes.map((methodType) => {
-      return assert.rejects(
-        new Promise((resolve, reject) => {
-          p.send({
-            id: "1",
-            jsonrpc: "2.0",
-            method: methodType as any
-          } as any, (err: Error, result: any): void => {
-            if(err) {
-              reject(err);
-            } else {
-              resolve(result);
-            }
-          })
-        }),
-      {
-        message: `Invalid or unsupported method: ${methodType}`
-      });
-    }));
+    await Promise.all(
+      illegalMethodTypes.map(methodType => {
+        return assert.rejects(
+          new Promise((resolve, reject) => {
+            p.send(
+              {
+                id: "1",
+                jsonrpc: "2.0",
+                method: methodType as any
+              } as any,
+              (err: Error, result: any): void => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(result);
+                }
+              }
+            );
+          }),
+          {
+            message: `Invalid or unsupported method: ${methodType}`
+          }
+        );
+      })
+    );
 
     // make sure we reject non-strings over the EIP-1193 send interface
-    illegalMethodTypes.map((methodType) => {
+    illegalMethodTypes.map(methodType => {
       assert.throws(() => p.send(methodType as any), {
-        message: "No callback provided to provider's send function. As of " +
+        message:
+          "No callback provided to provider's send function. As of " +
           "web3 1.0, provider.send is no longer synchronous and must be " +
           "passed a callback as its final argument."
       });

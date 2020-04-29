@@ -1,6 +1,6 @@
 {
-    "@tabs <tab>[]": {
-      "@label": "string",
-      "@active": "bool"
-    }
+  "@tabs <tab>[]": {
+    "@label": "string",
+    "@active": "bool"
   }
+}

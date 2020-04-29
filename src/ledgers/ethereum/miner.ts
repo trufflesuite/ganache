@@ -1,18 +1,23 @@
 import params from "../../types/params";
 import Heap from "../../utils/heap";
 import Transaction from "../../types/transaction";
-import { Quantity, Data } from "../../types/json-rpc";
-import { promisify } from "util";
+import {Quantity, Data} from "../../types/json-rpc";
+import {promisify} from "util";
 import Trie from "merkle-patricia-tree";
 import Emittery from "emittery";
 import Block from "ethereumjs-block";
 import VM from "ethereumjs-vm";
-import { RunTxResult } from "ethereumjs-vm/dist/runTx";
+import {RunTxResult} from "ethereumjs-vm/dist/runTx";
 import {encode as rlpEncode} from "rlp";
 
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
-function replaceFromHeap(priced: Heap<Transaction>, source: Heap<Transaction>, pending: Map<string, Heap<Transaction>>, key: string) {
+function replaceFromHeap(
+  priced: Heap<Transaction>,
+  source: Heap<Transaction>,
+  pending: Map<string, Heap<Transaction>>,
+  key: string
+) {
   // get the next best for this account, removing from the source Heap:
   const next = source.shift();
   if (next) {
@@ -26,8 +31,8 @@ function replaceFromHeap(priced: Heap<Transaction>, source: Heap<Transaction>, p
 }
 
 type MinerOptions = {
-  gasLimit?: Quantity
-}
+  gasLimit?: Quantity;
+};
 
 function byPrice(values: Transaction[], a: number, b: number) {
   return Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
@@ -60,7 +65,7 @@ export default class Miner extends Emittery {
   }
 
   /**
-   * 
+   *
    * @param pending A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
    * and putting them in a block.
@@ -85,7 +90,7 @@ export default class Miner extends Emittery {
     const blockTransactions: Transaction[] = [];
 
     let blockGasLeft = this.#options.gasLimit.toBigInt();
-    
+
     let counter = 0;
     const transactionsTrie = new Trie(null, null);
     const receiptTrie = new Trie(null, null);
@@ -107,7 +112,7 @@ export default class Miner extends Emittery {
     // `replace` this top transaction with the next top transaction from the same
     // origin.
     let best: Transaction;
-    while (best = priced.peek()) {
+    while ((best = priced.peek())) {
       // if the current best transaction can't possibly fit in this block
       // go ahead and run the next best transaction, ignoring all other
       // pending transactions from this account for this block.
@@ -134,7 +139,7 @@ export default class Miner extends Emittery {
       let result: RunTxResult;
       try {
         result = await this.#vm.runTx(runArgs);
-      } catch(err) {
+      } catch (err) {
         await this.#revert();
         const errorMessage = err.message;
         if (errorMessage.startsWith("the tx doesn't have the correct nonce. account has nonce of: ")) {
@@ -174,8 +179,8 @@ export default class Miner extends Emittery {
         }
 
         blockTransactions[counter] = best;
-        
-        counter++
+
+        counter++;
 
         // if we don't have enough gas left for even the smallest of
         // transactions we're done
@@ -205,7 +210,7 @@ export default class Miner extends Emittery {
       // TODO: this transaction should probably be validated again...?
       console.log(transaction);
     });
-    
+
     this.emit("block", blockData);
 
     // reset the miner (this sets _isMining back to false)
@@ -223,19 +228,19 @@ export default class Miner extends Emittery {
         coinbase: block.header.coinbase,
         timestamp: block.header.timestamp,
         difficulty: block.header.difficulty,
-        gasLimit: block.header.gasLimit,
+        gasLimit: block.header.gasLimit
       } as any);
       this.mine(this.#pending, nextBlock);
       this.#pending = null;
     }
   }
-  
+
   #reset = () => {
     this.#origins.clear();
     this.#priced.clear();
     this.#isMining = false;
     this.#currentlyExecutingPrice = 0n;
-  }
+  };
 
   #setPricedHeap = (pending: Map<string, Heap<Transaction>>) => {
     const origins = this.#origins;
@@ -250,7 +255,7 @@ export default class Miner extends Emittery {
         priced.push(next);
       }
     }
-  }
+  };
 
   #updatePricedHeap = (pending: Map<string, Heap<Transaction>>) => {
     const origins = this.#origins;
@@ -267,7 +272,7 @@ export default class Miner extends Emittery {
         const price = Quantity.from(next.gasPrice).toBigInt();
         if (this.#currentlyExecutingPrice < price) {
           // don't insert a transaction into the miner's `priced` heap
-          // if it will be better than its last 
+          // if it will be better than its last
           continue;
         }
         const origin = Data.from(next.from).toString();
@@ -281,5 +286,5 @@ export default class Miner extends Emittery {
         heap.removeBest();
       }
     }
-  }
+  };
 }

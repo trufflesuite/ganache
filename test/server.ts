@@ -1,4 +1,4 @@
-import Ganache from "../index"
+import Ganache from "../index";
 import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
@@ -18,31 +18,31 @@ describe("server", () => {
   };
   const logger = {
     log: (_message: string) => {}
-  }
+  };
   let s: Server;
-  async function setup(options = {
-    network_id,
-    logger
-  } as ServerOptions) {
+  async function setup(
+    options = {
+      network_id,
+      logger
+    } as ServerOptions
+  ) {
     s = Ganache.server(options);
     return s.listen(port);
-  };
-  async function teardown(){
-    s && await s.close();
+  }
+  async function teardown() {
+    s && (await s.close());
     s = undefined;
   }
   describe("http", () => {
-    async function simpleTest(){
-      const response = await request
-        .post('http://localhost:' + port)
-        .send(jsonRpcJson);
+    async function simpleTest() {
+      const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
       assert.strictEqual(response.status, 200);
 
       const json = JSON.parse(response.text);
       assert.strictEqual(json.result, network_id);
       return response;
     }
-    
+
     it("returns the net_version", async () => {
       await setup();
       try {
@@ -52,7 +52,7 @@ describe("server", () => {
       }
     });
 
-    it("returns the net_version over a legacy-style connection listener", (done) => {
+    it("returns the net_version over a legacy-style connection listener", done => {
       s = Ganache.server({
         network_id
       } as ServerOptions);
@@ -69,7 +69,7 @@ describe("server", () => {
     it("fails to `.listen()` twice", async () => {
       await setup();
       try {
-        // the call to `setup()` above calls `listen()` already. if we call it 
+        // the call to `setup()` above calls `listen()` already. if we call it
         // again it should fail.
         await assert.rejects(s.listen(port), {
           message: `Server is already listening on port: ${port}`
@@ -102,7 +102,7 @@ describe("server", () => {
         await assert.rejects(s2.listen(port), {
           message: `Failed to listen on port: ${port}`
         });
-      } catch(e) {
+      } catch (e) {
         console.log(e);
       } finally {
         await teardown();
@@ -114,7 +114,7 @@ describe("server", () => {
         ws: false
       } as ServerOptions);
       try {
-        const ws = new WebSocket('ws://localhost:' + port);
+        const ws = new WebSocket("ws://localhost:" + port);
 
         await assert.rejects(new Promise((_, reject) => ws.on("error", reject)), {
           message: "Unexpected server response: 400"
@@ -127,12 +127,12 @@ describe("server", () => {
     it("handles chunked requests (note: doesn't test `transfer-encoding: chunked`)", async () => {
       await setup();
       try {
-        const req = request.post('http://localhost:' + port);
-        const json =JSON.stringify(jsonRpcJson);
+        const req = request.post("http://localhost:" + port);
+        const json = JSON.stringify(jsonRpcJson);
 
         // we have to set the content-length because we can't use
         // `Transfer-Encoding: chunked` with uWebSockets.js as of v15.9.0
-        req.set('Content-Length', json.length.toString());
+        req.set("Content-Length", json.length.toString());
 
         await new Promise((resolve, reject) => {
           req.on("response", response => {
@@ -154,7 +154,7 @@ describe("server", () => {
       }
     });
 
-    it("fails to subscribe and unsubscribe over HTTP", async () =>{
+    it("fails to subscribe and unsubscribe over HTTP", async () => {
       await setup();
       const jsonRpcJson: any = {
         jsonrpc: "2.0",
@@ -165,18 +165,12 @@ describe("server", () => {
       try {
         // TODO: should we expect a 200 OK response with an `error` property
         //  in a json rpc body? Probably, because we _do_ already send one. :-/
-        await assert.rejects(request
-          .post('http://localhost:' + port)
-          .send(jsonRpcJson)
-        , {
-            status: 400,
-            message: "Bad Request"
+        await assert.rejects(request.post("http://localhost:" + port).send(jsonRpcJson), {
+          status: 400,
+          message: "Bad Request"
         });
         jsonRpcJson.method = "eth_unsubscribe";
-        await assert.rejects(request
-          .post('http://localhost:' + port)
-          .send(jsonRpcJson)
-        , {
+        await assert.rejects(request.post("http://localhost:" + port).send(jsonRpcJson), {
           message: "Bad Request"
         });
       } finally {
@@ -187,7 +181,7 @@ describe("server", () => {
     it("returns a teapot", async () => {
       await setup();
       try {
-        const result = await request.get('http://localhost:' + port + "/418").catch(e => e);
+        const result = await request.get("http://localhost:" + port + "/418").catch(e => e);
         assert.strictEqual(result.status, 418);
         assert.strictEqual(result.message, "I'm a Teapot");
       } finally {
@@ -199,8 +193,10 @@ describe("server", () => {
       await setup();
       const methods = ["get", "post", "head", "options", "put", "delete", "patch", "trace"];
       try {
-        const requests = methods.map(async (method) => {
-          const result = await (request as any)[method]('http://localhost:' + port + "/there-is-no-spoon").catch((e: any) => e);
+        const requests = methods.map(async method => {
+          const result = await (request as any)
+            [method]("http://localhost:" + port + "/there-is-no-spoon")
+            .catch((e: any) => e);
           assert.strictEqual(result.status, 404);
           assert.strictEqual(result.message, "Not Found");
         });
@@ -215,7 +211,7 @@ describe("server", () => {
 
       try {
         const oldRequest = (s.provider as any).request;
-        const req = request.post('http://localhost:' + port);
+        const req = request.post("http://localhost:" + port);
         const abortPromise = new Promise(resolve => {
           (s.provider as any).request = () => {
             // abort the request object after intercepting the request
@@ -224,11 +220,11 @@ describe("server", () => {
               // It takes 2 passes of the event loop to register the `abort`
               // server-side:
               setImmediate(setImmediate, () => {
-                  // resolve the `provider.send` to make sure the server can
-                  // handle _not_ responding to a request that has been aborted:
-                  innerResolve();
-                  // and finally, resolve the `abort` promise:
-                  resolve();
+                // resolve the `provider.send` to make sure the server can
+                // handle _not_ responding to a request that has been aborted:
+                innerResolve();
+                // and finally, resolve the `abort` promise:
+                resolve();
               });
             });
           };
@@ -243,7 +239,6 @@ describe("server", () => {
 
         // now make sure we are still up and running:
         await simpleTest();
-
       } finally {
         await teardown();
       }
@@ -254,7 +249,7 @@ describe("server", () => {
 
       try {
         await s.close();
-        const req = request.post('http://localhost:' + port);
+        const req = request.post("http://localhost:" + port);
         await assert.rejects(req.send(jsonRpcJson), {
           code: "ECONNREFUSED"
         });
@@ -264,25 +259,18 @@ describe("server", () => {
     });
 
     describe("CORS", () => {
-      const optionsHeaders = [
-        "Access-Control-Allow-Methods",
-        "Access-Control-Allow-Headers",
-        "Access-Control-Max-Age"
-      ];
-      const baseHeaders = [
-        "Access-Control-Allow-Credentials",
-        "Access-Control-Allow-Origin"
-      ];
-      const allCorsHeaders = optionsHeaders.concat(baseHeaders);;
+      const optionsHeaders = ["Access-Control-Allow-Methods", "Access-Control-Allow-Headers", "Access-Control-Max-Age"];
+      const baseHeaders = ["Access-Control-Allow-Credentials", "Access-Control-Allow-Origin"];
+      const allCorsHeaders = optionsHeaders.concat(baseHeaders);
 
-      it("does not return CORS headers for non-CORS requests", async() => {
+      it("does not return CORS headers for non-CORS requests", async () => {
         await setup();
         try {
           const resp = await simpleTest();
-          allCorsHeaders.forEach((header) => {
+          allCorsHeaders.forEach(header => {
             assert.strictEqual(
               resp.header[header.toLowerCase()],
-              undefined ,
+              undefined,
               `Non-CORS response should not contain header ${header}`
             );
           });
@@ -291,62 +279,62 @@ describe("server", () => {
         }
       });
 
-      it("returns only base CORS headers for post request with origin header", async() => {
+      it("returns only base CORS headers for post request with origin header", async () => {
         await setup();
         const origin = "origin";
         try {
           const resp = await request
-            .post('http://localhost:' + port)
+            .post("http://localhost:" + port)
             .set("origin", origin)
             .send(jsonRpcJson);
-            assert.strictEqual(resp.status, 200);
-            assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
-            assert.strictEqual(resp.header["access-control-allow-origin"], origin);
-            optionsHeaders.forEach((header) => {
-              assert.strictEqual(
-                resp.header[header.toLowerCase()],
-                undefined ,
-                `Non-CORS response should not contain header ${header}`
-              );
-            });
+          assert.strictEqual(resp.status, 200);
+          assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
+          assert.strictEqual(resp.header["access-control-allow-origin"], origin);
+          optionsHeaders.forEach(header => {
+            assert.strictEqual(
+              resp.header[header.toLowerCase()],
+              undefined,
+              `Non-CORS response should not contain header ${header}`
+            );
+          });
         } finally {
           await teardown();
         }
       });
 
-      it("returns all CORS headers for request options request with origin header", async() => {
+      it("returns all CORS headers for request options request with origin header", async () => {
         await setup();
         const origin = "origin";
         try {
           const resp = await request
-            .options('http://localhost:' + port)
+            .options("http://localhost:" + port)
             .set("origin", origin)
             .send(jsonRpcJson);
-            assert.strictEqual(resp.status, 204);
-            assert.strictEqual(resp.header["access-control-allow-methods"], "POST");
-            assert.strictEqual(resp.header["access-control-allow-origin"], origin);
-            assert.strictEqual(resp.header["access-control-max-age"], "600");
-            assert.strictEqual(resp.header["content-length"], "0");
-            assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
-            assert.strictEqual(resp.header["access-control-allow-origin"], origin);
+          assert.strictEqual(resp.status, 204);
+          assert.strictEqual(resp.header["access-control-allow-methods"], "POST");
+          assert.strictEqual(resp.header["access-control-allow-origin"], origin);
+          assert.strictEqual(resp.header["access-control-max-age"], "600");
+          assert.strictEqual(resp.header["content-length"], "0");
+          assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
+          assert.strictEqual(resp.header["access-control-allow-origin"], origin);
         } finally {
           await teardown();
         }
       });
 
-      it("echos Access-Control-Request-Headers for options request", async() => {
+      it("echos Access-Control-Request-Headers for options request", async () => {
         await setup();
         const origin = "origin";
         const acrh = "origin, content-length, x-random";
         try {
           const resp = await request
-            .options('http://localhost:' + port)
+            .options("http://localhost:" + port)
             .set("origin", origin)
             .set("Access-Control-Request-Headers", acrh)
             .send(jsonRpcJson);
 
-            assert.strictEqual(resp.status, 204);
-            assert.strictEqual(resp.header["access-control-allow-headers"], acrh);
+          assert.strictEqual(resp.status, 204);
+          assert.strictEqual(resp.header["access-control-allow-headers"], acrh);
         } finally {
           await teardown();
         }
@@ -359,26 +347,26 @@ describe("server", () => {
     afterEach("teardown", teardown);
 
     it("returns the net_version over a websocket", async () => {
-      const ws = new WebSocket('ws://localhost:' + port);
+      const ws = new WebSocket("ws://localhost:" + port);
 
-      const response: any = await new Promise((resolve) => {
+      const response: any = await new Promise(resolve => {
         ws.on("open", () => {
           ws.send(JSON.stringify(jsonRpcJson));
         });
-        ws.on('message', resolve);
+        ws.on("message", resolve);
       });
       const json = JSON.parse(response);
       assert.strictEqual(json.result, network_id);
     });
 
     it("returns the net_version over a websocket as binary", async () => {
-      const ws = new WebSocket('ws://localhost:' + port);
-      const response: any = await new Promise((resolve) => {
+      const ws = new WebSocket("ws://localhost:" + port);
+      const response: any = await new Promise(resolve => {
         ws.on("open", () => {
-          const strToAB = (str: string) => new Uint8Array(str.split('').map(c => c.charCodeAt(0))).buffer;
+          const strToAB = (str: string) => new Uint8Array(str.split("").map(c => c.charCodeAt(0))).buffer;
           ws.send(strToAB(JSON.stringify(jsonRpcJson)));
         });
-        ws.on('message', resolve);
+        ws.on("message", resolve);
       });
       assert.strictEqual(response.constructor, Buffer, "response doesn't seem to be a Buffer as expect");
       const json = JSON.parse(response);
@@ -386,23 +374,18 @@ describe("server", () => {
     });
 
     it("doesn't crash when sending bad data over http", async () => {
-      await assert.rejects(request
-        .post('http://localhost:' + port)
-        .send("This is _not_ pudding.")
-      , {
+      await assert.rejects(request.post("http://localhost:" + port).send("This is _not_ pudding."), {
         message: "Bad Request"
       });
 
-      const response = await request
-        .post('http://localhost:' + port)
-        .send(jsonRpcJson);
-      const json = JSON.parse(response.text)
+      const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
+      const json = JSON.parse(response.text);
       assert.strictEqual(json.result, network_id);
     });
 
     it("doesn't crash when sending bad data over websocket", async () => {
-      const ws = new WebSocket('ws://localhost:' + port);
-      const result: number = await new Promise((resolve) => {
+      const ws = new WebSocket("ws://localhost:" + port);
+      const result: number = await new Promise(resolve => {
         ws.on("open", () => {
           ws.on("close", resolve);
           ws.send("What is it?");
@@ -417,8 +400,8 @@ describe("server", () => {
         await s.close();
       };
 
-      const ws = new WebSocket('ws://localhost:' + port);
-      return new Promise((resolve, reject) => {       
+      const ws = new WebSocket("ws://localhost:" + port);
+      return new Promise((resolve, reject) => {
         ws.on("open", () => {
           // If we get a message that means things didn't get closed as they
           // should have OR they are closing too late for some reason and
@@ -437,15 +420,16 @@ describe("server", () => {
     });
 
     it("can handle backpressure", async () => {
-      { // create tons of data to force websocket backpressure
+      {
+        // create tons of data to force websocket backpressure
         const huge = {} as any;
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
         (s.provider as any).request = async () => {
           return huge;
         };
       }
-      
-      const ws = new WebSocket('ws://localhost:' + port);
+
+      const ws = new WebSocket("ws://localhost:" + port);
       const oldLog = logger.log;
       try {
         let gotBackpressure = false;
@@ -454,18 +438,18 @@ describe("server", () => {
           if (message.indexOf("WebSocket backpressure: ") === 0) {
             gotBackpressure = true;
           }
-        }
+        };
         return await new Promise((resolve, reject) => {
           ws.on("open", () => {
-            ws.on("message", (_message) => {
+            ws.on("message", _message => {
               if (gotBackpressure) {
                 resolve();
               } else {
                 reject(
                   new Error(
                     "Possible false positive: Didn't detect backpressure " +
-                    " before receiving a message. Ensure `s.provider.send` is" +
-                    " sending enough data."
+                      " before receiving a message. Ensure `s.provider.send` is" +
+                      " sending enough data."
                   )
                 );
               }

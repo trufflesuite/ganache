@@ -294,6 +294,15 @@
         }
       }
     },
+    "@istanbuljs/nyc-config-typescript": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/@istanbuljs/nyc-config-typescript/-/nyc-config-typescript-1.0.1.tgz",
+      "integrity": "sha512-/gz6LgVpky205LuoOfwEZmnUtaSmdk0QIMcNFj9OvxhiMhPpKftMgZmGN7jNj7jR+lr8IB1Yks3QSSSNSxfoaQ==",
+      "dev": true,
+      "requires": {
+        "@istanbuljs/schema": "^0.1.2"
+      }
+    },
     "@istanbuljs/schema": {
       "version": "0.1.2",
       "resolved": "https://registry.npmjs.org/@istanbuljs/schema/-/schema-0.1.2.tgz",

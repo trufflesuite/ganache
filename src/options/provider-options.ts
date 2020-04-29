@@ -1,20 +1,20 @@
 import Options, {getDefault as getDefaultOptions} from "./options";
 import EthereumProvider from "../ledgers/ethereum";
-import { entropyToMnemonic } from "bip39";
-import seedrandom, { seedrandom_prng } from "seedrandom";
+import {entropyToMnemonic} from "bip39";
+import seedrandom, {seedrandom_prng} from "seedrandom";
 
 export const Flavors = {
   ethereum: EthereumProvider
 };
 
 export type Flavors = {
-  ethereum: EthereumProvider
+  ethereum: EthereumProvider;
 };
 
 function randomBytes(length: number, rng: () => number) {
   const buf = Buffer.allocUnsafe(length);
   for (let i = 0; i < length; i++) {
-    buf[i] = rng() * 255 | 0;
+    buf[i] = (rng() * 255) | 0;
   }
   return buf;
 }
@@ -25,7 +25,7 @@ const randomAlphaNumericString = (() => {
   return (length: number, rng: () => number) => {
     let text = "";
     for (let i = 0; i < length; i++) {
-      text += alphabet[rng() * alphabetLength | 0];
+      text += alphabet[(rng() * alphabetLength) | 0];
     }
 
     return text;
@@ -36,12 +36,12 @@ export default interface ProviderOptions extends Options {
   /**
    * Array of strings to installed subproviders
    */
-  subProviders?: any[],
+  subProviders?: any[];
 
-  flavor?: keyof typeof Flavors
+  flavor?: keyof typeof Flavors;
 }
 
-export const getDefault : (options: ProviderOptions) => ProviderOptions = (options) => {
+export const getDefault: (options: ProviderOptions) => ProviderOptions = options => {
   const _options = Object.assign(
     {
       subProviders: [],
@@ -68,4 +68,4 @@ export const getDefault : (options: ProviderOptions) => ProviderOptions = (optio
     _options.mnemonic = entropyToMnemonic(_randomBytes);
   }
   return _options;
-}
+};

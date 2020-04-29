@@ -32,8 +32,8 @@ addons:
 
 before_install:
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      export CC="gcc-5";
-      export CXX="g++-5";
-      export LINK="gcc-5";
-      export LINKXX="g++-5";
+    export CC="gcc-5";
+    export CXX="g++-5";
+    export LINK="gcc-5";
+    export LINKXX="g++-5";
     fi

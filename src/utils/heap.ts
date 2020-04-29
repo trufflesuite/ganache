@@ -19,15 +19,15 @@ class Heap<T> {
 
   public init(array: T[]) {
     this.array = array;
-    const length = this.length = array.length;
-    for (let i = ((length / 2) | 0) - 1; i >= 0;) {
+    const length = (this.length = array.length);
+    for (let i = ((length / 2) | 0) - 1; i >= 0; ) {
       this.down(i--, length);
     }
   }
 
   /**
    * Pushes a new element onto the heap
-   * @param value 
+   * @param value
    */
   public push(value: T) {
     const i = this.length++;
@@ -61,18 +61,18 @@ class Heap<T> {
 
     // if we are empty or about to be empty...
     if (length <= 1) {
-        if (length === 0) return;
-        const element = this.array[0];
-        // finally, clear the array
-        this.clear();
-        return element;
+      if (length === 0) return;
+      const element = this.array[0];
+      // finally, clear the array
+      this.clear();
+      return element;
     }
     // otherwise...
-  
+
     // remember the best element
     const array = this.array;
     const best = array[0];
-    const newLength = this.length = length - 1;
+    const newLength = (this.length = length - 1);
     // put our last element at the start of the heap
     array[0] = array[newLength];
     // then sort from the new first element to the second to last element
@@ -86,7 +86,7 @@ class Heap<T> {
    * `replace(0, newValue);`.
    * If you call this on an empty heap (`this.size() === 0`) you may find
    * unexpected behavior.
-   * @param newValue 
+   * @param newValue
    */
   public replaceBest(newValue: T) {
     this.array[0] = newValue;
@@ -94,11 +94,11 @@ class Heap<T> {
   }
 
   /**
-   * Replaces the element at position `i` with the `newValue`. If the element at 
+   * Replaces the element at position `i` with the `newValue`. If the element at
    * position `i` doesn't exist, or if `i < 0` or `i > this.size()` you may
    * find unexpected behavior.
-   * @param i 
-   * @param newValue 
+   * @param i
+   * @param newValue
    */
   public replace(i: number, newValue: T) {
     this.array[i] = newValue;
@@ -131,9 +131,9 @@ class Heap<T> {
     const array = this.array;
     const length = this.length;
     if (length === 1) {
-        // finally, clear the array
-        this.length = array.length = 0;
-        return false;
+      // finally, clear the array
+      this.length = array.length = 0;
+      return false;
     }
 
     const newLength = --this.length;
@@ -146,11 +146,11 @@ class Heap<T> {
 
   /**
    * Re-establishes the heap ordering after the element at index `i` changes
-   * its value. Changing the value of the element at index `i` and then 
+   * its value. Changing the value of the element at index `i` and then
    * calling fix is equivalent to, but faster than, calling
    * `remove(i); push(newValue);`.
    * The complexity is O(log n) where n = this.size().
-   * @param i 
+   * @param i
    */
   public fix(i: number) {
     if (!this.down(i, this.length)) {
@@ -160,7 +160,7 @@ class Heap<T> {
 
   private up(j: number) {
     const less = this.less.bind(null, this.array);
-    for (let i: number; ((i = (j - 1) / 2 | 0), i !== j && less(j, i)); j = i) {
+    for (let i: number; (i = ((j - 1) / 2) | 0), i !== j && less(j, i); j = i) {
       this.swap(i, j);
     }
   }
@@ -168,7 +168,7 @@ class Heap<T> {
   private down(i0: number, l: number): boolean {
     const less = this.less.bind(null, this.array);
     let i = i0;
-    for (let j1: number; (j1 = 2 * i + 1) < l;) {
+    for (let j1: number; (j1 = 2 * i + 1) < l; ) {
       let j = j1; // left child
       let j2 = j1 + 1;
       if (j2 < l && less(j2, j1)) {
@@ -196,12 +196,12 @@ class Heap<T> {
   }
 
   /**
-   * Heap initialization helper for when you only know of a single item for the 
+   * Heap initialization helper for when you only know of a single item for the
    * heap.
-   * @param item 
-   * @param less 
+   * @param item
+   * @param less
    */
-  public static from<T>(item: T, less: Comparator<T>){
+  public static from<T>(item: T, less: Comparator<T>) {
     const heap = new Heap<T>(less);
     heap.array = [item];
     heap.length = 1;

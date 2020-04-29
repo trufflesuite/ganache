@@ -1,18 +1,18 @@
-import { Quantity, Data } from "../../types/json-rpc";
-import ProviderOptions, { getDefault as getDefaultProviderOptions } from "../../options/provider-options";
+import {Quantity, Data} from "../../types/json-rpc";
+import ProviderOptions, {getDefault as getDefaultProviderOptions} from "../../options/provider-options";
 import Emittery from "emittery";
-import Ledger from "../../ledgers/ethereum/ledger"
-import { publicToAddress, privateToAddress } from "ethereumjs-util";
+import Ledger from "../../ledgers/ethereum/ledger";
+import {publicToAddress, privateToAddress} from "ethereumjs-util";
 import Account from "../../types/account";
-import { mnemonicToSeedSync } from "bip39";
+import {mnemonicToSeedSync} from "bip39";
 import Address from "../../types/address";
 import JsonRpc from "../../servers/utils/jsonrpc";
 import EthereumOptions from "../../ledgers/ethereum/options";
 import cloneDeep from "lodash.clonedeep";
 import secp256k1 from "secp256k1";
 import HDKey from "hdkey";
-import { ILedger } from "../../interfaces/base-ledger";
-import { IProvider } from "../../interfaces/IProvider";
+import {ILedger} from "../../interfaces/base-ledger";
+import {IProvider} from "../../interfaces/IProvider";
 
 const WEI = 1000000000000000000n;
 
@@ -21,26 +21,33 @@ interface Callback {
 }
 
 type KnownKeys<T> = {
-  [K in keyof T]: string extends K ? never : number extends K ? never : K
-} extends { [_ in keyof T]: infer U } ? U : never;
+  [K in keyof T]: string extends K ? never : number extends K ? never : K;
+} extends {[_ in keyof T]: infer U}
+  ? U
+  : never;
 
-type RequestType<T extends ILedger = ILedger> = (eventDetails: {ledger: T, method: KnownKeys<T>, params?: Parameters<T[keyof T]>}) => ReturnType<T[keyof T]>;
+type RequestType<T extends ILedger = ILedger> = (eventDetails: {
+  ledger: T;
+  method: KnownKeys<T>;
+  params?: Parameters<T[keyof T]>;
+}) => ReturnType<T[keyof T]>;
 
-export default class EthereumProvider extends Emittery.Typed<{request: RequestType<Ledger>}, "ready" | "close"> implements IProvider<Ledger>  {
+export default class EthereumProvider extends Emittery.Typed<{request: RequestType<Ledger>}, "ready" | "close">
+  implements IProvider<Ledger> {
   #options: ProviderOptions;
   #ledger: Ledger;
   #wallet: HDKey;
 
   constructor(providerOptions?: ProviderOptions) {
     super();
-    const _providerOptions = this.#options = getDefaultProviderOptions(providerOptions);
+    const _providerOptions = (this.#options = getDefaultProviderOptions(providerOptions));
 
     this.#wallet = HDKey.fromMasterSeed(mnemonicToSeedSync(_providerOptions.mnemonic, null));
 
     const accounts = this.#initializeAccounts();
     // ethereum options' `accounts` are different than the provider options'
     // `accounts`, fix that up here:
-    const ethereumOptions = _providerOptions as any as EthereumOptions;
+    const ethereumOptions = (_providerOptions as any) as EthereumOptions;
     ethereumOptions.accounts = accounts;
     const emitter = this as any;
     this.#ledger = new Ledger(ethereumOptions, emitter);
@@ -75,7 +82,7 @@ export default class EthereumProvider extends Emittery.Typed<{request: RequestTy
         accounts[i] = EthereumProvider.createAccount(Quantity.from(account.balance), privateKey, address);
       }
     } else {
-      const numerOfAccounts =_providerOptions.total_accounts;
+      const numerOfAccounts = _providerOptions.total_accounts;
       if (numerOfAccounts) {
         accounts = Array(numerOfAccounts);
         const hdPath = this.#options.hdPath;
@@ -93,20 +100,20 @@ export default class EthereumProvider extends Emittery.Typed<{request: RequestTy
       }
     }
     return accounts;
-  }
-  
+  };
+
   // TODO: this should probable be moved as well (see `initializeAccounts` above)
   static createAccount(balance: Quantity, privateKey: Data, address?: Address) {
     address = address || Address.from(privateToAddress(privateKey.toBuffer()));
-  
+
     const account = new Account(address);
     account.privateKey = privateKey;
     account.balance = balance;
-  
+
     return account;
   }
 
-  public getOptions(){
+  public getOptions() {
     return cloneDeep(this.#options);
   }
 
@@ -127,25 +134,24 @@ export default class EthereumProvider extends Emittery.Typed<{request: RequestTy
       method = payload.method as KnownKeys<Ledger>;
       params = payload.params;
 
-      this
-        .emit("request", {ledger: this.#ledger, method, params})
-        .then(([result]) => void process.nextTick(callback, null, JsonRpc.Response(
-            payload.id, 
-            JSON.parse(JSON.stringify(result))
-          ))
+      this.emit("request", {ledger: this.#ledger, method, params})
+        .then(
+          ([result]) =>
+            void process.nextTick(callback, null, JsonRpc.Response(payload.id, JSON.parse(JSON.stringify(result))))
         )
-        .catch((err) => void process.nextTick(callback, err));
-    }
-    else {
+        .catch(err => void process.nextTick(callback, err));
+    } else {
       throw new Error(
         "No callback provided to provider's send function. As of web3 1.0, provider.send " +
-        "is no longer synchronous and must be passed a callback as its final argument."
+          "is no longer synchronous and must be passed a callback as its final argument."
       );
     }
 
     const _options = this.#options;
     if (_options.verbose) {
-      _options.logger.log(`   >  ${method}: ${params == null ? params : JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`);
+      _options.logger.log(
+        `   >  ${method}: ${params == null ? params : JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`
+      );
     }
 
     return response;
@@ -171,5 +177,5 @@ export default class EthereumProvider extends Emittery.Typed<{request: RequestTy
   public close = async () => {
     await this.emit("close");
     return;
-  }
+  };
 }

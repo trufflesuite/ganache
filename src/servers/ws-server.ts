@@ -1,8 +1,8 @@
-import uWS, { TemplatedApp, WebSocket } from "uWebSockets.js";
+import uWS, {TemplatedApp, WebSocket} from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import JsonRpc from "./utils/jsonrpc";
-import { IProvider } from "../interfaces/IProvider";
-import { ILedger } from "../interfaces/base-ledger";
+import {IProvider} from "../interfaces/IProvider";
+import {ILedger} from "../interfaces/base-ledger";
 
 export default class WebsocketServer<T extends ILedger> {
   #connections = new Set<WebSocket>();
@@ -31,9 +31,9 @@ export default class WebsocketServer<T extends ILedger> {
         // Don't bother trying to send to it now.
         if (!ws.closed) {
           const json = {
-            "id": payload.id,
-            "jsonrpc": "2.0",
-            "result": result
+            id: payload.id,
+            jsonrpc: "2.0",
+            result: result
           };
           ws.send(JSON.stringify(json), isBinary, true);
         }
@@ -52,4 +52,4 @@ export default class WebsocketServer<T extends ILedger> {
   close() {
     this.#connections.forEach(ws => ws.end(WebSocketCloseCodes.CLOSE_GOING_AWAY, "Server closed by client"));
   }
-};
+}

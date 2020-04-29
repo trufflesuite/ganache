@@ -5,5 +5,5 @@ import Server from "./src/server";
 
 export default {
   server: (options?: ServerOptions) => new Server(options),
-  provider: (options?: ProviderOptions) => Provider.initialize(options),
+  provider: (options?: ProviderOptions) => Provider.initialize(options)
 };

@@ -1,16 +1,16 @@
-import { BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType } from ".";
+import {BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType} from ".";
 const toBigIntBE = require("bigint-buffer").toBigIntBE;
 
 class Quantity extends BaseJsonRpcType {
   _nullable: boolean;
   public static from(value: number | bigint | string | Buffer, nullable = false) {
-    const q =  new _Quantity(value, nullable);
+    const q = new _Quantity(value, nullable);
     q._nullable = nullable;
     return q;
   }
   public toString(): string {
     if (Buffer.isBuffer(this.value)) {
-      let val =  this.value.toString("hex").replace(/^(?:0+(.+?))?$/, "$1");;
+      let val = this.value.toString("hex").replace(/^(?:0+(.+?))?$/, "$1");
 
       if (val === "") {
         if (this._nullable) {
@@ -35,7 +35,6 @@ class Quantity extends BaseJsonRpcType {
       // it because it is possible values returned from the VM could be negative
       // and stored in a buffer.
 
-
       const length = value.byteLength;
       if (length === 0) {
         return null;
@@ -44,7 +43,7 @@ class Quantity extends BaseJsonRpcType {
       if (length <= 6) {
         return BigInt(value.readUIntBE(0, length));
       }
-      
+
       let view: DataView;
       // Buffers that are 7 bytes need to be padded to 8 bytes
       if (length === 7) {
@@ -70,21 +69,21 @@ class Quantity extends BaseJsonRpcType {
     return this.toBigInt();
   }
 }
-type $<T extends number|bigint|string|Buffer = number|bigint|string|Buffer> = {
-  _nullable: boolean
-  new(value: T, nullable?: boolean): _Quantity & JsonRpcType<T>,
-  from(value: T, nullable?: boolean): _Quantity & JsonRpcType<T>,
-  toBigInt(): bigint,
-  toBuffer(): Buffer
-}
+type $<T extends number | bigint | string | Buffer = number | bigint | string | Buffer> = {
+  _nullable: boolean;
+  new (value: T, nullable?: boolean): _Quantity & JsonRpcType<T>;
+  from(value: T, nullable?: boolean): _Quantity & JsonRpcType<T>;
+  toBigInt(): bigint;
+  toBuffer(): Buffer;
+};
 const _Quantity = Quantity as $;
 
 interface _Quantity<T = number | bigint | string | Buffer> {
-  _nullable: boolean
-  constructor(value: T, nullable?: boolean): _Quantity
-  from(): _Quantity,
-  toBigInt(): bigint,
-  toBuffer(): Buffer
+  _nullable: boolean;
+  constructor(value: T, nullable?: boolean): _Quantity;
+  from(): _Quantity;
+  toBigInt(): bigint;
+  toBuffer(): Buffer;
 }
 
 export default _Quantity;

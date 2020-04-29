@@ -1,9 +1,11 @@
 import bigintToBuffer from "../../utils/bigint-to-buffer";
 
-export type IndexableJsonRpcType<T extends number | bigint | string | Buffer = number | bigint | string | Buffer> = string & {
-  new(value: T): IndexableJsonRpcType<T>,
-  toString(): string
-}
+export type IndexableJsonRpcType<
+  T extends number | bigint | string | Buffer = number | bigint | string | Buffer
+> = string & {
+  new (value: T): IndexableJsonRpcType<T>;
+  toString(): string;
+};
 
 const EMPTY_BUFFER = Buffer.allocUnsafe(0);
 
@@ -17,7 +19,7 @@ const inspect = Symbol.for("nodejs.util.inspect.custom");
 export class BaseJsonRpcType<T extends number | bigint | string | Buffer = number | bigint | string | Buffer> {
   protected value: T;
   // used to make console.log debugging a little easier
-  private [inspect](_depth: number, _options: any):T {
+  private [inspect](_depth: number, _options: any): T {
     return this.value;
   }
   constructor(value: T) {
@@ -43,25 +45,25 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
           toBuffers.set(this, () => {
             return bigintToBuffer(value as bigint);
             //onst value = (2n**64n);
-            var max = (2n**64n)-1n;
+            var max = 2n ** 64n - 1n;
 
             var val = value as bigint;
             var size = 4;
             var buff = new ArrayBuffer(size * 8);
             var view = new DataView(buff);
-            if(val > max) {
-                var long = val;
-                var index = size - 1;
-                while (long > 0) {
-                  var byte = long & max;
-                  view.setBigUint64(index * 8, byte);
-                  long = (long - byte) / max;
-                  index--;
-                }
+            if (val > max) {
+              var long = val;
+              var index = size - 1;
+              while (long > 0) {
+                var byte = long & max;
+                view.setBigUint64(index * 8, byte);
+                long = (long - byte) / max;
+                index--;
+              }
             } else {
               view.setBigUint64(0, val);
             }
-            return Buffer.from(buff.slice((index+1) * 8));
+            return Buffer.from(buff.slice((index + 1) * 8));
           });
           break;
         case "string": {
@@ -81,7 +83,7 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
               const buf = this.toBuffer();
               return buf.toString("hex");
             });
-            // treat string without `0x` as just plain text. This is probably 
+            // treat string without `0x` as just plain text. This is probably
             // wrong. TODO: look into this.
             toBuffers.set(this, () => Buffer.from(value as string));
           }
@@ -124,9 +126,8 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
     return this.value;
   }
   toJSON(): string {
-    return this.toString()
+    return this.toString();
   }
-
 }
 
 export type JsonRpcType<T extends number | bigint | string | Buffer> = BaseJsonRpcType<T> & IndexableJsonRpcType<T>;

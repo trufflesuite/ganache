@@ -20,7 +20,7 @@ export default class RequestCoordinator {
 
   /**
    * Promise-based FIFO queue.
-   * @param limit The number of requests that can be processed at a time. 
+   * @param limit The number of requests that can be processed at a time.
    * Default value is is no limit (`0`).
    */
   constructor(limit: number) {
@@ -34,7 +34,7 @@ export default class RequestCoordinator {
    */
   public pause = () => {
     this.#paused = true;
-  }
+  };
 
   /**
    * Resume processing.
@@ -42,7 +42,7 @@ export default class RequestCoordinator {
   public resume = () => {
     this.#paused = false;
     this.#process();
-  }
+  };
 
   #process = () => {
     // if we aren't paused and the number of things we're processing is under
@@ -55,19 +55,21 @@ export default class RequestCoordinator {
         this.#process();
       });
     }
-  }
+  };
 
   /**
    * Insert a new function into the queue.
    */
   public queue = (fn: (...args: any[]) => Promise<any>, ...args: any[]): Promise<any> => {
-    const promise = new Promise((resolve: (value?: {} | PromiseLike<{}>) => void, reject: (value?: {} | PromiseLike<{}>) => void) => {
-      const executor = () => {
-        return fn.apply(null, args).then(resolve).catch(reject);
+    const promise = new Promise(
+      (resolve: (value?: {} | PromiseLike<{}>) => void, reject: (value?: {} | PromiseLike<{}>) => void) => {
+        const executor = () => {
+          return fn.apply(null, args).then(resolve).catch(reject);
+        };
+        this.pending.push(executor);
+        this.#process();
       }
-      this.pending.push(executor);
-      this.#process();
-    });
+    );
     return promise;
-  }
+  };
 }

@@ -1,7 +1,6 @@
 import {ILedger} from "../interfaces/base-ledger";
 import Emittery from "emittery";
 
-
 export default class Executor extends Emittery {
   /**
    * The Executor handles execution of methods on the given Ledger
@@ -15,7 +14,11 @@ export default class Executor extends Emittery {
    * @param methodName The name of the JSON-RPC method to execute.
    * @param params The params to pass to the JSON-RPC method.
    */
-  public execute = async <T extends ILedger, M = keyof T>(ledger: T, methodName: M, params: Parameters<T[keyof T]>): Promise<ReturnType<T[keyof T]>> => {
+  public execute = async <T extends ILedger, M = keyof T>(
+    ledger: T,
+    methodName: M,
+    params: Parameters<T[keyof T]>
+  ): Promise<ReturnType<T[keyof T]>> => {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
@@ -31,5 +34,5 @@ export default class Executor extends Emittery {
     }
 
     throw new Error(`Invalid or unsupported method: ${methodName}`);
-  }
+  };
 }

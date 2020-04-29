@@ -1,12 +1,12 @@
 //#region Imports
 import BaseLedger, {Emitter} from "../../interfaces/base-ledger";
 import EthereumOptions from "./options";
-import { Data, Quantity, IndexableData } from "../../types/json-rpc";
+import {Data, Quantity, IndexableData} from "../../types/json-rpc";
 import Blockchain from "./blockchain";
 import Tag from "../../types/tags";
-import Address, { IndexableAddress } from "../../types/address";
+import Address, {IndexableAddress} from "../../types/address";
 import Transaction from "../../types/transaction";
-import { Block } from "./components/block-manager";
+import {Block} from "./components/block-manager";
 import Wallet from "./wallet";
 import Account from "ethereumjs-account";
 import {decode as rlpDecode} from "rlp";
@@ -19,7 +19,7 @@ import {name, version} from "../../../package.json";
 //#region Constants
 const BUFFER_EMPTY = Buffer.allocUnsafe(0);
 const BUFFER_ZERO = Buffer.from([0]);
-const CLIENT_VERSION = `EthereumJS ${name}/v${version}/ethereum-js`
+const CLIENT_VERSION = `EthereumJS ${name}/v${version}/ethereum-js`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
 //#endregion
@@ -47,11 +47,11 @@ export default class Ledger extends BaseLedger {
   constructor(options: EthereumOptions, emitter: Emitter) {
     super();
 
-    const opts = this[_options] = options;
+    const opts = (this[_options] = options);
 
     this[_wallet] = new Wallet(opts);
 
-    const blockchain = this[_blockchain] = new Blockchain(options);
+    const blockchain = (this[_blockchain] = new Blockchain(options));
     blockchain.on("start", () => emitter.emit("ready"));
     emitter.on("close", async () => await blockchain.stop());
   }
@@ -63,7 +63,7 @@ export default class Ledger extends BaseLedger {
    */
   async web3_clientVersion(): Promise<string> {
     return CLIENT_VERSION;
-  };
+  }
 
   /**
    * Returns Keccak-256 (not the standardized SHA3-256) of the given data.
@@ -72,7 +72,7 @@ export default class Ledger extends BaseLedger {
    */
   async web3_sha3(string: string): Promise<Data> {
     return Data.from(createKeccakHash("keccak256").update(string).digest());
-  };
+  }
   //#endregion
 
   //#region net
@@ -113,7 +113,7 @@ export default class Ledger extends BaseLedger {
   /**
    * Returns an object with data about the sync status or false.
    * @returns An object with sync status data or false, when not syncing:
-   *   startingBlock: {bigint} - The block at which the import started (will 
+   *   startingBlock: {bigint} - The block at which the import started (will
    *    only be reset, after the sync reached his head)
    *   currentBlock: {bigint} - The current block, same as eth_blockNumber
    *   highestBlock: {bigint} - The estimated highest block
@@ -140,7 +140,7 @@ export default class Ledger extends BaseLedger {
     const block = await this[_blockchain].blocks.get(number);
     return block.toJSON(transactions);
   }
-  
+
   /**
    * Returns information about a block by block hash.
    * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in th e default block parameter.
@@ -148,8 +148,8 @@ export default class Ledger extends BaseLedger {
    * @returns Block
    */
   async eth_getBlockByHash(hash: string | Buffer, transactions = false) {
-     const block = await this[_blockchain].blocks.getByHash(hash);
-     return block.toJSON(transactions);
+    const block = await this[_blockchain].blocks.getByHash(hash);
+    return block.toJSON(transactions);
   }
 
   /**
@@ -161,7 +161,7 @@ export default class Ledger extends BaseLedger {
     const data = rlpDecode(rawBlock);
     return (data[1] as any).length;
   }
-  
+
   /**
    * Returns the number of transactions in a block from a block matching the given block hash.
    * @param hash DATA, 32 Bytes - hash of a block.
@@ -265,10 +265,7 @@ export default class Ledger extends BaseLedger {
    * @param blockNumber integer block number, or the string "latest", "earliest"
    *  or "pending", see the default block parameter
    */
-  async eth_getBalance(
-      address: IndexableAddress,
-      blockNumber: Buffer | Tag = Tag.LATEST
-    ): Promise<Quantity> {
+  async eth_getBalance(address: IndexableAddress, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Quantity> {
     const chain = this[_blockchain];
     const account = await chain.accounts.get(Address.from(address), blockNumber);
     return account.balance;
@@ -289,16 +286,21 @@ export default class Ledger extends BaseLedger {
     const blockProm = this[_blockchain].blocks.getRaw(blockNumber);
 
     const trie = this[_blockchain].trie.copy();
-    const getFromTrie = (address: Buffer): Promise<Buffer> => new Promise((resolve, reject) => {
-      trie.get(address, (err, data) => {
-        if(err) return reject(err);
-        resolve(data);
+    const getFromTrie = (address: Buffer): Promise<Buffer> =>
+      new Promise((resolve, reject) => {
+        trie.get(address, (err, data) => {
+          if (err) return reject(err);
+          resolve(data);
+        });
       });
-    });
     const block = await blockProm;
     if (!block) return Data.from("0x");
 
-    const blockData = rlpDecode(block) as any as [[Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */, Buffer[], Buffer[]];
+    const blockData = (rlpDecode(block) as any) as [
+      [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
+      Buffer[],
+      Buffer[]
+    ];
     const headerData = blockData[0];
     const blockStateRoot = headerData[3];
     trie.root = blockStateRoot;
@@ -322,14 +324,19 @@ export default class Ledger extends BaseLedger {
 
     const addressData = await addressDataPromise;
     // An address's stateRoot is stored in the 3rd rlp entry
-    trie.root = (rlpDecode(addressData) as any as [Buffer /*nonce*/, Buffer /*amount*/, Buffer /*stateRoot*/, Buffer /*codeHash*/])[2];
+    trie.root = ((rlpDecode(addressData) as any) as [
+      Buffer /*nonce*/,
+      Buffer /*amount*/,
+      Buffer /*stateRoot*/,
+      Buffer /*codeHash*/
+    ])[2];
     const value = await getFromTrie(paddedPosBuff);
     return Data.from(value);
   }
 
   /**
    * Returns the information about a transaction requested by transaction hash.
-   * 
+   *
    * @param transactionHash 32 Bytes - hash of a transaction
    */
   async eth_getTransactionByHash(transactionHash: string): Promise<Transaction> {
@@ -350,7 +357,7 @@ export default class Ledger extends BaseLedger {
     const blockchain = this[_blockchain];
     const transactionPromise = blockchain.transactions.get(transactionHash);
     const receiptPromise = blockchain.transactionReceipts.get(transactionHash);
-    const blockPromise = transactionPromise.then(t => t ? blockchain.blocks.get(t._blockNum) : null);
+    const blockPromise = transactionPromise.then(t => (t ? blockchain.blocks.get(t._blockNum) : null));
     const [transaction, receipt, block] = await Promise.all([transactionPromise, receiptPromise, blockPromise]);
     if (receipt && block && transaction) {
       return receipt.toJSON(block, transaction);
@@ -361,7 +368,7 @@ export default class Ledger extends BaseLedger {
 
   /**
    * Creates new message call transaction or a contract creation, if the data field contains code.
-   * @param transaction 
+   * @param transaction
    * @returns The transaction hash
    */
   async eth_sendTransaction(transaction: any): Promise<Data> {
@@ -428,7 +435,7 @@ export default class Ledger extends BaseLedger {
 
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
-   * @param transaction 
+   * @param transaction
    * @returns The transaction hash
    */
   async eth_sendRawTransaction(transaction: any): Promise<Data> {

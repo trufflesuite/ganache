@@ -1,13 +1,13 @@
 import Executor from "./utils/executor";
 import RequestCoordinator from "./utils/request-coordinator";
-import ProviderOptions, { Flavors } from "./options/provider-options";
+import ProviderOptions, {Flavors} from "./options/provider-options";
 import Emittery from "emittery";
 
 export default class Provider extends Emittery {
   // TODO: set missing defaults automatically
   public static initialize(providerOptions: ProviderOptions = {flavor: "ethereum", asyncRequestProcessing: true}) {
-    const provider = new Flavors[providerOptions.flavor || "ethereum"](providerOptions);;
-    
+    const provider = new Flavors[providerOptions.flavor || "ethereum"](providerOptions);
+
     // Set up our request coordinator to either use FIFO or or async request processing.
     //   The RequestCoordinator _can_ be used to coordinate the number of requests being processed, but we don't use it
     //   for that (yet), instead of "all" (0) or just 1 as we are doing here:

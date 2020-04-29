@@ -1,13 +1,13 @@
-import Errors from "./errors"
-import { Data } from "./json-rpc/json-rpc-data";
-import { Quantity } from "./json-rpc";
+import Errors from "./errors";
+import {Data} from "./json-rpc/json-rpc-data";
+import {Quantity} from "./json-rpc";
 import params from "./params";
-import { Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction } from "ethereumjs-tx";
+import {Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction} from "ethereumjs-tx";
 import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
 import {decode as rlpDecode} from "rlp";
-import { RunTxResult } from "ethereumjs-vm/dist/runTx";
-import { Block } from "../ledgers/ethereum/components/block-manager";
+import {RunTxResult} from "ethereumjs-vm/dist/runTx";
+import {Block} from "../ledgers/ethereum/components/block-manager";
 import TransactionReceipt from "./transaction-receipt";
 
 const MAX_UINT64 = (1n << 64n) - 1n;
@@ -33,7 +33,7 @@ function configZeroableField(tx: any, fieldName: string, fieldLength = 32) {
   const descriptor = Object.getOwnPropertyDescriptor(tx, fieldName);
   // eslint-disable-next-line accessor-pairs
   Object.defineProperty(tx, fieldName, {
-    set: (v) => {
+    set: v => {
       descriptor.set.call(tx, v);
       v = ethUtil.toBuffer(v);
       assert(fieldLength >= v.length, `The field ${fieldName} must not have more ${fieldLength} bytes`);
@@ -63,7 +63,7 @@ function fixProps(tx: any, data: any) {
   // and `null`/`undefined`.
   tx._originals = [];
   const fieldNames = ["nonce", "gasPrice", "gasLimit", "value"];
-  fieldNames.forEach((fieldName) => configZeroableField(tx, fieldName, 32));
+  fieldNames.forEach(fieldName => configZeroableField(tx, fieldName, 32));
 
   // Ethereumjs-tx doesn't set the _chainId value whenever the v value is set,
   // which causes transaction signing to fail on transactions that include a
@@ -72,7 +72,7 @@ function fixProps(tx: any, data: any) {
   const vDescriptors = Object.getOwnPropertyDescriptor(tx, "v");
   // eslint-disable-next-line accessor-pairs
   Object.defineProperty(tx, "v", {
-    set: (v) => {
+    set: v => {
       vDescriptors.set.call(tx, v);
       // calculate chainId from signature
       const sigV = ethUtil.bufferToInt(tx.v);
@@ -93,7 +93,7 @@ function fixProps(tx: any, data: any) {
       enumerable: true,
       configurable: true,
       get: tx.getSenderAddress.bind(tx),
-      set: (val) => {
+      set: val => {
         if (val) {
           tx._from = ethUtil.toBuffer(val);
         } else {
@@ -128,7 +128,7 @@ function initData(tx: any, data: any) {
       // add in our hacked-in properties
       // which is the index in the block the transaciton
       // was mined in
-      if (data.length === tx._fields.length + 3){
+      if (data.length === tx._fields.length + 3) {
         tx._index = data.pop();
         tx._blockNum = data.pop();
         tx._blockHash = data.pop();
@@ -210,9 +210,10 @@ class Transaction extends (EthereumJsTransaction as any) {
   }
 
   cost(): bigint {
-    return Quantity.from(this.gasPrice).toBigInt()
-      * Quantity.from(this.gasLimit).toBigInt()
-      + Quantity.from(this.value).toBigInt();
+    return (
+      Quantity.from(this.gasPrice).toBigInt() * Quantity.from(this.gasLimit).toBigInt() +
+      Quantity.from(this.value).toBigInt()
+    );
   }
 
   /**
@@ -377,21 +378,15 @@ class Transaction extends (EthereumJsTransaction as any) {
     const logsBloom = result.bloom.bitvector;
     const logs = vmResult.logs || [];
 
-    this._receipt = TransactionReceipt.fromValues(
-      status,
-      gasUsed,
-      logsBloom,
-      logs,
-      result.createdAddress
-    );
+    this._receipt = TransactionReceipt.fromValues(status, gasUsed, logsBloom, logs, result.createdAddress);
 
     // returns RLP encoded data for use in a transaction trie
     return this._receipt.serialize(false);
-  }
+  };
 
   getReceipt = () => {
     return this._receipt;
-  }
-};
+  };
+}
 
 export default Transaction;

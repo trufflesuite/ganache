@@ -1,12 +1,12 @@
-import { TemplatedApp, HttpResponse, HttpRequest, RecognizedString } from "uWebSockets.js";
+import {TemplatedApp, HttpResponse, HttpRequest, RecognizedString} from "uWebSockets.js";
 import ContentTypes from "./utils/content-types";
 import Provider from "../provider";
-import JsonRpc from "./utils/jsonrpc"
+import JsonRpc from "./utils/jsonrpc";
 import HttpResponseCodes from "./utils/http-response-codes";
-import { IProvider } from "../interfaces/IProvider";
-import { ILedger } from "../interfaces/base-ledger";
+import {IProvider} from "../interfaces/IProvider";
+import {ILedger} from "../interfaces/base-ledger";
 
-const noop = () => { };
+const noop = () => {};
 
 /**
  * uWS doesn't let us use the request after the request method has completed.
@@ -14,8 +14,8 @@ const noop = () => { };
  * know the status code until the provider returns asynchronously.
  * So this does request-related work immediately and returns a function to do the
  * rest of the work later.
- * @param method 
- * @param request 
+ * @param method
+ * @param request
  */
 function prepareCORSResponseHeaders(method: string, request: HttpRequest) {
   // https://fetch.spec.whatwg.org/#http-requests
@@ -60,12 +60,17 @@ function prepareCORSResponseHeaders(method: string, request: HttpRequest) {
       /// for valid preflight requests.
       response.writeHeader("Access-Control-Allow-Origin", origin);
     }
-  }
+  };
 }
 
-
-function sendResponse(response: HttpResponse, statusCode: HttpResponseCodes, contentType?: RecognizedString, data?: RecognizedString, writeHeaders: (response: HttpResponse) => void = noop): void {
-  response.cork(()=>{
+function sendResponse(
+  response: HttpResponse,
+  statusCode: HttpResponseCodes,
+  contentType?: RecognizedString,
+  data?: RecognizedString,
+  writeHeaders: (response: HttpResponse) => void = noop
+): void {
+  response.cork(() => {
     response.writeStatus(statusCode);
     writeHeaders(response);
     if (contentType) {
@@ -81,17 +86,15 @@ export default class HttpServer {
     this.#provider = provider;
 
     // JSON-RPC routes...
-    app
-      .post("/", this.#handlePost)
-      .options("/", this.#handleOptions);
+    app.post("/", this.#handlePost).options("/", this.#handleOptions);
 
     // because Easter Eggs are fun...
-    app.get("/418", (response) => {
+    app.get("/418", response => {
       sendResponse(response, HttpResponseCodes.IM_A_TEAPOT, ContentTypes.PLAIN, "418 I'm a teapot");
     });
 
     // fallback routes...
-    app.any("/*", (response ,request) => {
+    app.any("/*", (response, request) => {
       const connectionHeader = request.getHeader("connection");
       if (connectionHeader && connectionHeader.toLowerCase() === "upgrade") {
         // if we got here it means the websocket server wasn't enabled but
@@ -122,10 +125,16 @@ export default class HttpServer {
           const message = (buffer ? Buffer.concat([buffer, chunk]) : chunk) as any;
           payload = JsonRpc.Request(JSON.parse(message));
         } catch (e) {
-          sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request: " + e.message, writeHeaders);
+          sendResponse(
+            response,
+            HttpResponseCodes.BAD_REQUEST,
+            ContentTypes.PLAIN,
+            "400 Bad Request: " + e.message,
+            writeHeaders
+          );
           return;
         }
-        
+
         const id = payload.id;
         const method = payload.method;
         switch (method) {
@@ -133,12 +142,18 @@ export default class HttpServer {
           case "eth_subscribe":
           case "eth_unsubscribe":
             const error = JsonRpc.Error(id, "-32000", "notifications not supported");
-            sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.JSON, JSON.stringify(error), writeHeaders);
+            sendResponse(
+              response,
+              HttpResponseCodes.BAD_REQUEST,
+              ContentTypes.JSON,
+              JSON.stringify(error),
+              writeHeaders
+            );
             break;
           default:
-            // `await`ing the `provider.send` instead of using `then` causes uWS 
+            // `await`ing the `provider.send` instead of using `then` causes uWS
             // to delay cleaning up the `request` object, which we don't neccessarily want to delay.
-            this.#provider.request(method, payload.params).then((result) => {
+            this.#provider.request(method, payload.params).then(result => {
               if (aborted) {
                 // if the request has been aborted don't try sending (it'll
                 // cause an `Unhandled promise rejection` if we try)
@@ -157,15 +172,15 @@ export default class HttpServer {
         }
       }
     });
-  }
+  };
 
   #handleOptions = (response: HttpResponse, request: HttpRequest) => {
     // handle CORS preflight requests...
     const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
     // OPTIONS responses don't have a body, so respond with `204 No Content`...
     sendResponse(response, HttpResponseCodes.NO_CONTENT, null, "", writeHeaders);
-  }
+  };
   public close() {
     // currently a no op.
   }
-};
+}

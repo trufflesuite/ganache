@@ -1,13 +1,13 @@
-import { AbstractLevelDOWN } from 'abstract-leveldown';
+import {AbstractLevelDOWN} from "abstract-leveldown";
 import Emittery from "emittery";
-import { dir, setGracefulCleanup } from "tmp-promise";
+import {dir, setGracefulCleanup} from "tmp-promise";
 import levelup from "levelup";
 import Blockchain from "./blockchain";
 const leveldown = require("leveldown");
 const sub = require("subleveldown");
 const encode = require("encoding-down");
 
-type DatabaseOptions = {db?: string | object, db_path?: string};
+type DatabaseOptions = {db?: string | object; db_path?: string};
 
 setGracefulCleanup();
 const tmpOptions = {prefix: "ganache-core_", unsafeCleanup: true};
@@ -35,7 +35,7 @@ export default class Database extends Emittery {
    * event.
    * @param options Supports one of two options: `db` (a leveldown compliant
    * store instance) or `db_path` (the path to store/read the db instance)
-   * @param blockchain 
+   * @param blockchain
    */
   constructor(options: DatabaseOptions, blockchain: Blockchain) {
     super();
@@ -44,9 +44,9 @@ export default class Database extends Emittery {
     this.blockchain = blockchain;
     this.#initialize();
   }
-  
+
   #initialize = async () => {
-    const levelupOptions: any = { valueEncoding: "binary" };
+    const levelupOptions: any = {valueEncoding: "binary"};
     const store = this.#options.db;
     let db;
     if (store) {
@@ -79,17 +79,17 @@ export default class Database extends Emittery {
 
     // don't continue if we closed while we were waiting for it to open
     if (this.#closed) return this.#cleanup();
-    
+
     this.blocks = sub(db, "b", levelupOptions);
     this.transactions = sub(db, "t", levelupOptions);
     this.transactionReceipts = sub(db, "r", levelupOptions);
 
     return this.emit("ready");
-  }
+  };
 
   /**
    * Call `batch` to batch `put` and `del` operations within the same
-   * event loop tick of the provided function. All db operations within the 
+   * event loop tick of the provided function. All db operations within the
    * batch _must_ be executed synchronously.
    * @param fn {Function} Within this function's event loop tick, all `put` and
    * `del` database operations are applied in a single atomic operation. This
@@ -140,18 +140,12 @@ export default class Database extends Emittery {
   /**
    * Cleans up the database connections and our tmp directory.
    */
-  #cleanup = async() => {
+  #cleanup = async () => {
     const db = this.db;
     if (db) {
       await db.close();
-      await Promise.all(
-        [
-          this.blocks.close(),
-          this.transactions.close(),
-          this.trie.close()
-        ]
-      );
+      await Promise.all([this.blocks.close(), this.transactions.close(), this.trie.close()]);
     }
     return new Promise(resolve => this.#cleanupDirectory(resolve));
-  }
+  };
 }

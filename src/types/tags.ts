@@ -10,7 +10,7 @@ enum _Tag {
 }
 
 namespace Tag {
-  export function normalize(tag: keyof typeof _Tag|Tag): Tag {
+  export function normalize(tag: keyof typeof _Tag | Tag): Tag {
     let t: Tag;
     if (typeof tag === "string") {
       t = (<any>Tag)[tag.toUpperCase()];
