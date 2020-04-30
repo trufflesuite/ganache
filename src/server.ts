@@ -1,10 +1,10 @@
-import ServerOptions, {Flavors, getDefault as getDefaultServerOptions} from "./options/server-options";
+import ServerOptions, {getDefault as getDefaultServerOptions} from "./options/server-options";
 
 import uWS, {TemplatedApp, us_listen_socket} from "uWebSockets.js";
 import Connector from "./connector";
 import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
-import {FlavorMap} from "./options/provider-options";
+import {Flavors} from "./options/provider-options";
 
 export enum Status {
   // These are bit flags
@@ -19,7 +19,7 @@ export default class Server<T extends ServerOptions = ServerOptions> {
   #httpServer: HttpServer;
   #listenSocket: us_listen_socket;
   #options: ServerOptions;
-  #connector: FlavorMap[T["flavor"]];
+  #connector: Flavors;
   #status = Status.closed;
   #websocketServer: WebsocketServer;
 
@@ -33,17 +33,17 @@ export default class Server<T extends ServerOptions = ServerOptions> {
 
   constructor(serverOptions?: T) {
     const opts = (this.#options = getDefaultServerOptions(serverOptions));
-    const connector = Connector.initialize(opts);
+    const connector =  this.#connector = Connector.initialize(opts);
 
     const _app = (this.#app = uWS.App());
 
     if (this.#options.ws) {
-      this.#websocketServer = new WebsocketServer(_app, connector as any, opts);
+      this.#websocketServer = new WebsocketServer(_app, connector, opts);
     }
-    this.#httpServer = new HttpServer(_app, connector as any);
+    this.#httpServer = new HttpServer(_app, connector);
   }
 
-  async listen(port: string | number, callback?: (err: Error) => void): Promise<void> {
+  async listen(port: number, callback?: (err: Error) => void): Promise<void> {
     const callbackIsFunction = typeof callback === "function";
     let err: Error;
     // if open or opening
@@ -60,7 +60,7 @@ export default class Server<T extends ServerOptions = ServerOptions> {
         // Make sure we have *exclusive* use of this port.
         // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
         const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
-        this.#app.listen(port.toString(10), LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+        this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
       });
 
       if (_listenSocket) {

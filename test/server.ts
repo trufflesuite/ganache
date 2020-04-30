@@ -33,7 +33,7 @@ describe("server", () => {
     s && (await s.close());
     s = undefined;
   }
-  describe("http", () => {
+  describe.only("http", () => {
     async function simpleTest() {
       const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
       assert.strictEqual(response.status, 200);

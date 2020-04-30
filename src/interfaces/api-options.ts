@@ -1,4 +1,4 @@
-import Account from "../types/account";
+import Account from "../things/account";
 
 /**
  * Options that ledger implementations must implement

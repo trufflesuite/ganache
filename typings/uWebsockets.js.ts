@@ -7,6 +7,6 @@ enum ListenOptions {
 // uWebSockets.js doesn't include these in its TS def file.
 declare module "uWebSockets.js" {
   export interface TemplatedApp {
-    listen(port: number, options: ListenOptions, cb: (listenSocket: any) => void): TemplatedApp;
+    listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void): TemplatedApp;
   }
 }

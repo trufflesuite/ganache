@@ -9,6 +9,5 @@ Dockerfile
 ISSUE_TEMPLATE.md
 .vscode/
 build/
-dist/
 webpack/
 perf/

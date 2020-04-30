@@ -5,7 +5,7 @@ import {Apis} from "../options/server-options";
 
 export default class WebsocketServer {
   #connections = new Set<WebSocket>();
-  constructor(app: TemplatedApp, connector: Connector<Apis>, options: any) {
+  constructor(app: TemplatedApp, connector: Connector<any>, options: any) {
     app.ws("/", {
       /* WS Options */
       compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression

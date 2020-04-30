@@ -20,7 +20,7 @@ export default class EthereumConnector extends Emittery.Typed<{request: RequestT
     this.#provider = new EthereumProvider(providerOptions);
   }
 
-  parse = (message: Buffer) => {
+  parse (message: Buffer) {
     return JSON.parse(message as any) as JsonRpc.Request<EthereumApi>;
   };
 

@@ -81,7 +81,7 @@ function sendResponse(
 
 export default class HttpServer {
   #connector: Connector<Apis>;
-  constructor(app: TemplatedApp, connector: Connector<Apis>) {
+  constructor(app: TemplatedApp, connector: Connector<any>) {
     this.#connector = connector;
 
     // JSON-RPC routes...
