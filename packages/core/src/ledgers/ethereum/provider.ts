@@ -7,7 +7,7 @@ import Account from "../../things/account";
 import {mnemonicToSeedSync} from "bip39";
 import Address from "../../things/address";
 import JsonRpc from "../../servers/utils/jsonrpc";
-import EthereumOptions from "../../ledgers/ethereum/options";
+import EthereumOptions from "./options";
 import cloneDeep from "lodash.clonedeep";
 import secp256k1 from "secp256k1";
 import HDKey from "hdkey";

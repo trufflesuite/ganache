@@ -19,7 +19,7 @@ import {name, version} from "../../../package.json";
 //#region Constants
 const BUFFER_EMPTY = Buffer.allocUnsafe(0);
 const BUFFER_ZERO = Buffer.from([0]);
-const CLIENT_VERSION = `EthereumJS ${name}/v${version}/ethereum-js`;
+const CLIENT_VERSION = `EthereumJS${name}/v${version}/ethereum-js`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
 //#endregion

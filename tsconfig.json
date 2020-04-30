@@ -9,11 +9,6 @@
     "noImplicitThis": true,
     "noErrorTruncation": true,
     "sourceMap": true,
-    "outDir": "dist",
     "resolveJsonModule": true
-  },
-  "include": [
-    "src/**/*",
-    "@types/**/*",
-  ],
+  }
 }
