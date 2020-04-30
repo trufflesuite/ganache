@@ -39,10 +39,6 @@ describe("provider", () => {
     });
   }).timeout(500);
 
-  it("it logs with options.verbose", async () => {
-    assert.doesNotThrow(() => Ganache.provider());
-  });
-
   it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
     const p = Ganache.provider() as EthereumProvider;
     const accounts = await p.send("eth_accounts");
