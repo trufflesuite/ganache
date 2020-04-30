@@ -7,6 +7,25 @@
  * `npm install lerna -g`
  * `lerna bootstrap`
 
+## To build
+
+Builds all packages:
+
+* `npm run tsc`
+
+## To test
+
+Runs all tests:
+
+* `npm test`
+
+## To create a new package
+
+* `npm run create <name> [loc]`
+
+## To add a package to another package:
+
+* `lerna `
 
 ## Code Conventions
 

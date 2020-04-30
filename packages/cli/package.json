@@ -19,8 +19,7 @@
     "url": "git+https://github.com/trufflesuite/ganache-core.git"
   },
   "scripts": {
-    "tsc": "ts-node ../../compile",
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "tsc": "ts-node ../../compile"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"

@@ -6,6 +6,8 @@
     "npm": ">=6.1.0"
   },
   "scripts": {
+    "test": "lerna exec -- npm run test",
+    "create": "ts-node ./scripts/create",
     "postinstall": "patch-package"
   },
   "dependencies": {
@@ -34,15 +36,19 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.1",
+    "@types/fs-extra": "8.1.0",
     "@types/mocha": "7.0.2",
     "@types/node": "13.13.2",
+    "@types/prettier": "2.0.0",
     "@types/secp256k1": "3.5.0",
     "@types/seedrandom": "2.4.28",
     "@types/superagent": "4.1.7",
     "@types/uws": "0.13.2",
     "@types/ws": "7.2.4",
+    "@types/yargs": "15.0.4",
     "bufferutil": "4.0.1",
     "cross-env": "7.0.2",
+    "fs-extra": "9.0.0",
     "into-stream": "5.1.1",
     "lerna": "3.20.2",
     "mocha": "7.1.1",
@@ -57,7 +63,8 @@
     "tslint": "6.1.1",
     "typescript": "3.8.3",
     "utf-8-validate": "5.0.2",
-    "ws": "7.2.3"
+    "ws": "7.2.3",
+    "yargs": "15.3.1"
   },
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"
