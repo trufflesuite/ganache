@@ -52,6 +52,7 @@
     "solc": "0.6.6",
     "source-map-support": "0.5.18",
     "superagent": "5.2.2",
+    "ts-morph": "7.0.3",
     "ts-node": "8.9.0",
     "tslint": "6.1.1",
     "typescript": "3.8.3",

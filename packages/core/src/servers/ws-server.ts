@@ -1,7 +1,6 @@
 import uWS, {TemplatedApp, WebSocket} from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import Connector from "../interfaces/connector";
-import {Apis} from "../options/server-options";
 
 export default class WebsocketServer {
   #connections = new Set<WebSocket>();

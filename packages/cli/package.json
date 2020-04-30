@@ -6,6 +6,7 @@
   "homepage": "https://github.com/trufflesuite/ganache-core#readme",
   "license": "MIT",
   "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -18,7 +19,7 @@
     "url": "git+https://github.com/trufflesuite/ganache-core.git"
   },
   "scripts": {
-    "tsc": "tsc",
+    "tsc": "ts-node ../../compile",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "bugs": {
