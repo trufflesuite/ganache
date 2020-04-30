@@ -52,11 +52,9 @@
     "@types/ws": "7.2.4",
     "bufferutil": "4.0.1",
     "cross-env": "7.0.2",
-    "husky": "4.2.5",
     "into-stream": "5.1.1",
     "mocha": "7.1.1",
     "nyc": "15.0.1",
-    "precise-commits": "1.0.2",
     "prettier": "2.0.5",
     "solc": "0.6.6",
     "source-map-support": "0.5.18",
@@ -75,10 +73,5 @@
     "url": "https://github.com/trufflesuite/ganache-core"
   },
   "license": "MIT",
-  "author": "David Murdoch",
-  "husky": {
-    "hooks": {
-      "pre-commit": "precise-commits"
-    }
-  }
+  "author": "David Murdoch"
 }

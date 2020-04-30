@@ -15,7 +15,7 @@ export default class TezosConnector extends Emittery.Typed<{request: RequestType
     super();
 
     const api = (this.#api = new TezosApi());
-    this.provider = new TezosProvider();
+    this.provider = new TezosProvider(providerOptions);
   }
 
   format(result: any) {

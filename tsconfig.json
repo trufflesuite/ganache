@@ -12,5 +12,8 @@
     "outDir": "dist",
     "resolveJsonModule": true
   },
-  "include": ["./src/**.*.ts", "./typings/**/*.d.ts"]
+  "include": [
+    "src/**/*",
+    "@types/**/*",
+  ],
 }

@@ -14,11 +14,11 @@ export default class Executor extends Emittery {
    * @param methodName The name of the JSON-RPC method to execute.
    * @param params The params to pass to the JSON-RPC method.
    */
-  public execute = async <T extends Api, M = keyof T>(
+  public async execute <T extends Api, M = keyof T>(
     api: T,
     methodName: M,
     params: Parameters<T[keyof T]>
-  ): Promise<ReturnType<T[keyof T]>> => {
+  ): Promise<ReturnType<T[keyof T]>> {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {

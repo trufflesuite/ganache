@@ -32,14 +32,14 @@ export default class RequestCoordinator {
    * Pause processing. This will *not* cancel any promises that are currently
    * running.
    */
-  public pause = () => {
+  public pause() {
     this.#paused = true;
   };
 
   /**
    * Resume processing.
    */
-  public resume = () => {
+  public resume() {
     this.#paused = false;
     this.#process();
   };
@@ -60,7 +60,7 @@ export default class RequestCoordinator {
   /**
    * Insert a new function into the queue.
    */
-  public queue = (fn: (...args: any[]) => Promise<any>, ...args: any[]): Promise<any> => {
+  public queue (fn: (...args: any[]) => Promise<any>, ...args: any[]): Promise<any> {
     const promise = new Promise(
       (resolve: (value?: {} | PromiseLike<{}>) => void, reject: (value?: {} | PromiseLike<{}>) => void) => {
         const executor = () => {

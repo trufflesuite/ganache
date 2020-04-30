@@ -33,7 +33,7 @@ export default class Server<T extends ServerOptions = ServerOptions> {
 
   constructor(serverOptions?: T) {
     const opts = (this.#options = getDefaultServerOptions(serverOptions));
-    const connector =  this.#connector = Connector.initialize(opts);
+    const connector = (this.#connector = Connector.initialize(opts));
 
     const _app = (this.#app = uWS.App());
 

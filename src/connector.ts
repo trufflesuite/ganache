@@ -5,7 +5,7 @@ import Emittery from "emittery";
 import EthereumProvider from "./ledgers/ethereum/provider";
 import {Provider} from "./interfaces/provider";
 
-export default class Connector extends Emittery {
+export default class Connector {
   // TODO: set missing defaults automatically
   public static initialize(providerOptions: ProviderOptions = {flavor: "ethereum", asyncRequestProcessing: true}) {
     const flavor = providerOptions.flavor || "ethereum";
