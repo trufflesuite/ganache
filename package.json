@@ -5,6 +5,9 @@
     "node": ">=10.7.0 <=14.0.0",
     "npm": ">=6.1.0"
   },
+  "scripts": {
+    "postinstall": "patch-package"
+  },
   "dependencies": {
     "@types/lodash.clonedeep": "4.5.6",
     "bip39": "3.0.2",
@@ -44,6 +47,7 @@
     "lerna": "3.20.2",
     "mocha": "7.1.1",
     "nyc": "15.0.1",
+    "patch-package": "6.2.2",
     "prettier": "2.0.5",
     "solc": "0.6.6",
     "source-map-support": "0.5.18",
