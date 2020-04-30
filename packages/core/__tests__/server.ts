@@ -140,11 +140,17 @@ describe("server", () => {
         ws: false
       } as ServerOptions);
       try {
-        const ws = new WebSocket("ws://localhost:" + port, {handshakeTimeout: 500});
+        const ws = new WebSocket("ws://localhost:" + port);
 
-        await assert.rejects(new Promise((_, reject) => ws.on("error", reject)), {
-          message: "Unexpected server response: 400"
-        });
+        await assert.rejects(
+          new Promise((resolve, reject) => {
+            ws.on("open", resolve);
+            ws.on("error", reject);
+          }),
+          {
+            message: "Unexpected server response: 400"
+          }
+        );
       } finally {
         await teardown();
       }
