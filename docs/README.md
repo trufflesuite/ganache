@@ -21,11 +21,20 @@ Runs all tests:
 
 ## To create a new package
 
-* `npm run create <name> [loc]`
+* `npm run create <name>`
 
-## To add a package to another package:
+This will create a new package with Ganache defaults at `packages/<name>`.
 
-* `lerna `
+## To add a module to a package:
+
+* `lerna add <module>[@version] [--dev] [--peer] --scope=<package>`
+
+Where `<module>` is the npm-module you want to add and `<package>` is where you
+want to add it. See [@lerna/add documentation](https://github.com/lerna/lerna/tree/master/commands/add) for more details.
+
+## To remove a module from another package:
+
+`cd` to the package and then run `npm uninstall <module>`
 
 ## Code Conventions
 
