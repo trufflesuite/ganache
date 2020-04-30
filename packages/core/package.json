@@ -22,7 +22,7 @@
     "url": "git+https://github.com/trufflesuite/ganache-core.git"
   },
   "scripts": {
-    "tsc": "ts-node ../../compile",
+    "tsc": "ts-node ../../scripts/compile",
     "test": "nyc npm run mocha -- --throw-deprecation --trace-warnings",
     "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**.ts'"
   },

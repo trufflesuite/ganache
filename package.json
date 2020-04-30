@@ -6,6 +6,7 @@
     "npm": ">=6.1.0"
   },
   "scripts": {
+    "tsc": "lerna exec -- npm run tsc",
     "test": "lerna exec -- npm run test",
     "create": "ts-node ./scripts/create",
     "postinstall": "patch-package"
@@ -39,6 +40,7 @@
     "@types/fs-extra": "8.1.0",
     "@types/mocha": "7.0.2",
     "@types/node": "13.13.2",
+    "@types/npm-package-arg": "6.1.0",
     "@types/prettier": "2.0.0",
     "@types/secp256k1": "3.5.0",
     "@types/seedrandom": "2.4.28",
@@ -47,11 +49,13 @@
     "@types/ws": "7.2.4",
     "@types/yargs": "15.0.4",
     "bufferutil": "4.0.1",
+    "camelcase": "6.0.0",
     "cross-env": "7.0.2",
     "fs-extra": "9.0.0",
     "into-stream": "5.1.1",
     "lerna": "3.20.2",
     "mocha": "7.1.1",
+    "npm-package-arg": "8.0.1",
     "nyc": "15.0.1",
     "patch-package": "6.2.2",
     "prettier": "2.0.5",
