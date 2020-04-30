@@ -52,8 +52,8 @@ const argv = yargs.command("$0 <name>", "Package Name").demandCommand().help().a
 
   const testFile = `import assert from "assert";
 
-describe("interface", () => {
-  it("TODO", async () => {
+describe("@ganache/${name}", () => {
+  it("needs tests", async () => {
     assert.fail(\`TODO: write tests for package "${name.replace(/`/g, "-")}".\`);
   });
 })`;
