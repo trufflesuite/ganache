@@ -2,7 +2,7 @@ import Ganache from "../src/";
 import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
-import Server from "../src/server";
+import Server, {Status} from "../src/server";
 import ServerOptions from "../src/options/server-options";
 import http from "http";
 import intoStream from "into-stream";
@@ -43,6 +43,19 @@ describe("server", () => {
       return response;
     }
 
+    it("returns its status", async () => {
+      const s = Ganache.server();
+      assert.strictEqual(s.status & Status.closed, Status.closed);
+      const pendingListen = s.listen(port);
+      assert.strictEqual(s.status & Status.opening, Status.opening);
+      await pendingListen;
+      assert.strictEqual(s.status & Status.open, Status.open);
+      const pendingClose = s.close();
+      assert.strictEqual(s.status & Status.closing, Status.closing);
+      await pendingClose;
+      assert.strictEqual(s.status & Status.closed, Status.closed);
+    });
+
     it("returns the net_version", async () => {
       await setup();
       try {
@@ -66,13 +79,26 @@ describe("server", () => {
       });
     });
 
-    it("fails to `.listen()` twice", async () => {
+    it("fails to `.listen()` twice, Promise", async () => {
       await setup();
       try {
         // the call to `setup()` above calls `listen()` already. if we call it
         // again it should fail.
         await assert.rejects(s.listen(port), {
           message: `Server is already listening on port: ${port}`
+        });
+      } finally {
+        await teardown();
+      }
+    });
+
+    it("fails to `.listen()` twice, callback", async () => {
+      await setup();
+      try {
+        // the call to `setup()` above calls `listen()` already. if we call it
+        // again it should fail.
+        s.listen(port, err => {
+          assert.strict(err.message, `Server is already listening on port: ${port}`);
         });
       } finally {
         await teardown();

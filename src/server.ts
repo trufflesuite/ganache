@@ -52,7 +52,8 @@ export default class Server<T extends ServerOptions = ServerOptions> {
       // ensure sure we don't call the `callback` in the current event loop, otherwise an error in the callback would
       // bubble back up into this function. This is a problem here because we aren't awaiting anything
       if (callbackIsFunction) {
-        callback = (err: Error) => process.nextTick(callback, err);
+        const originalCallback = callback;
+        callback = (err: Error) => process.nextTick(originalCallback, err);
       }
     } else {
       this.#status = Status.opening;
@@ -97,7 +98,7 @@ export default class Server<T extends ServerOptions = ServerOptions> {
 
     // and do all http cleanup, if any
     this.#httpServer.close();
-    this.#status = Status.closed;
     await this.provider.close();
+    this.#status = Status.closed;
   }
 }
