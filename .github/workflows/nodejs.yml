@@ -22,14 +22,19 @@ jobs:
       with:
         node-version: ${{ matrix.node }}
     - name: install node tools
+      if: matrix.os == 'windows-2019'
       run: npm install --global --production windows-build-tools@4.0.0
     - name: install node-gyp
+      if: matrix.os == 'windows-2019'
       run: npm install --global node-gyp@latest
     - name: Set node config to use python2.7
+      if: matrix.os == 'windows-2019'
       run: npm config set python python2.7
     - name: Set node config to set msvs_version to 2015
+      if: matrix.os == 'windows-2019'
       run: npm config set msvs_version 2015
     - name: Work around for Windows Server 2019
+      if: matrix.os == 'windows-2019'
       run: set path=%path%;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin
     - run: npm ci
     - run: npm test
