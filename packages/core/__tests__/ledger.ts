@@ -10,7 +10,7 @@ describe("ledger", () => {
   beforeEach(async () => {
     provider = GetProvider();
     accounts = await provider.request("eth_accounts");
-  });
+  })
 
   it("eth_blockNumber", async () => {
     const blockNumber = parseInt(await provider.request("eth_blockNumber"), 10);
@@ -25,7 +25,7 @@ describe("ledger", () => {
     await sleep();
     const nextBlockNumber = await provider.request("eth_blockNumber");
     assert.equal(blockNumber, nextBlockNumber - 1);
-  });
+  }).timeout(4000);
 
   it("eth_getBlockByNumber", async () => {
     await provider.request("eth_sendTransaction", [

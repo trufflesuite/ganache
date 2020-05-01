@@ -37,7 +37,7 @@ describe("provider", () => {
       };
       await p.send("web3_sha3", ["Tim is a swell guy."]);
     });
-  }).timeout(500);
+  }).timeout(1000);
 
   it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
     const p = Ganache.provider() as EthereumProvider;
