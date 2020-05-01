@@ -6,11 +6,35 @@ import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import {Flavors} from "./options/provider-options";
 
+type Callback = (err: Error) => void
+
+/**
+ * Server ready state constants.
+ * 
+ * These are bit flags. This means that you can check if the status is:
+ *  * open: `status === Status.open`
+ *  * opening: `status === Status.opening`
+ *  * open || opening: `status & Status.open !== 0` or `status & Status.opening !== 0`
+ *  * closed: `status === Status.closed`
+ *  * closing: `status === Status.closing`
+ *  * open || closing: `status & Status.closed !== 0` or `status & Status.closing !== 0`
+ */
 export enum Status {
-  // These are bit flags
+  /**
+   * The connection is open and ready to communicate.
+   */
   open = 1,
+  /**
+   * The connection is not yet open.
+   */
   opening = 3,
+  /**
+   * The connection is closed.
+   */
   closed = 4,
+  /**
+   * The connection is in the process of closing.
+   */
   closing = 12
 }
 
@@ -43,46 +67,55 @@ export default class Server<T extends ServerOptions = ServerOptions> {
     this.#httpServer = new HttpServer(_app, connector);
   }
 
-  async listen(port: number, callback?: (err: Error) => void): Promise<void> {
+  listen(port: number): Promise<void>;
+  listen(port: number, callback: Callback): void;
+  listen(port: number, callback?: Callback): void | Promise<void> {
     const callbackIsFunction = typeof callback === "function";
-    let err: Error;
-    // if open or opening
-    if (this.#status & Status.open) {
-      err = new Error(`Server is already listening on port: ${port}`);
-      // ensure sure we don't call the `callback` in the current event loop, otherwise an error in the callback would
-      // bubble back up into this function. This is a problem here because we aren't awaiting anything
-      if (callbackIsFunction) {
-        const originalCallback = callback;
-        callback = (err: Error) => process.nextTick(originalCallback, err);
-      }
-    } else {
-      this.#status = Status.opening;
-      const _listenSocket = await new Promise(resolve => {
-        // Make sure we have *exclusive* use of this port.
-        // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
-        const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
-        this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
-      });
-
-      if (_listenSocket) {
-        this.#status = Status.open;
-        this.#listenSocket = _listenSocket;
-        err = null;
-      } else {
-        this.#status = Status.closed;
-        err = new Error("Failed to listen on port: " + port);
-      }
+    const status = this.#status;
+    if (status === Status.closing) {
+      // if closing
+      const err = new Error(`Cannot start server while it is closing.`);
+      return callbackIsFunction ? process.nextTick(callback, err) : Promise.reject(err);
+    } else if (status & Status.open) {
+      // if open or opening
+      const err = new Error(`Server is already open on port: ${port}.`);
+      return callbackIsFunction ? process.nextTick(callback, err) : Promise.reject(err);
     }
 
-    // support legacy callback style
-    if (callbackIsFunction) {
-      callback(err);
-    } else if (err) {
-      throw err;
+    this.#status = Status.opening;
+
+    const promise = new Promise(resolve => {
+      // Make sure we have *exclusive* use of this port.
+      // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
+      const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
+      this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+    }).then(listenSocket => {
+      if (listenSocket) {
+        this.#status = Status.open;
+        this.#listenSocket = listenSocket;
+        if (callbackIsFunction) callback(null);
+      } else {
+        this.#status = Status.closed;
+        const err = new Error(`Failed to listen on port: ${port}.`);
+        if (callbackIsFunction) callback(err);
+        else throw err;
+      }
+    });
+
+    if (!callbackIsFunction) {
+      return promise;
     }
   }
 
   public async close() {
+    if (this.#status === Status.opening) {
+      // if closed or closing
+      throw new Error(`Cannot close server while it is opening.`);
+    } else if (this.#status & Status.closed) {
+      // if closed or closing
+      throw new Error(`Server is already closed or closing.`);
+    }
+
     const _listenSocket = this.#listenSocket;
     this.#status = Status.closing;
     if (_listenSocket) {
