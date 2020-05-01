@@ -1,8 +1,8 @@
-import Account from "../../../things/account";
-import Address from "../../../things/address";
+import Account from "../../../core/src/things/account";
+import Address from "../../../core/src/things/address";
 import Trie from "merkle-patricia-tree/baseTrie";
 import Blockchain from "../blockchain";
-import Tag from "../../../things/tags";
+import Tag from "../../../core/src/things/tags";
 import {LevelUp} from "levelup";
 
 export default class AccountManager {

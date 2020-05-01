@@ -1,5 +1,5 @@
-import Options from "../../options/provider-options";
-import Account from "../../things/account";
+import Options from "../../core/src/options/provider-options";
+import Account from "../../core/src/things/account";
 
 type EthereumOptions = Pick<
   Options,

@@ -1,7 +1,7 @@
 import assert from "assert";
 import GetProvider from "./helpers/getProvider";
 import sleep from "./helpers/sleep";
-import EthereumProvider from "../src/ledgers/ethereum/provider";
+import EthereumProvider from "../../ethereum/src/provider";
 
 describe("ledger", () => {
   let provider: any;

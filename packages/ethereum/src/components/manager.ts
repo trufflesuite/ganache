@@ -1,5 +1,5 @@
 import levelup from "levelup";
-import {Data} from "../../../things/json-rpc";
+import {Data} from "../../../core/src/things/json-rpc";
 import Blockchain from "../blockchain";
 const NOTFOUND = 404;
 

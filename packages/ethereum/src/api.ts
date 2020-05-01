@@ -1,11 +1,11 @@
 //#region Imports
-import Api, { Emitter } from "../../interfaces/api";
+import Api, { Emitter } from "../../core/src/interfaces/api";
 import EthereumOptions from "./options";
-import {Data, Quantity} from "../../things/json-rpc";
+import {Data, Quantity} from "../../core/src/things/json-rpc";
 import Blockchain from "./blockchain";
-import Tag from "../../things/tags";
-import Address, {IndexableAddress} from "../../things/address";
-import Transaction from "../../things/transaction";
+import Tag from "../../core/src/things/tags";
+import Address, {IndexableAddress} from "../../core/src/things/address";
+import Transaction from "../../core/src/things/transaction";
 import {Block} from "./components/block-manager";
 import Wallet from "./wallet";
 import Account from "ethereumjs-account";
@@ -13,7 +13,7 @@ import {decode as rlpDecode} from "rlp";
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from the package.json
-import {name, version} from "../../../package.json";
+import {name, version} from "../../core/package.json";
 //#endregion
 
 //#region Constants

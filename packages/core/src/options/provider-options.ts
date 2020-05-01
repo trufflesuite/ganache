@@ -1,6 +1,6 @@
 import Options, {getDefault as getDefaultOptions} from "./options";
 import TezosConnector from "../ledgers/tezos";
-import EthereumConnector from "../ledgers/ethereum";
+import EthereumConnector from "../../../ethereum/src";
 import {entropyToMnemonic} from "bip39";
 import seedrandom, {seedrandom_prng} from "seedrandom";
 import Connector from "../interfaces/connector";

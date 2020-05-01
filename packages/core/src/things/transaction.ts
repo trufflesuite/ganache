@@ -7,7 +7,7 @@ import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
 import {decode as rlpDecode} from "rlp";
 import {RunTxResult} from "ethereumjs-vm/dist/runTx";
-import {Block} from "../ledgers/ethereum/components/block-manager";
+import {Block} from "../../../ethereum/src/components/block-manager";
 import TransactionReceipt from "./transaction-receipt";
 
 const MAX_UINT64 = (1n << 64n) - 1n;

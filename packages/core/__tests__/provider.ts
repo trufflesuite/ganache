@@ -1,6 +1,6 @@
 import Ganache from "../src/";
 import assert from "assert";
-import EthereumProvider from "../src/ledgers/ethereum/provider";
+import EthereumProvider from "../../ethereum/src/provider";
 
 describe("provider", () => {
   const networkId = "1234";

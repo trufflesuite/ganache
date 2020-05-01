@@ -1,7 +1,7 @@
 import Ganache from "../src";
 import assert from "assert";
 import {Quantity} from "../src/things/json-rpc";
-import EthereumProvider from "../src/ledgers/ethereum/provider";
+import EthereumProvider from "../../ethereum/src/provider";
 const solc = require("solc");
 
 function compileSolidity(source: string) {

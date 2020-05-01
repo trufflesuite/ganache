@@ -2,7 +2,7 @@ import Executor from "./utils/executor";
 import RequestCoordinator from "./utils/request-coordinator";
 import ProviderOptions, {FlavorMap, Apis} from "./options/provider-options";
 import Emittery from "emittery";
-import EthereumProvider from "./ledgers/ethereum/provider";
+import EthereumProvider from "../../ethereum/src/provider";
 import {Provider} from "./interfaces/provider";
 
 export default class Connector {
