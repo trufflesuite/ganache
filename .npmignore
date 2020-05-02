@@ -2,8 +2,8 @@
 .tern-project
 .tern-port
 .dockerignore
-.travis.yml
 .eslintrc.js
+.github/
 *.log
 Dockerfile
 ISSUE_TEMPLATE.md
