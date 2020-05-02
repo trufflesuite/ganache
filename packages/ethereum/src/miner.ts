@@ -1,7 +1,7 @@
-import params from "../../core/src/things/params";
-import Heap from "../../core/src/utils/heap";
-import Transaction from "../../core/src/things/transaction";
-import {Quantity, Data} from "../../core/src/things/json-rpc";
+import params from "./things/params";
+import Heap from "@ganache/core/src/utils/heap";
+import Transaction from "./things/transaction";
+import {Quantity, Data} from "@ganache/core/src/things/json-rpc";
 import {promisify} from "util";
 import Trie from "merkle-patricia-tree";
 import Emittery from "emittery";

@@ -3,5 +3,9 @@
   "compilerOptions": {
     "outDir": "lib"
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "../ethereum/src/@types/merkle-patricia-tree",
+    "../ethereum/src/@types/levelup", "../ethereum/src/@types/ethereumjs-block", "../ethereum/src/@types/hdkey.d.ts", "../ethereum/src/things/account.ts"
+  ]
 }

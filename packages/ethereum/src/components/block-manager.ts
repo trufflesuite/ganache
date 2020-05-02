@@ -1,10 +1,10 @@
 import EthereumJsBlock from "ethereumjs-block";
 import Manager from "./manager";
-import Tag from "../../../core/src/things/tags";
+import Tag from "../things/tags";
 import levelup from "levelup";
 import Blockchain from "../blockchain";
-import {Quantity, Data} from "../../../core/src/things/json-rpc";
-import Transaction from "../../../core/src/things/transaction";
+import {Quantity, Data} from "@ganache/core/src/things/json-rpc";
+import Transaction from "../things/transaction";
 import {decode as rlpDecode} from "rlp";
 import Common from "ethereumjs-common";
 

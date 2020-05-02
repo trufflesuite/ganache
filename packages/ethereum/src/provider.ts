@@ -1,18 +1,18 @@
-import {Quantity, Data} from "../../core/src/things/json-rpc";
-import ProviderOptions, {getDefault as getDefaultProviderOptions} from "../../core/src/options/provider-options";
+import {Quantity, Data} from "@ganache/core/src/things/json-rpc";
+import ProviderOptions, {getDefault as getDefaultProviderOptions} from "@ganache/core/src/options/provider-options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
 import {publicToAddress, privateToAddress} from "ethereumjs-util";
-import Account from "../../core/src/things/account";
+import Account from "./things/account";
 import {mnemonicToSeedSync} from "bip39";
-import Address from "../../core/src/things/address";
-import JsonRpc from "../../core/src/servers/utils/jsonrpc";
+import Address from "./things/address";
+import JsonRpc from "@ganache/core/src/servers/utils/jsonrpc";
 import EthereumOptions from "./options";
 import cloneDeep from "lodash.clonedeep";
 import secp256k1 from "secp256k1";
 import HDKey from "hdkey";
-import {RequestType, KnownKeys} from "../../core/src/types";
-import {Provider} from "../../core/src/interfaces/provider";
+import {RequestType, KnownKeys} from "@ganache/core/src/types";
+import {Provider} from "@ganache/core/src/interfaces/provider";
 
 const WEI = 1000000000000000000n;
 

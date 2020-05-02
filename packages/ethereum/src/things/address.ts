@@ -1,4 +1,4 @@
-import {IndexableJsonRpcType, Data} from "./json-rpc";
+import {IndexableJsonRpcType, Data} from "@ganache/core/src/things/json-rpc";
 
 const Address = Data;
 

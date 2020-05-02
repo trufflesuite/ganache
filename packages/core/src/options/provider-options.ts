@@ -1,6 +1,6 @@
 import Options, {getDefault as getDefaultOptions} from "./options";
-import TezosConnector from "../../../tezos/src";
-import EthereumConnector from "../../../ethereum/src";
+import TezosConnector from "@ganache/tezos/src/index";
+import EthereumConnector from "@ganache/ethereum/src/index";
 import {entropyToMnemonic} from "bip39";
 import seedrandom, {seedrandom_prng} from "seedrandom";
 import Connector from "../interfaces/connector";

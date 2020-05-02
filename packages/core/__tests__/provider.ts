@@ -1,15 +1,14 @@
 import Ganache from "../src/";
 import assert from "assert";
-import EthereumProvider from "../../ethereum/src/provider";
 
 describe("provider", () => {
   const networkId = "1234";
-  let p: EthereumProvider;
+  let p: any;
 
   beforeEach("set up", () => {
     p = Ganache.provider({
       network_id: networkId
-    }) as EthereumProvider;
+    });
   });
 
   it("works without passing options", async () => {
@@ -22,7 +21,7 @@ describe("provider", () => {
         assert.strictEqual(msg, "   >  net_version: undefined");
       }
     };
-    const p = Ganache.provider({logger, verbose: true}) as EthereumProvider;
+    const p = Ganache.provider({logger, verbose: true}) as any;
 
     logger.log = msg => {
       assert.strictEqual(msg, "   >  net_version: undefined", "doesn't work when no params");
@@ -40,7 +39,7 @@ describe("provider", () => {
   }).timeout(1000);
 
   it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
-    const p = Ganache.provider() as EthereumProvider;
+    const p = Ganache.provider() as any;
     const accounts = await p.send("eth_accounts");
     // eth_accounts should always be faster than eth_getBalance; it should
     // return before eth_getBalance because of the `asyncRequestProcessing` flag
@@ -52,7 +51,7 @@ describe("provider", () => {
   });
 
   it("it processes requests in order when `asyncRequestProcessing` is false", async () => {
-    const p = Ganache.provider({asyncRequestProcessing: false}) as EthereumProvider;
+    const p = Ganache.provider({asyncRequestProcessing: false}) as any;
     const accounts = await p.send("eth_accounts");
     // eth_accounts should always be faster than eth_getBalance, but shouldn't
     // return before eth_getBalance because of the `asyncRequestProcessing` flag
@@ -65,7 +64,7 @@ describe("provider", () => {
   });
 
   it("generates predictable accounts when given a seed", async () => {
-    const p = Ganache.provider({seed: "temet nosce"}) as EthereumProvider;
+    const p = Ganache.provider({seed: "temet nosce"}) as any;
     const accounts = await p.request("eth_accounts");
     assert.strictEqual(accounts[0], "0x59eF313E6Ee26BaB6bcb1B5694e59613Debd88DA");
   });

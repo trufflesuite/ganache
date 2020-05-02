@@ -26,5 +26,10 @@
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "dependencies": {
+    "@ganache/core": "^2.2.1",
+    "@ganache/ethereum": "^2.2.1",
+    "@ganache/tezos": "^2.2.1"
   }
 }

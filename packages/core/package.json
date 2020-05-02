@@ -29,5 +29,9 @@
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "@ganache/ethereum": "^2.2.1",
+    "@ganache/tezos": "^2.2.1",
+    "@ganache/utils": "^2.2.1"
+  }
 }

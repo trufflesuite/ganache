@@ -1,9 +1,9 @@
-import ProviderOptions, {getDefault as getDefaultProviderOptions} from "../../core/src/options/provider-options";
+import ProviderOptions, {getDefault as getDefaultProviderOptions} from "@ganache/core/src/options/provider-options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
-import JsonRpc from "../../core/src/servers/utils/jsonrpc";
-import Connector from "../../core/src/interfaces/connector";
-import {RequestType} from "../../core/src/types";
+import JsonRpc from "@ganache/core/src/servers/utils/jsonrpc";
+import Connector from "@ganache/core/src/interfaces/connector";
+import {RequestType} from "@ganache/core/src/types";
 import EthereumProvider from "./provider";
 import {RecognizedString} from "uWebSockets.js";
 

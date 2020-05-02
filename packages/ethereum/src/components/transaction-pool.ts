@@ -1,8 +1,8 @@
 import Emittery from "emittery";
 import Blockchain from "../blockchain";
-import Heap from "../../../core/src/utils/heap";
-import Transaction from "../../../core/src/things/transaction";
-import {Data, Quantity} from "../../../core/src/things/json-rpc";
+import Heap from "@ganache/core/src/utils/heap";
+import Transaction from "../things/transaction";
+import {Data, Quantity} from "@ganache/core/src/things/json-rpc";
 
 export type TransactionPoolOptions = {
   /**

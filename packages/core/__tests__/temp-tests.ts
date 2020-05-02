@@ -1,7 +1,6 @@
 import Ganache from "../src";
 import assert from "assert";
 import {Quantity} from "../src/things/json-rpc";
-import EthereumProvider from "../../ethereum/src/provider";
 const solc = require("solc");
 
 function compileSolidity(source: string) {
@@ -41,7 +40,7 @@ describe("Accounts", () => {
 
   it("should respect the BIP99 mnemonic", async () => {
     const options = {mnemonic};
-    const p = Ganache.provider(options) as EthereumProvider;
+    const p = Ganache.provider(options) as any;
     const accounts = await p.send("eth_accounts");
 
     assert.strictEqual(accounts[0], expectedAddress);
@@ -49,7 +48,7 @@ describe("Accounts", () => {
 
   it("eth_sendTransaction", async () => {
     const options = {mnemonic};
-    const p = Ganache.provider(options) as EthereumProvider;
+    const p = Ganache.provider(options) as any;
     const accounts = await p.send("eth_accounts");
     const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
     await p.send("eth_sendTransaction", [
@@ -67,7 +66,7 @@ describe("Accounts", () => {
   }).timeout(5000);
 
   it("should create its own mnemonic", async () => {
-    const p = Ganache.provider() as EthereumProvider;
+    const p = Ganache.provider() as any;
     const options = p.getOptions();
     assert.deepStrictEqual(typeof options.mnemonic, "string");
   });
@@ -98,7 +97,7 @@ describe("Accounts", () => {
     const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
     const p = Ganache.provider({
       accounts: [{balance: "0x123", secretKey: "0x" + privateKey.toString("hex")}, {balance: "0x456"}]
-    }) as EthereumProvider;
+    }) as any;
     const accounts = await p.send("eth_accounts");
     assert.strictEqual(accounts.length, 2);
   });
@@ -126,7 +125,7 @@ describe("Accounts", () => {
     const p = Ganache.provider({
       locked: true,
       unlocked_accounts: ["0", 1]
-    }) as EthereumProvider;
+    }) as any;
 
     const accounts = await p.send("eth_accounts");
     const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
@@ -176,7 +175,7 @@ describe("Accounts", () => {
     );
     const p = Ganache.provider({
       defaultTransactionGasLimit: Quantity.from(6721975)
-    }) as EthereumProvider;
+    }) as any;
     const accounts = await p.send("eth_accounts");
     const transactionHash = await p.send("eth_sendTransaction", [
       {
@@ -219,7 +218,7 @@ describe("Accounts", () => {
     const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
     const p = Ganache.provider({
       accounts: [{balance: "0x123", secretKey: "0x" + privateKey.toString("hex")}, {balance: "0x456"}]
-    }) as EthereumProvider;
+    }) as any;
     const accounts = await p.send("eth_accounts");
     const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
     assert(true);

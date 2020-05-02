@@ -1,7 +1,7 @@
 import Transaction from "./transaction";
-import {Block} from "../../../ethereum/src/components/block-manager";
+import {Block} from "../components/block-manager";
 import {encode as rlpEncode, decode as rlpDecode} from "rlp";
-import {Data, Quantity} from "./json-rpc";
+import {Data, Quantity} from "@ganache/core/src/things/json-rpc";
 
 export default class TransactionReceipt {
   #contractAddress: Buffer;

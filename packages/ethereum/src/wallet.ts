@@ -1,7 +1,7 @@
-import {Data} from "../../core/src/things/json-rpc";
-import Address from "../../core/src/things/address";
+import {Data} from "@ganache/core/src/things/json-rpc";
+import Address from "./things/address";
 import EthereumOptions from "./options";
-import Account from "../../core/src/things/account";
+import Account from "./things/account";
 import {toChecksumAddress} from "ethereumjs-util";
 
 export default class Wallet {

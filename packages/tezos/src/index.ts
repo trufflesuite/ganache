@@ -1,9 +1,9 @@
 import Emittery from "emittery";
-import {RequestType} from "../../core/src/types";
-import Connector from "../../core/src/interfaces/connector";
+import {RequestType} from "@ganache/core/src/types";
+import Connector from "@ganache/core/src/interfaces/connector";
 import TezosProvider from "./provider";
-import JsonRpc from "../../core/src/servers/utils/jsonrpc";
-import ProviderOptions from "../../core/src/options/provider-options";
+import JsonRpc from "@ganache/core/src/servers/utils/jsonrpc";
+import ProviderOptions from "@ganache/core/src/options/provider-options";
 import TezosApi from "./api";
 
 export default class TezosConnector extends Emittery.Typed<{request: RequestType<TezosApi>}, "ready" | "close">

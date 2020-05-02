@@ -7,6 +7,10 @@
  * `npm install lerna -g`
  * `lerna bootstrap`
 
+ ## VSCode On Windows (10)
+
+ * Enable "Developer Mode" by going to Settings -> Developer Settings -> Then select Developer Mode.
+
 ## To build
 
 Builds all packages:
