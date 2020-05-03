@@ -1,4 +1,4 @@
-import Account from "../../../ethereum/src/things/account";
+import Account from "@ganache/ethereum/src/things/account";
 
 /**
  * Options that ledger implementations must implement

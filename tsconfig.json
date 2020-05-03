@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
+    "alwaysStrict": true,
+    "declaration": true,
     "skipLibCheck": true,
     "module": "CommonJS",
     "esModuleInterop": true,
     "target": "ES2020",
-    "noImplicitAny": true,
     "moduleResolution": "node",
-    "noImplicitThis": true,
     "noErrorTruncation": true,
     "sourceMap": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "strict": true,
+    "newLine": "lf",
+    "lib": ["ES2020"]
   }
 }

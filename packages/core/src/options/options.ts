@@ -169,7 +169,7 @@ export default interface Options {
   hardfork?: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier";
 }
 
-export const getDefault: (options: Options) => Options = options => {
+export const getDefault: (options?: Options) => Options = options => {
   // TODO: convert to null propagation operator after updating TS to a version that supports it
   const networkId = (options
     ? options.networkId || options.netVersion || options.network_id || options.net_version || Date.now()

@@ -179,7 +179,7 @@ export default class HttpServer {
     // handle CORS preflight requests...
     const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
     // OPTIONS responses don't have a body, so respond with `204 No Content`...
-    sendResponse(response, HttpResponseCodes.NO_CONTENT, null, "", writeHeaders);
+    sendResponse(response, HttpResponseCodes.NO_CONTENT, undefined, "", writeHeaders);
   };
   public close() {
     // currently a no op.

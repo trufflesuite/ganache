@@ -2,7 +2,7 @@ export default class RequestCoordinator {
   /**
    * The number of concurrent requests. Set to null for no limit.
    */
-  public limit: number = null;
+  public limit: number;
 
   /**
    * The pending requests. You can't do anything with this array.

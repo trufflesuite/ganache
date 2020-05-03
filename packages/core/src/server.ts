@@ -6,7 +6,7 @@ import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import {Flavors} from "./options/provider-options";
 
-type Callback = (err: Error) => void
+type Callback = (err: Error | null) => void
 
 /**
  * Server ready state constants.
@@ -41,11 +41,11 @@ export enum Status {
 export default class Server<T extends ServerOptions = ServerOptions> {
   #app: TemplatedApp;
   #httpServer: HttpServer;
-  #listenSocket: us_listen_socket;
+  #listenSocket?: us_listen_socket;
   #options: ServerOptions;
   #connector: Flavors;
   #status = Status.closed;
-  #websocketServer: WebsocketServer;
+  #websocketServer: WebsocketServer | null = null;
 
   public get provider() {
     return this.#connector.provider;
@@ -75,16 +75,16 @@ export default class Server<T extends ServerOptions = ServerOptions> {
     if (status === Status.closing) {
       // if closing
       const err = new Error(`Cannot start server while it is closing.`);
-      return callbackIsFunction ? process.nextTick(callback, err) : Promise.reject(err);
+      return callbackIsFunction ? process.nextTick(callback!, err) : Promise.reject(err);
     } else if (status & Status.open) {
       // if open or opening
       const err = new Error(`Server is already open on port: ${port}.`);
-      return callbackIsFunction ? process.nextTick(callback, err) : Promise.reject(err);
+      return callbackIsFunction ? process.nextTick(callback!, err) : Promise.reject(err);
     }
 
     this.#status = Status.opening;
 
-    const promise = new Promise(resolve => {
+    const promise = new Promise((resolve: (listenSocket: false | uWS.us_listen_socket) => void) => {
       // Make sure we have *exclusive* use of this port.
       // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
       const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
@@ -93,11 +93,11 @@ export default class Server<T extends ServerOptions = ServerOptions> {
       if (listenSocket) {
         this.#status = Status.open;
         this.#listenSocket = listenSocket;
-        if (callbackIsFunction) callback(null);
+        if (callbackIsFunction) callback!(null);
       } else {
         this.#status = Status.closed;
         const err = new Error(`Failed to listen on port: ${port}.`);
-        if (callbackIsFunction) callback(err);
+        if (callbackIsFunction) callback!(err);
         else throw err;
       }
     });

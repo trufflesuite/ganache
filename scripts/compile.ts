@@ -37,6 +37,8 @@ function serializeToAst(v: any): ts.Expression {
       return ts.createObjectLiteral(
         keys.map(k => ts.createPropertyAssignment(ts.createStringLiteral(k), serializeToAst(v[k])))
       );
+      default:
+        throw new Error(`Can't serializeToAst ${typeof v}`);
   }
 }
 
@@ -67,6 +69,8 @@ function serializeToTypeAst(v: any): ts.TypeNode {
           )
         )
       );
+    default:
+      throw new Error(`Can't serializeToTypeAst ${typeof v}`);
   }
 }
 
@@ -76,7 +80,7 @@ function resolveJsonImportFromNode(node: ts.ImportDeclaration, sf: SourceFile): 
 }
 
 const parseConfigHost: ts.ParseConfigHost = ts.sys;
-const configFileName = ts.findConfigFile("./", ts.sys.fileExists, "tsconfig.json");
+const configFileName = ts.findConfigFile("./", ts.sys.fileExists, "tsconfig.json") as string;
 const configFile = ts.readConfigFile(configFileName, ts.sys.readFile);
 const compilerOptions = ts.parseJsonConfigFileContent(configFile.config, parseConfigHost, "./");
 const project = new Project({
@@ -88,9 +92,9 @@ sources.forEach(sourceFile => {
   sourceFile.transform(traversal => {
     const node = traversal.visitChildren();
     let jsonPath: string;
-    if (ts.isImportDeclaration(node) && (jsonPath = resolveJsonImportFromNode(node, sourceFile))) {
+    if (ts.isImportDeclaration(node) && (jsonPath = resolveJsonImportFromNode(node, sourceFile)) && node.importClause) {
       const namedBindings = node.importClause.namedBindings;
-      if ("elements" in namedBindings){
+      if (namedBindings && "elements" in namedBindings){
         const jsonFile = require(jsonPath);
         const json = namedBindings.elements.map(element => {
           const name = element.name.text;

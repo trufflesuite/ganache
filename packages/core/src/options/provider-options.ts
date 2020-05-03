@@ -1,6 +1,6 @@
 import Options, {getDefault as getDefaultOptions} from "./options";
-import TezosConnector from "@ganache/tezos/src/index";
-import EthereumConnector from "@ganache/ethereum/src/index";
+import TezosConnector from "@ganache/tezos";
+import EthereumConnector from "@ganache/ethereum";
 import {entropyToMnemonic} from "bip39";
 import seedrandom, {seedrandom_prng} from "seedrandom";
 import Connector from "../interfaces/connector";
@@ -51,7 +51,7 @@ export default interface ProviderOptions extends Options {
   flavor?: keyof typeof FlavorMap;
 }
 
-export const getDefault: (options: ProviderOptions) => ProviderOptions = options => {
+export const getDefault: (options?: ProviderOptions) => ProviderOptions = options => {
   const _options = Object.assign(
     {
       subProviders: [],

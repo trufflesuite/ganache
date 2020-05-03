@@ -106,7 +106,7 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
     this.value = value;
   }
 
-  toString(): string {
+  toString(): string | null {
     let str = strCache.get(this);
     if (str === undefined) {
       str = "0x" + toStrings.get(this)();
@@ -122,10 +122,10 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
     }
     return buf;
   }
-  valueOf(): T {
+  valueOf(): T | null {
     return this.value;
   }
-  toJSON(): string {
+  toJSON(): string | null {
     return this.toString();
   }
 }

@@ -2,13 +2,13 @@ import {BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType} from ".";
 const toBigIntBE = require("bigint-buffer").toBigIntBE;
 
 class Quantity extends BaseJsonRpcType {
-  _nullable: boolean;
+  _nullable: boolean = false;
   public static from(value: number | bigint | string | Buffer, nullable = false) {
     const q = new _Quantity(value, nullable);
     q._nullable = nullable;
     return q;
   }
-  public toString(): string {
+  public toString(): string | null {
     if (Buffer.isBuffer(this.value)) {
       let val = this.value.toString("hex").replace(/^(?:0+(.+?))?$/, "$1");
 
@@ -24,7 +24,7 @@ class Quantity extends BaseJsonRpcType {
       return super.toString();
     }
   }
-  public toBigInt(): bigint {
+  public toBigInt(): bigint | null {
     const value = this.value;
 
     // TODO: memoize this stuff
@@ -65,7 +65,7 @@ class Quantity extends BaseJsonRpcType {
       return BigInt(this.value);
     }
   }
-  valueOf(): bigint {
+  valueOf(): bigint | null {
     return this.toBigInt();
   }
 }

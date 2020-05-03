@@ -35,7 +35,6 @@ describe("server", () => {
     if (s && (s.status & Status.open)) {
       await s.close();
     }
-    s = undefined;
   }
   describe("http", () => {
     async function simpleTest() {
@@ -114,7 +113,7 @@ describe("server", () => {
         // the call to `setup()` above calls `listen()` already. if we call it
         // again it should fail.
         s.listen(port, err => {
-          assert.strict(err.message, `Server is already listening on port: ${port}.`);
+          assert.strict(err!.message, `Server is already listening on port: ${port}.`);
         });
       } finally {
         await teardown();

@@ -1,8 +1,8 @@
 type Comparator<T> = (values: T[], a: number, b: number) => boolean;
 
 class Heap<T> {
-  public length: number;
-  public array: T[];
+  public length: number = 0;
+  public array: T[] = [];
   protected readonly less: Comparator<T>;
 
   /**
@@ -56,7 +56,7 @@ class Heap<T> {
    * @returns the element with the highest priority. returns `undefined` if
    * there are no more elements in the heap.
    */
-  public shift(): T {
+  public shift(): T | undefined {
     const length = this.length;
 
     // if we are empty or about to be empty...
