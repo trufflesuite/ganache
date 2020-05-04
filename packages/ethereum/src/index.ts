@@ -24,8 +24,13 @@ export default class EthereumConnector extends Emittery.Typed<{request: RequestT
     return JSON.parse(message as any) as JsonRpc.Request<EthereumApi>;
   }
 
-  handle(payload: JsonRpc.Request<EthereumApi>): Promise<any> {
-    return this.#provider.request(payload.method, payload.params);
+  handle(payload: JsonRpc.Request<EthereumApi>, protocol: "http" | "ws"): Promise<any> {
+    const method = payload.method;
+    if (protocol === "http" && method === "eth_subscribe" || method == "eth_unsubscribe") {
+      const error = JsonRpc.Error(payload.id, "-32000", "notifications not supported");
+      return Promise.reject(error);
+    }
+    return this.#provider.request(method, payload.params);
   }
 
   format(result: any, payload: JsonRpc.Request<EthereumApi>): RecognizedString {

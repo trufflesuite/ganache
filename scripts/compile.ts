@@ -61,11 +61,11 @@ function serializeToTypeAst(v: any): ts.TypeNode {
       return ts.createTypeLiteralNode(
         keys.map(k =>
           ts.createPropertySignature(
-            undefined,
+            void 0,
             ts.createStringLiteral(k),
-            undefined,
+            void 0,
             serializeToTypeAst(v[k]),
-            undefined
+            void 0
           )
         )
       );

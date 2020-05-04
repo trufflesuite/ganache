@@ -1,12 +1,12 @@
 import Api from "../interfaces/api";
-import Emittery from "emittery";
 
-export default class Executor extends Emittery {
+const hasOwn = ({}).hasOwnProperty.call.bind(({}).hasOwnProperty);
+
+export default class Executor {
   /**
    * The Executor handles execution of methods on the given Ledger
    */
   constructor() {
-    super();
   }
 
   /**
@@ -22,13 +22,22 @@ export default class Executor extends Emittery {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
-      // Only allow executing our *own* methods:
-      if (methodName !== "constructor" && api.__proto__.hasOwnProperty(methodName)) {
+      // Only allow executing our *own* methods. We allow:
+      //  * functions added to the Instance by the class, e.g.,
+      //      class SomeClass {
+      //        method = () => {} // api.hasOwnProperty("method") === true
+      //      }
+      //  * Or by the class' prototype:
+      //      class SomeClass {
+      //        method(){} // api.__proto__.hasOwnProperty("method") === true
+      //      }
+      if ((hasOwn(api.__proto__, methodName) && methodName !== "constructor") || hasOwn(api, methodName)) {
         const fn = api[methodName];
         // just double check, in case a Ledger breaks the rules and adds non-fns
         // to their Ledger interface.
         if (typeof fn === "function") {
-          return fn.apply(api, params);
+          // use Reflect.apply because fn.apply can be shadowed/overwritten.
+          return Reflect.apply(fn, api, params || []);
         }
       }
     }

@@ -22,13 +22,14 @@ export default class TezosConnector extends Emittery.Typed<{request: RequestType
     return JSON.stringify(JsonRpc.Response("123", result));
   }
 
-  parse = (message: Buffer) => {
+  parse(message: Buffer){
     return JsonRpc.Request(JSON.parse(message as any));
   };
 
-  handle = async (payload: any) => {
-    const [result] = await this.emit("request", {api: this.#api, method: payload.method, params: payload.params});
-    return result;
+  handle (payload: any, _protocol: "http" | "ws"): Promise<any> {
+    return this.emit("request", {api: this.#api, method: payload.method, params: payload.params}).then(([result]) => {
+      return result;
+    });
   };
 
   close() {

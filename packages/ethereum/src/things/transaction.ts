@@ -189,7 +189,7 @@ class Transaction extends (EthereumJsTransaction as any) {
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
   constructor(data: any, type: number = Transaction.types.none, options?: any) {
-    super(undefined, options);
+    super(void 0, options);
 
     // EthereumJS-TX Transaction overwrites our `toJSON`, so we overwrite it back here:
     this.toJSON = Transaction.prototype.toJSON.bind(this);

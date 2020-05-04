@@ -94,7 +94,7 @@ describe("provider", () => {
           resolve();
         }
       );
-      assert.strictEqual(ret, undefined);
+      assert.strictEqual(ret, void 0);
     });
     return new Promise(resolve => {
       const ret = p.sendAsync(
@@ -148,7 +148,7 @@ describe("provider", () => {
       123,
       (Buffer.from([1]) as any) as string,
       null,
-      undefined,
+      void 0,
       {},
       [],
       {foo: "bar"},

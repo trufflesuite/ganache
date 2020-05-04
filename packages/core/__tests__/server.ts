@@ -322,7 +322,7 @@ describe("server", () => {
           allCorsHeaders.forEach(header => {
             assert.strictEqual(
               resp.header[header.toLowerCase()],
-              undefined,
+              void 0,
               `Non-CORS response should not contain header ${header}`
             );
           });
@@ -345,7 +345,7 @@ describe("server", () => {
           optionsHeaders.forEach(header => {
             assert.strictEqual(
               resp.header[header.toLowerCase()],
-              undefined,
+              void 0,
               `Non-CORS response should not contain header ${header}`
             );
           });

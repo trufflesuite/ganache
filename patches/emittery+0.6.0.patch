@@ -1,25 +1,22 @@
 diff --git a/node_modules/emittery/index.d.ts b/node_modules/emittery/index.d.ts
-index d386ddb..0cb4161 100644
+index d386ddb..0937558 100644
 --- a/node_modules/emittery/index.d.ts
 +++ b/node_modules/emittery/index.d.ts
-@@ -259,11 +259,15 @@ declare namespace Emittery {
- 	/**
- 	Maps event names to their emitted data type.
- 	*/
--	interface Events {
-+	interface Args {
- 		// Blocked by https://github.com/microsoft/TypeScript/issues/1863, should be
- 		// `[eventName: EventName]: unknown;`
+@@ -256,12 +256,8 @@ declare namespace Emittery {
+ 	type UnsubscribeFn = () => void;
+ 	type EventNameFromDataMap<EventDataMap> = Extract<keyof EventDataMap, EventName>;
+ 
+-	/**
+-	Maps event names to their emitted data type.
+-	*/
+ 	interface Events {
+-		// Blocked by https://github.com/microsoft/TypeScript/issues/1863, should be
+-		// `[eventName: EventName]: unknown;`
++		[eventName: string]: (...args: any[]) => Promise<any>;
  	}
  
-+	interface Events {
-+		[eventName: string]: (args: Args) => Promise<any>;
-+	}
-+
  	/**
- 	The data provided as `eventData` when listening for `Emittery.listenerAdded` or `Emittery.listenerRemoved`.
- 	*/
-@@ -296,27 +300,27 @@ declare namespace Emittery {
+@@ -296,27 +292,27 @@ declare namespace Emittery {
  	emitter.emit('end'); // TS compilation error
  	```
  	*/

@@ -13,14 +13,14 @@ export class Data extends BaseJsonRpcType {
       throw new Error(`Cannot create a ${typeof value} as a Data`);
     }
     super(value);
-    if (byteLength !== undefined) {
+    if (byteLength !== void 0) {
       validateByteLength(byteLength);
       byteLengths.set(this, byteLength | 0);
     }
   }
   public toString(byteLength?: number): string {
     const str = strCache.get(this) as string;
-    if (str !== undefined) {
+    if (str !== void 0) {
       return str;
     } else {
       let str = toStrings.get(this)() as string;
@@ -30,12 +30,12 @@ export class Data extends BaseJsonRpcType {
         str = `0${str}`;
       }
 
-      if (byteLength !== undefined) {
+      if (byteLength !== void 0) {
         validateByteLength(byteLength);
       } else {
         byteLength = byteLengths.get(this);
       }
-      if (byteLength !== undefined) {
+      if (byteLength !== void 0) {
         const strLength = byteLength * 2;
         const padBy = strLength - length;
         if (padBy < 0) {

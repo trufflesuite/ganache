@@ -135,36 +135,25 @@ export default class HttpServer {
           return;
         }
 
-        const id = payload.id;
-        const method = payload.method;
-        switch (method) {
-          // http connections do not support subscriptions
-          case "eth_subscribe":
-          case "eth_unsubscribe":
-            const error = JsonRpc.Error(id, "-32000", "notifications not supported");
-            sendResponse(
-              response,
-              HttpResponseCodes.BAD_REQUEST,
-              ContentTypes.JSON,
-              JSON.stringify(error),
-              writeHeaders
-            );
-            break;
-          default:
-            // `await`ing the `connector.handle` instead of using `then` causes
-            // uWS to delay cleaning up the `request` object, which we don't
-            // neccessarily want to delay.
-            connector.handle(payload).then(result => {
-              if (aborted) {
-                // if the request has been aborted don't try sending (it'll
-                // cause an `Unhandled promise rejection` if we try)
-                return;
-              }
-              const data = connector.format(result, payload);
-              sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
-            });
-            break;
-        }
+        connector.handle(payload, "http").then(result => {
+          if (aborted) {
+            // if the request has been aborted don't try sending (it'll
+            // cause an `Unhandled promise rejection` if we try)
+            return;
+          }
+          const data = connector.format(result, payload);
+          sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
+        }).catch(error => {
+          sendResponse(
+            response,
+            HttpResponseCodes.BAD_REQUEST,
+            ContentTypes.JSON,
+            // TODO: handle "real" Error objects by properly serializing them.
+            // JSON.stringify can't do this on its own.
+            JSON.stringify(error),
+            writeHeaders
+          );
+        })
       } else {
         if (buffer) {
           buffer = Buffer.concat([buffer, chunk]);
@@ -179,7 +168,7 @@ export default class HttpServer {
     // handle CORS preflight requests...
     const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
     // OPTIONS responses don't have a body, so respond with `204 No Content`...
-    sendResponse(response, HttpResponseCodes.NO_CONTENT, undefined, "", writeHeaders);
+    sendResponse(response, HttpResponseCodes.NO_CONTENT, void 0, "", writeHeaders);
   };
   public close() {
     // currently a no op.

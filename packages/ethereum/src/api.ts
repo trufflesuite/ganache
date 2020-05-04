@@ -39,6 +39,8 @@ export default class EthereumApi implements Api {
   private readonly [_options]: EthereumOptions;
   private readonly [_wallet]: Wallet;
 
+  public illegalProperty: any = true;
+
   /**
    * This is the Ethereum ledger that the provider interacts with.
    * The only methods permitted on the prototype are the supported json-rpc
@@ -440,6 +442,13 @@ export default class EthereumApi implements Api {
    */
   async eth_sendRawTransaction(transaction: any): Promise<Data> {
     return await this[_blockchain].queueTransaction(transaction);
+  }
+
+  async eth_subscribe(): Promise<any>{
+    throw new Error("TODO: implement me");
+  }
+  async eth_unsubscribe(): Promise<any>{
+    throw new Error("TODO: implement me");
   }
 
   async eth_call(transaction: any, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Data> {

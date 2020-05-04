@@ -18,7 +18,7 @@ export default interface Connector<ApiImplementation extends Api, RequestFormat 
    * Handles a parse message
    * @param payload
    */
-  handle(payload: RequestFormat): Promise<ResponseFormat>;
+  handle(payload: RequestFormat, protocol: "http" | "ws"): Promise<ResponseFormat>;
 
   /**
    * Formats the response (from handle)

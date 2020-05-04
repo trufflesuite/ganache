@@ -108,7 +108,7 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
 
   toString(): string | null {
     let str = strCache.get(this);
-    if (str === undefined) {
+    if (str === void 0) {
       str = "0x" + toStrings.get(this)();
       strCache.set(this, str);
     }
@@ -116,7 +116,7 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
   }
   toBuffer(): Buffer {
     let buf = bufCache.get(this);
-    if (buf === undefined) {
+    if (buf === void 0) {
       buf = toBuffers.get(this)();
       bufCache.set(this, buf);
     }

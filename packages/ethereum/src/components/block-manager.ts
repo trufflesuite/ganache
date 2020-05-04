@@ -70,7 +70,7 @@ export default class BlockManager extends Manager<Block> {
       switch (tag) {
         case Tag.LATEST:
           return this.latest;
-        case undefined:
+        case void 0:
         case null:
           // the key is probably a hex string, let nature takes its course.
           break;

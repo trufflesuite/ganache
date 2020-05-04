@@ -23,7 +23,7 @@ export default class WebsocketServer {
           ws.end(WebSocketCloseCodes.CLOSE_PROTOCOL_ERROR, "Received a malformed frame: " + e.message);
           return;
         }
-        const result = await connector.handle(payload);
+        const result = await connector.handle(payload, "ws");
         // The socket may have closed while we were waiting for the response
         // Don't bother trying to send to it if it was.
         if (!ws.closed) {
