@@ -375,7 +375,7 @@ export default class EthereumApi implements Api {
    */
   async eth_sendTransaction(transaction: any): Promise<Data> {
     let fromString = transaction.from;
-    let from;
+    let from: Address;
     if (fromString) {
       from = Address.from(transaction.from);
       fromString = from.toString().toLowerCase();
