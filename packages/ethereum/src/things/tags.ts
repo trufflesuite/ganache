@@ -11,9 +11,8 @@ enum _Tag {
 
 namespace Tag {
   export function normalize(tag: keyof typeof _Tag | Tag): Tag {
-    let t: Tag;
     if (typeof tag === "string") {
-      t = (<any>Tag)[tag.toUpperCase()];
+      return (<any>Tag)[tag.toUpperCase()];
     } else {
       switch (tag) {
         case _Tag.earliest:
@@ -24,7 +23,6 @@ namespace Tag {
           return Tag.PENDING;
       }
     }
-    return t;
   }
 }
 
