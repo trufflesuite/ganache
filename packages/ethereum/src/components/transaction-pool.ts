@@ -20,7 +20,7 @@ function byNonce(values: Transaction[], a: number, b: number) {
   return (Quantity.from(values[b].nonce).toBigInt() || 0n) > (Quantity.from(values[a].nonce).toBigInt() || 0n);
 }
 
-export default class TransactionPool extends Emittery {
+export default class TransactionPool extends Emittery.Typed<{drain: (transactions: Map<string, Heap<Transaction>>) => void}> {
   #options: TransactionPoolOptions;
 
   /**
