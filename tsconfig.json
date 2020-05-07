@@ -12,6 +12,7 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "strict": true,
+    "strictNullChecks": false,
     "newLine": "lf",
     "lib": ["ES2020"]
   }
