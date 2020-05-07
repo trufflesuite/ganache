@@ -1,8 +1,17 @@
 diff --git a/node_modules/emittery/index.d.ts b/node_modules/emittery/index.d.ts
-index d386ddb..96d6739 100644
+index d386ddb..4373fbb 100644
 --- a/node_modules/emittery/index.d.ts
 +++ b/node_modules/emittery/index.d.ts
-@@ -256,12 +256,8 @@ declare namespace Emittery {
+@@ -77,6 +77,8 @@ declare class Emittery {
+ 	*/
+ 	static readonly listenerRemoved: unique symbol;
+ 
++	init(){}
++
+ 	/**
+ 	Subscribe to an event.
+ 
+@@ -256,12 +258,8 @@ declare namespace Emittery {
  	type UnsubscribeFn = () => void;
  	type EventNameFromDataMap<EventDataMap> = Extract<keyof EventDataMap, EventName>;
  
@@ -16,14 +25,14 @@ index d386ddb..96d6739 100644
  	}
  
  	/**
-@@ -296,28 +292,30 @@ declare namespace Emittery {
+@@ -296,28 +294,30 @@ declare namespace Emittery {
  	emitter.emit('end'); // TS compilation error
  	```
  	*/
 -	class Typed<EventDataMap extends Events, EmptyEvents extends EventName = never> extends Emittery {
 -		on<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: EventDataMap[Name]) => void): Emittery.UnsubscribeFn;
 +	class Typed<EventDataMap extends Events, EmptyEvents extends EventName = never> {
-+		on<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: Parameters<EventDataMap[Name]>[0]) => ReturnType<EventDataMap[Name]>): Emittery.UnsubscribeFn;
++		on<Name extends EventNameFromDataMap<EventDataMap>>  (eventName: Name, listener: (eventData: Parameters<EventDataMap[Name]>[0]) => ReturnType<EventDataMap[Name]>): Emittery.UnsubscribeFn;
  		on<Name extends EmptyEvents>(eventName: Name, listener: () => void): Emittery.UnsubscribeFn;
  
 -		events<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name): AsyncIterableIterator<EventDataMap[Name]>;
@@ -56,3 +65,19 @@ index d386ddb..96d6739 100644
 +		clearListeners(eventName?: EventName): void;
  	}
  }
+ 
+diff --git a/node_modules/emittery/index.js b/node_modules/emittery/index.js
+index 5ddd3db..9a68c72 100644
+--- a/node_modules/emittery/index.js
++++ b/node_modules/emittery/index.js
+@@ -182,6 +182,10 @@ class Emittery {
+ 	}
+ 
+ 	constructor() {
++		this.init();	
++	}
++
++	init() {
+ 		anyMap.set(this, new Set());
+ 		eventsMap.set(this, new Map());
+ 		producersMap.set(this, new Map());
