@@ -1,5 +1,5 @@
 diff --git a/node_modules/emittery/index.d.ts b/node_modules/emittery/index.d.ts
-index d386ddb..0937558 100644
+index d386ddb..96d6739 100644
 --- a/node_modules/emittery/index.d.ts
 +++ b/node_modules/emittery/index.d.ts
 @@ -256,12 +256,8 @@ declare namespace Emittery {
@@ -12,11 +12,11 @@ index d386ddb..0937558 100644
  	interface Events {
 -		// Blocked by https://github.com/microsoft/TypeScript/issues/1863, should be
 -		// `[eventName: EventName]: unknown;`
-+		[eventName: string]: (...args: any[]) => Promise<any>;
++		[eventName: string]: (...args: any[]) => any;
  	}
  
  	/**
-@@ -296,27 +292,27 @@ declare namespace Emittery {
+@@ -296,28 +292,30 @@ declare namespace Emittery {
  	emitter.emit('end'); // TS compilation error
  	```
  	*/
@@ -52,5 +52,7 @@ index d386ddb..0937558 100644
 -		emitSerial<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, eventData: EventDataMap[Name]): Promise<void>;
 +		emitSerial<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, eventData: Parameters<EventDataMap[Name]>[0]): Promise<[ReturnType<EventDataMap[Name]>]>;
  		emitSerial<Name extends EmptyEvents>(eventName: Name): Promise<void>;
++
++		clearListeners(eventName?: EventName): void;
  	}
  }
