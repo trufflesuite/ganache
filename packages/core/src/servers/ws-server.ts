@@ -1,10 +1,17 @@
 import uWS, {TemplatedApp, WebSocket} from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import Connector from "../interfaces/connector";
+import { FlavorMap } from "../options/server-options";
+
+type WebSocketCapableFlavorMap = {
+  [k in keyof FlavorMap]: FlavorMap[k]["handle"] extends ((payload: any, connection: WebSocket) => any) ? FlavorMap[k] : never;
+};
+export type WebSocketCapableFlavor = {
+  [k in keyof WebSocketCapableFlavorMap]: WebSocketCapableFlavorMap[k];
+}[keyof WebSocketCapableFlavorMap];
 
 export default class WebsocketServer {
   #connections = new Set<WebSocket>();
-  constructor(app: TemplatedApp, connector: Connector<any>, options: any) {
+  constructor(app: TemplatedApp, connector: WebSocketCapableFlavor, options: any) {
     app.ws("/", {
       /* WS Options */
       compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
@@ -23,13 +30,24 @@ export default class WebsocketServer {
           ws.end(WebSocketCloseCodes.CLOSE_PROTOCOL_ERROR, "Received a malformed frame: " + e.message);
           return;
         }
-        const result = await connector.handle(payload, "ws");
-        // The socket may have closed while we were waiting for the response
-        // Don't bother trying to send to it if it was.
-        if (!ws.closed) {
-          const message = connector.format(result, payload);
-          ws.send(message, isBinary, true);
-        }
+        
+        const resultEmitter = connector.handle(payload, ws);
+        resultEmitter.then((result: any) => {
+          // The socket may have closed while we were waiting for the response
+          // Don't bother trying to send to it if it was.
+          if (!ws.closed) {
+            const message = connector.format(result, payload);
+            ws.send(message, isBinary, true);
+          }
+        });
+        resultEmitter.on("result", (result: any) => {
+          // The socket may have closed while we were waiting for the response
+          // Don't bother trying to send to it if it was.
+          if (!ws.closed) {
+            const message = connector.format(result, payload);
+            ws.send(message, isBinary, true);
+          }
+        });
       },
       drain: (ws: WebSocket) => {
         // This is there so tests can detect if a small amount of backpressure is happening and that things will still

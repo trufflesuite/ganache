@@ -2,7 +2,7 @@ import ServerOptions, {getDefault as getDefaultServerOptions} from "./options/se
 
 import uWS, {TemplatedApp, us_listen_socket} from "uWebSockets.js";
 import Connector from "./connector";
-import WebsocketServer from "./servers/ws-server";
+import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import {Flavors} from "./options/provider-options";
 
@@ -62,7 +62,7 @@ export default class Server<T extends ServerOptions = ServerOptions> {
     const _app = (this.#app = uWS.App());
 
     if (this.#options.ws) {
-      this.#websocketServer = new WebsocketServer(_app, connector, opts);
+      this.#websocketServer = new WebsocketServer(_app, connector as WebSocketCapableFlavor, opts);
     }
     this.#httpServer = new HttpServer(_app, connector);
   }

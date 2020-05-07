@@ -5,6 +5,7 @@ import TezosProvider from "./provider";
 import JsonRpc from "@ganache/core/src/servers/utils/jsonrpc";
 import ProviderOptions from "@ganache/core/src/options/provider-options";
 import TezosApi from "./api";
+import { HttpRequest } from "uWebSockets.js";
 
 export default class TezosConnector extends Emittery.Typed<{request: RequestType<TezosApi>}, "ready" | "close">
   implements Connector<TezosApi> {
@@ -26,7 +27,7 @@ export default class TezosConnector extends Emittery.Typed<{request: RequestType
     return JsonRpc.Request(JSON.parse(message as any));
   };
 
-  handle (payload: any, _protocol: "http" | "ws"): Promise<any> {
+  handle (payload: any, _connection: HttpRequest): Promise<any> {
     return this.emit("request", {api: this.#api, method: payload.method, params: payload.params}).then(([result]) => {
       return result;
     });

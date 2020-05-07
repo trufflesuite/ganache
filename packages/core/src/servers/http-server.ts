@@ -1,9 +1,7 @@
 import {TemplatedApp, HttpResponse, HttpRequest, RecognizedString} from "uWebSockets.js";
 import ContentTypes from "./utils/content-types";
-import JsonRpc from "./utils/jsonrpc";
 import HttpResponseCodes from "./utils/http-response-codes";
-import Connector from "../interfaces/connector";
-import {Apis} from "../options/server-options";
+import {Flavors} from "../options/server-options";
 
 const noop = () => {};
 
@@ -80,8 +78,8 @@ function sendResponse(
 }
 
 export default class HttpServer {
-  #connector: Connector<Apis>;
-  constructor(app: TemplatedApp, connector: Connector<any>) {
+  #connector: Flavors;
+  constructor(app: TemplatedApp, connector: Flavors) {
     this.#connector = connector;
 
     // JSON-RPC routes...
@@ -135,25 +133,27 @@ export default class HttpServer {
           return;
         }
 
-        connector.handle(payload, "http").then(result => {
-          if (aborted) {
-            // if the request has been aborted don't try sending (it'll
-            // cause an `Unhandled promise rejection` if we try)
-            return;
-          }
-          const data = connector.format(result, payload);
-          sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
-        }).catch(error => {
-          sendResponse(
-            response,
-            HttpResponseCodes.BAD_REQUEST,
-            ContentTypes.JSON,
-            // TODO: handle "real" Error objects by properly serializing them.
-            // JSON.stringify can't do this on its own.
-            JSON.stringify(error),
-            writeHeaders
-          );
-        })
+        connector
+          .handle(payload, request)
+          .then((result: any) => {
+            if (aborted) {
+              // if the request has been aborted don't try sending (it'll
+              // cause an `Unhandled promise rejection` if we try)
+              return;
+            }
+            const data = connector.format(result, payload);
+            sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
+          }).catch((error: any) => {
+            sendResponse(
+              response,
+              HttpResponseCodes.BAD_REQUEST,
+              ContentTypes.JSON,
+              // TODO: handle "real" Error objects by properly serializing them.
+              // JSON.stringify can't do this on its own.
+              JSON.stringify(error),
+              writeHeaders
+            );
+          });
       } else {
         if (buffer) {
           buffer = Buffer.concat([buffer, chunk]);

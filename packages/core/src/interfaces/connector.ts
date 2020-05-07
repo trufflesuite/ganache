@@ -1,8 +1,9 @@
 import {Provider} from "./provider";
-import {RecognizedString} from "uWebSockets.js";
+import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
 import Api from "./api";
 import Emittery from "emittery";
 import {RequestType} from "../types";
+import PromiEvent from "../things/promievent";
 
 export default interface Connector<ApiImplementation extends Api, RequestFormat = any, ResponseFormat = any>
   extends Emittery.Typed<{request: RequestType<ApiImplementation>}, "ready" | "close"> {
@@ -18,7 +19,9 @@ export default interface Connector<ApiImplementation extends Api, RequestFormat 
    * Handles a parse message
    * @param payload
    */
-  handle(payload: RequestFormat, protocol: "http" | "ws"): Promise<ResponseFormat>;
+  handle:
+    | ((payload: RequestFormat, connection: HttpRequest) => Promise<ResponseFormat>)
+    | ((payload: RequestFormat, connection: WebSocket) => PromiEvent<ResponseFormat>);
 
   /**
    * Formats the response (from handle)
