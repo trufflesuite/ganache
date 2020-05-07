@@ -28,7 +28,7 @@ const argv = yargs.command("$0 <name>", "Package Name").demandCommand().help().a
       homepage: "https://github.com/trufflesuite/ganache-core#readme",
       license: "MIT",
       main: "lib/index.js",
-      typings: "lib/index.d.ts",
+      typings: "src/index.ts",
       directories: {
         lib: "lib",
         test: "__tests__"
