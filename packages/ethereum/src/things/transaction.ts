@@ -24,7 +24,7 @@ const fakeHash = function (this: Transaction) {
   if (this._hash != null) {
     return this._hash;
   }
-  return EthereumJsFakeTransaction.prototype.hash.apply(this, arguments);
+  return EthereumJsFakeTransaction.prototype.hash.apply(this, arguments as unknown as [(boolean | undefined)?]);
 };
 const BUFFER_ZERO = Buffer.from([0]);
 
