@@ -1,9 +1,10 @@
 import assert from "assert";
 import GetProvider from "./helpers/getProvider";
 import sleep from "./helpers/sleep";
+import EthereumProvider from "@ganache/ethereum/src/provider";
 
 describe("ledger", () => {
-  let provider: any;
+  let provider: EthereumProvider;
   let accounts: string[];
 
   beforeEach(async () => {
@@ -11,8 +12,9 @@ describe("ledger", () => {
     accounts = await provider.request("eth_accounts");
   })
 
-  it("eth_blockNumber", async () => {
+  it.only("eth_blockNumber", async () => {
     const blockNumber = parseInt(await provider.request("eth_blockNumber"), 10);
+    await provider.request("eth_subscribe", ["newHeads"]);
     await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -21,10 +23,14 @@ describe("ledger", () => {
       }
     ]);
     // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    await new Promise((resolve) => {
+      provider.on("message", () => {
+        resolve();
+      });
+    });
     const nextBlockNumber = await provider.request("eth_blockNumber");
     assert.equal(blockNumber, nextBlockNumber - 1);
-  }).timeout(4000);
+  }).timeout(400000);
 
   it("eth_getBlockByNumber", async () => {
     await provider.request("eth_sendTransaction", [
