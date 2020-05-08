@@ -1,5 +1,5 @@
 diff --git a/node_modules/emittery/index.d.ts b/node_modules/emittery/index.d.ts
-index d386ddb..4373fbb 100644
+index d386ddb..f76ed70 100644
 --- a/node_modules/emittery/index.d.ts
 +++ b/node_modules/emittery/index.d.ts
 @@ -77,6 +77,8 @@ declare class Emittery {
@@ -40,8 +40,8 @@ index d386ddb..4373fbb 100644
  
 -		once<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name): Promise<EventDataMap[Name]>;
 -		once<Name extends EmptyEvents>(eventName: Name): Promise<void>;
-+		once<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: Parameters<EventDataMap[Name]>[0]) => ReturnType<EventDataMap[Name]>): Emittery.UnsubscribeFn;
-+		once<Name extends EmptyEvents>(eventName: Name, listener: () => void): Emittery.UnsubscribeFn;
++		once<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name): Promise<ReturnType<EventDataMap[Name]>>;
++		once<Name extends EmptyEvents>(eventName: Name): Promise<ReturnType<EventDataMap[Name]>>;
  
 -		off<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: EventDataMap[Name]) => void): void;
 +		off<Name extends EventNameFromDataMap<EventDataMap>>(eventName: Name, listener: (eventData: Parameters<EventDataMap[Name]>[0]) => ReturnType<EventDataMap[Name]>): void;
