@@ -7,12 +7,12 @@ import ProviderOptions from "@ganache/core/src/options/provider-options";
 import TezosApi from "./api";
 import { HttpRequest } from "uWebSockets.js";
 
-export default class TezosConnector extends Emittery.Typed<{request: RequestType<TezosApi>}, "ready" | "close">
+export default class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
   implements Connector<TezosApi> {
   provider: TezosProvider;
   #api: TezosApi;
 
-  constructor(providerOptions: ProviderOptions) {
+  constructor(providerOptions: ProviderOptions, requestCoordinator: any) {
     super();
 
     const api = (this.#api = new TezosApi());
@@ -28,9 +28,9 @@ export default class TezosConnector extends Emittery.Typed<{request: RequestType
   };
 
   handle (payload: any, _connection: HttpRequest): Promise<any> {
-    return this.emit("request", {api: this.#api, method: payload.method, params: payload.params}).then(([result]) => {
-      return result;
-    });
+    
+      return Promise.resolve(123);
+    
   };
 
   close() {

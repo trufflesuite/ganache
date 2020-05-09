@@ -1,11 +1,11 @@
-import Ganache from "../src/";
+import Ganache from "../src";
 import assert from "assert";
 
 describe("provider", () => {
   const networkId = "1234";
   let p: any;
 
-  beforeEach("set up", () => {
+  beforeEach(() => {
     p = Ganache.provider({
       network_id: networkId
     });
@@ -36,7 +36,7 @@ describe("provider", () => {
       };
       await p.send("web3_sha3", ["Tim is a swell guy."]);
     });
-  }).timeout(1000);
+  });
 
   it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
     const p = Ganache.provider() as any;
@@ -112,6 +112,16 @@ describe("provider", () => {
     });
   });
 
+  // duck punch a property that shouldn't appear on the ledger. we test this
+  // to make sure that 3rd party ledger implementations can't shoot themselves
+  // in the foot on accident
+  it.skip("TODO: allow 'injecting' our own engine or ledger into a provider!", async () => {
+    (p as any)._engine._ledger.__proto__.illegalProperty = true;
+    await assert.rejects(p.request("illegalProperty" as any), {
+      message: "Invalid or unsupported method: illegalProperty"
+    });
+  });
+
   it("rejects invalid rpc methods", async () => {
     const illegalMethodNames = [
       "toString",
@@ -123,21 +133,9 @@ describe("provider", () => {
       " ",
       "constructor"
     ];
-    await Promise.all(
-      illegalMethodNames.map((name: any) => {
-        return assert.rejects(p.request(name), {
-          message: `Invalid or unsupported method: ${name}`
-        });
-      })
-    );
-
-    // duck punch a property that shouldn't appear on the ledger. we test this
-    // to make sure that 3rd party ledger implementations can't shoot themselves
-    // in the foot on accident
-    it.skip("TODO: allow 'injecting' our own engine or ledger into a provider!", async () => {
-      (p as any)._engine._ledger.__proto__.illegalProperty = true;
-      await assert.rejects(p.request("illegalProperty" as any), {
-        message: "Invalid or unsupported method: illegalProperty"
+    illegalMethodNames.forEach((name: any) => {
+      assert.throws(() => p.request(name), {
+        message: `Invalid or unsupported method: ${name}`
       });
     });
 

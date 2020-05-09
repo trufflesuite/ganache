@@ -141,6 +141,7 @@ export default class Blockchain extends Emittery {
           });
           block.value.transactions = blockData.blockTransactions;
           this.blocks.putBlock(block);
+          this.emit("block", block);
           return block;
         });
       });

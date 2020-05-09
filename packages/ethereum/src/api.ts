@@ -1,19 +1,20 @@
 //#region Imports
-import Api, { Emitter } from "@ganache/core/src/interfaces/api";
+import Api from "@ganache/core/src/interfaces/api";
 import EthereumOptions from "./options";
 import {Data, Quantity} from "@ganache/core/src/things/json-rpc";
 import Blockchain from "./blockchain";
 import Tag from "./things/tags";
 import Address, {IndexableAddress} from "./things/address";
 import Transaction from "./things/transaction";
-import {Block} from "./components/block-manager";
 import Wallet from "./wallet";
-import Account from "ethereumjs-account";
 import {decode as rlpDecode} from "rlp";
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
 import {name, version} from "../../core/package.json";
+import PromiEvent from "@ganache/core/src/things/promievent";
+import { types } from "util";
+import Emittery from "emittery";
 //#endregion
 
 //#region Constants
@@ -30,16 +31,20 @@ const _blockchain = Symbol("blockchain");
 const _isMining = Symbol("isMining");
 const _options = Symbol("options");
 const _wallet = Symbol("wallet");
+const _filters = Symbol("filters");
+
+//#region types
+type SubscriptionId = string;
+//#endregion
 
 export default class EthereumApi implements Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
+  private readonly [_filters] = new Map<any, any>();
   private readonly [_blockchain]: Blockchain;
   private [_isMining] = false;
   private readonly [_options]: EthereumOptions;
   private readonly [_wallet]: Wallet;
-
-  public illegalProperty: any = true;
 
   /**
    * This is the Ethereum ledger that the provider interacts with.
@@ -48,14 +53,18 @@ export default class EthereumApi implements Api {
    * @param options
    * @param ready Callback for when the ledger is fully initialized
    */
-  constructor(options: EthereumOptions, emitter: Emitter) {
+  constructor(options: EthereumOptions, emitter: Emittery.Typed<undefined, "message" | "connect" | "disconnect">) {
     const opts = (this[_options] = options);
 
     this[_wallet] = new Wallet(opts);
 
     const blockchain = (this[_blockchain] = new Blockchain(options));
-    blockchain.on("start", () => emitter.emit("ready"));
-    emitter.on("close", async () => await blockchain.stop());
+    blockchain.on("start", () => {
+      emitter.emit("connect");
+    });
+    emitter.on("disconnect", () => {
+      return blockchain.stop();
+    });
   }
 
   //#region web3
@@ -444,11 +453,94 @@ export default class EthereumApi implements Api {
     return await this[_blockchain].queueTransaction(transaction);
   }
 
-  async eth_subscribe(): Promise<any>{
-    throw new Error("TODO: implement me");
+  eth_subscribe(subscriptionName: "newHeads", options?: any): PromiEvent<any> {
+    switch (subscriptionName) {
+      case "newHeads":
+        const filters = this[_filters];
+        const promiEvent = new PromiEvent(resolve => {
+          const subscription = `0x${filters.size.toString(16)}`;
+          const unsubscribe = this[_blockchain].on("block", (result: any) => {
+            promiEvent.emit("message", {
+              type: "eth_subscription",
+              data: {
+                result,
+                subscription
+              }
+            });
+          });
+          filters.set(subscription, unsubscribe);
+
+          resolve(subscription);
+        });
+        return promiEvent;
+      //case "logs":
+        // const promiEvent = new PromiEvent(resolve => {
+        //   this.eth_newFilter([paramsz[1]])
+        //     .then(hexId => {
+        //         resolve(hexId);
+        //     });
+        // });
+        // promiEvent.then(hexId => {
+        //   this[_filters]
+        //     .get(hexId)
+        //     .on("block")
+        //     .then((block: any) => {
+        //       const blockNumber = block.number;
+        //       return [{
+        //         fromBlock: blockNumber,
+        //         toBlock: blockNumber
+        //       }];
+        //     }).then(this.eth_getLogs).then((logs: any) => {
+        //       promiEvent.emit("result", logs);
+        //     });
+        // });
+        // return promiEvent;
+      // case 'newPendingTransactions':
+      //   createSubscriptionFilter = self.newPendingTransactionFilter.bind(self)
+      //   break
+      // case 'newHeads':
+      //   createSubscriptionFilter = self.newBlockFilter.bind(self)
+      //   break
+      // case 'syncing':
+      // default:
+      //   cb(new Error('unsupported subscription type'))
+      //   return
+    }
   }
-  async eth_unsubscribe(): Promise<any>{
-    throw new Error("TODO: implement me");
+
+
+  async eth_unsubscribe([subscriptionId]: [SubscriptionId]): Promise<any> {
+    const filters = this[_filters];
+    const unsubscribe = filters.get(subscriptionId);
+    if (unsubscribe) {
+      filters.delete(subscriptionId);
+      unsubscribe();
+      return true;
+    } else {
+      throw new Error(`Subscription ID ${subscriptionId} not found.`)
+    }
+  }
+
+  async eth_newBlockFilter(): Promise<any>{
+
+  }
+  async eth_newPendingTransactionFilter(): Promise<any>{
+
+  }
+  async eth_newFilter(params: any[]): Promise<any> {
+    
+  }
+  async eth_getFilterChanges(): Promise<any> {
+
+  }
+  async eth_uninstallFilter(): Promise<any> {
+
+  }
+  async eth_getFilterLogs(): Promise<any> {
+  }
+
+  async eth_getLogs(): Promise<any> {
+
   }
 
   async eth_call(transaction: any, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Data> {

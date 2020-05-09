@@ -1,6 +1,5 @@
 import assert from "assert";
 import GetProvider from "./helpers/getProvider";
-import sleep from "./helpers/sleep";
 import EthereumProvider from "@ganache/ethereum/src/provider";
 
 describe("ledger", () => {
@@ -10,29 +9,26 @@ describe("ledger", () => {
   beforeEach(async () => {
     provider = GetProvider();
     accounts = await provider.request("eth_accounts");
-  })
+  });
 
-  it.only("eth_blockNumber", async () => {
-    const blockNumber = parseInt(await provider.request("eth_blockNumber"), 10);
-    await provider.request("eth_subscribe", ["newHeads"]);
-    await provider.request("eth_sendTransaction", [
+  it("eth_blockNumber", async () => {
+    const blockNumber = await provider.request("eth_blockNumber");
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
+    const _txHash = await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
         to: accounts[1],
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await new Promise((resolve) => {
-      provider.on("message", () => {
-        resolve();
-      });
-    });
+
+    const _message = await provider.once("message");
     const nextBlockNumber = await provider.request("eth_blockNumber");
-    assert.equal(blockNumber, nextBlockNumber - 1);
-  }).timeout(400000);
+    assert.strictEqual(parseInt(blockNumber, 10), nextBlockNumber - 1);
+  });
 
   it("eth_getBlockByNumber", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -40,8 +36,7 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
     const blocks = await Promise.all([
       provider.request("eth_getBlockByNumber", ["0x1", true]),
       provider.request("eth_getBlockByNumber", ["0x1"])
@@ -50,6 +45,7 @@ describe("ledger", () => {
   });
 
   it("eth_getBlockByHash", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -57,8 +53,7 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
     const block = await provider.request("eth_getBlockByNumber", ["0x1"]);
 
     const blocks = await Promise.all([
@@ -75,6 +70,7 @@ describe("ledger", () => {
   });
 
   it("eth_getBlockTransactionCountByHash", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -82,8 +78,7 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
     const block = await provider.request("eth_getBlockByNumber", ["0x1"]);
 
     const count = await provider.request("eth_getBlockTransactionCountByHash", [block.hash]);
@@ -91,6 +86,7 @@ describe("ledger", () => {
   });
 
   it("eth_getBlockTransactionCountByNumber", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -98,14 +94,14 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
 
     const count = await provider.request("eth_getBlockTransactionCountByNumber", ["0x1"]);
     assert(count, "1");
   });
 
   it("eth_getTransactionByBlockNumberAndIndex", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -113,8 +109,7 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
 
     const tx = await provider.request("eth_getTransactionByBlockNumberAndIndex", ["0x1", "0x0"]);
     assert.equal(
@@ -125,6 +120,7 @@ describe("ledger", () => {
   });
 
   it("eth_getTransactionByBlockHashAndIndex", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -132,8 +128,7 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
     const block = await provider.request("eth_getBlockByNumber", ["0x1"]);
 
     const tx = await provider.request("eth_getTransactionByBlockHashAndIndex", [block.hash, "0x0"]);
@@ -145,6 +140,7 @@ describe("ledger", () => {
   });
 
   it("eth_getUncleCountByBlockHash", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -152,8 +148,7 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
     const block = await provider.request("eth_getBlockByNumber", ["0x1"]);
 
     const count = await provider.request("eth_getUncleCountByBlockHash", [block.hash]);
@@ -161,6 +156,7 @@ describe("ledger", () => {
   });
 
   it("eth_getUncleCountByBlockNumber", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -168,14 +164,14 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
 
     const count = await provider.request("eth_getUncleCountByBlockNumber", ["0x1"]);
     assert(count, "0");
   });
 
   it("eth_getTransactionReceipt", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     const hash = await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -183,14 +179,14 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
 
     const receipt = await provider.request("eth_getTransactionReceipt", [hash]);
     assert(receipt.transactionIndex, "0x0");
   });
 
   it("eth_getTransactionByHash", async () => {
+    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
     const hash = await provider.request("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -198,8 +194,7 @@ describe("ledger", () => {
         value: 1
       }
     ]);
-    // TODO: remove and replace with something that detects with the block is "mined"
-    await sleep();
+    const _message = await provider.once("message");
 
     const tx = await provider.request("eth_getTransactionByHash", [hash]);
     assert(tx.transactionIndex, "0x0");

@@ -1,9 +1,3 @@
-export type Emitter = {
-  on(eventName: string, listener: (eventData?: any) => any): any;
-  off(eventName: string, listener: (eventData?: any) => any): any;
-  emit(eventName: string, eventData?: any): any;
-};
-
 /**
  * Base implementation for an API.
  * All properties must be `async` callable or return a `Promise`

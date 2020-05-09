@@ -7,12 +7,14 @@ import Account from "./things/account";
 import {mnemonicToSeedSync} from "bip39";
 import Address from "./things/address";
 import JsonRpc from "@ganache/core/src/servers/utils/jsonrpc";
+import Executor from "@ganache/core/src/utils/executor";
 import EthereumOptions from "./options";
 import cloneDeep from "lodash.clonedeep";
 import secp256k1 from "secp256k1";
 import HDKey from "hdkey";
-import {RequestType, KnownKeys} from "@ganache/core/src/types";
+import {KnownKeys} from "@ganache/core/src/types";
 import {Provider} from "@ganache/core/src/interfaces/provider";
+import PromiEvent from "@ganache/core/src/things/promievent";
 
 const WEI = 1000000000000000000n;
 
@@ -20,25 +22,27 @@ interface Callback {
   (err?: Error, response?: JsonRpc.Response): void;
 }
 
-export default class EthereumProvider extends Emittery.Typed<{request: RequestType<EthereumApi>}, "ready" | "close">
-  implements Provider<EthereumApi> {
+export default class EthereumProvider extends Emittery.Typed<undefined, "message" | "connect" | "disconnect">
+  implements Provider<EthereumApi>
+  {
   #options: ProviderOptions;
   #api: EthereumApi;
   #wallet: HDKey;
+  #executor: Executor;
 
-  constructor(providerOptions?: ProviderOptions) {
+  constructor(providerOptions: ProviderOptions = null, executor: Executor) {
     super();
     const _providerOptions = (this.#options = getDefaultProviderOptions(providerOptions));
 
     this.#wallet = HDKey.fromMasterSeed(mnemonicToSeedSync(_providerOptions.mnemonic, null));
+    this.#executor = executor;
 
     const accounts = this.#initializeAccounts();
     // ethereum options' `accounts` are different than the provider options'
     // `accounts`, fix that up here:
     const ethereumOptions = (_providerOptions as any) as EthereumOptions;
     ethereumOptions.accounts = accounts;
-    const emitter = this as any;
-    this.#api = new EthereumApi(ethereumOptions, emitter);
+    this.#api = new EthereumApi(ethereumOptions, this);
   }
 
   // TODO: this doesn't seem like a provider-level function. Maybe we should
@@ -106,14 +110,14 @@ export default class EthereumProvider extends Emittery.Typed<{request: RequestTy
   }
 
   public send(payload: JsonRpc.Request<EthereumApi>, callback?: Callback): void;
-  public send(method: KnownKeys<EthereumApi>, params?: any[]): Promise<any>;
+  public send(method: KnownKeys<EthereumApi>, params?: Parameters<EthereumApi[typeof method]>): Promise<any>;
   public send(arg1: KnownKeys<EthereumApi> | JsonRpc.Request<EthereumApi>, arg2?: Callback | any[]): Promise<any> {
     let method: KnownKeys<EthereumApi>;
-    let params: any[];
+    let params: any;
     let response: Promise<{}>;
     if (typeof arg1 === "string") {
       method = arg1;
-      params = arg2 as any[];
+      params = arg2 as any;
       response = this.request(method, params);
     } else if (typeof arg2 === "function") {
       // handle backward compatibility with callback-style ganache-core
@@ -122,12 +126,14 @@ export default class EthereumProvider extends Emittery.Typed<{request: RequestTy
       method = payload.method as KnownKeys<EthereumApi>;
       params = payload.params;
 
-      this.emit("request", {api: this.#api, method, params})
-        .then(
-          ([result]) =>
-            void process.nextTick(callback, null, JsonRpc.Response(payload.id, JSON.parse(JSON.stringify(result))))
-        )
-        .catch(err => void process.nextTick(callback, err));
+      this.request(method, params)
+        .then((result: any) => {
+          // execute the callback on the nextTick so errors thrown in the callback
+          // don't cause the error to buble up to ganache-core
+         process.nextTick(callback, null, JsonRpc.Response(payload.id, JSON.parse(JSON.stringify(result))))
+        }).catch((err: Error) => {
+          process.nextTick(callback, err);
+        });
     } else {
       throw new Error(
         "No callback provided to provider's send function. As of web3 1.0, provider.send " +
@@ -154,16 +160,22 @@ export default class EthereumProvider extends Emittery.Typed<{request: RequestTy
     return this.send(payload, callback);
   }
 
-  public request(method: KnownKeys<EthereumApi>, params?: any[]): Promise<any> {
-    return this.emit("request", {api: this.#api, method, params}).then(([result]) => {
-      // we convert to a string and then back to JSON to create a quick deep
-      // copy or the result values.
-      return JSON.parse(JSON.stringify(result));
-    });
+  public request<Method extends KnownKeys<EthereumApi> = KnownKeys<EthereumApi>>(method: Parameters<EthereumApi[Method]>["length"] extends 0 ? Method : never): any; // ReturnType<EthereumApi[Method]>;
+  public request<Method extends KnownKeys<EthereumApi> = KnownKeys<EthereumApi>>(method: Method, params: Parameters<EthereumApi[Method]>): any; // ReturnType<EthereumApi[Method]>;
+  public request<Method extends KnownKeys<EthereumApi> = KnownKeys<EthereumApi>>(method: Method, params?: Parameters<EthereumApi[Method]>) {
+    return this.#executor.execute(this.#api, method, params).then(result => {
+      const promise = result.value as PromiseLike<ReturnType<EthereumApi[Method]>>;
+      if (promise instanceof PromiEvent) {
+        promise.on("message", (data) => {
+          this.emit("message" as never, data as never);
+        });
+      }
+      return promise.then(JSON.stringify).then(JSON.parse);
+    })
   }
 
-  public close = async () => {
-    await this.emit("close");
+  public disconnect = async () => {
+    await this.emit("disconnect");
     return;
   };
 }

@@ -1,13 +1,13 @@
-import Ganache from "../src/";
+import Ganache from "../src";
 import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
-import Server, { Status } from "../src/server";
+import Server, {Status} from "../src/server";
 import ServerOptions from "../src/options/server-options";
 import http from "http";
 import intoStream from "into-stream";
 
-const IS_WINDOWS = process.platform === "win32"
+const IS_WINDOWS = process.platform === "win32";
 
 describe("server", () => {
   const port = 5234;
@@ -19,7 +19,7 @@ describe("server", () => {
     params: []
   };
   const logger = {
-    log: (_message: string) => { }
+    log: (_message: string) => {}
   };
   let s: Server;
   async function setup(
@@ -32,7 +32,7 @@ describe("server", () => {
     return s.listen(port);
   }
   async function teardown() {
-    if (s && (s.status & Status.open)) {
+    if (s && s.status & Status.open) {
       await s.close();
     }
   }
@@ -205,7 +205,7 @@ describe("server", () => {
       }
     });
 
-    it("fails to subscribe and unsubscribe over HTTP", async () => {
+    it("fails to subscribe over HTTP", async () => {
       await setup();
       const jsonRpcJson: any = {
         jsonrpc: "2.0",
@@ -218,10 +218,6 @@ describe("server", () => {
         //  in a json rpc body? Probably, because we _do_ already send one. :-/
         await assert.rejects(request.post("http://localhost:" + port).send(jsonRpcJson), {
           status: 400,
-          message: "Bad Request"
-        });
-        jsonRpcJson.method = "eth_unsubscribe";
-        await assert.rejects(request.post("http://localhost:" + port).send(jsonRpcJson), {
           message: "Bad Request"
         });
       } finally {
@@ -246,7 +242,7 @@ describe("server", () => {
       try {
         const requests = methods.map(async method => {
           const result = await (request as any)
-          [method]("http://localhost:" + port + "/there-is-no-spoon")
+            [method]("http://localhost:" + port + "/there-is-no-spoon")
             .catch((e: any) => e);
           assert.strictEqual(result.status, 404);
           assert.strictEqual(result.message, "Not Found");
@@ -307,8 +303,7 @@ describe("server", () => {
       } finally {
         await teardown();
       }
-      // On Windows it takes over 2 seconds for req.send to finally fail!
-    }).timeout(4000);
+    });
 
     describe("CORS", () => {
       const optionsHeaders = ["Access-Control-Allow-Methods", "Access-Control-Allow-Headers", "Access-Control-Max-Age"];
@@ -395,8 +390,8 @@ describe("server", () => {
   });
 
   describe("websocket", () => {
-    beforeEach("setup", setup);
-    afterEach("teardown", teardown);
+    beforeEach(setup);
+    afterEach(teardown);
 
     it("returns the net_version over a websocket", async () => {
       const ws = new WebSocket("ws://localhost:" + port);
@@ -477,7 +472,7 @@ describe("server", () => {
       {
         // create tons of data to force websocket backpressure
         const huge = {} as any;
-        for (let i = 0; i < 1e6; i++) huge["prop_" + i] = { i, j: i };
+        for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
         (s.provider as any).request = async () => {
           return huge;
         };
@@ -502,8 +497,8 @@ describe("server", () => {
                 reject(
                   new Error(
                     "Possible false positive: Didn't detect backpressure " +
-                    " before receiving a message. Ensure `s.provider.send` is" +
-                    " sending enough data."
+                      " before receiving a message. Ensure `s.provider.send` is" +
+                      " sending enough data."
                   )
                 );
               }
@@ -519,6 +514,6 @@ describe("server", () => {
         // don't break.
         logger.log = oldLog;
       }
-    }).timeout(10000);
+    });
   });
 });

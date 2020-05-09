@@ -32,7 +32,7 @@ export default class WebsocketServer {
         }
         
         const resultEmitter = connector.handle(payload, ws);
-        resultEmitter.then((result: any) => {
+        resultEmitter.then(result => {
           // The socket may have closed while we were waiting for the response
           // Don't bother trying to send to it if it was.
           if (!ws.closed) {
@@ -40,7 +40,8 @@ export default class WebsocketServer {
             ws.send(message, isBinary, true);
           }
         });
-        resultEmitter.on("result", (result: any) => {
+        
+        resultEmitter.on("message", (result: any) => {
           // The socket may have closed while we were waiting for the response
           // Don't bother trying to send to it if it was.
           if (!ws.closed) {

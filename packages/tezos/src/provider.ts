@@ -8,6 +8,9 @@ export default class TezosProvider extends Emittery.Typed<{request: RequestType<
   implements Provider<TezosApi> {
   constructor(providerOptions?: ProviderOptions) {
     super();
+    this.emit("ready");
   }
-  public async close () {};
+  public async close () {
+    this.emit("close");
+  };
 }

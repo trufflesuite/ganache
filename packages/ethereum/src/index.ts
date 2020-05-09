@@ -3,22 +3,31 @@ import Emittery from "emittery";
 import EthereumApi from "./api";
 import JsonRpc from "@ganache/core/src/servers/utils/jsonrpc";
 import Connector from "@ganache/core/src/interfaces/connector";
-import {RequestType} from "@ganache/core/src/types";
 import EthereumProvider from "./provider";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
 import PromiEvent from "@ganache/core/src/things/promievent";
 
-export default class EthereumConnector extends Emittery.Typed<{request: RequestType<EthereumApi>}, "ready" | "close">
+function isHttp(connection: HttpRequest | WebSocket): connection is HttpRequest {
+  return connection.constructor.name === "uWS.HttpRequest"
+}
+
+export default class EthereumConnector extends Emittery.Typed<undefined, "ready" | "close">
   implements Connector<EthereumApi, JsonRpc.Request<EthereumApi>> {
+
   #provider: EthereumProvider;
+  
   get provider() {
     return this.#provider;
   }
 
-  constructor(providerOptions?: ProviderOptions) {
+  constructor(providerOptions: ProviderOptions = null, executor: any) {
     super();
 
-    this.#provider = new EthereumProvider(providerOptions);
+    const provider = this.#provider = new EthereumProvider(providerOptions, executor);
+    provider.on("connect", () => {
+      // tell the consumer (like a `ganache-core` server) everything is ready
+      this.emit("ready");
+    });
   }
 
   parse(message: Buffer) {
@@ -26,18 +35,26 @@ export default class EthereumConnector extends Emittery.Typed<{request: RequestT
   }
 
   handle(payload: JsonRpc.Request<EthereumApi>, connection: HttpRequest | WebSocket): PromiEvent<any> {
-    return new PromiEvent((resolve, reject) => {
-      const method = payload.method;
-      if (connection.constructor.name === "uWS.HttpRequest" && (method === "eth_subscribe" || method == "eth_unsubscribe")) {
+    const method = payload.method;
+    if (method === "eth_subscribe") {
+      if (isHttp(connection)) {
         const error = JsonRpc.Error(payload.id, "-32000", "notifications not supported");
-        return void reject(error);
+        return new PromiEvent((_, reject) => void reject(error));
+      } else {
+        return this.#provider.request("eth_subscribe", payload.params as Parameters<EthereumApi["eth_subscribe"]>);
       }
-      this.#provider.request(method, payload.params).then(resolve);
+    }
+    return new PromiEvent((resolve, reject) => {
+      this.#provider.request(method, payload.params as any).then(resolve);
     });
   }
 
   format(result: any, payload: JsonRpc.Request<EthereumApi>): RecognizedString {
     const json = JsonRpc.Response(payload.id, result);
     return JSON.stringify(json);
+  }
+
+  close(){
+    return this.#provider.disconnect();
   }
 }

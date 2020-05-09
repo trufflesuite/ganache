@@ -2,11 +2,12 @@ import {Provider} from "./provider";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
 import Api from "./api";
 import Emittery from "emittery";
-import {RequestType} from "../types";
 import PromiEvent from "../things/promievent";
 
-export default interface Connector<ApiImplementation extends Api, RequestFormat = any, ResponseFormat = any>
-  extends Emittery.Typed<{request: RequestType<ApiImplementation>}, "ready" | "close"> {
+/**
+ * Connects an arbitrary public chain provider to ganache-core
+ */
+export default interface Connector<ApiImplementation extends Api, RequestFormat = any, ResponseFormat = any> extends Emittery.Typed<undefined, "ready" | "close"> {
   provider: Provider<ApiImplementation>;
 
   /**
@@ -16,7 +17,7 @@ export default interface Connector<ApiImplementation extends Api, RequestFormat 
   parse(message: Buffer): RequestFormat;
 
   /**
-   * Handles a parse message
+   * Handles a parsed message
    * @param payload
    */
   handle:
@@ -24,9 +25,11 @@ export default interface Connector<ApiImplementation extends Api, RequestFormat 
     | ((payload: RequestFormat, connection: WebSocket) => PromiEvent<ResponseFormat>);
 
   /**
-   * Formats the response (from handle)
+   * Formats the response (returned from `handle`)
    * @param response
    * @param payload
    */
   format(result: ResponseFormat, payload: RequestFormat): RecognizedString;
+
+  close(): void;
 }

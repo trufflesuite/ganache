@@ -88,7 +88,7 @@ export default class Server<T extends ServerOptions = ServerOptions> {
       // Make sure we have *exclusive* use of this port.
       // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
       const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
-      this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+      this.#app.listen(port as any, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
     }).then(listenSocket => {
       if (listenSocket) {
         this.#status = Status.open;
@@ -131,7 +131,8 @@ export default class Server<T extends ServerOptions = ServerOptions> {
 
     // and do all http cleanup, if any
     this.#httpServer.close();
-    await this.provider.close();
+    await this.#connector.close();
     this.#status = Status.closed;
+    this.#app = void 0;
   }
 }
