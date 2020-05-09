@@ -43,7 +43,7 @@ export default class Executor {
         // to their Ledger interface.
         if (typeof fn === "function") {
           // queue up this method for actual execution:
-          return this.#requestCoordinator.queue(fn, api, params) as Promise<{value: ReturnType<typeof fn>}>;
+          return this.#requestCoordinator.queue(fn, api, params);
         }
       }
     }

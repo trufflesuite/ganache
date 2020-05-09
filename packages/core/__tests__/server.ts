@@ -239,7 +239,7 @@ describe("server", () => {
 
     it("returns 404 for bad routes", async () => {
       await setup();
-      const methods = ["get", "post", "head", "options", "put", "delete", "patch", "trace"];
+      const methods: ["get", "post", "head", "options", "put", "delete", "patch", "trace"] = ["get", "post", "head", "options", "put", "delete", "patch", "trace"];
       try {
         const requests = methods.map(async method => {
           const result = await request[method]("http://localhost:" + port + "/there-is-no-spoon").catch((e: any) => e);
