@@ -291,8 +291,8 @@ export default class EthereumApi implements Api {
    */
   async eth_getStorageAt(
     address: IndexableAddress,
-    position: bigint,
-    blockNumber: Buffer | Tag = Tag.LATEST
+    position: bigint | number,
+    blockNumber: string | Buffer | Tag = Tag.LATEST
   ): Promise<Data> {
     const blockProm = this[_blockchain].blocks.getRaw(blockNumber);
 
@@ -307,7 +307,7 @@ export default class EthereumApi implements Api {
     const block = await blockProm;
     if (!block) return Data.from("0x");
 
-    const blockData = (rlpDecode(block) as any) as [
+    const blockData = (rlpDecode(block) as unknown) as [
       [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
       Buffer[],
       Buffer[]

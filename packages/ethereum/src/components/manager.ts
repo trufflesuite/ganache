@@ -1,6 +1,7 @@
 import levelup from "levelup";
 import {Data} from "@ganache/core/src/things/json-rpc";
 import Blockchain from "../blockchain";
+import Tag from "../things/tags";
 const NOTFOUND = 404;
 
 export type Instantiable<T> = {new (...args: any[]): T};
@@ -14,7 +15,7 @@ export default class Manager<T> {
     this.blockchain = blockchain;
     this.base = base;
   }
-  getRaw(key: string | Buffer): Promise<Buffer> {
+  getRaw(key: string | Buffer | Tag): Promise<Buffer> {
     if (typeof key === "string") {
       key = Data.from(key).toBuffer();
     }

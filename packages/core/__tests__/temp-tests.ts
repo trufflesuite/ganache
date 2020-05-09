@@ -83,7 +83,7 @@ describe("Accounts", () => {
       }
     );
 
-    options.accounts = [] as any;
+    options.accounts = [];
     assert.throws(
       () => {
         Ganache.provider(options);
@@ -210,7 +210,7 @@ describe("Accounts", () => {
 
     assert.strictEqual(ret, "0x000000000000000000000000000000000000000000000000000000000000007b");
 
-    const storage = await p.send("eth_getStorageAt", [result.contractAddress, 0, "0x2"] as any);
+    const storage = await p.send("eth_getStorageAt", [result.contractAddress, 0, "0x2"]);
     assert.strictEqual(storage, "0x05");
   });
 

@@ -6,6 +6,7 @@ import Server, {Status} from "../src/server";
 import ServerOptions from "../src/options/server-options";
 import http from "http";
 import intoStream from "into-stream";
+import EthereumProvider from "@ganache/ethereum/src/provider";
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -241,9 +242,7 @@ describe("server", () => {
       const methods = ["get", "post", "head", "options", "put", "delete", "patch", "trace"];
       try {
         const requests = methods.map(async method => {
-          const result = await (request as any)
-            [method]("http://localhost:" + port + "/there-is-no-spoon")
-            .catch((e: any) => e);
+          const result = await request[method]("http://localhost:" + port + "/there-is-no-spoon").catch((e: any) => e);
           assert.strictEqual(result.status, 404);
           assert.strictEqual(result.message, "Not Found");
         });
@@ -257,10 +256,11 @@ describe("server", () => {
       await setup();
 
       try {
-        const oldRequest = (s.provider as any).request;
+        const provider = s.provider as EthereumProvider;
+        const oldRequest = provider.request;
         const req = request.post("http://localhost:" + port);
         const abortPromise = new Promise(resolve => {
-          (s.provider as any).request = () => {
+          provider.request = () => {
             // abort the request object after intercepting the request
             req.abort();
             return new Promise(innerResolve => {
@@ -282,7 +282,7 @@ describe("server", () => {
         // wait for the server to react to the requesrt's `abort`
         await abortPromise;
 
-        (s.provider as any).request = oldRequest;
+        provider.request = oldRequest;
 
         // now make sure we are still up and running:
         await simpleTest();
@@ -442,7 +442,8 @@ describe("server", () => {
     });
 
     it("doesn't crash when the connection is closed while a request is in flight", async () => {
-      (s.provider as any).request = async () => {
+      const provider = s.provider as EthereumProvider;
+      provider.request = async () => {
         // close our websocket after intercepting the request
         await s.close();
       };
@@ -473,7 +474,7 @@ describe("server", () => {
         // create tons of data to force websocket backpressure
         const huge = {} as any;
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
-        (s.provider as any).request = async () => {
+        (s.provider as EthereumProvider).request = async () => {
           return huge;
         };
       }

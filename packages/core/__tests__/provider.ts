@@ -1,14 +1,15 @@
 import Ganache from "../src";
 import assert from "assert";
+import EthereumProvider from "@ganache/ethereum/src/provider";
 
 describe("provider", () => {
   const networkId = "1234";
-  let p: any;
+  let p: EthereumProvider;
 
   beforeEach(() => {
     p = Ganache.provider({
       network_id: networkId
-    });
+    }) as EthereumProvider;
   });
 
   it("works without passing options", async () => {
@@ -21,7 +22,7 @@ describe("provider", () => {
         assert.strictEqual(msg, "   >  net_version: undefined");
       }
     };
-    const p = Ganache.provider({logger, verbose: true}) as any;
+    const p = Ganache.provider({logger, verbose: true}) as EthereumProvider;
 
     logger.log = msg => {
       assert.strictEqual(msg, "   >  net_version: undefined", "doesn't work when no params");
@@ -39,7 +40,7 @@ describe("provider", () => {
   });
 
   it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
-    const p = Ganache.provider() as any;
+    const p = Ganache.provider() as EthereumProvider;
     const accounts = await p.send("eth_accounts");
     // eth_accounts should always be faster than eth_getBalance; it should
     // return before eth_getBalance because of the `asyncRequestProcessing` flag
@@ -51,7 +52,7 @@ describe("provider", () => {
   });
 
   it("it processes requests in order when `asyncRequestProcessing` is false", async () => {
-    const p = Ganache.provider({asyncRequestProcessing: false}) as any;
+    const p = Ganache.provider({asyncRequestProcessing: false}) as EthereumProvider;
     const accounts = await p.send("eth_accounts");
     // eth_accounts should always be faster than eth_getBalance, but shouldn't
     // return before eth_getBalance because of the `asyncRequestProcessing` flag
@@ -64,7 +65,7 @@ describe("provider", () => {
   });
 
   it("generates predictable accounts when given a seed", async () => {
-    const p = Ganache.provider({seed: "temet nosce"}) as any;
+    const p = Ganache.provider({seed: "temet nosce"}) as EthereumProvider;
     const accounts = await p.request("eth_accounts");
     assert.strictEqual(accounts[0], "0x59eF313E6Ee26BaB6bcb1B5694e59613Debd88DA");
   });
@@ -88,8 +89,8 @@ describe("provider", () => {
           id: "1",
           jsonrpc: "2.0",
           method: "net_version"
-        } as any,
-        (_err: Error, result: any): void => {
+        },
+        (_err: Error, result): void => {
           assert.strictEqual(result.result, networkId);
           resolve();
         }
@@ -102,8 +103,8 @@ describe("provider", () => {
           id: "1",
           jsonrpc: "2.0",
           method: "net_version"
-        } as any,
-        (_err: Error, result: any): void => {
+        },
+        (_err: Error, result): void => {
           assert.strictEqual(result.result, networkId);
           resolve();
         }
@@ -144,7 +145,8 @@ describe("provider", () => {
     circular.circular = circular;
     const illegalMethodTypes = [
       123,
-      (Buffer.from([1]) as any) as string,
+      // just cast as string to make TS let me test weird stuff...
+      (Buffer.from([1]) as unknown) as string,
       null,
       void 0,
       {},
@@ -157,16 +159,16 @@ describe("provider", () => {
       circular
     ];
     await Promise.all(
-      illegalMethodTypes.map(methodType => {
+      illegalMethodTypes.map(method => {
         return assert.rejects(
           new Promise((resolve, reject) => {
             p.send(
               {
                 id: "1",
                 jsonrpc: "2.0",
-                method: methodType as any
-              } as any,
-              (err: Error, result: any): void => {
+                method
+              },
+              (err, result): void => {
                 if (err) {
                   reject(err);
                 } else {
@@ -176,7 +178,7 @@ describe("provider", () => {
             );
           }),
           {
-            message: `Invalid or unsupported method: ${methodType}`
+            message: `Invalid or unsupported method: ${method}`
           }
         );
       })
@@ -184,7 +186,7 @@ describe("provider", () => {
 
     // make sure we reject non-strings over the EIP-1193 send interface
     illegalMethodTypes.map(methodType => {
-      assert.throws(() => p.send(methodType as any), {
+      assert.throws(() => p.send(methodType), {
         message:
           "No callback provided to provider's send function. As of " +
           "web3 1.0, provider.send is no longer synchronous and must be " +
