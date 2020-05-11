@@ -22,8 +22,10 @@ const argv = yargs.command("$0 <name>", "Package Name").demandCommand().help().a
     const prettierConfig = await prettier.resolveConfig(process.cwd());
     name = npa(argv.name as string).name;
 
+    const packageName = `@ganache/${name}`;
+
     const pkg = {
-      name: name,
+      name: packageName,
       version: version,
       homepage: "https://github.com/trufflesuite/ganache-core#readme",
       license: "MIT",
@@ -39,9 +41,9 @@ const argv = yargs.command("$0 <name>", "Package Name").demandCommand().help().a
         url: "git+https://github.com/trufflesuite/ganache-core.git"
       },
       scripts: {
-        tsc: "ts-node ../../scripts/compile",
-        test: "nyc npm run jest -- --throw-deprecation --trace-warnings",
-        jest: "jest --detectLeaks '__tests__/**.ts'"
+        tsc: "ts-node ../../../scripts/compile",
+        test: "nyc npm run mocha -- --throw-deprecation --trace-warnings",
+        mocha: "mocha --detectLeaks '__tests__/**.ts'"
       },
       bugs: {
         url: "https://github.com/trufflesuite/ganache-core/issues"
@@ -49,7 +51,7 @@ const argv = yargs.command("$0 <name>", "Package Name").demandCommand().help().a
     };
 
     const tsConfig = {
-      extends: "../../tsconfig.json",
+      extends: "../../../tsconfig.json",
       compilerOptions: {
         outDir: "lib"
       },
@@ -57,7 +59,7 @@ const argv = yargs.command("$0 <name>", "Package Name").demandCommand().help().a
     };
 
     const shrinkwrap = {
-      name: name,
+      name: packageName,
       version: version,
       lockfileVersion: 1
     };
@@ -65,7 +67,7 @@ const argv = yargs.command("$0 <name>", "Package Name").demandCommand().help().a
     const testFile = `import assert from "assert";
 import ${camelCase(name)} from "../src/";
 
-describe("@ganache/${name}", () => {
+describe("${packageName}", () => {
   it("needs tests");
 })`;
 
@@ -74,7 +76,7 @@ describe("@ganache/${name}", () => {
 }
 `;
 
-    const dir = join("./packages", name);
+    const dir = join("./src/packages", name);
     const tests = join(dir, "__tests__");
     const src = join(dir, "src");
 
@@ -106,7 +108,7 @@ describe("@ganache/${name}", () => {
       ),
       writeFile(
         join(dir, "README.md"),
-        prettier.format(`# ${name}\n> TODO: description`, {...prettierConfig, parser: "markdown"})
+        prettier.format(`# ${packageName}\n> TODO: description`, {...prettierConfig, parser: "markdown"})
       ),
       writeFile(pkgPath, pkgStr),
       writeFile(join(dir, "npm-shrinkwrap.json"), JSON.stringify(shrinkwrap) + "\n")

@@ -1,0 +1,27 @@
+{
+  "name": "@ganache/options",
+  "version": "2.2.1",
+  "homepage": "https://github.com/trufflesuite/ganache-core#readme",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "typings": "src/index.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trufflesuite/ganache-core.git"
+  },
+  "scripts": {
+    "tsc": "ts-node ../../../scripts/compile"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "dependencies": {
+    "@ganache/utils": "^2.2.1"
+  }
+}

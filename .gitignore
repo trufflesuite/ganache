@@ -13,4 +13,4 @@ test/testdb/*
 **/*.marko.js
 lerna-debug.log
 npm-debug.log
-packages/*/lib
+src/**/*/lib
