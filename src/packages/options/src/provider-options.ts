@@ -1,4 +1,4 @@
-import Options, {getDefault as getDefaultOptions} from "./options";
+import {Options} from "./options";
 import {entropyToMnemonic} from "bip39";
 import seedrandom, {seedrandom_prng} from "seedrandom";
 
@@ -23,7 +23,7 @@ const randomAlphaNumericString = (() => {
   };
 })();
 
-export default interface ProviderOptions extends Options {
+export interface ProviderOptions extends Options {
   /**
    * Array of strings to installed subproviders
    */
@@ -32,13 +32,13 @@ export default interface ProviderOptions extends Options {
   flavor?: "ethereum" | "tezos";
 }
 
-export const getDefault: (options?: ProviderOptions) => ProviderOptions = options => {
+const getDefault: (options?: ProviderOptions) => ProviderOptions = options => {
   const _options = Object.assign(
     {
       subProviders: [],
       flavor: "ethereum" as "ethereum" | "tezos"
     },
-    getDefaultOptions(options)
+    Options.getDefault(options)
   );
 
   if (!_options.mnemonic) {
@@ -59,4 +59,9 @@ export const getDefault: (options?: ProviderOptions) => ProviderOptions = option
     _options.mnemonic = entropyToMnemonic(_randomBytes);
   }
   return _options;
+};
+
+
+export const ProviderOptions = {
+  getDefault
 };

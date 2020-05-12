@@ -1,5 +1,5 @@
 import Connector from "./connector";
-import ProviderOptions from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 import ServerOptions from "./options/server-options";
 import Server from "./server";
 

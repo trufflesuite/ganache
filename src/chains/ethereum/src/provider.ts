@@ -1,5 +1,5 @@
 import {Quantity, Data} from "@ganache/utils/src/things/json-rpc";
-import ProviderOptions, {getDefault as getDefaultProviderOptions} from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
 import {publicToAddress, privateToAddress} from "ethereumjs-util";
@@ -32,7 +32,7 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
 
   constructor(providerOptions: ProviderOptions = null, executor: Executor) {
     super();
-    const _providerOptions = (this.#options = getDefaultProviderOptions(providerOptions));
+    const _providerOptions = (this.#options = ProviderOptions.getDefault(providerOptions));
 
     this.#wallet = HDKey.fromMasterSeed(mnemonicToSeedSync(_providerOptions.mnemonic, null));
     this.#executor = executor;

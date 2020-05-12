@@ -1,7 +1,7 @@
 import Emittery from "emittery";
 import Connector from "@ganache/utils/src/interfaces/connector";
 import TezosProvider from "./provider";
-import ProviderOptions from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 import TezosApi from "./api";
 import { HttpRequest } from "uWebSockets.js";
 

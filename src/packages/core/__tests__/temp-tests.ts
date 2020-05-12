@@ -2,7 +2,7 @@ import Ganache from "../src";
 import assert from "assert";
 import {Quantity} from "@ganache/utils/src/things/json-rpc";
 import EthereumProvider from "@ganache/ethereum/src/provider";
-import ProviderOptions from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 const solc = require("solc");
 
 function compileSolidity(source: string) {

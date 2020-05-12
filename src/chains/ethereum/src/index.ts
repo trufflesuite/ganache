@@ -1,4 +1,4 @@
-import ProviderOptions, {getDefault as getDefaultProviderOptions} from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";

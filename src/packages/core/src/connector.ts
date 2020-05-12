@@ -1,6 +1,6 @@
 import RequestCoordinator from "@ganache/utils/src/utils/request-coordinator";
 import {FlavorMap} from "@ganache/flavors";
-import ProviderOptions from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 import Executor from "@ganache/utils/src/utils/executor";
 
 /**

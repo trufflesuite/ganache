@@ -1,8 +1,8 @@
-import Options from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 import Account from "./things/account";
 
 type EthereumOptions = Pick<
-  Options,
+  ProviderOptions,
   | "defaultTransactionGasLimit"
   | "chainId"
   | "networkId"

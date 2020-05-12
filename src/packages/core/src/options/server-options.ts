@@ -1,4 +1,4 @@
-import ProviderOptions, {getDefault as getDefaultProviderOptions} from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 export {Apis, Flavors, FlavorMap} from "@ganache/flavors";
 
 export default interface ServerOptions extends ProviderOptions {
@@ -30,6 +30,6 @@ export const getDefault: (options?: ServerOptions) => ServerOptions = options =>
       port: 8545,
       ws: true
     },
-    getDefaultProviderOptions(options as ProviderOptions)
+    ProviderOptions.getDefault(options as ProviderOptions)
   ) as ServerOptions;
 };

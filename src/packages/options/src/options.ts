@@ -10,7 +10,7 @@ interface Logger {
 // instead of `[Address, PrivateKey]`, flip flopping like this "fixes" it.
 type Account = {balance: string; secretKey?: string};
 
-export default interface Options {
+export interface Options {
   api?: Api;
   /**
    * Array of Accounts. Each object should have a balance key with a hexadecimal
@@ -167,9 +167,9 @@ export default interface Options {
   asyncRequestProcessing?: boolean;
 
   hardfork?: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier";
-}
+};
 
-export const getDefault: (options?: Options) => Options = options => {
+const getDefault: (options?: Options) => Options = options => {
   // TODO: convert to null propagation operator after updating TS to a version that supports it
   const networkId = (options
     ? options.networkId || options.netVersion || options.network_id || options.net_version || Date.now()
@@ -198,4 +198,8 @@ export const getDefault: (options?: Options) => Options = options => {
     },
     options
   );
+}
+
+export const Options = {
+  getDefault
 };

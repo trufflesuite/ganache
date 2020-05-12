@@ -1,5 +1,5 @@
 import Ganache from "../../src/";
-import ProviderOptions from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 import EthereumProvider from "@ganache/ethereum/src/provider";
 
 const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
