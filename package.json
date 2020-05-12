@@ -9,7 +9,7 @@
     "tsc": "lerna exec -- npm run tsc",
     "test": "lerna exec -- npm run test",
     "create": "ts-node ./scripts/create",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package && lerna bootstrap"
   },
   "dependencies": {
     "@types/lodash.clonedeep": "4.5.6",
