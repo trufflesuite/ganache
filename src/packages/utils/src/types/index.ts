@@ -11,3 +11,9 @@ export type RequestType<T extends Api = Api> = (eventDetails: {
   method: KnownKeys<T>;
   params?: Parameters<T[keyof T]>;
 }) => ReturnType<T[keyof T]>;
+
+declare global {
+  interface JSON {
+      parse(text: Buffer, reviver?: (key: any, value: any) => any): any;
+  }
+}

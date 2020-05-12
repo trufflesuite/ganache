@@ -31,7 +31,7 @@ export default class EthereumConnector extends Emittery.Typed<undefined, "ready"
   }
 
   parse(message: Buffer) {
-    return JSON.parse(message as any) as JsonRpc.Request<EthereumApi>;
+    return JSON.parse(message) as JsonRpc.Request<EthereumApi>;
   }
 
   handle(payload: JsonRpc.Request<EthereumApi>, connection: HttpRequest | WebSocket): PromiEvent<any> {

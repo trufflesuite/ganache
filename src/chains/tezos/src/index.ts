@@ -21,14 +21,12 @@ export default class TezosConnector extends Emittery.Typed<undefined, "ready" | 
     return JSON.stringify(result);
   }
 
-  parse(message: Buffer){
-    return JSON.parse(message as any);
+  parse(message: Buffer) {
+    return JSON.parse(message);
   };
 
   handle (payload: any, _connection: HttpRequest): Promise<any> {
-    
-      return Promise.resolve(123);
-    
+    return Promise.resolve(123);
   };
 
   close() {
