@@ -111,7 +111,7 @@ export default class Server<T extends ServerOptions = ServerOptions> {
 
   public async close() {
     if (this.#status === Status.opening) {
-      // if closed or closing
+      // if opening
       throw new Error(`Cannot close server while it is opening.`);
     } else if (this.#status & Status.closed) {
       // if closed or closing

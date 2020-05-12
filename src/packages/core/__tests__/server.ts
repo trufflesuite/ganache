@@ -7,6 +7,7 @@ import ServerOptions from "../src/options/server-options";
 import http from "http";
 import intoStream from "into-stream";
 import EthereumProvider from "@ganache/ethereum/src/provider";
+import PromiEvent from "@ganache/utils/src/things/promievent";
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -121,6 +122,30 @@ describe("server", () => {
       }
     });
 
+    it("fails to `.close()` if server is closed", async () => {
+      await setup();
+      try {
+        await s.close();
+        assert.rejects(s.close(), {
+          message: "Server is already closed or closing."
+        });
+      } finally {
+        await teardown();
+      }
+    });
+
+    it("fails to `.close()` if server is closed", async () => {
+      await setup();
+      try {
+        s.close();
+        assert.rejects(s.close(), {
+          message: "Server is already closed or closing."
+        });
+      } finally {
+        await teardown();
+      }
+    });
+
     it("fails to listen if the socket is already in use by 3rd party", async () => {
       const server = http.createServer();
       server.listen(port);
@@ -154,6 +179,31 @@ describe("server", () => {
         await teardown();
       }
     });
+
+    it("rejects if listen called while server is closing", async () => {
+      await setup();
+      try {
+        const closer = s.close();
+        await assert.rejects(s.listen(4444), {
+          message: "Cannot start server while it is closing."
+        });
+        await closer;
+      } finally {
+        await teardown();
+      }
+    });
+
+    it("rejects if close is called while opening", async () => {
+      const pendingSetup = setup();
+      try {
+        await assert.rejects(s.close(), {
+          message: "Cannot close server while it is opening."
+        });
+      } finally {
+        await pendingSetup;
+        await teardown();
+      }
+    })
 
     it("does not start a websocket server when `ws` is false", async () => {
       await setup({
@@ -463,6 +513,87 @@ describe("server", () => {
           // The RPC request method doesn't matter since we're duck punching our
           // provider.send method anyway.
           ws.send(JSON.stringify(jsonRpcJson));
+        });
+      });
+    });
+
+    it("handles PromiEvent messages", async () => {
+      const provider = s.provider as EthereumProvider;
+      const message = "I hope you get this message";
+      provider.request = () => {
+        const promiEvent = new PromiEvent((resolve => {
+          resolve("0xsubscriptionId");
+          setImmediate(()=>promiEvent.emit("message", message));
+        }));
+        return promiEvent;
+      };
+
+      const ws = new WebSocket("ws://localhost:" + port);
+      const result = await new Promise(resolve => {
+        ws.on("open", () => {
+          // If we get a message that means things didn't get closed as they
+          // should have OR they are closing too late for some reason and
+          // this test isn't testing anything.
+          ws.on("message", (data) => {
+            const {result} = JSON.parse(data.toString());
+            // ignore the initial response
+            if (result === "0xsubscriptionId") return;
+
+            resolve(result);
+          });
+
+          const subscribeJson: any = {
+            jsonrpc: "2.0",
+            id: "1",
+            method: "eth_subscribe",
+            params: []
+          };
+          ws.send(JSON.stringify(subscribeJson));
+        });
+      });
+      
+      assert.strictEqual(result, message);
+    });
+
+    it("doesn't crash when the connection is closed while a subscription is in flight", async () => {
+      const provider = s.provider as EthereumProvider;
+      let promiEvent: PromiEvent<any>;
+      provider.request = () => {
+        promiEvent = new PromiEvent((resolve => {
+          resolve("0xsubscriptionId");
+        }));
+        return promiEvent;
+      };
+
+      const ws = new WebSocket("ws://localhost:" + port);
+      return new Promise((resolve, reject) => {
+        ws.on("open", () => {
+          // If we get a message that means things didn't get closed as they
+          // should have OR they are closing too late for some reason and
+          // this test isn't testing anything.
+          ws.on("message", (data) => {
+            if (JSON.parse(data.toString()).result === "0xsubscriptionId") {
+              // close our websocket after intercepting the request
+              s.close();
+              // then attempt to send a message back right after closing:
+              promiEvent.emit("message", "I hope you don't get this message");
+              return;
+            }
+            // the above message should never be received
+            reject("Got a subscription message when we shouldn't have!");
+          });
+
+          // make sure we leave enough time for things to crash if it does end
+          // up crashing.
+          ws.on("close", () => setImmediate(resolve));
+
+          const subscribeJson: any = {
+            jsonrpc: "2.0",
+            id: "1",
+            method: "eth_subscribe",
+            params: []
+          };
+          ws.send(JSON.stringify(subscribeJson));
         });
       });
     });
