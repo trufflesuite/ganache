@@ -515,6 +515,6 @@ describe("server", () => {
         // don't break.
         logger.log = oldLog;
       }
-    });
+    }).timeout(5000);
   });
 });

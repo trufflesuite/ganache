@@ -16,6 +16,12 @@ declare module "merkle-patricia-tree" {
   export class CheckpointTrie extends Trie {
     readonly isCheckpoint: boolean;
 
+    root: Buffer;
+    constructor(db: Database, root: Buffer);
+    get(key: LargeNumber, cb: Callback<Buffer | null>): void;
+    put(key: LargeNumber, value: LargeNumber, cb: Callback<never>): void;
+    copy(): Trie;
+    
     checkpoint(): void;
     commit(cb: Callback<never>): void;
     revert(cb: Callback<never>): void;
@@ -23,6 +29,5 @@ declare module "merkle-patricia-tree" {
     static prove(trie: Trie, key: LargeNumber, cb: Callback<MerkleProof>): void;
     static verifyProof(rootHash: LargeNumber, key: LargeNumber, proof: MerkleProof, cb: Callback<Buffer>): void;
   }
-
   export default CheckpointTrie;
 }

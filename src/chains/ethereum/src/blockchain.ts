@@ -3,7 +3,7 @@ import Database from "./database";
 import Emittery from "emittery";
 import BlockManager, {Block} from "./components/block-manager";
 import TransactionManager from "./components/transaction-manager";
-import Trie from "merkle-patricia-tree";
+import CheckpointTrie from "merkle-patricia-tree";
 import {BN} from "ethereumjs-util";
 import Account from "./things/account";
 import {promisify} from "util";
@@ -44,7 +44,7 @@ export default class Blockchain extends Emittery {
   public transactionReceipts: Manager<TransactionReceipt>;
   public accounts: AccountManager;
   public vm: any;
-  public trie: Trie;
+  public trie: CheckpointTrie;
   readonly #database: Database;
 
   /**
@@ -65,7 +65,7 @@ export default class Blockchain extends Emittery {
       // if we have a latest block, `root` will be that block's header.stateRoot
       // and we will skip creating the genesis block alltogether
       const root: Buffer = null;
-      this.trie = new Trie(database.trie, root);
+      this.trie = new CheckpointTrie(database.trie, root);
       this.blocks = new BlockManager(this, database.blocks);
       this.vm = this.createVmFromStateTrie(this.trie, options.hardfork, options.allowUnlimitedContractSize);
 
@@ -152,7 +152,7 @@ export default class Blockchain extends Emittery {
     });
   }
 
-  createVmFromStateTrie = (stateTrie: Trie, hardfork: string, allowUnlimitedContractSize: boolean): any => {
+  createVmFromStateTrie = (stateTrie: CheckpointTrie, hardfork: string, allowUnlimitedContractSize: boolean): any => {
     const common = Common.forCustomChain(
       "mainnet", // TODO needs to match chain id
       {

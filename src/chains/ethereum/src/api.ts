@@ -13,7 +13,6 @@ const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
 import {name, version} from "../../../packages/core/package.json";
 import PromiEvent from "@ganache/utils/src/things/promievent";
-import { types } from "util";
 import Emittery from "emittery";
 //#endregion
 
