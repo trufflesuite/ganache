@@ -10,4 +10,4 @@ class ApiBase {
  * Defines the interface for a API.
  * All properties must be `async` callable or return a `Promise`
  */
-export default interface Api extends ApiBase {}
+export interface Api extends ApiBase {}

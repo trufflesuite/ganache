@@ -10,7 +10,7 @@ import {promisify} from "util";
 import {Quantity, Data} from "@ganache/utils/src/things/json-rpc";
 import EthereumJsAccount from "ethereumjs-account";
 import AccountManager from "./components/account-manager";
-import Heap from "@ganache/utils/src/utils/heap";
+import {utils} from "@ganache/utils";
 import Transaction from "./things/transaction";
 import Manager from "./components/manager";
 import TransactionReceipt from "./things/transaction-receipt";
@@ -94,14 +94,14 @@ export default class Blockchain extends Emittery {
       };
       const instamining = true;
       if (instamining) {
-        this.transactions.transactionPool.on("drain", async (pending: Map<string, Heap<Transaction>>) => {
+        this.transactions.transactionPool.on("drain", async (pending: Map<string, utils.Heap<Transaction>>) => {
           const block = await readyNextBlock();
           await miner.mine(pending, block.value);
         });
       } else {
         // TODO: the interval needs to be from the `options`
         const minerInterval = 3 * 1000;
-        const mine = async (pending: Map<string, Heap<Transaction>>) => {
+        const mine = async (pending: Map<string, utils.Heap<Transaction>>) => {
           const block = await readyNextBlock();
           await miner.mine(pending, block.value);
           setTimeout(mine, minerInterval, pending);

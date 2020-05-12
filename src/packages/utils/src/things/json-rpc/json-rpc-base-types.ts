@@ -1,4 +1,4 @@
-import bigintToBuffer from "../../utils/bigint-to-buffer";
+import {bigIntToBuffer} from "../../utils";
 
 export type IndexableJsonRpcType<
   T extends number | bigint | string | Buffer = number | bigint | string | Buffer
@@ -45,7 +45,7 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
         case "bigint":
           toStrings.set(this, () => (value as bigint).toString(16));
           toBuffers.set(this, () => {
-            return bigintToBuffer(value as bigint);
+            return bigIntToBuffer(value as bigint);
             //onst value = (2n**64n);
             var max = 2n ** 64n - 1n;
 

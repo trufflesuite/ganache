@@ -1,5 +1,5 @@
 //#region Imports
-import Api from "@ganache/utils/src/interfaces/api";
+import {types} from "@ganache/utils";
 import EthereumOptions from "./options";
 import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
 import Blockchain from "./blockchain";
@@ -36,7 +36,7 @@ const _filters = Symbol("filters");
 type SubscriptionId = string;
 //#endregion
 
-export default class EthereumApi implements Api {
+export default class EthereumApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
   private readonly [_filters] = new Map<any, any>();

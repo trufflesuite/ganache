@@ -1,16 +1,16 @@
 import Emittery from "emittery";
-import Connector from "@ganache/utils/src/interfaces/connector";
+import {utils, types} from "@ganache/utils";
 import TezosProvider from "./provider";
 import {ProviderOptions} from "@ganache/options";
 import TezosApi from "./api";
 import { HttpRequest } from "uWebSockets.js";
 
 export default class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
-  implements Connector<TezosApi> {
+  implements types.Connector<TezosApi> {
   provider: TezosProvider;
   #api: TezosApi;
 
-  constructor(providerOptions: ProviderOptions, requestCoordinator: any) {
+  constructor(providerOptions: ProviderOptions, requestCoordinator: utils.Executor) {
     super();
 
     const api = (this.#api = new TezosApi());

@@ -1,6 +1,6 @@
 type Comparator<T> = (values: T[], a: number, b: number) => boolean;
 
-class Heap<T> {
+export class Heap<T> {
   public length: number = 0;
   public array: T[] = [];
   protected readonly less: Comparator<T>;
@@ -209,4 +209,3 @@ class Heap<T> {
   }
 }
 
-export default Heap;

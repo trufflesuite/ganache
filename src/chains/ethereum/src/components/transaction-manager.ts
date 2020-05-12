@@ -3,7 +3,7 @@ import Manager from "./manager";
 import TransactionPool, {TransactionPoolOptions} from "./transaction-pool";
 import levelup from "levelup";
 import Blockchain from "../blockchain";
-import Heap from "@ganache/utils/src/utils/heap";
+import {utils} from "@ganache/utils";
 
 export type TransactionManagerOptions = TransactionPoolOptions;
 
@@ -14,7 +14,7 @@ export default class TransactionManager extends Manager<Transaction> {
     super(blockchain, base, Transaction);
 
     this.transactionPool = new TransactionPool(blockchain, options);
-    this.transactionPool.on("drain", (transactions: Map<string, Heap<Transaction>>) => {
+    this.transactionPool.on("drain", (transactions: Map<string, utils.Heap<Transaction>>) => {
       // TODO: create pending block?
     });
   }

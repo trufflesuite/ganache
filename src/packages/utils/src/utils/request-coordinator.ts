@@ -3,7 +3,7 @@ const noop = () => {};
 /**
  * Responsible for managing global concurrent requests.
  */
-export default class RequestCoordinator {
+export class RequestCoordinator {
   /**
    * The number of concurrent requests. Set to null for no limit.
    */

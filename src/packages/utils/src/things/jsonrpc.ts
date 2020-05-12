@@ -1,5 +1,4 @@
-import Api from "../interfaces/api";
-import { KnownKeys } from "../types";
+import { Api, KnownKeys } from "../types";
 
 namespace JsonRpc {
   const jsonrpc = "2.0";

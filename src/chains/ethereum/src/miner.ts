@@ -1,5 +1,5 @@
 import params from "./things/params";
-import Heap from "@ganache/utils/src/utils/heap";
+import {utils} from "@ganache/utils";
 import Transaction from "./things/transaction";
 import {Quantity, Data} from "@ganache/utils/src/things/json-rpc";
 import {promisify} from "util";
@@ -13,9 +13,9 @@ import {encode as rlpEncode} from "rlp";
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
 function replaceFromHeap(
-  priced: Heap<Transaction>,
-  source: Heap<Transaction>,
-  pending: Map<string, Heap<Transaction>>,
+  priced: utils.Heap<Transaction>,
+  source: utils.Heap<Transaction>,
+  pending: Map<string, utils.Heap<Transaction>>,
   key: string
 ) {
   // get the next best for this account, removing from the source Heap:
@@ -41,7 +41,7 @@ function byPrice(values: Transaction[], a: number, b: number) {
 export default class Miner extends Emittery {
   #currentlyExecutingPrice = 0n;
   #origins = new Set<string>();
-  #pending: Map<string, Heap<Transaction>>;
+  #pending: Map<string, utils.Heap<Transaction>>;
   #isMining: boolean = false;
   readonly #options: MinerOptions;
   readonly #vm: VM;
@@ -50,7 +50,7 @@ export default class Miner extends Emittery {
   readonly #revert: () => Promise<any>;
 
   // initialize a Heap that sorts by gasPrice
-  readonly #priced = new Heap<Transaction>(byPrice);
+  readonly #priced = new utils.Heap<Transaction>(byPrice);
   constructor(vm: VM, options: MinerOptions) {
     super();
     this.#vm = vm;
@@ -73,7 +73,7 @@ export default class Miner extends Emittery {
    * transactions within a single block. The remaining items will be left in
    * the pending pool to be eligible for mining in the future.
    */
-  public async mine(pending: Map<string, Heap<Transaction>>, block: Block) {
+  public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block) {
     // only allow mining a single block at a time (per miner)
     if (this.#isMining) {
       // if we are currently mining a block, set the `pending` property
@@ -242,7 +242,7 @@ export default class Miner extends Emittery {
     this.#currentlyExecutingPrice = 0n;
   };
 
-  #setPricedHeap = (pending: Map<string, Heap<Transaction>>) => {
+  #setPricedHeap = (pending: Map<string, utils.Heap<Transaction>>) => {
     const origins = this.#origins;
     const priced = this.#priced;
 
@@ -257,7 +257,7 @@ export default class Miner extends Emittery {
     }
   };
 
-  #updatePricedHeap = (pending: Map<string, Heap<Transaction>>) => {
+  #updatePricedHeap = (pending: Map<string, utils.Heap<Transaction>>) => {
     const origins = this.#origins;
     const priced = this.#priced;
     // Note: the `pending` Map passed here is "live", meaning it is constantly

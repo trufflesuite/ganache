@@ -1,13 +1,13 @@
 import {Provider} from "./provider";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
-import Api from "./api";
+import { Api } from "./api";
 import Emittery from "emittery";
 import PromiEvent from "../things/promievent";
 
 /**
  * Connects an arbitrary public chain provider to ganache-core
  */
-export default interface Connector<ApiImplementation extends Api, RequestFormat = any, ResponseFormat = any> extends Emittery.Typed<undefined, "ready" | "close"> {
+export interface Connector<ApiImplementation extends Api, RequestFormat = any, ResponseFormat = any> extends Emittery.Typed<undefined, "ready" | "close"> {
   provider: Provider<ApiImplementation>;
 
   /**

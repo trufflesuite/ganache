@@ -1,10 +1,9 @@
-import Api from "../interfaces/api";
-import { KnownKeys } from "../types";
-import RequestCoordinator from "./request-coordinator";
+import { KnownKeys, Api } from "../types";
+import {RequestCoordinator} from "./request-coordinator";
 
 const hasOwn = ({}).hasOwnProperty.call.bind(({}).hasOwnProperty);
 
-export default class Executor {
+export class Executor {
   #requestCoordinator: RequestCoordinator
 
   /**

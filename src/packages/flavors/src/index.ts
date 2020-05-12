@@ -1,4 +1,4 @@
-import Connector from "@ganache/utils/src/interfaces/connector";
+import {types} from "@ganache/utils";
 import TezosConnector from "@ganache/tezos";
 import EthereumConnector from "@ganache/ethereum";
 
@@ -16,4 +16,4 @@ export type Flavors = {
   [k in keyof FlavorMap]: FlavorMap[k];
 }[keyof FlavorMap];
 
-export type Apis<T extends Flavors = Flavors> = T extends Connector<infer R> ? R : never;
+export type Apis<T extends Flavors = Flavors> = T extends types.Connector<infer R> ? R : never;

@@ -7,13 +7,11 @@ import Account from "./things/account";
 import {mnemonicToSeedSync} from "bip39";
 import Address from "./things/address";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
-import Executor from "@ganache/utils/src/utils/executor";
 import EthereumOptions from "./options";
 import cloneDeep from "lodash.clonedeep";
 import secp256k1 from "secp256k1";
 import HDKey from "hdkey";
-import {KnownKeys} from "@ganache/utils/src/types";
-import {Provider} from "@ganache/utils/src/interfaces/provider";
+import {types, utils} from "@ganache/utils";
 import PromiEvent from "@ganache/utils/src/things/promievent";
 
 const WEI = 1000000000000000000n;
@@ -23,14 +21,14 @@ interface Callback {
 }
 
 export default class EthereumProvider extends Emittery.Typed<undefined, "message" | "connect" | "disconnect">
-  implements Provider<EthereumApi>
+  implements types.Provider<EthereumApi>
   {
   #options: ProviderOptions;
   #api: EthereumApi;
   #wallet: HDKey;
-  #executor: Executor;
+  #executor: utils.Executor;
 
-  constructor(providerOptions: ProviderOptions = null, executor: Executor) {
+  constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
     super();
     const _providerOptions = (this.#options = ProviderOptions.getDefault(providerOptions));
 
@@ -110,9 +108,9 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
   }
 
   public send(payload: JsonRpc.Request<EthereumApi>, callback?: Callback): void;
-  public send(method: KnownKeys<EthereumApi>, params?: Parameters<EthereumApi[typeof method]>): Promise<any>;
-  public send(arg1: KnownKeys<EthereumApi> | JsonRpc.Request<EthereumApi>, arg2?: Callback | any[]): Promise<any> {
-    let method: KnownKeys<EthereumApi>;
+  public send(method: types.KnownKeys<EthereumApi>, params?: Parameters<EthereumApi[typeof method]>): Promise<any>;
+  public send(arg1: types.KnownKeys<EthereumApi> | JsonRpc.Request<EthereumApi>, arg2?: Callback | any[]): Promise<any> {
+    let method: types.KnownKeys<EthereumApi>;
     let params: any;
     let response: Promise<{}>;
     if (typeof arg1 === "string") {
@@ -123,7 +121,7 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
       // handle backward compatibility with callback-style ganache-core
       const payload = arg1;
       const callback = arg2 as Callback;
-      method = payload.method as KnownKeys<EthereumApi>;
+      method = payload.method as types.KnownKeys<EthereumApi>;
       params = payload.params;
 
       this.request(method, params)
@@ -160,9 +158,9 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
     return this.send(payload, callback);
   }
 
-  public request<Method extends KnownKeys<EthereumApi> = KnownKeys<EthereumApi>>(method: Parameters<EthereumApi[Method]>["length"] extends 0 ? Method : never): any; // ReturnType<EthereumApi[Method]>;
-  public request<Method extends KnownKeys<EthereumApi> = KnownKeys<EthereumApi>>(method: Method, params: Parameters<EthereumApi[Method]>): any; // ReturnType<EthereumApi[Method]>;
-  public request<Method extends KnownKeys<EthereumApi> = KnownKeys<EthereumApi>>(method: Method, params?: Parameters<EthereumApi[Method]>) {
+  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(method: Parameters<EthereumApi[Method]>["length"] extends 0 ? Method : never): any; // ReturnType<EthereumApi[Method]>;
+  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(method: Method, params: Parameters<EthereumApi[Method]>): any; // ReturnType<EthereumApi[Method]>;
+  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(method: Method, params?: Parameters<EthereumApi[Method]>) {
     return this.#executor.execute(this.#api, method, params).then(result => {
       const promise = result.value as PromiseLike<ReturnType<EthereumApi[Method]>>;
       if (promise instanceof PromiEvent) {

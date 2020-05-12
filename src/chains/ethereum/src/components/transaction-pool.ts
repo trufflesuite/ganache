@@ -1,6 +1,6 @@
 import Emittery from "emittery";
 import Blockchain from "../blockchain";
-import Heap from "@ganache/utils/src/utils/heap";
+import {utils} from "@ganache/utils";
 import Transaction from "../things/transaction";
 import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
 
@@ -20,7 +20,7 @@ function byNonce(values: Transaction[], a: number, b: number) {
   return (Quantity.from(values[b].nonce).toBigInt() || 0n) > (Quantity.from(values[a].nonce).toBigInt() || 0n);
 }
 
-export default class TransactionPool extends Emittery.Typed<{drain: (transactions: Map<string, Heap<Transaction>>) => void}> {
+export default class TransactionPool extends Emittery.Typed<{drain: (transactions: Map<string, utils.Heap<Transaction>>) => void}> {
   #options: TransactionPoolOptions;
 
   /**
@@ -34,8 +34,8 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
     this.#blockchain = blockchain;
     this.#options = options;
   }
-  public executables: Map<string, Heap<Transaction>> = new Map();
-  #origins: Map<string, Heap<Transaction>> = new Map();
+  public executables: Map<string, utils.Heap<Transaction>> = new Map();
+  #origins: Map<string, utils.Heap<Transaction>> = new Map();
 
   public async insert(transaction: Transaction) {
     let err: Error;
@@ -125,7 +125,7 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
         executableOriginTransactions.push(transaction);
       } else {
         // if we don't yet have a executables queue for this origin make one now
-        executableOriginTransactions = Heap.from(transaction, byNonce);
+        executableOriginTransactions = utils.Heap.from(transaction, byNonce);
         executables.set(origin, executableOriginTransactions);
       }
 
@@ -133,15 +133,15 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
     } else if (queuedOriginTransactions) {
       queuedOriginTransactions.push(transaction);
     } else {
-      queuedOriginTransactions = Heap.from(transaction, byNonce);
+      queuedOriginTransactions = utils.Heap.from(transaction, byNonce);
       origins.set(origin, queuedOriginTransactions);
     }
   }
 
   #drainQueued = (
     origin: string,
-    queuedOriginTransactions: Heap<Transaction>,
-    executableOriginTransactions: Heap<Transaction>,
+    queuedOriginTransactions: utils.Heap<Transaction>,
+    executableOriginTransactions: utils.Heap<Transaction>,
     transactionNonce: bigint
   ) => {
     // Now we need to drain any queued transacions that were previously

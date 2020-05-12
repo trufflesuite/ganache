@@ -1,5 +1,5 @@
 import {Quantity} from "@ganache/utils/src/things/json-rpc";
-import Api from "@ganache/utils/src/interfaces/api";
+import {types} from "@ganache/utils";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -11,7 +11,7 @@ interface Logger {
 type Account = {balance: string; secretKey?: string};
 
 export interface Options {
-  api?: Api;
+  api?: types.Api;
   /**
    * Array of Accounts. Each object should have a balance key with a hexadecimal
    * value. The key secretKey can also be specified, which represents the

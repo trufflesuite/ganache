@@ -1,7 +1,6 @@
-import RequestCoordinator from "@ganache/utils/src/utils/request-coordinator";
+import {utils} from "@ganache/utils";
 import {FlavorMap} from "@ganache/flavors";
 import {ProviderOptions} from "@ganache/options";
-import Executor from "@ganache/utils/src/utils/executor";
 
 /**
  * Loads the connector specified by the given `flavor`
@@ -15,12 +14,12 @@ export default {
     // Set up our request coordinator to either use FIFO or or async request processing.
     //   The RequestCoordinator _can_ be used to coordinate the number of requests being processed, but we don't use it
     //   for that (yet), instead of "all" (0) or just 1 as we are doing here:
-    const requestCoordinator = new RequestCoordinator(providerOptions.asyncRequestProcessing ? 0 : 1);
+    const requestCoordinator = new utils.RequestCoordinator(providerOptions.asyncRequestProcessing ? 0 : 1);
     
     // The Executor is responsible for actually executing the method on the chain/ledger.
     // It performs some safety checks to ensure "safe" method execution before passing it
     // to a RequestCoordinator.
-    const executor = new Executor(requestCoordinator);
+    const executor = new utils.Executor(requestCoordinator);
 
     const connector = new FlavorMap[flavor](providerOptions, executor);
 

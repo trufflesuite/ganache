@@ -1,4 +1,8 @@
-import Api from "../interfaces/api";
+export * from "./connector";
+export * from "./provider";
+export * from "./api";
+
+import { Api } from "./api";
 
 export type KnownKeys<T> = {
   [K in keyof T]: string extends K ? never : number extends K ? never : K;
