@@ -25,6 +25,7 @@ describe("server", () => {
     log: (_message: string) => {}
   };
   let s: Server;
+
   async function setup(
     options = {
       network_id,
@@ -34,11 +35,14 @@ describe("server", () => {
     s = Ganache.server(options);
     return s.listen(port);
   }
+
   async function teardown() {
+    // if the server is open or opening, try to close it.
     if (s && s.status & Status.open) {
       await s.close();
     }
   }
+
   describe("http", () => {
     async function simpleTest() {
       const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
@@ -235,7 +239,7 @@ describe("server", () => {
         await pendingSetup;
         await teardown();
       }
-    })
+    });
 
     it("does not start a websocket server when `ws` is false", async () => {
       await setup({
@@ -308,7 +312,7 @@ describe("server", () => {
       }
     });
 
-    it("returns a teapot", async () => {
+    it("returns a teapot (easter egg)", async () => {
       await setup();
       try {
         const result = await request.get("http://localhost:" + port + "/418").catch(e => e);
@@ -321,7 +325,16 @@ describe("server", () => {
 
     it("returns 404 for bad routes", async () => {
       await setup();
-      const methods: ["get", "post", "head", "options", "put", "delete", "patch", "trace"] = ["get", "post", "head", "options", "put", "delete", "patch", "trace"];
+      const methods = [
+        "get",
+        "post",
+        "head",
+        "options",
+        "put",
+        "delete",
+        "patch",
+        "trace"
+      ] as const;
       try {
         const requests = methods.map(async method => {
           const result = await request[method]("http://localhost:" + port + "/there-is-no-spoon").catch((e: any) => e);
@@ -388,9 +401,9 @@ describe("server", () => {
     });
 
     describe("CORS", () => {
-      const optionsHeaders = ["Access-Control-Allow-Methods", "Access-Control-Allow-Headers", "Access-Control-Max-Age"];
-      const baseHeaders = ["Access-Control-Allow-Credentials", "Access-Control-Allow-Origin"];
-      const allCorsHeaders = optionsHeaders.concat(baseHeaders);
+      const optionsHeaders = ["Access-Control-Allow-Methods", "Access-Control-Allow-Headers", "Access-Control-Max-Age"] as const;
+      const baseHeaders = ["Access-Control-Allow-Credentials", "Access-Control-Allow-Origin"] as const;
+      const allCorsHeaders = [...optionsHeaders, ...baseHeaders] as const;
 
       it("does not return CORS headers for non-CORS requests", async () => {
         await setup();
@@ -445,7 +458,6 @@ describe("server", () => {
           assert.strictEqual(resp.header["access-control-max-age"], "600");
           assert.strictEqual(resp.header["content-length"], "0");
           assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
-          assert.strictEqual(resp.header["access-control-allow-origin"], origin);
         } finally {
           await teardown();
         }
@@ -553,10 +565,10 @@ describe("server", () => {
       const provider = s.provider as EthereumProvider;
       const message = "I hope you get this message";
       provider.request = () => {
-        const promiEvent = new PromiEvent((resolve => {
+        const promiEvent = new PromiEvent(resolve => {
           resolve("0xsubscriptionId");
-          setImmediate(()=>promiEvent.emit("message", message));
-        }));
+          setImmediate(() => promiEvent.emit("message", message));
+        });
         return promiEvent;
       };
 
@@ -566,7 +578,7 @@ describe("server", () => {
           // If we get a message that means things didn't get closed as they
           // should have OR they are closing too late for some reason and
           // this test isn't testing anything.
-          ws.on("message", (data) => {
+          ws.on("message", data => {
             const {result} = JSON.parse(data.toString());
             // ignore the initial response
             if (result === "0xsubscriptionId") return;
@@ -583,7 +595,7 @@ describe("server", () => {
           ws.send(JSON.stringify(subscribeJson));
         });
       });
-      
+
       assert.strictEqual(result, message);
     });
 
@@ -591,9 +603,9 @@ describe("server", () => {
       const provider = s.provider as EthereumProvider;
       let promiEvent: PromiEvent<any>;
       provider.request = () => {
-        promiEvent = new PromiEvent((resolve => {
+        promiEvent = new PromiEvent(resolve => {
           resolve("0xsubscriptionId");
-        }));
+        });
         return promiEvent;
       };
 
@@ -603,7 +615,7 @@ describe("server", () => {
           // If we get a message that means things didn't get closed as they
           // should have OR they are closing too late for some reason and
           // this test isn't testing anything.
-          ws.on("message", (data) => {
+          ws.on("message", data => {
             if (JSON.parse(data.toString()).result === "0xsubscriptionId") {
               // close our websocket after intercepting the request
               s.close();
@@ -678,6 +690,6 @@ describe("server", () => {
         // don't break.
         logger.log = oldLog;
       }
-    }).timeout(5000);
+    }).timeout(10000);
   });
 });

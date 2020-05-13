@@ -62,7 +62,7 @@ function fixProps(tx: any, data: any) {
   // an empty buffer while still being able to differentiate between a `0`
   // and `null`/`undefined`.
   tx._originals = [];
-  const fieldNames = ["nonce", "gasPrice", "gasLimit", "value"];
+  const fieldNames = ["nonce", "gasPrice", "gasLimit", "value"] as const;
   fieldNames.forEach(fieldName => configZeroableField(tx, fieldName, 32));
 
   // Ethereumjs-tx doesn't set the _chainId value whenever the v value is set,

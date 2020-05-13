@@ -25,7 +25,7 @@ export default class EthereumConnector extends Emittery.Typed<undefined, "ready"
 
     const provider = this.#provider = new EthereumProvider(providerOptions, executor);
     provider.on("connect", () => {
-      // tell the consumer (like a `ganache-core` server) everything is ready
+      // tell the consumer (like a `ganache-core` server/connector) everything is ready
       this.emit("ready");
     });
   }

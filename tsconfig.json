@@ -16,6 +16,6 @@
     "noImplicitAny": false,
     "newLine": "lf",
     "lib": ["ES2020"],
-    "typeRoots": ["./node_modules/@types", "@types"]
+    "typeRoots": ["./node_modules/@types", "src/@types"]
   }
 }

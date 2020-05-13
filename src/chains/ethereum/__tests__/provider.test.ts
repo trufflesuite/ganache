@@ -1,202 +1,48 @@
 import assert from "assert";
 import EthereumProvider from "../src/provider";
 import getProvider from "./helpers/getProvider";
+import JsonRpc from "@ganache/utils/src/things/jsonrpc";
+import EthereumApi from "../src/api";
 
-describe("ledger", () => {
-  let provider: EthereumProvider;
-  let accounts: string[];
-
-  beforeEach(async () => {
-    provider = await getProvider();
-    accounts = await provider.request("eth_accounts");
+describe("provider", () => {
+  describe("options", () => {
+    it("generates predictable accounts when given a seed", async () => {
+      const provider = await getProvider({seed: "temet nosce"});
+      const accounts = await provider.request("eth_accounts");
+      assert.strictEqual(accounts[0], "0x59eF313E6Ee26BaB6bcb1B5694e59613Debd88DA");
+    });
   });
 
-  it("eth_blockNumber", async () => {
-    const blockNumber = await provider.request("eth_blockNumber");
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    const _txHash = await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
+  describe("interface", () => {
+    const network_id = "1234";
+    let provider: EthereumProvider;
 
-    const _message = await provider.once("message");
-    const nextBlockNumber = await provider.request("eth_blockNumber");
-    assert.strictEqual(parseInt(blockNumber, 10), nextBlockNumber - 1);
-  });
+    beforeEach(async () => {
+      provider = await getProvider({network_id});
+    });
 
-  it("eth_getBlockByNumber", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-    const blocks = await Promise.all([
-      provider.request("eth_getBlockByNumber", ["0x1", true]),
-      provider.request("eth_getBlockByNumber", ["0x1"])
-    ]);
-    assert(blocks[0].hash, blocks[1].hash);
-  });
+    it("returns things via EIP-1193", async () => {
+      assert.strictEqual(await provider.request("net_version"), network_id);
+    });
 
-  it("eth_getBlockByHash", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-    const block = await provider.request("eth_getBlockByNumber", ["0x1"]);
-
-    const blocks = await Promise.all([
-      provider.request("eth_getBlockByHash", [block.hash, true]),
-      provider.request("eth_getBlockByHash", [block.hash])
-    ]);
-    assert(blocks[0].hash, blocks[1].hash);
-    const counts = await Promise.all([
-      provider.request("eth_getBlockTransactionCountByNumber", ["0x1"]),
-      provider.request("eth_getBlockTransactionCountByHash", [blocks[0].hash])
-    ]);
-
-    assert(true);
-  });
-
-  it("eth_getBlockTransactionCountByHash", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-    const block = await provider.request("eth_getBlockByNumber", ["0x1"]);
-
-    const count = await provider.request("eth_getBlockTransactionCountByHash", [block.hash]);
-    assert(count, "1");
-  });
-
-  it("eth_getBlockTransactionCountByNumber", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-
-    const count = await provider.request("eth_getBlockTransactionCountByNumber", ["0x1"]);
-    assert(count, "1");
-  });
-
-  it("eth_getTransactionByBlockNumberAndIndex", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-
-    const tx = await provider.request("eth_getTransactionByBlockNumberAndIndex", ["0x1", "0x0"]);
-    assert.equal(
-      tx.hash,
-      "0x6a530e6b86c00b7bef84fd75d570627d46a4b982f8a573ef1129780b5f92ff7e",
-      "Unexpected transaction hash."
-    );
-  });
-
-  it("eth_getTransactionByBlockHashAndIndex", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-    const block = await provider.request("eth_getBlockByNumber", ["0x1"]);
-
-    const tx = await provider.request("eth_getTransactionByBlockHashAndIndex", [block.hash, "0x0"]);
-    assert.equal(
-      tx.hash,
-      "0x6a530e6b86c00b7bef84fd75d570627d46a4b982f8a573ef1129780b5f92ff7e",
-      "Unexpected transaction hash."
-    );
-  });
-
-  it("eth_getUncleCountByBlockHash", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-    const block = await provider.request("eth_getBlockByNumber", ["0x1"]);
-
-    const count = await provider.request("eth_getUncleCountByBlockHash", [block.hash]);
-    assert(count, "0");
-  });
-
-  it("eth_getUncleCountByBlockNumber", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-
-    const count = await provider.request("eth_getUncleCountByBlockNumber", ["0x1"]);
-    assert(count, "0");
-  });
-
-  it("eth_getTransactionReceipt", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    const hash = await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-
-    const receipt = await provider.request("eth_getTransactionReceipt", [hash]);
-    assert(receipt.transactionIndex, "0x0");
-  });
-
-  it("eth_getTransactionByHash", async () => {
-    const _subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
-    const hash = await provider.request("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: 1
-      }
-    ]);
-    const _message = await provider.once("message");
-
-    const tx = await provider.request("eth_getTransactionByHash", [hash]);
-    assert(tx.transactionIndex, "0x0");
+    it("returns things via legacy", async () => {
+      const jsonRpcRequest: JsonRpc.Request<EthereumApi> = {
+        id: "1",
+        jsonrpc: "2.0",
+        method: "net_version"
+      };
+      const methods = ["send", "sendAsync"] as const;
+      return Promise.all(methods.map(method => {
+        return new Promise((resolve, reject) => {
+          provider[method](jsonRpcRequest, (err: Error, {result}): void => {
+            if(err) return reject(err);
+            assert.strictEqual(result, network_id);
+            resolve();
+          });
+        });
+      }).map(async prom => {
+        assert.strictEqual(await prom, void 0);
+      }));
+    });
   });
 });

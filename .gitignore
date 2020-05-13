@@ -10,7 +10,6 @@ build
 dist
 .nyc_output
 test/testdb/*
-**/*.marko.js
 lerna-debug.log
 npm-debug.log
 src/**/*/lib

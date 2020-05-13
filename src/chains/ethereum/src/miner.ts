@@ -218,7 +218,7 @@ export default class Miner extends Emittery {
 
     if (this.#pending) {
       // TODO: hm... tricky... we know we need to mine a new block
-      // but at what timestamp. We need to get the timestamp from `blockchain`, but so far,
+      // but at what timestamp? We need to get the timestamp from `blockchain`, but so far,
       // we don't require the miner to know about the blockchain.
       // also, what if the previous block was mined with a timestamp, do we need to mine two blocks with that
       // same timestamp? uh, I think not.

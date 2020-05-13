@@ -109,6 +109,9 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
     return account;
   }
 
+  /**
+   * Returns the options, including defaults and generated, used to start Ganache.
+   */
   public getOptions() {
     return cloneDeep(this.#options);
   }

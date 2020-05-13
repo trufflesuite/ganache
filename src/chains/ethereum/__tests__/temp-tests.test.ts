@@ -1,8 +1,8 @@
-import Ganache from "../src";
 import assert from "assert";
 import {Quantity} from "@ganache/utils/src/things/json-rpc";
-import EthereumProvider from "@ganache/ethereum/src/provider";
 import {ProviderOptions} from "@ganache/options";
+import getProvider from "./helpers/getProvider";
+
 const solc = require("solc");
 
 function compileSolidity(source: string) {
@@ -36,13 +36,13 @@ function compileSolidity(source: string) {
  * ganache-core but have yet been properly ported over yet.
  */
 
-describe("Accounts", () => {
+describe("Random tests that are temporary!", () => {
   const expectedAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
   const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 
   it("should respect the BIP99 mnemonic", async () => {
     const options = {mnemonic};
-    const p = Ganache.provider(options) as EthereumProvider;
+    const p = await getProvider(options);
     const accounts = await p.send("eth_accounts");
 
     assert.strictEqual(accounts[0], expectedAddress);
@@ -50,7 +50,7 @@ describe("Accounts", () => {
 
   it("eth_sendTransaction", async () => {
     const options = {mnemonic};
-    const p = Ganache.provider(options) as EthereumProvider;
+    const p = await getProvider(options);
     const accounts = await p.send("eth_accounts");
     const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
     await p.send("eth_subscribe", ["newHeads"]);
@@ -68,66 +68,55 @@ describe("Accounts", () => {
   });
 
   it("should create its own mnemonic", async () => {
-    const p = Ganache.provider() as EthereumProvider;
+    const p = await getProvider();
     const options = p.getOptions();
     assert.deepStrictEqual(typeof options.mnemonic, "string");
   });
 
   it("shouldn't allow initialization without accounts", async () => {
     const options: ProviderOptions = {total_accounts: 0};
-    assert.throws(
-      () => {
-        Ganache.provider(options);
-      },
-      {
-        message: "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
-      }
-    );
+    await assert.rejects(getProvider(options), {
+      message: "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
+    });
 
     options.accounts = [];
-    assert.throws(
-      () => {
-        Ganache.provider(options);
-      },
-      {
-        message: "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
-      }
-    );
+    await assert.rejects(getProvider(options), {
+      message: "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
+    });
   });
 
   it("sets up accounts", async () => {
     const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
-    const p = Ganache.provider({
+    const p = await getProvider({
       accounts: [{balance: "0x123", secretKey: "0x" + privateKey.toString("hex")}, {balance: "0x456"}]
-    }) as EthereumProvider;
+    });
     const accounts = await p.send("eth_accounts");
     assert.strictEqual(accounts.length, 2);
   });
 
   it("sets errors when unlocked_accounts index is too high", async () => {
-    const ganacheInitFn = Ganache.provider.bind(Ganache, {
-      unlocked_accounts: [99]
-    });
-    assert.throws(ganacheInitFn, {
+    await assert.rejects(getProvider({unlocked_accounts: [99]}), {
       message: "Account at index 99 not found. Max index available is 9."
     });
   });
 
   it("sets errors when unlocked_accounts index is a (big) bigint", async () => {
     const bigNumber = BigInt(Number.MAX_SAFE_INTEGER) + 1n;
-    const ganacheInitFn = Ganache.provider.bind(Ganache, {
-      unlocked_accounts: [bigNumber.toString()]
-    });
-    assert.throws(ganacheInitFn, {
-      message: `Invalid value in unlocked_accounts: ${bigNumber}`
-    });
+    await assert.rejects(
+      getProvider({
+        unlocked_accounts: [bigNumber.toString()]
+      }),
+      {
+        message: `Invalid value in unlocked_accounts: ${bigNumber}`
+      }
+    );
   });
 
   it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
-    const p = Ganache.provider({
+    const p = await getProvider({
       locked: true,
       unlocked_accounts: ["0", 1]
-    }) as EthereumProvider;
+    });
 
     const accounts = await p.send("eth_accounts");
     const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
@@ -176,11 +165,11 @@ describe("Accounts", () => {
     const contract = await compileSolidity(
       "pragma solidity ^0.6.1; contract Example { uint public value; event Event(); constructor() public { value = 5; emit Event(); } function getVal() public pure returns (uint8) { return 123; } }"
     );
-    const p = Ganache.provider({
+    const p = await getProvider({
       defaultTransactionGasLimit: Quantity.from(6721975)
-    }) as EthereumProvider;
+    });
     const accounts = await p.send("eth_accounts");
-    const _subscriptionId = await p.send("eth_subscribe", ["newHeads"]);
+    await p.send("eth_subscribe", ["newHeads"]);
     const transactionHash = await p.send("eth_sendTransaction", [
       {
         from: accounts[0],
@@ -217,9 +206,9 @@ describe("Accounts", () => {
 
   it("runs eth_call", async () => {
     const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
-    const p = Ganache.provider({
+    const p = await getProvider({
       accounts: [{balance: "0x123", secretKey: "0x" + privateKey.toString("hex")}, {balance: "0x456"}]
-    }) as EthereumProvider;
+    });
     const accounts = await p.send("eth_accounts");
     const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
     assert(true);
