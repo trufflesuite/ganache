@@ -43,7 +43,7 @@ const argv = yargs.command("$0 <name>", "Package Name").demandCommand().help().a
       scripts: {
         tsc: "ts-node ../../../scripts/compile",
         test: "nyc npm run mocha -- --throw-deprecation --trace-warnings",
-        mocha: "mocha --detectLeaks '__tests__/**.ts'"
+        mocha: "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**.ts'"
       },
       bugs: {
         url: "https://github.com/trufflesuite/ganache-core/issues"
