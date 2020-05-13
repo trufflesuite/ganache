@@ -8,6 +8,7 @@ import http from "http";
 import intoStream from "into-stream";
 import EthereumProvider from "@ganache/ethereum/src/provider";
 import PromiEvent from "@ganache/utils/src/things/promievent";
+import {promisify} from "util";
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -109,13 +110,14 @@ describe("server", () => {
       }
     });
 
-    it("fails to `.listen()` twice, callback", async () => {
+    it("fails to `.listen()` twice, Callback", async () => {
       await setup();
       try {
         // the call to `setup()` above calls `listen()` already. if we call it
         // again it should fail.
-        s.listen(port, err => {
-          assert.strict(err!.message, `Server is already listening on port: ${port}.`);
+        const listen = promisify(s.listen.bind(s));
+        await assert.rejects(listen(port), {
+          message: `Server is already open on port: ${port}.`
         });
       } finally {
         await teardown();
@@ -146,12 +148,28 @@ describe("server", () => {
       }
     });
 
-    it("fails to listen if the socket is already in use by 3rd party", async () => {
+    it("fails to listen if the socket is already in use by 3rd party, Promise", async () => {
       const server = http.createServer();
       server.listen(port);
 
       try {
         await assert.rejects(setup, {
+          message: `Failed to listen on port: ${port}.`
+        });
+      } finally {
+        await teardown();
+        server.close();
+      }
+    });
+
+    it("fails to listen if the socket is already in use by 3rd party, Callback", async () => {
+      const server = http.createServer();
+      server.listen(port);
+
+      try {
+        const s = Ganache.server();
+        const listen = promisify(s.listen.bind(s));
+        await assert.rejects(listen(port), {
           message: `Failed to listen on port: ${port}.`
         });
       } finally {
@@ -180,11 +198,25 @@ describe("server", () => {
       }
     });
 
-    it("rejects if listen called while server is closing", async () => {
+    it("rejects if listen called while server is closing, Promise", async () => {
       await setup();
       try {
         const closer = s.close();
         await assert.rejects(s.listen(4444), {
+          message: "Cannot start server while it is closing."
+        });
+        await closer;
+      } finally {
+        await teardown();
+      }
+    });
+
+    it("rejects if listen called while server is closing, Callback", async () => {
+      await setup();
+      try {
+        const closer = s.close();
+        const listen = promisify(s.listen.bind(s));
+        await assert.rejects(listen(4444), {
           message: "Cannot start server while it is closing."
         });
         await closer;

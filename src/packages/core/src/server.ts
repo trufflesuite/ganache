@@ -120,11 +120,9 @@ export default class Server<T extends ServerOptions = ServerOptions> {
 
     const _listenSocket = this.#listenSocket;
     this.#status = Status.closing;
-    if (_listenSocket) {
-      this.#listenSocket = void 0;
-      // close the socket to prevent any more connections
-      uWS.us_listen_socket_close(_listenSocket);
-    }
+    this.#listenSocket = void 0;
+    // close the socket to prevent any more connections
+    uWS.us_listen_socket_close(_listenSocket);
     // close all the connected websockets:
     const ws = this.#websocketServer;
     if (ws) {
