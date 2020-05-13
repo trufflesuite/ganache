@@ -1,13 +1,13 @@
 import assert from "assert";
-import GetProvider from "./helpers/getProvider";
-import EthereumProvider from "@ganache/ethereum/src/provider";
+import EthereumProvider from "../src/provider";
+import getProvider from "./helpers/getProvider";
 
 describe("ledger", () => {
   let provider: EthereumProvider;
   let accounts: string[];
 
   beforeEach(async () => {
-    provider = GetProvider();
+    provider = await getProvider();
     accounts = await provider.request("eth_accounts");
   });
 
