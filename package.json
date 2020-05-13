@@ -12,10 +12,8 @@
     "postinstall": "patch-package && lerna bootstrap"
   },
   "dependencies": {
-    "@types/lodash.clonedeep": "4.5.6",
     "bip39": "3.0.2",
     "bn.js": "5.1.1",
-    "cachedown": "1.0.0",
     "emittery": "0.6.0",
     "ethereumjs-account": "3.0.0",
     "ethereumjs-block": "2.2.2",
@@ -38,6 +36,7 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.1",
     "@types/fs-extra": "8.1.0",
+    "@types/lodash.clonedeep": "4.5.6",
     "@types/mocha": "7.0.2",
     "@types/node": "14.0.1",
     "@types/npm-package-arg": "6.1.0",
@@ -48,7 +47,6 @@
     "@types/uws": "0.13.2",
     "@types/ws": "7.2.4",
     "@types/yargs": "15.0.4",
-    "bufferutil": "4.0.1",
     "camelcase": "6.0.0",
     "cross-env": "7.0.2",
     "fs-extra": "9.0.0",

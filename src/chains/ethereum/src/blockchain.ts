@@ -34,7 +34,7 @@ type BlockchainOptions = {
   hardfork?: string;
   allowUnlimitedContractSize?: boolean;
   gasLimit?: Quantity;
-  timestamp?: Date;
+  time?: Date;
 };
 
 export default class Blockchain extends Emittery {
@@ -79,7 +79,7 @@ export default class Blockchain extends Emittery {
       this.accounts = new AccountManager(this, database.trie);
 
       await this.#initializeAccounts(options.accounts);
-      let lastBlock = this.#initializeGenesisBlock(options.timestamp, options.gasLimit);
+      let lastBlock = this.#initializeGenesisBlock(options.time, options.gasLimit);
 
       const readyNextBlock = async () => {
         const previousBlock = await lastBlock;

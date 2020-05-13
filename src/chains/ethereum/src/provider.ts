@@ -2,7 +2,7 @@ import {Quantity, Data} from "@ganache/utils/src/things/json-rpc";
 import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
-import {publicToAddress, privateToAddress} from "ethereumjs-util";
+import {privateToAddress} from "ethereumjs-util";
 import Account from "./things/account";
 import {mnemonicToSeedSync} from "bip39";
 import Address from "./things/address";
@@ -13,6 +13,14 @@ import secp256k1 from "secp256k1";
 import HDKey from "hdkey";
 import {types, utils} from "@ganache/utils";
 import PromiEvent from "@ganache/utils/src/things/promievent";
+const createKeccakHash = require("keccak");
+
+const uncompressedPublicKeyToAddress = (uncompressedPublicKey: Buffer) => {
+  const compresedPublicKey = secp256k1.publicKeyConvert(uncompressedPublicKey, false).slice(1);
+  const hasher = createKeccakHash("keccak256");
+  hasher._state.absorb(compresedPublicKey);
+  return Address.from(hasher.digest().slice(-20));
+}
 
 const WEI = 1000000000000000000n;
 
@@ -38,9 +46,9 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
     const accounts = this.#initializeAccounts();
     // ethereum options' `accounts` are different than the provider options'
     // `accounts`, fix that up here:
-    const ethereumOptions = _providerOptions as EthereumOptions;
+    const ethereumOptions = _providerOptions as (ProviderOptions | EthereumOptions);
     ethereumOptions.accounts = accounts;
-    this.#api = new EthereumApi(ethereumOptions, this);
+    this.#api = new EthereumApi(ethereumOptions as EthereumOptions, this);
   }
 
   // TODO: this doesn't seem like a provider-level function. Maybe we should
@@ -63,8 +71,7 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
         let address: Address;
         if (!secretKey) {
           const acct = wallet.derive(hdPath + i);
-          const publicKey = secp256k1.publicKeyConvert(acct.publicKey as Buffer, false).slice(1);
-          address = Address.from(publicToAddress(publicKey));
+          address = uncompressedPublicKeyToAddress(acct.publicKey);
           privateKey = Data.from(acct.privateKey);
         } else {
           privateKey = Data.from(secretKey);
@@ -80,8 +87,7 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
 
         for (let index = 0; index < numerOfAccounts; index++) {
           const acct = wallet.derive(hdPath + index);
-          const publicKey = secp256k1.publicKeyConvert(acct.publicKey as Buffer, false).slice(1);
-          const address = Address.from(publicToAddress(publicKey));
+          const address = uncompressedPublicKeyToAddress(acct.publicKey);
           const privateKey = Data.from(acct.privateKey);
           accounts[index] = EthereumProvider.createAccount(etherInWei, privateKey, address);
         }

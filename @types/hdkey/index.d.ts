@@ -13,7 +13,7 @@ declare module "hdkey" {
     public readonly identifier?: Uint8Array;
     public readonly pubKeyHash?: Uint8Array;
     public readonly privateKey?: Buffer;
-    public publicKey?: Uint8Array;
+    public publicKey?: Buffer;
     public readonly privateExtendedKey?: string;
     public readonly publicExtendedKey: string;
     public readonly chainCode?: Buffer;
