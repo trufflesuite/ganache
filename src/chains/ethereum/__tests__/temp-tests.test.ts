@@ -2,16 +2,18 @@ import assert from "assert";
 import {Quantity} from "@ganache/utils/src/things/json-rpc";
 import {ProviderOptions} from "@ganache/options";
 import getProvider from "./helpers/getProvider";
+import { readFileSync } from "fs-extra";
+import { join } from "path";
 
 const solc = require("solc");
 
-function compileSolidity(source: string) {
+function compileSolidity(source: string, name: string) {
   let result = JSON.parse(
     solc.compile(
       JSON.stringify({
         language: "Solidity",
         sources: {
-          "Contract.sol": {
+          [name]: {
             content: source
           }
         },
@@ -26,8 +28,10 @@ function compileSolidity(source: string) {
     )
   );
 
+  const contract = result.contracts[name][name.replace(/\.sol$/i, "")]
   return Promise.resolve({
-    code: "0x" + result.contracts["Contract.sol"].Example.evm.bytecode.object
+    code: "0x" + contract.evm.bytecode.object,
+    contract
   });
 }
 
@@ -162,46 +166,86 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("deploys contracts", async () => {
-    const contract = await compileSolidity(
-      "pragma solidity ^0.6.1; contract Example { uint public value; event Event(); constructor() public { value = 5; emit Event(); } function getVal() public pure returns (uint8) { return 123; } }"
-    );
+    const fileData = readFileSync(join(__dirname, "./contracts/helloWorld.sol"), {encoding: "utf8"});
+    const contract = await compileSolidity(fileData, "HelloWorld.sol");
     const p = await getProvider({
       defaultTransactionGasLimit: Quantity.from(6721975)
     });
-    const accounts = await p.send("eth_accounts");
-    await p.send("eth_subscribe", ["newHeads"]);
-    const transactionHash = await p.send("eth_sendTransaction", [
+    const accounts = await p.request("eth_accounts");
+    const from = accounts[3];
+    await p.request("eth_subscribe", ["newHeads"]);
+    const transactionHash = await p.request("eth_sendTransaction", [
       {
-        from: accounts[0],
+        from,
         data: contract.code
       }
     ]);
 
     await p.once("message");
 
-    const result = await p.send("eth_getTransactionReceipt", [transactionHash]);
-
+    const result = await p.request("eth_getTransactionReceipt", [transactionHash]);
     assert.strictEqual(result.blockNumber, "0x1");
 
-    const hash = await p.send("eth_sendTransaction", [
+    const to = result.contractAddress;
+    const methods = contract.contract.evm.methodIdentifiers;
+    
+    const value = await p.request("eth_call", [
+      {from, to, data: "0x" + methods["value()"]}
+    ]);
+
+    const x5 = "0x0000000000000000000000000000000000000000000000000000000000000005";
+    assert.strictEqual(value, x5);
+
+    const constVal = await p.request("eth_call", [
+      {from, to, data: "0x" + methods["getConstVal()"]}
+    ]);
+
+    const x123 = "0x000000000000000000000000000000000000000000000000000000000000007b";
+    assert.strictEqual(constVal, x123);
+
+    const storage = await p.send("eth_getStorageAt", [result.contractAddress, 0, result.blockNumber]);
+    assert.strictEqual(storage, "0x05");
+
+    const raw25 = "0000000000000000000000000000000000000000000000000000000000000019";
+    const x25 = "0x" + raw25;
+    const hash = await p.request("eth_sendTransaction", [
+      {from, to, data: "0x" + methods["setValue(uint256)"] + raw25}
+    ]);
+    await p.once("message");
+    const receipt = await p.send("eth_getTransactionReceipt", [hash]);
+    assert.strictEqual(receipt.blockNumber, "0x2");
+
+    const getValueAgain = await p.request("eth_call", [
+      {from, to, data: "0x" + methods["value()"]}
+    ]);
+
+    assert.strictEqual(getValueAgain, x25);
+
+    const storage2 = await p.send("eth_getStorageAt", [result.contractAddress, 0, receipt.blockNumber]);
+    assert.strictEqual(storage2, "0x19");
+  });
+
+  it("transfers value", async () => {
+    const p = await getProvider({gasPrice: Quantity.from(0)});
+    const accounts = await p.send("eth_accounts");
+    const ONE_ETHER = 1000000000000000000n;
+    const startingBalance = 100n * ONE_ETHER;
+    await p.send("eth_subscribe", ["newHeads"]);
+    await p.send("eth_sendTransaction", [
       {
         from: accounts[1],
         to: accounts[2],
-        value: 1
+        value: ONE_ETHER
       }
     ]);
-
     await p.once("message");
-    await p.send("eth_getTransactionReceipt", [hash]);
 
-    const ret = await p.send("eth_call", [
-      {from: accounts[3], to: result.contractAddress, gasLimit: 6721975, data: "0xe1cb0e52"}
-    ]);
-
-    assert.strictEqual(ret, "0x000000000000000000000000000000000000000000000000000000000000007b");
-
-    const storage = await p.send("eth_getStorageAt", [result.contractAddress, 0, "0x2"]);
-    assert.strictEqual(storage, "0x05");
+    const balances = (await Promise.all([
+      p.send("eth_getBalance", [accounts[1]]),
+      p.send("eth_getBalance", [accounts[2]])
+    ])).map(BigInt);
+    assert.strictEqual(balances[0], startingBalance - ONE_ETHER);
+    assert.strictEqual(balances[1], startingBalance + ONE_ETHER);
   });
 
   it("runs eth_call", async () => {

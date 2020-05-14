@@ -192,7 +192,7 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
 
     // Should supply enough intrinsic gas
     const gas = transaction.calculateIntrinsicGas();
-    if (Quantity.from(transaction.gasPrice).toBigInt() < gas) {
+    if (Quantity.from(transaction.gasLimit).toBigInt() < gas) {
       return new Error("intrisic gas too low");
     }
 
@@ -211,7 +211,7 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
       transactorNonce = -1n;
     }
     const transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
-    if (transactorNonce >= transactionNonce) {
+    if (transactorNonce > transactionNonce) {
       return new Error("Transaction nonce is too low");
     }
     return null;

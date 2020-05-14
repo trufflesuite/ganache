@@ -542,7 +542,7 @@ export default class EthereumApi implements types.Api {
 
   }
 
-  async eth_call(transaction: any, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Data> {
+  async eth_call(transaction: any, blockNumber: Buffer | Tag | string = Tag.LATEST): Promise<Data> {
     const blocks = this[_blockchain].blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.value.header;

@@ -1,6 +1,6 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.1;
 
-contract Example {
+contract HelloWorld {
   uint public value;
 
   event ValueSet(uint);
@@ -12,5 +12,9 @@ contract Example {
   function setValue(uint val) public {
     value = val;
     emit ValueSet(val);
+  }
+
+  function getConstVal() public pure returns (uint8) {
+    return 123;
   }
 }
