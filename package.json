@@ -14,6 +14,7 @@
     "nyc_mocha": "nyc npm run _mocha",
     "_lint": "eslint --ignore-path .gitignore .",
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
+    "build:tezos-image": "docker build -t trufflesuite/flextesa-mini-archive -f ./scripts/docker/Dockerfile ./scripts/docker/",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
     "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
     "prepublishOnly": "npm run test && npm run build && npm run test-build && cp npm-shrinkwrap.json npm-shrinkwrap.json.bak && rm -rf node_modules/web3-providers-ws/node_modules/websocket/.git && npm prune --only=prod",
