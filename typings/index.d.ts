@@ -36,9 +36,23 @@ declare module "ganache-core" {
     export interface IServerOptions extends IProviderOptions {
       keepAliveTimeout?: number;
     }
+    
+    export interface GanacheServer {
+      ganacheProvider: Web3Provider;
+      provider: Web3Provider;
+      allowHalfOpen: boolean;
+      pauseOnConnect: boolean;
+      httpAllowHalfOpen: boolean;
+      timeout: number;
+      keepAliveTimeout: number;
+      maxHeadersCount: number | null;
+      headersTimeout: number;
+      listen(port: number, callback: (err: any, blockchain: any) => void): void;
+      close(): void;
+    }
 
     export function provider(opts?: IProviderOptions): Provider;
-    export function server(opts?: IServerOptions): any;
+    export function server(opts?: IServerOptions): GanacheServer;
 
     export interface Provider extends Web3Provider {
       close: (callback: Function) => void;
