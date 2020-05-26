@@ -1,5 +1,5 @@
 const assert = require("assert");
-const Flextesa = require("../lib/flextesa");
+const Flextesa = require("../lib/tezos/flexteza");
 const Counter = require("./contracts/flextesa/Counter");
 const TruffleContract = require("@truffle/contract");
 
