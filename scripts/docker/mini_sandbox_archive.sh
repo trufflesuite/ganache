@@ -15,9 +15,6 @@ $all_commands
 EOF
 }
 
-export alice="$(flextesa key alice)"
-export bob="$(flextesa key bob)"
-
 export flextesa_node_cors_origin="*"
 
 all_commands="$all_commands
@@ -25,12 +22,7 @@ all_commands="$all_commands
 start () {
     flextesa mini \
              --root /tmp/mini-carthage --size 1 "$@" \
-             --number-of-bootstrap-accounts 1 \
              --time-between-blocks 10 \
-             --add-bootstrap-account="$alice@2_000_000_000_000" \
-             --add-bootstrap-account="$bob@2_000_000_000_000" \
-             --no-daemons-for=alice \
-             --no-daemons-for=bob \
              --until-level 2_000_000 \
              --tezos-baker tezos-baker-006-PsCARTHA \
              --tezos-endorser tezos-endorser-006-PsCARTHA \
@@ -38,17 +30,6 @@ start () {
              --protocol-hash PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb \
              --protocol-kind Carthage \
              --set-history-mode N000:archive
-}
-
-all_commands="$all_commands
-* info : Show accounts and information about the sandbox."
-info () {
-    cat >&2 <<EOF
-Usable accounts:
-
-- $(echo $alice | sed 's/,/\n  * /g')
-- $(echo $bob | sed 's/,/\n  * /g')
-EOF
 }
 
 
