@@ -21,7 +21,7 @@ after(() => {
 describe("Flextesa", () => {
   it("should start", async() => {
     try {
-      await Flextesa.start();
+      await Flextesa.start({ seed: "alice", port: 8732 });
     } catch (error) {
       assert.fail(error);
     }
