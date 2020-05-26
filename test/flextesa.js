@@ -15,7 +15,7 @@ before(() => {
 });
 
 after(() => {
-  Flextesa.stop();
+  Flextesa.close();
 });
 
 describe("Flextesa", () => {
