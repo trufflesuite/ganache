@@ -1,0 +1,15 @@
+
+{
+  "contractName": "Counter",
+  "abi": [],
+  "michelson": "[ { \"prim\": \"parameter\",\n    \"args\":\n      [ { \"prim\": \"or\",\n          \"args\":\n            [ { \"prim\": \"int\", \"annots\": [ \"%decrement\" ] },\n              { \"prim\": \"int\", \"annots\": [ \"%increment\" ] } ] } ] },\n  { \"prim\": \"storage\", \"args\": [ { \"prim\": \"int\" } ] },\n  { \"prim\": \"code\",\n    \"args\":\n      [ [ { \"prim\": \"DUP\" }, { \"prim\": \"CDR\" },\n          { \"prim\": \"DIP\", \"args\": [ [ { \"prim\": \"DUP\" } ] ] },\n          { \"prim\": \"SWAP\" }, { \"prim\": \"CAR\" },\n          { \"prim\": \"IF_LEFT\",\n            \"args\":\n              [ [ { \"prim\": \"DIP\", \"args\": [ [ { \"prim\": \"DUP\" } ] ] },\n                  { \"prim\": \"SWAP\" },\n                  { \"prim\": \"DIP\", \"args\": [ [ { \"prim\": \"DUP\" } ] ] },\n                  { \"prim\": \"PAIR\" }, { \"prim\": \"DUP\" }, { \"prim\": \"CAR\" },\n                  { \"prim\": \"DIP\",\n                    \"args\": [ [ { \"prim\": \"DUP\" }, { \"prim\": \"CDR\" } ] ] },\n                  { \"prim\": \"SUB\" },\n                  { \"prim\": \"DIP\",\n                    \"args\":\n                      [ [ { \"prim\": \"DROP\", \"args\": [ { \"int\": \"2\" } ] } ] ] } ],\n                [ { \"prim\": \"DIP\", \"args\": [ [ { \"prim\": \"DUP\" } ] ] },\n                  { \"prim\": \"SWAP\" },\n                  { \"prim\": \"DIP\", \"args\": [ [ { \"prim\": \"DUP\" } ] ] },\n                  { \"prim\": \"PAIR\" }, { \"prim\": \"DUP\" }, { \"prim\": \"CAR\" },\n                  { \"prim\": \"DIP\",\n                    \"args\": [ [ { \"prim\": \"DUP\" }, { \"prim\": \"CDR\" } ] ] },\n                  { \"prim\": \"ADD\" },\n                  { \"prim\": \"DIP\",\n                    \"args\":\n                      [ [ { \"prim\": \"DROP\", \"args\": [ { \"int\": \"2\" } ] } ] ] } ] ] },\n          { \"prim\": \"NIL\", \"args\": [ { \"prim\": \"operation\" } ] },\n          { \"prim\": \"PAIR\" },\n          { \"prim\": \"DIP\",\n            \"args\": [ [ { \"prim\": \"DROP\", \"args\": [ { \"int\": \"2\" } ] } ] ] } ] ] } ]",
+  "source": "// variant defining pseudo multi-entrypoint actions\ntype action is\n| Increment of int\n| Decrement of int\n\nfunction add (const a : int ; const b : int) : int is a + b\n\nfunction subtract (const a : int ; const b : int) : int is a - b\n\n// real entrypoint that re-routes the flow based on the action provided\nfunction main (const p : action ; const s : int) : (list(operation) * int) is \n  ((nil : list(operation)),\n    case p of\n    | Increment (n) -> add (s, n)\n    | Decrement (n) -> subtract (s, n)\n    end)\n",
+  "sourcePath": "/Users/cruzmolina/Code/truffle-projects/reproduce/2020/05/19/smoke/contracts/Counter.ligo",
+  "compiler": {
+    "name": "ligo",
+    "version": "next"
+  },
+  "networks": {},
+  "schemaVersion": "3.2.0-tezos.1",
+  "updatedAt": "2020-05-22T22:35:50.369Z"
+}
