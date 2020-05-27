@@ -55,6 +55,7 @@
     "websocket": "1.0.29"
   },
   "devDependencies": {
+    "@truffle/contract": "^4.3.0-tezos.4",
     "@types/web3": "^1.0.19",
     "assert-match": "^1.1.1",
     "browserfs": "1.4.3",
@@ -80,8 +81,8 @@
     "portfinder": "^1.0.25",
     "prettier": "^1.19.1",
     "request": "^2.88.0",
-    "solc": "0.6.1",
     "semver": "7.1.1",
+    "solc": "0.6.1",
     "temp": "0.9.1",
     "terser-webpack-plugin": "2.3.2",
     "web3": "1.2.4",
