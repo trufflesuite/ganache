@@ -8,7 +8,7 @@ let counterContract;
 let counterContractInstance;
 let counterContractStorage;
 
-describe.only("Flextesa", () => {
+describe("Flextesa", () => {
   const port = 8732;
   const host = "localhost";
   let server;
