@@ -7,7 +7,7 @@ let counterContract;
 let counterContractInstance;
 let counterContractStorage;
 
-describe.only("Flextesa", () => {
+describe("Flextesa", () => {
   before(() => {
     try {
       Flextesa.close();
