@@ -151,7 +151,7 @@ function test(forked) {
       const lastop = structLogs[structLogs.length - 1];
 
       assert.strictEqual(lastop.op, "STOP");
-      assert.strictEqual(lastop.gasCost, 1);
+      assert.strictEqual(lastop.gasCost, 0);
       assert.strictEqual(lastop.pc, 235);
       assert.strictEqual(
         lastop.storage["0000000000000000000000000000000000000000000000000000000000000000"],
