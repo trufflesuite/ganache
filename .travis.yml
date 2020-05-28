@@ -6,13 +6,12 @@ node_js:
   - "12"
 os:
   - linux
-  - osx
-  - windows
-# using xcode9.2 forces osx 10.12, which is WAAAYYYYYY faster than 10.13
-# in fact, we couldn't get osx 10.13 to ever finish the running the tests
-osx_image: xcode9.2
+
 git:
   autocrlf: false
+
+services:
+  - docker
 
 addons:
   apt:
@@ -29,6 +28,9 @@ before_install:
       export LINK="gcc-5";
       export LINKXX="g++-5";
     fi
+
+before_script:
+  npm run build:tezos-image
 
 after_success:
   npm run coverage
