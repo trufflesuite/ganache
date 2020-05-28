@@ -1,4 +1,5 @@
 const assert = require("assert");
+const ganache = require("../public-exports");
 const Flextesa = require("../lib/tezos/flextesa");
 const Counter = require("./contracts/flextesa/Counter");
 const TruffleContract = require("@truffle/contract");
@@ -8,23 +9,25 @@ let counterContractInstance;
 let counterContractStorage;
 
 describe("Flextesa", () => {
+  const port = 8732;
+  let server;
   before(() => {
-    try {
-      Flextesa.close();
-    } catch (e) {}
+    Flextesa.close();
+
     counterContract = TruffleContract(Counter, "tezos");
-    counterContract.setProvider("http://localhost:8732");
+    counterContract.setProvider(`http://localhost:${port}`);
     // set alice's wallet using alice's secretKey
     counterContract.setWallet({ secretKey: "edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq" });
   });
 
   after(() => {
-    Flextesa.close();
+    server && server.close(true);
   });
 
   it("should start", async() => {
     try {
-      await Flextesa.start({ seed: "alice", port: 8732 });
+      server = ganache.server({ flavor: "tezos", seed: "alice" });
+      await new Promise((resolve) => server.listen(port, resolve));
     } catch (error) {
       assert.fail(error);
     }
