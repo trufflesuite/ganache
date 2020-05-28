@@ -22,8 +22,9 @@ all_commands="$all_commands
 start () {
     flextesa mini \
              --root /tmp/mini-carthage --size 1 "$@" \
-             --time-between-blocks 10 \
-             --until-level 2_000_000 \
+             --time-between-blocks 0 \
+             --timestamp-delay 0 \
+             --no-baking \
              --tezos-baker tezos-baker-006-PsCARTHA \
              --tezos-endorser tezos-endorser-006-PsCARTHA \
              --tezos-accuser tezos-accuser-006-PsCARTHA \
