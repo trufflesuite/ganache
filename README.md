@@ -76,7 +76,7 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"flavor"`: The blockchain technology to simulate. Valid values are `"ethereum"` or `"tezos"`. Default is `"ethereum"`.
 * `"logger"`: `Object` - Object, like `console`, that implements a `log()` function.
 * `"total_accounts"`: `number` - Number of accounts to generate at startup.
-* `"port"`: `number` Port number to listen on when running as a server. Default port 8545 (ethereum), 8732 (tezos).
+* `"port"`: `number` Port number to listen on when running as a server. Defaults to port `8545` (ethereum) or `8732` (tezos).
 * `"seed"`: `string` Use arbitrary data to generate accounts to be used.
 
 ### Ethereum
