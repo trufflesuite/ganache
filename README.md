@@ -6,11 +6,11 @@
 
 This is the core code that powers the Ganache application and the Ganache command line tool.
 
-[Usage](#usage) | [Options](#options) | [Implemented Methods](#implemented-methods) | [Custom Methods](#custom-methods) | [Unsupported Methods](#unsupported-methods) | [Testing](#testing)
+[Usage](#usage) | [Options](#options) | [Implemented Methods](#ethereum-implemented-methods) | [Custom Methods](#ethereum-custom-methods) | [Unsupported Methods](#ethereum-unsupported-methods) | [Testing](#testing)
 
 ## Installation
 
-`ganache-core` is written in JavaScript and distributed as a Node.js package via `npm`. Make sure you have Node.js (>= v8.9.0) installed, and your environment is capable of installing and compiling `npm` modules.
+`ganache-core` is written in JavaScript and distributed as a Node.js package via `npm`. Make sure you have Node.js (>= v10.7.0) installed, and your environment is capable of installing and compiling `npm` modules.
 
 **macOS** Make sure you have the XCode Command Line Tools installed. These are needed in general to be able to compile most C based languages on your machine, as well as many npm modules.
 
@@ -32,6 +32,17 @@ yarn add ganache-core
 
 
 ## Usage
+
+As a general HTTP and WebSocket server:
+
+```javascript
+const ganache = require("ganache-core");
+const server = ganache.server();
+const provider = server.provider;
+server.listen(port, function(err, blockchain) { ... });
+```
+
+### Ethereum:
 
 As a [Web3](https://github.com/ethereum/web3.js/) provider:
 
@@ -56,50 +67,51 @@ const ganache = require("ganache-core");
 const provider = new ethers.providers.Web3Provider(ganache.provider());
 ```
 
-As a general HTTP and WebSocket server:
-
-```javascript
-const ganache = require("ganache-core");
-const server = ganache.server();
-const provider = server.provider;
-server.listen(port, function(err, blockchain) { ... });
-```
-
 ## Options
 
 Both `.provider()` and `.server()` take a single object which allows you to specify behavior of the Ganache instance. This parameter is optional. Available options are:
 
+### Ethereum and Tezos
+
+* `"flavor"`: The blockchain technology to simulate. Valid values are `"ethereum"` or `"tezos"`. Default is `"ethereum"`.
+* `"logger"`: `Object` - Object, like `console`, that implements a `log()` function.
+* `"total_accounts"`: `number` - Number of accounts to generate at startup.
+* `"port"`: `number` Port number to listen on when running as a server. Default port 8545 (ethereum), 8732 (tezos).
+* `"seed"`: `string` Use arbitrary data to generate accounts to be used.
+
+### Ethereum
+
 * `"accounts"`: `Array` of `Object`'s of the following shape: `{ secretKey: privateKey, balance: HexString }`.
   * If `secretKey` is specified, the key is used to determine the account's address. Otherwise, the address is auto-generated.
   * The `balance` is a hexadecimal value of the amount of Ether (in Wei) you want the account to be pre-loaded with.
-* `"debug"`: `boolean` - Output VM opcodes for debugging
 * `"blockTime"`: `number` - Specify blockTime in seconds for automatic mining. If you don't specify this flag, ganache will instantly mine a new block for every transaction. Using the `blockTime` option is discouraged unless you have tests which require a specific mining interval.
-* `"logger"`: `Object` - Object, like `console`, that implements a `log()` function.
+* `"debug"`: `boolean` - Output VM opcodes for debugging
+* `"default_balance_ether"`: `number` - The default account balance, specified in Ether.
 * `"mnemonic"`: Use a specific HD wallet mnemonic to generate initial addresses.
-* `"port"`: `number` Port number to listen on when running as a server.
-* `"seed"`: Use arbitrary data to generate the HD wallet mnemonic to be used.
-* `"default_balance_ether"`: `number` - The default account balance, specified in ether.
-* `"total_accounts"`: `number` - Number of accounts to generate at startup.
 * `"fork"`: `string` or `object` - Fork from another currently running Ethereum client at a given block.  When a `string`, input should be the HTTP location and port of the other client, e.g. `http://localhost:8545`. You can optionally specify the block to fork from using an `@` sign: `http://localhost:8545@1599200`. Can also be a `Web3 Provider` object, optionally used in conjunction with the `fork_block_number` option below.
 * `"fork_block_number"`: `string` or `number` - Block number the provider should fork from, when the `fork` option is specified. If the `fork` option is specified as a string including the `@` sign and a block number, the block number in the `fork` parameter takes precedence.
 * `"network_id"`: Specify the network id ganache-core will use to identify itself (defaults to the current time or the network id of the forked blockchain if configured)
 * `"time"`: `Date` - Date that the first block should start. Use this feature, along with the `evm_increaseTime` method to test time-dependent code.
 * `"locked"`: `boolean` - whether or not accounts are locked by default.
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
-* `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, `ganache-core` will initialize that chain instead of creating a new one. Note: You will not be able to modify state (accounts, balances, etc) on startup when you initialize ganache-core with a pre-existing database.
+* `"db_path"`: `String` - Specify a path to a directory to save the chain database. If a database already exists, `ganache-cli` will initialize that chain instead of creating a new one.  Note: You will not be able to modify state (accounts, balances, etc) on startup when you initialize ganache-core with a pre-existing database.
 * `"db"`: `Object` - Specify an alternative database instance, for instance [MemDOWN](https://github.com/level/memdown).
 * `"ws"`: `boolean` Enable a websocket server. This is `true` by default.
 * `"account_keys_path"`: `String` - Specifies a file to save accounts and private keys to, for testing.
 * `"vmErrorsOnRPCResponse"`: `boolean` - Whether or not to transmit transaction failures as RPC errors. Set to `false` for error reporting behaviour which is compatible with other clients such as geth and Parity. This is `true` by default to replicate the error reporting behavior of previous versions of ganache.
 * `"hdPath"`: The hierarchical deterministic path to use when generating accounts. Default: "m/44'/60'/0'/0/"
 * `"hardfork"`: `String` Allows users to specify which hardfork should be used. Supported hardforks are `byzantium`, `constantinople`, `petersburg`, `istanbul`, and `muirGlacier` (default).
-* `"allowUnlimitedContractSize"`: `boolean` - Allows unlimited contract sizes while debugging (NOTE: this setting is often used in conjuction with an increased `gasLimit`). By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-core` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
+* `"allowUnlimitedContractSize"`: `boolean` - Allows unlimited contract sizes while debugging (NOTE: this setting is often used in conjuction with an increased `gasLimit`). By setting this to `true`, the check within the EVM for contract size limit of 24KB (see [EIP-170](https://git.io/vxZkK)) is bypassed. Setting this to `true` **will** cause `ganache-cli` to behave differently than production environments. (default: `false`; **ONLY** set to `true` during debugging).
 * `"gasPrice"`: `String::hex` Sets the default gas price for transactions if not otherwise specified. Must be specified as a `hex` encoded string in `wei`. Defaults to `"0x77359400"` (2 `gwei`).
-* `"gasLimit"`: `String::hex | number` Sets the block gas limit. Must be specified as a `hex` string or `number`(integer). Defaults to `"0x6691b7"`.
+* `"gasLimit"`: `String::hex | number` Sets the block gas limit. Must be specified as a `hex` string or `number`. Defaults to `"0x6691b7"`.
 * `"callGasLimit"`: `number` Sets the transaction gas limit for `eth_call` and `eth_estimateGas` calls. Must be specified as a `hex` string. Defaults to `"0x1fffffffffffff"` (`Number.MAX_SAFE_INTEGER`).
 * `"keepAliveTimeout"`:  `number` If using `.server()` - Sets the HTTP server's `keepAliveTimeout` in milliseconds. See the [NodeJS HTTP docs](https://nodejs.org/api/http.html#http_server_keepalivetimeout) for details. `5000` by default.
 
-## Implemented Methods
+### Tezos
+
+ * `"defaultBalance"`: `number` - The default account balance, specified in Tez.
+
+## Ethereum, Implemented Methods
 
 The RPC methods currently implemented are:
 
@@ -160,7 +172,7 @@ The RPC methods currently implemented are:
 * [personal_lockAccount](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_lockAccount)
 * [personal_listAccounts](https://github.com/ethereum/go-ethereum/wiki/Management-APIs#personal_listaccounts)
 
-## Custom Methods
+## Ethereum, Custom Methods
 
 Special non-standard methods that aren’t included within the original RPC specification:
 * `evm_snapshot` : Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the integer id of the snapshot created. A snapshot can only be used once. After a successful `evm_revert`, the same snapshot id cannot be used again. Consider creating a new snapshot after each `evm_revert` *if you need to revert to the same point multiple times*.
@@ -204,7 +216,7 @@ Special non-standard methods that aren’t included within the original RPC spec
   { "id": 1337, "jsonrpc": "2.0", "result": "0x0" }
   ```
 
-## Unsupported Methods
+## Ethereum, Unsupported Methods
 
 * `eth_compileSolidity`: If you'd like Solidity compilation in Javascript, please see the [solc-js project](https://github.com/ethereum/solc-js).
 
