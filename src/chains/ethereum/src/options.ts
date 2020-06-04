@@ -15,6 +15,7 @@ type EthereumOptions = Pick<
   | "db_path"
   | "secure"
   | "time"
+  | "blockTime"
 > & {
   accounts: Account[];
 };
