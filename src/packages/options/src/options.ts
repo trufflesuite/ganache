@@ -27,6 +27,14 @@ export interface Options {
   debug?: boolean;
 
   /**
+   * Specify blockTime in seconds for automatic mining. If you don't specify
+   * this flag, ganache will instantly mine a new block for every transaction.
+   * Using the blockTime option is discouraged unless you have tests which 
+   * require a specific mining interval.
+   */
+  blockTime?: number;
+
+  /**
    * An object, like console, that implements a log() function.
    */
   logger?: Logger;
