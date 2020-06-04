@@ -35,6 +35,7 @@ type BlockchainOptions = {
   allowUnlimitedContractSize?: boolean;
   gasLimit?: Quantity;
   time?: Date;
+  blockTime?: number;
 };
 
 export default class Blockchain extends Emittery {
