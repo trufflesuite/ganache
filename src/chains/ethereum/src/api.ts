@@ -100,6 +100,8 @@ export default class EthereumApi implements types.Api {
    * @returns true when listening, otherwise false.
    */
   async net_listening(): Promise<boolean> {
+    // TODO: this should return false when ganache isn't used with a server, or
+    // or while the server is still initializing.
     return true;
   }
 
