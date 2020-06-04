@@ -11306,9 +11306,9 @@
       }
     },
     "ts-node": {
-      "version": "8.10.1",
-      "resolved": "https://registry.npmjs.org/ts-node/-/ts-node-8.10.1.tgz",
-      "integrity": "sha512-bdNz1L4ekHiJul6SHtZWs1ujEKERJnHs4HxN7rjTyyVOFf3HaJ6sLqe6aPG62XTzAB/63pKRh5jTSWL0D7bsvw==",
+      "version": "8.10.2",
+      "resolved": "https://registry.npmjs.org/ts-node/-/ts-node-8.10.2.tgz",
+      "integrity": "sha512-ISJJGgkIpDdBhWVu3jufsWpK3Rzo7bdiIXJjQc0ynKxVOVcg2oIrf2H2cejminGrptVc6q6/uynAHNCuWGbpVA==",
       "dev": true,
       "requires": {
         "arg": "^4.1.0",
@@ -11369,9 +11369,9 @@
       }
     },
     "typescript": {
-      "version": "3.9.2",
-      "resolved": "https://registry.npmjs.org/typescript/-/typescript-3.9.2.tgz",
-      "integrity": "sha512-q2ktq4n/uLuNNShyayit+DTobV2ApPEo/6so68JaD5ojvc/6GClBipedB9zNWYxRSAlZXAe405Rlijzl6qDiSw==",
+      "version": "3.9.5",
+      "resolved": "https://registry.npmjs.org/typescript/-/typescript-3.9.5.tgz",
+      "integrity": "sha512-hSAifV3k+i6lEoCJ2k6R2Z/rp/H3+8sdmcn5NrS3/3kE7+RyZXm9aqvxWqjEXHAd8b0pShatpcdMTvEdvAJltQ==",
       "dev": true
     },
     "uWebSockets.js": {
