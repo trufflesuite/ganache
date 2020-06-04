@@ -40,7 +40,7 @@ export class Heap<T> {
   }
 
   /**
-   * Return the current best element. Do not remove it
+   * Return the current best element. Does not remove it
    */
   public peek(): T {
     return this.array[0];
