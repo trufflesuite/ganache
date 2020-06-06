@@ -4,6 +4,7 @@ import TransactionPool, {TransactionPoolOptions} from "./transaction-pool";
 import levelup from "levelup";
 import Blockchain from "../blockchain";
 import {utils} from "@ganache/utils";
+import { Data } from "@ganache/utils/src/things/json-rpc";
 
 export type TransactionManagerOptions = TransactionPoolOptions;
 
@@ -19,7 +20,7 @@ export default class TransactionManager extends Manager<Transaction> {
     });
   }
 
-  public push(transaction: Transaction): Promise<void> {
-    return this.transactionPool.insert(transaction);
+  public push(transaction: Transaction, secretKey?: Data): Promise<void> {
+    return this.transactionPool.insert(transaction, secretKey);
   }
 }

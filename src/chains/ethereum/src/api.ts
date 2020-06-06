@@ -277,7 +277,7 @@ export default class EthereumApi implements types.Api {
    * @param blockNumber integer block number, or the string "latest", "earliest"
    *  or "pending", see the default block parameter
    */
-  async eth_getBalance(address: IndexableAddress, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Quantity> {
+  async eth_getBalance(address: string | IndexableAddress, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Quantity> {
     const chain = this[_blockchain];
     const account = await chain.accounts.get(Address.from(address), blockNumber);
     return account.balance;
@@ -433,13 +433,8 @@ export default class EthereumApi implements types.Api {
     }
 
     if (isKnownAccount) {
-      if (tx.nonce.length === 0) {
-        // TODO: check pending transactions and get the nonce from there
-        const account = await this[_blockchain].accounts.get(from);
-        tx.nonce = account.nonce.toBuffer();
-      }
       const secretKey = this[_wallet].knownAccounts.get(fromString);
-      tx.sign(secretKey.toBuffer());
+      return this[_blockchain].queueTransaction(tx, secretKey);
     }
 
     return this[_blockchain].queueTransaction(tx);

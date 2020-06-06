@@ -70,7 +70,10 @@ export default class Blockchain extends Emittery {
       this.blocks = new BlockManager(this, database.blocks);
       this.vm = this.createVmFromStateTrie(this.trie, options.hardfork, options.allowUnlimitedContractSize);
 
-      const miner = new Miner(this.vm, options);
+      const gasLimit = options.gasLimit;
+      const instamine = !options.blockTime || options.blockTime <= 0;
+      const miner = new Miner(this.vm, {instamine, gasLimit});
+
       this.transactions = new TransactionManager(this, database.transactions, options);
       this.transactionReceipts = new Manager<TransactionReceipt>(
         this,
@@ -80,7 +83,7 @@ export default class Blockchain extends Emittery {
       this.accounts = new AccountManager(this, database.trie);
 
       await this.#initializeAccounts(options.accounts);
-      let lastBlock = this.#initializeGenesisBlock(options.time, options.gasLimit);
+      let lastBlock = this.#initializeGenesisBlock(options.time, gasLimit);
 
       const readyNextBlock = async () => {
         const previousBlock = await lastBlock;
@@ -88,26 +91,25 @@ export default class Blockchain extends Emittery {
         const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
         return this.blocks.createBlock({
           number: Quantity.from(previousNumber + 1n).toBuffer(),
-          gasLimit: options.gasLimit.toBuffer(),
+          gasLimit: gasLimit.toBuffer(),
           timestamp: this.#currentTime(),
           parentHash: previousHeader.hash()
         });
       };
-      const instamining = true;
-      if (instamining) {
+
+      if (instamine) {
         this.transactions.transactionPool.on("drain", async (pending: Map<string, utils.Heap<Transaction>>) => {
           const block = await readyNextBlock();
-          await miner.mine(pending, block.value);
+          await miner.mine(pending, block.value, 1);
         });
       } else {
-        // TODO: the interval needs to be from the `options`
-        const minerInterval = 3 * 1000;
+        const minerInterval = options.blockTime * 1000;
         const mine = async (pending: Map<string, utils.Heap<Transaction>>) => {
           const block = await readyNextBlock();
-          await miner.mine(pending, block.value);
-          setTimeout(mine, minerInterval, pending);
+          await miner.mine(pending, block.value, 0);
+          setTimeout(mine, minerInterval, pending, 0);
         };
-        setTimeout(mine, minerInterval, this.transactions.transactionPool.executables);
+        setTimeout(mine, minerInterval, this.transactions.transactionPool.executables, 0);
       }
 
       miner.on("block", async (blockData: any) => {
@@ -230,8 +232,8 @@ export default class Blockchain extends Emittery {
     return number.toString() as any;
   };
 
-  public async queueTransaction(transaction: any): Promise<Data> {
-    await this.transactions.push(transaction);
+  public async queueTransaction(transaction: any, secretKey?: Data): Promise<Data> {
+    await this.transactions.push(transaction, secretKey);
     return Data.from(transaction.hash());
   }
 

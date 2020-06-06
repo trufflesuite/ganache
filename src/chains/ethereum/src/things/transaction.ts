@@ -175,6 +175,7 @@ function initData(tx: any, data: any) {
 interface Transaction extends Omit<EthereumJsTransaction, "toJSON"> {}
 // TODO fix the EthereumJsTransaction as any via some "fake" multi-inheritance:
 class Transaction extends (EthereumJsTransaction as any) {
+  public locked: boolean = false;
   type: number;
   v: Buffer;
   r: Buffer;
@@ -287,6 +288,7 @@ class Transaction extends (EthereumJsTransaction as any) {
 
     const tx = new Transaction(options, type);
     tx._hash = json.hash ? Data.from(json.hash).toBuffer() : null;
+    tx._from = json.from ? Data.from(json.from).toBuffer() : null;
     return tx;
   }
 

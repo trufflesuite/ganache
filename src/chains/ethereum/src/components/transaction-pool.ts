@@ -1,3 +1,4 @@
+import Account from "../things/account";
 import Emittery from "emittery";
 import Blockchain from "../blockchain";
 import {utils} from "@ganache/utils";
@@ -35,9 +36,13 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
     this.#options = options;
   }
   public executables: Map<string, utils.Heap<Transaction>> = new Map();
-  #origins: Map<string, utils.Heap<Transaction>> = new Map();
+  #origins: Map<string, {
+    transactions: utils.Heap<Transaction>,
+    nonce: bigint
+  }> = new Map();
+  #accountPromises = new Map<string, PromiseLike<Account>>();
 
-  public async insert(transaction: Transaction) {
+  public async insert(transaction: Transaction, secretKey?: Data) {
     let err: Error;
 
     err = this.validateTransaction(transaction);
@@ -47,17 +52,31 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
     }
 
     const from = Data.from(transaction.from);
-    const transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
+    let transactionNonce: bigint;
+    if (secretKey === null || transaction.nonce.length !== 0) {
+      transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;;  
+      if (transactionNonce < 0n) {
+        throw new Error("Transaction nonce cannot be negative.");
+      }
+    }
 
     const origin = from.toString();
     const origins = this.#origins;
-    let queuedOriginTransactions = origins.get(origin);
+    let queuedOrigin = origins.get(origin);
+    let highestNonce = 0n;
+    let queuedOriginTransactions: utils.Heap<Transaction>;
+    if (queuedOrigin) {
+      highestNonce = queuedOrigin.nonce;
+      queuedOriginTransactions = queuedOrigin.transactions;
+    }
 
     let isExecutableTransaction = false;
     const executables = this.executables;
     let executableOriginTransactions = executables.get(origin);
+    let transactor: Account;
 
-    if (executableOriginTransactions) {
+    let length: number;
+    if (executableOriginTransactions && (length = executableOriginTransactions.length)) {
       // check if a transaction with the same nonce is in the origin's
       // executables queue already. Replace the matching transaction or throw this
       // new transaction away as neccessary.
@@ -66,8 +85,6 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
       const newGasPrice = Quantity.from(transaction.gasPrice).toBigInt();
       // Notice: we're iterating over the raw heap array, which isn't
       // neccessarily sorted
-      let highestNonce = 0n;
-      const length = executableOriginTransactions.length;
       for (let i = 0; i < length; i++) {
         const currentPendingTx = pendingArray[i];
         const thisNonce = Quantity.from(currentPendingTx.nonce).toBigInt();
@@ -77,46 +94,71 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
 
           // TODO: how do we surface these transaction failures to the caller?!
 
-          // if our new price is `thisPrice * priceBumpPercent` better than our
+          // if our new price is `gasPrice * priceBumpPercent` better than our
           // oldPrice, throw out the old now.
-          if (newGasPrice > thisPricePremium) {
+          if (!currentPendingTx.locked && newGasPrice > thisPricePremium) {
             isExecutableTransaction = true;
             // do an in-place replace without triggering a resort because we
             // already known where this tranassction should go in this byNonce
             // heap.
-            executableOriginTransactions.array[i] = transaction;
+            pendingArray[i] = transaction;
             throw new Error("That old transaction sucked, yo!");
           } else {
             throw new Error("That new transaction sucked, yo!");
           }
-          break;
-        } else if (thisNonce > highestNonce) {
+        }
+        if (thisNonce > highestNonce) {
           highestNonce = thisNonce;
         }
       }
-      // if our transaction's nonce is 1 higher than the last transaction in the
-      // origin's heap we are executable.
-      if (transactionNonce === highestNonce + 1n) {
+      if (secretKey && transactionNonce === void 0) {
+        // if we aren't signed and don't have a transactionNonce yet set it now
+        transactionNonce = highestNonce + 1n;
+        transaction.nonce = Quantity.from(transactionNonce).toBuffer();
         isExecutableTransaction = true;
+        highestNonce = transactionNonce;
+      } else if (transactionNonce === highestNonce + 1n) {
+        // if our transaction's nonce is 1 higher than the last transaction in the
+        // origin's heap we are executable.
+        isExecutableTransaction = true;
+        highestNonce = transactionNonce;
+      }
+    } else {
+      // since we don't have any pending transactions for this account
+      // verify the transaction's nonce is valid against the persisted account
+      // Note: we need to lock on this async request to ensure we always process
+      // incoming requests in the order they were received! It is possible for
+      // the file IO performed by `accounts.get` to vary.
+      let transactorPromise = this.#accountPromises.get(origin);
+      if (!transactorPromise) {
+        transactorPromise = this.#blockchain.accounts.get(from)
+        this.#accountPromises.set(origin, transactorPromise);
+        transactorPromise.then(() => {
+          this.#accountPromises.delete(origin);
+        });
+      }
+      transactor = await transactorPromise;
+      
+      const transactorNonce = transactor.nonce.toBigInt();
+      if (secretKey && transactionNonce === void 0) {
+        // if we don't have a transactionNonce, just use the account's next
+        // nonce and mark as executable
+        transactionNonce = transactorNonce ? transactorNonce : 0n;
+        highestNonce = transactionNonce;
+        isExecutableTransaction = true;
+        transaction.nonce = Quantity.from(transactionNonce).toBuffer();
+      } else if (transactionNonce <= transactorNonce) {
+        // it's an error if the transaction's nonce is <= the persisted nonce
+        throw new Error("Transaction nonce is too low");
       }
     }
 
-    // TODO: since this is the only async code in this `insert` fn, maybe we can
-    // put this into the miner? The VM itself does check for everything this
-    // validation function checks for.
-    const transactor = await this.#blockchain.accounts.get(from);
-    err = await this.#validateTransactor(transaction, transactor);
-    if (err != null) {
-      // TODO: how do we surface these transaction failures to the caller?!
-      throw err;
-    }
+    // this.#assertValidTransactorBalance(transaction, transactor);
 
-    if (!isExecutableTransaction) {
-      // If the transaction wasn't found in our origin's executables queue,
-      // check if it is at the correct `nonce` by looking up the origin's
-      // current nonce
-      const transactorNextNonce = transactor.nonce.toBigInt() || 0n;
-      isExecutableTransaction = transactorNextNonce === transactionNonce;
+    // now that we know we have a transaction nonce we can sign the transaction
+    // (if we have the secret key)
+    if (secretKey) {
+      transaction.sign(secretKey.toBuffer());
     }
 
     // if it is executable add it to the executables queue
@@ -128,13 +170,25 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
         executableOriginTransactions = utils.Heap.from(transaction, byNonce);
         executables.set(origin, executableOriginTransactions);
       }
+      if (queuedOrigin) {
+        queuedOrigin.nonce = highestNonce;
+      } else {
+        origins.set(origin, {
+          nonce: highestNonce, 
+          // note: queuedOriginTransactions might be undefined here, and that's okay.
+          transactions: queuedOriginTransactions
+        });
+      }
 
       this.#drainQueued(origin, queuedOriginTransactions, executableOriginTransactions, transactionNonce);
     } else if (queuedOriginTransactions) {
       queuedOriginTransactions.push(transaction);
     } else {
       queuedOriginTransactions = utils.Heap.from(transaction, byNonce);
-      origins.set(origin, queuedOriginTransactions);
+      origins.set(origin, {
+        nonce: highestNonce, 
+        transactions: queuedOriginTransactions
+      });
     }
   }
 
@@ -149,7 +203,7 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
     if (queuedOriginTransactions) {
       const origins = this.#origins;
 
-      let nextExpectedNonce: bigint = transactionNonce + 1n;
+      let nextExpectedNonce = transactionNonce + 1n;
       while (true) {
         const nextTx = queuedOriginTransactions.peek();
         const nextTxNonce = Quantity.from(nextTx.nonce).toBigInt() || 0n;
@@ -163,7 +217,7 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
         // And then remove this transaction from its origin's queue
         if (!queuedOriginTransactions.removeBest()) {
           // removeBest() returns `false` when there are no more items after
-          // the remove item. Let's do some cleanup when that happens
+          // the removed item. Let's do some cleanup when that happens.
           origins.delete(origin);
           break;
         }
@@ -172,7 +226,7 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
       }
     }
 
-    // notify listeners (the miner, probably) that we have executables
+    // notify listeners (the miner, probably) that we have executable
     // transactions ready for it
     this.emit("drain", this.executables);
   };
@@ -199,21 +253,11 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
     return null;
   };
 
-  #validateTransactor = async (transaction: Transaction, transactor: any): Promise<Error> => {
+  #assertValidTransactorBalance = (transaction: Transaction, transactor: any): Error | null => {
     // Transactor should have enough funds to cover the costs
     if (transactor.balance.toBigInt() < transaction.cost()) {
       return new Error("Account does not have enough funds to complete transaction");
     }
-
-    // check that the nonce isn't too low
-    let transactorNonce = transactor.nonce.toBigInt();
-    if (transactorNonce == null) {
-      transactorNonce = -1n;
-    }
-    const transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
-    if (transactorNonce > transactionNonce) {
-      return new Error("Transaction nonce is too low");
-    }
     return null;
-  };
+  }
 }
