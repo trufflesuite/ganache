@@ -174,7 +174,14 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
       const promise = result.value as PromiseLike<ReturnType<EthereumApi[Method]>>;
       if (promise instanceof PromiEvent) {
         promise.on("message", (data) => {
+          // EIP-1193
           this.emit("message" as never, data as never);
+          // legacy
+          this.emit("data" as never, {
+            jsonrpc:"2.0",
+            method: "eth_subscription",
+            params: (data as any).data
+          } as never);
         });
       }
       return promise.then(JSON.stringify).then(JSON.parse);
