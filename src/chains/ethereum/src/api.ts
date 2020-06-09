@@ -67,6 +67,30 @@ export default class EthereumApi implements types.Api {
     });
   }
 
+  //#region ganache
+  /**
+   * Fast forwards an account's nonce to the specified value.
+   * 
+   * @param address 
+  */
+  async ganache_setAccountNonce(address: string, nonce: number | BigInt) {
+    return new Promise((resolve, reject) => {
+      const buffer = Address.from(address).toBuffer();
+      this[_blockchain].vm.stateManager.getAccount(buffer, (err, account) => {
+        if (err) {
+          return void reject(err)
+        }
+        account.nonce = nonce;
+        this[_blockchain].vm.stateManager.putAccount(buffer, account, (err) => {
+          if (err) {
+            return void reject(err)
+          }
+          resolve(null); 
+        });
+      });
+    });
+  }
+  //#endregion ganache
   //#region web3
   /**
    * Returns the current client version.
