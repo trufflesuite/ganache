@@ -490,7 +490,7 @@ export default class EthereumApi implements types.Api {
             promiEvent.emit("message", {
               type: "eth_subscription",
               data: {
-                result,
+                result: result.value.header.toJSON(true),
                 subscription
               }
             });
