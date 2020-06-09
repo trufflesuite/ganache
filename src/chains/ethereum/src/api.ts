@@ -91,6 +91,27 @@ export default class EthereumApi implements types.Api {
     });
   }
   //#endregion ganache
+
+  //#region evm
+  async evm_mine(timestamp?: number) {
+    await this[_blockchain].transactions.transactionPool.drain(0, timestamp);
+    // TODO: why did ganache-core send "0x0" back? Is this what geth does?
+    return Promise.resolve("0x0");
+  }
+  //#endregion evm
+
+  //#region miner
+  miner_start(threads: number = 1) {
+    this[_blockchain].resume(threads);
+    return Promise.resolve(true);
+  }
+
+  async miner_stop() {
+    this[_blockchain].pause();
+    return Promise.resolve(true);
+  }
+  //#endregion
+
   //#region web3
   /**
    * Returns the current client version.

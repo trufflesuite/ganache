@@ -15,7 +15,7 @@ export default class TransactionManager extends Manager<Transaction> {
     super(blockchain, base, Transaction);
 
     this.transactionPool = new TransactionPool(blockchain, options);
-    this.transactionPool.on("drain", (transactions: Map<string, utils.Heap<Transaction>>) => {
+    this.transactionPool.on("drain", (transactions) => {
       // TODO: create pending block?
     });
   }

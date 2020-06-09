@@ -27,6 +27,7 @@ export default class TransactionReceipt {
   }
   public toJSON(block: Block, transaction: Transaction) {
     const raw = this.#raw;
+    const contractAddress = Data.from(this.#contractAddress).toJSON()
     return {
       transactionHash: Data.from(transaction.hash()),
       transactionIndex: Quantity.from((transaction as any)._index),
@@ -34,10 +35,11 @@ export default class TransactionReceipt {
       blockHash: Data.from(block.value.hash()),
       cumulativeGasUsed: Quantity.from(block.value.header.gasUsed),
       gasUsed: Quantity.from(raw[1]),
-      contractAddress: Data.from(this.#contractAddress),
+      contractAddress: contractAddress === "0x" ? null : contractAddress,
       logs: raw[3], // TODO: figure this out
       logsBloom: Data.from(raw[2], 256),
-      status: Quantity.from(raw[0])
+      // flips a `1` to a `0` and a `0` to a `1` using Bitwise XOR for funsies.
+      status: 1 ^ raw[0][0]
     };
   }
 }

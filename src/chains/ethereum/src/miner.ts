@@ -74,7 +74,7 @@ export default class Miner extends Emittery {
    * 
    * @param maxTransactions: number maximum number of transactions per block. If `0`, unlimited.
    */
-  public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number) {
+  public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = 0) {
     // only allow mining a single block at a time (per miner)
     if (this.#isMining) {
       // if we are currently mining a block, set the `pending` property
@@ -172,8 +172,7 @@ export default class Miner extends Emittery {
 
         const runArgs = {
           tx: best as any,
-          block,
-          skipNonce: true
+          block
         };
         // Set a transaction-level checkpoint so we can undo state changes in
         // the case where the transaction is rejected by the VM.
@@ -260,11 +259,13 @@ export default class Miner extends Emittery {
         block = this.#createNextBlock(block);
         this.#currentlyExecutingPrice = 0n;
       } else {
-        // don't save an empty block
         // TODO: should we allow save an empty block?! I think we should
         // sometimes save an empty block, but not always? Hmmmmm. Interesting.
-        // Probably a breaking change here? AAaAaaAaah.
-        this.#revert();
+
+        // Save this empty block
+        await this.#commit();
+
+        this.emit("block", blockData);
 
         // reset the miner
         this.#reset();

@@ -17,14 +17,24 @@ import TransactionReceipt from "./things/transaction-receipt";
 import {encode as rlpEncode} from "rlp";
 import Common from "ethereumjs-common";
 
-const VM = require("ethereumjs-vm").default;
+import VM from "ethereumjs-vm";
+
+function unref (timer: NodeJS.Timeout | number): timer is NodeJS.Timeout {
+  if (typeof timer === "object" && typeof timer.unref === "function") {
+    timer.unref();
+    return true;
+  } else {
+    return false;
+  }
+}
 
 export enum Status {
   // Flags
-  started = 1,
-  starting = 3,
-  stopped = 4,
-  stopping = 12
+  started = 1,		// 0000 0001
+  starting = 2,		// 0000 0010
+  stopped = 4,		// 0000 0100
+  stopping = 8,		// 0000 1000
+  paused = 16			// 0001 0000
 }
 
 type BlockchainOptions = {
@@ -44,7 +54,7 @@ export default class Blockchain extends Emittery {
   public transactions: TransactionManager;
   public transactionReceipts: Manager<TransactionReceipt>;
   public accounts: AccountManager;
-  public vm: any;
+  public vm: VM;
   public trie: CheckpointTrie;
   readonly #database: Database;
 
@@ -85,31 +95,41 @@ export default class Blockchain extends Emittery {
       await this.#initializeAccounts(options.accounts);
       let lastBlock = this.#initializeGenesisBlock(options.time, gasLimit);
 
-      const readyNextBlock = async () => {
+      const readyNextBlock = async (timestamp?: number) => {
         const previousBlock = await lastBlock;
         const previousHeader = previousBlock.value.header;
         const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
         return this.blocks.createBlock({
           number: Quantity.from(previousNumber + 1n).toBuffer(),
           gasLimit: gasLimit.toBuffer(),
-          timestamp: this.#currentTime(),
+          timestamp: timestamp || this.#currentTime(),
           parentHash: previousHeader.hash()
         });
       };
 
       if (instamine) {
-        this.transactions.transactionPool.on("drain", async (pending: Map<string, utils.Heap<Transaction>>) => {
-          const block = await readyNextBlock();
-          await miner.mine(pending, block.value, 1);
+        this.transactions.transactionPool.on("drain", async ({executables, timestamp, maxTransactions}: {maxTransactions: number ,executables: Map<string, utils.Heap<Transaction>>, timestamp?: number}) => {
+          if (maxTransactions !== 0 && this.#isPaused()) return;
+          const block = await readyNextBlock(timestamp);
+          return miner.mine(executables, block.value, maxTransactions == null ? 1 : 0);
         });
       } else {
         const minerInterval = options.blockTime * 1000;
-        const mine = async (pending: Map<string, utils.Heap<Transaction>>) => {
-          const block = await readyNextBlock();
-          await miner.mine(pending, block.value, 0);
-          setTimeout(mine, minerInterval, pending, 0);
+        const mine = (pending: Map<string, utils.Heap<Transaction>>) => {
+          let promise: Promise<unknown>;
+          if (!this.#isPaused()) {
+            promise = readyNextBlock().then(block => {
+              miner.mine(pending, block.value);
+            });
+          } else {
+            promise = this.once("resume");
+          }
+          promise.then(() => {
+            unref(setTimeout(mine, minerInterval, pending));
+          });
+          return void 0;
         };
-        setTimeout(mine, minerInterval, this.transactions.transactionPool.executables, 0);
+        unref(setTimeout(mine, minerInterval, this.transactions.transactionPool.executables));
       }
 
       miner.on("block", async (blockData: any) => {
@@ -159,6 +179,24 @@ export default class Blockchain extends Emittery {
     });
   }
 
+  #isPaused = () => {
+    return (this.#state & Status.paused) !== 0;
+  }
+  pause() {
+    this.#state |= Status.paused;
+    this.emit("pause");
+  }
+
+  resume(threads: number = 1) {
+    if (!this.#isPaused()) {
+      console.log("Warning: startMining called when miner was already started");
+      return;
+    }
+    // toggles the `paused` bit
+    this.#state ^= Status.paused;
+    this.emit("resume");
+  }
+
   createVmFromStateTrie = (stateTrie: CheckpointTrie, hardfork: string, allowUnlimitedContractSize: boolean): any => {
     const common = Common.forCustomChain(
       "mainnet", // TODO needs to match chain id
@@ -181,7 +219,7 @@ export default class Blockchain extends Emittery {
           const hash = await this.#blockNumberToHash(number);
           done(this.blocks.get(hash));
         }
-      }
+      } as any
     });
     vm.on("step", this.emit.bind(this, "step"));
     return vm;
@@ -202,7 +240,7 @@ export default class Blockchain extends Emittery {
       pendingAccounts[i] = putAccount(account.address.toBuffer(), ethereumJsAccount);
     }
     await Promise.all(pendingAccounts);
-    return commit();
+    await commit();
   };
 
   #initializeGenesisBlock = async (timestamp: Date, blockGasLimit: Quantity): Promise<Block> => {

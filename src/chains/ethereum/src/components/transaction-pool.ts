@@ -21,7 +21,7 @@ function byNonce(values: Transaction[], a: number, b: number) {
   return (Quantity.from(values[b].nonce).toBigInt() || 0n) > (Quantity.from(values[a].nonce).toBigInt() || 0n);
 }
 
-export default class TransactionPool extends Emittery.Typed<{drain: (transactions: Map<string, utils.Heap<Transaction>>) => void}> {
+export default class TransactionPool extends Emittery.Typed<{drain: (transactions: {executables: Map<string, utils.Heap<Transaction>>, timestamp?: number, maxTransactions: number}) => void}> {
   #options: TransactionPoolOptions;
 
   /**
@@ -53,8 +53,8 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
 
     const from = Data.from(transaction.from);
     let transactionNonce: bigint;
-    if (secretKey === null || transaction.nonce.length !== 0) {
-      transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;;  
+    if (secretKey == null || transaction.nonce.length !== 0) {
+      transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
       if (transactionNonce < 0n) {
         throw new Error("Transaction nonce cannot be negative.");
       }
@@ -63,6 +63,15 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
     const origin = from.toString();
     const origins = this.#origins;
     let queuedOrigin = origins.get(origin);
+
+    // since we don't have any pending transactions for this account
+    // verify the transaction's nonce is valid against the persisted account
+    // Note: we need to lock on this async request to ensure we always process
+    // incoming requests in the order they were received! It is possible for
+    // the file IO performed by `accounts.get` to vary.
+    let transactorPromise = this.#accountPromises.get(origin);
+    transactorPromise && await transactorPromise;
+
     let highestNonce = 0n;
     let queuedOriginTransactions: utils.Heap<Transaction>;
     if (queuedOrigin) {
@@ -73,7 +82,6 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
     let isExecutableTransaction = false;
     const executables = this.executables;
     let executableOriginTransactions = executables.get(origin);
-    let transactor: Account;
 
     let length: number;
     if (executableOriginTransactions && (length = executableOriginTransactions.length)) {
@@ -124,12 +132,6 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
         highestNonce = transactionNonce;
       }
     } else {
-      // since we don't have any pending transactions for this account
-      // verify the transaction's nonce is valid against the persisted account
-      // Note: we need to lock on this async request to ensure we always process
-      // incoming requests in the order they were received! It is possible for
-      // the file IO performed by `accounts.get` to vary.
-      let transactorPromise = this.#accountPromises.get(origin);
       if (!transactorPromise) {
         transactorPromise = this.#blockchain.accounts.get(from)
         this.#accountPromises.set(origin, transactorPromise);
@@ -137,9 +139,9 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
           this.#accountPromises.delete(origin);
         });
       }
-      transactor = await transactorPromise;
+      const transactor = await transactorPromise;
       
-      const transactorNonce = transactor.nonce.toBigInt();
+      const transactorNonce = transactor.nonce.toBigInt() || 0n;
       if (secretKey && transactionNonce === void 0) {
         // if we don't have a transactionNonce, just use the account's next
         // nonce and mark as executable
@@ -147,9 +149,11 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
         highestNonce = transactionNonce;
         isExecutableTransaction = true;
         transaction.nonce = Quantity.from(transactionNonce).toBuffer();
-      } else if (transactionNonce <= transactorNonce) {
+      } else if (transactionNonce < transactorNonce) {
         // it's an error if the transaction's nonce is <= the persisted nonce
         throw new Error("Transaction nonce is too low");
+      } else if (transactionNonce === transactorNonce) {
+        isExecutableTransaction = true;
       }
     }
 
@@ -228,8 +232,12 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
 
     // notify listeners (the miner, probably) that we have executable
     // transactions ready for it
-    this.emit("drain", this.executables);
+    this.drain();
   };
+
+  drain(maxTransactions?: number, timestamp?: number) {
+    return this.emit("drain", {executables: this.executables, timestamp, maxTransactions});
+  }
 
   validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
