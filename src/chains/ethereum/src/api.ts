@@ -446,7 +446,12 @@ export default class EthereumApi implements types.Api {
     }
 
     if (tx.gasPrice.length === 0) {
-      tx.gasPrice = this[_options].gasPrice.toBuffer();
+      const gasPrice = this[_options].gasPrice;
+      if (gasPrice instanceof Quantity) {
+        tx.gasPrice = gasPrice.toBuffer();
+      } else {
+        tx.gasPrice = Quantity.from(gasPrice as any).toBuffer();
+      }
     }
 
     if (tx.value.length === 0) {
