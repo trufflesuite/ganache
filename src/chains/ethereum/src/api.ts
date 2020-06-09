@@ -1,5 +1,6 @@
 //#region Imports
 import {types} from "@ganache/utils";
+import {toRpcSig, ecsign, hashPersonalMessage} from "ethereumjs-util";
 import EthereumOptions from "./options";
 import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
 import Blockchain from "./blockchain";
@@ -447,6 +448,36 @@ export default class EthereumApi implements types.Api {
    */
   async eth_sendRawTransaction(transaction: any): Promise<Data> {
     return await this[_blockchain].queueTransaction(transaction);
+  }
+
+  /**
+   * The sign method calculates an Ethereum specific signature with:
+   * `sign(keccak256("\x19Ethereum Signed Message:\n" + message.length + message)))`.
+   * 
+   * By adding a prefix to the message makes the calculated signature 
+   * recognisable as an Ethereum specific signature. This prevents misuse where a malicious DApp can sign arbitrary data (e.g. transaction) and use the signature to impersonate the victim.
+   * 
+   * Note the address to sign with must be unlocked.
+   * 
+   * @param account address
+   * @param data message to sign
+   * @returns Signature
+   */
+  eth_sign(account: string | Buffer, message: string | Buffer) {
+    const address = Address.from(account).toString().toLowerCase();
+    const wallet =this[_wallet];
+    const isUnlocked = wallet.unlockedAccounts[address];
+    let privateKey: Buffer;
+    if (isUnlocked) {
+      privateKey = wallet.knownAccounts.get[address];
+    }
+    if (!privateKey) {
+      throw new Error("cannot sign data; no private key");  
+    }
+
+    const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
+    const signature = ecsign(messageHash, privateKey);
+    return Promise.resolve(toRpcSig(signature.v, signature.r, signature.s, +this[_options].chainId));
   }
 
   eth_subscribe(subscriptionName: "newHeads", options?: any): PromiEvent<any> {
