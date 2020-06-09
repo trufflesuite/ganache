@@ -55,7 +55,14 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
   // move this into the Ledger or its Blockchain?
   #initializeAccounts = (): Account[] => {
     const _providerOptions = this.#options;
-    const etherInWei = Quantity.from(Quantity.from(_providerOptions.default_balance_ether).toBigInt() * WEI);
+    // convert a potentially fractional balance of Ether to WEI
+    const balanceParts = _providerOptions.default_balance_ether.toString().split(".", 2);
+    const significand = BigInt(balanceParts[0]);
+    const fractionalStr = balanceParts[1] || "0";
+    const fractional = BigInt(fractionalStr);
+    const magnitude = 10n ** BigInt(fractionalStr.length);
+    const defaultBalanceInWei = (WEI * significand) + (fractional * (WEI/magnitude));
+    const etherInWei = Quantity.from(defaultBalanceInWei);
     let accounts: Account[];
 
     let givenAccounts = _providerOptions.accounts;
