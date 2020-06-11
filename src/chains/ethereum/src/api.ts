@@ -123,11 +123,11 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns Keccak-256 (not the standardized SHA3-256) of the given data.
-   * @param {string} the data to convert into a SHA3 hash.
+   * @param {data} the data to convert into a SHA3 hash.
    * @returns The SHA3 result of the given string.
    */
-  async web3_sha3(string: string): Promise<Data> {
-    return Data.from(createKeccakHash("keccak256").update(string).digest());
+  async web3_sha3(data: string): Promise<Data> {
+    return Data.from(createKeccakHash("keccak256").update(data).digest());
   }
   //#endregion
 
