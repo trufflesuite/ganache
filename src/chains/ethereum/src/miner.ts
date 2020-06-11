@@ -22,9 +22,10 @@ function replaceFromHeap(
     // replace it with the account's next lowest nonce transaction:
     priced.replaceBest(next);
     next.locked = true;
+    return true;
   } else {
     // since we don't have a next, just remove this item from priced
-    priced.removeBest();
+    return priced.removeBest();
   }
 }
 
@@ -205,33 +206,33 @@ export default class Miner extends Emittery {
           const pendingOrigin = pending.get(origin);
           // since this transaction was successful, remove it from the "pending"
           // transaction pool.
-          const accountHasMoreTransactions = pendingOrigin.removeBest();
+          keepMining = pendingOrigin.removeBest();
 
           // if we:
           //  * don't have enough gas left for even the smallest of transactions
           //  * Or if we've mined enough transactions
           // we're done with this block!
           if (blockGasLeft <= params.TRANSACTION_GAS || numTransactions === maxTransactions) {
-            if (accountHasMoreTransactions) {
+            if (keepMining) {
               // remove the newest (`best`) tx from this account's pending queue
               // as we know we can fit another transaction in the block. Stick
               // this tx into our `priced` heap.
-              replaceFromHeap(priced, pendingOrigin);
+              keepMining = replaceFromHeap(priced, pendingOrigin);
             } else {
-              priced.removeBest();
+              keepMining = priced.removeBest();
             }
             break;
           }
         
-          if (accountHasMoreTransactions) {
+          if (keepMining) {
             // remove the newest (`best`) tx from this account's pending queue
             // as we know we can fit another transaction in the block. Stick
             // this tx into our `priced` heap.
-            replaceFromHeap(priced, pendingOrigin);
+            keepMining = replaceFromHeap(priced, pendingOrigin);
           } else {
             // since we don't have any more txs from this account, just get the
             // next bext transaction sorted in our `priced` heap.
-            priced.removeBest();
+            keepMining = priced.removeBest();
           }
         } else {
           await this.#revert();
@@ -243,12 +244,12 @@ export default class Miner extends Emittery {
           // didn't fit. remove it from the priced transactions without replacing
           // it with another from the account. This transaction will have to be
           // run again in another block.
-          priced.removeBest();
+          keepMining = priced.removeBest();
         }
       }
 
       // if we mined anything, keep mining.
-      keepMining = numTransactions !== 0;
+      keepMining = keepMining && numTransactions !== 0;
       if (keepMining) {
         await Promise.all(promises);
         await this.#commit();
