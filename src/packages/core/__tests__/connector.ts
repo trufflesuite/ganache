@@ -29,8 +29,8 @@ describe("connector", () => {
   it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
     const p = Ganache.provider() as EthereumProvider;
     const accounts = await p.send("eth_accounts");
-    // eth_accounts should always be faster than eth_getBalance; eth_accounts
-    // shouldreturn before eth_getBalance because of the
+    // `eth_accounts` should always be faster than eth_getBalance; eth_accounts
+    // should return before eth_getBalance because of the
     // `asyncRequestProcessing` flag.
     const calA = p.send("eth_getBalance", [accounts[0]]);
     const callB = p.send("eth_accounts");
