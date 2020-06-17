@@ -193,6 +193,34 @@ describe("Forking", function() {
     assert.strictEqual(id, forkedWeb3NetworkId);
   });
 
+  it("should return from the cache on successive calls to the same forked data", (done) => {
+    const params = [contractAddress, contract.position_of_value];
+    const tx = { id: 1, method: "eth_getStorageAt", jsonrpc: "2.0", params };
+    const oldSend = forkedServer.provider.send;
+    let callCount = 0;
+    // patch the original server's send so we can listen in on calls made to it.
+    forkedServer.provider.send = (...args) => {
+      const payload = args[0];
+      if (payload.method === "eth_getStorageAt" && payload.params[0] === contractAddress.toLowerCase()) {
+        callCount++;
+      }
+      return oldSend.apply(forkedServer.provider, args);
+    };
+    const provider = mainWeb3.currentProvider;
+    provider.send(tx, (_, result) => {
+      const result1 = Object.assign({}, result, { id: null });
+      assert.strictEqual(parseInt(result1.result), 7, "return value is incorrect");
+      tx.id = 2;
+      provider.send(tx, (_, result) => {
+        const result2 = Object.assign({}, result, { id: null });
+        assert.deepStrictEqual(result2, result1);
+        assert.strictEqual(callCount, 1, "cache didn't work");
+        forkedServer.provider.send = oldSend;
+        done();
+      });
+    });
+  });
+
   it("should fetch a contract from the forked provider via the main provider", async() => {
     const mainCode = await mainWeb3.eth.getCode(contractAddress);
     // Ensure there's *something* there.
@@ -203,6 +231,25 @@ describe("Forking", function() {
     // Now make sure it matches exactly.
     const forkedCode = await forkedWeb3.eth.getCode(contractAddress);
     assert.strictEqual(mainCode, forkedCode);
+  });
+
+  it("should handle batched transactions", (done) => {
+    const tx1 = { id: 1, method: "eth_accounts", jsonrpc: "2.0" };
+    const tx2 = { id: 2, method: "eth_getBalance", jsonrpc: "2.0", params: [forkedAccounts[0]] };
+    const tx3 = { id: 3, method: "eth_chainId", jsonrpc: "2.0" };
+
+    mainWeb3.currentProvider.send([tx1, tx2, tx3], (mainErr, mainResults) => {
+      forkedWeb3.currentProvider.send([tx1, tx2, tx3], (_, forkedResults) => {
+        assert.strictEqual(mainErr, null);
+        assert.strictEqual(mainResults[0].id, 1);
+        assert.strictEqual(mainResults[1].id, 2);
+        assert.strictEqual(mainResults[2].id, 3);
+        assert.strictEqual(mainResults[0].result.length, 10);
+        assert.strictEqual(mainResults[1].result, forkedResults[1].result);
+        assert.strictEqual(mainResults[2].result, forkedResults[2].result);
+        done();
+      });
+    });
   });
 
   it("should get the balance of an address in the forked provider via the main provider", async() => {
