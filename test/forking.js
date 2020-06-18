@@ -233,17 +233,20 @@ describe("Forking", function() {
     assert.strictEqual(mainCode, forkedCode);
   });
 
-  it("should handle batched transactions", (done) => {
-    const tx1 = { id: 1, method: "eth_accounts", jsonrpc: "2.0" };
+  it("internal `fork.send` should handle batched transactions", (done) => {
+    // this is a weird test because we dont' actually use batched transactions in forking
+    // but just in case we start doing so later, for whatever reason, I'm making sure it works now
+    const tx1 = { id: 1, method: "eth_accounts", jsonrpc: "2.0", params: [] };
     const tx2 = { id: 2, method: "eth_getBalance", jsonrpc: "2.0", params: [forkedAccounts[0]] };
-    const tx3 = { id: 3, method: "eth_chainId", jsonrpc: "2.0" };
+    const tx3 = { id: 3, method: "eth_chainId", jsonrpc: "2.0", params: [] };
 
-    mainWeb3.currentProvider.send([tx1, tx2, tx3], (mainErr, mainResults) => {
+    // gross? yes.
+    mainWeb3.currentProvider.manager.state.blockchain.fork.send([tx1, tx2, tx3], (mainErr, mainResults) => {
       forkedWeb3.currentProvider.send([tx1, tx2, tx3], (_, forkedResults) => {
         assert.strictEqual(mainErr, null);
-        assert.strictEqual(mainResults[0].id, 1);
-        assert.strictEqual(mainResults[1].id, 2);
-        assert.strictEqual(mainResults[2].id, 3);
+        assert.strictEqual(mainResults[0].id, tx1.id);
+        assert.strictEqual(mainResults[1].id, tx2.id);
+        assert.strictEqual(mainResults[2].id, tx3.id);
         assert.strictEqual(mainResults[0].result.length, 10);
         assert.strictEqual(mainResults[1].result, forkedResults[1].result);
         assert.strictEqual(mainResults[2].result, forkedResults[2].result);
