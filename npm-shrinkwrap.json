@@ -2351,6 +2351,14 @@
           "requires": {
             "xtend": "~4.0.0"
           }
+        },
+        "lru-cache": {
+          "version": "3.2.0",
+          "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-3.2.0.tgz",
+          "integrity": "sha1-cXibO39Tmb7IVl3aOKow0qCX7+4=",
+          "requires": {
+            "pseudomap": "^1.0.1"
+          }
         }
       }
     },
@@ -8650,11 +8658,11 @@
       "dev": true
     },
     "lru-cache": {
-      "version": "3.2.0",
-      "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-3.2.0.tgz",
-      "integrity": "sha1-cXibO39Tmb7IVl3aOKow0qCX7+4=",
+      "version": "5.1.1",
+      "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-5.1.1.tgz",
+      "integrity": "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==",
       "requires": {
-        "pseudomap": "^1.0.1"
+        "yallist": "^3.0.2"
       }
     },
     "ltgt": {

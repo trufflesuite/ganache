@@ -193,6 +193,62 @@ describe("Forking", function() {
     assert.strictEqual(id, forkedWeb3NetworkId);
   });
 
+  describe("cache", () => {
+    function testCache(forkCacheSize, expectedCalls) {
+      return async() => {
+        async function checkIt(baseLine) {
+          const r = await send("eth_getStorageAt", ...params);
+          const testResult = Object.assign({}, r, { id: null });
+          assert.deepStrictEqual(testResult, baseLine);
+        }
+
+        const provider = Ganache.provider({ fork: forkedTargetUrl.replace("ws", "http"), forkCacheSize });
+        const send = generateSend(provider);
+        const params = [contractAddress, contract.position_of_value];
+        let callCount = 0;
+        const oldSend = forkedServer.provider.send;
+        try {
+          // patch the original server's send so we can listen in on calls made to it.
+          forkedServer.provider.send = (...args) => {
+            const payload = args[0];
+            if (payload.method === "eth_getStorageAt" && payload.params[0] === contractAddress.toLowerCase()) {
+              callCount++;
+            }
+            return oldSend.apply(forkedServer.provider, args);
+          };
+
+          // cache something by requesting stuff from the original chain:
+          const result = await send("eth_getStorageAt", ...params);
+          const baseLine = Object.assign({}, result, { id: null });
+          assert.strictEqual(parseInt(baseLine.result), 7, "return value is incorrect");
+
+          // then check that it is cached
+          await checkIt(baseLine);
+          await checkIt(baseLine);
+
+          // put something else in the cache to give it a chance to be evicted
+          await send("eth_getStorageAt", forkedAccounts[0], "0x0");
+
+          await checkIt(baseLine);
+          await checkIt(baseLine);
+
+          // after all those checks, we should have `expectedCalls` into the original chain
+          assert.strictEqual(callCount, expectedCalls, "cache didn't work");
+        } finally {
+          forkedServer.provider.send = oldSend;
+        }
+      };
+    }
+
+    it("should evict from the cache on successive calls to the same data when cache is small", testCache(1230, 2));
+
+    it("should return from the cache on successive calls to the same data when cache is infinite", testCache(-1, 1));
+
+    it("should not return from the cache on successive calls to the same data when cache is off", testCache(0, 5));
+
+    it("should return from the cache on calls for same data when cache size is default", testCache(undefined, 1));
+  });
+
   it("should fetch a contract from the forked provider via the main provider", async() => {
     const mainCode = await mainWeb3.eth.getCode(contractAddress);
     // Ensure there's *something* there.
@@ -203,6 +259,28 @@ describe("Forking", function() {
     // Now make sure it matches exactly.
     const forkedCode = await forkedWeb3.eth.getCode(contractAddress);
     assert.strictEqual(mainCode, forkedCode);
+  });
+
+  it("internal `fork.send` should handle batched transactions", (done) => {
+    // this is a weird test because we dont' actually use batched transactions in forking
+    // but just in case we start doing so later, for whatever reason, I'm making sure it works now
+    const tx1 = { id: 1, method: "eth_accounts", jsonrpc: "2.0", params: [] };
+    const tx2 = { id: 2, method: "eth_getBalance", jsonrpc: "2.0", params: [forkedAccounts[0]] };
+    const tx3 = { id: 3, method: "eth_chainId", jsonrpc: "2.0", params: [] };
+
+    // gross? yes.
+    mainWeb3.currentProvider.manager.state.blockchain.fork.send([tx1, tx2, tx3], (mainErr, mainResults) => {
+      forkedWeb3.currentProvider.send([tx1, tx2, tx3], (_, forkedResults) => {
+        assert.strictEqual(mainErr, null);
+        assert.strictEqual(mainResults[0].id, tx1.id);
+        assert.strictEqual(mainResults[1].id, tx2.id);
+        assert.strictEqual(mainResults[2].id, tx3.id);
+        assert.strictEqual(mainResults[0].result.length, 10);
+        assert.strictEqual(mainResults[1].result, forkedResults[1].result);
+        assert.strictEqual(mainResults[2].result, forkedResults[2].result);
+        done();
+      });
+    });
   });
 
   it("should get the balance of an address in the forked provider via the main provider", async() => {
