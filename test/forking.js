@@ -193,32 +193,60 @@ describe("Forking", function() {
     assert.strictEqual(id, forkedWeb3NetworkId);
   });
 
-  it("should return from the cache on successive calls to the same forked data", (done) => {
-    const params = [contractAddress, contract.position_of_value];
-    const tx = { id: 1, method: "eth_getStorageAt", jsonrpc: "2.0", params };
-    const oldSend = forkedServer.provider.send;
-    let callCount = 0;
-    // patch the original server's send so we can listen in on calls made to it.
-    forkedServer.provider.send = (...args) => {
-      const payload = args[0];
-      if (payload.method === "eth_getStorageAt" && payload.params[0] === contractAddress.toLowerCase()) {
-        callCount++;
-      }
-      return oldSend.apply(forkedServer.provider, args);
-    };
-    const provider = mainWeb3.currentProvider;
-    provider.send(tx, (_, result) => {
-      const result1 = Object.assign({}, result, { id: null });
-      assert.strictEqual(parseInt(result1.result), 7, "return value is incorrect");
-      tx.id = 2;
-      provider.send(tx, (_, result) => {
-        const result2 = Object.assign({}, result, { id: null });
-        assert.deepStrictEqual(result2, result1);
-        assert.strictEqual(callCount, 1, "cache didn't work");
-        forkedServer.provider.send = oldSend;
-        done();
-      });
-    });
+  describe("cache", () => {
+    function testCache(forkCacheSize, expectedCalls) {
+      return async() => {
+        async function checkIt(baseLine) {
+          const r = await send("eth_getStorageAt", ...params);
+          const testResult = Object.assign({}, r, { id: null });
+          assert.deepStrictEqual(testResult, baseLine);
+        }
+
+        const provider = Ganache.provider({ fork: forkedTargetUrl.replace("ws", "http"), forkCacheSize });
+        const send = generateSend(provider);
+        const params = [contractAddress, contract.position_of_value];
+        let callCount = 0;
+        const oldSend = forkedServer.provider.send;
+        try {
+          // patch the original server's send so we can listen in on calls made to it.
+          forkedServer.provider.send = (...args) => {
+            const payload = args[0];
+            if (payload.method === "eth_getStorageAt" && payload.params[0] === contractAddress.toLowerCase()) {
+              callCount++;
+            }
+            return oldSend.apply(forkedServer.provider, args);
+          };
+
+          // cache something by requesting stuff from the original chain:
+          const result = await send("eth_getStorageAt", ...params);
+          const baseLine = Object.assign({}, result, { id: null });
+          assert.strictEqual(parseInt(baseLine.result), 7, "return value is incorrect");
+
+          // then check that it is cached
+          await checkIt(baseLine);
+          await checkIt(baseLine);
+
+          // put something else in the cache to give it a chance to be evicted
+          await send("eth_getStorageAt", forkedAccounts[0], "0x0");
+
+          await checkIt(baseLine);
+          await checkIt(baseLine);
+
+          // after all those checks, we should have `expectedCalls` into the original chain
+          assert.strictEqual(callCount, expectedCalls, "cache didn't work");
+        } finally {
+          forkedServer.provider.send = oldSend;
+        }
+      };
+    }
+
+    it("should evict from the cache on successive calls to the same data when cache is small", testCache(1230, 2));
+
+    it("should return from the cache on successive calls to the same data when cache is infinite", testCache(-1, 1));
+
+    it("should not return from the cache on successive calls to the same data when cache is off", testCache(0, 5));
+
+    it("should return from the cache on successive calls to the same data when cache is default", testCache(null, 1));
   });
 
   it("should fetch a contract from the forked provider via the main provider", async() => {
