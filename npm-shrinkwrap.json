@@ -2351,6 +2351,14 @@
           "requires": {
             "xtend": "~4.0.0"
           }
+        },
+        "lru-cache": {
+          "version": "3.2.0",
+          "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-3.2.0.tgz",
+          "integrity": "sha1-cXibO39Tmb7IVl3aOKow0qCX7+4=",
+          "requires": {
+            "pseudomap": "^1.0.1"
+          }
         }
       }
     },
@@ -2823,9 +2831,9 @@
       "integrity": "sha512-5wjnpaT/3dV+XB4borEsnAYQchn00XSgTAWKDkEqv+K8KevjbzmofK6hfJ9TZIlpj2N0xQpazy7PiRQiWHqzWg=="
     },
     "core-js-pure": {
-      "version": "3.6.4",
-      "resolved": "https://registry.npmjs.org/core-js-pure/-/core-js-pure-3.6.4.tgz",
-      "integrity": "sha512-epIhRLkXdgv32xIUFaaAry2wdxZYBi6bgM7cB136dzzXXa+dFyRLTZeLUJxnd8ShrmyVXBub63n2NHo2JAt8Cw=="
+      "version": "3.6.5",
+      "resolved": "https://registry.npmjs.org/core-js-pure/-/core-js-pure-3.6.5.tgz",
+      "integrity": "sha512-lacdXOimsiD0QyNf9BC/mxivNJ/ybBGJXQFKzRekp1WTHoVUWsUHEn+2T8GJAzzIhyOuXA+gOxCVN3l+5PLPUA=="
     },
     "core-util-is": {
       "version": "1.0.2",
@@ -4837,9 +4845,9 @@
       }
     },
     "ethereumjs-vm": {
-      "version": "4.1.3",
-      "resolved": "https://registry.npmjs.org/ethereumjs-vm/-/ethereumjs-vm-4.1.3.tgz",
-      "integrity": "sha512-RTrD0y7My4O6Qr1P2ZIsMfD6RzL6kU/RhBZ0a5XrPzAeR61crBS7or66ohDrvxDI/rDBxMi+6SnsELih6fzalw==",
+      "version": "4.2.0",
+      "resolved": "https://registry.npmjs.org/ethereumjs-vm/-/ethereumjs-vm-4.2.0.tgz",
+      "integrity": "sha512-X6qqZbsY33p5FTuZqCnQ4+lo957iUJMM6Mpa6bL4UW0dxM6WmDSHuI4j/zOp1E2TDKImBGCJA9QPfc08PaNubA==",
       "requires": {
         "async": "^2.1.2",
         "async-eventemitter": "^0.2.2",
@@ -4856,38 +4864,6 @@
         "rustbn.js": "~0.2.0",
         "safe-buffer": "^5.1.1",
         "util.promisify": "^1.0.0"
-      },
-      "dependencies": {
-        "ethereumjs-util": {
-          "version": "6.2.0",
-          "resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-6.2.0.tgz",
-          "integrity": "sha512-vb0XN9J2QGdZGIEKG2vXM+kUdEivUfU6Wmi5y0cg+LRhDYKnXIZ/Lz7XjFbHRR9VIKq2lVGLzGBkA++y2nOdOQ==",
-          "requires": {
-            "@types/bn.js": "^4.11.3",
-            "bn.js": "^4.11.0",
-            "create-hash": "^1.1.2",
-            "ethjs-util": "0.1.6",
-            "keccak": "^2.0.0",
-            "rlp": "^2.2.3",
-            "secp256k1": "^3.0.1"
-          }
-        },
-        "keccak": {
-          "version": "2.1.0",
-          "resolved": "https://registry.npmjs.org/keccak/-/keccak-2.1.0.tgz",
-          "integrity": "sha512-m1wbJRTo+gWbctZWay9i26v5fFnYkOn7D5PCxJ3fZUGUEb49dE1Pm4BREUYCt/aoO6di7jeoGmhvqN9Nzylm3Q==",
-          "requires": {
-            "bindings": "^1.5.0",
-            "inherits": "^2.0.4",
-            "nan": "^2.14.0",
-            "safe-buffer": "^5.2.0"
-          }
-        },
-        "nan": {
-          "version": "2.14.0",
-          "resolved": "https://registry.npmjs.org/nan/-/nan-2.14.0.tgz",
-          "integrity": "sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg=="
-        }
       }
     },
     "ethereumjs-wallet": {
@@ -8682,11 +8658,11 @@
       "dev": true
     },
     "lru-cache": {
-      "version": "3.2.0",
-      "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-3.2.0.tgz",
-      "integrity": "sha1-cXibO39Tmb7IVl3aOKow0qCX7+4=",
+      "version": "5.1.1",
+      "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-5.1.1.tgz",
+      "integrity": "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==",
       "requires": {
-        "pseudomap": "^1.0.1"
+        "yallist": "^3.0.2"
       }
     },
     "ltgt": {
