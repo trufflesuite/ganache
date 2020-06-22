@@ -12,7 +12,7 @@ declare module "ganache-core" {
       default_balance_ether?: number;
       fork?: string | object;
       fork_block_number?: string | number;
-      fork_cache_size?: number;
+      forkCacheSize?: number;
       gasLimit?: string | number;
       gasPrice?: string;
       hardfork?: "byzantium" | "constantinople" | "petersburg" | "istanbul" | "muirGlacier";
