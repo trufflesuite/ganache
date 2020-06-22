@@ -1,6 +1,18 @@
 declare module "ganache-core" {
-  import { Provider as Web3Provider } from "web3/providers";
   import { Server as HttpServer } from "http";
+  export interface JsonRpcPayload {
+    jsonrpc: string;
+    method: string;
+    params: any[];
+    id?: string | number;
+  }
+
+  export interface JsonRpcResponse {
+    jsonrpc: string;
+    id: number;
+    result?: any;
+    error?: string;
+  }
 
   namespace Ganache {
     export interface IProviderOptions {
@@ -46,7 +58,20 @@ declare module "ganache-core" {
       provider: Provider
     }
 
-    export interface Provider extends Web3Provider {
+    export interface Provider {
+      send(
+          payload: JsonRpcPayload,
+          callback: (error: Error | null, result?: JsonRpcResponse) => void
+      ): void;
+  
+      on(type: string, callback: () => void): void;
+  
+      once(type: string, callback: () => void): void;
+  
+      removeListener(type: string, callback: () => void): void;
+  
+      removeAllListeners(type: string): void;
+
       close: (callback: Function) => void;
     }
   }
