@@ -1,4 +1,5 @@
 declare module "ganache-core" {
+  import { Server as HttpServer } from "http";
   export interface JsonRpcPayload {
     jsonrpc: string;
     method: string;
@@ -51,7 +52,11 @@ declare module "ganache-core" {
     }
 
     export function provider(opts?: IProviderOptions): Provider;
-    export function server(opts?: IServerOptions): any;
+    export function server(opts?: IServerOptions): Server;
+
+    export interface Server extends HttpServer {
+      provider: Provider
+    }
 
     export interface Provider {
       send(
