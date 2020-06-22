@@ -249,6 +249,32 @@ describe("Forking", function() {
     it("should return from the cache on calls for same data when cache size is default", testCache(undefined, 1));
   });
 
+  it("should match nonce of accounts on original chain", async() => {
+    const provider = Ganache.provider({ fork: forkedTargetUrl, seed: forkedServer.ganacheProvider.options.seed });
+
+    const send = generateSend(provider);
+    const originalSend = generateSend(forkedServer.ganacheProvider);
+
+    const accounts = await send("eth_accounts");
+    assert.deepStrictEqual(
+      accounts.result,
+      forkedAccounts.map((a) => a.toLowerCase()),
+      "generated accounts don't match"
+    );
+
+    const results = await Promise.all(
+      accounts.result.map((account) => {
+        const originalCountProm = originalSend("eth_getTransactionCount", account);
+        const forkedCountProm = send("eth_getTransactionCount", account);
+        return Promise.all([forkedCountProm, originalCountProm]);
+      })
+    );
+
+    results.map(([forkedCount, originalCount]) => {
+      assert.strictEqual(forkedCount.result, originalCount.result);
+    });
+  });
+
   it("should fetch a contract from the forked provider via the main provider", async() => {
     const mainCode = await mainWeb3.eth.getCode(contractAddress);
     // Ensure there's *something* there.
@@ -681,17 +707,18 @@ describe("Forking", function() {
     forkedWeb3._provider.connection.close();
     forkedServer.close(function(serverCloseErr) {
       forkedWeb3.setProvider();
-      const mainProvider = mainWeb3._provider;
+      const mainProvider = mainWeb3.currentProvider;
       mainWeb3.setProvider();
-      mainProvider.close(function(providerCloseErr) {
-        if (serverCloseErr) {
-          return done(serverCloseErr);
-        }
-        if (providerCloseErr) {
-          return done(providerCloseErr);
-        }
-        done();
-      });
+      mainProvider &&
+        mainProvider.close(function(providerCloseErr) {
+          if (serverCloseErr) {
+            return done(serverCloseErr);
+          }
+          if (providerCloseErr) {
+            return done(providerCloseErr);
+          }
+          done();
+        });
     });
   });
 });
