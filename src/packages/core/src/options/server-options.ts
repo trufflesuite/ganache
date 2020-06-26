@@ -23,7 +23,7 @@ export default interface ServerOptions extends ProviderOptions {
   ws: boolean;
 }
 
-export const getDefault: (options?: ServerOptions) => ServerOptions = options => {
+export const getDefault = (options?: ServerOptions) => {
   return Object.assign(
     {
       keepAliveTimeout: 5000,
