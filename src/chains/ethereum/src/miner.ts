@@ -120,8 +120,8 @@ export default class Miner extends Emittery {
   #mineTxs = async (pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number) => {
     let keepMining = true;
     const priced = this.#priced;
-    let o = "";
-    while (keepMining) {
+    do {
+      keepMining = false;
       this.#isMining = true;
       let numTransactions = 0;
 
@@ -167,7 +167,6 @@ export default class Miner extends Emittery {
         }
 
         const origin = Data.from(best.from).toString();
-        o = origin;
 
         this.#currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
 
@@ -248,30 +247,21 @@ export default class Miner extends Emittery {
         }
       }
 
-      // if we mined anything, keep mining.
-      keepMining = keepMining && numTransactions !== 0;
-      if (keepMining) {
-        await Promise.all(promises);
-        await this.#commit();
+      await Promise.all(promises);
+      await this.#commit();
+      this.emit("block", blockData);
 
-        this.emit("block", blockData);
-
+      if (priced.length !== 0) {
         maxTransactions = this.#options.instamine ? 1 : 0;
         block = this.#createNextBlock(block);
         this.#currentlyExecutingPrice = 0n;
       } else {
-        // TODO: should we allow save an empty block?! I think we should
-        // sometimes save an empty block, but not always? Hmmmmm. Interesting.
-
-        // Save this empty block
-        await this.#commit();
-
-        this.emit("block", blockData);
-
         // reset the miner
         this.#reset();
       }
     }
+    while (keepMining);
+    
     return block;
   }
 
