@@ -36,12 +36,13 @@ describe("api", () => {
           to: accounts[1],
           value: 1
         }
-        const blockNumber = await provider.request("eth_blockNumber");
+
+        const startingBlockNumber = parseInt(await provider.request("eth_blockNumber"));
         await provider.request("eth_subscribe", ["newHeads"]);
         await provider.request("eth_sendTransaction", [{...tx}]);
         await provider.once("message");
         const blockx1 = await provider.request("eth_blockNumber");
-        assert.strictEqual(parseInt(blockNumber, 10), blockx1 - 1);
+        assert.strictEqual(+blockx1, startingBlockNumber + 1);
 
         const awaitFor = (count) => new Promise(resolve => {
           let counter = 0;
@@ -71,10 +72,10 @@ describe("api", () => {
         await wait;
         wait = awaitFor(4);
         const blockx5 = await provider.request("eth_blockNumber");
-        assert.strictEqual(parseInt(blockNumber, 10), blockx5 - 5);
+        assert.strictEqual(+blockx5, startingBlockNumber + 5);
         await wait;
         const blockx9 = await provider.request("eth_blockNumber");
-        assert.strictEqual(parseInt(blockNumber, 10), blockx9 - 9);
+        assert.strictEqual(+blockx9, startingBlockNumber + 9);
       });
     });
 
