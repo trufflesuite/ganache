@@ -67,13 +67,28 @@ export default class EthereumApi implements types.Api {
     });
   }
 
-  //#region ganache
+  //#region evm
   /**
-   * Fast forwards an account's nonce to the specified value.
+   * Force a block to be mined.
+   * 
+   * Mines a block independent of whether or not mining is started or stopped.
+   * 
+   * @param timestamp? the timestamp a block should setup as the mining time.
+   */
+  async evm_mine(timestamp?: number) {
+    await this[_blockchain].transactions.transactionPool.drain(0, timestamp);
+    return Promise.resolve("0x0");
+  }
+
+  /**
+   * Sets the given account's nonce to the specified value.
+   * 
+   * Warning: this may result in an invalid state.
    * 
    * @param address 
+   * @param nonce
   */
-  async ganache_setAccountNonce(address: string, nonce: number | BigInt) {
+  async evm_setAccountNonce(address: string, nonce: number | BigInt) {
     return new Promise((resolve, reject) => {
       const buffer = Address.from(address).toBuffer();
       this[_blockchain].vm.stateManager.getAccount(buffer, (err, account) => {
@@ -90,13 +105,28 @@ export default class EthereumApi implements types.Api {
       });
     });
   }
-  //#endregion ganache
 
-  //#region evm
-  async evm_mine(timestamp?: number) {
-    await this[_blockchain].transactions.transactionPool.drain(0, timestamp);
-    // TODO: why did ganache-core send "0x0" back? Is this what geth does?
-    return Promise.resolve("0x0");
+  /**
+   * Jump forward in time by the given amount of time, in seconds.
+   * @param seconds Must be greater than or equal to `0`
+   * @returns Returns the total time adjustment, in seconds.
+   */
+  async evm_increaseTime(seconds: number) {
+    return this[_blockchain].increaseTime(seconds);
+  }
+
+  /**
+   * Sets the internal clock time to the given timestamp.
+   * 
+   * Warning: This will allow you to move *backwards* in time, which may cause
+   * new blocks to appear to be mined before old blocks. This is will result in 
+   * an invalid state.
+   * 
+   * @param timestamp JavaScript timestamp (millisecond precision)
+   * @returns The amount of *seconds* between the given timestamp and now.
+   */
+  async evm_setTime(time?: Date | number) {
+    return this[_blockchain].setTime(+time);
   }
   //#endregion evm
 

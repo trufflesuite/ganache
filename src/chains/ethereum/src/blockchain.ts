@@ -93,7 +93,14 @@ export default class Blockchain extends Emittery {
       this.accounts = new AccountManager(this, database.trie);
 
       await this.#initializeAccounts(options.accounts);
-      let lastBlock = this.#initializeGenesisBlock(options.time, gasLimit);
+      let firstBlockTime: number;
+      if (options.time != null) {
+        firstBlockTime = +options.time
+        this.setTime(firstBlockTime);
+      } else {
+        firstBlockTime = this.#currentTime();
+      }
+      let lastBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit);
 
       const readyNextBlock = async (timestamp?: number) => {
         const previousBlock = await lastBlock;
@@ -243,11 +250,11 @@ export default class Blockchain extends Emittery {
     await commit();
   };
 
-  #initializeGenesisBlock = async (timestamp: Date, blockGasLimit: Quantity): Promise<Block> => {
+  #initializeGenesisBlock = async (timestamp: number, blockGasLimit: Quantity): Promise<Block> => {
     // create the genesis block
     const genesis = this.blocks.next({
       // If we were given a timestamp, use it instead of the `_currentTime`
-      timestamp: (+timestamp / 1000) | 0 || this.#currentTime(),
+      timestamp,
       gasLimit: blockGasLimit.toBuffer(),
       stateRoot: this.trie.root,
       number: "0x0"
@@ -257,10 +264,22 @@ export default class Blockchain extends Emittery {
     return this.blocks.putBlock(genesis);
   };
 
+  #timeAdjustment: number = 0;
+
   #currentTime = () => {
-    // Take the floor of the current time
-    return (Date.now() / 1000) | 0;
+    return Math.floor(Date.now() / 1000) + this.#timeAdjustment;
   };
+
+  public increaseTime(seconds: number) {
+    if (seconds < 0) {
+      seconds = 0;
+    }
+    return this.#timeAdjustment += seconds;
+  }
+  
+  public setTime(timestamp: number) {
+    return this.#timeAdjustment = Math.floor((timestamp - Date.now()) / 1000);
+  }
 
   /**
    * Given a block number, find its hash in the database
