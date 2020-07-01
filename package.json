@@ -6,11 +6,11 @@
     "npm": ">=6.1.0"
   },
   "scripts": {
-    "clean": "npx shx rm -rf node_modules && lerna clean -y",
+    "clean": "npx shx rm -rf node_modules && npx lerna clean -y",
     "create": "ts-node ./scripts/create",
     "postinstall": "npx patch-package && lerna bootstrap",
-    "tsc": "npx lerna exec -- npm run tsc",
-    "test": "npx lerna exec -- npm test"
+    "tsc": "lerna exec -- npm run tsc",
+    "test": "lerna exec -- npm test"
   },
   "dependencies": {
     "bip39": "3.0.2",
