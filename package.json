@@ -57,7 +57,6 @@
     "nyc": "15.1.0",
     "prettier": "2.0.5",
     "solc": "0.6.10",
-    "source-map-support": "0.5.19",
     "superagent": "5.2.2",
     "ts-morph": "7.1.2",
     "ts-node": "8.10.2",
