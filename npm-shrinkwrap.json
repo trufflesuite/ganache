@@ -2502,9 +2502,9 @@
       "dev": true
     },
     "@types/node": {
-      "version": "14.0.1",
-      "resolved": "https://registry.npmjs.org/@types/node/-/node-14.0.1.tgz",
-      "integrity": "sha512-FAYBGwC+W6F9+huFIDtn43cpy7+SzG+atzRiTfdp3inUKL2hXnd4rG8hylJLIh4+hqrQy1P17kvJByE/z825hA=="
+      "version": "14.0.14",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-14.0.14.tgz",
+      "integrity": "sha512-syUgf67ZQpaJj01/tRTknkMNoBBLWJOBODF0Zm4NrXmiSuxjymFrxnTu1QVYRubhVkRcZLYZG8STTwJRdVm/WQ=="
     },
     "@types/normalize-package-data": {
       "version": "2.4.0",
@@ -8394,120 +8394,6 @@
       "integrity": "sha512-2j4DAdlBOkiSZIsaXk4mTE3sRS02yBHAtfy127xRV3bQUFqXkjHCHLW6Scv7DwNRbIWNHH8zpnz9zMaKXIdvYw==",
       "dev": true
     },
-    "merkle-patricia-tree": {
-      "version": "3.0.0",
-      "resolved": "https://registry.npmjs.org/merkle-patricia-tree/-/merkle-patricia-tree-3.0.0.tgz",
-      "integrity": "sha512-soRaMuNf/ILmw3KWbybaCjhx86EYeBbD8ph0edQCTed0JN/rxDt1EBN52Ajre3VyGo+91f8+/rfPIRQnnGMqmQ==",
-      "requires": {
-        "async": "^2.6.1",
-        "ethereumjs-util": "^5.2.0",
-        "level-mem": "^3.0.1",
-        "level-ws": "^1.0.0",
-        "readable-stream": "^3.0.6",
-        "rlp": "^2.0.0",
-        "semaphore": ">=1.0.1"
-      },
-      "dependencies": {
-        "bn.js": {
-          "version": "4.11.8",
-          "resolved": "https://registry.npmjs.org/bn.js/-/bn.js-4.11.8.tgz",
-          "integrity": "sha512-ItfYfPLkWHUjckQCk8xC+LwxgK8NYcXywGigJgSwOP8Y2iyWT4f2vsZnoOXTTbo+o5yXmIUJ4gn5538SO5S3gA=="
-        },
-        "ethereumjs-util": {
-          "version": "5.2.0",
-          "resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-5.2.0.tgz",
-          "integrity": "sha512-CJAKdI0wgMbQFLlLRtZKGcy/L6pzVRgelIZqRqNbuVFM3K9VEnyfbcvz0ncWMRNCe4kaHWjwRYQcYMucmwsnWA==",
-          "requires": {
-            "bn.js": "^4.11.0",
-            "create-hash": "^1.1.2",
-            "ethjs-util": "^0.1.3",
-            "keccak": "^1.0.2",
-            "rlp": "^2.0.0",
-            "safe-buffer": "^5.1.1",
-            "secp256k1": "^3.0.1"
-          },
-          "dependencies": {
-            "secp256k1": {
-              "version": "3.8.0",
-              "resolved": "https://registry.npmjs.org/secp256k1/-/secp256k1-3.8.0.tgz",
-              "integrity": "sha512-k5ke5avRZbtl9Tqx/SA7CbY3NF6Ro+Sj9cZxezFzuBlLDmyqPiL8hJJ+EmzD8Ig4LUDByHJ3/iPOVoRixs/hmw==",
-              "requires": {
-                "bindings": "^1.5.0",
-                "bip66": "^1.1.5",
-                "bn.js": "^4.11.8",
-                "create-hash": "^1.2.0",
-                "drbg.js": "^1.0.1",
-                "elliptic": "^6.5.2",
-                "nan": "^2.14.0",
-                "safe-buffer": "^5.1.2"
-              }
-            }
-          }
-        },
-        "isarray": {
-          "version": "1.0.0",
-          "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
-          "integrity": "sha1-u5NdSFgsuhaMBoNJV6VKPgcSTxE="
-        },
-        "keccak": {
-          "version": "1.4.0",
-          "resolved": "https://registry.npmjs.org/keccak/-/keccak-1.4.0.tgz",
-          "integrity": "sha512-eZVaCpblK5formjPjeTBik7TAg+pqnDrMHIffSvi9Lh7PQgM1+hSzakUeZFCk9DVVG0dacZJuaz2ntwlzZUIBw==",
-          "requires": {
-            "bindings": "^1.2.1",
-            "inherits": "^2.0.3",
-            "nan": "^2.2.1",
-            "safe-buffer": "^5.1.0"
-          }
-        },
-        "level-ws": {
-          "version": "1.0.0",
-          "resolved": "https://registry.npmjs.org/level-ws/-/level-ws-1.0.0.tgz",
-          "integrity": "sha512-RXEfCmkd6WWFlArh3X8ONvQPm8jNpfA0s/36M4QzLqrLEIt1iJE9WBHLZ5vZJK6haMjJPJGJCQWfjMNnRcq/9Q==",
-          "requires": {
-            "inherits": "^2.0.3",
-            "readable-stream": "^2.2.8",
-            "xtend": "^4.0.1"
-          },
-          "dependencies": {
-            "readable-stream": {
-              "version": "2.3.7",
-              "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.7.tgz",
-              "integrity": "sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==",
-              "requires": {
-                "core-util-is": "~1.0.0",
-                "inherits": "~2.0.3",
-                "isarray": "~1.0.0",
-                "process-nextick-args": "~2.0.0",
-                "safe-buffer": "~5.1.1",
-                "string_decoder": "~1.1.1",
-                "util-deprecate": "~1.0.1"
-              }
-            },
-            "safe-buffer": {
-              "version": "5.1.2",
-              "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
-              "integrity": "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g=="
-            }
-          }
-        },
-        "string_decoder": {
-          "version": "1.1.1",
-          "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.1.1.tgz",
-          "integrity": "sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==",
-          "requires": {
-            "safe-buffer": "~5.1.0"
-          },
-          "dependencies": {
-            "safe-buffer": {
-              "version": "5.1.2",
-              "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
-              "integrity": "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g=="
-            }
-          }
-        }
-      }
-    },
     "methods": {
       "version": "1.1.2",
       "resolved": "https://registry.npmjs.org/methods/-/methods-1.1.2.tgz",
@@ -11472,9 +11358,9 @@
       }
     },
     "typescript": {
-      "version": "3.9.5",
-      "resolved": "https://registry.npmjs.org/typescript/-/typescript-3.9.5.tgz",
-      "integrity": "sha512-hSAifV3k+i6lEoCJ2k6R2Z/rp/H3+8sdmcn5NrS3/3kE7+RyZXm9aqvxWqjEXHAd8b0pShatpcdMTvEdvAJltQ==",
+      "version": "4.0.0-beta",
+      "resolved": "https://registry.npmjs.org/typescript/-/typescript-4.0.0-beta.tgz",
+      "integrity": "sha512-d3s/CogGtB2uPZ2Z8ts6eoUxxyB9PH3R27/UrzvpthuOvpCg4FWWnBbBiqJ0K4eu6eTlgmLiqQkh2dquReJweA==",
       "dev": true
     },
     "uWebSockets.js": {

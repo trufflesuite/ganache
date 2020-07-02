@@ -1,7 +1,7 @@
 import EthereumJsBlock from "ethereumjs-block";
 import Manager from "./manager";
 import Tag from "../things/tags";
-import levelup from "levelup";
+import { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import {Quantity, Data} from "@ganache/utils/src/things/json-rpc";
 import Transaction from "../things/transaction";
@@ -24,7 +24,7 @@ export default class BlockManager extends Manager<Block> {
    */
   public pending: Block;
 
-  constructor(blockchain: Blockchain, base: levelup.LevelUp) {
+  constructor(blockchain: Blockchain, base: LevelUp) {
     super(blockchain, base, Block);
 
     blockchain.on("open", () => {
@@ -56,7 +56,7 @@ export default class BlockManager extends Manager<Block> {
   }
 
   async getNumberFromHash(hash: string | Buffer | Tag): Promise<Buffer> {
-    return this.base.get(Data.from(hash).toBuffer());
+    return this.base.get(Data.from(hash).toBuffer()) as Promise<Buffer>;
   }
 
   async getByHash(hash: string | Buffer | Tag): Promise<Block> {

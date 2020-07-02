@@ -363,6 +363,11 @@
             "secp256k1": "^3.0.1"
           }
         },
+        "isarray": {
+          "version": "1.0.0",
+          "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
+          "integrity": "sha1-u5NdSFgsuhaMBoNJV6VKPgcSTxE="
+        },
         "keccak": {
           "version": "1.4.0",
           "resolved": "https://registry.npmjs.org/keccak/-/keccak-1.4.0.tgz",
@@ -373,6 +378,83 @@
             "nan": "^2.2.1",
             "safe-buffer": "^5.1.0"
           }
+        },
+        "levelup": {
+          "version": "1.3.9",
+          "resolved": "https://registry.npmjs.org/levelup/-/levelup-1.3.9.tgz",
+          "integrity": "sha512-VVGHfKIlmw8w1XqpGOAGwq6sZm2WwWLmlDcULkKWQXEA5EopA8OBNJ2Ck2v6bdk8HeEZSbCSEgzXadyQFm76sQ==",
+          "requires": {
+            "deferred-leveldown": "~1.2.1",
+            "level-codec": "~7.0.0",
+            "level-errors": "~1.0.3",
+            "level-iterator-stream": "~1.3.0",
+            "prr": "~1.0.1",
+            "semver": "~5.4.1",
+            "xtend": "~4.0.0"
+          }
+        },
+        "merkle-patricia-tree": {
+          "version": "2.3.2",
+          "resolved": "https://registry.npmjs.org/merkle-patricia-tree/-/merkle-patricia-tree-2.3.2.tgz",
+          "integrity": "sha512-81PW5m8oz/pz3GvsAwbauj7Y00rqm81Tzad77tHBwU7pIAtN+TJnMSOJhxBKflSVYhptMMb9RskhqHqrSm1V+g==",
+          "requires": {
+            "async": "^1.4.2",
+            "ethereumjs-util": "^5.0.0",
+            "level-ws": "0.0.0",
+            "levelup": "^1.2.1",
+            "memdown": "^1.0.0",
+            "readable-stream": "^2.0.0",
+            "rlp": "^2.0.0",
+            "semaphore": ">=1.0.1"
+          },
+          "dependencies": {
+            "async": {
+              "version": "1.5.2",
+              "resolved": "https://registry.npmjs.org/async/-/async-1.5.2.tgz",
+              "integrity": "sha1-7GphrlZIDAw8skHJVhjiCJL5Zyo="
+            }
+          }
+        },
+        "readable-stream": {
+          "version": "2.3.7",
+          "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.7.tgz",
+          "integrity": "sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==",
+          "requires": {
+            "core-util-is": "~1.0.0",
+            "inherits": "~2.0.3",
+            "isarray": "~1.0.0",
+            "process-nextick-args": "~2.0.0",
+            "safe-buffer": "~5.1.1",
+            "string_decoder": "~1.1.1",
+            "util-deprecate": "~1.0.1"
+          },
+          "dependencies": {
+            "safe-buffer": {
+              "version": "5.1.2",
+              "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
+              "integrity": "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g=="
+            }
+          }
+        },
+        "string_decoder": {
+          "version": "1.1.1",
+          "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.1.1.tgz",
+          "integrity": "sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==",
+          "requires": {
+            "safe-buffer": "~5.1.0"
+          },
+          "dependencies": {
+            "safe-buffer": {
+              "version": "5.1.2",
+              "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
+              "integrity": "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g=="
+            }
+          }
+        },
+        "xtend": {
+          "version": "4.0.2",
+          "resolved": "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz",
+          "integrity": "sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ=="
         }
       }
     },
@@ -468,6 +550,115 @@
         "rustbn.js": "~0.2.0",
         "safe-buffer": "^5.1.1",
         "util.promisify": "^1.0.0"
+      },
+      "dependencies": {
+        "isarray": {
+          "version": "1.0.0",
+          "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
+          "integrity": "sha1-u5NdSFgsuhaMBoNJV6VKPgcSTxE="
+        },
+        "keccak": {
+          "version": "1.4.0",
+          "resolved": "https://registry.npmjs.org/keccak/-/keccak-1.4.0.tgz",
+          "integrity": "sha512-eZVaCpblK5formjPjeTBik7TAg+pqnDrMHIffSvi9Lh7PQgM1+hSzakUeZFCk9DVVG0dacZJuaz2ntwlzZUIBw==",
+          "requires": {
+            "bindings": "^1.2.1",
+            "inherits": "^2.0.3",
+            "nan": "^2.2.1",
+            "safe-buffer": "^5.1.0"
+          }
+        },
+        "levelup": {
+          "version": "1.3.9",
+          "resolved": "https://registry.npmjs.org/levelup/-/levelup-1.3.9.tgz",
+          "integrity": "sha512-VVGHfKIlmw8w1XqpGOAGwq6sZm2WwWLmlDcULkKWQXEA5EopA8OBNJ2Ck2v6bdk8HeEZSbCSEgzXadyQFm76sQ==",
+          "requires": {
+            "deferred-leveldown": "~1.2.1",
+            "level-codec": "~7.0.0",
+            "level-errors": "~1.0.3",
+            "level-iterator-stream": "~1.3.0",
+            "prr": "~1.0.1",
+            "semver": "~5.4.1",
+            "xtend": "~4.0.0"
+          }
+        },
+        "merkle-patricia-tree": {
+          "version": "2.3.2",
+          "resolved": "https://registry.npmjs.org/merkle-patricia-tree/-/merkle-patricia-tree-2.3.2.tgz",
+          "integrity": "sha512-81PW5m8oz/pz3GvsAwbauj7Y00rqm81Tzad77tHBwU7pIAtN+TJnMSOJhxBKflSVYhptMMb9RskhqHqrSm1V+g==",
+          "requires": {
+            "async": "^1.4.2",
+            "ethereumjs-util": "^5.0.0",
+            "level-ws": "0.0.0",
+            "levelup": "^1.2.1",
+            "memdown": "^1.0.0",
+            "readable-stream": "^2.0.0",
+            "rlp": "^2.0.0",
+            "semaphore": ">=1.0.1"
+          },
+          "dependencies": {
+            "async": {
+              "version": "1.5.2",
+              "resolved": "https://registry.npmjs.org/async/-/async-1.5.2.tgz",
+              "integrity": "sha1-7GphrlZIDAw8skHJVhjiCJL5Zyo="
+            },
+            "ethereumjs-util": {
+              "version": "5.2.0",
+              "resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-5.2.0.tgz",
+              "integrity": "sha512-CJAKdI0wgMbQFLlLRtZKGcy/L6pzVRgelIZqRqNbuVFM3K9VEnyfbcvz0ncWMRNCe4kaHWjwRYQcYMucmwsnWA==",
+              "requires": {
+                "bn.js": "^4.11.0",
+                "create-hash": "^1.1.2",
+                "ethjs-util": "^0.1.3",
+                "keccak": "^1.0.2",
+                "rlp": "^2.0.0",
+                "safe-buffer": "^5.1.1",
+                "secp256k1": "^3.0.1"
+              }
+            }
+          }
+        },
+        "readable-stream": {
+          "version": "2.3.7",
+          "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.7.tgz",
+          "integrity": "sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==",
+          "requires": {
+            "core-util-is": "~1.0.0",
+            "inherits": "~2.0.3",
+            "isarray": "~1.0.0",
+            "process-nextick-args": "~2.0.0",
+            "safe-buffer": "~5.1.1",
+            "string_decoder": "~1.1.1",
+            "util-deprecate": "~1.0.1"
+          },
+          "dependencies": {
+            "safe-buffer": {
+              "version": "5.1.2",
+              "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
+              "integrity": "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g=="
+            }
+          }
+        },
+        "string_decoder": {
+          "version": "1.1.1",
+          "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.1.1.tgz",
+          "integrity": "sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==",
+          "requires": {
+            "safe-buffer": "~5.1.0"
+          },
+          "dependencies": {
+            "safe-buffer": {
+              "version": "5.1.2",
+              "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
+              "integrity": "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g=="
+            }
+          }
+        },
+        "xtend": {
+          "version": "4.0.2",
+          "resolved": "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz",
+          "integrity": "sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ=="
+        }
       }
     },
     "ethjs-util": {
@@ -984,25 +1175,19 @@
       }
     },
     "merkle-patricia-tree": {
-      "version": "2.3.2",
-      "resolved": "https://registry.npmjs.org/merkle-patricia-tree/-/merkle-patricia-tree-2.3.2.tgz",
-      "integrity": "sha512-81PW5m8oz/pz3GvsAwbauj7Y00rqm81Tzad77tHBwU7pIAtN+TJnMSOJhxBKflSVYhptMMb9RskhqHqrSm1V+g==",
+      "version": "3.0.0",
+      "resolved": "https://registry.npmjs.org/merkle-patricia-tree/-/merkle-patricia-tree-3.0.0.tgz",
+      "integrity": "sha512-soRaMuNf/ILmw3KWbybaCjhx86EYeBbD8ph0edQCTed0JN/rxDt1EBN52Ajre3VyGo+91f8+/rfPIRQnnGMqmQ==",
       "requires": {
-        "async": "^1.4.2",
-        "ethereumjs-util": "^5.0.0",
-        "level-ws": "0.0.0",
-        "levelup": "^1.2.1",
-        "memdown": "^1.0.0",
-        "readable-stream": "^2.0.0",
+        "async": "^2.6.1",
+        "ethereumjs-util": "^5.2.0",
+        "level-mem": "^3.0.1",
+        "level-ws": "^1.0.0",
+        "readable-stream": "^3.0.6",
         "rlp": "^2.0.0",
         "semaphore": ">=1.0.1"
       },
       "dependencies": {
-        "async": {
-          "version": "1.5.2",
-          "resolved": "https://registry.npmjs.org/async/-/async-1.5.2.tgz",
-          "integrity": "sha1-7GphrlZIDAw8skHJVhjiCJL5Zyo="
-        },
         "ethereumjs-util": {
           "version": "5.2.0",
           "resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-5.2.0.tgz",
@@ -1033,34 +1218,30 @@
             "safe-buffer": "^5.1.0"
           }
         },
-        "levelup": {
-          "version": "1.3.9",
-          "resolved": "https://registry.npmjs.org/levelup/-/levelup-1.3.9.tgz",
-          "integrity": "sha512-VVGHfKIlmw8w1XqpGOAGwq6sZm2WwWLmlDcULkKWQXEA5EopA8OBNJ2Ck2v6bdk8HeEZSbCSEgzXadyQFm76sQ==",
+        "level-ws": {
+          "version": "1.0.0",
+          "resolved": "https://registry.npmjs.org/level-ws/-/level-ws-1.0.0.tgz",
+          "integrity": "sha512-RXEfCmkd6WWFlArh3X8ONvQPm8jNpfA0s/36M4QzLqrLEIt1iJE9WBHLZ5vZJK6haMjJPJGJCQWfjMNnRcq/9Q==",
           "requires": {
-            "deferred-leveldown": "~1.2.1",
-            "level-codec": "~7.0.0",
-            "level-errors": "~1.0.3",
-            "level-iterator-stream": "~1.3.0",
-            "prr": "~1.0.1",
-            "semver": "~5.4.1",
-            "xtend": "~4.0.0"
-          }
-        },
-        "readable-stream": {
-          "version": "2.3.7",
-          "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.7.tgz",
-          "integrity": "sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==",
-          "requires": {
-            "core-util-is": "~1.0.0",
-            "inherits": "~2.0.3",
-            "isarray": "~1.0.0",
-            "process-nextick-args": "~2.0.0",
-            "safe-buffer": "~5.1.1",
-            "string_decoder": "~1.1.1",
-            "util-deprecate": "~1.0.1"
+            "inherits": "^2.0.3",
+            "readable-stream": "^2.2.8",
+            "xtend": "^4.0.1"
           },
           "dependencies": {
+            "readable-stream": {
+              "version": "2.3.7",
+              "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.7.tgz",
+              "integrity": "sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==",
+              "requires": {
+                "core-util-is": "~1.0.0",
+                "inherits": "~2.0.3",
+                "isarray": "~1.0.0",
+                "process-nextick-args": "~2.0.0",
+                "safe-buffer": "~5.1.1",
+                "string_decoder": "~1.1.1",
+                "util-deprecate": "~1.0.1"
+              }
+            },
             "safe-buffer": {
               "version": "5.1.2",
               "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",

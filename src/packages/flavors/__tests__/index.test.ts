@@ -1,5 +1,5 @@
 import assert from "assert";
-import flavors from "../src/";
+import { Flavors } from "../src/";
 
 describe("@ganache/flavors", () => {
   it("needs tests");

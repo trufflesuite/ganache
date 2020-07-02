@@ -1,7 +1,7 @@
 import {AbstractLevelDOWN} from "abstract-leveldown";
 import Emittery from "emittery";
 import {dir, setGracefulCleanup} from "tmp-promise";
-import levelup from "levelup";
+import levelup, { LevelUp } from "levelup";
 import Blockchain from "./blockchain";
 const leveldown = require("leveldown");
 const sub = require("subleveldown");
@@ -19,13 +19,13 @@ export default class Database extends Emittery {
   #cleanupDirectory = noop;
   #closed = false;
   public directory: string = null;
-  public db: levelup.LevelUp = null;
-  public blocks: levelup.LevelUp;
-  public blockLogs: levelup.LevelUp;
-  public blockHashes: levelup.LevelUp;
-  public transactions: levelup.LevelUp;
-  public transactionReceipts: levelup.LevelUp;
-  public trie: levelup.LevelUp;
+  public db: LevelUp = null;
+  public blocks: LevelUp;
+  public blockLogs: LevelUp;
+  public blockHashes: LevelUp;
+  public transactions: LevelUp;
+  public transactionReceipts: LevelUp;
+  public trie: LevelUp;
   public readonly initialized: boolean;
   #rootStore: AbstractLevelDOWN;
 
