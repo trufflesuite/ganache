@@ -224,7 +224,7 @@ describe("Random tests that are temporary!", () => {
 
     assert.strictEqual(getValueAgain, x25);
 
-    const storage2 = await p.send("eth_getStorageAt", [receipt.contractAddress, 0, receipt.blockNumber]);
+    const storage2 = await p.send("eth_getStorageAt", [receipt.contractAddress, 0, txReceipt.blockNumber]);
     assert.strictEqual(storage2, "0x19");
   });
 
