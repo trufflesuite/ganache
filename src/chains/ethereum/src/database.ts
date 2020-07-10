@@ -110,8 +110,9 @@ export default class Database extends Emittery {
     let prom;
     try {
       const ret = fn();
-      // PSA: don't let vscode (or yourself) rewrite this to `await` the `batch.write` call.
-      // The `finally` block needs to run _before_ the write promise has resolved.
+      // PSA: don't let vscode (or yourself) rewrite this to `await` the
+      // `batch.write` call. The `finally` block needs to run _before_ the
+      // write promise has resolved.
       prom = batch.write().then(() => ret);
     } finally {
       rootDb.put = originalPut;
