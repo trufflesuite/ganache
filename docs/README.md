@@ -3,9 +3,13 @@
 ## Getting set up
 
  * Use node v10.7.0 (or whatever the lowest engine is in the root package.json)
- * `git clone git@github.com:trufflesuite/ganache-core.git && cd ganache-core`
- * `npm install lerna -g`
- * `lerna bootstrap`
+ * `git clone git@github.com:trufflesuite/ganache-core.git`
+ * `cd ganache-core`
+ * `npm install`
+
+## Clean install
+ * `npm run clean`
+ * `npm install`
 
  ## VSCode On Windows (10)
 
