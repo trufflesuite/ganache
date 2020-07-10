@@ -40,6 +40,14 @@ This will create a new package with Ganache defaults at `packages/<name>`.
 Where `<module>` is the npm-module you want to add and `<package>` is where you
 want to add it. See [@lerna/add documentation](https://github.com/lerna/lerna/tree/master/commands/add) for more details.
 
+Example:
+
+```
+npx lerna add @ganache/options --scope=@ganache/filecoin
+```
+
+will add our local `@ganache/options` package to the `@ganache/filecoin` package.
+
 ## To remove a module from another package:
 
 `cd` to the package and then run `npm uninstall <module>`
