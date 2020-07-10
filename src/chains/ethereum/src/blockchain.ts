@@ -139,9 +139,7 @@ export default class Blockchain extends Emittery {
           } else {
             promise = this.once("resume");
           }
-          promise.then(() => {
-            unref(setTimeout(mine, minerInterval, pending));
-          });
+          promise.then(() => unref(setTimeout(mine, minerInterval, pending)));
           return void 0;
         };
         unref(setTimeout(mine, minerInterval, this.transactions.transactionPool.executables));
