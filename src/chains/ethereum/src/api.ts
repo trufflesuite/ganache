@@ -191,6 +191,20 @@ export default class EthereumApi implements types.Api {
   //#endregion
 
   /**
+   * Generates and returns an estimate of how much gas is necessary to allow the
+   * transaction to complete. The transaction will not be added to the
+   * blockchain. Note that the estimate may be significantly more than the
+   * amount of gas actually used by the transaction, for a variety of reasons
+   * including EVM mechanics and node performance.
+   * 
+   * @returns the amount of gas used.
+   */
+  async eth_estimateGas(): Promise<Quantity> {
+    // TODO: do this for real
+    return Quantity.from(6721975);
+  }
+
+  /**
    * Returns the current ethereum protocol version.
    * @returns The current ethereum protocol version.
    */
