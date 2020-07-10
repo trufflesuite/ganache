@@ -667,10 +667,23 @@ export default class EthereumApi implements types.Api {
     const blocks = this[_blockchain].blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.value.header;
+    
+    if (!transaction.gasLimit) {
+      if (!transaction.gas) {
+        // eth_call isn't subject to regular transaction gas limits
+        transaction.gas = this[_options].callGasLimit.toString();
+      } else {
+        transaction.gasLimit = transaction.gas;
+      }
+    } else {
+      transaction.gas = transaction.gasLimit;
+    }
+
     const newBlock = blocks.createBlock({
       number: parentHeader.number,
       timestamp: parentHeader.timestamp,
-      parentHash: parentHeader.parentHash
+      // gas estimates and eth_calls aren't subject to regular block gas limits
+      gasLimit: transaction.gas
     });
     return this[_blockchain].simulateTransaction(transaction, parentBlock, newBlock);
   }

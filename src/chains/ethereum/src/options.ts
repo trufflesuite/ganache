@@ -16,6 +16,7 @@ type EthereumOptions = Pick<
   | "secure"
   | "time"
   | "blockTime"
+  | "callGasLimit"
 > & {
   accounts: Account[];
 };
