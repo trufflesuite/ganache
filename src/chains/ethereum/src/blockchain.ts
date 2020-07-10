@@ -309,7 +309,7 @@ export default class Blockchain extends Emittery {
       parentBlock.value.header.stateRoot
     );
     transaction.block = block.value;
-    transaction.caller = transaction.from;
+    transaction.caller = transaction.from || block.value.header.coinbase;
     await settingStateRootProm;
     const result = await vm.runCall(transaction);
     return Data.from(result.execResult.returnValue || "0x");
