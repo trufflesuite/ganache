@@ -28,6 +28,10 @@ interface Callback {
   (err?: Error, response?: JsonRpc.Response): void;
 }
 
+type RequestParams<Method extends types.KnownKeys<EthereumApi>> = {
+  readonly method: Method, readonly params: Parameters<EthereumApi[Method]> | undefined
+};
+
 export default class EthereumProvider extends Emittery.Typed<undefined, "message" | "connect" | "disconnect">
   implements types.Provider<EthereumApi>
   {
@@ -132,7 +136,7 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
     if (typeof arg1 === "string") {
       method = arg1;
       params = arg2 as Parameters<EthereumApi[typeof method]>;
-      response = this.request(method, params);
+      response = this.request({method, params});
     } else if (typeof arg2 === "function") {
       // handle backward compatibility with callback-style ganache-core
       const payload = arg1;
@@ -140,10 +144,10 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
       method = payload.method as types.KnownKeys<EthereumApi>;
       params = payload.params;
 
-      this.request(method, params)
+      this.request({method, params})
         .then((result: any) => {
           // execute the callback on the nextTick so errors thrown in the callback
-          // don't cause the error to buble up to ganache-core
+          // don't cause the error to bubble up to ganache-core
          process.nextTick(callback, null, JsonRpc.Response(payload.id, JSON.parse(JSON.stringify(result))))
         }).catch((err: Error) => {
           process.nextTick(callback, err);
@@ -174,9 +178,9 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
     return this.send(payload, callback);
   }
 
-  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(method: Parameters<EthereumApi[Method]>["length"] extends 0 ? Method : never): any; // ReturnType<EthereumApi[Method]>;
-  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(method: Method, params: Parameters<EthereumApi[Method]>): any; // ReturnType<EthereumApi[Method]>;
-  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(method: Method, params?: Parameters<EthereumApi[Method]>) {
+  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(request : Parameters<EthereumApi[Method]>["length"] extends 0 ? {method: Method} : never): any; // ReturnType<EthereumApi[Method]>;
+  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(request: RequestParams<Method>): any; // ReturnType<EthereumApi[Method]>;
+  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>({method, params}: RequestParams<Method>) {
     return this.#executor.execute(this.#api, method, params).then(result => {
       const promise = result.value as PromiseLike<ReturnType<EthereumApi[Method]>>;
       if (promise instanceof PromiEvent) {
@@ -185,7 +189,7 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
           this.emit("message" as never, data as never);
           // legacy
           this.emit("data" as never, {
-            jsonrpc:"2.0",
+            jsonrpc: "2.0",
             method: "eth_subscription",
             params: (data as any).data
           } as never);

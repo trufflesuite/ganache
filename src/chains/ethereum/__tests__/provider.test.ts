@@ -8,7 +8,7 @@ describe("provider", () => {
   describe("options", () => {
     it("generates predictable accounts when given a seed", async () => {
       const provider = await getProvider({seed: "temet nosce"});
-      const accounts = await provider.request("eth_accounts");
+      const accounts = await provider.send("eth_accounts");
       assert.strictEqual(accounts[0], "0x59eF313E6Ee26BaB6bcb1B5694e59613Debd88DA");
     });
   });
@@ -22,7 +22,7 @@ describe("provider", () => {
     });
 
     it("returns things via EIP-1193", async () => {
-      assert.strictEqual(await provider.request("net_version"), network_id);
+      assert.strictEqual(await provider.send("net_version"), network_id);
     });
 
     it("returns things via legacy", async () => {

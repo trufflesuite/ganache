@@ -60,7 +60,7 @@ describe("connector", () => {
     // be duck punched. This test is supposed to ensure that _real_ non-function
     // own properties (and __proto__ properties) can't be executed.
     (p as any)._engine._ledger.__proto__.illegalProperty = true;
-    await assert.rejects(p.request("illegalProperty" as any), {
+    await assert.rejects(p.send("illegalProperty" as any, []), {
       message: "Invalid or unsupported method: illegalProperty"
     });
   });
@@ -79,7 +79,7 @@ describe("connector", () => {
       "constructor"
     ] as const;
     illegalMethodNames.forEach(name => {
-      assert.throws(() => p.request(name as any), {
+      assert.throws(() => p.send(name as any), {
         message: `Invalid or unsupported method: ${name}`
       });
     });
