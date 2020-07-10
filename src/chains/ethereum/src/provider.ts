@@ -111,7 +111,7 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
 
   // TODO: this should probable be moved as well (see `initializeAccounts` above)
   static createAccount(balance: Quantity, privateKey: Data, address?: Address) {
-    address = address || Address.from(privateToAddress(privateKey.toBuffer()));
+    address ||= Address.from(privateToAddress(privateKey.toBuffer()));
 
     const account = new Account(address);
     account.privateKey = privateKey;
