@@ -195,6 +195,7 @@ export default class Blockchain extends Emittery {
   #isPaused = () => {
     return (this.#state & Status.paused) !== 0;
   }
+
   pause() {
     this.#state |= Status.paused;
     this.emit("pause");
