@@ -696,6 +696,8 @@ export default class EthereumApi implements types.Api {
     const newBlock = blocks.createBlock({
       number: parentHeader.number,
       timestamp: parentHeader.timestamp,
+      parentHash: parentHeader.parentHash,
+      coinbase: this[_wallet].coinbase.address.toBuffer(),
       // gas estimates and eth_calls aren't subject to regular block gas limits
       gasLimit: transaction.gas
     });
