@@ -1,0 +1,17 @@
+{
+  "name": "@ganache/filecoin",
+  "version": "2.2.1",
+  "lockfileVersion": 1,
+  "requires": true,
+  "dependencies": {
+    "@filecoin-shipyard/lotus-client-rpc": {
+      "version": "0.0.10",
+      "resolved": "https://registry.npmjs.org/@filecoin-shipyard/lotus-client-rpc/-/lotus-client-rpc-0.0.10.tgz",
+      "integrity": "sha512-0shqzGJJnAbYQ2V4kvOfrKGaAm3KNXkrY8JhJznyMj8VOLsIEmMfG6+qj/SJkj2tfzMhaRHUB6IDHTczS2xmnA==",
+      "dev": true
+    },
+    "@ganache/utils": {
+      "version": "2.2.1"
+    }
+  }
+}

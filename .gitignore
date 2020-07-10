@@ -13,3 +13,4 @@ test/testdb/*
 lerna-debug.log
 npm-debug.log
 src/**/*/lib
+src/chains/filecoin/data
