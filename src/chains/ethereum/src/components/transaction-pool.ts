@@ -248,7 +248,7 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
     // Transactions can't be negative. This may never happen using RLP
     // decoded transactions but may occur if you create a transaction using
     // the RPC for example.
-    if (Quantity.from(transaction.value).toBigInt() < 0) {
+    if (Quantity.from(transaction.value).toBigInt() < 0n) {
       return new Error("Transaction value cannot be negative");
     }
 
