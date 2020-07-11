@@ -178,8 +178,8 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
     return this.send(payload, callback);
   }
 
-  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(request : Parameters<EthereumApi[Method]>["length"] extends 0 ? {method: Method} : never): any; // ReturnType<EthereumApi[Method]>;
-  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(request: RequestParams<Method>): any; // ReturnType<EthereumApi[Method]>;
+  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(request: Parameters<EthereumApi[Method]>["length"] extends 0 ? {method: Method} : never): any; // ReturnType<EthereumApi[Method]>;
+  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(request: {method: RequestParams<Method>}): any; // ReturnType<EthereumApi[Method]>;
   public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>({method, params}: RequestParams<Method>) {
     return this.#executor.execute(this.#api, method, params).then(result => {
       const promise = result.value as PromiseLike<ReturnType<EthereumApi[Method]>>;
