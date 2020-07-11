@@ -34,6 +34,9 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
       const type = typeof value;
       switch (type) {
         case "number":
+          if (value as number % 1 !== 0) {
+            throw new Error("`Cannot wrap a decimal value as a json-rpc type`");
+          }
           toStrings.set(this, () => (value as number).toString(16));
           toBuffers.set(this, () => {
             const arr = new ArrayBuffer(4);

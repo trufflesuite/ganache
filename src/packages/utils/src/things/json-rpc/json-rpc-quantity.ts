@@ -62,28 +62,44 @@ class Quantity extends BaseJsonRpcType {
       }
       return view.getBigUint64(0) as bigint;
     } else {
-      return BigInt(this.value);
+      return BigInt(value);
     }
   }
-  valueOf(): bigint | null {
-    return this.toBigInt();
+  public toNumber() {
+    // TODO: convert directly to a number if it is beneficial to do so
+    return Number(this.toBigInt());
+  }
+  valueOf(): bigint {
+    const value = this.value;
+    if(value === null) {
+      return value as null;
+    } else if (value === undefined){
+      return value as undefined;
+    }
+    else {
+      return this.toBigInt();
+    }
   }
 }
-type $<T extends number | bigint | string | Buffer = number | bigint | string | Buffer> = {
+type $<T extends number | bigint | string | Buffer | null = number | bigint | string | Buffer | null> = {
   _nullable: boolean;
   new (value: T, nullable?: boolean): _Quantity & JsonRpcType<T>;
   from(value: T, nullable?: boolean): _Quantity & JsonRpcType<T>;
   toBigInt(): bigint;
+  toNumber(): number;
   toBuffer(): Buffer;
+  valueOf(): bigint;
 };
 const _Quantity = Quantity as $;
 
-interface _Quantity<T = number | bigint | string | Buffer> {
+interface _Quantity<T = number | bigint | string | Buffer | null> {
   _nullable: boolean;
   constructor(value: T, nullable?: boolean): _Quantity;
   from(): _Quantity;
   toBigInt(): bigint;
+  toNumber(): number;
   toBuffer(): Buffer;
+  valueOf(): bigint;
 }
 
 export default _Quantity;

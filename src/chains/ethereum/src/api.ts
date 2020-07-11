@@ -128,6 +128,89 @@ export default class EthereumApi implements types.Api {
   async evm_setTime(time?: Date | number) {
     return this[_blockchain].setTime(+time);
   }
+
+  /**
+   * Revert the state of the blockchain to a previous snapshot. Takes a single 
+   * parameter, which is the snapshot id to revert to. This deletes the given 
+   * snapshot, as well as any snapshots taken after (Ex: reverting to id 0x1 
+   * will delete snapshots with ids 0x1, 0x2, etc... If no snapshot id is 
+   * passed it will revert to the latest snapshot.
+   * 
+   * @param snapshotId the snapshot id to revert
+   * @returns `true` if a snapshot was reverted, otherwise `false`
+   *
+   * @example <caption>Basic example</caption>
+   * const snapshotId = await provider.send("evm_snapshot");
+   * const isReverted = await provider.send("evm_revert", [snapshotId]);
+   *
+   * @example <caption>Complete example</caption>
+   * const provider = ganache.provider();
+   * const [from, to] = await provider.send("eth_accounts");
+   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
+   * 
+   * // take a snapshot
+   * const snapshotId = await provider.send("evm_snapshot");
+   * 
+   * // send value to another account (over-simplified example)
+   * await provider.send("eth_subscribe", ["newHeads"]);
+   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}]);
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * 
+   * // ensure balance has updated
+   * const newBalance = await provider.send("eth_getBalance", [from]);
+   * assert(BigInt(newBalance) < startingBalance);
+   * 
+   * // revert the snapshot
+   * const isReverted = await provider.send("evm_revert", [snapshotId]);
+   * assert(isReverted);
+   * 
+   * const endingBalance = await provider.send("eth_getBalance", [from]);
+   * assert.strictEqual(BigInt(endingBalance), startingBalance);
+   */
+  async evm_revert(snapshotId: string | number) {
+    return this[_blockchain].revert(Quantity.from(snapshotId));
+  }
+
+  /**
+   * Snapshot the state of the blockchain at the current block. Takes no
+   * parameters. Returns the id of the snapshot that was created. A snapshot can 
+   * only be reverted once. After a successful `evm_revert`, the same snapshot 
+   * id cannot be used again. Consider creating a new snapshot after each 
+   * `evm_revert` if you need to revert to the same point multiple times.
+   * 
+   * @returns The hex-encoded identifier for this snapshot
+   * 
+   * @example <caption>Basic example</caption>
+   * const snapshotId = await provider.send("evm_snapshot");
+   * 
+   * @example <caption>Complete example</caption>
+   * const provider = ganache.provider();
+   * const [from, to] = await provider.send("eth_accounts");
+   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
+   * 
+   * // take a snapshot
+   * const snapshotId = await provider.send("evm_snapshot");
+   * 
+   * // send value to another account (over-simplified example)
+   * await provider.send("eth_subscribe", ["newHeads"]);
+   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}]);
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * 
+   * // ensure balance has updated
+   * const newBalance = await provider.send("eth_getBalance", [from]);
+   * assert(BigInt(newBalance) < startingBalance);
+   * 
+   * // revert the snapshot
+   * const isReverted = await provider.send("evm_revert", [snapshotId]);
+   * assert(isReverted);
+   * 
+   * const endingBalance = await provider.send("eth_getBalance", [from]);
+   * assert.strictEqual(BigInt(endingBalance), startingBalance);
+   */
+  async evm_snapshot() {
+    return Quantity.from(this[_blockchain].snapshot());
+  }
+
   //#endregion evm
 
   //#region miner

@@ -111,7 +111,8 @@ export default class Blockchain extends Emittery {
       let lastBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit);
 
       const readyNextBlock = async (timestamp?: number) => {
-        const previousBlock = await lastBlock;
+        await lastBlock;
+        const previousBlock = this.blocks.latest;
         const previousHeader = previousBlock.value.header;
         const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
         return this.blocks.createBlock({
@@ -146,7 +147,8 @@ export default class Blockchain extends Emittery {
       }
 
       miner.on("block", async (blockData: any) => {
-        const previousBlock = await lastBlock;
+        await lastBlock;
+        const previousBlock = this.blocks.latest;
         const previousHeader = previousBlock.value.header;
         const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
         const block = this.blocks.createBlock({
@@ -181,6 +183,7 @@ export default class Blockchain extends Emittery {
         });
 
         lastBlock.then(block => {
+          this.blocks.latest = block;
           // emit the block once everything has been fully saved to the database
           this.emit("block", block);
         });
@@ -229,9 +232,8 @@ export default class Blockchain extends Emittery {
       common,
       allowUnlimitedContractSize,
       blockchain: {
-        getBlock: async (number: BN, done: any) => {
-          const hash = await this.#blockNumberToHash(number);
-          done(this.blocks.get(hash));
+        getBlock: (number: BN, done: any) => {
+          this.blocks.get(number.toBuffer()).then((block) => done(block.value));
         }
       } as any
     });
@@ -288,13 +290,105 @@ export default class Blockchain extends Emittery {
     return this.#timeAdjustment = Math.floor((timestamp - Date.now()) / 1000);
   }
 
-  /**
-   * Given a block number, find its hash in the database
-   * @param number
-   */
-  #blockNumberToHash = (number: BN): Promise<Buffer> => {
-    return number.toString() as any;
-  };
+  // TODO: this.#snapshots is a potential unbound memory suck. Caller could call `evm_snapshot` over and over
+  // to grow the snapshot stack indefinitely
+  #snapshots: any[] = [];
+  public snapshot() {
+    const currentBlockHeader = this.blocks.latest.value.header;
+    const hash = currentBlockHeader.hash();
+    const stateRoot = currentBlockHeader.stateRoot;
+
+    // TODO: logger.log...
+    // self.logger.log("Saved snapshot #" + self.snapshots.length);
+    
+    return this.#snapshots.push({
+      hash,
+      stateRoot,
+      timeAdjustment: this.#timeAdjustment
+    });
+  }
+
+  #deleteBlockData = (block: Block) => {
+    const blocks = this.blocks;
+    return this.#database.batch(() => {
+      blocks.del(block.value.header.number);
+      blocks.del(block.value.header.hash());
+      block.value.transactions.forEach(tx => {
+        const txHash = tx.hash();
+        this.transactions.del(txHash);
+        this.transactionReceipts.del(txHash);
+      });
+    });
+  }
+  public async revert(snapshotId: Quantity) {
+
+    const rawValue = snapshotId.valueOf();
+    if (rawValue === null || rawValue === undefined) {
+      throw new Error("invalid snapshotId");
+    }
+
+    // TODO: logger.log...
+    // this.logger.log("Reverting to snapshot #" + snapshotId);
+
+    const snapshotNumber = rawValue - 1n;
+    if (snapshotNumber < 0n) {
+      return false;
+    }
+
+    const snapshotsToRemove = this.#snapshots.splice(Number(snapshotNumber));
+    const snapshot = snapshotsToRemove.shift();
+
+    if (!snapshot) {
+      return false;
+    }
+
+    const blocks = this.blocks;
+    const currentBlock = blocks.latest;
+    const currentHash = currentBlock.value.header.hash();
+    const snapshotHash = snapshot.hash;
+
+    // if nothing was added since we snapshotted just return immediately.
+    if (currentHash.equals(snapshotHash)) {
+      return true;
+    } else {
+      const stateManager = this.vm.stateManager;
+      // TODO: we may need to ensure nothing can be written to the blockchain
+      // whilst setting the state root, otherwise we could get into weird states.
+      // Additionally, if something has created a vm checkpoint `setStateRoot`
+      // will fail anyway.
+      const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(
+        snapshot.stateRoot
+      );
+      const getBlockProm = this.blocks.getByHash(snapshotHash);
+
+      // TODO: lazily clean up the database. Get all blocks created since our reverted
+      // snapshot was created, and delete them, and their transaction data.
+      // TODO: look into optimizing this to delete from all reverted snapshots.
+      //   the current approach looks at each block, finds its parent, then
+      //   finds its parent, and so on until we reach our target block. Whenever
+      //   we revert a snapshot, we may also throwing away several others, and
+      //   there may be an optimization here by querying for those other
+      //   snapshots' blocks simultaneously.
+      let nextBlock = currentBlock;
+      const promises = [getBlockProm, settingStateRootProm] as [Promise<Block>, ...Promise<unknown>[]];
+      do {
+        promises.push(this.#deleteBlockData(nextBlock));
+        const header = nextBlock.value.header
+        if (header.parentHash.equals(snapshotHash)) {
+          break;
+        } else {
+          nextBlock = await blocks.get(header.number);
+        }
+      } while(nextBlock);
+
+      const [latest] = await Promise.all(promises);
+      this.blocks.latest = latest as Block;
+      // put our time back!
+      this.#timeAdjustment = snapshot.timeAdjustment;
+      // update our cached "latest" block
+      return true;
+    }
+  }
 
   public async queueTransaction(transaction: any, secretKey?: Data): Promise<Data> {
     await this.transactions.push(transaction, secretKey);
