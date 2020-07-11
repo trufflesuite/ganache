@@ -8,6 +8,8 @@ import Transaction from "../things/transaction";
 import {decode as rlpDecode} from "rlp";
 import Common from "ethereumjs-common";
 
+const EMPTY_BUFFER = Buffer.from([]);
+
 export default class BlockManager extends Manager<Block> {
   /**
    * The earliest block
@@ -94,12 +96,15 @@ export default class BlockManager extends Manager<Block> {
    * @param block
    */
   async putBlock(block: Block) {
-    let key = block.value.header.number;
-    if (Buffer.isBuffer(key) && key.equals(Buffer.from([]))) {
+    const blockValue = block.value;
+    const header = blockValue.header;
+    let key = header.number;
+    // ensure we can store Block #0 as key "00", not ""
+    if (EMPTY_BUFFER.equals(key)) {
       key = Buffer.from([0]);
     }
-    const secondaryKey = block.value.header.hash();
-    const value = block.value.serialize(true);
+    const secondaryKey = header.hash();
+    const value = blockValue.serialize(true);
     await Promise.all([super.set(secondaryKey, key), super.set(key, value)]);
     return block;
   }
