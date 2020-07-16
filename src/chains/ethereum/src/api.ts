@@ -25,7 +25,7 @@ const PROTOCOL_VERSION = Data.from("0x3f");
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
 //#endregion
 
-// We use symbols for private properties because BaseLedger
+// We use symbols for private properties because types.Api
 // only allows index types of index type '(...args: any) => Promise<any>'
 const _blockchain = Symbol("blockchain");
 const _isMining = Symbol("isMining");
