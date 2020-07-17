@@ -54,6 +54,7 @@ type BlockchainOptions = {
   gasLimit?: Quantity;
   time?: Date;
   blockTime?: number;
+  coinbase: Account;
 };
 
 export default class Blockchain extends Emittery {
@@ -154,7 +155,7 @@ export default class Blockchain extends Emittery {
         const block = this.blocks.createBlock({
           parentHash: previousHeader.hash(),
           number: Quantity.from(previousNumber + 1n).toBuffer(),
-          // coinbase:
+          coinbase: options.coinbase.address,
           timestamp: this.#currentTime(),
           // difficulty:
           gasLimit: options.gasLimit.toBuffer(),

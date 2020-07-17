@@ -8,7 +8,6 @@ export default class Wallet {
   readonly accounts: Address[];
   readonly knownAccounts = new Map<string, Data>();
   readonly unlockedAccounts = new Set<string>();
-  readonly coinbase: Account;
 
   constructor(opts: EthereumOptions) {
     const accounts = opts.accounts;
@@ -16,7 +15,6 @@ export default class Wallet {
     const unlockedAccounts = this.unlockedAccounts;
 
     //#region Configure Known and Unlocked Accounts
-    this.coinbase = accounts[0];
     const l = accounts.length;
     const accountsCache = (this.accounts = Array(l));
     for (let i = 0; i < l; i++) {

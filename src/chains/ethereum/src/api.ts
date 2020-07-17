@@ -15,6 +15,7 @@ const createKeccakHash = require("keccak");
 import {name, version} from "../../../packages/core/package.json";
 import PromiEvent from "@ganache/utils/src/things/promievent";
 import Emittery from "emittery";
+import Account from "./things/account";
 //#endregion
 
 //#region Constants
@@ -244,6 +245,15 @@ export default class EthereumApi implements types.Api {
     this[_options].gasPrice = number;
     return true;
   }
+
+  /**
+   * Sets the etherbase, where mining rewards will go.
+   * @param address 
+   */
+  async miner_setEtherbase(address: Address) {
+    this[_options].coinbase = new Account(address);
+    return true;
+  }
   //#endregion
 
   //#region web3
@@ -333,7 +343,7 @@ export default class EthereumApi implements types.Api {
    * @returns 20 bytes - the current coinbase address.
    */
   async eth_coinbase(): Promise<Address> {
-    return this[_wallet].coinbase.address;
+    return this[_options].coinbase.address;
   }
 
   /**
@@ -785,11 +795,12 @@ export default class EthereumApi implements types.Api {
     const blocks = this[_blockchain].blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.value.header;
+    const options = this[_options];
     
     if (!transaction.gasLimit) {
       if (!transaction.gas) {
         // eth_call isn't subject to regular transaction gas limits
-        transaction.gas = this[_options].callGasLimit.toString();
+        transaction.gas = options.callGasLimit.toString();
       } else {
         transaction.gasLimit = transaction.gas;
       }
@@ -801,7 +812,7 @@ export default class EthereumApi implements types.Api {
       number: parentHeader.number,
       timestamp: parentHeader.timestamp,
       parentHash: parentHeader.parentHash,
-      coinbase: this[_wallet].coinbase.address.toBuffer(),
+      coinbase: options.coinbase.address.toBuffer(),
       // gas estimates and eth_calls aren't subject to regular block gas limits
       gasLimit: transaction.gas
     });

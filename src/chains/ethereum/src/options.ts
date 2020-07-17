@@ -19,6 +19,7 @@ type EthereumOptions = Pick<
   | "callGasLimit"
 > & {
   accounts: Account[];
+  coinbase: Account
 };
 
 export default EthereumOptions;

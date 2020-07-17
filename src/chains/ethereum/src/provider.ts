@@ -50,8 +50,9 @@ export default class EthereumProvider extends Emittery.Typed<undefined, "message
     const accounts = this.#initializeAccounts();
     // ethereum options' `accounts` are different than the provider options'
     // `accounts`, fix that up here:
-    const ethereumOptions = _providerOptions as (ProviderOptions | EthereumOptions);
+    const ethereumOptions = _providerOptions as any as EthereumOptions;
     ethereumOptions.accounts = accounts;
+    ethereumOptions.coinbase = accounts[0];
     this.#api = new EthereumApi(ethereumOptions as EthereumOptions, this);
   }
 
