@@ -241,7 +241,7 @@ export default class EthereumApi implements types.Api {
    * Any transactions that are below this limit are excluded from the mining 
    * process.
    */
-  async miner_setGasPrice(number) {
+  async miner_setGasPrice(number: Quantity) {
     this[_options].gasPrice = number;
     return true;
   }
