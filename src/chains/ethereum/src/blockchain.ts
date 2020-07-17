@@ -155,7 +155,7 @@ export default class Blockchain extends Emittery {
         const block = this.blocks.createBlock({
           parentHash: previousHeader.hash(),
           number: Quantity.from(previousNumber + 1n).toBuffer(),
-          coinbase: options.coinbase.address,
+          coinbase: options.coinbase.address.toBuffer(),
           timestamp: this.#currentTime(),
           // difficulty:
           gasLimit: options.gasLimit.toBuffer(),
