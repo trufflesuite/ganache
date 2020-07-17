@@ -233,6 +233,17 @@ export default class EthereumApi implements types.Api {
     this[_blockchain].pause();
     return Promise.resolve(true);
   }
+
+  /**
+   * 
+   * @param number Sets the minimal accepted gas price when mining transactions.
+   * Any transactions that are below this limit are excluded from the mining 
+   * process.
+   */
+  async miner_setGasPrice(number) {
+    this[_options].gasPrice = number;
+    return true;
+  }
   //#endregion
 
   //#region web3
