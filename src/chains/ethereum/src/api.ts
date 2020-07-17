@@ -1,6 +1,6 @@
 //#region Imports
 import {types} from "@ganache/utils";
-import {toRpcSig, ecsign, hashPersonalMessage} from "ethereumjs-util";
+import {toRpcSig, KECCAK256_NULL, ecsign, hashPersonalMessage} from "ethereumjs-util";
 import EthereumOptions from "./options";
 import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
 import Blockchain from "./blockchain";
@@ -43,7 +43,6 @@ export default class EthereumApi implements types.Api {
 
   private readonly [_filters] = new Map<any, any>();
   private readonly [_blockchain]: Blockchain;
-  private [_isMining] = false;
   private readonly [_options]: EthereumOptions;
   private readonly [_wallet]: Wallet;
 
@@ -487,6 +486,52 @@ export default class EthereumApi implements types.Api {
     return account.balance;
   }
 
+  async eth_getCode(address: Buffer | IndexableAddress, blockNumber: Buffer | Tag = Tag.LATEST) {
+    const blockchain = this[_blockchain];
+    const blockProm = blockchain.blocks.getRaw(blockNumber);
+
+    const trie = blockchain.trie.copy();
+    const getFromTrie = (address: Buffer): Promise<Buffer> =>
+      new Promise((resolve, reject) => {
+        trie.get(address, (err, data) => {
+          if (err) return void reject(err);
+          resolve(data);
+        });
+      });
+    const block = await blockProm;
+    if (!block) return Data.from("0x");
+
+    const blockData = (rlpDecode(block) as unknown) as [
+      [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
+      Buffer[],
+      Buffer[]
+    ];
+    const headerData = blockData[0];
+    const blockStateRoot = headerData[3];
+    trie.root = blockStateRoot;
+
+    const addressDataPromise = getFromTrie(Address.from(address).toBuffer());
+
+    const addressData = await addressDataPromise;
+    // An address's codeHash is stored in the 4th rlp entry
+    const codeHash = ((rlpDecode(addressData) as any) as [
+      Buffer /*nonce*/,
+      Buffer /*amount*/,
+      Buffer /*stateRoot*/,
+      Buffer /*codeHash*/
+    ])[3];
+    // if this address isn't a contract, return 0x
+    if (!codeHash || KECCAK256_NULL.equals(codeHash)) {
+      return Data.from("0x");
+    }
+    return new Promise((resolve, reject) => {
+      trie.getRaw(codeHash, (err, data) => {
+        if (err) return void reject(err);
+        resolve(Data.from(data));
+      });
+    })
+  }
+
   /**
    * Returns the value from a storage position at a given address.
    * @param data 20 Bytes - address of the storage.
@@ -505,7 +550,7 @@ export default class EthereumApi implements types.Api {
     const getFromTrie = (address: Buffer): Promise<Buffer> =>
       new Promise((resolve, reject) => {
         trie.get(address, (err, data) => {
-          if (err) return reject(err);
+          if (err) return void reject(err);
           resolve(data);
         });
       });

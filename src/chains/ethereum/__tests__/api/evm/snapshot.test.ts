@@ -1,40 +1,10 @@
 const assert = require("assert");
-import { readFileSync } from "fs-extra";
 import { join } from "path";
 import getProvider from "../../helpers/getProvider";
+import compile from "../../helpers/compile";
 import {Quantity} from "@ganache/utils/src/things/json-rpc";
 
 const eth = "0x" + (1000000000000000000n).toString(16);
-
-function compileSolidity(source: string, name: string) {
-  const solc = require("solc");
-
-  let result = JSON.parse(
-    solc.compile(
-      JSON.stringify({
-        language: "Solidity",
-        sources: {
-          [name]: {
-            content: source
-          }
-        },
-        settings: {
-          outputSelection: {
-            "*": {
-              "*": ["*"]
-            }
-          }
-        }
-      })
-    )
-  );
-
-  const contract = result.contracts[name][name.replace(/\.sol$/i, "")]
-  return Promise.resolve({
-    code: "0x" + contract.evm.bytecode.object,
-    contract
-  });
-}
 
 describe("api", function() {
   describe("evm", function() {
@@ -44,8 +14,7 @@ describe("api", function() {
       let snapshotId;
 
       before("Set up provider and deploy a contract", async function() {
-        const fileData = readFileSync(join(__dirname, "./snapshot.sol"), {encoding: "utf8"});
-        const contract = await compileSolidity(fileData, "snapshot.sol");
+        const contract = compile(join(__dirname, "./snapshot.sol"));
 
         const p = await getProvider({
           defaultTransactionGasLimit: Quantity.from(6721975)

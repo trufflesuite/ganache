@@ -2,38 +2,9 @@ import assert from "assert";
 import {Quantity} from "@ganache/utils/src/things/json-rpc";
 import {ProviderOptions} from "@ganache/options";
 import getProvider from "./helpers/getProvider";
+import compile from "./helpers/compile";
 import { readFileSync } from "fs-extra";
 import { join } from "path";
-
-const solc = require("solc");
-
-function compileSolidity(source: string, name: string) {
-  let result = JSON.parse(
-    solc.compile(
-      JSON.stringify({
-        language: "Solidity",
-        sources: {
-          [name]: {
-            content: source
-          }
-        },
-        settings: {
-          outputSelection: {
-            "*": {
-              "*": ["*"]
-            }
-          }
-        }
-      })
-    )
-  );
-
-  const contract = result.contracts[name][name.replace(/\.sol$/i, "")]
-  return Promise.resolve({
-    code: "0x" + contract.evm.bytecode.object,
-    contract
-  });
-}
 
 /**
  * test in here are playground tests or just tests that are in the original
@@ -166,8 +137,7 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("deploys contracts", async () => {
-    const fileData = readFileSync(join(__dirname, "./contracts/helloWorld.sol"), {encoding: "utf8"});
-    const contract = await compileSolidity(fileData, "HelloWorld.sol");
+    const contract = compile(join(__dirname, "./contracts/HelloWorld.sol"));
 
     const p = await getProvider({
       defaultTransactionGasLimit: Quantity.from(6721975)
