@@ -196,6 +196,10 @@ export default class Blockchain extends Emittery {
     });
   }
 
+  isMining = () => {
+    return this.#state === Status.started;
+  }
+
   #isPaused = () => {
     return (this.#state & Status.paused) !== 0;
   }

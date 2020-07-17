@@ -429,7 +429,7 @@ export default class EthereumApi implements types.Api {
    * @returns returns true of the client is mining, otherwise false.
    */
   async eth_mining(): Promise<boolean> {
-    return this[_isMining];
+    return this[_blockchain].isMining();
   }
 
   /**
