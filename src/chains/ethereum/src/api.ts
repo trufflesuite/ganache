@@ -214,11 +214,21 @@ export default class EthereumApi implements types.Api {
   //#endregion evm
 
   //#region miner
+  /**
+   * Resume the CPU mining process with the given number of threads.
+   * 
+   * Note: `threads` is ignored.
+   * @param threads 
+   * @returns true
+   */
   miner_start(threads: number = 1) {
     this[_blockchain].resume(threads);
     return Promise.resolve(true);
   }
 
+  /**
+   * Stop the CPU mining operation.
+   */
   async miner_stop() {
     this[_blockchain].pause();
     return Promise.resolve(true);
