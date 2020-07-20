@@ -1,6 +1,6 @@
 //#region Imports
-import {types} from "@ganache/utils";
-import {toRpcSig, KECCAK256_NULL, ecsign, hashPersonalMessage} from "ethereumjs-util";
+import { types } from "@ganache/utils";
+import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import EthereumOptions from "./options";
 import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
 import Blockchain from "./blockchain";
@@ -9,6 +9,8 @@ import Address, {IndexableAddress} from "./things/address";
 import Transaction from "./things/transaction";
 import Wallet from "./wallet";
 import {decode as rlpDecode} from "rlp";
+
+type TypedData = Exclude<Parameters<typeof signTypedData_v4>[1]["data"], NotTypedData>;
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
@@ -730,7 +732,61 @@ export default class EthereumApi implements types.Api {
 
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
     const signature = ecsign(messageHash, privateKey);
-    return Promise.resolve(toRpcSig(signature.v, signature.r, signature.s, +this[_options].chainId));
+  }
+
+  /**
+   * 
+   * @param address Address of the account that will sign the messages.
+   * @param typedData Typed structured data to be signed.
+   * @returns Signature. As in `eth_sign`, it is a hex encoded 129 byte array
+   * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
+   * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
+   *  in big-endian format. Bytes 0...64 contain the `r` parameter, bytes
+   * 64...128 the `s` parameter, and the last byte the `v` parameter. Note 
+   * that the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
+   * @EIP [712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)
+   */
+  async eth_signTypedData(address: string | Buffer, typedData: TypedData) {
+    const account = Address.from(address).toString().toLowerCase();
+    const wallet = this[_wallet];
+    const isUnlocked = wallet.unlockedAccounts.has(account);
+    let privateKey: Buffer;
+    if (isUnlocked) {
+      const knownAccount = wallet.knownAccounts.get(account);
+      if (knownAccount) {
+        privateKey = knownAccount.toBuffer();
+      } else {
+        throw new Error("cannot sign data; no private key");
+      }
+    } else {
+      throw new Error("cannot sign data; account is locked");
+    }
+
+    if (!account) {
+      throw new Error("cannot sign data; no private key");
+    }
+
+    if (!typedData.types) {
+      throw new Error("cannot sign data; types missing");
+    }
+
+    if (!typedData.types.EIP712Domain) {
+      throw new Error("cannot sign data; EIP712Domain definition missing");
+    }
+
+    if (!typedData.domain) {
+      throw new Error("cannot sign data; domain missing");
+    }
+
+    if (!typedData.primaryType) {
+      throw new Error("cannot sign data; primaryType missing");
+    }
+
+    if (!typedData.message) {
+      throw new Error("cannot sign data; message missing");
+    }
+
+    return signTypedData_v4(privateKey, { data: typedData });
   }
 
   eth_subscribe(subscriptionName: "newHeads", options?: any): PromiEvent<any> {
