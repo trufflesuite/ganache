@@ -715,8 +715,9 @@ export default class EthereumApi implements types.Api {
       throw new Error("Invalid to address");
     }
 
-    const isKnownAccount = this[_wallet].knownAccounts.has(fromString);
-    const isUnlockedAccount = this[_wallet].unlockedAccounts.has(fromString);
+    const wallet = this[_wallet];
+    const isKnownAccount = wallet.knownAccounts.has(fromString);
+    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
 
     if (!isUnlockedAccount) {
       const msg = isKnownAccount ? "signer account is locked" : "sender account not recognized";
@@ -751,7 +752,7 @@ export default class EthereumApi implements types.Api {
     }
 
     if (isKnownAccount) {
-      const secretKey = this[_wallet].knownAccounts.get(fromString);
+      const secretKey = wallet.knownAccounts.get(fromString);
       return this[_blockchain].queueTransaction(tx, secretKey);
     }
 
