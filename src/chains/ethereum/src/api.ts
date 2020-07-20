@@ -449,6 +449,10 @@ export default class EthereumApi implements types.Api {
     return this.eth_getBlockTransactionCountByNumber(number);
   }
 
+  async eth_getCompilers() {
+    return [];
+  }
+
   /**
    * Returns information about a transaction by block hash and transaction index position.
    * @param hash DATA, 32 Bytes - hash of a block.
