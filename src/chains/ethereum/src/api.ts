@@ -550,6 +550,13 @@ export default class EthereumApi implements types.Api {
     return account.balance;
   }
 
+  /**
+   * Returns code at a given address.
+   * 
+   * @param address 20 Bytes - address
+   * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block parameter
+   * @returns the code from the given address.
+   */
   async eth_getCode(address: Buffer | IndexableAddress, blockNumber: Buffer | Tag = Tag.LATEST) {
     const blockchain = this[_blockchain];
     const blockProm = blockchain.blocks.getRaw(blockNumber);
