@@ -70,6 +70,16 @@ export default class EthereumApi implements types.Api {
     });
   }
 
+  //#region bzz
+  async bzz_hive() {
+    return [];
+  }
+
+  async bzz_info() {
+    return [];
+  }
+  //#endregion
+
   //#region evm
   /**
    * Force a block to be mined.
