@@ -488,6 +488,19 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
+   * Returns: An Array with the following elements
+   * 1: DATA, 32 Bytes - current block header pow-hash
+   * 2: DATA, 32 Bytes - the seed hash used for the DAG.
+   * 3: DATA, 32 Bytes - the boundary condition ("target"), 2^256 / difficulty.
+   *
+   * @param {QUANTITY} filterId - A filter id
+   * @returns the hash of the current block, the seedHash, and the boundary condition to be met ("target").
+   */
+  async eth_getWork(filterId: Quantity) {
+    return [];
+  };
+
+  /**
    * Used for submitting a proof-of-work solution
    *
    * @param {DATA, 8 Bytes} nonce - The nonce found (64 bits)
