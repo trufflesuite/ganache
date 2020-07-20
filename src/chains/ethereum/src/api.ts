@@ -490,6 +490,16 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns information about a uncle of a block by hash and uncle index position.
    *
+   * @param hash - hash of a block
+   * @param index - the uncle's index position.
+   */
+  async eth_getUncleByBlockHashAndIndex(hash: Data, index: Quantity) {
+    return {};
+  }
+
+  /**
+   * Returns information about a uncle of a block by hash and uncle index position.
+   *
    * @param blockNumber - a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
    * @param uncleIndex - the uncle's index position.
    */
