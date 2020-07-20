@@ -2,19 +2,19 @@
 import { types } from "@ganache/utils";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import EthereumOptions from "./options";
-import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
-import Blockchain from "./blockchain";
+import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
+import Blockchain, { BlockchainOptions } from "./blockchain";
 import Tag from "./things/tags";
-import Address, {IndexableAddress} from "./things/address";
+import Address, { IndexableAddress } from "./things/address";
 import Transaction from "./things/transaction";
 import Wallet from "./wallet";
-import {decode as rlpDecode} from "rlp";
+import { decode as rlpDecode } from "rlp";
 
 type TypedData = Exclude<Parameters<typeof signTypedData_v4>[1]["data"], NotTypedData>;
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
-import {name, version} from "../../../packages/core/package.json";
+import { name, version } from "../../../packages/core/package.json";
 import PromiEvent from "@ganache/utils/src/things/promievent";
 import Emittery from "emittery";
 import Account from "./things/account";
