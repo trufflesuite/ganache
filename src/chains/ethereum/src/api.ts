@@ -70,6 +70,54 @@ export default class EthereumApi implements types.Api {
     });
   }
 
+  //#region db
+  /**
+  * Stores a string in the local database.
+  *
+  * @param {String} dbName - Database name.
+  * @param {String} key - Key name.
+  * @param {String} value - String to store.
+  * @returns returns true if the value was stored, otherwise false.
+  */
+  async db_putString(dbName, key, value) {
+    return false;
+  };
+
+  /**
+   * Returns string from the local database
+   *
+   * @param {String} dbName - Database name.
+   * @param {String} key - Key name.
+   * @returns The previously stored string.
+   */
+  async db_getString(dbName, key) {
+    return "";
+  };
+
+  /**
+   * Stores binary data in the local database.
+   *
+   * @param {String} dbName - Database name.
+   * @param {String} key - Key name.
+   * @param {DATA} data - Data to store.
+   * @returns true if the value was stored, otherwise false.
+   */
+  async db_putHex(dbName, key, data) {
+    return false;
+  };
+
+  /**
+   * Returns binary data from the local database
+   *
+   * @param {String} dbName - Database name.
+   * @param {String} key - Key name.
+   * @returns The previously stored data.
+   */
+  async db_getHex(dbName, key) {
+    return "0x00";
+  };
+  //#endregion
+
   //#region bzz
   async bzz_hive() {
     return [];
