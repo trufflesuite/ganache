@@ -472,6 +472,7 @@ export default class EthereumApi implements types.Api {
    * Returns the currently configured chain id, a value used in
    * replay-protected transaction signing as introduced by EIP-155.
    * @returns The chain id as a string.
+   * @EIP [155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
    */
   async eth_chainId(): Promise<string> {
     return this[_options].chainId.toString();
