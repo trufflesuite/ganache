@@ -863,10 +863,10 @@ export default class EthereumApi implements types.Api {
     }
   }
 
-  async eth_newBlockFilter(): Promise<any>{
+  async eth_newBlockFilter(): Promise<any> {
 
   }
-  async eth_newPendingTransactionFilter(): Promise<any>{
+  async eth_newPendingTransactionFilter(): Promise<any> {
 
   }
   async eth_newFilter(params: any[]): Promise<any> {
