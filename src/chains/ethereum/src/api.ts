@@ -488,6 +488,16 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
+   * Returns information about a uncle of a block by hash and uncle index position.
+   *
+   * @param blockNumber - a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
+   * @param uncleIndex - the uncle's index position.
+   */
+  async eth_getUncleByBlockNumberAndIndex(blockNumber: Buffer | Tag = Tag.LATEST, uncleIndex: Quantity) {
+    return {};
+  }
+
+  /**
    * Returns: An Array with the following elements
    * 1: DATA, 32 Bytes - current block header pow-hash
    * 2: DATA, 32 Bytes - the seed hash used for the DAG.
