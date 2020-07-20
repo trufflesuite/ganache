@@ -32,7 +32,6 @@ const RPC_MODULES = { eth: "1.0", net: "1.0", rpc: "1.0", web3: "1.0", evm: "1.0
 // We use symbols for private properties because types.Api
 // only allows index types of index type '(...args: any) => Promise<any>'
 const _blockchain = Symbol("blockchain");
-const _isMining = Symbol("isMining");
 const _options = Symbol("options");
 const _wallet = Symbol("wallet");
 const _filters = Symbol("filters");
@@ -59,9 +58,12 @@ export default class EthereumApi implements types.Api {
   constructor(options: EthereumOptions, emitter: Emittery.Typed<undefined, "message" | "connect" | "disconnect">) {
     const opts = (this[_options] = options);
 
-    this[_wallet] = new Wallet(opts);
+    const {initialAccounts} = this[_wallet] = new Wallet(opts);
 
-    const blockchain = (this[_blockchain] = new Blockchain(options));
+    const blockchainOptions = options as unknown as BlockchainOptions;
+    blockchainOptions.initialAccounts = initialAccounts;
+    blockchainOptions.coinbase = initialAccounts[0];
+    const blockchain = (this[_blockchain] = new Blockchain(blockchainOptions));
     blockchain.on("start", () => {
       emitter.emit("connect");
     });
@@ -161,7 +163,7 @@ export default class EthereumApi implements types.Api {
           if (err) {
             return void reject(err)
           }
-          resolve(null); 
+          resolve(null);
         });
       });
     });
@@ -311,7 +313,7 @@ export default class EthereumApi implements types.Api {
    * @param address 
    */
   async miner_setEtherbase(address: Address) {
-    this[_options].coinbase = new Account(address);
+    this[_blockchain].coinbase = address;
     return true;
   }
   //#endregion
@@ -405,7 +407,7 @@ export default class EthereumApi implements types.Api {
    * @returns 20 bytes - the current coinbase address.
    */
   async eth_coinbase(): Promise<Address> {
-    return this[_options].coinbase.address;
+    return this[_blockchain].coinbase;
   }
 
   /**
@@ -576,7 +578,7 @@ export default class EthereumApi implements types.Api {
    * @returns Array of 20 Bytes - addresses owned by the client.
    */
   async eth_accounts(): Promise<Address[]> {
-    return this[_wallet].accounts;
+    return this[_wallet].addresses;
   }
 
   /**
@@ -859,7 +861,7 @@ export default class EthereumApi implements types.Api {
         privateKey = knownAccount.toBuffer();
       } else {
         throw new Error("cannot sign data; no private key");
-    }
+      }
     } else {
       throw new Error("cannot sign data; account is locked");
     }
@@ -945,27 +947,27 @@ export default class EthereumApi implements types.Api {
         });
         return promiEvent;
       //case "logs":
-        // const promiEvent = new PromiEvent(resolve => {
-        //   this.eth_newFilter([paramsz[1]])
-        //     .then(hexId => {
-        //         resolve(hexId);
-        //     });
-        // });
-        // promiEvent.then(hexId => {
-        //   this[_filters]
-        //     .get(hexId)
-        //     .on("block")
-        //     .then((block: any) => {
-        //       const blockNumber = block.number;
-        //       return [{
-        //         fromBlock: blockNumber,
-        //         toBlock: blockNumber
-        //       }];
-        //     }).then(this.eth_getLogs).then((logs: any) => {
-        //       promiEvent.emit("result", logs);
-        //     });
-        // });
-        // return promiEvent;
+      // const promiEvent = new PromiEvent(resolve => {
+      //   this.eth_newFilter([paramsz[1]])
+      //     .then(hexId => {
+      //         resolve(hexId);
+      //     });
+      // });
+      // promiEvent.then(hexId => {
+      //   this[_filters]
+      //     .get(hexId)
+      //     .on("block")
+      //     .then((block: any) => {
+      //       const blockNumber = block.number;
+      //       return [{
+      //         fromBlock: blockNumber,
+      //         toBlock: blockNumber
+      //       }];
+      //     }).then(this.eth_getLogs).then((logs: any) => {
+      //       promiEvent.emit("result", logs);
+      //     });
+      // });
+      // return promiEvent;
       // case 'newPendingTransactions':
       //   createSubscriptionFilter = self.newPendingTransactionFilter.bind(self)
       //   break
@@ -999,7 +1001,7 @@ export default class EthereumApi implements types.Api {
 
   }
   async eth_newFilter(params: any[]): Promise<any> {
-    
+
   }
   async eth_getFilterChanges(): Promise<any> {
 
@@ -1032,7 +1034,7 @@ export default class EthereumApi implements types.Api {
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.value.header;
     const options = this[_options];
-    
+
     if (!transaction.gasLimit) {
       if (!transaction.gas) {
         // eth_call isn't subject to regular transaction gas limits
@@ -1048,7 +1050,7 @@ export default class EthereumApi implements types.Api {
       number: parentHeader.number,
       timestamp: parentHeader.timestamp,
       parentHash: parentHeader.parentHash,
-      coinbase: options.coinbase.address.toBuffer(),
+      coinbase: this[_blockchain].coinbase.toBuffer(),
       // gas estimates and eth_calls aren't subject to regular block gas limits
       gasLimit: transaction.gas
     });
@@ -1056,6 +1058,112 @@ export default class EthereumApi implements types.Api {
   }
   //#endregion
 
+  //#region personal
+  /**
+   * Returns all the Ethereum account addresses of all keys that have been
+   * added.
+   * @returns the Ethereum account addresses of all keys that have been added.
+   */
+  async personal_listAccounts() {
+    return this[_wallet].addresses;
+  };
+
+  /**
+   * Generates a new accoutn with private key. Returns the address of the new
+   * account.
+   * @param passphrase
+   * @returns The new account's address
+   */
+  async personal_newAccount(passphrase: string) {
+    const wallet = this[_wallet];
+    const newAccount = wallet.createRandomAccount(this[_options].mnemonic);
+    const address = newAccount.address;
+    const strAddress = address.toString();
+    wallet.addresses.push(address);
+    wallet.passphrases.set(strAddress, passphrase);
+    wallet.knownAccounts.set(strAddress, newAccount.privateKey)
+    return newAccount.address;
+  };
+
+  /**
+   * Imports the given unencrypted private key (hex string) into the key store, encrypting it with the passphrase.
+   * 
+   * @param rawKey
+   * @param passphrase
+   * @returnsReturns the address of the new account.
+   */
+  async personal_importRawKey(rawKey: string, passphrase: string) {
+    const wallet = this[_wallet];
+    const newAccount = Wallet.createAccountFromPrivateKey(Data.from(rawKey));
+    const address = newAccount.address;
+    const strAddress = address.toString();
+    wallet.addresses.push(address);
+    wallet.passphrases.set(strAddress, passphrase);
+    wallet.knownAccounts.set(strAddress, newAccount.privateKey)
+    return newAccount.address;
+  };
+
+  /**
+   * Locks the account. The account can no longer be used to send transactions.
+   * @param address 
+   */
+  async personal_lockAccount(address: string) {
+    return this[_wallet].lockAccount(address.toLowerCase());
+  };
+
+  /**
+   * Unlocks the account for use.
+   * 
+   * The unencrypted key will be held in memory until the unlock duration
+   * expires. The unlock duration defaults to 300 seconds. An explicit duration
+   * of zero seconds unlocks the key until geth exits.
+   * 
+   * The account can be used with eth_sign and eth_sendTransaction while it is 
+   * unlocked.
+   * @param address 20 Bytes - The address of the account to unlock.
+   * @param passphrase Passphrase to unlock the account.
+   * @param duration (default: 300) Duration in seconds how long the account 
+   * should remain unlocked for.
+   * @returns true if it worked. Throws an error if it did not.
+   */
+  async personal_unlockAccount(address: string, passphrase: string, duration: number = 300) {
+    return this[_wallet].unlockAccount(address.toLowerCase(), passphrase, duration);
+  };
+
+  /**
+   * Validate the given passphrase and submit transaction.
+   * 
+   * The transaction is the same argument as for eth_sendTransaction and 
+   * contains the from address. If the passphrase can be used to decrypt the 
+   * private key belogging to tx.from the transaction is verified, signed and 
+   * send onto the network. The account is not unlocked globally in the node 
+   * and cannot be used in other RPC calls.
+   * 
+   * @param txData 
+   * @param passphrase 
+   */
+  async personal_sendTransaction(transaction: any, passphrase: string) {
+    let fromString = transaction.from;
+    let from: Address;
+    if (fromString) {
+      from = Address.from(transaction.from);
+      fromString = from.toString().toLowerCase();
+    }
+
+    if (fromString == null) {
+      throw new Error("from not found; is required");
+    }
+
+    const wallet = this[_wallet];
+    wallet.assertValidPassphrase(fromString, passphrase);
+
+    const tx = new Transaction(transaction);
+    const secretKey = wallet.knownAccounts.get(fromString);
+    tx.sign(secretKey.toBuffer());
+
+    return this[_blockchain].queueTransaction(tx);
+  };
+  //#endregion
 
   //#region rpc
   async rpc_modules() {

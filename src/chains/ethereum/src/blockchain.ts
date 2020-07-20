@@ -18,23 +18,8 @@ import {encode as rlpEncode} from "rlp";
 import Common from "ethereumjs-common";
 
 import VM from "ethereumjs-vm";
+import Address from "./things/address";
 
-/**
- * In node, calling `unref(timer)` on a running timer ensures that the timer
- * does not require that the Node.js event remain active. If there is no other
- * activity keeping the event loop running, the process may exit before the
- * timer's callback is invoked.
- * @param timer
- * @returns `true` if the timer could be `unref`ed, otherwise returns `false`
- */
-function unref (timer: NodeJS.Timeout | number): timer is NodeJS.Timeout {
-  if (typeof timer === "object" && typeof timer.unref === "function") {
-    timer.unref();
-    return true;
-  } else {
-    return false;
-  }
-}
 
 export enum Status {
   // Flags
@@ -45,10 +30,10 @@ export enum Status {
   paused = 16			// 0001 0000
 }
 
-type BlockchainOptions = {
+export type BlockchainOptions = {
   db?: string | object;
   db_path?: string;
-  accounts?: Account[];
+  initialAccounts?: Account[];
   hardfork?: string;
   allowUnlimitedContractSize?: boolean;
   gasLimit?: Quantity;
@@ -100,8 +85,10 @@ export default class Blockchain extends Emittery {
         TransactionReceipt
       );
       this.accounts = new AccountManager(this, database.trie);
+      this.coinbase = options.coinbase.address;
 
-      await this.#initializeAccounts(options.accounts);
+      await this.#commitAccounts(options.initialAccounts);
+
       let firstBlockTime: number;
       if (options.time != null) {
         firstBlockTime = +options.time
@@ -141,10 +128,10 @@ export default class Blockchain extends Emittery {
           } else {
             promise = this.once("resume");
           }
-          promise.then(() => unref(setTimeout(mine, minerInterval, pending)));
+          promise.then(() => utils.unref(setTimeout(mine, minerInterval, pending)));
           return void 0;
         };
-        unref(setTimeout(mine, minerInterval, this.transactions.transactionPool.executables));
+        utils.unref(setTimeout(mine, minerInterval, this.transactions.transactionPool.executables));
       }
 
       miner.on("block", async (blockData: any) => {
@@ -155,7 +142,7 @@ export default class Blockchain extends Emittery {
         const block = this.blocks.createBlock({
           parentHash: previousHeader.hash(),
           number: Quantity.from(previousNumber + 1n).toBuffer(),
-          coinbase: options.coinbase.address.toBuffer(),
+          coinbase: this.coinbase.toBuffer(),
           timestamp: this.#currentTime(),
           // difficulty:
           gasLimit: options.gasLimit.toBuffer(),
@@ -195,6 +182,8 @@ export default class Blockchain extends Emittery {
       this.emit("start");
     });
   }
+
+  coinbase: Address;
 
   isMining = () => {
     return this.#state === Status.started;
@@ -246,7 +235,7 @@ export default class Blockchain extends Emittery {
     return vm;
   };
 
-  #initializeAccounts = async (accounts: Account[]): Promise<void> => {
+  #commitAccounts = async (accounts: Account[]): Promise<void> => {
     const stateManager = this.vm.stateManager;
     const putAccount = promisify(stateManager.putAccount.bind(stateManager));
     const checkpoint = promisify(stateManager.checkpoint.bind(stateManager));

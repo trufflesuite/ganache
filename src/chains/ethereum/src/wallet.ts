@@ -1,31 +1,58 @@
-import {Data} from "@ganache/utils/src/things/json-rpc";
+import { utils } from "@ganache/utils";
+import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
 import Address from "./things/address";
 import EthereumOptions from "./options";
+import { privateToAddress, toChecksumAddress } from "ethereumjs-util";
 import Account from "./things/account";
-import {toChecksumAddress} from "ethereumjs-util";
+import secp256k1 from "secp256k1";
+import { ProviderOptions } from "@ganache/options";
+import { mnemonicToSeedSync } from "bip39";
+import HDKey from "hdkey";
+import { alea as rng } from "seedrandom";
+
+import createKeccakHash from "keccak";
+
+const WEI = 1000000000000000000n;
+const RPCQUANTITY_ZERO = Quantity.from("0x0");
+
+const uncompressedPublicKeyToAddress = (uncompressedPublicKey: Buffer) => {
+  const compresedPublicKey = secp256k1.publicKeyConvert(uncompressedPublicKey, false).slice(1);
+  const hasher = createKeccakHash("keccak256");
+  (hasher as any)._state.absorb(compresedPublicKey);
+  return Address.from(hasher.digest().slice(-20));
+}
+
 
 export default class Wallet {
-  readonly accounts: Address[];
+  readonly addresses: Address[];
+  readonly initialAccounts: Account[];
   readonly knownAccounts = new Map<string, Data>();
+  readonly passphrases = new Map<string, string>();
   readonly unlockedAccounts = new Set<string>();
+  readonly lockTimers = new Map<string, NodeJS.Timeout | number>();
+
+  #hdKey: HDKey;
 
   constructor(opts: EthereumOptions) {
-    const accounts = opts.accounts;
+    this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
+
+    const initialAccounts = this.initialAccounts = this.#initializeAccounts(opts);
+
     const knownAccounts = this.knownAccounts;
     const unlockedAccounts = this.unlockedAccounts;
 
     //#region Configure Known and Unlocked Accounts
-    const l = accounts.length;
-    const accountsCache = (this.accounts = Array(l));
+    const l = initialAccounts.length;
+    const accountsCache = (this.addresses = Array(l));
     for (let i = 0; i < l; i++) {
-      const account = accounts[i];
+      const account = initialAccounts[i];
       const address = account.address;
       const strAddress = address.toString();
       accountsCache[i] = toChecksumAddress(strAddress);
       knownAccounts.set(strAddress, account.privateKey);
 
       // if the `secure` option has been set do NOT add these accounts to the
-      // _unlockedAccounts
+      // unlockedAccounts
       if (opts.secure) continue;
 
       unlockedAccounts.add(strAddress);
@@ -38,7 +65,7 @@ export default class Wallet {
       const ul = givenUnlockedUaccounts.length;
       for (let i = 0; i < ul; i++) {
         let arg = givenUnlockedUaccounts[i];
-        let address;
+        let address: string;
         switch (typeof arg) {
           case "string":
             // `toLowerCase` so we handle uppercase `0X` formats
@@ -64,7 +91,7 @@ export default class Wallet {
               // break; // no break, please.
             }
           case "number":
-            const account = accounts[arg];
+            const account = initialAccounts[arg];
             if (account == null) {
               throw new Error(`Account at index ${arg} not found. Max index available is ${l - 1}.`);
             }
@@ -77,5 +104,139 @@ export default class Wallet {
       }
     }
     //#endregion
+  }
+
+  #seedCounter = 0n;
+
+  #randomBytes = (length: number) => {
+    // Since this is a mock RPC library, the rng doesn't need to be
+    // cryptographically secure, and determinism is desired.
+    const buf = Buffer.allocUnsafe(length);
+    const seed = (this.#seedCounter += 1n);
+    const rand = rng(seed.toString());
+    for (let i = 0; i < length; i++) {
+      buf[i] = (rand() * 255) | 0;
+    }
+    return buf;
+  }
+
+  #initializeAccounts = (opts: ProviderOptions): Account[] => {
+    // convert a potentially fractional balance of Ether to WEI
+    const balanceParts = opts.default_balance_ether.toString().split(".", 2);
+    const significand = BigInt(balanceParts[0]);
+    const fractionalStr = balanceParts[1] || "0";
+    const fractional = BigInt(fractionalStr);
+    const magnitude = 10n ** BigInt(fractionalStr.length);
+    const defaultBalanceInWei = (WEI * significand) + (fractional * (WEI/magnitude));
+    const etherInWei = Quantity.from(defaultBalanceInWei);
+    let accounts: Account[];
+
+    let givenAccounts = opts.accounts;
+    let accountsLength: number;
+    if (givenAccounts && (accountsLength = givenAccounts.length) !== 0) {
+      const hdKey = this.#hdKey;
+      const hdPath = opts.hdPath;
+      accounts = Array(accountsLength);
+      for (let i = 0; i < accountsLength; i++) {
+        const account = givenAccounts[i];
+        const secretKey = account.secretKey;
+        let privateKey: Data;
+        let address: Address;
+        if (!secretKey) {
+          const acct = hdKey.derive(hdPath + i);
+          address = uncompressedPublicKeyToAddress(acct.publicKey);
+          privateKey = Data.from(acct.privateKey);
+          accounts[i] = Wallet.createAccount(Quantity.from(account.balance), privateKey, address);
+        } else {
+          privateKey = Data.from(secretKey);
+          const a = accounts[i] = Wallet.createAccountFromPrivateKey(privateKey);
+          a.balance = Quantity.from(account.balance);
+        }
+      }
+    } else {
+      const numerOfAccounts = opts.total_accounts;
+      if (numerOfAccounts) {
+        accounts = Array(numerOfAccounts);
+        const hdPath = opts.hdPath;
+        const hdKey = this.#hdKey;
+
+        for (let index = 0; index < numerOfAccounts; index++) {
+          const acct = hdKey.derive(hdPath + index);
+          const address = uncompressedPublicKeyToAddress(acct.publicKey);
+          const privateKey = Data.from(acct.privateKey);
+          accounts[index] = Wallet.createAccount(etherInWei, privateKey, address);
+        }
+      } else {
+        throw new Error("Cannot initialize chain: either options.accounts or options.total_accounts must be specified");
+      }
+    }
+    return accounts;
+  };
+
+  public static createAccount(balance: Quantity, privateKey: Data, address: Address) {
+    const account = new Account(address);
+    account.privateKey = privateKey;
+    account.balance = balance;
+    return account;
+  }
+
+  public static createAccountFromPrivateKey(privateKey: Data) {
+    const address = Address.from(privateToAddress(privateKey.toBuffer()));
+    const account = new Account(address);
+    account.privateKey = privateKey;
+    return account;
+  }
+
+  public createRandomAccount(startingSeed: string) {
+    // create some seeded deterministic psuedo-randomness based on the chain's
+    // initial starting conditions (`startingSeed`)
+    const seed = Buffer.concat([Buffer.from(startingSeed), this.#randomBytes(64)]);
+    const acct = HDKey.fromMasterSeed(seed);
+    const address = uncompressedPublicKeyToAddress(acct.publicKey);
+    const privateKey = Data.from(acct.privateKey);
+    return Wallet.createAccount(RPCQUANTITY_ZERO, privateKey, address);
+  }
+
+  public assertValidPassphrase(lowerAddress: string, passphrase: string) {
+    const storedPassphrase = this.passphrases.get(lowerAddress);
+    if (storedPassphrase === undefined) {
+      throw new Error("Account not found");
+    }
+
+    if (passphrase !== storedPassphrase) {
+      throw new Error("Invalid password");
+    }
+
+    return true;
+  }
+
+  public unlockAccount(lowerAddress: string, passphrase: string, duration: number) {
+    this.assertValidPassphrase(lowerAddress, passphrase);
+
+    const existingTimer = this.lockTimers.get(lowerAddress);
+    if (existingTimer) {
+      clearTimeout(existingTimer as number);
+    }
+
+    // a duration <= 0 will remain unlocked
+    const durationMs = (duration * 1000) | 0;
+    if (durationMs > 0) {
+      const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
+      utils.unref(timeout);
+      this.lockTimers.set(lowerAddress, timeout);
+    }
+    this.unlockedAccounts.add(lowerAddress);
+    return true;
+  }
+
+  #lockAccount = (lowerAddress: string) => {
+    this.lockTimers.delete(lowerAddress);
+    this.unlockedAccounts.delete(lowerAddress);
+    return true;
+  }
+
+  public lockAccount(lowerAddress: string) {
+    clearTimeout(this.lockTimers.get(lowerAddress) as number);
+    return this.#lockAccount(lowerAddress);
   }
 }
