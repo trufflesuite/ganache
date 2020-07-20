@@ -718,20 +718,25 @@ export default class EthereumApi implements types.Api {
    * @param data message to sign
    * @returns Signature
    */
-  eth_sign(account: string | Buffer, message: string | Buffer) {
-    const address = Address.from(account).toString().toLowerCase();
-    const wallet =this[_wallet];
-    const isUnlocked = wallet.unlockedAccounts[address];
+  async eth_sign(address: string | Buffer, message: string | Buffer) {
+    const account = Address.from(address).toString().toLowerCase();
+    const wallet = this[_wallet];
+    const isUnlocked = wallet.unlockedAccounts.has(account);
     let privateKey: Buffer;
     if (isUnlocked) {
-      privateKey = wallet.knownAccounts.get[address];
+      const knownAccount = wallet.knownAccounts.get(account);
+      if (knownAccount) {
+        privateKey = knownAccount.toBuffer();
+      } else {
+        throw new Error("cannot sign data; no private key");
     }
-    if (!privateKey) {
-      throw new Error("cannot sign data; no private key");  
+    } else {
+      throw new Error("cannot sign data; account is locked");
     }
 
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
     const signature = ecsign(messageHash, privateKey);
+    return toRpcSig(signature.v, signature.r, signature.s, +this[_options].chainId);
   }
 
   /**
