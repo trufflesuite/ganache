@@ -931,4 +931,117 @@ export default class EthereumApi implements types.Api {
     return RPC_MODULES;
   }
   //endregion
+
+  //#region shh
+
+  /**
+   * Creates new whisper identity in the client.
+   *
+   * @callback callback
+   * @param {error} err - Error Object
+   * @param {DATA, 60 Bytes} result - the address of the new identiy.
+   */
+  async shh_newIdentity() {
+    return "0x00";
+  };
+
+  /**
+   * Checks if the client hold the private keys for a given identity.
+   *
+   * @param {DATA, 60 Bytes} address - The identity address to check.
+   * @callback callback
+   * @param {error} err - Error Object
+   * @param {Boolean} result - returns true if the client holds the privatekey for that identity, otherwise false.
+   */
+  async shh_hasIdentity(address: string) {
+    return false;
+  };
+
+  /**
+   * Creates a new group.
+   *
+   * @callback callback
+   * @param {error} err - Error Object
+   * @param {DATA, 60 Bytes} result - the address of the new group.
+   */
+  async shh_newGroup() {
+    return "0x00";
+  };
+
+  /**
+   * Adds a whisper identity to the group
+   *
+   * @param {DATA, 60 Bytes} - The identity address to add to a group.
+   * @callback callback
+   * @param {error} err - Error Object
+   * @param {Boolean} result - returns true if the identity was successfully added to the group, otherwise false.
+   */
+  async shh_addToGroup(address: string) {
+    return false;
+  };
+
+  /**
+   * Creates filter to notify, when client receives whisper message matching the filter options.
+   *
+   * @param {DATA, 60 Bytes} to -
+   * ^(optional) Identity of the receiver. When present it will try to decrypt any incoming message
+   *  if the client holds the private key to this identity.
+   * @param {Array of DATA} topics - Array of DATA topics which the incoming message's topics should match.
+   * @returns returns true if the identity was successfully added to the group, otherwise false.
+   */
+  async shh_newFilter(to: string, topics: any[]) {
+    return false;
+  };
+
+  /**
+   * Uninstalls a filter with given id. Should always be called when watch is no longer needed.
+   * Additonally Filters timeout when they aren't requested with shh_getFilterChanges for a period of time.
+   *
+   * @param {QUANTITY} id - The filter id. Ex: "0x7"
+   * @returns true if the filter was successfully uninstalled, otherwise false.
+   */
+  async shh_uninstallFilter(id: string) {
+    return false;
+  };
+
+  /**
+   * Polling method for whisper filters. Returns new messages since the last call of this method.
+   *
+   * @param {QUANTITY} id - The filter id. Ex: "0x7"
+   * @returns More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges
+   */
+  async shh_getFilterChanges(id: string) {
+    return [];
+  };
+
+  /**
+   * Get all messages matching a filter. Unlike shh_getFilterChanges this returns all messages.
+   *
+   * @param {QUANTITY} id - The filter id. Ex: "0x7"
+   * @returns See: shh_getFilterChanges
+   */
+  async shh_getMessages(id: string) {
+    return false;
+  };
+  /**
+ * Sends a whisper message.
+ *
+ * @param {DATA, 60 Bytes} from - (optional) The identity of the sender.
+ * @param {DATA, 60 Bytes} to -
+ *  ^(optional) The identity of the receiver. When present whisper will encrypt the message so that
+ *  only the receiver can decrypt it.
+ * @param {Array of DATA} topics - Array of DATA topics, for the receiver to identify messages.
+ * @param {DATA} payload - The payload of the message.
+ * @param {QUANTITY} priority - The integer of the priority in a range from ... (?).
+ * @param {QUANTITY} ttl - integer of the time to live in seconds.
+ * @returns returns true if the message was sent, otherwise false.
+ */
+  async shh_post(from: string, to: string, topics: any[], payload: string, priority: string, ttl: string) {
+    return false;
+  }
+
+  async shh_version() {
+    return 2;
+  }
+  //#endregion
 }
