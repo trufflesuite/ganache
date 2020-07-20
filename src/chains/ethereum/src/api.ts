@@ -364,6 +364,8 @@ export default class EthereumApi implements types.Api {
   }
   //#endregion
 
+  //#region eth
+
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
@@ -984,6 +986,8 @@ export default class EthereumApi implements types.Api {
     });
     return this[_blockchain].simulateTransaction(transaction, parentBlock, newBlock);
   }
+  //#endregion
+
 
   //#region rpc
   async rpc_modules() {
