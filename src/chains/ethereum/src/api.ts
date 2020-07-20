@@ -488,6 +488,18 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
+   * Used for submitting a proof-of-work solution
+   *
+   * @param {DATA, 8 Bytes} nonce - The nonce found (64 bits)
+   * @param {DATA, 32 Bytes} powHash - The header's pow-hash (256 bits)
+   * @param {DATA, 32 Bytes} digest - The mix digest (256 bits)
+   * @returns `true` if the provided solution is valid, otherwise `false`.
+   */
+  async eth_submitWork(nonce: Data, powHash: Data, digest: Data) {
+    return false;
+  };
+
+  /**
    * Used for submitting mining hashrate.
    *
    * @param {String} hashRate - a hexadecimal string representation (32 bytes) of the hash rate
