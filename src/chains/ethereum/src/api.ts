@@ -488,6 +488,17 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
+   * Used for submitting mining hashrate.
+   *
+   * @param {String} hashRate - a hexadecimal string representation (32 bytes) of the hash rate
+   * @param {String} clientID - A random hexadecimal(32 bytes) ID identifying the client
+   * @returns `true` if submitting went through succesfully and `false` otherwise.
+   */
+  async eth_submitHashrate(hashRate: string, clientID: string) {
+    return false;
+  };
+
+  /**
    * Returns true if client is actively mining new blocks.
    * @returns returns true of the client is mining, otherwise false.
    */
