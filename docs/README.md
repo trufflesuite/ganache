@@ -35,7 +35,7 @@ This will create a new package with Ganache defaults at `packages/<name>`.
 
 ## To add a module to a package:
 
-* `npx lerna add <module>[@version] [--dev] [--peer] --scope=<package>`
+* `npx lerna add <module>[@version] -E [--dev] [--peer] --scope=<package>`
 
 Where `<module>` is the npm-module you want to add and `<package>` is where you
 want to add it. See [@lerna/add documentation](https://github.com/lerna/lerna/tree/master/commands/add) for more details.
