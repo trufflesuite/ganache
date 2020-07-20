@@ -18,7 +18,6 @@ const createKeccakHash = require("keccak");
 import { name, version } from "../../../packages/core/package.json";
 import PromiEvent from "@ganache/utils/src/things/promievent";
 import Emittery from "emittery";
-import Account from "./things/account";
 //#endregion
 
 //#region Constants
