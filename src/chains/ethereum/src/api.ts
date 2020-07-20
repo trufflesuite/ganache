@@ -26,6 +26,7 @@ const BUFFER_ZERO = Buffer.from([0]);
 const CLIENT_VERSION = `EthereumJS${name}/v${version}/ethereum-js`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
+const RPC_MODULES = { eth: "1.0", net: "1.0", rpc: "1.0", web3: "1.0", evm: "1.0", personal: "1.0" } as const;
 //#endregion
 
 // We use symbols for private properties because types.Api
@@ -924,4 +925,10 @@ export default class EthereumApi implements types.Api {
     });
     return this[_blockchain].simulateTransaction(transaction, parentBlock, newBlock);
   }
+
+  //#region rpc
+  async rpc_modules() {
+    return RPC_MODULES;
+  }
+  //endregion
 }
