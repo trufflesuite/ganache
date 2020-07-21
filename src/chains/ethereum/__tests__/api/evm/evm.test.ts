@@ -32,4 +32,50 @@ describe("api", () => {
       assert.strictEqual(timeAdjustment, seconds);
     });
   });
+
+    describe("evm_mine", () => {
+      it("should mine a block on demand", async () => {
+        const provider = await getProvider();
+        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
+        await provider.send("evm_mine");
+        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
+        assert.strictEqual(currentBlock, initialBlock + 1);
+      });
+
+      it("should mine a block on demand at the specified timestamp", async () => {
+        const startDate = new Date(2019, 3, 15);
+        const miningTimestamp = Math.floor((new Date(2020, 3, 15).getTime() / 1000));
+        const provider = await getProvider({time: startDate});
+        await provider.send("evm_mine", [miningTimestamp]);
+        const currentBlock = await provider.send("eth_getBlockByNumber", ["latest"]);
+        assert.strictEqual(parseInt(currentBlock.timestamp), miningTimestamp);
+      });
+
+      it("should mine a block even when mining is stopped", async () => {
+        const provider = await getProvider();
+        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
+        await provider.send("miner_stop");
+        await provider.send("evm_mine");
+        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
+        assert.strictEqual(currentBlock, initialBlock + 1);
+      });
+
+      it("should mine a block when in interval mode", async () => {
+        const provider = await getProvider({blockTime: 1000});
+        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
+        await provider.send("evm_mine");
+        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
+        assert.strictEqual(currentBlock, initialBlock + 1);
+      });
+
+      it("should mine a block when in interval mode even when mining is stopped", async () => {
+        const provider = await getProvider({blockTime: 1000});
+        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
+        await provider.send("miner_stop");
+        await provider.send("evm_mine");
+        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
+        assert.strictEqual(currentBlock, initialBlock + 1);
+      });
+    });
+  });
 });
