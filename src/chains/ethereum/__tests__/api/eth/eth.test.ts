@@ -26,6 +26,13 @@ describe("api", () => {
       });
     });
 
+    describe("eth_syncing", function() {
+      it("should return true", async () => {
+        const result = await provider.send("eth_syncing");
+        assert.strictEqual(result, false);
+      });
+    });
+
     describe("eth_hashrate", function() {
       it("should return hashrate of zero", async function() {
         const result = await provider.send("eth_hashrate");
