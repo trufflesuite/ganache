@@ -7,6 +7,7 @@ function between(x: number, min: number, max: number) {
 
 describe("api", () => {
   describe("evm", () => {
+    describe("evm_setTime", () => {
     it("should set the time correctly when difference is greater than 2**31", async () => {
       // this test is here to prevent a dev from "optimizing" rounding to use
       // bitwise tricks since those won't work on numbers greater than 2**31.
@@ -24,7 +25,9 @@ describe("api", () => {
       const baseLineOffset = Math.floor((newTime - now) / 1000);
       assert(between(timeAdjustment, baseLineOffset - 2, baseLineOffset + 2));
     });
+    });
 
+    describe("evm_increaseTime", () => {
     it("should return the `timeAdjustment` value via `evm_increaseTime`", async () => {
       const provider = await getProvider();
       const seconds = 10;
