@@ -144,7 +144,10 @@ export default class Database extends Emittery {
   #cleanup = async () => {
     const db = this.db;
     if (db) {
-      await db.close();
+      await new Promise((resolve, reject) => db.close((err => {
+        if (err) return void reject(err);
+        resolve();
+      })));
       await Promise.all([this.blocks.close(), this.transactions.close(), this.trie.close()]);
     }
     return new Promise(resolve => this.#cleanupDirectory(resolve));
