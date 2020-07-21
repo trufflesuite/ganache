@@ -3,7 +3,6 @@ import {Quantity} from "@ganache/utils/src/things/json-rpc";
 import {ProviderOptions} from "@ganache/options";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
-import { readFileSync } from "fs-extra";
 import { join } from "path";
 
 /**
