@@ -688,7 +688,7 @@ export default class EthereumApi implements types.Api {
         });
       });
     const block = await blockProm;
-    if (!block) return Data.from("0x");
+    if (!block) throw new Error("header not found");
 
     const blockData = (rlpDecode(block) as unknown) as [
       [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
@@ -702,18 +702,19 @@ export default class EthereumApi implements types.Api {
     const addressDataPromise = getFromTrie(Address.from(address).toBuffer());
 
     const posBuff = Quantity.from(position).toBuffer();
-    // if the provided `position` is > 32 bytes it's invalid.
-    // TODO: should we ignore or just return an RPC exception of some sort?
     const length = posBuff.length;
-    if (length > 32) return Data.from("0x");
     let paddedPosBuff: Buffer;
-    if (length !== 32) {
-      // storage locations are 32 byte wide Buffers, so we need to
-      // expand any value given to at least 32 bytes
-      paddedPosBuff = Buffer.alloc(32);
+    if (length < 32) {
+      // storage locations are 32 bytes wide, so we need to expand any value
+      // given to 32 bytes.
+      paddedPosBuff = Buffer.allocUnsafe(32).fill(0);
       posBuff.copy(paddedPosBuff, 32 - length);
-    } else {
+    } else if (length === 32) {
       paddedPosBuff = posBuff;
+    } else {
+      // if the position value we're passed is > 32 bytes, truncate it. This is
+      // what geth does.
+      paddedPosBuff = posBuff.slice(-32);
     }
 
     const addressData = await addressDataPromise;
