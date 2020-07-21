@@ -15,7 +15,7 @@ type TypedData = Exclude<Parameters<typeof signTypedData_v4>[1]["data"], NotType
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
-import { name, version } from "../../../packages/core/package.json";
+import { version } from "../../../packages/core/package.json";
 import PromiEvent from "@ganache/utils/src/things/promievent";
 import Emittery from "emittery";
 //#endregion
@@ -23,7 +23,7 @@ import Emittery from "emittery";
 //#region Constants
 const BUFFER_EMPTY = Buffer.allocUnsafe(0);
 const BUFFER_ZERO = Buffer.from([0]);
-const CLIENT_VERSION = `EthereumJS${name}/v${version}/ethereum-js`;
+const CLIENT_VERSION = `Ganache/v${version}`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
 const RPC_MODULES = { eth: "1.0", net: "1.0", rpc: "1.0", web3: "1.0", evm: "1.0", personal: "1.0" } as const;
