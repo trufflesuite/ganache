@@ -19,6 +19,13 @@ describe("api", () => {
       });
     });
 
+    describe("eth_mining", function() {
+      it("should return true", async () => {
+        const result = await provider.send("eth_mining");
+        assert.strictEqual(result, true);
+      });
+    });
+
     describe("eth_getBalance", () => {
       it("should return initial balance", async() => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);
