@@ -1,11 +1,30 @@
+import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import {types, utils} from "@ganache/utils";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
+import FilecoinProvider from "./provider";
+import PromiEvent from "@ganache/utils/src/things/promievent";
+import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
 
 export default class FilecoinConnector extends Emittery.Typed<undefined, "ready" | "close"> 
   implements types.Connector<FilecoinApi, JsonRpc.Request<FilecoinApi>> {
-  provider: types.Provider<FilecoinApi>;
+ 
+  #provider: FilecoinProvider;
+
+  get provider() {
+    return this.#provider;
+  }
+
+  constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
+    super();
+
+    const provider = this.#provider = new FilecoinProvider(providerOptions, executor);
+    
+    // tell the consumer (like a `ganache-core` server/connector) everything is ready
+    this.emit("ready");
+  }
+
   parse(message: Buffer): JsonRpc.Request<FilecoinApi> {
     throw new Error("Method not implemented.");
   }
@@ -13,25 +32,19 @@ export default class FilecoinConnector extends Emittery.Typed<undefined, "ready"
 
   handle(payload: JsonRpc.Request<FilecoinApi>, connection: HttpRequest | WebSocket): PromiEvent<any> {
     const method = payload.method;
-    if (method === "eth_subscribe") {
-      if (isHttp(connection)) {
-        const error = JsonRpc.Error(payload.id, "-32000", "notifications not supported");
-        return new PromiEvent((_, reject) => void reject(error));
-      } else {
-        return this.#provider.request("eth_subscribe", payload.params as Parameters<EthereumApi["eth_subscribe"]>);
-      }
-    }
+    
     return new PromiEvent((resolve) => {
-      this.#provider.request(method, payload.params as Parameters<EthereumApi[typeof method]>).then(resolve);
+      return this.#provider.request(method, payload.params as Parameters<FilecoinApi[typeof method]>).then(resolve);
     });
   }
 
-  handle: ((payload: JsonRpc.Request<FilecoinApi>, connection: import("uWebSockets.js").HttpRequest) => Promise<any>) | ((payload: JsonRpc.Request<FilecoinApi>, connection: import("uWebSockets.js").WebSocket) => import("@ganache/utils/src/things/promievent").default<...>);
-  format(result: any, payload: JsonRpc.Request<FilecoinApi>): import("uWebSockets.js").RecognizedString {
-    throw new Error("Method not implemented.");
+  format(result: any, payload: JsonRpc.Request<FilecoinApi>): RecognizedString {
+    const json = JsonRpc.Response(payload.id, result);
+    return JSON.stringify(json);
   }
-  close(): void {
-    throw new Error("Method not implemented.");
+
+  close(){
+    //return this.#provider.disconnect();
   }
 
 }

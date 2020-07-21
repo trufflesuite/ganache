@@ -19,13 +19,17 @@
   "scripts": {
     "tsc": "ts-node ../../../scripts/compile",
     "test": "nyc npm run mocha -- --throw-deprecation --trace-warnings",
-    "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**.ts'"
+    "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**/*.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
   "dependencies": {
-    "@ganache/utils": "^2.2.1"
+    "@ganache/options": "^2.2.1",
+    "@ganache/utils": "^2.2.1",
+    "cross-env": "^7.0.2",
+    "mocha": "^8.0.1",
+    "nyc": "^15.1.0"
   },
   "devDependencies": {
     "@filecoin-shipyard/lotus-client-rpc": "0.0.10"

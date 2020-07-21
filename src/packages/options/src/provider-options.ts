@@ -29,14 +29,14 @@ export interface ProviderOptions extends Options {
    */
   subProviders?: any[];
 
-  flavor?: "ethereum" | "tezos";
+  flavor?: "ethereum" | "tezos" | "filecoin";
 }
 
 const getDefault: (options?: ProviderOptions) => ProviderOptions = options => {
   const _options = Object.assign(
     {
       subProviders: [],
-      flavor: "ethereum" as "ethereum" | "tezos"
+      flavor: "ethereum" as "ethereum" | "tezos" | "filecoin"
     },
     Options.getDefault(options)
   );

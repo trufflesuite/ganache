@@ -32,8 +32,11 @@
   "dependencies": {
     "@ganache/options": "^2.2.1",
     "@ganache/utils": "^2.2.1",
+    "cross-env": "^7.0.2",
     "ethereumjs-vm": "4.2.0",
     "levelup": "4.4.0",
-    "merkle-patricia-tree": "3.0.0"
+    "merkle-patricia-tree": "3.0.0",
+    "mocha": "^8.0.1",
+    "nyc": "^15.1.0"
   }
 }

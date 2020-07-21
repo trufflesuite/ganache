@@ -1,5 +1,7 @@
+import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import {types, utils} from "@ganache/utils";
+import PromiEvent from "@ganache/utils/src/things/promievent";
 import FilecoinApi from "./api";
 
 // Meant to mimic this provider: 
@@ -8,39 +10,59 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "message
   // Do I actually need this? `types.Provider` doesn't actually define anything behavior
   implements types.Provider<FilecoinApi>
   {
-    constructor () {
-      super();
-    }
 
-    async connect () {
-      throw new Error("I have no idea if I need this (connect).");
-    }
+  #options: ProviderOptions;
+  #api: FilecoinApi;
+  #executor: utils.Executor;
 
-    async send () {
-      throw new Error("I probably need this one, but am not sure yet. (send)");
-    }
+  constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
+    super();
+    this.#options = ProviderOptions.getDefault(providerOptions);
 
-    async sendHttp () {
-      throw new Error("I have no idea if I need this. (sendHttp)");
-    }
+    this.#executor = executor;
+    this.#api = new FilecoinApi({}, this);
+  }
 
-    async sendWs () {
-      throw new Error("I have no idea if I need this. (sendWs)");
-    }
+  async connect () {
+    throw new Error("I have no idea if I need this (connect).");
+  }
 
-    async sendSubscription () {
-      throw new Error("I have no idea if I need this. (sendSubscription)");
-    }
+  async send () {
+    throw new Error("I probably need this one, but am not sure yet. (send)");
+  }
 
-    async receive () {
-      throw new Error("I have no idea if I need this. (receive)");
-    }
+  async sendHttp () {
+    throw new Error("I have no idea if I need this. (sendHttp)");
+  }
 
-    async import () {
-      throw new Error("I have no idea if I need this. (import)");
-    }
+  async sendWs () {
+    throw new Error("I have no idea if I need this. (sendWs)");
+  }
 
-    async destroy () {
-      throw new Error("I have no idea if I need this. (destroy)");
-    }
+  async sendSubscription () {
+    throw new Error("I have no idea if I need this. (sendSubscription)");
+  }
+
+  async receive () {
+    throw new Error("I have no idea if I need this. (receive)");
+  }
+
+  async import () {
+    throw new Error("I have no idea if I need this. (import)");
+  }
+
+  async destroy () {
+    throw new Error("I have no idea if I need this. (destroy)");
+  }
+
+  public request<Method extends types.KnownKeys<FilecoinApi> = types.KnownKeys<FilecoinApi>>(method: Parameters<FilecoinApi[Method]>["length"] extends 0 ? Method : never): any; // ReturnType<FilecoinApi[Method]>;
+  public request<Method extends types.KnownKeys<FilecoinApi> = types.KnownKeys<FilecoinApi>>(method: Method, params: Parameters<FilecoinApi[Method]>): any; // ReturnType<FilecoinApi[Method]>;
+  public request<Method extends types.KnownKeys<FilecoinApi> = types.KnownKeys<FilecoinApi>>(method: Method, params?: Parameters<FilecoinApi[Method]>) {
+    console.log(method);
+    
+    return this.#executor.execute(this.#api, method, params).then(result => {
+      console.log(result);
+      return result;
+    }).then(JSON.stringify).then(JSON.parse);
+  }
 }
