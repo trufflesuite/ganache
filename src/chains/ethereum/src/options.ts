@@ -1,5 +1,4 @@
 import {ProviderOptions} from "@ganache/options";
-import Account from "./things/account";
 
 type EthereumOptions = Pick<
   ProviderOptions,
@@ -16,8 +15,10 @@ type EthereumOptions = Pick<
   | "secure"
   | "time"
   | "blockTime"
-> & {
-  accounts: Account[];
-};
+  | "callGasLimit"
+  | "accounts"
+  | "default_balance_ether"
+  | "mnemonic"
+>;
 
 export default EthereumOptions;

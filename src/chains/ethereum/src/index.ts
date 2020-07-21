@@ -41,11 +41,11 @@ export default class EthereumConnector extends Emittery.Typed<undefined, "ready"
         const error = JsonRpc.Error(payload.id, "-32000", "notifications not supported");
         return new PromiEvent((_, reject) => void reject(error));
       } else {
-        return this.#provider.request("eth_subscribe", payload.params as Parameters<EthereumApi["eth_subscribe"]>);
+        return this.#provider.request({method: "eth_subscribe", params: payload.params as Parameters<EthereumApi["eth_subscribe"]>});
       }
     }
     return new PromiEvent((resolve) => {
-      this.#provider.request(method, payload.params as Parameters<EthereumApi[typeof method]>).then(resolve);
+      this.#provider.send(method, payload.params as Parameters<EthereumApi[typeof method]>).then(resolve);
     });
   }
 

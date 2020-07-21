@@ -1,18 +1,21 @@
 //#region Imports
-import {types} from "@ganache/utils";
-import {toRpcSig, ecsign, hashPersonalMessage} from "ethereumjs-util";
+import { types } from "@ganache/utils";
+import { toRpcSig, KECCAK256_NULL, ecsign, hashPersonalMessage } from "ethereumjs-util";
+import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import EthereumOptions from "./options";
-import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
-import Blockchain from "./blockchain";
+import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
+import Blockchain, { BlockchainOptions } from "./blockchain";
 import Tag from "./things/tags";
-import Address, {IndexableAddress} from "./things/address";
+import Address, { IndexableAddress } from "./things/address";
 import Transaction from "./things/transaction";
 import Wallet from "./wallet";
-import {decode as rlpDecode} from "rlp";
+import { decode as rlpDecode } from "rlp";
+
+type TypedData = Exclude<Parameters<typeof signTypedData_v4>[1]["data"], NotTypedData>;
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
-import {name, version} from "../../../packages/core/package.json";
+import { version } from "../../../packages/core/package.json";
 import PromiEvent from "@ganache/utils/src/things/promievent";
 import Emittery from "emittery";
 //#endregion
@@ -20,15 +23,15 @@ import Emittery from "emittery";
 //#region Constants
 const BUFFER_EMPTY = Buffer.allocUnsafe(0);
 const BUFFER_ZERO = Buffer.from([0]);
-const CLIENT_VERSION = `EthereumJS${name}/v${version}/ethereum-js`;
+const CLIENT_VERSION = `Ganache/v${version}`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
+const RPC_MODULES = { eth: "1.0", net: "1.0", rpc: "1.0", web3: "1.0", evm: "1.0", personal: "1.0" } as const;
 //#endregion
 
-// We use symbols for private properties because BaseLedger
+// We use symbols for private properties because types.Api
 // only allows index types of index type '(...args: any) => Promise<any>'
 const _blockchain = Symbol("blockchain");
-const _isMining = Symbol("isMining");
 const _options = Symbol("options");
 const _wallet = Symbol("wallet");
 const _filters = Symbol("filters");
@@ -42,7 +45,6 @@ export default class EthereumApi implements types.Api {
 
   private readonly [_filters] = new Map<any, any>();
   private readonly [_blockchain]: Blockchain;
-  private [_isMining] = false;
   private readonly [_options]: EthereumOptions;
   private readonly [_wallet]: Wallet;
 
@@ -56,9 +58,12 @@ export default class EthereumApi implements types.Api {
   constructor(options: EthereumOptions, emitter: Emittery.Typed<undefined, "message" | "connect" | "disconnect">) {
     const opts = (this[_options] = options);
 
-    this[_wallet] = new Wallet(opts);
+    const {initialAccounts} = this[_wallet] = new Wallet(opts);
 
-    const blockchain = (this[_blockchain] = new Blockchain(options));
+    const blockchainOptions = options as unknown as BlockchainOptions;
+    blockchainOptions.initialAccounts = initialAccounts;
+    blockchainOptions.coinbase = initialAccounts[0];
+    const blockchain = (this[_blockchain] = new Blockchain(blockchainOptions));
     blockchain.on("start", () => {
       emitter.emit("connect");
     });
@@ -66,6 +71,64 @@ export default class EthereumApi implements types.Api {
       return blockchain.stop();
     });
   }
+
+  //#region db
+  /**
+  * Stores a string in the local database.
+  *
+  * @param {String} dbName - Database name.
+  * @param {String} key - Key name.
+  * @param {String} value - String to store.
+  * @returns returns true if the value was stored, otherwise false.
+  */
+  async db_putString(dbName, key, value) {
+    return false;
+  };
+
+  /**
+   * Returns string from the local database
+   *
+   * @param {String} dbName - Database name.
+   * @param {String} key - Key name.
+   * @returns The previously stored string.
+   */
+  async db_getString(dbName, key) {
+    return "";
+  };
+
+  /**
+   * Stores binary data in the local database.
+   *
+   * @param {String} dbName - Database name.
+   * @param {String} key - Key name.
+   * @param {DATA} data - Data to store.
+   * @returns true if the value was stored, otherwise false.
+   */
+  async db_putHex(dbName, key, data) {
+    return false;
+  };
+
+  /**
+   * Returns binary data from the local database
+   *
+   * @param {String} dbName - Database name.
+   * @param {String} key - Key name.
+   * @returns The previously stored data.
+   */
+  async db_getHex(dbName, key) {
+    return "0x00";
+  };
+  //#endregion
+
+  //#region bzz
+  async bzz_hive() {
+    return [];
+  }
+
+  async bzz_info() {
+    return [];
+  }
+  //#endregion
 
   //#region evm
   /**
@@ -100,7 +163,7 @@ export default class EthereumApi implements types.Api {
           if (err) {
             return void reject(err)
           }
-          resolve(null); 
+          resolve(null);
         });
       });
     });
@@ -128,17 +191,130 @@ export default class EthereumApi implements types.Api {
   async evm_setTime(time?: Date | number) {
     return this[_blockchain].setTime(+time);
   }
+
+  /**
+   * Revert the state of the blockchain to a previous snapshot. Takes a single 
+   * parameter, which is the snapshot id to revert to. This deletes the given 
+   * snapshot, as well as any snapshots taken after (Ex: reverting to id 0x1 
+   * will delete snapshots with ids 0x1, 0x2, etc... If no snapshot id is 
+   * passed it will revert to the latest snapshot.
+   * 
+   * @param snapshotId the snapshot id to revert
+   * @returns `true` if a snapshot was reverted, otherwise `false`
+   *
+   * @example <caption>Basic example</caption>
+   * const snapshotId = await provider.send("evm_snapshot");
+   * const isReverted = await provider.send("evm_revert", [snapshotId]);
+   *
+   * @example <caption>Complete example</caption>
+   * const provider = ganache.provider();
+   * const [from, to] = await provider.send("eth_accounts");
+   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
+   * 
+   * // take a snapshot
+   * const snapshotId = await provider.send("evm_snapshot");
+   * 
+   * // send value to another account (over-simplified example)
+   * await provider.send("eth_subscribe", ["newHeads"]);
+   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}]);
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * 
+   * // ensure balance has updated
+   * const newBalance = await provider.send("eth_getBalance", [from]);
+   * assert(BigInt(newBalance) < startingBalance);
+   * 
+   * // revert the snapshot
+   * const isReverted = await provider.send("evm_revert", [snapshotId]);
+   * assert(isReverted);
+   * 
+   * const endingBalance = await provider.send("eth_getBalance", [from]);
+   * assert.strictEqual(BigInt(endingBalance), startingBalance);
+   */
+  async evm_revert(snapshotId: string | number) {
+    return this[_blockchain].revert(Quantity.from(snapshotId));
+  }
+
+  /**
+   * Snapshot the state of the blockchain at the current block. Takes no
+   * parameters. Returns the id of the snapshot that was created. A snapshot can 
+   * only be reverted once. After a successful `evm_revert`, the same snapshot 
+   * id cannot be used again. Consider creating a new snapshot after each 
+   * `evm_revert` if you need to revert to the same point multiple times.
+   * 
+   * @returns The hex-encoded identifier for this snapshot
+   * 
+   * @example <caption>Basic example</caption>
+   * const snapshotId = await provider.send("evm_snapshot");
+   * 
+   * @example <caption>Complete example</caption>
+   * const provider = ganache.provider();
+   * const [from, to] = await provider.send("eth_accounts");
+   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
+   * 
+   * // take a snapshot
+   * const snapshotId = await provider.send("evm_snapshot");
+   * 
+   * // send value to another account (over-simplified example)
+   * await provider.send("eth_subscribe", ["newHeads"]);
+   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}]);
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * 
+   * // ensure balance has updated
+   * const newBalance = await provider.send("eth_getBalance", [from]);
+   * assert(BigInt(newBalance) < startingBalance);
+   * 
+   * // revert the snapshot
+   * const isReverted = await provider.send("evm_revert", [snapshotId]);
+   * assert(isReverted);
+   * 
+   * const endingBalance = await provider.send("eth_getBalance", [from]);
+   * assert.strictEqual(BigInt(endingBalance), startingBalance);
+   */
+  async evm_snapshot() {
+    return Quantity.from(this[_blockchain].snapshot());
+  }
+
   //#endregion evm
 
   //#region miner
-  miner_start(threads: number = 1) {
+  /**
+   * Resume the CPU mining process with the given number of threads.
+   * 
+   * Note: `threads` is ignored.
+   * @param threads 
+   * @returns true
+   */
+  async miner_start(threads: number = 1) {
     this[_blockchain].resume(threads);
-    return Promise.resolve(true);
+    return true;
   }
 
+  /**
+   * Stop the CPU mining operation.
+   */
   async miner_stop() {
     this[_blockchain].pause();
-    return Promise.resolve(true);
+    return true;
+  }
+
+  /**
+   * 
+   * @param number Sets the minimal accepted gas price when mining transactions.
+   * Any transactions that are below this limit are excluded from the mining 
+   * process.
+   */
+  async miner_setGasPrice(number: Quantity) {
+    this[_options].gasPrice = number;
+    return true;
+  }
+
+  /**
+   * Sets the etherbase, where mining rewards will go.
+   * @param address 
+   */
+  async miner_setEtherbase(address: Address) {
+    this[_blockchain].coinbase = address;
+    return true;
   }
   //#endregion
 
@@ -190,6 +366,22 @@ export default class EthereumApi implements types.Api {
   }
   //#endregion
 
+  //#region eth
+
+  /**
+   * Generates and returns an estimate of how much gas is necessary to allow the
+   * transaction to complete. The transaction will not be added to the
+   * blockchain. Note that the estimate may be significantly more than the
+   * amount of gas actually used by the transaction, for a variety of reasons
+   * including EVM mechanics and node performance.
+   * 
+   * @returns the amount of gas used.
+   */
+  async eth_estimateGas(): Promise<Quantity> {
+    // TODO: do this for real
+    return Quantity.from(6721975);
+  }
+
   /**
    * Returns the current ethereum protocol version.
    * @returns The current ethereum protocol version.
@@ -215,7 +407,7 @@ export default class EthereumApi implements types.Api {
    * @returns 20 bytes - the current coinbase address.
    */
   async eth_coinbase(): Promise<Address> {
-    return this[_wallet].coinbase.address;
+    return this[_blockchain].coinbase;
   }
 
   /**
@@ -259,6 +451,10 @@ export default class EthereumApi implements types.Api {
     return this.eth_getBlockTransactionCountByNumber(number);
   }
 
+  async eth_getCompilers() {
+    return [];
+  }
+
   /**
    * Returns information about a transaction by block hash and transaction index position.
    * @param hash DATA, 32 Bytes - hash of a block.
@@ -298,11 +494,67 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
+   * Returns information about a uncle of a block by hash and uncle index position.
+   *
+   * @param hash - hash of a block
+   * @param index - the uncle's index position.
+   */
+  async eth_getUncleByBlockHashAndIndex(hash: Data, index: Quantity) {
+    return {};
+  }
+
+  /**
+   * Returns information about a uncle of a block by hash and uncle index position.
+   *
+   * @param blockNumber - a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
+   * @param uncleIndex - the uncle's index position.
+   */
+  async eth_getUncleByBlockNumberAndIndex(blockNumber: Buffer | Tag = Tag.LATEST, uncleIndex: Quantity) {
+    return {};
+  }
+
+  /**
+   * Returns: An Array with the following elements
+   * 1: DATA, 32 Bytes - current block header pow-hash
+   * 2: DATA, 32 Bytes - the seed hash used for the DAG.
+   * 3: DATA, 32 Bytes - the boundary condition ("target"), 2^256 / difficulty.
+   *
+   * @param {QUANTITY} filterId - A filter id
+   * @returns the hash of the current block, the seedHash, and the boundary condition to be met ("target").
+   */
+  async eth_getWork(filterId: Quantity) {
+    return [];
+  };
+
+  /**
+   * Used for submitting a proof-of-work solution
+   *
+   * @param {DATA, 8 Bytes} nonce - The nonce found (64 bits)
+   * @param {DATA, 32 Bytes} powHash - The header's pow-hash (256 bits)
+   * @param {DATA, 32 Bytes} digest - The mix digest (256 bits)
+   * @returns `true` if the provided solution is valid, otherwise `false`.
+   */
+  async eth_submitWork(nonce: Data, powHash: Data, digest: Data) {
+    return false;
+  };
+
+  /**
+   * Used for submitting mining hashrate.
+   *
+   * @param {String} hashRate - a hexadecimal string representation (32 bytes) of the hash rate
+   * @param {String} clientID - A random hexadecimal(32 bytes) ID identifying the client
+   * @returns `true` if submitting went through succesfully and `false` otherwise.
+   */
+  async eth_submitHashrate(hashRate: string, clientID: string) {
+    return false;
+  };
+
+  /**
    * Returns true if client is actively mining new blocks.
    * @returns returns true of the client is mining, otherwise false.
    */
   async eth_mining(): Promise<boolean> {
-    return this[_isMining];
+    return this[_blockchain].isMining();
   }
 
   /**
@@ -326,7 +578,7 @@ export default class EthereumApi implements types.Api {
    * @returns Array of 20 Bytes - addresses owned by the client.
    */
   async eth_accounts(): Promise<Address[]> {
-    return this[_wallet].accounts;
+    return this[_wallet].addresses;
   }
 
   /**
@@ -342,6 +594,7 @@ export default class EthereumApi implements types.Api {
    * Returns the currently configured chain id, a value used in
    * replay-protected transaction signing as introduced by EIP-155.
    * @returns The chain id as a string.
+   * @EIP [155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
    */
   async eth_chainId(): Promise<string> {
     return this[_options].chainId.toString();
@@ -357,6 +610,59 @@ export default class EthereumApi implements types.Api {
     const chain = this[_blockchain];
     const account = await chain.accounts.get(Address.from(address), blockNumber);
     return account.balance;
+  }
+
+  /**
+   * Returns code at a given address.
+   * 
+   * @param address 20 Bytes - address
+   * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block parameter
+   * @returns the code from the given address.
+   */
+  async eth_getCode(address: Buffer | IndexableAddress, blockNumber: Buffer | Tag = Tag.LATEST) {
+    const blockchain = this[_blockchain];
+    const blockProm = blockchain.blocks.getRaw(blockNumber);
+
+    const trie = blockchain.trie.copy();
+    const getFromTrie = (address: Buffer): Promise<Buffer> =>
+      new Promise((resolve, reject) => {
+        trie.get(address, (err, data) => {
+          if (err) return void reject(err);
+          resolve(data);
+        });
+      });
+    const block = await blockProm;
+    if (!block) throw new Error("header not found");
+
+    const blockData = (rlpDecode(block) as unknown) as [
+      [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
+      Buffer[],
+      Buffer[]
+    ];
+    const headerData = blockData[0];
+    const blockStateRoot = headerData[3];
+    trie.root = blockStateRoot;
+
+    const addressDataPromise = getFromTrie(Address.from(address).toBuffer());
+
+    const addressData = await addressDataPromise;
+    // An address's codeHash is stored in the 4th rlp entry
+    const codeHash = ((rlpDecode(addressData) as any) as [
+      Buffer /*nonce*/,
+      Buffer /*amount*/,
+      Buffer /*stateRoot*/,
+      Buffer /*codeHash*/
+    ])[3];
+    // if this address isn't a contract, return 0x
+    if (!codeHash || KECCAK256_NULL.equals(codeHash)) {
+      return Data.from("0x");
+    }
+    return new Promise((resolve, reject) => {
+      trie.getRaw(codeHash, (err, data) => {
+        if (err) return void reject(err);
+        resolve(Data.from(data));
+      });
+    })
   }
 
   /**
@@ -377,12 +683,12 @@ export default class EthereumApi implements types.Api {
     const getFromTrie = (address: Buffer): Promise<Buffer> =>
       new Promise((resolve, reject) => {
         trie.get(address, (err, data) => {
-          if (err) return reject(err);
+          if (err) return void reject(err);
           resolve(data);
         });
       });
     const block = await blockProm;
-    if (!block) return Data.from("0x");
+    if (!block) throw new Error("header not found");
 
     const blockData = (rlpDecode(block) as unknown) as [
       [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
@@ -396,18 +702,19 @@ export default class EthereumApi implements types.Api {
     const addressDataPromise = getFromTrie(Address.from(address).toBuffer());
 
     const posBuff = Quantity.from(position).toBuffer();
-    // if the provided `position` is > 32 bytes it's invalid.
-    // TODO: should we ignore or just return an RPC exception of some sort?
     const length = posBuff.length;
-    if (length > 32) return Data.from("0x");
     let paddedPosBuff: Buffer;
-    if (length !== 32) {
-      // storage locations are 32 byte wide Buffers, so we need to
-      // expand any value given to at least 32 bytes
-      paddedPosBuff = Buffer.alloc(32);
+    if (length < 32) {
+      // storage locations are 32 bytes wide, so we need to expand any value
+      // given to 32 bytes.
+      paddedPosBuff = Buffer.allocUnsafe(32).fill(0);
       posBuff.copy(paddedPosBuff, 32 - length);
-    } else {
+    } else if (length === 32) {
       paddedPosBuff = posBuff;
+    } else {
+      // if the position value we're passed is > 32 bytes, truncate it. This is
+      // what geth does.
+      paddedPosBuff = posBuff.slice(-32);
     }
 
     const addressData = await addressDataPromise;
@@ -478,8 +785,9 @@ export default class EthereumApi implements types.Api {
       throw new Error("Invalid to address");
     }
 
-    const isKnownAccount = this[_wallet].knownAccounts.has(fromString);
-    const isUnlockedAccount = this[_wallet].unlockedAccounts.has(fromString);
+    const wallet = this[_wallet];
+    const isKnownAccount = wallet.knownAccounts.has(fromString);
+    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
 
     if (!isUnlockedAccount) {
       const msg = isKnownAccount ? "signer account is locked" : "sender account not recognized";
@@ -514,7 +822,7 @@ export default class EthereumApi implements types.Api {
     }
 
     if (isKnownAccount) {
-      const secretKey = this[_wallet].knownAccounts.get(fromString);
+      const secretKey = wallet.knownAccounts.get(fromString);
       return this[_blockchain].queueTransaction(tx, secretKey);
     }
 
@@ -543,21 +851,80 @@ export default class EthereumApi implements types.Api {
    * @param data message to sign
    * @returns Signature
    */
-  eth_sign(account: string | Buffer, message: string | Buffer) {
-    const address = Address.from(account).toString().toLowerCase();
-    const wallet =this[_wallet];
-    const isUnlocked = wallet.unlockedAccounts[address];
+  async eth_sign(address: string | Buffer, message: string | Buffer) {
+    const account = Address.from(address).toString().toLowerCase();
+    const wallet = this[_wallet];
+    const isUnlocked = wallet.unlockedAccounts.has(account);
     let privateKey: Buffer;
     if (isUnlocked) {
-      privateKey = wallet.knownAccounts.get[address];
-    }
-    if (!privateKey) {
-      throw new Error("cannot sign data; no private key");  
+      const knownAccount = wallet.knownAccounts.get(account);
+      if (knownAccount) {
+        privateKey = knownAccount.toBuffer();
+      } else {
+        throw new Error("cannot sign data; no private key");
+      }
+    } else {
+      throw new Error("cannot sign data; account is locked");
     }
 
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
     const signature = ecsign(messageHash, privateKey);
-    return Promise.resolve(toRpcSig(signature.v, signature.r, signature.s, +this[_options].chainId));
+    return toRpcSig(signature.v, signature.r, signature.s, +this[_options].chainId);
+  }
+
+  /**
+   * 
+   * @param address Address of the account that will sign the messages.
+   * @param typedData Typed structured data to be signed.
+   * @returns Signature. As in `eth_sign`, it is a hex encoded 129 byte array
+   * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
+   * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
+   *  in big-endian format. Bytes 0...64 contain the `r` parameter, bytes
+   * 64...128 the `s` parameter, and the last byte the `v` parameter. Note 
+   * that the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
+   * @EIP [712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)
+   */
+  async eth_signTypedData(address: string | Buffer, typedData: TypedData) {
+    const account = Address.from(address).toString().toLowerCase();
+    const wallet = this[_wallet];
+    const isUnlocked = wallet.unlockedAccounts.has(account);
+    let privateKey: Buffer;
+    if (isUnlocked) {
+      const knownAccount = wallet.knownAccounts.get(account);
+      if (knownAccount) {
+        privateKey = knownAccount.toBuffer();
+      } else {
+        throw new Error("cannot sign data; no private key");
+      }
+    } else {
+      throw new Error("cannot sign data; account is locked");
+    }
+
+    if (!account) {
+      throw new Error("cannot sign data; no private key");
+    }
+
+    if (!typedData.types) {
+      throw new Error("cannot sign data; types missing");
+    }
+
+    if (!typedData.types.EIP712Domain) {
+      throw new Error("cannot sign data; EIP712Domain definition missing");
+    }
+
+    if (!typedData.domain) {
+      throw new Error("cannot sign data; domain missing");
+    }
+
+    if (!typedData.primaryType) {
+      throw new Error("cannot sign data; primaryType missing");
+    }
+
+    if (!typedData.message) {
+      throw new Error("cannot sign data; message missing");
+    }
+
+    return signTypedData_v4(privateKey, { data: typedData });
   }
 
   eth_subscribe(subscriptionName: "newHeads", options?: any): PromiEvent<any> {
@@ -581,27 +948,27 @@ export default class EthereumApi implements types.Api {
         });
         return promiEvent;
       //case "logs":
-        // const promiEvent = new PromiEvent(resolve => {
-        //   this.eth_newFilter([paramsz[1]])
-        //     .then(hexId => {
-        //         resolve(hexId);
-        //     });
-        // });
-        // promiEvent.then(hexId => {
-        //   this[_filters]
-        //     .get(hexId)
-        //     .on("block")
-        //     .then((block: any) => {
-        //       const blockNumber = block.number;
-        //       return [{
-        //         fromBlock: blockNumber,
-        //         toBlock: blockNumber
-        //       }];
-        //     }).then(this.eth_getLogs).then((logs: any) => {
-        //       promiEvent.emit("result", logs);
-        //     });
-        // });
-        // return promiEvent;
+      // const promiEvent = new PromiEvent(resolve => {
+      //   this.eth_newFilter([paramsz[1]])
+      //     .then(hexId => {
+      //         resolve(hexId);
+      //     });
+      // });
+      // promiEvent.then(hexId => {
+      //   this[_filters]
+      //     .get(hexId)
+      //     .on("block")
+      //     .then((block: any) => {
+      //       const blockNumber = block.number;
+      //       return [{
+      //         fromBlock: blockNumber,
+      //         toBlock: blockNumber
+      //       }];
+      //     }).then(this.eth_getLogs).then((logs: any) => {
+      //       promiEvent.emit("result", logs);
+      //     });
+      // });
+      // return promiEvent;
       // case 'newPendingTransactions':
       //   createSubscriptionFilter = self.newPendingTransactionFilter.bind(self)
       //   break
@@ -628,14 +995,14 @@ export default class EthereumApi implements types.Api {
     }
   }
 
-  async eth_newBlockFilter(): Promise<any>{
+  async eth_newBlockFilter(): Promise<any> {
 
   }
-  async eth_newPendingTransactionFilter(): Promise<any>{
+  async eth_newPendingTransactionFilter(): Promise<any> {
 
   }
   async eth_newFilter(params: any[]): Promise<any> {
-    
+
   }
   async eth_getFilterChanges(): Promise<any> {
 
@@ -667,11 +1034,254 @@ export default class EthereumApi implements types.Api {
     const blocks = this[_blockchain].blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.value.header;
+    const options = this[_options];
+
+    if (!transaction.gasLimit) {
+      if (!transaction.gas) {
+        // eth_call isn't subject to regular transaction gas limits
+        transaction.gas = options.callGasLimit.toString();
+      } else {
+        transaction.gasLimit = transaction.gas;
+      }
+    } else {
+      transaction.gas = transaction.gasLimit;
+    }
+
     const newBlock = blocks.createBlock({
       number: parentHeader.number,
       timestamp: parentHeader.timestamp,
-      parentHash: parentHeader.parentHash
+      parentHash: parentHeader.parentHash,
+      coinbase: this[_blockchain].coinbase.toBuffer(),
+      // gas estimates and eth_calls aren't subject to regular block gas limits
+      gasLimit: transaction.gas
     });
     return this[_blockchain].simulateTransaction(transaction, parentBlock, newBlock);
   }
+  //#endregion
+
+  //#region personal
+  /**
+   * Returns all the Ethereum account addresses of all keys that have been
+   * added.
+   * @returns the Ethereum account addresses of all keys that have been added.
+   */
+  async personal_listAccounts() {
+    return this[_wallet].addresses;
+  };
+
+  /**
+   * Generates a new accoutn with private key. Returns the address of the new
+   * account.
+   * @param passphrase
+   * @returns The new account's address
+   */
+  async personal_newAccount(passphrase: string) {
+    const wallet = this[_wallet];
+    const newAccount = wallet.createRandomAccount(this[_options].mnemonic);
+    const address = newAccount.address;
+    const strAddress = address.toString();
+    wallet.addresses.push(address);
+    wallet.passphrases.set(strAddress, passphrase);
+    wallet.knownAccounts.set(strAddress, newAccount.privateKey)
+    return newAccount.address;
+  };
+
+  /**
+   * Imports the given unencrypted private key (hex string) into the key store, encrypting it with the passphrase.
+   * 
+   * @param rawKey
+   * @param passphrase
+   * @returnsReturns the address of the new account.
+   */
+  async personal_importRawKey(rawKey: string, passphrase: string) {
+    const wallet = this[_wallet];
+    const newAccount = Wallet.createAccountFromPrivateKey(Data.from(rawKey));
+    const address = newAccount.address;
+    const strAddress = address.toString();
+    wallet.addresses.push(address);
+    wallet.passphrases.set(strAddress, passphrase);
+    wallet.knownAccounts.set(strAddress, newAccount.privateKey)
+    return newAccount.address;
+  };
+
+  /**
+   * Locks the account. The account can no longer be used to send transactions.
+   * @param address 
+   */
+  async personal_lockAccount(address: string) {
+    return this[_wallet].lockAccount(address.toLowerCase());
+  };
+
+  /**
+   * Unlocks the account for use.
+   * 
+   * The unencrypted key will be held in memory until the unlock duration
+   * expires. The unlock duration defaults to 300 seconds. An explicit duration
+   * of zero seconds unlocks the key until geth exits.
+   * 
+   * The account can be used with eth_sign and eth_sendTransaction while it is 
+   * unlocked.
+   * @param address 20 Bytes - The address of the account to unlock.
+   * @param passphrase Passphrase to unlock the account.
+   * @param duration (default: 300) Duration in seconds how long the account 
+   * should remain unlocked for.
+   * @returns true if it worked. Throws an error if it did not.
+   */
+  async personal_unlockAccount(address: string, passphrase: string, duration: number = 300) {
+    return this[_wallet].unlockAccount(address.toLowerCase(), passphrase, duration);
+  };
+
+  /**
+   * Validate the given passphrase and submit transaction.
+   * 
+   * The transaction is the same argument as for eth_sendTransaction and 
+   * contains the from address. If the passphrase can be used to decrypt the 
+   * private key belogging to tx.from the transaction is verified, signed and 
+   * send onto the network. The account is not unlocked globally in the node 
+   * and cannot be used in other RPC calls.
+   * 
+   * @param txData 
+   * @param passphrase 
+   */
+  async personal_sendTransaction(transaction: any, passphrase: string) {
+    let fromString = transaction.from;
+    let from: Address;
+    if (fromString) {
+      from = Address.from(transaction.from);
+      fromString = from.toString().toLowerCase();
+    }
+
+    if (fromString == null) {
+      throw new Error("from not found; is required");
+    }
+
+    const wallet = this[_wallet];
+    wallet.assertValidPassphrase(fromString, passphrase);
+
+    const tx = new Transaction(transaction);
+    const secretKey = wallet.knownAccounts.get(fromString);
+    tx.sign(secretKey.toBuffer());
+
+    return this[_blockchain].queueTransaction(tx);
+  };
+  //#endregion
+
+  //#region rpc
+  async rpc_modules() {
+    return RPC_MODULES;
+  }
+  //endregion
+
+  //#region shh
+
+  /**
+   * Creates new whisper identity in the client.
+   *
+   * @callback callback
+   * @param {error} err - Error Object
+   * @param {DATA, 60 Bytes} result - the address of the new identiy.
+   */
+  async shh_newIdentity() {
+    return "0x00";
+  };
+
+  /**
+   * Checks if the client hold the private keys for a given identity.
+   *
+   * @param {DATA, 60 Bytes} address - The identity address to check.
+   * @callback callback
+   * @param {error} err - Error Object
+   * @param {Boolean} result - returns true if the client holds the privatekey for that identity, otherwise false.
+   */
+  async shh_hasIdentity(address: string) {
+    return false;
+  };
+
+  /**
+   * Creates a new group.
+   *
+   * @callback callback
+   * @param {error} err - Error Object
+   * @param {DATA, 60 Bytes} result - the address of the new group.
+   */
+  async shh_newGroup() {
+    return "0x00";
+  };
+
+  /**
+   * Adds a whisper identity to the group
+   *
+   * @param {DATA, 60 Bytes} - The identity address to add to a group.
+   * @callback callback
+   * @param {error} err - Error Object
+   * @param {Boolean} result - returns true if the identity was successfully added to the group, otherwise false.
+   */
+  async shh_addToGroup(address: string) {
+    return false;
+  };
+
+  /**
+   * Creates filter to notify, when client receives whisper message matching the filter options.
+   *
+   * @param {DATA, 60 Bytes} to -
+   * ^(optional) Identity of the receiver. When present it will try to decrypt any incoming message
+   *  if the client holds the private key to this identity.
+   * @param {Array of DATA} topics - Array of DATA topics which the incoming message's topics should match.
+   * @returns returns true if the identity was successfully added to the group, otherwise false.
+   */
+  async shh_newFilter(to: string, topics: any[]) {
+    return false;
+  };
+
+  /**
+   * Uninstalls a filter with given id. Should always be called when watch is no longer needed.
+   * Additonally Filters timeout when they aren't requested with shh_getFilterChanges for a period of time.
+   *
+   * @param {QUANTITY} id - The filter id. Ex: "0x7"
+   * @returns true if the filter was successfully uninstalled, otherwise false.
+   */
+  async shh_uninstallFilter(id: string) {
+    return false;
+  };
+
+  /**
+   * Polling method for whisper filters. Returns new messages since the last call of this method.
+   *
+   * @param {QUANTITY} id - The filter id. Ex: "0x7"
+   * @returns More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges
+   */
+  async shh_getFilterChanges(id: string) {
+    return [];
+  };
+
+  /**
+   * Get all messages matching a filter. Unlike shh_getFilterChanges this returns all messages.
+   *
+   * @param {QUANTITY} id - The filter id. Ex: "0x7"
+   * @returns See: shh_getFilterChanges
+   */
+  async shh_getMessages(id: string) {
+    return false;
+  };
+  /**
+ * Sends a whisper message.
+ *
+ * @param {DATA, 60 Bytes} from - (optional) The identity of the sender.
+ * @param {DATA, 60 Bytes} to -
+ *  ^(optional) The identity of the receiver. When present whisper will encrypt the message so that
+ *  only the receiver can decrypt it.
+ * @param {Array of DATA} topics - Array of DATA topics, for the receiver to identify messages.
+ * @param {DATA} payload - The payload of the message.
+ * @param {QUANTITY} priority - The integer of the priority in a range from ... (?).
+ * @param {QUANTITY} ttl - integer of the time to live in seconds.
+ * @returns returns true if the message was sent, otherwise false.
+ */
+  async shh_post(from: string, to: string, topics: any[], payload: string, priority: string, ttl: string) {
+    return false;
+  }
+
+  async shh_version() {
+    return 2;
+  }
+  //#endregion
 }

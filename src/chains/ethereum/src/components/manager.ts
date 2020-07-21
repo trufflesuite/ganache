@@ -33,4 +33,7 @@ export default class Manager<T> {
   set(key: Buffer, value: Buffer): Promise<void> {
     return this.base.put(key, value);
   }
+  del(key: Buffer) {
+    return this.base.del(key);
+  }
 }

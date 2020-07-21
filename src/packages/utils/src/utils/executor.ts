@@ -47,6 +47,6 @@ export class Executor {
       }
     }
 
-    throw new Error(`Invalid or unsupported method: ${methodName}`);
+    throw new Error(`The method ${methodName} does not exist/is not available`);
   };
 }

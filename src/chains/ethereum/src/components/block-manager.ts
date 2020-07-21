@@ -8,6 +8,8 @@ import Transaction from "../things/transaction";
 import {decode as rlpDecode} from "rlp";
 import Common from "ethereumjs-common";
 
+const EMPTY_BUFFER = Buffer.from([]);
+
 export default class BlockManager extends Manager<Block> {
   /**
    * The earliest block
@@ -64,6 +66,33 @@ export default class BlockManager extends Manager<Block> {
     return super.get(number);
   }
 
+  async getRaw(tagOrBlockNumber: string | Buffer | Tag) {
+    if (typeof tagOrBlockNumber === "string") {
+      const tag = Tag.normalize(tagOrBlockNumber as Tag);
+      switch (tag) {
+        case Tag.LATEST:
+          tagOrBlockNumber = this.latest.value.header.number;
+          if (tagOrBlockNumber.length === 0){
+            tagOrBlockNumber = Buffer.from([0]);
+          }
+        case void 0:
+        case null:
+          // the key is probably a hex string, let nature takes its course.
+          break;
+        case Tag.PENDING:
+          tagOrBlockNumber = this.pending.value.header.number;
+        case Tag.EARLIEST:
+          tagOrBlockNumber = this.earliest.value.header.number;
+        default:
+          // this probably can't happen. but if someone passed something like
+          // `toString` in as a block tag and it got this far... maybe we'd
+          // get here...
+          throw new Error(`Invalid block Tag: ${tagOrBlockNumber}`);
+      }
+    }
+    return super.getRaw(tagOrBlockNumber);
+  }
+
   async get(tagOrBlockNumber: string | Buffer | Tag): Promise<Block> {
     if (typeof tagOrBlockNumber === "string") {
       const tag = Tag.normalize(tagOrBlockNumber as Tag);
@@ -94,12 +123,15 @@ export default class BlockManager extends Manager<Block> {
    * @param block
    */
   async putBlock(block: Block) {
-    let key = block.value.header.number;
-    if (Buffer.isBuffer(key) && key.equals(Buffer.from([]))) {
+    const blockValue = block.value;
+    const header = blockValue.header;
+    let key = header.number;
+    // ensure we can store Block #0 as key "00", not ""
+    if (EMPTY_BUFFER.equals(key)) {
       key = Buffer.from([0]);
     }
-    const secondaryKey = block.value.header.hash();
-    const value = block.value.serialize(true);
+    const secondaryKey = header.hash();
+    const value = blockValue.serialize(true);
     await Promise.all([super.set(secondaryKey, key), super.set(key, value)]);
     return block;
   }

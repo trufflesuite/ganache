@@ -48,7 +48,7 @@ export default class Database extends Emittery {
   #initialize = async () => {
     const levelupOptions: any = {valueEncoding: "binary"};
     const store = this.#options.db;
-    let db;
+    let db: levelup.LevelUp;
     if (store) {
       this.#rootStore = store as any;
       db = levelup(store as any, levelupOptions);
@@ -110,8 +110,9 @@ export default class Database extends Emittery {
     let prom;
     try {
       const ret = fn();
-      // PSA: don't let vscode (or yourself) rewrite this to `await` the `batch.write` call.
-      // The `finally` block needs to run _before_ the write promise has resolved.
+      // PSA: don't let vscode (or yourself) rewrite this to `await` the
+      // `batch.write` call. The `finally` block needs to run _before_ the
+      // write promise has resolved.
       prom = batch.write().then(() => ret);
     } finally {
       rootDb.put = originalPut;
@@ -143,7 +144,10 @@ export default class Database extends Emittery {
   #cleanup = async () => {
     const db = this.db;
     if (db) {
-      await db.close();
+      await new Promise((resolve, reject) => db.close((err => {
+        if (err) return void reject(err);
+        resolve();
+      })));
       await Promise.all([this.blocks.close(), this.transactions.close(), this.trie.close()]);
     }
     return new Promise(resolve => this.#cleanupDirectory(resolve));

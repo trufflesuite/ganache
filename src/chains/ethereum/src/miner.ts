@@ -73,7 +73,8 @@ export default class Miner extends Emittery {
    * transactions within a single block. The remaining items will be left in
    * the pending pool to be eligible for mining in the future.
    * 
-   * @param maxTransactions: number maximum number of transactions per block. If `0`, unlimited.
+   * @param maxTransactions: number maximum number of transactions per block.
+   * If `0`, unlimited.
    */
   public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = 0) {
     // only allow mining a single block at a time (per miner)

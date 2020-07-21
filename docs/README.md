@@ -3,9 +3,13 @@
 ## Getting set up
 
  * Use node v10.7.0 (or whatever the lowest engine is in the root package.json)
- * `git clone git@github.com:trufflesuite/ganache-core.git && cd ganache-core`
- * `npm install lerna -g`
- * `lerna bootstrap`
+ * `git clone git@github.com:trufflesuite/ganache-core.git`
+ * `cd ganache-core`
+ * `npm install`
+
+## Clean install
+ * `npm run clean`
+ * `npm install`
 
  ## VSCode On Windows (10)
 
@@ -31,10 +35,18 @@ This will create a new package with Ganache defaults at `packages/<name>`.
 
 ## To add a module to a package:
 
-* `npx lerna add <module>[@version] [--dev] [--peer] --scope=<package>`
+* `npx lerna add <module>[@version] -E [--dev] [--peer] --scope=<package>`
 
 Where `<module>` is the npm-module you want to add and `<package>` is where you
 want to add it. See [@lerna/add documentation](https://github.com/lerna/lerna/tree/master/commands/add) for more details.
+
+Example:
+
+```
+npx lerna add @ganache/options --scope=@ganache/filecoin
+```
+
+will add our local `@ganache/options` package to the `@ganache/filecoin` package.
 
 ## To remove a module from another package:
 

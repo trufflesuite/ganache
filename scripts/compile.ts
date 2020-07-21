@@ -94,7 +94,7 @@ sources.forEach(sourceFile => {
     let jsonPath: string;
     if (ts.isImportDeclaration(node) && (jsonPath = resolveJsonImportFromNode(node, sourceFile)) && node.importClause) {
       const namedBindings = node.importClause.namedBindings;
-      if (namedBindings && "elements" in namedBindings){
+      if (namedBindings && "elements" in namedBindings) {
         const jsonFile = require(jsonPath);
         const json = namedBindings.elements.map(element => {
           const name = element.name.text;

@@ -18,15 +18,8 @@ import {encode as rlpEncode} from "rlp";
 import Common from "ethereumjs-common";
 
 import VM from "ethereumjs-vm";
+import Address from "./things/address";
 
-function unref (timer: NodeJS.Timeout | number): timer is NodeJS.Timeout {
-  if (typeof timer === "object" && typeof timer.unref === "function") {
-    timer.unref();
-    return true;
-  } else {
-    return false;
-  }
-}
 
 export enum Status {
   // Flags
@@ -37,15 +30,16 @@ export enum Status {
   paused = 16			// 0001 0000
 }
 
-type BlockchainOptions = {
+export type BlockchainOptions = {
   db?: string | object;
   db_path?: string;
-  accounts?: Account[];
+  initialAccounts?: Account[];
   hardfork?: string;
   allowUnlimitedContractSize?: boolean;
   gasLimit?: Quantity;
   time?: Date;
   blockTime?: number;
+  coinbase: Account;
 };
 
 export default class Blockchain extends Emittery {
@@ -91,8 +85,10 @@ export default class Blockchain extends Emittery {
         TransactionReceipt
       );
       this.accounts = new AccountManager(this, database.trie);
+      this.coinbase = options.coinbase.address;
 
-      await this.#initializeAccounts(options.accounts);
+      await this.#commitAccounts(options.initialAccounts);
+
       let firstBlockTime: number;
       if (options.time != null) {
         firstBlockTime = +options.time
@@ -103,7 +99,8 @@ export default class Blockchain extends Emittery {
       let lastBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit);
 
       const readyNextBlock = async (timestamp?: number) => {
-        const previousBlock = await lastBlock;
+        await lastBlock;
+        const previousBlock = this.blocks.latest;
         const previousHeader = previousBlock.value.header;
         const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
         return this.blocks.createBlock({
@@ -131,22 +128,21 @@ export default class Blockchain extends Emittery {
           } else {
             promise = this.once("resume");
           }
-          promise.then(() => {
-            unref(setTimeout(mine, minerInterval, pending));
-          });
+          promise.then(() => utils.unref(setTimeout(mine, minerInterval, pending)));
           return void 0;
         };
-        unref(setTimeout(mine, minerInterval, this.transactions.transactionPool.executables));
+        utils.unref(setTimeout(mine, minerInterval, this.transactions.transactionPool.executables));
       }
 
       miner.on("block", async (blockData: any) => {
-        const previousBlock = await lastBlock;
+        await lastBlock;
+        const previousBlock = this.blocks.latest;
         const previousHeader = previousBlock.value.header;
         const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
         const block = this.blocks.createBlock({
           parentHash: previousHeader.hash(),
           number: Quantity.from(previousNumber + 1n).toBuffer(),
-          // coinbase:
+          coinbase: this.coinbase.toBuffer(),
           timestamp: this.#currentTime(),
           // difficulty:
           gasLimit: options.gasLimit.toBuffer(),
@@ -175,6 +171,7 @@ export default class Blockchain extends Emittery {
         });
 
         lastBlock.then(block => {
+          this.blocks.latest = block;
           // emit the block once everything has been fully saved to the database
           this.emit("block", block);
         });
@@ -186,9 +183,16 @@ export default class Blockchain extends Emittery {
     });
   }
 
+  coinbase: Address;
+
+  isMining = () => {
+    return this.#state === Status.started;
+  }
+
   #isPaused = () => {
     return (this.#state & Status.paused) !== 0;
   }
+
   pause() {
     this.#state |= Status.paused;
     this.emit("pause");
@@ -222,9 +226,8 @@ export default class Blockchain extends Emittery {
       common,
       allowUnlimitedContractSize,
       blockchain: {
-        getBlock: async (number: BN, done: any) => {
-          const hash = await this.#blockNumberToHash(number);
-          done(this.blocks.get(hash));
+        getBlock: (number: BN, done: any) => {
+          this.blocks.get(number.toBuffer()).then((block) => done(block.value));
         }
       } as any
     });
@@ -232,7 +235,7 @@ export default class Blockchain extends Emittery {
     return vm;
   };
 
-  #initializeAccounts = async (accounts: Account[]): Promise<void> => {
+  #commitAccounts = async (accounts: Account[]): Promise<void> => {
     const stateManager = this.vm.stateManager;
     const putAccount = promisify(stateManager.putAccount.bind(stateManager));
     const checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
@@ -281,13 +284,105 @@ export default class Blockchain extends Emittery {
     return this.#timeAdjustment = Math.floor((timestamp - Date.now()) / 1000);
   }
 
-  /**
-   * Given a block number, find its hash in the database
-   * @param number
-   */
-  #blockNumberToHash = (number: BN): Promise<Buffer> => {
-    return number.toString() as any;
-  };
+  // TODO: this.#snapshots is a potential unbound memory suck. Caller could call `evm_snapshot` over and over
+  // to grow the snapshot stack indefinitely
+  #snapshots: any[] = [];
+  public snapshot() {
+    const currentBlockHeader = this.blocks.latest.value.header;
+    const hash = currentBlockHeader.hash();
+    const stateRoot = currentBlockHeader.stateRoot;
+
+    // TODO: logger.log...
+    // self.logger.log("Saved snapshot #" + self.snapshots.length);
+    
+    return this.#snapshots.push({
+      hash,
+      stateRoot,
+      timeAdjustment: this.#timeAdjustment
+    });
+  }
+
+  #deleteBlockData = (block: Block) => {
+    const blocks = this.blocks;
+    return this.#database.batch(() => {
+      blocks.del(block.value.header.number);
+      blocks.del(block.value.header.hash());
+      block.value.transactions.forEach(tx => {
+        const txHash = tx.hash();
+        this.transactions.del(txHash);
+        this.transactionReceipts.del(txHash);
+      });
+    });
+  }
+  public async revert(snapshotId: Quantity) {
+
+    const rawValue = snapshotId.valueOf();
+    if (rawValue === null || rawValue === undefined) {
+      throw new Error("invalid snapshotId");
+    }
+
+    // TODO: logger.log...
+    // this.logger.log("Reverting to snapshot #" + snapshotId);
+
+    const snapshotNumber = rawValue - 1n;
+    if (snapshotNumber < 0n) {
+      return false;
+    }
+
+    const snapshotsToRemove = this.#snapshots.splice(Number(snapshotNumber));
+    const snapshot = snapshotsToRemove.shift();
+
+    if (!snapshot) {
+      return false;
+    }
+
+    const blocks = this.blocks;
+    const currentBlock = blocks.latest;
+    const currentHash = currentBlock.value.header.hash();
+    const snapshotHash = snapshot.hash;
+
+    // if nothing was added since we snapshotted just return immediately.
+    if (currentHash.equals(snapshotHash)) {
+      return true;
+    } else {
+      const stateManager = this.vm.stateManager;
+      // TODO: we may need to ensure nothing can be written to the blockchain
+      // whilst setting the state root, otherwise we could get into weird states.
+      // Additionally, if something has created a vm checkpoint `setStateRoot`
+      // will fail anyway.
+      const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(
+        snapshot.stateRoot
+      );
+      const getBlockProm = this.blocks.getByHash(snapshotHash);
+
+      // TODO: lazily clean up the database. Get all blocks created since our reverted
+      // snapshot was created, and delete them, and their transaction data.
+      // TODO: look into optimizing this to delete from all reverted snapshots.
+      //   the current approach looks at each block, finds its parent, then
+      //   finds its parent, and so on until we reach our target block. Whenever
+      //   we revert a snapshot, we may also throwing away several others, and
+      //   there may be an optimization here by querying for those other
+      //   snapshots' blocks simultaneously.
+      let nextBlock = currentBlock;
+      const promises = [getBlockProm, settingStateRootProm] as [Promise<Block>, ...Promise<unknown>[]];
+      do {
+        promises.push(this.#deleteBlockData(nextBlock));
+        const header = nextBlock.value.header
+        if (header.parentHash.equals(snapshotHash)) {
+          break;
+        } else {
+          nextBlock = await blocks.get(header.number);
+        }
+      } while(nextBlock);
+
+      const [latest] = await Promise.all(promises);
+      this.blocks.latest = latest as Block;
+      // put our time back!
+      this.#timeAdjustment = snapshot.timeAdjustment;
+      // update our cached "latest" block
+      return true;
+    }
+  }
 
   public async queueTransaction(transaction: any, secretKey?: Data): Promise<Data> {
     await this.transactions.push(transaction, secretKey);
@@ -302,7 +397,7 @@ export default class Blockchain extends Emittery {
       parentBlock.value.header.stateRoot
     );
     transaction.block = block.value;
-    transaction.caller = transaction.from;
+    transaction.caller = transaction.from || block.value.header.coinbase;
     await settingStateRootProm;
     const result = await vm.runCall(transaction);
     return Data.from(result.execResult.returnValue || "0x");

@@ -165,6 +165,11 @@ export interface Options {
   defaultTransactionGasLimit?: Quantity;
 
   /**
+   * Sets the transaction gas limit for `eth_call` and `eth_estimateGas` calls. Must be specified as a `hex` string. Defaults to `"0x1fffffffffffff"` (`Number.MAX_SAFE_INTEGER`)
+   */
+  callGasLimit?: Quantity
+
+  /**
    *
    */
   verbose?: boolean;
@@ -199,6 +204,7 @@ const getDefault: (options?: Options) => Options = options => {
       gasPrice: new Quantity(2000000000),
       gasLimit: new Quantity(6721975),
       defaultTransactionGasLimit: new Quantity(90000),
+      callGasLimit: new Quantity(Number.MAX_SAFE_INTEGER),
       verbose: false,
       asyncRequestProcessing: true,
       hardfork: "muirGlacier",
