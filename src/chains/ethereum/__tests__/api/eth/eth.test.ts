@@ -26,6 +26,13 @@ describe("api", () => {
       });
     });
 
+    describe("eth_hashrate", function() {
+      it("should return hashrate of zero", async function() {
+        const result = await provider.send("eth_hashrate");
+        assert.deepStrictEqual(result, "0x0");
+      });
+    });
+
     describe("eth_getBalance", () => {
       it("should return initial balance", async() => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);
