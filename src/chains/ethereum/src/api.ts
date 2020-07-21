@@ -1031,7 +1031,8 @@ export default class EthereumApi implements types.Api {
   }
 
   async eth_call(transaction: any, blockNumber: Buffer | Tag | string = Tag.LATEST): Promise<Data> {
-    const blocks = this[_blockchain].blocks;
+    const blockchain = this[_blockchain];
+    const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.value.header;
     const options = this[_options];
@@ -1051,11 +1052,11 @@ export default class EthereumApi implements types.Api {
       number: parentHeader.number,
       timestamp: parentHeader.timestamp,
       parentHash: parentHeader.parentHash,
-      coinbase: this[_blockchain].coinbase.toBuffer(),
+      coinbase: blockchain.coinbase.toBuffer(),
       // gas estimates and eth_calls aren't subject to regular block gas limits
       gasLimit: transaction.gas
     });
-    return this[_blockchain].simulateTransaction(transaction, parentBlock, newBlock);
+    return blockchain.simulateTransaction(transaction, parentBlock, newBlock);
   }
   //#endregion
 
