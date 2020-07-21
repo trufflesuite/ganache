@@ -12,6 +12,13 @@ describe("api", () => {
       accounts = await provider.send("eth_accounts");
     });
 
+    describe("eth_coinbase", function() {
+      it("should return correct address", async function() {
+        const coinbase = await provider.send("eth_coinbase");
+        assert.strictEqual(coinbase, accounts[0]);
+      });
+    });
+
     describe("eth_getBalance", () => {
       it("should return initial balance", async() => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);
