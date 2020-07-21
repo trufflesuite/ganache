@@ -33,6 +33,13 @@ describe("api", () => {
       });
     });
 
+    describe("eth_protocolVersion", () => {
+      it("should get ethereum version", async () => {
+        const result = await provider.send("eth_protocolVersion");
+        assert.strictEqual(result, "0x3f", "Network Version should be 63");
+      });
+    });
+
     describe("eth_getBalance", () => {
       it("should return initial balance", async() => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);
