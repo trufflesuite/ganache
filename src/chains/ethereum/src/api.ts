@@ -284,9 +284,9 @@ export default class EthereumApi implements types.Api {
    * @param threads 
    * @returns true
    */
-  miner_start(threads: number = 1) {
+  async miner_start(threads: number = 1) {
     this[_blockchain].resume(threads);
-    return Promise.resolve(true);
+    return true;
   }
 
   /**
@@ -294,7 +294,7 @@ export default class EthereumApi implements types.Api {
    */
   async miner_stop() {
     this[_blockchain].pause();
-    return Promise.resolve(true);
+    return true;
   }
 
   /**
