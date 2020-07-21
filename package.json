@@ -8,7 +8,7 @@
   "scripts": {
     "clean": "npx shx rm -rf node_modules && npx lerna clean -y",
     "create": "ts-node ./scripts/create",
-    "postinstall": "npx patch-package && lerna bootstrap",
+    "postinstall": "lerna bootstrap && npx patch-package",
     "reinstall": "npm run clean && npm install",
     "test": "lerna exec -- npm test",
     "tsc": "lerna exec -- npm run tsc"
