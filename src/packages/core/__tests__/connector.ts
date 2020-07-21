@@ -61,7 +61,7 @@ describe("connector", () => {
     // own properties (and __proto__ properties) can't be executed.
     (p as any)._engine._ledger.__proto__.illegalProperty = true;
     await assert.rejects(p.send("illegalProperty" as any, []), {
-      message: "Invalid or unsupported method: illegalProperty"
+      message: "`The method illegalProperty does not exist/is not available`"
     });
   });
 
@@ -78,9 +78,9 @@ describe("connector", () => {
       " ",
       "constructor"
     ] as const;
-    illegalMethodNames.forEach(name => {
-      assert.throws(() => p.send(name as any), {
-        message: `Invalid or unsupported method: ${name}`
+    illegalMethodNames.forEach(methodName => {
+      assert.throws(() => p.send(methodName as any), {
+        message: `The method ${methodName} does not exist/is not available`
       });
     });
 
@@ -122,7 +122,7 @@ describe("connector", () => {
             );
           }),
           {
-            message: `Invalid or unsupported method: ${method}`
+            message: `The method ${method} does not exist/is not available`
           }
         );
       })
