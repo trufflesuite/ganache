@@ -9,7 +9,7 @@ describe("provider", () => {
     it("generates predictable accounts when given a seed", async () => {
       const provider = await getProvider({seed: "temet nosce"});
       const accounts = await provider.send("eth_accounts");
-      assert.strictEqual(accounts[0], "0x59eF313E6Ee26BaB6bcb1B5694e59613Debd88DA");
+      assert.strictEqual(accounts[0], "0x59ef313e6ee26bab6bcb1b5694e59613debd88da");
     });
   });
 

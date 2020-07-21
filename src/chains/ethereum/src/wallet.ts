@@ -2,7 +2,7 @@ import { utils } from "@ganache/utils";
 import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
 import Address from "./things/address";
 import EthereumOptions from "./options";
-import { privateToAddress, toChecksumAddress } from "ethereumjs-util";
+import { privateToAddress } from "ethereumjs-util";
 import Account from "./things/account";
 import secp256k1 from "secp256k1";
 import { ProviderOptions } from "@ganache/options";
@@ -24,7 +24,7 @@ const uncompressedPublicKeyToAddress = (uncompressedPublicKey: Buffer) => {
 
 
 export default class Wallet {
-  readonly addresses: Address[];
+  readonly addresses: string[];
   readonly initialAccounts: Account[];
   readonly knownAccounts = new Map<string, Data>();
   readonly passphrases = new Map<string, string>();
@@ -48,7 +48,7 @@ export default class Wallet {
       const account = initialAccounts[i];
       const address = account.address;
       const strAddress = address.toString();
-      accountsCache[i] = toChecksumAddress(strAddress);
+      accountsCache[i] = strAddress;
       knownAccounts.set(strAddress, account.privateKey);
 
       // if the `secure` option has been set do NOT add these accounts to the
@@ -60,11 +60,11 @@ export default class Wallet {
     //#endregion
 
     //#region Unlocked Accounts
-    const givenUnlockedUaccounts = opts.unlocked_accounts;
-    if (givenUnlockedUaccounts) {
-      const ul = givenUnlockedUaccounts.length;
+    const givenUnlockedAccounts = opts.unlocked_accounts;
+    if (givenUnlockedAccounts) {
+      const ul = givenUnlockedAccounts.length;
       for (let i = 0; i < ul; i++) {
-        let arg = givenUnlockedUaccounts[i];
+        let arg = givenUnlockedAccounts[i];
         let address: string;
         switch (typeof arg) {
           case "string":
@@ -79,7 +79,7 @@ export default class Wallet {
               // to `123`, and there is probably an error on the user's side we'd
               // want to uncover.
               const index = (arg as any) - 0;
-              // if we don't have a valid number, or the number isn't an valid JS
+              // if we don't have a valid number, or the number isn't a valid JS
               // integer (no bigints or decimals, please), throw an error.
               if (!Number.isSafeInteger(index)) {
                 throw new Error(`Invalid value in unlocked_accounts: ${arg}`);
