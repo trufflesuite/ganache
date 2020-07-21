@@ -632,7 +632,7 @@ export default class EthereumApi implements types.Api {
         });
       });
     const block = await blockProm;
-    if (!block) return Data.from("0x");
+    if (!block) throw new Error("header not found");
 
     const blockData = (rlpDecode(block) as unknown) as [
       [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
