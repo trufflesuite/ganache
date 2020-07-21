@@ -140,7 +140,7 @@ export default class EthereumApi implements types.Api {
    */
   async evm_mine(timestamp?: number) {
     await this[_blockchain].transactions.transactionPool.drain(0, timestamp);
-    return Promise.resolve("0x0");
+    return "0x0";
   }
 
   /**
