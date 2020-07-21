@@ -139,7 +139,7 @@ export default class EthereumApi implements types.Api {
    * @param timestamp? the timestamp a block should setup as the mining time.
    */
   async evm_mine(timestamp?: number) {
-    await this[_blockchain].transactions.transactionPool.drain(0, timestamp);
+    await this[_blockchain].mine(0, timestamp);
     return "0x0";
   }
 
@@ -577,7 +577,7 @@ export default class EthereumApi implements types.Api {
    * Returns a list of addresses owned by client.
    * @returns Array of 20 Bytes - addresses owned by the client.
    */
-  async eth_accounts(): Promise<Address[]> {
+  async eth_accounts() {
     return this[_wallet].addresses;
   }
 
@@ -1081,7 +1081,7 @@ export default class EthereumApi implements types.Api {
     const newAccount = wallet.createRandomAccount(this[_options].mnemonic);
     const address = newAccount.address;
     const strAddress = address.toString();
-    wallet.addresses.push(address);
+    wallet.addresses.push(strAddress.toLowerCase());
     wallet.passphrases.set(strAddress, passphrase);
     wallet.knownAccounts.set(strAddress, newAccount.privateKey)
     return newAccount.address;
@@ -1099,7 +1099,7 @@ export default class EthereumApi implements types.Api {
     const newAccount = Wallet.createAccountFromPrivateKey(Data.from(rawKey));
     const address = newAccount.address;
     const strAddress = address.toString();
-    wallet.addresses.push(address);
+    wallet.addresses.push(strAddress);
     wallet.passphrases.set(strAddress, passphrase);
     wallet.knownAccounts.set(strAddress, newAccount.privateKey)
     return newAccount.address;

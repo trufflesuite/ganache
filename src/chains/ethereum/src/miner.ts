@@ -48,19 +48,22 @@ export default class Miner extends Emittery {
   readonly #checkpoint: () => Promise<any>;
   readonly #commit: () => Promise<any>;
   readonly #revert: () => Promise<any>;
+  readonly #createBlock: (previousBlock: Block) => Block;
 
-  // initialize a Heap that sorts by gasPrice
+  // create a Heap that sorts by gasPrice
   readonly #priced = new utils.Heap<Transaction>(byPrice);
-  constructor(vm: VM, options: MinerOptions) {
+  constructor(vm: VM, createBlock: (previousBlock: Block) => Block, options: MinerOptions) {
     super();
+    const stateManager = vm.stateManager;
+
     this.#vm = vm;
     this.#options = options;
-    const stateManager = vm.stateManager;
     this.#checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
     this.#commit = promisify(stateManager.commit.bind(stateManager));
     this.#revert = promisify(stateManager.revert.bind(stateManager));
+    this.#createBlock = createBlock;
 
-    // init the heap with an empty array
+    // initialize the heap with an empty array
     this.#priced.init([]);
   }
 
@@ -73,8 +76,8 @@ export default class Miner extends Emittery {
    * transactions within a single block. The remaining items will be left in
    * the pending pool to be eligible for mining in the future.
    * 
-   * @param maxTransactions: number maximum number of transactions per block.
-   * If `0`, unlimited.
+   * @param maxTransactions: maximum number of transactions per block. If `0`,
+   * unlimited.
    */
   public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = 0) {
     // only allow mining a single block at a time (per miner)
@@ -91,31 +94,13 @@ export default class Miner extends Emittery {
 
     const lastBlock = await this.#mineTxs(pending, block, maxTransactions);
 
+    // if there are more txs to mine, mine them!
     if (this.#pending) {
-      const nextBlock = this.#createNextBlock(lastBlock);
+      const nextBlock = this.#createBlock(lastBlock);
       const pending = this.#pending;
       this.#pending = null;
       this.mine(pending, nextBlock, this.#options.instamine ? 1 : 0);
     }
-  }
-
-  #createNextBlock = (parentBlock: Block) => {
-    return new Block({
-      parentHash: parentBlock.header.hash,
-      number: Quantity.from(Quantity.from(parentBlock.header.number).toBigInt() + 1n).toBuffer(),
-      coinbase: parentBlock.header.coinbase,
-
-      // TODO: hm... tricky... we know we need to mine a new block
-      // but at what timestamp? We need to get the timestamp from `blockchain`, but so far,
-      // we don't require the miner to know about the blockchain.
-      // I think what we need to do is just put the time mechanics here in the miner, and blockchain can
-      // update them when needed.
-      // also, what if the previous block was mined with a timestamp, do we need to mine two blocks with that
-      // same timestamp? uh, I think not.
-      timestamp: parentBlock.header.timestamp,
-      difficulty: parentBlock.header.difficulty,
-      gasLimit: parentBlock.header.gasLimit
-    });
   }
 
   #mineTxs = async (pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number) => {
@@ -142,7 +127,8 @@ export default class Miner extends Emittery {
         blockTransactions,
         transactionsTrie,
         receiptTrie,
-        gasUsed: 0n
+        gasUsed: 0n,
+        timestamp: block.header.timestamp
       };
 
       // TODO: get a real block?
@@ -212,6 +198,8 @@ export default class Miner extends Emittery {
           //  * don't have enough gas left for even the smallest of transactions
           //  * Or if we've mined enough transactions
           // we're done with this block!
+          // notice: when `maxTransactions` is `0`, `numTransactions === maxTransactions`
+          // will always return false.
           if (blockGasLeft <= params.TRANSACTION_GAS || numTransactions === maxTransactions) {
             if (keepMining) {
               // remove the newest (`best`) tx from this account's pending queue
@@ -254,7 +242,7 @@ export default class Miner extends Emittery {
 
       if (priced.length !== 0) {
         maxTransactions = this.#options.instamine ? 1 : 0;
-        block = this.#createNextBlock(block);
+        block = this.#createBlock(block);
         this.#currentlyExecutingPrice = 0n;
       } else {
         // reset the miner
