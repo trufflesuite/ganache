@@ -2,6 +2,10 @@ import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 
+function hex(length: number) {
+  return `0x${Buffer.allocUnsafe(length).fill(0).toString("hex")}`;
+}
+
 describe("api", () => {
   describe("eth", () => {
     let provider: EthereumProvider;
@@ -51,6 +55,13 @@ describe("api", () => {
       it("should get compilers list", async () => {
         const result = await provider.send("eth_getCompilers");
         assert.deepStrictEqual(result, []);
+      });
+    });
+
+    describe("eth_submitWork", () => {
+      it("should get compilers list", async () => {
+        const result = await provider.send("eth_submitWork", [hex(8), hex(32), hex(32)]);
+        assert.deepStrictEqual(result, false);
       });
     });
 
