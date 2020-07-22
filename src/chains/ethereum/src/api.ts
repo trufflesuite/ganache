@@ -11,6 +11,7 @@ import Transaction from "./things/transaction";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
 
+type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
 type TypedData = Exclude<Parameters<typeof signTypedData_v4>[1]["data"], NotTypedData>;
 
 const createKeccakHash = require("keccak");
@@ -775,14 +776,14 @@ export default class EthereumApi implements types.Api {
     }
 
     if (fromString == null) {
-      throw new Error("from not found; is required");
+      throw new Error("unknown account");
     }
 
     // Error checks. It's possible to JSON.stringify a Buffer to JSON.
     // we actually now handle this "properly" (not sure about spec), but for
     // legacy reasons we don't allow it.
     if (transaction.to && typeof transaction.to !== "string") {
-      throw new Error("Invalid to address");
+      throw new Error("invalid to address");
     }
 
     const wallet = this[_wallet];
@@ -790,13 +791,15 @@ export default class EthereumApi implements types.Api {
     const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
 
     if (!isUnlockedAccount) {
-      const msg = isKnownAccount ? "signer account is locked" : "sender account not recognized";
+      const msg = isKnownAccount ? "authentication needed: password or unlock" : "unknown account";
       throw new Error(msg);
     }
 
-    let type = Transaction.types.none;
-    if (!isKnownAccount) {
-      type |= Transaction.types.fake;
+    let type: ExtractValuesFromType<typeof Transaction.types>;
+    if (isKnownAccount) {
+      type = Transaction.types.none;
+    } else {
+      type = Transaction.types.fake;
     }
 
     const tx = Transaction.fromJSON(transaction, type);
@@ -821,8 +824,8 @@ export default class EthereumApi implements types.Api {
       tx.to = BUFFER_EMPTY;
     }
 
-    if (isKnownAccount) {
-      const secretKey = wallet.knownAccounts.get(fromString);
+    if (isUnlockedAccount) {
+      const secretKey = wallet.unlockedAccounts.get(fromString);
       return this[_blockchain].queueTransaction(tx, secretKey);
     }
 
@@ -854,21 +857,13 @@ export default class EthereumApi implements types.Api {
   async eth_sign(address: string | Buffer, message: string | Buffer) {
     const account = Address.from(address).toString().toLowerCase();
     const wallet = this[_wallet];
-    const isUnlocked = wallet.unlockedAccounts.has(account);
-    let privateKey: Buffer;
-    if (isUnlocked) {
-      const knownAccount = wallet.knownAccounts.get(account);
-      if (knownAccount) {
-        privateKey = knownAccount.toBuffer();
-      } else {
-        throw new Error("cannot sign data; no private key");
-      }
-    } else {
-      throw new Error("cannot sign data; account is locked");
+    const privateKey = wallet.unlockedAccounts.get(account);
+    if (privateKey == null) {
+      throw new Error("cannot sign data; no private key");
     }
 
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
-    const signature = ecsign(messageHash, privateKey);
+    const signature = ecsign(messageHash, privateKey.toBuffer());
     return toRpcSig(signature.v, signature.r, signature.s, +this[_options].chainId);
   }
 
@@ -886,21 +881,9 @@ export default class EthereumApi implements types.Api {
    */
   async eth_signTypedData(address: string | Buffer, typedData: TypedData) {
     const account = Address.from(address).toString().toLowerCase();
-    const wallet = this[_wallet];
-    const isUnlocked = wallet.unlockedAccounts.has(account);
-    let privateKey: Buffer;
-    if (isUnlocked) {
-      const knownAccount = wallet.knownAccounts.get(account);
-      if (knownAccount) {
-        privateKey = knownAccount.toBuffer();
-      } else {
-        throw new Error("cannot sign data; no private key");
-      }
-    } else {
-      throw new Error("cannot sign data; account is locked");
-    }
 
-    if (!account) {
+    const privateKey = this[_wallet].unlockedAccounts.get(account);
+    if (privateKey == null) {
       throw new Error("cannot sign data; no private key");
     }
 
@@ -924,7 +907,7 @@ export default class EthereumApi implements types.Api {
       throw new Error("cannot sign data; message missing");
     }
 
-    return signTypedData_v4(privateKey, { data: typedData });
+    return signTypedData_v4(privateKey.toBuffer(), { data: typedData });
   }
 
   eth_subscribe(subscriptionName: "newHeads", options?: any): PromiEvent<any> {
@@ -1077,13 +1060,18 @@ export default class EthereumApi implements types.Api {
    * @returns The new account's address
    */
   async personal_newAccount(passphrase: string) {
+    if (typeof passphrase !== "string") {
+      throw new Error("missing value for required argument `passphrase`");
+    }
+
     const wallet = this[_wallet];
     const newAccount = wallet.createRandomAccount(this[_options].mnemonic);
     const address = newAccount.address;
     const strAddress = address.toString();
-    wallet.addresses.push(strAddress.toLowerCase());
-    wallet.passphrases.set(strAddress, passphrase);
-    wallet.knownAccounts.set(strAddress, newAccount.privateKey)
+    const encryptedKeyFile = await wallet.encrypt(newAccount.privateKey, passphrase);
+    wallet.encryptedKeyFiles.set(strAddress, encryptedKeyFile);
+    wallet.addresses.push(strAddress);
+    wallet.knownAccounts.add(strAddress);
     return newAccount.address;
   };
 
@@ -1095,13 +1083,18 @@ export default class EthereumApi implements types.Api {
    * @returnsReturns the address of the new account.
    */
   async personal_importRawKey(rawKey: string, passphrase: string) {
+    if (typeof passphrase !== "string") {
+      throw new Error("missing value for required argument `passphrase`");
+    }
+
     const wallet = this[_wallet];
     const newAccount = Wallet.createAccountFromPrivateKey(Data.from(rawKey));
     const address = newAccount.address;
     const strAddress = address.toString();
+    const encryptedKeyFile = await wallet.encrypt(newAccount.privateKey, passphrase);
+    wallet.encryptedKeyFiles.set(strAddress, encryptedKeyFile);
     wallet.addresses.push(strAddress);
-    wallet.passphrases.set(strAddress, passphrase);
-    wallet.knownAccounts.set(strAddress, newAccount.privateKey)
+    wallet.knownAccounts.add(strAddress);
     return newAccount.address;
   };
 
@@ -1157,11 +1150,20 @@ export default class EthereumApi implements types.Api {
     }
 
     const wallet = this[_wallet];
-    wallet.assertValidPassphrase(fromString, passphrase);
+    const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
+    if (encryptedKeyFile === undefined) {
+      throw new Error("no key for given address or file");
+    }
+    let tx: Transaction;
+    if (encryptedKeyFile !== null) {
+      const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
 
-    const tx = new Transaction(transaction);
-    const secretKey = wallet.knownAccounts.get(fromString);
-    tx.sign(secretKey.toBuffer());
+      tx = new Transaction(transaction);
+      tx.sign(secretKey);
+    } else {
+      tx = new Transaction(transaction);
+      tx.type = Transaction.types.fake;
+    }
 
     return this[_blockchain].queueTransaction(tx);
   };

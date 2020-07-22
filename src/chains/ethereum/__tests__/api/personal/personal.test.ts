@@ -26,7 +26,7 @@ describe("api", () => {
 
       // make sure we can't use the account via eth_sendTransaction
       await assert.rejects(provider.send("eth_sendTransaction", [transaction]), {
-        message: "signer account is locked"
+        message: "authentication needed: password or unlock"
       }, "eth_sendTransaction should have rejected due to locked from account without its passphrase");
 
       // unlock the account indefinitely
@@ -49,7 +49,7 @@ describe("api", () => {
 
       // make sure it is locked
       await assert.rejects(provider.send("eth_sendTransaction", [Object.assign({}, transaction, {nonce: 1})]), {
-        message: "signer account is locked"
+        message: "authentication needed: password or unlock"
       }, "personal_lockAccount didn't work");
     }
 
@@ -65,14 +65,14 @@ describe("api", () => {
 
       // make sure we can't use the account via personal_sendTransaction and no passphrase
       await assert.rejects(provider.send("personal_sendTransaction", [transaction]), {
-        message: "Invalid password"
+        message: "could not decrypt key with given password"
       }, "personal_sendTransaction should have rejected due to locked from account without its passphrase");
 
       // make sure we can't use the account with bad passphrases
       const invalidPassphrases = ["this is not my passphrase", null, undefined, Buffer.allocUnsafe(0), 1, 0, Infinity, NaN];
       await Promise.all(invalidPassphrases.map(invalidPassphrase => {
         return assert.rejects(provider.send("personal_sendTransaction", [transaction, invalidPassphrase]), {
-          message: "Invalid password"
+          message: "could not decrypt key with given password"
         }, "Transaction should have rejected due to locked from account with wrong passphrase")
       }));
 
@@ -82,7 +82,7 @@ describe("api", () => {
       const msgPromise = transactionHashPromise.then(() => provider.once("message"));
 
       await assert.rejects(provider.send("eth_sendTransaction", [Object.assign({}, transaction, {nonce: 1})]), {
-        message: "signer account is locked"
+        message: "authentication needed: password or unlock"
       }, "personal_sendTransaction should not unlock the while transaction is bring processed");
 
       const transactionHash = await transactionHashPromise
@@ -93,7 +93,7 @@ describe("api", () => {
 
       // ensure the account is still locked
       await assert.rejects(provider.send("eth_sendTransaction", [Object.assign({}, transaction, {nonce: 1})]), {
-        message: "signer account is locked"
+        message: "authentication needed: password or unlock"
       }, "personal_sendTransaction should still be locked the after the transaction is processed");
     }
 
@@ -101,42 +101,42 @@ describe("api", () => {
       it("generates deterministic accounts", async () => {
         const controlProvider = await getProvider();
         const provider = await getProvider();
-        const newAccount = await provider.send("personal_newAccount");
-        const controlAccount = await controlProvider.send("personal_newAccount");
+        const newAccount = await provider.send("personal_newAccount", [""]);
+        const controlAccount = await controlProvider.send("personal_newAccount", [""]);
         assert.strictEqual(newAccount, controlAccount);
       });
 
       it("generates different accounts based on the `seed` option", async () => {
         const controlProvider = await getProvider();
         const provider = await getProvider({ seed: "temet nosce" });
-        const newAccount = await provider.send("personal_newAccount");
-        const controlAccount = await controlProvider.send("personal_newAccount");
+        const newAccount = await provider.send("personal_newAccount", [""]);
+        const controlAccount = await controlProvider.send("personal_newAccount", [""]);
         assert.notStrictEqual(newAccount, controlAccount);
       });
 
       it("generates different accounts based on the `mnemonic` option", async () => {
         const controlProvider = await getProvider();
         const provider = await getProvider({ mnemonic: "sweet treat" });
-        const newAccount = await provider.send("personal_newAccount");
-        const controlAccount = await controlProvider.send("personal_newAccount");
+        const newAccount = await provider.send("personal_newAccount", [""]);
+        const controlAccount = await controlProvider.send("personal_newAccount", [""]);
         assert.notStrictEqual(newAccount, controlAccount);
       });
 
       it("generates different accounts on successive calls", async () => {
         const provider = await getProvider();
-        const firstNewAccount = await provider.send("personal_newAccount");
-        const secondNewAccount = await provider.send("personal_newAccount");
+        const firstNewAccount = await provider.send("personal_newAccount", [""]);
+        const secondNewAccount = await provider.send("personal_newAccount", [""]);
         assert.notStrictEqual(firstNewAccount, secondNewAccount);
       });
 
       it("generates different accounts on successive calls based on the seed", async () => {
         const controlProvider = await getProvider();
         const provider = await getProvider({ seed: "temet nosce" });
-        const firstNewAccount = await provider.send("personal_newAccount");
-        const secondNewAccount = await provider.send("personal_newAccount");
+        const firstNewAccount = await provider.send("personal_newAccount", [""]);
+        const secondNewAccount = await provider.send("personal_newAccount", [""]);
 
-        await provider.send("personal_newAccount");
-        const controlSecondNewAccount = await controlProvider.send("personal_newAccount");
+        await provider.send("personal_newAccount", [""]);
+        const controlSecondNewAccount = await controlProvider.send("personal_newAccount", [""]);
 
         assert.notStrictEqual(firstNewAccount, secondNewAccount, "First and second generated accounts are the same when they shouldn't be");
         assert.notStrictEqual(secondNewAccount, controlSecondNewAccount, "Second account is identical to control's second account when it shouldn't be");

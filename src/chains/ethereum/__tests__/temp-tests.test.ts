@@ -103,7 +103,7 @@ describe("Random tests that are temporary!", () => {
         }
       ]);
     };
-    await assert.rejects(badSend, "Error: signer account is locked");
+    await assert.rejects(badSend, "Error: authentication needed: password or unlock");
 
     await p.send("eth_subscribe", ["newHeads"]);
     await p.send("eth_sendTransaction", [

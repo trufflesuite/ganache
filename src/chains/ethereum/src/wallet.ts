@@ -9,11 +9,34 @@ import { ProviderOptions } from "@ganache/options";
 import { mnemonicToSeedSync } from "bip39";
 import HDKey from "hdkey";
 import { alea as rng } from "seedrandom";
-
+import crypto from "crypto";
 import createKeccakHash from "keccak";
 
+const SCRYPT_PARAMS = {
+  dklen: 32,
+  n: 1024, // practically nothing
+  p: 8,
+  r: 1
+} as const;
+const CIPHER = "aes-128-ctr";
 const WEI = 1000000000000000000n;
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
+
+type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer A, infer _L] ? A : never;
+type LastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer _A, infer L] ? L : never;
+
+type Params = Parameters<typeof crypto.scrypt>;
+type LastParams = Parameters<LastType<Params>>;
+const scrypt = (...args: OmitLastType<Params>) => {
+  return new Promise((resolve: (value: LastParams[1]) => void, reject: (reason: LastParams[0]) => void) => {
+    crypto.scrypt.call(crypto, ...args, (err: LastParams[0], derivedKey: LastParams[1]) => {
+      if (err) {
+        return void reject(err);
+      }
+      return resolve(derivedKey);
+    });
+  });
+};
 
 const uncompressedPublicKeyToAddress = (uncompressedPublicKey: Buffer) => {
   const compresedPublicKey = secp256k1.publicKeyConvert(uncompressedPublicKey, false).slice(1);
@@ -22,13 +45,19 @@ const uncompressedPublicKeyToAddress = (uncompressedPublicKey: Buffer) => {
   return Address.from(hasher.digest().slice(-20));
 }
 
+const asUUID = (uuid: Buffer | { length: 16 }) => {
+  return `${uuid.toString("hex", 0, 4)}-${uuid.toString("hex", 4, 6)}-${uuid.toString("hex", 6, 8)}-${uuid.toString("hex", 8, 10)}-${uuid.toString("hex", 10)}`;
+}
+
+type ThenArg<T> = T extends PromiseLike<infer U> ? U : T
+type EncryptType = ThenArg<ReturnType<Wallet["encrypt"]>>;
 
 export default class Wallet {
   readonly addresses: string[];
   readonly initialAccounts: Account[];
-  readonly knownAccounts = new Map<string, Data>();
-  readonly passphrases = new Map<string, string>();
-  readonly unlockedAccounts = new Set<string>();
+  readonly knownAccounts = new Set<string>();
+  readonly encryptedKeyFiles = new Map<string, EncryptType>();
+  readonly unlockedAccounts = new Map<string, Data>();
   readonly lockTimers = new Map<string, NodeJS.Timeout | number>();
 
   #hdKey: HDKey;
@@ -49,13 +78,13 @@ export default class Wallet {
       const address = account.address;
       const strAddress = address.toString();
       accountsCache[i] = strAddress;
-      knownAccounts.set(strAddress, account.privateKey);
+      knownAccounts.add(strAddress);
 
       // if the `secure` option has been set do NOT add these accounts to the
       // unlockedAccounts
       if (opts.secure) continue;
 
-      unlockedAccounts.add(strAddress);
+      unlockedAccounts.set(strAddress, account.privateKey);
     }
     //#endregion
 
@@ -100,7 +129,9 @@ export default class Wallet {
           default:
             throw new Error(`Invalid value specified in unlocked_accounts`);
         }
-        unlockedAccounts.add(address);
+        if (unlockedAccounts.has(address)) continue;
+        // if we don't have the secretKey for an account we use `null`
+        unlockedAccounts.set(address, null);
       }
     }
     //#endregion
@@ -127,7 +158,7 @@ export default class Wallet {
     const fractionalStr = balanceParts[1] || "0";
     const fractional = BigInt(fractionalStr);
     const magnitude = 10n ** BigInt(fractionalStr.length);
-    const defaultBalanceInWei = (WEI * significand) + (fractional * (WEI/magnitude));
+    const defaultBalanceInWei = (WEI * significand) + (fractional * (WEI / magnitude));
     const etherInWei = Quantity.from(defaultBalanceInWei);
     let accounts: Account[];
 
@@ -173,6 +204,70 @@ export default class Wallet {
     return accounts;
   };
 
+  public async encrypt(privateKey: Data, passphrase: string) {
+    const random = this.#randomBytes(32 + 16 + 16);
+    const salt = random.slice(0, 32); // first 32 bytes
+    const iv = random.slice(32, 32 + 16); // next 16 bytes
+    const uuid = random.slice(32 + 16); // last 16 bytes
+
+    const derivedKey = await scrypt(passphrase, salt, SCRYPT_PARAMS.dklen, { ...SCRYPT_PARAMS, N: SCRYPT_PARAMS.n });
+    const cipher = crypto.createCipheriv(CIPHER, derivedKey.slice(0, 16), iv);
+    const ciphertext = Buffer.concat([cipher.update(privateKey.toBuffer()), cipher.final()]);
+    const mac = createKeccakHash("keccak256").update(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).digest();
+    return {
+      crypto: {
+        cipher: CIPHER,
+        ciphertext: Data.from(ciphertext),
+        cipherparams: {
+          iv: Data.from(iv)
+        },
+        kdf: "scrypt",
+        kdfParams: {
+          ...SCRYPT_PARAMS,
+          salt: Data.from(salt)
+        },
+        mac: Data.from(mac)
+      },
+      id: asUUID(uuid),
+      version: 3
+    };
+  }
+
+  public async decrypt(keyfile: EncryptType, passphrase) {
+    const crypt = keyfile.crypto;
+
+    if (crypt.cipher !== CIPHER) {
+      throw new Error(`keyfile cypher must be "${CIPHER}"`);
+    }
+    if (crypt.kdf !== "scrypt") {
+      throw new Error(`keyfile kdf must be "script"`);
+    }
+
+    const kdfParams = crypt.kdfParams;
+    const salt = kdfParams.salt;
+    const mac = crypt.mac;
+    const ciphertext = crypt.ciphertext.toBuffer();
+
+    let derivedKey: Buffer;
+    let localMac: Buffer;
+    if (passphrase != null) {
+      try {
+        derivedKey = await scrypt(passphrase, salt.toBuffer(), kdfParams.dklen, { ...kdfParams, N: kdfParams.n });
+        localMac = createKeccakHash("keccak256").update(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).digest();
+      } catch {
+        localMac = null;
+      }
+    }
+
+    if (!localMac || !mac.toBuffer().equals(localMac)) {
+      throw new Error("could not decrypt key with given password");
+    }
+
+    const decipher = crypto.createDecipheriv(crypt.cipher, derivedKey.slice(0, 16), crypt.cipherparams.iv.toBuffer());
+    const plaintext = decipher.update(ciphertext);
+    return plaintext;
+  }
+
   public static createAccount(balance: Quantity, privateKey: Data, address: Address) {
     const account = new Account(address);
     account.privateKey = privateKey;
@@ -197,21 +292,9 @@ export default class Wallet {
     return Wallet.createAccount(RPCQUANTITY_ZERO, privateKey, address);
   }
 
-  public assertValidPassphrase(lowerAddress: string, passphrase: string) {
-    const storedPassphrase = this.passphrases.get(lowerAddress);
-    if (storedPassphrase === undefined) {
-      throw new Error("Account not found");
-    }
-
-    if (passphrase !== storedPassphrase) {
-      throw new Error("Invalid password");
-    }
-
-    return true;
-  }
-
-  public unlockAccount(lowerAddress: string, passphrase: string, duration: number) {
-    this.assertValidPassphrase(lowerAddress, passphrase);
+  public async unlockAccount(lowerAddress: string, passphrase: string, duration: number) {
+    const encryptedKeyFile = this.encryptedKeyFiles.get(lowerAddress);
+    const secretKey = await this.decrypt(encryptedKeyFile, passphrase);
 
     const existingTimer = this.lockTimers.get(lowerAddress);
     if (existingTimer) {
@@ -225,7 +308,8 @@ export default class Wallet {
       utils.unref(timeout);
       this.lockTimers.set(lowerAddress, timeout);
     }
-    this.unlockedAccounts.add(lowerAddress);
+
+    this.unlockedAccounts.set(lowerAddress, Data.from(secretKey));
     return true;
   }
 
