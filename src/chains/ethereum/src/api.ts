@@ -554,7 +554,7 @@ export default class EthereumApi implements types.Api {
    * Returns true if client is actively mining new blocks.
    * @returns returns true of the client is mining, otherwise false.
    */
-  async eth_mining(): Promise<boolean> {
+  async eth_mining() {
     return this[_blockchain].isMining();
   }
 
@@ -562,7 +562,7 @@ export default class EthereumApi implements types.Api {
    * Returns the number of hashes per second that the node is mining with.
    * @returns number of hashes per second.
    */
-  async eth_hashrate(): Promise<Quantity> {
+  async eth_hashrate() {
     return RPCQUANTITY_ZERO;
   }
 
@@ -570,7 +570,7 @@ export default class EthereumApi implements types.Api {
    * Returns the current price per gas in wei.
    * @returns integer of the current gas price in wei.
    */
-  async eth_gasPrice(): Promise<Quantity> {
+  async eth_gasPrice() {
     return this[_options].gasPrice;
   }
 
@@ -597,7 +597,7 @@ export default class EthereumApi implements types.Api {
    * @returns The chain id as a string.
    * @EIP [155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
    */
-  async eth_chainId(): Promise<string> {
+  async eth_chainId() {
     return this[_options].chainId.toString();
   }
 
