@@ -106,10 +106,18 @@ export default class Blockchain extends Emittery {
 
       if (instamine) {
         // whenever the transaction pool is drained mine a block
-        // note: the miner itself may mine more than 1 block.
-        // note: `maxTransactions` of `0` means unlimited (until block gas limit)
+        let waitingOnResume: Promise<void> = null;
         this.transactions.transactionPool.on("drain", () => {
-          if (this.#isPaused()) return;
+          if (this.#isPaused()) {
+            // only wait on the resume event once.
+            if (waitingOnResume) return waitingOnResume;
+            return waitingOnResume = this.once("resume").then(() => {
+              waitingOnResume = null;
+              // when coming out of an un-paused state the miner should mine as
+              // many transactions in this first block as it can
+              return this.mine(0);
+            });
+          }
           return this.mine(1);
         });
       } else {
