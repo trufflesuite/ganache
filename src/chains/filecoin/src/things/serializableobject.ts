@@ -1,11 +1,16 @@
-import { KnownKeys } from "@ganache/utils/src/types";
+import SerializableLiteral from "./serializableliteral";
 
 // Stolen from here: https://stackoverflow.com/questions/35074365/typescript-interface-default-values
 abstract class SerializableObject<D, S> {
-  data: D;
 
-  constructor(options: D | S) {
-    const defaults: D = this.defaults(options);
+  constructor(options: D | S = {} as D) {
+    let defaults: D;
+
+    if (options instanceof SerializableObject) {
+      defaults = this.defaults(options.toJSON() as S);
+    } else {
+      defaults = this.defaults(options as S);
+    }
 
     Object.assign(this, defaults, options);
   }
@@ -16,7 +21,7 @@ abstract class SerializableObject<D, S> {
     Object.keys(this).forEach((deserializedKey) => {
       let item = {};
 
-      const availableKeys = this.serializedKeys();
+      const availableKeys = this.keyMapping();
       const serializedKey = availableKeys[deserializedKey] as string;
 
       if (!serializedKey) {
@@ -27,20 +32,20 @@ abstract class SerializableObject<D, S> {
       
       if (value instanceof SerializableObject) {
         item[serializedKey] = (value as SerializableObject<any, any>).toJSON();
+      } else if (value instanceof SerializableLiteral) {
+        item = (value as SerializableLiteral<any>).toJSON();
       } else {
         item = value;
       }
 
-      return item;
+      returnVal[serializedKey] = item;
     });
 
     return returnVal;
   }
 
-  abstract defaults(options: D | S): D;
-  abstract serializedKeys(): Record<KnownKeys<D>, KnownKeys<S>>;
-
-  keys: Record<KnownKeys<D>, KnownKeys<S>>;
+  abstract defaults(options: S): D;
+  abstract keyMapping(): Record<keyof D, keyof S>;
 }
 
 export {

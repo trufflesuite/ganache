@@ -1,5 +1,4 @@
 import { SerializableObject } from "./serializableobject";
-import { KnownKeys } from "@ganache/utils/src/types";
 import { SerializedBLSAggregateParameters } from "./blsaggregate";
 
 interface BeaconEntryParameters {
@@ -20,7 +19,7 @@ class BeaconEntry extends SerializableObject<BeaconEntryParameters, SerializedBe
     }
   }
 
-  serializedKeys():Record<KnownKeys<BeaconEntryParameters>, KnownKeys<SerializedBeaconEntryParameters>> {
+  keyMapping():Record<keyof BeaconEntryParameters, keyof SerializedBeaconEntryParameters> {
     return {
       round: "Round",
       data: "Data"

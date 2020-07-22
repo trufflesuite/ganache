@@ -1,5 +1,4 @@
 import { SerializableObject } from "./serializableobject";
-import { KnownKeys } from "@ganache/utils/src/types";
 
 interface BLSAggregateParameters {
   type: number;
@@ -20,7 +19,7 @@ class BLSAggregate extends SerializableObject<BLSAggregateParameters, Serialized
     }
   }
 
-  serializedKeys():Record<KnownKeys<BLSAggregateParameters>, KnownKeys<SerializedBLSAggregateParameters>> {
+  keyMapping():Record<keyof BLSAggregateParameters, keyof SerializedBLSAggregateParameters> {
     return {
       type: "Type", 
       data: "Data"

@@ -1,5 +1,4 @@
 import { SerializableObject } from "./serializableobject";
-import { KnownKeys } from "@ganache/utils/src/types";
 
 interface TicketParameters {
   vrfProof: string;
@@ -17,7 +16,7 @@ class Ticket extends SerializableObject<TicketParameters, SerializedTicketParame
     }
   }
 
-  serializedKeys():Record<KnownKeys<TicketParameters>, KnownKeys<SerializedTicketParameters>>{
+  keyMapping():Record<keyof TicketParameters, keyof SerializedTicketParameters>{
     return {
       vrfProof: "VRFProof"
     }

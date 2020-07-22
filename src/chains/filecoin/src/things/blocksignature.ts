@@ -1,5 +1,4 @@
 import { SerializableObject } from "./serializableobject";
-import { KnownKeys } from "@ganache/utils/src/types";
 
 interface BlockSignatureParameters {
   type: number;
@@ -20,7 +19,7 @@ class BlockSignature extends SerializableObject<BlockSignatureParameters, Serial
     }
   }
 
-  serializedKeys():Record<KnownKeys<BlockSignatureParameters>, KnownKeys<SerializedBlockSignatureParameters>> {
+  keyMapping():Record<keyof BlockSignatureParameters, keyof SerializedBlockSignatureParameters> {
     return {
       type: "Type", 
       data: "Data"

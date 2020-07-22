@@ -1,6 +1,7 @@
 //#region Imports
 import Emittery from "emittery";
 import {types} from "@ganache/utils";
+import { Tipset } from "./things/tipset";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -55,5 +56,9 @@ export default class FilecoinApi implements types.Api {
     };
 
     return obj;
+  }
+
+  async "Filecoin.ChainHead"() {
+    return new Tipset().toJSON();
   }
 }

@@ -1,12 +1,11 @@
 import { Ticket, TicketParameters, SerializedTicketParameters } from "./ticket";
 import { ElectionProof, ElectionProofParameters, SerializedElectionProofParameters } from "./electionproof";
 import { BeaconEntry, SerializedBeaconEntryParameters } from "./beaconentry";
-import CID from "./cid";
 import { BLSAggregate, SerializedBLSAggregateParameters } from "./blsaggregate";
 import { BlockSignature, SerializedBlockSignatureParameters } from "./blocksignature";
 import { SerializableObject } from "./serializableobject";
-import { KnownKeys } from "@ganache/utils/src/types";
 import { WinPoStProof, SerializedWinPoStProofParameters } from "./winpostproof";
+import CID from "./cid";
 
 interface BlockParameters {
   miner: string;
@@ -44,16 +43,20 @@ interface SerializedBlockParameters {
   ForkSignaling: 0 | 1;
 }
 
-class Block extends SerializableObject<BlockParameters, SerializedBlockParameters>{
-
+class Block extends SerializableObject<BlockParameters, SerializedBlockParameters> {
+  
   defaults(options:SerializedBlockParameters):BlockParameters {
     return {
-      miner: "t01",
+      miner: "t01000",
       ticket: new Ticket(options.Ticket),
       electionProof: new ElectionProof(options.ElectionProof),
-      beaconEntries: [],
-      winPoStProof: [],
-      parents: [],
+      beaconEntries: [
+        ...options.BeaconEntries.map((entry) => new BeaconEntry(entry))
+      ],
+      winPoStProof: [
+        ...options.WinPoStProof.map((proof) => new WinPoStProof(proof))
+      ],
+      parents: options.Parents,
       parentWeight: "0",
       height: 0,
       parentStateRoot: {},
@@ -61,12 +64,12 @@ class Block extends SerializableObject<BlockParameters, SerializedBlockParameter
       messages: {},
       blsAggregate: new BLSAggregate(options.BLSAggregate),
       timestamp: new Date().getTime(),
-      blockSignature: new BlockSignature(options.blockSignature),
+      blockSignature: new BlockSignature(options.BlockSig),
       forkSignaling: 0
     }
   }
 
-  serializedKeys():Record<KnownKeys<BlockParameters>, KnownKeys<SerializedBlockParameters>> {
+  keyMapping():Record<keyof BlockParameters, keyof SerializedBlockParameters> {
     return {
       miner: "Miner",
       ticket: "Ticket",
@@ -87,4 +90,8 @@ class Block extends SerializableObject<BlockParameters, SerializedBlockParameter
   }
 }
 
-export default Block;
+export {
+  Block,
+  BlockParameters,
+  SerializedBlockParameters
+};

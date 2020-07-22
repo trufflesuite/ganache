@@ -1,6 +1,4 @@
 import { SerializableObject } from "./serializableobject";
-import { KnownKeys } from "@ganache/utils/src/types";
-
 
 interface WinPoStProofParameters {
   postProof: number;
@@ -20,7 +18,7 @@ class WinPoStProof extends SerializableObject<WinPoStProofParameters, Serialized
     }
   }
 
-  serializedKeys():Record<KnownKeys<WinPoStProofParameters>,KnownKeys<SerializedWinPoStProofParameters>> {
+  keyMapping():Record<keyof WinPoStProofParameters, keyof SerializedWinPoStProofParameters> {
     return {
       postProof: "PoStProof",
       proofBytes: "ProofBytes"

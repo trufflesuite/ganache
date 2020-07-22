@@ -27,6 +27,8 @@ describe("api", () => {
         });
         assert.strictEqual(genesis["Cids"][0]["/"], "bafy2bzacecgowiba5yiquglvhwjbtl74vvs7v4qhjj7dfk3tygduekr32a5r4");
       });
+
+      // TODO: Test for unsupported methods
     });
 
     describe("Filecoin.ChainGetGenesis", () => {
@@ -34,6 +36,13 @@ describe("api", () => {
         const genesis = await client.chainGetGenesis();
         assert.strictEqual(genesis["Cids"][0]["/"], "bafy2bzacecgowiba5yiquglvhwjbtl74vvs7v4qhjj7dfk3tygduekr32a5r4");
       });
+    });
+    
+    describe("Filecoin.ChainHead", () => {
+      it("should create return a tipset with blocks", async() => {
+        const head = await client.chainHead();
+        assert(head.Blocks.length > 0)
+      })
     });
 
   });
