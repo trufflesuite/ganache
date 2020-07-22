@@ -44,7 +44,7 @@ Where `<module>` is the npm-module you want to add and `<package>` is where you 
 Example:
 
 ```bash
-npx lerna add @ganache/options --scope=@ganache/filecoin
+npx lerna add @ganache/options -E --scope=@ganache/filecoin
 ```
 
 will add our local `@ganache/options` package to the `@ganache/filecoin` package.
