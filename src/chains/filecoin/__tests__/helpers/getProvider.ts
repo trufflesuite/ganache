@@ -5,6 +5,7 @@ const getProvider = async () => {
     const requestCoordinator = new RequestCoordinator(0);
     const executor = new Executor(requestCoordinator);
     const provider = new FilecoinProvider({}, executor);
+    requestCoordinator.resume();
     return provider;
 }
 

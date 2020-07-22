@@ -32,6 +32,8 @@
     "nyc": "^15.1.0"
   },
   "devDependencies": {
-    "@filecoin-shipyard/lotus-client-rpc": "0.0.10"
+    "@filecoin-shipyard/lotus-client-provider-browser": "^0.0.14",
+    "@filecoin-shipyard/lotus-client-rpc": "^0.0.11",
+    "@filecoin-shipyard/lotus-client-schema": "0.0.12"
   }
 }

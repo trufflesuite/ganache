@@ -1,8 +1,9 @@
 import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import {types, utils} from "@ganache/utils";
-import PromiEvent from "@ganache/utils/src/things/promievent";
+import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
+import { string } from "yargs";
 
 // Meant to mimic this provider: 
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
@@ -15,6 +16,10 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "message
   #api: FilecoinApi;
   #executor: utils.Executor;
 
+  // Used by the original Filecoin provider. Will mimic them for now.
+  // Not entirely sure they're needed.
+  #connectPromise: PromiseLike<never>;
+
   constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
     super();
     this.#options = ProviderOptions.getDefault(providerOptions);
@@ -24,45 +29,41 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "message
   }
 
   async connect () {
-    throw new Error("I have no idea if I need this (connect).");
+    if (this.#connectPromise) {
+      this.#connectPromise = new Promise((resolve) => {resolve();});
+    }
+    return this.#connectPromise;
   }
 
-  async send () {
-    throw new Error("I probably need this one, but am not sure yet. (send)");
+  async send(payload: JsonRpc.Request<FilecoinApi>) {
+    return this.#executor.execute(this.#api, payload.method, []).then(result => {
+      const promise = result.value as PromiseLike<ReturnType<FilecoinApi[JsonRpc.Request<FilecoinApi>["method"]]>>;
+      
+      return promise.then(JSON.stringify).then(JSON.parse);
+    });
   }
 
   async sendHttp () {
-    throw new Error("I have no idea if I need this. (sendHttp)");
+    throw new Error("Method not supported (sendHttp)");
   }
 
   async sendWs () {
-    throw new Error("I have no idea if I need this. (sendWs)");
+    throw new Error("Method not supported (sendWs)");
   }
 
   async sendSubscription () {
-    throw new Error("I have no idea if I need this. (sendSubscription)");
+    throw new Error("Method not supported (sendSubscription)");
   }
 
   async receive () {
-    throw new Error("I have no idea if I need this. (receive)");
+    throw new Error("Method not supported (receive)");
   }
 
   async import () {
-    throw new Error("I have no idea if I need this. (import)");
+    throw new Error("Method not supported (import)");
   }
 
   async destroy () {
-    throw new Error("I have no idea if I need this. (destroy)");
-  }
-
-  public request<Method extends types.KnownKeys<FilecoinApi> = types.KnownKeys<FilecoinApi>>(method: Parameters<FilecoinApi[Method]>["length"] extends 0 ? Method : never): any; // ReturnType<FilecoinApi[Method]>;
-  public request<Method extends types.KnownKeys<FilecoinApi> = types.KnownKeys<FilecoinApi>>(method: Method, params: Parameters<FilecoinApi[Method]>): any; // ReturnType<FilecoinApi[Method]>;
-  public request<Method extends types.KnownKeys<FilecoinApi> = types.KnownKeys<FilecoinApi>>(method: Method, params?: Parameters<FilecoinApi[Method]>) {
-    console.log(method);
-    
-    return this.#executor.execute(this.#api, method, params).then(result => {
-      console.log(result);
-      return result;
-    }).then(JSON.stringify).then(JSON.parse);
+    throw new Error("Method not supported (destroy)");
   }
 }
