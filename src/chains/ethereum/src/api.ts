@@ -313,8 +313,8 @@ export default class EthereumApi implements types.Api {
    * Sets the etherbase, where mining rewards will go.
    * @param address 
    */
-  async miner_setEtherbase(address: Address) {
-    this[_blockchain].coinbase = address;
+  async miner_setEtherbase(address: string) {
+    this[_blockchain].coinbase = Address.from(address);
     return true;
   }
   //#endregion
