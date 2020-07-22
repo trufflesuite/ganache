@@ -47,6 +47,13 @@ describe("api", () => {
       });
     });
 
+    describe("eth_getCompilers", () => {
+      it("should get compilers list", async () => {
+        const result = await provider.send("eth_getCompilers");
+        assert.deepStrictEqual(result, []);
+      });
+    });
+
     describe("eth_getBalance", () => {
       it("should return initial balance", async() => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);
