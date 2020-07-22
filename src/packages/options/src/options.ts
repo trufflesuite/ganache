@@ -77,7 +77,7 @@ export interface Options {
    * The currently configured chain id, a value used in replay-protected
    * transaction signing as introduced by EIP-155. Default's to `1337`
    */
-  chainId?: string | number;
+  chainId?: number;
 
   /**
    * Alias of `networkId`.
