@@ -1,34 +1,41 @@
-import { SerializableObject } from "./serializableobject";
+import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
 
-interface BLSAggregateParameters {
+interface BLSAggregateConfig {
+  properties: {
+    type: {
+      type: number;
+      serializedType: number;
+      serializedName: "Type"
+    },
+    data: {
+      type: string;
+      serializedType: string;
+      serializedName: "Data";
+    }
+  }
+}
+
+class BLSAggregate extends SerializableObject<BLSAggregateConfig> implements DeserializedObject<BLSAggregateConfig> {
+  get config():Definitions<BLSAggregateConfig> {
+    return {
+      type: {
+        serializedName: "Type",
+        defaultValue: 2
+      },
+      data: {
+        serializedName: "Data",
+        defaultValue: "wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      }
+    }
+  }
+
   type: number;
   data: string;
 }
 
-interface SerializedBLSAggregateParameters {
-  Type: number;
-  Data: string;
-}
-
-class BLSAggregate extends SerializableObject<BLSAggregateParameters, SerializedBLSAggregateParameters> {
-  defaults(options:SerializedBLSAggregateParameters):BLSAggregateParameters {
-    // Data taken from a real block
-    return {
-      type: 2,
-      data: "wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-    }
-  }
-
-  keyMapping():Record<keyof BLSAggregateParameters, keyof SerializedBLSAggregateParameters> {
-    return {
-      type: "Type", 
-      data: "Data"
-    }
-  }
-}
+type SerializedBLSAggregate = SerializedObject<BLSAggregateConfig>;
 
 export {
   BLSAggregate,
-  BLSAggregateParameters,
-  SerializedBLSAggregateParameters
+  SerializedBLSAggregate
 };

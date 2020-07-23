@@ -1,34 +1,41 @@
-import { SerializableObject } from "./serializableobject";
+import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
 
-interface BlockSignatureParameters {
+interface BlockSignatureConfig {
+  properties: {
+    type: {
+      type: number;
+      serializedType: number;
+      serializedName: "Type"
+    },
+    data: {
+      type: string;
+      serializedType: string;
+      serializedName: "Data";
+    }
+  }
+}
+
+class BlockSignature extends SerializableObject<BlockSignatureConfig> implements DeserializedObject<BlockSignatureConfig> {
+  get config():Definitions<BlockSignatureConfig> {
+    return {
+      type: {
+        serializedName: "Type",
+        defaultValue: 2
+      },
+      data: {
+        serializedName: "Data",
+        defaultValue: "t1vv8DSsC2vAVmJsEjVyZgLcYS4+AG0qQzViaVWhfdW24YOt7qkRuDxSftbis/ZlDgCc1sGom26PvnLKLe4H0qJP7B4wW3yw8vp0zovZUV9zW1QkpKGJgO7HIhFlQcg9"
+      }
+    }
+  }
+
   type: number;
   data: string;
 }
 
-interface SerializedBlockSignatureParameters {
-  Type: number;
-  Data: string; 
-}
-
-class BlockSignature extends SerializableObject<BlockSignatureParameters, SerializedBlockSignatureParameters> {
-  defaults(options:SerializedBlockSignatureParameters):BlockSignatureParameters {
-    // Data taken from a real block
-    return {
-      type: 2,
-      data: "t1vv8DSsC2vAVmJsEjVyZgLcYS4+AG0qQzViaVWhfdW24YOt7qkRuDxSftbis/ZlDgCc1sGom26PvnLKLe4H0qJP7B4wW3yw8vp0zovZUV9zW1QkpKGJgO7HIhFlQcg9"
-    }
-  }
-
-  keyMapping():Record<keyof BlockSignatureParameters, keyof SerializedBlockSignatureParameters> {
-    return {
-      type: "Type", 
-      data: "Data"
-    }
-  }
-}
+type SerializedBlockSignature = SerializedObject<BlockSignatureConfig>;
 
 export {
   BlockSignature,
-  BlockSignatureParameters,
-  SerializedBlockSignatureParameters
+  SerializedBlockSignature
 };

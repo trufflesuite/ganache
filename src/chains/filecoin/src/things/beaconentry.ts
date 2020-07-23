@@ -1,34 +1,41 @@
-import { SerializableObject } from "./serializableobject";
-import { SerializedBLSAggregateParameters } from "./blsaggregate";
+import { SerializableObject, SerializedObject, DeserializedObject, Definitions } from "./serializableobject";
 
-interface BeaconEntryParameters {
+interface BeaconEntryConfig {
+  properties: {
+    round: {
+      type: number;
+      serializedType: number;
+      serializedName: "Round"
+    },
+    data: {
+      type: string;
+      serializedType: string;
+      serializedName: "Data"
+    }
+  }
+}
+
+class BeaconEntry extends SerializableObject<BeaconEntryConfig> implements DeserializedObject<BeaconEntryConfig> {
+  get config():Definitions<BeaconEntryConfig> {
+    return {
+      round: {
+        serializedName: "Round",
+        defaultValue: 1321
+      },
+      data: {
+        serializedName: "Data",
+        defaultValue: "qrwddPErWZxCQkTKvTkgKwxazkKZu2Q9nXHW1sPgW7I="
+      }
+    }
+  }
+
   round: number;
   data: string;
 }
 
-interface SerializedBeaconEntryParameters {
-  Round: number;
-  Data: string;
-}
-
-class BeaconEntry extends SerializableObject<BeaconEntryParameters, SerializedBeaconEntryParameters>{
-  defaults(options:SerializedBeaconEntryParameters):BeaconEntryParameters {
-    return {
-      round: 1321,
-      data: "qrwddPErWZxCQkTKvTkgKwxazkKZu2Q9nXHW1sPgW7I="
-    }
-  }
-
-  keyMapping():Record<keyof BeaconEntryParameters, keyof SerializedBeaconEntryParameters> {
-    return {
-      round: "Round",
-      data: "Data"
-    }
-  }
-}
+type SerializedBeaconEntry = SerializedObject<BeaconEntryConfig>;
 
 export {
   BeaconEntry,
-  BeaconEntryParameters,
-  SerializedBeaconEntryParameters
+  SerializedBeaconEntry
 };

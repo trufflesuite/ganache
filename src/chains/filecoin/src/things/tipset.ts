@@ -1,44 +1,54 @@
-import {Block, SerializedBlockParameters} from "./block";
+import {Block, SerializedBlock} from "./block";
 import CID from "./cid";
-import { SerializableObject } from "./serializableobject";
-import { RootCID, SerializedRootCIDParameters } from "./rootcid";
+import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
+import { RootCID, SerializedRootCID } from "./rootcid";
 
-interface TipsetParameters {
-  cids?: Array<RootCID>;
-  blocks?: Array<Block>;
+interface TipsetConfig { 
+  properties: {
+    cids: {
+      type: Array<RootCID>;
+      serializedType: Array<SerializedRootCID>;
+      serializedName: "Cids";
+    },
+    blocks: {
+      type: Array<Block>, 
+      serializedType: Array<SerializedBlock>;
+      serializedName: "Blocks";
+    },
+    height: {
+      type: number;
+      serializedType: number;
+      serializedName: "Height";
+    }
+  }
+}
+
+class Tipset extends SerializableObject<TipsetConfig> implements DeserializedObject<TipsetConfig> {
+  get config():Definitions<TipsetConfig> {
+    return {
+      cids: {
+        serializedName: "Cids",
+        defaultValue: (options = []) => options.map((rootCid) => new RootCID(rootCid))
+      },
+      blocks: {
+        serializedName: "Blocks",
+        defaultValue: (options = []) => options.map((block) => new Block(block))
+      },
+      height: {
+        serializedName: "Height",
+        defaultValue: 0
+      }
+    }
+  }
+
+  cids: Array<RootCID>;
+  blocks: Array<Block>;
   height: number;
 }
 
-interface SerializedTipsetParameters {
-  Cids: Array<SerializedRootCIDParameters>;
-  Blocks: Array<SerializedBlockParameters>;
-  Height: number;
-}
-
-class Tipset extends SerializableObject<TipsetParameters, SerializedTipsetParameters> {
-  defaults(options:SerializedTipsetParameters):TipsetParameters {
-    return {
-      cids: options.Cids ? [
-        ...options.Cids.map((cid) => new RootCID(cid))
-      ] : [new RootCID()],
-      blocks: options.Blocks ? [
-        ...options.Blocks.map((block) => new Block(block))
-      ] : [],
-      height: options.Height || 0
-    }
-  }
-
-  keyMapping():Record<keyof TipsetParameters,keyof SerializedTipsetParameters> {
-    return {
-      cids: "Cids",
-      blocks: "Blocks",
-      height: "Height"
-    }
-  }
-}
+type SerializedTipset = SerializedObject<TipsetConfig>;
 
 export {
   Tipset,
-  TipsetParameters,
-  SerializedTipsetParameters
+  SerializedTipset
 }

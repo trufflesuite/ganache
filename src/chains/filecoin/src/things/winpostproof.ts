@@ -1,33 +1,41 @@
-import { SerializableObject } from "./serializableobject";
+import { SerializableObject, DeserializedObject, SerializedObject, Definitions } from "./serializableobject";
 
-interface WinPoStProofParameters {
+interface WinPoStProofConfig {
+  properties: {
+    postProof: {
+      type: number;
+      serializedType: number;
+      serializedName: "PoStProof"
+    },
+    proofBytes: {
+      type: string;
+      serializedType: string;
+      serializedName: "ProofBytes";
+    }
+  }
+}
+
+class WinPoStProof extends SerializableObject<WinPoStProofConfig> implements DeserializedObject<WinPoStProofConfig> {
+  get config():Definitions<WinPoStProofConfig> {
+    return {
+      postProof: {
+        serializedName: "PoStProof",
+        defaultValue: 0
+      },
+      proofBytes: {
+        serializedName: "ProofBytes",
+        defaultValue: "dmFsaWQgcHJvb2Y="
+      }
+    }
+  }
+
   postProof: number;
   proofBytes: string;
 }
 
-interface SerializedWinPoStProofParameters {
-  PoStProof: number;
-  ProofBytes: number;
-}
-
-class WinPoStProof extends SerializableObject<WinPoStProofParameters, SerializedWinPoStProofParameters> {
-  defaults(options: SerializedWinPoStProofParameters):WinPoStProofParameters {
-    return {
-      postProof: 0,
-      proofBytes: "dmFsaWQgcHJvb2Y="
-    }
-  }
-
-  keyMapping():Record<keyof WinPoStProofParameters, keyof SerializedWinPoStProofParameters> {
-    return {
-      postProof: "PoStProof",
-      proofBytes: "ProofBytes"
-    }
-  }
-}
+type SerializedWinPoStProof = SerializedObject<WinPoStProofConfig>;
 
 export {
   WinPoStProof,
-  WinPoStProofParameters,
-  SerializedWinPoStProofParameters
+  SerializedWinPoStProof
 }

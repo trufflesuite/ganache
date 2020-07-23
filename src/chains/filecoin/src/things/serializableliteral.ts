@@ -1,19 +1,49 @@
-abstract class SerializableLiteral<S> {
-  #data: S;
+import { Serializable } from "./serializableobject"; 
+import { config } from "yargs";
 
-  constructor(literal: SerializableLiteral<S> | S) {
-    if (literal instanceof SerializableLiteral) {
-      this.#data = this.default(literal.toJSON() as S);
+type BaseConfig = {
+  type: any;
+}
+
+type Literal<C extends BaseConfig> = C["type"];
+
+type DefaultValue<D> =
+  | D
+  | ((options:D) => D);
+
+type LiteralDefinition<C extends BaseConfig> = {
+  defaultValue: DefaultValue<Literal<C>>;
+}
+
+abstract class SerializableLiteral<C extends BaseConfig> implements Serializable<Literal<C>> {
+  protected abstract get config (): LiteralDefinition<C>;
+  value: Literal<C>;
+
+  constructor(literal:Literal<C>) {
+    this.initialize(literal);
+  }
+
+  private initialize(literal:Literal<C>) {
+    if (this.config.defaultValue && literal === undefined) {
+      const def = this.config.defaultValue;
+
+      if (typeof def == "function") {
+        this.value = def(literal);
+      } else {
+        this.value = def;
+      }
     } else {
-      this.#data = this.default(literal);
+      this.value = literal;
     }
   }
 
-  toJSON():S {
-    return this.#data;
+  serialize():Literal<C> {
+    return this.value;
   }
-
-  abstract default(literal:S):S;
 }
 
-export default SerializableLiteral;
+export {
+  SerializableLiteral,
+  LiteralDefinition,
+  Literal
+};

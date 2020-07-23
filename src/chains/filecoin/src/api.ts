@@ -59,6 +59,7 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.ChainHead"() {
-    return new Tipset().toJSON();
+    let t:Tipset = new Tipset();
+    return t.serialize();
   }
 }

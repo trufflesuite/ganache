@@ -1,29 +1,34 @@
 import CID from "./cid";
-import { SerializableObject } from "./serializableobject";
+import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
 
-interface RootCIDParameters {
+interface RootCIDConfig {
+  properties: {
+    "/": {
+      type: CID,
+      serializedType: string,
+      serializedName: "/"
+    }
+  }
+}
+
+class RootCID extends SerializableObject<RootCIDConfig> implements DeserializedObject<RootCIDConfig> {
+  get config():Definitions<RootCIDConfig> {
+    return {
+      "/": {
+        serializedName: "/",
+        defaultValue: (options) => {
+          return new CID(options);
+        }
+      }
+    }
+  }
+
   "/": CID;
 }
 
-interface SerializedRootCIDParameters {
-  "/": CID; 
-}
-
-class RootCID extends SerializableObject<RootCIDParameters, SerializedRootCIDParameters> {
-  defaults(options:SerializedRootCIDParameters):RootCIDParameters {
-    return {
-      "/": new CID(options["/"])
-    }
-  }
-  keyMapping():Record<keyof RootCIDParameters, keyof SerializedRootCIDParameters> {
-    return {
-      "/":"/"
-    }
-  }
-}
+type SerializedRootCID = SerializedObject<RootCIDConfig>;
 
 export {
   RootCID,
-  RootCIDParameters,
-  SerializedRootCIDParameters
+  SerializedRootCID
 }
