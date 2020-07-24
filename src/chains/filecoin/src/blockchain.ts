@@ -3,19 +3,22 @@ import { Block } from "./things/block";
 import { RootCID } from "./things/rootcid";
 import { utils } from "@ganache/utils";
 import Miner from "./things/miner";
+import Address from "./things/address";
 
 export type BlockchainOptions = {
   blockTime: number;
 };
 
 export default class Blockchain implements BlockchainOptions{
-  tipsets: Array<Tipset> = [];
-  miner: Miner;
-  blockTime: number = 0;
+  readonly tipsets: Array<Tipset> = [];
+  readonly address: Address;
+  readonly miner: Miner;
+  readonly blockTime: number = 0;
 
   constructor(options:BlockchainOptions = {} as BlockchainOptions) {
     this.blockTime = options.blockTime;
     this.miner = new Miner();
+    this.address = new Address();
 
     // Create genesis tipset
     this.tipsets.push(new Tipset({

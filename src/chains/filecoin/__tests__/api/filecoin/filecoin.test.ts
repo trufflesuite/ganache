@@ -6,6 +6,7 @@ const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
 export type LotusClient = any;
 import CID from "../../../src/things/cid";
+import Address from "../../../src/things/address";
 
 describe("api", () => {
   describe("filecoin", () => {
@@ -51,6 +52,15 @@ describe("api", () => {
         const miners = await client.stateListMiners();
         assert.strictEqual(miners.length, 1);
         assert.strictEqual(miners[0], "t01000");
+      })
+    })
+
+    describe("Filecoin.WalletDefaultAddress", () => {
+      it("should return a single address", async() => {
+        const address = await client.walletDefaultAddress();
+        assert.strictEqual(address.length, 86);
+        assert.strictEqual(address.indexOf("t3"), 0);
+        assert(Address.isValid(address));
       })
     })
   });
