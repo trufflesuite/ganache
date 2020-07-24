@@ -14,6 +14,14 @@ export default class Blockchain implements BlockchainOptions{
     this.tipsets.push(new Tipset());
   }
 
+  genesisTipset():Tipset {
+    return this.tipsets[0];
+  }
+
+  latestTipset():Tipset {
+    return this.tipsets[this.tipsets.length - 1];
+  }
+
   mine():void {
     this.tipsets.push(new Tipset());
   }

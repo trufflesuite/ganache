@@ -25,7 +25,7 @@ describe("api", () => {
           id: "0",
           method: "Filecoin.ChainGetGenesis"
         });
-        assert.strictEqual(genesis["Cids"][0]["/"], "bafy2bzacecgowiba5yiquglvhwjbtl74vvs7v4qhjj7dfk3tygduekr32a5r4");
+        assert.strictEqual(genesis["Cids"][0]["/"], "bafy2bzacecgw6dqj4bctnbnyqfujltkwu7xc7ttaaato4i5miroxr4bayhfea");
       });
 
       // TODO: Test for unsupported methods
@@ -34,7 +34,7 @@ describe("api", () => {
     describe("Filecoin.ChainGetGenesis", () => {
       it("should return a value", async() => {
         const genesis = await client.chainGetGenesis();
-        assert.strictEqual(genesis["Cids"][0]["/"], "bafy2bzacecgowiba5yiquglvhwjbtl74vvs7v4qhjj7dfk3tygduekr32a5r4");
+        assert.strictEqual(genesis["Cids"][0]["/"], "bafy2bzacecgw6dqj4bctnbnyqfujltkwu7xc7ttaaato4i5miroxr4bayhfea");
       });
     });
     

@@ -130,66 +130,27 @@ abstract class SerializableObject<C extends BaseConfig> implements Serializable<
     };
   }
 
+  private serializeValue(value:any) {
+    let returnVal:any;
+    if (value instanceof SerializableObject || value instanceof SerializableLiteral) {
+      returnVal = value.serialize();
+    } else if (value instanceof Array) {
+      returnVal = value.map((item) => this.serializeValue(item));
+    }
+    return returnVal;
+  }
+
   serialize():SerializedObject<C> {
     let returnVal:SerializedObject<C> = {} as SerializedObject<C>;
 
     for (const [deserializedName, {serializedName}] of Object.entries(this.config)) {
       let value = this[deserializedName];
-
-      if (value instanceof SerializableObject || value instanceof SerializableLiteral) {
-        value = value.serialize();
-      }
-
-      returnVal[serializedName] = value;
+      returnVal[serializedName] = this.serializeValue(value);
     }
 
     return returnVal;
   }
 }
-
-// interface BlockConfig {
-//   properties: {
-//     cid: {
-//       serializedName: "Cid";
-//       type: CID;
-//       serializedType: string;
-//     },
-//     blsAggregate: {
-//       serializedName: "BLSAggregate";
-//       type: number;
-//       serializedType: number;
-//     }
-//   }
-// }
-// const blockConfig: Definitions<BlockConfig> = {
-//   cid: {
-//     serializedName: "Cid",
-//     defaultValue: () => ({ _cid: "hi" })
-//   },
-//   blsAggregate: {
-//     serializedName: "BLSAggregate",
-//   }
-// };
-
-// class Block extends SerializableObject<BlockConfig> implements DeserializedObject<BlockConfig>  {
-//   #config: {
-//     cid: {
-//       serializedName: "Cid",
-//       defaultValue: () => ({ _cid: "hi" })
-//     },
-//     blsAggregate: {
-//       serializedName: "BLSAggregate",
-//     }
-//   }
-
-//   cid: CID;
-//   blsAggregate: number;
-// }
-
-// let b = new Block({
-//   Cid: "hi",
-//   BLSAggregate: 5
-// })
 
 export {
   Serializable,

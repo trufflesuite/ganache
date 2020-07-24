@@ -28,7 +28,7 @@ class Tipset extends SerializableObject<TipsetConfig> implements DeserializedObj
     return {
       cids: {
         serializedName: "Cids",
-        defaultValue: (options = []) => options.map((rootCid) => new RootCID(rootCid))
+        defaultValue: (options = [{"/":undefined}]) => options.map((rootCid) => new RootCID(rootCid))
       },
       blocks: {
         serializedName: "Blocks",
