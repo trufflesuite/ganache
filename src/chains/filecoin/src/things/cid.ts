@@ -1,4 +1,4 @@
-import { SerializableLiteral, LiteralDefinition, Literal } from "./serializableliteral";
+import { SerializableLiteral } from "./serializableliteral";
 
 interface CIDConfig {
   type: string;
@@ -20,7 +20,7 @@ class CID extends SerializableLiteral<CIDConfig>  {
     return "ba" + " ".repeat(60).split("").map(() => {return dictionary[Math.floor(Math.random() * dictionary.length)]}).join("")
   }
 
-  // Note: This does not check for cryptographic validity!
+  // Note: This does not (yet) check for cryptographic validity!
   static isValid(value:string):boolean {
     return value.length == 62 && value.indexOf("ba") == 0
   }

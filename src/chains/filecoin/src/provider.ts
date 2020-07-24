@@ -38,9 +38,11 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "message
     return this.#connectPromise;
   }
 
-  async send(payload: JsonRpc.Request<FilecoinApi>) {
+  async send<Method extends keyof FilecoinApi = keyof FilecoinApi>(payload: JsonRpc.Request<FilecoinApi>) {
     return this.#executor.execute(this.#api, payload.method, []).then(result => {
-      return result.value.then(JSON.stringify).then(JSON.parse);
+      const promise = result.value as unknown as PromiseLike<ReturnType<FilecoinApi[Method]>>;
+      
+      return promise.then(JSON.stringify).then(JSON.parse);
     });
   }
 

@@ -23,6 +23,10 @@ export default class FilecoinApi implements types.Api {
     return this[_blockchain].latestTipset().serialize();
   }
 
+  async "Filecoin.StateListMiners"() {
+    return [this[_blockchain].miner.serialize()];
+  }
+
   async "Filecoin.GanacheMineTipset"() {
     this[_blockchain].mineTipset();
     return this[_blockchain].latestTipset().serialize();

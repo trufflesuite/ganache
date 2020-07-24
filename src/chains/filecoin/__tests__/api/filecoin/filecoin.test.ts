@@ -46,5 +46,12 @@ describe("api", () => {
       })
     });
 
+    describe("Filecoin.StateListMiners", () => {
+      it("should return a single miner", async() => {
+        const miners = await client.stateListMiners();
+        assert.strictEqual(miners.length, 1);
+        assert.strictEqual(miners[0], "t01000");
+      })
+    })
   });
 });

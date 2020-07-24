@@ -7,12 +7,13 @@ import { SerializableObject, DeserializedObject, Definitions, SerializedObject }
 import { WinPoStProof, SerializedWinPoStProof } from "./winpostproof";
 import CID from "./cid";
 import { RootCID, SerializedRootCID } from "./rootcid";
+import Miner from "./miner";
 
 
 interface BlockConfig {
   properties: {
     miner: {
-      type: string;
+      type: Miner;
       serializedType: string;
       serializedName: "Miner";
     },
@@ -94,7 +95,7 @@ class Block extends SerializableObject<BlockConfig> implements DeserializedObjec
     return {
       miner: {
         serializedName: "Miner",
-        defaultValue: "t01000"
+        defaultValue: (options) => new Miner(options)
       },
       ticket: {
         serializedName: "Ticket",
@@ -157,7 +158,7 @@ class Block extends SerializableObject<BlockConfig> implements DeserializedObjec
     }
   };
 
-  miner: string;
+  miner: Miner;
   ticket: Ticket;
   electionProof: ElectionProof;
   beaconEntries: Array<BeaconEntry>;

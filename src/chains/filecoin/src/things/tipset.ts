@@ -44,26 +44,6 @@ class Tipset extends SerializableObject<TipsetConfig> implements DeserializedObj
   cids: Array<RootCID>;
   blocks: Array<Block>;
   height: number;
-
-  // Note that this is naive - it always assumes the first block in the 
-  // previous tipset is the parent of the new blocks.
-  static createNewTipsetAsChain(previousTipset:Tipset, numNewBlocks:number = 1) {
-    let newBlocks:Array<Block> = [];
-    let parentBlock = previousTipset.blocks[0];
-
-    for (let i = 0; i < numNewBlocks; i++) {
-      newBlocks.push(new Block({
-        parents: [
-          previousTipset.cids[0]
-        ]
-      }))
-    }
-
-    return new Tipset({
-      blocks: newBlocks,
-      height: previousTipset.height + 1
-    })
-  }
 }
 
 type SerializedTipset = SerializedObject<TipsetConfig>;
