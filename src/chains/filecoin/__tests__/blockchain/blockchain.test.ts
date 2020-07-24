@@ -26,4 +26,20 @@ describe("Blockchain", () => {
     assert(latest.blocks[0].parents[0].equals(genesis.cids[0]), "block in latest tipset should have genesis tipset as parent");
   })
 
+  it("will mine blocks on an interval", async function() {
+    this.timeout(3000);
+
+    blockchain = new Blockchain({
+      blockTime: 100
+    });
+
+    // After 0.5 seconds, we should have at least 4 blocks
+    // I'm not checking for exactly 5 to dodge race conditions
+    await new Promise(resolve => setTimeout(resolve, 500));
+  
+    let latest:Tipset = blockchain.latestTipset();
+
+    assert(latest.height >= 4)
+  })
+
 });

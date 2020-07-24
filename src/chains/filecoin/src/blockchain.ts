@@ -1,6 +1,7 @@
 import { Tipset } from "./things/tipset";
 import { Block } from "./things/block";
 import { RootCID } from "./things/rootcid";
+import { utils } from "@ganache/utils";
 
 export type BlockchainOptions = {
   blockTime: number;
@@ -8,7 +9,7 @@ export type BlockchainOptions = {
 
 export default class Blockchain implements BlockchainOptions{
   tipsets: Array<Tipset> = [];
-  blockTime: number = 1000;
+  blockTime: number = 0;
 
   constructor(options:BlockchainOptions = {} as BlockchainOptions) {
     Object.assign(this, options);
@@ -21,6 +22,14 @@ export default class Blockchain implements BlockchainOptions{
       ],
       height: 0
     }));
+
+    if (this.blockTime != 0) {
+      const intervalMine = () => {
+        this.mineTipset();
+      }
+
+      utils.unref(setInterval(intervalMine, this.blockTime));
+    }
   }
 
   genesisTipset():Tipset {
