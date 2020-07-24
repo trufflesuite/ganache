@@ -2,13 +2,17 @@
 import Emittery from "emittery";
 import {types} from "@ganache/utils";
 import { Tipset } from "./things/tipset";
+import Blockchain from "./blockchain";
+
+const _blockchain = Symbol("blockchain");
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
-  constructor(options: any, emitter: Emittery.Typed<undefined, "message" | "connect" | "disconnect">) {
-    // Let's emit "connect" for now, just in case it's necessary. 
-    emitter.emit("connect");
+  private readonly [_blockchain]: Blockchain;
+
+  constructor() {
+    const blockchain = (this[_blockchain] = new Blockchain());
   }
 
   async "Filecoin.ChainGetGenesis"() {
@@ -61,5 +65,9 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.ChainHead"() {
     let t:Tipset = new Tipset();
     return t.serialize();
+  }
+
+  async "Filecoin.GanacheMineTipset"() {
+    
   }
 }

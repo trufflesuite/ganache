@@ -2,7 +2,7 @@ import assert from "assert";
 import FilecoinProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
-const schema = require("@filecoin-shipyard/lotus-client-schema");
+
 
 export type LotusClient = any;
 
@@ -13,7 +13,7 @@ describe("api", () => {
 
     beforeEach(async () => {
       provider = await getProvider();
-      client = new LotusRPC(provider, {schema: schema.testnet.fullNode});
+      client = new LotusRPC(provider, {schema: FilecoinProvider.Schema});
     });
 
     describe("General request processing", () => {

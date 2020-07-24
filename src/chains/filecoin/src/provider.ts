@@ -3,7 +3,8 @@ import Emittery from "emittery";
 import {types, utils} from "@ganache/utils";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
-import { string } from "yargs";
+import GanacheSchema from "./schema";
+import { Schema } from "@filecoin-shipyard/lotus-client-schema";
 
 // Meant to mimic this provider: 
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
@@ -20,12 +21,14 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "message
   // Not entirely sure they're needed.
   #connectPromise: PromiseLike<never>;
 
+  static readonly Schema:Schema = GanacheSchema;
+
   constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
     super();
     this.#options = ProviderOptions.getDefault(providerOptions);
 
     this.#executor = executor;
-    this.#api = new FilecoinApi({}, this);
+    this.#api = new FilecoinApi();
   }
 
   async connect () {
