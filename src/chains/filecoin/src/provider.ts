@@ -8,7 +8,7 @@ import { Schema } from "@filecoin-shipyard/lotus-client-schema";
 
 // Meant to mimic this provider: 
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
-export default class FilecoinProvider extends Emittery.Typed<undefined, "message" | "connect" | "disconnect"> 
+export default class FilecoinProvider extends Emittery.Typed<undefined, "ready"> 
   // Do I actually need this? `types.Provider` doesn't actually define anything behavior
   implements types.Provider<FilecoinApi>
   {
@@ -29,6 +29,11 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "message
 
     this.#executor = executor;
     this.#api = new FilecoinApi();
+
+    setTimeout(() => {
+      this.emit("ready");
+    })
+    
   }
 
   async connect () {
