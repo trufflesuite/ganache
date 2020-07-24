@@ -205,9 +205,9 @@ class Transaction extends (EthereumJsTransaction as any) {
   static get types() {
     // values must be powers of 2
     return {
-      none: 0,
-      signed: 1,
-      fake: 2
+      none: 0 as const,
+      signed: 1 as const,
+      fake: 2 as const
     };
   }
 

@@ -11,7 +11,7 @@ import { join } from "path";
  */
 
 describe("Random tests that are temporary!", () => {
-  const expectedAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
+  const expectedAddress = "0x604a95c9165bc95ae016a5299dd7d400dddbea9a";
   const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 
   it("should respect the BIP99 mnemonic", async () => {
@@ -103,7 +103,7 @@ describe("Random tests that are temporary!", () => {
         }
       ]);
     };
-    await assert.rejects(badSend, "Error: signer account is locked");
+    await assert.rejects(badSend, "Error: authentication needed: password or unlock");
 
     await p.send("eth_subscribe", ["newHeads"]);
     await p.send("eth_sendTransaction", [

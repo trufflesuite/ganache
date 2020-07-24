@@ -12,6 +12,48 @@ describe("api", () => {
       accounts = await provider.send("eth_accounts");
     });
 
+    describe("eth_coinbase", function() {
+      it("should return correct address", async function() {
+        const coinbase = await provider.send("eth_coinbase");
+        assert.strictEqual(coinbase, accounts[0]);
+      });
+    });
+
+    describe("eth_mining", function() {
+      it("should return true", async () => {
+        const result = await provider.send("eth_mining");
+        assert.strictEqual(result, true);
+      });
+    });
+
+    describe("eth_syncing", function() {
+      it("should return true", async () => {
+        const result = await provider.send("eth_syncing");
+        assert.strictEqual(result, false);
+      });
+    });
+
+    describe("eth_hashrate", function() {
+      it("should return hashrate of zero", async function() {
+        const result = await provider.send("eth_hashrate");
+        assert.deepStrictEqual(result, "0x0");
+      });
+    });
+
+    describe("eth_protocolVersion", () => {
+      it("should get ethereum version", async () => {
+        const result = await provider.send("eth_protocolVersion");
+        assert.strictEqual(result, "0x3f", "Network Version should be 63");
+      });
+    });
+
+    describe("eth_getCompilers", () => {
+      it("should get compilers list", async () => {
+        const result = await provider.send("eth_getCompilers");
+        assert.deepStrictEqual(result, []);
+      });
+    });
+
     describe("eth_getBalance", () => {
       it("should return initial balance", async() => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);

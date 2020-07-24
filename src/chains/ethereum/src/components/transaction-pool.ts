@@ -21,7 +21,7 @@ function byNonce(values: Transaction[], a: number, b: number) {
   return (Quantity.from(values[b].nonce).toBigInt() || 0n) > (Quantity.from(values[a].nonce).toBigInt() || 0n);
 }
 
-export default class TransactionPool extends Emittery.Typed<{drain: (transactions: {executables: Map<string, utils.Heap<Transaction>>, timestamp?: number, maxTransactions: number}) => void}> {
+export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   #options: TransactionPoolOptions;
 
   /**
@@ -230,14 +230,10 @@ export default class TransactionPool extends Emittery.Typed<{drain: (transaction
       }
     }
 
-    // notify listeners (the miner, probably) that we have executable
-    // transactions ready for it
-    this.drain();
+    // notify listeners (the blockchain, then the miner, eventually) that we 
+    // have executable transactions ready
+    this.emit("drain");
   };
-
-  drain(maxTransactions?: number, timestamp?: number) {
-    return this.emit("drain", {executables: this.executables, timestamp, maxTransactions});
-  }
 
   validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.

@@ -16,6 +16,7 @@ import Manager from "./components/manager";
 import TransactionReceipt from "./things/transaction-receipt";
 import {encode as rlpEncode} from "rlp";
 import Common from "ethereumjs-common";
+import {Block as EthereumBlock} from "ethereumjs-block";
 
 import VM from "ethereumjs-vm";
 import Address from "./things/address";
@@ -44,6 +45,8 @@ export type BlockchainOptions = {
 
 export default class Blockchain extends Emittery {
   #state: Status = Status.starting;
+  #miner: Miner;
+  #processingBlock: Promise<Block>;
   public blocks: BlockManager;
   public transactions: TransactionManager;
   public transactionReceipts: Manager<TransactionReceipt>;
@@ -51,6 +54,7 @@ export default class Blockchain extends Emittery {
   public vm: VM;
   public trie: CheckpointTrie;
   readonly #database: Database;
+  readonly #options: BlockchainOptions
 
   /**
    * Initializes the underlying Database and handles synchronization between
@@ -62,6 +66,7 @@ export default class Blockchain extends Emittery {
    */
   constructor(options: BlockchainOptions) {
     super();
+    this.#options = options;
 
     const database = (this.#database = new Database(options, this));
 
@@ -73,10 +78,6 @@ export default class Blockchain extends Emittery {
       this.trie = new CheckpointTrie(database.trie, root);
       this.blocks = new BlockManager(this, database.blocks);
       this.vm = this.createVmFromStateTrie(this.trie, options.hardfork, options.allowUnlimitedContractSize);
-
-      const gasLimit = options.gasLimit;
-      const instamine = !options.blockTime || options.blockTime <= 0;
-      const miner = new Miner(this.vm, {instamine, gasLimit});
 
       this.transactions = new TransactionManager(this, database.transactions, options);
       this.transactionReceipts = new Manager<TransactionReceipt>(
@@ -96,46 +97,46 @@ export default class Blockchain extends Emittery {
       } else {
         firstBlockTime = this.#currentTime();
       }
-      let lastBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit);
 
-      const readyNextBlock = async (timestamp?: number) => {
-        await lastBlock;
-        const previousBlock = this.blocks.latest;
-        const previousHeader = previousBlock.value.header;
-        const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
-        return this.blocks.createBlock({
-          number: Quantity.from(previousNumber + 1n).toBuffer(),
-          gasLimit: gasLimit.toBuffer(),
-          timestamp: timestamp || this.#currentTime(),
-          parentHash: previousHeader.hash()
-        });
-      };
+      const gasLimit = options.gasLimit;
+      this.#processingBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit);
+
+      const instamine = !options.blockTime || options.blockTime <= 0;
+      const miner = this.#miner = new Miner(this.vm, this.#readyNextBlock, {instamine, gasLimit});
 
       if (instamine) {
-        this.transactions.transactionPool.on("drain", async ({executables, timestamp, maxTransactions}: {maxTransactions: number ,executables: Map<string, utils.Heap<Transaction>>, timestamp?: number}) => {
-          if (maxTransactions !== 0 && this.#isPaused()) return;
-          const block = await readyNextBlock(timestamp);
-          return miner.mine(executables, block.value, maxTransactions == null ? 1 : 0);
+        // whenever the transaction pool is drained mine a block
+        let waitingOnResume: Promise<void> = null;
+        this.transactions.transactionPool.on("drain", () => {
+          if (this.#isPaused()) {
+            // only wait on the resume event once.
+            if (waitingOnResume) return waitingOnResume;
+            return waitingOnResume = this.once("resume").then(() => {
+              waitingOnResume = null;
+              // when coming out of an un-paused state the miner should mine as
+              // many transactions in this first block as it can
+              return this.mine(0);
+            });
+          }
+          return this.mine(1);
         });
       } else {
         const minerInterval = options.blockTime * 1000;
-        const mine = (pending: Map<string, utils.Heap<Transaction>>) => {
+        const intervalMine = (executables: Map<string, utils.Heap<Transaction>>) => {
           let promise: Promise<unknown>;
           if (!this.#isPaused()) {
-            promise = readyNextBlock().then(block => {
-              miner.mine(pending, block.value);
-            });
+            promise = this.mine(0);
           } else {
             promise = this.once("resume");
           }
-          promise.then(() => utils.unref(setTimeout(mine, minerInterval, pending)));
+          promise.then(() => utils.unref(setTimeout(intervalMine, minerInterval, executables)));
           return void 0;
         };
-        utils.unref(setTimeout(mine, minerInterval, this.transactions.transactionPool.executables));
+        utils.unref(setTimeout(intervalMine, minerInterval, this.transactions.transactionPool.executables));
       }
 
       miner.on("block", async (blockData: any) => {
-        await lastBlock;
+        await this.#processingBlock;
         const previousBlock = this.blocks.latest;
         const previousHeader = previousBlock.value.header;
         const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
@@ -143,7 +144,7 @@ export default class Blockchain extends Emittery {
           parentHash: previousHeader.hash(),
           number: Quantity.from(previousNumber + 1n).toBuffer(),
           coinbase: this.coinbase.toBuffer(),
-          timestamp: this.#currentTime(),
+          timestamp: blockData.timestamp,
           // difficulty:
           gasLimit: options.gasLimit.toBuffer(),
           transactionsTrie: blockData.transactionsTrie.root,
@@ -153,7 +154,7 @@ export default class Blockchain extends Emittery {
         });
 
         this.blocks.latest = block;
-        lastBlock = this.#database.batch(() => {
+        this.#processingBlock = this.#database.batch(() => {
           blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
             const hash = tx.hash();
             // todo: clean up transction extra data stuffs because this is gross:
@@ -170,14 +171,14 @@ export default class Blockchain extends Emittery {
           return block;
         });
 
-        lastBlock.then(block => {
+        this.#processingBlock.then(block => {
           this.blocks.latest = block;
           // emit the block once everything has been fully saved to the database
           this.emit("block", block);
         });
       });
 
-      this.blocks.earliest = this.blocks.latest = await lastBlock;
+      this.blocks.earliest = this.blocks.latest = await this.#processingBlock;
       this.#state = Status.started;
       this.emit("start");
     });
@@ -185,8 +186,25 @@ export default class Blockchain extends Emittery {
 
   coinbase: Address;
 
+  #readyNextBlock = (previousBlock: EthereumBlock, timestamp?: number) => {
+    const previousHeader = previousBlock.header;
+    const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
+    return this.blocks.createBlock({
+      number: Quantity.from(previousNumber + 1n).toBuffer(),
+      gasLimit: this.#options.gasLimit.toBuffer(),
+      timestamp: timestamp == null ? this.#currentTime(): timestamp,
+      parentHash: previousHeader.hash()
+    }).value;
+  }
+
   isMining = () => {
     return this.#state === Status.started;
+  }
+
+  mine = async (maxTransactions: number, timestamp?: number) => {
+    await this.#processingBlock;
+    const nextBlock = this.#readyNextBlock(this.blocks.latest.value, timestamp);
+    return this.#miner.mine(this.transactions.transactionPool.executables, nextBlock, maxTransactions);
   }
 
   #isPaused = () => {

@@ -38,7 +38,6 @@
     "keccak": "3.0.0",
     "levelup": "4.4.0",
     "merkle-patricia-tree": "3.0.0",
-    "mocha": "^8.0.1",
-    "nyc": "^15.1.0"
+    "scrypt-js": "3.0.1"
   }
 }
