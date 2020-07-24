@@ -39,7 +39,8 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "message
   }
 
   async send<Method extends keyof FilecoinApi = keyof FilecoinApi>(payload: JsonRpc.Request<FilecoinApi>) {
-    return this.#executor.execute(this.#api, payload.method, []).then(result => {
+    // I'm not entirely sure why I need the `as [string]`... but it seems to work.
+    return this.#executor.execute(this.#api, payload.method, payload.params as [string]).then(result => {
       const promise = result.value as unknown as PromiseLike<ReturnType<FilecoinApi[Method]>>;
       
       return promise.then(JSON.stringify).then(JSON.parse);

@@ -3,6 +3,7 @@ import Emittery from "emittery";
 import {types} from "@ganache/utils";
 import { Tipset } from "./things/tipset";
 import Blockchain from "./blockchain";
+import Address from "./things/address";
 
 const _blockchain = Symbol("blockchain");
 
@@ -29,6 +30,17 @@ export default class FilecoinApi implements types.Api {
 
   async "Filecoin.WalletDefaultAddress"() {
     return this[_blockchain].address.serialize();
+  }
+
+  async "Filecoin.WalletBalance"(address:string) {
+    let managedAddress = this[_blockchain].address;
+
+    // For now, anything but our default address will have no balance
+    if (managedAddress.value == address) {
+      return this[_blockchain].balance.serialize();
+    } else {
+      return "0";
+    }
   }
 
   async "Filecoin.GanacheMineTipset"() {

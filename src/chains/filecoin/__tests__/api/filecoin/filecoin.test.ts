@@ -26,7 +26,7 @@ describe("api", () => {
           jsonrpc: "2.0",
           id: "0",
           method: "Filecoin.ChainGetGenesis"
-        });5
+        });
         assert(CID.isValid(genesis["Cids"][0]["/"]));
       });
 
@@ -61,6 +61,25 @@ describe("api", () => {
         assert.strictEqual(address.length, 86);
         assert.strictEqual(address.indexOf("t3"), 0);
         assert(Address.isValid(address));
+      })
+    })
+
+    describe("Filecoin.WalletBalance", () => {
+      let address:string;
+
+      beforeEach(async() => {
+        address = await client.walletDefaultAddress();
+      })
+
+      it("should return a balance for the default address", async() => {
+        const balance = await client.walletBalance(address);
+        assert.strictEqual(balance, "500000000000000000000000");
+      })
+
+      it("should not return a balance for any other address", async() => {
+        let otherAddress = new Address().value;
+        const balance = await client.walletBalance(otherAddress);
+        assert.strictEqual(balance, "0");
       })
     })
   });
