@@ -19,7 +19,7 @@ abstract class SerializableLiteral<C extends BaseConfig> implements Serializable
   protected abstract get config (): LiteralDefinition<C>;
   value: Literal<C>;
 
-  constructor(literal:Literal<C>) {
+  constructor(literal?:Literal<C>) {
     this.initialize(literal);
   }
 

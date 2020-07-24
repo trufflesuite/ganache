@@ -5,6 +5,7 @@ const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
 
 export type LotusClient = any;
+import CID from "../../../src/things/cid";
 
 describe("api", () => {
   describe("filecoin", () => {
@@ -24,8 +25,8 @@ describe("api", () => {
           jsonrpc: "2.0",
           id: "0",
           method: "Filecoin.ChainGetGenesis"
-        });
-        assert.strictEqual(genesis["Cids"][0]["/"], "bafy2bzacecgw6dqj4bctnbnyqfujltkwu7xc7ttaaato4i5miroxr4bayhfea");
+        });5
+        assert(CID.isValid(genesis["Cids"][0]["/"]));
       });
 
       // TODO: Test for unsupported methods
@@ -34,7 +35,7 @@ describe("api", () => {
     describe("Filecoin.ChainGetGenesis", () => {
       it("should return a value", async() => {
         const genesis = await client.chainGetGenesis();
-        assert.strictEqual(genesis["Cids"][0]["/"], "bafy2bzacecgw6dqj4bctnbnyqfujltkwu7xc7ttaaato4i5miroxr4bayhfea");
+        assert(CID.isValid(genesis["Cids"][0]["/"]));
       });
     });
     
