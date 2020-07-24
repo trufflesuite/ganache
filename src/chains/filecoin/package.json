@@ -28,6 +28,7 @@
     "@ganache/options": "^2.2.1",
     "@ganache/utils": "^2.2.1",
     "cross-env": "^7.0.2",
+    "deep-equal": "^2.0.3",
     "mocha": "^8.0.1",
     "nyc": "^15.1.0"
   },

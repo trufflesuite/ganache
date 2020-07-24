@@ -106,15 +106,15 @@ class Block extends SerializableObject<BlockConfig> implements DeserializedObjec
       },
       beaconEntries: {
         serializedName: "BeaconEntries",
-        defaultValue: (options) => options.map((entry) => new BeaconEntry(entry))
+        defaultValue: (options) => options? options.map((entry) => new BeaconEntry(entry)) : []
       },
       winPoStProof: {
         serializedName: "WinPoStProof",
-        defaultValue: (options) => options.map((proof) => new WinPoStProof(proof))
+        defaultValue: (options) => options? options.map((proof) => new WinPoStProof(proof)) : []
       },
       parents: {
         serializedName: "Parents",
-        defaultValue: (options) => options.map((parent) => new RootCID(parent))
+        defaultValue: (options) => options? options.map((parent) => new RootCID(parent)) : []
       },
       parentWeight: {
         serializedName: "ParentWeight",
@@ -126,15 +126,15 @@ class Block extends SerializableObject<BlockConfig> implements DeserializedObjec
       },
       parentStateRoot: {
         serializedName: "ParentStateRoot",
-        defaultValue: (options) => options.map((parent) => new RootCID(parent))
+        defaultValue: (options) => options? options.map((parent) => new RootCID(parent)) : []
       },
       parentMessageReceipts: {
         serializedName: "ParentMessageReceipts",
-        defaultValue: (options) => options.map((parent) => new RootCID(parent))
+        defaultValue: (options) => options? options.map((parent) => new RootCID(parent)) : []
       },
       messages: {
         serializedName: "Messages",
-        defaultValue: (options) => options.map((parent) => new RootCID(parent))
+        defaultValue: (options) => options? options.map((parent) => new RootCID(parent)) : []
       },
       blsAggregate: {
         serializedName: "BLSAggregate",

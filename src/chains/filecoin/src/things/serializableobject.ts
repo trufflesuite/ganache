@@ -1,4 +1,6 @@
 import { SerializableLiteral } from "./serializableliteral";
+import { deserialize } from "v8";
+import deepEqual from "deep-equal";
 
 
 // provides shape
@@ -93,45 +95,64 @@ type Definitions<C extends BaseConfig> = {
 }
 ​
 // lives in value land
-const serializePropertyName = <
+const serializedPropertyName = <
   C extends BaseConfig,
   N extends PropertyName<C> = PropertyName<C>
 >(
   definitions: Definitions<C>,
   name: N
 ): SerializedPropertyName<C, N> => definitions[name].serializedName;
-​
+
 // concrete stuff follows
 
 interface Serializable<C> {
   serialize():C;
+  equals(obj:Serializable<C>):boolean;
 }
 
 abstract class SerializableObject<C extends BaseConfig> implements Serializable<SerializedObject<C>> {
   protected abstract get config (): Definitions<C>;
 
-  constructor(options:SerializedObject<C> = {} as SerializedObject<C>) {
+  // The constructor can take in a serialized object, or a deserialized one.
+  // Note that SerializableObject is the deserialized object in value land.
+  constructor(options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>) {
     this.initialize(options);
   }
 
-  private initialize(options:SerializedObject<C>):void {
+  private initialize(options:Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>):void {
+    if (!options) {
+      options = {} as SerializedObject<C>;
+    }
+
     for (const [deserializedName, {serializedName}] of Object.entries(this.config)) {
       let def = this.config[deserializedName].defaultValue;
+      let value:any;
 
-      if (def !== undefined) {
-        if (typeof def == "function") {
-          this[deserializedName] = def(options[serializedName]);
-        } else {
-          this[deserializedName] = def;
-        }
+      // We don't know whether we were passed a serialized object or a
+      // deserialized one, so let's look for both keys.
+      if (typeof options[deserializedName] != "undefined") {
+        value = options[deserializedName];
       } else {
-        this[deserializedName] = options[serializedName];
+        value = options[serializedName];
+      }
+
+      // Ensure everything is serialized after this point,
+      // as defaultValue functions expect serialized data
+      value = this.serializeValue(value);
+
+      this[deserializedName] = value;
+
+      if (typeof def == "function") {
+        this[deserializedName] = def(value);
+      } else if (typeof value === "undefined") {
+        this[deserializedName] = def;
       }
     };
+     
   }
-
+  
   private serializeValue(value:any) {
-    let returnVal:any;
+    let returnVal:any = value;
     if (value instanceof SerializableObject || value instanceof SerializableLiteral) {
       returnVal = value.serialize();
     } else if (value instanceof Array) {
@@ -149,6 +170,13 @@ abstract class SerializableObject<C extends BaseConfig> implements Serializable<
     }
 
     return returnVal;
+  }
+
+  equals(obj:Serializable<SerializedObject<C>>):boolean {
+    let a:SerializedObject<C> = this.serialize();
+    let b:SerializedObject<C> = obj.serialize();
+
+    return deepEqual(a, b);
   }
 }
 

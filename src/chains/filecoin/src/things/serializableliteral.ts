@@ -40,6 +40,13 @@ abstract class SerializableLiteral<C extends BaseConfig> implements Serializable
   serialize():Literal<C> {
     return this.value;
   }
+
+  equals(obj:Serializable<Literal<C>>):boolean {
+    let a:Literal<C> = this.serialize();
+    let b:Literal<C> = obj.serialize();
+
+    return a == b;
+  }
 }
 
 export {

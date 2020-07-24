@@ -1,4 +1,6 @@
 import { Tipset } from "./things/tipset";
+import { Block } from "./things/block";
+import { RootCID } from "./things/rootcid";
 
 export type BlockchainOptions = {
   blockTime: number;
@@ -11,7 +13,14 @@ export default class Blockchain implements BlockchainOptions{
   constructor(options:BlockchainOptions = {} as BlockchainOptions) {
     Object.assign(this, options);
 
-    this.tipsets.push(new Tipset());
+    // Create genesis tipset
+    this.tipsets.push(new Tipset({
+      cids: [new RootCID()],
+      blocks: [
+        new Block()
+      ],
+      height: 0
+    }));
   }
 
   genesisTipset():Tipset {
@@ -22,7 +31,8 @@ export default class Blockchain implements BlockchainOptions{
     return this.tipsets[this.tipsets.length - 1];
   }
 
-  mine():void {
-    this.tipsets.push(new Tipset());
+  mineTipset():void {
+    let newTipset = Tipset.createNewTipsetAsChain(this.latestTipset());
+    this.tipsets.push(newTipset);
   }
 }

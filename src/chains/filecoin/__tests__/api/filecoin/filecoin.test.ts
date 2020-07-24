@@ -40,9 +40,8 @@ describe("api", () => {
     });
     
     describe("Filecoin.ChainHead", () => {
-      it("should create return a tipset with blocks", async() => {
+      it("should return a serialized tipset with blocks", async() => {
         const head = await client.chainHead();
-        console.log(head)
         assert(head.Blocks.length > 0)
       })
     });
