@@ -12,8 +12,15 @@ export default class FilecoinApi implements types.Api {
 
   private readonly [_blockchain]: Blockchain;
 
-  constructor() {
+  constructor(emitter: Emittery.Typed<undefined, "ready">) {
     const blockchain = (this[_blockchain] = new Blockchain());
+    blockchain.on("ready", () => {
+      emitter.emit("ready"); 
+    })
+  }
+
+  async stop() {
+    await this[_blockchain].stop();
   }
 
   async "Filecoin.ChainGetGenesis"() {

@@ -2,22 +2,31 @@ import { Tipset } from "./things/tipset";
 import { Block } from "./things/block";
 import { RootCID } from "./things/rootcid";
 import { utils } from "@ganache/utils";
+import { IPFSServer } from "ipfsd-ctl";
+import Emittery from "emittery";
 import Miner from "./things/miner";
 import Address from "./things/address";
 import Balance from "./things/balance";
+import createIPFSServer from "./ipfsserver"
 
 export type BlockchainOptions = {
   blockTime: number;
+  ipfsPort: number;
 };
 
-export default class Blockchain implements BlockchainOptions{
+export default class Blockchain extends Emittery.Typed<undefined, "ready"> implements BlockchainOptions {
   readonly tipsets: Array<Tipset> = [];
   readonly miner: Miner;
   readonly address: Address;
   readonly balance: Balance;
   readonly blockTime: number = 0;
+  readonly ipfsPort: 4002;
 
-  constructor(options:BlockchainOptions = {} as BlockchainOptions) {
+  private ipfsServer: IPFSServer;
+  private miningTimeout:NodeJS.Timeout;
+
+  constructor(options:Partial<BlockchainOptions> = {} as Partial<BlockchainOptions>) {
+    super();
     this.blockTime = options.blockTime;
     this.miner = new Miner();
     this.address = new Address();
@@ -32,13 +41,34 @@ export default class Blockchain implements BlockchainOptions{
       height: 0
     }));
 
-    if (this.blockTime != 0) {
-      const intervalMine = () => {
-        this.mineTipset();
+    setTimeout(async() => {
+      // Create the IPFS server
+      this.ipfsServer = await createIPFSServer(this.ipfsPort);
+      
+      await this.ipfsServer.start();
+
+      // Fire up the miner if necessary
+      if (this.blockTime != 0) {
+        const intervalMine = () => {
+          this.mineTipset();
+        }
+  
+        this.miningTimeout = setInterval(intervalMine, this.blockTime);
+
+        utils.unref(this.miningTimeout);
       }
 
-      utils.unref(setInterval(intervalMine, this.blockTime));
-    }
+      // Get this party started!
+      this.emit("ready");
+    })    
+  }
+
+  /**
+   * Gracefully shuts down the blockchain service and all of its dependencies.
+   */
+  async stop() {
+    clearInterval(this.miningTimeout);
+    await this.ipfsServer.stop();
   }
 
   genesisTipset():Tipset {

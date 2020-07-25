@@ -28,12 +28,9 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "ready">
     this.#options = ProviderOptions.getDefault(providerOptions);
 
     this.#executor = executor;
-    this.#api = new FilecoinApi();
 
-    setTimeout(() => {
-      this.emit("ready");
-    })
-    
+    // Note that the API will emit the "ready" event
+    this.#api = new FilecoinApi(this);   
   }
 
   async connect () {
@@ -74,5 +71,9 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "ready">
 
   async destroy () {
     throw new Error("Method not supported (destroy)");
+  }
+
+  async stop() {
+    await this.#api.stop();
   }
 }

@@ -13,9 +13,13 @@ describe("api", () => {
     let provider: FilecoinProvider;
     let client: LotusClient;
 
-    beforeEach(async () => {
+    before(async () => {
       provider = await getProvider();
       client = new LotusRPC(provider, {schema: FilecoinProvider.Schema});
+    });
+
+    after(async() => {
+      await provider.stop();
     });
 
     describe("General request processing", () => {
