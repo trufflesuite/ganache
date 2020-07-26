@@ -25,12 +25,17 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
   private ipfsServer: IPFSServer;
   private miningTimeout:NodeJS.Timeout;
 
+  private ready:boolean;
+
   constructor(options:Partial<BlockchainOptions> = {} as Partial<BlockchainOptions>) {
     super();
-    this.blockTime = options.blockTime;
+    Object.assign(this, options);
+    
     this.miner = new Miner();
     this.address = new Address();
     this.balance = new Balance();
+
+    this.ready = false;
 
     // Create genesis tipset
     this.tipsets.push(new Tipset({
@@ -59,8 +64,19 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
       }
 
       // Get this party started!
+      this.ready = true;
       this.emit("ready");
     })    
+  }
+
+  async waitForReady() {
+    return new Promise(resolve => {
+      if (this.ready) {
+        resolve();
+      } else {
+        this.on("ready", resolve);
+      }
+    })
   }
 
   /**
