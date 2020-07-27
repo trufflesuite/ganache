@@ -1,7 +1,6 @@
 import assert from "assert";
 import { RootCID } from "../../src/things/rootcid";
-import CID from "../../src/things/cid";
-import { time } from "console";
+import { CID } from "../../src/things/cid";
 import { Tipset } from "../../src/things/tipset";
 import { Block } from "../../src/things/block";
 

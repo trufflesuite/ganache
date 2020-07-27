@@ -26,4 +26,9 @@ class CID extends SerializableLiteral<CIDConfig>  {
   }
 }
 
-export default CID;
+type SerializedCID = string;
+
+export {
+  CID,
+  SerializedCID
+};

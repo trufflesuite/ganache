@@ -4,8 +4,8 @@ import { RootCID } from "./things/rootcid";
 import { utils } from "@ganache/utils";
 import { IPFSServer } from "ipfsd-ctl";
 import Emittery from "emittery";
-import Miner from "./things/miner";
-import Address from "./things/address";
+import { Miner } from "./things/miner";
+import { Address } from "./things/address";
 import Balance from "./things/balance";
 import createIPFSServer from "./ipfsserver"
 

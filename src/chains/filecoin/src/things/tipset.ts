@@ -1,5 +1,4 @@
 import {Block, SerializedBlock} from "./block";
-import CID from "./cid";
 import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
 import { RootCID, SerializedRootCID } from "./rootcid";
 

@@ -1,11 +1,11 @@
-import CID from "./cid";
+import { CID, SerializedCID } from "./cid";
 import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
 
 interface RootCIDConfig {
   properties: {
     "/": {
       type: CID,
-      serializedType: string,
+      serializedType: SerializedCID,
       serializedName: "/"
     }
   }

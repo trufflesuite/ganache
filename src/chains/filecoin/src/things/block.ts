@@ -5,9 +5,8 @@ import { BLSAggregate, SerializedBLSAggregate } from "./blsaggregate";
 import { BlockSignature, SerializedBlockSignature } from "./blocksignature";
 import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
 import { WinPoStProof, SerializedWinPoStProof } from "./winpostproof";
-import CID from "./cid";
 import { RootCID, SerializedRootCID } from "./rootcid";
-import Miner from "./miner";
+import { Miner } from "./miner";
 
 
 interface BlockConfig {

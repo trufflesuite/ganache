@@ -5,8 +5,8 @@ const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
 
 export type LotusClient = any;
-import CID from "../../../src/things/cid";
-import Address from "../../../src/things/address";
+import { CID } from "../../../src/things/cid";
+import { Address } from "../../../src/things/address";
 
 describe("api", () => {
   describe("filecoin", () => {

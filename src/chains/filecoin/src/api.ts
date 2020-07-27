@@ -1,9 +1,7 @@
 //#region Imports
 import Emittery from "emittery";
 import {types} from "@ganache/utils";
-import { Tipset } from "./things/tipset";
 import Blockchain from "./blockchain";
-import Address from "./things/address";
 
 const _blockchain = Symbol("blockchain");
 

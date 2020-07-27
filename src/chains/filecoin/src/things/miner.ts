@@ -14,4 +14,9 @@ class Miner extends SerializableLiteral<MinerConfig>  {
   };
 }
 
-export default Miner;
+type SerializedMiner = string;
+
+export {
+  Miner,
+  SerializedMiner
+};

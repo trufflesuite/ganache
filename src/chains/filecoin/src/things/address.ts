@@ -26,4 +26,9 @@ class Address extends SerializableLiteral<AddressConfig>  {
   }
 }
 
-export default Address;
+type SerializedAddress = string;
+
+export {
+  Address,
+  SerializedAddress
+};
