@@ -34,7 +34,8 @@ class StorageProposalData extends SerializableObject<StorageProposalDataConfig> 
         defaultValue: "graphsync"
       },
       root: {
-        serializedName: "Root"
+        serializedName: "Root",
+        defaultValue: (options) => new RootCID(options)
       },
       pieceCid: {
         serializedName: "PieceCid",

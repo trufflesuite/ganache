@@ -3,6 +3,7 @@ import { RootCID } from "../../src/things/rootcid";
 import { CID } from "../../src/things/cid";
 import { Tipset } from "../../src/things/tipset";
 import { Block } from "../../src/things/block";
+import { StorageProposal } from "../../src/things/storageproposal";
 
 describe("things", () => {
 
@@ -45,6 +46,25 @@ describe("things", () => {
       })
 
       assert.strictEqual(tipsetFromSerializedData.cids[0]["/"].value, tipsetFromDeserializedData.cids[0]["/"].value);
+    })
+
+    it("should allow 'mixed' parameters in the constructor, with nested definitions", async() => {
+      let proposal = new StorageProposal({
+        data: {
+          transferType: "graphsync",
+          root: {
+            "/": "somecid"
+          },
+          pieceCid: null,
+          pieceSize: 0
+        },
+        wallet: "some address",
+        miner: "t01000",
+      })
+    
+      // the root cid is sufficiently nested for the test.
+      assert(proposal.data.root instanceof RootCID);
+      assert.ok(proposal.data.root["/"].value);
     })
   })
 
