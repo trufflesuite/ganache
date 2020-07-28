@@ -2,7 +2,8 @@
 
 ## Getting set up
 
- * Use node v10.7.0 (or whatever the lowest engine is in the root package.json)
+ * Use Node.js v10.7.0, this is the earliest version we support.
+   * Why v10.7.0? Because this is the first version that supports with BitInt literals (the `n` in `100n`).
  * `git clone git@github.com:trufflesuite/ganache-core.git`
  * `cd ganache-core`
  * `npm install`
@@ -83,7 +84,7 @@ index 688d3d4..815e111 100644
 
 These are guidelines, not rules. :-)
 
- * Use Node v10.7.0 for most local development. This is the earliest version we support.
+ * Use Node.js v10.7.0 for most local development.
  * Use `bigint` literals, e.g., `123n`; if the number is externally configurable and/or could exceed
   `Number.MAX_SAFE_INTEGER`.
  * Write tests.
