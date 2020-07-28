@@ -1,18 +1,17 @@
 import {LevelUp} from "levelup";
 import {Data} from "@ganache/utils/src/things/json-rpc";
-import Blockchain from "../blockchain";
 import Tag from "../things/tags";
 const NOTFOUND = 404;
 
 export type Instantiable<T> = {new (...args: any[]): T};
 
 export default class Manager<T> {
-  protected blockchain: Blockchain;
   #Type: Instantiable<T>;
+  #options: {};
   protected base: LevelUp;
-  constructor(blockchain: Blockchain, base: LevelUp, type: Instantiable<T>) {
+  constructor(base: LevelUp, type: Instantiable<T>, options?: {}) {
     this.#Type = type;
-    this.blockchain = blockchain;
+    this.#options = options;
     this.base = base;
   }
   getRaw(key: string | Buffer | Tag): Promise<Buffer> {
@@ -28,7 +27,7 @@ export default class Manager<T> {
   async get(key: string | Buffer) {
     const raw = await this.getRaw(key);
     if (!raw) return null;
-    return new this.#Type(raw);
+    return new this.#Type(raw, this.#options);
   }
   set(key: Buffer, value: Buffer): Promise<void> {
     return this.base.put(key, value);

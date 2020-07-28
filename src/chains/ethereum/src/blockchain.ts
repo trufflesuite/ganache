@@ -2,6 +2,7 @@ import Miner from "./miner";
 import Database from "./database";
 import Emittery from "emittery";
 import BlockManager, {Block} from "./components/block-manager";
+import BlockLogs, { BlockLog } from "./things/blocklogs";
 import TransactionManager from "./components/transaction-manager";
 import CheckpointTrie from "merkle-patricia-tree";
 import {BN} from "ethereumjs-util";
@@ -17,10 +18,9 @@ import TransactionReceipt from "./things/transaction-receipt";
 import {encode as rlpEncode} from "rlp";
 import Common from "ethereumjs-common";
 import {Block as EthereumBlock} from "ethereumjs-block";
-
 import VM from "ethereumjs-vm";
 import Address from "./things/address";
-
+import BlockLogManager from "./components/blocklog-manager";
 
 export enum Status {
   // Flags
@@ -41,6 +41,8 @@ export type BlockchainOptions = {
   time?: Date;
   blockTime?: number;
   coinbase: Account;
+  chainId: number;
+  common: Common;
 };
 
 export default class Blockchain extends Emittery {
@@ -48,40 +50,43 @@ export default class Blockchain extends Emittery {
   #miner: Miner;
   #processingBlock: Promise<Block>;
   public blocks: BlockManager;
+  public blockLogs: BlockLogManager;
   public transactions: TransactionManager;
   public transactionReceipts: Manager<TransactionReceipt>;
   public accounts: AccountManager;
   public vm: VM;
   public trie: CheckpointTrie;
   readonly #database: Database;
-  readonly #options: BlockchainOptions
+  readonly #options: BlockchainOptions;
 
   /**
    * Initializes the underlying Database and handles synchronization between
    * the ledger and the database.
    *
-   * Emits a `ready` event once the database and
-   * all dependencies are fully initialized.
+   * Emits a `ready` event once the database and all dependencies are fully
+   * initialized.
    * @param options
    */
   constructor(options: BlockchainOptions) {
     super();
     this.#options = options;
 
+    const common = options.common;
+
     const database = (this.#database = new Database(options, this));
 
     database.on("ready", async () => {
       // TODO: get the latest block from the database
       // if we have a latest block, `root` will be that block's header.stateRoot
-      // and we will skip creating the genesis block alltogether
+      // and we will skip creating the genesis block altogether
       const root: Buffer = null;
       this.trie = new CheckpointTrie(database.trie, root);
-      this.blocks = new BlockManager(this, database.blocks);
-      this.vm = this.createVmFromStateTrie(this.trie, options.hardfork, options.allowUnlimitedContractSize);
+      this.blocks = new BlockManager(this, database.blocks, {common});
+      this.blockLogs = new BlockLogManager(database.blockLogs);
+      this.vm = this.createVmFromStateTrie(this.trie, options.allowUnlimitedContractSize);
 
-      this.transactions = new TransactionManager(this, database.transactions, options);
+      this.transactions = new TransactionManager(this, database.transactions, {common});
       this.transactionReceipts = new Manager<TransactionReceipt>(
-        this,
         database.transactionReceipts,
         TransactionReceipt
       );
@@ -155,17 +160,29 @@ export default class Blockchain extends Emittery {
 
         this.blocks.latest = block;
         this.#processingBlock = this.#database.batch(() => {
+          const blockHash = block.value.hash();
+          const blockNumber = block.value.header.number;
+          const blockLogs = BlockLogs.create(blockHash);
           blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
             const hash = tx.hash();
-            // todo: clean up transction extra data stuffs because this is gross:
-            const extraData = [...tx.raw, block.value.hash(), block.value.header.number, Quantity.from(i).toBuffer()];
+            // TODO: clean up transaction extra data stuffs because this is gross:
+            const extraData = [...tx.raw, blockHash, blockNumber, Quantity.from(i).toBuffer()];
             const encodedTx = rlpEncode(extraData);
             this.transactions.set(hash, encodedTx);
 
             const receipt = tx.getReceipt();
             const encodedReceipt = receipt.serialize(true);
             this.transactionReceipts.set(hash, encodedReceipt);
+
+            tx.getLogs().forEach(log => {
+              blockLogs.append(
+                Quantity.from(i).toBuffer(),
+                hash,
+                log
+              );
+            })
           });
+          this.blockLogs.set(blockNumber, blockLogs.serialize());
           block.value.transactions = blockData.blockTransactions;
           this.blocks.putBlock(block);
           return block;
@@ -226,22 +243,11 @@ export default class Blockchain extends Emittery {
     this.emit("resume");
   }
 
-  createVmFromStateTrie = (stateTrie: CheckpointTrie, hardfork: string, allowUnlimitedContractSize: boolean): any => {
-    const common = Common.forCustomChain(
-      "mainnet", // TODO needs to match chain id
-      {
-        name: "ganache",
-        networkId: 1,
-        chainId: 1,
-        comment: "Local test network",
-        bootstrapNodes: []
-      },
-      hardfork
-    );
+  createVmFromStateTrie = (stateTrie: CheckpointTrie, allowUnlimitedContractSize: boolean): any => {
     const vm = new VM({
       state: stateTrie,
       activatePrecompiles: true,
-      common,
+      common: this.#options.common,
       allowUnlimitedContractSize,
       blockchain: {
         getBlock: (number: BN, done: any) => {
@@ -302,7 +308,7 @@ export default class Blockchain extends Emittery {
     return this.#timeAdjustment = Math.floor((timestamp - Date.now()) / 1000);
   }
 
-  // TODO: this.#snapshots is a potential unbound memory suck. Caller could call `evm_snapshot` over and over
+  // TODO(perf): this.#snapshots is a potential unbound memory suck. Caller could call `evm_snapshot` over and over
   // to grow the snapshot stack indefinitely
   #snapshots: any[] = [];
   public snapshot() {
@@ -373,9 +379,9 @@ export default class Blockchain extends Emittery {
       );
       const getBlockProm = this.blocks.getByHash(snapshotHash);
 
-      // TODO: lazily clean up the database. Get all blocks created since our reverted
+      // TODO(perf): lazily clean up the database. Get all blocks created since our reverted
       // snapshot was created, and delete them, and their transaction data.
-      // TODO: look into optimizing this to delete from all reverted snapshots.
+      // TODO(perf): look into optimizing this to delete from all reverted snapshots.
       //   the current approach looks at each block, finds its parent, then
       //   finds its parent, and so on until we reach our target block. Whenever
       //   we revert a snapshot, we may also throwing away several others, and

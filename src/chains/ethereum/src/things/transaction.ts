@@ -9,6 +9,10 @@ import {decode as rlpDecode} from "rlp";
 import {RunTxResult} from "ethereumjs-vm/dist/runTx";
 import {Block} from "../components/block-manager";
 import TransactionReceipt from "./transaction-receipt";
+import Common from "ethereumjs-common";
+import { TransactionLog } from "./blocklogs";
+
+type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
 
 const MAX_UINT64 = (1n << 64n) - 1n;
 const ZERO_BUFFER = Buffer.from([0]);
@@ -184,13 +188,14 @@ class Transaction extends (EthereumJsTransaction as any) {
   _chainId: any;
   _hash: Buffer;
   readonly from: Buffer;
-  #receipt: any;
+  #receipt: TransactionReceipt;
+  #logs: TransactionLog[];
   /**
    * @param {Object} [data] The data for this Transaction.
    * @param {Number} type The `Transaction.types` bit flag for this transaction
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
-  constructor(data: any, type: number = Transaction.types.none, options?: any) {
+  constructor(data: any, options: {common: Common}, type: number = Transaction.types.none) {
     super(void 0, options);
 
     // EthereumJS-TX Transaction overwrites our `toJSON`, so we overwrite it back here:
@@ -259,8 +264,8 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Number} type The `Transaction.types` bit flag for this transaction
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
-  static fromJSON(json: any, type: any) {
-    let toAccount;
+  static fromJSON(json: any, common: Common, type: ExtractValuesFromType<typeof Transaction.types>) {
+    let toAccount: Buffer;
     if (json.to) {
       // Remove all padding and make it easily comparible.
       const buf = Data.from(json.to).toBuffer();
@@ -286,7 +291,7 @@ class Transaction extends (EthereumJsTransaction as any) {
       s: Data.from(json.s).toBuffer()
     };
 
-    const tx = new Transaction(options, type);
+    const tx = new Transaction(options, { common }, type);
     tx._hash = json.hash ? Data.from(json.hash).toBuffer() : null;
     tx._from = json.from ? Data.from(json.from).toBuffer() : null;
     return tx;
@@ -374,21 +379,30 @@ class Transaction extends (EthereumJsTransaction as any) {
     };
   }
 
-  initializeReceipt = (result: RunTxResult) => {
+  /**
+   * Initializes the receipt and logs
+   * @param result 
+   * @returns RLP encoded data for use in a transaction trie
+   */
+  fillFromResult (result: RunTxResult) {
     const vmResult = result.execResult;
     const status = vmResult.exceptionError ? ZERO_BUFFER : ONE_BUFFER;
     const gasUsed = result.gasUsed.toBuffer();
     const logsBloom = result.bloom.bitvector;
-    const logs = vmResult.logs || [];
+    const logs = vmResult.logs || [] as TransactionLog[];
 
-    this._receipt = TransactionReceipt.fromValues(status, gasUsed, logsBloom, logs, result.createdAddress);
+    const receipt = this.#receipt = TransactionReceipt.fromValues(status, gasUsed, logsBloom, logs, result.createdAddress);
+    this.#logs = logs;
 
-    // returns RLP encoded data for use in a transaction trie
-    return this._receipt.serialize(false);
+    return receipt.serialize(false);
   };
 
-  getReceipt = () => {
-    return this._receipt;
+  getReceipt() {
+    return this.#receipt;
+  };
+
+  getLogs() {
+    return this.#logs;
   };
 }
 

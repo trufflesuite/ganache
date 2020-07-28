@@ -79,6 +79,27 @@ describe("api", () => {
       });
     });
 
+    describe("eth_chainId", () => {
+      it("should return the default chain id", async () => {
+        const result = await provider.send("eth_chainId");
+        assert.deepStrictEqual(result, "1337");
+      });
+
+      xit("should use the default chain id when signing transactions", async () => {
+        await provider.send("eth_subscribe", ["newHeads"]);
+        const txHash = await provider.send("eth_sendTransaction", [{from: accounts[0], to: accounts[0]}]);
+        await provider.once("message");
+        const tx = await provider.send("eth_getTransactionByHash", [txHash]);
+        assert.strictEqual(tx.v, "0xa96");
+      });
+
+      it("should update the default chain id", async () => {
+        const provider = await getProvider({chainId: 1234});
+        const result = await provider.send("eth_chainId");
+        assert.deepStrictEqual(result, "1234");
+      });
+    });
+
     describe("eth_getBalance", () => {
       it("should return initial balance", async() => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);
@@ -221,7 +242,7 @@ describe("api", () => {
 
     it("eth_getTransactionByBlockNumberAndIndex", async () => {
       const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
-      await provider.send("eth_sendTransaction", [
+      const txHash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
           to: accounts[1],
@@ -231,16 +252,21 @@ describe("api", () => {
       const _message = await provider.once("message");
 
       const tx = await provider.send("eth_getTransactionByBlockNumberAndIndex", ["0x1", "0x0"]);
-      assert.equal(
+      assert.strictEqual(
         tx.hash,
-        "0x6a530e6b86c00b7bef84fd75d570627d46a4b982f8a573ef1129780b5f92ff7e",
+        "0xab338178ffd130f1b7724a687ef20afcc75d44020184f82127ab1bc59f17d7e2",
         "Unexpected transaction hash."
+      );
+      assert.strictEqual(
+        tx.hash,
+        txHash,
+        "eth_getTransactionByBlockNumberAndIndex transaction hash doesn't match tx hash"
       );
     });
 
     it("eth_getTransactionByBlockHashAndIndex", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
-      await provider.send("eth_sendTransaction", [
+      await provider.send("eth_subscribe", ["newHeads"]);
+      const txHash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
           to: accounts[1],
@@ -251,10 +277,15 @@ describe("api", () => {
       const block = await provider.send("eth_getBlockByNumber", ["0x1"]);
 
       const tx = await provider.send("eth_getTransactionByBlockHashAndIndex", [block.hash, "0x0"]);
-      assert.equal(
+      assert.strictEqual(
         tx.hash,
-        "0x6a530e6b86c00b7bef84fd75d570627d46a4b982f8a573ef1129780b5f92ff7e",
+        "0xab338178ffd130f1b7724a687ef20afcc75d44020184f82127ab1bc59f17d7e2",
         "Unexpected transaction hash."
+      );
+      assert.strictEqual(
+        tx.hash,
+        txHash,
+        "eth_getTransactionByBlockNumberAndIndex transaction hash doesn't match tx hash"
       );
     });
 

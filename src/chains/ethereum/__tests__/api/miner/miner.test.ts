@@ -79,7 +79,7 @@ describe("api", () => {
         const {status, blockNumber} = await provider.send("eth_getTransactionReceipt", [txHash]);
         assert.strictEqual(status, 1);
         const {miner} = await provider.send("eth_getBlockByNumber", [blockNumber]);
-        console.log(miner, accounts[1]);
+        assert.strictEqual(miner, accounts[1]);
       });
     });
 

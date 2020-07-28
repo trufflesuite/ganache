@@ -123,12 +123,14 @@ export default class Miner extends Emittery {
       // vm's "live" trie.
       await this.#checkpoint();
 
+      const blockLogs = [];
       const blockData = {
         blockTransactions,
         transactionsTrie,
         receiptTrie,
         gasUsed: 0n,
-        timestamp: block.header.timestamp
+        timestamp: block.header.timestamp,
+        logs: blockLogs
       };
 
       // TODO: get a real block?
@@ -171,15 +173,16 @@ export default class Miner extends Emittery {
           // if the transaction will fit in the block, commit it!
           await this.#commit();
           blockTransactions[numTransactions] = best;
-
+          
           blockGasLeft -= gasUsed;
           blockData.gasUsed += gasUsed;
-
+          
           // calculate receipt and tx tries
-          const rawReceipt = best.initializeReceipt(result);
+          const receipt = best.fillFromResult(result);
           const txKey = rlpEncode(numTransactions);
           promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
-          promises.push(putInTrie(receiptTrie, txKey, rawReceipt));
+          promises.push(putInTrie(receiptTrie, txKey, receipt));
+          
 
           // update the block's bloom
           const bloom = result.bloom.bitvector;

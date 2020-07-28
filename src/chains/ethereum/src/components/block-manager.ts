@@ -26,12 +26,16 @@ export default class BlockManager extends Manager<Block> {
    */
   public pending: Block;
 
-  constructor(blockchain: Blockchain, base: LevelUp) {
-    super(blockchain, base, Block);
+  #options: {common: Common};
+
+  constructor(blockchain: Blockchain, base: LevelUp, options: {common: Common}) {
+    super(base, Block, options);
+
+    this.#options = options;
 
     blockchain.on("open", () => {
-      // TODO: get the last key, set as "earliest"
-      // TODO: get the first last key, set as "latest"
+      // TODO: get the first key, set as "earliest"
+      // TODO: get the last key, set as "latest"
     });
   }
 
@@ -46,73 +50,71 @@ export default class BlockManager extends Manager<Block> {
     return this.pending;
   }
 
+  getBlockByTag(tag: Tag) {
+    switch (Tag.normalize(tag as Tag)) {
+      case Tag.LATEST:
+        return this.latest;
+      case void 0:
+      case null:
+        // the key is probably a hex string, let nature takes its course.
+        break;
+      case Tag.PENDING:
+        return this.pending;
+      case Tag.EARLIEST:
+        return this.earliest;
+      default:
+        // this probably can't happen. but if someone passed something like
+        // `toString` in as a block tag and it got this far... maybe we'd
+        // get here...
+        throw new Error(`Invalid block Tag: ${tag}`);
+    }
+  }
+
+  getEffectiveNumber(tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST ) {
+    if (typeof tagOrBlockNumber === "string") {
+      const block = this.getBlockByTag(tagOrBlockNumber as Tag);
+      if (block) {
+        const blockNumber = block.value.header.number;;
+        if (blockNumber.length === 0){
+          return Quantity.from(Buffer.from([0]));
+        } else {
+          return Quantity.from(blockNumber);
+        }
+      }
+    }
+    return Quantity.from(tagOrBlockNumber);
+  }
+
   /**
    * Creates a Block object with the specified header values
    * @param header
    */
   createBlock(header: {}): Block {
-    const block = new Block(null, this);
+    const block = new Block(null, this.#options);
     // TODO: make better
     Object.assign(block.value.header, header);
     return block;
   }
 
-  async getNumberFromHash(hash: string | Buffer | Tag): Promise<Buffer> {
+  async getNumberFromHash(hash: string | Buffer | Tag) {
     return this.base.get(Data.from(hash).toBuffer()) as Promise<Buffer>;
   }
 
-  async getByHash(hash: string | Buffer | Tag): Promise<Block> {
+  async getByHash(hash: string | Buffer | Tag) {
     const number = await this.getNumberFromHash(hash);
     return super.get(number);
   }
 
   async getRaw(tagOrBlockNumber: string | Buffer | Tag) {
-    if (typeof tagOrBlockNumber === "string") {
-      const tag = Tag.normalize(tagOrBlockNumber as Tag);
-      switch (tag) {
-        case Tag.LATEST:
-          tagOrBlockNumber = this.latest.value.header.number;
-          if (tagOrBlockNumber.length === 0){
-            tagOrBlockNumber = Buffer.from([0]);
-          }
-        case void 0:
-        case null:
-          // the key is probably a hex string, let nature takes its course.
-          break;
-        case Tag.PENDING:
-          tagOrBlockNumber = this.pending.value.header.number;
-        case Tag.EARLIEST:
-          tagOrBlockNumber = this.earliest.value.header.number;
-        default:
-          // this probably can't happen. but if someone passed something like
-          // `toString` in as a block tag and it got this far... maybe we'd
-          // get here...
-          throw new Error(`Invalid block Tag: ${tagOrBlockNumber}`);
-      }
-    }
-    return super.getRaw(tagOrBlockNumber);
+    // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
+    // we don't have to fetch them from the db each time a block tag is used.
+    return super.getRaw(this.getEffectiveNumber(tagOrBlockNumber).toBuffer());
   }
 
-  async get(tagOrBlockNumber: string | Buffer | Tag): Promise<Block> {
+  async get(tagOrBlockNumber: string | Buffer | Tag) {
     if (typeof tagOrBlockNumber === "string") {
-      const tag = Tag.normalize(tagOrBlockNumber as Tag);
-      switch (tag) {
-        case Tag.LATEST:
-          return this.latest;
-        case void 0:
-        case null:
-          // the key is probably a hex string, let nature takes its course.
-          break;
-        case Tag.PENDING:
-          return this.pending;
-        case Tag.EARLIEST:
-          return this.earliest;
-        default:
-          // this probably can't happen. but if someone passed something like
-          // `toString` in as a block tag and it got this far... maybe we'd
-          // get here...
-          throw new Error(`Invalid block Tag: ${tagOrBlockNumber}`);
-      }
+      const block = this.getBlockByTag(tagOrBlockNumber as Tag);
+      if (block) return block;
     }
 
     return super.get(tagOrBlockNumber);
@@ -138,25 +140,21 @@ export default class BlockManager extends Manager<Block> {
 }
 
 export class Block {
-  public readonly manager: BlockManager;
   public readonly value: EthereumJsBlock;
-  constructor(raw: Buffer, manager: BlockManager) {
-    const common = {common: new Common("mainnet", "istanbul")};
+  constructor(raw: Buffer, options: {common: Common}) {
     if (raw) {
       const data = (rlpDecode(raw) as any) as [Buffer[], Buffer[], Buffer[]];
-      this.value = new EthereumJsBlock({header: data[0], uncleHeaders: data[2]}, common);
+      this.value = new EthereumJsBlock({header: data[0], uncleHeaders: data[2]}, options);
       const rawTransactions = data[1];
 
       // parse transactions so we can use our own transaction class
       for (let i = 0; i < rawTransactions.length; i++) {
-        const tx = new Transaction(rawTransactions[i]);
+        const tx = new Transaction(rawTransactions[i], {common: options.common});
         this.value.transactions.push(tx);
       }
     } else {
-      this.value = new EthereumJsBlock(null, common);
+      this.value = new EthereumJsBlock(null, options);
     }
-
-    this.manager = manager;
   }
 
   getTxFn = (include = false): ((tx: Transaction) => {[key: string]: string} | Data) => {

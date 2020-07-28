@@ -6,7 +6,7 @@ import EthereumOptions from "./options";
 import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
 import Blockchain, { BlockchainOptions } from "./blockchain";
 import Tag from "./things/tags";
-import Address, { IndexableAddress } from "./things/address";
+import Address from "./things/address";
 import Transaction from "./things/transaction";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
@@ -19,6 +19,8 @@ const createKeccakHash = require("keccak");
 import { version } from "../../../packages/core/package.json";
 import PromiEvent from "@ganache/utils/src/things/promievent";
 import Emittery from "emittery";
+import Common from "ethereumjs-common";
+import BlockLogs from "./things/blocklogs";
 //#endregion
 
 //#region Constants
@@ -36,6 +38,7 @@ const _blockchain = Symbol("blockchain");
 const _options = Symbol("options");
 const _wallet = Symbol("wallet");
 const _filters = Symbol("filters");
+const _common = Symbol("common");
 
 //#region types
 type SubscriptionId = string;
@@ -44,6 +47,7 @@ type SubscriptionId = string;
 export default class EthereumApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
+  private readonly [_common]: Common;
   private readonly [_filters] = new Map<any, any>();
   private readonly [_blockchain]: Blockchain;
   private readonly [_options]: EthereumOptions;
@@ -61,9 +65,20 @@ export default class EthereumApi implements types.Api {
 
     const {initialAccounts} = this[_wallet] = new Wallet(opts);
 
-    const blockchainOptions = options as unknown as BlockchainOptions;
+    const blockchainOptions = options as BlockchainOptions;
     blockchainOptions.initialAccounts = initialAccounts;
     blockchainOptions.coinbase = initialAccounts[0];
+    this[_common] = blockchainOptions.common = Common.forCustomChain(
+      "mainnet", // TODO needs to match chain id
+      {
+        name: "ganache",
+        networkId: options.networkId,
+        chainId: options.chainId,
+        comment: "Local test network",
+        bootstrapNodes: []
+      },
+      options.hardfork
+    );
     const blockchain = (this[_blockchain] = new Blockchain(blockchainOptions));
     blockchain.on("start", () => {
       emitter.emit("connect");
@@ -206,7 +221,7 @@ export default class EthereumApi implements types.Api {
    * @example <caption>Basic example</caption>
    * const snapshotId = await provider.send("evm_snapshot");
    * const isReverted = await provider.send("evm_revert", [snapshotId]);
-   *
+   * 
    * @example <caption>Complete example</caption>
    * const provider = ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
@@ -607,7 +622,7 @@ export default class EthereumApi implements types.Api {
    * @param blockNumber integer block number, or the string "latest", "earliest"
    *  or "pending", see the default block parameter
    */
-  async eth_getBalance(address: string | IndexableAddress, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Quantity> {
+  async eth_getBalance(address: string, blockNumber: Buffer | Tag = Tag.LATEST) {
     const chain = this[_blockchain];
     const account = await chain.accounts.get(Address.from(address), blockNumber);
     return account.balance;
@@ -620,7 +635,7 @@ export default class EthereumApi implements types.Api {
    * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block parameter
    * @returns the code from the given address.
    */
-  async eth_getCode(address: Buffer | IndexableAddress, blockNumber: Buffer | Tag = Tag.LATEST) {
+  async eth_getCode(address: Buffer, blockNumber: Buffer | Tag = Tag.LATEST) {
     const blockchain = this[_blockchain];
     const blockProm = blockchain.blocks.getRaw(blockNumber);
 
@@ -674,7 +689,7 @@ export default class EthereumApi implements types.Api {
    *  or "pending", see the default block parameter
    */
   async eth_getStorageAt(
-    address: IndexableAddress,
+    address: string,
     position: bigint | number,
     blockNumber: string | Buffer | Tag = Tag.LATEST
   ): Promise<Data> {
@@ -802,7 +817,7 @@ export default class EthereumApi implements types.Api {
       type = Transaction.types.fake;
     }
 
-    const tx = Transaction.fromJSON(transaction, type);
+    const tx = Transaction.fromJSON(transaction, this[_common], type);
     if (tx.gasLimit.length === 0) {
       tx.gasLimit = this[_options].defaultTransactionGasLimit.toBuffer();
     }
@@ -993,8 +1008,49 @@ export default class EthereumApi implements types.Api {
   async eth_getFilterLogs(): Promise<any> {
   }
 
-  async eth_getLogs(): Promise<any> {
+  async eth_getLogs(filter: {address: string | string[], topics: (string|string[])[], fromBlock: string | Tag, toBlock: string | Tag}): Promise<any> {
+    // `filter.address` may be a single address or an array
+    const expectedAddresses = filter.address ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(a => Address.from(a.toLowerCase()).toBuffer()) : [];
+    const expectedTopics = filter.topics ? filter.topics : [];
 
+    const blockchain = this[_blockchain];
+    const fromBlock = blockchain.blocks.getEffectiveNumber(filter.fromBlock);
+    const pendingLogsPromises: Promise<BlockLogs>[] = [];
+    pendingLogsPromises.push(blockchain.blockLogs.get(fromBlock.toBuffer()));
+    
+    const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
+    const latestBlock = Quantity.from(latestBlockNumberBuffer);
+    const latestBlockNumber = latestBlock.toNumber();
+    let toBlock = blockchain.blocks.getEffectiveNumber(filter.toBlock);
+    let toBlockNumber: number;
+    // don't search after the "latest" block, unless it's "pending", of course.
+    if (toBlock > latestBlock) {
+      toBlock = latestBlock;
+      toBlockNumber = latestBlockNumber;
+    } else {
+      toBlockNumber = toBlock.toNumber();
+    }
+    
+    const fromBlockNumber = fromBlock.toNumber();
+    // if we have a range of blocks to search, do that here:
+    if (fromBlockNumber !== toBlockNumber) {
+      // fetch all the blockLogs in-between `fromBlock` and `toBlock` (excluding
+      // from, because we already started fetching that one)
+      for (let i = fromBlockNumber + 1, l = toBlockNumber; i < l; i++) {
+        pendingLogsPromises.push(blockchain.blockLogs.get(Quantity.from(i)));
+      }
+    }
+
+    // now filter and compute all the blocks' blockLogs (in block order)
+    return await Promise.all(pendingLogsPromises).then(blockLogsRange => {
+      const filteredBlockLogs: ReturnType<typeof BlockLogs["logToJSON"]>[] = [];
+      blockLogsRange.forEach(blockLogs => {
+        // TODO(perf): this loops over all expectedAddresseses for every block.
+        // Make it loop only once.
+        filteredBlockLogs.push(...blockLogs.filter(expectedAddresses, expectedTopics));
+      });
+      return filteredBlockLogs;
+    });
   }
 
   /**
@@ -1010,7 +1066,7 @@ export default class EthereumApi implements types.Api {
     return account.nonce;
   }
 
-  async eth_call(transaction: any, blockNumber: Buffer | Tag | string = Tag.LATEST): Promise<Data> {
+  async eth_call(transaction: any, blockNumber: string | Buffer | Tag = Tag.LATEST): Promise<Data> {
     const blockchain = this[_blockchain];
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
@@ -1152,14 +1208,14 @@ export default class EthereumApi implements types.Api {
       throw new Error("no key for given address or file");
     }
     let tx: Transaction;
+    const options = {common: this[_common]}
     if (encryptedKeyFile !== null) {
       const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
 
-      tx = new Transaction(transaction);
+      tx = new Transaction(transaction, options);
       tx.sign(secretKey);
     } else {
-      tx = new Transaction(transaction);
-      tx.type = Transaction.types.fake;
+      tx = new Transaction(transaction, options, Transaction.types.fake);
     }
 
     return this[_blockchain].queueTransaction(tx);

@@ -108,7 +108,7 @@ export default class HttpServer {
     // handle JSONRPC post requests...
     const writeHeaders = prepareCORSResponseHeaders("POST", request);
 
-    // TODO: pre-allocate the buffer if we know the Content-Length
+    // TODO(perf): pre-allocate the buffer if we know the Content-Length
     let buffer: Buffer;
     let aborted = false;
     response.onAborted(() => {
