@@ -954,10 +954,7 @@ export default class EthereumApi implements types.Api {
       // return promiEvent;
       // case 'newPendingTransactions':
       //   createSubscriptionFilter = self.newPendingTransactionFilter.bind(self)
-      //   break
-      // case 'newHeads':
-      //   createSubscriptionFilter = self.newBlockFilter.bind(self)
-      //   break
+      //   break;
       // case 'syncing':
       // default:
       //   cb(new Error('unsupported subscription type'))
