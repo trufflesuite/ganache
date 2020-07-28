@@ -112,7 +112,61 @@ describe("api", () => {
       });
     });
 
-    describe("eth_blockNumber", async () => {
+    describe("eth_getTransactionCount", () => {
+      it("should get the tranasction count of the block", async function() {
+        const tx = {
+          from: accounts[0],
+          to: accounts[1],
+          value: 1
+        };
+
+        const txCount1 = await provider.send("eth_getTransactionCount", [accounts[0]]);
+        assert.strictEqual(txCount1, "0x0");
+        const initialBlockNumber = await provider.send("eth_blockNumber");
+        const txCount2 = await provider.send("eth_getTransactionCount", [accounts[0], initialBlockNumber]);
+        assert.strictEqual(txCount2, "0x0");
+
+        await provider.send("eth_subscribe", ["newHeads"]);
+
+        // send one tx, then check the count
+        await provider.send("miner_stop");
+        await provider.send("eth_sendTransaction", [{...tx}]);
+        await provider.send("miner_start");
+        const message1 = await provider.once("message");
+
+        const txCount3 = await provider.send("eth_getTransactionCount", [accounts[0], message1.data.result.number]);
+        assert.strictEqual(txCount3, "0x1");
+        
+        // send two txs, then check the count
+        await provider.send("miner_stop");
+        await provider.send("eth_sendTransaction", [{...tx}]);
+        await provider.send("eth_sendTransaction", [{...tx}]);
+        await provider.send("miner_start");
+        const message2 = await provider.once("message");
+
+        const txCount4 = await provider.send("eth_getTransactionCount", [accounts[0], message2.data.result.number]);
+        assert.strictEqual(txCount4, "0x3");
+
+        // the check the count at different block numbers...
+
+        const txCount5 = await provider.send("eth_getTransactionCount", [accounts[0], message1.data.result.number]);
+        assert.strictEqual(txCount5, txCount3);
+
+        const txCount6 = await provider.send("eth_getTransactionCount", [accounts[0], initialBlockNumber]);
+        assert.strictEqual(txCount6, "0x0");
+
+        const txCount7 = await provider.send("eth_getTransactionCount", [accounts[0]]);
+        assert.strictEqual(txCount7, txCount4);
+
+        const txCount8 = await provider.send("eth_getTransactionCount", [accounts[0], "earliest"]);
+        assert.strictEqual(txCount8, "0x0");
+
+        const txCount9 = await provider.send("eth_getTransactionCount", [accounts[0], "latest"]);
+        assert.strictEqual(txCount9, txCount4);
+      });
+    });
+
+    describe("eth_blockNumber", () => {
       it("should return initial block number of zero", async function() {
         const blockNumber = await provider.send("eth_blockNumber");
         assert.strictEqual(parseInt(blockNumber, 10), 0);
