@@ -76,10 +76,10 @@ export default class Miner extends Emittery {
    * transactions within a single block. The remaining items will be left in
    * the pending pool to be eligible for mining in the future.
    * 
-   * @param maxTransactions: maximum number of transactions per block. If `0`,
+   * @param maxTransactions: maximum number of transactions per block. If `-1`,
    * unlimited.
    */
-  public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = 0) {
+  public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = -1) {
     // only allow mining a single block at a time (per miner)
     if (this.#isMining) {
       // if we are currently mining a block, set the `pending` property
@@ -95,11 +95,11 @@ export default class Miner extends Emittery {
     const lastBlock = await this.#mineTxs(pending, block, maxTransactions);
 
     // if there are more txs to mine, mine them!
-    if (this.#pending) {
+    if (maxTransactions !== 0 && this.#pending) {
       const nextBlock = this.#createBlock(lastBlock);
       const pending = this.#pending;
       this.#pending = null;
-      this.mine(pending, nextBlock, this.#options.instamine ? 1 : 0);
+      this.mine(pending, nextBlock, this.#options.instamine ? 1 : -1);
     }
   }
 
@@ -109,19 +109,10 @@ export default class Miner extends Emittery {
     do {
       keepMining = false;
       this.#isMining = true;
-      let numTransactions = 0;
 
       const blockTransactions: Transaction[] = [];
-
-      let blockGasLeft = this.#options.gasLimit.toBigInt();
-
       const transactionsTrie = new Trie(null, null);
       const receiptTrie = new Trie(null, null);
-      const promises: Promise<any>[] = [];
-
-      // Set a block-level checkpoint so our unsaved trie doesn't update the
-      // vm's "live" trie.
-      await this.#checkpoint();
 
       const blockLogs = [];
       const blockData = {
@@ -132,6 +123,24 @@ export default class Miner extends Emittery {
         timestamp: block.header.timestamp,
         logs: blockLogs
       };
+
+      // don't mine anything at all if maxTransactions is `0`
+      if (maxTransactions === 0) {
+        await this.#checkpoint();
+        await this.#commit();
+        this.emit("block", blockData);
+        this.#reset();
+        return block;
+      }
+
+      let numTransactions = 0;
+      let blockGasLeft = this.#options.gasLimit.toBigInt();
+
+      const promises: Promise<any>[] = [];
+
+      // Set a block-level checkpoint so our unsaved trie doesn't update the
+      // vm's "live" trie.
+      await this.#checkpoint();
 
       // TODO: get a real block?
       const blockBloom = block.header.bloom;
@@ -201,8 +210,8 @@ export default class Miner extends Emittery {
           //  * don't have enough gas left for even the smallest of transactions
           //  * Or if we've mined enough transactions
           // we're done with this block!
-          // notice: when `maxTransactions` is `0`, `numTransactions === maxTransactions`
-          // will always return false.
+          // notice: when `maxTransactions` is `-1` (AKA infinite), `numTransactions === maxTransactions`
+          // will always return false, so this comparison works out fine.
           if (blockGasLeft <= params.TRANSACTION_GAS || numTransactions === maxTransactions) {
             if (keepMining) {
               // remove the newest (`best`) tx from this account's pending queue
@@ -244,7 +253,7 @@ export default class Miner extends Emittery {
       this.emit("block", blockData);
 
       if (priced.length !== 0) {
-        maxTransactions = this.#options.instamine ? 1 : 0;
+        maxTransactions = this.#options.instamine ? 1 : -1;
         block = this.#createBlock(block);
         this.#currentlyExecutingPrice = 0n;
       } else {

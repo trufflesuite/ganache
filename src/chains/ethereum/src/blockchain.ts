@@ -120,7 +120,7 @@ export default class Blockchain extends Emittery {
               waitingOnResume = null;
               // when coming out of an un-paused state the miner should mine as
               // many transactions in this first block as it can
-              return this.mine(0);
+              return this.mine(-1);
             });
           }
           return this.mine(1);
@@ -130,7 +130,7 @@ export default class Blockchain extends Emittery {
         const intervalMine = (executables: Map<string, utils.Heap<Transaction>>) => {
           let promise: Promise<unknown>;
           if (!this.#isPaused()) {
-            promise = this.mine(0);
+            promise = this.mine(-1);
           } else {
             promise = this.once("resume");
           }
@@ -289,6 +289,21 @@ export default class Blockchain extends Emittery {
 
     // store the genesis block in the database
     return this.blocks.putBlock(genesis);
+    // bloom:'0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+    // coinbase:'0x0000000000000000000000000000000000000000'
+    // difficulty:'0x'
+    // extraData:'0x'
+    // gasLimit:'0x6691b7'
+    // gasUsed:'0x'
+    // mixHash:'0x0000000000000000000000000000000000000000000000000000000000000000'
+    // nonce:'0x0000000000000000'
+    // number:'0x'
+    // parentHash:'0x0000000000000000000000000000000000000000000000000000000000000000'
+    // receiptTrie:'0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+    // stateRoot:'0x8281cb204e0242d2d9178e392b60eaf4563ae5ffc4897c9c6cf6e99a4d35aff3'
+    // timestamp:'0x0173971ee7f0'
+    // transactionsTrie:'0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+    // uncleHash:'0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347'
   };
 
   #timeAdjustment: number = 0;

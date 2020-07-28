@@ -21,6 +21,7 @@ import PromiEvent from "@ganache/utils/src/things/promievent";
 import Emittery from "emittery";
 import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
+import EthereumAccount from "ethereumjs-account";
 //#endregion
 
 //#region Constants
@@ -155,31 +156,34 @@ export default class EthereumApi implements types.Api {
    * @param timestamp? the timestamp a block should setup as the mining time.
    */
   async evm_mine(timestamp?: number) {
-    await this[_blockchain].mine(0, timestamp);
+    await this[_blockchain].mine(-1, timestamp);
     return "0x0";
   }
 
   /**
-   * Sets the given account's nonce to the specified value.
+   * Sets the given account's nonce to the specified value. Mines a new block
+   * before returning.
    * 
-   * Warning: this may result in an invalid state.
+   * Warning: this will result in an invalid state tree.
    * 
    * @param address 
    * @param nonce
+   * @returns true if it worked
   */
-  async evm_setAccountNonce(address: string, nonce: number | BigInt) {
+  async evm_setAccountNonce(address: string, nonce: string) {
     return new Promise((resolve, reject) => {
       const buffer = Address.from(address).toBuffer();
-      this[_blockchain].vm.stateManager.getAccount(buffer, (err, account) => {
+      this[_blockchain].vm.stateManager.getAccount(buffer, (err: Error, account: EthereumAccount) => {
         if (err) {
           return void reject(err)
         }
-        account.nonce = nonce;
-        this[_blockchain].vm.stateManager.putAccount(buffer, account, (err) => {
+        account.nonce = Quantity.from(nonce).toBuffer();
+        this[_blockchain].vm.stateManager.putAccount(buffer, account, (err: Error) => {
           if (err) {
-            return void reject(err)
+            return void reject(err);
           }
-          resolve(null);
+         
+          this[_blockchain].mine(0).then(() => resolve(true), reject);
         });
       });
     });

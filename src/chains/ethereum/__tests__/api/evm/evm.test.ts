@@ -1,5 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
+import { Quantity } from "@ganache/utils/src/things/json-rpc";
 
 function between(x: number, min: number, max: number) {
   return x >= min && x <= max;
@@ -79,6 +80,20 @@ describe("api", () => {
         const currentBlock = parseInt(await provider.send("eth_blockNumber"));
         assert.strictEqual(currentBlock, initialBlock + 1);
       });
+    });
+
+    describe("evm_setAccountNonce", () => {
+      it("should set the nonce forward", async () => {
+        const provider = await getProvider();
+        const [account] = await provider.send("eth_accounts");
+        const newCount = Quantity.from(1000);
+        const initialCount = parseInt(await provider.send("eth_getTransactionCount", [account]));
+        assert.strictEqual(initialCount, 0);
+        const status = await provider.send("evm_setAccountNonce", [account, newCount.toString()]);
+        assert.strictEqual(status, true);
+        const afterCount = parseInt(await provider.send("eth_getTransactionCount", [account]));
+        assert.strictEqual(afterCount, newCount.toNumber());
+      })
     });
   });
 });
