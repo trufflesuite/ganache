@@ -15,7 +15,7 @@ type RequestParams<Method extends types.KnownKeys<EthereumApi>> = {
   readonly method: Method, readonly params: Parameters<EthereumApi[Method]> | undefined
 };
 
-export default class EthereumProvider extends Emittery.Typed<undefined, "message" | "connect" | "disconnect">
+export default class EthereumProvider extends Emittery.Typed<{message: any}, "connect" | "disconnect">
   implements types.Provider<EthereumApi>
   {
   #options: ProviderOptions;

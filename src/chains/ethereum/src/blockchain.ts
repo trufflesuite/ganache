@@ -45,7 +45,7 @@ export type BlockchainOptions = {
   common: Common;
 };
 
-export default class Blockchain extends Emittery {
+export default class Blockchain extends Emittery.Typed<{block: any | Block}, "start" | "resume" | "pause" | "stop" | "step"> {
   #state: Status = Status.starting;
   #miner: Miner;
   #processingBlock: Promise<Block>;

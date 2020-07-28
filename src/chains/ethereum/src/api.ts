@@ -22,6 +22,7 @@ import Emittery from "emittery";
 import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
 import EthereumAccount from "ethereumjs-account";
+import { Block } from "./components/block-manager";
 //#endregion
 
 //#region Constants
@@ -61,7 +62,7 @@ export default class EthereumApi implements types.Api {
    * @param options
    * @param ready Callback for when the ledger is fully initialized
    */
-  constructor(options: EthereumOptions, emitter: Emittery.Typed<undefined, "message" | "connect" | "disconnect">) {
+  constructor(options: EthereumOptions, emitter: Emittery.Typed<{message: any}, "connect" | "disconnect">) {
     const opts = (this[_options] = options);
 
     const {initialAccounts} = this[_wallet] = new Wallet(opts);
@@ -934,11 +935,31 @@ export default class EthereumApi implements types.Api {
         const filters = this[_filters];
         const promiEvent = new PromiEvent(resolve => {
           const subscription = `0x${filters.size.toString(16)}`;
-          const unsubscribe = this[_blockchain].on("block", (result: any) => {
+          const unsubscribe = this[_blockchain].on("block", (block: any | Block) => {
+            const value = block.value;
+            const header = value.header;
+            const result = {
+              "logsBloom":        Data.from(header.bloom, 256), // TODO: pending block
+              "miner":            Address.from(header.coinbase),
+              "difficulty":       Quantity.from(header.difficulty),
+              "extraData":        Data.from(header.extraData),
+              "gasLimit":         Quantity.from(header.gasLimit),
+              "gasUsed":          Quantity.from(header.gasUsed),
+              "hash":             Data.from(value.hash(), 32), // TODO: pending block
+              "mixHash":          Data.from(header.mixHash, 32),
+              "nonce":            Data.from(header.nonce, 8), // TODO: pending block
+              "number":           Quantity.from(header.number, true), // TODO: pending block
+              "parentHash":       Data.from(header.parentHash, 32),
+              "receiptsRoot":     Data.from(header.receiptTrie, 32),
+              "stateRoot":        Data.from(header.stateRoot, 32),
+              "timestamp":        Quantity.from(header.timestamp),
+              "transactionsRoot": Data.from(header.transactionsTrie, 32),
+              "sha3Uncles":       Data.from(header.uncleHash, 32)
+            };
             promiEvent.emit("message", {
               type: "eth_subscription",
               data: {
-                result: result.value.header.toJSON(true),
+                result: JSON.parse(JSON.stringify(result)),
                 subscription
               }
             });
@@ -981,7 +1002,7 @@ export default class EthereumApi implements types.Api {
   }
 
 
-  async eth_unsubscribe([subscriptionId]: [SubscriptionId]): Promise<any> {
+  async eth_unsubscribe(subscriptionId: SubscriptionId): Promise<any> {
     const filters = this[_filters];
     const unsubscribe = filters.get(subscriptionId);
     if (unsubscribe) {
