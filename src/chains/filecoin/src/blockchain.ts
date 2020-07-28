@@ -1,13 +1,16 @@
 import { Tipset } from "./things/tipset";
 import { Block } from "./things/block";
+import { CID } from "./things/cid";
 import { RootCID } from "./things/rootcid";
 import { utils } from "@ganache/utils";
-import { IPFSServer } from "ipfsd-ctl";
 import Emittery from "emittery";
 import { Miner } from "./things/miner";
 import { Address } from "./things/address";
+import { Deal } from "./things/deal";
 import Balance from "./things/balance";
-import createIPFSServer from "./ipfsserver"
+import { StorageProposal } from "./things/storageproposal";
+import { DealState } from "./dealstates";
+import IPFSServer from "./ipfsserver";
 
 export type BlockchainOptions = {
   blockTime: number;
@@ -19,8 +22,12 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
   readonly miner: Miner;
   readonly address: Address;
   readonly balance: Balance;
+  readonly deals: Array<Deal> = [];
+
+  private dealsByCid: Record<string, Deal> = {};
+
   readonly blockTime: number = 0;
-  readonly ipfsPort: 4002;
+  readonly ipfsPort: number = 5001;
 
   private ipfsServer: IPFSServer;
   private miningTimeout:NodeJS.Timeout;
@@ -48,7 +55,7 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
 
     setTimeout(async() => {
       // Create the IPFS server
-      this.ipfsServer = await createIPFSServer(this.ipfsPort);
+      this.ipfsServer = new IPFSServer(this.ipfsPort);
       
       await this.ipfsServer.start();
 
@@ -97,7 +104,7 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
 
   // Note that this is naive - it always assumes the first block in the 
   // previous tipset is the parent of the new blocks.
-  mineTipset(numNewBlocks:number = 1):void {
+  async mineTipset(numNewBlocks:number = 1):Promise<void> {
     let previousTipset:Tipset = this.latestTipset();
 
     let newBlocks:Array<Block> = [];
@@ -118,5 +125,33 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
     })
 
     this.tipsets.push(newTipset);
+  }
+
+  async startDeal(proposal:StorageProposal):Promise<RootCID> {
+    // Remember, we're not cryptographically valid yet. 
+    // Let's just create a random root cid for now.
+    let proposalCid = new CID();
+
+    let deal = new Deal({
+      proposalCid: new RootCID({
+        "/": proposalCid
+      }),
+      state: DealState.Staged, // Not sure if this is right, but we'll start here
+      message: "",
+      provider: this.miner,
+      pieceCid: new RootCID(),
+      size: 2032, // TODO: Need to get the actual size in bytes
+      pricePerEpoch: proposal.epochPrice,
+      duration: proposal.minBlocksDuration,
+      dealId: this.deals.length + 1
+    })
+
+    // Because we're not cryptographically valid, let's 
+    // register the deal with the newly created CID
+    this.dealsByCid[proposalCid.value] = deal;
+
+    this.deals.push(deal)
+
+    return deal.proposalCid;
   }
 }

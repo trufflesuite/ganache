@@ -1,12 +1,17 @@
 import assert from "assert";
 import FilecoinProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
-const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
-
-
-export type LotusClient = any;
+import getIpfsClient from "../../helpers/getIpfsClient";
+import { IPFSClient } from "ipfs-http-client";
 import { CID } from "../../../src/things/cid";
 import { Address } from "../../../src/things/address";
+import { StorageProposal } from "../../../src/things/storageproposal";
+import { RootCID } from "../../../src/things/rootcid";
+import { StorageProposalData } from "../../../src/things/storageproposaldata";
+
+const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
+
+type LotusClient = any;
 
 describe("api", () => {
   describe("filecoin", () => {
@@ -86,5 +91,44 @@ describe("api", () => {
         assert.strictEqual(balance, "0");
       })
     })
+
+    describe("Filecoin.ClientStartDeal", () => {
+      let ipfs:IPFSClient;
+
+      before(async() => {
+        ipfs = getIpfsClient();
+      })
+
+      it("should accept a new deal", async() => {
+        const data = "some data"; 
+
+        let miners = await client.stateListMiners();
+        let address = await client.walletDefaultAddress();
+
+        let result = await ipfs.add(data);
+        let cid = result["/"];
+
+        let proposal = new StorageProposal({
+          data: new StorageProposalData({
+            transferType: "graphsync",
+            root: new RootCID({
+              "/": cid
+            }),
+            pieceCid: null,
+            pieceSize: 0
+          }),
+          wallet: address,
+          miner: miners[0],
+          epochPrice: "2500",
+          minBlocksDuration: 300
+        });
+
+        let proposalCid = await client.clientStartDeal(proposal.serialize());
+
+        assert.ok(proposalCid["/"])
+        assert(CID.isValid(proposalCid["/"]))
+      })
+    });
+
   });
 });

@@ -6,12 +6,12 @@ declare module "ipfs-http-client" {
     apiPath: string;
   }
 
-  type IPFSClient = {
+  export type IPFSClient = {
     add(data:any):Promise<any>;
     get(string):Promise<any>;
   }
 
-  type IPFSClientClass = (params:IPFSClientParameters) => IPFSClient;
+  type IPFSClientClass = (params:Partial<IPFSClientParameters>) => IPFSClient;
 
   export default IpfsHttpClient as IPFSClientClass;
 }

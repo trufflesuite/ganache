@@ -2,6 +2,12 @@
 import Emittery from "emittery";
 import {types} from "@ganache/utils";
 import Blockchain from "./blockchain";
+import { StorageProposal, SerializedStorageProposal } from "./things/storageproposal";
+import { SerializedRootCID } from "./things/rootcid";
+import { SerializedDeal } from "./things/deal";
+import { SerializedTipset } from "./things/tipset";
+import { SerializedAddress } from "./things/address";
+import { SerializedMiner } from "./things/miner";
 
 const _blockchain = Symbol("blockchain");
 
@@ -21,23 +27,23 @@ export default class FilecoinApi implements types.Api {
     await this[_blockchain].stop();
   }
 
-  async "Filecoin.ChainGetGenesis"() {
+  async "Filecoin.ChainGetGenesis"():Promise<SerializedTipset> {
     return this[_blockchain].latestTipset().serialize();;
   }
 
-  async "Filecoin.ChainHead"() {
+  async "Filecoin.ChainHead"():Promise<SerializedTipset> {
     return this[_blockchain].latestTipset().serialize();
   }
 
-  async "Filecoin.StateListMiners"() {
+  async "Filecoin.StateListMiners"():Promise<Array<SerializedMiner>> {
     return [this[_blockchain].miner.serialize()];
   }
 
-  async "Filecoin.WalletDefaultAddress"() {
+  async "Filecoin.WalletDefaultAddress"():Promise<SerializedAddress> {
     return this[_blockchain].address.serialize();
   }
 
-  async "Filecoin.WalletBalance"(address:string) {
+  async "Filecoin.WalletBalance"(address:string):Promise<string> {
     let managedAddress = this[_blockchain].address;
 
     // For now, anything but our default address will have no balance
@@ -48,8 +54,19 @@ export default class FilecoinApi implements types.Api {
     }
   }
 
-  async "Filecoin.GanacheMineTipset"() {
-    this[_blockchain].mineTipset();
+  async "Filecoin.ClientStartDeal"(serializedProposal:SerializedStorageProposal):Promise<SerializedRootCID> {
+    let proposal = new StorageProposal(serializedProposal);
+    let proposalRootCid = await this[_blockchain].startDeal(proposal);
+
+    return proposalRootCid.serialize();
+  }
+
+  async "Filecoin.ClientListDeals"():Promise<Array<SerializedDeal>> {
+    return this[_blockchain].deals.map(deal => deal.serialize());
+  }
+
+  async "Filecoin.GanacheMineTipset"():Promise<SerializedTipset> {
+    await this[_blockchain].mineTipset();
     return this[_blockchain].latestTipset().serialize();
   }
 }
