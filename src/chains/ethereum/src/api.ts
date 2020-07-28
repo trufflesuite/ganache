@@ -496,8 +496,7 @@ export default class EthereumApi implements types.Api {
    * @param hash DATA, 32 Bytes - hash of a block.
    */
   async eth_getUncleCountByBlockHash(hash: string | Buffer) {
-    const block = await this.eth_getBlockByHash(hash);
-    return block.uncles.length.toString();
+    return RPCQUANTITY_ZERO
   }
 
   /**
@@ -505,8 +504,7 @@ export default class EthereumApi implements types.Api {
    * @param hash DATA, 32 Bytes - hash of a block.
    */
   async eth_getUncleCountByBlockNumber(number: string | Buffer) {
-    const block = await this.eth_getBlockByNumber(number);
-    return block.uncles.length.toString();
+    return RPCQUANTITY_ZERO
   }
 
   /**
@@ -516,7 +514,7 @@ export default class EthereumApi implements types.Api {
    * @param index - the uncle's index position.
    */
   async eth_getUncleByBlockHashAndIndex(hash: Data, index: Quantity) {
-    return {};
+    return null;
   }
 
   /**
@@ -526,7 +524,7 @@ export default class EthereumApi implements types.Api {
    * @param uncleIndex - the uncle's index position.
    */
   async eth_getUncleByBlockNumberAndIndex(blockNumber: Buffer | Tag = Tag.LATEST, uncleIndex: Quantity) {
-    return {};
+    return null;
   }
 
   /**
@@ -1336,8 +1334,13 @@ export default class EthereumApi implements types.Api {
     return false;
   }
 
+  /**
+   * Returns the current whisper protocol version.
+   * 
+   * @returns The current whisper protocol version
+   */
   async shh_version() {
-    return 2;
+    return "2";
   }
   //#endregion
 }
