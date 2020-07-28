@@ -62,7 +62,7 @@ class Quantity extends BaseJsonRpcType {
       }
       return view.getBigUint64(0) as bigint;
     } else {
-      return BigInt(value);
+      return value != null ? BigInt(value) : null;
     }
   }
   public toNumber() {

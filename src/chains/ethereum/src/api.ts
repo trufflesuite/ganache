@@ -851,7 +851,8 @@ export default class EthereumApi implements types.Api {
    * @returns The transaction hash
    */
   async eth_sendRawTransaction(transaction: any): Promise<Data> {
-    return await this[_blockchain].queueTransaction(transaction);
+    const tx = new Transaction(Buffer.from(transaction), {common: this[_common]}, Transaction.types.signed);
+    return await this[_blockchain].queueTransaction(tx);
   }
 
   /**
@@ -984,7 +985,7 @@ export default class EthereumApi implements types.Api {
       unsubscribe();
       return true;
     } else {
-      throw new Error(`Subscription ID ${subscriptionId} not found.`)
+      return false;
     }
   }
 
