@@ -33,10 +33,10 @@ export default class BlockManager extends Manager<Block> {
 
     this.#options = options;
 
-    blockchain.on("open", () => {
-      // TODO: get the first key, set as "earliest"
-      // TODO: get the last key, set as "latest"
-    });
+    // blockchain.on("open", () => {
+    //   // TODO: get the first key, set as "earliest"
+    //   // TODO: get the last key, set as "latest"
+    // });
   }
 
   /**
