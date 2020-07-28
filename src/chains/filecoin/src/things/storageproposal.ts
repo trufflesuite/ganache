@@ -47,10 +47,12 @@ class StorageProposal extends SerializableObject<StorageProposalConfig> implemen
         serializedName: "Miner"
       }, 
       epochPrice: {
-        serializedName: "EpochPrice"
+        serializedName: "EpochPrice",
+        defaultValue: "2500"
       },
       minBlocksDuration: {
-        serializedName: "MinBlocksDuration"
+        serializedName: "MinBlocksDuration",
+        defaultValue: 300
       }
     }
   }

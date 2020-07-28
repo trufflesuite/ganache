@@ -1,5 +1,5 @@
 import { RootCID, SerializedRootCID } from "./rootcid";
-import { DealState } from "../dealstates";
+import { DealState, nextSuccessfulState } from "../dealstates";
 import { Miner, SerializedMiner } from "./miner";
 import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
 
@@ -98,6 +98,10 @@ class Deal extends SerializableObject<DealConfig> implements DeserializedObject<
   pricePerEpoch: string;
   duration: number;
   dealId: number;
+
+  advanceState(fullyAdvance:boolean = false) {
+    this.state = nextSuccessfulState[this.state];
+  }
 }
 
 type SerializedDeal = SerializedObject<DealConfig>;

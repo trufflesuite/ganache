@@ -37,3 +37,30 @@ export let terminalStates: Array<DealState> = [
   DealState.Error,
   DealState.Completed
 ];
+
+export let nextSuccessfulState: Record<DealState, DealState> = [
+  DealState.Validating, 
+  DealState.Staged,
+  DealState.EnsureProviderFunds, 
+  DealState.EnsureClientFunds, 
+  DealState.FundsEnsured, 
+  DealState.ProviderFunding, 
+  DealState.ClientFunding, 
+  DealState.Publish, 
+  DealState.Publishing, 
+  DealState.Sealing,
+  DealState.Active,
+].reduce((obj, currentValue, index, array) => {
+  // This creates an object linking each state to its next state
+
+  let nextValue:DealState;
+  if (index + 1 < array.length) {
+    nextValue = array[index + 1]
+  } else {
+    nextValue = array[index];
+  }
+
+  obj[currentValue] = nextValue;
+
+  return obj;
+}, {} as Record<DealState, DealState>)

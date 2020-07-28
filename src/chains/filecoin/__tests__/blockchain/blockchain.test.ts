@@ -2,6 +2,10 @@ import assert from "assert";
 import Blockchain from "../../src/blockchain";
 import { Tipset } from "../../src/things/tipset";
 import IpfsHttpClient from "ipfs-http-client";
+import { StorageProposal } from "../../src/things/storageproposal";
+import { StorageProposalData } from "../../src/things/storageproposaldata";
+import { RootCID } from "../../src/things/rootcid";
+import { DealState } from "../../src/dealstates";
 
 describe("Blockchain", () => {
   
@@ -80,6 +84,100 @@ describe("Blockchain", () => {
 
       await blockchain.stop();
     });
+  })
+
+  describe("deal state progression", () => {
+    let blockchain:Blockchain;
+
+    afterEach(async() => {
+      await blockchain.stop();
+    })
+
+    it("advances state of in process deals on every block", async() => {
+      blockchain = new Blockchain({
+        automining: false
+      });
+
+      await blockchain.waitForReady();
+
+      let proposal = new StorageProposal({
+        data: new StorageProposalData({
+          transferType: "graphsync",
+          root: new RootCID(),
+          pieceCid: null,
+          pieceSize: 0
+        }), 
+        wallet: blockchain.address,
+        miner: blockchain.miner,
+        epochPrice: "2500",
+        minBlocksDuration: 300
+      })
+
+      let { "/": proposalCid } = await blockchain.startDeal(proposal);
+
+      // First state should be validating
+      assert.strictEqual(blockchain.dealsByCid[proposalCid.value].state, DealState.Validating);
+
+      await blockchain.mineTipset();
+
+      // Next state should be Staged
+      assert.strictEqual(blockchain.dealsByCid[proposalCid.value].state, DealState.Staged);
+
+      await blockchain.mineTipset();
+
+      // Next state should be EnsureProviderFunds
+      assert.strictEqual(blockchain.dealsByCid[proposalCid.value].state, DealState.EnsureProviderFunds);
+
+      // ... and on and on
+
+      // Let's mine all the way to the Sealing state
+      while (blockchain.dealsByCid[proposalCid.value].state != DealState.Sealing) {
+        await blockchain.mineTipset();
+      }
+
+      // The deal should still be considered in process, since it's still sealing
+      assert.strictEqual(blockchain.inProcessDeals.length, 1);
+      assert.strictEqual(blockchain.inProcessDeals[0].proposalCid["/"].value, proposalCid.value);
+
+      // Now let's mine the final tipset, making it active, and check to see that
+      // the deal was pulled out of the in process array.
+      await blockchain.mineTipset();
+
+      assert.strictEqual(blockchain.dealsByCid[proposalCid.value].state, DealState.Active);
+      assert.strictEqual(blockchain.inProcessDeals.length, 0);
+    })
+
+    it("fully advances the state of in process deals when automining", async() => {
+      blockchain = new Blockchain({
+        automining: true
+      });
+
+      await blockchain.waitForReady();
+
+      let proposal = new StorageProposal({
+        data: new StorageProposalData({
+          transferType: "graphsync",
+          root: new RootCID(),
+          pieceCid: null,
+          pieceSize: 0
+        }), 
+        wallet: blockchain.address,
+        miner: blockchain.miner,
+        epochPrice: "2500",
+        minBlocksDuration: 300
+      })
+
+      let {
+        "/": proposalCid
+      } = await blockchain.startDeal(proposal);
+
+      // Since we're automining, starting the deal will trigger
+      // the state to be state to be set to active.
+      assert.strictEqual(blockchain.dealsByCid[proposalCid.value].state, DealState.Active);
+
+      // We create 1 tipset per state change. Let's make sure that occurred. 
+      assert.strictEqual(blockchain.tipsets.length, 11);
+    })
   })
 
 });

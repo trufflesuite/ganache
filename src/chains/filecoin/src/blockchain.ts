@@ -13,23 +13,31 @@ import { DealState } from "./dealstates";
 import IPFSServer from "./ipfsserver";
 
 export type BlockchainOptions = {
+  automining: boolean;
   blockTime: number;
   ipfsPort: number;
 };
 
-export default class Blockchain extends Emittery.Typed<undefined, "ready"> implements BlockchainOptions {
-  readonly tipsets: Array<Tipset> = [];
-  readonly miner: Miner;
-  readonly address: Address;
-  readonly balance: Balance;
-  readonly deals: Array<Deal> = [];
+export type BlockchainEvents = {
+  ready():void;
+  dealStateChanged(deal:Deal):void;
+}
 
-  private dealsByCid: Record<string, Deal> = {};
+export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof BlockchainEvents> implements BlockchainOptions {
+  readonly tipsets:Array<Tipset> = [];
+  readonly miner:Miner;
+  readonly address:Address;
+  readonly balance:Balance;
+  readonly deals:Array<Deal> = [];
 
-  readonly blockTime: number = 0;
-  readonly ipfsPort: number = 5001;
+  readonly dealsByCid:Record<string, Deal> = {};
+  readonly inProcessDeals:Array<Deal> = [];
 
-  private ipfsServer: IPFSServer;
+  readonly automining:boolean = true;
+  readonly blockTime:number = 0;
+  readonly ipfsPort:number = 5001;
+
+  private ipfsServer:IPFSServer;
   private miningTimeout:NodeJS.Timeout;
 
   private ready:boolean;
@@ -37,6 +45,10 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
   constructor(options:Partial<BlockchainOptions> = {} as Partial<BlockchainOptions>) {
     super();
     Object.assign(this, options);
+
+    if (this.blockTime > 0) {
+      this.automining = false;
+    }
     
     this.miner = new Miner();
     this.address = new Address();
@@ -60,7 +72,7 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
       await this.ipfsServer.start();
 
       // Fire up the miner if necessary
-      if (this.blockTime != 0) {
+      if (!this.automining && this.blockTime != 0) {
         const intervalMine = () => {
           this.mineTipset();
         }
@@ -125,6 +137,17 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
     })
 
     this.tipsets.push(newTipset);
+
+    // Advance the state of all deals in process. 
+    for (const deal of this.inProcessDeals) {
+      deal.advanceState(this.automining);
+      this.emit("dealStateChanged", deal);
+
+      if (deal.state == DealState.Active) {
+        // Remove the deal from the in-process array
+        this.inProcessDeals.splice(this.inProcessDeals.indexOf(deal), 1);
+      }
+    }
   }
 
   async startDeal(proposal:StorageProposal):Promise<RootCID> {
@@ -136,7 +159,7 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
       proposalCid: new RootCID({
         "/": proposalCid
       }),
-      state: DealState.Staged, // Not sure if this is right, but we'll start here
+      state: DealState.Validating, // Not sure if this is right, but we'll start here
       message: "",
       provider: this.miner,
       pieceCid: new RootCID(),
@@ -150,7 +173,16 @@ export default class Blockchain extends Emittery.Typed<undefined, "ready"> imple
     // register the deal with the newly created CID
     this.dealsByCid[proposalCid.value] = deal;
 
-    this.deals.push(deal)
+    this.deals.push(deal);
+    this.inProcessDeals.push(deal);
+
+    // If we're automining, mine a new block. Note that this will
+    // automatically advance the deal to the active state.
+    if (this.automining) {
+      while (deal.state != DealState.Active) {
+        this.mineTipset();
+      }
+    }
 
     return deal.proposalCid;
   }
