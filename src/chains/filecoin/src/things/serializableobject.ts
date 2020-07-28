@@ -1,6 +1,7 @@
 import { SerializableLiteral } from "./serializableliteral";
 import { deserialize } from "v8";
 import deepEqual from "deep-equal";
+import { CID } from "./cid";
 
 
 // provides shape
@@ -51,7 +52,7 @@ type SerializedObjectWrapper<C extends BaseConfig> = {
     [S in SerializedPropertyName<C, N>]: SerializedPropertyType<C, N>;
   }
 }
-​
+
 interface Wrapper {
   [propertyName: string]: {
     [serializedPropertyName: string]: any;
@@ -76,15 +77,6 @@ type FlattenUnion<T> = {
 }
 ​
 type SerializedObject<C extends BaseConfig> = FlattenUnion<Values<SerializedObjectWrapper<C>>>;
-
-// A mixed object is an object with deserialized keys, and values of either: 
-// - deserialized objects (e.g., classes)
-// - serialalized values (e.g., pure json data)
-// Note that this is recursive so you can specify nested deserialized objects
-// in a single mixed object.
-type MixedObject<C extends BaseConfig> = {
-  [N in keyof DeserializedObject<C>]: PropertyType<C, N> | SerializedPropertyType<C, N> | MixedObject<SerializedPropertyType<C, N>>
-}
 
 type DefaultValue<D, S> =  // A default value can be:
   | D                      // the expected type
@@ -124,11 +116,11 @@ abstract class SerializableObject<C extends BaseConfig> implements Serializable<
 
   // The constructor can take in a serialized object, or a deserialized one.
   // Note that SerializableObject is the deserialized object in value land.
-  constructor(options?: Partial<SerializedObject<C>> | Partial<MixedObject<C>>) {
+  constructor(options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>) {
     this.initialize(options);
   }
 
-  private initialize(options:Partial<SerializedObject<C>> | Partial<MixedObject<C>>):void {
+  private initialize(options:Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>):void {
     if (!options) {
       options = {} as SerializedObject<C>;
     }
