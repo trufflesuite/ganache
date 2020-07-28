@@ -1232,9 +1232,7 @@ export default class EthereumApi implements types.Api {
   /**
    * Creates new whisper identity in the client.
    *
-   * @callback callback
-   * @param {error} err - Error Object
-   * @param {DATA, 60 Bytes} result - the address of the new identiy.
+   * @returns {DATA, 60 Bytes} result - the address of the new identiy.
    */
   async shh_newIdentity() {
     return "0x00";
@@ -1244,9 +1242,7 @@ export default class EthereumApi implements types.Api {
    * Checks if the client hold the private keys for a given identity.
    *
    * @param {DATA, 60 Bytes} address - The identity address to check.
-   * @callback callback
-   * @param {error} err - Error Object
-   * @param {Boolean} result - returns true if the client holds the privatekey for that identity, otherwise false.
+   * @returns returns true if the client holds the privatekey for that identity, otherwise false.
    */
   async shh_hasIdentity(address: string) {
     return false;
@@ -1255,9 +1251,7 @@ export default class EthereumApi implements types.Api {
   /**
    * Creates a new group.
    *
-   * @callback callback
-   * @param {error} err - Error Object
-   * @param {DATA, 60 Bytes} result - the address of the new group.
+   * @returns the address of the new group.
    */
   async shh_newGroup() {
     return "0x00";
@@ -1267,9 +1261,7 @@ export default class EthereumApi implements types.Api {
    * Adds a whisper identity to the group
    *
    * @param {DATA, 60 Bytes} - The identity address to add to a group.
-   * @callback callback
-   * @param {error} err - Error Object
-   * @param {Boolean} result - returns true if the identity was successfully added to the group, otherwise false.
+   * @returns true if the identity was successfully added to the group, otherwise false.
    */
   async shh_addToGroup(address: string) {
     return false;
