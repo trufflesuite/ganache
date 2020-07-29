@@ -60,7 +60,7 @@ describe("things", () => {
 
       // Let's just check the structure of the first one; if it's good, the second should be too
       assert.ok(cidOne.value);
-      assert.equal(cidOne.value.length, 62);
+      assert.equal(cidOne.value.length, 59);
 
       // Now let's make sure both of the values differ
       assert.notEqual(cidOne.value, cidTwo.value, "CID created should be random!");
@@ -112,5 +112,24 @@ describe("things", () => {
       assert.strictEqual(block.blockSignature.data, "t1vv8DSsC2vAVmJsEjVyZgLcYS4+AG0qQzViaVWhfdW24YOt7qkRuDxSftbis/ZlDgCc1sGom26PvnLKLe4H0qJP7B4wW3yw8vp0zovZUV9zW1QkpKGJgO7HIhFlQcg9");
       assert.strictEqual(block.forkSignaling, 0);
     }) 
+  })
+
+  describe("Address", () => {
+    it("should derive a real address from a private key", async() => {
+      // These were pulled directly from Lotus. This private key should 
+      // create the associated address.
+      const privateKey = "f47e78b912695e50283ffb6bf032e489055add72fc5da206e3fc29bda8cafc52"
+      const expectedAddress = "t3vc4eetfk32n3tv5z55p73a2vm32pwxnqgr3jmpf7ssnwff6yh34bjc4vvarzivian5advbmvpmgw7ijxrboa"
+
+      let address = new Address(privateKey);
+
+      assert.strictEqual(address.value, expectedAddress);
+    })
+
+    it("should create a random address if no private key is passed", async() => {
+      let address = new Address();
+
+      assert(Address.isValid(address.value));
+    })
   })
 });

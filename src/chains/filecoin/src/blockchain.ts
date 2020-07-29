@@ -11,6 +11,7 @@ import Balance from "./things/balance";
 import { StorageProposal } from "./things/storageproposal";
 import { DealState } from "./dealstates";
 import IPFSServer from "./ipfsserver";
+import dagCBOR from "ipld-dag-cbor";
 
 export type BlockchainOptions = {
   automining: boolean;
@@ -20,7 +21,6 @@ export type BlockchainOptions = {
 
 export type BlockchainEvents = {
   ready():void;
-  dealStateChanged(deal:Deal):void;
 }
 
 export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof BlockchainEvents> implements BlockchainOptions {
@@ -141,7 +141,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     // Advance the state of all deals in process. 
     for (const deal of this.inProcessDeals) {
       deal.advanceState(this.automining);
-      this.emit("dealStateChanged", deal);
 
       if (deal.state == DealState.Active) {
         // Remove the deal from the in-process array
@@ -151,9 +150,13 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
   }
 
   async startDeal(proposal:StorageProposal):Promise<RootCID> {
-    // Remember, we're not cryptographically valid yet. 
-    // Let's just create a random root cid for now.
-    let proposalCid = new CID();
+    let signature = await this.address.signProposal(proposal);
+
+    // TODO: I'm not sure if should pass in a hex string or the Buffer alone.
+    // I *think* it's the string, as that matches my understanding of the Go code.
+    // That said, node that Buffer vs. hex string returns a different CID...
+    let proposalRawCid = await dagCBOR.util.cid(signature.toString("hex"));
+    let proposalCid = new CID(proposalRawCid.toString());
 
     let deal = new Deal({
       proposalCid: new RootCID({

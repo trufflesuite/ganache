@@ -28,12 +28,17 @@
     "@filecoin-shipyard/lotus-client-schema": "0.0.12",
     "@ganache/options": "^2.2.1",
     "@ganache/utils": "^2.2.1",
+    "base32-encoding": "^1.0.0",
+    "blakejs": "^1.1.0",
     "cross-env": "^7.0.2",
     "deep-equal": "^2.0.3",
+    "fast-cbor": "^1.0.0",
     "ipfs": "^0.48.1",
     "ipfs-http-client": "^45.0.0",
     "ipfsd-ctl": "^5.0.0",
+    "ipld-dag-cbor": "^0.16.0",
     "mocha": "^8.0.1",
+    "noble-bls12-381": "^0.4.3",
     "nyc": "^15.1.0"
   },
   "devDependencies": {
