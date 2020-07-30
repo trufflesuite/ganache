@@ -33,6 +33,7 @@
     "@ganache/utils": "^2.2.1"
   },
   "devDependencies": {
+    "@trufflesuite/typedoc-default-themes": "0.6.1",
     "typedoc": "0.17.8"
   }
 }
