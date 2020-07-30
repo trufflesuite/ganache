@@ -4,6 +4,18 @@
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
+		"@trufflesuite/typedoc-default-themes": {
+			"version": "0.6.1",
+			"resolved": "https://registry.npmjs.org/@trufflesuite/typedoc-default-themes/-/typedoc-default-themes-0.6.1.tgz",
+			"integrity": "sha512-/wt3Jp+fD/DsxArEMixt94hDjHlB6R82Xa2ffjoCzlXrF8OSidzmzYkMvuxi53t1PaQvobNY5wMTXUqGnt/HXA==",
+			"dev": true,
+			"requires": {
+				"backbone": "^1.4.0",
+				"jquery": "^3.4.1",
+				"lunr": "^2.3.6",
+				"underscore": "^1.9.1"
+			}
+		},
 		"@types/bn.js": {
 			"version": "4.11.6",
 			"resolved": "https://registry.npmjs.org/@types/bn.js/-/bn.js-4.11.6.tgz",
@@ -70,6 +82,15 @@
 			"integrity": "sha512-pd20BwL7Yt1zwDFy+8MX8F1+WCT8aQeKj0kQnTrH9WaeRETlRamVhD0JtRPmrV4GfOJ2F9CvdQkZeZhnh2TuHw==",
 			"requires": {
 				"async": "^2.4.0"
+			}
+		},
+		"backbone": {
+			"version": "1.4.0",
+			"resolved": "https://registry.npmjs.org/backbone/-/backbone-1.4.0.tgz",
+			"integrity": "sha512-RLmDrRXkVdouTg38jcgHhyQ/2zjg7a8E6sz2zxfz21Hh17xDJYUHBZimVIt5fUyS8vbfpeSmTL3gUjTEvUV3qQ==",
+			"dev": true,
+			"requires": {
+				"underscore": ">=1.8.3"
 			}
 		},
 		"balanced-match": {
@@ -1026,6 +1047,12 @@
 			"resolved": "https://registry.npmjs.org/isarray/-/isarray-0.0.1.tgz",
 			"integrity": "sha1-ihis/Kmo9Bd+Cav8YDiTmwXR7t8="
 		},
+		"jquery": {
+			"version": "3.5.1",
+			"resolved": "https://registry.npmjs.org/jquery/-/jquery-3.5.1.tgz",
+			"integrity": "sha512-XwIBPqcMn57FxfT+Go5pzySnm4KWkT1Tv7gjrpT1srtf8Weynl6R273VJ5GjkRb51IzMp5nbaPjJXMWeju2MKg==",
+			"dev": true
+		},
 		"jsonfile": {
 			"version": "4.0.0",
 			"resolved": "https://registry.npmjs.org/jsonfile/-/jsonfile-4.0.0.tgz",
@@ -1812,6 +1839,12 @@
 			"integrity": "sha512-Esj5HG5WAyrLIdYU74Z3JdG2PxdIusvj6IWHMtlyESxc7kcDz7zYlYjpnSokn1UbpV0d/QX9fan7gkCNd/9BQA==",
 			"dev": true,
 			"optional": true
+		},
+		"underscore": {
+			"version": "1.10.2",
+			"resolved": "https://registry.npmjs.org/underscore/-/underscore-1.10.2.tgz",
+			"integrity": "sha512-N4P+Q/BuyuEKFJ43B9gYuOj4TQUHXX+j2FqguVOpjkssLUUrnJofCcBccJSCoeturDoZU6GorDTHSvUDlSQbTg==",
+			"dev": true
 		},
 		"universalify": {
 			"version": "0.1.2",
