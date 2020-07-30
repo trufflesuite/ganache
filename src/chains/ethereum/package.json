@@ -39,5 +39,8 @@
     "levelup": "4.4.0",
     "merkle-patricia-tree": "3.0.0",
     "scrypt-js": "3.0.1"
+  },
+  "devDependencies": {
+    "typedoc": "0.17.8"
   }
 }
