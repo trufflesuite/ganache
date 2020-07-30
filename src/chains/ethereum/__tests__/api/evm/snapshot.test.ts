@@ -39,10 +39,6 @@ describe("api", function() {
         const to = receipt.contractAddress;
         const methods = contract.contract.evm.methodIdentifiers;
 
-        const value = await p.send("eth_call", [
-          {from, to, data: "0x" + methods["n()"]}
-        ]);
-
         context.send = p.send.bind(p);
         context.accounts = accounts;
         context.provider = p;

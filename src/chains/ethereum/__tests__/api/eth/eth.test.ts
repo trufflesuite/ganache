@@ -2,6 +2,10 @@ import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 
+function hex(length: number) {
+  return `0x${Buffer.allocUnsafe(length).fill(0).toString("hex")}`;
+}
+
 describe("api", () => {
   describe("eth", () => {
     let provider: EthereumProvider;
@@ -54,6 +58,48 @@ describe("api", () => {
       });
     });
 
+    describe("eth_submitWork", () => {
+      it("should get compilers list", async () => {
+        const result = await provider.send("eth_submitWork", [hex(8), hex(32), hex(32)]);
+        assert.deepStrictEqual(result, false);
+      });
+    });
+
+    describe("eth_getWork", () => {
+      it("should get compilers list", async () => {
+        const result = await provider.send("eth_getWork", ["0x0"]);
+        assert.deepStrictEqual(result, []);
+      });
+    });
+
+    describe("eth_submitHashrate", () => {
+      it("should return the status of eth_submitHashrate", async () => {
+        const result = await provider.send("eth_submitHashrate", [hex(32), hex(32)]);
+        assert.deepStrictEqual(result, false);
+      });
+    });
+
+    describe("eth_chainId", () => {
+      it("should return the default chain id", async () => {
+        const result = await provider.send("eth_chainId");
+        assert.deepStrictEqual(result, "1337");
+      });
+
+      xit("should use the default chain id when signing transactions", async () => {
+        await provider.send("eth_subscribe", ["newHeads"]);
+        const txHash = await provider.send("eth_sendTransaction", [{from: accounts[0], to: accounts[0]}]);
+        await provider.once("message");
+        const tx = await provider.send("eth_getTransactionByHash", [txHash]);
+        assert.strictEqual(tx.v, "0xa96");
+      });
+
+      it("should update the default chain id", async () => {
+        const provider = await getProvider({chainId: 1234});
+        const result = await provider.send("eth_chainId");
+        assert.deepStrictEqual(result, "1234");
+      });
+    });
+
     describe("eth_getBalance", () => {
       it("should return initial balance", async() => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);
@@ -66,7 +112,61 @@ describe("api", () => {
       });
     });
 
-    describe("eth_blockNumber", async () => {
+    describe("eth_getTransactionCount", () => {
+      it("should get the tranasction count of the block", async function() {
+        const tx = {
+          from: accounts[0],
+          to: accounts[1],
+          value: 1
+        };
+
+        const txCount1 = await provider.send("eth_getTransactionCount", [accounts[0]]);
+        assert.strictEqual(txCount1, "0x0");
+        const initialBlockNumber = await provider.send("eth_blockNumber");
+        const txCount2 = await provider.send("eth_getTransactionCount", [accounts[0], initialBlockNumber]);
+        assert.strictEqual(txCount2, "0x0");
+
+        await provider.send("eth_subscribe", ["newHeads"]);
+
+        // send one tx, then check the count
+        await provider.send("miner_stop");
+        await provider.send("eth_sendTransaction", [{...tx}]);
+        await provider.send("miner_start");
+        const message1 = await provider.once("message");
+
+        const txCount3 = await provider.send("eth_getTransactionCount", [accounts[0], message1.data.result.number]);
+        assert.strictEqual(txCount3, "0x1");
+        
+        // send two txs, then check the count
+        await provider.send("miner_stop");
+        await provider.send("eth_sendTransaction", [{...tx}]);
+        await provider.send("eth_sendTransaction", [{...tx}]);
+        await provider.send("miner_start");
+        const message2 = await provider.once("message");
+
+        const txCount4 = await provider.send("eth_getTransactionCount", [accounts[0], message2.data.result.number]);
+        assert.strictEqual(txCount4, "0x3");
+
+        // the check the count at different block numbers...
+
+        const txCount5 = await provider.send("eth_getTransactionCount", [accounts[0], message1.data.result.number]);
+        assert.strictEqual(txCount5, txCount3);
+
+        const txCount6 = await provider.send("eth_getTransactionCount", [accounts[0], initialBlockNumber]);
+        assert.strictEqual(txCount6, "0x0");
+
+        const txCount7 = await provider.send("eth_getTransactionCount", [accounts[0]]);
+        assert.strictEqual(txCount7, txCount4);
+
+        const txCount8 = await provider.send("eth_getTransactionCount", [accounts[0], "earliest"]);
+        assert.strictEqual(txCount8, "0x0");
+
+        const txCount9 = await provider.send("eth_getTransactionCount", [accounts[0], "latest"]);
+        assert.strictEqual(txCount9, txCount4);
+      });
+    });
+
+    describe("eth_blockNumber", () => {
       it("should return initial block number of zero", async function() {
         const blockNumber = await provider.send("eth_blockNumber");
         assert.strictEqual(parseInt(blockNumber, 10), 0);
@@ -196,7 +296,7 @@ describe("api", () => {
 
     it("eth_getTransactionByBlockNumberAndIndex", async () => {
       const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
-      await provider.send("eth_sendTransaction", [
+      const txHash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
           to: accounts[1],
@@ -206,16 +306,21 @@ describe("api", () => {
       const _message = await provider.once("message");
 
       const tx = await provider.send("eth_getTransactionByBlockNumberAndIndex", ["0x1", "0x0"]);
-      assert.equal(
+      assert.strictEqual(
         tx.hash,
-        "0x6a530e6b86c00b7bef84fd75d570627d46a4b982f8a573ef1129780b5f92ff7e",
+        "0xab338178ffd130f1b7724a687ef20afcc75d44020184f82127ab1bc59f17d7e2",
         "Unexpected transaction hash."
+      );
+      assert.strictEqual(
+        tx.hash,
+        txHash,
+        "eth_getTransactionByBlockNumberAndIndex transaction hash doesn't match tx hash"
       );
     });
 
     it("eth_getTransactionByBlockHashAndIndex", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
-      await provider.send("eth_sendTransaction", [
+      await provider.send("eth_subscribe", ["newHeads"]);
+      const txHash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
           to: accounts[1],
@@ -226,42 +331,16 @@ describe("api", () => {
       const block = await provider.send("eth_getBlockByNumber", ["0x1"]);
 
       const tx = await provider.send("eth_getTransactionByBlockHashAndIndex", [block.hash, "0x0"]);
-      assert.equal(
+      assert.strictEqual(
         tx.hash,
-        "0x6a530e6b86c00b7bef84fd75d570627d46a4b982f8a573ef1129780b5f92ff7e",
+        "0xab338178ffd130f1b7724a687ef20afcc75d44020184f82127ab1bc59f17d7e2",
         "Unexpected transaction hash."
       );
-    });
-
-    it("eth_getUncleCountByBlockHash", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
-      await provider.send("eth_sendTransaction", [
-        {
-          from: accounts[0],
-          to: accounts[1],
-          value: 1
-        }
-      ]);
-      const _message = await provider.once("message");
-      const block = await provider.send("eth_getBlockByNumber", ["0x1"]);
-
-      const count = await provider.send("eth_getUncleCountByBlockHash", [block.hash]);
-      assert(count, "0");
-    });
-
-    it("eth_getUncleCountByBlockNumber", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
-      await provider.send("eth_sendTransaction", [
-        {
-          from: accounts[0],
-          to: accounts[1],
-          value: 1
-        }
-      ]);
-      const _message = await provider.once("message");
-
-      const count = await provider.send("eth_getUncleCountByBlockNumber", ["0x1"]);
-      assert(count, "0");
+      assert.strictEqual(
+        tx.hash,
+        txHash,
+        "eth_getTransactionByBlockNumberAndIndex transaction hash doesn't match tx hash"
+      );
     });
 
     it("eth_getTransactionReceipt", async () => {

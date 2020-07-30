@@ -27,7 +27,7 @@ class Quantity extends BaseJsonRpcType {
   public toBigInt(): bigint | null {
     const value = this.value;
 
-    // TODO: memoize this stuff
+    // TODO(perf): memoize this stuff
     if (Buffer.isBuffer(value)) {
       // Parsed as BE.
 
@@ -62,11 +62,11 @@ class Quantity extends BaseJsonRpcType {
       }
       return view.getBigUint64(0) as bigint;
     } else {
-      return BigInt(value);
+      return value != null ? BigInt(value) : 0n;
     }
   }
   public toNumber() {
-    // TODO: convert directly to a number if it is beneficial to do so
+    // TODO(perf): convert directly to a number if it is beneficial to do so
     return Number(this.toBigInt());
   }
   valueOf(): bigint {

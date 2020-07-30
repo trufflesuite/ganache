@@ -81,6 +81,7 @@ export default class Database extends Emittery {
     if (this.#closed) return this.#cleanup();
 
     this.blocks = sub(db, "b", levelupOptions);
+    this.blockLogs = sub(db, "l", levelupOptions);
     this.transactions = sub(db, "t", levelupOptions);
     this.transactionReceipts = sub(db, "r", levelupOptions);
 

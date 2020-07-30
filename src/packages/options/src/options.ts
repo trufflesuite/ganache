@@ -77,7 +77,7 @@ export interface Options {
    * The currently configured chain id, a value used in replay-protected
    * transaction signing as introduced by EIP-155. Default's to `1337`
    */
-  chainId?: string | number;
+  chainId?: number;
 
   /**
    * Alias of `networkId`.
@@ -93,7 +93,7 @@ export interface Options {
    * The id of the network returned by the RPC method `net_version`.
    * Defaults to the current timestamp (`Date.now()`).
    */
-  networkId?: string | number;
+  networkId?: number;
 
   /**
    * Alias of `networkId`.
@@ -183,7 +183,6 @@ export interface Options {
 };
 
 const getDefault: (options?: Options) => Options = options => {
-  // TODO: convert to null propagation operator after updating TS to a version that supports it
   const networkId = (options
     ? options.networkId || options.netVersion || options.network_id || options.net_version || Date.now()
     : Date.now()
