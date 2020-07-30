@@ -22,6 +22,7 @@
     "url": "git+https://github.com/trufflesuite/ganache-core.git"
   },
   "scripts": {
+    "build:docs": "typedoc --out docs src",
     "tsc": "ts-node ../../../scripts/compile"
   },
   "bugs": {
