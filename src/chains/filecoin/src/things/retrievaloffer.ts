@@ -2,7 +2,7 @@ import { RootCID, SerializedRootCID } from "./rootcid";
 import { Miner, SerializedMiner } from "./miner";
 import { SerializableObject, SerializedObject, DeserializedObject, Definitions } from "./serializableobject";
 
-type RemoteOfferConfig = {
+type RetrievalOfferConfig = {
   properties: {
     err: {
       type: string;
@@ -47,8 +47,8 @@ type RemoteOfferConfig = {
   }
 }
 
-class RemoteOffer extends SerializableObject<RemoteOfferConfig> implements DeserializedObject<RemoteOfferConfig> {
-  get config():Definitions<RemoteOfferConfig> {
+class RetrievalOffer extends SerializableObject<RetrievalOfferConfig> implements DeserializedObject<RetrievalOfferConfig> {
+  get config():Definitions<RetrievalOfferConfig> {
     return {
       err: {
         serializedName: "Err",
@@ -56,7 +56,7 @@ class RemoteOffer extends SerializableObject<RemoteOfferConfig> implements Deser
       },
       root: {
         serializedName: "Root",
-        defaultValue: (options) => new RootCID(options)
+        defaultValue: (options) => new RootCID(options),
       },
       size: {
         serializedName: "Size"
@@ -95,9 +95,9 @@ class RemoteOffer extends SerializableObject<RemoteOfferConfig> implements Deser
   minerPeerId:string;
 }
 
-type SerializedRemoteOffer = SerializedObject<RemoteOfferConfig>;
+type SerializedRetrievalOffer = SerializedObject<RetrievalOfferConfig>;
 
 export {
-  RemoteOffer,
-  SerializedRemoteOffer
+  RetrievalOffer,
+  SerializedRetrievalOffer
 }

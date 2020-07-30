@@ -8,7 +8,7 @@ import { SerializedDeal } from "./things/deal";
 import { SerializedTipset } from "./things/tipset";
 import { SerializedAddress } from "./things/address";
 import { SerializedMiner } from "./things/miner";
-import { SerializedRemoteOffer, RemoteOffer } from "./things/remoteoffer";
+import { SerializedRetrievalOffer, RetrievalOffer } from "./things/retrievaloffer";
 
 const _blockchain = Symbol("blockchain");
 
@@ -66,9 +66,21 @@ export default class FilecoinApi implements types.Api {
     return this[_blockchain].deals.map(deal => deal.serialize());
   }
 
-  async "Filecoin.ClientFindData"(rootCid:SerializedRootCID):Promise<Array<SerializedRemoteOffer>> {
-    let remoteOffer = await this[_blockchain].createRemoteOffer(new RootCID(rootCid));
+  async "Filecoin.ClientFindData"(rootCid:SerializedRootCID):Promise<Array<SerializedRetrievalOffer>> {
+    let remoteOffer = await this[_blockchain].createRetrievalOffer(new RootCID(rootCid));
     return [remoteOffer.serialize()];
+  }
+
+  async "Filecoin.ClientRetrieve"(retrievalOffer:SerializedRetrievalOffer):Promise<object> {
+    await this[_blockchain].retrieve(new RetrievalOffer(retrievalOffer));
+
+    // Return value is a placeholder.
+    //
+    // 1) JSON wants to parse the result, so this prevents it parsing `undefined`. 
+    // 2) This API is going to change very soon, according to Lotus devs.
+    // 
+    // As of this writing, this API function is *supposed* to return nothing at all.
+    return {}; 
   }
 
   async "Filecoin.GanacheMineTipset"():Promise<SerializedTipset> {

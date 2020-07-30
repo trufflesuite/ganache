@@ -88,6 +88,7 @@ type Definition<
 > = {
   serializedName: SerializedPropertyName<C, N>;
   defaultValue?: DefaultValue<PropertyType<C, N>, SerializedPropertyType<C, N>>;
+  required?: boolean;
 }
 ​
 // purpose of this type is to have a value
@@ -147,6 +148,10 @@ abstract class SerializableObject<C extends BaseConfig> implements Serializable<
         this[deserializedName] = def(value);
       } else if (typeof value === "undefined") {
         this[deserializedName] = def;
+      }
+
+      if (this.config[deserializedName].required && typeof this[deserializedName] == "undefined") {
+        throw new Error(`${deserializedName} is required for class ${this.constructor.name}`);
       }
     };
      

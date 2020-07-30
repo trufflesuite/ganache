@@ -7,13 +7,7 @@ interface CIDConfig {
 class CID extends SerializableLiteral<CIDConfig>  {
   get config() {
     return {
-      defaultValue: (literal) => {
-        if (typeof literal == undefined) {
-          throw new Error("CID must be passed a value!")
-        }  
-
-        return literal 
-      }
+      required:true
     }
   };
 

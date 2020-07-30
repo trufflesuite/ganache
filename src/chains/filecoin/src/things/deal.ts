@@ -71,8 +71,7 @@ class Deal extends SerializableObject<DealConfig> implements DeserializedObject<
         defaultValue: (options) => new Miner(options)
       },
       pieceCid: {
-        serializedName: "PieceCID",
-        defaultValue: (options) => new RootCID(options)
+        serializedName: "PieceCID"
       },
       size: {
         serializedName: "Size"

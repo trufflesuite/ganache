@@ -61,6 +61,19 @@ describe("things", () => {
       assert(typeof cid.serialize() == "string");
       assert.strictEqual(cid.serialize(), cidStr);
     })
+
+    it("will error if no value is passed into the constructor", async() => {
+      let error:Error;
+
+      try {
+        new CID();
+      } catch(e) {
+        error = e;
+      }
+
+      assert.notStrictEqual(typeof error, "undefined","Expected CID constructor to throw an error on empty value!");
+      assert.strictEqual(error.message, "A value is required for class CID");
+    })
   })
 
   describe("Block", () => {

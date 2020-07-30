@@ -8,8 +8,8 @@ import { Address } from "../../../src/things/address";
 import { StorageProposal } from "../../../src/things/storageproposal";
 import { RootCID } from "../../../src/things/rootcid";
 import { StorageProposalData } from "../../../src/things/storageproposaldata";
-import { SerializedRemoteOffer } from "../../../src/things/remoteoffer";
 import { SerializedDeal } from "../../../src/things/deal";
+import { SerializedRetrievalOffer, RetrievalOffer } from "../../../src/things/retrievaloffer";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
@@ -38,7 +38,6 @@ describe("api", () => {
           id: "0",
           method: "Filecoin.ChainGetGenesis"
         });
-        
 
         assert(CID.isValid(genesis["Cids"][0]["/"]));
       });
@@ -143,8 +142,9 @@ describe("api", () => {
       })
     });
 
-    describe("Filecoin.ClientFindData", () => {
+    describe("Filecoin.ClientFindData and Filecoin.ClientRetrieve", () => {
       let ipfs:IPFSClient;
+      let offer:SerializedRetrievalOffer;
 
       before(async() => {
         ipfs = getIpfsClient();
@@ -157,15 +157,51 @@ describe("api", () => {
 
         let result = await ipfs.add(data);
 
-        let offers = await client.ClientFindData({"/": result.path})
+        let offers = await client.clientFindData({"/": result.path})
 
         assert.strictEqual(offers.length, 1);
 
-        let remoteOffer:SerializedRemoteOffer = offers[0];
+        offer = offers[0];
 
-        assert.ok(remoteOffer);
-        assert.strictEqual(remoteOffer.Size, expectedSize);
-        assert.strictEqual(remoteOffer.MinPrice, expectedMinPrice);
+        assert.ok(offer);
+        assert.strictEqual(offer.Size, expectedSize);
+        assert.strictEqual(offer.MinPrice, expectedMinPrice);
+      })
+
+      it("should 'retrieve' without error (but we all know it's not actually retrieving anything...)", async() => {
+        await client.clientRetrieve(offer);
+
+        // No error? Great, we're good then. See next test.
+      }) 
+
+      it("errors if we try to retrieve a file our IPFS server doesn't know about", async() => {
+        let err:Error;
+
+        let cidIMadeUp = "QmY7Yh4UquoXdL9Fo2XbhXkhBvFoLwmQUfa92pxnxjQuPU";
+
+        let madeUpOffer:SerializedRetrievalOffer = {
+          Err: '',
+          Root: {
+            "/": cidIMadeUp
+          },
+          Size: 1234,
+          MinPrice: "2468",
+          PaymentInterval: 1048576,
+          PaymentIntervalIncrease: 1048576,
+          Miner: "t0100",
+          MinerPeerID: "6vuxqgevbl6irx7tymbj7o4t8bz1s5vy88zmum7flxywy1qugjfd"
+        };
+
+        let error:Error;
+
+        try {
+          await client.clientRetrieve(madeUpOffer);
+        } catch (e) {
+          error = e;
+        }
+
+        assert.notStrictEqual(typeof error, "undefined", "Expected ClientRetrieve to throw an error!");
+        assert(error.message.indexOf("Object not found") >= 0);
       })
     })
 

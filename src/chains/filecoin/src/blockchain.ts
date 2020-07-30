@@ -12,7 +12,7 @@ import { StorageProposal } from "./things/storageproposal";
 import { DealState } from "./dealstates";
 import IPFSServer, { IPFSNode } from "./ipfsserver";
 import dagCBOR from "ipld-dag-cbor";
-import { RemoteOffer } from "./things/remoteoffer";
+import { RetrievalOffer } from "./things/retrievaloffer";
 
 export type BlockchainOptions = {
   automining: boolean;
@@ -153,7 +153,9 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
   }
 
   private async getIPFSObjectSize(cid:string):Promise<number> {
-    let stat = await this.ipfsServer.node.object.stat(cid);
+    let stat = await this.ipfsServer.node.object.stat(cid, {
+      timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
+    });
 
     return stat.DataSize;
   }
@@ -177,7 +179,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
       state: DealState.Validating, // Not sure if this is right, but we'll start here
       message: "",
       provider: this.miner,
-      pieceCid: new RootCID(),
+      pieceCid: null,
       size: size,
       pricePerEpoch: proposal.epochPrice,
       duration: proposal.minBlocksDuration,
@@ -202,13 +204,37 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     return deal.proposalCid;
   }
 
-  async createRemoteOffer(rootCid:RootCID):Promise<RemoteOffer> {
+  async createRetrievalOffer(rootCid:RootCID):Promise<RetrievalOffer> {
     let size = await this.getIPFSObjectSize(rootCid["/"].value);
 
-    return new RemoteOffer({
+    return new RetrievalOffer({
+      root: rootCid,
       size: size,
       miner: this.miner,
       minPrice: "" + (size * 2) // This seems to be what powergate does
     });
+  }
+
+  async retrieve(retrievalOffer:RetrievalOffer):Promise<void> {
+    // Since this is a simulator, we're not actually interacting with other
+    // IPFS and Filecoin nodes. Because of this, there's no need to
+    // actually retrieve anything. That said, we'll check to make sure
+    // we have the content locally in our IPFS server, and error if it
+    // doesn't exist. 
+
+    try {
+      // This stat will fail if the object doesn't exist.
+      await this.ipfsServer.node.object.stat(retrievalOffer.root["/"].value,  {
+        timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
+      })
+    } catch (e) {
+      let err:Error = e;
+
+      if (e.message.indexOf("request timed out") >= 0) {
+        err = new Error(`Object not found: ${retrievalOffer.root["/"].value}`)
+      }
+
+      throw err;
+    }
   }
 }

@@ -12,7 +12,8 @@ type DefaultValue<D> =
   | ((options:D) => D);
 
 type LiteralDefinition<C extends BaseConfig> = {
-  defaultValue: DefaultValue<Literal<C>>;
+  defaultValue?: DefaultValue<Literal<C>>;
+  required?:boolean;
 }
 
 abstract class SerializableLiteral<C extends BaseConfig> implements Serializable<Literal<C>> {
@@ -34,6 +35,10 @@ abstract class SerializableLiteral<C extends BaseConfig> implements Serializable
       }
     } else {
       this.value = literal;
+    }
+
+    if (this.config.required && typeof this.value == "undefined") {
+      throw new Error(`A value is required for class ${this.constructor.name}`);
     }
   }
 

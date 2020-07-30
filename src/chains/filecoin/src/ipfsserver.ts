@@ -1,7 +1,7 @@
 import path from "path";
 import fs, { stat } from "fs";
 import os from "os";
-import { number, string } from "yargs";
+import { CID } from "./things/cid";
 
 const JsIpfs: any = require("ipfs");
 const IpfsHttpApi: any = require("ipfs/src/http");
@@ -18,21 +18,8 @@ export type IPFSNode = {
     path:string;
   }>
   
-  files: {
-    stat(path:string):Promise<{
-      Blocks:number;
-      CumulativeSize:number;
-      Hash:string;
-      Local:boolean;
-      Size:number;
-      SizeLocal:number;
-      Type:string;
-      WithLocality:boolean
-    }>
-  };
-
   object: {
-    stat(key:string):Promise<{
+    stat(key:string, options:any):Promise<{
       BlockSize:number;
       CumulativeSize:number;
       DataSize:number;
