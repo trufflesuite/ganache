@@ -3,7 +3,7 @@ import blake from 'blakejs';
 import * as bls from "noble-bls12-381";
 import base32 from "base32-encoding";
 import { StorageProposal } from "./storageproposal";
-import cbor from "fast-cbor";
+import cbor from "borc";
 
 interface AddressConfig {
   type: string;

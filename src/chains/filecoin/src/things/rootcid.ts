@@ -23,6 +23,10 @@ class RootCID extends SerializableObject<RootCIDConfig> implements DeserializedO
     }
   }
 
+  asPath():string {
+    return "/" + this["/"].value;
+  }
+
   "/": CID;
 }
 

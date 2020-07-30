@@ -5,7 +5,10 @@ declare module "ipld-dag-cbor" {
   
   type IpldCbor = {
     util: {
-      cid(obj:any):Promise<RawCid>
+      cid(obj:any, options?:Partial<{
+        cidVersion:number;
+        hashAlg:string;
+      }>):Promise<RawCid>
     }
   }
 

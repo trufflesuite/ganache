@@ -7,6 +7,11 @@ import { SerializableObject, DeserializedObject, Definitions, SerializedObject }
 import { WinPoStProof, SerializedWinPoStProof } from "./winpostproof";
 import { RootCID, SerializedRootCID } from "./rootcid";
 import { Miner } from "./miner";
+import { CID } from "./cid";
+import cbor from "borc";
+import IPFSCid from "cids";
+import multihashing from "multihashing";
+import multicodec from "multicodec";
 
 
 interface BlockConfig {
@@ -172,6 +177,22 @@ class Block extends SerializableObject<BlockConfig> implements DeserializedObjec
   timestamp: number;
   blockSignature: BlockSignature;
   forkSignaling: 0 | 1;
+
+  get cid():CID {
+    let blockHeader:Partial<DeserializedObject<BlockConfig>> = {};
+    
+    for (const [deserializedName, {serializedName}] of Object.entries(this.config)) {
+      blockHeader[serializedName] = this[deserializedName];
+    }
+
+    // We could have used the ipld-dag-cbor package for the following,
+    // but it was async, which caused a number of issues during object construction.
+    let cborBlockHeader = cbor.encode(blockHeader);
+    let multihash = multihashing(cborBlockHeader, "blake2b-256")
+    let rawCid = new IPFSCid(1, multicodec.print[multicodec.DAG_CBOR], multihash);
+
+    return new CID(rawCid.toString());
+  }
 }
 
 type SerializedBlock = SerializedObject<BlockConfig>;

@@ -1,15 +1,46 @@
 import path from "path";
-import fs from "fs";
+import fs, { stat } from "fs";
 import os from "os";
+import { number, string } from "yargs";
 
 const JsIpfs: any = require("ipfs");
 const IpfsHttpApi: any = require("ipfs/src/http");
 
-type IPFSNode = {
+export type IPFSNode = {
   apiAddr: {
     toString(): string;
   };
   stop(): Promise<void>;
+
+  // API endpoints used
+
+  add(data:any):Promise<{
+    path:string;
+  }>
+  
+  files: {
+    stat(path:string):Promise<{
+      Blocks:number;
+      CumulativeSize:number;
+      Hash:string;
+      Local:boolean;
+      Size:number;
+      SizeLocal:number;
+      Type:string;
+      WithLocality:boolean
+    }>
+  };
+
+  object: {
+    stat(key:string):Promise<{
+      BlockSize:number;
+      CumulativeSize:number;
+      DataSize:number;
+      Hash:string;
+      LinksSize:number;
+      NumLinks:number;
+    }>
+  }
 }
 
 type IPFSHttpServer = {
@@ -18,12 +49,13 @@ type IPFSHttpServer = {
 }
 
 class IPFSServer {
-  public readonly serverPort = 43134;
-  public readonly apiPort = 5001;
-
   static readonly DEFAULT_PORT = 5001;
 
-  private node:IPFSNode;
+  public readonly serverPort = 43134;
+  public readonly apiPort = IPFSServer.DEFAULT_PORT;
+
+  public node:IPFSNode;
+
   private httpServer:IPFSHttpServer;
 
   constructor(apiPort) {

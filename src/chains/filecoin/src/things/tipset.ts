@@ -27,7 +27,7 @@ class Tipset extends SerializableObject<TipsetConfig> implements DeserializedObj
     return {
       cids: {
         serializedName: "Cids",
-        defaultValue: (options = [{"/":undefined}]) => options.map((rootCid) => new RootCID(rootCid))
+        defaultValue: (options = []) => options.map((rootCid) => new RootCID(rootCid))
       },
       blocks: {
         serializedName: "Blocks",
@@ -36,6 +36,19 @@ class Tipset extends SerializableObject<TipsetConfig> implements DeserializedObj
       height: {
         serializedName: "Height",
         defaultValue: 0
+      }
+    }
+  }
+
+  constructor(options?:Partial<SerializedObject<TipsetConfig>> | Partial<DeserializedObject<TipsetConfig>>) {
+    super(options);
+
+    // Calculate Cid's if not specified
+    if (this.cids.length == 0) {
+      for (const block of this.blocks) {
+        this.cids.push(new RootCID({
+          "/": block.cid
+        }))
       }
     }
   }

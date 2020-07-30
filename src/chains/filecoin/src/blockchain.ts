@@ -10,8 +10,9 @@ import { Deal } from "./things/deal";
 import Balance from "./things/balance";
 import { StorageProposal } from "./things/storageproposal";
 import { DealState } from "./dealstates";
-import IPFSServer from "./ipfsserver";
+import IPFSServer, { IPFSNode } from "./ipfsserver";
 import dagCBOR from "ipld-dag-cbor";
+import { RemoteOffer } from "./things/remoteoffer";
 
 export type BlockchainOptions = {
   automining: boolean;
@@ -58,7 +59,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
 
     // Create genesis tipset
     this.tipsets.push(new Tipset({
-      cids: [new RootCID()],
       blocks: [
         new Block()
       ],
@@ -106,6 +106,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     await this.ipfsServer.stop();
   }
 
+  get ipfs():IPFSNode {
+    return this.ipfsServer.node;
+  }
+
   genesisTipset():Tipset {
     return this.tipsets[0];
   }
@@ -120,7 +124,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     let previousTipset:Tipset = this.latestTipset();
 
     let newBlocks:Array<Block> = [];
-    let parentBlock = previousTipset.blocks[0];
 
     for (let i = 0; i < numNewBlocks; i++) {
       newBlocks.push(new Block({
@@ -149,7 +152,16 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     }
   }
 
+  private async getIPFSObjectSize(cid:string):Promise<number> {
+    let stat = await this.ipfsServer.node.object.stat(cid);
+
+    return stat.DataSize;
+  }
+
   async startDeal(proposal:StorageProposal):Promise<RootCID> {
+    // Get size of IPFS object represented by the proposal
+    let size = await this.getIPFSObjectSize(proposal.data.root["/"].value);
+
     let signature = await this.address.signProposal(proposal);
 
     // TODO: I'm not sure if should pass in a hex string or the Buffer alone.
@@ -166,7 +178,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
       message: "",
       provider: this.miner,
       pieceCid: new RootCID(),
-      size: 2032, // TODO: Need to get the actual size in bytes
+      size: size,
       pricePerEpoch: proposal.epochPrice,
       duration: proposal.minBlocksDuration,
       dealId: this.deals.length + 1
@@ -188,5 +200,15 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     }
 
     return deal.proposalCid;
+  }
+
+  async createRemoteOffer(rootCid:RootCID):Promise<RemoteOffer> {
+    let size = await this.getIPFSObjectSize(rootCid["/"].value);
+
+    return new RemoteOffer({
+      size: size,
+      miner: this.miner,
+      minPrice: "" + (size * 2) // This seems to be what powergate does
+    });
   }
 }

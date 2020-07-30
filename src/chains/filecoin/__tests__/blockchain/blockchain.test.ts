@@ -100,10 +100,14 @@ describe("Blockchain", () => {
 
       await blockchain.waitForReady();
 
+      let result = await blockchain.ipfs.add("some data");
+
       let proposal = new StorageProposal({
         data: new StorageProposalData({
           transferType: "graphsync",
-          root: new RootCID(),
+          root: new RootCID({
+            "/": result.path
+          }),
           pieceCid: null,
           pieceSize: 0
         }), 
@@ -154,10 +158,14 @@ describe("Blockchain", () => {
 
       await blockchain.waitForReady();
 
+      let result = await blockchain.ipfs.add("some data");
+
       let proposal = new StorageProposal({
         data: new StorageProposalData({
           transferType: "graphsync",
-          root: new RootCID(),
+          root: new RootCID({
+            "/": result.path
+          }),
           pieceCid: null,
           pieceSize: 0
         }), 
@@ -176,7 +184,7 @@ describe("Blockchain", () => {
       assert.strictEqual(blockchain.dealsByCid[proposalCid.value].state, DealState.Active);
 
       // We create 1 tipset per state change. Let's make sure that occurred. 
-      assert.strictEqual(blockchain.tipsets.length, 11);
+      assert.strictEqual(blockchain.tipsets.length, 12);
     })
   })
 

@@ -8,6 +8,8 @@ import { Address } from "../../../src/things/address";
 import { StorageProposal } from "../../../src/things/storageproposal";
 import { RootCID } from "../../../src/things/rootcid";
 import { StorageProposalData } from "../../../src/things/storageproposaldata";
+import { SerializedRemoteOffer } from "../../../src/things/remoteoffer";
+import { SerializedDeal } from "../../../src/things/deal";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
@@ -36,6 +38,8 @@ describe("api", () => {
           id: "0",
           method: "Filecoin.ChainGetGenesis"
         });
+        
+
         assert(CID.isValid(genesis["Cids"][0]["/"]));
       });
 
@@ -92,7 +96,7 @@ describe("api", () => {
       })
     })
 
-    describe("Filecoin.ClientStartDeal", () => {
+    describe("Filecoin.ClientStartDeal and Filecoin.ClientListDeals", () => {
       let ipfs:IPFSClient;
 
       before(async() => {
@@ -101,12 +105,13 @@ describe("api", () => {
 
       it("should accept a new deal", async() => {
         const data = "some data"; 
+        const expectedSize = 15;
 
         let miners = await client.stateListMiners();
         let address = await client.walletDefaultAddress();
 
         let result = await ipfs.add(data);
-        let cid = result["/"];
+        let cid = result.path;
 
         let proposal = new StorageProposal({
           data: new StorageProposalData({
@@ -127,8 +132,42 @@ describe("api", () => {
 
         assert.ok(proposalCid["/"])
         assert(CID.isValid(proposalCid["/"]))
+
+        let deals = await client.clientListDeals();
+
+        assert.strictEqual(deals.length, 1);
+
+        let deal:SerializedDeal = deals[0];
+        assert.strictEqual(deal.ProposalCid["/"], proposalCid["/"])
+        assert.strictEqual(deal.Size, expectedSize)
       })
     });
+
+    describe("Filecoin.ClientFindData", () => {
+      let ipfs:IPFSClient;
+
+      before(async() => {
+        ipfs = getIpfsClient();
+      })
+
+      it("should provide a remote offer", async() => {
+        const data = "some data"; 
+        const expectedSize = 15;
+        const expectedMinPrice = "30";
+
+        let result = await ipfs.add(data);
+
+        let offers = await client.ClientFindData({"/": result.path})
+
+        assert.strictEqual(offers.length, 1);
+
+        let remoteOffer:SerializedRemoteOffer = offers[0];
+
+        assert.ok(remoteOffer);
+        assert.strictEqual(remoteOffer.Size, expectedSize);
+        assert.strictEqual(remoteOffer.MinPrice, expectedMinPrice);
+      })
+    })
 
   });
 });

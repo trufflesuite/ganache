@@ -48,6 +48,7 @@ export let nextSuccessfulState: Record<DealState, DealState> = [
   DealState.ClientFunding, 
   DealState.Publish, 
   DealState.Publishing, 
+  DealState.Transferring,
   DealState.Sealing,
   DealState.Active,
 ].reduce((obj, currentValue, index, array) => {

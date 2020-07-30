@@ -3,11 +3,12 @@ import Emittery from "emittery";
 import {types} from "@ganache/utils";
 import Blockchain from "./blockchain";
 import { StorageProposal, SerializedStorageProposal } from "./things/storageproposal";
-import { SerializedRootCID } from "./things/rootcid";
+import { SerializedRootCID, RootCID } from "./things/rootcid";
 import { SerializedDeal } from "./things/deal";
 import { SerializedTipset } from "./things/tipset";
 import { SerializedAddress } from "./things/address";
 import { SerializedMiner } from "./things/miner";
+import { SerializedRemoteOffer, RemoteOffer } from "./things/remoteoffer";
 
 const _blockchain = Symbol("blockchain");
 
@@ -63,6 +64,11 @@ export default class FilecoinApi implements types.Api {
 
   async "Filecoin.ClientListDeals"():Promise<Array<SerializedDeal>> {
     return this[_blockchain].deals.map(deal => deal.serialize());
+  }
+
+  async "Filecoin.ClientFindData"(rootCid:SerializedRootCID):Promise<Array<SerializedRemoteOffer>> {
+    let remoteOffer = await this[_blockchain].createRemoteOffer(new RootCID(rootCid));
+    return [remoteOffer.serialize()];
   }
 
   async "Filecoin.GanacheMineTipset"():Promise<SerializedTipset> {
