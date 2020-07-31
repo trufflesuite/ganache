@@ -6,6 +6,7 @@
     "npm": ">=6.1.0"
   },
   "scripts": {
+    "build:docs": "lerna exec --no-bail npm run build:docs",
     "clean": "npx shx rm -rf node_modules && npx lerna clean -y",
     "create": "ts-node ./scripts/create",
     "postinstall": "lerna bootstrap && npx patch-package",

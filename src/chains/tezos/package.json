@@ -22,13 +22,18 @@
     "url": "git+https://github.com/trufflesuite/ganache-core.git"
   },
   "scripts": {
+    "build:docs": "rm -rf ./lib/docs ./lib/api.json && typedoc --options ./typedoc.json --readme ./README.md --out ./lib/docs --json ./lib/api.json src/api.ts",
     "tsc": "ts-node ../../../scripts/compile"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
   "dependencies": {
-    "@ganache/utils": "^2.2.1",
-    "@ganache/options": "^2.2.1"
+    "@ganache/options": "^2.2.1",
+    "@ganache/utils": "^2.2.1"
+  },
+  "devDependencies": {
+    "@trufflesuite/typedoc-default-themes": "0.6.1",
+    "typedoc": "0.17.8"
   }
 }
