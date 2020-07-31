@@ -1,6 +1,6 @@
 import {types} from "@ganache/utils";
-import TezosConnector from "@ganache/tezos";
-import EthereumConnector from "@ganache/ethereum";
+import {TezosConnector} from "@ganache/tezos";
+import {EthereumConnector} from "@ganache/ethereum";
 
 export const FlavorMap = {
   tezos: TezosConnector,

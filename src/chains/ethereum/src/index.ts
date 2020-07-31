@@ -13,7 +13,7 @@ function isHttp(connection: HttpRequest | WebSocket): connection is HttpRequest 
 export type EthereumProvider = Provider;
 export const EthereumProvider = Provider;
 
-export default class EthereumConnector extends Emittery.Typed<undefined, "ready" | "close">
+export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "close">
   implements types.Connector<EthereumApi, JsonRpcTypes.Request<EthereumApi>> {
 
   #provider: Provider;

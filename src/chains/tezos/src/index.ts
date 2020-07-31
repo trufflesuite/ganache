@@ -8,7 +8,7 @@ import { HttpRequest } from "uWebSockets.js";
 export type TezosProvider = Provider;
 export const TezosProvider = Provider;
 
-export default class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
+export class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
   implements types.Connector<TezosApi> {
   provider: Provider;
   #api: TezosApi;
