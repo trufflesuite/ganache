@@ -22,7 +22,7 @@ export default class TransactionManager extends Manager<Transaction> {
     });
   }
 
-  public push(transaction: Transaction, secretKey?: Data): Promise<void> {
+  public push(transaction: Transaction, secretKey?: Data) {
     return this.transactionPool.insert(transaction, secretKey);
   }
 }

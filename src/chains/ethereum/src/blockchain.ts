@@ -2,7 +2,7 @@ import Miner from "./miner";
 import Database from "./database";
 import Emittery from "emittery";
 import BlockManager, {Block} from "./components/block-manager";
-import BlockLogs, { BlockLog } from "./things/blocklogs";
+import BlockLogs from "./things/blocklogs";
 import TransactionManager from "./components/transaction-manager";
 import CheckpointTrie from "merkle-patricia-tree";
 import {BN} from "ethereumjs-util";
@@ -45,10 +45,13 @@ export type BlockchainOptions = {
   common: Common;
 };
 
-export default class Blockchain extends Emittery.Typed<{block: any | Block}, "start" | "resume" | "pause" | "stop" | "step"> {
+type BlockchainTypedEvents = {block: Block, blockLogs: BlockLogs, pendingTransaction: Transaction};
+type BlockchainEvents = "start" | "resume" | "pause" | "stop" | "step";
+
+export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, BlockchainEvents> {
   #state: Status = Status.starting;
   #miner: Miner;
-  #processingBlock: Promise<Block>;
+  #processingBlock: Promise<{block: Block, blockLogs: BlockLogs}>;
   public blocks: BlockManager;
   public blockLogs: BlockLogManager;
   public transactions: TransactionManager;
@@ -185,17 +188,18 @@ export default class Blockchain extends Emittery.Typed<{block: any | Block}, "st
           this.blockLogs.set(blockNumber, blockLogs.serialize());
           block.value.transactions = blockData.blockTransactions;
           this.blocks.putBlock(block);
-          return block;
+          return {block, blockLogs};
         });
 
-        this.#processingBlock.then(block => {
+        this.#processingBlock.then(({block, blockLogs}) => {
           this.blocks.latest = block;
           // emit the block once everything has been fully saved to the database
           this.emit("block", block);
+          this.emit("blockLogs", blockLogs);
         });
       });
 
-      this.blocks.earliest = this.blocks.latest = await this.#processingBlock;
+      this.blocks.earliest = this.blocks.latest = await this.#processingBlock.then(({block}) => block);
       this.#state = Status.started;
       this.emit("start");
     });
@@ -277,7 +281,7 @@ export default class Blockchain extends Emittery.Typed<{block: any | Block}, "st
     await commit();
   };
 
-  #initializeGenesisBlock = async (timestamp: number, blockGasLimit: Quantity): Promise<Block> => {
+  #initializeGenesisBlock = async (timestamp: number, blockGasLimit: Quantity) => {
     // create the genesis block
     const genesis = this.blocks.next({
       // If we were given a timestamp, use it instead of the `_currentTime`
@@ -288,22 +292,7 @@ export default class Blockchain extends Emittery.Typed<{block: any | Block}, "st
     });
 
     // store the genesis block in the database
-    return this.blocks.putBlock(genesis);
-    // bloom:'0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-    // coinbase:'0x0000000000000000000000000000000000000000'
-    // difficulty:'0x'
-    // extraData:'0x'
-    // gasLimit:'0x6691b7'
-    // gasUsed:'0x'
-    // mixHash:'0x0000000000000000000000000000000000000000000000000000000000000000'
-    // nonce:'0x0000000000000000'
-    // number:'0x'
-    // parentHash:'0x0000000000000000000000000000000000000000000000000000000000000000'
-    // receiptTrie:'0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
-    // stateRoot:'0x8281cb204e0242d2d9178e392b60eaf4563ae5ffc4897c9c6cf6e99a4d35aff3'
-    // timestamp:'0x0173971ee7f0'
-    // transactionsTrie:'0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
-    // uncleHash:'0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347'
+    return this.blocks.putBlock(genesis).then(block => ({block, blockLogs: BlockLogs.create(block.value.hash())}));
   };
 
   #timeAdjustment: number = 0;
@@ -424,7 +413,9 @@ export default class Blockchain extends Emittery.Typed<{block: any | Block}, "st
   }
 
   public async queueTransaction(transaction: any, secretKey?: Data): Promise<Data> {
-    await this.transactions.push(transaction, secretKey);
+    if(await this.transactions.push(transaction, secretKey)){
+      this.emit("pendingTransaction", transaction);
+    }
     return Data.from(transaction.hash());
   }
 

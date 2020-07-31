@@ -227,6 +227,6 @@ describe("Random tests that are temporary!", () => {
     });
     const accounts = await p.send("eth_accounts");
     const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
-    assert(true);
+    assert(result, "0x");
   });
 });

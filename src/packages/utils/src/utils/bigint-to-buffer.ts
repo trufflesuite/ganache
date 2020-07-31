@@ -1,15 +1,49 @@
+import { uintToBuffer } from "./uint-to-buffer";
+
+const MAX_UINT32 = 0xffffffffn;
+const allocUnsafe = Buffer.allocUnsafe;
+
 let _bigIntToBuffer: (val: bigint) => Buffer;
+/**
+ * Returns the number of bytes contained in this given `value`.
+ * @param value
+ */
+function bigIntByteLength(value: bigint){
+  let length = 1;
+  while (value >>= 8n) length++;
+  return length;
+}
+
+const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
 try {
   const toBufferBE = require("bigint-buffer").toBufferBE;
-  _bigIntToBuffer = (val: bigint) => {
-    const buffer = toBufferBE(val, 128);
-    for (let i = 0; i < buffer.length - 1; i++) if (buffer[i]) return buffer.slice(i);
-    return buffer.slice(buffer.length - 1);
-  };
+  _bigIntToBuffer = (value: bigint) => {
+    if (value <= MAX_SAFE_INTEGER) {
+      return uintToBuffer(Number(value));
+    } else {
+      const size = bigIntByteLength(value);
+      return toBufferBE(value, size);
+    }
+  }
 } catch (e) {
-  _bigIntToBuffer = (val: bigint): Buffer => {
-    const hex = val.toString(16);
-    return Buffer.from(hex.length % 2 ? hex : `0${hex}`);
+  _bigIntToBuffer = (value: bigint): Buffer => {
+    if (value <= MAX_SAFE_INTEGER) {
+      // if this value can be handled as a JS number safely, convert it that way
+      return uintToBuffer(Number(value));
+    } else {
+      let length = bigIntByteLength(value);
+      const buf = allocUnsafe(length);
+      do {
+        // process 1 byte at a time
+        buf[--length] = Number(value & 0xffffffffn);
+        value >>= 8n;
+      } while (length);
+      return buf;
+    }
   };
 }
+
+/**
+ * Converts a bigint to a Buffer (Big Endian)
+ */
 export const bigIntToBuffer = _bigIntToBuffer;

@@ -13,6 +13,38 @@ import { decode as rlpDecode } from "rlp";
 
 type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
 type TypedData = Exclude<Parameters<typeof signTypedData_v4>[1]["data"], NotTypedData>;
+enum FilterTypes {
+  log,
+  block,
+  pendingTransaction
+};
+type Topic = string|string[];
+type FilterArgs = {address?: string | string[], topics?: Topic[], fromBlock?: string | Tag, toBlock?: string | Tag};
+function parseFilter(filter: FilterArgs, blockchain: Blockchain) {
+  // `filter.address` may be a single address or an array
+  const addresses = filter.address ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(a => Address.from(a.toLowerCase()).toBuffer()) : [];
+  const topics = filter.topics ? filter.topics : [];
+
+  const fromBlock = blockchain.blocks.getEffectiveNumber(filter.fromBlock || "latest");
+  const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
+  const latestBlock = Quantity.from(latestBlockNumberBuffer);
+  const latestBlockNumber = latestBlock.toNumber();
+  const toBlock = blockchain.blocks.getEffectiveNumber(filter.toBlock || "latest");
+  let toBlockNumber: number;
+  // don't search after the "latest" block, unless it's "pending", of course.
+  if (toBlock > latestBlock) {
+    toBlockNumber = latestBlockNumber;
+  } else {
+    toBlockNumber = toBlock.toNumber();
+  }
+  return {
+    addresses,
+    fromBlock,
+    toBlock,
+    toBlockNumber,
+    topics
+  };
+}
 
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
@@ -34,14 +66,6 @@ const RPCQUANTITY_ZERO = Quantity.from("0x0");
 const RPC_MODULES = { eth: "1.0", net: "1.0", rpc: "1.0", web3: "1.0", evm: "1.0", personal: "1.0" } as const;
 //#endregion
 
-// We use symbols for private properties because types.Api
-// only allows index types of index type '(...args: any) => Promise<any>'
-const _blockchain = Symbol("blockchain");
-const _options = Symbol("options");
-const _wallet = Symbol("wallet");
-const _filters = Symbol("filters");
-const _common = Symbol("common");
-
 //#region types
 type SubscriptionId = string;
 //#endregion
@@ -49,11 +73,13 @@ type SubscriptionId = string;
 export default class EthereumApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
-  private readonly [_common]: Common;
-  private readonly [_filters] = new Map<any, any>();
-  private readonly [_blockchain]: Blockchain;
-  private readonly [_options]: EthereumOptions;
-  private readonly [_wallet]: Wallet;
+  readonly #getId = ((id) => () => Quantity.from(++id))(0);
+  readonly #common: Common;
+  readonly #filters = new Map<string, {type: FilterTypes, updates: any[], unsubscribe: Emittery.UnsubscribeFn, filter: FilterArgs}>();
+  readonly #subscriptions = new Map<string, Emittery.UnsubscribeFn>();
+  readonly #blockchain: Blockchain;
+  readonly #options: EthereumOptions;
+  readonly #wallet: Wallet;
 
   /**
    * This is the Ethereum ledger that the provider interacts with.
@@ -63,14 +89,14 @@ export default class EthereumApi implements types.Api {
    * @param ready Callback for when the ledger is fully initialized
    */
   constructor(options: EthereumOptions, emitter: Emittery.Typed<{message: any}, "connect" | "disconnect">) {
-    const opts = (this[_options] = options);
+    const opts = (this.#options = options);
 
-    const {initialAccounts} = this[_wallet] = new Wallet(opts);
+    const {initialAccounts} = this.#wallet = new Wallet(opts);
 
     const blockchainOptions = options as BlockchainOptions;
     blockchainOptions.initialAccounts = initialAccounts;
     blockchainOptions.coinbase = initialAccounts[0];
-    this[_common] = blockchainOptions.common = Common.forCustomChain(
+    this.#common = blockchainOptions.common = Common.forCustomChain(
       "mainnet", // TODO needs to match chain id
       {
         name: "ganache",
@@ -81,7 +107,7 @@ export default class EthereumApi implements types.Api {
       },
       options.hardfork
     );
-    const blockchain = (this[_blockchain] = new Blockchain(blockchainOptions));
+    const blockchain = (this.#blockchain = new Blockchain(blockchainOptions));
     blockchain.on("start", () => {
       emitter.emit("connect");
     });
@@ -157,7 +183,7 @@ export default class EthereumApi implements types.Api {
    * @param timestamp? the timestamp a block should setup as the mining time.
    */
   async evm_mine(timestamp?: number) {
-    await this[_blockchain].mine(-1, timestamp);
+    await this.#blockchain.mine(-1, timestamp);
     return "0x0";
   }
 
@@ -174,17 +200,17 @@ export default class EthereumApi implements types.Api {
   async evm_setAccountNonce(address: string, nonce: string) {
     return new Promise((resolve, reject) => {
       const buffer = Address.from(address).toBuffer();
-      this[_blockchain].vm.stateManager.getAccount(buffer, (err: Error, account: EthereumAccount) => {
+      this.#blockchain.vm.stateManager.getAccount(buffer, (err: Error, account: EthereumAccount) => {
         if (err) {
           return void reject(err)
         }
         account.nonce = Quantity.from(nonce).toBuffer();
-        this[_blockchain].vm.stateManager.putAccount(buffer, account, (err: Error) => {
+        this.#blockchain.vm.stateManager.putAccount(buffer, account, (err: Error) => {
           if (err) {
             return void reject(err);
           }
          
-          this[_blockchain].mine(0).then(() => resolve(true), reject);
+          this.#blockchain.mine(0).then(() => resolve(true), reject);
         });
       });
     });
@@ -196,7 +222,7 @@ export default class EthereumApi implements types.Api {
    * @returns Returns the total time adjustment, in seconds.
    */
   async evm_increaseTime(seconds: number) {
-    return this[_blockchain].increaseTime(seconds);
+    return this.#blockchain.increaseTime(seconds);
   }
 
   /**
@@ -210,7 +236,7 @@ export default class EthereumApi implements types.Api {
    * @returns The amount of *seconds* between the given timestamp and now.
    */
   async evm_setTime(time?: Date | number) {
-    return this[_blockchain].setTime(+time);
+    return this.#blockchain.setTime(+time);
   }
 
   /**
@@ -252,7 +278,7 @@ export default class EthereumApi implements types.Api {
    * assert.strictEqual(BigInt(endingBalance), startingBalance);
    */
   async evm_revert(snapshotId: string | number) {
-    return this[_blockchain].revert(Quantity.from(snapshotId));
+    return this.#blockchain.revert(Quantity.from(snapshotId));
   }
 
   /**
@@ -292,7 +318,7 @@ export default class EthereumApi implements types.Api {
    * assert.strictEqual(BigInt(endingBalance), startingBalance);
    */
   async evm_snapshot() {
-    return Quantity.from(this[_blockchain].snapshot());
+    return Quantity.from(this.#blockchain.snapshot());
   }
 
   //#endregion evm
@@ -306,7 +332,7 @@ export default class EthereumApi implements types.Api {
    * @returns true
    */
   async miner_start(threads: number = 1) {
-    this[_blockchain].resume(threads);
+    this.#blockchain.resume(threads);
     return true;
   }
 
@@ -314,7 +340,7 @@ export default class EthereumApi implements types.Api {
    * Stop the CPU mining operation.
    */
   async miner_stop() {
-    this[_blockchain].pause();
+    this.#blockchain.pause();
     return true;
   }
 
@@ -325,7 +351,7 @@ export default class EthereumApi implements types.Api {
    * process.
    */
   async miner_setGasPrice(number: Quantity) {
-    this[_options].gasPrice = number;
+    this.#options.gasPrice = number;
     return true;
   }
 
@@ -334,7 +360,7 @@ export default class EthereumApi implements types.Api {
    * @param address 
    */
   async miner_setEtherbase(address: string) {
-    this[_blockchain].coinbase = Address.from(address);
+    this.#blockchain.coinbase = Address.from(address);
     return true;
   }
   //#endregion
@@ -365,7 +391,7 @@ export default class EthereumApi implements types.Api {
    * Quantity/Data encoded.
    */
   async net_version(): Promise<string> {
-    return this[_options].networkId.toString();
+    return this.#options.networkId.toString();
   }
 
   /**
@@ -428,7 +454,7 @@ export default class EthereumApi implements types.Api {
    * @returns 20 bytes - the current coinbase address.
    */
   async eth_coinbase(): Promise<Address> {
-    return this[_blockchain].coinbase;
+    return this.#blockchain.coinbase;
   }
 
   /**
@@ -438,7 +464,7 @@ export default class EthereumApi implements types.Api {
    * @returns Block
    */
   async eth_getBlockByNumber(number: string | Buffer, transactions = false) {
-    const block = await this[_blockchain].blocks.get(number);
+    const block = await this.#blockchain.blocks.get(number);
     return block.toJSON(transactions);
   }
 
@@ -449,7 +475,7 @@ export default class EthereumApi implements types.Api {
    * @returns Block
    */
   async eth_getBlockByHash(hash: string | Buffer, transactions = false) {
-    const block = await this[_blockchain].blocks.getByHash(hash);
+    const block = await this.#blockchain.blocks.getByHash(hash);
     return block.toJSON(transactions);
   }
 
@@ -458,7 +484,7 @@ export default class EthereumApi implements types.Api {
    * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
    */
   async eth_getBlockTransactionCountByNumber(number: string | Buffer) {
-    const rawBlock = await this[_blockchain].blocks.getRaw(number);
+    const rawBlock = await this.#blockchain.blocks.getRaw(number);
     const data = rlpDecode(rawBlock);
     return (data[1] as any).length;
   }
@@ -468,7 +494,7 @@ export default class EthereumApi implements types.Api {
    * @param hash DATA, 32 Bytes - hash of a block.
    */
   async eth_getBlockTransactionCountByHash(hash: string | Buffer) {
-    const number = await this[_blockchain].blocks.getNumberFromHash(hash);
+    const number = await this.#blockchain.blocks.getNumberFromHash(hash);
     return this.eth_getBlockTransactionCountByNumber(number);
   }
 
@@ -573,7 +599,7 @@ export default class EthereumApi implements types.Api {
    * @returns returns true of the client is mining, otherwise false.
    */
   async eth_mining() {
-    return this[_blockchain].isMining();
+    return this.#blockchain.isMining();
   }
 
   /**
@@ -589,7 +615,7 @@ export default class EthereumApi implements types.Api {
    * @returns integer of the current gas price in wei.
    */
   async eth_gasPrice() {
-    return this[_options].gasPrice;
+    return this.#options.gasPrice;
   }
 
   /**
@@ -597,7 +623,7 @@ export default class EthereumApi implements types.Api {
    * @returns Array of 20 Bytes - addresses owned by the client.
    */
   async eth_accounts() {
-    return this[_wallet].addresses;
+    return this.#wallet.addresses;
   }
 
   /**
@@ -605,7 +631,7 @@ export default class EthereumApi implements types.Api {
    * @returns integer of the current block number the client is on.
    */
   async eth_blockNumber() {
-    const latest = await this[_blockchain].blocks.get(Tag.LATEST);
+    const latest = await this.#blockchain.blocks.get(Tag.LATEST);
     return Quantity.from(latest.value.header.number);
   }
 
@@ -616,7 +642,7 @@ export default class EthereumApi implements types.Api {
    * @EIP [155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
    */
   async eth_chainId() {
-    return this[_options].chainId.toString();
+    return this.#options.chainId.toString();
   }
 
   /**
@@ -626,7 +652,7 @@ export default class EthereumApi implements types.Api {
    *  or "pending", see the default block parameter
    */
   async eth_getBalance(address: string, blockNumber: Buffer | Tag = Tag.LATEST) {
-    const chain = this[_blockchain];
+    const chain = this.#blockchain;
     const account = await chain.accounts.get(Address.from(address), blockNumber);
     return account.balance;
   }
@@ -639,7 +665,7 @@ export default class EthereumApi implements types.Api {
    * @returns the code from the given address.
    */
   async eth_getCode(address: Buffer, blockNumber: Buffer | Tag = Tag.LATEST) {
-    const blockchain = this[_blockchain];
+    const blockchain = this.#blockchain;
     const blockProm = blockchain.blocks.getRaw(blockNumber);
 
     const trie = blockchain.trie.copy();
@@ -696,9 +722,9 @@ export default class EthereumApi implements types.Api {
     position: bigint | number,
     blockNumber: string | Buffer | Tag = Tag.LATEST
   ): Promise<Data> {
-    const blockProm = this[_blockchain].blocks.getRaw(blockNumber);
+    const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
 
-    const trie = this[_blockchain].trie.copy();
+    const trie = this.#blockchain.trie.copy();
     const getFromTrie = (address: Buffer): Promise<Buffer> =>
       new Promise((resolve, reject) => {
         trie.get(address, (err, data) => {
@@ -754,7 +780,7 @@ export default class EthereumApi implements types.Api {
    * @param transactionHash 32 Bytes - hash of a transaction
    */
   async eth_getTransactionByHash(transactionHash: string): Promise<Transaction> {
-    const chain = this[_blockchain];
+    const chain = this.#blockchain;
     const transaction = await chain.transactions.get(Data.from(transactionHash).toBuffer());
     return transaction;
   }
@@ -768,7 +794,7 @@ export default class EthereumApi implements types.Api {
    * @returns Returns the receipt of a transaction by transaction hash.
    */
   async eth_getTransactionReceipt(transactionHash: string): Promise<{}> {
-    const blockchain = this[_blockchain];
+    const blockchain = this.#blockchain;
     const transactionPromise = blockchain.transactions.get(transactionHash);
     const receiptPromise = blockchain.transactionReceipts.get(transactionHash);
     const blockPromise = transactionPromise.then(t => (t ? blockchain.blocks.get(t._blockNum) : null));
@@ -804,7 +830,7 @@ export default class EthereumApi implements types.Api {
       throw new Error("invalid to address");
     }
 
-    const wallet = this[_wallet];
+    const wallet = this.#wallet;
     const isKnownAccount = wallet.knownAccounts.has(fromString);
     const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
 
@@ -820,13 +846,13 @@ export default class EthereumApi implements types.Api {
       type = Transaction.types.fake;
     }
 
-    const tx = Transaction.fromJSON(transaction, this[_common], type);
+    const tx = Transaction.fromJSON(transaction, this.#common, type);
     if (tx.gasLimit.length === 0) {
-      tx.gasLimit = this[_options].defaultTransactionGasLimit.toBuffer();
+      tx.gasLimit = this.#options.defaultTransactionGasLimit.toBuffer();
     }
 
     if (tx.gasPrice.length === 0) {
-      const gasPrice = this[_options].gasPrice;
+      const gasPrice = this.#options.gasPrice;
       if (gasPrice instanceof Quantity) {
         tx.gasPrice = gasPrice.toBuffer();
       } else {
@@ -844,10 +870,10 @@ export default class EthereumApi implements types.Api {
 
     if (isUnlockedAccount) {
       const secretKey = wallet.unlockedAccounts.get(fromString);
-      return this[_blockchain].queueTransaction(tx, secretKey);
+      return this.#blockchain.queueTransaction(tx, secretKey);
     }
 
-    return this[_blockchain].queueTransaction(tx);
+    return this.#blockchain.queueTransaction(tx);
   }
 
   /**
@@ -856,8 +882,8 @@ export default class EthereumApi implements types.Api {
    * @returns The transaction hash
    */
   async eth_sendRawTransaction(transaction: any): Promise<Data> {
-    const tx = new Transaction(Buffer.from(transaction), {common: this[_common]}, Transaction.types.signed);
-    return await this[_blockchain].queueTransaction(tx);
+    const tx = new Transaction(Buffer.from(transaction), {common: this.#common}, Transaction.types.signed);
+    return await this.#blockchain.queueTransaction(tx);
   }
 
   /**
@@ -875,7 +901,7 @@ export default class EthereumApi implements types.Api {
    */
   async eth_sign(address: string | Buffer, message: string | Buffer) {
     const account = Address.from(address).toString().toLowerCase();
-    const wallet = this[_wallet];
+    const wallet = this.#wallet;
     const privateKey = wallet.unlockedAccounts.get(account);
     if (privateKey == null) {
       throw new Error("cannot sign data; no private key");
@@ -883,7 +909,7 @@ export default class EthereumApi implements types.Api {
 
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
     const signature = ecsign(messageHash, privateKey.toBuffer());
-    return toRpcSig(signature.v, signature.r, signature.s, +this[_options].chainId);
+    return toRpcSig(signature.v, signature.r, signature.s, +this.#options.chainId);
   }
 
   /**
@@ -901,7 +927,7 @@ export default class EthereumApi implements types.Api {
   async eth_signTypedData(address: string | Buffer, typedData: TypedData) {
     const account = Address.from(address).toString().toLowerCase();
 
-    const privateKey = this[_wallet].unlockedAccounts.get(account);
+    const privateKey = this.#wallet.unlockedAccounts.get(account);
     if (privateKey == null) {
       throw new Error("cannot sign data; no private key");
     }
@@ -929,13 +955,35 @@ export default class EthereumApi implements types.Api {
     return signTypedData_v4(privateKey.toBuffer(), { data: typedData });
   }
 
-  eth_subscribe(subscriptionName: "newHeads", options?: any): PromiEvent<any> {
+  /**
+   * Starts a subscription to a particular event. For every event that matches
+   * the subscription a JSON-RPC notification with event details and 
+   * subscription ID will be sent to a client.
+   * 
+   * @param subscriptionName 
+   * @returns A subscription id.
+   */
+  eth_subscribe(subscriptionName: "newHeads" | "newPendingTransactions" | "syncing" | "logs"): PromiEvent<Quantity>
+  /**
+   * Starts a subscription to a particular event. For every event that matches
+   * the subscription a JSON-RPC notification with event details and 
+   * subscription ID will be sent to a client.
+   * 
+   * @param subscriptionName 
+   * @param options Filter options:
+   *  * `address`: either an address or an array of addresses. Only logs that
+   *    are created from these addresses are returned
+   *  * `topics`, only logs which match the specified topics
+   * @returns A subscription id.
+   */
+  eth_subscribe(subscriptionName: "logs", options: Pick<FilterArgs, "address" | "topics">): PromiEvent<Quantity>
+  eth_subscribe(subscriptionName: "newHeads" | "newPendingTransactions" | "syncing" | "logs", options?: Pick<FilterArgs, "address" | "topics">) {
+    const subscriptions = this.#subscriptions;
     switch (subscriptionName) {
-      case "newHeads":
-        const filters = this[_filters];
-        const promiEvent = new PromiEvent(resolve => {
-          const subscription = `0x${filters.size.toString(16)}`;
-          const unsubscribe = this[_blockchain].on("block", (block: any | Block) => {
+      case "newHeads": {
+        const promiEvent = new PromiEvent<Quantity>(resolve => {
+          const subscription = this.#getId();
+          const unsubscribe = this.#blockchain.on("block", (block: Block) => {
             const value = block.value;
             const header = value.header;
             const result = {
@@ -956,57 +1004,90 @@ export default class EthereumApi implements types.Api {
               "transactionsRoot": Data.from(header.transactionsTrie, 32),
               "sha3Uncles":       Data.from(header.uncleHash, 32)
             };
+
+            // TODO: move the JSON stringification closer to where the message
+            // is actually sent to the listener
             promiEvent.emit("message", {
               type: "eth_subscription",
               data: {
                 result: JSON.parse(JSON.stringify(result)),
-                subscription
+                subscription: subscription.toString()
               }
             });
           });
-          filters.set(subscription, unsubscribe);
+          subscriptions.set(subscription.toString(), unsubscribe);
 
           resolve(subscription);
         });
         return promiEvent;
-      //case "logs":
-      // const promiEvent = new PromiEvent(resolve => {
-      //   this.eth_newFilter([paramsz[1]])
-      //     .then(hexId => {
-      //         resolve(hexId);
-      //     });
-      // });
-      // promiEvent.then(hexId => {
-      //   this[_filters]
-      //     .get(hexId)
-      //     .on("block")
-      //     .then((block: any) => {
-      //       const blockNumber = block.number;
-      //       return [{
-      //         fromBlock: blockNumber,
-      //         toBlock: blockNumber
-      //       }];
-      //     }).then(this.eth_getLogs).then((logs: any) => {
-      //       promiEvent.emit("result", logs);
-      //     });
-      // });
-      // return promiEvent;
-      // case 'newPendingTransactions':
-      //   createSubscriptionFilter = self.newPendingTransactionFilter.bind(self)
-      //   break;
-      // case 'syncing':
-      // default:
-      //   cb(new Error('unsupported subscription type'))
-      //   return
+      }
+      case "logs": {
+        const promiEvent = new PromiEvent(resolve => {
+          const subscription = this.#getId();
+          const blockchain = this.#blockchain;
+          const { addresses, topics, fromBlock, toBlock } = parseFilter(options, blockchain);
+          const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
+            const blockNumber = blockLogs.getBlockNumber();
+            if (fromBlock >= blockNumber && blockNumber <= toBlock) {
+              // TODO: move the JSON stringification closer to where the message
+              // is actually sent to the listener
+              const result = JSON.parse(JSON.stringify([...blockLogs.filter(addresses, topics)]));
+              promiEvent.emit("message", {
+                type: "eth_subscription",
+                data: {
+                  result,
+                  subscription: subscription.toString()
+                }
+              });
+            }
+          });
+          subscriptions.set(subscription.toString(), unsubscribe);
+
+          resolve(subscription);
+        });
+        return promiEvent;
+      }
+      case "newPendingTransactions": {
+        const promiEvent = new PromiEvent(resolve => {
+          const subscription = this.#getId();
+          const blockchain = this.#blockchain;
+          const unsubscribe = blockchain.on("pendingTransaction", (transaction: Transaction) => {
+            const result = Data.from(transaction.hash(), 32).toString();
+            promiEvent.emit("message", {
+              type: "eth_subscription",
+              data: {
+                result,
+                subscription: subscription.toString()
+              }
+            });
+          });
+          subscriptions.set(subscription.toString(), unsubscribe);
+
+          resolve(subscription);
+        });
+        return promiEvent;
+      }
+      case "syncing": {
+        const subscriptions = this.#subscriptions;
+        const promiEvent = new PromiEvent(resolve => {
+          const subscription = this.#getId();
+          subscriptions.set(subscription.toString(), () => {});
+
+          resolve(subscription);
+        });
+        return promiEvent;
+      }
+      default:
+        throw new Error("unsupported subscription type");
     }
   }
 
 
-  async eth_unsubscribe(subscriptionId: SubscriptionId): Promise<any> {
-    const filters = this[_filters];
-    const unsubscribe = filters.get(subscriptionId);
+  async eth_unsubscribe(subscriptionId: SubscriptionId) {
+    const subscriptions = this.#subscriptions;
+    const unsubscribe = subscriptions.get(subscriptionId);
     if (unsubscribe) {
-      filters.delete(subscriptionId);
+      subscriptions.delete(subscriptionId);
       unsubscribe();
       return true;
     } else {
@@ -1014,54 +1095,141 @@ export default class EthereumApi implements types.Api {
     }
   }
 
-  async eth_newBlockFilter(): Promise<any> {
-
+  /**
+   * Creates a filter in the node, to notify when a new block arrives. To check
+   * if the state has changed, call `eth_getFilterChanges`.
+   * 
+   * @returns A filter id.
+   */
+  async eth_newBlockFilter() {
+    const unsubscribe = this.#blockchain.on("block", (block: Block) => {
+      value.updates.push(Data.from(block.value.hash(), 32));
+    });
+    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.block};
+    const filterId = this.#getId();
+    this.#filters.set(filterId.toString(), value);
+    return filterId;
   }
+
+  /**
+   * Creates a filter in the node, to notify when new pending transactions
+   * arrive. To check if the state has changed, call `eth_getFilterChanges`.
+   * 
+   * @returns A filter id.
+   */
   async eth_newPendingTransactionFilter(): Promise<any> {
-
-  }
-  async eth_newFilter(params: any[]): Promise<any> {
-
-  }
-  async eth_getFilterChanges(): Promise<any> {
-
-  }
-  async eth_uninstallFilter(): Promise<any> {
-
-  }
-  async eth_getFilterLogs(): Promise<any> {
+    const unsubscribe = this.#blockchain.on("pendingTransaction", (transaction: Transaction) => {
+      value.updates.push(Data.from(transaction.hash(), 32));
+    });
+    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.pendingTransaction};
+    const filterId = this.#getId();
+    this.#filters.set(filterId.toString(), value);
+    return filterId;
   }
 
-  async eth_getLogs(filter: {address: string | string[], topics: (string|string[])[], fromBlock: string | Tag, toBlock: string | Tag}): Promise<any> {
-    // `filter.address` may be a single address or an array
-    const expectedAddresses = filter.address ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(a => Address.from(a.toLowerCase()).toBuffer()) : [];
-    const expectedTopics = filter.topics ? filter.topics : [];
+  /**
+   * Creates a filter object, based on filter options, to notify when the state
+   * changes (logs). To check if the state has changed, call
+   * `eth_getFilterChanges`.
+   * 
+   * ### A note on specifying topic filters:
+   * Topics are order-dependent. A transaction with a log with topics [A, B]
+   * will be matched by the following topic filters:
+   *  * `[]` “anything”
+   *  * `[A]` “A in first position (and anything after)”
+   *  * `[null, B]` “anything in first position AND B in second position (and
+   * anything after)”
+   *  * `[A, B]` “A in first position AND B in second position (and anything
+   * after)”
+   *  * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second
+   * position (and anything after)”
+   * 
+   * @param filter The filter options
+   */
+  async eth_newFilter(filter: FilterArgs) {
+    const blockchain = this.#blockchain;
+    const { addresses, topics, fromBlock, toBlock } = parseFilter(filter, blockchain);
+    const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
+      const blockNumber = blockLogs.getBlockNumber();
+      if (fromBlock >= blockNumber && blockNumber <= toBlock) {
+        value.updates.push(...blockLogs.filter(addresses, topics));
+      }
+    });
+    const value = {updates: [], unsubscribe, filter, type: FilterTypes.log};
+    const filterId = this.#getId();
+    this.#filters.set(filterId.toString(), value);
+    return filterId;
+  }
 
-    const blockchain = this[_blockchain];
-    const fromBlock = blockchain.blocks.getEffectiveNumber(filter.fromBlock);
-    const pendingLogsPromises: Promise<BlockLogs>[] = [];
-    pendingLogsPromises.push(blockchain.blockLogs.get(fromBlock.toBuffer()));
-    
-    const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
-    const latestBlock = Quantity.from(latestBlockNumberBuffer);
-    const latestBlockNumber = latestBlock.toNumber();
-    let toBlock = blockchain.blocks.getEffectiveNumber(filter.toBlock);
-    let toBlockNumber: number;
-    // don't search after the "latest" block, unless it's "pending", of course.
-    if (toBlock > latestBlock) {
-      toBlock = latestBlock;
-      toBlockNumber = latestBlockNumber;
+  /**
+   * Polling method for a filter, which returns an array of logs, block hashes,
+   * or transactions hashes, depending on the filter type, which occurred since
+   * last poll.
+   * 
+   * @param filterId the filter id.
+   * @returns an array of logs, block hashes,
+   * or transactions hashes, depending on the filter type, which occurred since
+   * last poll.
+   */
+  async eth_getFilterChanges(filterId: string): Promise<any> {
+    const filter = this.#filters.get(filterId);
+    if (filter) {
+      const updates = filter.updates;
+      filter.updates = [];
+      return updates;
     } else {
-      toBlockNumber = toBlock.toNumber();
+      throw new Error("filter not found");
     }
+  }
+
+  /**
+   * Uninstalls a filter with given id. Should always be called when watch is
+   * no longer needed.
+   * 
+   * @param filterId the filter id.
+   * @returns `true` if the filter was successfully uninstalled, otherwise
+   * `false`.
+   */
+  async eth_uninstallFilter(filterId: string): Promise<any> {
+    const filter = this.#filters.get(filterId);
+    if (!filter) return false;
+    filter.unsubscribe();
+    return this.#filters.delete(filterId);
+  }
+
+  /**
+   * Returns an array of all logs matching filter with given id.
+   * 
+   * @returns Array of log objects, or an empty array.
+   */
+  async eth_getFilterLogs(filterId: string): Promise<any> {
+    const filter = this.#filters.get(filterId);
+    if (filter && filter.type === FilterTypes.log) {
+      return this.eth_getLogs(filter.filter);
+    } else {
+      throw new Error("filter not found");
+    }
+  }
+
+  /**
+   * Returns an array of all logs matching a given filter object.
+   * 
+   * @param filter The filter options
+   * @returns Array of log objects, or an empty array.
+   */
+  async eth_getLogs(filter: FilterArgs): Promise<any> {
+    const blockchain = this.#blockchain;
+    const {addresses, topics, fromBlock, toBlockNumber} = parseFilter(filter, blockchain);
     
+    const pendingLogsPromises: Promise<BlockLogs>[] = [blockchain.blockLogs.get(fromBlock.toBuffer())];
+
     const fromBlockNumber = fromBlock.toNumber();
     // if we have a range of blocks to search, do that here:
     if (fromBlockNumber !== toBlockNumber) {
       // fetch all the blockLogs in-between `fromBlock` and `toBlock` (excluding
       // from, because we already started fetching that one)
-      for (let i = fromBlockNumber + 1, l = toBlockNumber; i < l; i++) {
-        pendingLogsPromises.push(blockchain.blockLogs.get(Quantity.from(i)));
+      for (let i = fromBlockNumber + 1, l = toBlockNumber + 1; i < l; i++) {
+        pendingLogsPromises.push(blockchain.blockLogs.get(Quantity.from(i).toBuffer()));
       }
     }
 
@@ -1071,7 +1239,7 @@ export default class EthereumApi implements types.Api {
       blockLogsRange.forEach(blockLogs => {
         // TODO(perf): this loops over all expectedAddresseses for every block.
         // Make it loop only once.
-        filteredBlockLogs.push(...blockLogs.filter(expectedAddresses, expectedTopics));
+        if (blockLogs) filteredBlockLogs.push(...blockLogs.filter(addresses, topics));
       });
       return filteredBlockLogs;
     });
@@ -1086,16 +1254,25 @@ export default class EthereumApi implements types.Api {
    * @returns integer of the number of transactions sent from this address.
    */
   async eth_getTransactionCount(address: string, blockNumber: Buffer | Tag = Tag.LATEST) {
-    const account = await this[_blockchain].accounts.get(Address.from(address), blockNumber);
+    const account = await this.#blockchain.accounts.get(Address.from(address), blockNumber);
     return account.nonce;
   }
 
+
+  /**
+   * Executes a new message call immediately without creating a transaction on the block chain.
+   * 
+   * @param transaction
+   * @param blockNumber
+   * 
+   * @returns the return value of executed contract.
+   */
   async eth_call(transaction: any, blockNumber: string | Buffer | Tag = Tag.LATEST): Promise<Data> {
-    const blockchain = this[_blockchain];
+    const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.value.header;
-    const options = this[_options];
+    const options = this.#options;
 
     if (!transaction.gasLimit) {
       if (!transaction.gas) {
@@ -1127,11 +1304,11 @@ export default class EthereumApi implements types.Api {
    * @returns the Ethereum account addresses of all keys that have been added.
    */
   async personal_listAccounts() {
-    return this[_wallet].addresses;
+    return this.#wallet.addresses;
   };
 
   /**
-   * Generates a new accoutn with private key. Returns the address of the new
+   * Generates a new account with private key. Returns the address of the new
    * account.
    * @param passphrase
    * @returns The new account's address
@@ -1141,8 +1318,8 @@ export default class EthereumApi implements types.Api {
       throw new Error("missing value for required argument `passphrase`");
     }
 
-    const wallet = this[_wallet];
-    const newAccount = wallet.createRandomAccount(this[_options].mnemonic);
+    const wallet = this.#wallet;
+    const newAccount = wallet.createRandomAccount(this.#options.mnemonic);
     const address = newAccount.address;
     const strAddress = address.toString();
     const encryptedKeyFile = await wallet.encrypt(newAccount.privateKey, passphrase);
@@ -1164,7 +1341,7 @@ export default class EthereumApi implements types.Api {
       throw new Error("missing value for required argument `passphrase`");
     }
 
-    const wallet = this[_wallet];
+    const wallet = this.#wallet;
     const newAccount = Wallet.createAccountFromPrivateKey(Data.from(rawKey));
     const address = newAccount.address;
     const strAddress = address.toString();
@@ -1180,7 +1357,7 @@ export default class EthereumApi implements types.Api {
    * @param address 
    */
   async personal_lockAccount(address: string) {
-    return this[_wallet].lockAccount(address.toLowerCase());
+    return this.#wallet.lockAccount(address.toLowerCase());
   };
 
   /**
@@ -1199,7 +1376,7 @@ export default class EthereumApi implements types.Api {
    * @returns true if it worked. Throws an error if it did not.
    */
   async personal_unlockAccount(address: string, passphrase: string, duration: number = 300) {
-    return this[_wallet].unlockAccount(address.toLowerCase(), passphrase, duration);
+    return this.#wallet.unlockAccount(address.toLowerCase(), passphrase, duration);
   };
 
   /**
@@ -1226,13 +1403,13 @@ export default class EthereumApi implements types.Api {
       throw new Error("from not found; is required");
     }
 
-    const wallet = this[_wallet];
+    const wallet = this.#wallet;
     const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
     if (encryptedKeyFile === undefined) {
       throw new Error("no key for given address or file");
     }
     let tx: Transaction;
-    const options = {common: this[_common]}
+    const options = {common: this.#common}
     if (encryptedKeyFile !== null) {
       const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
 
@@ -1242,7 +1419,7 @@ export default class EthereumApi implements types.Api {
       tx = new Transaction(transaction, options, Transaction.types.fake);
     }
 
-    return this[_blockchain].queueTransaction(tx);
+    return this.#blockchain.queueTransaction(tx);
   };
   //#endregion
 

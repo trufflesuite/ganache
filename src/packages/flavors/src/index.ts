@@ -12,6 +12,10 @@ export type FlavorMap = {
   ethereum: EthereumConnector;
 };
 
+export type FlavorKeys = keyof FlavorMap;
+
+export const DefaultFlavor = "ethereum" as const;
+
 export type Flavors = {
   [k in keyof FlavorMap]: FlavorMap[k];
 }[keyof FlavorMap];

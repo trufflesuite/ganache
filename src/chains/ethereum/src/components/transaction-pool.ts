@@ -42,6 +42,14 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   }> = new Map();
   #accountPromises = new Map<string, PromiseLike<Account>>();
 
+  /**
+   * Inserts a transaction into the pending queue, if executable, or future pool
+   * if not.
+   * 
+   * @param transaction 
+   * @param secretKey 
+   * @returns `true` if the transaction is executable (pending), `false` if it is queued
+   */
   public async insert(transaction: Transaction, secretKey?: Data) {
     let err: Error;
 
@@ -185,14 +193,18 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       }
 
       this.#drainQueued(origin, queuedOriginTransactions, executableOriginTransactions, transactionNonce);
-    } else if (queuedOriginTransactions) {
-      queuedOriginTransactions.push(transaction);
+      return true;
     } else {
-      queuedOriginTransactions = utils.Heap.from(transaction, byNonce);
-      origins.set(origin, {
-        nonce: highestNonce, 
-        transactions: queuedOriginTransactions
-      });
+      if (queuedOriginTransactions) {
+        queuedOriginTransactions.push(transaction);
+      } else {
+        queuedOriginTransactions = utils.Heap.from(transaction, byNonce);
+        origins.set(origin, {
+          nonce: highestNonce, 
+          transactions: queuedOriginTransactions
+        });
+      }
+      return false;
     }
   }
 

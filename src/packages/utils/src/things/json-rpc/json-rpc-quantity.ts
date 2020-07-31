@@ -66,8 +66,7 @@ class Quantity extends BaseJsonRpcType {
     }
   }
   public toNumber() {
-    // TODO(perf): convert directly to a number if it is beneficial to do so
-    return Number(this.toBigInt());
+    return typeof this.value === "number" ? this.value : Number(this.toBigInt());
   }
   valueOf(): bigint {
     const value = this.value;

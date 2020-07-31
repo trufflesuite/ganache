@@ -3,7 +3,7 @@
  * All properties must be `async` callable or return a `Promise`
  */
 class ApiBase {
-  readonly [index: string]: (...args: any) => Promise<any>;
+  readonly [index: string]: (...args: unknown[]) => Promise<unknown>;
 }
 
 /**

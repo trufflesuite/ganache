@@ -7,9 +7,12 @@ export default class BlockLogManager extends Manager<BlockLog> {
   constructor(base: LevelUp) {
     super(base, BlockLog);
   }
+
   async get(key: string | Buffer) {
     const log = await super.get(key);
-    log.setBlockNumber(key instanceof Quantity ? key : Quantity.from(key));
+    if (log) {
+      log.setBlockNumber(key instanceof Quantity ? key : Quantity.from(key));
+    }
     return log;
   }
 }
