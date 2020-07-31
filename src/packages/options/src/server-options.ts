@@ -30,14 +30,3 @@ export {
   ServerOptions,
   FlavoredServerOptions
 };
-
-export function getDefault<T extends ServerOptions>(options?: T):T {
-  return Object.assign<T, T>(
-    {
-      keepAliveTimeout: 5000,
-      port: 8545,
-      ws: true
-    } as T,
-    options
-  );
-};

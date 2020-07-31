@@ -1,7 +1,7 @@
 //#region Imports
 import { toRpcSig, KECCAK256_NULL, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
-import EthereumOptions from "@ganache/options/src/chains/ethereum";
+import {EthereumOptions} from "@ganache/options";
 import { types, Data, Quantity } from "@ganache/utils";
 import Blockchain, { BlockchainOptions } from "./blockchain";
 import Tag from "./things/tags";

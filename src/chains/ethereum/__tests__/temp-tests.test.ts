@@ -3,7 +3,7 @@ import {Quantity} from "@ganache/utils";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
 import { join } from "path";
-import EthereumOptions from "@ganache/options/src/chains/ethereum";
+import {EthereumOptions} from "@ganache/options";
 
 /**
  * test in here are playground tests or just tests that are in the original

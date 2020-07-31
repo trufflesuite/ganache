@@ -1,7 +1,6 @@
 import { utils } from "@ganache/utils";
 import EthereumProvider from "../../src/provider";
-import {ProviderOptions} from "@ganache/options";
-import EthereumOptions from "@ganache/options/src/chains/ethereum";
+import {ProviderOptions, EthereumOptions} from "@ganache/options";
 
 type ConvenientOptions = ProviderOptions & EthereumOptions;
 

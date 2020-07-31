@@ -1,5 +1,4 @@
-import {getDefault as getDefaultServerOptions, FlavoredServerOptions} from "@ganache/options";
-
+import {ServerOptions, FlavoredServerOptions} from "@ganache/options";
 import uWS, {TemplatedApp, us_listen_socket} from "uWebSockets.js";
 import Connector from "./connector";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
@@ -59,7 +58,7 @@ export default class Server<T extends FlavoredServerOptions = FlavoredServerOpti
   }
 
   constructor(serverOptions?: T) {
-    const opts = (this.#options = getDefaultServerOptions(serverOptions));
+    const opts = (this.#options = getDefault(serverOptions));
     const connector = (this.#connector = Connector.initialize(opts));
 
     const _app = (this.#app = uWS.App());
@@ -137,3 +136,14 @@ export default class Server<T extends FlavoredServerOptions = FlavoredServerOpti
     this.#app = void 0;
   }
 }
+
+export function getDefault<T extends ServerOptions>(options?: T):T {
+  return Object.assign<T, T>(
+    {
+      keepAliveTimeout: 5000,
+      port: 8545,
+      ws: true
+    } as T,
+    options
+  );
+};

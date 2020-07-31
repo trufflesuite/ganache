@@ -1,9 +1,12 @@
 import Emittery from "emittery";
 import EthereumApi from "./api";
 import {JsonRpcTypes} from "@ganache/utils";
-import EthereumOptions, {getDefault} from "@ganache/options/src/chains/ethereum";
+import {EthereumOptions} from "@ganache/options";
 import cloneDeep from "lodash.clonedeep";
 import {PromiEvent, types, utils} from "@ganache/utils";
+import {Quantity} from "@ganache/utils";
+import {entropyToMnemonic} from "bip39";
+import seedrandom, {seedrandom_prng} from "seedrandom";
 
 interface Callback {
   (err?: Error, response?: JsonRpcTypes.Response): void;
@@ -111,4 +114,81 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
     await this.emit("disconnect");
     return;
   };
+}
+
+
+
+function randomBytes(length: number, rng: () => number) {
+  const buf = Buffer.allocUnsafe(length);
+  for (let i = 0; i < length; i++) {
+    buf[i] = (rng() * 255) | 0;
+  }
+  return buf;
+}
+
+const randomAlphaNumericString = (() => {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const alphabetLength = alphabet.length;
+  return (length: number, rng: () => number) => {
+    let text = "";
+    for (let i = 0; i < length; i++) {
+      text += alphabet[(rng() * alphabetLength) | 0];
+    }
+
+    return text;
+  };
+})();
+
+function getDefault(options?: Partial<EthereumOptions>):EthereumOptions {
+  const networkId = (options
+    ? options.networkId || options.netVersion || options.network_id || options.net_version || Date.now()
+    : Date.now()
+  ).toString();
+  const chainId = options ? options.chainId || 1337 : 1337;
+  const secure = options ? options.secure || options.locked || false : false;
+
+  let finalOptions = {} as EthereumOptions;
+
+  Object.assign(finalOptions, 
+    {
+      chainId,
+      debug: false,
+      logger: {log: () => {}},
+      default_balance_ether: 100n,
+      total_accounts: 10n,
+      networkId,
+      vmErrorsOnRPCResponse: true,
+      hdPath: "m/44'/60'/0'/0/",
+      allowUnlimitedContractSize: false,
+      gasPrice: new Quantity(2000000000),
+      gasLimit: new Quantity(6721975),
+      defaultTransactionGasLimit: new Quantity(90000),
+      callGasLimit: new Quantity(Number.MAX_SAFE_INTEGER),
+      verbose: false,
+      asyncRequestProcessing: true,
+      hardfork: "muirGlacier",
+      secure
+    },
+    options
+  );
+
+  if (!options.mnemonic) {
+    let rng: seedrandom_prng;
+    let seed = finalOptions.seed;
+    if (!seed) {
+      // do this so that we can use the same seed on our next run and get the same
+      // results without explicitly setting a seed up front.
+      // Use the alea PRNG for its extra speed.
+      rng = seedrandom.alea as seedrandom_prng;
+      seed = finalOptions.seed = randomAlphaNumericString(10, rng());
+    } else {
+      // Use the default seedrandom PRNG for ganache-core < 3.0 back-compatibility
+      rng = seedrandom;
+    }
+    // generate a randomized default mnemonic
+    const _randomBytes = randomBytes(16, rng(seed));
+    finalOptions.mnemonic = entropyToMnemonic(_randomBytes);
+  }
+
+  return finalOptions;
 }
