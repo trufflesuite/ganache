@@ -1,5 +1,5 @@
 import { utils } from "@ganache/utils";
-import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
+import { Data, Quantity } from "@ganache/utils";
 import Address from "./things/address";
 import EthereumOptions from "@ganache/options/src/chains/ethereum";
 import { privateToAddress } from "ethereumjs-util";

@@ -3,11 +3,14 @@ import Emittery from "emittery";
 import {types, utils} from "@ganache/utils";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
-import FilecoinProvider from "./provider";
+import Provider from "./provider";
 import PromiEvent from "@ganache/utils/src/things/promievent";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
 
-export default class FilecoinConnector extends Emittery.Typed<undefined, "ready" | "close"> 
+export type FilecoinProvider = Provider;
+export const FilecoinProvider = Provider;
+
+export class FilecoinConnector extends Emittery.Typed<undefined, "ready" | "close"> 
   implements types.Connector<FilecoinApi, JsonRpc.Request<FilecoinApi>> {
  
   #provider: FilecoinProvider;

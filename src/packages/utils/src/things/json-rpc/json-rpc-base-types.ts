@@ -1,4 +1,5 @@
 import {bigIntToBuffer} from "../../utils";
+import {uintToBuffer} from "../../utils";
 
 export type IndexableJsonRpcType<
   T extends number | bigint | string | Buffer = number | bigint | string | Buffer
@@ -38,38 +39,11 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
             throw new Error("`Cannot wrap a decimal value as a json-rpc type`");
           }
           toStrings.set(this, () => (value as number).toString(16));
-          toBuffers.set(this, () => {
-            const arr = new ArrayBuffer(4);
-            const view = new DataView(arr);
-            view.setInt32(0, value as number);
-            return Buffer.from(arr);
-          });
+          toBuffers.set(this, () => uintToBuffer(value as number));
           break;
         case "bigint":
           toStrings.set(this, () => (value as bigint).toString(16));
-          toBuffers.set(this, () => {
-            return bigIntToBuffer(value as bigint);
-            //onst value = (2n**64n);
-            var max = 2n ** 64n - 1n;
-
-            var val = value as bigint;
-            var size = 4;
-            var buff = new ArrayBuffer(size * 8);
-            var view = new DataView(buff);
-            if (val > max) {
-              var long = val;
-              var index = size - 1;
-              while (long > 0) {
-                var byte = long & max;
-                view.setBigUint64(index * 8, byte);
-                long = (long - byte) / max;
-                index--;
-              }
-            } else {
-              view.setBigUint64(0, val);
-            }
-            return Buffer.from(buff.slice((index + 1) * 8));
-          });
+          toBuffers.set(this, () => bigIntToBuffer(value as bigint));
           break;
         case "string": {
           // handle hex-encoded string

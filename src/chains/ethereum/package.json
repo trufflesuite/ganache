@@ -5,8 +5,9 @@
   "author": "David Murdoch <david@davidmurdoch.com>",
   "homepage": "https://github.com/trufflesuite/ganache-core#readme",
   "license": "MIT",
-  "main": "src/index.ts",
-  "typings": "src/index.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "source": "src/index.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -22,6 +23,8 @@
     "url": "git+https://github.com/trufflesuite/ganache-core.git"
   },
   "scripts": {
+    "build:docs": "rm -rf ./lib/docs ./lib/api.json && typedoc --options ./typedoc.json --readme ./README.md --out ./lib/docs --json ./lib/api.json src/api.ts",
+    "preview:docs": "open-cli ./lib/docs/index.html",
     "tsc": "ts-node ../../../scripts/compile",
     "test": "nyc npm run mocha -- --throw-deprecation --trace-warnings",
     "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**/*.test.ts'"
@@ -39,5 +42,10 @@
     "levelup": "4.4.0",
     "merkle-patricia-tree": "3.0.0",
     "scrypt-js": "3.0.1"
+  },
+  "devDependencies": {
+    "@trufflesuite/typedoc-default-themes": "0.6.1",
+    "open-cli": "6.0.1",
+    "typedoc": "0.17.8"
   }
 }

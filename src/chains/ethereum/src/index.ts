@@ -1,20 +1,22 @@
 import Emittery from "emittery";
 import EthereumApi from "./api";
-import JsonRpc from "@ganache/utils/src/things/jsonrpc";
-import {types, utils} from "@ganache/utils";
-import EthereumProvider from "./provider";
+import {JsonRpcTypes, types, utils} from "@ganache/utils";
+import Provider from "./provider";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
-import PromiEvent from "@ganache/utils/src/things/promievent";
+import { PromiEvent } from "@ganache/utils";
 import {EthereumOptions} from "@ganache/options";
 
 function isHttp(connection: HttpRequest | WebSocket): connection is HttpRequest {
   return connection.constructor.name === "uWS.HttpRequest"
 }
 
-export default class EthereumConnector extends Emittery.Typed<undefined, "ready" | "close">
-  implements types.Connector<EthereumApi, JsonRpc.Request<EthereumApi>> {
+export type EthereumProvider = Provider;
+export const EthereumProvider = Provider;
 
-  #provider: EthereumProvider;
+export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "close">
+  implements types.Connector<EthereumApi, JsonRpcTypes.Request<EthereumApi>> {
+
+  #provider: Provider;
   
   get provider() {
     return this.#provider;
@@ -33,14 +35,14 @@ export default class EthereumConnector extends Emittery.Typed<undefined, "ready"
   }
 
   parse(message: Buffer) {
-    return JSON.parse(message) as JsonRpc.Request<EthereumApi>;
+    return JSON.parse(message) as JsonRpcTypes.Request<EthereumApi>;
   }
 
-  handle(payload: JsonRpc.Request<EthereumApi>, connection: HttpRequest | WebSocket): PromiEvent<any> {
+  handle(payload: JsonRpcTypes.Request<EthereumApi>, connection: HttpRequest | WebSocket): PromiEvent<any> {
     const method = payload.method;
     if (method === "eth_subscribe") {
       if (isHttp(connection)) {
-        const error = JsonRpc.Error(payload.id, "-32000", "notifications not supported");
+        const error = JsonRpcTypes.Error(payload.id, "-32000", "notifications not supported");
         return new PromiEvent((_, reject) => void reject(error));
       } else {
         return this.#provider.request({method: "eth_subscribe", params: payload.params as Parameters<EthereumApi["eth_subscribe"]>});
@@ -51,8 +53,8 @@ export default class EthereumConnector extends Emittery.Typed<undefined, "ready"
     });
   }
 
-  format(result: any, payload: JsonRpc.Request<EthereumApi>): RecognizedString {
-    const json = JsonRpc.Response(payload.id, result);
+  format(result: any, payload: JsonRpcTypes.Request<EthereumApi>): RecognizedString {
+    const json = JsonRpcTypes.Response(payload.id, result);
     return JSON.stringify(json);
   }
 

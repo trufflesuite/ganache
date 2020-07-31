@@ -3,8 +3,9 @@
   "version": "2.2.1",
   "homepage": "https://github.com/trufflesuite/ganache-core#readme",
   "license": "MIT",
-  "main": "src/index.ts",
-  "typings": "src/index.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "source": "src/index.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"

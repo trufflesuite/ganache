@@ -1,10 +1,11 @@
-import { RequestCoordinator, Executor } from "@ganache/utils/src/utils";
+import { utils } from "@ganache/utils";
 import EthereumProvider from "../../src/provider";
-import {ProviderOptions} from "@ganache/options/src/provider-options";
+import {ProviderOptions} from "@ganache/options";
 import EthereumOptions from "@ganache/options/src/chains/ethereum";
-import { Provider } from "@ganache/utils/src/types";
 
 type ConvenientOptions = ProviderOptions & EthereumOptions;
+
+const { RequestCoordinator, Executor } = utils;
 
 const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 const getProvider = async (options:Partial<ConvenientOptions> = {mnemonic} as Partial<ConvenientOptions>) => {

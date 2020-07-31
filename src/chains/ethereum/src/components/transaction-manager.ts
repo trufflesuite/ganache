@@ -3,7 +3,7 @@ import Manager from "./manager";
 import TransactionPool, {TransactionPoolOptions} from "./transaction-pool";
 import { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
-import { Data } from "@ganache/utils/src/things/json-rpc";
+import { Data } from "@ganache/utils";
 import Common from "ethereumjs-common";
 
 export type TransactionManagerOptions = TransactionPoolOptions & {
@@ -22,7 +22,7 @@ export default class TransactionManager extends Manager<Transaction> {
     });
   }
 
-  public push(transaction: Transaction, secretKey?: Data): Promise<void> {
+  public push(transaction: Transaction, secretKey?: Data) {
     return this.transactionPool.insert(transaction, secretKey);
   }
 }

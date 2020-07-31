@@ -1,16 +1,14 @@
 import {utils} from "@ganache/utils";
-import {FlavorMap} from "@ganache/flavors";
+import {FlavorMap, DefaultFlavor} from "@ganache/flavors";
 import {FlavoredProviderOptions} from "@ganache/options";
-
 
 /**
  * Loads the connector specified by the given `flavor`
  */
 export default {
   // TODO: set missing defaults automatically
-  initialize: (providerOptions: FlavoredProviderOptions = {flavor: "ethereum", asyncRequestProcessing: true}) => {
-    const flavor = providerOptions.flavor || "ethereum";
-
+  initialize: (providerOptions: FlavoredProviderOptions = {flavor: DefaultFlavor, asyncRequestProcessing: true}) => {
+    const flavor = providerOptions.flavor || DefaultFlavor;
     
     // Set up our request coordinator to either use FIFO or or async request processing.
     //   The RequestCoordinator _can_ be used to coordinate the number of requests being processed, but we don't use it

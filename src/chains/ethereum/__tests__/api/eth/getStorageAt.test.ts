@@ -4,7 +4,7 @@ import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import compile from "../../helpers/compile";
 import { join } from "path";
-import { Quantity } from "@ganache/utils/src/things/json-rpc";
+import { Quantity } from "@ganache/utils";
 const THIRTY_TWO_BYES = "0".repeat(64);
 
 describe("api", () => {

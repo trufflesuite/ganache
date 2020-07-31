@@ -1,5 +1,5 @@
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
-import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
+import { Data, Quantity } from "@ganache/utils";
 import Address from "./address";
 
 const BUFFER_ZERO = Buffer.allocUnsafe(1).fill(0);
@@ -7,6 +7,8 @@ export type TransactionLog = [address: Buffer, topics: Buffer[], data: Buffer[]]
 export type BlockLog = [removed: Buffer, transactionIndex: Buffer, transactionHash: Buffer, address: TransactionLog[0], topics: TransactionLog[1], data: TransactionLog[2]];
 
 const _raw = Symbol("raw");
+const _logs = Symbol("logs");
+const _blockNumber = Symbol("blockNumber");
 
 export default class BlockLogs {
   [_raw]: [blockHash: Buffer, blockLog: BlockLog[]];
@@ -60,14 +62,22 @@ export default class BlockLogs {
     return this[_raw][1].length;
   }
 
-  #blockNumber: Quantity;
+  [_blockNumber]: Quantity;
 
   public setBlockNumber(blockNumber: Quantity) {
-    this.#blockNumber = blockNumber;
+    this[_blockNumber] = blockNumber;
+  }
+  
+  public getBlockNumber() {
+    return this[_blockNumber];
   }
 
-  #logs = () => {
-    const blockNumber = this.#blockNumber;
+  toJSON() {
+    return this[_logs]().toJSON();
+  }
+
+  [_logs]() {
+    const blockNumber = this[_blockNumber];
     const raw = this[_raw];
     const logs = raw[1];
     const l = this.length;
@@ -108,10 +118,10 @@ export default class BlockLogs {
       address: Address.from(log[3]),
       blockHash,
       blockNumber,
-      data: Array.isArray(data) ? data.map(d => Data.from(d)) : Data.from(data),
+      data: Array.isArray(data) ? data.map(d => Data.from(d)) : Data.from(data, 32),
       logIndex, // this is the index in the *block*
       removed: log[0].equals(BUFFER_ZERO) ? false : true,
-      topics: Array.isArray(topics) ? topics.map(t => Data.from(t, 32)) : Data.from(topics),
+      topics: Array.isArray(topics) ? topics.map(t => Data.from(t, 32)) : Data.from(topics, 32),
       transactionHash: Data.from(log[2], 32),
       transactionIndex: Quantity.from(log[1])
     };
@@ -155,7 +165,7 @@ export default class BlockLogs {
    * @returns JSON representation of the filtered logs
    */
   * filter(expectedAddresses: Buffer[], expectedTopics: (string | string[])[]) {
-    const logs = this.#logs();
+    const logs = this[_logs]();
     if (expectedAddresses.length !== 0) {
       if (expectedTopics.length === 0) {
         for (const log of logs) {

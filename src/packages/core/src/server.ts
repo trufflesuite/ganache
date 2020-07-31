@@ -4,10 +4,10 @@ import uWS, {TemplatedApp, us_listen_socket} from "uWebSockets.js";
 import Connector from "./connector";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
-import {Flavors} from "@ganache/flavors/src";
-import TezosProvider from "@ganache/tezos/src/provider";
-import EthereumProvider from "@ganache/ethereum/src/provider";
-import FilecoinProvider from "@ganache/filecoin/src/provider";
+import {Flavors} from "@ganache/flavors";
+import {TezosProvider} from "@ganache/tezos";
+import {EthereumProvider} from "@ganache/ethereum";
+import {FilecoinProvider} from "@ganache/filecoin";
 
 type Callback = (err: Error | null) => void
 

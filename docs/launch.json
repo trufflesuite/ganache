@@ -29,7 +29,7 @@
         "ts",
         "--recursive",
         "--check-leaks",
-        "**/__tests__/**/*.test.ts"
+        "${workspaceFolder}/src/**/__tests__/**/*.test.ts"
       ],
       "skipFiles": [
         "<node_internals>/**/*.js"

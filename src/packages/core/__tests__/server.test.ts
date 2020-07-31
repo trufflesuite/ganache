@@ -6,8 +6,8 @@ import Server, {Status} from "../src/server";
 import {FlavoredServerOptions} from "@ganache/options";
 import http from "http";
 import intoStream from "into-stream";
-import EthereumProvider from "@ganache/ethereum/src/provider";
-import PromiEvent from "@ganache/utils/src/things/promievent";
+import {EthereumProvider} from "@ganache/ethereum";
+import { PromiEvent } from "@ganache/utils";
 import {promisify} from "util";
 
 const IS_WINDOWS = process.platform === "win32";

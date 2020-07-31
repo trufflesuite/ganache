@@ -1,7 +1,8 @@
 import Transaction from "./transaction";
 import {Block} from "../components/block-manager";
 import {encode as rlpEncode, decode as rlpDecode} from "rlp";
-import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
+import {Data, Quantity} from "@ganache/utils";
+import BlockLogs, { TransactionLog } from "./blocklogs";
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer A, infer _L] ? A : never;
 type FullRawReceipt = [status: Buffer, gasUsed: Buffer, logsBloom: Buffer, logs: Buffer[], contractAddress: Buffer | null];
@@ -41,6 +42,12 @@ export default class TransactionReceipt {
   public toJSON(block: Block, transaction: Transaction) {
     const raw = this.#raw;
     const contractAddress = Data.from(this.#contractAddress).toJSON()
+    const blockLog = BlockLogs.create(block.value.hash());
+    blockLog.setBlockNumber(Quantity.from(block.value.header.number));
+    (raw[3] as any as TransactionLog[]).forEach(log => {
+      blockLog.append(transaction._index, transaction.hash(), log);
+    });
+    const logs = [...blockLog.toJSON()];
     return {
       transactionHash: Data.from(transaction.hash()),
       transactionIndex: Quantity.from((transaction as any)._index),
@@ -49,7 +56,7 @@ export default class TransactionReceipt {
       cumulativeGasUsed: Quantity.from(block.value.header.gasUsed),
       gasUsed: Quantity.from(raw[1]),
       contractAddress: contractAddress === "0x" ? null : contractAddress,
-      logs: raw[3], // TODO: figure this out
+      logs,
       logsBloom: Data.from(raw[2], 256),
       // flips a `1` to a `0` and a `0` to a `1` using Bitwise XOR for funsies.
       status: 1 ^ raw[0][0]

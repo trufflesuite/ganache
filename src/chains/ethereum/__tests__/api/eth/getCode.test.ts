@@ -3,7 +3,7 @@ import EthereumProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 import { join } from "path";
-import { Quantity } from "@ganache/utils/src/things/json-rpc";
+import { Quantity } from "@ganache/utils";
 
 describe("api", () => {
   describe("eth", () => {

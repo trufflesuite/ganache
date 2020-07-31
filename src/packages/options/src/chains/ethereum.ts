@@ -1,4 +1,4 @@
-import {Quantity} from "@ganache/utils/src/things/json-rpc";
+import {Quantity} from "@ganache/utils";
 import {types} from "@ganache/utils";
 import {entropyToMnemonic} from "bip39";
 import seedrandom, {seedrandom_prng} from "seedrandom";

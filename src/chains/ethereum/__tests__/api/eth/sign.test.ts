@@ -1,7 +1,7 @@
 import assert from "assert";
 import { ecrecover, pubToAddress, fromSigned, hashPersonalMessage } from "ethereumjs-util";
 import getProvider from "../../helpers/getProvider";
-import { Data } from "@ganache/utils/src/things/json-rpc";
+import { Data } from "@ganache/utils";
 
 describe("api", () => {
   describe("eth", () => {

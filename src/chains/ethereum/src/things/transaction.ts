@@ -1,6 +1,5 @@
 import Errors from "./errors";
-import {Data} from "@ganache/utils/src/things/json-rpc/json-rpc-data";
-import {Quantity} from "@ganache/utils/src/things/json-rpc";
+import {Data, Quantity} from "@ganache/utils";
 import params from "./params";
 import {Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction} from "ethereumjs-tx";
 import * as ethUtil from "ethereumjs-util";

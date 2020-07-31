@@ -73,8 +73,8 @@ index 688d3d4..815e111 100644
          "ts",
          "--recursive",
          "--check-leaks",
--        "**/__tests__/**/*.test.ts"
-+        "**/ethereum/__tests__/**/*.test.ts"
+-        "${workspaceFolder}/src/**/__tests__/**/*.test.ts"
++        "${workspaceFolder}/src/chains/ethereum/__tests__/**/*.test.ts"
        ],
        "skipFiles": [
          "<node_internals>/**/*.js"
