@@ -1,11 +1,10 @@
 import { utils } from "@ganache/utils";
 import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
 import Address from "./things/address";
-import EthereumOptions from "./options";
+import EthereumOptions from "@ganache/options/src/chains/ethereum";
 import { privateToAddress } from "ethereumjs-util";
 import Account from "./things/account";
 import secp256k1 from "secp256k1";
-import { ProviderOptions } from "@ganache/options";
 import { mnemonicToSeedSync } from "bip39";
 import HDKey from "hdkey";
 import { alea as rng } from "seedrandom";
@@ -151,7 +150,7 @@ export default class Wallet {
     return buf;
   }
 
-  #initializeAccounts = (opts: ProviderOptions): Account[] => {
+  #initializeAccounts = (opts: EthereumOptions): Account[] => {
     // convert a potentially fractional balance of Ether to WEI
     const balanceParts = opts.default_balance_ether.toString().split(".", 2);
     const significand = BigInt(balanceParts[0]);

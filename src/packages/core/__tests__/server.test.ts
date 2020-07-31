@@ -3,7 +3,7 @@ import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
 import Server, {Status} from "../src/server";
-import ServerOptions from "../src/options/server-options";
+import {FlavoredServerOptions} from "@ganache/options";
 import http from "http";
 import intoStream from "into-stream";
 import EthereumProvider from "@ganache/ethereum/src/provider";
@@ -30,7 +30,7 @@ describe("server", () => {
     options = {
       network_id,
       logger
-    } as ServerOptions
+    } as FlavoredServerOptions
   ) {
     s = Ganache.server(options);
     return s.listen(port);
@@ -90,7 +90,7 @@ describe("server", () => {
     it("returns the net_version over a legacy-style connection listener", done => {
       s = Ganache.server({
         network_id
-      } as ServerOptions);
+      } as FlavoredServerOptions);
       s.listen(port, async () => {
         try {
           await simpleTest();
@@ -244,7 +244,7 @@ describe("server", () => {
     it("does not start a websocket server when `ws` is false", async () => {
       await setup({
         ws: false
-      } as ServerOptions);
+      } as FlavoredServerOptions);
       try {
         const ws = new WebSocket("ws://localhost:" + port);
 

@@ -30,10 +30,11 @@
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
   "dependencies": {
-    "@ganache/options": "^2.2.1",
-    "@ganache/flavors": "^2.2.1",
-    "@ganache/ethereum": "^2.2.1",
-    "@ganache/tezos": "^2.2.1",
-    "@ganache/utils": "^2.2.1"
+    "@ganache/ethereum": "2.2.1",
+    "@ganache/filecoin": "2.2.1",
+    "@ganache/flavors": "2.2.1",
+    "@ganache/options": "2.2.1",
+    "@ganache/tezos": "2.2.1",
+    "@ganache/utils": "2.2.1"
   }
 }

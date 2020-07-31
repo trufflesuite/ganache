@@ -30,7 +30,7 @@
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
   "dependencies": {
-    "@ganache/options": "^2.2.1",
+    "@ganache/options": "2.2.1",
     "@ganache/utils": "^2.2.1",
     "@types/keccak": "3.0.1",
     "eth-sig-util": "^2.5.3",

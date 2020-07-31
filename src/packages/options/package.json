@@ -6,7 +6,8 @@
   "main": "src/index.ts",
   "typings": "src/index.ts",
   "directories": {
-    "lib": "lib"
+    "lib": "lib",
+    "test": "__tests__"
   },
   "files": [
     "lib"
@@ -22,7 +23,7 @@
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
   "dependencies": {
-    "@ganache/options": "^2.2.1",
-    "@ganache/utils": "^2.2.1"
+    "@ganache/utils": "2.2.1",
+    "seedrandom": "3.0.5"
   }
 }

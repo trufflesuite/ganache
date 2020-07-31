@@ -1,4 +1,4 @@
-import ServerOptions, {getDefault as getDefaultServerOptions} from "./options/server-options";
+import {getDefault as getDefaultServerOptions, FlavoredServerOptions} from "@ganache/options";
 
 import uWS, {TemplatedApp, us_listen_socket} from "uWebSockets.js";
 import Connector from "./connector";
@@ -7,6 +7,7 @@ import HttpServer from "./servers/http-server";
 import {Flavors} from "@ganache/flavors/src";
 import TezosProvider from "@ganache/tezos/src/provider";
 import EthereumProvider from "@ganache/ethereum/src/provider";
+import FilecoinProvider from "@ganache/filecoin/src/provider";
 
 type Callback = (err: Error | null) => void
 
@@ -40,16 +41,16 @@ export enum Status {
   closing = 12
 }
 
-export default class Server<T extends ServerOptions = ServerOptions> {
+export default class Server<T extends FlavoredServerOptions = FlavoredServerOptions> {
   #app: TemplatedApp;
   #httpServer: HttpServer;
   #listenSocket?: us_listen_socket;
-  #options: ServerOptions;
+  #options: FlavoredServerOptions;
   #connector: Flavors;
   #status = Status.closed;
   #websocketServer: WebsocketServer | null = null;
 
-  public get provider(): TezosProvider | EthereumProvider {
+  public get provider(): TezosProvider | EthereumProvider | FilecoinProvider {
     return this.#connector.provider;
   }
 

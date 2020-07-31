@@ -1,5 +1,7 @@
 import {Quantity} from "@ganache/utils/src/things/json-rpc";
 import {types} from "@ganache/utils";
+import {entropyToMnemonic} from "bip39";
+import seedrandom, {seedrandom_prng} from "seedrandom";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -10,8 +12,9 @@ interface Logger {
 // instead of `[Address, PrivateKey]`, flip flopping like this "fixes" it.
 type Account = {balance: string; secretKey?: string};
 
-export interface Options {
+type EthereumOptions = {
   api?: types.Api;
+
   /**
    * Array of Accounts. Each object should have a balance key with a hexadecimal
    * value. The key secretKey can also be specified, which represents the
@@ -174,22 +177,43 @@ export interface Options {
    */
   verbose?: boolean;
 
-  /**
-   *
-   */
-  asyncRequestProcessing?: boolean;
-
   hardfork?: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier";
 };
 
-const getDefault: (options?: Options) => Options = options => {
+export default EthereumOptions;
+
+function randomBytes(length: number, rng: () => number) {
+  const buf = Buffer.allocUnsafe(length);
+  for (let i = 0; i < length; i++) {
+    buf[i] = (rng() * 255) | 0;
+  }
+  return buf;
+}
+
+const randomAlphaNumericString = (() => {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const alphabetLength = alphabet.length;
+  return (length: number, rng: () => number) => {
+    let text = "";
+    for (let i = 0; i < length; i++) {
+      text += alphabet[(rng() * alphabetLength) | 0];
+    }
+
+    return text;
+  };
+})();
+
+export function getDefault(options?: Partial<EthereumOptions>):EthereumOptions {
   const networkId = (options
     ? options.networkId || options.netVersion || options.network_id || options.net_version || Date.now()
     : Date.now()
   ).toString();
   const chainId = options ? options.chainId || 1337 : 1337;
   const secure = options ? options.secure || options.locked || false : false;
-  return Object.assign(
+
+  let finalOptions = {} as EthereumOptions;
+
+  Object.assign(finalOptions, 
     {
       chainId,
       debug: false,
@@ -211,8 +235,24 @@ const getDefault: (options?: Options) => Options = options => {
     },
     options
   );
-}
 
-export const Options = {
-  getDefault
-};
+  if (!options.mnemonic) {
+    let rng: seedrandom_prng;
+    let seed = finalOptions.seed;
+    if (!seed) {
+      // do this so that we can use the same seed on our next run and get the same
+      // results without explicitly setting a seed up front.
+      // Use the alea PRNG for its extra speed.
+      rng = seedrandom.alea as seedrandom_prng;
+      seed = finalOptions.seed = randomAlphaNumericString(10, rng());
+    } else {
+      // Use the default seedrandom PRNG for ganache-core < 3.0 back-compatibility
+      rng = seedrandom;
+    }
+    // generate a randomized default mnemonic
+    const _randomBytes = randomBytes(16, rng(seed));
+    finalOptions.mnemonic = entropyToMnemonic(_randomBytes);
+  }
+
+  return finalOptions;
+}

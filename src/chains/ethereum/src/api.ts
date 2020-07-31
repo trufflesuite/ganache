@@ -2,7 +2,7 @@
 import { types } from "@ganache/utils";
 import { toRpcSig, KECCAK256_NULL, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
-import EthereumOptions from "./options";
+import EthereumOptions from "@ganache/options/src/chains/ethereum";
 import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
 import Blockchain, { BlockchainOptions } from "./blockchain";
 import Tag from "./things/tags";

@@ -1,4 +1,4 @@
-import {ProviderOptions} from "@ganache/options";
+import {ProviderOptions, FilecoinOptions} from "@ganache/options";
 import Emittery from "emittery";
 import {types, utils} from "@ganache/utils";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
@@ -23,9 +23,9 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "ready">
 
   static readonly Schema:Schema = GanacheSchema;
 
-  constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
+  constructor(providerOptions: FilecoinOptions = {} as FilecoinOptions, executor: utils.Executor) {
     super();
-    this.#options = ProviderOptions.getDefault(providerOptions);
+    // this.#options = ProviderOptions.getDefault(providerOptions);
 
     this.#executor = executor;
 

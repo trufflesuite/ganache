@@ -1,9 +1,9 @@
 import assert from "assert";
 import {Quantity} from "@ganache/utils/src/things/json-rpc";
-import {ProviderOptions} from "@ganache/options";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
 import { join } from "path";
+import EthereumOptions from "@ganache/options/src/chains/ethereum";
 
 /**
  * test in here are playground tests or just tests that are in the original
@@ -48,7 +48,7 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("shouldn't allow initialization without accounts", async () => {
-    const options: ProviderOptions = {total_accounts: 0};
+    const options: EthereumOptions = {total_accounts: 0};
     await assert.rejects(getProvider(options), {
       message: "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
     });

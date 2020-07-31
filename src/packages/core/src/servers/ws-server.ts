@@ -1,6 +1,6 @@
 import uWS, {TemplatedApp, WebSocket} from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import { FlavorMap } from "../options/server-options";
+import { FlavorMap } from "@ganache/flavors";
 
 type WebSocketCapableFlavorMap = {
   [k in keyof FlavorMap]: FlavorMap[k]["handle"] extends ((payload: any, connection: WebSocket) => any) ? FlavorMap[k] : never;

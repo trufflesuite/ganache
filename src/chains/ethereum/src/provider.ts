@@ -1,8 +1,7 @@
-import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
-import EthereumOptions from "./options";
+import EthereumOptions, {getDefault} from "@ganache/options/src/chains/ethereum";
 import cloneDeep from "lodash.clonedeep";
 import {types, utils} from "@ganache/utils";
 import PromiEvent from "@ganache/utils/src/things/promievent";
@@ -18,13 +17,13 @@ type RequestParams<Method extends types.KnownKeys<EthereumApi>> = {
 export default class EthereumProvider extends Emittery.Typed<{message: any}, "connect" | "disconnect">
   implements types.Provider<EthereumApi>
   {
-  #options: ProviderOptions;
+  #options: EthereumOptions;
   #api: EthereumApi;
   #executor: utils.Executor;
 
-  constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
+  constructor(providerOptions: EthereumOptions , executor: utils.Executor) {
     super();
-    const _providerOptions = (this.#options = ProviderOptions.getDefault(providerOptions));
+    const _providerOptions = (this.#options = getDefault(providerOptions));
     this.#executor = executor;
 
     this.#api = new EthereumApi(_providerOptions as EthereumOptions, this);

@@ -1,7 +1,7 @@
 import {TemplatedApp, HttpResponse, HttpRequest, RecognizedString} from "uWebSockets.js";
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
-import {Flavors} from "../options/server-options";
+import {Flavors} from "@ganache/flavors";
 
 const noop = () => {};
 

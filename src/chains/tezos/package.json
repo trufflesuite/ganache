@@ -28,7 +28,7 @@
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
   "dependencies": {
-    "@ganache/utils": "^2.2.1",
-    "@ganache/options": "^2.2.1"
+    "@ganache/options": "2.2.1",
+    "@ganache/utils": "^2.2.1"
   }
 }

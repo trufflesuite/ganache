@@ -1,4 +1,3 @@
-import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
@@ -6,6 +5,7 @@ import {types, utils} from "@ganache/utils";
 import EthereumProvider from "./provider";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
 import PromiEvent from "@ganache/utils/src/things/promievent";
+import {EthereumOptions} from "@ganache/options";
 
 function isHttp(connection: HttpRequest | WebSocket): connection is HttpRequest {
   return connection.constructor.name === "uWS.HttpRequest"
@@ -20,8 +20,10 @@ export default class EthereumConnector extends Emittery.Typed<undefined, "ready"
     return this.#provider;
   }
 
-  constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
+  constructor(providerOptions: EthereumOptions = null, executor: utils.Executor) {
     super();
+
+
 
     const provider = this.#provider = new EthereumProvider(providerOptions, executor);
     provider.on("connect", () => {

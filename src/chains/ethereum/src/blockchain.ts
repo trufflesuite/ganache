@@ -32,6 +32,7 @@ export enum Status {
 }
 
 export type BlockchainOptions = {
+  flavor: "ethereum";
   db?: string | object;
   db_path?: string;
   initialAccounts?: Account[];

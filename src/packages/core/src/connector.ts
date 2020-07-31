@@ -1,13 +1,14 @@
 import {utils} from "@ganache/utils";
 import {FlavorMap} from "@ganache/flavors";
-import {ProviderOptions} from "@ganache/options";
+import {FlavoredProviderOptions} from "@ganache/options";
+
 
 /**
  * Loads the connector specified by the given `flavor`
  */
 export default {
   // TODO: set missing defaults automatically
-  initialize: (providerOptions: ProviderOptions = {flavor: "ethereum", asyncRequestProcessing: true}) => {
+  initialize: (providerOptions: FlavoredProviderOptions = {flavor: "ethereum", asyncRequestProcessing: true}) => {
     const flavor = providerOptions.flavor || "ethereum";
 
     
