@@ -1,15 +1,18 @@
 import {types} from "@ganache/utils";
 import TezosConnector from "@ganache/tezos";
 import EthereumConnector from "@ganache/ethereum";
+import FilecoinConnector from "@ganache/filecoin";
 
 export const FlavorMap = {
   tezos: TezosConnector,
-  ethereum: EthereumConnector
+  ethereum: EthereumConnector,
+  filecoin: FilecoinConnector
 };
 
 export type FlavorMap = {
   tezos: TezosConnector;
   ethereum: EthereumConnector;
+  filecoin: FilecoinConnector;
 };
 
 export type Flavors = {
