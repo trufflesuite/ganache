@@ -34,7 +34,7 @@ function uint32ToBuf(value: number) {
 }
 
 /**
- * Converts unsigned intergers that are wider than 32 bits but smaller than 64.
+ * Converts unsigned integers that are wider than 32 bits but smaller than 64.
  * @param value 
  */
 function uintWideToBuf(value: number) {

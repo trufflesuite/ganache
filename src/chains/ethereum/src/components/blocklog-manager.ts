@@ -1,7 +1,7 @@
 import BlockLog from "../things/blocklogs";
 import { LevelUp } from "levelup";
 import Manager from "./manager";
-import { Quantity } from "@ganache/utils/src/things/json-rpc";
+import { Quantity } from "@ganache/utils";
 
 export default class BlockLogManager extends Manager<BlockLog> {
   constructor(base: LevelUp) {

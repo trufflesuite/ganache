@@ -1,6 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
-import { Quantity } from "@ganache/utils/src/things/json-rpc";
+import { Quantity } from "@ganache/utils";
 
 function between(x: number, min: number, max: number) {
   return x >= min && x <= max;

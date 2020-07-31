@@ -1,4 +1,4 @@
-import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
+import {Data, Quantity} from "@ganache/utils";
 import Address from "./address";
 import {rlp, KECCAK256_RLP, KECCAK256_NULL} from "ethereumjs-util";
 

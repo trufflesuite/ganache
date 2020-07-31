@@ -1,9 +1,8 @@
 //#region Imports
-import { types } from "@ganache/utils";
 import { toRpcSig, KECCAK256_NULL, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import EthereumOptions from "./options";
-import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
+import { types, Data, Quantity } from "@ganache/utils";
 import Blockchain, { BlockchainOptions } from "./blockchain";
 import Tag from "./things/tags";
 import Address from "./things/address";
@@ -49,7 +48,7 @@ function parseFilter(filter: FilterArgs, blockchain: Blockchain) {
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
 import { version } from "../../../packages/core/package.json";
-import PromiEvent from "@ganache/utils/src/things/promievent";
+import { PromiEvent } from "@ganache/utils";
 import Emittery from "emittery";
 import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
@@ -378,7 +377,7 @@ export default class EthereumApi implements types.Api {
    * Returns the current client version.
    * @returns The current client version.
    */
-  async web3_clientVersion(): Promise<string> {
+  async web3_clientVersion() {
     return CLIENT_VERSION;
   }
 
@@ -387,7 +386,7 @@ export default class EthereumApi implements types.Api {
    * @param {data} the data to convert into a SHA3 hash.
    * @returns The SHA3 result of the given string.
    */
-  async web3_sha3(data: string): Promise<Data> {
+  async web3_sha3(data: string) {
     return Data.from(createKeccakHash("keccak256").update(data).digest());
   }
   //#endregion
@@ -395,10 +394,10 @@ export default class EthereumApi implements types.Api {
   //#region net
   /**
    * Returns the current network id.
-   * @returns {string} The current network id. This value should NOT be JSON-RPC
+   * @returns The current network id. This value should NOT be JSON-RPC
    * Quantity/Data encoded.
    */
-  async net_version(): Promise<string> {
+  async net_version() {
     return this.#options.networkId.toString();
   }
 
@@ -406,7 +405,7 @@ export default class EthereumApi implements types.Api {
    * Returns true if client is actively listening for network connections.
    * @returns true when listening, otherwise false.
    */
-  async net_listening(): Promise<boolean> {
+  async net_listening() {
     // TODO: this should return false when ganache isn't used with a server, or
     // or while the server is still initializing.
     return true;
@@ -414,9 +413,9 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns number of peers currently connected to the client.
-   * @returns {QUANTITY} integer of the number of connected peers.
+   * @returns integer of the number of connected peers.
    */
-  async net_peerCount(): Promise<Quantity> {
+  async net_peerCount() {
     return RPCQUANTITY_ZERO;
   }
   //#endregion
@@ -432,7 +431,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns the amount of gas used.
    */
-  async eth_estimateGas(): Promise<Quantity> {
+  async eth_estimateGas() {
     // TODO: do this for real
     return Quantity.from(6721975);
   }
@@ -441,7 +440,7 @@ export default class EthereumApi implements types.Api {
    * Returns the current ethereum protocol version.
    * @returns The current ethereum protocol version.
    */
-  async eth_protocolVersion(): Promise<Data> {
+  async eth_protocolVersion() {
     return PROTOCOL_VERSION;
   }
 
@@ -453,7 +452,7 @@ export default class EthereumApi implements types.Api {
    *   currentBlock: {bigint} - The current block, same as eth_blockNumber
    *   highestBlock: {bigint} - The estimated highest block
    */
-  async eth_syncing(): Promise<object | boolean> {
+  async eth_syncing() {
     return false;
   }
 
@@ -461,7 +460,7 @@ export default class EthereumApi implements types.Api {
    * Returns the client coinbase address.
    * @returns 20 bytes - the current coinbase address.
    */
-  async eth_coinbase(): Promise<Address> {
+  async eth_coinbase() {
     return this.#blockchain.coinbase;
   }
 
@@ -729,7 +728,7 @@ export default class EthereumApi implements types.Api {
     address: string,
     position: bigint | number,
     blockNumber: string | Buffer | Tag = Tag.LATEST
-  ): Promise<Data> {
+  ) {
     const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
 
     const trie = this.#blockchain.trie.copy();
@@ -787,7 +786,7 @@ export default class EthereumApi implements types.Api {
    *
    * @param transactionHash 32 Bytes - hash of a transaction
    */
-  async eth_getTransactionByHash(transactionHash: string): Promise<Transaction> {
+  async eth_getTransactionByHash(transactionHash: string) {
     const chain = this.#blockchain;
     const transaction = await chain.transactions.get(Data.from(transactionHash).toBuffer());
     return transaction;
@@ -801,7 +800,7 @@ export default class EthereumApi implements types.Api {
    * @param transactionHash 32 Bytes - hash of a transaction
    * @returns Returns the receipt of a transaction by transaction hash.
    */
-  async eth_getTransactionReceipt(transactionHash: string): Promise<{}> {
+  async eth_getTransactionReceipt(transactionHash: string) {
     const blockchain = this.#blockchain;
     const transactionPromise = blockchain.transactions.get(transactionHash);
     const receiptPromise = blockchain.transactionReceipts.get(transactionHash);
@@ -819,7 +818,7 @@ export default class EthereumApi implements types.Api {
    * @param transaction
    * @returns The transaction hash
    */
-  async eth_sendTransaction(transaction: any): Promise<Data> {
+  async eth_sendTransaction(transaction: any) {
     let fromString = transaction.from;
     let from: Address;
     if (fromString) {
@@ -889,7 +888,7 @@ export default class EthereumApi implements types.Api {
    * @param transaction
    * @returns The transaction hash
    */
-  async eth_sendRawTransaction(transaction: any): Promise<Data> {
+  async eth_sendRawTransaction(transaction: any) {
     const tx = new Transaction(Buffer.from(transaction), {common: this.#common}, Transaction.types.signed);
     return await this.#blockchain.queueTransaction(tx);
   }
@@ -1125,7 +1124,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns A filter id.
    */
-  async eth_newPendingTransactionFilter(): Promise<any> {
+  async eth_newPendingTransactionFilter() {
     const unsubscribe = this.#blockchain.on("pendingTransaction", (transaction: Transaction) => {
       value.updates.push(Data.from(transaction.hash(), 32));
     });
@@ -1179,7 +1178,7 @@ export default class EthereumApi implements types.Api {
    * or transactions hashes, depending on the filter type, which occurred since
    * last poll.
    */
-  async eth_getFilterChanges(filterId: string): Promise<any> {
+  async eth_getFilterChanges(filterId: string) {
     const filter = this.#filters.get(filterId);
     if (filter) {
       const updates = filter.updates;
@@ -1198,7 +1197,7 @@ export default class EthereumApi implements types.Api {
    * @returns `true` if the filter was successfully uninstalled, otherwise
    * `false`.
    */
-  async eth_uninstallFilter(filterId: string): Promise<any> {
+  async eth_uninstallFilter(filterId: string) {
     const filter = this.#filters.get(filterId);
     if (!filter) return false;
     filter.unsubscribe();
@@ -1210,7 +1209,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns Array of log objects, or an empty array.
    */
-  async eth_getFilterLogs(filterId: string): Promise<any> {
+  async eth_getFilterLogs(filterId: string) {
     const filter = this.#filters.get(filterId);
     if (filter && filter.type === FilterTypes.log) {
       return this.eth_getLogs(filter.filter);
@@ -1225,7 +1224,7 @@ export default class EthereumApi implements types.Api {
    * @param filter The filter options
    * @returns Array of log objects, or an empty array.
    */
-  async eth_getLogs(filter: FilterArgs): Promise<any> {
+  async eth_getLogs(filter: FilterArgs) {
     const blockchain = this.#blockchain;
     const {addresses, topics, fromBlock, toBlockNumber} = parseFilter(filter, blockchain);
     
@@ -1275,7 +1274,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns the return value of executed contract.
    */
-  async eth_call(transaction: any, blockNumber: string | Buffer | Tag = Tag.LATEST): Promise<Data> {
+  async eth_call(transaction: any, blockNumber: string | Buffer | Tag = Tag.LATEST) {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);

@@ -8,7 +8,7 @@ import CheckpointTrie from "merkle-patricia-tree";
 import {BN} from "ethereumjs-util";
 import Account from "./things/account";
 import {promisify} from "util";
-import {Quantity, Data} from "@ganache/utils/src/things/json-rpc";
+import {Quantity, Data} from "@ganache/utils";
 import EthereumJsAccount from "ethereumjs-account";
 import AccountManager from "./components/account-manager";
 import {utils} from "@ganache/utils";
@@ -412,14 +412,14 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }
   }
 
-  public async queueTransaction(transaction: any, secretKey?: Data): Promise<Data> {
+  public async queueTransaction(transaction: any, secretKey?: Data) {
     if(await this.transactions.push(transaction, secretKey)){
       this.emit("pendingTransaction", transaction);
     }
     return Data.from(transaction.hash());
   }
 
-  public async simulateTransaction(transaction: any, parentBlock: Block, block: Block): Promise<Data> {
+  public async simulateTransaction(transaction: any, parentBlock: Block, block: Block) {
     // TODO: this is just a prototype implementation
     const vm = this.vm.copy();
     const stateManager = vm.stateManager;

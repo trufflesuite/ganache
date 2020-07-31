@@ -1,5 +1,5 @@
 import assert from "assert";
-import {Quantity} from "@ganache/utils/src/things/json-rpc";
+import {Quantity} from "@ganache/utils";
 import {ProviderOptions} from "@ganache/options";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";

@@ -1,4 +1,4 @@
-import {Data} from "@ganache/utils/src/things/json-rpc/json-rpc-data";
+import {Data} from "@ganache/utils";
 
 class Address extends Data {
   /**

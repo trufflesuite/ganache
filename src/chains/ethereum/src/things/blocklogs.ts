@@ -1,5 +1,5 @@
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
-import { Data, Quantity } from "@ganache/utils/src/things/json-rpc";
+import { Data, Quantity } from "@ganache/utils";
 import Address from "./address";
 
 const BUFFER_ZERO = Buffer.allocUnsafe(1).fill(0);

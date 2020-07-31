@@ -1,6 +1,6 @@
 import assert from "assert";
 import getProvider from "../../helpers/getProvider";
-import { Quantity } from "@ganache/utils/src/things/json-rpc";
+import { Quantity } from "@ganache/utils";
 import EthereumProvider from "../../../src/provider";
 
 describe("api", () => {

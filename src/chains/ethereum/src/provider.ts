@@ -1,14 +1,13 @@
 import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
-import JsonRpc from "@ganache/utils/src/things/jsonrpc";
+import {JsonRpcTypes} from "@ganache/utils";
 import EthereumOptions from "./options";
 import cloneDeep from "lodash.clonedeep";
-import {types, utils} from "@ganache/utils";
-import PromiEvent from "@ganache/utils/src/things/promievent";
+import {PromiEvent, types, utils} from "@ganache/utils";
 
 interface Callback {
-  (err?: Error, response?: JsonRpc.Response): void;
+  (err?: Error, response?: JsonRpcTypes.Response): void;
 }
 
 type RequestParams<Method extends types.KnownKeys<EthereumApi>> = {
@@ -37,9 +36,9 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
     return cloneDeep(this.#options);
   }
 
-  public send(payload: JsonRpc.Request<EthereumApi>, callback?: Callback): void;
+  public send(payload: JsonRpcTypes.Request<EthereumApi>, callback?: Callback): void;
   public send(method: types.KnownKeys<EthereumApi>, params?: Parameters<EthereumApi[typeof method]>): Promise<any>;
-  public send(arg1: types.KnownKeys<EthereumApi> | JsonRpc.Request<EthereumApi>, arg2?: Callback | any[]): Promise<any> {
+  public send(arg1: types.KnownKeys<EthereumApi> | JsonRpcTypes.Request<EthereumApi>, arg2?: Callback | any[]): Promise<any> {
     let method: types.KnownKeys<EthereumApi>;
     let params: any;
     let response: Promise<{}>;
@@ -58,7 +57,7 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
         .then((result: any) => {
           // execute the callback on the nextTick so errors thrown in the callback
           // don't cause the error to bubble up to ganache-core
-         process.nextTick(callback, null, JsonRpc.Response(payload.id, JSON.parse(JSON.stringify(result))))
+         process.nextTick(callback, null, JsonRpcTypes.Response(payload.id, JSON.parse(JSON.stringify(result))))
         }).catch((err: Error) => {
           process.nextTick(callback, err);
         });
@@ -84,7 +83,7 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
    * @param payload JSON-RPC payload
    * @param callback callback
    */
-  public sendAsync(payload: JsonRpc.Request<EthereumApi>, callback?: Callback): void {
+  public sendAsync(payload: JsonRpcTypes.Request<EthereumApi>, callback?: Callback): void {
     return this.send(payload, callback);
   }
 

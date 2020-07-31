@@ -1,6 +1,7 @@
-import { RequestCoordinator, Executor } from "@ganache/utils/src/utils";
+import { utils } from "@ganache/utils";
 import EthereumProvider from "../../src/provider";
 import {ProviderOptions} from "@ganache/options";
+const { RequestCoordinator, Executor } = utils;
 
 const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 const getProvider = async (options: ProviderOptions = {mnemonic}) => {

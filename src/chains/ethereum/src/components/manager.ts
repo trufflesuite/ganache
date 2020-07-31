@@ -1,5 +1,5 @@
 import {LevelUp} from "levelup";
-import {Data} from "@ganache/utils/src/things/json-rpc";
+import {Data} from "@ganache/utils";
 import Tag from "../things/tags";
 const NOTFOUND = 404;
 

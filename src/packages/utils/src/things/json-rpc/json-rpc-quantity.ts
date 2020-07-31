@@ -1,10 +1,11 @@
-import {BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType} from ".";
+import {JsonRpcType} from ".";
+import { BaseJsonRpcType } from "./json-rpc-base-types";
 const toBigIntBE = require("bigint-buffer").toBigIntBE;
 
-class Quantity extends BaseJsonRpcType {
+export class Quantity extends BaseJsonRpcType {
   _nullable: boolean = false;
   public static from(value: number | bigint | string | Buffer, nullable = false) {
-    const q = new _Quantity(value, nullable);
+    const q = new _Quantity(value);
     q._nullable = nullable;
     return q;
   }
@@ -82,7 +83,7 @@ class Quantity extends BaseJsonRpcType {
 }
 type $<T extends number | bigint | string | Buffer | null = number | bigint | string | Buffer | null> = {
   _nullable: boolean;
-  new (value: T, nullable?: boolean): _Quantity & JsonRpcType<T>;
+  new (value: T): _Quantity & JsonRpcType<T>;
   from(value: T, nullable?: boolean): _Quantity & JsonRpcType<T>;
   toBigInt(): bigint;
   toNumber(): number;
@@ -93,7 +94,7 @@ const _Quantity = Quantity as $;
 
 interface _Quantity<T = number | bigint | string | Buffer | null> {
   _nullable: boolean;
-  constructor(value: T, nullable?: boolean): _Quantity;
+  constructor(value: T): _Quantity;
   from(): _Quantity;
   toBigInt(): bigint;
   toNumber(): number;

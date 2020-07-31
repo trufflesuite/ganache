@@ -1,9 +1,8 @@
 import Transaction from "./transaction";
 import {Block} from "../components/block-manager";
 import {encode as rlpEncode, decode as rlpDecode} from "rlp";
-import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
+import {Data, Quantity} from "@ganache/utils";
 import BlockLogs, { TransactionLog } from "./blocklogs";
-import Address from "./address";
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer A, infer _L] ? A : never;
 type FullRawReceipt = [status: Buffer, gasUsed: Buffer, logsBloom: Buffer, logs: Buffer[], contractAddress: Buffer | null];

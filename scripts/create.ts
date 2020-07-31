@@ -76,12 +76,22 @@ describe("${packageName}", () => {
 }
 `;
 
+const rootIndexFile = `export * from "./src/index";
+`;
+
     const dir = join("./src/packages", name);
     const tests = join(dir, "__tests__");
     const src = join(dir, "src");
 
     function initSrc() {
       return writeFile(join(src, "index.ts"), prettier.format(indexFile, {...prettierConfig, parser: "typescript"}));
+    }
+
+    function initRootIndex() {
+      return Promise.all([
+        writeFile(join(dir, ".npmignore"), "./index.ts\n"),
+        writeFile(join(dir, "index.ts"), prettier.format(rootIndexFile, {...prettierConfig, parser: "typescript"})),
+      ]);
     }
 
     function initTests() {
@@ -100,6 +110,7 @@ describe("${packageName}", () => {
     mkdirSync(dir);
 
     await Promise.all([
+      initRootIndex(),
       mkdir(tests).then(initTests),
       mkdir(src).then(initSrc),
       writeFile(

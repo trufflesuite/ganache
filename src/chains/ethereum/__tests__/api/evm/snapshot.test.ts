@@ -2,7 +2,7 @@ const assert = require("assert");
 import { join } from "path";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
-import {Quantity} from "@ganache/utils/src/things/json-rpc";
+import { Quantity } from "@ganache/utils";
 
 const eth = "0x" + (1000000000000000000n).toString(16);
 

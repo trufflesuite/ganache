@@ -3,7 +3,7 @@ import Manager from "./manager";
 import Tag from "../things/tags";
 import { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
-import {Quantity, Data} from "@ganache/utils/src/things/json-rpc";
+import {Quantity, Data} from "@ganache/utils";
 import Transaction from "../things/transaction";
 import {decode as rlpDecode} from "rlp";
 import Common from "ethereumjs-common";

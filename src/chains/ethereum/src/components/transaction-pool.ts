@@ -3,7 +3,7 @@ import Emittery from "emittery";
 import Blockchain from "../blockchain";
 import {utils} from "@ganache/utils";
 import Transaction from "../things/transaction";
-import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
+import {Data, Quantity} from "@ganache/utils";
 
 export type TransactionPoolOptions = {
   /**

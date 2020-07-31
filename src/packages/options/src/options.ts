@@ -1,4 +1,4 @@
-import {Quantity} from "@ganache/utils/src/things/json-rpc";
+import {Quantity} from "@ganache/utils";
 import {types} from "@ganache/utils";
 
 interface Logger {

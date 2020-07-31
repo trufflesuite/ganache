@@ -1,7 +1,7 @@
 import params from "./things/params";
 import {utils} from "@ganache/utils";
 import Transaction from "./things/transaction";
-import {Quantity, Data} from "@ganache/utils/src/things/json-rpc";
+import {Quantity, Data} from "@ganache/utils";
 import {promisify} from "util";
 import Trie from "merkle-patricia-tree";
 import Emittery from "emittery";
