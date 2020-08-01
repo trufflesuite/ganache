@@ -168,7 +168,7 @@ function uintWideToBuf(num: number) {
 }
 
 /**
- * Converts a JavaScript number, treated as a Whole Numbers (0, 1, 2, 3, 4, ...)
+ * Converts a JavaScript number, treated as a Whole Number (0, 1, 2, 3, 4, ...)
  * less than 64 bits wide, to a Buffer.
  * 
  * Numbers that are negative, fractional, or greater than 64 bits wide will
