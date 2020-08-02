@@ -58,6 +58,8 @@ export default class WebsocketServer {
       close: (ws: WebSocket) => {
         this.#connections.delete(ws);
         ws.closed = true;
+        // TODO: make sure we clean up all `resultEmitter`s (we'll need to extend PromiEvents so they know when they need
+        // to kill their own internal listeners)!
       }
     });
   }
