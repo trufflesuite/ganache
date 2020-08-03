@@ -19,7 +19,8 @@
   "scripts": {
     "tsc": "ts-node ../../../scripts/compile",
     "test": "nyc npm run mocha -- --throw-deprecation --trace-warnings",
-    "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**/*.ts'"
+    "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**/*.ts'",
+    "clean-tsc": "npx rimraf ./lib"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -46,6 +47,7 @@
   },
   "devDependencies": {
     "@filecoin-shipyard/lotus-client-provider-browser": "^0.0.14",
-    "@filecoin-shipyard/lotus-client-rpc": "^0.0.11"
+    "@filecoin-shipyard/lotus-client-rpc": "^0.0.11",
+    "rimraf": "3.0.2"
   }
 }

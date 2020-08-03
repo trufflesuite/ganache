@@ -27,7 +27,8 @@
     "preview:docs": "open-cli ./lib/docs/index.html",
     "tsc": "ts-node ../../../scripts/compile",
     "test": "nyc npm run mocha -- --throw-deprecation --trace-warnings",
-    "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**/*.test.ts'",
+    "clean-tsc": "npx rimraf ./lib"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
     "open-cli": "6.0.1",
+    "rimraf": "3.0.2",
     "typedoc": "0.17.8"
   }
 }

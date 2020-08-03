@@ -18,7 +18,8 @@
     "url": "git+https://github.com/trufflesuite/ganache-core.git"
   },
   "scripts": {
-    "tsc": "ts-node ../../../scripts/compile"
+    "tsc": "ts-node ../../../scripts/compile",
+    "clean-tsc": "npx rimraf ./lib"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -26,5 +27,8 @@
   "dependencies": {
     "@ganache/utils": "2.2.1",
     "seedrandom": "3.0.5"
+  },
+  "devDependencies": {
+    "rimraf": "3.0.2"
   }
 }

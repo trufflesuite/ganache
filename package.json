@@ -13,7 +13,8 @@
     "postinstall": "lerna bootstrap && npx patch-package",
     "reinstall": "npm run clean && npm install",
     "test": "lerna exec -- npm test",
-    "tsc": "lerna exec -- npm run tsc"
+    "tsc": "lerna exec -- npm run tsc",
+    "clean-tsc": "lerna exec -- npm run clean-tsc"
   },
   "dependencies": {
     "bip39": "3.0.2",
