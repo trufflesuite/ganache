@@ -414,7 +414,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
   }
 
   public async queueTransaction(transaction: any, secretKey?: Data) {
-    if(await this.transactions.push(transaction, secretKey)){
+    if (await this.transactions.push(transaction, secretKey)) {
       this.emit("pendingTransaction", transaction);
     }
     return Data.from(transaction.hash());

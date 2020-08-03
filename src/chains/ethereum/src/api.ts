@@ -10,41 +10,6 @@ import Transaction from "./things/transaction";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
 
-type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
-type TypedData = Exclude<Parameters<typeof signTypedData_v4>[1]["data"], NotTypedData>;
-enum FilterTypes {
-  log,
-  block,
-  pendingTransaction
-};
-type Topic = string|string[];
-type FilterArgs = {address?: string | string[], topics?: Topic[], fromBlock?: string | Tag, toBlock?: string | Tag};
-function parseFilter(filter: FilterArgs, blockchain: Blockchain) {
-  // `filter.address` may be a single address or an array
-  const addresses = filter.address ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(a => Address.from(a.toLowerCase()).toBuffer()) : [];
-  const topics = filter.topics ? filter.topics : [];
-
-  const fromBlock = blockchain.blocks.getEffectiveNumber(filter.fromBlock || "latest");
-  const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
-  const latestBlock = Quantity.from(latestBlockNumberBuffer);
-  const latestBlockNumber = latestBlock.toNumber();
-  const toBlock = blockchain.blocks.getEffectiveNumber(filter.toBlock || "latest");
-  let toBlockNumber: number;
-  // don't search after the "latest" block, unless it's "pending", of course.
-  if (toBlock > latestBlock) {
-    toBlockNumber = latestBlockNumber;
-  } else {
-    toBlockNumber = toBlock.toNumber();
-  }
-  return {
-    addresses,
-    fromBlock,
-    toBlock,
-    toBlockNumber,
-    topics
-  };
-}
-
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
 import { version } from "../../../packages/core/package.json";
@@ -67,7 +32,55 @@ const RPC_MODULES = { eth: "1.0", net: "1.0", rpc: "1.0", web3: "1.0", evm: "1.0
 
 //#region types
 type SubscriptionId = string;
+
+type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
+type TypedData = Exclude<Parameters<typeof signTypedData_v4>[1]["data"], NotTypedData>;
+enum FilterTypes {
+  log,
+  block,
+  pendingTransaction
+};
+type Topic = string|string[];
+type FilterArgs = {address?: string | string[], topics?: Topic[], fromBlock?: string | Tag, toBlock?: string | Tag};
 //#endregion
+
+//#region helpers
+function parseFilterDetails(filter: Pick<FilterArgs, "address" | "topics"> = {address: [], topics: []}) {
+  // `filter.address` may be a single address or an array
+  const addresses = filter.address ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(a => Address.from(a.toLowerCase()).toBuffer()) : [];
+  const topics = filter.topics ? filter.topics : [];
+  return {addresses, topics};
+}
+function parseFilterRange(filter: Pick<FilterArgs, "fromBlock" | "toBlock">, blockchain: Blockchain) {
+  const fromBlock = blockchain.blocks.getEffectiveNumber(filter.fromBlock || "latest");
+  const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
+  const latestBlock = Quantity.from(latestBlockNumberBuffer);
+  const latestBlockNumber = latestBlock.toNumber();
+  const toBlock = blockchain.blocks.getEffectiveNumber(filter.toBlock || "latest");
+  let toBlockNumber: number;
+  // don't search after the "latest" block, unless it's "pending", of course.
+  if (toBlock > latestBlock) {
+    toBlockNumber = latestBlockNumber;
+  } else {
+    toBlockNumber = toBlock.toNumber();
+  }
+  return {
+    fromBlock,
+    toBlock,
+    toBlockNumber
+  }
+}
+function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain: Blockchain) {
+  const {addresses, topics} = parseFilterDetails(filter);
+  const {fromBlock, toBlock, toBlockNumber} = parseFilterRange(filter, blockchain);
+  return {
+    addresses,
+    fromBlock,
+    toBlock,
+    toBlockNumber,
+    topics
+  };
+}
 
 export default class EthereumApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -199,17 +212,19 @@ export default class EthereumApi implements types.Api {
   async evm_setAccountNonce(address: string, nonce: string) {
     return new Promise((resolve, reject) => {
       const buffer = Address.from(address).toBuffer();
-      this.#blockchain.vm.stateManager.getAccount(buffer, (err: Error, account: EthereumAccount) => {
+      const blockchain = this.#blockchain;
+      const stateManager = blockchain.vm.stateManager;
+      stateManager.getAccount(buffer, (err: Error, account: EthereumAccount) => {
         if (err) {
           return void reject(err)
         }
         account.nonce = Quantity.from(nonce).toBuffer();
-        this.#blockchain.vm.stateManager.putAccount(buffer, account, (err: Error) => {
+        stateManager.putAccount(buffer, account, (err: Error) => {
           if (err) {
             return void reject(err);
           }
          
-          this.#blockchain.mine(0).then(() => resolve(true), reject);
+          blockchain.mine(0).then(() => resolve(true), reject);
         });
       });
     });
@@ -988,100 +1003,88 @@ export default class EthereumApi implements types.Api {
     const subscriptions = this.#subscriptions;
     switch (subscriptionName) {
       case "newHeads": {
-        const promiEvent = new PromiEvent<Quantity>(resolve => {
-          const subscription = this.#getId();
-          const unsubscribe = this.#blockchain.on("block", (block: Block) => {
-            const value = block.value;
-            const header = value.header;
-            const result = {
-              "logsBloom":        Data.from(header.bloom, 256), // TODO: pending block
-              "miner":            Address.from(header.coinbase),
-              "difficulty":       Quantity.from(header.difficulty),
-              "extraData":        Data.from(header.extraData),
-              "gasLimit":         Quantity.from(header.gasLimit),
-              "gasUsed":          Quantity.from(header.gasUsed),
-              "hash":             Data.from(value.hash(), 32), // TODO: pending block
-              "mixHash":          Data.from(header.mixHash, 32),
-              "nonce":            Data.from(header.nonce, 8), // TODO: pending block
-              "number":           Quantity.from(header.number, true), // TODO: pending block
-              "parentHash":       Data.from(header.parentHash, 32),
-              "receiptsRoot":     Data.from(header.receiptTrie, 32),
-              "stateRoot":        Data.from(header.stateRoot, 32),
-              "timestamp":        Quantity.from(header.timestamp),
-              "transactionsRoot": Data.from(header.transactionsTrie, 32),
-              "sha3Uncles":       Data.from(header.uncleHash, 32)
-            };
+        const subscription = this.#getId();
+        const promiEvent = PromiEvent.resolve(subscription);
 
-            // TODO: move the JSON stringification closer to where the message
-            // is actually sent to the listener
-            promiEvent.emit("message", {
-              type: "eth_subscription",
-              data: {
-                result: JSON.parse(JSON.stringify(result)),
-                subscription: subscription.toString()
-              }
-            });
+        const unsubscribe = this.#blockchain.on("block", (block: Block) => {
+          const value = block.value;
+          const header = value.header;
+          const result = {
+            "logsBloom":        Data.from(header.bloom, 256), // TODO: pending block
+            "miner":            Address.from(header.coinbase),
+            "difficulty":       Quantity.from(header.difficulty),
+            "extraData":        Data.from(header.extraData),
+            "gasLimit":         Quantity.from(header.gasLimit),
+            "gasUsed":          Quantity.from(header.gasUsed),
+            "hash":             Data.from(value.hash(), 32), // TODO: pending block
+            "mixHash":          Data.from(header.mixHash, 32),
+            "nonce":            Data.from(header.nonce, 8), // TODO: pending block
+            "number":           Quantity.from(header.number, true), // TODO: pending block
+            "parentHash":       Data.from(header.parentHash, 32),
+            "receiptsRoot":     Data.from(header.receiptTrie, 32),
+            "stateRoot":        Data.from(header.stateRoot, 32),
+            "timestamp":        Quantity.from(header.timestamp),
+            "transactionsRoot": Data.from(header.transactionsTrie, 32),
+            "sha3Uncles":       Data.from(header.uncleHash, 32)
+          };
+
+          // TODO: move the JSON stringification closer to where the message
+          // is actually sent to the listener
+          promiEvent.emit("message", {
+            type: "eth_subscription",
+            data: {
+              result: JSON.parse(JSON.stringify(result)),
+              subscription: subscription.toString()
+            }
           });
-          subscriptions.set(subscription.toString(), unsubscribe);
-
-          resolve(subscription);
         });
+        subscriptions.set(subscription.toString(), unsubscribe);
         return promiEvent;
       }
       case "logs": {
-        const promiEvent = new PromiEvent(resolve => {
-          const subscription = this.#getId();
-          const blockchain = this.#blockchain;
-          const { addresses, topics, fromBlock, toBlock } = parseFilter(options, blockchain);
-          const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
-            const blockNumber = blockLogs.getBlockNumber();
-            if (fromBlock >= blockNumber && blockNumber <= toBlock) {
-              // TODO: move the JSON stringification closer to where the message
-              // is actually sent to the listener
-              const result = JSON.parse(JSON.stringify([...blockLogs.filter(addresses, topics)]));
-              promiEvent.emit("message", {
-                type: "eth_subscription",
-                data: {
-                  result,
-                  subscription: subscription.toString()
-                }
-              });
+        const subscription = this.#getId();
+        const promiEvent = PromiEvent.resolve(subscription);
+
+        const { addresses, topics } = parseFilterDetails(options);
+        const unsubscribe = this.#blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
+            // TODO: move the JSON stringification closer to where the message
+            // is actually sent to the listener
+          const result = JSON.parse(JSON.stringify([...blockLogs.filter(addresses, topics)]));
+          promiEvent.emit("message", {
+            type: "eth_subscription",
+            data: {
+              result,
+              subscription: subscription.toString()
             }
           });
-          subscriptions.set(subscription.toString(), unsubscribe);
-
-          resolve(subscription);
         });
+        subscriptions.set(subscription.toString(), unsubscribe);
         return promiEvent;
       }
       case "newPendingTransactions": {
-        const promiEvent = new PromiEvent(resolve => {
-          const subscription = this.#getId();
-          const blockchain = this.#blockchain;
-          const unsubscribe = blockchain.on("pendingTransaction", (transaction: Transaction) => {
-            const result = Data.from(transaction.hash(), 32).toString();
-            promiEvent.emit("message", {
-              type: "eth_subscription",
-              data: {
-                result,
-                subscription: subscription.toString()
-              }
-            });
-          });
-          subscriptions.set(subscription.toString(), unsubscribe);
+        const subscription = this.#getId();
+        const promiEvent = PromiEvent.resolve(subscription);
 
-          resolve(subscription);
+        const blockchain = this.#blockchain;
+        const unsubscribe = blockchain.on("pendingTransaction", (transaction: Transaction) => {
+          const result = Data.from(transaction.hash(), 32).toString();
+          promiEvent.emit("message", {
+            type: "eth_subscription",
+            data: {
+              result,
+              subscription: subscription.toString()
+            }
+          });
         });
+        subscriptions.set(subscription.toString(), unsubscribe);
         return promiEvent;
       }
       case "syncing": {
-        const subscriptions = this.#subscriptions;
-        const promiEvent = new PromiEvent(resolve => {
-          const subscription = this.#getId();
-          subscriptions.set(subscription.toString(), () => {});
-
-          resolve(subscription);
-        });
+        // TODO: ?
+        const subscription = this.#getId();
+        const promiEvent = PromiEvent.resolve(subscription);
+        
+        this.#subscriptions.set(subscription.toString(), () => {});
         return promiEvent;
       }
       default:
@@ -1109,10 +1112,11 @@ export default class EthereumApi implements types.Api {
    * @returns A filter id.
    */
   async eth_newBlockFilter() {
+    const updates = [];
     const unsubscribe = this.#blockchain.on("block", (block: Block) => {
-      value.updates.push(Data.from(block.value.hash(), 32));
+      updates.push(Data.from(block.value.hash(), 32));
     });
-    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.block};
+    const value = {updates, unsubscribe, filter: null, type: FilterTypes.block};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1125,10 +1129,11 @@ export default class EthereumApi implements types.Api {
    * @returns A filter id.
    */
   async eth_newPendingTransactionFilter() {
+    const updates = [];
     const unsubscribe = this.#blockchain.on("pendingTransaction", (transaction: Transaction) => {
-      value.updates.push(Data.from(transaction.hash(), 32));
+      updates.push(Data.from(transaction.hash(), 32));
     });
-    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.pendingTransaction};
+    const value = {updates, unsubscribe, filter: null, type: FilterTypes.pendingTransaction};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1156,13 +1161,14 @@ export default class EthereumApi implements types.Api {
   async eth_newFilter(filter: FilterArgs) {
     const blockchain = this.#blockchain;
     const { addresses, topics, fromBlock, toBlock } = parseFilter(filter, blockchain);
+    const updates = [];
     const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
       const blockNumber = blockLogs.getBlockNumber();
       if (fromBlock >= blockNumber && blockNumber <= toBlock) {
-        value.updates.push(...blockLogs.filter(addresses, topics));
+        updates.push(...blockLogs.filter(addresses, topics));
       }
     });
-    const value = {updates: [], unsubscribe, filter, type: FilterTypes.log};
+    const value = {updates, unsubscribe, filter, type: FilterTypes.log};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1174,9 +1180,8 @@ export default class EthereumApi implements types.Api {
    * last poll.
    * 
    * @param filterId the filter id.
-   * @returns an array of logs, block hashes,
-   * or transactions hashes, depending on the filter type, which occurred since
-   * last poll.
+   * @returns an array of logs, block hashes, or transactions hashes, depending
+   * on the filter type, which occurred since last poll.
    */
   async eth_getFilterChanges(filterId: string) {
     const filter = this.#filters.get(filterId);
@@ -1226,9 +1231,10 @@ export default class EthereumApi implements types.Api {
    */
   async eth_getLogs(filter: FilterArgs) {
     const blockchain = this.#blockchain;
+    const blockLogs = blockchain.blockLogs;
     const {addresses, topics, fromBlock, toBlockNumber} = parseFilter(filter, blockchain);
     
-    const pendingLogsPromises: Promise<BlockLogs>[] = [blockchain.blockLogs.get(fromBlock.toBuffer())];
+    const pendingLogsPromises: Promise<BlockLogs>[] = [blockLogs.get(fromBlock.toBuffer())];
 
     const fromBlockNumber = fromBlock.toNumber();
     // if we have a range of blocks to search, do that here:
@@ -1236,12 +1242,12 @@ export default class EthereumApi implements types.Api {
       // fetch all the blockLogs in-between `fromBlock` and `toBlock` (excluding
       // from, because we already started fetching that one)
       for (let i = fromBlockNumber + 1, l = toBlockNumber + 1; i < l; i++) {
-        pendingLogsPromises.push(blockchain.blockLogs.get(Quantity.from(i).toBuffer()));
+        pendingLogsPromises.push(blockLogs.get(Quantity.from(i).toBuffer()));
       }
     }
 
     // now filter and compute all the blocks' blockLogs (in block order)
-    return await Promise.all(pendingLogsPromises).then(blockLogsRange => {
+    return Promise.all(pendingLogsPromises).then(blockLogsRange => {
       const filteredBlockLogs: ReturnType<typeof BlockLogs["logToJSON"]>[] = [];
       blockLogsRange.forEach(blockLogs => {
         // TODO(perf): this loops over all expectedAddresseses for every block.
