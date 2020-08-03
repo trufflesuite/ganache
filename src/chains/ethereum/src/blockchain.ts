@@ -185,6 +185,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
               );
             })
           });
+          blockLogs.setBlockNumber(Quantity.from(blockNumber));
           this.blockLogs.set(blockNumber, blockLogs.serialize());
           block.value.transactions = blockData.blockTransactions;
           this.blocks.putBlock(block);

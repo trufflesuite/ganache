@@ -45,7 +45,7 @@ type FilterArgs = {address?: string | string[], topics?: Topic[], fromBlock?: st
 //#endregion
 
 //#region helpers
-function parseFilterDetails(filter: Pick<FilterArgs, "address" | "topics"> = {address: [], topics: []}) {
+function parseFilterDetails(filter: Pick<FilterArgs, "address" | "topics">) {
   // `filter.address` may be a single address or an array
   const addresses = filter.address ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(a => Address.from(a.toLowerCase()).toBuffer()) : [];
   const topics = filter.topics ? filter.topics : [];
@@ -73,6 +73,7 @@ function parseFilterRange(filter: Pick<FilterArgs, "fromBlock" | "toBlock">, blo
 function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain: Blockchain) {
   const {addresses, topics} = parseFilterDetails(filter);
   const {fromBlock, toBlock, toBlockNumber} = parseFilterRange(filter, blockchain);
+
   return {
     addresses,
     fromBlock,
@@ -1045,7 +1046,7 @@ export default class EthereumApi implements types.Api {
         const subscription = this.#getId();
         const promiEvent = PromiEvent.resolve(subscription);
 
-        const { addresses, topics } = parseFilterDetails(options);
+        const { addresses, topics } = options ? parseFilterDetails(options) : {addresses: [], topics: []};
         const unsubscribe = this.#blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
             // TODO: move the JSON stringification closer to where the message
             // is actually sent to the listener
@@ -1111,11 +1112,10 @@ export default class EthereumApi implements types.Api {
    * @returns A filter id.
    */
   async eth_newBlockFilter() {
-    const updates = [];
     const unsubscribe = this.#blockchain.on("block", (block: Block) => {
-      updates.push(Data.from(block.value.hash(), 32));
+      value.updates.push(Data.from(block.value.hash(), 32));
     });
-    const value = {updates, unsubscribe, filter: null, type: FilterTypes.block};
+    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.block};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1128,11 +1128,10 @@ export default class EthereumApi implements types.Api {
    * @returns A filter id.
    */
   async eth_newPendingTransactionFilter() {
-    const updates = [];
     const unsubscribe = this.#blockchain.on("pendingTransaction", (transaction: Transaction) => {
-      updates.push(Data.from(transaction.hash(), 32));
+      value.updates.push(Data.from(transaction.hash(), 32));
     });
-    const value = {updates, unsubscribe, filter: null, type: FilterTypes.pendingTransaction};
+    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.pendingTransaction};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1142,6 +1141,11 @@ export default class EthereumApi implements types.Api {
    * Creates a filter object, based on filter options, to notify when the state
    * changes (logs). To check if the state has changed, call
    * `eth_getFilterChanges`.
+   * 
+   * If the from `fromBlock` or `toBlock` option are equal to "latest" the 
+   * filter continually append logs for whatever block is seen as latest at the
+   * time the block was mined, not just for the block that was "latest" when the
+   * filter was created.
    * 
    * ### A note on specifying topic filters:
    * Topics are order-dependent. A transaction with a log with topics [A, B]
@@ -1157,17 +1161,21 @@ export default class EthereumApi implements types.Api {
    * 
    * @param filter The filter options
    */
-  async eth_newFilter(filter: FilterArgs) {
+  async eth_newFilter(filter: FilterArgs = {}) {
     const blockchain = this.#blockchain;
-    const { addresses, topics, fromBlock, toBlock } = parseFilter(filter, blockchain);
-    const updates = [];
+    const { addresses, topics } = parseFilterDetails(filter);
     const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
       const blockNumber = blockLogs.getBlockNumber();
-      if (fromBlock >= blockNumber && blockNumber <= toBlock) {
-        updates.push(...blockLogs.filter(addresses, topics));
+      // everytime we get a blockLogs message we re-check what the filter's
+      // range is. We do this because "latest" isn't the latest block at the
+      // time the filter was set up, rather it is the actual latest *mined* 
+      // block (that is: not pending)
+      const {fromBlock, toBlock} = parseFilterRange(filter, blockchain);
+      if (fromBlock <= blockNumber && toBlock >= blockNumber) {
+        value.updates.push(...blockLogs.filter(addresses, topics));
       }
     });
-    const value = {updates, unsubscribe, filter, type: FilterTypes.log};
+    const value = {updates: [], unsubscribe, filter, type: FilterTypes.log};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
