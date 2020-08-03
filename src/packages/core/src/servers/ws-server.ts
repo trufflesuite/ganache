@@ -20,6 +20,7 @@ export default class WebsocketServer {
 
       /* Handlers */
       open: (ws: WebSocket) => {
+        ws.promiEvents = new Set();
         this.#connections.add(ws);
       },
       message: async (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
@@ -35,35 +36,36 @@ export default class WebsocketServer {
         resultEmitter.then(result => {
           // The socket may have closed while we were waiting for the response
           // Don't bother trying to send to it if it was.
-          if (!ws.closed) {
-            const message = connector.format(result, payload);
-            ws.send(message, isBinary, true);
-          }
+          if (ws.closed) return;
+
+          const message = connector.format(result, payload);
+          ws.send(message, isBinary, true);
         });
         
         resultEmitter.on("message", (result: any) => {
-          // The socket may have closed while we were waiting for the response
-          // Don't bother trying to send to it if it was.
-          if (!ws.closed) {
-            const message = connector.format(result, payload);
-            ws.send(message, isBinary, true);
-          }
+          // note: we _don't_ need to check if `ws.closed` here because when
+          // `ws.closed` is set we remove this `"message"` event handler anyway.
+          const message = connector.format(result, payload);
+          ws.send(message, isBinary, true);
         });
+        ws.promiEvents.add(resultEmitter.dispose);
       },
       drain: (ws: WebSocket) => {
-        // This is there so tests can detect if a small amount of backpressure is happening and that things will still
-        // work if it does. We actually don't do anything to manage excessive backpressure.
+        // This is there so tests can detect if a small amount of backpressure
+        // is happening and that things will still work if it does. We actually
+        // don't do anything to manage excessive backpressure.
         options.logger.log("WebSocket backpressure: " + ws.getBufferedAmount());
       },
       close: (ws: WebSocket) => {
-        this.#connections.delete(ws);
         ws.closed = true;
-        // TODO: make sure we clean up all `resultEmitter`s (we'll need to extend PromiEvents so they know when they need
-        // to kill their own internal listeners)!
+        ws.promiEvents.forEach(dispose => dispose());
+        ws.promiEvents.clear();
+        this.#connections.delete(ws);
       }
     });
   }
   close() {
     this.#connections.forEach(ws => ws.end(WebSocketCloseCodes.CLOSE_GOING_AWAY, "Server closed by client"));
+    this.#connections.clear();
   }
 }
