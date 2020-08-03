@@ -24,8 +24,8 @@ export default class FilecoinApi implements types.Api {
     })
   }
 
-  async stop() {
-    await this[_blockchain].stop();
+  async stop():Promise<void> {
+    return await this[_blockchain].stop();
   }
 
   async "Filecoin.ChainGetGenesis"():Promise<SerializedTipset> {
@@ -69,6 +69,10 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.ClientFindData"(rootCid:SerializedRootCID):Promise<Array<SerializedRetrievalOffer>> {
     let remoteOffer = await this[_blockchain].createRetrievalOffer(new RootCID(rootCid));
     return [remoteOffer.serialize()];
+  }
+
+  async "Filecoin.ClientHasLocal"(rootCid:SerializedRootCID):Promise<boolean> {
+    return await this[_blockchain].hasLocal(rootCid["/"]);
   }
 
   async "Filecoin.ClientRetrieve"(retrievalOffer:SerializedRetrievalOffer):Promise<object> {

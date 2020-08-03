@@ -142,7 +142,7 @@ describe("api", () => {
       })
     });
 
-    describe("Filecoin.ClientFindData and Filecoin.ClientRetrieve", () => {
+    describe("Filecoin.ClientFindData, Filecoin.ClientRetrieve, and Filecoin.ClientHasLocal", () => {
       let ipfs:IPFSClient;
       let offer:SerializedRetrievalOffer;
 
@@ -166,6 +166,10 @@ describe("api", () => {
         assert.ok(offer);
         assert.strictEqual(offer.Size, expectedSize);
         assert.strictEqual(offer.MinPrice, expectedMinPrice);
+
+        let hasLocal = await client.clientHasLocal({"/": result.path});
+
+        assert(hasLocal);
       })
 
       it("should 'retrieve' without error (but we all know it's not actually retrieving anything...)", async() => {
@@ -202,6 +206,10 @@ describe("api", () => {
 
         assert.notStrictEqual(typeof error, "undefined", "Expected ClientRetrieve to throw an error!");
         assert(error.message.indexOf("Object not found") >= 0);
+
+        let hasLocal = await client.clientHasLocal({"/": cidIMadeUp});
+
+        assert(!hasLocal);
       })
     })
 

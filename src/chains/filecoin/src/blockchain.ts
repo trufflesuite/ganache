@@ -152,6 +152,18 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     }
   }
 
+  async hasLocal(cid:string):Promise<boolean> {
+    try {
+      // This stat will fail if the object doesn't exist.
+      await this.ipfsServer.node.object.stat(cid,  {
+        timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
+      })
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   private async getIPFSObjectSize(cid:string):Promise<number> {
     let stat = await this.ipfsServer.node.object.stat(cid, {
       timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
@@ -221,20 +233,11 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     // actually retrieve anything. That said, we'll check to make sure
     // we have the content locally in our IPFS server, and error if it
     // doesn't exist. 
+    
+    let hasLocal:boolean = await this.hasLocal(retrievalOffer.root["/"].value)
 
-    try {
-      // This stat will fail if the object doesn't exist.
-      await this.ipfsServer.node.object.stat(retrievalOffer.root["/"].value,  {
-        timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
-      })
-    } catch (e) {
-      let err:Error = e;
-
-      if (e.message.indexOf("request timed out") >= 0) {
-        err = new Error(`Object not found: ${retrievalOffer.root["/"].value}`)
-      }
-
-      throw err;
+    if (!hasLocal) {
+      throw new Error(`Object not found: ${retrievalOffer.root["/"].value}`)
     }
   }
 }
