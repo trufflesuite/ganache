@@ -3,19 +3,17 @@
 // Don't reorganize unless you know what you're doing.
 
 export enum DealState {
+  Unknown,
   ProposalNotFound,
   ProposalRejected,
   ProposalAccepted,
   Staged,
   Sealing,
   Active,
-  Expired,
-  Slashed,
   Failing,
+  NotFound,
   FundsEnsured, // Deposited funds as neccesary to create a deal, ready to move forward
-  WaitingForDataRequest,
   Validating, // Verifying that deal parameters are good
-  AcceptWait,
   Transferring, // Moving data
   WaitingForData, // Manual transfer
   VerifyData, // Verify transferred data - generate CAR / piece data
@@ -33,7 +31,6 @@ export let terminalStates: Array<DealState> = [
   // go-fil-markets/storagemarket/types.go
   DealState.ProposalNotFound,
   DealState.ProposalRejected,
-  DealState.Expired,
   DealState.Error,
   DealState.Completed
 ];
