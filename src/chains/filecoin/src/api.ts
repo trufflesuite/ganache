@@ -9,6 +9,7 @@ import { SerializedTipset } from "./things/tipset";
 import { SerializedAddress } from "./things/address";
 import { SerializedMiner } from "./things/miner";
 import { SerializedRetrievalOffer, RetrievalOffer } from "./things/retrievaloffer";
+import { FilecoinOptions } from "@ganache/options";
 
 const _blockchain = Symbol("blockchain");
 
@@ -17,8 +18,8 @@ export default class FilecoinApi implements types.Api {
 
   private readonly [_blockchain]: Blockchain;
 
-  constructor(emitter: Emittery.Typed<undefined, "ready">) {
-    const blockchain = (this[_blockchain] = new Blockchain());
+  constructor(options:FilecoinOptions = {}, emitter: Emittery.Typed<undefined, "ready">) {
+    const blockchain = (this[_blockchain] = new Blockchain(options));
     blockchain.on("ready", () => {
       emitter.emit("ready"); 
     })

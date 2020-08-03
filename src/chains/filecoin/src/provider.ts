@@ -30,7 +30,7 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "ready">
     this.#executor = executor;
 
     // Note that the API will emit the "ready" event
-    this.#api = new FilecoinApi(this);   
+    this.#api = new FilecoinApi(providerOptions, this);   
   }
 
   async connect () {

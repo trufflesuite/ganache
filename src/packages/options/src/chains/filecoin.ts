@@ -1,7 +1,7 @@
 type FilecoinOptions = {
-  blockTime?:number;
-  filecoinSomething?:string;
-  callGas?:boolean;
+  automining?: boolean;
+  blockTime?: number;
+  ipfsPort?:number;
 }
 
 export default FilecoinOptions;

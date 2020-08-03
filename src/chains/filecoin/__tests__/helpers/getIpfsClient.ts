@@ -4,7 +4,7 @@ import IPFSServer from "../../src/ipfsserver";
 export default () => {
   return IpfsHttpClient({
     host: "localhost",
-    port: IPFSServer.DEFAULT_PORT,
+    port: 5002, // Use a different port than the default, for testing
     protocol: "http"
   });
 }

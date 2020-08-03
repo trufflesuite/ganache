@@ -13,18 +13,13 @@ import { DealState } from "./dealstates";
 import IPFSServer, { IPFSNode } from "./ipfsserver";
 import dagCBOR from "ipld-dag-cbor";
 import { RetrievalOffer } from "./things/retrievaloffer";
-
-export type BlockchainOptions = {
-  automining: boolean;
-  blockTime: number;
-  ipfsPort: number;
-};
+import { FilecoinOptions } from "@ganache/options";
 
 export type BlockchainEvents = {
   ready():void;
 }
 
-export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof BlockchainEvents> implements BlockchainOptions {
+export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof BlockchainEvents> implements FilecoinOptions {
   readonly tipsets:Array<Tipset> = [];
   readonly miner:Miner;
   readonly address:Address;
@@ -43,7 +38,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
 
   private ready:boolean;
 
-  constructor(options:Partial<BlockchainOptions> = {} as Partial<BlockchainOptions>) {
+  constructor(options:FilecoinOptions = {}) {
     super();
     Object.assign(this, options);
 
