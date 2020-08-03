@@ -45,11 +45,13 @@ type FilterArgs = {address?: string | string[], topics?: Topic[], fromBlock?: st
 //#endregion
 
 //#region helpers
-function parseFilter(filter: FilterArgs, blockchain: Blockchain) {
+function parseFilterDetails(filter: Pick<FilterArgs, "address" | "topics"> = {address: [], topics: []}) {
   // `filter.address` may be a single address or an array
   const addresses = filter.address ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(a => Address.from(a.toLowerCase()).toBuffer()) : [];
   const topics = filter.topics ? filter.topics : [];
-
+  return {addresses, topics};
+}
+function parseFilterRange(filter: Pick<FilterArgs, "fromBlock" | "toBlock">, blockchain: Blockchain) {
   const fromBlock = blockchain.blocks.getEffectiveNumber(filter.fromBlock || "latest");
   const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
   const latestBlock = Quantity.from(latestBlockNumberBuffer);
@@ -62,6 +64,15 @@ function parseFilter(filter: FilterArgs, blockchain: Blockchain) {
   } else {
     toBlockNumber = toBlock.toNumber();
   }
+  return {
+    fromBlock,
+    toBlock,
+    toBlockNumber
+  }
+}
+function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain: Blockchain) {
+  const {addresses, topics} = parseFilterDetails(filter);
+  const {fromBlock, toBlock, toBlockNumber} = parseFilterRange(filter, blockchain);
   return {
     addresses,
     fromBlock,
@@ -1034,22 +1045,18 @@ export default class EthereumApi implements types.Api {
         const subscription = this.#getId();
         const promiEvent = PromiEvent.resolve(subscription);
 
-        const blockchain = this.#blockchain;
-        const { addresses, topics, fromBlock, toBlock } = parseFilter(options, blockchain);
-        const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
-          const blockNumber = blockLogs.getBlockNumber();
-          if (fromBlock >= blockNumber && blockNumber <= toBlock) {
+        const { addresses, topics } = parseFilterDetails(options);
+        const unsubscribe = this.#blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
             // TODO: move the JSON stringification closer to where the message
             // is actually sent to the listener
-            const result = JSON.parse(JSON.stringify([...blockLogs.filter(addresses, topics)]));
-            promiEvent.emit("message", {
-              type: "eth_subscription",
-              data: {
-                result,
-                subscription: subscription.toString()
-              }
-            });
-          }
+          const result = JSON.parse(JSON.stringify([...blockLogs.filter(addresses, topics)]));
+          promiEvent.emit("message", {
+            type: "eth_subscription",
+            data: {
+              result,
+              subscription: subscription.toString()
+            }
+          });
         });
         subscriptions.set(subscription.toString(), unsubscribe);
         return promiEvent;
@@ -1122,7 +1129,7 @@ export default class EthereumApi implements types.Api {
    * @returns A filter id.
    */
   async eth_newPendingTransactionFilter() {
-    const updates = []
+    const updates = [];
     const unsubscribe = this.#blockchain.on("pendingTransaction", (transaction: Transaction) => {
       updates.push(Data.from(transaction.hash(), 32));
     });
