@@ -1065,8 +1065,7 @@ export default class EthereumApi implements types.Api {
         const subscription = this.#getId();
         const promiEvent = PromiEvent.resolve(subscription);
 
-        const blockchain = this.#blockchain;
-        const unsubscribe = blockchain.on("pendingTransaction", (transaction: Transaction) => {
+        const unsubscribe = this.#blockchain.on("pendingTransaction", (transaction: Transaction) => {
           const result = Data.from(transaction.hash(), 32).toString();
           promiEvent.emit("message", {
             type: "eth_subscription",
