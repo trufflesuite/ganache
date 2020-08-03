@@ -1,6 +1,6 @@
-import {ProviderOptions, FilecoinOptions} from "@ganache/options";
+import {FilecoinOptions} from "@ganache/options";
 import Emittery from "emittery";
-import {types, utils} from "@ganache/utils";
+import {types, utils, JsonRpcTypes} from "@ganache/utils";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
 import Provider from "./provider";
@@ -25,18 +25,18 @@ export class FilecoinConnector extends Emittery.Typed<undefined, "ready" | "clos
     const provider = this.#provider = new FilecoinProvider(providerOptions, executor);
     
     // tell the consumer (like a `ganache-core` server/connector) everything is ready
-    this.emit("ready");
+    provider.on("ready", () => {
+      this.emit("ready");
+    })
   }
 
-  parse(message: Buffer):JsonRpc.Request<FilecoinApi> {
-    return JSON.parse(message);
+  parse(message: Buffer) {
+    return JSON.parse(message) as JsonRpcTypes.Request<FilecoinApi>;
   }
 
   // Note that if we allow Filecoin to support Websockets, ws-server.ts blows up.
   // TODO: Look into this.
-  handle(payload: JsonRpc.Request<FilecoinApi>, connection: HttpRequest /*| WebSocket*/): PromiEvent<any> {
-    const method = payload.method;
-    
+  handle(payload: JsonRpcTypes.Request<FilecoinApi>, connection: HttpRequest /*| WebSocket*/): PromiEvent<any> {
     return new PromiEvent((resolve) => {
       return this.#provider.send(payload).then(resolve);
     });
