@@ -14,6 +14,7 @@ import IPFSServer, { IPFSNode } from "./ipfsserver";
 import dagCBOR from "ipld-dag-cbor";
 import { RetrievalOffer } from "./things/retrievaloffer";
 import { FilecoinOptions } from "@ganache/options";
+import seedrandom from "seedrandom";
 import BN from "bn.js";
 
 export type BlockchainEvents = {
@@ -24,9 +25,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
   readonly tipsets:Array<Tipset> = [];
   readonly miner:Miner;
   readonly address:Address;
+  readonly privateKey:string;
   
-  private _balance:Balance;
-  get balance():Balance {return this._balance};
+  #balance:Balance;
+  get balance():Balance {return this.#balance};
 
   readonly deals:Array<Deal> = [];
   readonly dealsByCid:Record<string, Deal> = {};
@@ -36,9 +38,11 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
   readonly blockTime:number = 0;
   readonly ipfsPort:number = 5001;
   readonly logger = {log:(str:string) => {}}
+  readonly seed:string = null;
 
   private ipfsServer:IPFSServer;
   private miningTimeout:NodeJS.Timeout;
+  private rng:() => number;
 
   private ready:boolean;
 
@@ -49,10 +53,16 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     if (this.blockTime > 0) {
       this.automining = false;
     }
-    
+
+    if (this.seed) {
+      this.rng = seedrandom.alea(this.seed);
+    } else {
+      this.rng = Math.random;
+    }
+
     this.miner = new Miner();
-    this.address = new Address();
-    this._balance = new Balance();
+    this.address = Address.random(this.rng);
+    this.#balance = new Balance();
 
     this.ready = false;
 
@@ -219,7 +229,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
 
     // Subtract the cost from our current balance
     let totalPrice = new BN(deal.pricePerEpoch).mul(new BN(deal.duration)).toString(10);
-    this._balance = this._balance.sub(totalPrice)
+    this.#balance = this.#balance.sub(totalPrice)
 
     return deal.proposalCid;
   }
@@ -248,7 +258,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
       throw new Error(`Object not found: ${retrievalOffer.root["/"].value}`)
     }
 
-    this._balance = this._balance.sub(retrievalOffer.minPrice);
+    this.#balance = this.#balance.sub(retrievalOffer.minPrice);
   }
 
   private logLatestTipset() {

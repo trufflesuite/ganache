@@ -90,7 +90,7 @@ describe("api", () => {
       })
 
       it("should not return a balance for any other address", async() => {
-        let otherAddress = new Address().value;
+        let otherAddress = Address.random().value;
         const balance = await client.walletBalance(otherAddress);
         assert.strictEqual(balance, "0");
       })

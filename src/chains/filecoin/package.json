@@ -44,7 +44,8 @@
     "multicodec": "1.0.4",
     "multihashing": "0.3.3",
     "noble-bls12-381": "^0.4.3",
-    "nyc": "^15.1.0"
+    "nyc": "^15.1.0",
+    "seedrandom": "3.0.5"
   },
   "devDependencies": {
     "@filecoin-shipyard/lotus-client-provider-browser": "^0.0.14",

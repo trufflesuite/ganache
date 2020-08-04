@@ -188,4 +188,24 @@ describe("Blockchain", () => {
     })
   })
 
+  describe("determinism", () => {
+    let blockchain:Blockchain;
+
+    before(async() => {
+      blockchain = new Blockchain({
+        seed: "tim is a swell guy"
+      });
+      await blockchain.waitForReady();
+    })
+  
+    after(async() => {
+      await blockchain.stop();
+    })
+  
+    it("creates the expected address from seed", async() => {
+      let expectedAddress = "t3teloaxbdlmh3q3pbnwofxmpg4oszq6p6ohbj2b5ya6evk3gqi4qfdksjq2vanvsppp634uadfuka7igxymca";
+
+      assert.strictEqual(blockchain.address.value, expectedAddress);
+    })
+  });
 });

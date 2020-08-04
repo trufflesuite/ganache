@@ -42,18 +42,11 @@ class Address extends SerializableLiteral<AddressConfig>  {
   readonly protocol:AddressProtocol;
   readonly network:AddressNetwork;
 
-  constructor(privateKey?:string, protocol:AddressProtocol = AddressProtocol.BLS, network:AddressNetwork = AddressNetwork.Testnet) {
+  constructor(privateKey:string, protocol:AddressProtocol = AddressProtocol.BLS, network:AddressNetwork = AddressNetwork.Testnet) {
     if (protocol != AddressProtocol.BLS) {
       throw new Error("Protocol type not yet supported. Supported address protocols: BLS");
     }
     
-    if (!privateKey) {
-      // Note that this private key isn't cryptographically secure!
-      // It uses insecure randomization! Don't use it in production!
-      let alphabet = "0123456789abcdef";
-      privateKey = "_".repeat(64).split("").map(() => alphabet[Math.floor(Math.random()*alphabet.length)]).join("")
-    }
-
     let address = Address.fromPrivateKey(privateKey, protocol, network);
 
     // The serialized value is the address
@@ -96,6 +89,15 @@ class Address extends SerializableLiteral<AddressConfig>  {
     let address = network.toString() + protocol.toString() + base32.stringify(checksummedPubKey, customBase32Alpahbet)
 
     return address;
+  }
+
+  static random(rng:() => number = Math.random, protocol:AddressProtocol = AddressProtocol.BLS, network:AddressNetwork = AddressNetwork.Testnet):Address {
+    // Note that this private key isn't cryptographically secure!
+    // It uses insecure randomization! Don't use it in production!
+    let alphabet = "0123456789abcdef";
+    let privateKey = "_".repeat(64).split("").map(() => alphabet[Math.floor(rng()*alphabet.length)]).join(""); 
+
+    return new Address(privateKey);
   }
 
   // Note: This does not (yet) check for cryptographic validity!

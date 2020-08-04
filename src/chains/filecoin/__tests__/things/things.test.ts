@@ -112,8 +112,8 @@ describe("things", () => {
       assert.strictEqual(address.value, expectedAddress);
     })
 
-    it("should create a random address if no private key is passed", async() => {
-      let address = new Address();
+    it("should create a random address when calling Address.random()", async() => {
+      let address = Address.random();
 
       assert(Address.isValid(address.value));
     })
