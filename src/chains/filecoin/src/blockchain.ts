@@ -26,7 +26,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
   readonly address:Address;
   
   private _balance:Balance;
-  get balance() {return this._balance};
+  get balance():Balance {return this._balance};
 
   readonly deals:Array<Deal> = [];
   readonly dealsByCid:Record<string, Deal> = {};
@@ -87,7 +87,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
 
       // Don't log until things are all ready
       this.logLatestTipset();
-    })    
+    }, 0)    
   }
 
   async waitForReady() {
