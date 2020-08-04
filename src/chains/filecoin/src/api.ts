@@ -18,11 +18,8 @@ export default class FilecoinApi implements types.Api {
 
   private readonly [_blockchain]: Blockchain;
 
-  constructor(options:FilecoinOptions = {}, emitter: Emittery.Typed<undefined, "ready">) {
-    const blockchain = (this[_blockchain] = new Blockchain(options));
-    blockchain.on("ready", () => {
-      emitter.emit("ready"); 
-    })
+  constructor(blockchain:Blockchain) {
+    this[_blockchain] = blockchain;
   }
 
   async stop():Promise<void> {

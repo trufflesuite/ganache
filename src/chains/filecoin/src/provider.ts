@@ -5,6 +5,7 @@ import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
 import GanacheSchema from "./schema";
 import { Schema } from "@filecoin-shipyard/lotus-client-schema";
+import Blockchain from "./blockchain";
 
 // Meant to mimic this provider: 
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
@@ -16,6 +17,8 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "ready">
   #options: ProviderOptions;
   #api: FilecoinApi;
   #executor: utils.Executor;
+  
+  readonly blockchain: Blockchain;
 
   // Used by the original Filecoin provider. Will mimic them for now.
   // Not entirely sure they're needed.
@@ -29,8 +32,12 @@ export default class FilecoinProvider extends Emittery.Typed<undefined, "ready">
 
     this.#executor = executor;
 
-    // Note that the API will emit the "ready" event
-    this.#api = new FilecoinApi(providerOptions, this);   
+    this.blockchain = new Blockchain(providerOptions);
+    this.blockchain.on("ready", () => {
+      this.emit("ready"); 
+    })
+
+    this.#api = new FilecoinApi(this.blockchain);   
   }
 
   async connect () {
