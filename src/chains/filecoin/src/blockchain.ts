@@ -32,6 +32,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
   readonly automining:boolean = true;
   readonly blockTime:number = 0;
   readonly ipfsPort:number = 5001;
+  readonly logger = {log:(str:string) => {}}
 
   private ipfsServer:IPFSServer;
   private miningTimeout:NodeJS.Timeout;
@@ -80,6 +81,9 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
       // Get this party started!
       this.ready = true;
       this.emit("ready");
+
+      // Don't log until things are all ready
+      this.logLatestTipset();
     })    
   }
 
@@ -145,6 +149,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
         this.inProcessDeals.splice(this.inProcessDeals.indexOf(deal), 1);
       }
     }
+
+    this.logLatestTipset();
   }
 
   async hasLocal(cid:string):Promise<boolean> {
@@ -234,5 +240,12 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     if (!hasLocal) {
       throw new Error(`Object not found: ${retrievalOffer.root["/"].value}`)
     }
+  }
+
+  private logLatestTipset() {
+    let date = new Date().toISOString();
+    let tipset = this.latestTipset();
+
+    this.logger.log(`${date} INFO New heaviest tipset! [${tipset.cids[0]["/"].value}] (height=${tipset.height})`);
   }
 }
