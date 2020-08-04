@@ -66,28 +66,10 @@ export default class Wallet {
     this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
 
     const initialAccounts = this.initialAccounts = this.#initializeAccounts(opts);
+    const l = initialAccounts.length;
 
     const knownAccounts = this.knownAccounts;
     const unlockedAccounts = this.unlockedAccounts;
-
-    //#region Configure Known and Unlocked Accounts
-    const l = initialAccounts.length;
-    const accountsCache = (this.addresses = Array(l));
-    for (let i = 0; i < l; i++) {
-      const account = initialAccounts[i];
-      const address = account.address;
-      const strAddress = address.toString();
-      accountsCache[i] = strAddress;
-      knownAccounts.add(strAddress);
-
-      // if the `secure` option has been set do NOT add these accounts to the
-      // unlockedAccounts
-      if (opts.secure) continue;
-
-      unlockedAccounts.set(strAddress, account.privateKey);
-    }
-    //#endregion
-
     //#region Unlocked Accounts
     const givenUnlockedAccounts = opts.unlocked_accounts;
     if (givenUnlockedAccounts) {
@@ -133,6 +115,25 @@ export default class Wallet {
         // if we don't have the secretKey for an account we use `null`
         unlockedAccounts.set(address, null);
       }
+    }
+    //#endregion
+
+    //#region Configure Known + Unlocked Accounts
+    const accountsCache = (this.addresses = Array(l));
+    for (let i = 0; i < l; i++) {
+      const account = initialAccounts[i];
+      const address = account.address;
+      const strAddress = address.toString();
+      accountsCache[i] = strAddress;
+      knownAccounts.add(strAddress);
+
+      // if the `secure` option has been set do NOT add these accounts to the
+      // unlockedAccounts, unless the account was already added to
+      // unlockedAccounts, in which case we need to add the account's private
+      // key.
+      if (opts.secure && !unlockedAccounts.has(strAddress)) continue;
+
+      unlockedAccounts.set(strAddress, account.privateKey);
     }
     //#endregion
   }
