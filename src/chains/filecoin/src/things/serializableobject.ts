@@ -1,7 +1,5 @@
 import { SerializableLiteral } from "./serializableliteral";
-import { deserialize } from "v8";
 import deepEqual from "deep-equal";
-import { CID } from "./cid";
 
 
 // provides shape
