@@ -1,4 +1,5 @@
 import { SerializableLiteral } from "./serializableliteral";
+import BN from "bn.js";
 
 interface BalanceConfig {
   type: string;
@@ -12,6 +13,10 @@ class Balance extends SerializableLiteral<BalanceConfig>  {
       }
     }
   };
+
+  sub(val:string | number):Balance {
+    return new Balance(new BN(this.value).sub(new BN(val)).toString(10));
+  }
 }
 
 export default Balance;

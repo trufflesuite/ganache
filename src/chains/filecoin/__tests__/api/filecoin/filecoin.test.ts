@@ -10,6 +10,7 @@ import { RootCID } from "../../../src/things/rootcid";
 import { StorageProposalData } from "../../../src/things/storageproposaldata";
 import { SerializedDeal } from "../../../src/things/deal";
 import { SerializedRetrievalOffer, RetrievalOffer } from "../../../src/things/retrievaloffer";
+import BN from "bn.js";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
@@ -108,6 +109,7 @@ describe("api", () => {
 
         let miners = await client.stateListMiners();
         let address = await client.walletDefaultAddress();
+        let beginningBalance = await client.walletBalance(address);
 
         let result = await ipfs.add(data);
         let cid = result.path;
@@ -138,16 +140,25 @@ describe("api", () => {
 
         let deal:SerializedDeal = deals[0];
         assert.strictEqual(deal.ProposalCid["/"], proposalCid["/"])
-        assert.strictEqual(deal.Size, expectedSize)
+        assert.strictEqual(deal.Size, expectedSize);
+
+        let endingBalance = await client.walletBalance(address);
+
+        assert(new BN(endingBalance).lt(new BN(beginningBalance)));
       })
     });
 
     describe("Filecoin.ClientFindData, Filecoin.ClientRetrieve, and Filecoin.ClientHasLocal", () => {
       let ipfs:IPFSClient;
       let offer:SerializedRetrievalOffer;
+      let address:string;
+      let beginningBalance:string;
 
       before(async() => {
         ipfs = getIpfsClient();
+
+        address = await client.walletDefaultAddress();
+        beginningBalance = await client.walletBalance(address);
       })
 
       it("should provide a remote offer", async() => {
@@ -172,10 +183,13 @@ describe("api", () => {
         assert(hasLocal);
       })
 
-      it("should 'retrieve' without error (but we all know it's not actually retrieving anything...)", async() => {
+      it("should 'retrieve' without error (but we all know it's not actually retrieving anything...), and subtract balance", async() => {
         await client.clientRetrieve(offer);
 
-        // No error? Great, we're good then. See next test.
+        // No error? Great, let's make sure it subtracted the retreival cost.
+
+        let endingBalance = await client.walletBalance(address);
+        assert(new BN(endingBalance).lt(new BN(beginningBalance)));
       }) 
 
       it("errors if we try to retrieve a file our IPFS server doesn't know about", async() => {

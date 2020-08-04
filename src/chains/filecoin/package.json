@@ -31,6 +31,7 @@
     "@ganache/utils": "^2.2.1",
     "base32-encoding": "^1.0.0",
     "blakejs": "^1.1.0",
+    "bn.js": "5.1.2",
     "borc": "^2.1.2",
     "cids": "0.8.3",
     "cross-env": "^7.0.2",

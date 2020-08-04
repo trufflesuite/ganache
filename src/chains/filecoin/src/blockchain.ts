@@ -14,6 +14,7 @@ import IPFSServer, { IPFSNode } from "./ipfsserver";
 import dagCBOR from "ipld-dag-cbor";
 import { RetrievalOffer } from "./things/retrievaloffer";
 import { FilecoinOptions } from "@ganache/options";
+import BN from "bn.js";
 
 export type BlockchainEvents = {
   ready():void;
@@ -23,9 +24,11 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
   readonly tipsets:Array<Tipset> = [];
   readonly miner:Miner;
   readonly address:Address;
-  readonly balance:Balance;
-  readonly deals:Array<Deal> = [];
+  
+  private _balance:Balance;
+  get balance() {return this._balance};
 
+  readonly deals:Array<Deal> = [];
   readonly dealsByCid:Record<string, Deal> = {};
   readonly inProcessDeals:Array<Deal> = [];
 
@@ -49,7 +52,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     
     this.miner = new Miner();
     this.address = new Address();
-    this.balance = new Balance();
+    this._balance = new Balance();
 
     this.ready = false;
 
@@ -214,6 +217,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
       }
     }
 
+    // Subtract the cost from our current balance
+    let totalPrice = new BN(deal.pricePerEpoch).mul(new BN(deal.duration)).toString(10);
+    this._balance = this._balance.sub(totalPrice)
+
     return deal.proposalCid;
   }
 
@@ -240,6 +247,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     if (!hasLocal) {
       throw new Error(`Object not found: ${retrievalOffer.root["/"].value}`)
     }
+
+    this._balance = this._balance.sub(retrievalOffer.minPrice);
   }
 
   private logLatestTipset() {
