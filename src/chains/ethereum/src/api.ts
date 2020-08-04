@@ -265,13 +265,13 @@ export default class EthereumApi implements types.Api {
    * @returns `true` if a snapshot was reverted, otherwise `false`
    *
    * @example
-   * ```typescript
+   * <div class="runkit-example">
    * const snapshotId = await provider.send("evm_snapshot");
    * const isReverted = await provider.send("evm_revert", [snapshotId]);
-   * ```
+   * </div>
    * 
    * @example
-   * ```typescript
+   * <div class="runkit-example">
    * const provider = ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
    * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
@@ -294,7 +294,7 @@ export default class EthereumApi implements types.Api {
    * 
    * const endingBalance = await provider.send("eth_getBalance", [from]);
    * assert.strictEqual(BigInt(endingBalance), startingBalance);
-   * ```
+   * </div>
    */
   async evm_revert(snapshotId: string | number) {
     return this.#blockchain.revert(Quantity.from(snapshotId));
@@ -310,12 +310,12 @@ export default class EthereumApi implements types.Api {
    * @returns The hex-encoded identifier for this snapshot
    * 
    * @example
-   * ```typescript
+   * <div class="runkit-example">
    * const snapshotId = await provider.send("evm_snapshot");
-   * ```
+   * </div>
    * 
    * @example
-   * ```typescript
+   * <div class="runkit-example">
    * const provider = ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
    * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
@@ -338,7 +338,7 @@ export default class EthereumApi implements types.Api {
    * 
    * const endingBalance = await provider.send("eth_getBalance", [from]);
    * assert.strictEqual(BigInt(endingBalance), startingBalance);
-   * ```
+   * </div>
    */
   async evm_snapshot() {
     return Quantity.from(this.#blockchain.snapshot());
