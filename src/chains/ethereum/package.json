@@ -23,8 +23,9 @@
     "url": "git+https://github.com/trufflesuite/ganache-core.git"
   },
   "scripts": {
-    "build:docs": "rm -rf ./lib/docs ./lib/api.json && typedoc --options ./typedoc.json --readme ./README.md --out ./lib/docs --json ./lib/api.json src/api.ts",
-    "preview:docs": "open-cli ./lib/docs/index.html",
+    "build:docs": "rm -rf ./lib/docs ./lib/api.json && typedoc --options ./typedoc.json --readme ./README.md --out ./lib/docs --json ./lib/api.json src/api.ts && npm run post-process:docs",
+    "post-process:docs": "node ./scripts/post-process-docs.js",
+    "preview:docs": "ws --open --port 3010 --directory ./lib/docs",
     "tsc": "ts-node ../../../scripts/compile",
     "test": "nyc npm run mocha -- --throw-deprecation --trace-warnings",
     "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**/*.test.ts'"
