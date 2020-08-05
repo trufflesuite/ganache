@@ -35,7 +35,7 @@ describe("Accounts", () => {
           value: web3.utils.toWei("1", "ether"),
           gasLimit: 90000
         });
-        return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
+        return assert.rejects(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
       })
     );
   });
@@ -59,9 +59,9 @@ describe("Accounts", () => {
         });
 
         if (account === expectedAddress) {
-          return assert.doesNotReject(tx, /signer account is locked/, "should not be able to unlock the count");
+          return assert.doesNotReject(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
         } else {
-          return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
+          return assert.rejects(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
         }
       })
     );
@@ -88,9 +88,9 @@ describe("Accounts", () => {
         });
 
         if (account === unlockedAccount) {
-          return assert.doesNotReject(tx, /signer account is locked/, "should not be able to unlock the count");
+          return assert.doesNotReject(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
         } else {
-          return assert.rejects(tx, /signer account is locked/, "should not be able to unlock the count");
+          return assert.rejects(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
         }
       })
     );
