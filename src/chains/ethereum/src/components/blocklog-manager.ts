@@ -11,7 +11,7 @@ export default class BlockLogManager extends Manager<BlockLog> {
   async get(key: string | Buffer) {
     const log = await super.get(key);
     if (log) {
-      log.setBlockNumber(key instanceof Quantity ? key : Quantity.from(key));
+      log.blockNumber = key instanceof Quantity ? key : Quantity.from(key);
     }
     return log;
   }

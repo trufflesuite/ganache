@@ -43,7 +43,7 @@ export default class TransactionReceipt {
     const raw = this.#raw;
     const contractAddress = Data.from(this.#contractAddress).toJSON()
     const blockLog = BlockLogs.create(block.value.hash());
-    blockLog.setBlockNumber(Quantity.from(block.value.header.number));
+    blockLog.blockNumber = Quantity.from(block.value.header.number);
     (raw[3] as any as TransactionLog[]).forEach(log => {
       blockLog.append(transaction._index, transaction.hash(), log);
     });

@@ -62,15 +62,7 @@ export default class BlockLogs {
     return this[_raw][1].length;
   }
 
-  [_blockNumber]: Quantity;
-
-  public setBlockNumber(blockNumber: Quantity) {
-    this[_blockNumber] = blockNumber;
-  }
-  
-  public getBlockNumber() {
-    return this[_blockNumber];
-  }
+  public blockNumber: Quantity;
 
   toJSON() {
     return this[_logs]().toJSON();
@@ -151,7 +143,7 @@ export default class BlockLogs {
   }
 
   /**
-   * Note: you must call `setBlockNumber(blockNumber)` first.
+   * Note: you must set `this.blockNumber: Quantity` first!
    * 
    * Topics are order-dependent. A transaction with a log with topics [A, B] will be matched by the following topic
    * filters:

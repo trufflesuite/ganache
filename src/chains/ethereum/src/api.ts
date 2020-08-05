@@ -1165,7 +1165,7 @@ export default class EthereumApi implements types.Api {
     const blockchain = this.#blockchain;
     const { addresses, topics } = parseFilterDetails(filter);
     const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
-      const blockNumber = blockLogs.getBlockNumber();
+      const blockNumber = blockLogs.blockNumber;
       // everytime we get a blockLogs message we re-check what the filter's
       // range is. We do this because "latest" isn't the latest block at the
       // time the filter was set up, rather it is the actual latest *mined* 
