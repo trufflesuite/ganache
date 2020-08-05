@@ -11,4 +11,3 @@ ISSUE_TEMPLATE.md
 build/
 webpack/
 perf/
-scripts/
