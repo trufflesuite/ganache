@@ -1,17 +1,15 @@
 import {FilecoinOptions} from "@ganache/options";
 import Emittery from "emittery";
-import {types, utils, JsonRpcTypes} from "@ganache/utils";
-import JsonRpc from "@ganache/utils/src/things/jsonrpc";
+import {types, utils, JsonRpcTypes, PromiEvent} from "@ganache/utils";
 import FilecoinApi from "./api";
 import Provider from "./provider";
-import PromiEvent from "@ganache/utils/src/things/promievent";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
 
 export type FilecoinProvider = Provider;
 export const FilecoinProvider = Provider;
 
 export class FilecoinConnector extends Emittery.Typed<undefined, "ready" | "close"> 
-  implements types.Connector<FilecoinApi, JsonRpc.Request<FilecoinApi>> {
+  implements types.Connector<FilecoinApi, JsonRpcTypes.Request<FilecoinApi>> {
  
   #provider: FilecoinProvider;
 
@@ -42,8 +40,8 @@ export class FilecoinConnector extends Emittery.Typed<undefined, "ready" | "clos
     });
   }
 
-  format(result: any, payload: JsonRpc.Request<FilecoinApi>): RecognizedString {
-    const json = JsonRpc.Response(payload.id, result);
+  format(result: any, payload: JsonRpcTypes.Request<FilecoinApi>): RecognizedString {
+    const json = JsonRpcTypes.Response(payload.id, result);
     return JSON.stringify(json);
   }
 
