@@ -38,7 +38,6 @@
     "deep-equal": "^2.0.3",
     "ipfs": "^0.48.1",
     "ipfs-http-client": "^45.0.0",
-    "ipfsd-ctl": "^5.0.0",
     "ipld-dag-cbor": "^0.16.0",
     "mocha": "^8.0.1",
     "multicodec": "1.0.4",
