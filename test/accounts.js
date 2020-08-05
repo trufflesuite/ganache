@@ -230,6 +230,7 @@ describe("Accounts", () => {
         .fill(tx)
         .map(sendTransaction);
       if (intervalMining) {
+        await pendingHashes;
         await send("evm_mine");
       }
       const pendingTransactions = pendingHashes.map((tx) => tx.then(({ result }) => getTransactionByHash(result)));
