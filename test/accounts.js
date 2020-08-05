@@ -201,19 +201,7 @@ describe("Accounts", () => {
     });
 
     async function setUp(initialNonce) {
-      // Hack to seed the state with an account with a very high nonce
-      const stateManager = provider.manager.state.blockchain.vm.stateManager;
-      const putAccount = promisify(stateManager.putAccount.bind(stateManager));
-      await putAccount(
-        utils.toBuffer(from),
-        new Account({
-          balance: "0xffffffffffffffffffff",
-          nonce: new BN(initialNonce),
-          address: from
-        })
-      );
-      // we need to mine a block for the putAccount to take effect
-      await send("evm_mine");
+      await send("evm_setAccountNonce", from, "0x" + initialNonce.toString(16));
 
       const { result: count } = await send("eth_getTransactionCount", from, "latest");
       currentNonce = new BN(count.slice(2), "hex");
