@@ -1,6 +1,4 @@
-const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
+var Ganache = require("../../ganache-core/src/packages/core/lib/index.js").default;
 const generateSend = require("./helpers/utils/rpc");
 const promisify = require("pify");
 const assert = require("assert");

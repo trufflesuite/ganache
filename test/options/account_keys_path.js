@@ -1,9 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const assert = require("assert");
-const Ganache = require(process.env.TEST_BUILD
-  ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../../index.js");
+var Ganache = require("../../../ganache-core/src/packages/core/lib/index.js").default;
 
 describe("options:account_keys_path", function() {
   const fileName = path.join(__dirname, "/test-file.json");

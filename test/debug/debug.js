@@ -1,9 +1,7 @@
 const assert = require("assert");
 const bootstrap = require("../helpers/contract/bootstrap");
 const { promisify } = require("util");
-var Ganache = require(process.env.TEST_BUILD
-  ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../../index.js");
+var Ganache = require("../../../ganache-core/src/packages/core/lib/index.js").default;
 
 // Thanks solc. At least this works!
 // This removes solc's overzealous uncaughtException event handler.

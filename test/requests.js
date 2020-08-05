@@ -5,9 +5,7 @@ const Transaction = require("../lib/utils/transaction");
 const BlockHeader = require("ethereumjs-block/header");
 const utils = require("ethereumjs-util");
 const assert = require("assert");
-const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
+var Ganache = require("../../ganache-core/src/packages/core/lib/index.js").default;
 const to = require("../lib/utils/to");
 const _ = require("lodash");
 const pify = require("pify");

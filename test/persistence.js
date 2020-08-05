@@ -1,6 +1,4 @@
-const Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
+var Ganache = require("../../ganache-core/src/packages/core/lib/index.js").default;
 const temp = require("temp").track();
 const memdown = require("memdown");
 const { join } = require("path");

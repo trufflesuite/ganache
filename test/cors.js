@@ -1,5 +1,5 @@
 const assert = require("assert");
-const Ganache = require("../index.js");
+var Ganache = require("../../ganache-core/src/packages/core/lib/index.js").default;
 const request = require("request");
 const pify = require("pify");
 

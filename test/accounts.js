@@ -1,9 +1,7 @@
 const assert = require("assert");
 const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 const { BN } = require("ethereumjs-util");
-var Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
+var Ganache = require("../../ganache-core/src/packages/core/lib/index.js").default;
 const genSend = require("./helpers/utils/rpc");
 const Account = require("ethereumjs-account").default;
 const { promisify } = require("util");
