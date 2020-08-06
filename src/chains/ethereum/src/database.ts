@@ -92,14 +92,14 @@ export default class Database extends Emittery {
    * Call `batch` to batch `put` and `del` operations within the same
    * event loop tick of the provided function. All db operations within the
    * batch _must_ be executed synchronously.
-   * @param fn {Function} Within this function's event loop tick, all `put` and
+   * @param fn Within this function's event loop tick, all `put` and
    * `del` database operations are applied in a single atomic operation. This
    * provides a single write call and if any individual put/del's fail the
    * entire operation fails and no modifications are made.
-   * @returns {Promise<T>} returns a Promise that resolves to the return value
+   * @returns a Promise that resolves to the return value
    * of the provided function.
    */
-  public batch<T>(fn: () => T): Promise<T> {
+  public batch<T>(fn: () => T) {
     const rootDb = this.#rootStore.db;
     const batch = this.db.batch();
 
@@ -108,7 +108,7 @@ export default class Database extends Emittery {
 
     rootDb.put = batch.put.bind(batch);
     rootDb.del = batch.del.bind(batch);
-    let prom;
+    let prom: Promise<T>;
     try {
       const ret = fn();
       // PSA: don't let vscode (or yourself) rewrite this to `await` the
