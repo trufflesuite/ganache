@@ -180,6 +180,8 @@ export interface Options {
   asyncRequestProcessing?: boolean;
 
   hardfork?: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier";
+
+  legacyInstamine?: boolean;
 };
 
 const getDefault: (options?: Options) => Options = options => {
@@ -207,7 +209,8 @@ const getDefault: (options?: Options) => Options = options => {
       verbose: false,
       asyncRequestProcessing: true,
       hardfork: "muirGlacier",
-      secure
+      secure,
+      legacyInstamine: false
     },
     options
   );

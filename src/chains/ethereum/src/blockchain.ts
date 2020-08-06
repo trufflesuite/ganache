@@ -43,6 +43,7 @@ export type BlockchainOptions = {
   coinbase: Account;
   chainId: number;
   common: Common;
+  legacyInstamine: boolean;
 };
 
 type BlockchainTypedEvents = {block: Block, blockLogs: BlockLogs, pendingTransaction: Transaction};
@@ -61,6 +62,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
   public trie: CheckpointTrie;
   readonly #database: Database;
   readonly #options: BlockchainOptions;
+  readonly #instamine: boolean;
 
   /**
    * Initializes the underlying Database and handles synchronization between
@@ -74,9 +76,15 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     super();
     this.#options = options;
 
+    const instamine = this.#instamine = !options.blockTime || options.blockTime <= 0;
+
     const common = options.common;
 
     const database = (this.#database = new Database(options, this));
+
+    if (options.legacyInstamine) {
+      console.warn("Legacy instamining, where transactions are fully mined before the hash is returned, is deprecated and will be removed in the future.");
+    }
 
     database.on("ready", async () => {
       // TODO: get the latest block from the database
@@ -109,7 +117,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       const gasLimit = options.gasLimit;
       this.#processingBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit);
 
-      const instamine = !options.blockTime || options.blockTime <= 0;
       const miner = this.#miner = new Miner(this.vm, this.#readyNextBlock, {instamine, gasLimit});
 
       if (instamine) {
@@ -130,17 +137,22 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         });
       } else {
         const minerInterval = options.blockTime * 1000;
-        const intervalMine = (executables: Map<string, utils.Heap<Transaction>>) => {
+        const intervalMine = () => {
           let promise: Promise<unknown>;
-          if (!this.#isPaused()) {
-            promise = this.mine(-1);
+          if (this.#isPaused()) {
+            promise = this.once("resume")
+              // after resuming from a paused state, wait for all transactions
+              // in the pool to be processed before mining.
+              .then(() => this.mine(-1));
           } else {
-            promise = this.once("resume");
+            // when mining on an interval we always mine whatever executable
+            // transactions are currently available.
+            promise = this.mine(-1);
           }
-          promise.then(() => utils.unref(setTimeout(intervalMine, minerInterval, executables)));
-          return void 0;
+          // set the mining timer once the promise resolves
+          promise.then(() => utils.unref(setTimeout(intervalMine, minerInterval)));
         };
-        utils.unref(setTimeout(intervalMine, minerInterval, this.transactions.transactionPool.executables));
+        utils.unref(setTimeout(intervalMine, minerInterval));
       }
 
       miner.on("block", async (blockData: any) => {
@@ -194,9 +206,22 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
         this.#processingBlock.then(({block, blockLogs}) => {
           this.blocks.latest = block;
-          // emit the block once everything has been fully saved to the database
-          this.emit("block", block);
-          this.emit("blockLogs", blockLogs);
+
+          if (instamine && options.legacyInstamine) {
+            block.value.transactions.forEach(transaction => {
+              this.emit("transaction:" + Data.from(transaction.hash()).toString() as any);
+            });
+
+            // in legacy instamine mode we must delay the broadcast of new blocks
+            process.nextTick(() => {
+              // emit the block once everything has been fully saved to the database
+              this.emit("block", block);
+              this.emit("blockLogs", blockLogs);
+            });
+          } else {
+            this.emit("block", block);
+            this.emit("blockLogs", blockLogs);
+          }
         });
       });
 
@@ -414,10 +439,22 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
   }
 
   public async queueTransaction(transaction: any, secretKey?: Data) {
+    // NOTE: this.transactions.push *must* be awaited before returning the
+    // `transaction.hash()`, as the transactionPool may change the transaction
+    // (and thus its hash!)
+    // It may also throw Errors that must be returned to the caller.
     if (await this.transactions.push(transaction, secretKey)) {
       this.emit("pendingTransaction", transaction);
     }
-    return Data.from(transaction.hash());
+    const hash = Data.from(transaction.hash());
+    if (this.#isPaused() || !this.#instamine) {
+      return hash;
+    } else {
+      if (this.#instamine && this.#options.legacyInstamine) {
+        await this.once("transaction:" + hash.toString() as any);
+      }
+      return hash;
+    }
   }
 
   public async simulateTransaction(transaction: any, parentBlock: Block, block: Block) {
