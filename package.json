@@ -15,7 +15,7 @@
     "test": "lerna exec -- npm test",
     "tsc": "lerna exec -- npm run tsc",
     "clean-tsc": "lerna exec -- npm run clean-tsc",
-    "build:webpack": "npm run clean-tsc && npm run tsc && lerna run --scope @ganache/core build:webpack"
+    "build:webpack": "lerna run --scope @ganache/core build:webpack"
   },
   "dependencies": {
     "bip39": "3.0.2",
@@ -51,6 +51,7 @@
     "@types/ws": "7.2.6",
     "@types/yargs": "15.0.5",
     "camelcase": "6.0.0",
+    "copy-webpack-plugin": "6.0.3",
     "cross-env": "7.0.2",
     "fs-extra": "9.0.1",
     "into-stream": "5.1.1",
