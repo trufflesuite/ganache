@@ -71,11 +71,6 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
     }
 
     const _options = this.#options;
-    if (_options.verbose) {
-      _options.logger.log(
-        `   >  ${method}: ${params == null ? params : JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`
-      );
-    }
 
     return response;
   }

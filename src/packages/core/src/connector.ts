@@ -18,7 +18,9 @@ export default {
     // The Executor is responsible for actually executing the method on the chain/ledger.
     // It performs some safety checks to ensure "safe" method execution before passing it
     // to a RequestCoordinator.
-    const executor = new utils.Executor(requestCoordinator);
+    const logger = providerOptions.verbose ? (providerOptions.logger || console) : null;
+
+    const executor = new utils.Executor(requestCoordinator, logger);
 
     const connector = new FlavorMap[flavor](providerOptions, executor);
 

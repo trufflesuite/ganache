@@ -8,23 +8,36 @@ describe("connector", () => {
   });
 
   it("it logs when `options.verbose` is `true`", async () => {
-    const logger = {log: (_msg: string) => {}};
+    let lines:Array<string> = [];
+    const logger = {
+      log: (obj:any):void => {
+        lines.push(JSON.stringify(obj));
+      }
+    }
+
     const p = Ganache.provider({flavor: "ethereum", logger, verbose: true}) as EthereumProvider;
 
-    logger.log = msg => {
-      assert.strictEqual(msg, "   >  net_version: undefined", "doesn't work when no params");
-    };
-    await p.send("net_version");
+    await p.send("web3_sha3", ["Tim is a swell guy."]);
 
-    return new Promise(async resolve => {
-      logger.log = msg => {
-        const expected = "   >  web3_sha3: [\n" + '   >   "Tim is a swell guy."\n' + "   > ]";
-        assert.strictEqual(msg, expected, "doesn't work with params");
-        resolve();
-      };
-      await p.send("web3_sha3", ["Tim is a swell guy."]);
-    });
+    assert(lines.join("").indexOf("Tim is a swell guy") > 0)
   });
+
+  it("does not log when `optoins.verbose` is false or not specified", async() => {
+    let lines:Array<string> = [];
+    const logger = {
+      log: (obj:any):void => {
+        lines.push(JSON.stringify(obj));
+      }
+    }
+
+    const p = Ganache.provider({flavor: "ethereum", logger, verbose: false}) as EthereumProvider;
+    await p.send("web3_sha3", ["Tim is a swell guy."]);
+    assert.strictEqual(lines.length, 0)
+
+    const p2 = Ganache.provider({flavor: "ethereum", logger}) as EthereumProvider;
+    await p2.send("web3_sha3", ["Tim is a swell guy."]);
+    assert.strictEqual(lines.length, 0)
+  })
 
   it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
     const p = Ganache.provider() as EthereumProvider;

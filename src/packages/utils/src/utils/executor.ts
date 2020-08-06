@@ -1,16 +1,19 @@
 import { KnownKeys, Api } from "../types";
 import {RequestCoordinator} from "./request-coordinator";
+import { Logger } from "./logger";
 
 const hasOwn = ({}).hasOwnProperty.call.bind(({}).hasOwnProperty);
 
 export class Executor {
   #requestCoordinator: RequestCoordinator
+  #logger:Logger
 
   /**
    * The Executor handles execution of methods on the given Ledger
    */
-  constructor(requestCoordinator: RequestCoordinator) {
+  constructor(requestCoordinator: RequestCoordinator, logger:Logger = null) {
     this.#requestCoordinator = requestCoordinator;
+    this.#logger = logger;
   }
 
   /**
@@ -23,6 +26,13 @@ export class Executor {
     methodName: KnownKeys<T>,
     params: Parameters<T[KnownKeys<T>]>
   ): Promise<{value: ReturnType<T[KnownKeys<T>]>}> {
+
+    if (this.#logger) {
+      this.#logger.log("request: ");
+      this.#logger.log("  method: " + methodName);
+      this.#logger.log("  params: " + JSON.stringify(params));
+    }
+
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
@@ -42,7 +52,23 @@ export class Executor {
         // to their Ledger interface.
         if (typeof fn === "function") {
           // queue up this method for actual execution:
-          return this.#requestCoordinator.queue(fn, api, params);
+          const resultPromise = this.#requestCoordinator.queue(fn, api, params);
+
+          // wait for the output and log it if there's a logger passed
+          if (this.#logger) {
+            resultPromise.then((resultValueHolder) => {
+              resultValueHolder.value.then(result => {
+                let lines = JSON.stringify(result, null, 2).split("\n");
+                let firstLine = lines.shift();
+
+                this.#logger.log("  result: " + firstLine);
+                lines.forEach((line) => console.log("          " + line))
+                this.#logger.log("")
+              }).catch(()=>{});
+            }).catch(()=>{});
+          }
+
+          return resultPromise;
         }
       }
     }

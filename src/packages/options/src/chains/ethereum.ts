@@ -36,11 +36,6 @@ type EthereumOptions = {
   blockTime?: number;
 
   /**
-   * An object, like console, that implements a log() function.
-   */
-  logger?: Logger;
-
-  /**
    * Use a specific HD wallet mnemonic to generate initial addresses.
    */
   mnemonic?: string;
@@ -169,11 +164,6 @@ type EthereumOptions = {
    * Sets the transaction gas limit for `eth_call` and `eth_estimateGas` calls. Must be specified as a `hex` string. Defaults to `"0x1fffffffffffff"` (`Number.MAX_SAFE_INTEGER`)
    */
   callGasLimit?: Quantity
-
-  /**
-   *
-   */
-  verbose?: boolean;
 
   hardfork?: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier";
 };
