@@ -41,6 +41,7 @@
     "rimraf": "3.0.2",
     "ts-loader": "8.0.2",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "wrapper-webpack-plugin": "^2.1.0"
   }
 }
