@@ -74,6 +74,7 @@ describe("Forking", function() {
 
   before("Initialize Fallback Ganache server", async() => {
     forkedServer = Ganache.server({
+      legacyInstamine: true,
       // Do not change seed. Determinism matters for these tests.
       seed: "let's make this deterministic",
       ws: true,
@@ -200,7 +201,7 @@ describe("Forking", function() {
           assert.deepStrictEqual(testResult, baseLine);
         }
 
-        const provider = Ganache.provider({ fork: forkedTargetUrl.replace("ws", "http"), forkCacheSize });
+        const provider = Ganache.provider({ legacyInstamine: true, fork: forkedTargetUrl.replace("ws", "http"), forkCacheSize });
         const send = generateSend(provider);
         const params = [contractAddress, contract.position_of_value];
         let callCount = 0;
@@ -248,7 +249,7 @@ describe("Forking", function() {
   });
 
   it("should match nonce of accounts on original chain", async() => {
-    const provider = Ganache.provider({ fork: forkedTargetUrl, seed: forkedServer.ganacheProvider.options.seed });
+    const provider = Ganache.provider({ legacyInstamine: true, fork: forkedTargetUrl, seed: forkedServer.ganacheProvider.options.seed });
 
     const send = generateSend(provider);
     const originalSend = generateSend(forkedServer.ganacheProvider);
@@ -658,6 +659,7 @@ describe("Forking", function() {
 
     before("create provider", function() {
       const provider = Ganache.provider({
+        legacyInstamine: true,
         fork: forkedTargetUrl.replace("ws", "http"),
         fork_block_number: forkBlockNumber
       });

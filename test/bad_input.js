@@ -54,7 +54,8 @@ var tests = function(web3) {
       );
     });
 
-    it("recovers after bad nonce (too high)", function(done) {
+    // SKIP IN v3 because we support pending transactions now!
+    it.skip("recovers after bad nonce (too high)", function(done) {
       var provider = web3.currentProvider;
 
       var request = {
@@ -95,7 +96,7 @@ var tests = function(web3) {
       });
     });
 
-    it("recovers after bad nonce (too low)", function(done) {
+    it.only("recovers after bad nonce (too low)", function(done) {
       var provider = web3.currentProvider;
 
       var request = {
@@ -124,6 +125,7 @@ var tests = function(web3) {
         // Note that if using the Ganache as a provider, err will be non-null when there's
         // an error. However, when using it as a server it won't be. In both cases, however,
         // result.error should be set with the same error message. We'll check for that.
+        console.log(result);
         assert(
           /the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0/.test(
             result.error.message
@@ -186,7 +188,7 @@ var tests = function(web3) {
 
 describe("Provider:", function() {
   var web3 = new Web3();
-  web3.setProvider(Ganache.provider({}));
+  web3.setProvider(Ganache.provider({legacyInstamine: true}));
   tests(web3);
 });
 
@@ -196,7 +198,7 @@ describe("Server:", function(done) {
   var server;
 
   before("Initialize Ganache server", function(done) {
-    server = Ganache.server({});
+    server = Ganache.server({legacyInstamine: true});
     server.listen(port, function() {
       web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
       done();

@@ -168,8 +168,9 @@ const runRegressionTests = function(regressionProviderInit, memdbProviderInit) {
 
 var mnemonic = "debris electric learn dove warrior grow pistol carry either curve radio hidden";
 
-const providerInitGen = function(opts) {
+const providerInitGen = function(opts = {}) {
   return function(cb) {
+    opts.legacyInstamine = true
     const provider = Ganache.provider(opts);
     cb(provider);
   };

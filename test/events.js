@@ -282,7 +282,8 @@ describe("Provider:", function() {
   var web3 = new Web3();
   web3.setProvider(
     Ganache.provider({
-      logger: logger
+      logger: logger,
+      legacyInstamine: true
     })
   );
   tests(web3);
@@ -295,6 +296,7 @@ describe("Server:", function(done) {
 
   before("Initialize Ganache server", function(done) {
     server = Ganache.server({
+      legacyInstamine: true,
       logger: logger,
       ws: true
     });

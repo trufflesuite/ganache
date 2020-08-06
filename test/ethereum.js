@@ -6,6 +6,6 @@ describe("Ethereum", function() {
     const { web3 } = await initializeTestProvider();
 
     const result = await web3.eth.getProtocolVersion();
-    assert.strictEqual(result, "63", "Network Version should be 63");
+    assert.strictEqual(result, "0x3f", "Network Version should be 0x3f");
   });
 });

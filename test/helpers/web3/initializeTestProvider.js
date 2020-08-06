@@ -11,6 +11,7 @@ const initializeTestProvider = async(options = {}, provider = null) => {
   if (provider || options.provider) {
     throw new Error("THIS SHOULD ONLY TEST TS GANACHE!!!");
   }
+  options.legacyInstamine = true;
   provider = provider || options.provider || Ganache.provider(options);
   const send = generateSend(provider);
   const web3 = new Web3(provider);

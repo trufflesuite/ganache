@@ -331,6 +331,7 @@ const tests = function(web3) {
       signingWeb3 = new Web3();
       signingWeb3.setProvider(
         Ganache.provider({
+          legacyInstamine: true,
           accounts: [acc]
         })
       );
@@ -397,6 +398,7 @@ const tests = function(web3) {
       signingWeb3 = new Web3();
       signingWeb3.setProvider(
         Ganache.provider({
+          legacyInstamine: true,
           accounts: [acc]
         })
       );
@@ -1695,6 +1697,7 @@ describe("Provider:", function() {
   const web3 = new Web3();
   web3.setProvider(
     Ganache.provider({
+      legacyInstamine: true,
       logger: logger,
       seed: "1337"
       // so that the runtime errors on call test passes
@@ -1717,6 +1720,7 @@ describe("HTTP Server:", function() {
 
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
+      legacyInstamine: true,
       logger: logger,
       seed: "1337"
       // so that the runtime errors on call test passes
@@ -1741,6 +1745,7 @@ describe("WebSockets Server:", function() {
 
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
+      legacyInstamine: true,
       logger: logger,
       seed: "1337"
       // so that the runtime errors on call test passes

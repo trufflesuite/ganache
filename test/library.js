@@ -18,7 +18,7 @@ describe("Libraries", function() {
   let contractInstance;
   let contractBytecode;
 
-  const provider = Ganache.provider();
+  const provider = Ganache.provider({legacyInstamine: true});
   const web3 = new Web3(provider);
   let accounts = [];
 

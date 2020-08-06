@@ -9,7 +9,8 @@ var pify = require("pify");
 describe("Mining", function() {
   var web3 = new Web3(
     Ganache.provider({
-      vmErrorsOnRPCResponse: true
+      vmErrorsOnRPCResponse: true,
+      legacyInstamine: true
       // logger: console,
     })
   );
@@ -61,7 +62,7 @@ describe("Mining", function() {
   });
 
   beforeEach("checkpoint, so that we can revert later", async function() {
-    const res = await pify(web3.currentProvider.send)({
+    const res = await pify(web3.currentProvider.send.bind(web3.currentProvider))({
       jsonrpc: "2.0",
       method: "evm_snapshot",
       id: new Date().getTime()
@@ -71,7 +72,7 @@ describe("Mining", function() {
   });
 
   afterEach("revert back to checkpoint", async function() {
-    await pify(web3.currentProvider.send)({
+    await pify(web3.currentProvider.send.bind(web3.currentProvider))({
       jsonrpc: "2.0",
       method: "evm_revert",
       params: [snapshotId],
@@ -85,7 +86,7 @@ describe("Mining", function() {
   }
 
   async function startMining() {
-    await pify(web3.currentProvider.send)({
+    await pify(web3.currentProvider.send.bind(web3.currentProvider))({
       jsonrpc: "2.0",
       method: "miner_start",
       params: [1],
@@ -94,7 +95,7 @@ describe("Mining", function() {
   }
 
   async function stopMining() {
-    await pify(web3.currentProvider.send)({
+    await pify(web3.currentProvider.send.bind(web3.currentProvider))({
       jsonrpc: "2.0",
       method: "miner_stop",
       id: new Date().getTime()
@@ -102,7 +103,7 @@ describe("Mining", function() {
   }
 
   async function checkMining() {
-    const response = await pify(web3.currentProvider.send)({
+    const response = await pify(web3.currentProvider.send.bind(web3.currentProvider))({
       jsonrpc: "2.0",
       method: "eth_mining",
       id: new Date().getTime()
@@ -112,7 +113,7 @@ describe("Mining", function() {
   }
 
   async function mineSingleBlock() {
-    const result = await pify(web3.currentProvider.send)({
+    const result = await pify(web3.currentProvider.send.bind(web3.currentProvider))({
       jsonrpc: "2.0",
       method: "evm_mine",
       id: new Date().getTime()
@@ -121,7 +122,7 @@ describe("Mining", function() {
   }
 
   async function queueTransaction(from, to, gasLimit, value, data) {
-    const response = await pify(web3.currentProvider.send)({
+    const response = await pify(web3.currentProvider.send.bind(web3.currentProvider))({
       jsonrpc: "2.0",
       method: "eth_sendTransaction",
       id: new Date().getTime(),
@@ -374,7 +375,7 @@ describe("Mining", function() {
   describe("stopping", () => {
     function setUp(close, done) {
       const blockTime = 0.1;
-      const provider = Ganache.provider({ blockTime });
+      const provider = Ganache.provider({ legacyInstamine: true, blockTime });
       let closed = false;
       let closing = false;
       let timer;

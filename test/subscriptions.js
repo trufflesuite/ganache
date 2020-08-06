@@ -62,6 +62,7 @@ describe("WebSockets Server:", function() {
 
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
+      legacyInstamine: true,
       seed: "1337"
     });
     await promisify(server.listen)(PORT + 1);
@@ -86,6 +87,7 @@ describe("HTTP Server should not handle subscriptions:", function() {
 
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
+      legacyInstamine: true,
       seed: "1337"
     });
 
