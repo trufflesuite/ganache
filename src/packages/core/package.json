@@ -23,7 +23,8 @@
     "tsc": "ts-node ../../../scripts/compile",
     "test": "nyc npm run mocha -- --throw-deprecation --trace-warnings",
     "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --recursive --check-leaks '__tests__/**.ts'",
-    "clean-tsc": "npx rimraf ./lib"
+    "clean-tsc": "npx rimraf ./lib",
+    "build:webpack": "webpack"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -37,11 +38,7 @@
     "@ganache/utils": "2.2.1"
   },
   "devDependencies": {
-    "node-loader": "^1.0.1",
-    "rimraf": "3.0.2",
-    "ts-loader": "8.0.2",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12",
-    "wrapper-webpack-plugin": "^2.1.0"
+    "webpack": "4.44.1",
+    "webpack-cli": "3.3.12"
   }
 }

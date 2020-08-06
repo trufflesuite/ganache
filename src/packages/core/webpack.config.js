@@ -1,53 +1,50 @@
-const WrapperPlugin = require('wrapper-webpack-plugin');
+const { IgnorePlugin } = require("webpack");
 
 const path = require('path');
 
 module.exports = {
   target: "node",
-  entry: './src/index.ts',
+  entry: path.join(__dirname, 'lib/index.js'),
   devtool: 'inline-source-map',
-  module: {
-    rules: [
-      {
-        test: /\.ts$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ],
-  },
+  plugins: [
+    // ignore these plugins completely
+    new IgnorePlugin(/^(?:electron)$/)
+  ],
   resolve: {
-    extensions: ['.ts', '.js' ],
+    extensions: [ '.js', '.json'],
     modules: [
       'node_modules',
     ],
-    symlinks: true
+    symlinks: true,
+    alias: {
+      "bignumber.js": "bignumber.js/bignumber"
+    }
   },
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'lib'),
+    path: path.resolve(__dirname, 'build'),
     library: 'Ganache',
-    libraryTarget: "umd",
-    libraryExport: "default",
-    umdNamedDefine: true
+    libraryTarget: "commonjs2",
+    libraryExport: "default"
   },
-  externals: ['uWebSockets.js',/* "prom-client"*/ "bigint-buffer", "ws", "leveldown"],
-  // externals: [
-  //   (context, request, callback) => {
-  //     // webpack these modules:
-  //     // we actually only care about scrypt and eth-block-tracker here, as those are the only native modules
-  //     // but webpack won't detect them if we don't traverse the dependency tree to get to them
-  //     if (/^(prom-client|bigint-buffer|ws|leveldown)(\/.*)?$/.test(request)) {
-  //       return callback();
-  //     }
-  //     // we want to webpack all local files (files starting with a .)
-  //     if (/^(\.|@ganache)/.test(request)) {
-  //       return callback();
-  //     }
-  //     // we don't want to webpack any other modules
-  //     return callback(null, "commonjs " + request);
-  //   },
-  //   'uWebSockets.js'
-  // ],
+  externals: {
+    "uWebSockets.js": "commonjs2 uWebSockets.js",
+    "bigint-buffer": "commonjs2 bigint-buffer",
+    "leveldown": "commonjs2 leveldown",
+    "dlv": "commonjs2 dlv",
+    "ws": "commonjs2 ws"
+  },
+    // (_context, request, callback) => {
+    //   if (["uWebSockets.js", "bigint-buffer", "leveldown"].includes(request)) {
+    //     return callback();
+    //   }
+    //   // if (/^(\.|@ganache)/.test(request)) {
+    //   //   return callback();
+    //   // }
+    //   // we don't want to webpack any other modules
+    //   return callback(null, "commonjs2 " + request);
+    // }
+    // ],
   optimization: {
     minimize: false
   },
