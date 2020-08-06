@@ -37,7 +37,7 @@
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
     "cheerio": "1.0.0-rc.3",
-    "open-cli": "6.0.1",
+    "local-web-server": "4.2.1",
     "typedoc": "0.17.8"
   }
 }
