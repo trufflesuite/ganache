@@ -295,7 +295,7 @@ describe("api", () => {
     });
 
     it("eth_getTransactionByBlockNumberAndIndex", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+      await provider.send("eth_subscribe", ["newHeads"]);
       const txHash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
@@ -303,7 +303,7 @@ describe("api", () => {
           value: 1
         }
       ]);
-      const _message = await provider.once("message");
+      await provider.once("message");
 
       const tx = await provider.send("eth_getTransactionByBlockNumberAndIndex", ["0x1", "0x0"]);
       assert.strictEqual(
