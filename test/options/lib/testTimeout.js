@@ -40,7 +40,7 @@ const testTimeout = async(keepAliveTimeout, sleepTime, errorMessage) => {
     // tests crashed.
     assert.fail(e);
   } finally {
-    server.close();
+    await server.close();
   }
 };
 

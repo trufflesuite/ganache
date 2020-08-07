@@ -308,8 +308,8 @@ describe("Server:", function(done) {
 
   tests(web3);
 
-  after("Shutdown server", function(done) {
+  after("Shutdown server", async () => {
     web3._provider.connection.close();
-    server.close(done);
+    await server.close();
   });
 });

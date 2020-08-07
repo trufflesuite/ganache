@@ -76,7 +76,7 @@ describe("WebSockets Server:", function() {
     const provider = web3._provider;
     web3.setProvider();
     provider.connection.close();
-    await promisify(server.close)();
+    await server.close();
   });
 });
 
@@ -97,7 +97,7 @@ describe("HTTP Server should not handle subscriptions:", function() {
 
   testHttp(web3);
 
-  after("Shutdown server", async function() {
-    await promisify(server.close)();
+  after("Shutdown server", async () => {
+    await server.close();
   });
 });

@@ -205,8 +205,8 @@ describe("Server:", function(done) {
     });
   });
 
-  after("Shutdown server", function(done) {
-    server.close(done);
+  after("Shutdown server", async () => {
+    await server.close();
   });
 
   tests(web3);

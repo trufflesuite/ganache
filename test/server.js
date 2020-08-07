@@ -12,7 +12,7 @@ describe("server", () => {
       const stateManager = await pify(server.listen)(8945);
       assert(stateManager instanceof StateManager, "server.listen must return instance of StateManager");
     } finally {
-      await pify(server.close)();
+      await server.close();
     }
   });
 });

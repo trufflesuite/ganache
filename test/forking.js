@@ -703,22 +703,22 @@ describe("Forking", function() {
     });
   });
 
-  after("Shutdown server", (done) => {
+  after("Shutdown server", async (done) => {
     forkedWeb3._provider.connection.close();
-    forkedServer.close(function(serverCloseErr) {
-      forkedWeb3.setProvider();
-      const mainProvider = mainWeb3.currentProvider;
-      mainWeb3.setProvider();
-      mainProvider &&
-        mainProvider.close(function(providerCloseErr) {
-          if (serverCloseErr) {
-            return done(serverCloseErr);
-          }
-          if (providerCloseErr) {
-            return done(providerCloseErr);
-          }
-          done();
-        });
-    });
+    const serverCloseErr = await forkedServer.close();
+
+    forkedWeb3.setProvider();
+    const mainProvider = mainWeb3.currentProvider;
+    mainWeb3.setProvider();
+    mainProvider &&
+      mainProvider.close(function(providerCloseErr) {
+        if (serverCloseErr) {
+          return done(serverCloseErr);
+        }
+        if (providerCloseErr) {
+          return done(providerCloseErr);
+        }
+        done();
+      });
   });
 });

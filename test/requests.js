@@ -379,7 +379,7 @@ const tests = function(web3) {
     after("shutdown", async function() {
       const provider = signingWeb3._provider;
       signingWeb3.setProvider();
-      await pify(provider.close)();
+      await provider.close();
     });
   });
 
@@ -1708,7 +1708,7 @@ describe("Provider:", function() {
   after("shutdown provider", async function() {
     const provider = web3._provider;
     web3.setProvider();
-    await pify(provider.close)();
+    await provider.close();
   });
 });
 
@@ -1731,7 +1731,7 @@ describe("HTTP Server:", function() {
   });
 
   after("Shutdown server", async function() {
-    await pify(server.close)();
+    await server.close();
   });
 
   tests(web3);
@@ -1804,10 +1804,10 @@ describe("WebSockets Server:", function() {
     );
   }).timeout(500); // fail quick if our hacked-together websocket handler fails.
 
-  after("Shutdown server", async function() {
+  after("Shutdown server", async () => {
     const provider = web3._provider;
     web3.setProvider();
     provider.connection.close();
-    await pify(server.close)();
+    await server.close();
   });
 });

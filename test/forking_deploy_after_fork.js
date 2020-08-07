@@ -121,21 +121,21 @@ describe("Contract Deployed on Main Chain After Fork", function() {
     assert.strictEqual(balance, mainWeb3.utils.toWei("1", "ether"));
   });
 
-  after("Shutdown server", function(done) {
+  after("Shutdown server", async (done) => {
     forkedWeb3._provider.connection.close();
-    forkedServer.close(function(serverCloseErr) {
-      forkedWeb3.setProvider();
-      const mainProvider = mainWeb3._provider;
-      mainWeb3.setProvider();
-      mainProvider.close(function(providerCloseErr) {
-        if (serverCloseErr) {
-          return done(serverCloseErr);
-        }
-        if (providerCloseErr) {
-          return done(providerCloseErr);
-        }
-        done();
-      });
+    const serverCloseErr = await forkedServer.close();
+
+    forkedWeb3.setProvider();
+    const mainProvider = mainWeb3._provider;
+    mainWeb3.setProvider();
+    mainProvider.close(function(providerCloseErr) {
+      if (serverCloseErr) {
+        return done(serverCloseErr);
+      }
+      if (providerCloseErr) {
+        return done(providerCloseErr);
+      }
+      done();
     });
   });
 });

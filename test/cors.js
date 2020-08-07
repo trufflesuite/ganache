@@ -123,8 +123,8 @@ describe("HTTP Server:", function() {
     await pify(server.listen)(port);
   });
 
-  after("Shutdown server", async function() {
-    await pify(server.close)();
+  after("Shutdown server", async () => {
+    await server.close();
   });
 
   test(host, port);
