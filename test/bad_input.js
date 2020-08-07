@@ -96,7 +96,7 @@ var tests = function(web3) {
       });
     });
 
-    it.only("recovers after bad nonce (too low)", function(done) {
+    it("recovers after bad nonce (too low)", function(done) {
       var provider = web3.currentProvider;
 
       var request = {
@@ -113,28 +113,31 @@ var tests = function(web3) {
         ],
         id: 2
       };
-
-      provider.send(request, function(err, result) {
-        if (err) {
+      // because we skipped the too-high nonce test, which actually does eventually send a transaction,
+      // we need to do the same, here... which is why there are two `provider.send(request, function(err, result) {`s
+      // the first works, the second should fail
+      provider.send({...request}, function() {
+        provider.send({...request}, function(err, result) {
+          if (err) {
+            assert(
+              /the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0/.test(err.message),
+              `Expected incorrect nonce error, got '${err.message}', instead.`
+            );
+          }
+          // We're supposed to get an error the first time. Let's assert we get the right one.
+          // Note that if using the Ganache as a provider, err will be non-null when there's
+          // an error. However, when using it as a server it won't be. In both cases, however,
+          // result.error should be set with the same error message. We'll check for that.
           assert(
-            /the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0/.test(err.message),
-            `Expected incorrect nonce error, got '${err.message}', instead.`
+            /the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0/.test(
+              result.error.message
+            ),
+            `Expected incorrect nonce error, got '${result.error.message}', instead.`
           );
-        }
-        // We're supposed to get an error the first time. Let's assert we get the right one.
-        // Note that if using the Ganache as a provider, err will be non-null when there's
-        // an error. However, when using it as a server it won't be. In both cases, however,
-        // result.error should be set with the same error message. We'll check for that.
-        console.log(result);
-        assert(
-          /the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0/.test(
-            result.error.message
-          ),
-          `Expected incorrect nonce error, got '${result.error.message}', instead.`
-        );
 
-        delete request.params[0].nonce;
-        provider.send(request, done);
+          delete request.params[0].nonce;
+          provider.send(request, done);
+        });
       });
     });
 
@@ -188,7 +191,7 @@ var tests = function(web3) {
 
 describe("Provider:", function() {
   var web3 = new Web3();
-  web3.setProvider(Ganache.provider({legacyInstamine: true}));
+  web3.setProvider(Ganache.provider({legacyInstamine: true, vmErrorsOnRPCResponse: true}));
   tests(web3);
 });
 
@@ -198,7 +201,7 @@ describe("Server:", function(done) {
   var server;
 
   before("Initialize Ganache server", function(done) {
-    server = Ganache.server({legacyInstamine: true});
+    server = Ganache.server({legacyInstamine: true, vmErrorsOnRPCResponse: true});
     server.listen(port, function() {
       web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
       done();
