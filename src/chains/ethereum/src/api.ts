@@ -509,7 +509,7 @@ export default class EthereumApi implements types.Api {
   async eth_getBlockTransactionCountByNumber(number: string | Buffer) {
     const rawBlock = await this.#blockchain.blocks.getRaw(number);
     const data = rlpDecode(rawBlock);
-    return (data[1] as any).length;
+    return Quantity.from((data[1] as any).length);
   }
 
   /**
