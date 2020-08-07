@@ -1,4 +1,5 @@
 const Ganache = require("../../../../ganache-core/src/packages/core/lib/index.js").default;
+// const Ganache = require("../../../public-exports");
 const Web3 = require("web3");
 const generateSend = require("../utils/rpc");
 
@@ -12,6 +13,7 @@ const initializeTestProvider = async(options = {}, provider = null) => {
     throw new Error("THIS SHOULD ONLY TEST TS GANACHE!!!");
   }
   options.legacyInstamine = true;
+  options.chainId = 1;
   provider = provider || options.provider || Ganache.provider(options);
   const send = generateSend(provider);
   const web3 = new Web3(provider);

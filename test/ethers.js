@@ -10,6 +10,7 @@ describe("ethers", async() => {
   before("Setting up ethers wallet provider", async function() {
     this.timeout(10000);
     const ganacheOptions = {
+      chainId: 1,
       accounts: [
         {
           secretKey: `0x${secretKey}`,
