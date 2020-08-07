@@ -1297,7 +1297,7 @@ export default class EthereumApi implements types.Api {
     if (!transaction.gasLimit) {
       if (!transaction.gas) {
         // eth_call isn't subject to regular transaction gas limits
-        transaction.gas = options.callGasLimit.toString();
+        transaction.gasLimit = transaction.gas = options.callGasLimit.toString();
       } else {
         transaction.gasLimit = transaction.gas;
       }
