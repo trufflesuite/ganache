@@ -280,7 +280,7 @@ describe("api", () => {
     });
 
     it("eth_getBlockTransactionCountByNumber", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+      await provider.send("eth_subscribe", ["newHeads"]);
       await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
@@ -288,7 +288,7 @@ describe("api", () => {
           value: 1
         }
       ]);
-      const _message = await provider.once("message");
+      await provider.once("message");
 
       const count = await provider.send("eth_getBlockTransactionCountByNumber", ["0x1"]);
       assert(count, "1");
