@@ -4,6 +4,7 @@ import Blockchain from "../blockchain";
 import {utils} from "@ganache/utils";
 import Transaction from "../things/transaction";
 import {Data, Quantity} from "@ganache/utils";
+import Errors from "../things/errors";
 
 export type TransactionPoolOptions = {
   /**
@@ -159,7 +160,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         transaction.nonce = Quantity.from(transactionNonce).toBuffer();
       } else if (transactionNonce < transactorNonce) {
         // it's an error if the transaction's nonce is <= the persisted nonce
-        throw new Error("Transaction nonce is too low");
+        throw new Error(`the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${transactionNonce}`);
       } else if (transactionNonce === transactorNonce) {
         isExecutableTransaction = true;
       }
@@ -249,25 +250,37 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
   validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
-    if (this.#options.gasLimit < Quantity.from(transaction.gasLimit)) {
-      return new Error("Transaction gasLimit is too low");
-    }
-
-    // Transactions can't be negative. This may never happen using RLP
-    // decoded transactions but may occur if you create a transaction using
-    // the RPC for example.
-    if (Quantity.from(transaction.value).toBigInt() < 0n) {
-      return new Error("Transaction value cannot be negative");
+    if (Quantity.from(transaction.gasLimit) > this.#options.gasLimit) {
+      return new Error(Errors.GAS_LIMIT);
     }
 
     // Should supply enough intrinsic gas
     const gas = transaction.calculateIntrinsicGas();
     if (Quantity.from(transaction.gasLimit).toBigInt() < gas) {
-      return new Error("intrisic gas too low");
+      return new Error(Errors.INTRINSIC_GAS_TOO_LOW);
     }
 
     return null;
   };
+
+  // /**
+  //  * Returns the *live* executables map once all transactions that have started
+  //  * insertion into the pool have been fully processed.
+  //  * 
+  //  * This is neccessary as a transaction added via `eth_sendTransaction` 
+  //  * immediately followed by an `evm_mine` may not yet be in the executables
+  //  * pool when `evm_mine` triggers the mine operation.
+  //  */
+  // getFutureExecutablesMap(){
+  //   // When transactions are pushed into the transactionPool they aren't always
+  //   // instantly added to the executables pool, due to potential file IO, so we
+  //   // must wait for any pending file IO to finish before we can get
+  //   return Promise.all([...this.#accountPromises.values()]).then(() => this.#executables);
+  // }
+
+  // getCurrentExecutablesMap() {
+  //   return this.#executables;
+  // }
 
   #assertValidTransactorBalance = (transaction: Transaction, transactor: any): Error | null => {
     // Transactor should have enough funds to cover the costs

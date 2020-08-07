@@ -44,6 +44,7 @@ export type BlockchainOptions = {
   chainId: number;
   common: Common;
   legacyInstamine: boolean;
+  vmErrorsOnRPCResponse: boolean;
 };
 
 type BlockchainTypedEvents = {block: Block, blockLogs: BlockLogs, pendingTransaction: Transaction};
@@ -96,7 +97,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       this.blockLogs = new BlockLogManager(database.blockLogs);
       this.vm = this.createVmFromStateTrie(this.trie, options.allowUnlimitedContractSize);
 
-      this.transactions = new TransactionManager(this, database.transactions, {common});
+      this.transactions = new TransactionManager(this, database.transactions, options);
       this.transactionReceipts = new Manager<TransactionReceipt>(
         database.transactionReceipts,
         TransactionReceipt
@@ -154,6 +155,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         };
         utils.unref(setTimeout(intervalMine, minerInterval));
       }
+
+      miner.on("transaction-failure", async (failureData: any) => {
+        this.emit("transaction-failure:" + Data.from(failureData.txHash).toString() as any, failureData.err);
+      });
 
       miner.on("block", async (blockData: any) => {
         await this.#processingBlock;
@@ -451,7 +456,17 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       return hash;
     } else {
       if (this.#instamine && this.#options.legacyInstamine) {
-        await this.once("transaction:" + hash.toString() as any);
+        const errOrVoid = await Promise.race([
+          this.once("transaction:" + hash.toString() as any),
+          this.once("transaction-failure:" + hash.toString() as any)
+        ]);
+
+        if (errOrVoid) {
+          if (this.#options.vmErrorsOnRPCResponse === true) {
+            errOrVoid.result = hash;
+          }
+          throw errOrVoid;
+        }
       }
       return hash;
     }

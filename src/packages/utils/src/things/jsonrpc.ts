@@ -1,26 +1,29 @@
 import { Api, KnownKeys } from "../types";
+type JSError = Error
 
 namespace JsonRpc {
   const jsonrpc = "2.0";
   type JsonRpc = {
-    id: string;
-    jsonrpc: string;
+    readonly id: string;
+    readonly jsonrpc: string;
     toString(): string;
   };
   export type Request<Ledger extends Api> = JsonRpc & {
-    id: string;
-    jsonrpc: string;
-    method: KnownKeys<Ledger>;
-    params?: any[];
+    readonly id: string;
+    readonly jsonrpc: string;
+    readonly method: KnownKeys<Ledger>;
+    readonly params?: any[];
   };
   export type Response = JsonRpc & {
-    result: any;
+    readonly result: any;
   };
   export type Error = JsonRpc & {
-    error: {
-      code: string;
-      message: any;
+    readonly error: {
+      readonly [key: string]: unknown,
+      readonly code: number;
+      readonly message: any;
     };
+    readonly result?: any
   };
   export const Request = <Ledger extends Api>(json: any): Request<Ledger> => {
     return {
@@ -37,15 +40,30 @@ namespace JsonRpc {
       result
     };
   };
-  export const Error = (id: string, code: string, message: any): Error => {
-    return {
-      id,
-      jsonrpc,
-      error: {
-        code,
-        message
+  export const Error = <T extends JSError & {code: number}>(id: string, error: T, result?: unknown): Error => {
+    type E = {[K in keyof T]: K extends string ? T[K] : never}
+    // Error objects are weird, `message`isn't included in the property names,
+    // so it is pulled out separately.
+    const details: E = {message: error.message} as any;
+    Object.getOwnPropertyNames(error).forEach(name => {
+      if (typeof name === "string") {
+        details[name] = error[name];
       }
-    };
+    });
+    if (result !== undefined) {
+      return {
+        id,
+        jsonrpc,
+        error: details,
+        result
+      };
+    } else {
+      return {
+        id,
+        jsonrpc,
+        error: details
+      };
+    }
   };
 }
 

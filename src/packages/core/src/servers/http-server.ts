@@ -144,13 +144,12 @@ export default class HttpServer {
             const data = connector.format(result, payload);
             sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
           }).catch((error: any) => {
+            const data = connector.formatError(error, payload);
             sendResponse(
               response,
               HttpResponseCodes.BAD_REQUEST,
               ContentTypes.JSON,
-              // TODO: handle "real" Error objects by properly serializing them.
-              // JSON.stringify can't do this on its own.
-              JSON.stringify(error),
+              data,
               writeHeaders
             );
           });

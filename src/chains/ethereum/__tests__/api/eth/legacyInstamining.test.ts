@@ -1,11 +1,10 @@
 
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
 
 describe("api", () => {
   describe("eth", () => {
-    describe("legacyInstamining", () => {
+    describe("legacy", () => {
       it("when not in legacy mode, does not mine before returning the tx hash", async () => {
         const provider = await getProvider({legacyInstamine: false});
         const accounts = await provider.send("eth_accounts");
@@ -34,6 +33,29 @@ describe("api", () => {
         ]);
         const receipt = await provider.send("eth_getTransactionReceipt", [hash]);
         assert.notStrictEqual(receipt, null);
+      });
+
+      
+      it("handles transaction balance errors, callback style", (done) => {
+        getProvider({legacyInstamine: true, vmErrorsOnRPCResponse: true}).then(async (provider) => { 
+          const accounts = await provider.send("eth_accounts");
+
+          provider.send({
+            jsonrpc:"2.0",
+            id: "1",
+            method: "eth_sendTransaction",
+            params: [{
+              from: accounts[0],
+              to: accounts[1],
+              value: "0x76bc75e2d63100000" // generates an "exceeds block gas limit" error
+            }]}, (e, r) => {
+              assert(e.message.startsWith("sender doesn't have enough funds to send tx"));
+              assert.strictEqual(e.message, (r as any).error.message);
+              assert.strictEqual((r as any).error.code, -32000);
+              assert.strictEqual(typeof (r as any).result, "string");
+              done();
+          });
+        });
       });
     });
   });

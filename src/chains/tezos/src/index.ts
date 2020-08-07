@@ -24,6 +24,10 @@ export class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
     return JSON.stringify(result);
   }
 
+  formatError(error: any) {
+    return JSON.stringify(error);
+  }
+
   parse(message: Buffer) {
     return JSON.parse(message);
   };

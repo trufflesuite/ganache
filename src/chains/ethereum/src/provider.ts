@@ -14,6 +14,8 @@ type RequestParams<Method extends types.KnownKeys<EthereumApi>> = {
   readonly method: Method, readonly params: Parameters<EthereumApi[Method]> | undefined
 };
 
+const hasOwn = ({}).hasOwnProperty.call.bind(({}).hasOwnProperty);
+
 export default class EthereumProvider extends Emittery.Typed<{message: any}, "connect" | "disconnect">
   implements types.Provider<EthereumApi>
   {
@@ -43,6 +45,8 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
     let params: any;
     let response: Promise<{}>;
     if (typeof arg1 === "string") {
+      // this signature is (not) non-standard and is only a ganache thing!!!
+      // we should probably remove it, but I really like it so I haven't yet.
       method = arg1;
       params = arg2 as Parameters<EthereumApi[typeof method]>;
       response = this.request({method, params});
@@ -52,14 +56,22 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
       const callback = arg2 as Callback;
       method = payload.method as types.KnownKeys<EthereumApi>;
       params = payload.params;
-
       this.request({method, params})
         .then((result: any) => {
           // execute the callback on the nextTick so errors thrown in the callback
           // don't cause the error to bubble up to ganache-core
          process.nextTick(callback, null, JsonRpcTypes.Response(payload.id, JSON.parse(JSON.stringify(result))))
-        }).catch((err: Error) => {
-          process.nextTick(callback, err);
+        })
+        .catch((error: Error & {code: number, result?: unknown}) => {
+          let result: any;
+          // In order to provide `vmErrorsOnRPCResponse`, the `error` might have
+          // a `result`, which is pretty much just a hack
+          if (hasOwn(error, "result")) {
+            result = error.result
+            delete error.result;
+          }
+          const errorResult = JsonRpcTypes.Error(payload.id, error, result);
+          process.nextTick(callback, error, errorResult);
         });
     } else {
       throw new Error(
@@ -105,7 +117,16 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
         });
       }
       return promise.then(JSON.stringify).then(JSON.parse);
-    })
+    }).catch((err: Error) => {
+      // reformat the error to include a `code`
+      const e = new Error(err.message);
+      (e as any).code = -32000;
+      if (this.#options.vmErrorsOnRPCResponse && (err as any).result) {
+        (e as any).result = JSON.parse(JSON.stringify((err as any).result));
+      }
+      // then rethrow
+      throw e;
+    });
   }
 
   public disconnect = async () => {

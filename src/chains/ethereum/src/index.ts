@@ -40,7 +40,8 @@ export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "clos
     const method = payload.method;
     if (method === "eth_subscribe") {
       if (isHttp(connection)) {
-        const error = JsonRpcTypes.Error(payload.id, "-32000", "notifications not supported");
+        const err = new Error("notifications not supported") as Error & {code: number};
+        const error = JsonRpcTypes.Error(payload.id, err);
         return PromiEvent.reject(error);
       } else {
         return this.#provider.request({method: "eth_subscribe", params: payload.params as Parameters<EthereumApi["eth_subscribe"]>});
@@ -48,8 +49,8 @@ export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "clos
     }
     const provider = this.#provider;
     const params = payload.params as Parameters<EthereumApi[typeof method]>;
-    return new PromiEvent(resolve => {
-      provider.send(method, params).then(resolve);
+    return new PromiEvent((resolve, reject) => {
+      provider.request({method, params}).then(resolve).catch(reject);
     });
   }
 
@@ -57,6 +58,12 @@ export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "clos
     const json = JsonRpcTypes.Response(payload.id, result);
     return JSON.stringify(json);
   }
+
+  formatError(error: Error & {code: number}, payload: JsonRpcTypes.Request<EthereumApi>): RecognizedString {
+    const json = JsonRpcTypes.Error(payload.id, error);
+    return JSON.stringify(json);
+  }
+
 
   close(){
     return this.#provider.disconnect();

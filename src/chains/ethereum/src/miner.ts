@@ -177,74 +177,78 @@ export default class Miner extends Emittery {
         await this.#checkpoint();
 
         const result = await this.#runTx(runArgs, origin, pending);
-        const gasUsed = Quantity.from(result.gasUsed.toBuffer()).toBigInt();
-        if (blockGasLeft >= gasUsed) {
-          // if the transaction will fit in the block, commit it!
-          await this.#commit();
-          blockTransactions[numTransactions] = best;
+        if (result !== null) {
+          const gasUsed = Quantity.from(result.gasUsed.toBuffer()).toBigInt();
+          if (blockGasLeft >= gasUsed) {
+            // if the transaction will fit in the block, commit it!
+            await this.#commit();
+            blockTransactions[numTransactions] = best;
+            
+            blockGasLeft -= gasUsed;
+            blockData.gasUsed += gasUsed;
+            
+            // calculate receipt and tx tries
+            const receipt = best.fillFromResult(result);
+            const txKey = rlpEncode(numTransactions);
+            promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
+            promises.push(putInTrie(receiptTrie, txKey, receipt));
+            
+
+            // update the block's bloom
+            const bloom = result.bloom.bitvector;
+            for (let i = 0; i < 256; i++) {
+              blockBloom[i] |= bloom[i];
+            }
+
+            numTransactions++;
+
+            const pendingOrigin = pending.get(origin);
+            // since this transaction was successful, remove it from the "pending"
+            // transaction pool.
+            keepMining = pendingOrigin.removeBest();
+
+            // if we:
+            //  * don't have enough gas left for even the smallest of transactions
+            //  * Or if we've mined enough transactions
+            // we're done with this block!
+            // notice: when `maxTransactions` is `-1` (AKA infinite), `numTransactions === maxTransactions`
+            // will always return false, so this comparison works out fine.
+            if (blockGasLeft <= params.TRANSACTION_GAS || numTransactions === maxTransactions) {
+              if (keepMining) {
+                // remove the newest (`best`) tx from this account's pending queue
+                // as we know we can fit another transaction in the block. Stick
+                // this tx into our `priced` heap.
+                keepMining = replaceFromHeap(priced, pendingOrigin);
+              } else {
+                keepMining = priced.removeBest();
+              }
+              break;
+            }
           
-          blockGasLeft -= gasUsed;
-          blockData.gasUsed += gasUsed;
-          
-          // calculate receipt and tx tries
-          const receipt = best.fillFromResult(result);
-          const txKey = rlpEncode(numTransactions);
-          promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
-          promises.push(putInTrie(receiptTrie, txKey, receipt));
-          
-
-          // update the block's bloom
-          const bloom = result.bloom.bitvector;
-          for (let i = 0; i < 256; i++) {
-            blockBloom[i] |= bloom[i];
-          }
-
-          numTransactions++;
-
-          const pendingOrigin = pending.get(origin);
-          // since this transaction was successful, remove it from the "pending"
-          // transaction pool.
-          keepMining = pendingOrigin.removeBest();
-
-          // if we:
-          //  * don't have enough gas left for even the smallest of transactions
-          //  * Or if we've mined enough transactions
-          // we're done with this block!
-          // notice: when `maxTransactions` is `-1` (AKA infinite), `numTransactions === maxTransactions`
-          // will always return false, so this comparison works out fine.
-          if (blockGasLeft <= params.TRANSACTION_GAS || numTransactions === maxTransactions) {
             if (keepMining) {
               // remove the newest (`best`) tx from this account's pending queue
               // as we know we can fit another transaction in the block. Stick
               // this tx into our `priced` heap.
               keepMining = replaceFromHeap(priced, pendingOrigin);
             } else {
+              // since we don't have any more txs from this account, just get the
+              // next bext transaction sorted in our `priced` heap.
               keepMining = priced.removeBest();
             }
-            break;
-          }
-        
-          if (keepMining) {
-            // remove the newest (`best`) tx from this account's pending queue
-            // as we know we can fit another transaction in the block. Stick
-            // this tx into our `priced` heap.
-            keepMining = replaceFromHeap(priced, pendingOrigin);
           } else {
-            // since we don't have any more txs from this account, just get the
-            // next bext transaction sorted in our `priced` heap.
+            await this.#revert();
+
+            // unlock the transaction so the transaction pool can reconsider this
+            // transaction
+            best.locked = false;
+
+            // didn't fit. remove it from the priced transactions without replacing
+            // it with another from the account. This transaction will have to be
+            // run again in another block.
             keepMining = priced.removeBest();
           }
         } else {
           await this.#revert();
-
-          // unlock the transaction so the transaction pool can reconsider this
-          // transaction
-          best.locked = false;
-
-          // didn't fit. remove it from the priced transactions without replacing
-          // it with another from the account. This transaction will have to be
-          // run again in another block.
-          keepMining = priced.removeBest();
         }
       }
 
@@ -270,7 +274,6 @@ export default class Miner extends Emittery {
     try {
       return await this.#vm.runTx(runArgs);
     } catch (err) {
-      await this.#revert();
       const errorMessage = err.message;
       if (errorMessage.startsWith("the tx doesn't have the correct nonce. account has nonce of: ")) {
         // a race condition between the pool and the miner could potentially
@@ -278,15 +281,28 @@ export default class Miner extends Emittery {
         // We do NOT want to re-run this transaction.
         // Update the `priced` heap with the next best transaction from this
         // account
-        replaceFromHeap(this.#priced, pending.get(origin));
-
-        // TODO: how do we surface this error to the caller?
-        throw err;
+        const pendingOrigin = pending.get(origin)
+        if (pendingOrigin.removeBest()) {
+          replaceFromHeap(this.#priced, pendingOrigin);
+        } else {
+          this.#priced.removeBest();
+        }
       } else {
-        // TODO: handle all other errors!
-        // TODO: how do we surface this error to the caller?
-        throw err;
+        // TODO: handle other errors? Maybe there are some that allow this tx to
+        //be run again later? For now, just remove it so stuff works.
+
+        // Update the `priced` heap with the next best transaction from this
+        // account
+        const pendingOrigin = pending.get(origin)
+        if (pendingOrigin.removeBest()) {
+          replaceFromHeap(this.#priced, pendingOrigin);
+        } else {
+          this.#priced.removeBest();
+        }
       }
+
+      this.emit("transaction-failure", {txHash: runArgs.tx.hash(), err});
+      return null;
     }
   }
 

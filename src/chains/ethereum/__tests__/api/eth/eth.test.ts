@@ -291,7 +291,52 @@ describe("api", () => {
       await provider.once("message");
 
       const count = await provider.send("eth_getBlockTransactionCountByNumber", ["0x1"]);
-      assert(count, "1");
+      assert.strictEqual(count, "0x1");
+    });
+
+    it("eth_sendTransaction bad data (tiny gas limit)", async () => {
+      await provider.send("eth_sendTransaction", [
+        {
+          from: accounts[0],
+          to: accounts[1],
+          gas: "0x01"
+        }
+      ])
+      .catch(e => {
+        assert.strictEqual(e.code, -32000);
+        assert.strictEqual(e.message, "intrinsic gas too low");
+      })
+    });
+
+    it("eth_sendTransaction bad data (huge gas limit)", async () => {
+      await provider.send("eth_sendTransaction", [
+        {
+          from: accounts[0],
+          to: accounts[1],
+          gas: "0xfffffffff"
+        }
+      ])
+      .catch(e => {
+        assert.strictEqual(e.code, -32000);
+        assert.strictEqual(e.message, "exceeds block gas limit");
+      })
+    });
+
+    it("handles block gas limit errors, callback style", (done) => {
+      provider.send({
+        jsonrpc:"2.0",
+        id: "1",
+        method: "eth_sendTransaction",
+        params: [{
+          from: accounts[0],
+          to: accounts[1],
+          gas: "0xfffffffff" // generates an "exceeds block gas limit" error
+        }]}, (e, r) => {
+          assert.strictEqual(e.message, "exceeds block gas limit");
+          assert.strictEqual((r as any).error.code, -32000);
+          assert.strictEqual((r as any).error.message, e.message);
+          done()
+      });
     });
 
     it("eth_getTransactionByBlockNumberAndIndex", async () => {
