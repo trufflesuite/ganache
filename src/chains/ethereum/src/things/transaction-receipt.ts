@@ -53,6 +53,8 @@ export default class TransactionReceipt {
       transactionIndex: Quantity.from((transaction as any)._index),
       blockNumber: Quantity.from(block.value.header.number),
       blockHash: Data.from(block.value.hash()),
+      from: Data.from(transaction.from),
+      to: contractAddress === "0x" ? Data.from(transaction.to) : null,
       cumulativeGasUsed: Quantity.from(block.value.header.gasUsed),
       gasUsed: Quantity.from(raw[1]),
       contractAddress: contractAddress === "0x" ? null : contractAddress,
