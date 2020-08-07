@@ -15,7 +15,7 @@ type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
 
 const MAX_UINT64 = (1n << 64n) - 1n;
 const ZERO_BUFFER = Buffer.from([0]);
-const ONE_BUFFER = Buffer.from([0]);
+const ONE_BUFFER = Buffer.from([1]);
 
 //#region helpers
 const sign = EthereumJsTransaction.prototype.sign;

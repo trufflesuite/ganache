@@ -60,8 +60,7 @@ export default class TransactionReceipt {
       contractAddress: contractAddress === "0x" ? null : contractAddress,
       logs,
       logsBloom: Data.from(raw[2], 256),
-      // flips a `1` to a `0` and a `0` to a `1` using Bitwise XOR for funsies.
-      status: 1 ^ raw[0][0]
+      status: raw[0][0]
     };
   }
 }
