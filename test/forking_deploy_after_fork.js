@@ -17,7 +17,7 @@ var logger = {
  * network) and the fork chaing being "the fork".
  */
 
-describe("Contract Deployed on Main Chain After Fork", function() {
+describe.skip("Contract Deployed on Main Chain After Fork", function() {
   var contract;
   var contractAddress;
   var forkedServer;
