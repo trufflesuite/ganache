@@ -172,7 +172,7 @@ export class Block {
       hash: Data.from(this.value.hash()),
       parentHash: Data.from(header.parentHash),
       mixHash: Data.from(header.mixHash),
-      nonce: Data.from(header.nonce, 16),
+      nonce: Data.from(header.nonce, 8),
       sha3Uncles: Data.from(header.uncleHash),
       logsBloom: Data.from(header.bloom),
       transactionsRoot: Data.from(header.transactionsTrie),
