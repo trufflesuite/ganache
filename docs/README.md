@@ -3,12 +3,37 @@
 ## Getting set up
 
  * Use Node.js v10.7.0, this is the earliest version we support.
-   * Why v10.7.0? Because this is the first version that supports with BitInt literals (the `n` in `100n`).
+   * Why v10.7.0? Because this is the first version that supports with BigInt literals (the `n` in `100n`).
  * `git clone git@github.com:trufflesuite/ganache-core.git`
  * `cd ganache-core`
  * `npm install`
 
+## Solving node-gyp issues
+
+I f installation fails due to a `node-gyp` issue you may need to perform some additional system configuration.
+
+### on Linux (Ubuntu-based)
+
+ * Determine if you have Python 2.7 installed
+   * example: `which python2.7`
+ * If you do not have python2.7 installed, you need to install it
+   * example: `sudo apt update && sudo apt install python2.7`
+ * Finally, run `npm config set python python2.7`
+
+### on Windows
+
+ * Install [https://www.npmjs.com/package/windows-build-tools](Windows-Build-Tools)
+   * `npm install --global windows-build-tools`
+
+### On macOS
+
+ * I have no idea.
+
 ## Clean install
+
+ * `npm run reinstall`
+
+Which just runs these commands for you:
 
  * `npm run clean`
  * `npm install`
@@ -27,7 +52,7 @@ Builds all packages:
 
 Runs all tests:
 
- * `npm test`
+ * `npm test` (or the shorthand, `npm t`)
 
 ## To create a new package
 
