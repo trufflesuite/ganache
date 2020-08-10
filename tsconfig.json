@@ -10,8 +10,10 @@
     "moduleResolution": "node",
     "noErrorTruncation": true,
     "sourceMap": true,
+    /** `resolveJsonModule: true` allows for inlining properties from .json files via our `compile.ts` script */
     "resolveJsonModule": true,
     "strict": true,
+    /** `noImplicitAny: false` and `strictNullChecks: false` are temporary during initial rapid development. */
     "strictNullChecks": false,
     "noImplicitAny": false,
     "newLine": "lf",
