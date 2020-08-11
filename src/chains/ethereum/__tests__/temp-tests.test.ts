@@ -1,3 +1,5 @@
+import os from "os";
+import fs from "fs";
 import assert from "assert";
 import {Quantity} from "@ganache/utils";
 import {ProviderOptions} from "@ganache/options";
@@ -228,5 +230,36 @@ describe("Random tests that are temporary!", () => {
     const accounts = await p.send("eth_accounts");
     const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
     assert(result, "0x");
+  });
+
+  describe("options:account_keys_path", () => {
+    const fileName = join(os.tmpdir(), "/ganache-core-test-accounts.json");
+  
+    function cleanUp() {
+      try {
+        fs.unlinkSync(fileName);
+      } catch (e) {
+        // ignore error
+      }
+    }
+    afterEach("clean up", () => {
+      cleanUp();
+    });
+    it("should create the file by name", async () => {
+      await getProvider({ account_keys_path: fileName });
+      assert.strictEqual(fs.existsSync(fileName), true, "The account_keys file doesn't exist.");
+    });
+    it("should populate the file by descriptor", async () => {
+      const fd = fs.openSync(fileName, "w")
+      try {
+        await getProvider({ account_keys_path: fd });
+        assert.strictEqual(fs.existsSync(fileName), true, "The account_keys file doesn't exist.");
+      } finally{
+        fs.closeSync(fd);
+      }
+    });
+    afterEach("clean up", () => {
+      cleanUp();
+    });
   });
 });

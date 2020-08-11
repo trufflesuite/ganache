@@ -20,6 +20,7 @@ type EthereumOptions = Pick<
   | "default_balance_ether"
   | "mnemonic"
   | "legacyInstamine"
+  | "account_keys_path"
 >;
 
 export default EthereumOptions;

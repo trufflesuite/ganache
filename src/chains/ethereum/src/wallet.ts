@@ -11,6 +11,7 @@ import HDKey from "hdkey";
 import { alea as rng } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
+import {writeFileSync} from "fs";
 
 const SCRYPT_PARAMS = {
   dklen: 32,
@@ -134,6 +135,20 @@ export default class Wallet {
       if (opts.secure && !unlockedAccounts.has(strAddress)) continue;
 
       unlockedAccounts.set(strAddress, account.privateKey);
+    }
+    //#endregion
+  
+    //#region save accounts to disk
+    if (opts.account_keys_path != null) {
+      const fileData = {
+        addresses: {},
+        private_keys: {}
+      };
+      unlockedAccounts.forEach((privateKey, address) => {
+        fileData.addresses[address] = address;
+        fileData.private_keys[address] = privateKey;
+      });
+      writeFileSync(opts.account_keys_path, JSON.stringify(fileData));
     }
     //#endregion
   }
