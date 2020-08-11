@@ -157,7 +157,7 @@ export class Block {
     }
   }
 
-  getTxFn = (include = false): ((tx: Transaction) => {[key: string]: string} | Data) => {
+  getTxFn = (include = false): ((tx: Transaction) => {[key: string]: string | Data | Quantity} | Data) => {
     if (include) {
       return (tx: Transaction) => tx.toJSON(this);
     } else {
