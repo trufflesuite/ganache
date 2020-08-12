@@ -21,6 +21,8 @@ import {Block as EthereumBlock} from "ethereumjs-block";
 import VM from "ethereumjs-vm";
 import Address from "./things/address";
 import BlockLogManager from "./components/blocklog-manager";
+import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
+
 
 export enum Status {
   // Flags
@@ -482,8 +484,24 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     transaction.block = block.value;
     transaction.caller = transaction.from || block.value.header.coinbase;
     await settingStateRootProm;
-    const result = await vm.runCall(transaction);
-    return Data.from(result.execResult.returnValue || "0x");
+    return await vm.runCall(transaction);
+  }
+
+  public async simulateTransaction2(transaction: any, parentBlock: Block, block: Block, stepListener?: any): Promise<EVMResult> {
+    // TODO: this is just a prototype implementation
+    const vm = this.vm.copy();
+    const stateManager = vm.stateManager;
+    const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(
+      parentBlock.value.header.stateRoot
+    );
+    if (stepListener) {
+      vm.on("step", stepListener);
+    }
+    transaction.block = block.value;
+    transaction.caller = transaction.from || block.value.header.coinbase;
+    await settingStateRootProm;
+    block.value.transactions.push(transaction);
+    return await vm.runTx({tx:transaction, block: block.value, skipBalance:true, skipNonce:true});
   }
 
   /**

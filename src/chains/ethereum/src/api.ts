@@ -19,6 +19,7 @@ import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
 import EthereumAccount from "ethereumjs-account";
 import { Block } from "./components/block-manager";
+import GasEstimator from "./things/gas-estimator";
 //#endregion
 
 //#region Constants
@@ -447,9 +448,23 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns the amount of gas used.
    */
-  async eth_estimateGas() {
-    // TODO: do this for real
-    return Quantity.from(6721975);
+  async eth_estimateGas(transaction: any, blockNumber: Buffer | Tag | string = Tag.LATEST): Promise<Quantity> {
+    const blockchain = this.#blockchain;
+    const options = this.#options;
+    if (transaction.gasLimit) {
+      transaction.gas = transaction.gasLimit;
+    } else {
+      if (transaction.gas) {
+        transaction.gasLimit = transaction.gas;
+      } else {
+        // eth_estimateGas isn't subject to regular transaction gas limits
+        transaction.gas = transaction.gasLimit = options.callGasLimit.toString();
+      }
+    }
+    const tx = Transaction.fromJSON(transaction, null, Transaction.types.none);
+    // const result = await GasEstimator.binSearch(blockchain, tx, blockNumber);
+    // return result;
+    return GasEstimator.binSearch(blockchain, tx, blockNumber);
   }
 
   /**
@@ -1294,15 +1309,15 @@ export default class EthereumApi implements types.Api {
     const parentHeader = parentBlock.value.header;
     const options = this.#options;
 
-    if (!transaction.gasLimit) {
-      if (!transaction.gas) {
-        // eth_call isn't subject to regular transaction gas limits
-        transaction.gasLimit = transaction.gas = options.callGasLimit.toString();
-      } else {
-        transaction.gasLimit = transaction.gas;
-      }
-    } else {
+    if (transaction.gasLimit) {
       transaction.gas = transaction.gasLimit;
+    } else {
+      if (transaction.gas) {
+        transaction.gasLimit = transaction.gas;
+      } else {
+        // eth_estimateGas isn't subject to regular transaction gas limits
+        transaction.gas = transaction.gasLimit = options.callGasLimit.toString();
+      }
     }
 
     const newBlock = blocks.createBlock({
@@ -1313,7 +1328,8 @@ export default class EthereumApi implements types.Api {
       // gas estimates and eth_calls aren't subject to regular block gas limits
       gasLimit: transaction.gas
     });
-    return blockchain.simulateTransaction(transaction, parentBlock, newBlock);
+    const result = await blockchain.simulateTransaction(transaction, parentBlock, newBlock);
+    return Data.from(result.execResult.returnValue || "0x");
   }
   //#endregion
 

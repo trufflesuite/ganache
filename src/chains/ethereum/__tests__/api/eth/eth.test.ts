@@ -57,6 +57,34 @@ describe("api", () => {
         assert.deepStrictEqual(result, []);
       });
     });
+    
+    
+    describe("eth_estimateGas", () => {
+      it.only("EOA to EOA", async () => {
+        const estimate = await provider.send("eth_estimateGas", [
+          {
+            from: accounts[0],
+            to: accounts[1],
+            value: "0xffffff"
+          }
+        ]);
+        console.log(estimate);
+        assert(estimate);
+        // await provider.send("eth_sendTransaction", [
+        //   {
+        //     from: accounts[0],
+        //     to: accounts[1],
+        //     value: 1
+        //   }
+        // ]);
+        // const _message = await provider.once("message");
+        // const blocks = await Promise.all([
+        //   provider.send("eth_getBlockByNumber", ["0x1", true]),
+        //   provider.send("eth_getBlockByNumber", ["0x1"])
+        // ]);
+        // assert(blocks[0].hash, blocks[1].hash);
+      });
+    });
 
     describe("eth_submitWork", () => {
       it("should get compilers list", async () => {
