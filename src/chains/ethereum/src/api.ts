@@ -904,9 +904,9 @@ export default class EthereumApi implements types.Api {
    * @param transaction
    * @returns The transaction hash
    */
-  async eth_sendRawTransaction(transaction: any) {
-    const tx = new Transaction(Buffer.from(transaction), {common: this.#common}, Transaction.types.signed);
-    return await this.#blockchain.queueTransaction(tx);
+  async eth_sendRawTransaction(transaction: string) {
+    const tx = new Transaction(transaction, {common: this.#common}, Transaction.types.signed);
+    return this.#blockchain.queueTransaction(tx)
   }
 
   /**
