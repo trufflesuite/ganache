@@ -479,11 +479,20 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(
       parentBlock.value.header.stateRoot
     );
-    transaction.block = block.value;
-    transaction.caller = transaction.from || block.value.header.coinbase;
+    const tx = Transaction.fromJSON(transaction, this.#options.common, Transaction.types.fake);
+    tx.block = block.value;
+    tx.caller = Data.from(transaction.from || block.value.header.coinbase).toBuffer();
     await settingStateRootProm;
-    const result = await vm.runCall(transaction);
-    return Data.from(result.execResult.returnValue || "0x");
+    const result = await vm.runCall(tx);
+    if (result.execResult.exceptionError) {
+      if (this.#options.vmErrorsOnRPCResponse) {
+        throw new Error("VM Exception while processing transaction: " + result.execResult.exceptionError.error);
+      } else {
+        return Data.from("0x");
+      }
+    } else {
+      return Data.from(result.execResult.returnValue || "0x");
+    }
   }
 
   /**
