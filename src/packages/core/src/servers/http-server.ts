@@ -143,7 +143,12 @@ export default class HttpServer {
             }
             const data = connector.format(result, payload);
             sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
-          }).catch((error: any) => {
+          }).catch(error => {
+            if (aborted) {
+              // if the request has been aborted don't try sending (it'll
+              // cause an `Unhandled promise rejection` if we try)
+              return;
+            }
             const data = connector.formatError(error, payload);
             sendResponse(
               response,
