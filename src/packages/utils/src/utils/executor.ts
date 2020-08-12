@@ -18,11 +18,11 @@ export class Executor {
    * @param methodName The name of the JSON-RPC method to execute.
    * @param params The params to pass to the JSON-RPC method.
    */
-  public execute <T extends Api>(
+  public execute <T extends Api, M extends KnownKeys<T>>(
     api: T,
-    methodName: KnownKeys<T>,
-    params: Parameters<T[KnownKeys<T>]>
-  ): Promise<{value: ReturnType<T[KnownKeys<T>]>}> {
+    methodName: M,
+    params: Parameters<T[M]>
+  ) {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
