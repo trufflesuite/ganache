@@ -15,7 +15,7 @@ export default {
     //   for that (yet), instead of "all" (0) or just 1 as we are doing here:
     const requestCoordinator = new utils.RequestCoordinator(providerOptions.asyncRequestProcessing ? 0 : 1);
     
-    // The Executor is responsible for actually executing the method on the chain/ledger.
+    // The Executor is responsible for actually executing the method on the chain/API.
     // It performs some safety checks to ensure "safe" method execution before passing it
     // to a RequestCoordinator.
     const executor = new utils.Executor(requestCoordinator);

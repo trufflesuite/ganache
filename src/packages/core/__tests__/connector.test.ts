@@ -51,15 +51,15 @@ describe("connector", () => {
     assert.strictEqual(result, "0x56bc75e2d63100000");
   });
 
-  // duck punch a property that shouldn't appear on the ledger. we test this
-  // to make sure that 3rd party ledger implementations can't shoot themselves
+  // duck punch a property that shouldn't appear on the API. we test this
+  // to make sure that 3rd party API implementations can't shoot themselves
   // in the foot on accident
-  it.skip("TODO: allow 'injecting' our own engine or ledger into a provider!", async () => {
+  it.skip("TODO: allow 'injecting' our own engine or API into a provider!", async () => {
     const p = Ganache.provider() as EthereumProvider;
     // this won't work becase ganache uses _real_ private properties that can't
     // be duck punched. This test is supposed to ensure that _real_ non-function
     // own properties (and __proto__ properties) can't be executed.
-    (p as any)._engine._ledger.__proto__.illegalProperty = true;
+    (p as any)._engine._api.__proto__.illegalProperty = true;
     await assert.rejects(p.send("illegalProperty" as any, []), {
       message: "`The method illegalProperty does not exist/is not available`"
     });

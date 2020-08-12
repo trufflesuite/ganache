@@ -67,7 +67,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
   /**
    * Initializes the underlying Database and handles synchronization between
-   * the ledger and the database.
+   * the API and the database.
    *
    * Emits a `ready` event once the database and all dependencies are fully
    * initialized.

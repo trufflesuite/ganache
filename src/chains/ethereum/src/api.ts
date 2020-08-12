@@ -95,11 +95,11 @@ export default class EthereumApi implements types.Api {
   readonly #wallet: Wallet;
 
   /**
-   * This is the Ethereum ledger that the provider interacts with.
+   * This is the Ethereum API that the provider interacts with.
    * The only methods permitted on the prototype are the supported json-rpc
    * methods.
    * @param options
-   * @param ready Callback for when the ledger is fully initialized
+   * @param ready Callback for when the API is fully initialized
    */
   constructor(options: EthereumOptions, emitter: Emittery.Typed<{message: any}, "connect" | "disconnect">) {
     const opts = (this.#options = options);
