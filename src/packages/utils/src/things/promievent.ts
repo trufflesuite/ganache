@@ -1,16 +1,15 @@
 import Emittery from "emittery";
 
-// PromiEvent's `resolve and `reject` (and the other static methods -- if you
-// need their types too, add them!) return a PromiEvent, but the `Promise` type
-// doesn't.
+// PromiEvent's `resolve and `reject` need to return a PromiEvent, not just a
+// Promise
 declare var Promise: {
   /**
-   * Creates a new rejected promievent for the provided reason.
-   * @param reason The reason the promise was rejected.
-   * @returns A new rejected PromiEvent.
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
    */
-  reject<T = never>(reason?: any): PromiEvent<T>;
-
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): PromiEvent<TResult>;
+  
   /**
    * Creates a new resolved promievent for the provided value.
    * @param value A promise.
@@ -32,8 +31,41 @@ class PromiEvent<T> extends Promise<T> {
   }
 
   /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A PromiEvent for the completion of the callback.
+   */
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null) {
+    const prom = new PromiEvent<T | TResult>((resolve, reject) => {
+      this.onAny((eventName, eventData) => {
+          return prom.emit(eventName, eventData);
+      });
+      const p = super.catch<TResult>(onrejected);
+      p.then(resolve, reject);
+    });
+    return prom;
+  }
+
+  /**
+   * Creates a new resolved promievent.
+   * @returns A resolved promievent.
+   */
+  static resolve(): PromiEvent<void>;
+  /**
+   * Creates a new resolved promievent for the provided value.
+   * @param value A promise.
+   * @returns A promievent whose internal state matches the provided promise.
+   */
+  static resolve<T = never>(value: T | PromiseLike<T>): PromiEvent<T>;
+  static resolve<T = never>(value?: T | PromiseLike<T>) {
+    return new PromiEvent<T>(resolve => {
+      resolve(value);
+    });
+  }
+
+  /**
    * Used to immediately clear all event listeners on the instance and prevent
-   * any additional binding or emittion from the Emitter.
+   * any additional binding or emission from the Emitter.
    * 
    * Once disposed no listeners can be bound to this emitter.
    * 
@@ -51,7 +83,7 @@ class PromiEvent<T> extends Promise<T> {
 interface PromiEvent<T> extends Promise<T>, Emittery {
 }
 
-applyMixins(PromiEvent, [Promise, Emittery]);
+applyMixins(PromiEvent, [Emittery]);
 
 export default PromiEvent;
 

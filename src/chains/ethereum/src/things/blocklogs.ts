@@ -92,7 +92,7 @@ export default class BlockLogs {
   }
 
   [_logs]() {
-    const blockNumber = this[_blockNumber];
+    const blockNumber = this.blockNumber;
     const raw = this[_raw];
     const logs = raw[1];
     const l = this.length;

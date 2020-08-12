@@ -115,6 +115,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         firstBlockTime = this.#currentTime();
       }
 
+      options.gasLimit = Quantity.from(options.gasLimit as any);
       const gasLimit = options.gasLimit;
       this.#processingBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit);
 

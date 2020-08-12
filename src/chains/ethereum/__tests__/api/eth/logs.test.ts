@@ -44,7 +44,7 @@ describe("api", () => {
           }
 
           it("subscribes and unsubscribes", async () => {
-            const subscriptionId = await provider.send("eth_subscribe", ["logs", {fromBlock: ""}]);
+            const subscriptionId = await provider.send("eth_subscribe", ["logs"]);
 
             assert(subscriptionId != null);
             assert.notStrictEqual(subscriptionId, false);

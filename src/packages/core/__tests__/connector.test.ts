@@ -78,11 +78,11 @@ describe("connector", () => {
       " ",
       "constructor"
     ] as const;
-    illegalMethodNames.forEach(methodName => {
-      assert.throws(() => p.send(methodName as any), {
+    await Promise.all(illegalMethodNames.map(methodName => {
+      assert.rejects(() => p.send(methodName as any), {
         message: `The method ${methodName} does not exist/is not available`
       });
-    });
+    }));
 
     // make sure we reject non-strings over the classical send interface
     const circular: any = {};

@@ -138,7 +138,7 @@ export default class EthereumApi implements types.Api {
   * @param {String} value - String to store.
   * @returns returns true if the value was stored, otherwise false.
   */
-  async db_putString(dbName, key, value) {
+  async db_putString(dbName: string, key: string, value: string) {
     return false;
   };
 
@@ -149,7 +149,7 @@ export default class EthereumApi implements types.Api {
    * @param {String} key - Key name.
    * @returns The previously stored string.
    */
-  async db_getString(dbName, key) {
+  async db_getString(dbName: string, key: string) {
     return "";
   };
 
@@ -161,7 +161,7 @@ export default class EthereumApi implements types.Api {
    * @param {DATA} data - Data to store.
    * @returns true if the value was stored, otherwise false.
    */
-  async db_putHex(dbName, key, data) {
+  async db_putHex(dbName: string, key: string, data: string) {
     return false;
   };
 
@@ -172,18 +172,18 @@ export default class EthereumApi implements types.Api {
    * @param {String} key - Key name.
    * @returns The previously stored data.
    */
-  async db_getHex(dbName, key) {
+  async db_getHex(dbName: string, key: string) {
     return "0x00";
   };
   //#endregion
 
   //#region bzz
   async bzz_hive() {
-    return [];
+    return [] as any[];
   }
 
   async bzz_info() {
-    return [];
+    return [] as any[];
   }
   //#endregion
 
@@ -211,18 +211,20 @@ export default class EthereumApi implements types.Api {
    * @returns true if it worked
   */
   async evm_setAccountNonce(address: string, nonce: string) {
-    return new Promise((resolve, reject) => {
+    return new Promise<boolean>((resolve, reject) => {
       const buffer = Address.from(address).toBuffer();
       const blockchain = this.#blockchain;
       const stateManager = blockchain.vm.stateManager;
       stateManager.getAccount(buffer, (err: Error, account: EthereumAccount) => {
         if (err) {
-          return void reject(err)
+          reject(err);
+          return;
         }
         account.nonce = Quantity.from(nonce).toBuffer();
         stateManager.putAccount(buffer, account, (err: Error) => {
           if (err) {
-            return void reject(err);
+            reject(err);
+            return;
           }
          
           blockchain.mine(0).then(() => resolve(true), reject);
@@ -522,7 +524,7 @@ export default class EthereumApi implements types.Api {
   }
 
   async eth_getCompilers() {
-    return [];
+    return [] as string[];
   }
 
   /**
@@ -568,7 +570,7 @@ export default class EthereumApi implements types.Api {
    * @param index - the uncle's index position.
    */
   async eth_getUncleByBlockHashAndIndex(hash: Data, index: Quantity) {
-    return null;
+    return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
   }
 
   /**
@@ -578,7 +580,7 @@ export default class EthereumApi implements types.Api {
    * @param uncleIndex - the uncle's index position.
    */
   async eth_getUncleByBlockNumberAndIndex(blockNumber: Buffer | Tag = Tag.LATEST, uncleIndex: Quantity) {
-    return null;
+    return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
   }
 
   /**
@@ -591,7 +593,7 @@ export default class EthereumApi implements types.Api {
    * @returns the hash of the current block, the seedHash, and the boundary condition to be met ("target").
    */
   async eth_getWork(filterId: Quantity) {
-    return [];
+    return [] as [string, string, string] | [];
   };
 
   /**
@@ -1115,7 +1117,7 @@ export default class EthereumApi implements types.Api {
     const unsubscribe = this.#blockchain.on("block", (block: Block) => {
       value.updates.push(Data.from(block.value.hash(), 32));
     });
-    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.block};
+    const value = {updates: [] as Data[], unsubscribe, filter: null as FilterArgs, type: FilterTypes.block};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1131,7 +1133,7 @@ export default class EthereumApi implements types.Api {
     const unsubscribe = this.#blockchain.on("pendingTransaction", (transaction: Transaction) => {
       value.updates.push(Data.from(transaction.hash(), 32));
     });
-    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.pendingTransaction};
+    const value = {updates: [] as Data[], unsubscribe, filter: null as FilterArgs, type: FilterTypes.pendingTransaction};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1175,7 +1177,7 @@ export default class EthereumApi implements types.Api {
         value.updates.push(...blockLogs.filter(addresses, topics));
       }
     });
-    const value = {updates: [], unsubscribe, filter, type: FilterTypes.log};
+    const value = {updates: [] as any[], unsubscribe, filter, type: FilterTypes.log};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1520,7 +1522,7 @@ export default class EthereumApi implements types.Api {
    * @returns More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges
    */
   async shh_getFilterChanges(id: string) {
-    return [];
+    return [] as any[];
   };
 
   /**

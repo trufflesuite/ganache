@@ -14,7 +14,7 @@ export type EthereumProvider = Provider;
 export const EthereumProvider = Provider;
 
 export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "close">
-  implements types.Connector<EthereumApi, JsonRpcTypes.Request<EthereumApi>> {
+  implements types.Connector<EthereumApi, JsonRpcTypes.Request<EthereumApi>, JsonRpcTypes.Response> {
 
   #provider: Provider;
   
@@ -36,22 +36,17 @@ export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "clos
     return JSON.parse(message) as JsonRpcTypes.Request<EthereumApi>;
   }
 
-  handle(payload: JsonRpcTypes.Request<EthereumApi>, connection: HttpRequest | WebSocket): PromiEvent<any> {
+  handle(payload: JsonRpcTypes.Request<EthereumApi>, connection: HttpRequest | WebSocket) {
     const method = payload.method;
     if (method === "eth_subscribe") {
       if (isHttp(connection)) {
         const err = new Error("notifications not supported") as Error & {code: number};
         const error = JsonRpcTypes.Error(payload.id, err);
-        return PromiEvent.reject(error);
-      } else {
-        return this.#provider.request({method: "eth_subscribe", params: payload.params as Parameters<EthereumApi["eth_subscribe"]>});
+        // return Promise.reject(error);
       }
     }
-    const provider = this.#provider;
     const params = payload.params as Parameters<EthereumApi[typeof method]>;
-    return new PromiEvent((resolve, reject) => {
-      provider.request({method, params}).then(resolve).catch(reject);
-    });
+    return this.#provider.requestRaw({method, params});
   }
 
   format(result: any, payload: JsonRpcTypes.Request<EthereumApi>): RecognizedString {

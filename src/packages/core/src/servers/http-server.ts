@@ -3,6 +3,8 @@ import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
 import {Flavors} from "../options/server-options";
 
+type HttpMethods = "GET" | "OPTIONS" | "POST";
+
 const noop = () => {};
 
 /**
@@ -14,7 +16,7 @@ const noop = () => {};
  * @param method
  * @param request
  */
-function prepareCORSResponseHeaders(method: string, request: HttpRequest) {
+function prepareCORSResponseHeaders(method: HttpMethods, request: HttpRequest) {
   // https://fetch.spec.whatwg.org/#http-requests
   const origin = request.getHeader("origin");
   const acrh = request.getHeader("access-control-request-headers");
@@ -135,7 +137,8 @@ export default class HttpServer {
 
         connector
           .handle(payload, request)
-          .then((result: any) => {
+          .then(({value}) => value)
+          .then(result => {
             if (aborted) {
               // if the request has been aborted don't try sending (it'll
               // cause an `Unhandled promise rejection` if we try)

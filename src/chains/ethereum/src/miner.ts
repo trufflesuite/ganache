@@ -114,14 +114,12 @@ export default class Miner extends Emittery {
       const transactionsTrie = new Trie(null, null);
       const receiptTrie = new Trie(null, null);
 
-      const blockLogs = [];
       const blockData = {
         blockTransactions,
         transactionsTrie,
         receiptTrie,
         gasUsed: 0n,
-        timestamp: block.header.timestamp,
-        logs: blockLogs
+        timestamp: block.header.timestamp
       };
 
       // don't mine anything at all if maxTransactions is `0`
@@ -192,7 +190,6 @@ export default class Miner extends Emittery {
             const txKey = rlpEncode(numTransactions);
             promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
             promises.push(putInTrie(receiptTrie, txKey, receipt));
-            
 
             // update the block's bloom
             const bloom = result.bloom.bitvector;

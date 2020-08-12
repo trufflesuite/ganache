@@ -352,10 +352,10 @@ describe("server", () => {
 
       try {
         const provider = s.provider as EthereumProvider;
-        const oldRequest = provider.request;
+        const oldRequestRaw = provider.requestRaw;
         const req = request.post("http://localhost:" + port);
         const abortPromise = new Promise(resolve => {
-          provider.request = () => {
+          provider.requestRaw = () => {
             // abort the request object after intercepting the request
             req.abort();
             return new Promise(innerResolve => {
@@ -364,7 +364,7 @@ describe("server", () => {
               setImmediate(setImmediate, () => {
                 // resolve the `provider.send` to make sure the server can
                 // handle _not_ responding to a request that has been aborted:
-                innerResolve();
+                innerResolve( {value: Promise.resolve() as any});
                 // and finally, resolve the `abort` promise:
                 resolve();
               });
@@ -377,7 +377,7 @@ describe("server", () => {
         // wait for the server to react to the requesrt's `abort`
         await abortPromise;
 
-        provider.request = oldRequest;
+        provider.requestRaw = oldRequestRaw;
 
         // now make sure we are still up and running:
         await simpleTest();
@@ -537,9 +537,10 @@ describe("server", () => {
 
     it("doesn't crash when the connection is closed while a request is in flight", async () => {
       const provider = s.provider as EthereumProvider;
-      provider.request = async () => {
+      provider.requestRaw = async () => {
         // close our websocket after intercepting the request
         await s.close();
+        return {value: Promise.resolve(undefined) as any};
       };
 
       const ws = new WebSocket("ws://localhost:" + port);
@@ -564,26 +565,25 @@ describe("server", () => {
     it("handles PromiEvent messages", async () => {
       const provider = s.provider as EthereumProvider;
       const message = "I hope you get this message";
-      provider.request = () => {
+      const oldRequestRaw = provider.requestRaw.bind(provider);
+      provider.requestRaw = async () => {
         const promiEvent = new PromiEvent(resolve => {
-          resolve("0xsubscriptionId");
-          setImmediate(() => promiEvent.emit("message", message));
+          const subId = "0xsubscriptionId";
+          resolve(subId);
+          setImmediate(() => promiEvent.emit("message", {data: {subscription: subId, result: message}}));
         });
-        return promiEvent;
+        return {value: promiEvent as any};
       };
 
       const ws = new WebSocket("ws://localhost:" + port);
       const result = await new Promise(resolve => {
         ws.on("open", () => {
-          // If we get a message that means things didn't get closed as they
-          // should have OR they are closing too late for some reason and
-          // this test isn't testing anything.
           ws.on("message", data => {
-            const {result} = JSON.parse(data.toString());
+            const {result, params} = JSON.parse(data.toString());
             // ignore the initial response
             if (result === "0xsubscriptionId") return;
 
-            resolve(result);
+            resolve(params.result);
           });
 
           const subscribeJson: any = {
@@ -597,16 +597,18 @@ describe("server", () => {
       });
 
       assert.strictEqual(result, message);
+
+      provider.requestRaw = oldRequestRaw;
     });
 
     it("doesn't crash when the connection is closed while a subscription is in flight", async () => {
       const provider = s.provider as EthereumProvider;
       let promiEvent: PromiEvent<any>;
-      provider.request = () => {
+      provider.requestRaw = async () => {
         promiEvent = new PromiEvent(resolve => {
           resolve("0xsubscriptionId");
         });
-        return promiEvent;
+        return {value: promiEvent} as any;
       };
 
       const ws = new WebSocket("ws://localhost:" + port);
@@ -647,10 +649,10 @@ describe("server", () => {
     (IS_WINDOWS ? xit : it)("can handle backpressure", async () => {
       {
         // create tons of data to force websocket backpressure
-        const huge: any = {};
+        const huge = {};
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
-        (s.provider as EthereumProvider).request = async () => {
-          return huge;
+        (s.provider as EthereumProvider).requestRaw = async () => {
+          return {value: Promise.resolve(huge) as any};
         };
       }
 
@@ -672,7 +674,7 @@ describe("server", () => {
               } else {
                 reject(
                   new Error(
-                    "Possible false positive: Didn't detect backpressure " +
+                    "Possible false positive: Didn't detect backpressure" +
                       " before receiving a message. Ensure `s.provider.send` is" +
                       " sending enough data."
                   )

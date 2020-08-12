@@ -141,8 +141,8 @@ export default class Wallet {
     //#region save accounts to disk
     if (opts.account_keys_path != null) {
       const fileData = {
-        addresses: {},
-        private_keys: {}
+        addresses: {} as {[address: string]: string},
+        private_keys: {} as {[address: string]: Data}
       };
       unlockedAccounts.forEach((privateKey, address) => {
         fileData.addresses[address] = address;
@@ -249,7 +249,7 @@ export default class Wallet {
     };
   }
 
-  public async decrypt(keyfile: EncryptType, passphrase) {
+  public async decrypt(keyfile: EncryptType, passphrase: crypto.BinaryLike) {
     const crypt = keyfile.crypto;
 
     if (crypt.cipher !== CIPHER) {

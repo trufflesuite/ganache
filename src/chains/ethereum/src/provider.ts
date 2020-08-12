@@ -6,6 +6,8 @@ import EthereumOptions from "./options";
 import cloneDeep from "lodash.clonedeep";
 import {PromiEvent, types, utils} from "@ganache/utils";
 
+type mergePromiseGenerics<Type> = Promise<Type extends Promise<infer X> ? X : never>;
+
 interface Callback {
   (err?: Error, response?: JsonRpcTypes.Response): void;
 }
@@ -38,9 +40,9 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
     return cloneDeep(this.#options);
   }
 
-  public send(payload: JsonRpcTypes.Request<EthereumApi>, callback?: Callback): void;
-  public send(method: types.KnownKeys<EthereumApi>, params?: Parameters<EthereumApi[typeof method]>): Promise<any>;
-  public send(arg1: types.KnownKeys<EthereumApi> | JsonRpcTypes.Request<EthereumApi>, arg2?: Callback | any[]): Promise<any> {
+  public send(payload: JsonRpcTypes.Request<EthereumApi>, callback?: Callback) : any;
+  public send(method: types.KnownKeys<EthereumApi>, params?: Parameters<EthereumApi[typeof method]>) : any;
+  public send(arg1: types.KnownKeys<EthereumApi> | JsonRpcTypes.Request<EthereumApi>, arg2?: Callback | any[]) {
     let method: types.KnownKeys<EthereumApi>;
     let params: any;
     let response: Promise<{}>;
@@ -99,26 +101,29 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
     return this.send(payload, callback);
   }
 
-  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(request: Parameters<EthereumApi[Method]>["length"] extends 0 ? {method: Method} : never): any; // ReturnType<EthereumApi[Method]>;
-  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>(request: RequestParams<Method>): any; // ReturnType<EthereumApi[Method]>;
-  public request<Method extends types.KnownKeys<EthereumApi> = types.KnownKeys<EthereumApi>>({method, params}: RequestParams<Method>) {
-    return this.#executor.execute(this.#api, method, params).then(result => {
-      const promise = result.value as PromiseLike<ReturnType<EthereumApi[Method]>>;
-      if (promise instanceof PromiEvent) {
-        promise.on("message", (data) => {
-          // EIP-1193
-          this.emit("message" as never, data as never);
-          // legacy
-          this.emit("data" as never, {
-            jsonrpc: "2.0",
-            method: "eth_subscription",
-            params: (data as any).data
-          } as never);
-        });
-      }
-      return promise.then(JSON.stringify).then(JSON.parse);
-    }).catch((err: Error) => {
-      // reformat the error to include a `code`
+  public request<Method extends types.KnownKeys<EthereumApi>>(request: Parameters<EthereumApi[Method]>["length"] extends 0 ? {method: Method} : never): mergePromiseGenerics<ReturnType<EthereumApi[Method]>>;
+  public request<Method extends types.KnownKeys<EthereumApi>>(request: RequestParams<Method>): mergePromiseGenerics<ReturnType<EthereumApi[Method]>>;
+  public request<Method extends types.KnownKeys<EthereumApi>>(request: RequestParams<Method>) {
+    return this.requestRaw(request).then(r => r.value).then(v => JSON.parse(JSON.stringify(v)));
+  }
+
+  public async requestRaw<Method extends types.KnownKeys<EthereumApi>>({method, params}: RequestParams<Method>) {
+    const result = await this.#executor.execute(this.#api, method, params);
+    const promise = (result.value as mergePromiseGenerics<typeof result.value>);
+    if (promise instanceof PromiEvent) {
+      promise.on("message", (data) => {
+        // EIP-1193
+        this.emit(("message" as never), (data as never));
+        // legacy
+        this.emit(("data" as never), ({
+          jsonrpc: "2.0",
+          method: "eth_subscription",
+          params: (data as any).data
+        } as never));
+      });
+    }
+    const value = promise.catch((err: Error) => {
+      // reformat errors, yo. this is all horrible...
       const e = new Error(err.message);
       (e as any).code = -32000;
       if (this.#options.vmErrorsOnRPCResponse && (err as any).result) {
@@ -127,6 +132,7 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
       // then rethrow
       throw e;
     });
+    return { value: value };
   }
 
   public disconnect = async () => {
