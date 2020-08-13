@@ -15,10 +15,10 @@ describe("Gas", function() {
     });
 
     it("should respect the assigned gasLimit", async function() {
-      const { provider, web3 } = context;
-      const assignedGasLimit = provider.engine.manager.state.blockchain.blockGasLimit;
+      const { web3 } = context;
+      const defaultTransactionGasLimit = 6721975;
       const { gasLimit } = await web3.eth.getBlock("latest");
-      assert.deepStrictEqual(gasLimit, to.number(assignedGasLimit));
+      assert.deepStrictEqual(gasLimit, defaultTransactionGasLimit);
     });
   });
 });

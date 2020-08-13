@@ -18,12 +18,12 @@ describe("Gas", function() {
         const context = await bootstrap(contractRef, ganacheProviderOptions);
         const { accounts, instance, provider, web3 } = context;
 
-        const assignedGasPrice = provider.engine.manager.state.gasPriceVal;
+        const assignedGasPrice = 2000000000;
 
         const { transactionHash } = await instance.methods.setValue("0x10").send({ from: accounts[0], gas: 3141592 });
         const { gasPrice } = await web3.eth.getTransaction(transactionHash);
 
-        assert.deepStrictEqual(hex(gasPrice), hex(assignedGasPrice));
+        assert.deepStrictEqual(parseInt(gasPrice), assignedGasPrice);
       });
     });
 
@@ -37,14 +37,11 @@ describe("Gas", function() {
         };
         const context = await bootstrap(contractRef, ganacheProviderOptions);
 
-        const { accounts, instance, provider, web3 } = context;
-
-        const assignedGasPrice = provider.engine.manager.state.gasPriceVal;
-        assert.deepStrictEqual(hex(assignedGasPrice), "0x0");
+        const { accounts, instance, web3 } = context;
 
         const { transactionHash } = await instance.methods.setValue("0x10").send({ from: accounts[0], gas: 3141592 });
         const { gasPrice } = await web3.eth.getTransaction(transactionHash);
-        assert.deepStrictEqual(hex(gasPrice), hex(assignedGasPrice));
+        assert.deepStrictEqual(parseInt(gasPrice), 0);
       });
     });
   });

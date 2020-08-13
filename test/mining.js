@@ -122,6 +122,7 @@ describe("Mining", function() {
   }
 
   async function queueTransaction(from, to, gasLimit, value, data) {
+    value = value.toString(16);
     const response = await pify(web3.currentProvider.send.bind(web3.currentProvider))({
       jsonrpc: "2.0",
       method: "eth_sendTransaction",
@@ -131,7 +132,7 @@ describe("Mining", function() {
           from: from,
           to: to,
           gas: gasLimit,
-          value: value,
+          value: `0x${value}`,
           data: data
         }
       ]
@@ -190,11 +191,12 @@ describe("Mining", function() {
     await stopMining();
     const blockNumber = await getBlockNumber();
 
-    const tx1 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
+    const data = "0x" + ("1".repeat(190000));
+    const tx1 = await queueTransaction(accounts[0], accounts[1], 6721975, web3.utils.toWei(new BN(2), "ether"), data);
     const receipt1 = await web3.eth.getTransactionReceipt(tx1);
     assert.strictEqual(receipt1, null);
 
-    const tx2 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
+    const tx2 = await queueTransaction(accounts[0], accounts[1], 6721975, web3.utils.toWei(new BN(3), "ether"), data);
     const receipt2 = await web3.eth.getTransactionReceipt(tx2);
     assert.strictEqual(receipt2, null);
 
@@ -229,11 +231,12 @@ describe("Mining", function() {
 
       await stopMining();
       const blockNumber = await getBlockNumber();
-      const tx1 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(2), "ether"));
+      const data = "0x" + ("1".repeat(190000));
+      const tx1 = await queueTransaction(accounts[0], accounts[1], 6721975, web3.utils.toWei(new BN(2), "ether"), data);
       const receipt1 = await web3.eth.getTransactionReceipt(tx1);
       assert.strictEqual(receipt1, null);
 
-      const tx2 = await queueTransaction(accounts[0], accounts[1], 4000000, web3.utils.toWei(new BN(3), "ether"));
+      const tx2 = await queueTransaction(accounts[0], accounts[1], 6721975, web3.utils.toWei(new BN(3), "ether"), data);
       const receipt2 = await web3.eth.getTransactionReceipt(tx2);
       assert.strictEqual(receipt2, null);
 
