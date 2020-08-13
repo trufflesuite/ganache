@@ -201,7 +201,11 @@ var tests = function(web3, EventTest) {
             }
             const firstChanges = result.params.result.hash;
             assert.strictEqual(firstChanges.length, 66); // Ensure we have a hash
-            provider.removeAllListeners("data");
+            if (provider.clearListeners) {
+              provider.clearListeners("data");
+            } else {
+              provider.removeAllListeners("data");
+            }
             done();
           };
 
