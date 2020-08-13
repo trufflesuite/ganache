@@ -9,7 +9,7 @@ describe("server", () => {
   it("should return instance of StateManager on start", async() => {
     const server = Ganache.server({legacyInstamine: true});
     try {
-      const stateManager = await pify(server.listen)(8945);
+      const stateManager = await pify(server.listen.bind(server))(8945);
       assert(stateManager instanceof StateManager, "server.listen must return instance of StateManager");
     } finally {
       await server.close();

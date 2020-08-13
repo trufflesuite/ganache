@@ -120,7 +120,7 @@ describe("HTTP Server:", function() {
 
   before("Initialize Ganache server", async function() {
     server = Ganache.server({legacyInstamine: true});
-    await pify(server.listen)(port);
+    await pify(server.listen.bind(server))(port);
   });
 
   after("Shutdown server", async () => {

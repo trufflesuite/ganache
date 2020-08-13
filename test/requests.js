@@ -1726,7 +1726,7 @@ describe("HTTP Server:", function() {
       // so that the runtime errors on call test passes
     });
 
-    await pify(server.listen)(port);
+    await pify(server.listen.bind(server))(port);
     web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
   });
 
@@ -1750,7 +1750,7 @@ describe("WebSockets Server:", function() {
       seed: "1337"
       // so that the runtime errors on call test passes
     });
-    await pify(server.listen)(port);
+    await pify(server.listen.bind(server))(port);
     const provider = new Web3WsProvider("ws://localhost:" + port);
     web3.setProvider(provider);
   });

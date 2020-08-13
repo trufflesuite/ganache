@@ -65,7 +65,7 @@ describe("WebSockets Server:", function() {
       legacyInstamine: true,
       seed: "1337"
     });
-    await promisify(server.listen)(PORT + 1);
+    await promisify(server.listen.bind(server))(PORT + 1);
     const provider = new Web3.providers.WebsocketProvider("ws://localhost:" + (PORT + 1));
     web3.setProvider(provider);
   });
@@ -91,7 +91,7 @@ describe("HTTP Server should not handle subscriptions:", function() {
       seed: "1337"
     });
 
-    await promisify(server.listen)(PORT);
+    await promisify(server.listen.bind(server))(PORT);
     web3.setProvider(new Web3.providers.HttpProvider(HTTPADDRESS));
   });
 
