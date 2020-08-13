@@ -35,7 +35,6 @@ describe("api", () => {
         assert.notStrictEqual(receipt, null);
       });
 
-      
       it("handles transaction balance errors, callback style", (done) => {
         getProvider({legacyInstamine: true, vmErrorsOnRPCResponse: true}).then(async (provider) => { 
           const accounts = await provider.send("eth_accounts");
