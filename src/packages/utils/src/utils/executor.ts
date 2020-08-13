@@ -37,7 +37,7 @@ export class Executor {
       //      }
       if ((hasOwn(api.__proto__, methodName) && methodName !== "constructor") || hasOwn(api, methodName)) {
         // cast methodName from `KnownKeys<T> & string` back to KnownKeys<T> so our return type isn't weird.
-        const fn = api[methodName];
+        const fn = api[methodName as M];
         // just double check, in case a API breaks the rules and adds non-fns
         // to their API interface.
         if (typeof fn === "function") {
