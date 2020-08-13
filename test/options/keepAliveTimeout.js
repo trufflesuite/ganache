@@ -1,6 +1,6 @@
 const testTimeout = require("./lib/testTimeout");
 
-describe("options:keepAliveTimeout", function() {
+describe.skip("options:keepAliveTimeout", function() {
   it("should timeout", async function() {
     await testTimeout(2000, 1000, "timeout should have destroyed socket");
   })
