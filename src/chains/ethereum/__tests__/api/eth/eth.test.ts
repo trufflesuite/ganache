@@ -82,7 +82,7 @@ describe("api", () => {
     describe("eth_chainId", () => {
       it("should return the default chain id", async () => {
         const result = await provider.send("eth_chainId");
-        assert.deepStrictEqual(result, "1337");
+        assert.deepStrictEqual(result, "0x539");
       });
 
       xit("should use the default chain id when signing transactions", async () => {
@@ -96,7 +96,7 @@ describe("api", () => {
       it("should update the default chain id", async () => {
         const provider = await getProvider({chainId: 1234});
         const result = await provider.send("eth_chainId");
-        assert.deepStrictEqual(result, "1234");
+        assert.deepStrictEqual(result, "0x4d2");
       });
     });
 
