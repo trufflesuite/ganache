@@ -367,6 +367,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     return this.#database.batch(() => {
       blocks.del(block.value.header.number);
       blocks.del(block.value.header.hash());
+      this.blockLogs.del(block.value.header.number);
       block.value.transactions.forEach(tx => {
         const txHash = tx.hash();
         this.transactions.del(txHash);
