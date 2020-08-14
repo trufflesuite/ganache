@@ -124,13 +124,12 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
     }
     const value = promise.catch((err: Error) => {
       // reformat errors, yo. this is all horrible...
-      const e = new Error(err.message);
-      (e as any).code = -32000;
+      (err as any).code = -32000;
       if (this.#options.vmErrorsOnRPCResponse && (err as any).result) {
-        (e as any).result = JSON.parse(JSON.stringify((err as any).result));
+        (err as any).result = JSON.parse(JSON.stringify((err as any).result));
       }
       // then rethrow
-      throw e;
+      throw err;
     });
     return { value: value };
   }
