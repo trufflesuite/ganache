@@ -510,8 +510,12 @@ export default class EthereumApi implements types.Api {
    */
   async eth_getBlockTransactionCountByNumber(number: string | Buffer) {
     const rawBlock = await this.#blockchain.blocks.getRaw(number);
-    const data = rlpDecode(rawBlock);
-    return Quantity.from((data[1] as any).length);
+    if (rawBlock) {
+      const data = rlpDecode(rawBlock);
+      return Quantity.from((data[1] as any).length);
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -520,7 +524,11 @@ export default class EthereumApi implements types.Api {
    */
   async eth_getBlockTransactionCountByHash(hash: string | Buffer) {
     const number = await this.#blockchain.blocks.getNumberFromHash(hash);
-    return this.eth_getBlockTransactionCountByNumber(number);
+    if (number) {
+      return this.eth_getBlockTransactionCountByNumber(number);
+    } else {
+      return null;
+    }
   }
 
   async eth_getCompilers() {
