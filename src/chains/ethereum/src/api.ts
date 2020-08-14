@@ -490,7 +490,7 @@ export default class EthereumApi implements types.Api {
    */
   async eth_getBlockByNumber(number: string | Buffer, transactions = false) {
     const block = await this.#blockchain.blocks.get(number);
-    return block.toJSON(transactions);
+    return block ? block.toJSON(transactions) : null;
   }
 
   /**
@@ -501,7 +501,7 @@ export default class EthereumApi implements types.Api {
    */
   async eth_getBlockByHash(hash: string | Buffer, transactions = false) {
     const block = await this.#blockchain.blocks.getByHash(hash);
-    return block.toJSON(transactions);
+    return block ? block.toJSON(transactions) : null;
   }
 
   /**
