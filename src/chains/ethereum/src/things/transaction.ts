@@ -385,7 +385,14 @@ class Transaction extends (EthereumJsTransaction as any) {
    */
   fillFromResult (result: RunTxResult) {
     const vmResult = result.execResult;
-    const status = vmResult.exceptionError ? ZERO_BUFFER : ONE_BUFFER;
+    const execException = vmResult.exceptionError;
+    let status: Buffer;
+    if (execException) {
+      status = ZERO_BUFFER;
+      this.execException = new Error(execException.error);
+    } else {
+      status = ONE_BUFFER;
+    }
     const gasUsed = result.gasUsed.toBuffer();
     const logsBloom = result.bloom.bitvector;
     const logs = vmResult.logs || [] as TransactionLog[];
@@ -403,6 +410,8 @@ class Transaction extends (EthereumJsTransaction as any) {
   getLogs() {
     return this.#logs;
   };
+
+  public execException: Error = null;
 }
 
 export default Transaction;
