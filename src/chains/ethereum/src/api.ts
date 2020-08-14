@@ -675,7 +675,7 @@ export default class EthereumApi implements types.Api {
    * @EIP [155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
    */
   async eth_chainId() {
-    return this.#options.chainId.toString();
+    return Quantity.from(this.#options.chainId);
   }
 
   /**
