@@ -83,6 +83,29 @@ function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain:
   };
 }
 
+function assertExceptionalTransactions(transactions: Transaction[]) {
+  let baseError = null;
+  let errors: string[];
+
+  transactions.forEach(transaction => {
+    if (transaction.execException) {
+      if (baseError) {
+        baseError = "Multiple VM Exceptions while processing transactions: \n\n";
+        errors.push(`${Data.from(transaction.hash(), 32).toString()}: ${transaction.execException}\n`);
+      } else {
+        baseError = "VM Exception while processing transaction: ";
+        errors = [ transaction.execException.message ];
+      }
+    }
+  });
+
+  if (baseError) {
+    const err = new Error(baseError + errors.join("\n"));
+    (err as any).result = "0x0";
+    throw err;
+  }
+}
+
 export default class EthereumApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
@@ -115,8 +138,7 @@ export default class EthereumApi implements types.Api {
         name: "ganache",
         networkId: options.networkId,
         chainId: options.chainId,
-        comment: "Local test network",
-        bootstrapNodes: []
+        comment: "Local test network"
       },
       options.hardfork
     );
@@ -189,14 +211,19 @@ export default class EthereumApi implements types.Api {
 
   //#region evm
   /**
-   * Force a block to be mined.
+   * Force a single block to be mined.
    * 
    * Mines a block independent of whether or not mining is started or stopped.
+   * Will mine an empty block if there are no available transactions to mine.
    * 
    * @param timestamp? the timestamp a block should setup as the mining time.
    */
   async evm_mine(timestamp?: number) {
-    await this.#blockchain.mine(-1, timestamp);
+    const transactions = await this.#blockchain.mine(-1, timestamp, true);
+    if (this.#options.vmErrorsOnRPCResponse) {
+      assertExceptionalTransactions(transactions);
+    }
+
     return "0x0";
   }
 
@@ -357,7 +384,14 @@ export default class EthereumApi implements types.Api {
    * @returns true
    */
   async miner_start(threads: number = 1) {
-    this.#blockchain.resume(threads);
+    if (this.#options.legacyInstamine === true) {
+      const transactions = await this.#blockchain.resume(threads);
+      if (transactions != null && this.#options.vmErrorsOnRPCResponse) {
+        assertExceptionalTransactions(transactions as any);
+      }
+    } else {
+      this.#blockchain.resume(threads);
+    }
     return true;
   }
 
@@ -486,10 +520,10 @@ export default class EthereumApi implements types.Api {
    * Returns information about a block by block number.
    * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in th e default block parameter.
    * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the transactions.
-   * @returns Block
+   * @returns the block, `null` if the block doesn't exist.
    */
   async eth_getBlockByNumber(number: string | Buffer, transactions = false) {
-    const block = await this.#blockchain.blocks.get(number);
+    const block = await this.#blockchain.blocks.get(number).catch(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
@@ -500,7 +534,7 @@ export default class EthereumApi implements types.Api {
    * @returns Block
    */
   async eth_getBlockByHash(hash: string | Buffer, transactions = false) {
-    const block = await this.#blockchain.blocks.getByHash(hash);
+    const block = await this.#blockchain.blocks.getByHash(hash).catch(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
@@ -542,7 +576,11 @@ export default class EthereumApi implements types.Api {
    */
   async eth_getTransactionByBlockHashAndIndex(hash: string | Buffer, index: string) {
     const block = await this.eth_getBlockByHash(hash, true);
-    return block.transactions[parseInt(index, 10)];
+    if (block) {
+      const tx = block.transactions[parseInt(index, 10)];
+      if (tx) return tx;
+    }
+    return null;
   }
 
   /**
@@ -832,7 +870,7 @@ export default class EthereumApi implements types.Api {
     const receiptPromise = blockchain.transactionReceipts.get(transactionHash);
     const blockPromise = transactionPromise.then(t => (t ? blockchain.blocks.get(t._blockNum) : null));
     const [transaction, receipt, block] = await Promise.all([transactionPromise, receiptPromise, blockPromise]);
-    if (receipt && block && transaction) {
+    if (transaction) {
       return receipt.toJSON(block, transaction);
     } else {
       return null;
@@ -1285,6 +1323,7 @@ export default class EthereumApi implements types.Api {
    */
   async eth_getTransactionCount(address: string, blockNumber: Buffer | Tag = Tag.LATEST) {
     const account = await this.#blockchain.accounts.get(Address.from(address), blockNumber);
+    if (!account) return null;
     return account.nonce;
   }
 

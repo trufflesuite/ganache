@@ -118,7 +118,10 @@ export default class BlockManager extends Manager<Block> {
       if (block) return block;
     }
 
-    return super.get(tagOrBlockNumber);
+    const block = await super.get(tagOrBlockNumber);
+    if (block) return block;
+
+    throw new Error("header not found");
   }
 
   /**

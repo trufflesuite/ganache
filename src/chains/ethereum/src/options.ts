@@ -21,6 +21,7 @@ type EthereumOptions = Pick<
   | "mnemonic"
   | "legacyInstamine"
   | "account_keys_path"
+  | "vmErrorsOnRPCResponse"
 >;
 
 export default EthereumOptions;

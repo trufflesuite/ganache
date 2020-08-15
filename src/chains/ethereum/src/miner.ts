@@ -31,7 +31,8 @@ function replaceFromHeap(
 
 type MinerOptions = {
   gasLimit?: Quantity;
-  instamine: boolean
+  instamine: boolean;
+  legacyInstamine: boolean
 };
 
 function byPrice(values: Transaction[], a: number, b: number) {
@@ -71,20 +72,20 @@ export default class Miner extends Emittery {
    *
    * @param pending A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
-   * and putting them in a block.
-   * It is possible the miner will not empty the Map if it can't fit all
-   * transactions within a single block. The remaining items will be left in
-   * the pending pool to be eligible for mining in the future.
+   * and putting them in new blocks.
    * 
    * @param maxTransactions: maximum number of transactions per block. If `-1`,
    * unlimited.
+   * @param onlyOneBlock: set to `true` if only 1 block should be mined.
+   * 
+   * @returns the transactions mined
    */
-  public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = -1) {
+  public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = -1, onlyOneBlock = false) {
     // only allow mining a single block at a time (per miner)
     if (this.#isMining) {
       // if we are currently mining a block, set the `pending` property
-      // so the miner knows it should immediately mine another block once it is
-      // done with its current work.
+      // so the miner knows it can immediately start mining another block once
+      // it is done with its current work.
       this.#pending = pending;
       this.#updatePricedHeap(pending);
       return;
@@ -92,25 +93,29 @@ export default class Miner extends Emittery {
       this.#setPricedHeap(pending);
     }
 
-    const lastBlock = await this.#mineTxs(pending, block, maxTransactions);
+    const {block: lastBlock, transactions} = await this.#mineTxs(pending, block, maxTransactions, onlyOneBlock);
 
-    // if there are more txs to mine, mine them!
-    if (maxTransactions !== 0 && this.#pending) {
+    // if there are more txs to mine, start mining them without awaiting their
+    // result.
+    if (onlyOneBlock === true && maxTransactions !== 0 && this.#pending) {
       const nextBlock = this.#createBlock(lastBlock);
       const pending = this.#pending;
       this.#pending = null;
-      this.mine(pending, nextBlock, this.#options.instamine ? 1 : -1);
+      await this.mine(pending, nextBlock, this.#options.instamine ? 1 : -1);
     }
+    return transactions;
   }
 
-  #mineTxs = async (pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number) => {
+  #mineTxs = async (pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number, onlyOneBlock: boolean) => {
     let keepMining = true;
     const priced = this.#priced;
+    const legacyInstamine = this.#options.legacyInstamine;
+    let blockTransactions: Transaction[];
     do {
       keepMining = false;
       this.#isMining = true;
 
-      const blockTransactions: Transaction[] = [];
+      blockTransactions = [];
       const transactionsTrie = new Trie(null, null);
       const receiptTrie = new Trie(null, null);
 
@@ -128,7 +133,7 @@ export default class Miner extends Emittery {
         await this.#commit();
         this.emit("block", blockData);
         this.#reset();
-        return block;
+        return {block, transactions: []};
       }
 
       let numTransactions = 0;
@@ -149,20 +154,21 @@ export default class Miner extends Emittery {
       // origin later.
       let best: Transaction;
       while ((best = priced.peek())) {
+        const origin = Data.from(best.from).toString();
+
         if (best.calculateIntrinsicGas() > blockGasLeft) {
           // if the current best transaction can't possibly fit in this block
           // go ahead and run the next best transaction, ignoring all other
           // pending transactions from this account for this block.
-          //  * We don't replace this "best" tranasction with another from the
+          //  * We don't replace this "best" transaction with another from the
           // same account.
           //  * We do "unlock" this transaction in the transaction pool's `pending`
           // queue so it can be replaced, if needed.
           priced.removeBest();
           best.locked = false;
+          this.#origins.delete(origin);
           continue;
         }
-
-        const origin = Data.from(best.from).toString();
 
         this.#currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
 
@@ -251,20 +257,36 @@ export default class Miner extends Emittery {
 
       await Promise.all(promises);
       await this.#commit();
-      this.emit("block", blockData);
-
-      if (priced.length !== 0) {
-        maxTransactions = this.#options.instamine ? 1 : -1;
-        block = this.#createBlock(block);
-        this.#currentlyExecutingPrice = 0n;
+      if (legacyInstamine === true) {
+        // we need to wait for each block to be done mining when in legacy
+        // mode because things like `mine` and `miner_start` must wait for the
+        // first mine operation to be completed.
+        await this.emit("block", blockData);
       } else {
-        // reset the miner
+        this.emit("block", blockData);
+      }
+
+      if (onlyOneBlock) {
+        this.#currentlyExecutingPrice = 0n;
         this.#reset();
+        break;
+      } else {
+        this.#currentlyExecutingPrice = 0n;
+        this.#updatePricedHeap(pending);
+
+        if (priced.length !== 0) {
+          maxTransactions = this.#options.instamine ? 1 : -1;
+          block = this.#createBlock(block);
+          continue;
+        } else {
+          // reset the miner
+          this.#reset();
+        }
       }
     }
     while (keepMining);
     
-    return block;
+    return {block, transactions: blockTransactions};
   }
 
   #runTx = async (runArgs: any, origin: string, pending: Map<string, utils.Heap<Transaction>>) => {
@@ -298,7 +320,7 @@ export default class Miner extends Emittery {
         }
       }
 
-      this.emit("transaction-failure", {txHash: runArgs.tx.hash(), err});
+      this.emit("transaction-failure", {txHash: runArgs.tx.hash(), errorMessage});
       return null;
     }
   }
@@ -307,7 +329,6 @@ export default class Miner extends Emittery {
     this.#origins.clear();
     this.#priced.clear();
     this.#isMining = false;
-    this.#currentlyExecutingPrice = 0n;
   };
 
   #setPricedHeap = (pending: Map<string, utils.Heap<Transaction>>) => {
@@ -339,7 +360,8 @@ export default class Miner extends Emittery {
       const next = heap.peek();
       if (next && !next.locked) {
         const price = Quantity.from(next.gasPrice).toBigInt();
-        if (this.#currentlyExecutingPrice < price) {
+
+        if (this.#currentlyExecutingPrice > price) {
           // don't insert a transaction into the miner's `priced` heap
           // if it will be better than its last
           continue;
