@@ -1,8 +1,7 @@
 import uWS, {TemplatedApp, WebSocket} from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import { FlavorMap } from "../options/server-options";
+import ServerOptions, { FlavorMap } from "../options/server-options";
 import { PromiEvent } from "@ganache/utils";
-import { Options } from "@ganache/options";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 
@@ -15,12 +14,14 @@ export type WebSocketCapableFlavor = {
 
 export type GanacheWebSocket = WebSocket & {closed?: boolean};
 
-export type WebsocketServerOptions = Pick<Options, "logger">
+export type WebsocketServerOptions = Pick<ServerOptions, "logger" | "wsBinary">
 
 export default class WebsocketServer {
   #connections = new Map<WebSocket,Set<() => void>>();
   constructor(app: TemplatedApp, connector: WebSocketCapableFlavor, options: WebsocketServerOptions) {
     const connections = this.#connections;
+    const wsBinary = options.wsBinary;
+    const autoBinary = wsBinary === "auto";
     app.ws("/", {
       /* WS Options */
       compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
@@ -47,12 +48,17 @@ export default class WebsocketServer {
           // Don't bother trying to send to it if it was.
           if (ws.closed) return;
 
+          const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
+
           const resultEmitter = value as MergePromiseT<typeof value>;
           resultEmitter.then(result => {
             if (ws.closed) return;
 
             const message = connector.format(result, payload);
-            ws.send(message, isBinary, true);
+            ws.send(message, useBinary, true);
+          }, err => {
+            const message = connector.formatError(err, payload);
+            ws.send(message, useBinary, true);
           });
           
           // if the result is an emitter listen to its `"message"` event
