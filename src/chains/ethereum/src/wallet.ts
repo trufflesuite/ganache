@@ -310,6 +310,9 @@ export default class Wallet {
 
   public async unlockAccount(lowerAddress: string, passphrase: string, duration: number) {
     const encryptedKeyFile = this.encryptedKeyFiles.get(lowerAddress);
+    if (encryptedKeyFile == null) {
+      return false;
+    }
     const secretKey = await this.decrypt(encryptedKeyFile, passphrase);
 
     const existingTimer = this.lockTimers.get(lowerAddress);
