@@ -2,9 +2,9 @@ var Web3 = require("web3");
 var Web3WsProvider = require("web3-providers-ws");
 var assert = require("assert");
 var Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
-const compile = require("./helpers/contract/singleFileCompile");
+  ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../../index.js");
+const compile = require("../helpers/contract/singleFileCompile");
 var logger = {
   log: function(msg) {
     /* console.log(msg) */

@@ -1,14 +1,14 @@
-const Transaction = require("../lib/utils/transaction");
+const Transaction = require("../../lib/utils/transaction");
 var Web3 = require("web3");
 var Web3WsProvider = require("web3-providers-ws");
 var assert = require("assert");
 var Ganache = require(process.env.TEST_BUILD
-  ? "../build/ganache.core." + process.env.TEST_BUILD + ".js"
-  : "../index.js");
+  ? "../../build/ganache.core." + process.env.TEST_BUILD + ".js"
+  : "../../index.js");
 
-const compile = require("./helpers/contract/singleFileCompile");
-var to = require("../lib/utils/to.js");
-var generateSend = require("./helpers/utils/rpc");
+const compile = require("../helpers/contract/singleFileCompile");
+var to = require("../../lib/utils/to.js");
+var generateSend = require("../helpers/utils/rpc");
 
 var logger = {
   log: function(msg) {
