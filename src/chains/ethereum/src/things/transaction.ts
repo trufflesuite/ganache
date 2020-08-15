@@ -10,6 +10,7 @@ import {Block} from "../components/block-manager";
 import TransactionReceipt from "./transaction-receipt";
 import Common from "ethereumjs-common";
 import { TransactionLog } from "./blocklogs";
+import Address from "./address";
 
 type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
 
@@ -361,13 +362,13 @@ class Transaction extends (EthereumJsTransaction as any) {
    */
   toJSON(block?: Block) {
     return {
-      hash: Data.from(this.hash()),
+      hash: Data.from(this.hash(), 32),
       nonce: Quantity.from(this.nonce),
-      blockHash: Data.from(block ? block.value.hash() : this._blockHash),
-      blockNumber: Data.from(block ? block.value.header.number : this._blockNum),
+      blockHash: Data.from(block ? block.value.hash() : this._blockHash, 32),
+      blockNumber: Quantity.from(block ? block.value.header.number : this._blockNum),
       transactionIndex: Quantity.from(this._index),
-      from: Data.from(this.from),
-      to: Data.from(this.to),
+      from: Address.from(this.from),
+      to: this.to.length === 0 ? null : Address.from(this.to),
       value: Quantity.from(this.value),
       gas: Quantity.from(this.gasLimit),
       gasPrice: Quantity.from(this.gasPrice),
