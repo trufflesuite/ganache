@@ -59,7 +59,8 @@ export default class BlockManager extends Manager<Block> {
         // the key is probably a hex string, let nature takes its course.
         break;
       case Tag.PENDING:
-        return this.pending;
+        // TODO: build a real pending block!
+        return this.createBlock(this.latest.value.header);
       case Tag.EARLIEST:
         return this.earliest;
       default:
