@@ -1,4 +1,3 @@
-const shouldSkip = require("./skip");
 const Web3 = require("web3");
 var assert = require("assert");
 const Ganache = require(process.env.TEST_BUILD
@@ -15,7 +14,7 @@ describe("Simple Infura", function() {
   let INFURA_KEY;
 
   before(function() {
-    if (shouldSkip()) {
+    if (typeof process.env.INFURA_KEY === "undefined" || process.env.INFURA_KEY === "") {
       this.skip();
     } else {
       INFURA_KEY = process.env.INFURA_KEY;
