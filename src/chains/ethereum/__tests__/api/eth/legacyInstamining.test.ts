@@ -48,7 +48,7 @@ describe("api", () => {
               to: accounts[1],
               value: "0x76bc75e2d63100000" // generates an "exceeds block gas limit" error
             }]}, (e, r) => {
-              assert(e.message.startsWith("sender doesn't have enough funds to send tx"));
+              assert(e.message.includes("VM Exception while processing transaction: sender doesn't have enough funds to send tx"));
               assert.strictEqual(e.message, (r as any).error.message);
               assert.strictEqual((r as any).error.code, -32000);
               assert.strictEqual(typeof (r as any).result, "string");
