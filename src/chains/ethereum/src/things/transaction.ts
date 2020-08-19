@@ -119,45 +119,38 @@ function fixProps(tx: any, data: any) {
  * @param {Transaction} tx
  * @param {Object} [data]
  */
-function initData(tx: any, data: any) {
+function initData(tx: Transaction, data: any) {
   if (data) {
-    if (typeof data === "string") {
-      data = Data.from(data).toBuffer();
-      data = rlpDecode(data);
-    } else if (Buffer.isBuffer(data)) {
-      data = rlpDecode(data);
-    }
-    const self = tx;
-    if (Array.isArray(data)) {
-      // add in our hacked-in properties
-      // which is the index in the block the transaciton
-      // was mined in
-      if (data.length === tx._fields.length + 3) {
-        tx._index = data.pop();
-        tx._blockNum = data.pop();
-        tx._blockHash = data.pop();
+    let parts: Buffer[];
+    if (typeof data === "string") { //hex
+      parts = rlpDecode(Data.from(data).toBuffer()) as any as Buffer[];
+    } else if (Buffer.isBuffer(data)) { // Buffer
+      parts = rlpDecode(data) as any as Buffer[];
+    } else if (data.type === "Buffer") { // wire Buffer
+      // handle case where a Buffer is sent as `{data: "Buffer", data: number[]}`
+      // like if someone does `web3.eth.sendRawTransaction(tx.serialize())`
+      const obj = data.data;
+      const length = obj.length;
+      const buf = Buffer.allocUnsafe(length);
+      for (let i = 0; i < length; i++) {
+        buf[i] = obj[i];
       }
-      if (data.length > tx._fields.length) {
-        throw new Error("wrong number of fields in data");
-      }
-
-      // make sure all the items are buffers
-      data.forEach((d, i) => {
-        self[self._fields[i]] = ethUtil.toBuffer(d);
-      });
-    } else if ((typeof data === "undefined" ? "undefined" : typeof data) === "object") {
+      parts = rlpDecode(buf) as any as Buffer[];
+    } else if (Array.isArray(data)) { // rlpdecoded data
+      parts = data;
+    } else if (typeof data === "object") { // JSON
       const keys = Object.keys(data);
       tx._fields.forEach((field: any) => {
         if (keys.indexOf(field) !== -1) {
-          self[field] = data[field];
+          tx[field] = data[field];
         }
         if (field === "gasLimit") {
           if (keys.indexOf("gas") !== -1) {
-            self["gas"] = data["gas"];
+            tx["gas"] = data["gas"];
           }
         } else if (field === "data") {
           if (keys.indexOf("input") !== -1) {
-            self["input"] = data["input"];
+            tx["input"] = data["input"];
           }
         }
       });
@@ -166,11 +159,29 @@ function initData(tx: any, data: any) {
       // contain a `v` value with chainId in it already. If we do have a
       // data.chainId value let's set the interval v value to it.
       if (!tx._chainId && data && data.chainId != null) {
-        tx.raw[self._fields.indexOf("v")] = tx._chainId = data.chainId || 0;
+        tx.raw[tx._fields.indexOf("v")] = tx._chainId = data.chainId || 0;
       }
+      return;
     } else {
       throw new Error("invalid data");
     }
+
+    // add in our hacked-in properties
+    // which is the index in the block the transaciton
+    // was mined in
+    if (parts.length === tx._fields.length + 3) {
+      tx._index = parts.pop();
+      tx._blockNum = parts.pop();
+      tx._blockHash = parts.pop();
+    }
+    if (parts.length > tx._fields.length) {
+      throw new Error("wrong number of fields in data");
+    }
+
+    // make sure all the items are buffers
+    parts.forEach((d, i) => {
+      tx[tx._fields[i]] = ethUtil.toBuffer(d);
+    });
   }
 }
 
