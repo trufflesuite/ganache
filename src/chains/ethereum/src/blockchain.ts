@@ -34,6 +34,10 @@ export enum Status {
   paused = 16			// 0001 0000
 }
 
+interface Logger {
+  log(message?: any, ...optionalParams: any[]): void;
+}
+
 export type BlockchainOptions = {
   db?: string | object;
   db_path?: string;
@@ -48,6 +52,7 @@ export type BlockchainOptions = {
   common: Common;
   legacyInstamine: boolean;
   vmErrorsOnRPCResponse: boolean;
+  logger: Logger
 };
 
 type BlockchainTypedEvents = {block: Block, blockLogs: BlockLogs, pendingTransaction: Transaction};
@@ -80,6 +85,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     super();
     this.#options = options;
 
+    const logger = options.logger;
     const instamine = this.#instamine = !options.blockTime || options.blockTime <= 0;
     const legacyInstamine = options.legacyInstamine;
     const database = (this.#database = new Database(options, this));
