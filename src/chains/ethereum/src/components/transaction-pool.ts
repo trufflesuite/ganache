@@ -209,6 +209,31 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     }
   }
 
+  /**
+   * Returns the transaction matching the given hash
+   * @param transactionHash 
+   */
+  public find(transactionHash: Buffer) {
+    for (let [_, transactions] of this.executables) {
+      for (let tx of transactions.array) {
+        if (tx.hash().equals(transactionHash)) {
+          return tx;
+        }
+      }
+    }
+
+    for (let [_, origin] of this.#origins) {
+      const transactions = origin.transactions;
+      if (transactions === undefined) continue;
+      for (let tx of transactions.array) {
+        if (tx.hash().equals(transactionHash)) {
+          return tx;
+        }
+      }
+    }
+    return null;
+  }
+
   #drainQueued = (
     origin: string,
     queuedOriginTransactions: utils.Heap<Transaction>,

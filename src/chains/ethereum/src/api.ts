@@ -852,8 +852,16 @@ export default class EthereumApi implements types.Api {
    */
   async eth_getTransactionByHash(transactionHash: string) {
     const chain = this.#blockchain;
-    const transaction = await chain.transactions.get(Data.from(transactionHash).toBuffer());
-    return transaction;
+    const hashBuffer = Data.from(transactionHash).toBuffer();
+    const transaction = await chain.transactions.get(hashBuffer);
+    if (transaction == null) {
+      // maybe it is pending?
+      const tx = chain.transactions.transactionPool.find(hashBuffer);
+      if (tx === null) return null;
+      return tx.toJSON(null);
+    } else {
+      return transaction.toJSON();
+    }
   }
 
   /**
