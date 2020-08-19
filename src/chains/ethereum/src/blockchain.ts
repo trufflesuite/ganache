@@ -175,10 +175,14 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           });
 
           blocks.latest = block;
+          const value = block.value;
+          const header = value.header;
           this.#processingBlock = database.batch(() => {
-            const blockHash = block.value.hash();
-            const blockNumber = block.value.header.number;
+            const blockHash = value.hash();
+            const blockNumber = header.number;
+            const blockNumberQ = Quantity.from(blockNumber);
             const blockLogs = BlockLogs.create(blockHash);
+            const timestamp = new Date(Quantity.from(header.timestamp).toNumber() * 1000).toString();
             blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
               const hash = tx.hash();
               // TODO: clean up transaction extra data stuffs because this is gross:
@@ -196,11 +200,34 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
                   hash,
                   log
                 );
-              })
+              });
+
+              logger.log("");
+              logger.log("  Transaction: " + hash);
+
+              const contractAddress = receipt.contractAddress;
+              if (contractAddress != null) {
+                logger.log("  Contract created: " + contractAddress);
+              }
+
+              const raw = receipt.raw;
+              logger.log("  Gas usage: " + Quantity.from(raw[1]));
+              logger.log("  Block Number: " + blockNumberQ);
+              logger.log("  Block Time: " + timestamp);
+
+              const error = tx.execException;
+              if (error) {
+                logger.log("  Runtime Error: " + error.message);
+                if ((error as any).reason) {
+                  logger.log("  Revert reason: " + (error as any).reason);
+                }
+              }
+
+              logger.log("");
             });
-            blockLogs.blockNumber = Quantity.from(blockNumber);
+            blockLogs.blockNumber = blockNumberQ;
             this.blockLogs.set(blockNumber, blockLogs.serialize());
-            block.value.transactions = blockData.blockTransactions;
+            value.transactions = blockData.blockTransactions;
             blocks.putBlock(block);
             return {block, blockLogs};
           });
