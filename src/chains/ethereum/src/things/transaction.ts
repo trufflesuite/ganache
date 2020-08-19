@@ -1,4 +1,4 @@
-import Errors from "./errors";
+import {INTRINSIC_GAS_TOO_LOW} from "./errors";
 import {Data, Quantity} from "@ganache/utils";
 import params from "./params";
 import {Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction} from "ethereumjs-tx";
@@ -245,13 +245,13 @@ class Transaction extends (EthereumJsTransaction as any) {
       }
       // Make sure we don't exceed uint64 for all data combinations.
       if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
-        throw new Error(Errors.INTRINSIC_GAS_TOO_LOW);
+        throw new Error(INTRINSIC_GAS_TOO_LOW);
       }
       gas += nonZeroBytes * params.TRANSACTION_DATA_NON_ZERO_GAS;
 
       let z = BigInt(dataLength) - nonZeroBytes;
       if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_ZERO_GAS < z) {
-        throw new Error(Errors.INTRINSIC_GAS_TOO_LOW);
+        throw new Error(INTRINSIC_GAS_TOO_LOW);
       }
       gas += z * params.TRANSACTION_DATA_ZERO_GAS;
     }

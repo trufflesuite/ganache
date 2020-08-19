@@ -5,6 +5,7 @@ import EthereumOptions from "./options";
 import { types, Data, Quantity } from "@ganache/utils";
 import Blockchain, { BlockchainOptions } from "./blockchain";
 import Tag from "./things/tags";
+import {VM_EXCEPTION, VM_EXCEPTIONS} from "./things/errors";
 import Address from "./things/address";
 import Transaction from "./things/transaction";
 import Wallet from "./wallet";
@@ -90,10 +91,10 @@ function assertExceptionalTransactions(transactions: Transaction[]) {
   transactions.forEach(transaction => {
     if (transaction.execException) {
       if (baseError) {
-        baseError = "Multiple VM Exceptions while processing transactions: \n\n";
+        baseError = VM_EXCEPTIONS;
         errors.push(`${Data.from(transaction.hash(), 32).toString()}: ${transaction.execException}\n`);
       } else {
-        baseError = "VM Exception while processing transaction: ";
+        baseError = VM_EXCEPTION;
         errors = [ transaction.execException.message ];
       }
     }

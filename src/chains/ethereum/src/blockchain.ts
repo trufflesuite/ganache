@@ -1,3 +1,4 @@
+import {VM_EXCEPTION} from "./things/errors";
 import Miner from "./miner";
 import Database from "./database";
 import Emittery from "emittery";
@@ -468,7 +469,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         const hashStr = hash.toString();
         const errorMessage = await this.once("transaction:" + hashStr as any);
         if (errorMessage) {
-          const error = new Error(errorMessage);
+          const error = new Error(VM_EXCEPTION + errorMessage);
           if (this.#options.vmErrorsOnRPCResponse === true) {
             (error as any).result = hash;
           }
@@ -493,7 +494,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     const result = await vm.runCall(tx);
     if (result.execResult.exceptionError) {
       if (this.#options.vmErrorsOnRPCResponse) {
-        throw new Error("VM Exception while processing transaction: " + result.execResult.exceptionError.error);
+        throw new Error(VM_EXCEPTION + result.execResult.exceptionError.error);
       } else {
         return Data.from("0x");
       }
