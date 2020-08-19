@@ -50,8 +50,8 @@ export default class Database extends Emittery {
     const store = this.#options.db;
     let db: levelup.LevelUp;
     if (store) {
-      this.#rootStore = store as any;
-      db = levelup(store as any, levelupOptions);
+      this.#rootStore = encode(store, levelupOptions);
+      db = levelup(this.#rootStore as any, {});
     } else {
       let directory = this.#options.db_path;
       if (!directory) {
