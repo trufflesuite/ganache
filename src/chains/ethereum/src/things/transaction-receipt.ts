@@ -9,8 +9,8 @@ type FullRawReceipt = [status: Buffer, gasUsed: Buffer, logsBloom: Buffer, logs:
 type RawReceipt = OmitLastType<FullRawReceipt>
 
 export default class TransactionReceipt {
-  #contractAddress: Buffer;
-  #raw: RawReceipt;
+  public contractAddress: Buffer;
+  raw: RawReceipt;
 
   constructor(data?: Buffer) {
     if (data) {
@@ -19,8 +19,8 @@ export default class TransactionReceipt {
     }
   }
   #init = (status: Buffer, gasUsed: Buffer, logsBloom: Buffer, logs: Buffer[], contractAddress: Buffer = null) => {
-    this.#raw = [status, gasUsed, logsBloom, logs];
-    this.#contractAddress = contractAddress;
+    this.raw = [status, gasUsed, logsBloom, logs];
+    this.contractAddress = contractAddress;
   }
 
   static fromValues(status: Buffer, gasUsed: Buffer, logsBloom: Buffer, logs: Buffer[], contractAddress: Buffer) {
@@ -32,16 +32,16 @@ export default class TransactionReceipt {
   public serialize(all: boolean) {
     if (all) {
       // the database format includes the contractAddress:
-      return rlpEncode([...this.#raw, this.#contractAddress] as FullRawReceipt);
+      return rlpEncode([...this.raw, this.contractAddress] as FullRawReceipt);
     } else {
       // receipt trie format:
-      return rlpEncode(this.#raw);
+      return rlpEncode(this.raw);
     }
   }
 
   public toJSON(block: Block, transaction: Transaction) {
-    const raw = this.#raw;
-    const contractAddress = Data.from(this.#contractAddress).toJSON()
+    const raw = this.raw;
+    const contractAddress = Data.from(this.contractAddress).toJSON()
     const blockLog = BlockLogs.create(block.value.hash());
     blockLog.blockNumber = Quantity.from(block.value.header.number);
     (raw[3] as any as TransactionLog[]).forEach(log => {
