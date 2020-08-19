@@ -372,12 +372,14 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Object} block The block this Transaction appears in.
    */
   toJSON(block?: Block) {
+    const blockHash = block ? block.value.hash() : this._blockHash;
+    const blockNum = block ? block.value.header.number : this._blockNum;
     return {
       hash: Data.from(this.hash(), 32),
       nonce: Quantity.from(this.nonce),
-      blockHash: Data.from(block ? block.value.hash() : this._blockHash, 32),
-      blockNumber: Quantity.from(block ? block.value.header.number : this._blockNum),
-      transactionIndex: Quantity.from(this._index),
+      blockHash: blockHash ? Data.from(blockHash, 32) : null,
+      blockNumber: blockNum ? Quantity.from(blockNum) : null,
+      transactionIndex: this._index ? Quantity.from(this._index) : null,
       from: Address.from(this.from),
       to: this.to.length === 0 ? null : Address.from(this.to),
       value: Quantity.from(this.value),
