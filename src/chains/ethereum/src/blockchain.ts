@@ -106,11 +106,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       }
     }
 
-    database.on("ready", async () => {
-      { // TODO: get the latest block from the database
-        // if we have a latest block, `root` will be that block's header.stateRoot
-        // and we will skip creating the genesis block altogether
-        const root: Buffer = null;
+    database.once("ready").then(async () => {
+      const blocks = this.blocks = await BlockManager.initialize(database.blockIndexes, database.blocks, {common: options.common});
 
         this.trie = new CheckpointTrie(database.trie, root);
       }
@@ -158,8 +155,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           }
         }
 
-        miner.on("transaction-failure", async (failureData: any) => {
-          this.emit("transaction:" + Data.from(failureData.txHash).toString() as any, failureData.errorMessage);
+        miner.on("transaction-failure", (failureData: any) => {
+          return this.emit("transaction:" + Data.from(failureData.txHash).toString() as any, failureData.errorMessage);
         });
 
         miner.on("block", async (blockData: any) => {
@@ -258,6 +255,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             }
           });
         });
+
+        this.once("stop").then(() => miner.clearListeners());
       }
 
       blocks.earliest = blocks.latest = await this.#processingBlock.then(({block}) => block);
@@ -547,11 +546,16 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     if (this.#state === Status.starting) {
       await this.once("start");
     }
+
+    // clean up listeners
+    this.vm.removeAllListeners();
+    this.transactions.transactionPool.clearListeners();
+    await this.emit("stop");
+
     if (this.#state === Status.started) {
       this.#state = Status.stopping;
       await this.#database.close();
       this.#state = Status.stopped;
     }
-    this.emit("stop");
   }
 }
