@@ -3,7 +3,7 @@ import { toRpcSig, KECCAK256_NULL, ecsign, hashPersonalMessage } from "ethereumj
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import EthereumOptions from "./options";
 import { types, Data, Quantity } from "@ganache/utils";
-import Blockchain, { BlockchainOptions } from "./blockchain";
+import Blockchain, { BlockchainOptions, TransactionTraceOptions } from "./blockchain";
 import Tag from "./things/tags";
 import Address from "./things/address";
 import Transaction from "./things/transaction";
@@ -19,6 +19,7 @@ import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
 import EthereumAccount from "ethereumjs-account";
 import { Block } from "./components/block-manager";
+import CheckpointTrie from "merkle-patricia-tree";
 //#endregion
 
 //#region Constants
@@ -1364,6 +1365,14 @@ export default class EthereumApi implements types.Api {
     });
     return blockchain.simulateTransaction(transaction, parentBlock, newBlock);
   }
+  //#endregion
+
+  //#region debug
+
+  async debug_traceTransaction(transactionHash:string, params:TransactionTraceOptions) {
+    return this.#blockchain.traceTransaction(transactionHash, params);
+  }
+
   //#endregion
 
   //#region personal
