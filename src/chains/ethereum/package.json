@@ -27,7 +27,7 @@
     "post-process:docs": "node ./scripts/post-process-docs.js",
     "preview:docs": "ws --open --port 3010 --directory ./lib/docs",
     "tsc": "ts-node ../../../scripts/compile",
-    "test": "nyc npm run mocha -- --throw-deprecation --trace-warnings",
+    "test": "nyc --reporter lcov npm run mocha -- --throw-deprecation --trace-warnings",
     "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**/*.test.ts'"
   },
   "bugs": {
@@ -38,6 +38,7 @@
     "@ganache/utils": "^2.2.1",
     "@types/keccak": "3.0.1",
     "eth-sig-util": "^2.5.3",
+    "ethereumjs-abi": "^0.6.8",
     "ethereumjs-vm": "4.2.0",
     "keccak": "3.0.0",
     "levelup": "4.4.0",

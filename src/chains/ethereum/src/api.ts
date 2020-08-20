@@ -5,6 +5,7 @@ import EthereumOptions from "./options";
 import { types, Data, Quantity } from "@ganache/utils";
 import Blockchain, { BlockchainOptions, TransactionTraceOptions } from "./blockchain";
 import Tag from "./things/tags";
+import {VM_EXCEPTION, VM_EXCEPTIONS} from "./things/errors";
 import Address from "./things/address";
 import Transaction from "./things/transaction";
 import Wallet from "./wallet";
@@ -87,21 +88,26 @@ function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain:
 function assertExceptionalTransactions(transactions: Transaction[]) {
   let baseError = null;
   let errors: string[];
+  const data = {};
 
   transactions.forEach(transaction => {
     if (transaction.execException) {
       if (baseError) {
-        baseError = "Multiple VM Exceptions while processing transactions: \n\n";
+        baseError = VM_EXCEPTIONS;
         errors.push(`${Data.from(transaction.hash(), 32).toString()}: ${transaction.execException}\n`);
       } else {
-        baseError = "VM Exception while processing transaction: ";
+        baseError = VM_EXCEPTION;
         errors = [ transaction.execException.message ];
       }
+      data[Data.from(transaction.hash()).toString()] = {
+        program_counter: transaction.execResult.runState.programCounter
+      };
     }
   });
 
   if (baseError) {
     const err = new Error(baseError + errors.join("\n"));
+    (err as any).data = data;
     (err as any).result = "0x0";
     throw err;
   }
@@ -853,8 +859,16 @@ export default class EthereumApi implements types.Api {
    */
   async eth_getTransactionByHash(transactionHash: string) {
     const chain = this.#blockchain;
-    const transaction = await chain.transactions.get(Data.from(transactionHash).toBuffer());
-    return transaction;
+    const hashBuffer = Data.from(transactionHash).toBuffer();
+    const transaction = await chain.transactions.get(hashBuffer);
+    if (transaction == null) {
+      // maybe it is pending?
+      const tx = chain.transactions.transactionPool.find(hashBuffer);
+      if (tx === null) return null;
+      return tx.toJSON(null);
+    } else {
+      return transaction.toJSON();
+    }
   }
 
   /**

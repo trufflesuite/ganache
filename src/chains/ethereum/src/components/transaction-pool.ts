@@ -4,7 +4,7 @@ import Blockchain from "../blockchain";
 import {utils} from "@ganache/utils";
 import Transaction from "../things/transaction";
 import {Data, Quantity} from "@ganache/utils";
-import Errors from "../things/errors";
+import {GAS_LIMIT, INTRINSIC_GAS_TOO_LOW} from "../things/errors";
 
 export type TransactionPoolOptions = {
   /**
@@ -209,6 +209,31 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     }
   }
 
+  /**
+   * Returns the transaction matching the given hash
+   * @param transactionHash 
+   */
+  public find(transactionHash: Buffer) {
+    for (let [_, transactions] of this.executables) {
+      for (let tx of transactions.array) {
+        if (tx.hash().equals(transactionHash)) {
+          return tx;
+        }
+      }
+    }
+
+    for (let [_, origin] of this.#origins) {
+      const transactions = origin.transactions;
+      if (transactions === undefined) continue;
+      for (let tx of transactions.array) {
+        if (tx.hash().equals(transactionHash)) {
+          return tx;
+        }
+      }
+    }
+    return null;
+  }
+
   #drainQueued = (
     origin: string,
     queuedOriginTransactions: utils.Heap<Transaction>,
@@ -251,13 +276,13 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
     if (Quantity.from(transaction.gasLimit) > this.#options.gasLimit) {
-      return new Error(Errors.GAS_LIMIT);
+      return new Error(GAS_LIMIT);
     }
 
     // Should supply enough intrinsic gas
     const gas = transaction.calculateIntrinsicGas();
     if (Quantity.from(transaction.gasLimit).toBigInt() < gas) {
-      return new Error(Errors.INTRINSIC_GAS_TOO_LOW);
+      return new Error(INTRINSIC_GAS_TOO_LOW);
     }
 
     return null;

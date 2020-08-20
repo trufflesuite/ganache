@@ -73,7 +73,14 @@ export default class WebsocketServer {
             // keep track of listeners to dispose off when the ws disconnects
             connections.get(ws).add(resultEmitter.dispose);
           }
-        });
+        }).catch(err => {
+          if (ws.closed) return;
+          
+          const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
+
+          const message = connector.formatError(err, payload);
+          ws.send(message, useBinary, true);
+        })
       },
 
       drain: (ws: WebSocket) => {
