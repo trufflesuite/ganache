@@ -27,6 +27,7 @@ import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 import { EthereumInternalOptions } from "./options";
 import { Snapshots } from "./types/snapshots";
 import { RuntimeBlock, Block } from "./things/runtime-block";
+import params from "./things/params";
 const {
   BUFFER_EMPTY,
   RPCQUANTITY_EMPTY,
@@ -80,6 +81,25 @@ type BlockchainTypedEvents = {
   pendingTransaction: Transaction;
 };
 type BlockchainEvents = "start" | "stop";
+
+export type TransactionTraceOptions = {
+  disableStorage?: boolean;
+  disableMemory?: boolean;
+  disableStack?: boolean;
+  tracer?: string;
+};
+
+export type StructLog = {
+  depth: number;
+  error: string;
+  gas: number;
+  gasCost: number;
+  memory: Array<string>;
+  op: string;
+  pc: number;
+  stack: Array<string>;
+  storage: Array<string>;
+};
 
 /**
  * Sets the provided VM state manager's state root *without* first
@@ -793,6 +813,308 @@ export default class Blockchain extends Emittery.Typed<
     } else {
       return Data.from(result.execResult.returnValue || "0x");
     }
+  }
+
+  /**
+   * traceTransaction
+   *
+   * Run a previously-run transaction in the same state in which it occurred at the time it was run.
+   * This will return the vm-level trace output for debugging purposes.
+   *
+   * Strategy:
+   *
+   *  1. Find block where transaction occurred
+   *  2. Set state root of that block
+   *  3. Rerun every transaction in that block prior to and including the requested transaction
+   *  4. Send trace results back.
+   *
+   * @param  {[type]}   tx       [description]
+   * @param  {Function} callback [description]
+   * @return [type]              [description]
+   */
+  public async traceTransaction(
+    transactionHash: string,
+    params: TransactionTraceOptions
+  ) {
+    const storageStack = {
+      currentDepth: -1,
+      stack: []
+    };
+
+    const returnVal = {
+      gas: 0,
+      returnValue: "",
+      structLogs: [] as Array<StructLog>
+    };
+
+    const transactionHashBuffer = Data.from(transactionHash).toBuffer();
+    // #1 - get block via transaction object
+    const transaction = await this.transactions.get(transactionHashBuffer);
+
+    if (!transaction) {
+      throw new Error("Unknown transaction " + transactionHash);
+    }
+
+    const targetBlock = await this.blocks.get(transaction._blockNum);
+    const parentBlock = await this.blocks.getByHash(
+      targetBlock.header.parentHash.toBuffer()
+    );
+
+    // #2 - Set state root of original block
+    //
+    // TODO: Forking needs the forked block number passed during this step:
+    // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
+    let trie = new CheckpointTrie(
+      this.#database.trie,
+      parentBlock.header.stateRoot.toBuffer()
+    );
+
+    // Prepare the "next" block with necessary transactions
+    let newBlock = new RuntimeBlock(
+      Quantity.from(parentBlock.header.number.toBigInt() + 1n),
+      parentBlock.hash(),
+      parentBlock.header.miner,
+      parentBlock.header.gasLimit.toBuffer(),
+      // make sure we use the same timestamp as the target block
+      targetBlock.header.timestamp
+    ) as RuntimeBlock & { uncleHeaders: []; transactions: Transaction[] };
+    newBlock.transactions = [];
+    newBlock.uncleHeaders = [];
+
+    const transactions = targetBlock.getTransactions();
+    for (const tx of transactions) {
+      newBlock.transactions.push(tx);
+
+      // After including the target transaction, that's all we need to do.
+      // Is there a better way of getting the fully qualified hash
+      if (tx.hash().equals(transactionHashBuffer)) {
+        break;
+      }
+    }
+
+    type StepEvent = {
+      gasLeft: BN;
+      memory: string;
+      stack: Array<BN>;
+      depth: number;
+      opcode: {
+        name: string;
+      };
+      pc: number;
+      address: Buffer;
+    };
+
+    // let stepListener = async (event:StepEvent, next:((error:any, cb?:any) => void)) => {
+    //   asyncStepListener(event, next);
+    // }
+
+    // Note that this is async and
+    let stepListener = (
+      event: StepEvent,
+      next: (error?: any, cb?: any) => void
+    ) => {
+      // See these docs:
+      // https://github.com/ethereum/go-ethereum/wiki/Management-APIs
+
+      const gasLeft = event.gasLeft.toNumber();
+      const totalGasUsedAfterThisStep =
+        Quantity.from(transaction.gasLimit).toNumber() - gasLeft;
+      const gasUsedPreviousStep = totalGasUsedAfterThisStep - returnVal.gas;
+      returnVal.gas += gasUsedPreviousStep;
+
+      let memory: string[] = null;
+      if (!params.disableMemory) {
+        let memoryAsString = Buffer.from(event.memory).toString("hex");
+        memory = memoryAsString.match(/.{1,64}/g) || ([] as Array<string>);
+
+        if (memory.length > 0) {
+          const lastItem = memory[memory.length - 1];
+          if (lastItem.length < 64) {
+            memory[memory.length - 1] =
+              lastItem + new Array(64 - lastItem.length + 1).join("0");
+          }
+        }
+      }
+
+      let stack: string[] = [];
+      if (!params.disableStack) {
+        for (const stackItem of event.stack) {
+          // Lots of conversions here: BN -> string -> Data -> string -> no-prefix string
+          // TODO: Make this more direct
+          stack.push(
+            Data.from(stackItem.toBuffer(), 32).toString().replace("0x", "")
+          );
+        }
+      }
+
+      let structLog: StructLog = {
+        depth: event.depth,
+        error: "",
+        gas: gasLeft,
+        gasCost: 0,
+        memory,
+        op: event.opcode.name,
+        pc: event.pc,
+        stack,
+        storage: null
+      };
+
+      // The gas difference calculated for each step is indicative of gas consumed in
+      // the previous step. Gas consumption in the final step will always be zero.
+      if (returnVal.structLogs.length) {
+        returnVal.structLogs[
+          returnVal.structLogs.length - 1
+        ].gasCost = gasUsedPreviousStep;
+      }
+
+      if (params.disableStorage) {
+        // Add the struct log as is - nothing more to do.
+        returnVal.structLogs.push(structLog);
+        next();
+      }
+
+      // The rest of this function previously resided in its own function called processStorageTrace
+      // I found it odd as its own function since it mutates variables of this function.
+      if (storageStack.currentDepth > event.depth) {
+        storageStack.stack.pop();
+      }
+      if (storageStack.currentDepth < event.depth) {
+        storageStack.stack.push({});
+      }
+
+      storageStack.currentDepth = event.depth;
+
+      let key: string;
+      let value: string = null;
+      switch (event.opcode.name) {
+        case "SSTORE":
+          key = stack[stack.length - 1];
+          value = stack[stack.length - 2];
+
+          // use Object.assign to prevent future steps from overwriting this step's storage values
+          structLog.storage = Object.assign(
+            {},
+            storageStack.stack[storageStack.currentDepth]
+          );
+
+          // Tell vm to move on to the next instruction. See below.
+          returnVal.structLogs.push(structLog);
+          next();
+
+          // assign after callback because this storage change actually takes
+          // effect _after_ this opcode executes
+          storageStack.stack[storageStack.currentDepth][key] = value;
+          break;
+
+        case "SLOAD":
+          key = stack[stack.length - 1];
+          vm.stateManager.getContractStorage(
+            event.address,
+            Buffer.from(key, "hex"),
+            (err, result) => {
+              if (err) {
+                return next(err);
+              }
+
+              value = Data.from(result, 32).toString().replace("0x", "");
+              storageStack.stack[storageStack.currentDepth][key] = value;
+
+              // use Object.assign to prevent future steps from overwriting this step's storage values
+              structLog.storage = Object.assign(
+                {},
+                storageStack.stack[storageStack.currentDepth]
+              );
+              returnVal.structLogs.push(structLog);
+              next();
+            }
+          );
+          break;
+        default:
+          structLog.storage = Object.assign(
+            {},
+            storageStack.stack[storageStack.currentDepth]
+          );
+          returnVal.structLogs.push(structLog);
+          next();
+      }
+    };
+
+    let txHashCurrentlyProcessing: string = null;
+
+    let beforeTxListener = (tx: Transaction) => {
+      txHashCurrentlyProcessing = Data.from(tx.hash()).toString();
+      if (txHashCurrentlyProcessing == transactionHash) {
+        vm.on("step", stepListener);
+      }
+    };
+
+    let afterTxListener = () => {
+      if (txHashCurrentlyProcessing == transactionHash) {
+        removeListeners();
+      }
+    };
+
+    let removeListeners = () => {
+      vm.removeListener("step", stepListener);
+      vm.removeListener("beforeTx", beforeTxListener);
+      vm.removeListener("afterTx", afterTxListener);
+    };
+
+    let blocks = this.blocks;
+
+    // ethereumjs vm doesn't use the callback style anymore
+    const getBlock = class T {
+      static async [promisify.custom](number: BN) {
+        const block = await blocks.get(number.toBuffer()).catch(_ => null);
+        return block ? block.value : null;
+      }
+    };
+
+    let vm = new VM({
+      state: trie,
+      activatePrecompiles: true,
+      common: this.#common,
+      allowUnlimitedContractSize: this.#options.chain
+        .allowUnlimitedContractSize,
+      blockchain: {
+        getBlock
+      } as any
+    });
+
+    // Listen to beforeTx and afterTx so we know when our target transaction
+    // is processing. These events will add the event listener for getting the trace data.
+    vm.on("beforeTx", beforeTxListener);
+    vm.on("afterTx", afterTxListener);
+
+    // Don't even let the vm try to flush the block's _cache to the stateTrie.
+    // When forking some of the data that the traced function may request will
+    // exist only on the main chain. Because we pretty much lie to the VM by
+    // telling it we DO have data in our Trie, when we really don't, it gets
+    // lost during the commit phase when it traverses the "borrowed" data's
+    // trie (as it may not have a valid root). Because this is a trace, and we
+    // don't need to commit the data, duck punching the `flush` method (the
+    // simplest method I could find) is fine.
+    // Remove this and you may see the infamous
+    // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
+    vm.stateManager._cache.flush = cb => cb();
+
+    // #3 - Process the block without committing the data.
+
+    // The vmerr key on the result appears to be removed.
+    // The previous implementation had specific error handling.
+    // It's possible we've removed handling specific cases in this implementation.
+    // e.g., the previous incatation of RuntimeError
+    let results = await vm.runBlock({
+      block: newBlock, // .value is the object the vm expects
+      generate: true,
+      skipBlockValidation: true
+    });
+
+    // Just to be safe
+    removeListeners();
+
+    // #4 - send state results back
+    return returnVal;
   }
 
   /**

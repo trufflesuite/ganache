@@ -9,7 +9,7 @@ import {
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import { EthereumInternalOptions } from "./options";
 import { types, Data, Quantity } from "@ganache/utils";
-import Blockchain from "./blockchain";
+import Blockchain, { TransactionTraceOptions } from "./blockchain";
 import Tag from "./things/tags";
 import { VM_EXCEPTION, VM_EXCEPTIONS } from "./errors/errors";
 import Address from "./things/address";
@@ -1775,6 +1775,17 @@ export default class EthereumApi implements types.Api {
 
     return blockchain.simulateTransaction(simulatedTransaction, parentBlock);
   }
+  //#endregion
+
+  //#region debug
+
+  async debug_traceTransaction(
+    transactionHash: string,
+    params: TransactionTraceOptions
+  ) {
+    return this.#blockchain.traceTransaction(transactionHash, params);
+  }
+
   //#endregion
 
   //#region personal
