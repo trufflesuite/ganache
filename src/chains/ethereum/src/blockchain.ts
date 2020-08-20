@@ -616,7 +616,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       newBlock.value.transactions.push(tx)
 
       // After including the target transaction, that's all we need to do.
-      // Is there a better way of getting the fully qualified hash
       if (Data.from(tx.hash()).toString() === transactionHash) {
         break;
       }
@@ -633,10 +632,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       pc: number,
       address:Buffer
     }
-
-    // let stepListener = async (event:StepEvent, next:((error:any, cb?:any) => void)) => {
-    //   asyncStepListener(event, next);
-    // }
 
     // Note that this is async and 
     let stepListener = (event:StepEvent, next:((error?:any, cb?:any) => void)) => {
