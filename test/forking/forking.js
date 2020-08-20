@@ -44,6 +44,7 @@ describe("Forking", function() {
   var forkBlockNumber;
 
   var initialDeployTransactionHash;
+  var variableChangedBlockNumber;
 
   before("set up test data", function() {
     this.timeout(10000);
@@ -184,7 +185,8 @@ describe("Forking", function() {
       });
     });
 
-    await mainExample.methods.setValue(7).send({ from: mainAccounts[0] });
+    const receipt = await mainExample.methods.setValue(7).send({ from: mainAccounts[0] });
+    variableChangedBlockNumber = receipt.blockNumber;
     await eventData;
   });
 
@@ -322,6 +324,15 @@ describe("Forking", function() {
   it("should get storage values on the forked provider itself", async() => {
     const result = await mainWeb3.eth.getStorageAt(thirdContractAddress, contract.position_of_value);
     assert.strictEqual(mainWeb3.utils.hexToNumber(result), 7);
+  });
+
+  it("should get the correct storage values based on block", async() => {
+    const result = await mainWeb3.eth.getStorageAt(
+      thirdContractAddress,
+      contract.position_of_value,
+      variableChangedBlockNumber - 1
+    );
+    assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
   });
 
   it("should get storage values on the forked provider via the main provider", async() => {
