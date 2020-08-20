@@ -904,10 +904,6 @@ export default class Blockchain extends Emittery.Typed<
       address: Buffer;
     };
 
-    // let stepListener = async (event:StepEvent, next:((error:any, cb?:any) => void)) => {
-    //   asyncStepListener(event, next);
-    // }
-
     // Note that this is async and
     let stepListener = (
       event: StepEvent,
