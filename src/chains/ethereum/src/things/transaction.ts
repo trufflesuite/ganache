@@ -11,6 +11,7 @@ import TransactionReceipt from "./transaction-receipt";
 import Common from "ethereumjs-common";
 import { TransactionLog } from "./blocklogs";
 import Address from "./address";
+import ExecutionError, { RETURN_TYPES } from "./execution-error";
 
 type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
 
@@ -403,7 +404,7 @@ class Transaction extends (EthereumJsTransaction as any) {
     let status: Buffer;
     if (execException) {
       status = ZERO_BUFFER;
-      this.execException = new Error(execException.error);
+      this.execException = new ExecutionError(this, result, RETURN_TYPES.TRANSACTION_HASH);
     } else {
       status = ONE_BUFFER;
     }

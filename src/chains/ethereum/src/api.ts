@@ -87,6 +87,7 @@ function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain:
 function assertExceptionalTransactions(transactions: Transaction[]) {
   let baseError = null;
   let errors: string[];
+  const data = {};
 
   transactions.forEach(transaction => {
     if (transaction.execException) {
@@ -97,11 +98,15 @@ function assertExceptionalTransactions(transactions: Transaction[]) {
         baseError = VM_EXCEPTION;
         errors = [ transaction.execException.message ];
       }
+      data[Data.from(transaction.hash()).toString()] = {
+        program_counter: transaction.execResult.runState.programCounter
+      };
     }
   });
 
   if (baseError) {
     const err = new Error(baseError + errors.join("\n"));
+    (err as any).data = data;
     (err as any).result = "0x0";
     throw err;
   }
