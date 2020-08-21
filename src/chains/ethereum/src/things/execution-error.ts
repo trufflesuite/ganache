@@ -17,7 +17,8 @@ export default class ExecutionError extends Error {
     hash: string,
     programCounter: number,
     result: string,
-    reason?: string
+    reason?: string,
+    message: string
   }
   constructor(transaction: Transaction, result: EVMResult, returnType: RETURN_TYPES) {
     super();
@@ -26,7 +27,8 @@ export default class ExecutionError extends Error {
     this.name = this.constructor.name;
 
     const execResult = result.execResult;
-    let message = VM_EXCEPTION + execResult.exceptionError.error;
+    const error = execResult.exceptionError.error;
+    let message = VM_EXCEPTION + error;
     const returnValue = execResult.returnValue;
     const hash = Data.from(transaction.hash(), 32).toString();
     let reason: string | null;
@@ -43,7 +45,8 @@ export default class ExecutionError extends Error {
       hash: hash,
       programCounter: execResult.runState.programCounter,
       result: returnType === RETURN_TYPES.TRANSACTION_HASH ? hash : Data.from(returnValue || "0x").toString(),
-      reason: reason
+      reason: reason,
+      message: error
     };
   }
 }

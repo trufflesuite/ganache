@@ -94,20 +94,18 @@ function assertExceptionalTransactions(transactions: Transaction[]) {
       if (baseError) {
         baseError = VM_EXCEPTIONS;
         errors.push(`${Data.from(transaction.hash(), 32).toString()}: ${transaction.execException}\n`);
+        data[transaction.execException.data.hash] = transaction.execException.data;
       } else {
         baseError = VM_EXCEPTION;
         errors = [ transaction.execException.message ];
+        data[transaction.execException.data.hash] = transaction.execException.data;
       }
-      data[Data.from(transaction.hash()).toString()] = {
-        program_counter: transaction.execResult.runState.programCounter
-      };
     }
   });
 
   if (baseError) {
     const err = new Error(baseError + errors.join("\n"));
-    (err as any).data = data;
-    (err as any).result = "0x0";
+    (err as any).data = data
     throw err;
   }
 }
@@ -1150,7 +1148,9 @@ export default class EthereumApi implements types.Api {
         return promiEvent;
       }
       default:
-        throw new Error("unsupported subscription type");
+        const err  = new Error("unsupported subscription type");
+        (err as any).code = -32000;
+        throw err;
     }
   }
 

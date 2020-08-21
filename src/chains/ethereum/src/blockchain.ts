@@ -231,9 +231,9 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
               const error = tx.execException;
               if (error) {
-                logger.log("  Runtime Error: " + error.message);
+                logger.log("  Runtime Error: " + error.data.message);
                 if ((error as any).reason) {
-                  logger.log("  Revert reason: " + (error as any).reason);
+                  logger.log("  Revert reason: " + (error as any).data.reason);
                 }
               }
 
@@ -251,7 +251,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
             if (instamine && options.legacyInstamine) {
               block.value.transactions.forEach(transaction => {
-                this.emit("transaction:" + Data.from(transaction.hash(), 32).toString() as any, transaction.execException);
+                const error = this.#options.vmErrorsOnRPCResponse ? transaction.execException : null
+                this.emit("transaction:" + Data.from(transaction.hash(), 32).toString() as any, error);
               });
 
               // in legacy instamine mode we must delay the broadcast of new blocks
@@ -532,7 +533,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     const result = await vm.runCall(tx);
     if (result.execResult.exceptionError) {
       if (this.#options.vmErrorsOnRPCResponse) {
-        throw new ExecutionError(transaction, result, RETURN_TYPES.RETURN_VALUE);
+        throw new ExecutionError(tx, result, RETURN_TYPES.RETURN_VALUE);
       } else {
         return Data.from(result.execResult.returnValue || "0x");
       }
