@@ -41,8 +41,8 @@ export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "clos
     if (method === "eth_subscribe") {
       if (isHttp(connection)) {
         const err = new Error("notifications not supported") as Error & {code: number};
-        const error = JsonRpcTypes.Error(payload.id, err);
-        // return Promise.reject(error);
+        err.code = -32000;
+        return Promise.reject(err);
       }
     }
     const params = payload.params as Parameters<EthereumApi[typeof method]>;
