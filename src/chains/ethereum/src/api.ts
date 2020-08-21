@@ -110,6 +110,18 @@ function assertExceptionalTransactions(transactions: Transaction[]) {
   }
 }
 
+function assertArgLength(min: number, max: number = min) {
+  return function(_target, _name, descriptor) {
+    const original = descriptor.value;
+    descriptor.value = function() {
+      const length = arguments.length;
+      if (length < min || length > max) throw new Error("Incorrect number of arguments.");
+      return Reflect.apply(original, this, arguments);
+    };
+    return descriptor;
+  };
+}
+
 export default class EthereumApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
@@ -222,6 +234,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @param timestamp? the timestamp a block should setup as the mining time.
    */
+  @assertArgLength(0, 1)
   async evm_mine(timestamp?: number) {
     const transactions = await this.#blockchain.mine(-1, timestamp, true);
     if (this.#options.vmErrorsOnRPCResponse) {
@@ -329,6 +342,7 @@ export default class EthereumApi implements types.Api {
    * assert.strictEqual(BigInt(endingBalance), startingBalance);
    * </div>
    */
+  @assertArgLength(1)
   async evm_revert(snapshotId: string | number) {
     return this.#blockchain.revert(Quantity.from(snapshotId));
   }
