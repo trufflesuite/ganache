@@ -426,7 +426,7 @@ class Transaction extends (EthereumJsTransaction as any) {
     return this.#logs;
   };
 
-  public execException: Error = null;
+  public execException: ExecutionError = null;
 }
 
 export default Transaction;
