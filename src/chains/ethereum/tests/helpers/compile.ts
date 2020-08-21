@@ -17,7 +17,15 @@ import solc from "solc";
 import { readFileSync } from "fs-extra";
 import { parse } from "path";
 
-export default function compile(contractPath: string, contractName?: string) {
+export type CompileOutput = {
+  code: string;
+  contract: solc.CompilerOutputContracts[string][string];
+};
+
+export default function compile(
+  contractPath: string,
+  contractName?: string
+): CompileOutput {
   const parsedPath = parse(contractPath);
   const content = readFileSync(contractPath, { encoding: "utf8" });
   const globalName = parsedPath.base;
