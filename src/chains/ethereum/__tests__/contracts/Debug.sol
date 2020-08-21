@@ -1,0 +1,24 @@
+pragma solidity ^0.6.1;
+
+contract Debug {
+  uint public value;
+
+  event ValueSet(uint);
+
+  constructor() public payable {
+    value = 5;
+  }
+
+  function setValue(uint val) public {
+    value = val;
+    emit ValueSet(val);
+  }
+
+  function loop(uint times) public {
+    for (uint i = 0; i < times; i++) {
+      value = i;
+    }
+  }
+
+
+}
