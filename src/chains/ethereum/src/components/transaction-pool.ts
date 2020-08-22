@@ -62,7 +62,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     const from = Data.from(transaction.from);
     let transactionNonce: bigint;
-    if (secretKey == null || transaction.nonce.length !== 0) {
+    if (secretKey == null || (transaction.nonce && transaction.nonce.length !== 0)) {
       transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
       if (transactionNonce < 0n) {
         throw new Error("Transaction nonce cannot be negative.");
