@@ -4,7 +4,6 @@ import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import path from "path";
 import { Quantity, Data } from "@ganache/utils";
-import { setUncaughtExceptionCaptureCallback } from "process";
 import Blockchain from "../../../src/blockchain";
 import Account from "../../../src/things/account";
 import Address from "../../../src/things/address";
@@ -129,7 +128,19 @@ describe("api", () => {
 
       // Expectations and test input
       let expectedMemoryConsumptionShallNotExceed = 2;
-      let timesToRunLoop = 10000;
+      let timesToRunLoop = 5000;
+      let address = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
+      let privateKey =
+        "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d";
+
+      console.log(
+        Data.from("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1").toBuffer()
+      );
+      console.log(
+        Data.from(
+          "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1".toLowerCase()
+        ).toBuffer()
+      );
 
       // The next line is gross, but it makes testing new values easy.
       let timesToRunLoopArgument = Data.from(
@@ -139,7 +150,7 @@ describe("api", () => {
         .toString()
         .replace("0x", "");
 
-      let initialAccounts = [new Account(new Address(accounts[0]))];
+      let initialAccounts = [new Account(new Address(address))];
 
       let common = new Common("mainnet", "muirGlacier");
 
@@ -157,17 +168,20 @@ describe("api", () => {
       await blockchain.once("start");
 
       // Deployment transaction
+      var deploymentTransaction = new Transaction(
+        {
+          data: contract.code,
+          from: address,
+          gasLimit: Quantity.from(6721975).toString(),
+          nonce: "0x0"
+        },
+        common
+      );
+      deploymentTransaction._from = Data.from(address).toBuffer();
+
       let deploymentTransactionHash = await blockchain.queueTransaction(
-        new Transaction(
-          {
-            data: contract.code,
-            from: accounts[0],
-            gasLimit: Quantity.from(6721975).toString(),
-            nonce: "0x0"
-          },
-          common,
-          Transaction.types.fake
-        )
+        deploymentTransaction,
+        Data.from(privateKey)
       );
 
       await blockchain.once("block");
@@ -180,21 +194,23 @@ describe("api", () => {
 
       // Transaction to call the loop function
       const methods = contract.contract.evm.methodIdentifiers;
+      let loopTransaction = new Transaction(
+        {
+          data: Buffer.from(
+            methods["loop(uint256)"] + timesToRunLoopArgument,
+            "hex"
+          ),
+          to: receipt.contractAddress,
+          from: address,
+          gasLimit: Quantity.from(6721975).toString(),
+          nonce: "0x1"
+        },
+        common
+      );
+      loopTransaction._from = Data.from(address).toBuffer();
       let loopTransactionHash = await blockchain.queueTransaction(
-        new Transaction(
-          {
-            data: Buffer.from(
-              methods["loop(uint256)"] + timesToRunLoopArgument,
-              "hex"
-            ),
-            to: receipt.contractAddress,
-            from: accounts[0],
-            gasLimit: Quantity.from(6721975).toString(),
-            nonce: "0x1"
-          },
-          common,
-          Transaction.types.fake
-        )
+        loopTransaction,
+        Data.from(privateKey)
       );
 
       await blockchain.once("block");
