@@ -88,7 +88,9 @@ function fixProps(tx: any, data: any) {
       tx._chainId = chainId || 0;
     }
   });
+}
 
+function makeFake(tx: any, data: any){
   if (tx.isFake()) {
     /**
      * @prop {Buffer} from (read/write) Set from address to bypass transaction
@@ -170,10 +172,17 @@ function initData(tx: Transaction, data: any) {
     // add in our hacked-in properties
     // which is the index in the block the transaciton
     // was mined in
-    if (parts.length === tx._fields.length + 3) {
+    if (parts.length === tx._fields.length + 5) {
+      tx._from = parts.pop();
+      tx.type = parts.pop()[0];
       tx._index = parts.pop();
       tx._blockNum = parts.pop();
       tx._blockHash = parts.pop();
+      tx.raw.push(tx._blockHash);
+      tx.raw.push(tx._blockNum);
+      tx.raw.push(tx._index);
+      tx.raw.push(tx.type);
+      tx.raw.push(tx._from);
     }
     if (parts.length > tx._fields.length) {
       throw new Error("wrong number of fields in data");
@@ -217,6 +226,10 @@ class Transaction extends (EthereumJsTransaction as any) {
 
     fixProps(this, data);
     initData(this, data);
+
+    if (this.isFake()) {
+      makeFake(this, data)
+    }
   }
 
   static get types() {

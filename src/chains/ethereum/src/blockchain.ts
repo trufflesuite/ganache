@@ -201,7 +201,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
               const hash = tx.hash();
               // TODO: clean up transaction extra data stuffs because this is gross:
-              const extraData = [...tx.raw, blockHash, blockNumber, Quantity.from(i).toBuffer()];
+              const extraData = [...tx.raw, blockHash, blockNumber, Quantity.from(i).toBuffer(), Buffer.from([tx.type]), tx.from];
               const encodedTx = rlpEncode(extraData);
               this.transactions.set(hash, encodedTx);
 
