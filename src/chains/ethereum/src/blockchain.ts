@@ -129,6 +129,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
       this.coinbase = options.coinbase.address;
       this.vm = this.createVmFromStateTrie(this.trie, options.allowUnlimitedContractSize);
+      this.vm.on("step", this.emit.bind(this, "step"));
 
       await this.#commitAccounts(options.initialAccounts);
 
@@ -332,7 +333,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       }
     };
 
-    const vm = new VM({
+    return new VM({
       state: stateTrie,
       activatePrecompiles: true,
       common: this.#options.common,
@@ -341,8 +342,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         getBlock
       } as any
     });
-    vm.on("step", this.emit.bind(this, "step"));
-    return vm;
   };
 
   #commitAccounts = async (accounts: Account[]): Promise<void> => {
