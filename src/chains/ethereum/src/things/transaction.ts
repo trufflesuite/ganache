@@ -178,11 +178,6 @@ function initData(tx: Transaction, data: any) {
       tx._index = parts.pop();
       tx._blockNum = parts.pop();
       tx._blockHash = parts.pop();
-      tx.raw.push(tx._blockHash);
-      tx.raw.push(tx._blockNum);
-      tx.raw.push(tx._index);
-      tx.raw.push(tx.type);
-      tx.raw.push(tx._from);
     }
     if (parts.length > tx._fields.length) {
       throw new Error("wrong number of fields in data");
