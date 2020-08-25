@@ -8,7 +8,6 @@ export type BlockLog = [removed: Buffer, transactionIndex: Buffer, transactionHa
 
 const _raw = Symbol("raw");
 const _logs = Symbol("logs");
-const _blockNumber = Symbol("blockNumber");
 
 const filterByTopic = (expectedTopics: (string | string[])[], logTopics: Buffer[]) => {
   // Exclude log if its number of topics is less than the number expected
