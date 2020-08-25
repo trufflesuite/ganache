@@ -20,7 +20,6 @@ import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
 import EthereumAccount from "ethereumjs-account";
 import { Block } from "./components/block-manager";
-import CheckpointTrie from "merkle-patricia-tree";
 //#endregion
 
 //#region Constants
