@@ -22,6 +22,7 @@ describe("api", () => {
     let contractAddress:string;
     let transactionHash:string;
     let initialValue:string;
+    let methods:Record<string, string>;
 
     before(async () => {
       contract = compile(path.join(__dirname, "..", "..", "contracts", "Debug.sol"));
@@ -48,7 +49,7 @@ describe("api", () => {
       const receipt = await provider.send("eth_getTransactionReceipt", [deploymentTransactionHash]);
       contractAddress = receipt.contractAddress;
 
-      const methods = contract.contract.evm.methodIdentifiers;
+      methods = contract.contract.evm.methodIdentifiers;
       
       // Send a transaction that will be the one we trace
       initialValue = "0000000000000000000000000000000000000000000000000000000000000019";
@@ -109,6 +110,14 @@ describe("api", () => {
       assert.strictEqual(
         lastop.storage["0000000000000000000000000000000000000000000000000000000000000000"], initialValue
       );
+
+      // Finally, lets assert that performing the trace didn't change the data on chain
+      const value = await provider.send("eth_call", [
+        {from, to: contractAddress, data: "0x" + methods["value()"]}
+      ]);
+
+      // State of the blockchain should still be the same as the second transaction
+      assert.strictEqual(value, "0000000000000000000000000000000000000000000000000000000000001337");
     });
 
     it("should have a low memory footprint", async () => {
@@ -167,7 +176,6 @@ describe("api", () => {
       let receipt = await blockchain.transactionReceipts.get(deploymentTransactionHash.toBuffer());
 
       // Transaction to call the loop function
-      const methods = contract.contract.evm.methodIdentifiers;
       let loopTransaction = new Transaction({
         data: Buffer.from(methods["loop(uint256)"] + timesToRunLoopArgument, "hex"),
         to: receipt.contractAddress,
