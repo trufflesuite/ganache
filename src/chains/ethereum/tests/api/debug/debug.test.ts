@@ -88,12 +88,10 @@ describe("api", () => {
     });
 
     it("should trace a successful transaction without changing state", async () => {
-      let response = await provider.send("debug_traceTransaction", [
+      let { structLogs } = await provider.send("debug_traceTransaction", [
         transactionHash,
         {}
       ]);
-
-      const structLogs = response.structLogs;
 
       // "So basic" test - did we at least get some structlogs?
       assert(structLogs.length > 0);
