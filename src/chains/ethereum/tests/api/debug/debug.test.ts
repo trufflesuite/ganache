@@ -10,6 +10,8 @@ import Address from "../../../src/things/address";
 import Common from "ethereumjs-common";
 import Transaction from "../../../src/things/transaction";
 import { EthereumOptionsConfig } from "../../../src/options/index";
+import TraceData from "../../../src/things/trace-data";
+import TraceStorageMap from "../../../src/things/trace-storage-map";
 
 describe("api", () => {
   describe("debug", () => {
@@ -92,14 +94,25 @@ describe("api", () => {
 
       const structLogs = response.structLogs;
 
-      // To at least assert SOMETHING, let's assert the last opcode
+      // "So basic" test - did we at least get some structlogs?
       assert(structLogs.length > 0);
 
+      // Check formatting of stack
       for (const [index, op] of structLogs.entries()) {
         if (op.stack.length > 0) {
           // check formatting of stack - it was broken when updating to ethereumjs-vm v2.3.3
           assert.strictEqual(op.stack[0].length, 64);
           assert.notStrictEqual(op.stack[0].substr(0, 2), "0x");
+          break;
+        }
+      }
+
+      // Check formatting of memory
+      for (const [index, op] of structLogs.entries()) {
+        if (op.memory.length > 0) {
+          // check formatting of memory
+          assert.strictEqual(op.memory[0].length, 64);
+          assert.notStrictEqual(op.memory[0].substr(0, 2), "0x");
           break;
         }
       }
@@ -123,24 +136,20 @@ describe("api", () => {
     it("should have a low memory footprint", async () => {
       // This test is more of a change signal than it is looking
       // for correct output. By including this test, we assert that
-      // "memory usage will never be more than X", and we keep
-      // lowering X as we make optimizations to debug_traceTransaction
+      // the number of objects referenced in the trace is exactly
+      // what we expect. We can use the total amount of counted objects
+      // as a proxy for memory consumed. Knowing when this amount
+      // changes can help signal significant changes to memory consumption.
 
-      // Expectations and test input
-      let expectedMemoryConsumptionShallNotExceed = 2;
-      let timesToRunLoop = 5000;
+      // Expectations and test input. The expected number of objects
+      // in the final trace is found through execution. Again,
+      // this test is meant as a change detector, not necessarily a
+      // failure detector.
+      let expectedObjectsInFinalTrace = 22843;
+      let timesToRunLoop = 100;
       let address = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
       let privateKey =
         "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d";
-
-      console.log(
-        Data.from("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1").toBuffer()
-      );
-      console.log(
-        Data.from(
-          "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1".toLowerCase()
-        ).toBuffer()
-      );
 
       // The next line is gross, but it makes testing new values easy.
       let timesToRunLoopArgument = Data.from(
@@ -152,6 +161,8 @@ describe("api", () => {
 
       let initialAccounts = [new Account(new Address(address))];
 
+      // The following will set up a vm, deploy the debugging contract,
+      // then run the transaction against that contract that we want to trace.
       let common = new Common("mainnet", "muirGlacier");
 
       let blockchain = new Blockchain(
@@ -190,8 +201,6 @@ describe("api", () => {
         deploymentTransactionHash.toBuffer()
       );
 
-      console.log(deploymentTransactionHash.toString());
-
       // Transaction to call the loop function
       const methods = contract.contract.evm.methodIdentifiers;
       let loopTransaction = new Transaction(
@@ -215,22 +224,68 @@ describe("api", () => {
 
       await blockchain.once("block");
 
-      console.log(loopTransactionHash.toString());
-
-      let initialMemoryUsage = process.memoryUsage();
-
-      // We want to keep the return value in memory as that's the value
-      // we're trying to ascertain the size of.
+      // Get the trace so we can count all of the items in the result
       let trace = await blockchain.traceTransaction(
         loopTransactionHash.toString(),
         {}
       );
 
-      let finalMemoryUsage = process.memoryUsage();
+      // Now lets count the number of items within the trace. We intend to count
+      // all individual literals as separate items, and object references as the
+      // same object (e.g., only counted once). There might be some gotcha's here;
+      // quality of this test is dependent on the correctness of the counter.
 
-      let memoryDiff = finalMemoryUsage.rss - initialMemoryUsage.rss;
-      console.log(memoryDiff, trace.structLogs.length);
-      assert(memoryDiff <= expectedMemoryConsumptionShallNotExceed);
+      let countMap = new Map();
+      let stack: Array<any> = [trace];
+
+      while (stack.length > 0) {
+        // pop is faster than shift, outcome is the same
+        let obj = stack.pop();
+
+        // Create new objects for literals as they take up
+        // their own memory slots
+        if (typeof obj == "string") {
+          obj = new String(obj);
+        } else if (typeof obj == "number") {
+          obj = new Number(obj);
+        }
+
+        let isCounted = typeof countMap.get(obj) != "undefined";
+
+        // if counted, don't recount.
+        if (isCounted) {
+          continue;
+        }
+
+        // Not counted? Set it.
+        countMap.set(obj, 1);
+
+        // Let's not do anything with Strings, Numbers, & TraceData; we have them counted.
+        if (
+          !(obj instanceof String) &&
+          !(obj instanceof Number) &&
+          !(obj instanceof TraceData)
+        ) {
+          // key/value pairs that can be iterated over via for...of
+          let entries: IterableIterator<[any, any]> | Array<[any, any]>;
+
+          // Honestly I'm not entirely sure I need this special case
+          // for this map, but I don't want to leave it out.
+          if (obj instanceof TraceStorageMap) {
+            entries = obj.entries();
+          } else {
+            entries = Object.entries(obj);
+          }
+
+          for (const [key, value] of entries) {
+            if (value != null) {
+              stack.push(value);
+            }
+          }
+        }
+      }
+
+      assert.strictEqual(countMap.size, expectedObjectsInFinalTrace);
     });
   });
 });
