@@ -699,12 +699,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
       storageStack.currentDepth = event.depth;
 
-      let key:TraceData = null;
-      let value:TraceData = null;
       switch (event.opcode.name) {
-        case "SSTORE":
-          key = stack[stack.length - 1];
-          value = stack[stack.length - 2];
+        case "SSTORE": {
+          let key = stack[stack.length - 1];
+          let value = stack[stack.length - 2];
 
           // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
           structLog.storage = new TraceStorageMap(storageStack.stack[storageStack.currentDepth]);
@@ -717,15 +715,15 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           // effect _after_ this opcode executes
           storageStack.stack[storageStack.currentDepth].set(key, value);
           break;
-
-        case "SLOAD":
-          key = stack[stack.length - 1];
+        }
+        case "SLOAD": {
+          let key = stack[stack.length - 1];
           vm.stateManager.getContractStorage(event.address, key.toBuffer(), (err, result) => {
             if (err) {
               return next(err);
             }
 
-            value = TraceData.from(result);
+            let value = TraceData.from(result);
             storageStack.stack[storageStack.currentDepth].set(key, value);
 
             // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
@@ -734,6 +732,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             next();
           });
           break;
+        }
         default:
           // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
           structLog.storage = new TraceStorageMap(storageStack.stack[storageStack.currentDepth]);

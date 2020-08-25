@@ -117,7 +117,7 @@ describe("api", () => {
       ]);
 
       // State of the blockchain should still be the same as the second transaction
-      assert.strictEqual(value, "0000000000000000000000000000000000000000000000000000000000001337");
+      assert.strictEqual(value, "0x0000000000000000000000000000000000000000000000000000000000001337");
     });
 
     it("should have a low memory footprint", async () => {
