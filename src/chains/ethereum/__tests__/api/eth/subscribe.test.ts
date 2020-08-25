@@ -9,7 +9,7 @@ describe("api", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       const gasLimit = "0x6691b7";
-      const now = new Date(2019, 3, 15);
+      const now = new Date(2019, 3, 15, 0, 0, 0, 0);
 
       beforeEach(async () => {
         provider = await getProvider({
@@ -59,7 +59,6 @@ describe("api", () => {
                 "gasLimit": gasLimit,
                 "gasUsed": "0x0",
                 "hash": "0x4459bd9523df28f1f0b322af154f77559c0b95977ea97d3472ffd674d1de0224",
-                "timestamp": Quantity.from(timestamp).toString(),
                 "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                 "miner": accounts[0],
                 "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -69,6 +68,7 @@ describe("api", () => {
                 "receiptsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
                 "sha3Uncles": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
                 "stateRoot": "0x8281cb204e0242d2d9178e392b60eaf4563ae5ffc4897c9c6cf6e99a4d35aff3",
+                "timestamp": Quantity.from(timestamp).toString(),
                 "transactionsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
               },
               subscription: subscriptionId

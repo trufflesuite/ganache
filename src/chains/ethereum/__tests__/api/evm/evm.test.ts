@@ -47,8 +47,8 @@ describe("api", () => {
       });
 
       it("should mine a block on demand at the specified timestamp", async () => {
-        const startDate = new Date(2019, 3, 15);
-        const miningTimestamp = Math.floor((new Date(2020, 3, 15).getTime() / 1000));
+        const startDate = new Date(2019, 3, 15, 0, 0, 0, 0);
+        const miningTimestamp = Math.floor((new Date(2020, 3, 15, 0, 0, 0, 0).getTime() / 1000));
         const provider = await getProvider({time: startDate});
         await provider.send("evm_mine", [miningTimestamp]);
         const currentBlock = await provider.send("eth_getBlockByNumber", ["latest"]);
