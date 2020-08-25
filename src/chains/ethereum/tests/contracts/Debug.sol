@@ -21,5 +21,7 @@ contract Debug {
     }
   }
 
-
+  function doARevert() public {
+    revert("all your base");
+  }
 }

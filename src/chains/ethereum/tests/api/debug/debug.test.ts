@@ -21,6 +21,7 @@ describe("api", () => {
     let from: string;
     let contractAddress: string;
     let transactionHash: string;
+    let revertTransactionHash: string;
     let initialValue: string;
     let methods: Record<string, string>;
 
@@ -85,6 +86,10 @@ describe("api", () => {
       ]);
 
       await provider.once("message");
+
+      revertTransactionHash = await provider.send("eth_sendTransaction", [
+        { from, to: contractAddress, data: "0x" + methods["doARevert()"] }
+      ]);
     });
 
     it("should trace a successful transaction without changing state", async () => {
@@ -120,7 +125,7 @@ describe("api", () => {
 
       assert.strictEqual(lastop.op, "STOP");
       assert.strictEqual(lastop.gasCost, 0);
-      assert.strictEqual(lastop.pc, 191);
+      assert.strictEqual(lastop.pc, 202); // This will change if you edit Debug.sol
 
       // This makes sure we get the initial value back (the first transaction to setValue())
       // and not the value of the second setValue() transaction
@@ -143,6 +148,22 @@ describe("api", () => {
       );
     });
 
+    it("should still trace reverted transactions", async () => {
+      let { structLogs } = await provider.send("debug_traceTransaction", [
+        transactionHash,
+        {}
+      ]);
+
+      // This test mostly ensures we didn't get some type of error message
+      // from the virtual machine on a reverted transaction.
+      // If we haven't errored at this state, we're doing pretty good.
+
+      // Let's make sure the last operation is a STOP instruction.
+      let op = structLogs.pop();
+
+      assert.strictEqual(op.op, "STOP");
+    });
+
     it("should have a low memory footprint", async () => {
       // This test is more of a change signal than it is looking
       // for correct output. By including this test, we assert that
@@ -155,7 +176,7 @@ describe("api", () => {
       // in the final trace is found through execution. Again,
       // this test is meant as a change detector, not necessarily a
       // failure detector.
-      let expectedObjectsInFinalTrace = 22843;
+      let expectedObjectsInFinalTrace = 22814;
       let timesToRunLoop = 100;
       let address = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
       let privateKey =
