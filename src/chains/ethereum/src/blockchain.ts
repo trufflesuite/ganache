@@ -138,8 +138,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       { // create first block
         let firstBlockTime: number;
         if (options.time != null) {
-          firstBlockTime = +options.time
-          this.setTime(firstBlockTime);
+          firstBlockTime = this.setTime(+options.time);
         } else {
           firstBlockTime = this.#currentTime();
         }
