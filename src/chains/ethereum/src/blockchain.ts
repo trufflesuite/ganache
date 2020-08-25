@@ -634,8 +634,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       pc: number,
       address:Buffer
     }
-
-    // Note that this is async and 
+ 
     let stepListener = (event:StepEvent, next:((error?:any, cb?:any) => void)) => {
       // See these docs:
       // https://github.com/ethereum/go-ethereum/wiki/Management-APIs
