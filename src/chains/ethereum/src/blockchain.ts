@@ -23,6 +23,8 @@ import VM from "ethereumjs-vm";
 import Address from "./things/address";
 import BlockLogManager from "./components/blocklog-manager";
 import RejectionError from "./things/rejection-error";
+import TraceData from "./things/trace-data";
+import TraceStorageMap from "./things/trace-storage-map";
 
 const unref = utils.unref;
 
@@ -47,11 +49,11 @@ export type StructLog = {
   error: string, 
   gas: number, 
   gasCost: number, 
-  memory: Array<string>, 
+  memory: Array<TraceData>, 
   op: string, 
   pc: number, 
-  stack: Array<string>, 
-  storage: Array<string>
+  stack: Array<TraceData>, 
+  storage: TraceStorageMap
 }
 
 
@@ -581,7 +583,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
   public async traceTransaction(transactionHash:string, params:TransactionTraceOptions) {
     const storageStack = {
       currentDepth: -1,
-      stack: []
+      stack: [] as Array<TraceStorageMap>
     }
 
     const returnVal = {
@@ -623,7 +625,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
     type StepEvent = {
       gasLeft:BN;
-      memory:string;
+      memory:Array<number>; // Not officially sure the type. Not a buffer or uint8array
       stack:Array<BN>,
       depth:number,
       opcode: {
@@ -643,25 +645,22 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       const gasUsedPreviousStep = totalGasUsedAfterThisStep - returnVal.gas;
       returnVal.gas += gasUsedPreviousStep;
 
-      let memory:string[] = null;
+      let memory:TraceData[] = [];
       if (!params.disableMemory) {
-        let memoryAsString = Buffer.from(event.memory).toString("hex");
-        memory = memoryAsString.match(/.{1,64}/g) || [] as Array<string>;
-
-        if (memory.length > 0) {
-          const lastItem = memory[memory.length - 1];
-          if (lastItem.length < 64) {
-            memory[memory.length - 1] = lastItem + new Array(64 - lastItem.length + 1).join("0");
-          }
+        // We get the memory as one large array.
+        // Let's cut it up into 32 byte chunks as required by the spec.
+        let index = 0;
+        while (index < event.memory.length) {
+          let slice = event.memory.slice(index, index + 32);
+          memory.push(TraceData.from(Buffer.from(slice)));
+          index += 32;
         }
       }
 
-      let stack:string[] = [];
+      let stack:TraceData[] = [];
       if (!params.disableStack) {
         for (const stackItem of event.stack) {
-          // Lots of conversions here: BN -> string -> Data -> string -> no-prefix string
-          // TODO: Make this more direct
-          stack.push(Data.from(stackItem.toBuffer(), 32).toString().replace("0x", ""));
+          stack.push(TraceData.from(stackItem.toBuffer()));
         }
       }
 
@@ -695,20 +694,20 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         storageStack.stack.pop();
       }
       if (storageStack.currentDepth < event.depth) {
-        storageStack.stack.push({});
+        storageStack.stack.push(new TraceStorageMap());
       }
 
       storageStack.currentDepth = event.depth;
 
-      let key:string;
-      let value:string = null;
+      let key:TraceData = null;
+      let value:TraceData = null;
       switch (event.opcode.name) {
         case "SSTORE":
           key = stack[stack.length - 1];
           value = stack[stack.length - 2];
 
-          // use Object.assign to prevent future steps from overwriting this step's storage values
-          structLog.storage = Object.assign({}, storageStack.stack[storageStack.currentDepth]);
+          // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+          structLog.storage = new TraceStorageMap(storageStack.stack[storageStack.currentDepth]);
           
           // Tell vm to move on to the next instruction. See below. 
           returnVal.structLogs.push(structLog);
@@ -716,27 +715,28 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
           // assign after callback because this storage change actually takes
           // effect _after_ this opcode executes
-          storageStack.stack[storageStack.currentDepth][key] = value;
+          storageStack.stack[storageStack.currentDepth].set(key, value);
           break;
 
         case "SLOAD":
           key = stack[stack.length - 1];
-          vm.stateManager.getContractStorage(event.address, Buffer.from(key, "hex"), (err, result) => {
+          vm.stateManager.getContractStorage(event.address, key.toBuffer(), (err, result) => {
             if (err) {
               return next(err);
             }
 
-            value = Data.from(result, 32).toString().replace("0x", "");
-            storageStack.stack[storageStack.currentDepth][key] = value;
+            value = TraceData.from(result);
+            storageStack.stack[storageStack.currentDepth].set(key, value);
 
-            // use Object.assign to prevent future steps from overwriting this step's storage values
-            structLog.storage = Object.assign({}, storageStack.stack[storageStack.currentDepth]);
+            // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+            structLog.storage = new TraceStorageMap(storageStack.stack[storageStack.currentDepth]);
             returnVal.structLogs.push(structLog);
             next();
           });
           break;
         default:
-          structLog.storage = Object.assign({}, storageStack.stack[storageStack.currentDepth]);
+          // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+          structLog.storage = new TraceStorageMap(storageStack.stack[storageStack.currentDepth]);
           returnVal.structLogs.push(structLog);
           next();
       }
