@@ -26,7 +26,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.1
     - name: install node tools
       if: matrix.os == 'windows-2019'
-      run: npm install --global --production windows-build-tools@4.0.0
+      run: npm install --global --production windows-build-tools@5.2.2
     - name: install node-gyp
       if: matrix.os == 'windows-2019'
       run: npm install --global node-gyp@latest
