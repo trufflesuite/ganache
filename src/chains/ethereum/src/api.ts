@@ -932,7 +932,7 @@ export default class EthereumApi implements types.Api {
     const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
 
     if (!isUnlockedAccount) {
-      const msg = isKnownAccount ? "authentication needed: password or unlock" : "unknown account";
+      const msg = isKnownAccount ? "authentication needed: password or unlock" : "sender account not recognized";
       throw new Error(msg);
     }
 
