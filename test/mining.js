@@ -406,19 +406,19 @@ describe("Mining", function() {
 
     it("should stop mining when the provider is stopped during an evm_mine (same REPL)", (done) => {
       setUp(function(provider, callback) {
-        provider.close(callback);
+        provider.disconnect().then(callback);
       }, done);
     });
 
     it("should stop mining when the provider is stopped during evm_mine (next tick)", (done) => {
       setUp(function(provider, callback) {
-        process.nextTick(() => provider.close(callback));
+        process.nextTick(() => provider.disconnect().then(callback));
       }, done);
     });
 
     it("should stop mining when the provider is stopped during evm_mine (setImmediate)", (done) => {
       setUp(function(provider, callback) {
-        setImmediate(() => provider.close(callback));
+        setImmediate(() => provider.disconnect().then(callback));
       }, done);
     });
   });

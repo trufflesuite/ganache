@@ -44,7 +44,7 @@ const runTests = function(providerInit) {
       assert(res === 1);
       // Close the first provider now that we've gotten where we need to be.
       // Note: we specifically close the provider so we can read from the same db.
-      provider.close(() => null); // pass dummy fn to satisfy callback expectation
+      provider.disconnect().then(() => null); // pass dummy fn to satisfy callback expectation
     }).timeout(5000);
 
     it("should reopen the provider", function() {

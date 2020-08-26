@@ -379,7 +379,7 @@ const tests = function(web3) {
     after("shutdown", async function() {
       const provider = signingWeb3._provider;
       signingWeb3.setProvider();
-      await provider.close();
+      await provider.disconnect();
     });
   });
 
@@ -519,7 +519,7 @@ const tests = function(web3) {
     after("shutdown", async function() {
       const provider = signingWeb3._provider;
       signingWeb3.setProvider();
-      await pify(provider.close)();
+      await provider.disconnect();
     });
   });
 
@@ -1708,7 +1708,7 @@ describe("Provider:", function() {
   after("shutdown provider", async function() {
     const provider = web3._provider;
     web3.setProvider();
-    await provider.close();
+    await provider.disconnect();
   });
 });
 

@@ -82,9 +82,9 @@ describe("Libraries", function() {
     contractInstance = await promiEvent;
   });
 
-  after("cleanup", function() {
+  after("cleanup", async () => {
     web3.setProvider(null);
-    provider.close(() => {});
+    await provider.disconnect();
   });
 
   describe("msg.sender for external library function calls", async() => {

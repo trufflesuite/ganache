@@ -231,7 +231,7 @@ function tests(ganacheProviderOptions) {
     }
 
     after("shutdown", function(done) {
-      context.provider.close(done);
+      context.provider.disconnect().then(done);
     });
   });
 }
