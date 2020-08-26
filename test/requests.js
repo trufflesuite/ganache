@@ -99,9 +99,7 @@ const tests = function(web3) {
         params: []
       });
 
-      // For legacy reasons, we return 1337 regardless of the actual chain id
-      // next major release this will be fixed.
-      assert.strictEqual(result.result, "0x539");
+      assert.strictEqual(result.result, "0x1");
     });
   });
 
@@ -1247,7 +1245,8 @@ const tests = function(web3) {
   describe("contract scenario (raw tx)", function() {
     const tx = new Transaction({
       data: contract.binary,
-      gasLimit: to.hex(3141592)
+      gasLimit: to.hex(3141592),
+      chainId: 1
     });
     const privateKey = Buffer.from("e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109", "hex");
     const senderAddress = "0x" + utils.privateToAddress(privateKey).toString("hex");
@@ -1699,7 +1698,8 @@ describe("Provider:", function() {
     Ganache.provider({
       legacyInstamine: true,
       logger: logger,
-      seed: "1337"
+      seed: "1337",
+      chainId: 1
       // so that the runtime errors on call test passes
     })
   );
@@ -1722,7 +1722,8 @@ describe("HTTP Server:", function() {
     server = Ganache.server({
       legacyInstamine: true,
       logger: logger,
-      seed: "1337"
+      seed: "1337",
+      chainId: 1
       // so that the runtime errors on call test passes
     });
 
@@ -1747,7 +1748,8 @@ describe("WebSockets Server:", function() {
     server = Ganache.server({
       legacyInstamine: true,
       logger: logger,
-      seed: "1337"
+      seed: "1337",
+      chainId: 1,
       // so that the runtime errors on call test passes
     });
     await pify(server.listen.bind(server))(port);
