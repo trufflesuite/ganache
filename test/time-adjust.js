@@ -65,22 +65,21 @@ describe("Time adjustment", function() {
   });
 
   it("should revert time adjustments when snapshot is reverted", async function() {
-    const { provider, send } = context;
+    const { send } = context;
 
-    const originalTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
+    const {result: originalTimeAdjustment} = await send("evm_increaseTime", 0);
 
     await send("evm_snapshot");
     // jump forward another 5 hours
-    await send("evm_increaseTime", SECONDSTOJUMP);
+    const {result: currentTimeAdjustment} = await send("evm_increaseTime", SECONDSTOJUMP);
 
-    const currentTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
     assert.strictEqual(currentTimeAdjustment, originalTimeAdjustment + SECONDSTOJUMP);
 
     // Mine a block so new time is recorded.
     await send("evm_mine", null);
     await send("evm_revert", 1);
 
-    const revertedTimeAdjustment = provider.manager.state.blockchain.timeAdjustment;
+    const {result: revertedTimeAdjustment } = await send("evm_increaseTime", 0);
     assert.strictEqual(revertedTimeAdjustment, originalTimeAdjustment);
   });
 
