@@ -917,7 +917,7 @@ export default class EthereumApi implements types.Api {
     }
 
     if (fromString == null) {
-      throw new Error("unknown account");
+      throw new Error("from not found; is required");
     }
 
     // Error checks. It's possible to JSON.stringify a Buffer to JSON.
