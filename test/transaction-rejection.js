@@ -69,7 +69,7 @@ describe("Transaction rejection", function() {
       {
         gas: 0xffffffff
       },
-      "Exceeds block gas limit"
+      "exceeds block gas limit"
     );
   });
 
