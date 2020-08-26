@@ -26,7 +26,8 @@ describe("Transaction rejection", function() {
     await web3.eth.personal.lockAccount(accounts[1]);
   });
 
-  it("should reject transaction if nonce is incorrect", async function() {
+  // skipping because too-high nonces are allowed now.
+  it.skip("should reject transaction if nonce is incorrect", async function() {
     await testTransactionForRejection(
       {
         nonce: 0xffff
