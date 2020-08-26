@@ -60,7 +60,7 @@ describe("Transaction rejection", function() {
       {
         from: accounts[1]
       },
-      "signer account is locked"
+      "authentication needed: password or unlock"
     );
   });
 
