@@ -138,7 +138,9 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       { // create first block
         let firstBlockTime: number;
         if (options.time != null) {
-          firstBlockTime = this.setTime(+options.time);
+          const t = +options.time;
+          firstBlockTime = Math.floor(t / 1000);
+          this.setTime(t);
         } else {
           firstBlockTime = this.#currentTime();
         }
@@ -377,10 +379,17 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
   #timeAdjustment: number = 0;
 
+  /**
+   * Returns the timestamp, adjusted by the timeAdjustent offset, in seconds.
+   */
   #currentTime = () => {
-    return Math.floor(Date.now() / 1000) + this.#timeAdjustment;
+    return Math.floor((Date.now() + this.#timeAdjustment) / 1000);
   };
 
+  /**
+   * @param seconds
+   * @returns the total time offset *in milliseconds*
+   */
   public increaseTime(seconds: number) {
     if (seconds < 0) {
       seconds = 0;
@@ -388,8 +397,12 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     return this.#timeAdjustment += seconds;
   }
   
+  /**
+   * @param seconds
+   * @returns the total time offset *in milliseconds*
+   */
   public setTime(timestamp: number) {
-    return this.#timeAdjustment = Math.floor((timestamp - Date.now()) / 1000);
+    return this.#timeAdjustment = timestamp - Date.now();
   }
 
   // TODO(perf): this.#snapshots is a potential unbound memory suck. Caller could call `evm_snapshot` over and over

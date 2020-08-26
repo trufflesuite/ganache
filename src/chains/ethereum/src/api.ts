@@ -283,7 +283,7 @@ export default class EthereumApi implements types.Api {
    * @returns Returns the total time adjustment, in seconds.
    */
   async evm_increaseTime(seconds: number) {
-    return this.#blockchain.increaseTime(seconds);
+    return Math.floor(this.#blockchain.increaseTime(seconds * 1000) / 1000);
   }
 
   /**
@@ -297,7 +297,7 @@ export default class EthereumApi implements types.Api {
    * @returns The amount of *seconds* between the given timestamp and now.
    */
   async evm_setTime(time?: Date | number) {
-    return this.#blockchain.setTime(+time);
+    return Math.floor(this.#blockchain.setTime(+time) / 1000);
   }
 
   /**

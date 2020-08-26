@@ -14,8 +14,7 @@ describe("api", () => {
         // bitwise tricks since those won't work on numbers greater than 2**31.
 
         const provider = await getProvider();
-        // Multiple by 1000 because ganache keeps track of time in seconds
-        const bin32 = (2**31) * 1000;
+        const bin32 = 2**31;
         const now = Date.now();
         // fast forward time by bin32, plus 2 seconds, in case testing is slow
         const newTime = bin32 + now + 2;
