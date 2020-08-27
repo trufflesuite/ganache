@@ -1404,8 +1404,7 @@ export default class EthereumApi implements types.Api {
       // gas estimates and eth_calls aren't subject to regular block gas limits
       gasLimit: transaction.gas
     });
-    const result = await blockchain.simulateTransaction(transaction, parentBlock, newBlock);
-    return Data.from(result.execResult.returnValue || "0x");
+    return blockchain.simulateTransaction(transaction, parentBlock, newBlock);
   }
   //#endregion
 

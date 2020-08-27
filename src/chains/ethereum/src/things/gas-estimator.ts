@@ -1,6 +1,6 @@
 import Blockchain from "../blockchain";
 import Transaction from "./transaction";
-import {Data, Quantity} from "@ganache/utils/src/things/json-rpc";
+import {Quantity} from "@ganache/utils";
 import Tag from "./tags";
 import BN from "bn.js";
 const MULTIPLE = 64 / 63;
