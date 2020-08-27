@@ -5,6 +5,7 @@ import {utils} from "@ganache/utils";
 import Transaction from "../things/transaction";
 import {Data, Quantity} from "@ganache/utils";
 import {GAS_LIMIT, INTRINSIC_GAS_TOO_LOW} from "../things/errors";
+import CodedError, { ErrorCodes } from "../things/coded-error";
 
 export type TransactionPoolOptions = {
   /**
@@ -276,13 +277,13 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
     if (Quantity.from(transaction.gasLimit) > this.#options.gasLimit) {
-      return new Error(GAS_LIMIT);
+      return new CodedError(GAS_LIMIT, ErrorCodes.INVALID_INPUT);
     }
 
     // Should supply enough intrinsic gas
     const gas = transaction.calculateIntrinsicGas();
     if (Quantity.from(transaction.gasLimit).toBigInt() < gas) {
-      return new Error(INTRINSIC_GAS_TOO_LOW);
+      return new CodedError(INTRINSIC_GAS_TOO_LOW, ErrorCodes.INVALID_INPUT);
     }
 
     return null;

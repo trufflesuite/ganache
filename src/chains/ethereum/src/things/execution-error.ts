@@ -3,6 +3,7 @@ import Transaction from "./transaction";
 import { VM_EXCEPTION } from "./errors";
 import { Data } from "@ganache/utils";
 import { rawDecode } from "ethereumjs-abi";
+import CodedError, { ErrorCodes } from "./coded-error";
 
 const REVERT_REASON = Buffer.from("08c379a0", "hex"); // keccak("Error(string)").slice(0, 4)
 
@@ -11,8 +12,8 @@ export enum RETURN_TYPES {
   RETURN_VALUE
 }
 
-export default class ExecutionError extends Error {
-  public code: -32000;
+export default class ExecutionError extends CodedError {
+  public code: typeof ErrorCodes.VM_ERROR;
   public data: {
     hash: string,
     programCounter: number,
@@ -21,14 +22,15 @@ export default class ExecutionError extends Error {
     message: string
   }
   constructor(transaction: Transaction, result: EVMResult, returnType: RETURN_TYPES) {
-    super();
+    const execResult = result.execResult;
+    const error = execResult.exceptionError.error;
+    let message = VM_EXCEPTION + error;
+
+    super(message, ErrorCodes.VM_ERROR);
 
     Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
 
-    const execResult = result.execResult;
-    const error = execResult.exceptionError.error;
-    let message = VM_EXCEPTION + error;
     const returnValue = execResult.returnValue;
     const hash = Data.from(transaction.hash(), 32).toString();
     let reason: string | null;
@@ -40,7 +42,6 @@ export default class ExecutionError extends Error {
     }
 
     this.message = message;
-    this.code = -32000;
     this.data = {
       hash: hash,
       programCounter: execResult.runState.programCounter,

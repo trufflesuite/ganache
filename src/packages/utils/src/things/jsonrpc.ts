@@ -50,6 +50,9 @@ namespace JsonRpc {
         (details as any)[name] = (error as any)[name];
       }
     });
+    if (typeof details.code !== "number") {
+      details.code = -32700; // JSON-RPC Parse error
+    }
     if (result !== undefined) {
       return {
         id,

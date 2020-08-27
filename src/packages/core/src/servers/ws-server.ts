@@ -34,32 +34,31 @@ export default class WebsocketServer {
         connections.set(ws, new Set());
       },
 
-      message: (ws: GanacheWebSocket, message: ArrayBuffer, isBinary: boolean) => {
+      message: async (ws: GanacheWebSocket, message: ArrayBuffer, isBinary: boolean) => {
         let payload: ReturnType<typeof connector.parse>;
+        const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
         try {
           payload = connector.parse(Buffer.from(message));
-        } catch (e) {
-          ws.end(WebSocketCloseCodes.CLOSE_PROTOCOL_ERROR, "Received a malformed frame: " + e.message);
+        } catch (err) {
+          const response = connector.formatError(err, payload);
+          ws.send(response, useBinary, true);
           return;
         }
+
+        let response: uWS.RecognizedString;
         
-        connector.handle(payload, ws).then(({value}) => {
+        try {
+          const {value} = await connector.handle(payload, ws);
+          
           // The socket may have closed while we were waiting for the response
           // Don't bother trying to send to it if it was.
           if (ws.closed) return;
 
-          const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
-
           const resultEmitter = value as MergePromiseT<typeof value>;
-          resultEmitter.then(result => {
-            if (ws.closed) return;
+          const result = await resultEmitter;
+          if (ws.closed) return;
 
-            const message = connector.format(result, payload);
-            ws.send(message, useBinary, true);
-          }, err => {
-            const message = connector.formatError(err, payload);
-            ws.send(message, useBinary, true);
-          });
+          response = connector.format(result, payload);
           
           // if the result is an emitter listen to its `"message"` event
           if (resultEmitter instanceof PromiEvent) {
@@ -73,14 +72,14 @@ export default class WebsocketServer {
             // keep track of listeners to dispose off when the ws disconnects
             connections.get(ws).add(resultEmitter.dispose);
           }
-        }).catch(err => {
-          if (ws.closed) return;
-          
-          const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
+        } catch(err) {
+          // ensure the connector's `handle` fn doesn't throw outside of a Promise
 
-          const message = connector.formatError(err, payload);
-          ws.send(message, useBinary, true);
-        })
+          if (ws.closed) return;
+          response = connector.formatError(err, payload);
+        }
+
+        ws.send(response, useBinary, true);
       },
 
       drain: (ws: WebSocket) => {

@@ -21,8 +21,10 @@ export interface Connector<ApiImplementation extends Api, RequestFormat, Respons
    * @param payload
    */
   handle:
-    | ((payload: RequestFormat, connection: HttpRequest) => Promise<{value: ReturnType<Api[KnownKeys<Api>]>}>)
-    | ((payload: RequestFormat, connection: WebSocket) => Promise<{value: ReturnType<Api[KnownKeys<Api>]>}>);
+    | ((payload: RequestFormat, connection: HttpRequest) =>   Promise<{value: ReturnType<Api[KnownKeys<Api>]>}>)
+    | ((payload: RequestFormat[], connection: HttpRequest) => Promise<{value: ReturnType<Api[KnownKeys<Api>]>[]}>)
+    | ((payload: RequestFormat, connection: WebSocket) =>     Promise<{value: ReturnType<Api[KnownKeys<Api>]>}>)
+    | ((payload: RequestFormat[], connection: WebSocket) =>   Promise<{value: ReturnType<Api[KnownKeys<Api>]>[]}>);
 
   /**
    * Formats the response (returned from `handle`)

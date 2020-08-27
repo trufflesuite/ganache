@@ -4,7 +4,7 @@ import EthereumApi from "./api";
 import {JsonRpcTypes, types, utils} from "@ganache/utils";
 import Provider from "./provider";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
-import { PromiEvent } from "@ganache/utils";
+import CodedError, { ErrorCodes } from "./things/coded-error";
 
 function isHttp(connection: HttpRequest | WebSocket): connection is HttpRequest {
   return connection.constructor.name === "uWS.HttpRequest"
@@ -14,7 +14,7 @@ export type EthereumProvider = Provider;
 export const EthereumProvider = Provider;
 
 export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "close">
-  implements types.Connector<EthereumApi, JsonRpcTypes.Request<EthereumApi>, JsonRpcTypes.Response> {
+  implements types.Connector<EthereumApi, JsonRpcTypes.Request<EthereumApi> | JsonRpcTypes.Request<EthereumApi>[], JsonRpcTypes.Response> {
 
   #provider: Provider;
   
@@ -33,29 +33,54 @@ export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "clos
   }
 
   parse(message: Buffer) {
-    return JSON.parse(message) as JsonRpcTypes.Request<EthereumApi>;
+    try {
+      return JSON.parse(message) as JsonRpcTypes.Request<EthereumApi>;
+    } catch(e) {
+      throw new CodedError(e.message, ErrorCodes.PARSE_ERROR);
+    }
   }
 
-  handle(payload: JsonRpcTypes.Request<EthereumApi>, connection: HttpRequest | WebSocket) {
+  handle(payload: JsonRpcTypes.Request<EthereumApi> | JsonRpcTypes.Request<EthereumApi>[], connection: HttpRequest | WebSocket) {
+    if (Array.isArray(payload)) {
+      // handle batch transactions
+      const promises = payload.map(payload => this.#handle(payload, connection)
+        .then(({value}) => value).catch(e => e));
+      return Promise.resolve({value: Promise.all(promises)} as any);
+    } else {
+      return this.#handle(payload, connection);
+    }
+  }
+  #handle = (payload: JsonRpcTypes.Request<EthereumApi>, connection: HttpRequest | WebSocket) => {
     const method = payload.method;
     if (method === "eth_subscribe") {
       if (isHttp(connection)) {
-        const err = new Error("notifications not supported") as Error & {code: number};
-        err.code = -32000;
-        return Promise.reject(err);
+        return Promise.reject(new CodedError("notifications not supported", ErrorCodes.METHOD_NOT_SUPPORTED));
       }
     }
     const params = payload.params as Parameters<EthereumApi[typeof method]>;
     return this.#provider.requestRaw({method, params});
   }
 
-  format(result: any, payload: JsonRpcTypes.Request<EthereumApi>): RecognizedString {
-    const json = JsonRpcTypes.Response(payload.id, result);
-    return JSON.stringify(json);
+  format(result: any, payload: JsonRpcTypes.Request<EthereumApi>): RecognizedString;
+  format(results: any[], payloads: JsonRpcTypes.Request<EthereumApi>[]): RecognizedString;
+  format(results: any | any[], payload: JsonRpcTypes.Request<EthereumApi> | JsonRpcTypes.Request<EthereumApi>[]): RecognizedString {
+    if (Array.isArray(payload)) {
+      return JSON.stringify(payload.map((payload, i) => {
+        const result = results[i]
+        if (result instanceof Error) {
+          return JsonRpcTypes.Error(payload.id, result as any);
+        } else {
+          return JsonRpcTypes.Response(payload.id, result);
+        }
+      }));
+    } else {
+      const json = JsonRpcTypes.Response(payload.id, results);
+      return JSON.stringify(json);
+    }
   }
 
   formatError(error: Error & {code: number}, payload: JsonRpcTypes.Request<EthereumApi>): RecognizedString {
-    const json = JsonRpcTypes.Error(payload.id, error);
+    const json = JsonRpcTypes.Error(payload && payload.id ? payload.id : null, error);
     return JSON.stringify(json);
   }
 

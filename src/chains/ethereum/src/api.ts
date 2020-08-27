@@ -20,6 +20,7 @@ import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
 import EthereumAccount from "ethereumjs-account";
 import { Block } from "./components/block-manager";
+import CodedError, { ErrorCodes } from "./things/coded-error";
 //#endregion
 
 //#region Constants
@@ -1162,9 +1163,7 @@ export default class EthereumApi implements types.Api {
         return promiEvent;
       }
       default:
-        const err  = new Error("unsupported subscription type");
-        (err as any).code = -32000;
-        throw err;
+        throw new CodedError(`no \"${subscriptionName}\" subscription in eth namespace`, ErrorCodes.METHOD_NOT_FOUND);
     }
   }
 

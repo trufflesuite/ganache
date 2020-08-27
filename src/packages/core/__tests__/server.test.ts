@@ -292,7 +292,8 @@ describe("server", () => {
       }
     });
 
-    it("fails to subscribe over HTTP", async () => {
+
+    it("returns 200/OK for RPC errors over HTTP", async () => {
       await setup();
       const jsonRpcJson: any = {
         jsonrpc: "2.0",
@@ -303,10 +304,49 @@ describe("server", () => {
       try {
         // TODO: should we expect a 200 OK response with an `error` property
         //  in a json rpc body? Probably, because we _do_ already send one. :-/
-        await assert.rejects(request.post("http://localhost:" + port).send(jsonRpcJson), {
-          status: 400,
-          message: "Bad Request"
+        const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
+        assert.strictEqual(response.status, 200);
+        assert.strictEqual(JSON.parse(response.text).error.message, "notifications not supported");
+      } finally {
+        await teardown();
+      }
+    });
+
+    it("handles batched json-rpc requests/responses", async () => {
+      await setup();
+      const jsonRpcJson: any = [{
+        jsonrpc: "2.0",
+        id: "1",
+        method: "net_version",
+        params: []
+      }, {
+        jsonrpc: "2.0",
+        id: "2",
+        method: "eth_chainId",
+        params: []
+      }, {
+        jsonrpc: "2.0",
+        id: "3",
+        method: "eth_subscribe", // this one fails over HTTP
+        params: ["newHeads"]
+      }];
+      try {
+        const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
+        const json = JSON.parse(response.text);
+        assert.deepStrictEqual(json[0], {
+          jsonrpc: "2.0",
+          id: "1",
+          result: "1234"
         });
+        assert.deepStrictEqual(json[1], {
+          jsonrpc: "2.0",
+          id: "2",
+          result: "0x539"
+        });
+        assert.deepStrictEqual(json[2].jsonrpc, "2.0");
+        assert.deepStrictEqual(json[2].id, "3");
+        assert.deepStrictEqual(json[2].error.code, -32004);
+        assert.deepStrictEqual(json[2].error.message, "notifications not supported");
       } finally {
         await teardown();
       }
@@ -526,13 +566,14 @@ describe("server", () => {
 
     it("doesn't crash when sending bad data over websocket", async () => {
       const ws = new WebSocket("ws://localhost:" + port);
-      const result: number = await new Promise(resolve => {
+      const result = await new Promise<any>(resolve => {
         ws.on("open", () => {
-          ws.on("close", resolve);
+          ws.on("message", resolve);
           ws.send("What is it?");
         });
       });
-      assert.strictEqual(result, 1002, "Did not receive expected close code 1002");
+      const json = JSON.parse(result);
+      assert.strictEqual(json.error.code, -32700);
     });
 
     it("doesn't crash when the connection is closed while a request is in flight", async () => {
@@ -599,6 +640,64 @@ describe("server", () => {
       assert.strictEqual(result, message);
 
       provider.requestRaw = oldRequestRaw;
+    });
+
+    it("handles batched json-rpc requests/responses", async () => {
+      const jsonRpcJson: any = [{
+        jsonrpc: "2.0",
+        id: "1",
+        method: "net_version",
+        params: []
+      }, {
+        jsonrpc: "2.0",
+        id: "2",
+        method: "eth_chainId",
+        params: []
+      }, {
+        jsonrpc: "2.0",
+        id: "3",
+        method: "eth_subscribe", // this one works here in WS-land
+        params: ["newHeads"]
+      }];
+
+      const ws = new WebSocket("ws://localhost:" + port);
+      const response: any = await new Promise(resolve => {
+        ws.on("open", () => {
+          ws.send(JSON.stringify(jsonRpcJson));
+        });
+        ws.on("message", resolve);
+      });
+      ws.close();
+
+      const json = JSON.parse(response);
+      assert.deepStrictEqual(json, [
+        {
+          jsonrpc: "2.0",
+          id: "1",
+          result: "1234"
+        }, {
+          jsonrpc: "2.0",
+          id: "2",
+          result: "0x539"
+        }, {
+          jsonrpc: "2.0",
+          id: "3",
+          result: "0x1"
+        }
+      ]);
+    });
+
+    it("handles invalid json-rpc JSON", async () => {
+      const ws = new WebSocket("ws://localhost:" + port);
+      const response = await new Promise<any>(resolve => {
+        ws.on("open", () => {
+          ws.send(JSON.stringify(null));
+        });
+        ws.on("message", (data) => {
+          resolve(JSON.parse(data.toString()));
+        });
+      });
+      assert.strictEqual(response.error.code, -32700);
     });
 
     it("doesn't crash when the connection is closed while a subscription is in flight", async () => {

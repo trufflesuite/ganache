@@ -155,7 +155,7 @@ export default class HttpServer {
             const data = connector.formatError(error, payload);
             sendResponse(
               response,
-              HttpResponseCodes.BAD_REQUEST,
+              HttpResponseCodes.OK,
               ContentTypes.JSON,
               data,
               writeHeaders
