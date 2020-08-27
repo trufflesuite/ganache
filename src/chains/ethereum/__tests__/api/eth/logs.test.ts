@@ -44,7 +44,7 @@ describe("api", () => {
           }
 
           it("subscribes and unsubscribes", async () => {
-            const subscriptionId = await provider.send("eth_subscribe", ["logs", {fromBlock: ""}]);
+            const subscriptionId = await provider.send("eth_subscribe", ["logs"]);
 
             assert(subscriptionId != null);
             assert.notStrictEqual(subscriptionId, false);
@@ -79,7 +79,7 @@ describe("api", () => {
           assert.strictEqual(logs.length, 1);
         });
 
-        it("should return the code at the deployed block number", async () => {
+        it("should return the logs", async () => {
           await provider.send("eth_subscribe", ["newHeads"]);
           const numberOfLogs = 4;
           const data =  "0x" + contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] + numberOfLogs.toString().padStart(64, "0");

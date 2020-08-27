@@ -98,7 +98,7 @@ export default class Server<T extends ServerOptions = ServerOptions> {
         if (callbackIsFunction) callback!(null);
       } else {
         this.#status = Status.closed;
-        const err = new Error(`Failed to listen on port: ${port}.`);
+        const err = new Error(`listen EADDRINUSE: address already in use 127.0.0.1:${port}.`);
         if (callbackIsFunction) callback!(err);
         else throw err;
       }

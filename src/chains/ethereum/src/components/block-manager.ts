@@ -27,20 +27,24 @@ export default class BlockManager extends Manager<Block> {
   public pending: Block;
 
   #options: {common: Common};
+  #blockIndexes: LevelUp;
 
-  constructor(blockchain: Blockchain, base: LevelUp, options: {common: Common}) {
+  static async initialize(blockIndexes: LevelUp, base: LevelUp, options: {common: Common}) {
+    const bm = new BlockManager(blockIndexes, base, options);
+    await bm.updateTaggedBlocks();
+    return bm;
+  }
+
+  constructor(blockIndexes: LevelUp, base: LevelUp, options: {common: Common}) {
     super(base, Block, options);
 
     this.#options = options;
-
-    // blockchain.on("open", () => {
-    //   // TODO: get the first key, set as "earliest"
-    //   // TODO: get the last key, set as "latest"
-    // });
+    this.#blockIndexes = blockIndexes;
   }
 
   /**
-   * Gets or creates the next block (which might be the *pending* block). Uses the values in the optional `header` object to create the block
+   * Gets or creates the next block (which might be the *pending* block). Uses the values in the optional `header`
+   * object to create the block
    * @param header The values to set on the block's header. These typically come from the parent block.
    */
   next(header?: {}) {
@@ -59,7 +63,8 @@ export default class BlockManager extends Manager<Block> {
         // the key is probably a hex string, let nature takes its course.
         break;
       case Tag.PENDING:
-        return this.pending;
+        // TODO: build a real pending block!
+        return this.createBlock(this.latest.value.header);
       case Tag.EARLIEST:
         return this.earliest;
       default:
@@ -97,7 +102,7 @@ export default class BlockManager extends Manager<Block> {
   }
 
   async getNumberFromHash(hash: string | Buffer | Tag) {
-    return this.base.get(Data.from(hash).toBuffer()) as Promise<Buffer>;
+    return this.#blockIndexes.get(Data.from(hash).toBuffer()) as Promise<Buffer>;
   }
 
   async getByHash(hash: string | Buffer | Tag) {
@@ -117,7 +122,10 @@ export default class BlockManager extends Manager<Block> {
       if (block) return block;
     }
 
-    return super.get(tagOrBlockNumber);
+    const block = await super.get(tagOrBlockNumber);
+    if (block) return block;
+
+    throw new Error("header not found");
   }
 
   /**
@@ -134,8 +142,34 @@ export default class BlockManager extends Manager<Block> {
     }
     const secondaryKey = header.hash();
     const value = blockValue.serialize(true);
-    await Promise.all([super.set(secondaryKey, key), super.set(key, value)]);
+    await Promise.all([this.#blockIndexes.put(secondaryKey, key), super.set(key, value)]);
     return block;
+  }
+
+  updateTaggedBlocks() {
+    return new Promise<Block>((resolve, reject) => {
+      this.base.createValueStream({limit: 1})
+        .on("data",  (data: Buffer) => {
+          this.earliest = new Block(data, this.#options);
+        })
+        .on("error",  (err: Error) => {
+          reject(err);
+        })
+        .on("end",  () => {
+          resolve();
+        });
+
+      this.base.createValueStream({reverse: true, limit: 1})
+        .on("data",  (data: Buffer) => {
+          this.latest = new Block(data, this.#options);
+        })
+        .on("error",  (err: Error) => {
+          reject(err);
+        })
+        .on("end",  () => {
+          resolve();
+        });
+    })
   }
 }
 
@@ -157,7 +191,7 @@ export class Block {
     }
   }
 
-  getTxFn = (include = false): ((tx: Transaction) => {[key: string]: string} | Data) => {
+  getTxFn = (include = false): ((tx: Transaction) => {[key: string]: string | Data | Quantity} | Data) => {
     if (include) {
       return (tx: Transaction) => tx.toJSON(this);
     } else {

@@ -3,16 +3,6 @@ export {Apis, Flavors, FlavorMap} from "@ganache/flavors";
 
 export default interface ServerOptions extends ProviderOptions {
   /**
-   * The number of milliseconds of inactivity the http server needs to wait for
-   * additional incoming data, after it has finished writing the last response,
-   * before a socket will be destroyed. This does not affect the websocket
-   * server.
-   *
-   * A value of 0 will disable the keep-alive timeout behavior on incoming connections. Defaults to `5000`
-   */
-  keepAliveTimeout: number;
-
-  /**
    * Port number to listen on when running as a server. Defaults to `8545`
    */
   port: number;
@@ -21,14 +11,23 @@ export default interface ServerOptions extends ProviderOptions {
    * Enable a websocket server. This is `true` by default.
    */
   ws: boolean;
+
+  /**
+   * Wether or not websockets should response with binary data (ArrayBuffers) or
+   * strings.
+   * 
+   * Default is "auto", which responds using the same format as the incoming
+   * message that triggered the response.
+   */
+  wsBinary: "auto" | boolean;
 }
 
 export const getDefault = (options?: ServerOptions) => {
   return Object.assign(
     {
-      keepAliveTimeout: 5000,
       port: 8545,
-      ws: true
+      ws: true,
+      wsBinary: "auto"
     },
     ProviderOptions.getDefault(options as ProviderOptions)
   ) as ServerOptions;

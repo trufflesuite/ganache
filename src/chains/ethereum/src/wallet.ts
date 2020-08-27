@@ -11,6 +11,7 @@ import HDKey from "hdkey";
 import { alea as rng } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
+import {writeFileSync} from "fs";
 
 const SCRYPT_PARAMS = {
   dklen: 32,
@@ -136,6 +137,20 @@ export default class Wallet {
       unlockedAccounts.set(strAddress, account.privateKey);
     }
     //#endregion
+  
+    //#region save accounts to disk
+    if (opts.account_keys_path != null) {
+      const fileData = {
+        addresses: {} as {[address: string]: string},
+        private_keys: {} as {[address: string]: Data}
+      };
+      unlockedAccounts.forEach((privateKey, address) => {
+        fileData.addresses[address] = address;
+        fileData.private_keys[address] = privateKey;
+      });
+      writeFileSync(opts.account_keys_path, JSON.stringify(fileData));
+    }
+    //#endregion
   }
 
   #seedCounter = 0n;
@@ -234,7 +249,7 @@ export default class Wallet {
     };
   }
 
-  public async decrypt(keyfile: EncryptType, passphrase) {
+  public async decrypt(keyfile: EncryptType, passphrase: crypto.BinaryLike) {
     const crypt = keyfile.crypto;
 
     if (crypt.cipher !== CIPHER) {
@@ -295,6 +310,9 @@ export default class Wallet {
 
   public async unlockAccount(lowerAddress: string, passphrase: string, duration: number) {
     const encryptedKeyFile = this.encryptedKeyFiles.get(lowerAddress);
+    if (encryptedKeyFile == null) {
+      return false;
+    }
     const secretKey = await this.decrypt(encryptedKeyFile, passphrase);
 
     const existingTimer = this.lockTimers.get(lowerAddress);

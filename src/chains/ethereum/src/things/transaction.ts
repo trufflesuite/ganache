@@ -1,4 +1,4 @@
-import Errors from "./errors";
+import {INTRINSIC_GAS_TOO_LOW} from "./errors";
 import {Data, Quantity} from "@ganache/utils";
 import params from "./params";
 import {Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction} from "ethereumjs-tx";
@@ -10,6 +10,8 @@ import {Block} from "../components/block-manager";
 import TransactionReceipt from "./transaction-receipt";
 import Common from "ethereumjs-common";
 import { TransactionLog } from "./blocklogs";
+import Address from "./address";
+import ExecutionError, { RETURN_TYPES } from "./execution-error";
 
 type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
 
@@ -86,7 +88,9 @@ function fixProps(tx: any, data: any) {
       tx._chainId = chainId || 0;
     }
   });
+}
 
+function makeFake(tx: any, data: any){
   if (tx.isFake()) {
     /**
      * @prop {Buffer} from (read/write) Set from address to bypass transaction
@@ -118,45 +122,38 @@ function fixProps(tx: any, data: any) {
  * @param {Transaction} tx
  * @param {Object} [data]
  */
-function initData(tx: any, data: any) {
+function initData(tx: Transaction, data: any) {
   if (data) {
-    if (typeof data === "string") {
-      data = Data.from(data).toBuffer();
-      data = rlpDecode(data);
-    } else if (Buffer.isBuffer(data)) {
-      data = rlpDecode(data);
-    }
-    const self = tx;
-    if (Array.isArray(data)) {
-      // add in our hacked-in properties
-      // which is the index in the block the transaciton
-      // was mined in
-      if (data.length === tx._fields.length + 3) {
-        tx._index = data.pop();
-        tx._blockNum = data.pop();
-        tx._blockHash = data.pop();
+    let parts: Buffer[];
+    if (typeof data === "string") { //hex
+      parts = rlpDecode(Data.from(data).toBuffer()) as any as Buffer[];
+    } else if (Buffer.isBuffer(data)) { // Buffer
+      parts = rlpDecode(data) as any as Buffer[];
+    } else if (data.type === "Buffer") { // wire Buffer
+      // handle case where a Buffer is sent as `{data: "Buffer", data: number[]}`
+      // like if someone does `web3.eth.sendRawTransaction(tx.serialize())`
+      const obj = data.data;
+      const length = obj.length;
+      const buf = Buffer.allocUnsafe(length);
+      for (let i = 0; i < length; i++) {
+        buf[i] = obj[i];
       }
-      if (data.length > tx._fields.length) {
-        throw new Error("wrong number of fields in data");
-      }
-
-      // make sure all the items are buffers
-      data.forEach((d, i) => {
-        self[self._fields[i]] = ethUtil.toBuffer(d);
-      });
-    } else if ((typeof data === "undefined" ? "undefined" : typeof data) === "object") {
+      parts = rlpDecode(buf) as any as Buffer[];
+    } else if (Array.isArray(data)) { // rlpdecoded data
+      parts = data;
+    } else if (typeof data === "object") { // JSON
       const keys = Object.keys(data);
       tx._fields.forEach((field: any) => {
         if (keys.indexOf(field) !== -1) {
-          self[field] = data[field];
+          tx[field] = data[field];
         }
         if (field === "gasLimit") {
           if (keys.indexOf("gas") !== -1) {
-            self["gas"] = data["gas"];
+            tx["gas"] = data["gas"];
           }
         } else if (field === "data") {
           if (keys.indexOf("input") !== -1) {
-            self["input"] = data["input"];
+            tx["input"] = data["input"];
           }
         }
       });
@@ -165,11 +162,31 @@ function initData(tx: any, data: any) {
       // contain a `v` value with chainId in it already. If we do have a
       // data.chainId value let's set the interval v value to it.
       if (!tx._chainId && data && data.chainId != null) {
-        tx.raw[self._fields.indexOf("v")] = tx._chainId = data.chainId || 0;
+        tx.raw[tx._fields.indexOf("v")] = tx._chainId = data.chainId || 0;
       }
+      return;
     } else {
       throw new Error("invalid data");
     }
+
+    // add in our hacked-in properties
+    // which is the index in the block the transaciton
+    // was mined in
+    if (parts.length === tx._fields.length + 5) {
+      tx._from = parts.pop();
+      tx.type = parts.pop()[0];
+      tx._index = parts.pop();
+      tx._blockNum = parts.pop();
+      tx._blockHash = parts.pop();
+    }
+    if (parts.length > tx._fields.length) {
+      throw new Error("wrong number of fields in data");
+    }
+
+    // make sure all the items are buffers
+    parts.forEach((d, i) => {
+      tx[tx._fields[i]] = ethUtil.toBuffer(d);
+    });
   }
 }
 
@@ -204,6 +221,10 @@ class Transaction extends (EthereumJsTransaction as any) {
 
     fixProps(this, data);
     initData(this, data);
+
+    if (this.isFake()) {
+      makeFake(this, data)
+    }
   }
 
   static get types() {
@@ -244,13 +265,13 @@ class Transaction extends (EthereumJsTransaction as any) {
       }
       // Make sure we don't exceed uint64 for all data combinations.
       if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
-        throw new Error(Errors.INTRINSIC_GAS_TOO_LOW);
+        throw new Error(INTRINSIC_GAS_TOO_LOW);
       }
       gas += nonZeroBytes * params.TRANSACTION_DATA_NON_ZERO_GAS;
 
       let z = BigInt(dataLength) - nonZeroBytes;
       if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_ZERO_GAS < z) {
-        throw new Error(Errors.INTRINSIC_GAS_TOO_LOW);
+        throw new Error(INTRINSIC_GAS_TOO_LOW);
       }
       gas += z * params.TRANSACTION_DATA_ZERO_GAS;
     }
@@ -360,14 +381,16 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Object} block The block this Transaction appears in.
    */
   toJSON(block?: Block) {
+    const blockHash = block ? block.value.hash() : this._blockHash;
+    const blockNum = block ? block.value.header.number : this._blockNum;
     return {
-      hash: Data.from(this.hash()),
+      hash: Data.from(this.hash(), 32),
       nonce: Quantity.from(this.nonce),
-      blockHash: Data.from(block ? block.value.hash() : this._blockHash),
-      blockNumber: Data.from(block ? block.value.header.number : this._blockNum),
-      transactionIndex: Quantity.from(this._index),
-      from: Data.from(this.from),
-      to: Data.from(this.to),
+      blockHash: blockHash ? Data.from(blockHash, 32) : null,
+      blockNumber: blockNum ? Quantity.from(blockNum) : null,
+      transactionIndex: this._index ? Quantity.from(this._index) : null,
+      from: Address.from(this.from),
+      to: this.to.length === 0 ? null : Address.from(this.to),
       value: Quantity.from(this.value),
       gas: Quantity.from(this.gasLimit),
       gasPrice: Quantity.from(this.gasPrice),
@@ -385,7 +408,14 @@ class Transaction extends (EthereumJsTransaction as any) {
    */
   fillFromResult (result: RunTxResult) {
     const vmResult = result.execResult;
-    const status = vmResult.exceptionError ? ZERO_BUFFER : ONE_BUFFER;
+    const execException = vmResult.exceptionError;
+    let status: Buffer;
+    if (execException) {
+      status = ZERO_BUFFER;
+      this.execException = new ExecutionError(this, result, RETURN_TYPES.TRANSACTION_HASH);
+    } else {
+      status = ONE_BUFFER;
+    }
     const gasUsed = result.gasUsed.toBuffer();
     const logsBloom = result.bloom.bitvector;
     const logs = vmResult.logs || [] as TransactionLog[];
@@ -403,6 +433,8 @@ class Transaction extends (EthereumJsTransaction as any) {
   getLogs() {
     return this.#logs;
   };
+
+  public execException: ExecutionError = null;
 }
 
 export default Transaction;

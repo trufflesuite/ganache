@@ -9,7 +9,7 @@ export type TezosProvider = Provider;
 export const TezosProvider = Provider;
 
 export class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
-  implements types.Connector<TezosApi> {
+  implements types.Connector<TezosApi, unknown, unknown> {
   provider: Provider;
   #api: TezosApi;
 

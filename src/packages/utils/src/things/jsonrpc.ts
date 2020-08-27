@@ -41,15 +41,18 @@ namespace JsonRpc {
     };
   };
   export const Error = <T extends JSError & {code: number}>(id: string, error: T, result?: unknown): Error => {
-    type E = {[K in keyof T]: K extends string ? T[K] : never}
-    // Error objects are weird, `message`isn't included in the property names,
+    type E = {[K in keyof T]: K extends string ? T[K] : never};
+    // Error objects are weird, `message` isn't included in the property names,
     // so it is pulled out separately.
-    const details: E = {message: error.message} as any;
+    const details = {message: error.message} as E;
     Object.getOwnPropertyNames(error).forEach(name => {
       if (typeof name === "string") {
-        details[name] = error[name];
+        (details as any)[name] = (error as any)[name];
       }
     });
+    if (typeof details.code !== "number") {
+      details.code = -32700; // JSON-RPC Parse error
+    }
     if (result !== undefined) {
       return {
         id,

@@ -19,6 +19,10 @@ export default class Manager<T> {
       key = Data.from(key).toBuffer();
     }
 
+    if (key.length === 0) {
+      return null;
+    }
+
     return this.base.get(key).catch(e => {
       if (e.status === NOTFOUND) return null;
       throw e;

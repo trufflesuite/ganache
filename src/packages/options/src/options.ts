@@ -182,6 +182,17 @@ export interface Options {
   hardfork?: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier";
 
   legacyInstamine?: boolean;
+
+  /**
+   * Specifies a file to save accounts and private keys to, for testing.
+   * 
+   * Can be a filename or file descriptor.
+   * 
+   * If specifying a filename, the directory path must already exist.
+   * 
+   * See: https://nodejs.org/api/fs.html#fs_fs_writefilesync_file_data_options
+   */
+  account_keys_path?: string | number
 };
 
 const getDefault: (options?: Options) => Options = options => {

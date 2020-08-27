@@ -71,7 +71,7 @@ describe("api", () => {
       // make sure we can't use the account with bad passphrases
       const invalidPassphrases = ["this is not my passphrase", null, undefined, Buffer.allocUnsafe(0), 1, 0, Infinity, NaN];
       await Promise.all(invalidPassphrases.map(invalidPassphrase => {
-        return assert.rejects(provider.send("personal_sendTransaction", [transaction, invalidPassphrase]), {
+        return assert.rejects(provider.send("personal_sendTransaction", [transaction, invalidPassphrase as any]), {
           message: "could not decrypt key with given password"
         }, "Transaction should have rejected due to locked from account with wrong passphrase")
       }));

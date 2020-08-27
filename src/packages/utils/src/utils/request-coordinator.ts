@@ -71,8 +71,8 @@ export class RequestCoordinator {
   /**
    * Insert a new function into the queue.
    */
-  public queue = <T extends (...args: any) => any>(fn: T, thisArgument: any, argumentsList: Parameters<T>): Promise<{value: ReturnType<T>}> => {
-    return new Promise((resolve, reject) => {
+  public queue = <T extends (...args: unknown[]) => unknown>(fn: T, thisArgument: any, argumentsList: Parameters<T>) => {
+    return new Promise<{value: ReturnType<typeof fn>}>((resolve, reject) => {
         // const executor is `async` to force the return value into a Promise.
         const executor = async () => {
           try {

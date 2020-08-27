@@ -21,8 +21,12 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node }}
+    - name: Add msbuild to PATH
+      if: matrix.os == 'windows-2019'
+      uses: microsoft/setup-msbuild@v1.0.1
     - name: install node tools
       if: matrix.os == 'windows-2019'
+      # windows-build-tools@5.2.2 failed to install, so we use 4.0.0
       run: npm install --global --production windows-build-tools@4.0.0
     - name: install node-gyp
       if: matrix.os == 'windows-2019'

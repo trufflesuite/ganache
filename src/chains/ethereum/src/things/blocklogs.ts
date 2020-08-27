@@ -8,7 +8,29 @@ export type BlockLog = [removed: Buffer, transactionIndex: Buffer, transactionHa
 
 const _raw = Symbol("raw");
 const _logs = Symbol("logs");
-const _blockNumber = Symbol("blockNumber");
+
+const filterByTopic = (expectedTopics: (string | string[])[], logTopics: Buffer[]) => {
+  // Exclude log if its number of topics is less than the number expected
+  if (expectedTopics.length > logTopics.length) return false;
+
+  // for every expectedTopic, we must much the log topic in the same position
+  return expectedTopics.every((expectedTopic, logPosition) => {
+    // a `null` topic means "anything"
+    if (expectedTopic === null) return true;
+
+    let expectedTopicSet: string[];
+    if (!Array.isArray(expectedTopic)) {
+      return logTopics[logPosition].equals(Data.from(expectedTopic).toBuffer());
+    }
+    // an empty rule set means "anything"
+    if (expectedTopic.length === 0) return true;
+    expectedTopicSet = expectedTopic;
+
+    const logTopic = logTopics[logPosition];
+    // "OR" logic, e.g., [[A, B]] means log topic in the first position matching either "A" OR "B":
+    return expectedTopicSet.some(expectedTopic => logTopic.equals(Data.from(expectedTopic).toBuffer()));
+  });
+}
 
 export default class BlockLogs {
   [_raw]: [blockHash: Buffer, blockLog: BlockLog[]];
@@ -69,7 +91,7 @@ export default class BlockLogs {
   }
 
   [_logs]() {
-    const blockNumber = this[_blockNumber];
+    const blockNumber = this.blockNumber;
     const raw = this[_raw];
     const logs = raw[1];
     const l = this.length;
@@ -119,29 +141,6 @@ export default class BlockLogs {
     };
   }
 
-  #filterByTopic = (expectedTopics: (string | string[])[], logTopics: Buffer[]) => {
-    // Exclude log if its number of topics is less than the number expected
-    if (expectedTopics.length > logTopics.length) return false;
-
-    // for every expectedTopic, we must much the log topic in the same position
-    return expectedTopics.every((expectedTopic, logPosition) => {
-      // a `null` topic means "anything"
-      if (expectedTopic === null) return true;
-
-      let expectedTopicSet: string[];
-      if (!Array.isArray(expectedTopic)) {
-        return logTopics[logPosition] === Data.from(expectedTopic).toBuffer();
-      }
-      // an empty rule set means "anything"
-      if (expectedTopic.length === 0) return true;
-      expectedTopicSet = expectedTopic;
-
-      const logTopic = logTopics[logPosition].toString();
-      // "OR" logic, e.g., [[A, B]] means log topic in the first position matching either "A" OR "B":
-      return expectedTopicSet.some(expectedTopic => logTopic === expectedTopic);
-    });
-  }
-
   /**
    * Note: you must set `this.blockNumber: Quantity` first!
    * 
@@ -166,12 +165,12 @@ export default class BlockLogs {
       } else {
         for (const log of logs) {
           if (!expectedAddresses.some(address => address.equals(log.address))) continue;
-          if (this.#filterByTopic(expectedTopics, log.topics)) yield log.toJSON();
+          if (filterByTopic(expectedTopics, log.topics)) yield log.toJSON();
         }
       }
     } else if (expectedTopics.length !== 0) {
       for (const log of logs) {
-        if (this.#filterByTopic(expectedTopics, log.topics)) yield log.toJSON();
+        if (filterByTopic(expectedTopics, log.topics)) yield log.toJSON();
       }
     } else {
       yield* logs.toJSON();

@@ -158,7 +158,7 @@ describe("server", () => {
 
       try {
         await assert.rejects(setup, {
-          message: `Failed to listen on port: ${port}.`
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
         });
       } finally {
         await teardown();
@@ -174,7 +174,7 @@ describe("server", () => {
         const s = Ganache.server();
         const listen = promisify(s.listen.bind(s));
         await assert.rejects(listen(port), {
-          message: `Failed to listen on port: ${port}.`
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
         });
       } finally {
         await teardown();
@@ -189,7 +189,7 @@ describe("server", () => {
 
       try {
         await assert.rejects(s2.listen(port), {
-          message: `Failed to listen on port: ${port}.`
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
         });
       } catch (e) {
         // in case of failure, make sure we properly shut things down
@@ -292,7 +292,8 @@ describe("server", () => {
       }
     });
 
-    it("fails to subscribe over HTTP", async () => {
+
+    it("returns 200/OK for RPC errors over HTTP", async () => {
       await setup();
       const jsonRpcJson: any = {
         jsonrpc: "2.0",
@@ -303,10 +304,49 @@ describe("server", () => {
       try {
         // TODO: should we expect a 200 OK response with an `error` property
         //  in a json rpc body? Probably, because we _do_ already send one. :-/
-        await assert.rejects(request.post("http://localhost:" + port).send(jsonRpcJson), {
-          status: 400,
-          message: "Bad Request"
+        const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
+        assert.strictEqual(response.status, 200);
+        assert.strictEqual(JSON.parse(response.text).error.message, "notifications not supported");
+      } finally {
+        await teardown();
+      }
+    });
+
+    it("handles batched json-rpc requests/responses", async () => {
+      await setup();
+      const jsonRpcJson: any = [{
+        jsonrpc: "2.0",
+        id: "1",
+        method: "net_version",
+        params: []
+      }, {
+        jsonrpc: "2.0",
+        id: "2",
+        method: "eth_chainId",
+        params: []
+      }, {
+        jsonrpc: "2.0",
+        id: "3",
+        method: "eth_subscribe", // this one fails over HTTP
+        params: ["newHeads"]
+      }];
+      try {
+        const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
+        const json = JSON.parse(response.text);
+        assert.deepStrictEqual(json[0], {
+          jsonrpc: "2.0",
+          id: "1",
+          result: "1234"
         });
+        assert.deepStrictEqual(json[1], {
+          jsonrpc: "2.0",
+          id: "2",
+          result: "0x539"
+        });
+        assert.deepStrictEqual(json[2].jsonrpc, "2.0");
+        assert.deepStrictEqual(json[2].id, "3");
+        assert.deepStrictEqual(json[2].error.code, -32004);
+        assert.deepStrictEqual(json[2].error.message, "notifications not supported");
       } finally {
         await teardown();
       }
@@ -352,10 +392,10 @@ describe("server", () => {
 
       try {
         const provider = s.provider as EthereumProvider;
-        const oldRequest = provider.request;
+        const oldRequestRaw = provider.requestRaw;
         const req = request.post("http://localhost:" + port);
         const abortPromise = new Promise(resolve => {
-          provider.request = () => {
+          provider.requestRaw = () => {
             // abort the request object after intercepting the request
             req.abort();
             return new Promise(innerResolve => {
@@ -364,7 +404,7 @@ describe("server", () => {
               setImmediate(setImmediate, () => {
                 // resolve the `provider.send` to make sure the server can
                 // handle _not_ responding to a request that has been aborted:
-                innerResolve();
+                innerResolve( {value: Promise.resolve() as any});
                 // and finally, resolve the `abort` promise:
                 resolve();
               });
@@ -377,7 +417,7 @@ describe("server", () => {
         // wait for the server to react to the requesrt's `abort`
         await abortPromise;
 
-        provider.request = oldRequest;
+        provider.requestRaw = oldRequestRaw;
 
         // now make sure we are still up and running:
         await simpleTest();
@@ -526,20 +566,22 @@ describe("server", () => {
 
     it("doesn't crash when sending bad data over websocket", async () => {
       const ws = new WebSocket("ws://localhost:" + port);
-      const result: number = await new Promise(resolve => {
+      const result = await new Promise<any>(resolve => {
         ws.on("open", () => {
-          ws.on("close", resolve);
+          ws.on("message", resolve);
           ws.send("What is it?");
         });
       });
-      assert.strictEqual(result, 1002, "Did not receive expected close code 1002");
+      const json = JSON.parse(result);
+      assert.strictEqual(json.error.code, -32700);
     });
 
     it("doesn't crash when the connection is closed while a request is in flight", async () => {
       const provider = s.provider as EthereumProvider;
-      provider.request = async () => {
+      provider.requestRaw = async () => {
         // close our websocket after intercepting the request
         await s.close();
+        return {value: Promise.resolve(undefined) as any};
       };
 
       const ws = new WebSocket("ws://localhost:" + port);
@@ -564,26 +606,25 @@ describe("server", () => {
     it("handles PromiEvent messages", async () => {
       const provider = s.provider as EthereumProvider;
       const message = "I hope you get this message";
-      provider.request = () => {
+      const oldRequestRaw = provider.requestRaw.bind(provider);
+      provider.requestRaw = async () => {
         const promiEvent = new PromiEvent(resolve => {
-          resolve("0xsubscriptionId");
-          setImmediate(() => promiEvent.emit("message", message));
+          const subId = "0xsubscriptionId";
+          resolve(subId);
+          setImmediate(() => promiEvent.emit("message", {data: {subscription: subId, result: message}}));
         });
-        return promiEvent;
+        return {value: promiEvent as any};
       };
 
       const ws = new WebSocket("ws://localhost:" + port);
       const result = await new Promise(resolve => {
         ws.on("open", () => {
-          // If we get a message that means things didn't get closed as they
-          // should have OR they are closing too late for some reason and
-          // this test isn't testing anything.
           ws.on("message", data => {
-            const {result} = JSON.parse(data.toString());
+            const {result, params} = JSON.parse(data.toString());
             // ignore the initial response
             if (result === "0xsubscriptionId") return;
 
-            resolve(result);
+            resolve(params.result);
           });
 
           const subscribeJson: any = {
@@ -597,16 +638,76 @@ describe("server", () => {
       });
 
       assert.strictEqual(result, message);
+
+      provider.requestRaw = oldRequestRaw;
+    });
+
+    it("handles batched json-rpc requests/responses", async () => {
+      const jsonRpcJson: any = [{
+        jsonrpc: "2.0",
+        id: "1",
+        method: "net_version",
+        params: []
+      }, {
+        jsonrpc: "2.0",
+        id: "2",
+        method: "eth_chainId",
+        params: []
+      }, {
+        jsonrpc: "2.0",
+        id: "3",
+        method: "eth_subscribe", // this one works here in WS-land
+        params: ["newHeads"]
+      }];
+
+      const ws = new WebSocket("ws://localhost:" + port);
+      const response: any = await new Promise(resolve => {
+        ws.on("open", () => {
+          ws.send(JSON.stringify(jsonRpcJson));
+        });
+        ws.on("message", resolve);
+      });
+      ws.close();
+
+      const json = JSON.parse(response);
+      assert.deepStrictEqual(json, [
+        {
+          jsonrpc: "2.0",
+          id: "1",
+          result: "1234"
+        }, {
+          jsonrpc: "2.0",
+          id: "2",
+          result: "0x539"
+        }, {
+          jsonrpc: "2.0",
+          id: "3",
+          result: "0x1"
+        }
+      ]);
+    });
+
+    it("handles invalid json-rpc JSON", async () => {
+      const ws = new WebSocket("ws://localhost:" + port);
+      const response = await new Promise<any>(resolve => {
+        ws.on("open", () => {
+          ws.send(JSON.stringify(null));
+        });
+        ws.on("message", (data) => {
+          resolve(JSON.parse(data.toString()));
+        });
+      });
+      assert.strictEqual(response.error.code, -32700);
     });
 
     it("doesn't crash when the connection is closed while a subscription is in flight", async () => {
       const provider = s.provider as EthereumProvider;
       let promiEvent: PromiEvent<any>;
-      provider.request = () => {
+      provider.requestRaw = async () => {
         promiEvent = new PromiEvent(resolve => {
           resolve("0xsubscriptionId");
         });
-        return promiEvent;
+        return {value: promiEvent} as any;
       };
 
       const ws = new WebSocket("ws://localhost:" + port);
@@ -647,10 +748,10 @@ describe("server", () => {
     (IS_WINDOWS ? xit : it)("can handle backpressure", async () => {
       {
         // create tons of data to force websocket backpressure
-        const huge: any = {};
+        const huge = {};
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
-        (s.provider as EthereumProvider).request = async () => {
-          return huge;
+        (s.provider as EthereumProvider).requestRaw = async () => {
+          return {value: Promise.resolve(huge) as any};
         };
       }
 
@@ -672,7 +773,7 @@ describe("server", () => {
               } else {
                 reject(
                   new Error(
-                    "Possible false positive: Didn't detect backpressure " +
+                    "Possible false positive: Didn't detect backpressure" +
                       " before receiving a message. Ensure `s.provider.send` is" +
                       " sending enough data."
                   )

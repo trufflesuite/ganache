@@ -5,6 +5,7 @@ const toBigIntBE = require("bigint-buffer").toBigIntBE;
 export class Quantity extends BaseJsonRpcType {
   _nullable: boolean = false;
   public static from(value: number | bigint | string | Buffer, nullable = false) {
+    if (value instanceof Quantity) return value;
     const q = new _Quantity(value);
     q._nullable = nullable;
     return q;
