@@ -20,7 +20,7 @@ import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
 import EthereumAccount from "ethereumjs-account";
 import { Block } from "./components/block-manager";
-import GasEstimator from "./things/gas-estimator";
+import estimateGas from "./things/gas-estimator";
 import CodedError, { ErrorCodes } from "./things/coded-error";
 //#endregion
 
@@ -503,23 +503,53 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns the amount of gas used.
    */
-  async eth_estimateGas(transaction: any, blockNumber: Buffer | Tag | string = Tag.LATEST): Promise<Quantity> {
+  async eth_estimateGas(transaction: any, blockNumber: Buffer | Tag | string = Tag.LATEST) {
     const blockchain = this.#blockchain;
+    const blocks = blockchain.blocks;
+    const parentBlock = await blocks.get(blockNumber);
+    const parentHeader = parentBlock.value.header;
     const options = this.#options;
-    if (transaction.gasLimit) {
-      transaction.gas = transaction.gasLimit;
-    } else {
-      if (transaction.gas) {
-        transaction.gasLimit = transaction.gas;
-      } else {
-        // eth_estimateGas isn't subject to regular transaction gas limits
-        transaction.gas = transaction.gasLimit = options.callGasLimit.toString();
+
+    const generateVM = () => {
+      return blockchain.vm.copy();
+    };
+    return new Promise((resolve, reject) => {
+      const coinbase = blockchain.coinbase;
+      const tx = Transaction.fromJSON(transaction, this.#common, Transaction.types.fake);
+      if (tx._from == null) {
+        tx._from = blockchain.coinbase.toBuffer();
       }
-    }
-    const tx = Transaction.fromJSON(transaction, null, Transaction.types.none);
-    // const result = await GasEstimator.binSearch(blockchain, tx, blockNumber);
-    // return result;
-    return GasEstimator.binSearch(blockchain, tx, blockNumber);
+      if (tx.gasLimit.length !== 0) {
+        tx.gas = tx.gasLimit;
+      } else {
+        if (tx.gas.length !== 0) {
+          tx.gasLimit = tx.gas;
+        } else {
+          // eth_estimateGas isn't subject to regular transaction gas limits
+          tx.gas = tx.gasLimit = options.callGasLimit.toBuffer();
+        }
+      }
+      const newBlock = blocks.createBlock({
+        number: parentHeader.number,
+        timestamp: parentHeader.timestamp,
+        parentHash: parentHeader.parentHash,
+        coinbase: coinbase.toBuffer(),
+        // gas estimates and eth_calls aren't subject to regular block gas limits
+        gasLimit: tx.gas
+      });
+      newBlock.value.transactions.push(tx);
+      const runArgs = {
+        tx: tx,
+        block: newBlock.value,
+        skipBalance: true,
+        skipNonce: true
+      };
+      estimateGas(generateVM, runArgs, (err, result) => {
+        if(err) return reject(err);
+        resolve(Quantity.from(result.gasEstimate.toBuffer()));
+      });
+    });
+    // return GasEstimator.binSearch(blockchain, tx, blockNumber);
   }
 
   /**

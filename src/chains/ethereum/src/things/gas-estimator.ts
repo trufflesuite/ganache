@@ -1,12 +1,10 @@
-import Blockchain from "../blockchain";
-import Transaction from "./transaction";
-import {Quantity} from "@ganache/utils";
-import Tag from "./tags";
-import BN from "bn.js";
-const MULTIPLE = 64 / 63;
+import { Quantity } from "@ganache/utils";
+import { BN } from "ethereumjs-util";
+import ExecutionError, { RETURN_TYPES } from "./execution-error";
 
-const bn = (val = 0) => new BN(val);
+const bn = (val = 0) => new (BN as any)(val);
 const STIPEND = bn(2300);
+const MULTIPLE = 64 / 63;
 
 const check = (set) => (opname) => set.has(opname);
 const isCall = check(new Set(["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]));
@@ -14,50 +12,63 @@ const isCallOrCallcode = check(new Set(["CALL", "CALLCODE"]));
 const isCreate = check(new Set(["CREATE", "CREATE2"]));
 const isTerminator = check(new Set(["STOP", "RETURN", "REVERT", "INVALID", "SELFDESTRUCT"]));
 
-export default class GasEstimator {
-  static async getParentAndNewBlock(
-    blockchain: Blockchain,
-    transaction: Transaction,
-    blockNumber: Buffer | Tag | string = Tag.LATEST
-  ){
-    const blocks = blockchain.blocks;
-    const parentBlock = await blocks.get(blockNumber);
-    const parentHeader = parentBlock.value.header;
-
-    const newBlock = blocks.createBlock({
-      number: parentHeader.number,
-      timestamp: parentHeader.timestamp,
-      parentHash: parentHeader.parentHash,
-      gasLimit: transaction.gasLimit
-    });
-    return {parentBlock, newBlock};
+const stepTracker = () => {
+  const sysOps = [];
+  const allOps = [];
+  const preCompile = new Set();
+  let preCompileCheck = false;
+  let precompileCallDepth = 0;
+  return {
+    collect: (info) => {
+      if (preCompileCheck) {
+        if (info.depth === precompileCallDepth) {
+          // If the current depth is unchanged.
+          // we record its position.
+          preCompile.add(allOps.length - 1);
+        }
+        // Reset the flag immediately here
+        preCompileCheck = false;
+      }
+      if (isCall(info.opcode.name)) {
+        info.stack = info.stack.map((val) => val.clone());
+        preCompileCheck = true;
+        precompileCallDepth = info.depth;
+        sysOps.push({ index: allOps.length, depth: info.depth, name: info.opcode.name });
+      } else if (isCreate(info.opcode.name) || isTerminator(info.opcode.name)) {
+        sysOps.push({ index: allOps.length, depth: info.depth, name: info.opcode.name });
+      }
+      // This goes last so we can use the length for the index ^
+      allOps.push(info);
+    },
+    isPrecompile: (index) => preCompile.has(index),
+    done: () => !allOps.length || sysOps.length < 2 || !isTerminator(allOps[allOps.length - 1].opcode.name),
+    ops: allOps,
+    systemOps: sysOps
   }
+}
 
-  static async binSearch(
-    blockchain: Blockchain,
-    transaction: Transaction,
-    blockNumber: Buffer | Tag | string = Tag.LATEST
-  ): Promise<Quantity> {  
-    const isEnoughGas = async(gas) => {
-      transaction.gasLimit = gas.toBuffer();
-      const {newBlock, parentBlock} = await GasEstimator.getParentAndNewBlock(blockchain, transaction, blockNumber);
-      const result = await blockchain.simulateTransaction2(transaction, parentBlock, newBlock);
-      // return !result.vmerr && !result.execResult.exceptionError;
-      return !result.execResult.exceptionError;
-    };
-    const {newBlock, parentBlock} = await GasEstimator.getParentAndNewBlock(blockchain, transaction, blockNumber);
-    const result = await blockchain.simulateTransaction2(transaction, parentBlock, newBlock);
-    // const result = JSON.parse((await blockchain.simulateTransaction2(transaction, parentBlock, test)).toString());
-    // return blockchain.simulateTransaction(transaction, parentBlock, newBlock);
-    
-    const MAX = new BN(blockchain.blocks.latest.value.header.gasLimit);
-    // const MAX = Quantity.from(blockchain.blocks.latest.value.header.gasLimit).toBigInt();
-    // const MAX = hexToBn(runArgs.block.header.gasLimit);
+  const estimateGas = (generateVM, runArgs, callback) => {
+    exactimate(generateVM(), runArgs, (err, result) => {
+      if (err) return callback(err);
+      binSearch(generateVM, runArgs, result, (err, result) => {
+        if (err) return callback(err);
+        callback(null, result);
+      })
+    })
+  };
+
+  const binSearch = async (generateVM, runArgs, result, callback) => {
+    const MAX = Quantity.from(runArgs.block.header.gasLimit).toBigInt();
     const gasRefund = result.execResult.gasRefund;
-    let gasEstimate = result.gasUsed;
-    const startingGas = gasRefund ? gasEstimate.add(gasRefund) : gasEstimate;
+    const startingGas = gasRefund ? result.gasEstimate.add(gasRefund) : result.gasEstimate;
     const range = { lo: startingGas, hi: startingGas };
-
+    const isEnoughGas = async(gas) => {
+      const vm = generateVM(); // Generate fresh VM
+      runArgs.tx.gasLimit = gas.toBuffer();
+      const result = await vm.runTx(runArgs).catch((vmerr) => ({ vmerr }));
+      return !result.vmerr && !result.execResult.exceptionError;
+    };
+  
     if (!(await isEnoughGas(range.hi))) {
       do {
         range.hi = range.hi.muln(MULTIPLE);
@@ -72,25 +83,20 @@ export default class GasEstimator {
       }
       if (range.hi.gte(MAX)) {
         if (!(await isEnoughGas(range.hi))) {
-          throw new Error("gas required exceeds allowance or always failing transaction");
-          
-          // return Data.from("gas required exceeds allowance or always failing transaction");
+          return callback(new Error("gas required exceeds allowance or always failing transaction"));
         }
       }
     }
+  
+    result.gasEstimate = range.hi;
+    callback(null, result);
+  };
 
-    gasEstimate = range.hi;
-    return Quantity.from(`0x${gasEstimate.toString('hex')}`);
-  }
-
-  async guestimation(
-    blockchain: Blockchain,
-    transaction: Transaction,
-    blockNumber: Buffer | Tag | string = Tag.LATEST
-  ){
+  const exactimate = async (vm, runArgs, callback) => {
     const steps = stepTracker();
+    vm.on("step", steps.collect);
 
-    const Context = (index, fee?) => {
+    const Context = (index: number, fee?: BN) => {
       const base = index === 0;
       let start = index;
       let stop = 0;
@@ -210,55 +216,22 @@ export default class GasEstimator {
       return gas.cost.add(gas.sixtyFloorths);
     };
 
-    const {newBlock, parentBlock} = await GasEstimator.getParentAndNewBlock(blockchain, transaction, blockNumber);
-    // const result = await vm.runTx(runArgs).catch((vmerr) => ({ vmerr }));
-    const result = await blockchain.simulateTransaction2(transaction, parentBlock, newBlock);
-    let estimate;
-    if (result.execResult.exceptionError) {
-      throw new Error("test");
-      // return RuntimeError.fromResults([runArgs.tx], { results: [result] });
+    const result = await vm.runTx(runArgs).catch((vmerr) => ({ vmerr }));
+    const vmerr = result.vmerr;
+    if (vmerr) {
+      return callback(vmerr);
+    } else if (result.execResult.exceptionError) {
+      const error = new ExecutionError(runArgs.tx, result, RETURN_TYPES.RETURN_VALUE);
+      return callback(error, result);
     } else if (steps.done()) {
-      estimate = result.gasUsed;
+      const estimate = result.gasUsed;
+      result.gasEstimate = estimate;
     } else {
       const actualUsed = steps.ops[0].gasLeft.sub(steps.ops[steps.ops.length - 1].gasLeft);
       const sixtyFloorths = getTotal().sub(actualUsed);
-      estimate = result.gasUsed.add(sixtyFloorths);
+      result.gasEstimate = result.gasUsed.add(sixtyFloorths);
     }
-    return result;
+    callback(vmerr, result);
   }
-}
 
-const stepTracker = () => {
-  const sysOps = [];
-  const allOps = [];
-  const preCompile = new Set();
-  let preCompileCheck = false;
-  let precompileCallDepth = 0;
-  return {
-    collect: (info) => {
-      if (preCompileCheck) {
-        if (info.depth === precompileCallDepth) {
-          // If the current depth is unchanged.
-          // we record its position.
-          preCompile.add(allOps.length - 1);
-        }
-        // Reset the flag immediately here
-        preCompileCheck = false;
-      }
-      if (isCall(info.opcode.name)) {
-        info.stack = info.stack.map((val) => val.clone());
-        preCompileCheck = true;
-        precompileCallDepth = info.depth;
-        sysOps.push({ index: allOps.length, depth: info.depth, name: info.opcode.name });
-      } else if (isCreate(info.opcode.name) || isTerminator(info.opcode.name)) {
-        sysOps.push({ index: allOps.length, depth: info.depth, name: info.opcode.name });
-      }
-      // This goes last so we can use the length for the index ^
-      allOps.push(info);
-    },
-    isPrecompile: (index) => preCompile.has(index),
-    done: () => !allOps.length || sysOps.length < 2 || !isTerminator(allOps[allOps.length - 1].opcode.name),
-    ops: allOps,
-    systemOps: sysOps
-  };
-};
+  export default estimateGas;
