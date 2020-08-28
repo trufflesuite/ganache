@@ -977,7 +977,7 @@ export default class EthereumApi implements types.Api {
       tx.value = Buffer.from([0]);
     }
 
-    if (tx.to.length === 0 || tx.to.equals(BUFFER_ZERO)) {
+    if (tx.to.equals(BUFFER_ZERO)) {
       tx.to = BUFFER_EMPTY;
     }
 
