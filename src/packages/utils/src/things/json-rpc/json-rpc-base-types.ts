@@ -57,14 +57,7 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
               return Buffer.from(fixedValue, "hex");
             });
           } else {
-            // handle a string
-            toStrings.set(this, () => {
-              const buf = this.toBuffer();
-              return buf.toString("hex");
-            });
-            // treat string without `0x` as just plain text. This is probably
-            // wrong. TODO: look into this.
-            toBuffers.set(this, () => Buffer.from(value as string));
+            throw new Error(`cannot convert string value "${value}" into type \`${this.constructor.name}\`; strings must be hex-encoded and prefixed with "0x".`);
           }
           break;
         }
