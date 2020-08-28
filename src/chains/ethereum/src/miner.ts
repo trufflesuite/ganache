@@ -192,7 +192,7 @@ export default class Miner extends Emittery {
             blockData.gasUsed += gasUsed;
             
             // calculate receipt and tx tries
-            const receipt = best.fillFromResult(result);
+            const receipt = best.fillFromResult(result, blockData.gasUsed);
             const txKey = rlpEncode(numTransactions);
             promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
             promises.push(putInTrie(receiptTrie, txKey, receipt));
