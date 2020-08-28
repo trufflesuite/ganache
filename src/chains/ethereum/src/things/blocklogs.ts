@@ -3,7 +3,7 @@ import { Data, Quantity } from "@ganache/utils";
 import Address from "./address";
 
 const BUFFER_ZERO = Buffer.allocUnsafe(1).fill(0);
-export type TransactionLog = [address: Buffer, topics: Buffer[], data: Buffer[]]
+export type TransactionLog = [address: Buffer, topics: Buffer[], data: Buffer|Buffer[]]
 export type BlockLog = [removed: Buffer, transactionIndex: Buffer, transactionHash: Buffer, address: TransactionLog[0], topics: TransactionLog[1], data: TransactionLog[2]];
 
 const _raw = Symbol("raw");
@@ -132,7 +132,7 @@ export default class BlockLogs {
       address: Address.from(log[3]),
       blockHash,
       blockNumber,
-      data: Array.isArray(data) ? data.map(d => Data.from(d)) : Data.from(data, 32),
+      data: Array.isArray(data) ? data.map(d => Data.from(d, d.length)) : Data.from(data, data.length),
       logIndex, // this is the index in the *block*
       removed: log[0].equals(BUFFER_ZERO) ? false : true,
       topics: Array.isArray(topics) ? topics.map(t => Data.from(t, 32)) : Data.from(topics, 32),
