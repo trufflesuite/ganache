@@ -1385,13 +1385,17 @@ export default class EthereumApi implements types.Api {
     const parentHeader = parentBlock.value.header;
     const options = this.#options;
 
+    // TODO: we need a copy of transaction since we are going to mutate it.
+    // copy it in a better way than this:
+    transaction = {...transaction};
+
     if (transaction.gasLimit) {
       transaction.gas = transaction.gasLimit;
     } else {
       if (transaction.gas) {
         transaction.gasLimit = transaction.gas;
       } else {
-        // eth_estimateGas isn't subject to regular transaction gas limits
+        // eth_call isn't subject to regular transaction gas limits
         transaction.gas = transaction.gasLimit = options.callGasLimit.toString();
       }
     }
