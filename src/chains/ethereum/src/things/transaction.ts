@@ -406,7 +406,7 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param result 
    * @returns RLP encoded data for use in a transaction trie
    */
-  fillFromResult (result: RunTxResult) {
+  fillFromResult (result: RunTxResult, cumulativeGasUsed: bigint) {
     const vmResult = result.execResult;
     const execException = vmResult.exceptionError;
     let status: Buffer;
@@ -416,12 +416,14 @@ class Transaction extends (EthereumJsTransaction as any) {
     } else {
       status = ONE_BUFFER;
     }
-    const gasUsed = result.gasUsed.toBuffer();
-    const logsBloom = result.bloom.bitvector;
-    const logs = vmResult.logs || [] as TransactionLog[];
 
-    const receipt = this.#receipt = TransactionReceipt.fromValues(status, gasUsed, logsBloom, logs, result.createdAddress);
-    this.#logs = logs;
+    const receipt = this.#receipt = TransactionReceipt.fromValues(
+      status, Quantity.from(cumulativeGasUsed).toBuffer(),
+      result.bloom.bitvector,
+      (this.#logs = vmResult.logs || [] as TransactionLog[]),
+      result.createdAddress,
+      result.gasUsed.toBuffer()
+    );
 
     return receipt.serialize(false);
   };
