@@ -553,23 +553,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }
   }
 
-  public async simulateTransaction2(transaction: any, parentBlock: Block, block: Block, stepListener?: any) {
-    // TODO: this is just a prototype implementation
-    const vm = this.vm.copy();
-    const stateManager = vm.stateManager;
-    const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(
-      parentBlock.value.header.stateRoot
-    );
-    if (stepListener) {
-      vm.on("step", stepListener);
-    }
-    transaction.block = block.value;
-    transaction.caller = transaction.from || block.value.header.coinbase;
-    await settingStateRootProm;
-    block.value.transactions.push(transaction);
-    return vm.runTx({tx:transaction, block: block.value, skipBalance:true, skipNonce:true});
-  }
-
   /**
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
