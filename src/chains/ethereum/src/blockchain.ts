@@ -137,6 +137,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
     database.once("ready").then(async () => {
       const blocks = this.blocks = await BlockManager.initialize(database.blockIndexes, database.blocks, {common: options.common});
+      const blocks = this.blocks = new BlockManager(database.blockIndexes, database.blocks, {common: options.common});
+      await this.blocks.initialize();
 
       // if we have a latest block, use it to set up the trie.
       const latest = blocks.latest;

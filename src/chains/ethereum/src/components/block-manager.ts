@@ -29,18 +29,17 @@ export default class BlockManager extends Manager<Block> {
   #options: {common: Common};
   #blockIndexes: LevelUp;
 
-  static async initialize(blockIndexes: LevelUp, base: LevelUp, options: {common: Common}) {
-    const bm = new BlockManager(blockIndexes, base, options);
-    await bm.updateTaggedBlocks();
-    return bm;
-  }
-
   constructor(blockIndexes: LevelUp, base: LevelUp, options: {common: Common}) {
     super(base, Block, options);
 
     this.#options = options;
     this.#blockIndexes = blockIndexes;
   }
+
+  async initialize() {
+    await this.updateTaggedBlocks();
+  }
+
 
   /**
    * Gets or creates the next block (which might be the *pending* block). Uses the values in the optional `header`
