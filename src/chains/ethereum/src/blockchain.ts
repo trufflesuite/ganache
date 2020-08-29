@@ -826,6 +826,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
   }
   
 
+  public getNetworkId():number {
+    return this.#options.networkId;
+  }
+
   /**
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
