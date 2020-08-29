@@ -25,6 +25,7 @@ import BlockLogManager from "./components/blocklog-manager";
 import RejectionError from "./things/rejection-error";
 import TraceData from "./things/trace-data";
 import TraceStorageMap from "./things/trace-storage-map";
+import EthereumOptions from "./options";
 
 const unref = utils.unref;
 
@@ -61,22 +62,27 @@ interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
 }
 
-export type BlockchainOptions = {
-  db?: string | object;
-  db_path?: string;
+export type BlockchainOptions = Pick<
+  EthereumOptions,
+  | "db"
+  | "db_path"
+  | "hardfork"
+  | "allowUnlimitedContractSize"
+  | "gasLimit"
+  | "time"
+  | "blockTime"
+  | "legacyInstamine"
+  | "vmErrorsOnRPCResponse"
+  | "fork"
+  | "fork_block_number"
+  | "networkId"
+> & {
   initialAccounts?: Account[];
-  hardfork?: string;
-  allowUnlimitedContractSize?: boolean;
-  gasLimit?: Quantity;
-  time?: Date;
-  blockTime?: number;
-  coinbase: Account;
-  chainId: number;
-  common: Common;
-  legacyInstamine: boolean;
-  vmErrorsOnRPCResponse: boolean;
-  logger: Logger
-};
+  coinbase: Account; 
+  chainId: number; 
+  common: Common; 
+  logger: Logger;
+}
 
 type BlockchainTypedEvents = {block: Block, blockLogs: BlockLogs, pendingTransaction: Transaction};
 type BlockchainEvents = "start" | "stop" | "step";

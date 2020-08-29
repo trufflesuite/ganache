@@ -1,15 +1,23 @@
 import {LevelUp} from "levelup";
 import {Data} from "@ganache/utils";
 import Tag from "../things/tags";
+import { BlockchainOptions } from "../blockchain";
 const NOTFOUND = 404;
 
 export type Instantiable<T> = {new (...args: any[]): T};
+
+export type ManagerOptions = Partial<Pick<
+  BlockchainOptions,
+  | "common"
+  | "fork"
+  | "fork_block_number"
+>>
 
 export default class Manager<T> {
   #Type: Instantiable<T>;
   #options: {};
   protected base: LevelUp;
-  constructor(base: LevelUp, type: Instantiable<T>, options?: {}) {
+  constructor(base: LevelUp, type: Instantiable<T>, options:ManagerOptions = {}) {
     this.#Type = type;
     this.#options = options;
     this.base = base;

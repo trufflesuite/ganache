@@ -10,6 +10,11 @@ interface Logger {
 // instead of `[Address, PrivateKey]`, flip flopping like this "fixes" it.
 type Account = {balance: string; secretKey?: string};
 
+// TODO: This could use more specificity
+export type GenericProvider = {
+  send(payloadOrMethod:any, params?:Array<any>):Promise<any>
+}
+
 export interface Options {
   api?: types.Api;
   /**
@@ -63,7 +68,7 @@ export interface Options {
    * When a string, same as --fork option above. Can also be a Web3 Provider
    * object, optionally used in conjunction with the fork_block_number
    */
-  fork?: string | object;
+  fork?: GenericProvider;
 
   /**
    * Block number the provider should fork from, when the fork option is

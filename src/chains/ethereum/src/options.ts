@@ -22,6 +22,8 @@ type EthereumOptions = Pick<
   | "legacyInstamine"
   | "account_keys_path"
   | "vmErrorsOnRPCResponse"
+  | "fork"
+  | "fork_block_number"
 >;
 
 export default EthereumOptions;
