@@ -4,9 +4,9 @@ declare module "merkle-patricia-tree/baseTrie" {
   import TrieNode from "merkle-patricia-tree/trieNode";
   import ReadStream from "merkle-patricia-tree/readStream";
 
-  type Callback<T> = (err: Error | null, result: T) => void;
-  type FindPathCallback = (err: Error, node: TrieNode, keyRemainder: Buffer, stack: TrieNode[]) => void;
-  type LargeNumber = string | Buffer | BN;
+  export type Callback<T> = (err: Error | null, result: T) => void;
+  export type FindPathCallback = (err: Error, node: TrieNode, keyRemainder: Buffer, stack: TrieNode[]) => void;
+  export type LargeNumber = string | Buffer | BN;
 
   // Rather than using LevelUp here, specify the minimal interface we need
   // so that other structurally identical types can be used in its place
@@ -29,6 +29,7 @@ declare module "merkle-patricia-tree/baseTrie" {
     put(key: LargeNumber, value: LargeNumber, cb: Callback<never>): void;
     del(key: LargeNumber, cb: Callback<never>): void;
     getRaw(key: LargeNumber, cb: Callback<Buffer | null>): void;
+    putRaw(key: LargeNumber, value: Buffer, cb: Callback<null>): void;
     findPath(key: LargeNumber, cb: FindPathCallback): void;
     createReadStream(): ReadStream;
     copy(): Trie;
