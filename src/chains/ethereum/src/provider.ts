@@ -5,6 +5,9 @@ import {JsonRpcTypes} from "@ganache/utils";
 import EthereumOptions from "./options";
 import cloneDeep from "lodash.clonedeep";
 import {PromiEvent, types, utils} from "@ganache/utils";
+import Blockchain, { BlockchainOptions } from "./blockchain";
+import Wallet from "./wallet";
+import Common from "ethereumjs-common";
 
 type mergePromiseGenerics<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 
@@ -24,13 +27,48 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
   #options: ProviderOptions;
   #api: EthereumApi;
   #executor: utils.Executor;
+  #blockchain: Blockchain;
 
   constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
     super();
-    const _providerOptions = (this.#options = ProviderOptions.getDefault(providerOptions));
+    this.#options = ProviderOptions.getDefault(providerOptions);
     this.#executor = executor;
 
-    this.#api = new EthereumApi(_providerOptions as EthereumOptions, this);
+    // TODO: This `as BlockchainOptions` is a little gross. Essentially it
+    // lets us treat the same object as having two different types. 
+    // e.g., this.#options does get altered here regardless of how we view it.
+    const blockchainOptions = this.#options as BlockchainOptions;
+
+    const wallet = new Wallet(this.#options);
+    const initialAccounts = wallet.initialAccounts;
+    blockchainOptions.initialAccounts = initialAccounts;
+    blockchainOptions.coinbase = initialAccounts[0];
+
+    blockchainOptions.common = Common.forCustomChain(
+      "mainnet", // TODO needs to match chain id
+      {
+        name: "ganache",
+        networkId: this.#options.networkId,
+        chainId: this.#options.chainId,
+        comment: "Local test network"
+      },
+      this.#options.hardfork
+    );
+
+    this.#blockchain = this.createBlockchain(blockchainOptions);
+
+    this.#blockchain.on("start", () => {
+      this.emit("connect");
+    });
+    this.on("disconnect", () => {
+      return this.#blockchain.stop();
+    });
+
+    this.#api = new EthereumApi(this.#blockchain, wallet, this.#options as EthereumOptions, blockchainOptions.common);
+  }
+
+  protected createBlockchain(blockchainOptions:BlockchainOptions):Blockchain {
+    return new Blockchain(blockchainOptions);
   }
 
   /**

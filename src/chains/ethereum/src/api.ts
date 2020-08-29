@@ -130,31 +130,12 @@ export default class EthereumApi implements types.Api {
    * @param options
    * @param ready Callback for when the API is fully initialized
    */
-  constructor(options: EthereumOptions, emitter: Emittery.Typed<{message: any}, "connect" | "disconnect">) {
-    const opts = (this.#options = options);
-
-    const {initialAccounts} = this.#wallet = new Wallet(opts);
-
-    const blockchainOptions = options as BlockchainOptions;
-    blockchainOptions.initialAccounts = initialAccounts;
-    blockchainOptions.coinbase = initialAccounts[0];
-    this.#common = blockchainOptions.common = Common.forCustomChain(
-      "mainnet", // TODO needs to match chain id
-      {
-        name: "ganache",
-        networkId: options.networkId,
-        chainId: options.chainId,
-        comment: "Local test network"
-      },
-      options.hardfork
-    );
-    const blockchain = (this.#blockchain = new Blockchain(blockchainOptions));
-    blockchain.on("start", () => {
-      emitter.emit("connect");
-    });
-    emitter.on("disconnect", () => {
-      return blockchain.stop();
-    });
+  constructor(blockchain:Blockchain, wallet:Wallet, options: EthereumOptions, common:Common) {
+    // TODO: The double options here are really bad. Merge them or 
+    this.#blockchain = blockchain;
+    this.#wallet = wallet;
+    this.#options = options;
+    this.#common = common;
   }
 
   //#region db
@@ -456,7 +437,7 @@ export default class EthereumApi implements types.Api {
    * Quantity/Data encoded.
    */
   async net_version() {
-    return this.#options.networkId.toString();
+    return this.#blockchain.getNetworkId().toString();
   }
 
   /**
