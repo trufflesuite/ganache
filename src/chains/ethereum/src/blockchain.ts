@@ -274,25 +274,23 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             return {block, blockLogs};
           });
 
-          return this.#processingBlock.then(({block, blockLogs}) => {
-            blocks.latest = block;
+          const {blockLogs} = await this.#processingBlock;
 
-            if (instamine && options.legacyInstamine) {
-              block.value.transactions.forEach(transaction => {
-                this.emit("transaction:" + Data.from(transaction.hash(), 32).toString() as any, transaction.execException);
-              });
+          if (instamine && options.legacyInstamine) {
+            block.value.transactions.forEach(transaction => {
+              this.emit("transaction:" + Data.from(transaction.hash(), 32).toString() as any, transaction.execException);
+            });
 
-              // in legacy instamine mode we must delay the broadcast of new blocks
-              process.nextTick(() => {
-                // emit the block once everything has been fully saved to the database
-                this.emit("block", block);
-                this.emit("blockLogs", blockLogs);
-              });
-            } else {
+            // in legacy instamine mode we must delay the broadcast of new blocks
+            process.nextTick(() => {
+              // emit the block once everything has been fully saved to the database
               this.emit("block", block);
               this.emit("blockLogs", blockLogs);
-            }
-          });
+            });
+          } else {
+            this.emit("block", block);
+            this.emit("blockLogs", blockLogs);
+          }
         });
 
         this.once("stop").then(() => miner.clearListeners());
