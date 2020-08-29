@@ -54,8 +54,8 @@ export default class BlockManager extends Manager<Block> {
     return this.pending;
   }
 
-  getBlockByTag(tag: Tag) {
-    switch (Tag.normalize(tag as Tag)) {
+  async getBlockByTag(tag: Tag):Promise<Block> {
+    switch (tag) { 
       case Tag.LATEST:
         return this.latest;
       case void 0:
@@ -75,18 +75,22 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST ) {
-    if (typeof tagOrBlockNumber === "string") {
-      const block = this.getBlockByTag(tagOrBlockNumber as Tag);
-      if (block) {
-        const blockNumber = block.value.header.number;;
-        if (blockNumber.length === 0){
-          return Quantity.from(Buffer.from([0]));
-        } else {
-          return Quantity.from(blockNumber);
-        }
+  async getEffectiveNumber(tagOrBlockNumber: string | Buffer | Tag):Promise<Quantity> {
+    // We look for exact matches to tag values because hex values
+    // may also be passed in as strings.
+    if (tagOrBlockNumber == Tag.EARLIEST || tagOrBlockNumber == Tag.LATEST || tagOrBlockNumber == Tag.PENDING) {
+      let block:Block = await this.getBlockByTag(tagOrBlockNumber);
+      let blockNumber:Buffer = block.value.header.number;
+
+      // This is a workaround for ethereumjs returning empty buffers for block 0. 
+      if (EMPTY_BUFFER.equals(blockNumber)) {
+        blockNumber = Buffer.from([0]);
       }
+
+      return Quantity.from(blockNumber);
     }
+
+    // If here, value is a hex string or a buffer
     return Quantity.from(tagOrBlockNumber);
   }
 
@@ -113,16 +117,13 @@ export default class BlockManager extends Manager<Block> {
   async getRaw(tagOrBlockNumber: string | Buffer | Tag) {
     // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
     // we don't have to fetch them from the db each time a block tag is used.
-    return super.getRaw(this.getEffectiveNumber(tagOrBlockNumber).toBuffer());
+    return super.getRaw((await this.getEffectiveNumber(tagOrBlockNumber)).toBuffer());
   }
 
   async get(tagOrBlockNumber: string | Buffer | Tag) {
-    if (typeof tagOrBlockNumber === "string") {
-      const block = this.getBlockByTag(tagOrBlockNumber as Tag);
-      if (block) return block;
-    }
+    let blockNumber = await this.getEffectiveNumber(tagOrBlockNumber);
 
-    const block = await super.get(tagOrBlockNumber);
+    const block = await super.get(blockNumber.toBuffer());
     if (block) return block;
 
     throw new Error("header not found");
@@ -146,7 +147,7 @@ export default class BlockManager extends Manager<Block> {
     return block;
   }
 
-  updateTaggedBlocks() {
+  async updateTaggedBlocks():Promise<Block> {
     return new Promise<Block>((resolve, reject) => {
       this.base.createValueStream({limit: 1})
         .on("data",  (data: Buffer) => {
