@@ -52,12 +52,12 @@ function parseFilterDetails(filter: Pick<FilterArgs, "address" | "topics">) {
   const topics = filter.topics ? filter.topics : [];
   return {addresses, topics};
 }
-function parseFilterRange(filter: Pick<FilterArgs, "fromBlock" | "toBlock">, blockchain: Blockchain) {
-  const fromBlock = blockchain.blocks.getEffectiveNumber(filter.fromBlock || "latest");
+async function parseFilterRange(filter: Pick<FilterArgs, "fromBlock" | "toBlock">, blockchain: Blockchain) {
+  const fromBlock = await blockchain.blocks.getEffectiveNumber(filter.fromBlock || "latest");
   const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
   const latestBlock = Quantity.from(latestBlockNumberBuffer);
   const latestBlockNumber = latestBlock.toNumber();
-  const toBlock = blockchain.blocks.getEffectiveNumber(filter.toBlock || "latest");
+  const toBlock = await blockchain.blocks.getEffectiveNumber(filter.toBlock || "latest");
   let toBlockNumber: number;
   // don't search after the "latest" block, unless it's "pending", of course.
   if (toBlock > latestBlock) {
@@ -71,9 +71,9 @@ function parseFilterRange(filter: Pick<FilterArgs, "fromBlock" | "toBlock">, blo
     toBlockNumber
   }
 }
-function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain: Blockchain) {
+async function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain: Blockchain) {
   const {addresses, topics} = parseFilterDetails(filter);
-  const {fromBlock, toBlock, toBlockNumber} = parseFilterRange(filter, blockchain);
+  const {fromBlock, toBlock, toBlockNumber} = await parseFilterRange(filter, blockchain);
 
   return {
     addresses,
@@ -1226,13 +1226,13 @@ export default class EthereumApi implements types.Api {
   async eth_newFilter(filter: FilterArgs = {}) {
     const blockchain = this.#blockchain;
     const { addresses, topics } = parseFilterDetails(filter);
-    const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
+    const unsubscribe = blockchain.on("blockLogs", async (blockLogs: BlockLogs) => {
       const blockNumber = blockLogs.blockNumber;
       // everytime we get a blockLogs message we re-check what the filter's
       // range is. We do this because "latest" isn't the latest block at the
       // time the filter was set up, rather it is the actual latest *mined* 
       // block (that is: not pending)
-      const {fromBlock, toBlock} = parseFilterRange(filter, blockchain);
+      const {fromBlock, toBlock} = await parseFilterRange(filter, blockchain);
       if (fromBlock <= blockNumber && toBlock >= blockNumber) {
         value.updates.push(...blockLogs.filter(addresses, topics));
       }
@@ -1301,7 +1301,7 @@ export default class EthereumApi implements types.Api {
   async eth_getLogs(filter: FilterArgs) {
     const blockchain = this.#blockchain;
     const blockLogs = blockchain.blockLogs;
-    const {addresses, topics, fromBlock, toBlockNumber} = parseFilter(filter, blockchain);
+    const {addresses, topics, fromBlock, toBlockNumber} = await parseFilter(filter, blockchain);
     
     const pendingLogsPromises: Promise<BlockLogs>[] = [blockLogs.get(fromBlock.toBuffer())];
 
