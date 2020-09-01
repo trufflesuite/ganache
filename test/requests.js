@@ -1188,8 +1188,9 @@ const tests = function(web3) {
       const callData = contract.callData;
 
       const nonExistentBlock = (await web3.eth.getBlockNumber()) + 1;
-      const result = await web3.eth.call(callData, nonExistentBlock);
-      assert.strictEqual(result, null, "Result should be null");
+      await assert.rejects(web3.eth.call(callData, nonExistentBlock), (err) => {
+        return err.message.includes("header not found");
+      });
     });
 
     it("should not error when using an invalid nonce (eth_call/eth_estimateGas)", async function() {
@@ -1372,9 +1373,11 @@ const tests = function(web3) {
       );
     });
 
-    it("should return null for non-existent block", async function() {
-      const result = await web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999);
-      assert.strictEqual(result, null, "Should return null for non-existent block (GETH)");
+    it("should return error for non-existent block", async function() {
+      const prom = web3.eth.getTransactionCount("0x1234567890123456789012345678901234567890", 9999999);
+      await assert.rejects(prom, (err) => {
+        return err.message.includes("header not found");
+      });
     });
   });
 
