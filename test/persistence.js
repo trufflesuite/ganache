@@ -35,7 +35,7 @@ const runTests = function(providerInit) {
       tx = await web3.eth.sendTransaction({
         from: accounts[0],
         gas: "0x2fefd8",
-        data: result.contracts["Example.sol"].Example.evm.bytecode.object
+        data: "0x" + result.contracts["Example.sol"].Example.evm.bytecode.object
       });
     });
 
