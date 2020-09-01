@@ -1808,9 +1808,6 @@ describe("WebSockets Server:", function() {
   }).timeout(500); // fail quick if our hacked-together websocket handler fails.
 
   after("Shutdown server", async () => {
-    const provider = web3._provider;
-    web3.setProvider();
-    provider.connection.close();
     await server.close();
   });
 });
