@@ -23,6 +23,8 @@ import VM from "ethereumjs-vm";
 import Address from "./things/address";
 import BlockLogManager from "./components/blocklog-manager";
 import RejectionError from "./things/rejection-error";
+import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
+import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 
 const unref = utils.unref;
 
@@ -534,14 +536,26 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     // TODO: this is just a prototype implementation
     const vm = this.vm.copy();
     const stateManager = vm.stateManager;
-    const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(
-      parentBlock.value.header.stateRoot
-    );
     const tx = Transaction.fromJSON(transaction, this.#options.common, Transaction.types.fake);
     tx.block = block.value;
     tx.caller = Data.from(transaction.from || block.value.header.coinbase).toBuffer();
-    await settingStateRootProm;
-    const result = await vm.runCall(tx);
+
+    let result: EVMResult;
+
+    // subtract out the transaction's base fee from the gas limit now
+    const instrinsic = tx.calculateIntrinsicGas();
+    const gasLeft = Quantity.from(tx.gasLimit).toBigInt() - instrinsic;
+    if (gasLeft >= 0) {
+      tx.gasLimit = Quantity.from(gasLeft).toBuffer();
+
+      await promisify(stateManager.setStateRoot.bind(stateManager))(
+        parentBlock.value.header.stateRoot
+      );
+
+      result = await vm.runCall(tx);
+    } else {
+      result = {execResult: {exceptionError: new VmError(ERROR.OUT_OF_GAS), returnValue: Buffer.allocUnsafe(0)}} as any;
+    }
     if (result.execResult.exceptionError) {
       if (this.#options.vmErrorsOnRPCResponse) {
         throw new ExecutionError(tx, result, RETURN_TYPES.RETURN_VALUE);
