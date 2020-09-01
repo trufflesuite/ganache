@@ -305,7 +305,7 @@ describe("Gas", function() {
             const tx = {
               from,
               to,
-              value: "1000000000000000000",
+              value: 1000000000000000000n,
               data: fns[i]().encodeABI()
             };
             const { result: gasLimit } = await send("eth_estimateGas", tx);
@@ -788,7 +788,7 @@ describe("Gas", function() {
 
         it("matches usage for simple account to account transfer", async function() {
           const { accounts, web3 } = context;
-          const transferAmount = web3.utils.toBN(web3.utils.toWei("5", "finney"));
+          const transferAmount = "0x" + web3.utils.toBN(web3.utils.toWei("5", "finney")).toString("hex");
           const transactionData = {
             from: accounts[0],
             to: accounts[1],

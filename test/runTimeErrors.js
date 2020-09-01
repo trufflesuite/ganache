@@ -21,7 +21,7 @@ function tests(ganacheProviderOptions) {
       };
 
       context = await bootstrap(contractRef, ganacheProviderOptions);
-      const _send = context.provider.send.bind(context.provider.send);
+      const _send = context.provider.send.bind(context.provider);
       let jsonRpcId = 1;
       // we want to ignore the callback `err` so we are creating our own promisified send here
       context.send = (method, ...params) =>
