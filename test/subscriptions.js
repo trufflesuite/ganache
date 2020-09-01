@@ -20,10 +20,10 @@ const testHttp = function(web3) {
 
   describe("subscriptions", function() {
     it("should gracefully handle http subscription attempts", async function() {
-      // Attempt to subscribe http connection to 'pendingTransactions'
-      const { error } = await web3send("eth_subscribe", "pendingTransactions");
+      // Attempt to subscribe http connection to 'newPendingTransactions'
+      const { error } = await web3send("eth_subscribe", "newPendingTransactions");
       assert(error, "http subscription should respond with an error");
-      assert.strictEqual(error.code, -32000, "Error code should equal -32000");
+      assert.strictEqual(error.code, -32004, "Error code should equal -32004");
       assert.strictEqual(error.message, "notifications not supported", "notifications should not be supported");
 
       // Issue a sendTransaction - ganache should not attempt to issue a message to http subscriptions
