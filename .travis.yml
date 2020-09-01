@@ -31,8 +31,8 @@ before_install:
     fi
 
 script:
-  - yarn test
-  - yarn test-smoke
+  - npm run test
+  - npm run test-smoke
 
 after_success:
   npm run coverage
