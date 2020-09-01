@@ -30,5 +30,9 @@ before_install:
       export LINKXX="g++-5";
     fi
 
+script:
+  - yarn test
+  - yarn test-smoke
+
 after_success:
   npm run coverage
