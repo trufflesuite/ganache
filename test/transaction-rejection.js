@@ -77,7 +77,7 @@ describe("Transaction rejection", function() {
     const { web3 } = context;
     await testTransactionForRejection(
       {
-        value: web3.utils.toWei("100000", "ether")
+        value: "0x" + BigInt(web3.utils.toWei("100000", "ether")).toString(16)
       },
       "sender doesn't have enough funds to send tx"
     );
