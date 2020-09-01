@@ -439,7 +439,7 @@ const tests = function(web3) {
         }
       };
 
-      const response = await pify(signingWeb3.currentProvider.send)({
+      const response = await pify(signingWeb3.currentProvider.send.bind(signingWeb3.currentProvider))({
         jsonrpc: "2.0",
         method: "eth_signTypedData",
         params: [accounts[0], typedData],
@@ -501,7 +501,7 @@ const tests = function(web3) {
         }
       };
 
-      const response = await pify(signingWeb3.currentProvider.send)({
+      const response = await pify(signingWeb3.currentProvider.send.bind(signingWeb3.currentProvider))({
         jsonrpc: "2.0",
         method: "eth_signTypedData",
         params: [accounts[0], typedData],
