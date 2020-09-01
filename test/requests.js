@@ -972,7 +972,7 @@ const tests = function(web3) {
       const contract = new web3.eth.Contract(oracleOutput.contracts["Oracle.sol"].Oracle.abi);
       const oracle = await contract
         .deploy({
-          data: oracleOutput.contracts["Oracle.sol"].Oracle.evm.bytecode.object
+          data: "0x" + oracleOutput.contracts["Oracle.sol"].Oracle.evm.bytecode.object
         })
         .send({
           from: accounts[0],
