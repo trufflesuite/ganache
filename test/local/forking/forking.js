@@ -346,12 +346,12 @@ describe("Forking", function() {
   });
 
   it("should unlock any account after server has been started", async() => {
-    const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-    const first_unlock = await forkedWeb3.send("debug_unlockAccount",[address])
-    assert.strictEqual(first_unlock,true)
-    const second_unlock = await forkedWeb3.send("debug_unlockAccount",[address])
-    assert.strictEqual(second_unlock,"Account Already Unlocked")
-  })
+    const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+    const firstUnlock = await forkedWeb3.send("debug_unlockAccount", [address]);
+    assert.strictEqual(firstUnlock, true);
+    const secondUnlock = await forkedWeb3.send("debug_unlockAccount", [address]);
+    assert.strictEqual(secondUnlock, "Account Already Unlocked");
+  });
 
   it("should execute calls against a contract on the forked provider via the main provider", async() => {
     var example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
