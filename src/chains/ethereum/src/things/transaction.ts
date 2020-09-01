@@ -252,6 +252,8 @@ class Transaction extends (EthereumJsTransaction as any) {
 
     // Set the starting gas for the raw transaction
     let gas = params.TRANSACTION_GAS;
+    const TRANSACTION_DATA_NON_ZERO_GAS = params.TRANSACTION_DATA_NON_ZERO_GAS.get(this._common._hardfork);
+    const TRANSACTION_DATA_ZERO_GAS = params.TRANSACTION_DATA_ZERO_GAS
 
     // Bump the required gas by the amount of transactional data
     const dataLength = data.byteLength;
@@ -264,16 +266,16 @@ class Transaction extends (EthereumJsTransaction as any) {
         }
       }
       // Make sure we don't exceed uint64 for all data combinations.
-      if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
+      if ((MAX_UINT64 - gas) / TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
         throw new Error(INTRINSIC_GAS_TOO_LOW);
       }
-      gas += nonZeroBytes * params.TRANSACTION_DATA_NON_ZERO_GAS;
+      gas += nonZeroBytes * TRANSACTION_DATA_NON_ZERO_GAS;
 
-      let z = BigInt(dataLength) - nonZeroBytes;
-      if ((MAX_UINT64 - gas) / params.TRANSACTION_DATA_ZERO_GAS < z) {
+      const z = BigInt(dataLength) - nonZeroBytes;
+      if ((MAX_UINT64 - gas) / TRANSACTION_DATA_ZERO_GAS < z) {
         throw new Error(INTRINSIC_GAS_TOO_LOW);
       }
-      gas += z * params.TRANSACTION_DATA_ZERO_GAS;
+      gas += z * TRANSACTION_DATA_ZERO_GAS;
     }
     return gas;
   }
