@@ -1751,6 +1751,7 @@ describe("WebSockets Server:", function() {
       logger: logger,
       seed: "1337",
       chainId: 1,
+      wsBinary: false
       // so that the runtime errors on call test passes
     });
     await pify(server.listen.bind(server))(port);
