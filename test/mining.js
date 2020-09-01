@@ -376,32 +376,29 @@ describe("Mining", function() {
   });
 
   describe("stopping", () => {
-    function setUp(close, done) {
+    async function setUp(close, done) {
       const blockTime = 0.1;
       const provider = Ganache.provider({ legacyInstamine: true, blockTime });
       let closed = false;
       let closing = false;
       let timer;
 
-      // duck punch provider.send so we can detect when it is called
-      const send = provider.send;
-      provider.send = function(payload) {
-        if (payload.method === "evm_mine") {
-          if (closed) {
-            clearTimeout(timer);
-            assert.fail("evm_mine after provider closed");
-          } else if (!closing) {
-            closing = true;
-            close(provider, () => {
-              closed = true;
+      await provider.send("eth_subscribe", ["newHeads"]);
+      provider.on("message", (b) => {
+        console.log(b);
+        if (closed) {
+          clearTimeout(timer);
+          assert.fail("evm_mine after provider closed");
+        } else if (!closing) {
+          closing = true;
+          close(provider, () => {
+            closed = true;
 
-              // give the miner a chance to mine a block before calling done:
-              timer = setTimeout(done, blockTime * 2 * 1000);
-            });
-          }
+            // give the miner a chance to mine a block before calling done:
+            timer = setTimeout(done, blockTime * 2 * 1000);
+          });
         }
-        send.apply(provider, arguments);
-      };
+      });
     }
 
     it("should stop mining when the provider is stopped during an evm_mine (same REPL)", (done) => {
