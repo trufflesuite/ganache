@@ -13,7 +13,7 @@ export enum RETURN_TYPES {
 }
 
 export default class ExecutionError extends CodedError {
-  public code: typeof ErrorCodes.VM_ERROR;
+  public code: typeof ErrorCodes.INVALID_INPUT;
   public data: {
     hash: string,
     programCounter: number,
@@ -26,7 +26,7 @@ export default class ExecutionError extends CodedError {
     const error = execResult.exceptionError.error;
     let message = VM_EXCEPTION + error;
 
-    super(message, ErrorCodes.VM_ERROR);
+    super(message, ErrorCodes.INVALID_INPUT);
 
     Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;

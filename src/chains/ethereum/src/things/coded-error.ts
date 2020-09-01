@@ -26,11 +26,6 @@ export const ErrorCodes = {
   INTERNAL_ERROR: -32603,
 
   /**
-   * Custom Ganache Application Error for transactions that fail to execute.
-   */
-  VM_ERROR: -32103,
-
-  /**
    * Missing or invalid parameters
    */
   INVALID_INPUT: -32000,
