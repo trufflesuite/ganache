@@ -1360,10 +1360,10 @@ const tests = function(web3) {
         function(err, result) {
           if (err) {
             // Ganache provider responds with an `err`, so check that, too.
-            assert.strictEqual(err.message, "Invalid `blockNumber`: \"\"");
+            assert.strictEqual(err.message, 'cannot convert string value "" into type `Quantity`; strings must be hex-encoded and prefixed with "0x".');
           }
           if (result.error) {
-            assert.strictEqual(result.error.message, "Invalid `blockNumber`: \"\"");
+            assert.strictEqual(result.error.message, 'cannot convert string value "" into type `Quantity`; strings must be hex-encoded and prefixed with "0x".');
           } else {
             assert.fail("eth_getTransactionCount did not return an error message for invalid data");
           }
@@ -1510,11 +1510,9 @@ const tests = function(web3) {
   });
 
   describe("eth_compileSolidity (not supported)", function() {
-    this.timeout(5000);
-
     it("errors on compile solidity request", async function() {
       const result = await send("eth_compileSolidity", [source]).catch((error) => ({ error }));
-      assert(result.error.message.indexOf("Method eth_compileSolidity not supported") >= 0);
+      assert(result.error.message.indexOf("The method eth_compileSolidity does not exist/is not available") >= 0);
     });
   });
 
