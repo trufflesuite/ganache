@@ -541,7 +541,7 @@ const tests = function(web3) {
       }
     });
 
-    it("should fail with bad nonce (too high)", async function() {
+    it.skip("should fail with bad nonce (too high)", async function() {
       const transaction = {
         value: "0x10000000",
         gasLimit: "0x33450",
@@ -588,7 +588,7 @@ const tests = function(web3) {
       );
     });
 
-    it("should fail with bad nonce (skipped value)", async function() {
+    it.skip("should fail with bad nonce (skipped value)", async function() {
       const nonce = await web3.eth.getTransactionCount(accounts[0]);
       const transaction = {
         value: "0x10000000",
@@ -677,7 +677,7 @@ const tests = function(web3) {
       }
     });
 
-    it("should fail with bad nonce (too high)", async function() {
+    it.skip("should fail with bad nonce (too high)", async function() {
       const transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
@@ -718,7 +718,7 @@ const tests = function(web3) {
       assert.strictEqual(receipt.status, true);
     });
 
-    it("should fail with bad nonce (skipped value)", async function() {
+    it.skip("should fail with bad nonce (skipped value)", async function() {
       const nonce = await web3.eth.getTransactionCount(accounts[0]);
 
       const transaction = new Transaction({
