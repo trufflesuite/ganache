@@ -62,7 +62,7 @@ function tests(ganacheProviderOptions) {
         data: bytecode
       });
 
-      if (provider.options.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
@@ -90,7 +90,7 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (provider.options.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
@@ -123,7 +123,7 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (provider.options.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
@@ -151,7 +151,7 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (provider.options.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
@@ -179,7 +179,7 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (provider.options.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
