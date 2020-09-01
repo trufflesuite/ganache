@@ -793,7 +793,7 @@ const tests = function(web3) {
       assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
     });
 
-    it("should succeed with wrong v value (temp until next breaking change)", async function() {
+    it.skip("should succeed with wrong v value (temp until next breaking change)", async function() {
       const transaction = new Transaction({
         value: "0x10000000",
         gasLimit: "0x33450",
