@@ -57,7 +57,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     err = this.validateTransaction(transaction);
     if (err != null) {
-      // TODO: how do we surface these transaction failures to the caller?!
       throw err;
     }
 
@@ -110,8 +109,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           const gasPrice = Quantity.from(currentPendingTx.gasPrice).toBigInt();
           const thisPricePremium = gasPrice + (gasPrice * priceBump) / 100n;
 
-          // TODO: how do we surface these transaction failures to the caller?!
-
           // if our new price is `gasPrice * priceBumpPercent` better than our
           // oldPrice, throw out the old now.
           if (!currentPendingTx.locked && newGasPrice > thisPricePremium) {
@@ -120,9 +117,11 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
             // already known where this tranassction should go in this byNonce
             // heap.
             pendingArray[i] = transaction;
-            throw new Error("That old transaction sucked, yo!");
+
+            // TODO: how to surface this to the caller?!?
+            console.error("The *old* transation was rejected");
           } else {
-            throw new Error("That new transaction sucked, yo!");
+            throw new CodedError("transaction rejected; gas price too low to replace existing transaction", ErrorCodes.TRANSACTION_REJECTED);
           }
         }
         if (thisNonce > highestNonce) {
