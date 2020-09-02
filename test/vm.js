@@ -26,10 +26,10 @@ describe("revert opcode", function() {
     const { accounts, instance, web3 } = context;
 
     const promise = instance.methods.alwaysReverts(5).send({ from: accounts[0] });
-    const hash = await promise.catch((err) => err.hashes[0]);
+    const hash = await promise.catch((err) => err.data.hash);
     const receipt = await web3.eth.getTransactionReceipt(hash);
 
-    await assert.rejects(promise, (err) => err.results[hash].error === "revert", "Expected error result not returned.");
+    await assert.rejects(promise, (err) => err.data.message === "revert", "Expected error result not returned.");
 
     assert.notStrictEqual(receipt, null, "Transaction receipt shouldn't be null");
     assert.strictEqual(receipt.status, false, "Reverted (failed) transactions should have a status of FALSE.");
