@@ -67,16 +67,21 @@ function tests(ganacheProviderOptions) {
         // pedantic here for readability's sake
         assert(response.error !== null);
         assert(response.error !== undefined);
+
+        assert(response.error.data.result !== null);
+        assert(response.error.data.result !== undefined);
+
+        assert.strictEqual(response.error.data.result.length, 66); // transaction hash
       } else {
         assert(response.error === undefined);
+
+        // null & undefined are equivalent for equality tests, but I'm being
+        // pedantic here for readability's sake
+        assert(response.result !== null);
+        assert(response.result !== undefined);
+
+        assert.strictEqual(response.result.length, 66); // transaction hash
       }
-
-      // null & undefined are equivalent for equality tests, but I'm being
-      // pedantic here for readability's sake
-      assert(response.result !== null);
-      assert(response.result !== undefined);
-
-      assert.strictEqual(response.result.length, 66); // transaction hash
     });
 
     it("should output the transaction hash even if a runtime error occurs (revert)", async function() {
@@ -100,16 +105,23 @@ function tests(ganacheProviderOptions) {
           /revert/.test(response.error.message),
           `Expected error message (${response.error.message}) to contain 'revert'`
         );
+
+        // null & undefined are equivalent for equality tests, but I'm being
+        // pedantic here for readability's sake
+        assert(response.error.data.result !== null);
+        assert(response.error.data.result !== undefined);
+
+        assert.strictEqual(response.error.data.result.length, 66); // transaction hash
       } else {
         assert(response.error === undefined);
+
+        // null & undefined are equivalent for equality tests, but I'm being
+        // pedantic here for readability's sake
+        assert(response.result !== null);
+        assert(response.result !== undefined);
+
+        assert.strictEqual(response.result.length, 66); // transaction hash
       }
-
-      // null & undefined are equivalent for equality tests, but I'm being
-      // pedantic here for readability's sake
-      assert(response.result !== null);
-      assert(response.result !== undefined);
-
-      assert.strictEqual(response.result.length, 66); // transaction hash
     });
 
     it("should have correct return value when calling a method that reverts without message", async function() {
@@ -221,12 +233,12 @@ function tests(ganacheProviderOptions) {
         if (err) {
           assert(err);
         }
-        const txHash = response.result;
+        const txHash = response.error.data.result;
 
         assert(response.error);
-        assert(response.error.data[txHash]);
+        assert.strictEqual(response.error.data.hash, txHash);
         // magic number, will change if compiler changes.
-        assert.strictEqual(to.number(response.error.data[txHash].program_counter), 136);
+        assert.strictEqual(response.error.data.programCounter, 136);
       });
     }
 
