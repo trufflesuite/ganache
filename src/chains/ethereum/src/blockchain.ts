@@ -136,7 +136,19 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }
 
     database.once("ready").then(async () => {
-      const blocks = this.blocks = await BlockManager.initialize(database.blockIndexes, database.blocks, {common: options.common});
+
+      let genesisParentHash = "0x0000000000000000000000000000000000000000000000000000000000000000";
+      let genesisBlockNumber = "0x0";
+
+      if (options.fork) {
+        let fork = options.fork;
+
+        options.networkId = await fork.send("net_version");
+        let forkBlock = await fork.send("eth_getBlockByNumber", ["latest"]);
+        genesisParentHash = forkBlock.hash;
+        genesisBlockNumber = Quantity.from(Quantity.from(forkBlock.number).toNumber() + 1).toString();
+      }
+
       const blocks = this.blocks = new BlockManager(database.blockIndexes, database.blocks, {common: options.common});
       await this.blocks.initialize();
 
@@ -175,7 +187,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
         // if we don't already have a latest block, create a genesis block!
         if (!latest) {
-          this.#processingBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit);
+          this.#processingBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit, genesisBlockNumber, genesisParentHash);
           blocks.earliest = blocks.latest = await this.#processingBlock.then(({block}) => block);
         }
       }
@@ -390,14 +402,15 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     await commit();
   };
 
-  #initializeGenesisBlock = async (timestamp: number, blockGasLimit: Quantity) => {
+  #initializeGenesisBlock = async (timestamp: number, blockGasLimit: Quantity, genesisBlockNumber:string, genesisParentHash:string) => {
     // create the genesis block
     const genesis = this.blocks.next({
       // If we were given a timestamp, use it instead of the `_currentTime`
       timestamp,
       gasLimit: blockGasLimit.toBuffer(),
       stateRoot: this.trie.root,
-      number: "0x0"
+      number: Data.from(genesisBlockNumber).toBuffer(),
+      parentHash: Data.from(genesisParentHash).toBuffer()
     });
 
     // store the genesis block in the database
@@ -824,7 +837,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     // #4 - send state results back
     return returnVal;
   }
-  
 
   public getNetworkId():number {
     return this.#options.networkId;

@@ -222,14 +222,14 @@ describe("api", () => {
           const filterId = await provider.send("eth_newPendingTransactionFilter");
           const tx = {from: accounts[0], to: accounts[0]};
           await assertNoChanges();
-          provider.send("eth_sendTransaction", [{...tx}]);
+          await provider.send("eth_sendTransaction", [{...tx}]);
           let hash = await provider.once("message");
           const changes1 = await provider.send("eth_getFilterChanges", [filterId]);
           assert.strictEqual(changes1[0], hash.data.result);
           await assertNoChanges();
-          provider.send("eth_sendTransaction", [{...tx}]);
+          await provider.send("eth_sendTransaction", [{...tx}]);
           let hash2 = await provider.once("message");
-          provider.send("eth_sendTransaction", [{...tx}]);
+          await provider.send("eth_sendTransaction", [{...tx}]);
           let hash3 = await provider.once("message");
 
           const changes2 = await provider.send("eth_getFilterChanges", [filterId]);
@@ -251,14 +251,14 @@ describe("api", () => {
           const data = "0x" + contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] + numberOfLogs.toString().padStart(64, "0");
           const tx = {from: accounts[0], to: contractAddress, data};
           await assertNoChanges();
-          provider.send("eth_sendTransaction", [{...tx}]);
+          await provider.send("eth_sendTransaction", [{...tx}]);
           let hash = await provider.once("message");
           const changes1 = await provider.send("eth_getFilterChanges", [filterId]);
           assert.strictEqual(changes1.length, 1);
           await assertNoChanges();
-          provider.send("eth_sendTransaction", [{...tx}]);
+          await provider.send("eth_sendTransaction", [{...tx}]);
           let hash2 = await provider.once("message");
-          provider.send("eth_sendTransaction", [{...tx}]);
+          await provider.send("eth_sendTransaction", [{...tx}]);
           let hash3 = await provider.once("message");
 
           const changes2 = await provider.send("eth_getFilterChanges", [filterId]);
@@ -280,14 +280,14 @@ describe("api", () => {
           const data = "0x" + contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] + numberOfLogs.toString().padStart(64, "0");
           const tx = {from: accounts[0], to: contractAddress, data};
           await assertNoChanges();
-          provider.send("eth_sendTransaction", [{...tx}]);
+          await provider.send("eth_sendTransaction", [{...tx}]);
           let hash = await provider.once("message");
           const changes1 = await provider.send("eth_getFilterChanges", [filterId]);
           assert.strictEqual(changes1.length, 1);
           await assertNoChanges();
-          provider.send("eth_sendTransaction", [{...tx}]);
+          await provider.send("eth_sendTransaction", [{...tx}]);
           let hash2 = await provider.once("message");
-          provider.send("eth_sendTransaction", [{...tx}]);
+          await provider.send("eth_sendTransaction", [{...tx}]);
           let hash3 = await provider.once("message");
 
           const changes2 = await provider.send("eth_getFilterChanges", [filterId]);

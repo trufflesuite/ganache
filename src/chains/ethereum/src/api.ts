@@ -53,11 +53,11 @@ function parseFilterDetails(filter: Pick<FilterArgs, "address" | "topics">) {
   return {addresses, topics};
 }
 async function parseFilterRange(filter: Pick<FilterArgs, "fromBlock" | "toBlock">, blockchain: Blockchain) {
-  const fromBlock = await blockchain.blocks.getEffectiveNumber(filter.fromBlock || "latest");
+  const fromBlock:Quantity = await blockchain.blocks.getEffectiveNumber(filter.fromBlock || "latest");
   const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
-  const latestBlock = Quantity.from(latestBlockNumberBuffer);
-  const latestBlockNumber = latestBlock.toNumber();
-  const toBlock = await blockchain.blocks.getEffectiveNumber(filter.toBlock || "latest");
+  const latestBlock:Quantity = Quantity.from(latestBlockNumberBuffer);
+  const latestBlockNumber:number = latestBlock.toNumber();
+  const toBlock:Quantity = await blockchain.blocks.getEffectiveNumber(filter.toBlock || "latest");
   let toBlockNumber: number;
   // don't search after the "latest" block, unless it's "pending", of course.
   if (toBlock > latestBlock) {
