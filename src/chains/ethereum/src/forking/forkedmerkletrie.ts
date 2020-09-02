@@ -244,7 +244,7 @@ export class ForkedStorageTrie extends ForkedTrie {
 
   protected async getFromOriginalChain(key:Buffer, blockNumber?:number):Promise<Buffer> {
     let account = await fetchAccountFromOriginalChain(key, this, blockNumber, this.forkBlockNumber, this.originalProvider);
-    return account.serialize() ;
+    return account.serialize();
   }
 
   protected getDeletionKey(key:Buffer):string {
