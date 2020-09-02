@@ -1,6 +1,6 @@
 import {ProviderOptions} from "@ganache/options";
 
-type EthereumOptions = Pick<
+type EthereumOptions = Required<Pick<
   ProviderOptions,
   | "defaultTransactionGasLimit"
   | "chainId"
@@ -22,6 +22,7 @@ type EthereumOptions = Pick<
   | "legacyInstamine"
   | "account_keys_path"
   | "vmErrorsOnRPCResponse"
->;
+  | "coinbase"
+>>;
 
 export default EthereumOptions;

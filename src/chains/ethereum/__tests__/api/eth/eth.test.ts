@@ -19,7 +19,7 @@ describe("api", () => {
     describe("eth_coinbase", function() {
       it("should return correct address", async function() {
         const coinbase = await provider.send("eth_coinbase");
-        assert.strictEqual(coinbase, accounts[0]);
+        assert.strictEqual(coinbase, "0x" + "0".repeat(40));
       });
     });
 

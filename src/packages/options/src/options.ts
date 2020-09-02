@@ -192,7 +192,23 @@ export interface Options {
    * 
    * See: https://nodejs.org/api/fs.html#fs_fs_writefilesync_file_data_options
    */
-  account_keys_path?: string | number
+  account_keys_path?: string | number;
+
+  /**
+   * Sets the address where mining rewards will go.
+   * 
+   * * `{string}` hex-encoded address
+   * * `{number}` index of the account returned by `eth_getAccounts`
+   * 
+   * Defaults to `0x0000000000000000000000000000000000000000`
+   * 
+   */
+  coinbase?: string | number;
+
+    /**
+   * Alias of `coinbase`.
+   */
+  etherbase?: string | number;
 };
 
 const getDefault: (options?: Options) => Options = options => {
@@ -202,6 +218,7 @@ const getDefault: (options?: Options) => Options = options => {
   ).toString();
   const chainId = options ? options.chainId || 1337 : 1337;
   const secure = options ? options.secure || options.locked || false : false;
+  const coinbase = options ? options.coinbase || options.etherbase || "0x0000000000000000000000000000000000000000" : "0x0000000000000000000000000000000000000000";
   return Object.assign(
     {
       chainId,
@@ -221,7 +238,8 @@ const getDefault: (options?: Options) => Options = options => {
       asyncRequestProcessing: true,
       hardfork: "muirGlacier",
       secure,
-      legacyInstamine: false
+      legacyInstamine: false,
+      coinbase
     },
     options
   );

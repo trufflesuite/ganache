@@ -50,7 +50,7 @@ export type BlockchainOptions = {
   gasLimit?: Quantity;
   time?: Date;
   blockTime?: number;
-  coinbase: Account;
+  coinbaseAddress: Address;
   chainId: number;
   common: Common;
   legacyInstamine: boolean;
@@ -129,7 +129,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       );
       this.accounts = new AccountManager(this, database.trie);
 
-      this.coinbase = options.coinbase.address;
+      this.coinbase = options.coinbaseAddress;
       this.vm = this.createVmFromStateTrie(this.trie, options.allowUnlimitedContractSize);
       this.vm.on("step", this.emit.bind(this, "step"));
 

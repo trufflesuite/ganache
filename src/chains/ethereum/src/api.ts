@@ -147,9 +147,26 @@ export default class EthereumApi implements types.Api {
 
     const {initialAccounts} = this.#wallet = new Wallet(opts);
 
-    const blockchainOptions = options as BlockchainOptions;
+    const blockchainOptions = options as any as BlockchainOptions;
     blockchainOptions.initialAccounts = initialAccounts;
-    blockchainOptions.coinbase = initialAccounts[0];
+
+    switch (typeof options.coinbase) {
+      case "number":
+        const account = blockchainOptions.initialAccounts[options.coinbase];
+        if (account) {
+          blockchainOptions.coinbaseAddress = account.address;
+        } else {
+          throw new Error(`invalid coinbase address index: ${options.coinbase}`);
+        }
+      break;
+      case "string":
+        blockchainOptions.coinbaseAddress = Address.from(options.coinbase);
+      break;
+      default: {
+        throw new Error(`coinbase address must be string or number, received: ${options.coinbase}`);
+      }
+    }
+
     this.#common = blockchainOptions.common = Common.forCustomChain(
       "mainnet", // TODO needs to match chain id
       {
@@ -160,6 +177,7 @@ export default class EthereumApi implements types.Api {
       },
       options.hardfork
     );
+   
     const blockchain = (this.#blockchain = new Blockchain(blockchainOptions));
     blockchain.on("start", () => {
       emitter.emit("connect");
