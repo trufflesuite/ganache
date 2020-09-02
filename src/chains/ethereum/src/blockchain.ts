@@ -1,4 +1,4 @@
-import ExecutionError, { RETURN_TYPES } from "./things/execution-error";
+import RuntimeError, { RETURN_TYPES } from "./things/runtime-error";
 import Miner from "./miner";
 import Database from "./database";
 import Emittery from "emittery";
@@ -558,7 +558,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }
     if (result.execResult.exceptionError) {
       if (this.#options.vmErrorsOnRPCResponse) {
-        throw new ExecutionError(tx, result, RETURN_TYPES.RETURN_VALUE);
+        throw new RuntimeError(tx, result, RETURN_TYPES.RETURN_VALUE);
       } else {
         return Data.from(result.execResult.returnValue || "0x");
       }

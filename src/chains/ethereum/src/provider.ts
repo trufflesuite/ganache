@@ -43,6 +43,11 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
   }
 
   /**
+   * Remove an event subscription
+   */
+  public removeListener = this.off;
+
+  /**
    * @param payload
    * @param callback
    * @deprecated Use the `request` method

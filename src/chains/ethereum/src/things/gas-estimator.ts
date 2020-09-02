@@ -1,6 +1,6 @@
 import { Quantity } from "@ganache/utils";
 import { BN } from "ethereumjs-util";
-import ExecutionError, { RETURN_TYPES } from "./execution-error";
+import RuntimeError, { RETURN_TYPES } from "./runtime-error";
 
 const bn = (val = 0) => new (BN as any)(val);
 const STIPEND = bn(2300);
@@ -221,7 +221,7 @@ const stepTracker = () => {
     if (vmerr) {
       return callback(vmerr);
     } else if (result.execResult.exceptionError) {
-      const error = new ExecutionError(runArgs.tx, result, RETURN_TYPES.RETURN_VALUE);
+      const error = new RuntimeError(runArgs.tx, result, RETURN_TYPES.RETURN_VALUE);
       return callback(error, result);
     } else if (steps.done()) {
       const estimate = result.gasUsed;

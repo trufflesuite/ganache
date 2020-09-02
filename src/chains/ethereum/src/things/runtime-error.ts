@@ -12,7 +12,7 @@ export enum RETURN_TYPES {
   RETURN_VALUE
 }
 
-export default class ExecutionError extends CodedError {
+export default class RuntimeError extends CodedError {
   public code: typeof ErrorCodes.INVALID_INPUT;
   public data: {
     hash: string,
