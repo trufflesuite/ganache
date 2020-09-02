@@ -18,7 +18,8 @@
     "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
     "prepublishOnly": "npm run test && npm run build && npm run test-build && cp npm-shrinkwrap.json npm-shrinkwrap.json.bak && rm -rf node_modules/web3-providers-ws/node_modules/websocket/.git && npm prune --production && npm shrinkwrap",
     "postpublish": "rm npm-shrinkwrap.json && mv npm-shrinkwrap.json.bak npm-shrinkwrap.json && npm ci",
-    "test": "npm run _lint && npm run nyc_mocha",
+    "test": "npm run _lint && npm run nyc_mocha ./test/local",
+    "test-smoke": "npm run _mocha ./test/smoke",
     "test-build": "cross-env TEST_BUILD=node npm run _mocha",
     "test-web-experimental": "cross-env TEST_BUILD=web-experimental npm run _mocha",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
