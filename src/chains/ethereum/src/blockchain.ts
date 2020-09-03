@@ -103,7 +103,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           console.warn("Setting legacyInstamine to true has no effect when not instamining, i.e., blockTime > 0.");
         }
 
-        if (this.#options.vmErrorsOnRPCResponse === true) {
+        if (options.vmErrorsOnRPCResponse) {
           console.warn("Setting vmErrorsOnRPCResponse to true has no effect when not instamining, i.e., blockTime > 0.");
         }
       }
