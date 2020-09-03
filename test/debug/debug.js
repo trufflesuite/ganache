@@ -51,7 +51,8 @@ function test(forked) {
       await promisify(forkedServer.listen)(targetPort);
       mainContext = await bootstrap(contractRef, {
         provider: forkedServer.provider,
-        mnemonic
+        mnemonic,
+        vmErrorsOnRPCResponse: true
       });
       mainContext.server = forkedServer;
     });
@@ -74,9 +75,10 @@ function test(forked) {
     const options = forked
       ? {
         fork: forkedTargetUrl.replace("ws", "http"),
-        unlocked_accounts: mainContext.accounts
+        unlocked_accounts: mainContext.accounts,
+        vmErrorsOnRPCResponse: true
       }
-      : { mnemonic };
+      : { mnemonic, vmErrorsOnRPCResponse: true };
     context = await bootstrap(contractRef, options);
   });
 

@@ -26,6 +26,8 @@ describe("Unlimited Contract Size", function() {
       const ganacheOptions = {
         seed,
         allowUnlimitedContractSize: false,
+        legacyInstamine: true,
+        vmErrorsOnRPCResponse: true,
         gasLimit: 2e7
       };
       context = await initializeTestProvider(ganacheOptions);

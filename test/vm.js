@@ -16,7 +16,8 @@ describe("revert opcode", function() {
 
     const ganacheProviderOptions = {
       logger,
-      seed: "1337"
+      seed: "1337",
+      vmErrorsOnRPCResponse: true
     };
 
     context = await bootstrap(contractRef, ganacheProviderOptions);

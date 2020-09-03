@@ -9,7 +9,8 @@ describe("eth_call", function() {
 
   it("should use the call gas limit if no call gas limit is specified in the call", async function() {
     const context = await bootstrap(contractRef, {
-      callGasLimit: "0x6691b7"
+      callGasLimit: "0x6691b7",
+      vmErrorsOnRPCResponse: true
     });
     const { accounts, instance } = context;
 
@@ -29,7 +30,7 @@ describe("eth_call", function() {
       contractFiles: ["EstimateGas"],
       contractSubdirectory: "gas"
     };
-    const context = await bootstrap(contractRef);
+    const context = await bootstrap(contractRef, {vmErrorsOnRPCResponse: true});
     const { accounts, instance } = context;
 
     const name = "0x54696d"; // Byte code for "Tim"
@@ -44,7 +45,7 @@ describe("eth_call", function() {
   });
 
   it("should use the current block number via `eth_call`", async() => {
-    const context = await bootstrap(contractRef);
+    const context = await bootstrap(contractRef, {vmErrorsOnRPCResponse: true});
 
     const actualBlockNumber = await context.web3.eth.getBlockNumber();
     // should read the block number, too

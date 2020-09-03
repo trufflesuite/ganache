@@ -20,7 +20,7 @@ describe("Debug Storage", function() {
       contractFiles: ["DebugContractStorage", "DebugContract"],
       contractSubdirectory: "debug"
     };
-    context = await bootstrap(contractRef);
+    context = await bootstrap(contractRef, {vmErrorsOnRPCResponse: true});
   });
 
   before("set up transaction that should be traced", async() => {

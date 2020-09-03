@@ -33,7 +33,8 @@ describe("Gas", function() {
 
         const ganacheProviderOptions = {
           seed,
-          hardfork
+          hardfork,
+          vmErrorsOnRPCResponse: true
         };
 
         context = await bootstrap(contractRef, ganacheProviderOptions, hardfork);
@@ -62,7 +63,8 @@ describe("Gas", function() {
 
           const ganacheProviderOptions = {
             seed,
-            hardfork
+            hardfork,
+            vmErrorsOnRPCResponse: true
           };
 
           ContractFactory = await bootstrap(factory, ganacheProviderOptions, hardfork);

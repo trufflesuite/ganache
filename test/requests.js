@@ -330,6 +330,7 @@ const tests = function(web3) {
       signingWeb3.setProvider(
         Ganache.provider({
           legacyInstamine: true,
+          vmErrorsOnRPCResponse: true,
           accounts: [acc]
         })
       );
@@ -397,6 +398,7 @@ const tests = function(web3) {
       signingWeb3.setProvider(
         Ganache.provider({
           legacyInstamine: true,
+          vmErrorsOnRPCResponse: true,
           accounts: [acc]
         })
       );
@@ -1698,6 +1700,7 @@ describe("Provider:", function() {
   web3.setProvider(
     Ganache.provider({
       legacyInstamine: true,
+      vmErrorsOnRPCResponse: true,
       logger: logger,
       seed: "1337",
       chainId: 1
@@ -1722,6 +1725,7 @@ describe("HTTP Server:", function() {
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
       legacyInstamine: true,
+      vmErrorsOnRPCResponse: true,
       logger: logger,
       seed: "1337",
       chainId: 1
@@ -1748,6 +1752,7 @@ describe("WebSockets Server:", function() {
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
       legacyInstamine: true,
+      vmErrorsOnRPCResponse: true,
       logger: logger,
       seed: "1337",
       chainId: 1,

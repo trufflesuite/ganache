@@ -378,7 +378,7 @@ describe("Mining", function() {
   describe("stopping", () => {
     async function setUp(close, done) {
       const blockTime = 0.1;
-      const provider = Ganache.provider({ legacyInstamine: true, blockTime });
+      const provider = Ganache.provider({ vmErrorsOnRPCResponse: true, legacyInstamine: true, blockTime });
       let closed = false;
       let closing = false;
       let timer;

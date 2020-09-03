@@ -18,7 +18,8 @@ describe("Constantinople Hardfork", function() {
       const ganacheProviderOptions = {
         mnemonic,
         gasLimit: 20000000,
-        hardfork: "byzantium"
+        hardfork: "byzantium",
+        vmErrorsOnRPCResponse: true
       };
 
       context = await bootstrap(contractRef, ganacheProviderOptions);
@@ -49,7 +50,8 @@ describe("Constantinople Hardfork", function() {
       const ganacheProviderOptions = {
         gasLimit: 20000000,
         hardfork: "constantinople",
-        mnemonic
+        mnemonic,
+        vmErrorsOnRPCResponse: true
       };
 
       context = await bootstrap(contractRef, ganacheProviderOptions);

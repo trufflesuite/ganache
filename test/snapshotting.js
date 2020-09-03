@@ -14,7 +14,7 @@ describe("Checkpointing / Reverting", function() {
       contractSubdirectory: "snapshotting"
     };
 
-    context = await bootstrap(contractRef);
+    context = await bootstrap(contractRef, {vmErrorsOnRPCResponse: true});
   });
 
   before("send a transaction then make a checkpoint", async function() {

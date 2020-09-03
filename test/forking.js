@@ -149,6 +149,7 @@ describe.skip("Forking", function() {
     mainWeb3.setProvider(
       Ganache.provider({
         fork: forkedTargetUrl.replace("ws", "http"),
+        vmErrorsOnRPCResponse: true,
         logger,
         // Do not change seed. Determinism matters for these tests.
         seed: "a different seed"
@@ -201,7 +202,7 @@ describe.skip("Forking", function() {
           assert.deepStrictEqual(testResult, baseLine);
         }
 
-        const provider = Ganache.provider({ legacyInstamine: true, fork: forkedTargetUrl.replace("ws", "http"), forkCacheSize });
+        const provider = Ganache.provider({ vmErrorsOnRPCResponse: true, legacyInstamine: true, fork: forkedTargetUrl.replace("ws", "http"), forkCacheSize });
         const send = generateSend(provider);
         const params = [contractAddress, contract.position_of_value];
         let callCount = 0;
@@ -249,7 +250,7 @@ describe.skip("Forking", function() {
   });
 
   it("should match nonce of accounts on original chain", async() => {
-    const provider = Ganache.provider({ legacyInstamine: true, fork: forkedTargetUrl, seed: forkedServer.ganacheProvider.options.seed });
+    const provider = Ganache.provider({ vmErrorsOnRPCResponse: true, legacyInstamine: true, fork: forkedTargetUrl, seed: forkedServer.ganacheProvider.options.seed });
 
     const send = generateSend(provider);
     const originalSend = generateSend(forkedServer.ganacheProvider);
@@ -660,6 +661,7 @@ describe.skip("Forking", function() {
     before("create provider", function() {
       const provider = Ganache.provider({
         legacyInstamine: true,
+        vmErrorsOnRPCResponse: true,
         fork: forkedTargetUrl.replace("ws", "http"),
         fork_block_number: forkBlockNumber
       });

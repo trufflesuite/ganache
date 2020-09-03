@@ -83,6 +83,7 @@ describe.skip("Contract Deployed on Main Chain After Fork", function() {
     mainWeb3.setProvider(
       Ganache.provider({
         legacyInstamine: true,
+        vmErrorsOnRPCResponse: true,
         fork: forkedTargetUrl.replace("ws", "http"),
         logger,
         verbose: true,

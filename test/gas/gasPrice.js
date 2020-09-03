@@ -14,7 +14,7 @@ describe("Gas", function() {
     describe("default gasPrice", async function() {
       this.timeout(10000);
       it("should respect the default gasPrice", async function() {
-        const ganacheProviderOptions = {};
+        const ganacheProviderOptions = {vmErrorsOnRPCResponse: true};
         const context = await bootstrap(contractRef, ganacheProviderOptions);
         const { accounts, instance, provider, web3 } = context;
 
@@ -33,7 +33,8 @@ describe("Gas", function() {
         const seed = randomInteger(SEED_RANGE);
         const ganacheProviderOptions = {
           seed,
-          gasPrice: 0
+          gasPrice: 0,
+          vmErrorsOnRPCResponse: true
         };
         const context = await bootstrap(contractRef, ganacheProviderOptions);
 

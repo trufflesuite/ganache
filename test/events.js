@@ -287,7 +287,8 @@ describe("Provider:", function() {
   web3.setProvider(
     Ganache.provider({
       logger: logger,
-      legacyInstamine: true
+      legacyInstamine: true,
+      vmErrorsOnRPCResponse: true
     })
   );
   tests(web3);
@@ -301,6 +302,7 @@ describe("Server:", function(done) {
   before("Initialize Ganache server", function(done) {
     server = Ganache.server({
       legacyInstamine: true,
+      vmErrorsOnRPCResponse: true,
       logger: logger,
       ws: true
     });
