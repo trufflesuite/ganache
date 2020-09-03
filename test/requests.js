@@ -106,7 +106,7 @@ const tests = function(web3) {
   describe("eth_coinbase", function() {
     it("should return correct address", async function() {
       const coinbase = await web3.eth.getCoinbase();
-      assert.strictEqual(coinbase, accounts[0]);
+      assert.strictEqual(coinbase, "0x" + "0".repeat(40));
     });
   });
 

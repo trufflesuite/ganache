@@ -89,7 +89,7 @@ describe("Libraries", function() {
 
   describe("msg.sender for external library function calls", async() => {
     it("should return true - msg.sender is the externally owned account", async() => {
-      const result = await contractInstance.methods.callExternalLibraryFunction().call();
+      const result = await contractInstance.methods.callExternalLibraryFunction().call({from: accounts[0]});
       assert.strictEqual(true, result);
     });
   });
