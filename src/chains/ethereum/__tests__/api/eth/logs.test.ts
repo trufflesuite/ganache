@@ -161,7 +161,6 @@ describe("api", () => {
           const lastBlockNumber = `0x${(parseInt(blockNumber) + 1).toString(16)}`;
           await provider.once("message");
 
-
           // test variations of `earliest` and `0x0`
           await testGetLogs(genesisBlockNumber, genesisBlockNumber, 0);
           await testGetLogs("earliest", "earliest", 0);
