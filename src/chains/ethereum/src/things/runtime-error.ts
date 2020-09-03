@@ -35,8 +35,15 @@ export default class RuntimeError extends CodedError {
     const hash = Data.from(transaction.hash(), 32).toString();
     let reason: string | null;
     if (returnValue.length > 4 && REVERT_REASON.compare(returnValue, 0, 4) === 0) {
-      reason = rawDecode(["bytes"], returnValue.slice(4))[0].toString();
-      message += " " + reason;
+      try {
+        // it is possible for the `returnValue` to be gibberish that can't be
+        // decoded. See: https://github.com/trufflesuite/ganache-core/pull/452
+        reason = rawDecode(["bytes"], returnValue.slice(4))[0].toString();
+        message += " " + reason;
+      } catch {
+        // ignore error since reason string recover is impossible
+        reason = null;
+      }
     } else {
       reason = null;
     }
