@@ -227,7 +227,7 @@ const getDefault: (options?: Options) => Options = options => {
       default_balance_ether: 100n,
       total_accounts: 10n,
       networkId,
-      vmErrorsOnRPCResponse: true,
+      vmErrorsOnRPCResponse: false,
       hdPath: "m/44'/60'/0'/0/",
       allowUnlimitedContractSize: false,
       gasPrice: new Quantity(2000000000),
