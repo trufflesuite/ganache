@@ -1,5 +1,5 @@
 import {INTRINSIC_GAS_TOO_LOW} from "./errors";
-import {Data, Quantity} from "@ganache/utils";
+import {utils, Data, Quantity} from "@ganache/utils";
 import params from "./params";
 import {Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction} from "ethereumjs-tx";
 import * as ethUtil from "ethereumjs-util";
@@ -31,7 +31,6 @@ const fakeHash = function (this: Transaction) {
   }
   return EthereumJsFakeTransaction.prototype.hash.apply(this, arguments as unknown as [(boolean | undefined)?]);
 };
-const BUFFER_ZERO = Buffer.from([0]);
 
 function configZeroableField(tx: any, fieldName: string, fieldLength = 32) {
   const index = tx._fields.indexOf(fieldName);
@@ -299,7 +298,7 @@ class Transaction extends (EthereumJsTransaction as any) {
       // Remove all padding and make it easily comparible.
       const buf = Data.from(json.to).toBuffer();
 
-      if (buf.equals(BUFFER_ZERO)) {
+      if (buf.equals(utils.BUFFER_ZERO)) {
         // if the address is 0x0 make it 0x0{20}
         toAccount = Buffer.allocUnsafe(20).fill(0);
       } else {
@@ -368,7 +367,7 @@ class Transaction extends (EthereumJsTransaction as any) {
   validateNonce(expectedNonce: any) {
     let nonce;
     if (this.isSigned() && this.nonce.length === 0) {
-      nonce = BUFFER_ZERO;
+      nonce = utils.BUFFER_ZERO;
     } else {
       nonce = this.nonce;
     }

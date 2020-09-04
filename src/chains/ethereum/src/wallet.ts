@@ -21,7 +21,6 @@ const SCRYPT_PARAMS = {
 } as const;
 const CIPHER = "aes-128-ctr";
 const WEI = 1000000000000000000n;
-const RPCQUANTITY_ZERO = Quantity.from("0x0");
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer A, infer _L] ? A : never;
 type LastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer _A, infer L] ? L : never;
@@ -305,7 +304,7 @@ export default class Wallet {
     const acct = HDKey.fromMasterSeed(seed);
     const address = uncompressedPublicKeyToAddress(acct.publicKey);
     const privateKey = Data.from(acct.privateKey);
-    return Wallet.createAccount(RPCQUANTITY_ZERO, privateKey, address);
+    return Wallet.createAccount(utils.RPCQUANTITY_ZERO, privateKey, address);
   }
 
   public async unlockAccount(lowerAddress: string, passphrase: string, duration: number) {

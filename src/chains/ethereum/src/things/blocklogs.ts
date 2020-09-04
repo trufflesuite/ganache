@@ -1,8 +1,8 @@
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
 import Address from "./address";
+import {utils} from "@ganache/utils";
 
-const BUFFER_ZERO = Buffer.allocUnsafe(1).fill(0);
 export type TransactionLog = [address: Buffer, topics: Buffer[], data: Buffer|Buffer[]]
 export type BlockLog = [removed: Buffer, transactionIndex: Buffer, transactionHash: Buffer, address: TransactionLog[0], topics: TransactionLog[1], data: TransactionLog[2]];
 
@@ -68,7 +68,7 @@ export default class BlockLogs {
    */
   public append(/*removed: boolean, */transactionIndex: Buffer, transactionHash: Buffer, log: TransactionLog) {
     this[_raw][1].push([
-      BUFFER_ZERO,      // `removed`, TODO: this is used for uncles, but we don't support them yet
+      utils.BUFFER_ZERO,      // `removed`, TODO: this is used for uncles, but we don't support them yet
       transactionIndex, // transactionIndex
       transactionHash,  // transactionHash
       log[0],           // `address`
@@ -134,7 +134,7 @@ export default class BlockLogs {
       blockNumber,
       data: Array.isArray(data) ? data.map(d => Data.from(d, d.length)) : Data.from(data, data.length),
       logIndex, // this is the index in the *block*
-      removed: log[0].equals(BUFFER_ZERO) ? false : true,
+      removed: log[0].equals(utils.BUFFER_ZERO) ? false : true,
       topics: Array.isArray(topics) ? topics.map(t => Data.from(t, 32)) : Data.from(topics, 32),
       transactionHash: Data.from(log[2], 32),
       transactionIndex: Quantity.from(log[1])

@@ -14,7 +14,7 @@ import { decode as rlpDecode } from "rlp";
 const createKeccakHash = require("keccak");
 // Read in the current ganache version from core's package.json
 import { version } from "../../../packages/core/package.json";
-import { PromiEvent } from "@ganache/utils";
+import { PromiEvent, utils } from "@ganache/utils";
 import Emittery from "emittery";
 import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
@@ -25,11 +25,9 @@ import CodedError, { ErrorCodes } from "./things/coded-error";
 //#endregion
 
 //#region Constants
-const BUFFER_EMPTY = Buffer.allocUnsafe(0);
-const BUFFER_ZERO = Buffer.from([0]);
+const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
 const CLIENT_VERSION = `Ganache/v${version}`;
 const PROTOCOL_VERSION = Data.from("0x3f");
-const RPCQUANTITY_ZERO = Quantity.from("0x0");
 const RPC_MODULES = { eth: "1.0", net: "1.0", rpc: "1.0", web3: "1.0", evm: "1.0", personal: "1.0" } as const;
 const KNOWN_CHAINIDS = new Set([1, 3, 4, 5, 42]);
 //#endregion
@@ -1030,8 +1028,8 @@ export default class EthereumApi implements types.Api {
       tx.value = Buffer.from([0]);
     }
 
-    if (tx.to.equals(BUFFER_ZERO)) {
-      tx.to = BUFFER_EMPTY;
+    if (tx.to.equals(utils.BUFFER_ZERO)) {
+      tx.to = utils.BUFFER_EMPTY;
     }
 
     if (isUnlockedAccount) {
