@@ -246,38 +246,45 @@ class Transaction extends (EthereumJsTransaction as any) {
   /**
    * Compute the 'intrinsic gas' for a message with the given data.
    * @param data The transaction's data
+   * @param hardfork The hardfork use to determine gas costs
    */
-  public calculateIntrinsicGas(): bigint {
-    const data = this.data;
-
+  public static calculateIntrinsicGas(data: Buffer | null, hardfork: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier") {
     // Set the starting gas for the raw transaction
     let gas = params.TRANSACTION_GAS;
-    const TRANSACTION_DATA_NON_ZERO_GAS = params.TRANSACTION_DATA_NON_ZERO_GAS.get(this._common._hardfork);
-    const TRANSACTION_DATA_ZERO_GAS = params.TRANSACTION_DATA_ZERO_GAS
+    if (data) {
+      // Bump the required gas by the amount of transactional data
+      const dataLength = data.byteLength;
+      if (dataLength > 0) {
+        const TRANSACTION_DATA_NON_ZERO_GAS = params.TRANSACTION_DATA_NON_ZERO_GAS.get(hardfork);
+        const TRANSACTION_DATA_ZERO_GAS = params.TRANSACTION_DATA_ZERO_GAS
 
-    // Bump the required gas by the amount of transactional data
-    const dataLength = data.byteLength;
-    if (dataLength > 0) {
-      // Zero and non-zero bytes are priced differently
-      let nonZeroBytes: bigint = 0n;
-      for (const b of data) {
-        if (b !== 0) {
-          nonZeroBytes++;
+        // Zero and non-zero bytes are priced differently
+        let nonZeroBytes: bigint = 0n;
+        for (const b of data) {
+          if (b !== 0) {
+            nonZeroBytes++;
+          }
         }
-      }
-      // Make sure we don't exceed uint64 for all data combinations.
-      if ((MAX_UINT64 - gas) / TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
-        throw new Error(INTRINSIC_GAS_TOO_LOW);
-      }
-      gas += nonZeroBytes * TRANSACTION_DATA_NON_ZERO_GAS;
+        // Make sure we don't exceed uint64 for all data combinations.
+        if ((MAX_UINT64 - gas) / TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
+          throw new Error(INTRINSIC_GAS_TOO_LOW);
+        }
+        gas += nonZeroBytes * TRANSACTION_DATA_NON_ZERO_GAS;
 
-      const z = BigInt(dataLength) - nonZeroBytes;
-      if ((MAX_UINT64 - gas) / TRANSACTION_DATA_ZERO_GAS < z) {
-        throw new Error(INTRINSIC_GAS_TOO_LOW);
+        const z = BigInt(dataLength) - nonZeroBytes;
+        if ((MAX_UINT64 - gas) / TRANSACTION_DATA_ZERO_GAS < z) {
+          throw new Error(INTRINSIC_GAS_TOO_LOW);
+        }
+        gas += z * TRANSACTION_DATA_ZERO_GAS;
       }
-      gas += z * TRANSACTION_DATA_ZERO_GAS;
     }
     return gas;
+  }
+  /**
+   * Compute the 'intrinsic gas' for a message with the given data.
+   */
+  public calculateIntrinsicGas(): bigint {
+    return Transaction.calculateIntrinsicGas(this.data, this._common._hardfork)
   }
 
   /**
