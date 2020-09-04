@@ -221,7 +221,7 @@ const stepTracker = () => {
     if (vmerr) {
       return callback(vmerr);
     } else if (result.execResult.exceptionError) {
-      const error = new RuntimeError(runArgs.tx, result, RETURN_TYPES.RETURN_VALUE);
+      const error = new RuntimeError(runArgs.tx.hash(), result, RETURN_TYPES.RETURN_VALUE);
       return callback(error, result);
     } else if (steps.done()) {
       const estimate = result.gasUsed;

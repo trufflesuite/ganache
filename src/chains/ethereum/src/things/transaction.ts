@@ -421,7 +421,7 @@ class Transaction extends (EthereumJsTransaction as any) {
     let status: Buffer;
     if (execException) {
       status = ZERO_BUFFER;
-      this.execException = new RuntimeError(this, result, RETURN_TYPES.TRANSACTION_HASH);
+      this.execException = new RuntimeError(this.hash(), result, RETURN_TYPES.TRANSACTION_HASH);
     } else {
       status = ONE_BUFFER;
     }

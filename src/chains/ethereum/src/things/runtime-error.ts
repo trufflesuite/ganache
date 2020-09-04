@@ -21,7 +21,7 @@ export default class RuntimeError extends CodedError {
     reason?: string,
     message: string
   }
-  constructor(transaction: Transaction, result: EVMResult, returnType: RETURN_TYPES) {
+  constructor(transactionHash: Buffer, result: EVMResult, returnType: RETURN_TYPES) {
     const execResult = result.execResult;
     const error = execResult.exceptionError.error;
     let message = VM_EXCEPTION + error;
@@ -32,7 +32,7 @@ export default class RuntimeError extends CodedError {
     this.name = this.constructor.name;
 
     const returnValue = execResult.returnValue;
-    const hash = Data.from(transaction.hash(), 32).toString();
+    const hash = `0x${transactionHash.toString("hex")}`;
     let reason: string | null;
     if (returnValue.length > 4 && REVERT_REASON.compare(returnValue, 0, 4) === 0) {
       try {
