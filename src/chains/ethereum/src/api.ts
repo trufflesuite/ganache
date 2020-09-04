@@ -1438,30 +1438,48 @@ export default class EthereumApi implements types.Api {
     const parentHeader = parentBlock.value.header;
     const options = this.#options;
 
-    // TODO: we need a copy of transaction since we are going to mutate it.
-    // copy it in a better way than this:
-    transaction = {...transaction};
-
-    if (transaction.gasLimit) {
-      transaction.gas = transaction.gasLimit;
-    } else {
-      if (transaction.gas) {
-        transaction.gasLimit = transaction.gas;
+    let gas: Quantity;
+    if (typeof transaction.gasLimit === "undefined") {
+      if (typeof transaction.gas === undefined){
+        gas = Quantity.from(transaction.gas);
       } else {
-        // eth_call isn't subject to regular transaction gas limits
-        transaction.gas = transaction.gasLimit = options.callGasLimit.toString();
+        // eth_call isn't subject to regular transaction gas limits by default
+        gas = options.callGasLimit;
       }
     }
+    else {
+      gas = Quantity.from(transaction.gasLimit)
+    }
 
-    const newBlock = blocks.createBlock({
+    let data:Data;
+    if (typeof transaction.data === "undefined") {
+      if (typeof transaction.input === "undefined") {
+        data = Data.from(transaction.input);
+      }
+     } else {
+       data = Data.from(transaction.data);
+     }
+
+    const block = blocks.createBlock({
       number: parentHeader.number,
       timestamp: parentHeader.timestamp,
       parentHash: parentHeader.parentHash,
       coinbase: blockchain.coinbase.toBuffer(),
-      // gas estimates and eth_calls aren't subject to regular block gas limits
-      gasLimit: transaction.gas
+      gas
     });
-    return blockchain.simulateTransaction(transaction, parentBlock, newBlock);
+
+    const simulatedTransaction = {
+      gas,
+      // if we don't have a from address, our caller sut be the configured coinbase address
+      from: transaction.from == null ? blockchain.coinbase : Address.from(transaction.from),
+      to: transaction.to == null ? null : Address.from(transaction.to),
+      gasPrice: Quantity.from(transaction.gasPrice == null ? 0 : transaction.gasPrice),
+      value: transaction.value == null ? null : Quantity.from(transaction.value),
+      data,
+      block
+    };
+    
+    return blockchain.simulateTransaction(simulatedTransaction, parentBlock);
   }
   //#endregion
 

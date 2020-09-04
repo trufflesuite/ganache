@@ -26,6 +26,35 @@ import RejectionError from "./things/rejection-error";
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 
+
+type SimulationTransaction = {
+  /**
+   * The address the transaction is sent from.
+   */
+  from: Address,
+  /**
+   * The address the transaction is directed to.
+   */
+  to?: Address,
+  /**
+   * Integer of the gas provided for the transaction execution. eth_call consumes zero gas, but this parameter may be needed by some executions.
+   */
+  gas: Quantity,
+  /**
+   * Integer of the gasPrice used for each paid gas
+   */
+  gasPrice: Quantity,
+  /**
+   * Integer of the value sent with this transaction
+   */
+  value?: Quantity,
+  /**
+   * Hash of the method signature and encoded parameters. For details see Ethereum Contract ABI in the Solidity documentation
+   */
+  data?: Data,
+  block: Block
+}
+
 const unref = utils.unref;
 
 export enum Status {
@@ -532,33 +561,37 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }
   }
 
-  public async simulateTransaction(transaction: any, parentBlock: Block, block: Block) {
-    // TODO: this is just a prototype implementation
-    const vm = this.vm.copy();
-    const stateManager = vm.stateManager;
-    const tx = Transaction.fromJSON(transaction, this.#options.common, Transaction.types.fake);
-    tx.block = block.value;
-    tx.caller = Data.from(transaction.from || block.value.header.coinbase).toBuffer();
-
+  public async simulateTransaction(transaction: SimulationTransaction, parentBlock: Block) {
     let result: EVMResult;
+    const options = this.#options;
 
-    // subtract out the transaction's base fee from the gas limit now
-    const instrinsic = tx.calculateIntrinsicGas();
-    const gasLeft = Quantity.from(tx.gasLimit).toBigInt() - instrinsic;
+    const data = transaction.data;
+    let gasLeft = transaction.gas.toBigInt();
+    // subtract out the transaction's base fee from the gas limit before
+    // simulating the tx, because `runCall` doesn't account for raw gas costs.
+    gasLeft -= Transaction.calculateIntrinsicGas(data ? data.toBuffer() : null, options.hardfork as any);
+
     if (gasLeft >= 0) {
-      tx.gasLimit = Quantity.from(gasLeft).toBuffer();
+      const stateTrie = new CheckpointTrie(this.#database.trie, parentBlock.value.header.stateRoot);
+      const vm = this.createVmFromStateTrie(stateTrie, this.vm.allowUnlimitedContractSize);
+      vm.on("step", this.emit.bind(this, "step"));
 
-      await promisify(stateManager.setStateRoot.bind(stateManager))(
-        parentBlock.value.header.stateRoot
-      );
-
-      result = await vm.runCall(tx);
+      result = await vm.runCall({
+        caller: transaction.from.toBuffer(),
+        data: transaction.data && transaction.data.toBuffer(),
+        gasPrice: transaction.gasPrice.toBuffer(),
+        gasLimit: Quantity.from(gasLeft).toBuffer(),
+        to: transaction.to && transaction.to.toBuffer(),
+        value: transaction.value && transaction.value.toBuffer(),
+      });
     } else {
       result = {execResult: {exceptionError: new VmError(ERROR.OUT_OF_GAS), returnValue: Buffer.allocUnsafe(0)}} as any;
     }
     if (result.execResult.exceptionError) {
       if (this.#options.vmErrorsOnRPCResponse) {
-        throw new RuntimeError(tx, result, RETURN_TYPES.RETURN_VALUE);
+        // eth_call transactions don't really have a transaction hash
+        const hash = Buffer.allocUnsafe(0);
+        throw new RuntimeError(hash, result, RETURN_TYPES.RETURN_VALUE);
       } else {
         return Data.from(result.execResult.returnValue || "0x");
       }
