@@ -75,11 +75,10 @@ describe("api", function() {
 
         // Since transactions happen immediately, we can assert the balance.
         let balance = await send("eth_getBalance", [accounts[0]]);
-        balance = parseInt(balance);
+        balance = BigInt(balance);
 
         // Assert the starting balance is where we think it is, including tx costs.
-        // TODO:
-        // assert(balance > 98.9 && balance < 99);
+        assert(balance > 98900000000000000000 && balance < 99000000000000000000);
         startingBalance = balance;
 
         // Now checkpoint.
@@ -100,18 +99,17 @@ describe("api", function() {
         await provider.once("message");
 
         let balance = await send("eth_getBalance", [accounts[0]]);
-        balance = parseInt(balance);
+        balance = BigInt(balance);
 
         // Assert the starting balance is where we think it is, including tx costs.
-        // TODO:
-        // assert(balance > 97.9 && balance < 98);
+        assert(balance > 97900000000000000000n && balance < 98000000000000000000n);
 
         const status = await send("evm_revert", [snapshotId]);
 
         assert(status, "Snapshot should have returned true");
 
         let revertedBalance = await send("eth_getBalance", [accounts[0]]);
-        revertedBalance = parseInt(revertedBalance);
+        revertedBalance = BigInt(revertedBalance);
 
         assert(revertedBalance === startingBalance, "Should have reverted back to the starting balance");
 
