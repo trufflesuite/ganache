@@ -22,7 +22,7 @@ async function takeSnapshot(web3) {
         if (err) {
           return reject(err);
         }
-        return resolve(result.id);
+        return resolve(result.result);
       }
     );
   });
@@ -109,11 +109,11 @@ describe("Forking Snapshots", () => {
     await revertToSnapShot(mainWeb3, snapshotId);
 
     value = await instance.methods.value().call();
-    assert.equal(value, 0);
+    assert.equal(value, 1);
 
     await instance.methods.test().send(txParams);
 
     value = await instance.methods.value().call();
-    assert.equal(value, 1);
+    assert.equal(value, 2);
   });
 });
