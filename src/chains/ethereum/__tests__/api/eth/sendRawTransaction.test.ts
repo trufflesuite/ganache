@@ -12,7 +12,7 @@ describe("api", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       const common = Common.forCustomChain(
-        "mainnet", // TODO needs to match chain id
+        "mainnet",
         {
           name: "ganache",
           chainId: 1337,

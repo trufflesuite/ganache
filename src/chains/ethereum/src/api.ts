@@ -31,6 +31,7 @@ const CLIENT_VERSION = `Ganache/v${version}`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPCQUANTITY_ZERO = Quantity.from("0x0");
 const RPC_MODULES = { eth: "1.0", net: "1.0", rpc: "1.0", web3: "1.0", evm: "1.0", personal: "1.0" } as const;
+const KNOWN_CHAINIDS = new Set([1, 3, 4, 5, 42]);
 //#endregion
 
 //#region types
@@ -168,7 +169,11 @@ export default class EthereumApi implements types.Api {
     }
 
     this.#common = blockchainOptions.common = Common.forCustomChain(
-      "mainnet", // TODO needs to match chain id
+      // if we were given a chain id that matches a real chain, use it
+      // NOTE: I don't think Common serves a purpose ther than instructing the
+      // VM what hardfork is in use. But just incase things change in the future
+      // its configured "more correctly" here.
+      KNOWN_CHAINIDS.has(options.chainId) ? options.chainId : 1,
       {
         name: "ganache",
         networkId: options.networkId,
