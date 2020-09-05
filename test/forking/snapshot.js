@@ -79,7 +79,7 @@ describe("Forking Snapshots", () => {
     });
   });
 
-  it("successfully manages storage slot deletion", async() => {
+  it("successfully handles snapshot/revert scenarios", async() => {
     const { instance: forkedInstance, abi } = forkedContext;
     const { web3: mainWeb3 } = mainContext;
 
@@ -99,6 +99,7 @@ describe("Forking Snapshots", () => {
     value = await instance.methods.value().call();
     assert.equal(value, 1);
 
+    const beforeSnapshotNonce = await mainWeb3.eth.getTransactionCount(accounts[0]);
     const snapshotId = await takeSnapshot(mainWeb3);
 
     await instance.methods.test().send(txParams);
@@ -106,7 +107,13 @@ describe("Forking Snapshots", () => {
     value = await instance.methods.value().call();
     assert.equal(value, 2);
 
+    const beforeRevertNonce = await mainWeb3.eth.getTransactionCount(accounts[0]);
+    assert.equal(beforeRevertNonce, beforeSnapshotNonce + 1);
+
     await revertToSnapShot(mainWeb3, snapshotId);
+
+    const afterRevertNonce = await mainWeb3.eth.getTransactionCount(accounts[0]);
+    assert.equal(afterRevertNonce, beforeSnapshotNonce);
 
     value = await instance.methods.value().call();
     assert.equal(value, 1);
