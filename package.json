@@ -38,7 +38,7 @@
     "ethereumjs-block": "2.2.2",
     "ethereumjs-common": "1.5.0",
     "ethereumjs-tx": "2.1.2",
-    "ethereumjs-util": "6.2.0",
+    "ethereumjs-util": "6.2.1",
     "ethereumjs-vm": "4.2.0",
     "heap": "0.2.6",
     "level-sublevel": "6.6.4",
@@ -50,7 +50,7 @@
     "source-map-support": "0.5.12",
     "tmp": "0.1.0",
     "web3-provider-engine": "14.2.1",
-    "websocket": "1.0.29"
+    "websocket": "1.0.32"
   },
   "devDependencies": {
     "@types/web3": "^1.0.19",
@@ -64,7 +64,7 @@
     "eslint-plugin-node": "11.0.0",
     "eslint-plugin-promise": "4.2.1",
     "eslint-plugin-standard": "4.0.1",
-    "ethereumjs-wallet": "0.6.3",
+    "ethereumjs-wallet": "0.6.5",
     "ethers": "4.0.43",
     "husky": "4.0.10",
     "js-scrypt": "0.2.0",
@@ -82,14 +82,14 @@
     "semver": "7.1.1",
     "temp": "0.9.1",
     "terser-webpack-plugin": "2.3.2",
-    "web3": "1.2.4",
+    "web3": "1.2.11",
     "webpack": "4.41.5",
     "webpack-bundle-size-analyzer": "3.1.0",
     "webpack-cli": "3.3.10"
   },
   "optionalDependencies": {
-    "ethereumjs-wallet": "0.6.3",
-    "web3": "1.2.4"
+    "ethereumjs-wallet": "0.6.5",
+    "web3": "1.2.11"
   },
   "repository": {
     "type": "git",
