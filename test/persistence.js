@@ -200,7 +200,7 @@ describe("Custom DB", function() {
   runTests(providerInit);
 });
 
-describe("Regression test DB", function() {
+describe.skip("Regression test DB", function() {
   // Don't change these options, we need these to match the saved chain in ./test/testdb
   const db = memdown();
   const dbPath = join(__dirname, "/testdb");
