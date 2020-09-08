@@ -300,7 +300,7 @@ class Transaction extends (EthereumJsTransaction as any) {
 
       if (buf.equals(utils.BUFFER_ZERO)) {
         // if the address is 0x0 make it 0x0{20}
-        toAccount = Buffer.allocUnsafe(20).fill(0);
+        toAccount = utils.ACCOUNT_ZERO;
       } else {
         toAccount = buf;
       }
