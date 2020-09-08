@@ -2,7 +2,7 @@ var Ganache = require("../../ganache-core/src/packages/core/lib/index.js").defau
 const assert = require("assert");
 
 describe("BuildType", function() {
-  it("Tests that we are using the right version", () => {
+  it.skip("Tests that we are using the right version", () => {
     assert(process.env.TEST_BUILD ? Ganache._webpacked === true : Ganache._webpacked === false);
   });
 });
