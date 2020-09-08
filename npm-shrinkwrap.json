@@ -1,6 +1,6 @@
 {
   "name": "ganache-core",
-  "version": "2.11.3-beta.0",
+  "version": "2.11.3",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
