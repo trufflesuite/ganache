@@ -84,6 +84,8 @@ Both `.provider()` and `.server()` take a single object which allows you to spec
 * `"fork_block_number"`: `string` or `number` - Block number the provider should fork from, when the `fork` option is specified. If the `fork` option is specified as a string including the `@` sign and a block number, the block number in the `fork` parameter takes precedence.
 - `"forkCacheSize"`: `number` - The maximum size, in bytes, of the in-memory cache for queries on a chain fork. Defaults to `1_073_741_824` bytes (1 gigabyte). You can set this to `0` to disable caching (not recommended), or to `-1` for unlimited (will be limited by your node/browser process).
 * `"network_id"`: Specify the network id ganache-core will use to identify itself (defaults to the current time or the network id of the forked blockchain if configured)
+* `"_chainId"`: **(temporary option until v3)** Specify the chain's chainId. For legacy reasons, this does NOT affect the `eth_chainId` RPC response! Defaults to `1`
+* `"_chainIdRpc"`: **(temporary option until v3)** Specify the `eth_chainId` RPC response value. For legacy reasons, this does NOT affect the chain's `chainid`! Defaults to `1337`
 * `"time"`: `Date` - Date that the first block should start. Use this feature, along with the `evm_increaseTime` method to test time-dependent code.
 * `"locked"`: `boolean` - whether or not accounts are locked by default.
 * `"unlocked_accounts"`: `Array` - array of addresses or address indexes specifying which accounts should be unlocked.
