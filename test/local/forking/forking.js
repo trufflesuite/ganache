@@ -345,23 +345,6 @@ describe("Forking", function() {
     assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
   });
 
-  it("should unlock any account after server has been started", async() => {
-    const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-    forkedWeb3.currentProvider.send({"jsonrpc":"2.0","method":"evm_unlockUnknownAccount","params":[address],"id":42}, (err, res) => {
-      assert.strictEqual(res.result, true);
-    });
-    forkedWeb3.currentProvider.send({"jsonrpc":"2.0","method":"evm_unlockUnknownAccount","params":[address],"id":42}, (err, res) => {
-      assert.strictEqual(res.result, false);
-    });
-  });
-
-  it("should not unlock any locked personal account", async() => {
-    const address = await mainWeb3.eth.getAccounts()[0];
-    await mainWeb3.eth.personal.lockAccount(address);
-    forkedWeb3.currentProvider.send({"jsonrpc":"2.0","method":"evm_unlockUnknownAccount","params":[address],"id":42}, (err, res) => {
-      assert.strictEqual(err, "cannot unlock known/personal account");
-    });
-  });
 
   it("should execute calls against a contract on the forked provider via the main provider", async() => {
     var example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
