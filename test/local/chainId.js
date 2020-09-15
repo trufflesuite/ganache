@@ -2,7 +2,7 @@ const assert = require("assert");
 const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
 const { compile } = require("../helpers/contract/compileAndDeploy");
 
-describe.only("Chain Id option", function() {
+describe("Chain Id option", function() {
   const contract = {};
 
   before("compile contract", async function() {
