@@ -345,7 +345,6 @@ describe("Forking", function() {
     assert.strictEqual(mainWeb3.utils.hexToNumber(result), 5);
   });
 
-
   it("should execute calls against a contract on the forked provider via the main provider", async() => {
     var example = new mainWeb3.eth.Contract(contract.abi, contractAddress);
 
