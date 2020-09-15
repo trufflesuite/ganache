@@ -295,8 +295,31 @@ describe("Accounts", () => {
       send = context.send;
     });
 
-    it("should lock any unlocked unknown account via evm_lockUnknownAccount", async () => {
+    it("should unlock any account after server has been started", async () => {
       const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+      const {result: result1} = await send("evm_unlockUnknownAccount", address);
+      assert.strictEqual(result1, true);
+  
+      // should return `false` if account was already locked
+      const {result: result2} = await send("evm_unlockUnknownAccount", address);
+      assert.strictEqual(result2, false);
+    });
+  
+    it("should not unlock any locked personal account", async () => {
+      const [address] = accounts;
+      await send("personal_lockAccount", address);
+      try {
+        await assert.rejects(send("evm_unlockUnknownAccount", {
+          message: "cannot unlock known/personal account"
+        }));
+      } finally {
+        // unlock the account
+        await send("personal_unlockAccount", address, "", 0);
+      }
+    });
+
+    it("should lock any unlocked unknown account via evm_lockUnknownAccount", async () => {
+      const address = "0x842d35Cc6634C0532925a3b844Bc454e4438f44f";
       const {result: unlockResult} = await send("evm_unlockUnknownAccount", address);
       assert.strictEqual(unlockResult, true);
 
@@ -329,7 +352,7 @@ describe("Accounts", () => {
     });
 
     it("should return `false` upon lock if account isn't locked (unknown account)", async () => {
-      const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+      const address = "0x942d35Cc6634C0532925a3b844Bc454e4438f450";
       const {result} = await send("evm_lockUnknownAccount", address);
       assert.strictEqual(result, false);
     });
