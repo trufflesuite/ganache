@@ -1,7 +1,7 @@
 const assert = require("assert");
 const { BN } = require("ethereumjs-util");
 const ethers = require("ethers");
-const intializeTestProvider = require("../helpers/web3/initializeTestProvider");
+const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
 
 describe("ethers", async() => {
   let ethersProvider, wallet, gasPrice, value;
@@ -18,7 +18,7 @@ describe("ethers", async() => {
       ]
     };
 
-    const { provider } = await intializeTestProvider(ganacheOptions);
+    const { provider } = await initializeTestProvider(ganacheOptions);
 
     ethersProvider = new ethers.providers.Web3Provider(provider);
     const privateKey = Buffer.from(secretKey, "hex");

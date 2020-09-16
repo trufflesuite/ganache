@@ -1,6 +1,6 @@
 const assert = require("assert");
 const bootstrap = require("../../helpers/contract/bootstrap");
-const intializeTestProvider = require("../../helpers/web3/initializeTestProvider");
+const initializeTestProvider = require("../../helpers/web3/initializeTestProvider");
 
 describe("Forking eth_call", () => {
   let forkedContext;
@@ -44,7 +44,7 @@ describe("Forking eth_call", () => {
     const { result: preForkBlockNumber } = await send("eth_blockNumber");
 
     // Fork the "original" chain _now_
-    const { web3 } = await intializeTestProvider({
+    const { web3 } = await initializeTestProvider({
       fork: originalProvider,
       logger,
       seed: "forked provider"

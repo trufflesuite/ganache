@@ -1,6 +1,6 @@
 const assert = require("assert");
 const bootstrap = require("../../helpers/contract/bootstrap");
-const intializeTestProvider = require("../../helpers/web3/initializeTestProvider");
+const initializeTestProvider = require("../../helpers/web3/initializeTestProvider");
 
 /**
  * NOTE: Naming in these tests is a bit confusing. Here, the "main chain"
@@ -72,7 +72,7 @@ describe("Forking Snapshots", () => {
 
   before("Set up main provider and web3 instance", async function() {
     const { provider: forkedProvider } = forkedContext;
-    mainContext = await intializeTestProvider({
+    mainContext = await initializeTestProvider({
       fork: forkedProvider,
       logger,
       seed: "forked provider"
