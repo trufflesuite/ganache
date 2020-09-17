@@ -1,5 +1,6 @@
 const assert = require("assert");
 const bootstrap = require("../../helpers/contract/bootstrap");
+const generateSend = require("../../helpers/utils/rpc");
 const initializeTestProvider = require("../../helpers/web3/initializeTestProvider");
 
 /**
@@ -10,69 +11,6 @@ const initializeTestProvider = require("../../helpers/web3/initializeTestProvide
  * network) and the fork chain being "the fork".
  */
 
-// Defining our own functions to send raw rpc calls because web3
-// does a toLower on the address
-
-async function getBalance(web3, id, address, blockNumber) {
-  return new Promise(function(resolve, reject) {
-    web3.currentProvider.send(
-      {
-        jsonrpc: "2.0",
-        method: "eth_getBalance",
-        params: [address, blockNumber],
-        id
-      },
-      function(err, result) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(web3.utils.hexToNumberString(result.result));
-        }
-      }
-    );
-  });
-}
-
-async function getCode(web3, id, address, blockNumber) {
-  return new Promise(function(resolve, reject) {
-    web3.currentProvider.send(
-      {
-        jsonrpc: "2.0",
-        method: "eth_getCode",
-        params: [address, blockNumber],
-        id
-      },
-      function(err, result) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result.result);
-        }
-      }
-    );
-  });
-}
-
-async function getStorageAt(web3, id, address, position, blockNumber) {
-  return new Promise(function(resolve, reject) {
-    web3.currentProvider.send(
-      {
-        jsonrpc: "2.0",
-        method: "eth_getStorageAt",
-        params: [address, position, blockNumber],
-        id
-      },
-      function(err, result) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result.result);
-        }
-      }
-    );
-  });
-}
-
 describe("Forking methods are Case Insensitive", () => {
   let forkedContext;
   let forkedAccounts;
@@ -80,7 +18,6 @@ describe("Forking methods are Case Insensitive", () => {
   let mainContext;
   let mainAccounts;
   let instance;
-  let id = 0;
   const logger = {
     log: function(msg) {}
   };
@@ -110,6 +47,11 @@ describe("Forking methods are Case Insensitive", () => {
       logger,
       seed: "forked provider"
     });
+    const send = generateSend(mainContext.web3.currentProvider);
+    mainContext.send = async function() {
+      const result = await send(...arguments);
+      return result.result;
+    };
     mainAccounts = await mainContext.web3.eth.getAccounts();
   });
 
@@ -128,68 +70,68 @@ describe("Forking methods are Case Insensitive", () => {
   });
 
   it("eth_getBalance", async function() {
-    const mainWeb3 = mainContext.web3;
+    const { web3, send } = mainContext;
 
     const addressLower = forkedAccounts[1].toLowerCase();
-    const balanceBeforeForkLower = await getBalance(mainWeb3, id++, addressLower, forkedBlockNumber);
-    const balanceNowLower = await getBalance(mainWeb3, id++, addressLower, "latest");
-    assert.strictEqual(balanceBeforeForkLower, mainWeb3.utils.toWei("100", "ether"));
-    assert.strictEqual(balanceNowLower, mainWeb3.utils.toWei("101", "ether"));
+    const balanceBeforeForkLower = await send("eth_getBalance", addressLower, forkedBlockNumber);
+    const balanceNowLower = await send("eth_getBalance", addressLower, "latest");
+    assert.strictEqual(balanceBeforeForkLower, web3.utils.toHex(web3.utils.toWei("100", "ether")));
+    assert.strictEqual(balanceNowLower, web3.utils.toHex(web3.utils.toWei("101", "ether")));
 
     const addressUpper = forkedAccounts[1].toUpperCase().replace(/^0X/, "0x");
-    const balanceBeforeForkUpper = await getBalance(mainWeb3, id++, addressUpper, forkedBlockNumber);
-    const balanceNowUpper = await getBalance(mainWeb3, id++, addressUpper, "latest");
-    assert.strictEqual(balanceBeforeForkUpper, mainWeb3.utils.toWei("100", "ether"));
-    assert.strictEqual(balanceNowUpper, mainWeb3.utils.toWei("101", "ether"));
+    const balanceBeforeForkUpper = await send("eth_getBalance", addressUpper, forkedBlockNumber);
+    const balanceNowUpper = await send("eth_getBalance", addressUpper, "latest");
+    assert.strictEqual(balanceBeforeForkUpper, web3.utils.toHex(web3.utils.toWei("100", "ether")));
+    assert.strictEqual(balanceNowUpper, web3.utils.toHex(web3.utils.toWei("101", "ether")));
 
     // ensure nothing got changed in these calls
-    const balanceNowLower2 = await getBalance(mainWeb3, id++, addressLower, "latest");
+    const balanceNowLower2 = await send("eth_getBalance", addressLower, "latest");
     assert.strictEqual(balanceNowLower2, balanceNowLower);
   });
 
   it("eth_getCode", async function() {
-    const mainWeb3 = mainContext.web3;
+    const { send } = mainContext;
 
     const addressLower = forkedContext.instance._address.toLowerCase();
-    const codeBeforeDeployLower = await getCode(mainWeb3, id++, addressLower, "earliest");
-    const codeBeforeForkLower = await getCode(mainWeb3, id++, addressLower, forkedBlockNumber);
-    const codeNowLower = await getCode(mainWeb3, id++, addressLower, "latest");
+    const codeBeforeDeployLower = await send("eth_getCode", addressLower, "earliest");
+    const codeBeforeForkLower = await send("eth_getCode", addressLower, forkedBlockNumber);
+    const codeNowLower = await send("eth_getCode", addressLower, "latest");
     assert.strictEqual(codeBeforeDeployLower, "0x");
     assert.strictEqual(codeBeforeForkLower.length > 2, true);
     assert.strictEqual(codeNowLower.length > 2, true);
     assert.strictEqual(codeBeforeForkLower, codeNowLower);
 
     const addressUpper = forkedContext.instance._address.toUpperCase().replace(/^0X/, "0x");
-    const codeBeforeDeployUpper = await getCode(mainWeb3, id++, addressUpper, "earliest");
-    const codeBeforeForkUpper = await getCode(mainWeb3, id++, addressUpper, forkedBlockNumber);
-    const codeNowUpper = await getCode(mainWeb3, id++, addressUpper, "latest");
+    const codeBeforeDeployUpper = await send("eth_getCode", addressUpper, "earliest");
+    const codeBeforeForkUpper = await send("eth_getCode", addressUpper, forkedBlockNumber);
+    const codeNowUpper = await send("eth_getCode", addressUpper, "latest");
     assert.strictEqual(codeBeforeDeployUpper, "0x");
     assert.strictEqual(codeBeforeForkUpper.length > 2, true);
     assert.strictEqual(codeNowUpper.length > 2, true);
     assert.strictEqual(codeBeforeForkUpper, codeNowUpper);
 
     // ensure nothing got changed in these calls
-    const codeNowLower2 = await getCode(mainWeb3, id++, addressLower, "latest");
+    const codeNowLower2 = await send("eth_getCode", addressLower, "latest");
     assert.strictEqual(codeNowLower2, codeNowLower);
   });
 
   it("eth_getStorageAt", async function() {
-    const mainWeb3 = mainContext.web3;
+    const { send } = mainContext;
 
     const addressLower = forkedContext.instance._address.toLowerCase();
-    const valueBeforeForkLower = await getStorageAt(mainWeb3, id++, addressLower, 0, forkedBlockNumber);
-    const valueNowLower = await getStorageAt(mainWeb3, id++, addressLower, 0, "latest");
+    const valueBeforeForkLower = await send("eth_getStorageAt", addressLower, 0, forkedBlockNumber);
+    const valueNowLower = await send("eth_getStorageAt", addressLower, 0, "latest");
     assert.strictEqual(valueBeforeForkLower, "0x00");
     assert.strictEqual(valueNowLower, "0x01");
 
     const addressUpper = forkedContext.instance._address.toUpperCase().replace(/^0X/, "0x");
-    const valueBeforeForkUpper = await getStorageAt(mainWeb3, id++, addressUpper, 0, forkedBlockNumber);
-    const valueNowUpper = await getStorageAt(mainWeb3, id++, addressUpper, 0, "latest");
+    const valueBeforeForkUpper = await send("eth_getStorageAt", addressUpper, 0, forkedBlockNumber);
+    const valueNowUpper = await send("eth_getStorageAt", addressUpper, 0, "latest");
     assert.strictEqual(valueBeforeForkUpper, "0x00");
     assert.strictEqual(valueNowUpper, "0x01");
 
     // ensure nothing got changed in these calls
-    const valueNowLower2 = await getStorageAt(mainWeb3, id++, addressLower, 0, "latest");
+    const valueNowLower2 = await send("eth_getStorageAt", addressLower, 0, "latest");
     assert.strictEqual(valueNowLower2, valueNowLower);
   });
 });
