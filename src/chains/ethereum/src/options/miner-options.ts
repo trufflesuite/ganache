@@ -38,9 +38,7 @@ type MinerConfig = {
       hasDefault: true;
     }
   },
-  exclusiveGroups: [
-    ["blockTime", "legacyInstamine"]
-  ]
+  exclusiveGroups: []
 }
 
 export const MinerOptions: Definitions<MinerConfig> = {
