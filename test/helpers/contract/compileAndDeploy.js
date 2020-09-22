@@ -33,6 +33,11 @@ function compile(mainContractName, contractFileNames = [], contractSubdirectory,
 
   const result = JSON.parse(solc.compile(JSON.stringify(input)));
 
+  if (result.errors) {
+    const errorMessages = result.errors.map((error) => error.formattedMessage);
+    throw new Error(`Could not compile test contracts:\n${errorMessages.join("")}`);
+  }
+
   const _mainContractName = mainContractName.endsWith(".sol")
     ? mainContractName.replace(/\.sol$/i, "")
     : mainContractName;
