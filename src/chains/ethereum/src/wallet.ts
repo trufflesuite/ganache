@@ -20,7 +20,7 @@ const SCRYPT_PARAMS = {
   r: 1
 } as const;
 const CIPHER = "aes-128-ctr";
-const WEI = 1000000000000000000n;
+const WEI = utils.WEI;
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer A, infer _L] ? A : never;
 type LastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer _A, infer L] ? L : never;
