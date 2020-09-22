@@ -18,7 +18,7 @@ type RequestParams<Method extends RequestMethods> = {
   readonly params: Parameters<EthereumApi[Method]> | undefined
 };
 
-const hasOwn = ({}).hasOwnProperty.call.bind(({}).hasOwnProperty);
+const hasOwn = utils.hasOwn;
 
 export default class EthereumProvider extends Emittery.Typed<{message: any}, "connect" | "disconnect">
   implements types.Provider<EthereumApi>
