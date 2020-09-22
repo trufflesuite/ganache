@@ -9,7 +9,7 @@ export default class Manager<T> {
   #Type: Instantiable<T>;
   #options: {};
   protected base: LevelUp;
-  constructor(base: LevelUp, type: Instantiable<T>, options?: {}) {
+  constructor(base: LevelUp, type: Instantiable<T>, options?: ConstructorParameters<Instantiable<T>>[1]) {
     this.#Type = type;
     this.#options = options;
     this.base = base;
