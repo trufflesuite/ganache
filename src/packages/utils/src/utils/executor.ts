@@ -1,7 +1,6 @@
+import { hasOwn } from "./has-own";
 import { KnownKeys, Api } from "../types";
 import {RequestCoordinator} from "./request-coordinator";
-
-const hasOwn = ({}).hasOwnProperty.call.bind(({}).hasOwnProperty);
 
 export class Executor {
   #requestCoordinator: RequestCoordinator
