@@ -17,8 +17,7 @@
   },
   "dependencies": {
     "bip39": "3.0.2",
-    "bn.js": "5.1.2",
-    "emittery": "0.6.0",
+    "emittery": "0.7.1",
     "ethereumjs-account": "3.0.0",
     "ethereumjs-block": "2.2.2",
     "ethereumjs-common": "1.5.1",
