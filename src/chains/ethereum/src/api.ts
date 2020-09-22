@@ -111,16 +111,18 @@ function assertExceptionalTransactions(transactions: Transaction[]) {
   }
 }
 
+type UnknownFn = (this: unknown, ...args: unknown[]) => unknown;
+type FunctionPropertyDescriptor<T extends UnknownFn> = TypedPropertyDescriptor<T>;
 function assertArgLength(min: number, max: number = min) {
-  return function(_target, _name, descriptor) {
+  return function<T extends UnknownFn>(_target: any, _propertyKey: any, descriptor: FunctionPropertyDescriptor<T>) {
     const original = descriptor.value;
-    descriptor.value = function() {
+    descriptor.value = function(this: any) {
       const length = arguments.length;
       if (length < min || length > max) throw new Error("Incorrect number of arguments.");
       return Reflect.apply(original, this, arguments);
-    };
-    return descriptor;
-  };
+    } as any;
+    return descriptor as TypedPropertyDescriptor<T>;
+  } as MethodDecorator;
 }
 
 export default class EthereumApi implements types.Api {
