@@ -202,7 +202,12 @@ describe.skip("Forking", function() {
           assert.deepStrictEqual(testResult, baseLine);
         }
 
-        const provider = Ganache.provider({ vmErrorsOnRPCResponse: true, legacyInstamine: true, fork: forkedTargetUrl.replace("ws", "http"), forkCacheSize });
+        const provider = Ganache.provider({
+          vmErrorsOnRPCResponse: true,
+          legacyInstamine: true,
+          fork: forkedTargetUrl.replace("ws", "http"),
+          forkCacheSize
+        });
         const send = generateSend(provider);
         const params = [contractAddress, contract.position_of_value];
         let callCount = 0;
@@ -250,7 +255,12 @@ describe.skip("Forking", function() {
   });
 
   it("should match nonce of accounts on original chain", async() => {
-    const provider = Ganache.provider({ vmErrorsOnRPCResponse: true, legacyInstamine: true, fork: forkedTargetUrl, seed: forkedServer.ganacheProvider.options.seed });
+    const provider = Ganache.provider({
+      vmErrorsOnRPCResponse: true,
+      legacyInstamine: true,
+      fork: forkedTargetUrl,
+      seed: forkedServer.ganacheProvider.options.seed
+    });
 
     const send = generateSend(provider);
     const originalSend = generateSend(forkedServer.ganacheProvider);
@@ -705,7 +715,7 @@ describe.skip("Forking", function() {
     });
   });
 
-  after("Shutdown server", async (done) => {
+  after("Shutdown server", async(done) => {
     forkedWeb3._provider.connection.close();
     const serverCloseErr = await forkedServer.close();
 

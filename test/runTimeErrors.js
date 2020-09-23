@@ -55,7 +55,7 @@ function tests(ganacheProviderOptions) {
     });
 
     it("should output the transaction hash even if a (out of gas) runtime error occurred", async function() {
-      const { accounts, bytecode, provider, send } = context;
+      const { accounts, bytecode, send } = context;
 
       const { response } = await send("eth_sendTransaction", {
         from: accounts[0],
@@ -85,7 +85,7 @@ function tests(ganacheProviderOptions) {
     });
 
     it("should output the transaction hash even if a runtime error occurs (revert)", async function() {
-      const { accounts, instance, provider, send } = context;
+      const { accounts, instance, send } = context;
 
       const { response } = await send("eth_sendTransaction", {
         from: accounts[0],
@@ -125,7 +125,7 @@ function tests(ganacheProviderOptions) {
     });
 
     it("should have correct return value when calling a method that reverts without message", async function() {
-      const { accounts, instance, provider, send } = context;
+      const { accounts, instance, send } = context;
 
       const { response } = await send("eth_call", {
         from: accounts[0],
@@ -153,7 +153,7 @@ function tests(ganacheProviderOptions) {
     });
 
     it("should have correct return value when calling a method that reverts without message", async function() {
-      const { accounts, instance, provider, send } = context;
+      const { accounts, instance, send } = context;
 
       const { response } = await send("eth_call", {
         from: accounts[0],
@@ -181,7 +181,7 @@ function tests(ganacheProviderOptions) {
     });
 
     it("should have correct return value when calling a method that reverts with message", async function() {
-      const { accounts, instance, provider, send } = context;
+      const { accounts, instance, send } = context;
 
       const { response } = await send("eth_call", {
         from: accounts[0],

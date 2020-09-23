@@ -1,6 +1,5 @@
 const assert = require("assert");
 const bootstrap = require("../helpers/contract/bootstrap");
-const { hex } = require("../../lib/utils/to");
 const randomInteger = require("../helpers/utils/generateRandomInteger");
 const SEED_RANGE = 1000000;
 
@@ -14,9 +13,9 @@ describe("Gas", function() {
     describe("default gasPrice", async function() {
       this.timeout(10000);
       it("should respect the default gasPrice", async function() {
-        const ganacheProviderOptions = {vmErrorsOnRPCResponse: true};
+        const ganacheProviderOptions = { vmErrorsOnRPCResponse: true };
         const context = await bootstrap(contractRef, ganacheProviderOptions);
-        const { accounts, instance, provider, web3 } = context;
+        const { accounts, instance, web3 } = context;
 
         const assignedGasPrice = 2000000000;
 

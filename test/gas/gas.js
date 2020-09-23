@@ -591,7 +591,7 @@ describe("Gas", function() {
             {
               value: "0x10000000",
               gasLimit: "0x33450",
-              gasPrice: "0x3",    // nonce of account2 = 0x0, price = 0x3 makes this tx first
+              gasPrice: "0x3", // nonce of account2 = 0x0, price = 0x3 makes this tx first
               from: accounts[2],
               to: accounts[1],
               nonce: "0x0"
@@ -599,7 +599,7 @@ describe("Gas", function() {
             {
               value: "0x10000000",
               gasLimit: "0x33450",
-              gasPrice: "0x0",    // nonce of account2 = 0x1, price = 0x1 makes this tx third
+              gasPrice: "0x0", // nonce of account2 = 0x1, price = 0x1 makes this tx third
               from: accounts[2],
               to: accounts[1],
               nonce: "0x1"
@@ -607,7 +607,7 @@ describe("Gas", function() {
             {
               value: "0x10000000",
               gasLimit: "0x33450",
-              gasPrice: "0x2",    // nonce of account1 = 0x0, price = 0x2 makes this tx second
+              gasPrice: "0x2", // nonce of account1 = 0x0, price = 0x2 makes this tx second
               from: accounts[1], // <
               to: accounts[2], // <^ reversed tx order
               nonce: "0x0"
@@ -845,7 +845,7 @@ describe("Gas", function() {
             {
               value: "0x10000000",
               gasLimit: "0x33450",
-              gasPrice: "0x3",    // nonce of account2 = 0x0, price = 0x3 makes this tx first
+              gasPrice: "0x3", // nonce of account2 = 0x0, price = 0x3 makes this tx first
               from: accounts[0],
               to: accounts[1],
               nonce: "0x0"
@@ -853,7 +853,7 @@ describe("Gas", function() {
             {
               value: "0x10000000",
               gasLimit: "0x33450",
-              gasPrice: "0x0",    // nonce of account2 = 0x1, price = 0x1 makes this tx third
+              gasPrice: "0x0", // nonce of account2 = 0x1, price = 0x1 makes this tx third
               from: accounts[0],
               to: accounts[1],
               nonce: "0x1"
@@ -861,7 +861,7 @@ describe("Gas", function() {
             {
               value: "0x10000000",
               gasLimit: "0x33450",
-              gasPrice: "0x2",    // nonce of account1 = 0x0, price = 0x2 makes this tx second
+              gasPrice: "0x2", // nonce of account1 = 0x0, price = 0x2 makes this tx second
               from: accounts[1], // <
               to: accounts[0], // <^ reversed tx order
               nonce: "0x0"

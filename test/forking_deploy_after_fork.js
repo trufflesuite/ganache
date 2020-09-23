@@ -122,7 +122,7 @@ describe.skip("Contract Deployed on Main Chain After Fork", function() {
     assert.strictEqual(balance, mainWeb3.utils.toWei("1", "ether"));
   });
 
-  after("Shutdown server", async (done) => {
+  after("Shutdown server", async(done) => {
     forkedWeb3._provider.connection.close();
     const serverCloseErr = await forkedServer.close();
 

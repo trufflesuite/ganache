@@ -119,11 +119,11 @@ describe("HTTP Server:", function() {
   let server;
 
   before("Initialize Ganache server", async function() {
-    server = Ganache.server({legacyInstamine: true});
+    server = Ganache.server({ legacyInstamine: true });
     await pify(server.listen.bind(server))(port);
   });
 
-  after("Shutdown server", async () => {
+  after("Shutdown server", async() => {
     await server.close();
   });
 

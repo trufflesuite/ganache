@@ -1,5 +1,4 @@
 const assert = require("assert");
-const to = require("../../lib/utils/to.js");
 const initializeTestProvider = require("../helpers/web3/initializeTestProvider");
 const randomInteger = require("../helpers/utils/generateRandomInteger");
 const SEED_RANGE = 1000000;

@@ -15,7 +15,7 @@ describe("Transaction Data", () => {
       contractFiles: ["TransactionData"],
       contractSubdirectory: "transaction-data"
     };
-    context = await bootstrap(contractRef, {vmErrorsOnRPCResponse: true});
+    context = await bootstrap(contractRef, { vmErrorsOnRPCResponse: true });
   });
 
   it("should revert with correctly formatted input for data", async() => {

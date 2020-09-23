@@ -1363,10 +1363,18 @@ const tests = function(web3) {
         function(err, result) {
           if (err) {
             // Ganache provider responds with an `err`, so check that, too.
-            assert.strictEqual(err.message, 'cannot convert string value "" into type `Quantity`; strings must be hex-encoded and prefixed with "0x".');
+            assert.strictEqual(
+              err.message,
+              `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x"
+.`
+            );
           }
           if (result.error) {
-            assert.strictEqual(result.error.message, 'cannot convert string value "" into type `Quantity`; strings must be hex-encoded and prefixed with "0x".');
+            assert.strictEqual(
+              result.error.message,
+              `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x"
+.`
+            );
           } else {
             assert.fail("eth_getTransactionCount did not return an error message for invalid data");
           }
@@ -1813,7 +1821,7 @@ describe("WebSockets Server:", function() {
     );
   }).timeout(500); // fail quick if our hacked-together websocket handler fails.
 
-  after("Shutdown server", async () => {
+  after("Shutdown server", async() => {
     await server.close();
   });
 });

@@ -67,11 +67,11 @@ describe("Time adjustment", function() {
   it("should revert time adjustments when snapshot is reverted", async function() {
     const { send } = context;
 
-    const {result: originalTimeAdjustment} = await send("evm_increaseTime", 0);
+    const { result: originalTimeAdjustment } = await send("evm_increaseTime", 0);
 
     await send("evm_snapshot");
     // jump forward another 5 hours
-    const {result: currentTimeAdjustment} = await send("evm_increaseTime", SECONDSTOJUMP);
+    const { result: currentTimeAdjustment } = await send("evm_increaseTime", SECONDSTOJUMP);
 
     assert.strictEqual(currentTimeAdjustment, originalTimeAdjustment + SECONDSTOJUMP);
 
@@ -79,7 +79,7 @@ describe("Time adjustment", function() {
     await send("evm_mine", null);
     await send("evm_revert", 1);
 
-    const {result: revertedTimeAdjustment } = await send("evm_increaseTime", 0);
+    const { result: revertedTimeAdjustment } = await send("evm_increaseTime", 0);
     assert.strictEqual(revertedTimeAdjustment, originalTimeAdjustment);
   });
 

@@ -18,7 +18,7 @@ describe("Libraries", function() {
   let contractInstance;
   let contractBytecode;
 
-  const provider = Ganache.provider({vmErrorsOnRPCResponse: true, legacyInstamine: true});
+  const provider = Ganache.provider({ vmErrorsOnRPCResponse: true, legacyInstamine: true });
   const web3 = new Web3(provider);
   let accounts = [];
 
@@ -82,14 +82,14 @@ describe("Libraries", function() {
     contractInstance = await promiEvent;
   });
 
-  after("cleanup", async () => {
+  after("cleanup", async() => {
     web3.setProvider(null);
     await provider.disconnect();
   });
 
   describe("msg.sender for external library function calls", async() => {
     it("should return true - msg.sender is the externally owned account", async() => {
-      const result = await contractInstance.methods.callExternalLibraryFunction().call({from: accounts[0]});
+      const result = await contractInstance.methods.callExternalLibraryFunction().call({ from: accounts[0] });
       assert.strictEqual(true, result);
     });
   });

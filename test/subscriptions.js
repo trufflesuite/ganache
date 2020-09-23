@@ -97,7 +97,7 @@ describe("HTTP Server should not handle subscriptions:", function() {
 
   testHttp(web3);
 
-  after("Shutdown server", async () => {
+  after("Shutdown server", async() => {
     await server.close();
   });
 });

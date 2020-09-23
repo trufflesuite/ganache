@@ -191,7 +191,7 @@ describe("Mining", function() {
     await stopMining();
     const blockNumber = await getBlockNumber();
 
-    const data = "0x" + ("1".repeat(820000));
+    const data = "0x" + "1".repeat(820000);
     const tx1 = await queueTransaction(accounts[0], accounts[1], 6721975, web3.utils.toWei(new BN(2), "ether"), data);
     const receipt1 = await web3.eth.getTransactionReceipt(tx1);
     assert.strictEqual(receipt1, null);
@@ -231,7 +231,7 @@ describe("Mining", function() {
 
       await stopMining();
       const blockNumber = await getBlockNumber();
-      const data = "0x" + ("1".repeat(820000));
+      const data = "0x" + "1".repeat(820000);
       const tx1 = await queueTransaction(accounts[0], accounts[1], 6721975, web3.utils.toWei(new BN(2), "ether"), data);
       const receipt1 = await web3.eth.getTransactionReceipt(tx1);
       assert.strictEqual(receipt1, null);

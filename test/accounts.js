@@ -3,9 +3,6 @@ const initializeTestProvider = require("./helpers/web3/initializeTestProvider");
 const { BN } = require("ethereumjs-util");
 var Ganache = require("../../ganache-core/src/packages/core/lib/index.js").default;
 const genSend = require("./helpers/utils/rpc");
-const Account = require("ethereumjs-account").default;
-const { promisify } = require("util");
-const utils = require("ethereumjs-util");
 
 describe("Accounts", () => {
   const expectedAddress = "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A";
@@ -35,7 +32,11 @@ describe("Accounts", () => {
           value: web3.utils.toWei("1", "ether"),
           gasLimit: 90000
         });
-        return assert.rejects(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
+        return assert.rejects(
+          tx,
+          /authentication needed: password or unlock/,
+          "should not be able to unlock the count"
+        );
       })
     );
   });
@@ -59,9 +60,17 @@ describe("Accounts", () => {
         });
 
         if (account === expectedAddress) {
-          return assert.doesNotReject(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
+          return assert.doesNotReject(
+            tx,
+            /authentication needed: password or unlock/,
+            "should not be able to unlock the count"
+          );
         } else {
-          return assert.rejects(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
+          return assert.rejects(
+            tx,
+            /authentication needed: password or unlock/,
+            "should not be able to unlock the count"
+          );
         }
       })
     );
@@ -88,9 +97,17 @@ describe("Accounts", () => {
         });
 
         if (account === unlockedAccount) {
-          return assert.doesNotReject(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
+          return assert.doesNotReject(
+            tx,
+            /authentication needed: password or unlock/,
+            "should not be able to unlock the count"
+          );
         } else {
-          return assert.rejects(tx, /authentication needed: password or unlock/, "should not be able to unlock the count");
+          return assert.rejects(
+            tx,
+            /authentication needed: password or unlock/,
+            "should not be able to unlock the count"
+          );
         }
       })
     );
@@ -193,7 +210,7 @@ describe("Accounts", () => {
     const getTransactionByHash = (payload) => send("eth_getTransactionByHash", payload);
 
     beforeEach("set up provider", async function() {
-      provider = Ganache.provider({legacyInstamine: true, vmErrorsOnRPCResponse: true});
+      provider = Ganache.provider({ legacyInstamine: true, vmErrorsOnRPCResponse: true });
       send = genSend(provider);
       const { result: _accounts } = await send("eth_accounts");
       accounts = _accounts;

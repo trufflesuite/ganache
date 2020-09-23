@@ -116,8 +116,8 @@ var tests = function(web3) {
       // because we skipped the too-high nonce test, which actually does eventually send a transaction,
       // we need to do the same, here... which is why there are two `provider.send(request, function(err, result) {`s
       // the first works, the second should fail
-      provider.send({...request}, function() {
-        provider.send({...request}, function(err, result) {
+      provider.send({ ...request }, function() {
+        provider.send({ ...request }, function(err, result) {
           if (err) {
             assert(
               /the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0/.test(err.message),
@@ -191,7 +191,7 @@ var tests = function(web3) {
 
 describe("Provider:", function() {
   var web3 = new Web3();
-  web3.setProvider(Ganache.provider({legacyInstamine: true, vmErrorsOnRPCResponse: true}));
+  web3.setProvider(Ganache.provider({ legacyInstamine: true, vmErrorsOnRPCResponse: true }));
   tests(web3);
 });
 
@@ -201,14 +201,14 @@ describe("Server:", function(done) {
   var server;
 
   before("Initialize Ganache server", function(done) {
-    server = Ganache.server({legacyInstamine: true, vmErrorsOnRPCResponse: true});
+    server = Ganache.server({ legacyInstamine: true, vmErrorsOnRPCResponse: true });
     server.listen(port, function() {
       web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
       done();
     });
   });
 
-  after("Shutdown server", async () => {
+  after("Shutdown server", async() => {
     await server.close();
   });
 

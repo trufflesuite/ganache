@@ -4,7 +4,7 @@
   "main": "./index.js",
   "types": "./typings/index.d.ts",
   "engines": {
-    "node": ">=8.9.0"
+    "node": ">=10.0.17"
   },
   "directories": {
     "lib": "./lib"
@@ -57,10 +57,10 @@
     "browserfs": "1.4.3",
     "coveralls": "^3.0.9",
     "cross-env": "6.0.3",
-    "eslint": "6.8.0",
-    "eslint-config-standard": "14.1.0",
-    "eslint-plugin-import": "2.20.0",
-    "eslint-plugin-node": "11.0.0",
+    "eslint": "7.9.0",
+    "eslint-config-standard": "14.1.1",
+    "eslint-plugin-import": "2.22.0",
+    "eslint-plugin-node": "11.1.0",
     "eslint-plugin-promise": "4.2.1",
     "eslint-plugin-standard": "4.0.1",
     "ethereumjs-wallet": "0.6.3",
@@ -75,10 +75,10 @@
     "nyc": "^15.0.0",
     "pify": "4.0.1",
     "portfinder": "^1.0.25",
-    "prettier": "^1.19.1",
+    "prettier": "1.19.1",
     "request": "^2.88.0",
-    "solc": "0.6.1",
     "semver": "7.1.1",
+    "solc": "0.6.1",
     "temp": "0.9.1",
     "terser-webpack-plugin": "2.3.2",
     "web3": "1.2.4",
@@ -114,7 +114,7 @@
       "es6": true
     },
     "parserOptions": {
-      "ecmaVersion": 8,
+      "ecmaVersion": 2020,
       "sourceType": "module",
       "ecmaFeatures": {
         "impliedStrict": true

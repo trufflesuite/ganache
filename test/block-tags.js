@@ -17,13 +17,13 @@ describe("Block Tags", function() {
     context = await initializeTestProvider(options);
   });
 
-  before("Set etherbase to 0x0 for v2/v3 compat", async () =>{
+  before("Set etherbase to 0x0 for v2/v3 compat", async() => {
     try {
-      await context.send("miner_setEtherbase", "0x0000000000000000000000000000000000000000")
-    } catch(e) {
+      await context.send("miner_setEtherbase", "0x0000000000000000000000000000000000000000");
+    } catch (e) {
       console.info(e);
     }
-  })
+  });
 
   before("Stop automatic miner", async function() {
     await context.send("miner_stop");

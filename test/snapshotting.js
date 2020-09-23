@@ -14,7 +14,7 @@ describe("Checkpointing / Reverting", function() {
       contractSubdirectory: "snapshotting"
     };
 
-    context = await bootstrap(contractRef, {vmErrorsOnRPCResponse: true});
+    context = await bootstrap(contractRef, { vmErrorsOnRPCResponse: true });
   });
 
   before("send a transaction then make a checkpoint", async function() {
@@ -110,7 +110,13 @@ describe("Checkpointing / Reverting", function() {
     const { send } = context;
     const ids = [{ foo: "bar" }, true, false];
     await Promise.all(
-      ids.map((id) => assert.rejects(send("evm_revert", id), /Cannot wrap a "[a-zA-Z]+" as a json-rpc type/, "evm_revert did not reject as expected"))
+      ids.map((id) =>
+        assert.rejects(
+          send("evm_revert", id),
+          /Cannot wrap a "[a-zA-Z]+" as a json-rpc type/,
+          "evm_revert did not reject as expected"
+        )
+      )
     );
   });
 
@@ -124,7 +130,8 @@ describe("Checkpointing / Reverting", function() {
     );
   });
 
-  // skip because in V2-V3 breaking change: we return `Cannot wrap a decimal value as a json-rpc type` (or similar) errors instead of `false` for (-)Infinity and 0.5
+  // skip because in V2-V3 breaking change: we return `Cannot wrap a decimal value as a json-rpc type` (or similar)
+  // errors instead of `false` for (-)Infinity and 0.5
   it.skip("evm_revert returns false for out-of-range subscriptionId values", async() => {
     const { send } = context;
     const ids = [-1, Infinity, -Infinity, Buffer.from([0]), 0.5];

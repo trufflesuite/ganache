@@ -19,7 +19,7 @@ const initializeTestProvider = async(options = {}, provider = null) => {
   const web3 = new Web3(provider);
   const accounts = await web3.eth.getAccounts();
 
-  if(!provider.getOptions) {
+  if (!provider.getOptions) {
     provider.getOptions = () => provider.options;
   }
 
