@@ -21,7 +21,8 @@ describe("Gas", function() {
       assert.strictEqual(parseInt(result), 15);
     });
 
-    it("should return gas price of 15 when specified as decimal (string)", async function() {
+    // v3: no. just no. we don't allow this anymore!
+    it.skip("should return gas price of 15 when specified as decimal (string)", async function() {
       const ganacheProviderOptions = {
         gasPrice: "15"
       };
