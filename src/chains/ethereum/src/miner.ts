@@ -244,6 +244,10 @@ export default class Miner extends Emittery {
             keepMining = priced.removeBest();
           }
         } else {
+          // no result means the tranasction is an "always failing tx", so we
+          // revert it's changes here.
+          // Note: we don't clean up ()`removeBest`, etc) because `runTx`'s
+          // error handler does the clean up itself.
           await this.#revert();
         }
       }
