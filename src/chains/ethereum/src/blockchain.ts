@@ -140,6 +140,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       this.accounts = new AccountManager(this, database.trie);
 
       this.coinbase = coinbaseAddress;
+
+      // create VM and listen to step events
       this.vm = this.createVmFromStateTrie(this.trie, options.chain.allowUnlimitedContractSize);
       this.vm.on("step", this.emit.bind(this, "step"));
 
