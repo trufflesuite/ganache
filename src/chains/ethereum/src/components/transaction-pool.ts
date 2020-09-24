@@ -18,7 +18,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   /**
    * Minimum price bump percentage to replace an already existing transaction (nonce)
    */
-  public priceBump: bigint = 10n;
+  #priceBump: bigint = 10n;
 
   #blockchain: Blockchain;
   constructor(options: EthereumInternalOptions["miner"], blockchain: Blockchain) {
@@ -26,9 +26,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     this.#blockchain = blockchain;
     this.#options = options;
   }
-  public executables: Map<string, utils.Heap<Transaction>> = new Map();
-  #origins: Map<string, utils.Heap<Transaction>> = new Map();
-  #accountPromises = new Map<string, PromiseLike<Account>>();
+  public readonly executables: Map<string, utils.Heap<Transaction>> = new Map();
+  readonly #origins: Map<string, utils.Heap<Transaction>> = new Map();
+  readonly #accountPromises = new Map<string, PromiseLike<Account>>();
 
   /**
    * Inserts a transaction into the pending queue, if executable, or future pool
@@ -77,7 +77,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       // executables queue already. Replace the matching transaction or throw this
       // new transaction away as neccessary.
       const pendingArray = executableOriginTransactions.array;
-      const priceBump = this.priceBump;
+      const priceBump = this.#priceBump;
       const newGasPrice = Quantity.from(transaction.gasPrice).toBigInt();
       // Notice: we're iterating over the raw heap array, which isn't
       // neccessarily sorted
