@@ -231,7 +231,7 @@ export default class Miner extends Emittery {
               // next bext transaction sorted in our `priced` heap.
               keepMining = priced.removeBest();
             }
-          } else {
+          } else { // didn't fit in the current block
             await this.#revert();
 
             // unlock the transaction so the transaction pool can reconsider this
