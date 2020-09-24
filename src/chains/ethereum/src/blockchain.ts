@@ -171,10 +171,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
         { // automatic mining
           const mineAll = async () => this.#isPaused() ? null : this.mine(1);
-          if (instamine) {
+          if (instamine) { // insta mining
             // whenever the transaction pool is drained mine the txs into blocks
             this.transactions.transactionPool.on("drain", mineAll);
-          } else {
+          } else { // interval mining
             const wait = () => unref(setTimeout(mineNext, options.miner.blockTime * 1000));
             const mineNext = () => mineAll().then(wait);
             wait();
