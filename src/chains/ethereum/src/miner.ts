@@ -169,15 +169,11 @@ export default class Miner extends Emittery {
 
         this.#currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
 
-        const runArgs = {
-          tx: best,
-          block
-        };
         // Set a transaction-level checkpoint so we can undo state changes in
         // the case where the transaction is rejected by the VM.
         await this.#checkpoint();
 
-        const result = await this.#runTx(runArgs, origin, pending);
+        const result = await this.#runTx(best, block, origin, pending);
         if (result !== null) {
           const gasUsed = Quantity.from(result.gasUsed.toBuffer()).toBigInt();
           if (blockGasLeft >= gasUsed) {
@@ -189,9 +185,9 @@ export default class Miner extends Emittery {
             blockData.gasUsed += gasUsed;
             
             // calculate receipt and tx tries
-            const receipt = best.fillFromResult(result, blockData.gasUsed);
             const txKey = rlpEncode(numTransactions);
             promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
+            const receipt = best.fillFromResult(result, blockData.gasUsed);
             promises.push(putInTrie(receiptTrie, txKey, receipt));
 
             // update the block's bloom
@@ -286,9 +282,9 @@ export default class Miner extends Emittery {
     return {block, transactions: blockTransactions};
   }
 
-  #runTx = async (runArgs: any, origin: string, pending: Map<string, utils.Heap<Transaction>>) => {
+  #runTx = async (tx: Transaction, block: Block, origin: string, pending: Map<string, utils.Heap<Transaction>>) => {
     try {
-      return await this.#vm.runTx(runArgs);
+      return await this.#vm.runTx({tx, block} as any);
     } catch (err) {
       const errorMessage = err.message;
       if (errorMessage.startsWith("the tx doesn't have the correct nonce. account has nonce of: ")) {
@@ -317,7 +313,7 @@ export default class Miner extends Emittery {
         }
       }
 
-      this.emit("transaction-failure", {txHash: runArgs.tx.hash(), errorMessage});
+      this.emit("transaction-failure", {txHash: tx.hash(), errorMessage});
       return null;
     }
   }
