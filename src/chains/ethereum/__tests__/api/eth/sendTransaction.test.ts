@@ -3,6 +3,7 @@ import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 import { join } from "path";
 import EthereumProvider from "../../../src/provider";
+import { EthereumProviderOptions } from "../../../src/options";
 
 describe("api", () => {
   describe("eth", () => {
@@ -38,8 +39,8 @@ describe("api", () => {
           }
 
           it("doesn't crash on badly encoded revert string", async () => {
-            async function test(opts) {
-              const provider = await getProvider(opts as any);
+            async function test(opts: EthereumProviderOptions) {
+              const provider = await getProvider(opts);
               const accounts = await provider.send("eth_accounts");
               const {contract, contractAddress} = await deployContract(provider, accounts);
               const contractMethods = contract.contract.evm.methodIdentifiers;
@@ -48,7 +49,7 @@ describe("api", () => {
               ]);
 
               const revertString = "0x08c379a0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0"
-              if (opts.vmErrorsOnRPCResponse) {
+              if (opts.chain.vmErrorsOnRPCResponse) {
                 const result = await prom.catch(e =>e);
                 assert.strictEqual(result.code, -32000, "Error code should be -32000");
                 assert.strictEqual(result.data.reason, null, "The reason is undecodable, and thus should be null");
@@ -58,8 +59,8 @@ describe("api", () => {
                 assert.strictEqual(await prom, revertString, "The revert reason should be encoded as hex");
               }
             }
-            await test({vmErrorsOnRPCResponse: false});
-            await test({vmErrorsOnRPCResponse: true});
+            await test({chain:{vmErrorsOnRPCResponse: false}});
+            await test({chain:{vmErrorsOnRPCResponse: true}});
           });
         });
       });

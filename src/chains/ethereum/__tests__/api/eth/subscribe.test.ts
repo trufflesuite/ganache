@@ -13,9 +13,13 @@ describe("api", () => {
 
       beforeEach(async () => {
         provider = await getProvider({
-          time: now,
-          gasLimit: Quantity.from(gasLimit),
-          mnemonic: "sweet treat"
+          chain: {
+            time: now,
+          }, miner: {
+            blockGasLimit: gasLimit,
+          }, wallet: {
+            mnemonic: "sweet treat"
+          }
         });
         accounts = await provider.send("eth_accounts");
       });
@@ -85,7 +89,7 @@ describe("api", () => {
                 const blockNumber = parseInt(await provider.send("eth_blockNumber"));
                 assert.strictEqual(blockNumber, startingBlockNumber + 2);
 
-                resolve();
+                resolve(void 0);
               } else {
                 reject(new Error("Unsubscribe didn't work!"));
               }

@@ -1,13 +1,6 @@
 import {bigIntToBuffer} from "../../utils";
 import {uintToBuffer} from "../../utils";
 
-export type IndexableJsonRpcType<
-  T extends number | bigint | string | Buffer = number | bigint | string | Buffer
-> = string & {
-  new (value: T): IndexableJsonRpcType<T>;
-  toString(): string;
-};
-
 const EMPTY_BUFFER = Buffer.allocUnsafe(0);
 
 export const strCache = new WeakMap();
@@ -102,4 +95,4 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
   }
 }
 
-export type JsonRpcType<T extends number | bigint | string | Buffer> = BaseJsonRpcType<T> & IndexableJsonRpcType<T>;
+export type JsonRpcType<T extends number | bigint | string | Buffer> = BaseJsonRpcType<T>;

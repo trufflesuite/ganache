@@ -67,7 +67,7 @@ describe("api", () => {
         });
 
         it("should return the no code at the previous block number", async function() {
-          const code = await provider.send("eth_getCode", [contractAddress, Quantity.from((blockNumber as any) - 1n).toString()]);
+          const code = await provider.send("eth_getCode", [contractAddress, Quantity.from(blockNumber.toBigInt() - 1n).toString()]);
           assert.strictEqual(code, "0x");
         });
       });

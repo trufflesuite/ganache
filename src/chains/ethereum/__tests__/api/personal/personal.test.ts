@@ -7,7 +7,7 @@ describe("api", () => {
   describe("personal", () => {
     describe("listAccounts", () => {
       it("matches eth_accounts", async () => {
-        const provider = await getProvider({ seed: "temet nosce" });
+        const provider = await getProvider({wallet:{ seed: "temet nosce" }});
         const accounts = await provider.send("eth_accounts");
         const personalAccounts = await provider.send("personal_listAccounts");
         assert.deepStrictEqual(personalAccounts, accounts);
@@ -108,7 +108,7 @@ describe("api", () => {
 
       it("generates different accounts based on the `seed` option", async () => {
         const controlProvider = await getProvider();
-        const provider = await getProvider({ seed: "temet nosce" });
+        const provider = await getProvider({wallet:{ seed: "temet nosce" }});
         const newAccount = await provider.send("personal_newAccount", [""]);
         const controlAccount = await controlProvider.send("personal_newAccount", [""]);
         assert.notStrictEqual(newAccount, controlAccount);
@@ -116,7 +116,7 @@ describe("api", () => {
 
       it("generates different accounts based on the `mnemonic` option", async () => {
         const controlProvider = await getProvider();
-        const provider = await getProvider({ mnemonic: "sweet treat" });
+        const provider = await getProvider({wallet:{ mnemonic: "sweet treat" }});
         const newAccount = await provider.send("personal_newAccount", [""]);
         const controlAccount = await controlProvider.send("personal_newAccount", [""]);
         assert.notStrictEqual(newAccount, controlAccount);
@@ -131,7 +131,7 @@ describe("api", () => {
 
       it("generates different accounts on successive calls based on the seed", async () => {
         const controlProvider = await getProvider();
-        const provider = await getProvider({ seed: "temet nosce" });
+        const provider = await getProvider({wallet:{ seed: "temet nosce" }});
         const firstNewAccount = await provider.send("personal_newAccount", [""]);
         const secondNewAccount = await provider.send("personal_newAccount", [""]);
 
@@ -144,7 +144,7 @@ describe("api", () => {
 
       describe("personal_unlockAccount ➡ eth_sendTransaction ➡ personal_lockAccount", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({gasPrice: Quantity.from(0x0)});
+          const provider = await getProvider({miner:{gasPrice: 0}});
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_newAccount", [passphrase]);
@@ -155,7 +155,7 @@ describe("api", () => {
 
       describe("personal_sendTransaction", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({gasPrice: Quantity.from(0x0)});
+          const provider = await getProvider({miner:{gasPrice: 0}});
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_newAccount", [passphrase]);
@@ -177,7 +177,7 @@ describe("api", () => {
 
       describe("personal_unlockAccount ➡ eth_sendTransaction ➡ personal_lockAccount", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({gasPrice: Quantity.from(0x0)});
+          const provider = await getProvider({miner:{gasPrice: 0}});
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [secretKey, passphrase]);
@@ -188,7 +188,7 @@ describe("api", () => {
 
       describe("personal_sendTransaction", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({gasPrice: Quantity.from(0x0)});
+          const provider = await getProvider({miner:{gasPrice: 0}});
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [secretKey, passphrase]);
 

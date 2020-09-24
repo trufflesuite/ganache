@@ -47,7 +47,7 @@ namespace JsonRpc {
     const details = {message: error.message} as E;
     Object.getOwnPropertyNames(error).forEach(name => {
       if (typeof name === "string") {
-        (details as any)[name] = (error as any)[name];
+        details[name] = error[name];
       }
     });
     if (typeof details.code !== "number") {

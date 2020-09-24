@@ -24,8 +24,10 @@ describe("api", () => {
 
       beforeEach(async () => {
         provider = await getProvider({
-          mnemonic: "sweet treat",
-          accounts: [{secretKey, balance: "0xffffff"}]
+          wallet: {
+            mnemonic: "sweet treat",
+            accounts: [{secretKey, balance: "0xffffff"}]
+          }
         });
         accounts = await provider.send("eth_accounts");
       });

@@ -1,8 +1,6 @@
 import os from "os";
 import fs from "fs";
 import assert from "assert";
-import {Quantity} from "@ganache/utils";
-import {ProviderOptions} from "@ganache/options";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
 import { join } from "path";
@@ -17,7 +15,7 @@ describe("Random tests that are temporary!", () => {
   const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 
   it("should respect the BIP99 mnemonic", async () => {
-    const options = {mnemonic};
+    const options = {wallet:{mnemonic}};
     const p = await getProvider(options);
     const accounts = await p.send("eth_accounts");
 
@@ -25,7 +23,7 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("eth_sendTransaction", async () => {
-    const options = {mnemonic};
+    const options = {wallet:{mnemonic}};
     const p = await getProvider(options);
     const accounts = await p.send("eth_accounts");
     const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
@@ -46,16 +44,16 @@ describe("Random tests that are temporary!", () => {
   it("should create its own mnemonic", async () => {
     const p = await getProvider();
     const options = p.getOptions();
-    assert.deepStrictEqual(typeof options.mnemonic, "string");
+    assert.deepStrictEqual(typeof options.wallet.mnemonic, "string");
   });
 
   it("shouldn't allow initialization without accounts", async () => {
-    const options: ProviderOptions = {total_accounts: 0};
+    const options = {wallet: {totalAccounts: 0}} as any;
     await assert.rejects(getProvider(options), {
       message: "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
     });
 
-    options.accounts = [];
+    options.wallet.accounts = [];
     await assert.rejects(getProvider(options), {
       message: "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
     });
@@ -63,15 +61,15 @@ describe("Random tests that are temporary!", () => {
 
   it("sets up accounts", async () => {
     const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
-    const p = await getProvider({
+    const p = await getProvider({wallet: {
       accounts: [{balance: "0x123", secretKey: "0x" + privateKey.toString("hex")}, {balance: "0x456"}]
-    });
+    }});
     const accounts = await p.send("eth_accounts");
     assert.strictEqual(accounts.length, 2);
   });
 
   it("sets errors when unlocked_accounts index is too high", async () => {
-    await assert.rejects(getProvider({unlocked_accounts: [99]}), {
+    await assert.rejects(getProvider({wallet: {unlockedAccounts: [99]}}), {
       message: "Account at index 99 not found. Max index available is 9."
     });
   });
@@ -79,9 +77,9 @@ describe("Random tests that are temporary!", () => {
   it("sets errors when unlocked_accounts index is a (big) bigint", async () => {
     const bigNumber = BigInt(Number.MAX_SAFE_INTEGER) + 1n;
     await assert.rejects(
-      getProvider({
-        unlocked_accounts: [bigNumber.toString()]
-      }),
+      getProvider({wallet:{
+        unlockedAccounts: [bigNumber.toString()]
+      }}),
       {
         message: `Invalid value in unlocked_accounts: ${bigNumber}`
       }
@@ -89,10 +87,11 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
-    const p = await getProvider({
-      locked: true,
-      unlocked_accounts: ["0", 1]
-    });
+    const p = await getProvider({wallet: {
+      mnemonic,
+      secure: true,
+      unlockedAccounts: ["0", 1]
+    }});
 
     const accounts = await p.send("eth_accounts");
     const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
@@ -141,7 +140,7 @@ describe("Random tests that are temporary!", () => {
     const contract = compile(join(__dirname, "./contracts/HelloWorld.sol"));
 
     const p = await getProvider({
-      defaultTransactionGasLimit: Quantity.from(6721975)
+      miner: {defaultTransactionGasLimit: 6721975}
     });
     const accounts = await p.send("eth_accounts");
     const from = accounts[3];
@@ -200,7 +199,7 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("transfers value", async () => {
-    const p = await getProvider({gasPrice: Quantity.from(0)});
+    const p = await getProvider({miner:{gasPrice: 0}});
     const accounts = await p.send("eth_accounts");
     const ONE_ETHER = 1000000000000000000n;
     const startingBalance = 100n * ONE_ETHER;
@@ -224,9 +223,9 @@ describe("Random tests that are temporary!", () => {
 
   it("runs eth_call", async () => {
     const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
-    const p = await getProvider({
+    const p = await getProvider({wallet:{
       accounts: [{balance: "0x123", secretKey: "0x" + privateKey.toString("hex")}, {balance: "0x456"}]
-    });
+    }});
     const accounts = await p.send("eth_accounts");
     const result = await p.send("eth_call", [{from: accounts[0], to: accounts[0], value: "0x1"}]);
     assert(result, "0x");
@@ -246,13 +245,13 @@ describe("Random tests that are temporary!", () => {
       cleanUp();
     });
     it("should create the file by name", async () => {
-      await getProvider({ account_keys_path: fileName });
+      await getProvider({wallet:{ accountKeysPath: fileName }});
       assert.strictEqual(fs.existsSync(fileName), true, "The account_keys file doesn't exist.");
     });
     it("should populate the file by descriptor", async () => {
       const fd = fs.openSync(fileName, "w")
       try {
-        await getProvider({ account_keys_path: fd });
+        await getProvider({wallet: { accountKeysPath: fd }});
         assert.strictEqual(fs.existsSync(fileName), true, "The account_keys file doesn't exist.");
       } finally{
         fs.closeSync(fd);

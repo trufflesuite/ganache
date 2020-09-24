@@ -2,7 +2,6 @@ import EthereumJsBlock from "ethereumjs-block";
 import Manager from "./manager";
 import Tag from "../things/tags";
 import { LevelUp } from "levelup";
-import Blockchain from "../blockchain";
 import {Quantity, Data} from "@ganache/utils";
 import Transaction from "../things/transaction";
 import {decode as rlpDecode} from "rlp";
@@ -26,19 +25,19 @@ export default class BlockManager extends Manager<Block> {
    */
   public pending: Block;
 
-  #options: {common: Common};
+  #common: Common;
   #blockIndexes: LevelUp;
 
-  static async initialize(blockIndexes: LevelUp, base: LevelUp, options: {common: Common}) {
-    const bm = new BlockManager(blockIndexes, base, options);
+  static async initialize(common: Common, blockIndexes: LevelUp, base: LevelUp) {
+    const bm = new BlockManager(common, blockIndexes, base);
     await bm.updateTaggedBlocks();
     return bm;
   }
 
-  constructor(blockIndexes: LevelUp, base: LevelUp, options: {common: Common}) {
-    super(base, Block, options);
+  constructor(common: Common, blockIndexes: LevelUp, base: LevelUp) {
+    super(base, Block, common);
 
-    this.#options = options;
+    this.#common = common;
     this.#blockIndexes = blockIndexes;
   }
 
@@ -95,7 +94,7 @@ export default class BlockManager extends Manager<Block> {
    * @param header
    */
   createBlock(header: {}): Block {
-    const block = new Block(null, this.#options);
+    const block = new Block(null, this.#common);
     // TODO: make better
     Object.assign(block.value.header, header);
     return block;
@@ -150,24 +149,24 @@ export default class BlockManager extends Manager<Block> {
     return new Promise<Block>((resolve, reject) => {
       this.base.createValueStream({limit: 1})
         .on("data",  (data: Buffer) => {
-          this.earliest = new Block(data, this.#options);
+          this.earliest = new Block(data, this.#common);
         })
         .on("error",  (err: Error) => {
           reject(err);
         })
-        .on("end",  () => {
-          resolve();
+        .on("end", () => {
+          resolve(void 0);
         });
 
       this.base.createValueStream({reverse: true, limit: 1})
         .on("data",  (data: Buffer) => {
-          this.latest = new Block(data, this.#options);
+          this.latest = new Block(data, this.#common);
         })
         .on("error",  (err: Error) => {
           reject(err);
         })
-        .on("end",  () => {
-          resolve();
+        .on("end", () => {
+          resolve(void 0);
         });
     })
   }
@@ -175,19 +174,19 @@ export default class BlockManager extends Manager<Block> {
 
 export class Block {
   public readonly value: EthereumJsBlock;
-  constructor(raw: Buffer, options: {common: Common}) {
+  constructor(raw: Buffer, common: Common) {
     if (raw) {
       const data = (rlpDecode(raw) as any) as [Buffer[], Buffer[], Buffer[]];
-      this.value = new EthereumJsBlock({header: data[0], uncleHeaders: data[2]}, options);
+      this.value = new EthereumJsBlock({header: data[0], uncleHeaders: data[2]}, {common});
       const rawTransactions = data[1];
 
       // parse transactions so we can use our own transaction class
       for (let i = 0; i < rawTransactions.length; i++) {
-        const tx = new Transaction(rawTransactions[i], {common: options.common});
+        const tx = new Transaction(rawTransactions[i], common);
         this.value.transactions.push(tx);
       }
     } else {
-      this.value = new EthereumJsBlock(null, options);
+      this.value = new EthereumJsBlock(null, {common});
     }
   }
 

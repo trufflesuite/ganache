@@ -3,19 +3,18 @@ import Emittery from "emittery";
 import {dir, setGracefulCleanup} from "tmp-promise";
 import levelup, { LevelUp } from "levelup";
 import Blockchain from "./blockchain";
+import { EthereumInternalOptions } from "./options";
 const leveldown = require("leveldown");
 const sub = require("subleveldown");
 const encode = require("encoding-down");
 
-type DatabaseOptions = {db?: string | object; db_path?: string};
-
 setGracefulCleanup();
 const tmpOptions = {prefix: "ganache-core_", unsafeCleanup: true};
-const noop = (callback: () => void): void => callback();
+const noop = () => Promise.resolve();
 
 export default class Database extends Emittery {
   public readonly blockchain: Blockchain;
-  readonly #options: DatabaseOptions;
+  readonly #options: EthereumInternalOptions["database"];
   #cleanupDirectory = noop;
   #closed = false;
   public directory: string = null;
@@ -35,10 +34,10 @@ export default class Database extends Emittery {
    * Once the database has been fully initialized it will emit a `ready`
    * event.
    * @param options Supports one of two options: `db` (a leveldown compliant
-   * store instance) or `db_path` (the path to store/read the db instance)
+   * store instance) or `dbPath` (the path to store/read the db instance)
    * @param blockchain
    */
-  constructor(options: DatabaseOptions, blockchain: Blockchain) {
+  constructor(options: EthereumInternalOptions["database"], blockchain: Blockchain) {
     super();
 
     this.#options = options;
@@ -52,9 +51,9 @@ export default class Database extends Emittery {
     let db: levelup.LevelUp;
     if (store) {
       this.#rootStore = encode(store, levelupOptions);
-      db = levelup(this.#rootStore as any, {});
+      db = levelup(this.#rootStore, {});
     } else {
-      let directory = this.#options.db_path;
+      let directory = this.#options.dbPath;
       if (!directory) {
         const dirInfo = await dir(tmpOptions);
         directory = dirInfo.path;
@@ -149,10 +148,10 @@ export default class Database extends Emittery {
     if (db) {
       await new Promise((resolve, reject) => db.close((err => {
         if (err) return void reject(err);
-        resolve();
+        resolve(void 0);
       })));
       await Promise.all([this.blocks.close(), this.transactions.close(), this.trie.close()]);
     }
-    return new Promise(resolve => this.#cleanupDirectory(resolve));
+    return this.#cleanupDirectory();
   };
 }

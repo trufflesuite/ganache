@@ -3,18 +3,17 @@ import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
 import Server, {Status} from "../src/server";
-import ServerOptions from "../src/options/server-options";
 import http from "http";
 import intoStream from "into-stream";
-import {EthereumProvider} from "@ganache/ethereum";
 import { PromiEvent } from "@ganache/utils";
 import {promisify} from "util";
+import { ServerOptions } from "../src/options";
 
 const IS_WINDOWS = process.platform === "win32";
 
 describe("server", () => {
   const port = 5234;
-  const network_id = "1234";
+  const networkId = 1234;
   const jsonRpcJson: any = {
     jsonrpc: "2.0",
     id: "1",
@@ -27,10 +26,14 @@ describe("server", () => {
   let s: Server;
 
   async function setup(
-    options = {
-      network_id,
-      logger
-    } as ServerOptions
+    options: ServerOptions = {
+      chain: {
+        networkId
+      },
+      logging: {
+        logger
+      }
+    }
   ) {
     s = Ganache.server(options);
     return s.listen(port);
@@ -49,7 +52,7 @@ describe("server", () => {
       assert.strictEqual(response.status, 200);
 
       const json = JSON.parse(response.text);
-      assert.strictEqual(json.result, network_id);
+      assert.strictEqual(json.result, `${networkId}`);
       return response;
     }
 
@@ -89,8 +92,8 @@ describe("server", () => {
 
     it("returns the net_version over a legacy-style connection listener", done => {
       s = Ganache.server({
-        network_id
-      } as ServerOptions);
+        chain: {networkId}
+      });
       s.listen(port, async () => {
         try {
           await simpleTest();
@@ -242,9 +245,9 @@ describe("server", () => {
     });
 
     it("does not start a websocket server when `ws` is false", async () => {
-      await setup({
+      await setup({server:{
         ws: false
-      } as ServerOptions);
+      }});
       try {
         const ws = new WebSocket("ws://localhost:" + port);
 
@@ -275,8 +278,8 @@ describe("server", () => {
         await new Promise((resolve, reject) => {
           req.on("response", response => {
             const json = JSON.parse(response.text);
-            assert.strictEqual(json.result, network_id);
-            resolve();
+            assert.strictEqual(json.result, `${networkId}`);
+            resolve(void 0);
           });
           req.on("error", () => {
             reject();
@@ -391,7 +394,7 @@ describe("server", () => {
       await setup();
 
       try {
-        const provider = s.provider as EthereumProvider;
+        const provider = s.provider;
         const oldRequestRaw = provider.requestRaw;
         const req = request.post("http://localhost:" + port);
         const abortPromise = new Promise(resolve => {
@@ -404,9 +407,9 @@ describe("server", () => {
               setImmediate(setImmediate, () => {
                 // resolve the `provider.send` to make sure the server can
                 // handle _not_ responding to a request that has been aborted:
-                innerResolve( {value: Promise.resolve() as any});
+                innerResolve( {value: Promise.resolve()});
                 // and finally, resolve the `abort` promise:
-                resolve();
+                resolve(void 0);
               });
             });
           };
@@ -537,7 +540,7 @@ describe("server", () => {
         ws.on("message", resolve);
       });
       const json = JSON.parse(response);
-      assert.strictEqual(json.result, network_id);
+      assert.strictEqual(json.result, `${networkId}`);
     });
 
     it("returns the net_version over a websocket as binary", async () => {
@@ -551,7 +554,7 @@ describe("server", () => {
       });
       assert.strictEqual(response.constructor, Buffer, "response doesn't seem to be a Buffer as expect");
       const json = JSON.parse(response);
-      assert.strictEqual(json.result, network_id, "Binary data result is not as expected");
+      assert.strictEqual(json.result, `${networkId}`, "Binary data result is not as expected");
     });
 
     it("doesn't crash when sending bad data over http", async () => {
@@ -561,7 +564,7 @@ describe("server", () => {
 
       const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
       const json = JSON.parse(response.text);
-      assert.strictEqual(json.result, network_id);
+      assert.strictEqual(json.result, `${networkId}`);
     });
 
     it("doesn't crash when sending bad data over websocket", async () => {
@@ -577,11 +580,11 @@ describe("server", () => {
     });
 
     it("doesn't crash when the connection is closed while a request is in flight", async () => {
-      const provider = s.provider as EthereumProvider;
+      const provider = s.provider;
       provider.requestRaw = async () => {
         // close our websocket after intercepting the request
         await s.close();
-        return {value: Promise.resolve(undefined) as any};
+        return {value: Promise.resolve(void 0)};
       };
 
       const ws = new WebSocket("ws://localhost:" + port);
@@ -604,7 +607,7 @@ describe("server", () => {
     });
 
     it("handles PromiEvent messages", async () => {
-      const provider = s.provider as EthereumProvider;
+      const provider = s.provider;
       const message = "I hope you get this message";
       const oldRequestRaw = provider.requestRaw.bind(provider);
       provider.requestRaw = async () => {
@@ -613,7 +616,7 @@ describe("server", () => {
           resolve(subId);
           setImmediate(() => promiEvent.emit("message", {data: {subscription: subId, result: message}}));
         });
-        return {value: promiEvent as any};
+        return {value: promiEvent};
       };
 
       const ws = new WebSocket("ws://localhost:" + port);
@@ -701,13 +704,13 @@ describe("server", () => {
     });
 
     it("doesn't crash when the connection is closed while a subscription is in flight", async () => {
-      const provider = s.provider as EthereumProvider;
+      const provider = s.provider;
       let promiEvent: PromiEvent<any>;
       provider.requestRaw = async () => {
         promiEvent = new PromiEvent(resolve => {
           resolve("0xsubscriptionId");
         });
-        return {value: promiEvent} as any;
+        return {value: promiEvent};
       };
 
       const ws = new WebSocket("ws://localhost:" + port);
@@ -743,15 +746,14 @@ describe("server", () => {
       });
     });
 
-    // I can't get backpressure working on Windows. It's not super important because we
-    // don't actually handle backpressure anyway.
-    (IS_WINDOWS ? xit : it)("can handle backpressure", async () => {
+    // TODO: actually handle backpressure!
+    it.skip("can handle backpressure", async () => {
       {
         // create tons of data to force websocket backpressure
         const huge = {};
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
-        (s.provider as EthereumProvider).requestRaw = async () => {
-          return {value: Promise.resolve(huge) as any};
+        s.provider.requestRaw = async () => {
+          return {value: Promise.resolve(huge)};
         };
       }
 

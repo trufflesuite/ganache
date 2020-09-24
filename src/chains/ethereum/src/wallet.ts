@@ -1,18 +1,18 @@
 import { utils } from "@ganache/utils";
 import { Data, Quantity } from "@ganache/utils";
 import Address from "./things/address";
-import EthereumOptions from "./options";
 import { privateToAddress } from "ethereumjs-util";
 import Account from "./things/account";
 import secp256k1 from "secp256k1";
-import { ProviderOptions } from "@ganache/options";
 import { mnemonicToSeedSync } from "bip39";
 import HDKey from "hdkey";
 import { alea as rng } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
 import {writeFileSync} from "fs";
+import { EthereumInternalOptions } from "./options";
 
+//#region Constants
 const SCRYPT_PARAMS = {
   dklen: 32,
   n: 1024, // practically nothing
@@ -21,6 +21,7 @@ const SCRYPT_PARAMS = {
 } as const;
 const CIPHER = "aes-128-ctr";
 const WEI = utils.WEI;
+//#endregion
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer A, infer _L] ? A : never;
 type LastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer _A, infer L] ? L : never;
@@ -62,7 +63,7 @@ export default class Wallet {
 
   #hdKey: HDKey;
 
-  constructor(opts: EthereumOptions) {
+  constructor(opts: EthereumInternalOptions["wallet"]) {
     this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
 
     const initialAccounts = this.initialAccounts = this.#initializeAccounts(opts);
@@ -71,7 +72,7 @@ export default class Wallet {
     const knownAccounts = this.knownAccounts;
     const unlockedAccounts = this.unlockedAccounts;
     //#region Unlocked Accounts
-    const givenUnlockedAccounts = opts.unlocked_accounts;
+    const givenUnlockedAccounts = opts.unlockedAccounts;
     if (givenUnlockedAccounts) {
       const ul = givenUnlockedAccounts.length;
       for (let i = 0; i < ul; i++) {
@@ -89,7 +90,7 @@ export default class Wallet {
               // don't use parseInt because strings like `"123abc"` parse
               // to `123`, and there is probably an error on the user's side we'd
               // want to uncover.
-              const index = (arg as any) - 0;
+              const index = (arg as any as number) - 0;
               // if we don't have a valid number, or the number isn't a valid JS
               // integer (no bigints or decimals, please), throw an error.
               if (!Number.isSafeInteger(index)) {
@@ -138,7 +139,7 @@ export default class Wallet {
     //#endregion
   
     //#region save accounts to disk
-    if (opts.account_keys_path != null) {
+    if (opts.accountKeysPath != null) {
       const fileData = {
         addresses: {} as {[address: string]: string},
         private_keys: {} as {[address: string]: Data}
@@ -147,7 +148,7 @@ export default class Wallet {
         fileData.addresses[address] = address;
         fileData.private_keys[address] = privateKey;
       });
-      writeFileSync(opts.account_keys_path, JSON.stringify(fileData));
+      writeFileSync(opts.accountKeysPath, JSON.stringify(fileData));
     }
     //#endregion
   }
@@ -166,9 +167,9 @@ export default class Wallet {
     return buf;
   }
 
-  #initializeAccounts = (opts: ProviderOptions): Account[] => {
+  #initializeAccounts = (options: EthereumInternalOptions["wallet"]): Account[] => {
     // convert a potentially fractional balance of Ether to WEI
-    const balanceParts = opts.default_balance_ether.toString().split(".", 2);
+    const balanceParts = options.defaultBalance.toString().split(".", 2);
     const significand = BigInt(balanceParts[0]);
     const fractionalStr = balanceParts[1] || "0";
     const fractional = BigInt(fractionalStr);
@@ -177,11 +178,11 @@ export default class Wallet {
     const etherInWei = Quantity.from(defaultBalanceInWei);
     let accounts: Account[];
 
-    let givenAccounts = opts.accounts;
+    let givenAccounts = options.accounts;
     let accountsLength: number;
     if (givenAccounts && (accountsLength = givenAccounts.length) !== 0) {
       const hdKey = this.#hdKey;
-      const hdPath = opts.hdPath;
+      const hdPath = options.hdPath;
       accounts = Array(accountsLength);
       for (let i = 0; i < accountsLength; i++) {
         const account = givenAccounts[i];
@@ -200,10 +201,10 @@ export default class Wallet {
         }
       }
     } else {
-      const numerOfAccounts = opts.total_accounts;
+      const numerOfAccounts = options.totalAccounts;
       if (numerOfAccounts) {
         accounts = Array(numerOfAccounts);
-        const hdPath = opts.hdPath;
+        const hdPath = options.hdPath;
         const hdKey = this.#hdKey;
 
         for (let index = 0; index < numerOfAccounts; index++) {

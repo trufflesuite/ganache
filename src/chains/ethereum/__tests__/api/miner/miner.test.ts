@@ -60,7 +60,7 @@ describe("api", () => {
       }).timeout(3000);
 
       it("should stop mining, then mine when started", async () => {
-        const provider = await getProvider({blockTime: 1});
+        const provider = await getProvider({miner:{blockTime: 1}});
         await testStopStartMining(provider);
       }).timeout(4000);
     });

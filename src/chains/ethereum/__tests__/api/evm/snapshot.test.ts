@@ -17,7 +17,7 @@ describe("api", function() {
         const contract = compile(join(__dirname, "./snapshot.sol"));
 
         const p = await getProvider({
-          defaultTransactionGasLimit: Quantity.from(6721975)
+          miner: {defaultTransactionGasLimit: 6721975}
         });
         const accounts = await p.send("eth_accounts");
         const from = accounts[3];

@@ -25,6 +25,7 @@ import BlockLogManager from "./components/blocklog-manager";
 import RejectionError from "./things/rejection-error";
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
+import { EthereumInternalOptions } from "./options";
 
 
 type SimulationTransaction = {
@@ -66,27 +67,6 @@ export enum Status {
   paused = 16			// 0001 0000
 }
 
-interface Logger {
-  log(message?: any, ...optionalParams: any[]): void;
-}
-
-export type BlockchainOptions = {
-  db?: string | object;
-  db_path?: string;
-  initialAccounts?: Account[];
-  hardfork?: string;
-  allowUnlimitedContractSize?: boolean;
-  gasLimit?: Quantity;
-  time?: Date;
-  blockTime?: number;
-  coinbaseAddress: Address;
-  chainId: number;
-  common: Common;
-  legacyInstamine: boolean;
-  vmErrorsOnRPCResponse: boolean;
-  logger: Logger
-};
-
 type BlockchainTypedEvents = {block: Block, blockLogs: BlockLogs, pendingTransaction: Transaction};
 type BlockchainEvents = "start" | "stop" | "step";
 
@@ -102,7 +82,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
   public vm: VM;
   public trie: CheckpointTrie;
   readonly #database: Database;
-  readonly #options: BlockchainOptions;
+  readonly #common: Common;
+  readonly #options: EthereumInternalOptions;
   readonly #instamine: boolean;
 
   /**
@@ -113,14 +94,13 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
    * initialized.
    * @param options
    */
-  constructor(options: BlockchainOptions) {
+  constructor(options: EthereumInternalOptions, common: Common, initialAccounts: Account[], coinbaseAddress: Address) {
     super();
     this.#options = options;
+    this.#common = common;
 
-    const logger = options.logger;
-    const instamine = this.#instamine = !options.blockTime || options.blockTime <= 0;
-    const legacyInstamine = options.legacyInstamine;
-    const database = (this.#database = new Database(options, this));
+    const instamine = this.#instamine = !options.miner.blockTime || options.miner.blockTime <= 0;
+    const legacyInstamine = options.miner.legacyInstamine;
 
     { // warnings
       if (legacyInstamine) {
@@ -132,14 +112,15 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           console.warn("Setting `legacyInstamine` to `true` has no effect when blockTime is 0 (default)");
         }
 
-        if (options.vmErrorsOnRPCResponse) {
+        if (options.chain.vmErrorsOnRPCResponse) {
           console.warn("Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is 0 (default)");
         }
       }
     }
 
+    const database = (this.#database = new Database(options.database, this));
     database.once("ready").then(async () => {
-      const blocks = this.blocks = await BlockManager.initialize(database.blockIndexes, database.blocks, {common: options.common});
+      const blocks = this.blocks = await BlockManager.initialize(common, database.blockIndexes, database.blocks);
 
       // if we have a latest block, use it to set up the trie.
       const latest = blocks.latest;
@@ -151,25 +132,25 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       }
       
       this.blockLogs = new BlockLogManager(database.blockLogs);
-      this.transactions = new TransactionManager(this, database.transactions, options);
+      this.transactions = new TransactionManager(options.miner, common, this, database.transactions);
       this.transactionReceipts = new Manager(
         database.transactionReceipts,
         TransactionReceipt
       );
       this.accounts = new AccountManager(this, database.trie);
 
-      this.coinbase = options.coinbaseAddress;
-      this.vm = this.createVmFromStateTrie(this.trie, options.allowUnlimitedContractSize);
+      this.coinbase = coinbaseAddress;
+      this.vm = this.createVmFromStateTrie(this.trie, options.chain.allowUnlimitedContractSize);
       this.vm.on("step", this.emit.bind(this, "step"));
 
-      await this.#commitAccounts(options.initialAccounts);
+      await this.#commitAccounts(initialAccounts);
 
-      const gasLimit = options.gasLimit = Quantity.from(options.gasLimit as any);
+      const gasLimit = options.miner.blockGasLimit = options.miner.blockGasLimit;
 
       { // create first block
         let firstBlockTime: number;
-        if (options.time != null) {
-          const t = +options.time;
+        if (options.chain.time != null) {
+          const t = +options.chain.time;
           firstBlockTime = Math.floor(t / 1000);
           this.setTime(t);
         } else {
@@ -184,7 +165,9 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       }
 
       { // configure and start miner
-        const miner = this.#miner = new Miner(this.vm, this.#readyNextBlock, {legacyInstamine, instamine, gasLimit});
+        const logger = options.logging.logger;
+
+        const miner = this.#miner = new Miner(options.miner, instamine, this.vm, this.#readyNextBlock);
 
         { // automatic mining
           const mineAll = async () => this.#isPaused() ? null : this.mine(1);
@@ -192,7 +175,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             // whenever the transaction pool is drained mine the txs into blocks
             this.transactions.transactionPool.on("drain", mineAll);
           } else {
-            const wait = () => unref(setTimeout(mineNext, options.blockTime * 1000));
+            const wait = () => unref(setTimeout(mineNext, options.miner.blockTime * 1000));
             const mineNext = () => mineAll().then(wait);
             wait();
           }
@@ -214,7 +197,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             coinbase: this.coinbase.toBuffer(),
             timestamp: blockData.timestamp,
             // difficulty:
-            gasLimit: options.gasLimit.toBuffer(),
+            gasLimit: options.miner.blockGasLimit.toBuffer(),
             transactionsTrie: blockData.transactionsTrie.root,
             receiptTrie: blockData.receiptTrie.root,
             stateRoot: this.trie.root,
@@ -250,11 +233,11 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
               });
 
               logger.log("");
-              logger.log("  Transaction: " + hash);
+              logger.log("  Transaction: " + Data.from(hash));
 
               const contractAddress = receipt.contractAddress;
               if (contractAddress != null) {
-                logger.log("  Contract created: " + contractAddress);
+                logger.log("  Contract created: " + Address.from(contractAddress));
               }
 
               const raw = receipt.raw;
@@ -282,9 +265,9 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           return this.#processingBlock.then(({block, blockLogs}) => {
             blocks.latest = block;
 
-            if (instamine && options.legacyInstamine) {
+            if (instamine && options.miner.legacyInstamine) {
               block.value.transactions.forEach(transaction => {
-                const error = this.#options.vmErrorsOnRPCResponse ? transaction.execException : null
+                const error = options.chain.vmErrorsOnRPCResponse ? transaction.execException : null
                 this.emit("transaction:" + Data.from(transaction.hash(), 32).toString() as any, error);
               });
 
@@ -316,7 +299,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
     return this.blocks.createBlock({
       number: Quantity.from(previousNumber + 1n).toBuffer(),
-      gasLimit: this.#options.gasLimit.toBuffer(),
+      gasLimit: this.#options.miner.blockGasLimit.toBuffer(),
       timestamp: timestamp == null ? this.#currentTime(): timestamp,
       parentHash: previousHeader.hash()
     }).value;
@@ -368,7 +351,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     return new VM({
       state: stateTrie,
       activatePrecompiles: true,
-      common: this.#options.common,
+      common: this.#common,
       allowUnlimitedContractSize,
       blockchain: {
         getBlock
@@ -550,7 +533,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     if (this.#isPaused() || !this.#instamine) {
       return hash;
     } else {
-      if (this.#instamine && this.#options.legacyInstamine) {
+      if (this.#instamine && this.#options.miner.legacyInstamine) {
         const hashStr = hash.toString();
         const error = await this.once("transaction:" + hashStr as any);
         if (error) {
@@ -569,7 +552,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     let gasLeft = transaction.gas.toBigInt();
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
-    gasLeft -= Transaction.calculateIntrinsicGas(data ? data.toBuffer() : null, options.hardfork as any);
+    gasLeft -= Transaction.calculateIntrinsicGas(data ? data.toBuffer() : null, options.chain.hardfork);
 
     if (gasLeft >= 0) {
       const stateTrie = new CheckpointTrie(this.#database.trie, parentBlock.value.header.stateRoot);
@@ -583,12 +566,13 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         gasLimit: Quantity.from(gasLeft).toBuffer(),
         to: transaction.to && transaction.to.toBuffer(),
         value: transaction.value && transaction.value.toBuffer(),
+        block: transaction.block.value
       });
     } else {
-      result = {execResult: {exceptionError: new VmError(ERROR.OUT_OF_GAS), returnValue: Buffer.allocUnsafe(0)}} as any;
+      result = {execResult: {runState: {programCounter: 0}, exceptionError: new VmError(ERROR.OUT_OF_GAS), returnValue: Buffer.allocUnsafe(0)}} as any;
     }
     if (result.execResult.exceptionError) {
-      if (this.#options.vmErrorsOnRPCResponse) {
+      if (this.#options.chain.vmErrorsOnRPCResponse) {
         // eth_call transactions don't really have a transaction hash
         const hash = Buffer.allocUnsafe(0);
         throw new RuntimeError(hash, result, RETURN_TYPES.RETURN_VALUE);

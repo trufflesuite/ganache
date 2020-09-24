@@ -210,8 +210,8 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Number} type The `Transaction.types` bit flag for this transaction
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
-  constructor(data: any, options: {common: Common}, type: number = Transaction.types.none) {
-    super(void 0, options);
+  constructor(data: any, common: Common, type: number = Transaction.types.none) {
+    super(void 0, {common});
 
     // EthereumJS-TX Transaction overwrites our `toJSON`, so we overwrite it back here:
     this.toJSON = Transaction.prototype.toJSON.bind(this);
@@ -319,7 +319,7 @@ class Transaction extends (EthereumJsTransaction as any) {
       s: Data.from(json.s).toBuffer()
     };
 
-    const tx = new Transaction(options, { common }, type);
+    const tx = new Transaction(options, common, type);
     tx._hash = json.hash ? Data.from(json.hash).toBuffer() : null;
     tx._from = json.from ? Data.from(json.from).toBuffer() : null;
     return tx;

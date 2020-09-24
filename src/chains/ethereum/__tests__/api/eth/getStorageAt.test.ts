@@ -18,7 +18,7 @@ describe("api", () => {
       beforeEach(async () => {
 
         provider = await getProvider({
-          defaultTransactionGasLimit: Quantity.from(6721975)
+          miner: {defaultTransactionGasLimit: 6721975}
         });
         const accounts = await provider.send("eth_accounts");
         const from = accounts[0];

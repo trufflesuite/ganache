@@ -16,7 +16,9 @@ describe("api", () => {
           secretKey: createKeccakHash("keccak256").update("cow").digest()
         };
         provider = await getProvider({
-          accounts: [acc]
+          wallet:{
+            accounts: [acc]
+          }
         })
         accounts = await provider.send("eth_accounts");
       });

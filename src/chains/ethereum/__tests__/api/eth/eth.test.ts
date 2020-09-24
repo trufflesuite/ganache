@@ -94,7 +94,7 @@ describe("api", () => {
       });
 
       it("should update the default chain id", async () => {
-        const provider = await getProvider({chainId: 1234});
+        const provider = await getProvider({chain: {chainId: 1234}});
         const result = await provider.send("eth_chainId");
         assert.deepStrictEqual(result, "0x4d2");
       });
@@ -192,9 +192,9 @@ describe("api", () => {
             counter++;
             if (counter === count) {
               off();
-              resolve();
+              resolve(void 0);
             }
-          }) as any);
+          }));
         });
 
         let wait = awaitFor(4);

@@ -1,5 +1,4 @@
 import {Quantity} from "@ganache/utils";
-import {types} from "@ganache/utils";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -11,7 +10,6 @@ interface Logger {
 type Account = {balance: string; secretKey?: string};
 
 export interface Options {
-  api?: types.Api;
   /**
    * Array of Accounts. Each object should have a balance key with a hexadecimal
    * value. The key secretKey can also be specified, which represents the
@@ -154,20 +152,20 @@ export interface Options {
    * Sets the default gas price for transactions if not otherwise specified.
    * Must be specified as a hex string in wei. Defaults to "0x77359400", or 2 gwei.
    */
-  gasPrice?: Quantity;
+  gasPrice?: string | number | bigint;
 
   /**
    * Sets the block gas limit. Must be specified as a hex string. Defaults to
    * "0x6691b7".
    */
-  gasLimit?: Quantity;
+  gasLimit?: string | number | bigint;
 
-  defaultTransactionGasLimit?: Quantity;
+  defaultTransactionGasLimit?: string | number | bigint;
 
   /**
    * Sets the transaction gas limit for `eth_call` and `eth_estimateGas` calls. Must be specified as a `hex` string. Defaults to `"0x1fffffffffffff"` (`Number.MAX_SAFE_INTEGER`)
    */
-  callGasLimit?: Quantity
+  callGasLimit?: string | number | bigint;
 
   /**
    *
@@ -211,39 +209,48 @@ export interface Options {
   etherbase?: string | number;
 };
 
+// const getDefault: (options?: Options) => Options = options => {
+//   const networkId = (options
+//     ? options.networkId || options.netVersion || options.network_id || options.net_version || Date.now()
+//     : Date.now()
+//   ).toString();
+//   const chainId = options ? options.chainId || 1337 : 1337;
+//   const secure = options ? options.secure || options.locked || false : false;
+//   const coinbase = options ? options.coinbase || options.etherbase || "0x0000000000000000000000000000000000000000" : "0x0000000000000000000000000000000000000000";
+//   const callGasLimit = options ? options.callGasLimit ? Quantity.from(options.callGasLimit as any) : Quantity.from(Number.MAX_SAFE_INTEGER) : Quantity.from(Number.MAX_SAFE_INTEGER);
+//   return Object.assign(
+//     {
+//       chainId,
+//       debug: false,
+//       logger: {log: () => {}},
+//       default_balance_ether: 100n,
+//       total_accounts: 10n,
+//       networkId,
+//       vmErrorsOnRPCResponse: false,
+//       hdPath: "m/44'/60'/0'/0/",
+//       allowUnlimitedContractSize: false,
+//       gasPrice: new Quantity(2000000000),
+//       gasLimit: new Quantity(6721975),
+//       defaultTransactionGasLimit: new Quantity(90000),
+//       callGasLimit,
+//       verbose: false,
+//       asyncRequestProcessing: true,
+//       hardfork: "muirGlacier",
+//       secure,
+//       legacyInstamine: false,
+//       coinbase
+//     },
+//     options
+//   );
+// }
+
+type Options = {
+
+} & EthereumOptions;
+
 const getDefault: (options?: Options) => Options = options => {
-  const networkId = (options
-    ? options.networkId || options.netVersion || options.network_id || options.net_version || Date.now()
-    : Date.now()
-  ).toString();
-  const chainId = options ? options.chainId || 1337 : 1337;
-  const secure = options ? options.secure || options.locked || false : false;
-  const coinbase = options ? options.coinbase || options.etherbase || "0x0000000000000000000000000000000000000000" : "0x0000000000000000000000000000000000000000";
-  return Object.assign(
-    {
-      chainId,
-      debug: false,
-      logger: {log: () => {}},
-      default_balance_ether: 100n,
-      total_accounts: 10n,
-      networkId,
-      vmErrorsOnRPCResponse: false,
-      hdPath: "m/44'/60'/0'/0/",
-      allowUnlimitedContractSize: false,
-      gasPrice: new Quantity(2000000000),
-      gasLimit: new Quantity(6721975),
-      defaultTransactionGasLimit: new Quantity(90000),
-      callGasLimit: new Quantity(Number.MAX_SAFE_INTEGER),
-      verbose: false,
-      asyncRequestProcessing: true,
-      hardfork: "muirGlacier",
-      secure,
-      legacyInstamine: false,
-      coinbase
-    },
-    options
-  );
-}
+
+};
 
 export const Options = {
   getDefault

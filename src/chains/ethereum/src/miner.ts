@@ -8,6 +8,7 @@ import Emittery from "emittery";
 import Block from "ethereumjs-block";
 import VM from "ethereumjs-vm";
 import {encode as rlpEncode} from "rlp";
+import { EthereumInternalOptions } from "./options";
 
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
@@ -29,12 +30,6 @@ function replaceFromHeap(
   }
 }
 
-type MinerOptions = {
-  gasLimit?: Quantity;
-  instamine: boolean;
-  legacyInstamine: boolean
-};
-
 function byPrice(values: Transaction[], a: number, b: number) {
   return Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 }
@@ -44,7 +39,8 @@ export default class Miner extends Emittery {
   #origins = new Set<string>();
   #pending: Map<string, utils.Heap<Transaction>>;
   #isMining: boolean = false;
-  readonly #options: MinerOptions;
+  readonly #options: EthereumInternalOptions["miner"];
+  readonly #instamine: boolean;
   readonly #vm: VM;
   readonly #checkpoint: () => Promise<any>;
   readonly #commit: () => Promise<any>;
@@ -53,12 +49,13 @@ export default class Miner extends Emittery {
 
   // create a Heap that sorts by gasPrice
   readonly #priced = new utils.Heap<Transaction>(byPrice);
-  constructor(vm: VM, createBlock: (previousBlock: Block) => Block, options: MinerOptions) {
+  constructor(options: EthereumInternalOptions["miner"], instamine: boolean, vm: VM, createBlock: (previousBlock: Block) => Block) {
     super();
     const stateManager = vm.stateManager;
 
     this.#vm = vm;
     this.#options = options;
+    this.#instamine = instamine;
     this.#checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
     this.#commit = promisify(stateManager.commit.bind(stateManager));
     this.#revert = promisify(stateManager.revert.bind(stateManager));
@@ -101,7 +98,7 @@ export default class Miner extends Emittery {
       const nextBlock = this.#createBlock(lastBlock);
       const pending = this.#pending;
       this.#pending = null;
-      await this.mine(pending, nextBlock, this.#options.instamine ? 1 : -1);
+      await this.mine(pending, nextBlock, this.#instamine ? 1 : -1);
     }
     return transactions;
   }
@@ -137,7 +134,7 @@ export default class Miner extends Emittery {
       }
 
       let numTransactions = 0;
-      let blockGasLeft = this.#options.gasLimit.toBigInt();
+      let blockGasLeft = this.#options.blockGasLimit.toBigInt();
 
       const promises: Promise<any>[] = [];
 
@@ -173,7 +170,7 @@ export default class Miner extends Emittery {
         this.#currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
 
         const runArgs = {
-          tx: best as any,
+          tx: best,
           block
         };
         // Set a transaction-level checkpoint so we can undo state changes in
@@ -275,7 +272,7 @@ export default class Miner extends Emittery {
         this.#updatePricedHeap(pending);
 
         if (priced.length !== 0) {
-          maxTransactions = this.#options.instamine ? 1 : -1;
+          maxTransactions = this.#instamine ? 1 : -1;
           block = this.#createBlock(block);
           continue;
         } else {
@@ -308,7 +305,7 @@ export default class Miner extends Emittery {
         }
       } else {
         // TODO: handle other errors? Maybe there are some that allow this tx to
-        //be run again later? For now, just remove it so stuff works.
+        // be run again later? For now, just remove it so stuff works.
 
         // Update the `priced` heap with the next best transaction from this
         // account

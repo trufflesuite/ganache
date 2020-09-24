@@ -1,20 +1,27 @@
 import uWS, {TemplatedApp, WebSocket} from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import ServerOptions, { FlavorMap } from "../options/server-options";
+import { ServerOptions } from "../options";
+import * as Flavors from "@ganache/flavors";
 import { PromiEvent } from "@ganache/utils";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 
+type HandlesWebSocketSignature= ((payload: any, connection: WebSocket) => any);
+
 type WebSocketCapableFlavorMap = {
-  [k in keyof FlavorMap]: FlavorMap[k]["handle"] extends ((payload: any, connection: WebSocket) => any) ? FlavorMap[k] : never;
+  [k in keyof Flavors.Connectors]:
+    Flavors.Connectors[k]["handle"] extends HandlesWebSocketSignature
+      ? Flavors.Connectors[k]
+      : never;
 };
+
 export type WebSocketCapableFlavor = {
   [k in keyof WebSocketCapableFlavorMap]: WebSocketCapableFlavorMap[k];
 }[keyof WebSocketCapableFlavorMap];
 
 export type GanacheWebSocket = WebSocket & {closed?: boolean};
 
-export type WebsocketServerOptions = Pick<ServerOptions, "logger" | "wsBinary">
+export type WebsocketServerOptions = Pick<ServerOptions["server"], "wsBinary">
 
 export default class WebsocketServer {
   #connections = new Map<WebSocket,Set<() => void>>();
@@ -86,7 +93,8 @@ export default class WebsocketServer {
         // This is there so tests can detect if a small amount of backpressure
         // is happening and that things will still work if it does. We actually
         // don't do anything to manage excessive backpressure.
-        options.logger.log("WebSocket backpressure: " + ws.getBufferedAmount());
+        // TODO: handle back pressure for real!
+        // options.logger.log("WebSocket backpressure: " + ws.getBufferedAmount());
       },
 
       close: (ws: GanacheWebSocket) => {

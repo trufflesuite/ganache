@@ -1,11 +1,12 @@
 import {Base} from "./base";
-import {OptionName, Option, ExclusiveGroupIndex, ExclusiveGroups, Options, OptionType} from "./getters";
+import {OptionName, Option, ExclusiveGroupIndex, ExclusiveGroups, Options, OptionType, OptionRawType} from "./getters";
 
 
 //#region options not part of exclusive groups
-export type UnconstrainedOptions<C extends Base.Config> = Omit<Options<C>, ExclusiveGroupOptionName<C>>;
-export type UnconstrainedOptionRawTypes<C extends Base.Config> = {[N in UnconstrainedOptionName<C>]: OptionType<C, N>};
-export type UnconstrainedOptionName<C extends Base.Config> = string & keyof UnconstrainedOptions<C>;
+type UnconstrainedOptions<C extends Base.Config> = Omit<Options<C>, ExclusiveGroupOptionName<C>>;
+type UnconstrainedOptionName<C extends Base.Config> = string & keyof UnconstrainedOptions<C>;
+type UnconstrainedOptionsByType<C extends Base.Config, T extends "type" | "rawType"> =
+  {[N in UnconstrainedOptionName<C>]: T extends "type" ? OptionType<C, N> : OptionRawType<C, N>};
 //#endregion options not part of exclusive groups
 
 
@@ -30,7 +31,6 @@ type ExclusiveGroupOptionNameOption<
   N extends OptionName<C>
     ? Option<C, N>
     : never;
-
 type PairsToMapping<T extends unknown[]> =
   T extends []
     ? {}
@@ -42,26 +42,30 @@ type PairsToMapping<T extends unknown[]> =
 
 type RequireOnly<T, K extends keyof T> = Pick<T, K> & Partial<Omit<T, K>>
 
-type ExclusiveGroupOptionalUnionByName<C extends Base.Config, GRP extends ExclusiveGroup<C>, M extends OptionName<C>> = 
+type ExclusiveGroupOptionalUnionByName<C extends Base.Config, GRP extends ExclusiveGroup<C>, M extends OptionName<C>, T extends "rawType" | "type"> = 
 {
-  [K in keyof RequireOnly<ExclusiveGroupOptionsByGroup<C, GRP>, M>] : K extends M ? OptionType<C, M>
-    : never
+  [K in keyof RequireOnly<ExclusiveGroupOptionsByGroup<C, GRP>, M>] :
+    K extends M
+      ? T extends "type"
+        ? OptionType<C, M>
+        : OptionRawType<C, M>
+      : never
 }
 
-type Combine<C extends Base.Config, O extends unknown, GRP extends ExclusiveGroup<C>> = {
+type Combine<C extends Base.Config, O extends unknown, GRP extends ExclusiveGroup<C>, T extends "rawType" | "type"> = {
     [N in keyof GRP]:
       GRP[N] extends OptionName<C>
         ? {
           [
             Key in keyof (
-              & ExclusiveGroupOptionalUnionByName<C, GRP, GRP[N]>
-              & UnconstrainedOptionRawTypes<C>
+              & ExclusiveGroupOptionalUnionByName<C, GRP, GRP[N], T>
+              & UnconstrainedOptionsByType<C, T>
               & O
             )
-          ]: Key extends keyof ExclusiveGroupOptionalUnionByName<C, GRP, GRP[N]>
-              ? ExclusiveGroupOptionalUnionByName<C, GRP, GRP[N]>[Key]
-              : Key extends keyof UnconstrainedOptionRawTypes<C>
-                ? UnconstrainedOptionRawTypes<C>[Key]
+          ]: Key extends keyof ExclusiveGroupOptionalUnionByName<C, GRP, GRP[N], T>
+              ? ExclusiveGroupOptionalUnionByName<C, GRP, GRP[N], T>[Key]
+              : Key extends keyof UnconstrainedOptionsByType<C, T>
+                ? UnconstrainedOptionsByType<C, T>[Key]
                 : Key extends keyof O
                   ? O[Key]
                   : never;
@@ -70,24 +74,31 @@ type Combine<C extends Base.Config, O extends unknown, GRP extends ExclusiveGrou
       : never;
   } extends {[n:number]: infer I} ? I : never;
 
-
-export type ExclusiveGroupUnionAndUnconstrainedPlus<C extends Base.Config, GRPS extends ExclusiveGroups<C> = ExclusiveGroups<C>, O extends unknown[] = []> = (
+type IsNeverType<T> = [T] extends [never] ? true : never;
+export type ExclusiveGroupUnionAndUnconstrainedPlus<C extends Base.Config, T extends "rawType" | "type", GRPS extends ExclusiveGroups<C> = ExclusiveGroups<C>, O extends unknown[] = []> = (
   GRPS extends [infer GRP, ...infer Rest]
     ? GRP extends ExclusiveGroup<C>
       ? Rest extends any[]
         ? O extends []
           // first time through
-          ? ExclusiveGroupUnionAndUnconstrainedPlus<C, Rest, UnionToTuple<Combine<C, {}, GRP>>>
+          ? ExclusiveGroupUnionAndUnconstrainedPlus<C, T, Rest, UnionToTuple<Combine<C, {}, GRP, T>>>
           // recurse
-          : ExclusiveGroupUnionAndUnconstrainedPlus<C, Rest, UnionToTuple<{
+          : ExclusiveGroupUnionAndUnconstrainedPlus<C, T, Rest, UnionToTuple<{
               // iterate over each object in the O tuple.
-              // Omit<O, keyof []> makes it include only the indexes, but TypeScript will treat it as an object now, so we `UnionToTuple`
+              // Omit<O, keyof []> makes it include only the indexes, but
+              // TypeScript will treat it as an object now, so we `UnionToTuple`
               // to turn it back into a Tuple
-              [OK in keyof Omit<O, keyof []>]: Combine<C, O[OK], GRP>
+              [OK in keyof Omit<O, keyof []>]: Combine<C, O[OK], GRP, T>
           } extends {[n:number]: infer I} ? I : never>>
         : never
       : never
-    : O extends {[n:number]: infer I} ? I : never
+    : O extends {[n:number]: infer I}
+      // if there are no exclusiveGroups `I` is `never` so we return `C`
+      // directly
+      ? true extends IsNeverType<I>
+        ? {[Key in keyof UnconstrainedOptionsByType<C, T>]: UnconstrainedOptionsByType<C, T>[Key]}
+        : I
+      : never
 )
 
 //#region UnionToTuple

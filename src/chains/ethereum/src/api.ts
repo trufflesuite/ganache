@@ -1,9 +1,9 @@
 //#region Imports
 import { toRpcSig, KECCAK256_NULL, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
-import EthereumOptions from "./options";
+import { EthereumInternalOptions } from "./options";
 import { types, Data, Quantity } from "@ganache/utils";
-import Blockchain, { BlockchainOptions } from "./blockchain";
+import Blockchain from "./blockchain";
 import Tag from "./things/tags";
 import {VM_EXCEPTION, VM_EXCEPTIONS} from "./things/errors";
 import Address from "./things/address";
@@ -86,7 +86,7 @@ function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain:
 }
 
 function assertExceptionalTransactions(transactions: Transaction[]) {
-  let baseError = null;
+  let baseError: string = null;
   let errors: string[];
   const data = {};
 
@@ -133,7 +133,7 @@ export default class EthereumApi implements types.Api {
   readonly #filters = new Map<string, {type: FilterTypes, updates: any[], unsubscribe: Emittery.UnsubscribeFn, filter: FilterArgs}>();
   readonly #subscriptions = new Map<string, Emittery.UnsubscribeFn>();
   readonly #blockchain: Blockchain;
-  readonly #options: EthereumOptions;
+  readonly #options: EthereumInternalOptions;
   readonly #wallet: Wallet;
 
   /**
@@ -143,47 +143,48 @@ export default class EthereumApi implements types.Api {
    * @param options
    * @param ready Callback for when the API is fully initialized
    */
-  constructor(options: EthereumOptions, emitter: Emittery.Typed<{message: any}, "connect" | "disconnect">) {
+  constructor(options: EthereumInternalOptions, emitter: Emittery.Typed<{message: any}, "connect" | "disconnect">) {
     const opts = (this.#options = options);
 
-    const {initialAccounts} = this.#wallet = new Wallet(opts);
+    const {initialAccounts} = this.#wallet = new Wallet(opts.wallet);
 
-    const blockchainOptions = options as any as BlockchainOptions;
-    blockchainOptions.initialAccounts = initialAccounts;
-
-    switch (typeof options.coinbase) {
+    let coinbaseAddress: Address;
+    switch (typeof options.miner.coinbase) {
+      case "object":
+        coinbaseAddress = options.miner.coinbase;
+      break;
       case "number":
-        const account = blockchainOptions.initialAccounts[options.coinbase];
+        const account = initialAccounts[options.miner.coinbase];
         if (account) {
-          blockchainOptions.coinbaseAddress = account.address;
+          coinbaseAddress = account.address;
         } else {
-          throw new Error(`invalid coinbase address index: ${options.coinbase}`);
+          throw new Error(`invalid coinbase address index: ${options.miner.coinbase}`);
         }
       break;
       case "string":
-        blockchainOptions.coinbaseAddress = Address.from(options.coinbase);
+        coinbaseAddress = Address.from(options.miner.coinbase);
       break;
       default: {
-        throw new Error(`coinbase address must be string or number, received: ${options.coinbase}`);
+        throw new Error(`coinbase address must be string or number, received: ${options.miner.coinbase}`);
       }
     }
 
-    this.#common = blockchainOptions.common = Common.forCustomChain(
+    const common = this.#common = Common.forCustomChain(
       // if we were given a chain id that matches a real chain, use it
       // NOTE: I don't think Common serves a purpose ther than instructing the
       // VM what hardfork is in use. But just incase things change in the future
       // its configured "more correctly" here.
-      KNOWN_CHAINIDS.has(options.chainId) ? options.chainId : 1,
+      KNOWN_CHAINIDS.has(options.chain.chainId) ? options.chain.chainId : 1,
       {
         name: "ganache",
-        networkId: options.networkId,
-        chainId: options.chainId,
+        networkId: options.chain.networkId,
+        chainId: options.chain.chainId,
         comment: "Local test network"
       },
-      options.hardfork
+      options.chain.hardfork
     );
    
-    const blockchain = (this.#blockchain = new Blockchain(blockchainOptions));
+    const blockchain = (this.#blockchain = new Blockchain(options, common, initialAccounts, coinbaseAddress));
     blockchain.on("start", () => {
       emitter.emit("connect");
     });
@@ -242,11 +243,11 @@ export default class EthereumApi implements types.Api {
 
   //#region bzz
   async bzz_hive() {
-    return [] as any[];
+    return [];
   }
 
   async bzz_info() {
-    return [] as any[];
+    return [];
   }
   //#endregion
 
@@ -262,11 +263,74 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(0, 1)
   async evm_mine(timestamp?: number) {
     const transactions = await this.#blockchain.mine(-1, timestamp, true);
-    if (this.#options.vmErrorsOnRPCResponse) {
+    if (this.#options.chain.vmErrorsOnRPCResponse) {
       assertExceptionalTransactions(transactions);
     }
 
     return "0x0";
+  }
+
+  async evm_setStorageAt(
+    address: string,
+    position: bigint | number,
+    storage: string,
+    blockNumber: string | Buffer | Tag = Tag.LATEST
+  ) {
+    const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
+
+    const trie = this.#blockchain.trie.copy();
+    const getFromTrie = (address: Buffer): Promise<Buffer> =>
+      new Promise((resolve, reject) => {
+        trie.get(address, (err, data) => {
+          if (err) return void reject(err);
+          resolve(data);
+        });
+      });
+    const block = await blockProm;
+    if (!block) throw new Error("header not found");
+
+    const blockData = (rlpDecode(block) as unknown) as [
+      [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
+      Buffer[],
+      Buffer[]
+    ];
+    const headerData = blockData[0];
+    const blockStateRoot = headerData[3];
+    trie.root = blockStateRoot;
+
+    const addressDataPromise = getFromTrie(Address.from(address).toBuffer());
+
+    const posBuff = Quantity.from(position).toBuffer();
+    const length = posBuff.length;
+    let paddedPosBuff: Buffer;
+    if (length < 32) {
+      // storage locations are 32 bytes wide, so we need to expand any value
+      // given to 32 bytes.
+      paddedPosBuff = Buffer.allocUnsafe(32).fill(0);
+      posBuff.copy(paddedPosBuff, 32 - length);
+    } else if (length === 32) {
+      paddedPosBuff = posBuff;
+    } else {
+      // if the position value we're passed is > 32 bytes, truncate it. This is
+      // what geth does.
+      paddedPosBuff = posBuff.slice(-32);
+    }
+
+    const addressData = await addressDataPromise;
+    // An address's stateRoot is stored in the 3rd rlp entry
+    this.#blockchain.trie.root = ((rlpDecode(addressData) as any) as [
+      Buffer /*nonce*/,
+      Buffer /*amount*/,
+      Buffer /*stateRoot*/,
+      Buffer /*codeHash*/
+    ])[2];
+
+    return new Promise((resolve, reject) => {
+      this.#blockchain.trie.put(paddedPosBuff, storage, (err) => {
+        if(err) return reject(err);
+        resolve(void 0);
+      });
+    });
   }
 
   /**
@@ -427,10 +491,10 @@ export default class EthereumApi implements types.Api {
    * @returns true
    */
   async miner_start(threads: number = 1) {
-    if (this.#options.legacyInstamine === true) {
+    if (this.#options.miner.legacyInstamine === true) {
       const transactions = await this.#blockchain.resume(threads);
-      if (transactions != null && this.#options.vmErrorsOnRPCResponse) {
-        assertExceptionalTransactions(transactions as any);
+      if (transactions != null && this.#options.chain.vmErrorsOnRPCResponse) {
+        assertExceptionalTransactions(transactions);
       }
     } else {
       this.#blockchain.resume(threads);
@@ -452,8 +516,8 @@ export default class EthereumApi implements types.Api {
    * Any transactions that are below this limit are excluded from the mining 
    * process.
    */
-  async miner_setGasPrice(number: Quantity) {
-    this.#options.gasPrice = number;
+  async miner_setGasPrice(number: string) {
+    this.#options.miner.gasPrice = Quantity.from(number);
     return true;
   }
 
@@ -493,7 +557,7 @@ export default class EthereumApi implements types.Api {
    * Quantity/Data encoded.
    */
   async net_version() {
-    return this.#options.networkId.toString();
+    return this.#options.chain.networkId.toString();
   }
 
   /**
@@ -549,7 +613,7 @@ export default class EthereumApi implements types.Api {
           tx.gasLimit = tx.gas;
         } else {
           // eth_estimateGas isn't subject to regular transaction gas limits
-          tx.gas = tx.gasLimit = options.callGasLimit.toBuffer();
+          tx.gas = tx.gasLimit = options.miner.callGasLimit.toBuffer();
         }
       }
       const newBlock = blocks.createBlock({
@@ -567,7 +631,7 @@ export default class EthereumApi implements types.Api {
         skipBalance: true,
         skipNonce: true
       };
-      estimateGas(generateVM, runArgs, (err, result) => {
+      estimateGas(generateVM, runArgs, (err: Error, result: any) => {
         if(err) return reject(err);
         resolve(Quantity.from(result.gasEstimate.toBuffer()));
       });
@@ -773,7 +837,7 @@ export default class EthereumApi implements types.Api {
    * @returns integer of the current gas price in wei.
    */
   async eth_gasPrice() {
-    return this.#options.gasPrice;
+    return this.#options.miner.gasPrice;
   }
 
   /**
@@ -800,7 +864,7 @@ export default class EthereumApi implements types.Api {
    * @EIP [155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
    */
   async eth_chainId() {
-    return Quantity.from(this.#options.chainId);
+    return Quantity.from(this.#options.chain.chainId);
   }
 
   /**
@@ -1014,16 +1078,11 @@ export default class EthereumApi implements types.Api {
 
     const tx = Transaction.fromJSON(transaction, this.#common, type);
     if (tx.gasLimit.length === 0) {
-      tx.gasLimit = this.#options.defaultTransactionGasLimit.toBuffer();
+      tx.gasLimit = this.#options.miner.defaultTransactionGasLimit.toBuffer();
     }
 
     if (tx.gasPrice.length === 0) {
-      const gasPrice = this.#options.gasPrice;
-      if (gasPrice instanceof Quantity) {
-        tx.gasPrice = gasPrice.toBuffer();
-      } else {
-        tx.gasPrice = Quantity.from(gasPrice as any).toBuffer();
-      }
+      tx.gasPrice = this.#options.miner.gasPrice.toBuffer();
     }
 
     if (tx.value.length === 0) {
@@ -1048,7 +1107,7 @@ export default class EthereumApi implements types.Api {
    * @returns The transaction hash
    */
   async eth_sendRawTransaction(transaction: string) {
-    const tx = new Transaction(transaction, {common: this.#common}, Transaction.types.signed);
+    const tx = new Transaction(transaction, this.#common, Transaction.types.signed);
     return this.#blockchain.queueTransaction(tx)
   }
 
@@ -1075,7 +1134,7 @@ export default class EthereumApi implements types.Api {
 
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
     const signature = ecsign(messageHash, privateKey.toBuffer());
-    return toRpcSig(signature.v, signature.r, signature.s, +this.#options.chainId);
+    return toRpcSig(signature.v, signature.r, signature.s, +this.#options.chain.chainId);
   }
 
   /**
@@ -1318,7 +1377,7 @@ export default class EthereumApi implements types.Api {
         value.updates.push(...blockLogs.filter(addresses, topics));
       }
     });
-    const value = {updates: [] as any[], unsubscribe, filter, type: FilterTypes.log};
+    const value = {updates: [], unsubscribe, filter, type: FilterTypes.log};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1440,11 +1499,11 @@ export default class EthereumApi implements types.Api {
 
     let gas: Quantity;
     if (typeof transaction.gasLimit === "undefined") {
-      if (typeof transaction.gas === undefined){
+      if (typeof transaction.gas !== "undefined"){
         gas = Quantity.from(transaction.gas);
       } else {
         // eth_call isn't subject to regular transaction gas limits by default
-        gas = options.callGasLimit;
+        gas = options.miner.callGasLimit;
       }
     }
     else {
@@ -1505,7 +1564,7 @@ export default class EthereumApi implements types.Api {
     }
 
     const wallet = this.#wallet;
-    const newAccount = wallet.createRandomAccount(this.#options.mnemonic);
+    const newAccount = wallet.createRandomAccount(this.#options.wallet.mnemonic);
     const address = newAccount.address;
     const strAddress = address.toString();
     const encryptedKeyFile = await wallet.encrypt(newAccount.privateKey, passphrase);
@@ -1595,14 +1654,13 @@ export default class EthereumApi implements types.Api {
       throw new Error("no key for given address or file");
     }
     let tx: Transaction;
-    const options = {common: this.#common}
     if (encryptedKeyFile !== null) {
       const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
 
-      tx = new Transaction(transaction, options);
+      tx = new Transaction(transaction, this.#common);
       tx.sign(secretKey);
     } else {
-      tx = new Transaction(transaction, options, Transaction.types.fake);
+      tx = new Transaction(transaction, this.#common, Transaction.types.fake);
     }
 
     return this.#blockchain.queueTransaction(tx);
@@ -1686,7 +1744,7 @@ export default class EthereumApi implements types.Api {
    * @returns More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges
    */
   async shh_getFilterChanges(id: string) {
-    return [] as any[];
+    return [];
   };
 
   /**

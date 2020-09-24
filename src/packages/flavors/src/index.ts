@@ -1,23 +1,21 @@
-import {types} from "@ganache/utils";
-import {TezosConnector} from "@ganache/tezos";
-import {EthereumConnector} from "@ganache/ethereum";
+// import {TezosConnector} from "@ganache/tezos";
+import * as Ethereum from "@ganache/ethereum";
 
-export const FlavorMap = {
-  //tezos: TezosConnector,
-  ethereum: EthereumConnector
-};
+export const DefaultFlavor = Ethereum.FlavorName;
 
-export type FlavorMap = {
-//  tezos: TezosConnector;
-  ethereum: EthereumConnector;
-};
+export type Connectors = {
+  [Ethereum.FlavorName]: Ethereum.Connector,
+  // [Tezos.FlavorName]: Tezos.Connector
+}
 
-export type FlavorKeys = keyof FlavorMap;
+export const Connectors = {
+  [Ethereum.FlavorName]: Ethereum.Connector,
+  // [Tezos.FlavorName]: Tezos.Connector
+}
 
-export const DefaultFlavor = "ethereum" as const;
+export type Options = (
+  ({flavor?: typeof Ethereum.FlavorName} & Ethereum.ProviderOptions)
+  // | [Tezos.FlavorName]: Tezos.ProviderOptions;
+);
 
-export type Flavors = {
-  [k in keyof FlavorMap]: FlavorMap[k];
-}[keyof FlavorMap];
-
-export type Apis<T extends Flavors = Flavors> = T extends types.Connector<infer R, unknown, unknown> ? R : never;
+// export type Apis<T extends Flavors = Flavors> = T extends types.Connector<infer R, unknown, unknown> ? R : never;

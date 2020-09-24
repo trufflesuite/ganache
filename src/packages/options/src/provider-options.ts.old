@@ -1,0 +1,3 @@
+// import { Options } from "./old/options";
+
+// export interface ProviderOptions<Opts> = Options

@@ -1,22 +1,23 @@
-import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
 import {JsonRpcTypes, types, utils} from "@ganache/utils";
-import Provider from "./provider";
+import EthereumProvider from "./provider";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
 import CodedError, { ErrorCodes } from "./things/coded-error";
+import { EthereumProviderOptions } from "./options";
 
 function isHttp(connection: HttpRequest | WebSocket): connection is HttpRequest {
   return connection.constructor.name === "uWS.HttpRequest"
 }
 
-export type EthereumProvider = Provider;
-export const EthereumProvider = Provider;
+export type ProviderOptions = EthereumProviderOptions;
+export const Provider = EthereumProvider;
+export const FlavorName = "ethereum" as const;
 
-export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "close">
+export class Connector extends Emittery.Typed<undefined, "ready" | "close">
   implements types.Connector<EthereumApi, JsonRpcTypes.Request<EthereumApi> | JsonRpcTypes.Request<EthereumApi>[], JsonRpcTypes.Response> {
 
-  #provider: Provider;
+  #provider: EthereumProvider;
   
   get provider() {
     return this.#provider;
@@ -45,7 +46,7 @@ export class EthereumConnector extends Emittery.Typed<undefined, "ready" | "clos
       // handle batch transactions
       const promises = payload.map(payload => this.#handle(payload, connection)
         .then(({value}) => value).catch(e => e));
-      return Promise.resolve({value: Promise.all(promises)} as any);
+      return Promise.resolve({value: Promise.all(promises)});
     } else {
       return this.#handle(payload, connection);
     }

@@ -6,7 +6,7 @@ describe("api", () => {
   describe("eth", () => {
     describe("legacy", () => {
       it("when not in legacy mode, does not mine before returning the tx hash", async () => {
-        const provider = await getProvider({legacyInstamine: false});
+        const provider = await getProvider({miner: {legacyInstamine: false}});
         const accounts = await provider.send("eth_accounts");
 
         const hash = await provider.send("eth_sendTransaction", [
@@ -21,7 +21,7 @@ describe("api", () => {
       });
 
       it("when in legacy mode, mines before returns in the tx hash", async () => {
-        const provider = await getProvider({legacyInstamine: true});
+        const provider = await getProvider({miner:{legacyInstamine: true}});
         const accounts = await provider.send("eth_accounts");
 
         const hash = await provider.send("eth_sendTransaction", [
@@ -36,7 +36,7 @@ describe("api", () => {
       });
 
       it("handles transaction balance errors, callback style", (done) => {
-        getProvider({legacyInstamine: true, vmErrorsOnRPCResponse: true}).then(async (provider) => { 
+        getProvider({miner: {legacyInstamine: true}, chain: {vmErrorsOnRPCResponse: true}}).then(async (provider) => { 
           const accounts = await provider.send("eth_accounts");
 
           provider.send({

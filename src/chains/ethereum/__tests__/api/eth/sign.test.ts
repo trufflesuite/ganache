@@ -18,7 +18,9 @@ describe("api", () => {
           secretKey: "0xe6d66f02cd45a13982b99a5abf3deab1f67cf7be9fee62f0a072cb70896342e4"
         };
         provider = await getProvider({
-          accounts: [acc]
+          wallet: {
+            accounts: [acc]
+          }
         })
         accounts = await provider.send("eth_accounts");
       });

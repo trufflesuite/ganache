@@ -1,4 +1,4 @@
-import {BaseJsonRpcType, JsonRpcType, IndexableJsonRpcType} from "./json-rpc-base-types";
+import {BaseJsonRpcType} from "./json-rpc-base-types";
 import {strCache, toStrings} from "./json-rpc-base-types";
 
 function validateByteLength(byteLength?: number) {
@@ -50,23 +50,6 @@ export class Data extends BaseJsonRpcType {
     }
   }
   public static from<T extends string | Buffer = string | Buffer>(value: T, byteLength?: number) {
-    return new _Data(value, byteLength);
+    return new Data(value, byteLength);
   }
 }
-export type $<T extends string | Buffer = string | Buffer> = {
-  new (value: T, byteLength?: number): _Data<T> & JsonRpcType<T>;
-  from(value: T, byteLength?: number): _Data<T> & JsonRpcType<T>;
-  toString(byteLength?: number): string;
-  toBuffer(): Buffer;
-};
-export const _Data = Data as $;
-
-export interface _Data<T extends string | Buffer = string | Buffer> {
-  constructor(value: T, byteLength?: number): _Data;
-  from(value: T, byteLength?: number): _Data;
-  toString(byteLength?: number): string;
-  toBuffer(): Buffer;
-}
-
-export type IndexableData = _Data & IndexableJsonRpcType;
-export default _Data;

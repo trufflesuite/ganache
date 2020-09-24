@@ -6,25 +6,14 @@ import Transaction from "../things/transaction";
 import {Data, Quantity} from "@ganache/utils";
 import {GAS_LIMIT, INTRINSIC_GAS_TOO_LOW} from "../things/errors";
 import CodedError, { ErrorCodes } from "../things/coded-error";
-
-export type TransactionPoolOptions = {
-  /**
-   * TODO: use this value.
-   */
-  gasPrice?: Quantity;
-
-  /**
-   * Minimum gas price to enforce for acceptance into the pool
-   */
-  gasLimit?: Quantity;
-};
+import { EthereumInternalOptions } from "../options";
 
 function byNonce(values: Transaction[], a: number, b: number) {
   return (Quantity.from(values[b].nonce).toBigInt() || 0n) > (Quantity.from(values[a].nonce).toBigInt() || 0n);
 }
 
 export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
-  #options: TransactionPoolOptions;
+  #options: EthereumInternalOptions["miner"];
 
   /**
    * Minimum price bump percentage to replace an already existing transaction (nonce)
@@ -32,16 +21,16 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   public priceBump: bigint = 10n;
 
   #blockchain: Blockchain;
-  constructor(blockchain: Blockchain, options: TransactionPoolOptions) {
+  constructor(options: EthereumInternalOptions["miner"], blockchain: Blockchain) {
     super();
     this.#blockchain = blockchain;
     this.#options = options;
   }
-  public executables: Map<string, utils.Heap<Transaction>> = new Map();
-  #origins: Map<string, {
-    transactions: utils.Heap<Transaction>,
-    nonce: bigint
+  public executables: Map<string, {
+    nonce: bigint,
+    transactions: utils.Heap<Transaction>
   }> = new Map();
+  #origins: Map<string, utils.Heap<Transaction>> = new Map();
   #accountPromises = new Map<string, PromiseLike<Account>>();
 
   /**
@@ -71,10 +60,8 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     const origin = from.toString();
     const origins = this.#origins;
-    let queuedOrigin = origins.get(origin);
+    let queuedOriginTransactions = origins.get(origin);
 
-    // since we don't have any pending transactions for this account
-    // verify the transaction's nonce is valid against the persisted account
     // Note: we need to lock on this async request to ensure we always process
     // incoming requests in the order they were received! It is possible for
     // the file IO performed by `accounts.get` to vary.
@@ -82,15 +69,15 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     transactorPromise && await transactorPromise;
 
     let highestNonce = 0n;
-    let queuedOriginTransactions: utils.Heap<Transaction>;
-    if (queuedOrigin) {
-      highestNonce = queuedOrigin.nonce;
-      queuedOriginTransactions = queuedOrigin.transactions;
-    }
 
     let isExecutableTransaction = false;
     const executables = this.executables;
-    let executableOriginTransactions = executables.get(origin);
+    let executableOrigin = executables.get(origin);
+    let executableOriginTransactions: utils.Heap<Transaction>;
+    if (executableOrigin) {
+      highestNonce = executableOrigin.nonce;
+      executableOriginTransactions = executableOrigin.transactions;
+    }
 
     let length: number;
     if (executableOriginTransactions && (length = executableOriginTransactions.length)) {
@@ -177,20 +164,12 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // if it is executable add it to the executables queue
     if (isExecutableTransaction) {
       if (executableOriginTransactions) {
+        executableOrigin.nonce = highestNonce;
         executableOriginTransactions.push(transaction);
       } else {
         // if we don't yet have a executables queue for this origin make one now
         executableOriginTransactions = utils.Heap.from(transaction, byNonce);
-        executables.set(origin, executableOriginTransactions);
-      }
-      if (queuedOrigin) {
-        queuedOrigin.nonce = highestNonce;
-      } else {
-        origins.set(origin, {
-          nonce: highestNonce, 
-          // note: queuedOriginTransactions might be undefined here, and that's okay.
-          transactions: queuedOriginTransactions
-        });
+        executables.set(origin, {nonce: highestNonce, transactions: executableOriginTransactions});
       }
 
       this.#drainQueued(origin, queuedOriginTransactions, executableOriginTransactions, transactionNonce);
@@ -200,10 +179,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         queuedOriginTransactions.push(transaction);
       } else {
         queuedOriginTransactions = utils.Heap.from(transaction, byNonce);
-        origins.set(origin, {
-          nonce: highestNonce, 
-          transactions: queuedOriginTransactions
-        });
+        origins.set(origin, queuedOriginTransactions);
       }
       return false;
     }
@@ -222,8 +198,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       }
     }
 
-    for (let [_, origin] of this.#origins) {
-      const transactions = origin.transactions;
+    for (let [_, transactions] of this.#origins) {
       if (transactions === undefined) continue;
       for (let tx of transactions.array) {
         if (tx.hash().equals(transactionHash)) {
@@ -275,7 +250,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
   validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
-    if (Quantity.from(transaction.gasLimit) > this.#options.gasLimit) {
+    if (Quantity.from(transaction.gasLimit) > this.#options.blockGasLimit) {
       return new CodedError(GAS_LIMIT, ErrorCodes.INVALID_INPUT);
     }
 

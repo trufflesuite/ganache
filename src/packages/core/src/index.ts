@@ -1,6 +1,5 @@
 import Connector from "./connector";
-import {ProviderOptions} from "@ganache/options";
-import ServerOptions from "./options/server-options";
+import {ProviderOptions, ServerOptions} from "./options";
 import Server from "./server";
 
 export default {

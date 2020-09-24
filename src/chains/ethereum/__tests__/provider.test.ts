@@ -7,22 +7,22 @@ import EthereumApi from "../src/api";
 describe("provider", () => {
   describe("options", () => {
     it("generates predictable accounts when given a seed", async () => {
-      const provider = await getProvider({seed: "temet nosce"});
+      const provider = await getProvider({wallet:{seed: "temet nosce"}});
       const accounts = await provider.send("eth_accounts");
       assert.strictEqual(accounts[0], "0x59ef313e6ee26bab6bcb1b5694e59613debd88da");
     });
   });
 
   describe("interface", () => {
-    const network_id = "1234";
+    const networkId = 1234;
     let provider: EthereumProvider;
 
     beforeEach(async () => {
-      provider = await getProvider({network_id});
+      provider = await getProvider({chain:{ networkId }});
     });
 
     it("returns things via EIP-1193", async () => {
-      assert.strictEqual(await provider.send("net_version"), network_id);
+      assert.strictEqual(await provider.send("net_version"), `${networkId}`);
     });
 
     it("returns things via legacy", async () => {
@@ -36,8 +36,8 @@ describe("provider", () => {
         return new Promise((resolve, reject) => {
           provider[method](jsonRpcRequest, (err: Error, {result}): void => {
             if(err) return reject(err);
-            assert.strictEqual(result, network_id);
-            resolve();
+            assert.strictEqual(result, `${networkId}`);
+            resolve(void 0);
           });
         });
       }).map(async prom => {

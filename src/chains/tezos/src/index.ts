@@ -1,7 +1,6 @@
 import Emittery from "emittery";
 import {utils, types} from "@ganache/utils";
 import Provider from "./provider";
-import {ProviderOptions} from "@ganache/options";
 import TezosApi from "./api";
 import { HttpRequest } from "uWebSockets.js";
 
@@ -13,7 +12,7 @@ export class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
   provider: Provider;
   #api: TezosApi;
 
-  constructor(providerOptions: ProviderOptions, requestCoordinator: utils.Executor) {
+  constructor(providerOptions: any, requestCoordinator: utils.Executor) {
     super();
 
     const api = (this.#api = new TezosApi());
@@ -37,7 +36,7 @@ export class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
   };
 
   close() {
-    return {} as any;
+    return {};
   }
 }
 

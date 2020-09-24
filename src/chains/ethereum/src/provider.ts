@@ -1,8 +1,7 @@
-import {ProviderOptions} from "@ganache/options";
 import Emittery from "emittery";
 import EthereumApi from "./api";
 import {JsonRpcTypes} from "@ganache/utils";
-import EthereumOptions from "./options";
+import { EthereumProviderOptions, EthereumInternalOptions, EthereumOptionsConfig } from "./options";
 import cloneDeep from "lodash.clonedeep";
 import {PromiEvent, types, utils} from "@ganache/utils";
 declare type RequestMethods = types.KnownKeys<EthereumApi>;
@@ -23,16 +22,17 @@ const hasOwn = utils.hasOwn;
 export default class EthereumProvider extends Emittery.Typed<{message: any}, "connect" | "disconnect">
   implements types.Provider<EthereumApi>
   {
-  #options: ProviderOptions;
+  #options: EthereumInternalOptions;
   #api: EthereumApi;
   #executor: utils.Executor;
 
-  constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
+  constructor(options: EthereumProviderOptions = {}, executor: utils.Executor) {
     super();
-    const _providerOptions = (this.#options = ProviderOptions.getDefault(providerOptions));
+    const providerOptions = this.#options = EthereumOptionsConfig.normalize(options);
+
     this.#executor = executor;
 
-    this.#api = new EthereumApi(_providerOptions as EthereumOptions, this);
+    this.#api = new EthereumApi(providerOptions, this);
   }
 
   /**
@@ -155,7 +155,7 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
       });
     }
     const value = promise.catch((error: Error) => {
-      if (this.#options.vmErrorsOnRPCResponse) {
+      if (this.#options.chain.vmErrorsOnRPCResponse) {
         if (hasOwn(error, "result")) {
           // stringify the result here
           // TODO: not sure why the stringification is even needed.
@@ -170,8 +170,8 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
 
   #logRequest = (method: string, params: Parameters<EthereumApi[typeof method]>) => {
     const options = this.#options;
-    if (options.verbose) {
-      options.logger.log(
+    if (options.logging.verbose) {
+      options.logging.logger.log(
         `   >  ${method}: ${params == null ? params : JSON.stringify(params, null, 2).split("\n").join("\n   > ") }`
       );
     }
@@ -187,7 +187,7 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
     return Promise.all(payloads.map(this.#legacySendPayload))
     .then(results => {
       let mainError: Error = null;
-      const responses = [];
+      const responses: (JsonRpcTypes.Response | JsonRpcTypes.Error)[] = [];
       results.forEach(({error, result}, i) => {
         responses.push(result);
         if (error) {
@@ -207,7 +207,7 @@ export default class EthereumProvider extends Emittery.Typed<{message: any}, "co
     try {
       const result = await this.request({ method, params });
       return {
-        error: null,
+        error: null as JsonRpcTypes.Error,
         result: JsonRpcTypes.Response(payload.id, JSON.parse(JSON.stringify(result)))
       };
     } catch (error) {

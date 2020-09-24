@@ -1,12 +1,9 @@
-import ServerOptions, {getDefault as getDefaultServerOptions} from "./options/server-options";
+import {InternalOptions, ServerOptions, serverOptionsConfig} from "./options";
 
 import uWS, {TemplatedApp, us_listen_socket} from "uWebSockets.js";
 import Connector from "./connector";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
-import {Flavors} from "@ganache/flavors";
-import {TezosProvider} from "@ganache/tezos";
-import {EthereumProvider} from "@ganache/ethereum";
 
 type Callback = (err: Error | null) => void
 
@@ -40,11 +37,11 @@ export enum Status {
   closing = 12
 }
 
-export default class Server<T extends ServerOptions = ServerOptions> {
+export default class Server {
   #app: TemplatedApp;
   #httpServer: HttpServer;
   #listenSocket?: us_listen_socket;
-  #options: ServerOptions;
+  #options: InternalOptions;
   #connector: Flavors;
   #status = Status.closed;
   #websocketServer: WebsocketServer | null = null;
@@ -57,14 +54,14 @@ export default class Server<T extends ServerOptions = ServerOptions> {
     return this.#status;
   }
 
-  constructor(serverOptions?: T) {
-    const opts = (this.#options = getDefaultServerOptions(serverOptions));
-    const connector = (this.#connector = Connector.initialize(opts));
+  constructor(serverOptions: ServerOptions = {flavor: "ethereum"}) {
+    const opts = (this.#options = serverOptionsConfig.normalize(serverOptions));
+    const connector = (this.#connector = Connector.initialize(serverOptions));
 
     const _app = (this.#app = uWS.App());
 
-    if (this.#options.ws) {
-      this.#websocketServer = new WebsocketServer(_app, connector as WebSocketCapableFlavor, opts);
+    if (this.#options.server.ws) {
+      this.#websocketServer = new WebsocketServer(_app, connector as WebSocketCapableFlavor, opts.server);
     }
     this.#httpServer = new HttpServer(_app, connector);
   }
