@@ -153,8 +153,8 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       transaction.sign(secretKey.toBuffer());
     }
 
-    // if it is executable add it to the executables queue
     if (isExecutableTransaction) {
+      // if it is executable add it to the executables queue
       if (executableOriginTransactions) {
         executableOriginTransactions.push(transaction);
       } else {
@@ -166,6 +166,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       this.#drainQueued(origin, queuedOriginTransactions, executableOriginTransactions, transactionNonce);
       return true;
     } else {
+      // otherwise, put it in the future queue
       if (queuedOriginTransactions) {
         queuedOriginTransactions.push(transaction);
       } else {
