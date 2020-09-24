@@ -344,7 +344,7 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: estimate });
 
-            switch (provider.getOptions().hardfork) {
+            switch (provider.getOptions().chain.hardfork) {
               case "byzantium":
               case "petersburg":
                 assert.strictEqual(receipt.gasUsed, estimate - RSCLEAR_REFUND);
@@ -360,7 +360,7 @@ describe("Gas", function() {
                 assert.strictEqual(receipt.gasUsed, estimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO);
                 break;
               default:
-                throw new Error("Invalid hardfork option: " + provider.getOptions().hardfork);
+                throw new Error("Invalid hardfork option: " + provider.getOptions().chain.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -385,7 +385,7 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: gasEstimate });
 
-            switch (provider.getOptions().hardfork) {
+            switch (provider.getOptions().chain.hardfork) {
               case "byzantium":
               case "petersburg":
                 // since we are resetting to a non-zero value, there is no gas added to the refund counter here
@@ -403,7 +403,7 @@ describe("Gas", function() {
                 assert.strictEqual(receipt.gasUsed, gasEstimate - rsclearRefundForResettingDirtySlotToNonZeroValue);
                 break;
               default:
-                throw new Error("Invalid hardfork option: " + provider.getOptions().hardfork);
+                throw new Error("Invalid hardfork option: " + provider.getOptions().chain.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -427,7 +427,7 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: gasEstimate });
 
-            switch (provider.getOptions().hardfork) {
+            switch (provider.getOptions().chain.hardfork) {
               case "byzantium":
               case "petersburg":
               case "constantinople":
@@ -438,7 +438,7 @@ describe("Gas", function() {
                 assert(receipt.gasUsed <= gasEstimate - RSCLEAR_REFUND + 2300);
                 break;
               default:
-                throw new Error("Invalid hardfork option: " + provider.getOptions().hardfork);
+                throw new Error("Invalid hardfork option: " + provider.getOptions().chain.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -462,7 +462,7 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: gasEstimate });
 
-            switch (provider.getOptions().hardfork) {
+            switch (provider.getOptions().chain.hardfork) {
               case "byzantium":
               case "petersburg":
               case "constantinople":
@@ -473,7 +473,7 @@ describe("Gas", function() {
                 assert(receipt.gasUsed <= gasEstimate - RSCLEAR_REFUND + 2300);
                 break;
               default:
-                throw new Error("Invalid hardfork option: " + provider.getOptions().hardfork);
+                throw new Error("Invalid hardfork option: " + provider.getOptions().chain.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -497,7 +497,7 @@ describe("Gas", function() {
 
             const receipt = await method.send({ from, gas: gasEstimate });
 
-            switch (provider.getOptions().hardfork) {
+            switch (provider.getOptions().chain.hardfork) {
               case "byzantium":
               case "petersburg":
                 assert.strictEqual(receipt.gasUsed, gasEstimate - RSCLEAR_REFUND);
@@ -514,7 +514,7 @@ describe("Gas", function() {
                 assert.strictEqual(receipt.gasUsed, gasEstimate);
                 break;
               default:
-                throw new Error("Invalid hardfork option: " + provider.getOptions().hardfork);
+                throw new Error("Invalid hardfork option: " + provider.getOptions().chain.hardfork);
             }
             assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
           }
@@ -553,7 +553,7 @@ describe("Gas", function() {
 
           const receipt = await method.send({ from, gas: gasEstimate });
 
-          switch (provider.getOptions().hardfork) {
+          switch (provider.getOptions().chain.hardfork) {
             case "byzantium":
             case "petersburg":
               assert.strictEqual(receipt.gasUsed, gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND);
@@ -574,7 +574,7 @@ describe("Gas", function() {
               );
               break;
             default:
-              throw new Error("Invalid hardfork option: " + provider.getOptions().hardfork);
+              throw new Error("Invalid hardfork option: " + provider.getOptions().chain.hardfork);
           }
           assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
         });
@@ -656,7 +656,7 @@ describe("Gas", function() {
           const { gasUsed } = rec;
 
           let transactionCostMinusRefund = gasEstimate - RSELFDESTRUCT_REFUND - RSCLEAR_REFUND;
-          switch (provider.getOptions().hardfork) {
+          switch (provider.getOptions().chain.hardfork) {
             case "byzantium":
             case "petersburg":
               assert.strictEqual(gasUsed, transactionCostMinusRefund);
@@ -676,7 +676,7 @@ describe("Gas", function() {
               assert.strictEqual(gasUsed, transactionCostMinusRefund);
               break;
             default:
-              throw new Error("Invalid hardfork option: " + provider.getOptions().hardfork);
+              throw new Error("Invalid hardfork option: " + provider.getOptions().chain.hardfork);
           }
 
           const receipt = await Promise.all(hashes.map((hash) => web3.eth.getTransactionReceipt(hash)));

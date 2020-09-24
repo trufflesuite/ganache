@@ -329,6 +329,7 @@ const tests = function(web3) {
       signingWeb3 = new Web3();
       signingWeb3.setProvider(
         Ganache.provider({
+          gasLimit: 6721975,
           legacyInstamine: true,
           vmErrorsOnRPCResponse: true,
           accounts: [acc]
@@ -397,6 +398,7 @@ const tests = function(web3) {
       signingWeb3 = new Web3();
       signingWeb3.setProvider(
         Ganache.provider({
+          gasLimit: 6721975,
           legacyInstamine: true,
           vmErrorsOnRPCResponse: true,
           accounts: [acc]
@@ -924,7 +926,7 @@ const tests = function(web3) {
 
       const gasEstimate = await web3.eth.estimateGas(callData);
       // set a low gas limit to force a runtime error
-      callData.gas = gasEstimate - 1;
+      callData.gas = gasEstimate - 22000;
 
       try {
         await web3.eth.call(callData);
@@ -1365,15 +1367,15 @@ const tests = function(web3) {
             // Ganache provider responds with an `err`, so check that, too.
             assert.strictEqual(
               err.message,
-              `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x"
-.`
+              "cannot convert string value \"\" into type `Quantity`; " +
+                "strings must be hex-encoded and prefixed with \"0x\"."
             );
           }
           if (result.error) {
             assert.strictEqual(
               result.error.message,
-              `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x"
-.`
+              "cannot convert string value \"\" into type `Quantity`; " +
+                "strings must be hex-encoded and prefixed with \"0x\"."
             );
           } else {
             assert.fail("eth_getTransactionCount did not return an error message for invalid data");
@@ -1707,6 +1709,7 @@ describe("Provider:", function() {
   const web3 = new Web3();
   web3.setProvider(
     Ganache.provider({
+      gasLimit: 6721975,
       legacyInstamine: true,
       vmErrorsOnRPCResponse: true,
       logger: logger,
@@ -1732,6 +1735,7 @@ describe("HTTP Server:", function() {
 
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
+      gasLimit: 6721975,
       legacyInstamine: true,
       vmErrorsOnRPCResponse: true,
       logger: logger,
@@ -1759,6 +1763,7 @@ describe("WebSockets Server:", function() {
 
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
+      gasLimit: 6721975,
       legacyInstamine: true,
       vmErrorsOnRPCResponse: true,
       logger: logger,

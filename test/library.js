@@ -18,7 +18,7 @@ describe("Libraries", function() {
   let contractInstance;
   let contractBytecode;
 
-  const provider = Ganache.provider({ vmErrorsOnRPCResponse: true, legacyInstamine: true });
+  const provider = Ganache.provider({ gasLimit: 6721975, vmErrorsOnRPCResponse: true, legacyInstamine: true });
   const web3 = new Web3(provider);
   let accounts = [];
 

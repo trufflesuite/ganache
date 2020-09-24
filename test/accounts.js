@@ -210,7 +210,7 @@ describe("Accounts", () => {
     const getTransactionByHash = (payload) => send("eth_getTransactionByHash", payload);
 
     beforeEach("set up provider", async function() {
-      provider = Ganache.provider({ legacyInstamine: true, vmErrorsOnRPCResponse: true });
+      provider = Ganache.provider({ gasLimit: 6721975, legacyInstamine: true, vmErrorsOnRPCResponse: true });
       send = genSend(provider);
       const { result: _accounts } = await send("eth_accounts");
       accounts = _accounts;
@@ -242,12 +242,12 @@ describe("Accounts", () => {
       }
       // create some transactions that will increment the nonce
       const tx = { value: 1, from, to: from };
-      // send of our transactions and get their tx info once ready
+      // send all our transactions and get their tx info once ready
       const pendingHashes = Array(3)
         .fill(tx)
         .map(sendTransaction);
       if (intervalMining) {
-        await pendingHashes;
+        await Promise.all(pendingHashes);
         await send("evm_mine");
       }
       const pendingTransactions = pendingHashes.map((tx) => tx.then(({ result }) => getTransactionByHash(result)));

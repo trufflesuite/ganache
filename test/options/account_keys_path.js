@@ -17,7 +17,12 @@ describe("options:account_keys_path", function() {
     cleanUp();
   });
   it("should create the file", async function() {
-    Ganache.provider({ vmErrorsOnRPCResponse: true, legacyInstamine: true, account_keys_path: fileName });
+    Ganache.provider({
+      gasLimit: 6721975,
+      vmErrorsOnRPCResponse: true,
+      legacyInstamine: true,
+      account_keys_path: fileName
+    });
     assert.strictEqual(fs.existsSync(fileName), true, "The account_keys file doesn't exist.");
   });
   after("clean up", () => {

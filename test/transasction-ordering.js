@@ -58,7 +58,7 @@ describe("Transaction Ordering", function() {
     txData.from = accounts[1];
     await sendTransaction(txData);
 
-    send("miner_start", 1);
+    await send("miner_start", 1);
 
     const block = await web3.eth.getBlock("latest", true);
     assert.strictEqual(block.transactions.length, 2, "Latest block should have two transactions");

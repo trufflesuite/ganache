@@ -191,7 +191,7 @@ var tests = function(web3) {
 
 describe("Provider:", function() {
   var web3 = new Web3();
-  web3.setProvider(Ganache.provider({ legacyInstamine: true, vmErrorsOnRPCResponse: true }));
+  web3.setProvider(Ganache.provider({ gasLimit: 6721975, legacyInstamine: true, vmErrorsOnRPCResponse: true }));
   tests(web3);
 });
 

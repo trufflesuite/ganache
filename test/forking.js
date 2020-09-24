@@ -148,6 +148,7 @@ describe.skip("Forking", function() {
   before("Set main web3 provider, forking from forked chain at this point", async() => {
     mainWeb3.setProvider(
       Ganache.provider({
+        gasLimit: 6721975,
         fork: forkedTargetUrl.replace("ws", "http"),
         vmErrorsOnRPCResponse: true,
         logger,
@@ -203,6 +204,7 @@ describe.skip("Forking", function() {
         }
 
         const provider = Ganache.provider({
+          gasLimit: 6721975,
           vmErrorsOnRPCResponse: true,
           legacyInstamine: true,
           fork: forkedTargetUrl.replace("ws", "http"),
@@ -256,6 +258,7 @@ describe.skip("Forking", function() {
 
   it("should match nonce of accounts on original chain", async() => {
     const provider = Ganache.provider({
+      gasLimit: 6721975,
       vmErrorsOnRPCResponse: true,
       legacyInstamine: true,
       fork: forkedTargetUrl,
@@ -670,6 +673,7 @@ describe.skip("Forking", function() {
 
     before("create provider", function() {
       const provider = Ganache.provider({
+        gasLimit: 6721975,
         legacyInstamine: true,
         vmErrorsOnRPCResponse: true,
         fork: forkedTargetUrl.replace("ws", "http"),

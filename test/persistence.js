@@ -170,6 +170,7 @@ var mnemonic = "debris electric learn dove warrior grow pistol carry either curv
 
 const providerInitGen = function(opts = {}) {
   return function(cb) {
+    opts.gasLimit = opts.gasLimit || 6721975;
     opts.legacyInstamine = true;
     const provider = Ganache.provider(opts);
     cb(provider);

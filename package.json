@@ -4,7 +4,7 @@
   "main": "./index.js",
   "types": "./typings/index.d.ts",
   "engines": {
-    "node": ">=10.0.17"
+    "node": ">=10.13.0"
   },
   "directories": {
     "lib": "./lib"
