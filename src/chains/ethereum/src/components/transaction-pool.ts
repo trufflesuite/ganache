@@ -26,10 +26,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     this.#blockchain = blockchain;
     this.#options = options;
   }
-  public executables: Map<string, {
-    nonce: bigint,
-    transactions: utils.Heap<Transaction>
-  }> = new Map();
+  public executables: Map<string, utils.Heap<Transaction>> = new Map();
   #origins: Map<string, utils.Heap<Transaction>> = new Map();
   #accountPromises = new Map<string, PromiseLike<Account>>();
 
@@ -72,12 +69,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     let isExecutableTransaction = false;
     const executables = this.executables;
-    let executableOrigin = executables.get(origin);
-    let executableOriginTransactions: utils.Heap<Transaction>;
-    if (executableOrigin) {
-      highestNonce = executableOrigin.nonce;
-      executableOriginTransactions = executableOrigin.transactions;
-    }
+    let executableOriginTransactions = executables.get(origin);
 
     let length: number;
     if (executableOriginTransactions && (length = executableOriginTransactions.length)) {
@@ -164,12 +156,11 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // if it is executable add it to the executables queue
     if (isExecutableTransaction) {
       if (executableOriginTransactions) {
-        executableOrigin.nonce = highestNonce;
         executableOriginTransactions.push(transaction);
       } else {
         // if we don't yet have a executables queue for this origin make one now
         executableOriginTransactions = utils.Heap.from(transaction, byNonce);
-        executables.set(origin, {nonce: highestNonce, transactions: executableOriginTransactions});
+        executables.set(origin, executableOriginTransactions);
       }
 
       this.#drainQueued(origin, queuedOriginTransactions, executableOriginTransactions, transactionNonce);
