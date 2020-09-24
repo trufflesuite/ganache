@@ -147,8 +147,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
       await this.#commitAccounts(initialAccounts);
 
-      const gasLimit = options.miner.blockGasLimit = options.miner.blockGasLimit;
-
       { // create first block
         let firstBlockTime: number;
         if (options.chain.time != null) {
@@ -161,7 +159,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
         // if we don't already have a latest block, create a genesis block!
         if (!latest) {
-          this.#processingBlock = this.#initializeGenesisBlock(firstBlockTime, gasLimit);
+          this.#processingBlock = this.#initializeGenesisBlock(firstBlockTime, options.miner.blockGasLimit);
           blocks.earliest = blocks.latest = await this.#processingBlock.then(({block}) => block);
         }
       }
