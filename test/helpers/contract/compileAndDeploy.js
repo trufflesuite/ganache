@@ -33,7 +33,7 @@ function compile(mainContractName, contractFileNames = [], contractSubdirectory,
 
   const result = JSON.parse(solc.compile(JSON.stringify(input)));
 
-  if (result.errors) {
+  if (result.errors && result.errors.some((error) => error.severity === "error")) {
     const errorMessages = result.errors.map((error) => error.formattedMessage);
     throw new Error(`Could not compile test contracts:\n${errorMessages.join("")}`);
   }
