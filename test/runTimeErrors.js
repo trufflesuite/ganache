@@ -2,7 +2,10 @@ const assert = require("assert");
 const to = require("../lib/utils/to");
 const bootstrap = require("./helpers/contract/bootstrap");
 
-const providerOptions = [{ vmErrorsOnRPCResponse: true }, { vmErrorsOnRPCResponse: false }];
+const providerOptions = [
+  { miner: { blockGasLimit: 6721975 }, chain: { vmErrorsOnRPCResponse: true } },
+  { miner: { blockGasLimit: 6721975 }, chain: { vmErrorsOnRPCResponse: false } }
+];
 
 // Run all test with options
 providerOptions.forEach((ganacheProviderOptions) => {
@@ -62,7 +65,7 @@ function tests(ganacheProviderOptions) {
         data: bytecode
       });
 
-      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
@@ -95,7 +98,7 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
@@ -135,7 +138,7 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
@@ -163,7 +166,7 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
@@ -191,7 +194,7 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (ganacheProviderOptions.vmErrorsOnRPCResponse) {
+      if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse) {
         // null & undefined are equivalent for equality tests, but I'm being
         // pedantic here for readability's sake
         assert(response.error !== null);
@@ -218,7 +221,7 @@ function tests(ganacheProviderOptions) {
       }
     });
 
-    if (ganacheProviderOptions.vmErrorsOnRPCResponse === true) {
+    if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse === true) {
       it("should output instruction index on runtime errors", async function() {
         const { accounts, instance, send } = context;
 
@@ -236,7 +239,7 @@ function tests(ganacheProviderOptions) {
         const txHash = response.error.data.result;
 
         assert(response.error);
-        assert.strictEqual(response.error.data.hash, txHash);
+        assert.strictEqual(response.error.data.result, txHash);
         // magic number, will change if compiler changes.
         assert.strictEqual(response.error.data.programCounter, 136);
       });
