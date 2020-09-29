@@ -1,9 +1,9 @@
 version: ~> 1.0
 language: node_js
 node_js:
-  - "8"
   - "10"
   - "12"
+  - "14.11.0"
 os:
   - linux
   - osx
@@ -33,6 +33,3 @@ before_install:
 script:
   - npm run test
   - npm run test-smoke
-
-after_success:
-  npm run coverage
