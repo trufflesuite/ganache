@@ -1,5 +1,6 @@
 const assert = require("assert");
 const bootstrap = require("../../helpers/contract/bootstrap");
+const generateSend = require("../../helpers/utils/rpc");
 const initializeTestProvider = require("../../helpers/web3/initializeTestProvider");
 
 /**
@@ -10,9 +11,10 @@ const initializeTestProvider = require("../../helpers/web3/initializeTestProvide
  * network) and the fork chaing being "the fork".
  */
 
-describe("Forking using a Provider", () => {
+describe("Forking Debugging", () => {
   let forkedContext;
   let mainContext;
+  let mainAccounts;
   const logger = {
     log: function(msg) {}
   };
@@ -21,8 +23,8 @@ describe("Forking using a Provider", () => {
     this.timeout(5000);
 
     const contractRef = {
-      contractFiles: ["Example"],
-      contractSubdirectory: "examples"
+      contractFiles: ["Debug"],
+      contractSubdirectory: "forking"
     };
 
     const ganacheProviderOptions = {
@@ -40,21 +42,32 @@ describe("Forking using a Provider", () => {
       logger,
       seed: "forked provider"
     });
+    mainAccounts = await mainContext.web3.eth.getAccounts();
   });
 
-  // NOTE: This is the only real test in this file. Since we have another forking test file filled
-  // with good tests, this one simply ensures the forked feature still works by testing that we can
-  // grab data from the forked chain when a provider instance is passed (instead of a URL). If this
-  // one passes, it should follow that the rest of the forking features should work as normal.
-  it("gets code correctly via the main chain (i.e., internally requests it from forked chain)", async() => {
-    const { instance } = forkedContext;
+  it("successfully manages storage slot deletion", async() => {
+    const { instance: forkedInstance, abi } = forkedContext;
     const { web3: mainWeb3 } = mainContext;
+    let value;
 
-    const code = await mainWeb3.eth.getCode(instance._address);
+    const instance = new mainWeb3.eth.Contract(abi, forkedInstance._address);
 
-    // Ensure that a contract is at the address
-    assert.notStrictEqual(code, null);
-    assert.notStrictEqual(code, "0x");
-    assert.notStrictEqual(code, "0x0");
+    value = await instance.methods.value().call();
+    assert.strictEqual(value, "1");
+
+    const tx = await instance.methods.test().send({
+      from: mainAccounts[0]
+    });
+    value = await instance.methods.value().call();
+    assert.strictEqual(value, "2");
+
+    const send = generateSend(mainWeb3.currentProvider);
+
+    const result = await send("debug_traceTransaction", tx.transactionHash, {});
+
+    const txStructLogs = result.result.structLogs;
+    const txMemory = txStructLogs[txStructLogs.length - 1].memory;
+    const txReturnValue = parseInt(txMemory[txMemory.length - 1], 16);
+    assert.strictEqual(txReturnValue, 2);
   });
 });
