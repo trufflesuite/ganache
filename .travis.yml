@@ -33,6 +33,3 @@ before_install:
 script:
   - npm run test
   - npm run test-smoke
-
-after_success:
-  npm run coverage
