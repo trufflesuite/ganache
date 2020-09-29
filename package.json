@@ -1,6 +1,5 @@
 {
-  "name": "@eth-optimism/ganache-core",
-  "description": "ganache fork for ethereum development",
+  "name": "ganache-core",
   "version": "2.12.1",
   "main": "./index.js",
   "types": "./typings/index.d.ts",
