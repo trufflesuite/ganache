@@ -45,7 +45,7 @@
     "levelup": "3.1.1",
     "lodash": "4.17.14",
     "lru-cache": "5.1.1",
-    "merkle-patricia-tree": "2.3.2",
+    "merkle-patricia-tree": "3.0.0",
     "seedrandom": "3.0.1",
     "source-map-support": "0.5.12",
     "tmp": "0.1.0",
