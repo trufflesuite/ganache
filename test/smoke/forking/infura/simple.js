@@ -152,4 +152,4 @@ describe("Simple Infura", function() {
 
     await new Promise((resolve) => provider.close(resolve));
   });
-});
+}).timeout(5000);
