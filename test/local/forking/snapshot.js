@@ -122,5 +122,5 @@ describe("Forking Snapshots", () => {
 
     value = await instance.methods.value().call();
     assert.strictEqual(value, "2");
-  });
+  }).timeout(5000);
 });

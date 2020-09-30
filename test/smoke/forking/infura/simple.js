@@ -10,7 +10,7 @@ const logger = {
   }
 };
 
-describe("Simple Infura", function() {
+describe("Simple Infura", () => {
   let INFURA_KEY;
 
   before(function() {
@@ -41,7 +41,7 @@ describe("Simple Infura", function() {
     assert.strictEqual(block.transactions.length, numTransactions);
 
     await new Promise((resolve) => provider.close(resolve));
-  });
+  }).timeout(5000);
 
   it("forks mainnet wss", async function() {
     // https://etherscan.io/block/10661638
@@ -63,7 +63,7 @@ describe("Simple Infura", function() {
     assert.strictEqual(block.transactions.length, numTransactions);
 
     await new Promise((resolve) => provider.close(resolve));
-  });
+  }).timeout(5000);
 
   it("forks goerli https", async function() {
     // https://goerli.etherscan.io/block/3226587
@@ -85,7 +85,7 @@ describe("Simple Infura", function() {
     assert.strictEqual(block.transactions.length, numTransactions);
 
     await new Promise((resolve) => provider.close(resolve));
-  });
+  }).timeout(5000);
 
   it("forks ropsten https", async function() {
     // https://ropsten.etherscan.io/block/8500030
@@ -107,7 +107,7 @@ describe("Simple Infura", function() {
     assert.strictEqual(block.transactions.length, numTransactions);
 
     await new Promise((resolve) => provider.close(resolve));
-  });
+  }).timeout(5000);
 
   it("forks rinkeby https", async function() {
     // https://rinkeby.etherscan.io/block/7019987
@@ -129,7 +129,7 @@ describe("Simple Infura", function() {
     assert.strictEqual(block.transactions.length, numTransactions);
 
     await new Promise((resolve) => provider.close(resolve));
-  });
+  }).timeout(5000);
 
   it("forks kovan https", async function() {
     // https://kovan.etherscan.io/block/20255583
@@ -151,5 +151,5 @@ describe("Simple Infura", function() {
     assert.strictEqual(block.transactions.length, numTransactions);
 
     await new Promise((resolve) => provider.close(resolve));
-  });
+  }).timeout(5000);
 });
