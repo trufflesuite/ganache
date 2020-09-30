@@ -10,7 +10,7 @@ const logger = {
   }
 };
 
-describe("Simple Infura", function() {
+describe("Simple Infura", () => {
   let INFURA_KEY;
 
   before(function() {
