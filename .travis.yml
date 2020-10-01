@@ -3,7 +3,7 @@ language: node_js
 node_js:
   - "10"
   - "12"
-  - "14.11.0"
+  - "14.13.0"
 os:
   - linux
   - osx
