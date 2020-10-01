@@ -31,5 +31,7 @@ before_install:
     fi
 
 script:
+# Apply workaround for git:// packages
+  - git config --global url.https://github.com/.insteadOf ssh://git@github.com/
   - npm run test
   - npm run test-smoke
