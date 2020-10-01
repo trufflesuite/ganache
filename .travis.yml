@@ -23,6 +23,8 @@ addons:
       - g++-5
 
 before_install:
+  # Apply workaround for git:// packages
+  - git config --global url."https://github.com/".insteadOf ssh://git@github.com/
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
       export CC="gcc-5";
       export CXX="g++-5";
@@ -31,7 +33,5 @@ before_install:
     fi
 
 script:
-# Apply workaround for git:// packages
-  - git config --global url.https://github.com/.insteadOf ssh://git@github.com/
   - npm run test
   - npm run test-smoke
