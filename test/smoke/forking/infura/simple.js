@@ -21,7 +21,7 @@ describe("Simple Infura", () => {
     }
   });
 
-  it("forks mainnet https", async function() {
+  it("forks mainnet https", async() => {
     // https://etherscan.io/block/10661638
     const blockHeight = 10661638;
     const numTransactions = 204;
@@ -43,7 +43,7 @@ describe("Simple Infura", () => {
     await new Promise((resolve) => provider.close(resolve));
   }).timeout(5000);
 
-  it("forks mainnet wss", async function() {
+  it("forks mainnet wss", async() => {
     // https://etherscan.io/block/10661638
     const blockHeight = 10661638;
     const numTransactions = 204;
@@ -65,7 +65,7 @@ describe("Simple Infura", () => {
     await new Promise((resolve) => provider.close(resolve));
   }).timeout(5000);
 
-  it("forks goerli https", async function() {
+  it("forks goerli https", async() => {
     // https://goerli.etherscan.io/block/3226587
     const blockHeight = 3226587;
     const numTransactions = 1;
@@ -87,7 +87,7 @@ describe("Simple Infura", () => {
     await new Promise((resolve) => provider.close(resolve));
   }).timeout(5000);
 
-  it("forks ropsten https", async function() {
+  it("forks ropsten https", async() => {
     // https://ropsten.etherscan.io/block/8500030
     const blockHeight = 8500030;
     const numTransactions = 53;
@@ -109,7 +109,7 @@ describe("Simple Infura", () => {
     await new Promise((resolve) => provider.close(resolve));
   }).timeout(5000);
 
-  it("forks rinkeby https", async function() {
+  it("forks rinkeby https", async() => {
     // https://rinkeby.etherscan.io/block/7019987
     const blockHeight = 7019987;
     const numTransactions = 11;
@@ -131,7 +131,7 @@ describe("Simple Infura", () => {
     await new Promise((resolve) => provider.close(resolve));
   }).timeout(5000);
 
-  it("forks kovan https", async function() {
+  it("forks kovan https", async() => {
     // https://kovan.etherscan.io/block/20255583
     const blockHeight = 20255583;
     const numTransactions = 3;
