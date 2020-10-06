@@ -50,5 +50,5 @@ describe("Forking Deletion", () => {
 
     assert.ok(await instance.methods.test().call());
     assert.ok(await instance.methods.test().call());
-  });
+  }).timeout(5000);
 });
