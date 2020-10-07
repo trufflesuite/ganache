@@ -7,7 +7,9 @@
     "": {
       "name": "ganache-core",
       "version": "2.13.0-beta.0",
-      "hasInstallScript": true,
+      "bundleDependencies": [
+        "keccak"
+      ],
       "license": "MIT",
       "dependencies": {
         "abstract-leveldown": "3.0.0",
@@ -27,6 +29,7 @@
         "ethereumjs-vm": "4.2.0",
         "ethereumjs-wallet": "0.6.5",
         "heap": "0.2.6",
+        "keccak": "3.0.1",
         "level-sublevel": "6.6.4",
         "levelup": "3.1.1",
         "lodash": "4.17.14",
@@ -8791,6 +8794,7 @@
       "resolved": "https://registry.npmjs.org/keccak/-/keccak-3.0.1.tgz",
       "integrity": "sha512-epq90L9jlFWCW7+pQa6JOnKn2Xgl2mtI664seYR6MHskvI9agt7AnDqmAlp9TqU4/caMYbA08Hi5DMZAl5zdkA==",
       "hasInstallScript": true,
+      "inBundle": true,
       "dependencies": {
         "node-addon-api": "^2.0.0",
         "node-gyp-build": "^4.2.0"
@@ -10353,7 +10357,8 @@
     "node_modules/node-addon-api": {
       "version": "2.0.2",
       "resolved": "https://registry.npmjs.org/node-addon-api/-/node-addon-api-2.0.2.tgz",
-      "integrity": "sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA=="
+      "integrity": "sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA==",
+      "inBundle": true
     },
     "node_modules/node-environment-flags": {
       "version": "1.0.6",
@@ -10386,6 +10391,7 @@
       "version": "4.2.3",
       "resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.2.3.tgz",
       "integrity": "sha512-MN6ZpzmfNCRM+3t57PTJHgHyw/h4OWnZ6mR8P5j/uZtqQr46RRuDE/P+g3n0YR/AiYXeWixZZzaip77gdICfRg==",
+      "inBundle": true,
       "bin": {
         "node-gyp-build": "bin.js",
         "node-gyp-build-optional": "optional.js",

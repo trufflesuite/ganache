@@ -33,5 +33,6 @@ before_install:
     fi
 
 script:
+  - npm run prepare
   - npm run test
   - npm run test-smoke
