@@ -1,12 +1,12 @@
 {
   "name": "ganache-core",
-  "version": "2.13.0-rc.0",
+  "version": "2.13.0",
   "lockfileVersion": 2,
   "requires": true,
   "packages": {
     "": {
       "name": "ganache-core",
-      "version": "2.13.0-rc.0",
+      "version": "2.13.0",
       "bundleDependencies": [
         "keccak"
       ],
