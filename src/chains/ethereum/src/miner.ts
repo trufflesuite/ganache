@@ -9,6 +9,7 @@ import Block from "ethereumjs-block";
 import VM from "ethereumjs-vm";
 import {encode as rlpEncode} from "rlp";
 import { EthereumInternalOptions } from "./options";
+import RuntimeError, { RETURN_TYPES } from "./things/runtime-error";
 
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
@@ -94,7 +95,7 @@ export default class Miner extends Emittery {
 
     // if there are more txs to mine, start mining them without awaiting their
     // result.
-    if (onlyOneBlock === true && maxTransactions !== 0 && this.#pending) {
+    if (onlyOneBlock === false && this.#pending) {
       const nextBlock = this.#createBlock(lastBlock);
       const pending = this.#pending;
       this.#pending = null;
@@ -317,7 +318,8 @@ export default class Miner extends Emittery {
         }
       }
 
-      this.emit("transaction-failure", {txHash: tx.hash(), errorMessage});
+      const e = {execResult: {runState: {programCounter: 0}, exceptionError: {error: errorMessage}, returnValue: Buffer.allocUnsafe(0)}} as any;
+      tx.finalize("rejected", new RuntimeError(tx.hash(), e, RETURN_TYPES.TRANSACTION_HASH));
       return null;
     }
   }

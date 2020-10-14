@@ -65,6 +65,20 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     let transactorPromise = this.#accountPromises.get(origin);
     transactorPromise && await transactorPromise;
 
+    // we should _probably_ cache `highestNonce`, but it's actually a really hard thing to cache as the current highest
+    // nonce might be invalidated (like if the sender doesn't have enough funds), so we'd have to go back to the previous
+    // highest nonce... but what if that previous highest nonce was also invalidated?! we have to go back to the... you
+    // get the picture.
+    // So... we currently do things sub-optimally:
+    // if we currently have txs in `executableOriginTransactions`, we iterate over them to find the highest nonce
+    // and use that. Otherwise, we just fetch it from the database.
+    // Beware! There might still be race conditions here:
+    //  * if the highest tx executes, which causes it to be removed from the `executableOriginTransactions` heap,
+    // then a new tx comes in _before_ the block is persisted to the database, the nonce might be of the second
+    // tx would be too low.
+    //  * rough idea for a fix: transactions have a `finalize` method that is called _after_ the tx is saved. Maybe
+    // when tx's are executed their nonce is moved to a `highNonceByOrigin` map? We'd check this map in addition to the 
+    // `executableOriginTransactions` map, always taking the highest of the two.
     let highestNonce = 0n;
 
     let isExecutableTransaction = false;
@@ -80,7 +94,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       const priceBump = this.#priceBump;
       const newGasPrice = Quantity.from(transaction.gasPrice).toBigInt();
       // Notice: we're iterating over the raw heap array, which isn't
-      // neccessarily sorted
+      // necessarily sorted
       for (let i = 0; i < length; i++) {
         const currentPendingTx = pendingArray[i];
         const thisNonce = Quantity.from(currentPendingTx.nonce).toBigInt();
@@ -92,13 +106,14 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           // oldPrice, throw out the old now.
           if (!currentPendingTx.locked && newGasPrice > thisPricePremium) {
             isExecutableTransaction = true;
-            // do an in-place replace without triggering a resort because we
-            // already known where this tranassction should go in this byNonce
+            // do an in-place replace without triggering a re-sort because we
+            // already know where this tranasaction should go in this "byNonce"
             // heap.
             pendingArray[i] = transaction;
 
-            // TODO: how to surface this to the caller?!?
-            console.error("The *old* transation was rejected");
+            currentPendingTx.finalize("rejected", new CodedError(
+              "Transaction replaced by better transaction", ErrorCodes.TRANSACTION_REJECTED
+            ));
           } else {
             throw new CodedError("transaction rejected; gas price too low to replace existing transaction", ErrorCodes.TRANSACTION_REJECTED);
           }

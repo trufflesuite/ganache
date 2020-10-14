@@ -191,6 +191,8 @@ function initData(tx: Transaction, data: any) {
 
 //#endregion
 
+type TransactionFinalization = {status: "confirmed", error?: Error} | {status: "rejected", error: Error};
+
 interface Transaction extends Omit<EthereumJsTransaction, "toJSON"> {}
 // TODO fix the EthereumJsTransaction as any via some "fake" multi-inheritance:
 class Transaction extends (EthereumJsTransaction as any) {
@@ -205,6 +207,8 @@ class Transaction extends (EthereumJsTransaction as any) {
   readonly from: Buffer;
   #receipt: TransactionReceipt;
   #logs: TransactionLog[];
+  #finalizer: (eventData: TransactionFinalization) => void;
+  #finalized: Promise<TransactionFinalization>;
   /**
    * @param {Object} [data] The data for this Transaction.
    * @param {Number} type The `Transaction.types` bit flag for this transaction
@@ -224,6 +228,13 @@ class Transaction extends (EthereumJsTransaction as any) {
     if (this.isFake()) {
       makeFake(this, data)
     }
+
+
+    let finalizer: (value: TransactionFinalization) => void;
+    this.#finalized = new Promise<TransactionFinalization>(resolve => {
+      finalizer = (...args: any[]) => process.nextTick(resolve, ...args);
+    });
+    this.#finalizer = finalizer;
   }
 
   static get types() {
@@ -240,6 +251,32 @@ class Transaction extends (EthereumJsTransaction as any) {
       Quantity.from(this.gasPrice).toBigInt() * Quantity.from(this.gasLimit).toBigInt() +
       Quantity.from(this.value).toBigInt()
     );
+  }
+
+  /**
+   * Returns a Promise that is resolve with the confirmation status and, if 
+   * appropriate, an error property.
+   * 
+   * Note: it is possible to be confirmed AND
+   * 
+   * @param event "finalized"
+   */
+  once(event: "finalized") {
+    return this.#finalized;
+  };
+  
+  /**
+   * Mark this transaction as finalized, notifying all past and future
+   * "finalized" event subscribers.
+   * 
+   * Note:
+   * 
+   * @param status 
+   * @param error 
+   */
+  finalize(status: "confirmed" | "rejected", error: Error = null) {
+    // resolves the `#finalized` promise
+    this.#finalizer({status, error});
   }
 
   /**

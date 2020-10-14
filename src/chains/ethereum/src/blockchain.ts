@@ -22,7 +22,6 @@ import {Block as EthereumBlock} from "ethereumjs-block";
 import VM from "ethereumjs-vm";
 import Address from "./things/address";
 import BlockLogManager from "./components/blocklog-manager";
-import RejectionError from "./things/rejection-error";
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 import { EthereumInternalOptions } from "./options";
@@ -181,11 +180,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           }
         }
 
-        miner.on("transaction-failure", (failureData: any) => {
-          const txHash = Data.from(failureData.txHash, 32).toString();
-          return this.emit("transaction:" + txHash as any, new RejectionError(txHash.toString(), failureData.errorMessage));
-        });
-
         miner.on("block", async (blockData: any) => {
           await this.#processingBlock;
           const previousBlock = blocks.latest;
@@ -262,18 +256,17 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             return {block, blockLogs};
           });
 
+          // emit the block once everything has been fully saved to the database
           return this.#processingBlock.then(({block, blockLogs}) => {
             blocks.latest = block;
-
             if (instamine && options.miner.legacyInstamine) {
               block.value.transactions.forEach(transaction => {
                 const error = options.chain.vmErrorsOnRPCResponse ? transaction.execException : null
-                this.emit("transaction:" + Data.from(transaction.hash(), 32).toString() as any, error);
+                transaction.finalize("confirmed", error);
               });
 
               // in legacy instamine mode we must delay the broadcast of new blocks
               process.nextTick(() => {
-                // emit the block once everything has been fully saved to the database
                 this.emit("block", block);
                 this.emit("blockLogs", blockLogs);
               });
@@ -520,7 +513,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }
   }
 
-  public async queueTransaction(transaction: any, secretKey?: Data) {
+  public async queueTransaction(transaction: Transaction, secretKey?: Data) {
     // NOTE: this.transactions.push *must* be awaited before returning the
     // `transaction.hash()`, as the transactionPool may change the transaction
     // (and thus its hash!)
@@ -534,11 +527,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       return hash;
     } else {
       if (this.#instamine && this.#options.miner.legacyInstamine) {
-        const hashStr = hash.toString();
-        const error = await this.once("transaction:" + hashStr as any);
-        if (error) {
-          throw error;
-        }
+        const {error} = await transaction.once("finalized");
+        if (error) throw error
       }
       return hash;
     }
