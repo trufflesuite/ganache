@@ -202,7 +202,10 @@ describe("Server:", function(done) {
 
   before("Initialize Ganache server", function(done) {
     server = Ganache.server({ legacyInstamine: true, vmErrorsOnRPCResponse: true });
-    server.listen(port, function() {
+    server.listen(port, function(err) {
+      if (err) {
+        throw err;
+      }
       web3.setProvider(new Web3.providers.HttpProvider("http://localhost:" + port));
       done();
     });
