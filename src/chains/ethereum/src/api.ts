@@ -22,6 +22,7 @@ import EthereumAccount from "ethereumjs-account";
 import { Block } from "./components/block-manager";
 import estimateGas from "./things/gas-estimator";
 import CodedError, { ErrorCodes } from "./things/coded-error";
+import { WhisperPostObject } from "./types/shh";
 //#endregion
 
 //#region Constants
@@ -111,18 +112,23 @@ function assertExceptionalTransactions(transactions: Transaction[]) {
   }
 }
 
-type UnknownFn = (this: unknown, ...args: unknown[]) => unknown;
+type UnknownFn = (this: unknown, ...args: any[]) => unknown;
 type FunctionPropertyDescriptor<T extends UnknownFn> = TypedPropertyDescriptor<T>;
 function assertArgLength(min: number, max: number = min) {
-  return function<T extends UnknownFn>(_target: any, _propertyKey: any, descriptor: FunctionPropertyDescriptor<T>) {
+  return function<O extends Object, T extends UnknownFn>(target: O, propertyKey: keyof O, descriptor: FunctionPropertyDescriptor<T>) {
     const original = descriptor.value;
-    descriptor.value = function(this: any) {
+    descriptor.value = function(this: unknown) {
       const length = arguments.length;
-      if (length < min || length > max) throw new Error("Incorrect number of arguments.");
+      if (length < min || length > max) {
+        throw new Error(`Incorrect number of arguments. '${propertyKey}' requires ${
+          min === max
+            ? `exactly ${min} ${min === 1 ? "argument" : "arguments"}.`
+            : `between ${min} and ${max} arguments.`}`);
+      }
       return Reflect.apply(original, this, arguments);
-    } as any;
-    return descriptor as TypedPropertyDescriptor<T>;
-  } as MethodDecorator;
+    } as T;
+    return descriptor as FunctionPropertyDescriptor<T>;
+  };
 }
 
 export default class EthereumApi implements types.Api {
@@ -202,6 +208,7 @@ export default class EthereumApi implements types.Api {
   * @param {String} value - String to store.
   * @returns returns true if the value was stored, otherwise false.
   */
+ @assertArgLength(3)
   async db_putString(dbName: string, key: string, value: string) {
     return false;
   };
@@ -213,6 +220,7 @@ export default class EthereumApi implements types.Api {
    * @param {String} key - Key name.
    * @returns The previously stored string.
    */
+  @assertArgLength(2)
   async db_getString(dbName: string, key: string) {
     return "";
   };
@@ -225,6 +233,7 @@ export default class EthereumApi implements types.Api {
    * @param {DATA} data - Data to store.
    * @returns true if the value was stored, otherwise false.
    */
+  @assertArgLength(3)
   async db_putHex(dbName: string, key: string, data: string) {
     return false;
   };
@@ -236,16 +245,19 @@ export default class EthereumApi implements types.Api {
    * @param {String} key - Key name.
    * @returns The previously stored data.
    */
+  @assertArgLength(2)
   async db_getHex(dbName: string, key: string) {
     return "0x00";
   };
   //#endregion
 
   //#region bzz
+  @assertArgLength(0)
   async bzz_hive() {
     return [];
   }
 
+  @assertArgLength(0)
   async bzz_info() {
     return [];
   }
@@ -270,6 +282,7 @@ export default class EthereumApi implements types.Api {
     return "0x0";
   }
 
+  @assertArgLength(4)
   async evm_setStorageAt(
     address: string,
     position: bigint | number,
@@ -343,6 +356,7 @@ export default class EthereumApi implements types.Api {
    * @param nonce
    * @returns true if it worked
   */
+ @assertArgLength(2)
   async evm_setAccountNonce(address: string, nonce: string) {
     return new Promise<boolean>((resolve, reject) => {
       const buffer = Address.from(address).toBuffer();
@@ -371,6 +385,7 @@ export default class EthereumApi implements types.Api {
    * @param seconds Must be greater than or equal to `0`
    * @returns Returns the total time adjustment, in seconds.
    */
+  @assertArgLength(1)
   async evm_increaseTime(seconds: number) {
     return Math.floor(this.#blockchain.increaseTime(seconds * 1000) / 1000);
   }
@@ -385,7 +400,8 @@ export default class EthereumApi implements types.Api {
    * @param timestamp JavaScript timestamp (millisecond precision)
    * @returns The amount of *seconds* between the given timestamp and now.
    */
-  async evm_setTime(time?: Date | number) {
+  @assertArgLength(0, 1)
+  async evm_setTime(time: Date | number) {
     return Math.floor(this.#blockchain.setTime(+time) / 1000);
   }
 
@@ -490,6 +506,7 @@ export default class EthereumApi implements types.Api {
    * @param threads 
    * @returns true
    */
+  @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
     if (this.#options.miner.legacyInstamine === true) {
       const transactions = await this.#blockchain.resume(threads);
@@ -505,6 +522,7 @@ export default class EthereumApi implements types.Api {
   /**
    * Stop the CPU mining operation.
    */
+  @assertArgLength(0)
   async miner_stop() {
     this.#blockchain.pause();
     return true;
@@ -516,6 +534,7 @@ export default class EthereumApi implements types.Api {
    * Any transactions that are below this limit are excluded from the mining 
    * process.
    */
+  @assertArgLength(1)
   async miner_setGasPrice(number: string) {
     this.#options.miner.gasPrice = Quantity.from(number);
     return true;
@@ -525,6 +544,7 @@ export default class EthereumApi implements types.Api {
    * Sets the etherbase, where mining rewards will go.
    * @param address 
    */
+  @assertArgLength(1)
   async miner_setEtherbase(address: string) {
     this.#blockchain.coinbase = Address.from(address);
     return true;
@@ -536,6 +556,7 @@ export default class EthereumApi implements types.Api {
    * Returns the current client version.
    * @returns The current client version.
    */
+  @assertArgLength(0)
   async web3_clientVersion() {
     return CLIENT_VERSION;
   }
@@ -545,6 +566,7 @@ export default class EthereumApi implements types.Api {
    * @param {data} the data to convert into a SHA3 hash.
    * @returns The SHA3 result of the given string.
    */
+  @assertArgLength(1)
   async web3_sha3(data: string) {
     return Data.from(createKeccakHash("keccak256").update(data).digest());
   }
@@ -556,6 +578,7 @@ export default class EthereumApi implements types.Api {
    * @returns The current network id. This value should NOT be JSON-RPC
    * Quantity/Data encoded.
    */
+  @assertArgLength(0)
   async net_version() {
     return this.#options.chain.networkId.toString();
   }
@@ -564,6 +587,7 @@ export default class EthereumApi implements types.Api {
    * Returns true if client is actively listening for network connections.
    * @returns true when listening, otherwise false.
    */
+  @assertArgLength(0)
   async net_listening() {
     // TODO: this should return false when ganache isn't used with a server, or
     // or while the server is still initializing.
@@ -574,6 +598,7 @@ export default class EthereumApi implements types.Api {
    * Returns number of peers currently connected to the client.
    * @returns integer of the number of connected peers.
    */
+  @assertArgLength(0)
   async net_peerCount() {
     return RPCQUANTITY_ZERO;
   }
@@ -590,6 +615,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns the amount of gas used.
    */
+  @assertArgLength(1, 2)
   async eth_estimateGas(transaction: any, blockNumber: Buffer | Tag | string = Tag.LATEST) {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
@@ -643,6 +669,7 @@ export default class EthereumApi implements types.Api {
    * Returns the current ethereum protocol version.
    * @returns The current ethereum protocol version.
    */
+  @assertArgLength(0)
   async eth_protocolVersion() {
     return PROTOCOL_VERSION;
   }
@@ -655,6 +682,7 @@ export default class EthereumApi implements types.Api {
    *   currentBlock: {bigint} - The current block, same as eth_blockNumber
    *   highestBlock: {bigint} - The estimated highest block
    */
+  @assertArgLength(0)
   async eth_syncing() {
     return false;
   }
@@ -663,6 +691,7 @@ export default class EthereumApi implements types.Api {
    * Returns the client coinbase address.
    * @returns 20 bytes - the current coinbase address.
    */
+  @assertArgLength(0)
   async eth_coinbase() {
     return this.#blockchain.coinbase;
   }
@@ -673,6 +702,7 @@ export default class EthereumApi implements types.Api {
    * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the transactions.
    * @returns the block, `null` if the block doesn't exist.
    */
+  @assertArgLength(1, 2)
   async eth_getBlockByNumber(number: string | Buffer, transactions = false) {
     const block = await this.#blockchain.blocks.get(number).catch(_ => null);
     return block ? block.toJSON(transactions) : null;
@@ -684,6 +714,7 @@ export default class EthereumApi implements types.Api {
    * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the transactions.
    * @returns Block
    */
+  @assertArgLength(1, 2)
   async eth_getBlockByHash(hash: string | Buffer, transactions = false) {
     const block = await this.#blockchain.blocks.getByHash(hash).catch(_ => null);
     return block ? block.toJSON(transactions) : null;
@@ -693,6 +724,7 @@ export default class EthereumApi implements types.Api {
    * Returns the number of transactions in a block from a block matching the given block number.
    * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
    */
+  @assertArgLength(1)
   async eth_getBlockTransactionCountByNumber(number: string | Buffer) {
     const rawBlock = await this.#blockchain.blocks.getRaw(number);
     if (rawBlock) {
@@ -707,6 +739,7 @@ export default class EthereumApi implements types.Api {
    * Returns the number of transactions in a block from a block matching the given block hash.
    * @param hash DATA, 32 Bytes - hash of a block.
    */
+  @assertArgLength(1)
   async eth_getBlockTransactionCountByHash(hash: string | Buffer) {
     const number = await this.#blockchain.blocks.getNumberFromHash(hash);
     if (number) {
@@ -716,6 +749,7 @@ export default class EthereumApi implements types.Api {
     }
   }
 
+  @assertArgLength(0)
   async eth_getCompilers() {
     return [] as string[];
   }
@@ -725,6 +759,7 @@ export default class EthereumApi implements types.Api {
    * @param hash DATA, 32 Bytes - hash of a block.
    * @param index QUANTITY - integer of the transaction index position.
    */
+  @assertArgLength(2)
   async eth_getTransactionByBlockHashAndIndex(hash: string | Buffer, index: string) {
     const block = await this.eth_getBlockByHash(hash, true);
     if (block) {
@@ -739,6 +774,7 @@ export default class EthereumApi implements types.Api {
    * @param number QUANTITY|TAG - a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
    * @param index QUANTITY - integer of the transaction index position.
    */
+  @assertArgLength(2)
   async eth_getTransactionByBlockNumberAndIndex(number: string | Buffer, index: string) {
     const block = await this.eth_getBlockByNumber(number, true);
     return block.transactions[parseInt(index, 10)];
@@ -748,6 +784,7 @@ export default class EthereumApi implements types.Api {
    * Returns the number of uncles in a block from a block matching the given block hash.
    * @param hash DATA, 32 Bytes - hash of a block.
    */
+  @assertArgLength(1)
   async eth_getUncleCountByBlockHash(hash: string | Buffer) {
     return RPCQUANTITY_ZERO
   }
@@ -756,6 +793,7 @@ export default class EthereumApi implements types.Api {
    * Returns the number of uncles in a block from a block matching the given block hash.
    * @param hash DATA, 32 Bytes - hash of a block.
    */
+  @assertArgLength(1)
   async eth_getUncleCountByBlockNumber(number: string | Buffer) {
     return RPCQUANTITY_ZERO
   }
@@ -766,6 +804,7 @@ export default class EthereumApi implements types.Api {
    * @param hash - hash of a block
    * @param index - the uncle's index position.
    */
+  @assertArgLength(2)
   async eth_getUncleByBlockHashAndIndex(hash: Data, index: Quantity) {
     return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
   }
@@ -776,6 +815,7 @@ export default class EthereumApi implements types.Api {
    * @param blockNumber - a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
    * @param uncleIndex - the uncle's index position.
    */
+  @assertArgLength(2)
   async eth_getUncleByBlockNumberAndIndex(blockNumber: Buffer | Tag = Tag.LATEST, uncleIndex: Quantity) {
     return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
   }
@@ -789,6 +829,7 @@ export default class EthereumApi implements types.Api {
    * @param {QUANTITY} filterId - A filter id
    * @returns the hash of the current block, the seedHash, and the boundary condition to be met ("target").
    */
+  @assertArgLength(1)
   async eth_getWork(filterId: Quantity) {
     return [] as [string, string, string] | [];
   };
@@ -801,6 +842,7 @@ export default class EthereumApi implements types.Api {
    * @param {DATA, 32 Bytes} digest - The mix digest (256 bits)
    * @returns `true` if the provided solution is valid, otherwise `false`.
    */
+  @assertArgLength(3)
   async eth_submitWork(nonce: Data, powHash: Data, digest: Data) {
     return false;
   };
@@ -812,6 +854,7 @@ export default class EthereumApi implements types.Api {
    * @param {String} clientID - A random hexadecimal(32 bytes) ID identifying the client
    * @returns `true` if submitting went through succesfully and `false` otherwise.
    */
+  @assertArgLength(2)
   async eth_submitHashrate(hashRate: string, clientID: string) {
     return false;
   };
@@ -820,6 +863,7 @@ export default class EthereumApi implements types.Api {
    * Returns true if client is actively mining new blocks.
    * @returns returns true of the client is mining, otherwise false.
    */
+  @assertArgLength(0)
   async eth_mining() {
     return this.#blockchain.isMining();
   }
@@ -828,6 +872,7 @@ export default class EthereumApi implements types.Api {
    * Returns the number of hashes per second that the node is mining with.
    * @returns number of hashes per second.
    */
+  @assertArgLength(0)
   async eth_hashrate() {
     return RPCQUANTITY_ZERO;
   }
@@ -836,6 +881,7 @@ export default class EthereumApi implements types.Api {
    * Returns the current price per gas in wei.
    * @returns integer of the current gas price in wei.
    */
+  @assertArgLength(0)
   async eth_gasPrice() {
     return this.#options.miner.gasPrice;
   }
@@ -844,6 +890,7 @@ export default class EthereumApi implements types.Api {
    * Returns a list of addresses owned by client.
    * @returns Array of 20 Bytes - addresses owned by the client.
    */
+  @assertArgLength(0)
   async eth_accounts() {
     return this.#wallet.addresses;
   }
@@ -852,6 +899,7 @@ export default class EthereumApi implements types.Api {
    * Returns the number of most recent block.
    * @returns integer of the current block number the client is on.
    */
+  @assertArgLength(0)
   async eth_blockNumber() {
     const latest = await this.#blockchain.blocks.get(Tag.LATEST);
     return Quantity.from(latest.value.header.number);
@@ -863,6 +911,7 @@ export default class EthereumApi implements types.Api {
    * @returns The chain id as a string.
    * @EIP [155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
    */
+  @assertArgLength(0)
   async eth_chainId() {
     return Quantity.from(this.#options.chain.chainId);
   }
@@ -873,6 +922,7 @@ export default class EthereumApi implements types.Api {
    * @param blockNumber integer block number, or the string "latest", "earliest"
    *  or "pending", see the default block parameter
    */
+  @assertArgLength(1, 2)
   async eth_getBalance(address: string, blockNumber: Buffer | Tag = Tag.LATEST) {
     const chain = this.#blockchain;
     const account = await chain.accounts.get(Address.from(address), blockNumber);
@@ -886,6 +936,7 @@ export default class EthereumApi implements types.Api {
    * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block parameter
    * @returns the code from the given address.
    */
+  @assertArgLength(1, 2)
   async eth_getCode(address: Buffer, blockNumber: Buffer | Tag = Tag.LATEST) {
     const blockchain = this.#blockchain;
     const blockProm = blockchain.blocks.getRaw(blockNumber);
@@ -939,6 +990,7 @@ export default class EthereumApi implements types.Api {
    * @param blockNumber integer block number, or the string "latest", "earliest"
    *  or "pending", see the default block parameter
    */
+  @assertArgLength(2, 3)
   async eth_getStorageAt(
     address: string,
     position: bigint | number,
@@ -1001,6 +1053,7 @@ export default class EthereumApi implements types.Api {
    *
    * @param transactionHash 32 Bytes - hash of a transaction
    */
+  @assertArgLength(1)
   async eth_getTransactionByHash(transactionHash: string) {
     const chain = this.#blockchain;
     const hashBuffer = Data.from(transactionHash).toBuffer();
@@ -1023,6 +1076,7 @@ export default class EthereumApi implements types.Api {
    * @param transactionHash 32 Bytes - hash of a transaction
    * @returns Returns the receipt of a transaction by transaction hash.
    */
+  @assertArgLength(1)
   async eth_getTransactionReceipt(transactionHash: string) {
     const blockchain = this.#blockchain;
     const transactionPromise = blockchain.transactions.get(transactionHash);
@@ -1041,6 +1095,7 @@ export default class EthereumApi implements types.Api {
    * @param transaction
    * @returns The transaction hash
    */
+  @assertArgLength(1)
   async eth_sendTransaction(transaction: any) {
     let fromString = transaction.from;
     let from: Address;
@@ -1106,6 +1161,7 @@ export default class EthereumApi implements types.Api {
    * @param transaction
    * @returns The transaction hash
    */
+  @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
     const tx = new Transaction(transaction, this.#common, Transaction.types.signed);
     return this.#blockchain.queueTransaction(tx)
@@ -1124,6 +1180,7 @@ export default class EthereumApi implements types.Api {
    * @param data message to sign
    * @returns Signature
    */
+  @assertArgLength(2)
   async eth_sign(address: string | Buffer, message: string | Buffer) {
     const account = Address.from(address).toString().toLowerCase();
     const wallet = this.#wallet;
@@ -1149,6 +1206,7 @@ export default class EthereumApi implements types.Api {
    * that the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
    * @EIP [712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)
    */
+  @assertArgLength(2)
   async eth_signTypedData(address: string | Buffer, typedData: TypedData) {
     const account = Address.from(address).toString().toLowerCase();
 
@@ -1202,6 +1260,7 @@ export default class EthereumApi implements types.Api {
    * @returns A subscription id.
    */
   eth_subscribe(subscriptionName: "logs", options: Pick<FilterArgs, "address" | "topics">): PromiEvent<Quantity>
+  @assertArgLength(1, 2)
   eth_subscribe(subscriptionName: "newHeads" | "newPendingTransactions" | "syncing" | "logs", options?: Pick<FilterArgs, "address" | "topics">) {
     const subscriptions = this.#subscriptions;
     switch (subscriptionName) {
@@ -1294,7 +1353,7 @@ export default class EthereumApi implements types.Api {
     }
   }
 
-
+  @assertArgLength(1)
   async eth_unsubscribe(subscriptionId: SubscriptionId) {
     const subscriptions = this.#subscriptions;
     const unsubscribe = subscriptions.get(subscriptionId);
@@ -1313,6 +1372,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns A filter id.
    */
+  @assertArgLength(0)
   async eth_newBlockFilter() {
     const unsubscribe = this.#blockchain.on("block", (block: Block) => {
       value.updates.push(Data.from(block.value.hash(), 32));
@@ -1329,6 +1389,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns A filter id.
    */
+  @assertArgLength(0)
   async eth_newPendingTransactionFilter() {
     const unsubscribe = this.#blockchain.on("pendingTransaction", (transaction: Transaction) => {
       value.updates.push(Data.from(transaction.hash(), 32));
@@ -1363,6 +1424,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @param filter The filter options
    */
+  @assertArgLength(0, 1)
   async eth_newFilter(filter: FilterArgs = {}) {
     const blockchain = this.#blockchain;
     const { addresses, topics } = parseFilterDetails(filter);
@@ -1392,6 +1454,7 @@ export default class EthereumApi implements types.Api {
    * @returns an array of logs, block hashes, or transactions hashes, depending
    * on the filter type, which occurred since last poll.
    */
+  @assertArgLength(1)
   async eth_getFilterChanges(filterId: string) {
     const filter = this.#filters.get(filterId);
     if (filter) {
@@ -1411,6 +1474,7 @@ export default class EthereumApi implements types.Api {
    * @returns `true` if the filter was successfully uninstalled, otherwise
    * `false`.
    */
+  @assertArgLength(1)
   async eth_uninstallFilter(filterId: string) {
     const filter = this.#filters.get(filterId);
     if (!filter) return false;
@@ -1423,6 +1487,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns Array of log objects, or an empty array.
    */
+  @assertArgLength(1)
   async eth_getFilterLogs(filterId: string) {
     const filter = this.#filters.get(filterId);
     if (filter && filter.type === FilterTypes.log) {
@@ -1438,6 +1503,7 @@ export default class EthereumApi implements types.Api {
    * @param filter The filter options
    * @returns Array of log objects, or an empty array.
    */
+  @assertArgLength(1)
   async eth_getLogs(filter: FilterArgs) {
     const blockchain = this.#blockchain;
     const blockLogs = blockchain.blockLogs;
@@ -1475,6 +1541,7 @@ export default class EthereumApi implements types.Api {
    * or "pending", see the default block parameter
    * @returns integer of the number of transactions sent from this address.
    */
+  @assertArgLength(1, 2)
   async eth_getTransactionCount(address: string, blockNumber: Buffer | Tag = Tag.LATEST) {
     const account = await this.#blockchain.accounts.get(Address.from(address), blockNumber);
     if (!account) return null;
@@ -1490,6 +1557,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns the return value of executed contract.
    */
+  @assertArgLength(1, 2)
   async eth_call(transaction: any, blockNumber: string | Buffer | Tag = Tag.LATEST) {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
@@ -1548,6 +1616,7 @@ export default class EthereumApi implements types.Api {
    * added.
    * @returns the Ethereum account addresses of all keys that have been added.
    */
+  @assertArgLength(0)
   async personal_listAccounts() {
     return this.#wallet.addresses;
   };
@@ -1558,6 +1627,7 @@ export default class EthereumApi implements types.Api {
    * @param passphrase
    * @returns The new account's address
    */
+  @assertArgLength(1)
   async personal_newAccount(passphrase: string) {
     if (typeof passphrase !== "string") {
       throw new Error("missing value for required argument `passphrase`");
@@ -1581,6 +1651,7 @@ export default class EthereumApi implements types.Api {
    * @param passphrase
    * @returnsReturns the address of the new account.
    */
+  @assertArgLength(2)
   async personal_importRawKey(rawKey: string, passphrase: string) {
     if (typeof passphrase !== "string") {
       throw new Error("missing value for required argument `passphrase`");
@@ -1601,6 +1672,7 @@ export default class EthereumApi implements types.Api {
    * Locks the account. The account can no longer be used to send transactions.
    * @param address 
    */
+  @assertArgLength(1)
   async personal_lockAccount(address: string) {
     return this.#wallet.lockAccount(address.toLowerCase());
   };
@@ -1620,6 +1692,7 @@ export default class EthereumApi implements types.Api {
    * should remain unlocked for.
    * @returns true if it worked. Throws an error if it did not.
    */
+  @assertArgLength(2, 3)
   async personal_unlockAccount(address: string, passphrase: string, duration: number = 300) {
     return this.#wallet.unlockAccount(address.toLowerCase(), passphrase, duration);
   };
@@ -1636,6 +1709,7 @@ export default class EthereumApi implements types.Api {
    * @param txData 
    * @param passphrase 
    */
+  @assertArgLength(2)
   async personal_sendTransaction(transaction: any, passphrase: string) {
     let fromString = transaction.from;
     let from: Address;
@@ -1668,6 +1742,7 @@ export default class EthereumApi implements types.Api {
   //#endregion
 
   //#region rpc
+  @assertArgLength(0)
   async rpc_modules() {
     return RPC_MODULES;
   }
@@ -1680,6 +1755,7 @@ export default class EthereumApi implements types.Api {
    *
    * @returns {DATA, 60 Bytes} result - the address of the new identiy.
    */
+  @assertArgLength(0)
   async shh_newIdentity() {
     return "0x00";
   };
@@ -1690,6 +1766,7 @@ export default class EthereumApi implements types.Api {
    * @param {DATA, 60 Bytes} address - The identity address to check.
    * @returns returns true if the client holds the privatekey for that identity, otherwise false.
    */
+  @assertArgLength(1)
   async shh_hasIdentity(address: string) {
     return false;
   };
@@ -1699,6 +1776,7 @@ export default class EthereumApi implements types.Api {
    *
    * @returns the address of the new group.
    */
+  @assertArgLength(0)
   async shh_newGroup() {
     return "0x00";
   };
@@ -1709,6 +1787,7 @@ export default class EthereumApi implements types.Api {
    * @param {DATA, 60 Bytes} - The identity address to add to a group.
    * @returns true if the identity was successfully added to the group, otherwise false.
    */
+  @assertArgLength(1)
   async shh_addToGroup(address: string) {
     return false;
   };
@@ -1722,6 +1801,7 @@ export default class EthereumApi implements types.Api {
    * @param {Array of DATA} topics - Array of DATA topics which the incoming message's topics should match.
    * @returns returns true if the identity was successfully added to the group, otherwise false.
    */
+  @assertArgLength(2)
   async shh_newFilter(to: string, topics: any[]) {
     return false;
   };
@@ -1733,6 +1813,7 @@ export default class EthereumApi implements types.Api {
    * @param {QUANTITY} id - The filter id. Ex: "0x7"
    * @returns true if the filter was successfully uninstalled, otherwise false.
    */
+  @assertArgLength(1)
   async shh_uninstallFilter(id: string) {
     return false;
   };
@@ -1743,6 +1824,7 @@ export default class EthereumApi implements types.Api {
    * @param {QUANTITY} id - The filter id. Ex: "0x7"
    * @returns More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges
    */
+  @assertArgLength(1)
   async shh_getFilterChanges(id: string) {
     return [];
   };
@@ -1753,23 +1835,19 @@ export default class EthereumApi implements types.Api {
    * @param {QUANTITY} id - The filter id. Ex: "0x7"
    * @returns See: shh_getFilterChanges
    */
+  @assertArgLength(1)
   async shh_getMessages(id: string) {
     return false;
   };
+
   /**
- * Sends a whisper message.
- *
- * @param {DATA, 60 Bytes} from - (optional) The identity of the sender.
- * @param {DATA, 60 Bytes} to -
- *  ^(optional) The identity of the receiver. When present whisper will encrypt the message so that
- *  only the receiver can decrypt it.
- * @param {Array of DATA} topics - Array of DATA topics, for the receiver to identify messages.
- * @param {DATA} payload - The payload of the message.
- * @param {QUANTITY} priority - The integer of the priority in a range from ... (?).
- * @param {QUANTITY} ttl - integer of the time to live in seconds.
- * @returns returns true if the message was sent, otherwise false.
- */
-  async shh_post(from: string, to: string, topics: any[], payload: string, priority: string, ttl: string) {
+   * Creates a whisper message and injects it into the network for distribution.
+   *
+   * @param postData
+   * @returns returns true if the message was sent, otherwise false.
+   */
+  @assertArgLength(1)
+  async shh_post(postData: WhisperPostObject) {
     return false;
   }
 
@@ -1778,6 +1856,7 @@ export default class EthereumApi implements types.Api {
    * 
    * @returns The current whisper protocol version
    */
+  @assertArgLength(0)
   async shh_version() {
     return "2";
   }

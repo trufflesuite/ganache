@@ -16,12 +16,12 @@ describe("api", () => {
     });
 
     it("returns it's shh_hasIdentity status", async () => {
-      const result = await provider.send("shh_hasIdentity");
+      const result = await provider.send("shh_hasIdentity", ["0x0"]);
       assert.strictEqual(result, false);
     });
 
     it("returns false for shh_addToGroup", async () => {
-      const result = await provider.send("shh_addToGroup");
+      const result = await provider.send("shh_addToGroup", ["0x0"]);
       assert.strictEqual(result, false);
     });
 
@@ -31,27 +31,27 @@ describe("api", () => {
     });
 
     it("returns false for shh_newFilter", async () => {
-      const result = await provider.send("shh_newFilter");
+      const result = await provider.send("shh_newFilter", ["0x0", []]);
       assert.strictEqual(result, false);
     });
 
     it("returns false for shh_uninstallFilter", async () => {
-      const result = await provider.send("shh_uninstallFilter");
+      const result = await provider.send("shh_uninstallFilter", ["0x0"]);
       assert.strictEqual(result, false);
     });
 
     it("returns []] for shh_getFilterChanges", async () => {
-      const result = await provider.send("shh_getFilterChanges");
+      const result = await provider.send("shh_getFilterChanges", ["0x0"]);
       assert.deepStrictEqual(result, []);
     });
 
     it("returns false for shh_getMessages", async () => {
-      const result = await provider.send("shh_getMessages");
+      const result = await provider.send("shh_getMessages", ["0x0"]);
       assert.strictEqual(result, false);
     });
 
     it("returns false for shh_post", async () => {
-      const result = await provider.send("shh_post");
+      const result = await provider.send("shh_post", [{}]);
       assert.strictEqual(result, false);
     });
 

@@ -64,7 +64,7 @@ describe("api", () => {
       };
 
       // make sure we can't use the account via personal_sendTransaction and no passphrase
-      await assert.rejects(provider.send("personal_sendTransaction", [transaction]), {
+      await assert.rejects(provider.send("personal_sendTransaction", [transaction, undefined]), {
         message: "could not decrypt key with given password"
       }, "personal_sendTransaction should have rejected due to locked from account without its passphrase");
 
@@ -182,7 +182,7 @@ describe("api", () => {
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [secretKey, passphrase]);
 
-          testLockedAccountWithPassphraseViaEth_SendTransaction(provider, newAccount, passphrase);
+          await testLockedAccountWithPassphraseViaEth_SendTransaction(provider, newAccount, passphrase);
         });
       });
 
@@ -192,7 +192,7 @@ describe("api", () => {
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [secretKey, passphrase]);
 
-          testLockedAccountWithPassphraseViaPersonal_SendTransaction(provider, newAccount, passphrase);
+          await testLockedAccountWithPassphraseViaPersonal_SendTransaction(provider, newAccount, passphrase);
         });
       });
     });
