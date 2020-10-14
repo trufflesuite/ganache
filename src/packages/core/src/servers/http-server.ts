@@ -1,7 +1,7 @@
 import {TemplatedApp, HttpResponse, HttpRequest, RecognizedString} from "uWebSockets.js";
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
-import {Flavors} from "../options/server-options";
+import {Connectors} from "@ganache/flavors";
 
 type HttpMethods = "GET" | "OPTIONS" | "POST";
 
@@ -80,8 +80,8 @@ function sendResponse(
 }
 
 export default class HttpServer {
-  #connector: Flavors;
-  constructor(app: TemplatedApp, connector: Flavors) {
+  #connector: Connectors;
+  constructor(app: TemplatedApp, connector: Connectors) {
     this.#connector = connector;
 
     // JSON-RPC routes...

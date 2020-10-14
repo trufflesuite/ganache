@@ -407,7 +407,7 @@ describe("server", () => {
               setImmediate(setImmediate, () => {
                 // resolve the `provider.send` to make sure the server can
                 // handle _not_ responding to a request that has been aborted:
-                innerResolve( {value: Promise.resolve()});
+                innerResolve( {value: Promise.resolve() as any});
                 // and finally, resolve the `abort` promise:
                 resolve(void 0);
               });
@@ -581,11 +581,11 @@ describe("server", () => {
 
     it("doesn't crash when the connection is closed while a request is in flight", async () => {
       const provider = s.provider;
-      provider.requestRaw = async () => {
+      provider.requestRaw = (async () => {
         // close our websocket after intercepting the request
         await s.close();
         return {value: Promise.resolve(void 0)};
-      };
+      }) as any;
 
       const ws = new WebSocket("ws://localhost:" + port);
       return new Promise((resolve, reject) => {
@@ -610,14 +610,14 @@ describe("server", () => {
       const provider = s.provider;
       const message = "I hope you get this message";
       const oldRequestRaw = provider.requestRaw.bind(provider);
-      provider.requestRaw = async () => {
+      provider.requestRaw = (async () => {
         const promiEvent = new PromiEvent(resolve => {
           const subId = "0xsubscriptionId";
           resolve(subId);
           setImmediate(() => promiEvent.emit("message", {data: {subscription: subId, result: message}}));
         });
         return {value: promiEvent};
-      };
+      }) as any;
 
       const ws = new WebSocket("ws://localhost:" + port);
       const result = await new Promise(resolve => {
@@ -706,12 +706,12 @@ describe("server", () => {
     it("doesn't crash when the connection is closed while a subscription is in flight", async () => {
       const provider = s.provider;
       let promiEvent: PromiEvent<any>;
-      provider.requestRaw = async () => {
+      provider.requestRaw = (async () => {
         promiEvent = new PromiEvent(resolve => {
           resolve("0xsubscriptionId");
         });
         return {value: promiEvent};
-      };
+      }) as any;
 
       const ws = new WebSocket("ws://localhost:" + port);
       return new Promise((resolve, reject) => {
@@ -752,9 +752,9 @@ describe("server", () => {
         // create tons of data to force websocket backpressure
         const huge = {};
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
-        s.provider.requestRaw = async () => {
+        s.provider.requestRaw = (async () => {
           return {value: Promise.resolve(huge)};
-        };
+        }) as any;
       }
 
       const ws = new WebSocket("ws://localhost:" + port);

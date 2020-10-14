@@ -9,9 +9,9 @@ type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 type HandlesWebSocketSignature= ((payload: any, connection: WebSocket) => any);
 
 type WebSocketCapableFlavorMap = {
-  [k in keyof Flavors.Connectors]:
-    Flavors.Connectors[k]["handle"] extends HandlesWebSocketSignature
-      ? Flavors.Connectors[k]
+  [k in keyof Flavors.ConnectorsByName]:
+    Flavors.ConnectorsByName[k]["handle"] extends HandlesWebSocketSignature
+      ? Flavors.ConnectorsByName[k]
       : never;
 };
 

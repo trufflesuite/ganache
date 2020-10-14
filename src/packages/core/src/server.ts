@@ -1,9 +1,12 @@
 import {InternalOptions, ServerOptions, serverOptionsConfig} from "./options";
 
 import uWS, {TemplatedApp, us_listen_socket} from "uWebSockets.js";
+import {Connectors} from "@ganache/flavors";
 import Connector from "./connector";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
+
+type Providers = Connectors["provider"];
 
 type Callback = (err: Error | null) => void
 
@@ -42,11 +45,11 @@ export default class Server {
   #httpServer: HttpServer;
   #listenSocket?: us_listen_socket;
   #options: InternalOptions;
-  #connector: Flavors;
+  #connector: Connectors;
   #status = Status.closed;
   #websocketServer: WebsocketServer | null = null;
 
-  public get provider(): TezosProvider | EthereumProvider {
+  public get provider(): Providers {
     return this.#connector.provider;
   }
 
