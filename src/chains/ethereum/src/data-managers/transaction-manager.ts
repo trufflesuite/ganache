@@ -1,6 +1,6 @@
 import Transaction from "../things/transaction";
 import Manager from "./manager";
-import TransactionPool from "./transaction-pool";
+import TransactionPool from "../transaction-pool";
 import { EthereumInternalOptions } from "../options";
 import { LevelUp } from "levelup";
 import Blockchain from "../blockchain";

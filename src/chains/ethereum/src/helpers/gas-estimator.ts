@@ -1,6 +1,6 @@
 import { Quantity } from "@ganache/utils";
 import { BN } from "ethereumjs-util";
-import RuntimeError, { RETURN_TYPES } from "./runtime-error";
+import RuntimeError, { RETURN_TYPES } from "../errors/runtime-error";
 
 const bn = (val = 0) => new (BN as any)(val);
 const STIPEND = bn(2300);

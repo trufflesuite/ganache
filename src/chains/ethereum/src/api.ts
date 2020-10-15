@@ -5,7 +5,7 @@ import { EthereumInternalOptions } from "./options";
 import { types, Data, Quantity } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import Tag from "./things/tags";
-import {VM_EXCEPTION, VM_EXCEPTIONS} from "./things/errors";
+import {VM_EXCEPTION, VM_EXCEPTIONS} from "./errors/errors";
 import Address from "./things/address";
 import Transaction from "./things/transaction";
 import Wallet from "./wallet";
@@ -19,9 +19,9 @@ import Emittery from "emittery";
 import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
 import EthereumAccount from "ethereumjs-account";
-import { Block } from "./components/block-manager";
-import estimateGas from "./things/gas-estimator";
-import CodedError, { ErrorCodes } from "./things/coded-error";
+import { Block } from "./data-managers/block-manager";
+import estimateGas from "./helpers/gas-estimator";
+import CodedError, { ErrorCodes } from "./errors/coded-error";
 import { WhisperPostObject } from "./types/shh";
 //#endregion
 

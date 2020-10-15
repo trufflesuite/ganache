@@ -1,12 +1,12 @@
-import Account from "../things/account";
+import Account from "./things/account";
 import Emittery from "emittery";
-import Blockchain from "../blockchain";
+import Blockchain from "./blockchain";
 import {utils} from "@ganache/utils";
-import Transaction from "../things/transaction";
+import Transaction from "./things/transaction";
 import {Data, Quantity} from "@ganache/utils";
-import {GAS_LIMIT, INTRINSIC_GAS_TOO_LOW} from "../things/errors";
-import CodedError, { ErrorCodes } from "../things/coded-error";
-import { EthereumInternalOptions } from "../options";
+import {GAS_LIMIT, INTRINSIC_GAS_TOO_LOW} from "./errors/errors";
+import CodedError, { ErrorCodes } from "./errors/coded-error";
+import { EthereumInternalOptions } from "./options";
 
 function byNonce(values: Transaction[], a: number, b: number) {
   return (Quantity.from(values[b].nonce).toBigInt() || 0n) > (Quantity.from(values[a].nonce).toBigInt() || 0n);
@@ -160,8 +160,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       }
     }
 
-    // this.#assertValidTransactorBalance(transaction, transactor);
-
     // now that we know we have a transaction nonce we can sign the transaction
     // (if we have the secret key)
     if (secretKey) {
@@ -269,31 +267,4 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     return null;
   };
-
-  // /**
-  //  * Returns the *live* executables map once all transactions that have started
-  //  * insertion into the pool have been fully processed.
-  //  * 
-  //  * This is neccessary as a transaction added via `eth_sendTransaction` 
-  //  * immediately followed by an `evm_mine` may not yet be in the executables
-  //  * pool when `evm_mine` triggers the mine operation.
-  //  */
-  // getFutureExecutablesMap(){
-  //   // When transactions are pushed into the transactionPool they aren't always
-  //   // instantly added to the executables pool, due to potential file IO, so we
-  //   // must wait for any pending file IO to finish before we can get
-  //   return Promise.all([...this.#accountPromises.values()]).then(() => this.#executables);
-  // }
-
-  // getCurrentExecutablesMap() {
-  //   return this.#executables;
-  // }
-
-  #assertValidTransactorBalance = (transaction: Transaction, transactor: any): Error | null => {
-    // Transactor should have enough funds to cover the costs
-    if (transactor.balance.toBigInt() < transaction.cost()) {
-      return new Error("Account does not have enough funds to complete transaction");
-    }
-    return null;
-  }
 }

@@ -1,5 +1,5 @@
 import Transaction from "./transaction";
-import {Block} from "../components/block-manager";
+import {Block} from "../data-managers/block-manager";
 import {encode as rlpEncode, decode as rlpDecode} from "rlp";
 import {Data, Quantity} from "@ganache/utils";
 import BlockLogs, { TransactionLog } from "./blocklogs";

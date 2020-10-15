@@ -1,5 +1,4 @@
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
-import Transaction from "./transaction";
 import { VM_EXCEPTION } from "./errors";
 import { Data } from "@ganache/utils";
 import { rawDecode } from "ethereumjs-abi";

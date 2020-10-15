@@ -9,7 +9,7 @@ import Block from "ethereumjs-block";
 import VM from "ethereumjs-vm";
 import {encode as rlpEncode} from "rlp";
 import { EthereumInternalOptions } from "./options";
-import RuntimeError, { RETURN_TYPES } from "./things/runtime-error";
+import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
 
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
@@ -21,7 +21,7 @@ function replaceFromHeap(
   const next = source.peek();
   if (next) {
     // remove the current best priced transaction from this account and replace
-    // replace it with the account's next lowest nonce transaction:
+    // it with the account's next lowest nonce transaction:
     priced.replaceBest(next);
     next.locked = true;
     return true;
@@ -137,7 +137,7 @@ export default class Miner extends Emittery {
       let numTransactions = 0;
       let blockGasLeft = this.#options.blockGasLimit.toBigInt();
 
-      const promises: Promise<any>[] = [];
+      const promises: Promise<never>[] = [];
 
       // Set a block-level checkpoint so our unsaved trie doesn't update the
       // vm's "live" trie.

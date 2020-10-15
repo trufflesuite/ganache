@@ -1,4 +1,5 @@
-import {INTRINSIC_GAS_TOO_LOW} from "./errors";
+import {INTRINSIC_GAS_TOO_LOW} from "../errors/errors";
+import RuntimeError, { RETURN_TYPES } from "../errors/runtime-error";
 import {utils, Data, Quantity} from "@ganache/utils";
 import params from "./params";
 import {Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction} from "ethereumjs-tx";
@@ -6,12 +7,11 @@ import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
 import {decode as rlpDecode} from "rlp";
 import {RunTxResult} from "ethereumjs-vm/dist/runTx";
-import {Block} from "../components/block-manager";
+import {Block} from "../data-managers/block-manager";
 import TransactionReceipt from "./transaction-receipt";
 import Common from "ethereumjs-common";
 import { TransactionLog } from "./blocklogs";
 import Address from "./address";
-import RuntimeError, { RETURN_TYPES } from "./runtime-error";
 
 type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
 
