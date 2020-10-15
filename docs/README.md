@@ -10,7 +10,7 @@
 
 ## Solving node-gyp issues
 
-I f installation fails due to a `node-gyp` issue you may need to perform some additional system configuration.
+If installation fails due to a `node-gyp` issue you may need to perform some additional system configuration.
 
 ### on Linux (Ubuntu-based)
 
@@ -127,6 +127,6 @@ These are guidelines, not rules. :-)
  * Use npm; do not use yarn.
  * Don't use web3, ethers, etc in ganache-core core code. (Tests are fine)
  * Ensure a smooth development experience on Windows, Mac, and Linux.
- * Do not use bash scripts.
+ * Do not use bash scripts for critical development or configuration.
  * Do not use CLI commands in npm scripts or build scripts that aren't available by default on supported platforms.
  * Push your code often (at least every-other day!), even broken WIP code (to your own branch, of course).

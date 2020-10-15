@@ -5,22 +5,71 @@ import prettier from "prettier";
 import {version} from "../lerna.json";
 import camelCase from "camelcase";
 import npa from "npm-package-arg";
+import { lstatSync as lstat, readdirSync as readDir } from "fs";
+import chalk from "chalk";
+
+const isDir = (s: string) => lstat(s).isDirectory();
+const getDirectories = (s: string) => readDir(s).filter(n => isDir(join(s, n)));
 
 const COLORS = {
-  FgGreen: "\x1b[32m",
+  Bold: "\x1b[1m",
   Reset: "\x1b[0m",
-  FgRed: "\x1b[31m",
-  FgMagenta: "\x1b[35m",
-  BgBlack: "\x1b[40m"
+  FgRed: "\x1b[31m"
 };
 
-const argv = yargs.command("$0 <name>", "Package Name").demandCommand().help().argv;
+const scopes = getDirectories(join(__dirname, "../../src"));
+const argv = yargs
+  .command(`$0 <name> --location`, `Create a new package in the given location with the provided name.`, (yargs) => {
+    return yargs
+      .usage(
+        chalk`{hex("#e4a663").bold Create a new package in the given location with the provided name.}\n\n` +
+        chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}${scopes.join(chalk.dim(" | "))}{dim >}`)
+      .positional("<name>", {
+        describe: `        The name of the new package`,
+        type: "string",
+        demandOption: true
+      })
+      .alias("name", "<name>")
+      .option("location", {
+        alias: "l",
+        default: "packages",
+        describe: `The location for the new package.`,
+        choices: scopes,
+        type: "string",
+        demandOption: true
+      })
+  })
+  .demandCommand()
+  .version(false)
+  .help(false)
+  .updateStrings({
+    "Positionals:": chalk.bold("Options"),
+    "Options:": ` `,
+    "Not enough non-option arguments: got %s, need at least %s": {
+        "one": chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`,
+        "other": chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`
+      } as any,
+      "Invalid values:": `${COLORS.FgRed}${COLORS.Bold}ERROR! Invalid values:${COLORS.Reset}${COLORS.FgRed}`
+  })
+  .fail((msg, err, yargs) => {
+    // we use a custom `fail` fn so that NPM doesn't print its own giant error message.
+    if (err) throw err;
+
+    console.error(yargs.help().toString().replace("\n\n\n", "\n"));
+    console.error();
+    console.error(msg);
+    process.exit(0);
+  })
+.argv;
+process.stdout.write(`${COLORS.Reset}`);
 
 (async function () {
-  let name = argv.name as string;
+  let name = argv.name;
+  let location = argv.location;
+
   try {
     const prettierConfig = await prettier.resolveConfig(process.cwd());
-    name = npa(argv.name as string).name;
+    name = npa(name).name;
 
     const packageName = `@ganache/${name}`;
 
@@ -83,7 +132,7 @@ describe("${packageName}", () => {
 export * from "./src/index";
 `;
 
-    const dir = join("./src/packages", name);
+    const dir = join(__dirname, "../../src", location, name);
     const tests = join(dir, "__tests__");
     const src = join(dir, "src");
 
@@ -132,13 +181,13 @@ export * from "./src/index";
     console.log(pkgStr);
 
     console.log(
-      `${COLORS.FgGreen}success${COLORS.Reset} ${COLORS.FgMagenta}create${COLORS.Reset} New package ${COLORS.BgBlack}${name}${COLORS.Reset} created at ./packages/${name}.`
+      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created. New package created at ./src/packages/${name}.\n\n  Entry point: {bold ${dir}/src/index.ts}`
     );
   } catch (e) {
     console.error(e);
     console.log("");
     console.log(
-      `${COLORS.FgRed}fail${COLORS.Reset} ${COLORS.FgMagenta}create${COLORS.Reset} New package ${COLORS.BgBlack}${name}${COLORS.Reset} not created. See error above.`
+      chalk`{red fail} {magenta create} New package {bgBlack  ${name} } not created. See error above.`
     );
   }
 })();
