@@ -24,10 +24,12 @@ declare var Promise: {
   resolve(): PromiEvent<void>;
 } & PromiseConstructor;
 
+const emitteryMethods = ["clearListeners", "once", "on", "emit", "onAny"] as const;
+
+@Emittery.mixin(Symbol.for("emittery") as any, emitteryMethods)
 class PromiEvent<T> extends Promise<T> {
   constructor (executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) {
     super(executor);
-    this.init();
   }
 
   /**
@@ -73,24 +75,26 @@ class PromiEvent<T> extends Promise<T> {
    * method around detached from it's context.
    */
   public dispose = () => {
+    if (!this.clearListeners) throw new Error("PromiEvent already disposed");
+
     this.clearListeners();
 
     // Ensure that once disposed no listeners can be bound to this emitter.
-    this.anyEvent = this.events = this.bindMethods = this.once = this.on = this.onAny = () => {throw new Error("PromiEvent bound after dispose");};
+    const fn = () => {
+      throw new Error("PromiEvent bound after dispose");
+    };
+    emitteryMethods.filter(m => m !== "emit").forEach(methodName => {
+      Object.defineProperty(this, methodName, {
+        enumerable: false,
+        value: fn
+      });
+    });
   }
 }
 
-interface PromiEvent<T> extends Promise<T>, Emittery {
-}
 
-applyMixins(PromiEvent, [Emittery]);
+interface PromiEvent<T> extends Promise<T>, Pick<Emittery, typeof emitteryMethods[number]> {
+  emittery: Emittery
+}
 
 export default PromiEvent;
-
-function applyMixins(derivedCtor: any, baseCtors: any[]) {
-  baseCtors.forEach(baseCtor => {
-      Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
-          Object.defineProperty(derivedCtor.prototype, name, Object.getOwnPropertyDescriptor(baseCtor.prototype, name)!);
-      });
-  });
-}
