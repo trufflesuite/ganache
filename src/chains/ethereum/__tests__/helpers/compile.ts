@@ -1,5 +1,11 @@
-
 import solc from "solc";
+
+// Clean up after solc. Looks like this never really got fixed:
+// https://github.com/chriseth/browser-solidity/issues/167
+var listeners = process.listeners("unhandledRejection");
+var solc_listener = listeners[listeners.length - 1];
+process.removeListener("unhandledRejection", solc_listener);
+
 import { readFileSync } from "fs-extra";
 import { parse } from "path";
 
