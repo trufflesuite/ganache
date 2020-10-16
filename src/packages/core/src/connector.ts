@@ -26,8 +26,8 @@ export default {
 
     const connector = new ConnectorsByName[flavor](providerOptions, executor);
 
-    // The request coordinator is initialized in a "paused" state, when the provider is ready we unpause
-    // this lets us accept queue requests before we've even fully initialized.
+    // The request coordinator is initialized in a "paused" state; when the provider is ready we unpause.
+    // This lets us accept queue requests before we've even fully initialized.
     connector.on("ready", requestCoordinator.resume);
 
     return connector;
