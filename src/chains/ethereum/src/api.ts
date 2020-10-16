@@ -23,6 +23,11 @@ import { Block } from "./data-managers/block-manager";
 import estimateGas from "./helpers/gas-estimator";
 import CodedError, { ErrorCodes } from "./errors/coded-error";
 import { WhisperPostObject } from "./types/shh";
+import { BaseFilterArgs, Filter, FilterArgs, FilterTypes, RangeFilterArgs } from "./types/filters";
+import { assertArgLength } from "./helpers/assert-arg-length";
+import Account from "./things/account";
+import { SubscriptionId, SubscriptionName } from "./types/subscriptions";
+import { parseFilter, parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
 //#endregion
 
 //#region Constants
@@ -33,59 +38,11 @@ const RPC_MODULES = { eth: "1.0", net: "1.0", rpc: "1.0", web3: "1.0", evm: "1.0
 const KNOWN_CHAINIDS = new Set([1, 3, 4, 5, 42]);
 //#endregion
 
-//#region types
-type SubscriptionId = string;
-
-type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
+//#region misc types
 type TypedData = Exclude<Parameters<typeof signTypedData_v4>[1]["data"], NotTypedData>;
-enum FilterTypes {
-  log,
-  block,
-  pendingTransaction
-};
-type Topic = string|string[];
-type FilterArgs = {address?: string | string[], topics?: Topic[], fromBlock?: string | Tag, toBlock?: string | Tag};
 //#endregion
 
 //#region helpers
-function parseFilterDetails(filter: Pick<FilterArgs, "address" | "topics">) {
-  // `filter.address` may be a single address or an array
-  const addresses = filter.address ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(a => Address.from(a.toLowerCase()).toBuffer()) : [];
-  const topics = filter.topics ? filter.topics : [];
-  return {addresses, topics};
-}
-function parseFilterRange(filter: Pick<FilterArgs, "fromBlock" | "toBlock">, blockchain: Blockchain) {
-  const fromBlock = blockchain.blocks.getEffectiveNumber(filter.fromBlock || "latest");
-  const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
-  const latestBlock = Quantity.from(latestBlockNumberBuffer);
-  const latestBlockNumber = latestBlock.toNumber();
-  const toBlock = blockchain.blocks.getEffectiveNumber(filter.toBlock || "latest");
-  let toBlockNumber: number;
-  // don't search after the "latest" block, unless it's "pending", of course.
-  if (toBlock > latestBlock) {
-    toBlockNumber = latestBlockNumber;
-  } else {
-    toBlockNumber = toBlock.toNumber();
-  }
-  return {
-    fromBlock,
-    toBlock,
-    toBlockNumber
-  }
-}
-function parseFilter(filter: FilterArgs = {address: [], topics: []}, blockchain: Blockchain) {
-  const {addresses, topics} = parseFilterDetails(filter);
-  const {fromBlock, toBlock, toBlockNumber} = parseFilterRange(filter, blockchain);
-
-  return {
-    addresses,
-    fromBlock,
-    toBlock,
-    toBlockNumber,
-    topics
-  };
-}
-
 function assertExceptionalTransactions(transactions: Transaction[]) {
   let baseError: string = null;
   let errors: string[];
@@ -111,32 +68,32 @@ function assertExceptionalTransactions(transactions: Transaction[]) {
     throw err;
   }
 }
-
-type UnknownFn = (this: unknown, ...args: any[]) => unknown;
-type FunctionPropertyDescriptor<T extends UnknownFn> = TypedPropertyDescriptor<T>;
-function assertArgLength(min: number, max: number = min) {
-  return function<O extends Object, T extends UnknownFn>(target: O, propertyKey: keyof O, descriptor: FunctionPropertyDescriptor<T>) {
-    const original = descriptor.value;
-    descriptor.value = function(this: unknown) {
-      const length = arguments.length;
-      if (length < min || length > max) {
-        throw new Error(`Incorrect number of arguments. '${propertyKey}' requires ${
-          min === max
-            ? `exactly ${min} ${min === 1 ? "argument" : "arguments"}.`
-            : `between ${min} and ${max} arguments.`}`);
-      }
-      return Reflect.apply(original, this, arguments);
-    } as T;
-    return descriptor as FunctionPropertyDescriptor<T>;
-  };
-}
+//#endregion helpers
 
 export default class EthereumApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
+   readonly #parseCoinbaseAddress = (coinbase: string | number | Address, initialAccounts: Account[]) => {
+    switch (typeof coinbase) {
+      case "object":
+        return coinbase;
+      case "number":
+        const account = initialAccounts[coinbase];
+        if (account) {
+          return  account.address;
+        } else {
+          throw new Error(`invalid coinbase address index: ${coinbase}`);
+        }
+      case "string":
+        return  Address.from(coinbase);
+      default: {
+        throw new Error(`coinbase address must be string or number, received: ${coinbase}`);
+      }
+    }
+  }
   readonly #getId = ((id) => () => Quantity.from(++id))(0);
   readonly #common: Common;
-  readonly #filters = new Map<string, {type: FilterTypes, updates: any[], unsubscribe: Emittery.UnsubscribeFn, filter: FilterArgs}>();
+  readonly #filters = new Map<string, Filter>();
   readonly #subscriptions = new Map<string, Emittery.UnsubscribeFn>();
   readonly #blockchain: Blockchain;
   readonly #options: EthereumInternalOptions;
@@ -154,26 +111,7 @@ export default class EthereumApi implements types.Api {
 
     const {initialAccounts} = this.#wallet = new Wallet(opts.wallet);
 
-    let coinbaseAddress: Address;
-    switch (typeof options.miner.coinbase) {
-      case "object":
-        coinbaseAddress = options.miner.coinbase;
-      break;
-      case "number":
-        const account = initialAccounts[options.miner.coinbase];
-        if (account) {
-          coinbaseAddress = account.address;
-        } else {
-          throw new Error(`invalid coinbase address index: ${options.miner.coinbase}`);
-        }
-      break;
-      case "string":
-        coinbaseAddress = Address.from(options.miner.coinbase);
-      break;
-      default: {
-        throw new Error(`coinbase address must be string or number, received: ${options.miner.coinbase}`);
-      }
-    }
+    const coinbaseAddress = this.#parseCoinbaseAddress(options.miner.coinbase, initialAccounts);
 
     const common = this.#common = Common.forCustomChain(
       // if we were given a chain id that matches a real chain, use it
@@ -270,7 +208,7 @@ export default class EthereumApi implements types.Api {
    * Mines a block independent of whether or not mining is started or stopped.
    * Will mine an empty block if there are no available transactions to mine.
    * 
-   * @param timestamp? the timestamp a block should setup as the mining time.
+   * @param timestamp the timestamp a block should setup as the mining time.
    */
   @assertArgLength(0, 1)
   async evm_mine(timestamp?: number) {
@@ -282,7 +220,7 @@ export default class EthereumApi implements types.Api {
     return "0x0";
   }
 
-  @assertArgLength(4)
+  @assertArgLength(3, 4)
   async evm_setStorageAt(
     address: string,
     position: bigint | number,
@@ -698,8 +636,10 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns information about a block by block number.
-   * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in th e default block parameter.
-   * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the transactions.
+   * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the
+   * default block parameter.
+   * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the
+   * transactions.
    * @returns the block, `null` if the block doesn't exist.
    */
   @assertArgLength(1, 2)
@@ -710,8 +650,10 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns information about a block by block hash.
-   * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in th e default block parameter.
-   * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the transactions.
+   * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the
+   * default block parameter.
+   * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the
+   * transactions.
    * @returns Block
    */
   @assertArgLength(1, 2)
@@ -722,7 +664,8 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the number of transactions in a block from a block matching the given block number.
-   * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
+   * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the
+   * default block parameter.
    */
   @assertArgLength(1)
   async eth_getBlockTransactionCountByNumber(number: string | Buffer) {
@@ -771,7 +714,8 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns information about a transaction by block number and transaction index position.
-   * @param number QUANTITY|TAG - a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
+   * @param number QUANTITY|TAG - a block number, or the string "earliest", "latest" or "pending", as in the default
+   * block parameter.
    * @param index QUANTITY - integer of the transaction index position.
    */
   @assertArgLength(2)
@@ -812,11 +756,12 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns information about a uncle of a block by hash and uncle index position.
    *
-   * @param blockNumber - a block number, or the string "earliest", "latest" or "pending", as in the default block parameter.
+   * @param blockNumber - a block number, or the string "earliest", "latest" or "pending", as in the default block
+   * parameter.
    * @param uncleIndex - the uncle's index position.
    */
   @assertArgLength(2)
-  async eth_getUncleByBlockNumberAndIndex(blockNumber: Buffer | Tag = Tag.LATEST, uncleIndex: Quantity) {
+  async eth_getUncleByBlockNumberAndIndex(blockNumber: Buffer | Tag, uncleIndex: Quantity) {
     return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
   }
 
@@ -933,7 +878,8 @@ export default class EthereumApi implements types.Api {
    * Returns code at a given address.
    * 
    * @param address 20 Bytes - address
-   * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block parameter
+   * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block
+   * parameter
    * @returns the code from the given address.
    */
   @assertArgLength(1, 2)
@@ -1124,12 +1070,7 @@ export default class EthereumApi implements types.Api {
       throw new Error(msg);
     }
 
-    let type: ExtractValuesFromType<typeof Transaction.types>;
-    if (isKnownAccount) {
-      type = Transaction.types.none;
-    } else {
-      type = Transaction.types.fake;
-    }
+    const type = isKnownAccount ? Transaction.types.none : Transaction.types.fake;
 
     const tx = Transaction.fromJSON(transaction, this.#common, type);
     if (tx.gasLimit.length === 0) {
@@ -1172,7 +1113,8 @@ export default class EthereumApi implements types.Api {
    * `sign(keccak256("\x19Ethereum Signed Message:\n" + message.length + message)))`.
    * 
    * By adding a prefix to the message makes the calculated signature 
-   * recognisable as an Ethereum specific signature. This prevents misuse where a malicious DApp can sign arbitrary data (e.g. transaction) and use the signature to impersonate the victim.
+   * recognizable as an Ethereum specific signature. This prevents misuse where a malicious DApp can sign arbitrary data
+   *  (e.g. transaction) and use the signature to impersonate the victim.
    * 
    * Note the address to sign with must be unlocked.
    * 
@@ -1246,7 +1188,7 @@ export default class EthereumApi implements types.Api {
    * @param subscriptionName 
    * @returns A subscription id.
    */
-  eth_subscribe(subscriptionName: "newHeads" | "newPendingTransactions" | "syncing" | "logs"): PromiEvent<Quantity>
+  eth_subscribe(subscriptionName: SubscriptionName): PromiEvent<Quantity>
   /**
    * Starts a subscription to a particular event. For every event that matches
    * the subscription a JSON-RPC notification with event details and 
@@ -1259,9 +1201,9 @@ export default class EthereumApi implements types.Api {
    *  * `topics`, only logs which match the specified topics
    * @returns A subscription id.
    */
-  eth_subscribe(subscriptionName: "logs", options: Pick<FilterArgs, "address" | "topics">): PromiEvent<Quantity>
+  eth_subscribe(subscriptionName: "logs", options: BaseFilterArgs): PromiEvent<Quantity>
   @assertArgLength(1, 2)
-  eth_subscribe(subscriptionName: "newHeads" | "newPendingTransactions" | "syncing" | "logs", options?: Pick<FilterArgs, "address" | "topics">) {
+  eth_subscribe(subscriptionName: SubscriptionName, options?: BaseFilterArgs) {
     const subscriptions = this.#subscriptions;
     switch (subscriptionName) {
       case "newHeads": {
@@ -1377,7 +1319,7 @@ export default class EthereumApi implements types.Api {
     const unsubscribe = this.#blockchain.on("block", (block: Block) => {
       value.updates.push(Data.from(block.value.hash(), 32));
     });
-    const value = {updates: [] as Data[], unsubscribe, filter: null as FilterArgs, type: FilterTypes.block};
+    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.block};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1394,7 +1336,7 @@ export default class EthereumApi implements types.Api {
     const unsubscribe = this.#blockchain.on("pendingTransaction", (transaction: Transaction) => {
       value.updates.push(Data.from(transaction.hash(), 32));
     });
-    const value = {updates: [] as Data[], unsubscribe, filter: null as FilterArgs, type: FilterTypes.pendingTransaction};
+    const value = {updates: [], unsubscribe, filter: null, type: FilterTypes.pendingTransaction};
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
     return filterId;
@@ -1425,7 +1367,7 @@ export default class EthereumApi implements types.Api {
    * @param filter The filter options
    */
   @assertArgLength(0, 1)
-  async eth_newFilter(filter: FilterArgs = {}) {
+  async eth_newFilter(filter: RangeFilterArgs = {}) {
     const blockchain = this.#blockchain;
     const { addresses, topics } = parseFilterDetails(filter);
     const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
@@ -1447,11 +1389,11 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Polling method for a filter, which returns an array of logs, block hashes,
-   * or transactions hashes, depending on the filter type, which occurred since
+   * or transaction hashes, depending on the filter type, which occurred since
    * last poll.
    * 
    * @param filterId the filter id.
-   * @returns an array of logs, block hashes, or transactions hashes, depending
+   * @returns an array of logs, block hashes, or transaction hashes, depending
    * on the filter type, which occurred since last poll.
    */
   @assertArgLength(1)
@@ -1506,31 +1448,40 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(1)
   async eth_getLogs(filter: FilterArgs) {
     const blockchain = this.#blockchain;
-    const blockLogs = blockchain.blockLogs;
-    const {addresses, topics, fromBlock, toBlockNumber} = parseFilter(filter, blockchain);
-    
-    const pendingLogsPromises: Promise<BlockLogs>[] = [blockLogs.get(fromBlock.toBuffer())];
+    if ("blockHash" in filter) {
+      const {addresses, topics} = parseFilterDetails(filter);
+      const blockNumber = await blockchain.blocks.getNumberFromHash(filter.blockHash);
+      if (!blockNumber) return [];
+      const blockLogs = blockchain.blockLogs;
+      const logs = await blockLogs.get(blockNumber);
+      return logs ? [...logs.filter(addresses, topics)] : [];
+    } else {
+      const {addresses, topics, fromBlock, toBlockNumber} = parseFilter(filter, blockchain);
+      
+      const blockLogs = blockchain.blockLogs;
+      const pendingLogsPromises: Promise<BlockLogs>[] = [blockLogs.get(fromBlock.toBuffer())];
 
-    const fromBlockNumber = fromBlock.toNumber();
-    // if we have a range of blocks to search, do that here:
-    if (fromBlockNumber !== toBlockNumber) {
-      // fetch all the blockLogs in-between `fromBlock` and `toBlock` (excluding
-      // from, because we already started fetching that one)
-      for (let i = fromBlockNumber + 1, l = toBlockNumber + 1; i < l; i++) {
-        pendingLogsPromises.push(blockLogs.get(Quantity.from(i).toBuffer()));
+      const fromBlockNumber = fromBlock.toNumber();
+      // if we have a range of blocks to search, do that here:
+      if (fromBlockNumber !== toBlockNumber) {
+        // fetch all the blockLogs in-between `fromBlock` and `toBlock` (excluding
+        // from, because we already started fetching that one)
+        for (let i = fromBlockNumber + 1, l = toBlockNumber + 1; i < l; i++) {
+          pendingLogsPromises.push(blockLogs.get(Quantity.from(i).toBuffer()));
+        }
       }
-    }
 
-    // now filter and compute all the blocks' blockLogs (in block order)
-    return Promise.all(pendingLogsPromises).then(blockLogsRange => {
-      const filteredBlockLogs: ReturnType<typeof BlockLogs["logToJSON"]>[] = [];
-      blockLogsRange.forEach(blockLogs => {
-        // TODO(perf): this loops over all expectedAddresseses for every block.
-        // Make it loop only once.
-        if (blockLogs) filteredBlockLogs.push(...blockLogs.filter(addresses, topics));
+      // now filter and compute all the blocks' blockLogs (in block order)
+      return Promise.all(pendingLogsPromises).then(blockLogsRange => {
+        const filteredBlockLogs: ReturnType<typeof BlockLogs["logToJSON"]>[] = [];
+        blockLogsRange.forEach(blockLogs => {
+          // TODO(perf): this loops over all expectedAddresseses for every block.
+          // Make it loop only once.
+          if (blockLogs) filteredBlockLogs.push(...blockLogs.filter(addresses, topics));
+        });
+        return filteredBlockLogs;
       });
-      return filteredBlockLogs;
-    });
+    }
   }
 
   /**

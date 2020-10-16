@@ -6,6 +6,7 @@ import {Quantity, Data} from "@ganache/utils";
 import Transaction from "../things/transaction";
 import {decode as rlpDecode} from "rlp";
 import Common from "ethereumjs-common";
+const NOTFOUND = 404;
 
 const EMPTY_BUFFER = Buffer.from([]);
 
@@ -101,12 +102,15 @@ export default class BlockManager extends Manager<Block> {
   }
 
   async getNumberFromHash(hash: string | Buffer | Tag) {
-    return this.#blockIndexes.get(Data.from(hash).toBuffer()) as Promise<Buffer>;
+    return this.#blockIndexes.get(Data.from(hash).toBuffer()).catch(e => {
+      if (e.status === NOTFOUND) return null;
+      throw e;
+    }) as Promise<Buffer | null>;
   }
 
   async getByHash(hash: string | Buffer | Tag) {
     const number = await this.getNumberFromHash(hash);
-    return super.get(number);
+    return number ? super.get(number) : null;
   }
 
   async getRaw(tagOrBlockNumber: string | Buffer | Tag) {

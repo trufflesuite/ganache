@@ -167,7 +167,7 @@ describe("api", () => {
           await testGetLogs("earliest", genesisBlockNumber, 0);
           await testGetLogs(genesisBlockNumber, "earliest", 0);
 
-          // test misc ranges not already tests
+          // test misc ranges not already tested
           await testGetLogs(genesisBlockNumber, deployBlockNumber, 1);
           await testGetLogs("earliest", deployBlockNumber, 1);
           await testGetLogs("earliest", "latest", numberOfLogs + 1);
@@ -179,6 +179,48 @@ describe("api", () => {
           await testGetLogs(emptyBlockNumber, lastBlockNumber, numberOfLogs);
           await testGetLogs(lastBlockNumber, "latest", 0);
           await testGetLogs("latest", lastBlockNumber, 0);
+        });
+        
+        it("should filter appropriately when using blockHash", async () => {
+          const genesisBlockNumber = "0x0";
+          const deployBlockNumber = "0x1";
+          const emptyBlockNumber = "0x2";
+          await provider.send("evm_mine"); // 0x2
+
+          await provider.send("eth_subscribe", ["newHeads"]);
+          const numberOfLogs = 4;
+          const data =  "0x" + contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] + numberOfLogs.toString().padStart(64, "0");
+          const txHash = await provider.send("eth_sendTransaction", [{
+            from: accounts[0],
+            to: contractAddress,
+            gas: 3141592,
+            data: data
+          }]); // 0x3
+          await provider.once("message");
+          const {blockHash} = await provider.send("eth_getTransactionReceipt", [txHash]);
+
+          async function testGetLogs(blockHash: string, expected: number, address: string = contractAddress){
+            const logs = await provider.send("eth_getLogs", [{address, blockHash}]);
+            assert.strictEqual(logs.length, expected, `there should be ${expected} log(s) at the ${blockHash} block`);
+          }
+
+          // tests blockHash
+          let { hash: genesisBlockHash } = await provider.send("eth_getBlockByNumber", [genesisBlockNumber]);
+          await testGetLogs(blockHash, 4);
+          await testGetLogs(genesisBlockHash, 0);
+          let { hash: deployBlockHash } = await provider.send("eth_getBlockByNumber", [deployBlockNumber]);
+          await testGetLogs(deployBlockHash, 1, null);
+          let { hash: emptyBlockHash } = await provider.send("eth_getBlockByNumber", [emptyBlockNumber]);
+          await testGetLogs(emptyBlockHash, 0);
+          const invalidBlockHash = "0x123456789"
+          await testGetLogs(invalidBlockHash, 0);
+
+          // mine an extra block
+          await provider.send("evm_mine");
+          await provider.once("message");
+
+          // make sure we still get the right data
+          await testGetLogs(blockHash, 4);
         });
       });
 

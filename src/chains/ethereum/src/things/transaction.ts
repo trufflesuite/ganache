@@ -12,8 +12,7 @@ import TransactionReceipt from "./transaction-receipt";
 import Common from "ethereumjs-common";
 import { TransactionLog } from "./blocklogs";
 import Address from "./address";
-
-type ExtractValuesFromType<T> = { [I in keyof T]: T[I] }[keyof T];
+import { ExtractValuesFromType } from "../types/extract-values-from-types";
 
 const MAX_UINT64 = (1n << 64n) - 1n;
 const ZERO_BUFFER = Buffer.from([0]);
