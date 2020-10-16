@@ -434,6 +434,39 @@ export default class EthereumApi implements types.Api {
     return Quantity.from(this.#blockchain.snapshot());
   }
 
+  /**
+   * Unlocks any unknown account.
+   * @param address address the address of the account to unlock
+   * @param duration (default: disabled) Duration in seconds how long the account 
+   * should remain unlocked for. Set to 0 to disable automatic locking.
+   * @returns `true` if the account was unlocked successfully, `false` if the
+   * account was already unlocked. Throws an error if the account could not be
+   * unlocked.
+   */
+  async evm_unlockUnknownAccount(address: string, duration: number = 0) {
+    return this.#wallet.unlockUnknownAccount(address.toLowerCase(), duration);
+  }
+
+  /**
+   * Locks any unknown account.
+   * 
+   * Note: accounts known to the `personal` namespace and accounts returned by
+   * `eth_accounts` cannot be locked using this method.
+   * 
+   * @param address address the address of the account to lock
+   * @returns `true` if the account was locked successfully, `false` if the
+   * account was already locked. Throws an error if the account could not be
+   * locked.
+   */
+  async evm_lockUnknownAccount(address: string) {
+    const lowerAddress = address.toLowerCase();
+    // if this is a known account, don'we can't unlock it this way
+    if (this.#wallet.knownAccounts.has(lowerAddress)) {
+      throw new Error("cannot lock known/personal account");
+    }
+    return this.#wallet.lockAccount(lowerAddress);
+  }
+
   //#endregion evm
 
   //#region miner
@@ -1640,7 +1673,7 @@ export default class EthereumApi implements types.Api {
    * @param address 20 Bytes - The address of the account to unlock.
    * @param passphrase Passphrase to unlock the account.
    * @param duration (default: 300) Duration in seconds how long the account 
-   * should remain unlocked for.
+   * should remain unlocked for. Set to 0 to disable automatic locking.
    * @returns true if it worked. Throws an error if it did not.
    */
   @assertArgLength(2, 3)

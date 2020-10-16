@@ -1,6 +1,7 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import { Quantity } from "@ganache/utils";
+import EthereumProvider from "../../../src/provider";
 
 function between(x: number, min: number, max: number) {
   return x >= min && x <= max;
@@ -93,6 +94,81 @@ describe("api", () => {
         const afterCount = parseInt(await provider.send("eth_getTransactionCount", [account]));
         assert.strictEqual(afterCount, newCount.toNumber());
       })
+    });
+
+    describe("evm_lockUnknownAccount/evm_unlockUnknownAccount", () => {
+      let accounts: string[], provider: EthereumProvider;
+      before(async() => {
+        provider = await getProvider();
+        accounts = await provider.send("eth_accounts");
+      });
+  
+      it("should unlock any account after server has been started", async() => {
+        const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+        const result1 = await provider.send("evm_unlockUnknownAccount", [address]);
+        assert.strictEqual(result1, true);
+  
+        // should return `false` if account was already locked
+        const result2 = await provider.send("evm_unlockUnknownAccount", [address]);
+        assert.strictEqual(result2, false);
+      });
+  
+      it("should not unlock any locked personal account", async() => {
+        const [address] = accounts;
+        await provider.send("personal_lockAccount", [address]);
+        try {
+          await assert.rejects(
+            provider.send("evm_unlockUnknownAccount", [{
+              message: "cannot unlock known/personal account"
+            }])
+          );
+        } finally {
+          // unlock the account
+          await provider.send("personal_unlockAccount", [address, "", 0]);
+        }
+      });
+  
+      it("should lock any unlocked unknown account via evm_lockUnknownAccount", async() => {
+        const address = "0x842d35Cc6634C0532925a3b844Bc454e4438f44f";
+        const unlockResult = await provider.send("evm_unlockUnknownAccount", [address]);
+        assert.strictEqual(unlockResult, true);
+  
+        const lockResult1 = await provider.send("evm_lockUnknownAccount", [address]);
+        assert.strictEqual(lockResult1, true);
+  
+        // bonus: also make sure we return false when the account is already locked:
+        const lockResult2 = await provider.send("evm_lockUnknownAccount", [address]);
+        assert.strictEqual(lockResult2, false);
+      });
+  
+      it("should not lock a known account via evm_lockUnknownAccount", async() => {
+        await assert.rejects(
+          provider.send("evm_lockUnknownAccount", [accounts[0]]),
+          {
+            message: "cannot lock known/personal account"
+          }
+        )
+      });
+  
+      it("should not lock a personal account via evm_lockUnknownAccount", async() => {
+        // create a new personal account
+        const address = await provider.send("personal_newAccount", ["password"]);
+  
+        // then explicitly unlock it
+        const result = await provider.send("personal_unlockAccount", [address, "password", 0]);
+        assert.strictEqual(result, true);
+  
+        // then try to lock it via evm_lockUnknownAccount
+        await assert.rejects(provider.send("evm_lockUnknownAccount", [address]), {
+          message: "cannot lock known/personal account"
+        });
+      });
+  
+      it("should return `false` upon lock if account isn't locked (unknown account)", async() => {
+        const address = "0x942d35Cc6634C0532925a3b844Bc454e4438f450";
+        const result = await provider.send("evm_lockUnknownAccount", [address]);
+        assert.strictEqual(result, false);
+      });
     });
   });
 });

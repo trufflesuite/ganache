@@ -332,6 +332,30 @@ export default class Wallet {
     return true;
   }
 
+  public async unlockUnknownAccount(lowerAddress: string, duration: number) {
+    if (this.unlockedAccounts.has(lowerAddress)) {
+      // already unlocked, return `false` since we didn't do anything
+      return false;
+    }
+
+    // if we "know" about this account, it cannot be unlocked this way
+    if (this.knownAccounts.has(lowerAddress)) {
+      throw new Error("cannot unlock known/personal account");
+    }
+
+    // a duration <= 0 will remain unlocked
+    const durationMs = (duration * 1000) | 0;
+    if (durationMs > 0) {
+      const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
+      utils.unref(timeout);
+      this.lockTimers.set(lowerAddress, timeout);
+    }
+
+    // otherwise, unlock it!
+    this.unlockedAccounts.set(lowerAddress, null);
+    return true;
+  }
+
   #lockAccount = (lowerAddress: string) => {
     this.lockTimers.delete(lowerAddress);
     this.unlockedAccounts.delete(lowerAddress);
@@ -339,6 +363,8 @@ export default class Wallet {
   }
 
   public lockAccount(lowerAddress: string) {
+    if (!this.unlockedAccounts.has(lowerAddress)) return false;
+
     clearTimeout(this.lockTimers.get(lowerAddress) as number);
     return this.#lockAccount(lowerAddress);
   }
