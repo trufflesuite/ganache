@@ -555,13 +555,12 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
-   * Returns true if client is actively listening for network connections.
-   * @returns true when listening, otherwise false.
+   * Returns `true` if client is actively listening for network connections.
+   * @returns `true` when listening, otherwise `false`.
    */
   @assertArgLength(0)
   async net_listening() {
-    // TODO: this should return false when ganache isn't used with a server, or
-    // or while the server is still initializing.
+    // TODO: this should return false when ganache isn't used with a server.
     return true;
   }
 
@@ -1508,8 +1507,8 @@ export default class EthereumApi implements types.Api {
       return Promise.all(pendingLogsPromises).then(blockLogsRange => {
         const filteredBlockLogs: ReturnType<typeof BlockLogs["logToJSON"]>[] = [];
         blockLogsRange.forEach(blockLogs => {
-          // TODO(perf): this loops over all expectedAddresseses for every block.
-          // Make it loop only once.
+          // TODO(perf): this loops over all addresses for every block.
+          // Maybe make it loop only once?
           if (blockLogs) filteredBlockLogs.push(...blockLogs.filter(addresses, topics));
         });
         return filteredBlockLogs;
