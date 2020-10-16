@@ -420,8 +420,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     const hash = currentBlockHeader.hash();
     const stateRoot = currentBlockHeader.stateRoot;
 
-    // TODO: logger.log...
-    // self.logger.log("Saved snapshot #" + self.snapshots.length);
+    this.#options.logging.logger.log("Saved snapshot #" + this.#snapshots.length);
     
     return this.#snapshots.push({
       hash,
@@ -450,8 +449,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       throw new Error("invalid snapshotId");
     }
 
-    // TODO: logger.log...
-    // this.logger.log("Reverting to snapshot #" + snapshotId);
+    this.#options.logging.logger.log("Reverting to snapshot #" + snapshotId);
 
     const snapshotNumber = rawValue - 1n;
     if (snapshotNumber < 0n) {
