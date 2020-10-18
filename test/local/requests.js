@@ -1034,6 +1034,7 @@ const tests = function(web3) {
       const receipt = await web3.eth.sendTransaction(txData);
       assert.strictEqual(receipt.logs.length, 1, "Receipt had wrong amount of logs");
       assert.strictEqual(receipt.logs[0].blockHash, receipt.blockHash, "Logs blockhash doesn't match block blockhash");
+      assert.strictEqual(typeof receipt.logs[0].removed, "boolean", "Logs removed field missing or not a boolean");
 
       // Now double check the data was set properly.
       // NOTE: Because ethereumjs-testrpc processes transactions immediately,
