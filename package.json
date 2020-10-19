@@ -27,12 +27,8 @@
   },
   "bundleDependencies": [
     "keccak",
-    "web3-provider-engine",
-    "async",
-    "clone",
-    "ethereumjs-common",
-    "lodash",
-    "request"
+    "ethereumjs-abi",
+    "ethereumjs-util"
   ],
   "dependencies": {
     "abstract-leveldown": "3.0.0",
@@ -43,7 +39,7 @@
     "debug": "3.2.6",
     "encoding-down": "5.0.4",
     "eth-sig-util": "2.3.0",
-    "ethereumjs-abi": "0.6.7",
+    "ethereumjs-abi": "github:ethereumjs/ethereumjs-abi#1ce6a1d64235fabe2aaf827fd606def55693508f",
     "ethereumjs-account": "3.0.0",
     "ethereumjs-block": "2.2.2",
     "ethereumjs-common": "1.5.0",
