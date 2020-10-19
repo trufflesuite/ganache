@@ -27,7 +27,14 @@
   },
   "bundleDependencies": [
     "keccak",
-    "web3-provider-engine"
+    "web3-provider-engine",
+    "async",
+    "clone",
+    "ethereumjs-abi",
+    "ethereumjs-common",
+    "ethereumjs-util",
+    "lodash",
+    "request"
   ],
   "dependencies": {
     "abstract-leveldown": "3.0.0",
