@@ -5457,16 +5457,6 @@
         "setimmediate": "^1.0.5"
       }
     },
-    "node_modules/ethereumjs-abi": {
-      "version": "0.6.8",
-      "resolved": "git+ssh://git@github.com/ethereumjs/ethereumjs-abi.git#1ce6a1d64235fabe2aaf827fd606def55693508f",
-      "inBundle": true,
-      "license": "MIT",
-      "dependencies": {
-        "bn.js": "^4.11.8",
-        "ethereumjs-util": "^6.0.0"
-      }
-    },
     "node_modules/ethereumjs-account": {
       "version": "3.0.0",
       "resolved": "https://registry.npmjs.org/ethereumjs-account/-/ethereumjs-account-3.0.0.tgz",
@@ -12664,9 +12654,9 @@
       "dev": true
     },
     "node_modules/resolve": {
-      "version": "1.18.0",
-      "resolved": "https://registry.npmjs.org/resolve/-/resolve-1.18.0.tgz",
-      "integrity": "sha512-qhdohlSALEa6vW2S28IbVilioXLddMz6eA85B7WMfG9lqI+ubAX5hQUbbnk5oqcxRlZXcr+HqCXOE3/R4yg0cQ==",
+      "version": "1.18.1",
+      "resolved": "https://registry.npmjs.org/resolve/-/resolve-1.18.1.tgz",
+      "integrity": "sha512-lDfCPaMKfOJXjy0dPayzPdF1phampNWr3qFCjAu+rw/qbQmr5jWH5xN2hwh9QKfw9E5v4hwV7A+jrCmL8yjjqA==",
       "dev": true,
       "dependencies": {
         "is-core-module": "^2.0.0",
@@ -15702,7 +15692,7 @@
         "cross-fetch": "^2.1.0",
         "eth-block-tracker": "^3.0.0",
         "eth-json-rpc-infura": "^3.1.0",
-        "eth-sig-util": "^1.4.2",
+        "eth-sig-util": "^2.0.0",
         "ethereumjs-block": "^1.2.2",
         "ethereumjs-tx": "^1.2.0",
         "ethereumjs-util": "^5.1.5",
@@ -15734,16 +15724,6 @@
       "inBundle": true,
       "dependencies": {
         "abstract-leveldown": "~2.6.0"
-      }
-    },
-    "node_modules/web3-provider-engine/node_modules/eth-sig-util": {
-      "version": "1.4.2",
-      "resolved": "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-1.4.2.tgz",
-      "integrity": "sha1-jZWCAsftuq6Dlwf7pvCf8ydgYhA=",
-      "inBundle": true,
-      "dependencies": {
-        "ethereumjs-abi": "git+https://github.com/ethereumjs/ethereumjs-abi.git",
-        "ethereumjs-util": "^5.1.1"
       }
     },
     "node_modules/web3-provider-engine/node_modules/ethereumjs-account": {
@@ -21734,14 +21714,6 @@
         "setimmediate": "^1.0.5"
       }
     },
-    "ethereumjs-abi": {
-      "version": "git+ssh://git@github.com/ethereumjs/ethereumjs-abi.git#1ce6a1d64235fabe2aaf827fd606def55693508f",
-      "from": "ethereumjs-abi@0.6.8",
-      "requires": {
-        "bn.js": "^4.11.8",
-        "ethereumjs-util": "^6.0.0"
-      }
-    },
     "ethereumjs-account": {
       "version": "3.0.0",
       "resolved": "https://registry.npmjs.org/ethereumjs-account/-/ethereumjs-account-3.0.0.tgz",
@@ -27487,9 +27459,9 @@
       "dev": true
     },
     "resolve": {
-      "version": "1.18.0",
-      "resolved": "https://registry.npmjs.org/resolve/-/resolve-1.18.0.tgz",
-      "integrity": "sha512-qhdohlSALEa6vW2S28IbVilioXLddMz6eA85B7WMfG9lqI+ubAX5hQUbbnk5oqcxRlZXcr+HqCXOE3/R4yg0cQ==",
+      "version": "1.18.1",
+      "resolved": "https://registry.npmjs.org/resolve/-/resolve-1.18.1.tgz",
+      "integrity": "sha512-lDfCPaMKfOJXjy0dPayzPdF1phampNWr3qFCjAu+rw/qbQmr5jWH5xN2hwh9QKfw9E5v4hwV7A+jrCmL8yjjqA==",
       "dev": true,
       "requires": {
         "is-core-module": "^2.0.0",
@@ -29957,7 +29929,7 @@
         "cross-fetch": "^2.1.0",
         "eth-block-tracker": "^3.0.0",
         "eth-json-rpc-infura": "^3.1.0",
-        "eth-sig-util": "^1.4.2",
+        "eth-sig-util": "^2.0.0",
         "ethereumjs-block": "^1.2.2",
         "ethereumjs-tx": "^1.2.0",
         "ethereumjs-util": "^5.1.5",
@@ -29987,15 +29959,6 @@
           "integrity": "sha512-uukrWD2bguRtXilKt6cAWKyoXrTSMo5m7crUdLfWQmu8kIm88w3QZoUL+6nhpfKVmhHANER6Re3sKoNoZ3IKMA==",
           "requires": {
             "abstract-leveldown": "~2.6.0"
-          }
-        },
-        "eth-sig-util": {
-          "version": "1.4.2",
-          "resolved": "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-1.4.2.tgz",
-          "integrity": "sha1-jZWCAsftuq6Dlwf7pvCf8ydgYhA=",
-          "requires": {
-            "ethereumjs-abi": "git+https://github.com/ethereumjs/ethereumjs-abi.git",
-            "ethereumjs-util": "^5.1.1"
           }
         },
         "ethereumjs-account": {
