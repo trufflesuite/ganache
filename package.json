@@ -27,9 +27,7 @@
   },
   "bundleDependencies": [
     "keccak",
-    "eth-sig-util",
-    "ethereumjs-abi",
-    "ethereumjs-util"
+    "web3-provider-engine"
   ],
   "dependencies": {
     "abstract-leveldown": "3.0.0",
@@ -39,7 +37,7 @@
     "clone": "2.1.2",
     "debug": "3.2.6",
     "encoding-down": "5.0.4",
-    "eth-sig-util": "^1.4.2",
+    "eth-sig-util": "^2.0.0",
     "ethereumjs-abi": "0.6.8",
     "ethereumjs-account": "3.0.0",
     "ethereumjs-block": "2.2.2",
