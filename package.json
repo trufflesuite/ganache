@@ -16,7 +16,7 @@
     "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
     "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
     "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
-    "prepare": "patch-package",
+    "prepare": "patch-package --exclude 'nothing'",
     "prepublishOnly": "npm run test && npm run build && npm run test-build && npm prune --production && mv npm-shrinkwrap.json npm-shrinkwrap.json.bak && npm shrinkwrap",
     "postpublish": "rm npm-shrinkwrap.json && mv npm-shrinkwrap.json.bak npm-shrinkwrap.json && npm ci",
     "test": "npm run _lint && npm run nyc_mocha ./test/local",
