@@ -1,0 +1,13 @@
+diff --git a/node_modules/eth-sig-util/package.json b/node_modules/eth-sig-util/package.json
+index 81d1469..fda1265 100644
+--- a/node_modules/eth-sig-util/package.json
++++ b/node_modules/eth-sig-util/package.json
+@@ -21,7 +21,7 @@
+   },
+   "homepage": "https://github.com/flyswatter/eth-sig-util#readme",
+   "dependencies": {
+-    "ethereumjs-abi": "git+https://github.com/ethereumjs/ethereumjs-abi.git",
++    "ethereumjs-abi": "0.6.8",
+     "ethereumjs-util": "^5.1.1"
+   },
+   "devDependencies": {
