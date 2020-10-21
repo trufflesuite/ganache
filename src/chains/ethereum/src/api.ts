@@ -28,6 +28,7 @@ import { assertArgLength } from "./helpers/assert-arg-length";
 import Account from "./things/account";
 import { SubscriptionId, SubscriptionName } from "./types/subscriptions";
 import { parseFilter, parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
+import { Hardfork } from "./options/chain-options";
 //#endregion
 
 //#region Constants
@@ -68,29 +69,47 @@ function assertExceptionalTransactions(transactions: Transaction[]) {
     throw err;
   }
 }
+
+function parseCoinbaseAddress(coinbase: string | number | Address, initialAccounts: Account[]) {
+  switch (typeof coinbase) {
+    case "object":
+      return coinbase;
+    case "number":
+      const account = initialAccounts[coinbase];
+      if (account) {
+        return account.address;
+      } else {
+        throw new Error(`invalid coinbase address index: ${coinbase}`);
+      }
+    case "string":
+      return Address.from(coinbase);
+    default: {
+      throw new Error(`coinbase address must be string or number, received: ${coinbase}`);
+    }
+  }
+}
+
+function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
+  return Common.forCustomChain(
+    // if we were given a chain id that matches a real chain, use it
+    // NOTE: I don't think Common serves a purpose ther than instructing the
+    // VM what hardfork is in use. But just incase things change in the future
+    // its configured "more correctly" here.
+    KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
+    {
+      name: "ganache",
+      networkId: networkId,
+      chainId: chainId,
+      comment: "Local test network"
+    },
+    hardfork
+  );
+}
 //#endregion helpers
 
 export default class EthereumApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
-   readonly #parseCoinbaseAddress = (coinbase: string | number | Address, initialAccounts: Account[]) => {
-    switch (typeof coinbase) {
-      case "object":
-        return coinbase;
-      case "number":
-        const account = initialAccounts[coinbase];
-        if (account) {
-          return  account.address;
-        } else {
-          throw new Error(`invalid coinbase address index: ${coinbase}`);
-        }
-      case "string":
-        return  Address.from(coinbase);
-      default: {
-        throw new Error(`coinbase address must be string or number, received: ${coinbase}`);
-      }
-    }
-  }
   readonly #getId = ((id) => () => Quantity.from(++id))(0);
   readonly #common: Common;
   readonly #filters = new Map<string, Filter>();
@@ -107,34 +126,16 @@ export default class EthereumApi implements types.Api {
    * @param ready Callback for when the API is fully initialized
    */
   constructor(options: EthereumInternalOptions, emitter: Emittery.Typed<{message: any}, "connect" | "disconnect">) {
-    const opts = (this.#options = options);
+    this.#options = options;
 
-    const {initialAccounts} = this.#wallet = new Wallet(opts.wallet);
-
-    const coinbaseAddress = this.#parseCoinbaseAddress(options.miner.coinbase, initialAccounts);
-
-    const common = this.#common = Common.forCustomChain(
-      // if we were given a chain id that matches a real chain, use it
-      // NOTE: I don't think Common serves a purpose ther than instructing the
-      // VM what hardfork is in use. But just incase things change in the future
-      // its configured "more correctly" here.
-      KNOWN_CHAINIDS.has(options.chain.chainId) ? options.chain.chainId : 1,
-      {
-        name: "ganache",
-        networkId: options.chain.networkId,
-        chainId: options.chain.chainId,
-        comment: "Local test network"
-      },
-      options.chain.hardfork
-    );
+    const chain = options.chain;
+    const {initialAccounts} = this.#wallet = new Wallet(options.wallet);
+    const coinbaseAddress = parseCoinbaseAddress(options.miner.coinbase, initialAccounts);
+    const common = this.#common = createCommon(chain.chainId, chain.networkId, chain.hardfork);
    
     const blockchain = (this.#blockchain = new Blockchain(options, common, initialAccounts, coinbaseAddress));
-    blockchain.on("start", () => {
-      emitter.emit("connect");
-    });
-    emitter.on("disconnect", () => {
-      return blockchain.stop();
-    });
+    blockchain.on("start", () => emitter.emit("connect"));
+    emitter.on("disconnect", blockchain.stop.bind(blockchain));
   }
 
   //#region db
