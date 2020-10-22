@@ -389,7 +389,7 @@ describe("api", () => {
     });
 
     it("eth_getTransactionReceipt", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+      await provider.send("eth_subscribe", ["newHeads"]);
       const hash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
@@ -404,7 +404,7 @@ describe("api", () => {
     });
 
     it("eth_getTransactionByHash", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+      await provider.send("eth_subscribe", ["newHeads"]);
       const hash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
