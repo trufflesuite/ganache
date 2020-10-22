@@ -29581,7 +29581,7 @@
         },
         "ethereumjs-abi": {
           "version": "git+ssh://git@github.com/ethereumjs/ethereumjs-abi.git#1ce6a1d64235fabe2aaf827fd606def55693508f",
-          "from": "ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git",
+          "from": "git+https://github.com/ethereumjs/ethereumjs-abi.git",
           "requires": {
             "bn.js": "^4.11.8",
             "ethereumjs-util": "^6.0.0"
