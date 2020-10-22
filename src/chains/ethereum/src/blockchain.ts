@@ -25,7 +25,7 @@ import BlockLogManager from "./data-managers/blocklog-manager";
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 import { EthereumInternalOptions } from "./options";
-
+import { Snapshots } from "./types/snapshots";
 
 type SimulationTransaction = {
   /**
@@ -69,10 +69,26 @@ export enum Status {
 type BlockchainTypedEvents = {block: Block, blockLogs: BlockLogs, pendingTransaction: Transaction};
 type BlockchainEvents = "start" | "stop" | "step";
 
+/**
+ * Sets the provided VM state manager's state root *without* first
+ * checking for checkpoints or flushing the existing cache.
+ * 
+ * Useful if you know the state manager is not in a checkpoint and its internal
+ * cache is safe to discard.
+ * 
+ * @param stateManager
+ * @param stateRoot
+ */
+function setStateRootSync(stateManager: VM["stateManager"], stateRoot: Buffer) {
+  stateManager._trie.root = stateRoot;
+  stateManager._cache.clear();
+  stateManager._storageTries = {};
+}
+
 export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, BlockchainEvents> {
   #state: Status = Status.starting;
   #miner: Miner;
-  #processingBlock: Promise<{block: Block, blockLogs: BlockLogs}>;
+  #blockBeingSavedPromise: Promise<{block: Block, blockLogs: BlockLogs}>;
   public blocks: BlockManager;
   public blockLogs: BlockLogManager;
   public transactions: TransactionManager;
@@ -80,6 +96,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
   public accounts: AccountManager;
   public vm: VM;
   public trie: CheckpointTrie;
+
   readonly #database: Database;
   readonly #common: Common;
   readonly #options: EthereumInternalOptions;
@@ -108,11 +125,11 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
       if (instamine === false) {
         if (legacyInstamine === true) {
-          console.warn("Setting `legacyInstamine` to `true` has no effect when blockTime is 0 (default)");
+          console.warn("Setting `legacyInstamine` to `true` has no effect when blockTime is non-zero");
         }
 
         if (options.chain.vmErrorsOnRPCResponse) {
-          console.warn("Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is 0 (default)");
+          console.warn("Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero");
         }
       }
     }
@@ -124,7 +141,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       // if we have a latest block, use it to set up the trie.
       const latest = blocks.latest;
       if (latest) {
-        this.#processingBlock = Promise.resolve({block: latest, blockLogs: null});
+        this.#blockBeingSavedPromise = Promise.resolve({block: latest, blockLogs: null});
         this.trie = new CheckpointTrie(database.trie, latest.value.header.stateRoot);
       } else {
         this.trie = new CheckpointTrie(database.trie, null);
@@ -158,8 +175,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
         // if we don't already have a latest block, create a genesis block!
         if (!latest) {
-          this.#processingBlock = this.#initializeGenesisBlock(firstBlockTime, options.miner.blockGasLimit);
-          blocks.earliest = blocks.latest = await this.#processingBlock.then(({block}) => block);
+          this.#blockBeingSavedPromise = this.#initializeGenesisBlock(firstBlockTime, options.miner.blockGasLimit);
+          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(({block}) => block);
         }
       }
 
@@ -169,19 +186,19 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         const miner = this.#miner = new Miner(options.miner, instamine, this.vm, this.#readyNextBlock);
 
         { // automatic mining
-          const mineAll = async () => this.#isPaused() ? null : this.mine(1);
+          const mineAll = async (maxTransactions: number) => this.#isPaused() ? null : this.mine(maxTransactions);
           if (instamine) { // insta mining
             // whenever the transaction pool is drained mine the txs into blocks
-            this.transactions.transactionPool.on("drain", mineAll);
+            this.transactions.transactionPool.on("drain", mineAll.bind(null, 1));
           } else { // interval mining
             const wait = () => unref(setTimeout(mineNext, options.miner.blockTime * 1000));
-            const mineNext = () => mineAll().then(wait);
+            const mineNext = () => mineAll(-1).then(wait);
             wait();
           }
         }
 
         miner.on("block", async (blockData: any) => {
-          await this.#processingBlock;
+          await this.#blockBeingSavedPromise;
           const previousBlock = blocks.latest;
           const previousHeader = previousBlock.value.header;
           const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
@@ -201,7 +218,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           blocks.latest = block;
           const value = block.value;
           const header = value.header;
-          this.#processingBlock = database.batch(() => {
+          this.#blockBeingSavedPromise = database.batch(() => {
             const blockHash = value.hash();
             const blockNumber = header.number;
             const blockNumberQ = Quantity.from(blockNumber);
@@ -257,8 +274,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           });
 
           // emit the block once everything has been fully saved to the database
-          return this.#processingBlock.then(({block, blockLogs}) => {
-            blocks.latest = block;
+          return this.#blockBeingSavedPromise.then(({block, blockLogs}) => {
             if (instamine && options.miner.legacyInstamine) {
               block.value.transactions.forEach(transaction => {
                 const error = options.chain.vmErrorsOnRPCResponse ? transaction.execException : null
@@ -298,12 +314,12 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }).value;
   }
 
-  isMining = () => {
+  isStarted = () => {
     return this.#state === Status.started;
   }
 
   mine = async (maxTransactions: number, timestamp?: number, onlyOneBlock: boolean = false) => {
-    await this.#processingBlock;
+    await this.#blockBeingSavedPromise;
     const nextBlock = this.#readyNextBlock(this.blocks.latest.value, timestamp);
     return this.#miner.mine(this.transactions.transactionPool.executables, nextBlock, maxTransactions, onlyOneBlock);
   }
@@ -412,38 +428,59 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     return this.#timeAdjustment = timestamp - Date.now();
   }
 
-  // TODO(perf): this.#snapshots is a potential unbound memory suck. Caller could call `evm_snapshot` over and over
-  // to grow the snapshot stack indefinitely
-  #snapshots: any[] = [];
-  public snapshot() {
-    const currentBlockHeader = this.blocks.latest.value.header;
-    const hash = currentBlockHeader.hash();
-    const stateRoot = currentBlockHeader.stateRoot;
-
-    this.#options.logging.logger.log("Saved snapshot #" + this.#snapshots.length);
-    
-    return this.#snapshots.push({
-      hash,
-      stateRoot,
-      timeAdjustment: this.#timeAdjustment
-    });
-  }
-
-  #deleteBlockData = (block: Block) => {
-    const blocks = this.blocks;
+  #deleteBlockData = (blocksToDelete: Block[]) => {
     return this.#database.batch(() => {
-      blocks.del(block.value.header.number);
-      blocks.del(block.value.header.hash());
-      this.blockLogs.del(block.value.header.number);
-      block.value.transactions.forEach(tx => {
-        const txHash = tx.hash();
-        this.transactions.del(txHash);
-        this.transactionReceipts.del(txHash);
+      const {blocks, transactions, transactionReceipts, blockLogs} = this;
+      blocksToDelete.forEach(({value}) => {
+        value.transactions.forEach(tx => {
+          const txHash = tx.hash();
+          transactions.del(txHash);
+          transactionReceipts.del(txHash);
+        });
+        blocks.del(value.header.number);
+        blocks.del(value.header.hash());
+        blockLogs.del(value.header.number);
       });
     });
   }
-  public async revert(snapshotId: Quantity) {
 
+
+  // TODO(stability): this.#snapshots is a potential unbound memory suck. Caller
+  // could call `evm_snapshot` over and over to grow the snapshot stack
+  // indefinitely. `this.#snapshots.blocks` is even worse. To solve this we
+  // might need to store in the db. An unlikely real problem, but possible.
+  #snapshots: Snapshots = {
+    snaps: [],
+    blocks: null,
+    unsubscribeFromBlocks: null
+  };
+
+  public snapshot() {
+    const snapshots = this.#snapshots;
+    const snaps = snapshots.snaps;
+    
+    // Subscription ids are based on the number of active snapshots. Weird? Yes.
+    // But it's the way it's been since the beginning so it just hasn't been
+    // changed. Feel free to change it so ids are unique if it bothers you
+    // enough.
+    const id = snaps.push({
+      block: this.blocks.latest,
+      timeAdjustment: this.#timeAdjustment
+    });
+
+    // start listening to new blocks if this is the first snapshot
+    if (id === 1) {
+      snapshots.unsubscribeFromBlocks = this.on("block", (block) => {
+        snapshots.blocks = {current: block.value.hash(), next: snapshots.blocks};
+      });
+    }
+
+    this.#options.logging.logger.log("Saved snapshot #" + id);
+
+    return id;
+  }
+
+  public async revert(snapshotId: Quantity) {
     const rawValue = snapshotId.valueOf();
     if (rawValue === null || rawValue === undefined) {
       throw new Error("invalid snapshotId");
@@ -451,72 +488,87 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
     this.#options.logging.logger.log("Reverting to snapshot #" + snapshotId);
 
-    const snapshotNumber = rawValue - 1n;
-    if (snapshotNumber < 0n) {
+    // snapshot ids can't be < 1, so we do a quick sanity check here
+    if (rawValue < 1n) {
       return false;
     }
 
-    const snapshotsToRemove = this.#snapshots.splice(Number(snapshotNumber));
-    const snapshot = snapshotsToRemove.shift();
+    const snapshots = this.#snapshots;
+    const snaps = snapshots.snaps;
+    const snapshotIndex = Number(rawValue - 1n);
+    const snapshot = snaps[snapshotIndex];
 
     if (!snapshot) {
       return false;
     }
 
-    const blocks = this.blocks;
-    const currentBlock = blocks.latest;
-    const currentHash = currentBlock.value.header.hash();
-    const snapshotHash = snapshot.hash;
+    // pause processing new transactions...
+    this.transactions.pause();
 
-    // if nothing was added since we snapshotted just return immediately.
-    if (currentHash.equals(snapshotHash)) {
-      return true;
-    } else {
-      const stateManager = this.vm.stateManager;
-      // TODO: we may need to ensure nothing can be written to the blockchain
-      // whilst setting the state root, otherwise we could get into weird states.
-      // Additionally, if something has created a vm checkpoint `setStateRoot`
-      // will fail anyway.
-      const settingStateRootProm = promisify(stateManager.setStateRoot.bind(stateManager))(
-        snapshot.stateRoot
-      );
-      const getBlockProm = this.blocks.getByHash(snapshotHash);
-
-      // TODO(perf): lazily clean up the database. Get all blocks created since our reverted
-      // snapshot was created, and delete them, and their transaction data.
-      // TODO(perf): look into optimizing this to delete from all reverted snapshots.
-      //   the current approach looks at each block, finds its parent, then
-      //   finds its parent, and so on until we reach our target block. Whenever
-      //   we revert a snapshot, we may also throwing away several others, and
-      //   there may be an optimization here by querying for those other
-      //   snapshots' blocks simultaneously.
-      let nextBlock = currentBlock;
-      const promises = [getBlockProm, settingStateRootProm] as [Promise<Block>, ...Promise<unknown>[]];
-      do {
-        promises.push(this.#deleteBlockData(nextBlock));
-        const header = nextBlock.value.header
-        if (header.parentHash.equals(snapshotHash)) {
-          break;
-        } else {
-          nextBlock = await blocks.getByHash(header.parentHash);
-        }
-      } while(nextBlock);
-
-      const [latest] = await Promise.all(promises);
-      this.blocks.latest = latest as Block;
-      // put our time back!
-      this.#timeAdjustment = snapshot.timeAdjustment;
-      // update our cached "latest" block
-      return true;
+    // if the miner is currently busy mining transactions wait until it is done
+    // before resetting everything.
+    if (this.#miner.isBusy()) {
+      await this.#miner.once("idle");
     }
+    // wait for any blocks that are currently in the process of being saved to
+    // the database.
+    await this.#blockBeingSavedPromise;
+
+    // Pending transactions are always removed when you revert, even if they
+    // were present before the snapshot was created. Ideally, we'd remove only
+    // the new transactions.. but we'll leave that for another day.
+    this.transactions.clear();
+
+    const blocks = this.blocks;
+    const currentHash = blocks.latest.value.header.hash();
+    const snapshotBlock = snapshot.block;
+    const snapshotHeader = snapshotBlock.value.header;
+    const snapshotHash = snapshotHeader.hash();
+
+    // remove this and all stored snapshots after this snapshot
+    snaps.splice(snapshotIndex);
+
+    // if there are no more listeners, stop listening to new blocks
+    if (snaps.length === 0) {
+      snapshots.unsubscribeFromBlocks();
+    }
+
+    // if the snapshot's hash is different than the latest block's hash we've
+    // got new blocks to clean up.
+    if (!currentHash.equals(snapshotHash)) {
+      // if we've added blocks since we snapshotted we need to delete them and put
+      // some things back the way they were.
+      const blockPromises = [];
+      let blockList = snapshots.blocks;
+      while (blockList !== null) {
+        if (blockList.current.equals(snapshotHash)) break;
+        blockPromises.push(blocks.getByHash(blockList.current));
+        blockList = blockList.next;
+      }
+      snapshots.blocks = blockList;
+
+      await Promise.all(blockPromises).then(this.#deleteBlockData);
+
+      setStateRootSync(this.vm.stateManager, snapshotHeader.stateRoot);
+      blocks.latest = snapshotBlock;
+    }
+
+    // put our time adjustment back
+    this.#timeAdjustment = snapshot.timeAdjustment;
+
+    // resume processing transactions
+    this.transactions.resume();
+
+    return true;
   }
 
   public async queueTransaction(transaction: Transaction, secretKey?: Data) {
-    // NOTE: this.transactions.push *must* be awaited before returning the
+    // NOTE: this.transactions.add *must* be awaited before returning the
     // `transaction.hash()`, as the transactionPool may change the transaction
     // (and thus its hash!)
     // It may also throw Errors that must be returned to the caller.
-    if ( (await this.transactions.push(transaction, secretKey) === true) ) {
+    const isExecutable = await this.transactions.add(transaction, secretKey) === true;
+    if ( isExecutable ) {
       process.nextTick(this.emit.bind(this), "pendingTransaction", transaction);
     }
 

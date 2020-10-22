@@ -1,4 +1,3 @@
-import Account from "./things/account";
 import Emittery from "emittery";
 import Blockchain from "./blockchain";
 import {utils} from "@ganache/utils";
@@ -28,7 +27,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   }
   public readonly executables: Map<string, utils.Heap<Transaction>> = new Map();
   readonly #origins: Map<string, utils.Heap<Transaction>> = new Map();
-  readonly #accountPromises = new Map<string, PromiseLike<Account>>();
+  readonly #accountPromises = new Map<string, Promise<Quantity>>();
 
   /**
    * Inserts a transaction into the pending queue, if executable, or future pool
@@ -36,12 +35,12 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
    * 
    * @param transaction 
    * @param secretKey 
-   * @returns `true` if the transaction is executable (pending), `false` if it is queued
+   * @returns data that can be used to drain the queue
    */
-  public async insert(transaction: Transaction, secretKey?: Data) {
+  public async prepareTransaction(transaction: Transaction, secretKey?: Data) {
     let err: Error;
 
-    err = this.validateTransaction(transaction);
+    err = this.#validateTransaction(transaction);
     if (err != null) {
       throw err;
     }
@@ -57,13 +56,20 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     const origin = from.toString();
     const origins = this.#origins;
-    let queuedOriginTransactions = origins.get(origin);
+    const queuedOriginTransactions = origins.get(origin);
 
-    // Note: we need to lock on this async request to ensure we always process
-    // incoming requests in the order they were received! It is possible for
-    // the file IO performed by `accounts.get` to vary.
-    let transactorPromise = this.#accountPromises.get(origin);
-    transactorPromise && await transactorPromise;
+    // We await the `transactorNoncePromise` async request to ensure we process
+    // transactions in FIFO order *by account*. We look up accounts because
+    // ganache fills in missing nonces automatically, and we need to do it in
+    // order.
+    // The trick here is that we might actually get the next nonce from the
+    // account's pending executable transactions, not the account...
+    // But another transaction might currently be getting the nonce from the
+    // account, if it is, we need to wait for it to be done doing that. Hence:
+    let transactorNoncePromise = this.#accountPromises.get(origin);
+    if (transactorNoncePromise) {
+      await transactorNoncePromise;
+    }
 
     // we should _probably_ cache `highestNonce`, but it's actually a really hard thing to cache as the current highest
     // nonce might be invalidated (like if the sender doesn't have enough funds), so we'd have to go back to the previous
@@ -135,16 +141,18 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         highestNonce = transactionNonce;
       }
     } else {
-      if (!transactorPromise) {
-        transactorPromise = this.#blockchain.accounts.get(from)
-        this.#accountPromises.set(origin, transactorPromise);
-        transactorPromise.then(() => {
+      // since we don't have any executable transactions at the moment, we need
+      // to find our nonce from the account itself...
+      if (!transactorNoncePromise) {
+        transactorNoncePromise = this.#blockchain.accounts.getNonce(from);
+        this.#accountPromises.set(origin, transactorNoncePromise);
+        transactorNoncePromise.then(() => {
           this.#accountPromises.delete(origin);
         });
       }
-      const transactor = await transactorPromise;
+      const transactor = await transactorNoncePromise;
       
-      const transactorNonce = transactor.nonce.toBigInt() || 0n;
+      const transactorNonce = transactor ? transactor.toBigInt() : 0n;
       if (secretKey && transactionNonce === void 0) {
         // if we don't have a transactionNonce, just use the account's next
         // nonce and mark as executable
@@ -171,26 +179,38 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       if (executableOriginTransactions) {
         executableOriginTransactions.push(transaction);
       } else {
-        // if we don't yet have a executables queue for this origin make one now
+        // if we don't yet have an executables queue for this origin make one now
         executableOriginTransactions = utils.Heap.from(transaction, byNonce);
         executables.set(origin, executableOriginTransactions);
       }
 
-      this.#drainQueued(origin, queuedOriginTransactions, executableOriginTransactions, transactionNonce);
-      return true;
+      return {
+        origin,
+        queuedOriginTransactions,
+        executableOriginTransactions,
+        transactionNonce
+      };
     } else {
       // otherwise, put it in the future queue
       if (queuedOriginTransactions) {
         queuedOriginTransactions.push(transaction);
       } else {
-        queuedOriginTransactions = utils.Heap.from(transaction, byNonce);
-        origins.set(origin, queuedOriginTransactions);
+        origins.set(origin, utils.Heap.from(transaction, byNonce));
       }
-      return false;
+
+      return null;
     }
   }
 
+  public clear(){
+    this.#origins.clear();
+    this.#accountPromises.clear();
+    this.executables.clear();
+  }
+
   /**
+   * TODO(perf): this looks super slow, doesn't it?
+   * 
    * Returns the transaction matching the given hash
    * @param transactionHash 
    */
@@ -214,12 +234,17 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     return null;
   }
 
-  #drainQueued = (
+  readonly drainQueued = ({
+    origin,
+    queuedOriginTransactions,
+    executableOriginTransactions,
+    transactionNonce
+  }: {
     origin: string,
     queuedOriginTransactions: utils.Heap<Transaction>,
     executableOriginTransactions: utils.Heap<Transaction>,
     transactionNonce: bigint
-  ) => {
+  }) => {
     // Now we need to drain any queued transacions that were previously
     // not executable due to nonce gaps into the origin's queue...
     if (queuedOriginTransactions) {
@@ -253,7 +278,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     this.emit("drain");
   };
 
-  validateTransaction = (transaction: Transaction): Error => {
+  readonly #validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
     if (Quantity.from(transaction.gasLimit) > this.#options.blockGasLimit) {
       return new CodedError(GAS_LIMIT, ErrorCodes.INVALID_INPUT);

@@ -838,12 +838,13 @@ export default class EthereumApi implements types.Api {
   };
 
   /**
-   * Returns true if client is actively mining new blocks.
-   * @returns returns true of the client is mining, otherwise false.
+   * Returns `true` if client is actively mining new blocks.
+   * @returns returns `true` if the client is mining, otherwise `false`.
    */
   @assertArgLength(0)
   async eth_mining() {
-    return this.#blockchain.isMining();
+    // we return the blockchain's started state
+    return this.#blockchain.isStarted();
   }
 
   /**

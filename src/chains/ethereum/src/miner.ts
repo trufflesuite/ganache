@@ -11,6 +11,14 @@ import {encode as rlpEncode} from "rlp";
 import { EthereumInternalOptions } from "./options";
 import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
 
+type BlockData = {
+  blockTransactions: Transaction[],
+  transactionsTrie: Trie,
+  receiptTrie: Trie,
+  gasUsed: bigint,
+  timestamp: Buffer
+}
+
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
 function replaceFromHeap(
@@ -35,11 +43,11 @@ function byPrice(values: Transaction[], a: number, b: number) {
   return Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 }
 
-export default class Miner extends Emittery {
+export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   #currentlyExecutingPrice = 0n;
   #origins = new Set<string>();
   #pending: Map<string, utils.Heap<Transaction>>;
-  #isMining: boolean = false;
+  #isBusy: boolean = false;
   readonly #options: EthereumInternalOptions["miner"];
   readonly #instamine: boolean;
   readonly #vm: VM;
@@ -47,6 +55,10 @@ export default class Miner extends Emittery {
   readonly #commit: () => Promise<any>;
   readonly #revert: () => Promise<any>;
   readonly #createBlock: (previousBlock: Block) => Block;
+
+  readonly isBusy = () => {
+    return this.#isBusy;
+  }
 
   // create a Heap that sorts by gasPrice
   readonly #priced = new utils.Heap<Transaction>(byPrice);
@@ -80,7 +92,7 @@ export default class Miner extends Emittery {
    */
   public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = -1, onlyOneBlock = false) {
     // only allow mining a single block at a time (per miner)
-    if (this.#isMining) {
+    if (this.#isBusy) {
       // if we are currently mining a block, set the `pending` property
       // so the miner knows it can immediately start mining another block once
       // it is done with its current work.
@@ -95,11 +107,13 @@ export default class Miner extends Emittery {
 
     // if there are more txs to mine, start mining them without awaiting their
     // result.
-    if (onlyOneBlock === false && this.#pending) {
+    if (!onlyOneBlock && this.#pending) {
       const nextBlock = this.#createBlock(lastBlock);
       const pending = this.#pending;
       this.#pending = null;
       await this.mine(pending, nextBlock, this.#instamine ? 1 : -1);
+    } else {
+      this.emit("idle");
     }
     return transactions;
   }
@@ -111,13 +125,13 @@ export default class Miner extends Emittery {
     let blockTransactions: Transaction[];
     do {
       keepMining = false;
-      this.#isMining = true;
+      this.#isBusy = true;
 
       blockTransactions = [];
       const transactionsTrie = new Trie(null, null);
       const receiptTrie = new Trie(null, null);
 
-      const blockData = {
+      const blockData: BlockData = {
         blockTransactions,
         transactionsTrie,
         receiptTrie,
@@ -327,7 +341,7 @@ export default class Miner extends Emittery {
   #reset = () => {
     this.#origins.clear();
     this.#priced.clear();
-    this.#isMining = false;
+    this.#isBusy = false;
   };
 
   #setPricedHeap = (pending: Map<string, utils.Heap<Transaction>>) => {
