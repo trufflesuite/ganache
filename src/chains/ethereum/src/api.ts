@@ -902,9 +902,7 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1, 2)
   async eth_getBalance(address: string, blockNumber: Buffer | Tag = Tag.LATEST) {
-    const chain = this.#blockchain;
-    const account = await chain.accounts.get(Address.from(address), blockNumber);
-    return account.balance;
+    return this.#blockchain.accounts.getBalance(Address.from(address), blockNumber);
   }
 
   /**
@@ -1527,9 +1525,7 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1, 2)
   async eth_getTransactionCount(address: string, blockNumber: Buffer | Tag = Tag.LATEST) {
-    const account = await this.#blockchain.accounts.get(Address.from(address), blockNumber);
-    if (!account) return null;
-    return account.nonce;
+    return this.#blockchain.accounts.getNonce(Address.from(address), blockNumber);
   }
 
 
