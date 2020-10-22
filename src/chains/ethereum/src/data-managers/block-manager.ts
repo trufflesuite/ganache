@@ -152,10 +152,10 @@ export default class BlockManager extends Manager<Block> {
   updateTaggedBlocks() {
     return new Promise<Block>((resolve, reject) => {
       this.base.createValueStream({limit: 1})
-        .on("data",  (data: Buffer) => {
+        .on("data", (data: Buffer) => {
           this.earliest = new Block(data, this.#common);
         })
-        .on("error",  (err: Error) => {
+        .on("error", (err: Error) => {
           reject(err);
         })
         .on("end", () => {
@@ -163,10 +163,10 @@ export default class BlockManager extends Manager<Block> {
         });
 
       this.base.createValueStream({reverse: true, limit: 1})
-        .on("data",  (data: Buffer) => {
+        .on("data", (data: Buffer) => {
           this.latest = new Block(data, this.#common);
         })
-        .on("error",  (err: Error) => {
+        .on("error", (err: Error) => {
           reject(err);
         })
         .on("end", () => {
