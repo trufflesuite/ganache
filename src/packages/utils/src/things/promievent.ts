@@ -26,7 +26,7 @@ declare var Promise: {
 
 const emitteryMethods = ["clearListeners", "once", "on", "emit", "onAny"] as const;
 
-@Emittery.mixin(Symbol.for("emittery") as any, emitteryMethods)
+@Emittery.mixin(Symbol.for("emittery"), emitteryMethods)
 class PromiEvent<T> extends Promise<T> {
   constructor (executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) {
     super(executor);
