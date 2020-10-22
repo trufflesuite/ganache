@@ -5,8 +5,9 @@ import Blockchain from "../blockchain";
 import Tag from "../things/tags";
 import {LevelUp} from "levelup";
 import { rlp } from "ethereumjs-util";
-import { Quantity } from "@ganache/utils";
-import { RPCQUANTITY_ZERO } from "@ganache/utils/lib/utils";
+import { utils, Quantity } from "@ganache/utils";
+
+const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
 
 export default class AccountManager {
   #blockchain: Blockchain;
