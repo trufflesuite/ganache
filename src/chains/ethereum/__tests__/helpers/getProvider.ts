@@ -9,7 +9,7 @@ type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 const getProvider = async (options: Writeable<EthereumProviderOptions> = {wallet: {mnemonic: mnemonic}}) => {
   options.chain = options.chain || {};
-  options.logging = options.logging || {};
+  options.logging = options.logging || {logger: {log: ()=>{}}};
 
   // set `asyncRequestProcessing` to `true` by default
   const doAsync = options.chain.asyncRequestProcessing;
