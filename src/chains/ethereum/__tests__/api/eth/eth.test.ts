@@ -85,15 +85,15 @@ describe("api", () => {
         assert.deepStrictEqual(result, "0x539");
       });
 
-      xit("should use the default chain id when signing transactions", async () => {
+      it("should use the default chain id when signing transactions", async () => {
         await provider.send("eth_subscribe", ["newHeads"]);
         const txHash = await provider.send("eth_sendTransaction", [{from: accounts[0], to: accounts[0]}]);
         await provider.once("message");
         const tx = await provider.send("eth_getTransactionByHash", [txHash]);
-        assert.strictEqual(tx.v, "0xa96");
+        assert.strictEqual(tx.v, "0xa95");
       });
 
-      it("should update the default chain id", async () => {
+      it("chainid option should change the chain id", async () => {
         const provider = await getProvider({chain: {chainId: 1234}});
         const result = await provider.send("eth_chainId");
         assert.deepStrictEqual(result, "0x4d2");
