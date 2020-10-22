@@ -12,8 +12,8 @@ const getProvider = async (options: Writeable<EthereumProviderOptions> = {wallet
   options.logging = options.logging || {logger: {log: ()=>{}}};
 
   // set `asyncRequestProcessing` to `true` by default
-  const doAsync = options.chain.asyncRequestProcessing;
-  options.chain.asyncRequestProcessing = doAsync != null ? doAsync : true;
+  let doAsync = options.chain.asyncRequestProcessing;
+  doAsync = options.chain.asyncRequestProcessing = doAsync != null ? doAsync : true;
 
   // don't write to stdout in tests
   if (!options.logging.logger) {
