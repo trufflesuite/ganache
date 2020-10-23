@@ -184,12 +184,33 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         executables.set(origin, executableOriginTransactions);
       }
 
-      return {
-        origin,
-        queuedOriginTransactions,
-        executableOriginTransactions,
-        transactionNonce
-      };
+      // Now we need to drain any queued transacions that were previously
+      // not executable due to nonce gaps into the origin's queue...
+      if (queuedOriginTransactions) {
+        let nextExpectedNonce = transactionNonce + 1n;
+        while (true) {
+          const nextTx = queuedOriginTransactions.peek();
+          const nextTxNonce = Quantity.from(nextTx.nonce).toBigInt() || 0n;
+          if (nextTxNonce !== nextExpectedNonce) {
+            break;
+          }
+
+          // we've got a an executable nonce! Put it in the executables queue.
+          executableOriginTransactions.push(nextTx);
+
+          // And then remove this transaction from its origin's queue
+          if (!queuedOriginTransactions.removeBest()) {
+            // removeBest() returns `false` when there are no more items after
+            // the removed item. Let's do some cleanup when that happens.
+            origins.delete(origin);
+            break;
+          }
+
+          nextExpectedNonce += 1n;
+        }
+      }
+
+      return true;
     } else {
       // otherwise, put it in the future queue
       if (queuedOriginTransactions) {
@@ -198,11 +219,11 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         origins.set(origin, utils.Heap.from(transaction, byNonce));
       }
 
-      return null;
+      return false;
     }
   }
 
-  public clear(){
+  public clear() {
     this.#origins.clear();
     this.#accountPromises.clear();
     this.executables.clear();
@@ -234,45 +255,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     return null;
   }
 
-  readonly drainQueued = ({
-    origin,
-    queuedOriginTransactions,
-    executableOriginTransactions,
-    transactionNonce
-  }: {
-    origin: string,
-    queuedOriginTransactions: utils.Heap<Transaction>,
-    executableOriginTransactions: utils.Heap<Transaction>,
-    transactionNonce: bigint
-  }) => {
-    // Now we need to drain any queued transacions that were previously
-    // not executable due to nonce gaps into the origin's queue...
-    if (queuedOriginTransactions) {
-      const origins = this.#origins;
-
-      let nextExpectedNonce = transactionNonce + 1n;
-      while (true) {
-        const nextTx = queuedOriginTransactions.peek();
-        const nextTxNonce = Quantity.from(nextTx.nonce).toBigInt() || 0n;
-        if (nextTxNonce !== nextExpectedNonce) {
-          break;
-        }
-
-        // we've got a an executable nonce! Put it in the executables queue.
-        executableOriginTransactions.push(nextTx);
-
-        // And then remove this transaction from its origin's queue
-        if (!queuedOriginTransactions.removeBest()) {
-          // removeBest() returns `false` when there are no more items after
-          // the removed item. Let's do some cleanup when that happens.
-          origins.delete(origin);
-          break;
-        }
-
-        nextExpectedNonce += 1n;
-      }
-    }
-
+  readonly drain = () => {
     // notify listeners (the blockchain, then the miner, eventually) that we 
     // have executable transactions ready
     this.emit("drain");

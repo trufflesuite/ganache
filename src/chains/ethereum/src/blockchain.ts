@@ -503,15 +503,12 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }
 
     // pause processing new transactions...
-    this.transactions.pause();
+    await this.transactions.pause();
 
-    // if the miner is currently busy mining transactions wait until it is done
-    // before resetting everything.
-    if (this.#miner.isBusy()) {
-      await this.#miner.once("idle");
-    }
-    // wait for any blocks that are currently in the process of being saved to
-    // the database.
+    // then pause the miner, too.
+    await this.#miner.pause();
+
+    // wait for anything in the process of being saved to finish up
     await this.#blockBeingSavedPromise;
 
     // Pending transactions are always removed when you revert, even if they
@@ -556,8 +553,13 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     // put our time adjustment back
     this.#timeAdjustment = snapshot.timeAdjustment;
 
+    // resume mining
+    this.#miner.resume();
+
     // resume processing transactions
     this.transactions.resume();
+
+
 
     return true;
   }

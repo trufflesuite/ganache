@@ -4,13 +4,14 @@ import TransactionPool from "../transaction-pool";
 import { EthereumInternalOptions } from "../options";
 import { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
-import { Data, utils } from "@ganache/utils";
+import PromiseQueue from "@ganache/promise-queue";
 import Common from "ethereumjs-common";
+import { Data } from "@ganache/utils";
 
 export default class TransactionManager extends Manager<Transaction> {
   public transactionPool: TransactionPool;
 
-  #queue = new utils.PromiseQueue();
+  #queue = new PromiseQueue<boolean>();
   #paused = false;
   #resumer: Promise<void>;
   #resolver: (value: void ) => void;
@@ -42,7 +43,7 @@ export default class TransactionManager extends Manager<Transaction> {
     const insertion = this.transactionPool.prepareTransaction(transaction, secretKey);
     const result = await this.#queue.add(insertion);
     if (result) {
-      this.transactionPool.drainQueued(result);
+      this.transactionPool.drain();
       return true;
     } else {
       return false;
@@ -60,7 +61,7 @@ export default class TransactionManager extends Manager<Transaction> {
    * mined.
    */
   public clear() {
-    this.#queue.clear();
+    this.#queue.clear(false);
     this.transactionPool.clear();
   }
 
@@ -68,13 +69,20 @@ export default class TransactionManager extends Manager<Transaction> {
    * Stop processing _new_ transactions; puts new requests in a queue. Has no
    * affect if already paused.
    */
-  public pause() {
-    if (!this.#paused) return;
+  public async pause() {
+    if (this.#paused) return;
 
+    // stop processing new transactions immediately
     this.#paused = true;
     this.#resumer = new Promise(resolve => {
       this.#resolver = resolve;
     });
+
+    // then wait until all async things we were already processing are done
+    // before returning
+    if (this.#queue.isBusy()) {
+      await this.#queue.emit("idle");
+    }
   }
 
   /**

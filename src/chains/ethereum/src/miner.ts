@@ -48,6 +48,9 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   #origins = new Set<string>();
   #pending: Map<string, utils.Heap<Transaction>>;
   #isBusy: boolean = false;
+  #paused: boolean = false;
+  #resumer: Promise<void>;
+  #resolver: (value: void ) => void;
   readonly #options: EthereumInternalOptions["miner"];
   readonly #instamine: boolean;
   readonly #vm: VM;
@@ -56,8 +59,24 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   readonly #revert: () => Promise<any>;
   readonly #createBlock: (previousBlock: Block) => Block;
 
-  readonly isBusy = () => {
-    return this.#isBusy;
+  public async pause(){
+    if (this.#paused) return;
+
+    this.#paused = true;
+    this.#resumer = new Promise(resolve => {
+      this.#resolver = resolve;
+    });
+
+    if (this.#isBusy) {
+      await this.once("idle");
+    }
+  }
+
+  public resume() {
+    if (!this.#paused) return;
+    
+    this.#paused = false;
+    this.#resolver();
   }
 
   // create a Heap that sorts by gasPrice
@@ -91,6 +110,9 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
    * @returns the transactions mined
    */
   public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = -1, onlyOneBlock = false) {
+    if (this.#paused) {
+      await this.#resumer;
+    }
     // only allow mining a single block at a time (per miner)
     if (this.#isBusy) {
       // if we are currently mining a block, set the `pending` property
