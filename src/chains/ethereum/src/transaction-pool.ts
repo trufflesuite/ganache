@@ -6,6 +6,7 @@ import {Data, Quantity} from "@ganache/utils";
 import {GAS_LIMIT, INTRINSIC_GAS_TOO_LOW} from "./errors/errors";
 import CodedError, { ErrorCodes } from "./errors/coded-error";
 import { EthereumInternalOptions } from "./options";
+import { Executables } from "./types/executables";
 
 function byNonce(values: Transaction[], a: number, b: number) {
   return (Quantity.from(values[b].nonce).toBigInt() || 0n) > (Quantity.from(values[a].nonce).toBigInt() || 0n);
@@ -25,7 +26,10 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     this.#blockchain = blockchain;
     this.#options = options;
   }
-  public readonly executables: Map<string, utils.Heap<Transaction>> = new Map();
+  public readonly executables: Executables = {
+    inProgress: new Set(),
+    pending: new Map()
+  }
   readonly #origins: Map<string, utils.Heap<Transaction>> = new Map();
   readonly #accountPromises = new Map<string, Promise<Quantity>>();
 
@@ -88,7 +92,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     let highestNonce = 0n;
 
     let isExecutableTransaction = false;
-    const executables = this.executables;
+    const executables = this.executables.pending;
     let executableOriginTransactions = executables.get(origin);
 
     let length: number;
@@ -226,7 +230,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   public clear() {
     this.#origins.clear();
     this.#accountPromises.clear();
-    this.executables.clear();
+    this.executables.pending.clear();
   }
 
   /**
@@ -236,7 +240,11 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
    * @param transactionHash 
    */
   public find(transactionHash: Buffer) {
-    for (let [_, transactions] of this.executables) {
+    const {pending, inProgress} = this.executables;
+
+    // first search pending transactions
+    for (let [_, transactions] of this.#origins) {
+      if (transactions === undefined) continue;
       for (let tx of transactions.array) {
         if (tx.hash().equals(transactionHash)) {
           return tx;
@@ -244,12 +252,19 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       }
     }
 
-    for (let [_, transactions] of this.#origins) {
-      if (transactions === undefined) continue;
+    // then transactions eligible for execution
+    for (let [_, transactions] of pending) {
       for (let tx of transactions.array) {
         if (tx.hash().equals(transactionHash)) {
           return tx;
         }
+      }
+    }
+
+    // and finally transactions that have just been processed, but not yet saved
+    for (let tx of inProgress) {
+      if (tx.hash().equals(transactionHash)) {
+        return tx;
       }
     }
     return null;

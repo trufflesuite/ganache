@@ -10,6 +10,7 @@ import VM from "ethereumjs-vm";
 import {encode as rlpEncode} from "rlp";
 import { EthereumInternalOptions } from "./options";
 import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
+import { Executables } from "./types/executables";
 
 type BlockData = {
   blockTransactions: Transaction[],
@@ -46,11 +47,12 @@ function byPrice(values: Transaction[], a: number, b: number) {
 export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   #currentlyExecutingPrice = 0n;
   #origins = new Set<string>();
-  #pending: Map<string, utils.Heap<Transaction>>;
+  #pending: boolean;
   #isBusy: boolean = false;
   #paused: boolean = false;
   #resumer: Promise<void>;
   #resolver: (value: void ) => void;
+  readonly #executables: Executables;
   readonly #options: EthereumInternalOptions["miner"];
   readonly #instamine: boolean;
   readonly #vm: VM;
@@ -81,12 +83,18 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
 
   // create a Heap that sorts by gasPrice
   readonly #priced = new utils.Heap<Transaction>(byPrice);
-  constructor(options: EthereumInternalOptions["miner"], instamine: boolean, vm: VM, createBlock: (previousBlock: Block) => Block) {
+  /*
+  * @param executables A live Map of pending transactions from the transaction
+  * pool. The miner will update this Map by removing the best transactions
+  * and putting them in new blocks.
+  */
+  constructor(options: EthereumInternalOptions["miner"], executables: Executables, instamine: boolean, vm: VM, createBlock: (previousBlock: Block) => Block) {
     super();
     const stateManager = vm.stateManager;
 
     this.#vm = vm;
     this.#options = options;
+    this.#executables = executables;
     this.#instamine = instamine;
     this.#checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
     this.#commit = promisify(stateManager.commit.bind(stateManager));
@@ -98,18 +106,13 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   }
 
   /**
-   *
-   * @param pending A live Map of pending transactions from the transaction
-   * pool. The miner will update this Map by removing the best transactions
-   * and putting them in new blocks.
-   * 
    * @param maxTransactions: maximum number of transactions per block. If `-1`,
    * unlimited.
    * @param onlyOneBlock: set to `true` if only 1 block should be mined.
    * 
-   * @returns the transactions mined
+   * @returns the transactions mined in the _first_ block
    */
-  public async mine(pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number = -1, onlyOneBlock = false) {
+  public async mine(block: Block, maxTransactions: number = -1, onlyOneBlock = false) {
     if (this.#paused) {
       await this.#resumer;
     }
@@ -118,33 +121,35 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
       // if we are currently mining a block, set the `pending` property
       // so the miner knows it can immediately start mining another block once
       // it is done with its current work.
-      this.#pending = pending;
-      this.#updatePricedHeap(pending);
+      this.#pending = true;
+      this.#updatePricedHeap();
       return;
     } else {
-      this.#setPricedHeap(pending);
+      this.#setPricedHeap();
     }
 
-    const {block: lastBlock, transactions} = await this.#mineTxs(pending, block, maxTransactions, onlyOneBlock);
+    const result = await this.#mine(block, maxTransactions, onlyOneBlock);
+    this.emit("idle");
+    return result;
+  }
+
+  #mine = async (block: Block, maxTransactions: number = -1, onlyOneBlock = false) => {
+    const {block: lastBlock, transactions} = await this.#mineTxs(block, maxTransactions, onlyOneBlock);
 
     // if there are more txs to mine, start mining them without awaiting their
     // result.
     if (!onlyOneBlock && this.#pending) {
+      this.#setPricedHeap();
+      this.#pending = false;
       const nextBlock = this.#createBlock(lastBlock);
-      const pending = this.#pending;
-      this.#pending = null;
-      if (this.#paused) {
-        this.emit("idle");
-        await this.#resumer;
-      }
-      await this.mine(pending, nextBlock, this.#instamine ? 1 : -1);
-    } else {
-      this.emit("idle");
+      await this.#mine(nextBlock, this.#instamine ? 1 : -1);
     }
     return transactions;
   }
 
-  #mineTxs = async (pending: Map<string, utils.Heap<Transaction>>, block: Block, maxTransactions: number, onlyOneBlock: boolean) => {
+  #mineTxs = async (block: Block, maxTransactions: number, onlyOneBlock: boolean) => {
+    const {pending, inProgress} = this.#executables;
+
     let keepMining = true;
     const priced = this.#priced;
     const legacyInstamine = this.#options.legacyInstamine;
@@ -243,6 +248,12 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
             // since this transaction was successful, remove it from the "pending"
             // transaction pool.
             keepMining = pendingOrigin.removeBest();
+            inProgress.add(best);
+            best.once("finalized").then(() => {
+              // it is in the database (or thrown out) so delete it from the
+              // `inProgress` Set
+              inProgress.delete(best);
+            });
 
             // if we:
             //  * don't have enough gas left for even the smallest of transactions
@@ -310,7 +321,7 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
         break;
       } else {
         this.#currentlyExecutingPrice = 0n;
-        this.#updatePricedHeap(pending);
+        this.#updatePricedHeap();
 
         if (priced.length !== 0) {
           maxTransactions = this.#instamine ? 1 : -1;
@@ -370,7 +381,8 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
     this.#isBusy = false;
   };
 
-  #setPricedHeap = (pending: Map<string, utils.Heap<Transaction>>) => {
+  #setPricedHeap = () => {
+    const {pending} = this.#executables;
     const origins = this.#origins;
     const priced = this.#priced;
 
@@ -386,7 +398,8 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
     }
   };
 
-  #updatePricedHeap = (pending: Map<string, utils.Heap<Transaction>>) => {
+  #updatePricedHeap = () => {
+    const {pending} = this.#executables;
     const origins = this.#origins;
     const priced = this.#priced;
     // Note: the `pending` Map passed here is "live", meaning it is constantly

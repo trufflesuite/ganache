@@ -183,7 +183,13 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       { // configure and start miner
         const logger = options.logging.logger;
 
-        const miner = this.#miner = new Miner(options.miner, instamine, this.vm, this.#readyNextBlock);
+        const miner = this.#miner = new Miner(
+          options.miner,
+          this.transactions.transactionPool.executables,
+          instamine,
+          this.vm,
+          this.#readyNextBlock
+        );
 
         { // automatic mining
           const mineAll = async (maxTransactions: number) => this.#isPaused() ? null : this.mine(maxTransactions);
@@ -275,12 +281,12 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
           // emit the block once everything has been fully saved to the database
           return this.#blockBeingSavedPromise.then(({block, blockLogs}) => {
+            block.value.transactions.forEach(transaction => {
+              const error = options.chain.vmErrorsOnRPCResponse ? transaction.execException : null
+              transaction.finalize("confirmed", error);
+            });
+            
             if (instamine && options.miner.legacyInstamine) {
-              block.value.transactions.forEach(transaction => {
-                const error = options.chain.vmErrorsOnRPCResponse ? transaction.execException : null
-                transaction.finalize("confirmed", error);
-              });
-
               // in legacy instamine mode we must delay the broadcast of new blocks
               process.nextTick(() => {
                 this.emit("block", block);
@@ -321,7 +327,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
   mine = async (maxTransactions: number, timestamp?: number, onlyOneBlock: boolean = false) => {
     await this.#blockBeingSavedPromise;
     const nextBlock = this.#readyNextBlock(this.blocks.latest.value, timestamp);
-    return this.#miner.mine(this.transactions.transactionPool.executables, nextBlock, maxTransactions, onlyOneBlock);
+    return this.#miner.mine(nextBlock, maxTransactions, onlyOneBlock);
   }
 
   #isPaused = () => {
