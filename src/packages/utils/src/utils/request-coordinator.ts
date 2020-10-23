@@ -73,19 +73,18 @@ export class RequestCoordinator {
    */
   public queue = <T extends (...args: unknown[]) => unknown>(fn: T, thisArgument: any, argumentsList: Parameters<T>) => {
     return new Promise<{value: ReturnType<typeof fn>}>((resolve, reject) => {
-        // const executor is `async` to force the return value into a Promise.
-        const executor = async () => {
-          try {
-            const value = Reflect.apply(fn, thisArgument, argumentsList || []) as ReturnType<typeof fn>;
-            resolve({value});
-            return value;
-          } catch(e) {
-            reject(e);
-          }
+      // const executor is `async` to force the return value into a Promise.
+      const executor = async () => {
+        try {
+          const value = Reflect.apply(fn, thisArgument, argumentsList || []) as ReturnType<typeof fn>;
+          resolve({value});
+          return value;
+        } catch(e) {
+          reject(e);
         }
-        this.pending.push(executor);
-        this.#process();
       }
-    );
+      this.pending.push(executor);
+      this.#process();
+    });
   };
 }
