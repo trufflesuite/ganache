@@ -29,10 +29,17 @@ describe("api", () => {
     });
 
     describe("evm_increaseTime", () => {
-      it("should return the `timeAdjustment` value via `evm_increaseTime`", async () => {
+      it("should return the `timeAdjustment` value via `evm_increaseTime` when provided as a number", async () => {
         const provider = await getProvider();
         const seconds = 10;
         const timeAdjustment = await provider.send("evm_increaseTime", [seconds]);
+        assert.strictEqual(timeAdjustment, seconds);
+      });
+
+      it("should return the `timeAdjustment` value via `evm_increaseTime` when provided as hex string", async () => {
+        const provider = await getProvider();
+        const seconds = 10;
+        const timeAdjustment = await provider.send("evm_increaseTime", [`0x${seconds.toString(16)}`]);
         assert.strictEqual(timeAdjustment, seconds);
       });
     });

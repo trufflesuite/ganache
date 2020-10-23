@@ -325,8 +325,9 @@ export default class EthereumApi implements types.Api {
    * @returns Returns the total time adjustment, in seconds.
    */
   @assertArgLength(1)
-  async evm_increaseTime(seconds: number) {
-    return Math.floor(this.#blockchain.increaseTime(seconds * 1000) / 1000);
+  async evm_increaseTime(seconds: number | string) {
+    const milliseconds = (typeof seconds === "number" ? seconds : Quantity.from(seconds).toNumber()) * 1000;
+    return Math.floor(this.#blockchain.increaseTime(milliseconds) / 1000);
   }
 
   /**
