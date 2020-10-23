@@ -1,8 +1,9 @@
-pragma solidity ^0.6.1;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.4;
 
 contract Logs {
   event Event(uint indexed first, uint indexed second);
-  constructor() public {
+  constructor() {
     emit Event(1, 2);
   }
 

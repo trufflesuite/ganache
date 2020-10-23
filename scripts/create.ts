@@ -7,6 +7,7 @@ import camelCase from "camelcase";
 import npa from "npm-package-arg";
 import { lstatSync as lstat, readdirSync as readDir } from "fs";
 import chalk from "chalk";
+import { highlight } from "cli-highlight";
 
 const isDir = (s: string) => lstat(s).isDirectory();
 const getDirectories = (s: string) => readDir(s).filter(n => isDir(join(s, n)));
@@ -17,7 +18,7 @@ const COLORS = {
   FgRed: "\x1b[31m"
 };
 
-const scopes = getDirectories(join(__dirname, "../../src"));
+const scopes = getDirectories(join(__dirname, "../src"));
 const argv = yargs
   .command(`$0 <name> --location`, `Create a new package in the given location with the provided name.`, (yargs) => {
     return yargs
@@ -132,7 +133,7 @@ describe("${packageName}", () => {
 export * from "./src/index";
 `;
 
-    const dir = join(__dirname, "../../src", location, name);
+    const dir = join(__dirname, "../src", location, name);
     const tests = join(dir, "__tests__");
     const src = join(dir, "src");
 
@@ -178,7 +179,13 @@ export * from "./src/index";
       writeFile(join(dir, "npm-shrinkwrap.json"), JSON.stringify(shrinkwrap) + "\n")
     ]);
 
-    console.log(pkgStr);
+    console.log(highlight(pkgStr, {
+      language: "json",
+      theme: {
+        attr: chalk.hex("#3FE0C5"),
+        string: chalk.hex("#e4a663")
+      }
+    }));
 
     console.log(
       chalk`{green success} {magenta create} New package {bgBlack  ${name} } created. New package created at ./src/packages/${name}.\n\n  Entry point: {bold ${dir}/src/index.ts}`

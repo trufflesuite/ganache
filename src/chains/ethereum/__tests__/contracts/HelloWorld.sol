@@ -1,11 +1,12 @@
-pragma solidity ^0.6.1;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.4;
 
 contract HelloWorld {
   uint public value;
 
   event ValueSet(uint);
 
-  constructor() public payable {
+  constructor() payable {
     value = 5;
   }
 
