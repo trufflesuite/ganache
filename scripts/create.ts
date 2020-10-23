@@ -79,7 +79,7 @@ process.stdout.write(`${COLORS.Reset}`);
       version: version,
       homepage: "https://github.com/trufflesuite/ganache-core#readme",
       license: "MIT",
-      main: "src/index.ts",
+      main: "lib/index.js",
       typings: "src/index.ts",
       directories: {
         lib: "lib",
