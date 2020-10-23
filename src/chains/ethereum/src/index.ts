@@ -3,7 +3,7 @@ import EthereumApi from "./api";
 import {JsonRpcTypes, types, utils} from "@ganache/utils";
 import EthereumProvider from "./provider";
 import {RecognizedString, WebSocket, HttpRequest} from "uWebSockets.js";
-import CodedError, { ErrorCodes } from "./things/coded-error";
+import CodedError, { ErrorCodes } from "./errors/coded-error";
 import { EthereumProviderOptions } from "./options";
 
 function isHttp(connection: HttpRequest | WebSocket): connection is HttpRequest {
