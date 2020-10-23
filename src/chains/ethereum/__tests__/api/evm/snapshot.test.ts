@@ -2,7 +2,6 @@ const assert = require("assert");
 import { join } from "path";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
-import { Quantity } from "@ganache/utils";
 
 const eth = "0x" + (1000000000000000000n).toString(16);
 
@@ -13,7 +12,7 @@ describe("api", function() {
       let startingBalance;
       let snapshotId;
 
-      before("Set up provider and deploy a contract", async function() {
+      beforeEach("Set up provider and deploy a contract", async function() {
         const contract = compile(join(__dirname, "./snapshot.sol"));
 
         const p = await getProvider({
@@ -61,7 +60,7 @@ describe("api", function() {
         }
       });
 
-      before("send a transaction then make a checkpoint", async function() {
+      beforeEach("send a transaction then make a checkpoint", async function() {
         const { accounts, send, provider } = context
 
         await send("eth_sendTransaction",[{
