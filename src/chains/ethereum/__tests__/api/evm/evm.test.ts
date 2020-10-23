@@ -26,6 +26,32 @@ describe("api", () => {
         const baseLineOffset = Math.floor((newTime - now) / 1000);
         assert(between(timeAdjustment, baseLineOffset - 2, baseLineOffset + 2));
       });
+
+      it("should set the time correctly when given as a hex string", async () => {
+        const provider = await getProvider();
+        const now = Date.now();
+        // fast forward time by 10 seconds (plus 2 seconds in case testing is slow)
+        const newTime = now + 10000 + 2000;
+
+        const timeAdjustment = await provider.send("evm_setTime", [`0x${newTime.toString(16)}`]);
+        
+        // it should return `newTime - now`, floored to the nearest second
+        const baseLineOffset = Math.floor((newTime - now) / 1000);
+        assert(between(timeAdjustment, baseLineOffset - 2, baseLineOffset + 2));
+      });
+
+      it("should set the time correctly when given as a Date", async () => {
+        const provider = await getProvider();
+        const now = Date.now();
+        // fast forward time by 10 seconds (plus 2 seconds in case testing is slow), then create a new Date object
+        const newTime = new Date(now + 10000 + 2000);
+
+        const timeAdjustment = await provider.send("evm_setTime", [newTime]);
+        
+        // it should return `newTime.getTime() - now`, floored to the nearest second
+        const baseLineOffset = Math.floor((newTime.getTime() - now) / 1000);
+        assert(between(timeAdjustment, baseLineOffset - 2, baseLineOffset + 2));
+      });
     });
 
     describe("evm_increaseTime", () => {

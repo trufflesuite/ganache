@@ -341,8 +341,20 @@ export default class EthereumApi implements types.Api {
    * @returns The amount of *seconds* between the given timestamp and now.
    */
   @assertArgLength(0, 1)
-  async evm_setTime(time: Date | number) {
-    return Math.floor(this.#blockchain.setTime(+time) / 1000);
+  async evm_setTime(time: string | Date | number) {
+    let t: number;
+    switch (typeof time) {
+      case "object":
+        t = time.getTime();
+        break;
+      case "number":
+        t = time;
+        break;
+      default:
+        t = Quantity.from(time).toNumber();
+        break;
+    }
+    return Math.floor(this.#blockchain.setTime(t) / 1000);
   }
 
   /**
