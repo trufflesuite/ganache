@@ -1048,14 +1048,17 @@ export default class EthereumApi implements types.Api {
   async eth_getTransactionByHash(transactionHash: string) {
     const chain = this.#blockchain;
     const hashBuffer = Data.from(transactionHash).toBuffer();
-    const transaction = await chain.transactions.get(hashBuffer);
+    
+    // check pending transactions first, since this is super fast due to it
+    // being in memory
+    const transaction = chain.transactions.transactionPool.find(hashBuffer);
+
     if (transaction == null) {
-      // maybe it is pending?
-      const tx = chain.transactions.transactionPool.find(hashBuffer);
-      if (tx === null) return null;
-      return tx.toJSON(null);
+      // if we can't find it in the list of pending transactions, check the db!
+      const tx = await chain.transactions.get(hashBuffer);
+      return tx ? tx.toJSON() : null;
     } else {
-      return transaction.toJSON();
+      return transaction.toJSON(null);
     }
   }
 
