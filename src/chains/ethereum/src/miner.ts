@@ -133,6 +133,10 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
       const nextBlock = this.#createBlock(lastBlock);
       const pending = this.#pending;
       this.#pending = null;
+      if (this.#paused) {
+        this.emit("idle");
+        await this.#resumer;
+      }
       await this.mine(pending, nextBlock, this.#instamine ? 1 : -1);
     } else {
       this.emit("idle");
