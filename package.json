@@ -12,7 +12,7 @@
     "preview:docs": "lerna exec --no-bail npm run preview:docs",
     "prepare": "lerna bootstrap && echo \"\n\\033[1;36m Tip:\\033[0;36m run \\033[1;2;33msource completions.sh\\033[0;36m to supply bash completions for npm scripts\\033[0m\n\"",
     "reinstall": "npm run clean && npm install",
-    "test": "lerna exec --concurrency 1 -- npm test",
+    "test": "lerna exec -- npm test",
     "tsc": "lerna exec -- npm run tsc"
   },
   "dependencies": {

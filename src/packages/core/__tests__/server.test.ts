@@ -4,7 +4,8 @@ import request from "superagent";
 import WebSocket from "ws";
 import Server, {Status} from "../src/server";
 import http from "http";
-import intoStream from "into-stream";
+// https://github.com/sindresorhus/into-stream/releases/tag/v6.0.0
+import intoStream = require("into-stream");
 import { PromiEvent } from "@ganache/utils";
 import {promisify} from "util";
 import { ServerOptions } from "../src/options";
