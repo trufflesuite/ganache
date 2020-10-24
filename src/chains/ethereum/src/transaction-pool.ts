@@ -59,8 +59,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     }
 
     const origin = from.toString();
-    const origins = this.#origins;
-    const queuedOriginTransactions = origins.get(origin);
 
     // We await the `transactorNoncePromise` async request to ensure we process
     // transactions in FIFO order *by account*. We look up accounts because
@@ -90,6 +88,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // when tx's are executed their nonce is moved to a `highNonceByOrigin` map? We'd check this map in addition to the 
     // `executableOriginTransactions` map, always taking the highest of the two.
     let highestNonce = 0n;
+
+    const origins = this.#origins;
+    const queuedOriginTransactions = origins.get(origin);
 
     let isExecutableTransaction = false;
     const executables = this.executables.pending;

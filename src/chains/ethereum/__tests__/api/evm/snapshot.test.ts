@@ -1,4 +1,4 @@
-const assert = require("assert");
+import assert from "assert";
 import { join } from "path";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
@@ -176,6 +176,248 @@ describe("api", function() {
         const ids = [-1, Buffer.from([0])];
         const promises = ids.map((id) => send("evm_revert", [id]).then(result => assert.strictEqual(result, false)));
         await Promise.all(promises);
+      });
+
+      it("removes transactions that are already in processing at the start of evm_revert", async() => {
+        const { send, accounts: [from, to] } = context;
+
+        const snapShotId = await send("evm_snapshot");
+
+        // increment value for each transaction so the hashes always differ
+        let value = 1;
+        
+        // send some transactions
+        const inFlightTxs = [
+          send("eth_sendTransaction", [{from, to, value: value++}]),
+          send("eth_sendTransaction", [{from, to, value: value++}])
+        ];
+        // wait for the tx hashes to be returned; this is confirmation that
+        // they've been accepted by the transaction pool.
+        const txHashes = await Promise.all(inFlightTxs);
+
+        const getReceipt = (hash: string) => send("eth_getTransactionReceipt", [hash]);
+        const getTx = (hash: string) => send("eth_getTransactionByHash", [hash]);
+
+        const receiptsProm = Promise.all(txHashes.map(getReceipt));
+        const transactionsProm = Promise.all(txHashes.map(getTx));
+        const [receipts, transactions] = await Promise.all([
+          receiptsProm,
+          transactionsProm
+        ]);
+
+        // verify that we don't yet have a receipt
+        receipts.forEach(receipt => {
+          assert.strictEqual(receipt, null, "Receipt should be null");
+        });
+
+        // and that the transations were all accepted
+        transactions.forEach(transaction => {
+          assert.notStrictEqual(transaction, null, "Transaction should not be null");
+        });
+
+        // revert while these transactions are being mined
+        await send("evm_revert", [snapShotId]);
+
+        const finalReceiptsProm = Promise.all(txHashes.map(getReceipt));
+        const finalTransactionsProm = Promise.all(txHashes.map(getTx));
+        const [finalReceipts, finalTransactions] = await Promise.all([
+          finalReceiptsProm,
+          finalTransactionsProm
+        ]);
+
+        // verify that we don't have any receipts
+        finalReceipts.forEach(receipt => {
+          assert.strictEqual(receipt, null, "Receipt should be null");
+        });
+
+        // and we don't have any transactions
+        finalTransactions.forEach(transaction => {
+          assert.strictEqual(transaction, null, "Transaction should be null");
+        });
+      });
+
+      it("removes transactions that are in pending transactions at the start of evm_revert", async() => {
+        const { provider, send, accounts: [from, to] } = context;
+
+        const snapShotId = await send("evm_snapshot");
+
+        // increment value for each transaction so the hashes always differ
+        let value = 1;
+        
+        // send some transactions
+        const accountNonce = parseInt(await send("eth_getTransactionCount", [from]), 16);
+        const inFlightTxs = [
+          send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce + 1}]),
+          send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce + 2}])
+        ];
+        // wait for the tx hashes to be returned; this is confirmation that
+        // they've been accepted by the transaction pool.
+        const txHashes = await Promise.all(inFlightTxs);
+
+        const getReceipt = (hash: string) => send("eth_getTransactionReceipt", [hash]);
+        const getTx = (hash: string) => send("eth_getTransactionByHash", [hash]);
+
+        const transactions = await Promise.all(txHashes.map(getTx));
+
+        // and that the transations were all accepted
+        transactions.forEach(transaction => {
+          assert.notStrictEqual(transaction, null, "Transaction should not be null");
+        });
+
+        // revert while these transactions are pending
+        await send("evm_revert", [snapShotId]);
+
+        // mine a transaction to fill in the nonce gap (this would normally cause the pending transactions to be mined)
+        await send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce}]);
+        await provider.once("message");
+
+        // and mine one more block just to force the any transactions to be immediately mined
+        await send("evm_mine");
+
+        const finalReceiptsProm = Promise.all(txHashes.map(getReceipt));
+        const finalTransactionsProm = Promise.all(txHashes.map(getTx));
+        const [finalReceipts, finalTransactions] = await Promise.all([
+          finalReceiptsProm,
+          finalTransactionsProm
+        ]);
+
+        // verify that we don't have any receipts
+        finalReceipts.forEach(receipt => {
+          assert.strictEqual(receipt, null, "Receipt should be null");
+        });
+
+        // and we don't have any transactions
+        finalTransactions.forEach(transaction => {
+          assert.strictEqual(transaction, null, "Transaction should be null");
+        });
+      });
+
+      it("doesn't revert transactions that were added *after* the start of evm_revert", async() => {
+        const { provider, send, accounts: [from, to] } = context;
+
+        const accountNonce = parseInt(await send("eth_getTransactionCount", [from]), 16);
+
+        const snapShotId = await send("evm_snapshot");
+
+        // increment value for each transaction so the hashes always differ
+        let value = 1;
+
+        // send a transaction so we have something to revert
+        const revertedTx = await send("eth_sendTransaction", [{from, to, value: value++}]);
+        await provider.once("message");
+        
+        // revert while these transactions are being mined
+        const revertPromise = send("evm_revert", [snapShotId]);
+
+        // send some transactions
+        const inFlightTxs = [
+          send("eth_sendTransaction", [{from, to, value: value++}]),
+          send("eth_sendTransaction", [{from, to, value: value++}]),
+        ];
+
+        // these two transactions have nonces that are too high to be executed immediately
+        const laterTxs = [
+          send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce + 3}]),
+          send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce + 3}]),
+        ];
+        const txsMinedProm = new Promise(resolve => {
+          let count = 0;
+          const unsub = provider.on("message", () => {
+            if (++count === 2) {
+              unsub();
+              resolve(null);
+            }
+          });
+        });
+
+        // wait for the tx hashes to be returned; this is confirmation that
+        // they've been accepted by the transaction pool.
+        const txHashPromises = Promise.all(inFlightTxs);
+
+        const getReceipt = (hash: string) => send("eth_getTransactionReceipt", [hash]);
+        const getTx = (hash: string) => send("eth_getTransactionByHash", [hash]);
+
+        // wait for the revert to finish up
+        const result = await Promise.race([revertPromise, txHashPromises]);
+        assert.strictEqual(result, true, "evm_revert should finish before the transaction hashes are returned");
+
+        // wait for the inFlightTxs to be mined
+        await txsMinedProm;
+        const txHashes = await txHashPromises;
+        const laterHashes = await Promise.all(laterTxs);
+
+        // and mine one more block just to force the any executable transactions
+        // to be immediately mined
+        await send("evm_mine");
+
+        const finalReceiptsProm = Promise.all(txHashes.map(getReceipt));
+        const finalTransactionsProm = Promise.all(txHashes.map(getTx));
+        const [finalReceipts, finalTransactions] = await Promise.all([
+          finalReceiptsProm,
+          finalTransactionsProm
+        ]);
+
+        // verify that we do have the receipts
+        finalReceipts.forEach(receipt => {
+          assert.notStrictEqual(receipt, null, "Receipt should not be null");
+        });
+
+        // and we do have the transactions
+        finalTransactions.forEach(transaction => {
+          assert.notStrictEqual(transaction, null, "Transaction should not be null");
+        });
+
+        const laterTxsReceiptsProm = Promise.all(laterHashes.map(getReceipt));
+        const laterTxsTransactionsProm = Promise.all(laterHashes.map(getTx));
+        const [laterTxsReceipts, laterTxsTransactions] = await Promise.all([
+          laterTxsReceiptsProm,
+          laterTxsTransactionsProm
+        ]);
+
+        // verify that we do NOT have the receipts
+        laterTxsReceipts.forEach(receipt => {
+          assert.strictEqual(receipt, null, "Receipt should be null");
+        });
+
+        // and we DO have the transactions
+        laterTxsTransactions.forEach(transaction => {
+          assert.notStrictEqual(transaction, null, "Transaction should not be null");
+        });
+
+        // send one more transaction to fill in the gap
+        send("eth_sendTransaction", [{from, to, value: value++}]);
+
+        await new Promise(resolve => {
+          let count = 0;
+          const unsub = provider.on("message", () => {
+            if (++count === 3) {
+              unsub();
+              resolve(null);
+            }
+          });
+        });
+
+        const finalLaterTxsReceiptsProm = Promise.all(txHashes.map(getReceipt));
+        const finalLaterTxsTransactionsProm = Promise.all(txHashes.map(getTx));
+        const [finalLaterTxsReceipts, finalLaterTxsTransactions] = await Promise.all([
+          finalLaterTxsReceiptsProm,
+          finalLaterTxsTransactionsProm
+        ]);
+
+        // verify that we do have the receipts
+        finalLaterTxsReceipts.forEach(receipt => {
+          assert.notStrictEqual(receipt, null, "Receipt should not be null");
+        });
+
+        // and we do have the transactions
+        finalLaterTxsTransactions.forEach(transaction => {
+          assert.notStrictEqual(transaction, null, "Transaction should not be null");
+        });
+
+        const revertedTxReceipt = await getReceipt(revertedTx);
+        const revertedTxTransactions = await getTx(revertedTx);
+        assert.strictEqual(revertedTxReceipt, null, "First transaction should not have a receipt");
+        assert.strictEqual(revertedTxTransactions, null, "First transaction should not have a tx");
       });
     });
   });
