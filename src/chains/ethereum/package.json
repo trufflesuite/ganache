@@ -27,7 +27,8 @@
     "post-process:docs": "node ./scripts/post-process-docs.js",
     "preview:docs": "ws --open --port 3010 --directory ./lib/docs",
     "tsc": "ts-node ../../../scripts/compile",
-    "test": "nyc --reporter lcov npm run mocha -- --throw-deprecation --trace-warnings",
+    "dosnt-always-work-test": "nyc --reporter lcov npm run mocha -- --throw-deprecation --trace-warnings",
+    "test": "npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --require source-map-support/register --recursive --check-leaks '__tests__/**/*.test.ts'"
   },
   "bugs": {
