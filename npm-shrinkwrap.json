@@ -5121,9 +5121,9 @@
       }
     },
     "ethereumjs-common": {
-      "version": "1.5.2",
-      "resolved": "https://registry.npmjs.org/ethereumjs-common/-/ethereumjs-common-1.5.2.tgz",
-      "integrity": "sha512-hTfZjwGX52GS2jcVO6E2sx4YuFnf0Fhp5ylo4pEPhEffNln7vS59Hr5sLnp3/QCazFLluuBZ+FZ6J5HTp0EqCA=="
+      "version": "1.5.1",
+      "resolved": "https://registry.npmjs.org/ethereumjs-common/-/ethereumjs-common-1.5.1.tgz",
+      "integrity": "sha512-aVUPRLgmXORGXXEVkFYgPhr9TGtpBY2tGhZ9Uh0A3lIUzUDr1x6kQx33SbjPUkLkX3eniPQnIL/2psjkjrOfcQ=="
     },
     "ethereumjs-tx": {
       "version": "2.1.2",

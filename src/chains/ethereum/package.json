@@ -39,7 +39,7 @@
     "@ganache/utils": "^2.2.1",
     "@types/keccak": "3.0.1",
     "eth-sig-util": "2.5.3",
-    "ethereumjs-abi": "^0.6.8",
+    "ethereumjs-abi": "0.6.8",
     "ethereumjs-vm": "4.2.0",
     "keccak": "3.0.0",
     "levelup": "4.4.0",
