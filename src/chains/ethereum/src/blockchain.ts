@@ -120,16 +120,16 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
     { // warnings
       if (legacyInstamine) {
-        console.warn("Legacy instamining, where transactions are fully mined before the hash is returned, is deprecated and will be removed in the future.");
+        console.info("Legacy instamining, where transactions are fully mined before the hash is returned, is deprecated and will be removed in the future.");
       }
 
       if (instamine === false) {
         if (legacyInstamine === true) {
-          console.warn("Setting `legacyInstamine` to `true` has no effect when blockTime is non-zero");
+          console.info("Setting `legacyInstamine` to `true` has no effect when blockTime is non-zero");
         }
 
         if (options.chain.vmErrorsOnRPCResponse) {
-          console.warn("Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero");
+          console.info("Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero");
         }
       }
     }
