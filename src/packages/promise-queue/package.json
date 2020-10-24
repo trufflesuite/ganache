@@ -18,7 +18,6 @@
   },
   "scripts": {
     "tsc": "ts-node ../../../scripts/compile",
-    "test": "nyc npm run mocha -- --throw-deprecation --trace-warnings",
     "mocha": "cross-env TS_NODE_FILES=true mocha --require ts-node/register --recursive --check-leaks '__tests__/**.ts'"
   },
   "bugs": {
