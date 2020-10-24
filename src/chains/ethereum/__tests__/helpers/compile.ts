@@ -1,10 +1,16 @@
 import solc from "solc";
 
-// Clean up after solc. Looks like this never really got fixed:
-// https://github.com/chriseth/browser-solidity/issues/167
-var listeners = process.listeners("unhandledRejection");
-var solc_listener = listeners[listeners.length - 1];
-process.removeListener("unhandledRejection", solc_listener);
+{
+  // Clean up after solc. Looks like this never really got fixed:
+  // https://github.com/chriseth/browser-solidity/issues/167
+  const listeners = process.listeners("unhandledRejection");
+  const solcListener = listeners[listeners.length - 1];
+  if (solcListener && solcListener.name === "abort") {
+    process.removeListener("unhandledRejection", solcListener);
+  } else {
+    throw new Error("Looks like either the solc listener was finally removed, or they changed the name. Check it!");
+  }
+}
 
 import { readFileSync } from "fs-extra";
 import { parse } from "path";
