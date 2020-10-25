@@ -92,8 +92,8 @@ process.stdout.write(`${COLORS.Reset}`);
       },
       scripts: {
         tsc: "ts-node ../../../scripts/compile",
-        test: "nyc npm run mocha -- --throw-deprecation --trace-warnings",
-        mocha: "cross-env TS_NODE_FILES=true mocha --require ts-node/register --recursive --check-leaks '__tests__/**.ts'"
+        test: "nyc npm run mocha",
+        mocha: "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**.ts'"
       },
       bugs: {
         url: "https://github.com/trufflesuite/ganache-core/issues"
