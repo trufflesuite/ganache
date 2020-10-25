@@ -22,7 +22,6 @@ export default class Database extends Emittery {
   public blocks: LevelUp;
   public blockIndexes: LevelUp;
   public blockLogs: LevelUp;
-  public blockHashes: LevelUp;
   public transactions: LevelUp;
   public transactionReceipts: LevelUp;
   public trie: LevelUp;
@@ -150,7 +149,14 @@ export default class Database extends Emittery {
         if (err) return void reject(err);
         resolve(void 0);
       })));
-      await Promise.all([this.blocks.close(), this.transactions.close(), this.trie.close()]);
+      await Promise.all([
+        this.blocks.close(),
+        this.blockIndexes.close(),
+        this.blockIndexes.close(),
+        this.transactionReceipts.close(),
+        this.transactions.close(),
+        this.trie.close()
+      ]);
     }
     return this.#cleanupDirectory();
   };
