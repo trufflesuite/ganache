@@ -28,7 +28,7 @@
     "preview:docs": "ws --open --port 3010 --directory ./lib/docs",
     "tsc": "ts-node ../../../scripts/compile",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register --require source-map-support/register '__tests__/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_FILES=true mocha --check-leaks --throw-deprecation --trace-warnings --require ts-node/register --require source-map-support/register '__tests__/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
