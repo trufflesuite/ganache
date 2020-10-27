@@ -306,8 +306,6 @@ describe("server", () => {
         params: []
       };
       try {
-        // TODO: should we expect a 200 OK response with an `error` property
-        //  in a json rpc body? Probably, because we _do_ already send one. :-/
         const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
         assert.strictEqual(response.status, 200);
         assert.strictEqual(JSON.parse(response.text).error.message, "notifications not supported");
