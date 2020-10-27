@@ -68,12 +68,12 @@ export default class BlockLogs {
    */
   public append(/*removed: boolean, */transactionIndex: Buffer, transactionHash: Buffer, log: TransactionLog) {
     this[_raw][1].push([
-      utils.BUFFER_ZERO,      // `removed`, TODO: this is used for uncles, but we don't support them yet
-      transactionIndex, // transactionIndex
-      transactionHash,  // transactionHash
-      log[0],           // `address`
-      log[1],           // `topics`
-      log[2]            // `data`
+      utils.BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
+      transactionIndex,  // transactionIndex
+      transactionHash,   // transactionHash
+      log[0],            // `address`
+      log[1],            // `topics`
+      log[2]             // `data`
     ])
   }
 
