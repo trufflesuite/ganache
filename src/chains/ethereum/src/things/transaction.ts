@@ -438,7 +438,7 @@ class Transaction extends (EthereumJsTransaction as any) {
       value: Quantity.from(this.value),
       gas: Quantity.from(this.gasLimit),
       gasPrice: Quantity.from(this.gasPrice),
-      input: Data.from(this.data), // TODO: this output format probably needs the 0x stripped.
+      input: Data.from(this.data),
       v: Quantity.from(this.v),
       r: Quantity.from(this.r),
       s: Quantity.from(this.s)
