@@ -12,27 +12,21 @@
       "env": {
         "TS_NODE_FILES": "true"
       },
-      "runtimeArgs": [
-        "--throw-deprecation",
-        "--trace-warnings"
-      ],
       // 10.7.0 is the earliest version of Node.js that we support, and is the first version to support BigInt literals.
       "runtimeVersion": "10.7.0",
       "args": [
         "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-        "--timeout",
-        "999999",
+        "--throw-deprecation",
+        "--trace-warnings",
+        "--check-leaks",
+        "--no-timeout",
         "--colors",
         "--require",
         "ts-node/register",
-        "--watch-extensions",
-        "ts",
-        "--recursive",
-        "--check-leaks",
-        "${workspaceFolder}/src/**/__tests__/**/*.test.ts"
+        "${workspaceFolder}/src/**/_tests__/**/*.test.ts"
       ],
       "skipFiles": [
-        "<node_internals>/**/*.js"
+        "<node_internals>/**"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
