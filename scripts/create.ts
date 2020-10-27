@@ -143,7 +143,15 @@ export * from "./src/index";
 
     function initRootIndex() {
       return Promise.all([
-        writeFile(join(dir, ".npmignore"), "./index.ts\n"),
+        writeFile(join(dir, ".npmignore"), `./index.ts
+__tests__
+.nyc_output
+coverage
+scripts
+src
+tsconfig.json
+typedoc.json
+`),
         writeFile(join(dir, "index.ts"), prettier.format(rootIndexFile, {...prettierConfig, parser: "typescript"})),
       ]);
     }
