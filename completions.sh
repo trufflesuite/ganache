@@ -12,6 +12,7 @@ _npmScriptsCompletions()
       type_list=$(node -e "console.log(Object.keys(require('./package.json').scripts).join('\n'))")
       COMPREPLY=( $(compgen -W "${type_list}" -- ${cur_word}) )
     else
+      # if the command if the create command (npm run create) get its completion values
       if [ "${COMP_WORDS[1]}" == "run" ] && [ "${COMP_WORDS[2]}" == "create" ]; then
         while [[ "$#" -gt 0 ]]; do
             case $1 in

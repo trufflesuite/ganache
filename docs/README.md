@@ -7,6 +7,7 @@
  * `git clone git@github.com:trufflesuite/ganache-core.git`
  * `cd ganache-core`
  * `npm install`
+ * On Unix systems: run `source completions.sh` to enable npm script autocomplete
 
 ## Solving node-gyp issues
 
@@ -114,7 +115,7 @@ These are guidelines, not rules. :-)
   `Number.MAX_SAFE_INTEGER`.
  * Write tests.
  * Do not use "Optional Chaining" (`obj?.prop`). I'd love to enable this, but TypeScript makes it hard to use bigint
-  literals and optional chaining together.
+  literals and optional chaining together. If you figure it out, delete this rule!
  * Prefer using a single loop to functional chaining.
  * Prefer performant code over your own developer experience.
  * Document complex code. Explain why the code does what it does.
@@ -122,7 +123,7 @@ These are guidelines, not rules. :-)
   too.
  * Add JSDoc comments to public class members where it makes sense.
  * Before adding an external dependency check its code for quality, its # of external dependencies, its node version
-  support, and make sure it absolutely necessary.
+  support, and make sure it's absolutely necessary.
  * Pin all dependencies, even dev dependencies.
  * Use npm; do not use yarn.
  * Don't use web3, ethers, etc in ganache-core core code. (Tests are fine)
