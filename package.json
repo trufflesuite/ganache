@@ -6,15 +6,15 @@
     "npm": ">=6.1.0"
   },
   "scripts": {
-    "build:docs": "lerna exec --no-bail npm run build:docs",
-    "clean": "npx shx rm -rf node_modules && npx lerna clean -y && npm run tsc:clean",
+    "docs.build": "lerna exec --no-bail npm run docs.build",
+    "docs.preview": "lerna exec --no-bail npm run docs.preview",
+    "clean": "npx shx rm -rf node_modules && npx lerna clean -y && npm run tsc.clean",
     "create": "ts-node ./scripts/create",
-    "preview:docs": "lerna exec --no-bail npm run preview:docs",
     "prepare": "lerna bootstrap && echo \"\n\\033[1;36m Tip:\\033[0;36m run \\033[1;2;33msource completions.sh\\033[0;36m to supply bash completions for npm scripts\\033[0m\n\"",
     "reinstall": "npm run clean && npm install",
     "test": "lerna exec -- npm test",
     "tsc": "lerna exec -- npm run tsc",
-    "tsc:clean": "lerna exec -- npx shx rm -rf lib"
+    "tsc.clean": "lerna exec -- npx shx rm -rf lib"
   },
   "dependencies": {
     "bip39": "3.0.2",
