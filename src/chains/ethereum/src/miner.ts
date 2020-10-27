@@ -188,7 +188,6 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
       // vm's "live" trie.
       await this.#checkpoint();
 
-      // TODO: get a real block?
       const blockBloom = block.header.bloom;
 
       // Run until we run out of items, or until the inner loop stops us.
@@ -343,30 +342,14 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
       return await this.#vm.runTx({tx, block} as any);
     } catch (err) {
       const errorMessage = err.message;
-      if (errorMessage.startsWith("the tx doesn't have the correct nonce. account has nonce of: ")) {
-        // a race condition between the pool and the miner could potentially
-        // cause this issue.
-        // We do NOT want to re-run this transaction.
-        // Update the `priced` heap with the next best transaction from this
-        // account
-        const pendingOrigin = pending.get(origin)
-        if (pendingOrigin.removeBest()) {
-          replaceFromHeap(this.#priced, pendingOrigin);
-        } else {
-          this.#priced.removeBest();
-        }
+      // We do NOT want to re-run this transaction.
+      // Update the `priced` heap with the next best transaction from this
+      // account
+      const pendingOrigin = pending.get(origin)
+      if (pendingOrigin.removeBest()) {
+        replaceFromHeap(this.#priced, pendingOrigin);
       } else {
-        // TODO: handle other errors? Maybe there are some that allow this tx to
-        // be run again later? For now, just remove it so stuff works.
-
-        // Update the `priced` heap with the next best transaction from this
-        // account
-        const pendingOrigin = pending.get(origin)
-        if (pendingOrigin.removeBest()) {
-          replaceFromHeap(this.#priced, pendingOrigin);
-        } else {
-          this.#priced.removeBest();
-        }
+        this.#priced.removeBest();
       }
 
       const e = {execResult: {runState: {programCounter: 0}, exceptionError: {error: errorMessage}, returnValue: Buffer.allocUnsafe(0)}} as any;
