@@ -232,9 +232,9 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             const timestamp = new Date(Quantity.from(header.timestamp).toNumber() * 1000).toString();
             blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
               const hash = tx.hash();
-              // TODO: clean up transaction extra data stuffs because this is gross:
-              const extraData = [...tx.raw, blockHash, blockNumber, Quantity.from(i).toBuffer(), Buffer.from([tx.type]), tx.from];
-              const encodedTx = rlpEncode(extraData);
+              const index = Quantity.from(i).toBuffer();
+              const txAndExtraData = [...tx.raw, blockHash, blockNumber, index, Buffer.from([tx.type]), tx.from];
+              const encodedTx = rlpEncode(txAndExtraData);
               this.transactions.set(hash, encodedTx);
 
               const receipt = tx.getReceipt();
@@ -243,7 +243,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
               tx.getLogs().forEach(log => {
                 blockLogs.append(
-                  Quantity.from(i).toBuffer(),
+                  index,
                   hash,
                   log
                 );
