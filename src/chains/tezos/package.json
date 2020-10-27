@@ -1,7 +1,7 @@
 {
   "name": "@ganache/tezos",
   "version": "2.2.1",
-  "description": "> TODO: description",
+  "description": "ganache-core's Tezos client implementation",
   "author": "David Murdoch <david@davidmurdoch.com>",
   "homepage": "https://github.com/trufflesuite/ganache-core#readme",
   "license": "MIT",
