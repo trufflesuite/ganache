@@ -6,6 +6,9 @@ import {Quantity, Data} from "@ganache/utils";
 import Transaction from "../things/transaction";
 import {decode as rlpDecode} from "rlp";
 import Common from "ethereumjs-common";
+import { utils } from "@ganache/utils";
+
+const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
 const NOTFOUND = 404;
 
 const EMPTY_BUFFER = Buffer.from([]);
@@ -229,7 +232,9 @@ export class Block {
       receiptsRoot: Data.from(header.receiptTrie),
       miner: Data.from(header.coinbase),
       difficulty: Quantity.from(header.difficulty),
-      totalDifficulty: Quantity.from(header.difficulty), // TODO: Figure out what to do here.
+      // TODO(forking): since ganache's difficulty is always 0, `totalDifficulty` for new blocks
+      // should just be the forked block's `difficulty`. See https://ethereum.stackexchange.com/a/7102/44640
+      totalDifficulty: RPCQUANTITY_ZERO,
       extraData: Data.from(header.extraData),
       size: Quantity.from(this.size),
       gasLimit: Quantity.from(header.gasLimit),
