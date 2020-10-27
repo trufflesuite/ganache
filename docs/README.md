@@ -39,6 +39,9 @@ Which just runs these commands for you:
  * `npm run clean`
  * `npm install`
 
+ This deletes all `node_modules` folders, as well as all generated `lib`
+ directories.
+
 ## VSCode On Windows (10)
 
  * Enable "Developer Mode" by going to Settings -> Developer Settings -> Then select Developer Mode.
