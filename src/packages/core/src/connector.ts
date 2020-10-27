@@ -6,7 +6,6 @@ import {Options as ProviderOptions} from "@ganache/flavors";
  * Loads the connector specified by the given `flavor`
  */
 export default {
-  // TODO: set missing defaults automatically
   initialize: (providerOptions: ProviderOptions = {flavor: DefaultFlavor, chain: {asyncRequestProcessing: true}}) => {
     const flavor = providerOptions.flavor || DefaultFlavor;
     
