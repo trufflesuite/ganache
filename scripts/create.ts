@@ -5,9 +5,11 @@ import prettier from "prettier";
 import {version} from "../lerna.json";
 import camelCase from "camelcase";
 import npa from "npm-package-arg";
-import { lstatSync as lstat, readdirSync as readDir } from "fs";
+import { lstatSync as lstat, readdirSync as readDir, readFileSync as readFile } from "fs";
 import chalk from "chalk";
 import { highlight } from "cli-highlight";
+import { promisify } from "util";
+
 
 const isDir = (s: string) => lstat(s).isDirectory();
 const getDirectories = (s: string) => readDir(s).filter(n => isDir(join(s, n)));
@@ -69,7 +71,11 @@ process.stdout.write(`${COLORS.Reset}`);
   let location = argv.location;
 
   try {
+    const workspaceDir = join(__dirname, "../");
+    const LICENSE = readFile(join(workspaceDir, "LICENSE"), "utf-8");
+
     const prettierConfig = await prettier.resolveConfig(process.cwd());
+
     name = npa(name).name;
 
     const packageName = `@ganache/${name}`;
@@ -93,7 +99,7 @@ process.stdout.write(`${COLORS.Reset}`);
       scripts: {
         tsc: "ts-node ../../../scripts/compile",
         test: "nyc npm run mocha",
-        mocha: "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**.ts'"
+        mocha: "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**/*.test.ts'"
       },
       bugs: {
         url: "https://github.com/trufflesuite/ganache-core/issues"
@@ -133,7 +139,7 @@ describe("${packageName}", () => {
 export * from "./src/index";
 `;
 
-    const dir = join(__dirname, "../src", location, name);
+    const dir = join(workspaceDir, "src", location, name);
     const tests = join(dir, "__tests__");
     const src = join(dir, "src");
 
@@ -153,6 +159,7 @@ tsconfig.json
 typedoc.json
 `),
         writeFile(join(dir, "index.ts"), prettier.format(rootIndexFile, {...prettierConfig, parser: "typescript"})),
+        writeFile(join(dir, "LICENSE"), LICENSE)
       ]);
     }
 
