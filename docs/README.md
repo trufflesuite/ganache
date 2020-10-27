@@ -2,12 +2,15 @@
 
 ## Getting set up
 
- * Use Node.js v10.7.0, this is the earliest version we support.
-   * Why v10.7.0? Because this is the first version that supports with BigInt literals (the `n` in `100n`).
- * `git clone git@github.com:trufflesuite/ganache-core.git`
- * `cd ganache-core`
- * `npm install`
- * On Unix systems: run `source completions.sh` to enable npm script autocomplete
+* Use Node.js v10.7.0, this is the earliest version we support.
+   * Why v10.7.0? Because this is the first version that supports BigInt literals (the `n` in `100n`).
+   * recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
+   Windows, to configure your node version.
+     * On Linux and macOS, if you have `nvm` installed, just run `nvm use` switch to Node.js v10.7.0.
+* `git clone git@github.com:trufflesuite/ganache-core.git`
+* `cd ganache-core`
+* `npm install` (use npm v6)
+* On Linux and macOS: run `source completions.sh` to enable npm script autocomplete
 
 ## Solving node-gyp issues
 
@@ -40,7 +43,7 @@ Which just runs these commands for you:
  * `npm install`
 
  This deletes all `node_modules` folders, as well as all generated `lib`
- directories.
+ directories, then reinstalls all modules.
 
 ## VSCode On Windows (10)
 
@@ -95,18 +98,18 @@ example to debug only test files in the ethereum package:
 
 ```diff
 diff --git a/.vscode/launch.json b/.vscode/launch.json
-index 688d3d4..815e111 100644
+index 2a2aa9e..57cbf21 100644
 --- a/.vscode/launch.json
-+++ b/.vscode/launch.json  
-@@ -28,7 +28,7 @@
-         "ts",
-         "--recursive",
-         "--check-leaks",
++++ b/.vscode/launch.json
+@@ -23,7 +23,7 @@
+         "--colors",
+         "--require",
+         "ts-node/register",
 -        "${workspaceFolder}/src/**/__tests__/**/*.test.ts"
 +        "${workspaceFolder}/src/chains/ethereum/__tests__/**/*.test.ts"
        ],
        "skipFiles": [
-         "<node_internals>/**/*.js"
+         "<node_internals>/**"
 ```
 
 ## Code Conventions
