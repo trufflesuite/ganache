@@ -144,8 +144,10 @@ export default class BlockManager extends Manager<Block> {
       key = Buffer.from([0]);
     }
     const secondaryKey = header.hash();
-    const value = blockValue.serialize(true);
-    await Promise.all([this.#blockIndexes.put(secondaryKey, key), super.set(key, value)]);
+    await Promise.all([
+      this.#blockIndexes.put(secondaryKey, key),
+      super.set(key, block.serialize())
+    ]);
     return block;
   }
 
@@ -180,6 +182,7 @@ export class Block {
   public readonly value: EthereumJsBlock;
   constructor(raw: Buffer, common: Common) {
     if (raw) {
+      this.size = raw.length;
       const data = (rlpDecode(raw) as any) as [Buffer[], Buffer[], Buffer[]];
       this.value = new EthereumJsBlock({header: data[0], uncleHeaders: data[2]}, {common});
       const rawTransactions = data[1];
@@ -191,7 +194,16 @@ export class Block {
       }
     } else {
       this.value = new EthereumJsBlock(null, {common});
+      this.size = 0;
     }
+  }
+
+  size: number;
+
+  serialize() {
+    const serialized = this.value.serialize(true);
+    this.size = serialized.length;
+    return serialized;
   }
 
   getTxFn = (include = false): ((tx: Transaction) => {[key: string]: string | Data | Quantity} | Data) => {
@@ -219,7 +231,7 @@ export class Block {
       difficulty: Quantity.from(header.difficulty),
       totalDifficulty: Quantity.from(header.difficulty), // TODO: Figure out what to do here.
       extraData: Data.from(header.extraData),
-      size: Quantity.from(1000), // TODO: Do something better here
+      size: Quantity.from(this.size),
       gasLimit: Quantity.from(header.gasLimit),
       gasUsed: Quantity.from(header.gasUsed),
       timestamp: Quantity.from(header.timestamp),
