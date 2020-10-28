@@ -1262,16 +1262,16 @@ export default class EthereumApi implements types.Api {
           const value = block.value;
           const header = value.header;
           const result = {
-            "logsBloom":        Data.from(header.bloom, 256), // TODO: pending block
+            "logsBloom":        Data.from(header.bloom, 256),
             "miner":            Address.from(header.coinbase),
             "difficulty":       Quantity.from(header.difficulty),
             "extraData":        Data.from(header.extraData),
             "gasLimit":         Quantity.from(header.gasLimit),
             "gasUsed":          Quantity.from(header.gasUsed),
-            "hash":             Data.from(value.hash(), 32), // TODO: pending block
+            "hash":             Data.from(value.hash(), 32),
             "mixHash":          Data.from(header.mixHash, 32),
-            "nonce":            Data.from(header.nonce, 8), // TODO: pending block
-            "number":           Quantity.from(header.number, true), // TODO: pending block
+            "nonce":            Data.from(header.nonce, 8),
+            "number":           Quantity.from(header.number, true),
             "parentHash":       Data.from(header.parentHash, 32),
             "receiptsRoot":     Data.from(header.receiptTrie, 32),
             "stateRoot":        Data.from(header.stateRoot, 32),
@@ -1331,7 +1331,7 @@ export default class EthereumApi implements types.Api {
         return promiEvent;
       }
       case "syncing": {
-        // TODO: ?
+        // ganache doesn't sync, so doing nothing is perfectly valid.
         const subscription = this.#getId();
         const promiEvent = PromiEvent.resolve(subscription);
         
