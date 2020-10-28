@@ -1,7 +1,7 @@
 {
   "name": "@ganache/core",
   "version": "2.2.1",
-  "description": "> TODO: description",
+  "description": "A library to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core#readme",
   "license": "MIT",
@@ -20,7 +20,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/trufflesuite/ganache-core.git"
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/packages/core"
   },
   "scripts": {
     "tsc": "ts-node ../../../scripts/compile",

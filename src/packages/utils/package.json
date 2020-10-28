@@ -20,7 +20,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/trufflesuite/ganache-core.git"
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/packages/utils"
   },
   "scripts": {
     "tsc": "ts-node ../../../scripts/compile"
