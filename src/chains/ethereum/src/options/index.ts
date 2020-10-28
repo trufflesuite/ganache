@@ -3,7 +3,13 @@ import { DatabaseConfig, DatabaseOptions } from "./database-options";
 import { LoggingConfig, LoggingOptions } from "./logging-options";
 import { MinerConfig, MinerOptions } from "./miner-options";
 import { WalletConfig, WalletOptions } from "./wallet-options";
-import { Defaults, Definitions, ExternalConfig, InternalConfig, OptionsConfig } from "@ganache/options";
+import {
+  Defaults,
+  Definitions,
+  ExternalConfig,
+  InternalConfig,
+  OptionsConfig
+} from "@ganache/options";
 
 export type EthereumOptions = {
   chain: ChainConfig;

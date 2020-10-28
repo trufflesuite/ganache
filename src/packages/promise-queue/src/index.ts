@@ -98,7 +98,8 @@ class PromiseQueue<T> {
   };
 }
 
-interface PromiseQueue<T> extends Pick<Emittery, typeof emitteryMethods[number]> {
+interface PromiseQueue<T>
+  extends Pick<Emittery, typeof emitteryMethods[number]> {
   emittery: Emittery;
 }
 

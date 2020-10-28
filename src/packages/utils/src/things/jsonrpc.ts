@@ -40,7 +40,11 @@ namespace JsonRpc {
       result
     };
   };
-  export const Error = <T extends JSError & { code: number }>(id: string, error: T, result?: unknown): Error => {
+  export const Error = <T extends JSError & { code: number }>(
+    id: string,
+    error: T,
+    result?: unknown
+  ): Error => {
     type E = { [K in keyof T]: K extends string ? T[K] : never };
     // Error objects are weird, `message` isn't included in the property names,
     // so it is pulled out separately.

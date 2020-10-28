@@ -5,7 +5,12 @@ declare module "merkle-patricia-tree/baseTrie" {
   import ReadStream from "merkle-patricia-tree/readStream";
 
   type Callback<T> = (err: Error | null, result: T) => void;
-  type FindPathCallback = (err: Error, node: TrieNode, keyRemainder: Buffer, stack: TrieNode[]) => void;
+  type FindPathCallback = (
+    err: Error,
+    node: TrieNode,
+    keyRemainder: Buffer,
+    stack: TrieNode[]
+  ) => void;
   type LargeNumber = string | Buffer | BN;
 
   // Rather than using LevelUp here, specify the minimal interface we need

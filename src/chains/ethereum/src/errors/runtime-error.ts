@@ -20,7 +20,11 @@ export default class RuntimeError extends CodedError {
     reason?: string;
     message: string;
   };
-  constructor(transactionHash: Buffer, result: EVMResult, returnType: RETURN_TYPES) {
+  constructor(
+    transactionHash: Buffer,
+    result: EVMResult,
+    returnType: RETURN_TYPES
+  ) {
     const execResult = result.execResult;
     const error = execResult.exceptionError.error;
     let message = VM_EXCEPTION + error;
@@ -33,7 +37,10 @@ export default class RuntimeError extends CodedError {
     const returnValue = execResult.returnValue;
     const hash = `0x${transactionHash.toString("hex")}`;
     let reason: string | null;
-    if (returnValue.length > 4 && REVERT_REASON.compare(returnValue, 0, 4) === 0) {
+    if (
+      returnValue.length > 4 &&
+      REVERT_REASON.compare(returnValue, 0, 4) === 0
+    ) {
       try {
         // it is possible for the `returnValue` to be gibberish that can't be
         // decoded. See: https://github.com/trufflesuite/ganache-core/pull/452
@@ -51,7 +58,10 @@ export default class RuntimeError extends CodedError {
     this.data = {
       hash: hash,
       programCounter: execResult.runState.programCounter,
-      result: returnType === RETURN_TYPES.TRANSACTION_HASH ? hash : Data.from(returnValue || "0x").toString(),
+      result:
+        returnType === RETURN_TYPES.TRANSACTION_HASH
+          ? hash
+          : Data.from(returnValue || "0x").toString(),
       reason: reason,
       message: error
     };

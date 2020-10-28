@@ -9,7 +9,10 @@ describe("provider", () => {
     it("generates predictable accounts when given a seed", async () => {
       const provider = await getProvider({ wallet: { seed: "temet nosce" } });
       const accounts = await provider.send("eth_accounts");
-      assert.strictEqual(accounts[0], "0x59ef313e6ee26bab6bcb1b5694e59613debd88da");
+      assert.strictEqual(
+        accounts[0],
+        "0x59ef313e6ee26bab6bcb1b5694e59613debd88da"
+      );
     });
   });
 
@@ -36,7 +39,7 @@ describe("provider", () => {
         methods
           .map(method => {
             return new Promise((resolve, reject) => {
-              provider[method](jsonRpcRequest, (err: Error, { result }): void => {
+              provider[method](jsonRpcRequest, (err: Error, { result }) => {
                 if (err) return reject(err);
                 assert.strictEqual(result, `${networkId}`);
                 resolve(void 0);

@@ -9,7 +9,10 @@ declare var Promise: {
    * @returns A Promise for the completion of the callback.
    */
   catch<TResult = never>(
-    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    onrejected?:
+      | ((reason: any) => TResult | PromiseLike<TResult>)
+      | undefined
+      | null
   ): PromiEvent<TResult>;
 
   /**
@@ -26,11 +29,22 @@ declare var Promise: {
   resolve(): PromiEvent<void>;
 } & PromiseConstructor;
 
-const emitteryMethods = ["clearListeners", "once", "on", "emit", "onAny"] as const;
+const emitteryMethods = [
+  "clearListeners",
+  "once",
+  "on",
+  "emit",
+  "onAny"
+] as const;
 
 @Emittery.mixin(Symbol.for("emittery"), emitteryMethods)
 class PromiEvent<T> extends Promise<T> {
-  constructor(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) {
+  constructor(
+    executor: (
+      resolve: (value?: T | PromiseLike<T>) => void,
+      reject: (reason?: any) => void
+    ) => void
+  ) {
     super(executor);
   }
 
@@ -39,7 +53,12 @@ class PromiEvent<T> extends Promise<T> {
    * @param onrejected The callback to execute when the Promise is rejected.
    * @returns A PromiEvent for the completion of the callback.
    */
-  catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null) {
+  catch<TResult = never>(
+    onrejected?:
+      | ((reason: any) => TResult | PromiseLike<TResult>)
+      | undefined
+      | null
+  ) {
     const prom = new PromiEvent<T | TResult>((resolve, reject) => {
       this.onAny((eventName, eventData) => {
         return prom.emit(eventName, eventData);
@@ -96,7 +115,9 @@ class PromiEvent<T> extends Promise<T> {
   };
 }
 
-interface PromiEvent<T> extends Promise<T>, Pick<Emittery, typeof emitteryMethods[number]> {
+interface PromiEvent<T>
+  extends Promise<T>,
+    Pick<Emittery, typeof emitteryMethods[number]> {
   emittery: Emittery;
 }
 

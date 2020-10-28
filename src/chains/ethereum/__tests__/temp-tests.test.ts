@@ -12,7 +12,8 @@ import { join } from "path";
 
 describe("Random tests that are temporary!", () => {
   const expectedAddress = "0x604a95c9165bc95ae016a5299dd7d400dddbea9a";
-  const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
+  const mnemonic =
+    "into trim cross then helmet popular suit hammer cart shrug oval student";
 
   it("should respect the BIP99 mnemonic", async () => {
     const options = { wallet: { mnemonic } };
@@ -50,20 +51,28 @@ describe("Random tests that are temporary!", () => {
   it("shouldn't allow initialization without accounts", async () => {
     const options = { wallet: { totalAccounts: 0 } } as any;
     await assert.rejects(getProvider(options), {
-      message: "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
+      message:
+        "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
     });
 
     options.wallet.accounts = [];
     await assert.rejects(getProvider(options), {
-      message: "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
+      message:
+        "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
     });
   });
 
   it("sets up accounts", async () => {
-    const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
+    const privateKey = Buffer.from(
+      "4646464646464646464646464646464646464646464646464646464646464646",
+      "hex"
+    );
     const p = await getProvider({
       wallet: {
-        accounts: [{ balance: "0x123", secretKey: "0x" + privateKey.toString("hex") }, { balance: "0x456" }]
+        accounts: [
+          { balance: "0x123", secretKey: "0x" + privateKey.toString("hex") },
+          { balance: "0x456" }
+        ]
       }
     });
     const accounts = await p.send("eth_accounts");
@@ -110,7 +119,10 @@ describe("Random tests that are temporary!", () => {
         }
       ]);
     };
-    await assert.rejects(badSend, "Error: authentication needed: password or unlock");
+    await assert.rejects(
+      badSend,
+      "Error: authentication needed: password or unlock"
+    );
 
     await p.send("eth_subscribe", ["newHeads"]);
     await p.send("eth_sendTransaction", [
@@ -162,37 +174,58 @@ describe("Random tests that are temporary!", () => {
 
     await p.once("message");
 
-    const receipt = await p.send("eth_getTransactionReceipt", [transactionHash]);
+    const receipt = await p.send("eth_getTransactionReceipt", [
+      transactionHash
+    ]);
     assert.strictEqual(receipt.blockNumber, "0x1");
 
     const to = receipt.contractAddress;
     const methods = contract.contract.evm.methodIdentifiers;
 
-    const value = await p.send("eth_call", [{ from, to, data: "0x" + methods["value()"] }]);
+    const value = await p.send("eth_call", [
+      { from, to, data: "0x" + methods["value()"] }
+    ]);
 
-    const x5 = "0x0000000000000000000000000000000000000000000000000000000000000005";
+    const x5 =
+      "0x0000000000000000000000000000000000000000000000000000000000000005";
     assert.strictEqual(value, x5);
 
-    const constVal = await p.send("eth_call", [{ from, to, data: "0x" + methods["getConstVal()"] }]);
+    const constVal = await p.send("eth_call", [
+      { from, to, data: "0x" + methods["getConstVal()"] }
+    ]);
 
-    const x123 = "0x000000000000000000000000000000000000000000000000000000000000007b";
+    const x123 =
+      "0x000000000000000000000000000000000000000000000000000000000000007b";
     assert.strictEqual(constVal, x123);
 
-    const storage = await p.send("eth_getStorageAt", [receipt.contractAddress, 0, receipt.blockNumber]);
+    const storage = await p.send("eth_getStorageAt", [
+      receipt.contractAddress,
+      0,
+      receipt.blockNumber
+    ]);
     assert.strictEqual(storage, "0x05");
 
-    const raw25 = "0000000000000000000000000000000000000000000000000000000000000019";
+    const raw25 =
+      "0000000000000000000000000000000000000000000000000000000000000019";
     const x25 = "0x" + raw25;
-    const hash = await p.send("eth_sendTransaction", [{ from, to, data: "0x" + methods["setValue(uint256)"] + raw25 }]);
+    const hash = await p.send("eth_sendTransaction", [
+      { from, to, data: "0x" + methods["setValue(uint256)"] + raw25 }
+    ]);
     await p.once("message");
     const txReceipt = await p.send("eth_getTransactionReceipt", [hash]);
     assert.strictEqual(txReceipt.blockNumber, "0x2");
 
-    const getValueAgain = await p.send("eth_call", [{ from, to, data: "0x" + methods["value()"] }]);
+    const getValueAgain = await p.send("eth_call", [
+      { from, to, data: "0x" + methods["value()"] }
+    ]);
 
     assert.strictEqual(getValueAgain, x25);
 
-    const storage2 = await p.send("eth_getStorageAt", [receipt.contractAddress, 0, txReceipt.blockNumber]);
+    const storage2 = await p.send("eth_getStorageAt", [
+      receipt.contractAddress,
+      0,
+      txReceipt.blockNumber
+    ]);
     assert.strictEqual(storage2, "0x19");
   });
 
@@ -212,21 +245,32 @@ describe("Random tests that are temporary!", () => {
     await p.once("message");
 
     const balances = (
-      await Promise.all([p.send("eth_getBalance", [accounts[1]]), p.send("eth_getBalance", [accounts[2]])])
+      await Promise.all([
+        p.send("eth_getBalance", [accounts[1]]),
+        p.send("eth_getBalance", [accounts[2]])
+      ])
     ).map(BigInt);
     assert.strictEqual(balances[0], startingBalance - ONE_ETHER);
     assert.strictEqual(balances[1], startingBalance + ONE_ETHER);
   });
 
   it("runs eth_call", async () => {
-    const privateKey = Buffer.from("4646464646464646464646464646464646464646464646464646464646464646", "hex");
+    const privateKey = Buffer.from(
+      "4646464646464646464646464646464646464646464646464646464646464646",
+      "hex"
+    );
     const p = await getProvider({
       wallet: {
-        accounts: [{ balance: "0x123", secretKey: "0x" + privateKey.toString("hex") }, { balance: "0x456" }]
+        accounts: [
+          { balance: "0x123", secretKey: "0x" + privateKey.toString("hex") },
+          { balance: "0x456" }
+        ]
       }
     });
     const accounts = await p.send("eth_accounts");
-    const result = await p.send("eth_call", [{ from: accounts[0], to: accounts[0], value: "0x1" }]);
+    const result = await p.send("eth_call", [
+      { from: accounts[0], to: accounts[0], value: "0x1" }
+    ]);
     assert(result, "0x");
   });
 
@@ -245,13 +289,21 @@ describe("Random tests that are temporary!", () => {
     });
     it("should create the file by name", async () => {
       await getProvider({ wallet: { accountKeysPath: fileName } });
-      assert.strictEqual(fs.existsSync(fileName), true, "The account_keys file doesn't exist.");
+      assert.strictEqual(
+        fs.existsSync(fileName),
+        true,
+        "The account_keys file doesn't exist."
+      );
     });
     it("should populate the file by descriptor", async () => {
       const fd = fs.openSync(fileName, "w");
       try {
         await getProvider({ wallet: { accountKeysPath: fd } });
-        assert.strictEqual(fs.existsSync(fileName), true, "The account_keys file doesn't exist.");
+        assert.strictEqual(
+          fs.existsSync(fileName),
+          true,
+          "The account_keys file doesn't exist."
+        );
       } finally {
         fs.closeSync(fd);
       }

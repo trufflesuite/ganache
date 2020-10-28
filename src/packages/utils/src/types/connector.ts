@@ -7,8 +7,11 @@ import Emittery from "emittery";
 /**
  * Connects an arbitrary public chain provider to ganache-core
  */
-export interface Connector<ApiImplementation extends Api, RequestFormat, ResponseFormat>
-  extends Emittery.Typed<undefined, "ready" | "close"> {
+export interface Connector<
+  ApiImplementation extends Api,
+  RequestFormat,
+  ResponseFormat
+> extends Emittery.Typed<undefined, "ready" | "close"> {
   provider: Provider<ApiImplementation>;
 
   /**
@@ -22,10 +25,22 @@ export interface Connector<ApiImplementation extends Api, RequestFormat, Respons
    * @param payload
    */
   handle:
-    | ((payload: RequestFormat, connection: HttpRequest) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]> }>)
-    | ((payload: RequestFormat[], connection: HttpRequest) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]>[] }>)
-    | ((payload: RequestFormat, connection: WebSocket) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]> }>)
-    | ((payload: RequestFormat[], connection: WebSocket) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]>[] }>);
+    | ((
+        payload: RequestFormat,
+        connection: HttpRequest
+      ) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]> }>)
+    | ((
+        payload: RequestFormat[],
+        connection: HttpRequest
+      ) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]>[] }>)
+    | ((
+        payload: RequestFormat,
+        connection: WebSocket
+      ) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]> }>)
+    | ((
+        payload: RequestFormat[],
+        connection: WebSocket
+      ) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]>[] }>);
 
   /**
    * Formats the response (returned from `handle`)

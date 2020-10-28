@@ -7,10 +7,14 @@ const STIPEND = bn(2300);
 const MULTIPLE = 64 / 63;
 
 const check = set => opname => set.has(opname);
-const isCall = check(new Set(["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]));
+const isCall = check(
+  new Set(["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"])
+);
 const isCallOrCallcode = check(new Set(["CALL", "CALLCODE"]));
 const isCreate = check(new Set(["CREATE", "CREATE2"]));
-const isTerminator = check(new Set(["STOP", "RETURN", "REVERT", "INVALID", "SELFDESTRUCT"]));
+const isTerminator = check(
+  new Set(["STOP", "RETURN", "REVERT", "INVALID", "SELFDESTRUCT"])
+);
 
 const stepTracker = () => {
   const sysOps = [];
@@ -49,7 +53,10 @@ const stepTracker = () => {
       allOps.push(info);
     },
     isPrecompile: index => preCompile.has(index),
-    done: () => !allOps.length || sysOps.length < 2 || !isTerminator(allOps[allOps.length - 1].opcode.name),
+    done: () =>
+      !allOps.length ||
+      sysOps.length < 2 ||
+      !isTerminator(allOps[allOps.length - 1].opcode.name),
     ops: allOps,
     systemOps: sysOps
   };
@@ -68,7 +75,9 @@ const estimateGas = (generateVM, runArgs, callback) => {
 const binSearch = async (generateVM, runArgs, result, callback) => {
   const MAX = Quantity.from(runArgs.block.header.gasLimit).toBigInt();
   const gasRefund = result.execResult.gasRefund;
-  const startingGas = gasRefund ? result.gasEstimate.add(gasRefund) : result.gasEstimate;
+  const startingGas = gasRefund
+    ? result.gasEstimate.add(gasRefund)
+    : result.gasEstimate;
   const range = { lo: startingGas, hi: startingGas };
   const isEnoughGas = async gas => {
     const vm = generateVM(); // Generate fresh VM
@@ -91,7 +100,11 @@ const binSearch = async (generateVM, runArgs, result, callback) => {
     }
     if (range.hi.gte(MAX)) {
       if (!(await isEnoughGas(range.hi))) {
-        return callback(new Error("gas required exceeds allowance or always failing transaction"));
+        return callback(
+          new Error(
+            "gas required exceeds allowance or always failing transaction"
+          )
+        );
       }
     }
   }
@@ -149,7 +162,11 @@ const exactimate = async (vm, runArgs, callback) => {
       },
       addRange: (fee = bn()) => {
         // only occurs on stack increasing ops
-        addGas(steps.ops[base || compositeContext ? start : start + 1].gasLeft.sub(steps.ops[stop].gasLeft).add(fee));
+        addGas(
+          steps.ops[base || compositeContext ? start : start + 1].gasLeft
+            .sub(steps.ops[stop].gasLeft)
+            .add(fee)
+        );
       },
       finalizeRange: () => {
         let range;
@@ -164,7 +181,10 @@ const exactimate = async (vm, runArgs, callback) => {
         }
         range.isub(callingFee);
         addGas(range);
-        if (isCallOrCallcode(op.opcode.name) && !op.stack[op.stack.length - 3].isZero()) {
+        if (
+          isCallOrCallcode(op.opcode.name) &&
+          !op.stack[op.stack.length - 3].isZero()
+        ) {
           cost.iadd(sixtyFloorths);
           const innerCost = next.gasLeft.sub(steps.ops[stop - 1].gasLeft);
           if (innerCost.gt(STIPEND)) {
@@ -205,7 +225,9 @@ const exactimate = async (vm, runArgs, callback) => {
         }
       } else if (isTerminator(name)) {
         // only on the last operation
-        context.setStop(currentIndex + 1 < steps.ops.length ? currentIndex + 1 : currentIndex);
+        context.setStop(
+          currentIndex + 1 < steps.ops.length ? currentIndex + 1 : currentIndex
+        );
         context.finalizeRange();
         const ctx = stack.pop();
         if (ctx) {
@@ -229,13 +251,19 @@ const exactimate = async (vm, runArgs, callback) => {
   if (vmerr) {
     return callback(vmerr);
   } else if (result.execResult.exceptionError) {
-    const error = new RuntimeError(runArgs.tx.hash(), result, RETURN_TYPES.RETURN_VALUE);
+    const error = new RuntimeError(
+      runArgs.tx.hash(),
+      result,
+      RETURN_TYPES.RETURN_VALUE
+    );
     return callback(error, result);
   } else if (steps.done()) {
     const estimate = result.gasUsed;
     result.gasEstimate = estimate;
   } else {
-    const actualUsed = steps.ops[0].gasLeft.sub(steps.ops[steps.ops.length - 1].gasLeft);
+    const actualUsed = steps.ops[0].gasLeft.sub(
+      steps.ops[steps.ops.length - 1].gasLeft
+    );
     const sixtyFloorths = getTotal().sub(actualUsed);
     result.gasEstimate = result.gasUsed.add(sixtyFloorths);
   }

@@ -12,7 +12,11 @@ declare module "merkle-patricia-tree/trieNode" {
     type: NodeType;
     raw: number[];
 
-    constructor(type: NodeType | NibbleArray, key?: NibbleArray, value?: NibbleArray);
+    constructor(
+      type: NodeType | NibbleArray,
+      key?: NibbleArray,
+      value?: NibbleArray
+    );
     parseNode(node: NibbleArray): void;
     setValue(key: NibbleArray, value: NibbleArray): void;
     getValue(key: NibbleArray): NibbleArray;

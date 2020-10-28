@@ -18,7 +18,9 @@ describe("api", () => {
         provider = await getProvider();
         accounts = await provider.send("eth_accounts");
 
-        const subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+        const subscriptionId = await provider.send("eth_subscribe", [
+          "newHeads"
+        ]);
         const transactionHash = await provider.send("eth_sendTransaction", [
           {
             from: accounts[0],
@@ -27,7 +29,10 @@ describe("api", () => {
           }
         ]);
         await provider.once("message");
-        const transactionReceipt = await provider.send("eth_getTransactionReceipt", [transactionHash]);
+        const transactionReceipt = await provider.send(
+          "eth_getTransactionReceipt",
+          [transactionHash]
+        );
         contractAddress = transactionReceipt.contractAddress;
         await provider.send("eth_unsubscribe", [subscriptionId]);
       });
@@ -45,13 +50,17 @@ describe("api", () => {
           };
 
           it("subscribes and unsubscribes", async () => {
-            const subscriptionId = await provider.send("eth_subscribe", ["logs"]);
+            const subscriptionId = await provider.send("eth_subscribe", [
+              "logs"
+            ]);
 
             assert(subscriptionId != null);
             assert.notStrictEqual(subscriptionId, false);
 
             // subscribe again
-            const subscriptionId2 = await provider.send("eth_subscribe", ["logs"]);
+            const subscriptionId2 = await provider.send("eth_subscribe", [
+              "logs"
+            ]);
 
             // trigger a log event, we should get two events
             const numberOfLogs = 4;
@@ -60,26 +69,42 @@ describe("api", () => {
               contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] +
               numberOfLogs.toString().padStart(64, "0");
             const tx = { from: accounts[0], to: contractAddress, data };
-            const subs = [onceMessageFor(subscriptionId), onceMessageFor(subscriptionId2)];
-            const txHash = await provider.send("eth_sendTransaction", [{ ...tx }]);
+            const subs = [
+              onceMessageFor(subscriptionId),
+              onceMessageFor(subscriptionId2)
+            ];
+            const txHash = await provider.send("eth_sendTransaction", [
+              { ...tx }
+            ]);
 
             const [message1, message2] = await Promise.all(subs);
             assert.deepStrictEqual(message1.data.result, message2.data.result);
 
             assert.strictEqual(message1.data.result.length, numberOfLogs);
 
-            const unsubResult = await provider.send("eth_unsubscribe", [subscriptionId]);
+            const unsubResult = await provider.send("eth_unsubscribe", [
+              subscriptionId
+            ]);
             assert.strictEqual(unsubResult, true);
             await provider.send("eth_sendTransaction", [{ ...tx }]);
-            const message = await Promise.race([onceMessageFor(subscriptionId), onceMessageFor(subscriptionId2)]);
-            assert.strictEqual(message.data.subscription, subscriptionId2, "unsubscribe didn't work");
+            const message = await Promise.race([
+              onceMessageFor(subscriptionId),
+              onceMessageFor(subscriptionId2)
+            ]);
+            assert.strictEqual(
+              message.data.subscription,
+              subscriptionId2,
+              "unsubscribe didn't work"
+            );
           });
         });
       });
 
       describe("getLogs", () => {
         it("should return a log for the constructor transaction", async () => {
-          const logs = await provider.send("eth_getLogs", [{ address: contractAddress }]);
+          const logs = await provider.send("eth_getLogs", [
+            { address: contractAddress }
+          ]);
           assert.strictEqual(logs.length, 1);
         });
 
@@ -99,9 +124,13 @@ describe("api", () => {
             }
           ]);
           await provider.once("message");
-          const txReceipt = await provider.send("eth_getTransactionReceipt", [txHash]);
+          const txReceipt = await provider.send("eth_getTransactionReceipt", [
+            txHash
+          ]);
           assert.deepStrictEqual(txReceipt.logs.length, numberOfLogs);
-          const logs = await provider.send("eth_getLogs", [{ address: contractAddress }]);
+          const logs = await provider.send("eth_getLogs", [
+            { address: contractAddress }
+          ]);
           assert.deepStrictEqual(logs, txReceipt.logs);
         });
 
@@ -150,7 +179,9 @@ describe("api", () => {
             }
           ]); // 0x3
           await provider.once("message");
-          const { blockNumber } = await provider.send("eth_getTransactionReceipt", [txHash]);
+          const {
+            blockNumber
+          } = await provider.send("eth_getTransactionReceipt", [txHash]);
 
           async function testGetLogs(
             fromBlock: string,
@@ -158,7 +189,9 @@ describe("api", () => {
             expected: number,
             address: string = contractAddress
           ) {
-            const logs = await provider.send("eth_getLogs", [{ address, fromBlock, toBlock }]);
+            const logs = await provider.send("eth_getLogs", [
+              { address, fromBlock, toBlock }
+            ]);
             assert.strictEqual(
               logs.length,
               expected,
@@ -188,7 +221,9 @@ describe("api", () => {
 
           // mine an extra block
           await provider.send("evm_mine"); // 0x3
-          const lastBlockNumber = `0x${(parseInt(blockNumber) + 1).toString(16)}`;
+          const lastBlockNumber = `0x${(parseInt(blockNumber) + 1).toString(
+            16
+          )}`;
           await provider.once("message");
 
           // test variations of `earliest` and `0x0`
@@ -204,8 +239,16 @@ describe("api", () => {
           await testGetLogs(genesisBlockNumber, "latest", numberOfLogs + 1);
           await testGetLogs(deployBlockNumber, "latest", numberOfLogs + 1);
           // test variations involving the last block number
-          await testGetLogs(genesisBlockNumber, lastBlockNumber, numberOfLogs + 1);
-          await testGetLogs(deployBlockNumber, lastBlockNumber, numberOfLogs + 1);
+          await testGetLogs(
+            genesisBlockNumber,
+            lastBlockNumber,
+            numberOfLogs + 1
+          );
+          await testGetLogs(
+            deployBlockNumber,
+            lastBlockNumber,
+            numberOfLogs + 1
+          );
           await testGetLogs(emptyBlockNumber, lastBlockNumber, numberOfLogs);
           await testGetLogs(lastBlockNumber, "latest", 0);
           await testGetLogs("latest", lastBlockNumber, 0);
@@ -232,20 +275,39 @@ describe("api", () => {
             }
           ]); // 0x3
           await provider.once("message");
-          const { blockHash } = await provider.send("eth_getTransactionReceipt", [txHash]);
+          const { blockHash } = await provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
 
-          async function testGetLogs(blockHash: string, expected: number, address: string = contractAddress) {
-            const logs = await provider.send("eth_getLogs", [{ address, blockHash }]);
-            assert.strictEqual(logs.length, expected, `there should be ${expected} log(s) at the ${blockHash} block`);
+          async function testGetLogs(
+            blockHash: string,
+            expected: number,
+            address: string = contractAddress
+          ) {
+            const logs = await provider.send("eth_getLogs", [
+              { address, blockHash }
+            ]);
+            assert.strictEqual(
+              logs.length,
+              expected,
+              `there should be ${expected} log(s) at the ${blockHash} block`
+            );
           }
 
           // tests blockHash
-          let { hash: genesisBlockHash } = await provider.send("eth_getBlockByNumber", [genesisBlockNumber]);
+          let {
+            hash: genesisBlockHash
+          } = await provider.send("eth_getBlockByNumber", [genesisBlockNumber]);
           await testGetLogs(blockHash, 4);
           await testGetLogs(genesisBlockHash, 0);
-          let { hash: deployBlockHash } = await provider.send("eth_getBlockByNumber", [deployBlockNumber]);
+          let {
+            hash: deployBlockHash
+          } = await provider.send("eth_getBlockByNumber", [deployBlockNumber]);
           await testGetLogs(deployBlockHash, 1, null);
-          let { hash: emptyBlockHash } = await provider.send("eth_getBlockByNumber", [emptyBlockNumber]);
+          let {
+            hash: emptyBlockHash
+          } = await provider.send("eth_getBlockByNumber", [emptyBlockNumber]);
           await testGetLogs(emptyBlockHash, 0);
           const invalidBlockHash = "0x123456789";
           await testGetLogs(invalidBlockHash, 0);
@@ -263,28 +325,40 @@ describe("api", () => {
         it("returns new blocks", async () => {
           await provider.send("eth_subscribe", ["newHeads"]);
           async function assertNoChanges() {
-            const noChanges = await provider.send("eth_getFilterChanges", [filterId]);
+            const noChanges = await provider.send("eth_getFilterChanges", [
+              filterId
+            ]);
             assert.strictEqual(noChanges.length, 0);
           }
           const filterId = await provider.send("eth_newBlockFilter");
           await assertNoChanges();
           await provider.send("evm_mine");
           await provider.once("message");
-          const changes1 = await provider.send("eth_getFilterChanges", [filterId]);
+          const changes1 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
           let blockNum = await provider.send("eth_blockNumber");
-          let { hash } = await provider.send("eth_getBlockByNumber", [blockNum]);
+          let { hash } = await provider.send("eth_getBlockByNumber", [
+            blockNum
+          ]);
           assert.strictEqual(changes1[0], hash);
           await assertNoChanges();
           await provider.send("evm_mine");
           await provider.once("message");
           blockNum = await provider.send("eth_blockNumber");
-          let { hash: hash2 } = await provider.send("eth_getBlockByNumber", [blockNum]);
+          let { hash: hash2 } = await provider.send("eth_getBlockByNumber", [
+            blockNum
+          ]);
           await provider.send("evm_mine");
           await provider.once("message");
           blockNum = await provider.send("eth_blockNumber");
-          let { hash: hash3 } = await provider.send("eth_getBlockByNumber", [blockNum]);
+          let { hash: hash3 } = await provider.send("eth_getBlockByNumber", [
+            blockNum
+          ]);
 
-          const changes2 = await provider.send("eth_getFilterChanges", [filterId]);
+          const changes2 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
           assert.strictEqual(changes2[0], hash2);
           assert.strictEqual(changes2[1], hash3);
           await assertNoChanges();
@@ -295,15 +369,21 @@ describe("api", () => {
         it("returns new pending transactions", async () => {
           await provider.send("eth_subscribe", ["newPendingTransactions"]);
           async function assertNoChanges() {
-            const noChanges = await provider.send("eth_getFilterChanges", [filterId]);
+            const noChanges = await provider.send("eth_getFilterChanges", [
+              filterId
+            ]);
             assert.strictEqual(noChanges.length, 0);
           }
-          const filterId = await provider.send("eth_newPendingTransactionFilter");
+          const filterId = await provider.send(
+            "eth_newPendingTransactionFilter"
+          );
           const tx = { from: accounts[0], to: accounts[0] };
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
           let hash = await provider.once("message");
-          const changes1 = await provider.send("eth_getFilterChanges", [filterId]);
+          const changes1 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
           assert.strictEqual(changes1[0], hash.data.result);
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
@@ -311,7 +391,9 @@ describe("api", () => {
           provider.send("eth_sendTransaction", [{ ...tx }]);
           let hash3 = await provider.once("message");
 
-          const changes2 = await provider.send("eth_getFilterChanges", [filterId]);
+          const changes2 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
           assert.strictEqual(changes2[0], hash2.data.result);
           assert.strictEqual(changes2[1], hash3.data.result);
           await assertNoChanges();
@@ -322,7 +404,9 @@ describe("api", () => {
         it("returns new logs", async () => {
           await provider.send("eth_subscribe", ["newHeads"]);
           async function assertNoChanges() {
-            const noChanges = await provider.send("eth_getFilterChanges", [filterId]);
+            const noChanges = await provider.send("eth_getFilterChanges", [
+              filterId
+            ]);
             assert.strictEqual(noChanges.length, 0);
           }
           const filterId = await provider.send("eth_newFilter");
@@ -335,7 +419,9 @@ describe("api", () => {
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
           let hash = await provider.once("message");
-          const changes1 = await provider.send("eth_getFilterChanges", [filterId]);
+          const changes1 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
           assert.strictEqual(changes1.length, 1);
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
@@ -343,7 +429,9 @@ describe("api", () => {
           provider.send("eth_sendTransaction", [{ ...tx }]);
           let hash3 = await provider.once("message");
 
-          const changes2 = await provider.send("eth_getFilterChanges", [filterId]);
+          const changes2 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
           assert.strictEqual(changes2.length, 2);
           await assertNoChanges();
         });
@@ -353,11 +441,17 @@ describe("api", () => {
         it("returns new logs", async () => {
           await provider.send("eth_subscribe", ["newHeads"]);
           async function assertNoChanges() {
-            const noChanges = await provider.send("eth_getFilterChanges", [filterId]);
+            const noChanges = await provider.send("eth_getFilterChanges", [
+              filterId
+            ]);
             assert.strictEqual(noChanges.length, 0);
           }
-          const currentBlockNumber = "0x" + (parseInt(await provider.send("eth_blockNumber")) + 1).toString(16);
-          const filterId = await provider.send("eth_newFilter", [{ fromBlock: currentBlockNumber, toBlock: "0x99" }]);
+          const currentBlockNumber =
+            "0x" +
+            (parseInt(await provider.send("eth_blockNumber")) + 1).toString(16);
+          const filterId = await provider.send("eth_newFilter", [
+            { fromBlock: currentBlockNumber, toBlock: "0x99" }
+          ]);
           const numberOfLogs = 1;
           const data =
             "0x" +
@@ -367,7 +461,9 @@ describe("api", () => {
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
           let hash = await provider.once("message");
-          const changes1 = await provider.send("eth_getFilterChanges", [filterId]);
+          const changes1 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
           assert.strictEqual(changes1.length, 1);
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
@@ -375,11 +471,15 @@ describe("api", () => {
           provider.send("eth_sendTransaction", [{ ...tx }]);
           let hash3 = await provider.once("message");
 
-          const changes2 = await provider.send("eth_getFilterChanges", [filterId]);
+          const changes2 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
           assert.strictEqual(changes2.length, 2);
           await assertNoChanges();
 
-          const allChanges = await provider.send("eth_getFilterLogs", [filterId]);
+          const allChanges = await provider.send("eth_getFilterLogs", [
+            filterId
+          ]);
           assert.deepStrictEqual(allChanges, [...changes1, ...changes2]);
         });
       });

@@ -49,7 +49,10 @@ export class Data extends BaseJsonRpcType {
       return `0x${str}`;
     }
   }
-  public static from<T extends string | Buffer = string | Buffer>(value: T, byteLength?: number) {
+  public static from<T extends string | Buffer = string | Buffer>(
+    value: T,
+    byteLength?: number
+  ) {
     return new Data(value, byteLength);
   }
 }

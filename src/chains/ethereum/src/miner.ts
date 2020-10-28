@@ -20,9 +20,13 @@ type BlockData = {
   timestamp: Buffer;
 };
 
-const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
+const putInTrie = (trie: Trie, key: Buffer, val: Buffer) =>
+  promisify(trie.put.bind(trie))(key, val);
 
-function replaceFromHeap(priced: utils.Heap<Transaction>, source: utils.Heap<Transaction>) {
+function replaceFromHeap(
+  priced: utils.Heap<Transaction>,
+  source: utils.Heap<Transaction>
+) {
   // get the next best for this account, removing from the source Heap:
   const next = source.peek();
   if (next) {
@@ -41,7 +45,10 @@ function byPrice(values: Transaction[], a: number, b: number) {
   return Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 }
 
-export default class Miner extends Emittery.Typed<{ block: BlockData }, "idle"> {
+export default class Miner extends Emittery.Typed<
+  { block: BlockData },
+  "idle"
+> {
   #currentlyExecutingPrice = 0n;
   #origins = new Set<string>();
   #pending: boolean;
@@ -115,7 +122,11 @@ export default class Miner extends Emittery.Typed<{ block: BlockData }, "idle"> 
    *
    * @returns the transactions mined in the _first_ block
    */
-  public async mine(block: Block, maxTransactions: number = -1, onlyOneBlock = false) {
+  public async mine(
+    block: Block,
+    maxTransactions: number = -1,
+    onlyOneBlock = false
+  ) {
     if (this.#paused) {
       await this.#resumer;
     }
@@ -136,8 +147,16 @@ export default class Miner extends Emittery.Typed<{ block: BlockData }, "idle"> 
     return result;
   }
 
-  #mine = async (block: Block, maxTransactions: number = -1, onlyOneBlock = false) => {
-    const { block: lastBlock, transactions } = await this.#mineTxs(block, maxTransactions, onlyOneBlock);
+  #mine = async (
+    block: Block,
+    maxTransactions: number = -1,
+    onlyOneBlock = false
+  ) => {
+    const { block: lastBlock, transactions } = await this.#mineTxs(
+      block,
+      maxTransactions,
+      onlyOneBlock
+    );
 
     // if there are more txs to mine, start mining them without awaiting their
     // result.
@@ -150,7 +169,11 @@ export default class Miner extends Emittery.Typed<{ block: BlockData }, "idle"> 
     return transactions;
   };
 
-  #mineTxs = async (block: Block, maxTransactions: number, onlyOneBlock: boolean) => {
+  #mineTxs = async (
+    block: Block,
+    maxTransactions: number,
+    onlyOneBlock: boolean
+  ) => {
     const { pending, inProgress } = this.#executables;
 
     let keepMining = true;
@@ -263,7 +286,10 @@ export default class Miner extends Emittery.Typed<{ block: BlockData }, "idle"> 
             // we're done with this block!
             // notice: when `maxTransactions` is `-1` (AKA infinite), `numTransactions === maxTransactions`
             // will always return false, so this comparison works out fine.
-            if (blockGasLeft <= params.TRANSACTION_GAS || numTransactions === maxTransactions) {
+            if (
+              blockGasLeft <= params.TRANSACTION_GAS ||
+              numTransactions === maxTransactions
+            ) {
               if (keepMining) {
                 // remove the newest (`best`) tx from this account's pending queue
                 // as we know we can fit another transaction in the block. Stick
@@ -340,7 +366,12 @@ export default class Miner extends Emittery.Typed<{ block: BlockData }, "idle"> 
     return { block, transactions: blockTransactions };
   };
 
-  #runTx = async (tx: Transaction, block: Block, origin: string, pending: Map<string, utils.Heap<Transaction>>) => {
+  #runTx = async (
+    tx: Transaction,
+    block: Block,
+    origin: string,
+    pending: Map<string, utils.Heap<Transaction>>
+  ) => {
     try {
       return await this.#vm.runTx({ tx, block } as any);
     } catch (err) {
@@ -362,7 +393,10 @@ export default class Miner extends Emittery.Typed<{ block: BlockData }, "idle"> 
           returnValue: Buffer.allocUnsafe(0)
         }
       } as any;
-      tx.finalize("rejected", new RuntimeError(tx.hash(), e, RETURN_TYPES.TRANSACTION_HASH));
+      tx.finalize(
+        "rejected",
+        new RuntimeError(tx.hash(), e, RETURN_TYPES.TRANSACTION_HASH)
+      );
       return null;
     }
   };

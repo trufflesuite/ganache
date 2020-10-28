@@ -16,7 +16,8 @@ function randomBytes(length: number, rng: () => number) {
 }
 
 const randomAlphaNumericString = (() => {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const alphabet =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const alphabetLength = alphabet.length;
   return (length: number, rng: () => number) => {
     let text = "";
@@ -133,7 +134,8 @@ export const WalletOptions: Definitions<WalletConfig> = {
   },
   mnemonic: {
     normalize: rawInput => rawInput,
-    default: config => entropyToMnemonic(randomBytes(16, seedrandom(config.seed)))
+    default: config =>
+      entropyToMnemonic(randomBytes(16, seedrandom(config.seed)))
   },
   unlockedAccounts: {
     normalize: rawInput => rawInput,

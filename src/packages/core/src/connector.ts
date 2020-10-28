@@ -21,7 +21,9 @@ export default {
     if (providerOptions.chain.asyncRequestProcessing == null) {
       providerOptions.chain.asyncRequestProcessing = true;
     }
-    const requestCoordinator = new utils.RequestCoordinator(providerOptions.chain.asyncRequestProcessing ? 0 : 1);
+    const requestCoordinator = new utils.RequestCoordinator(
+      providerOptions.chain.asyncRequestProcessing ? 0 : 1
+    );
 
     // The Executor is responsible for actually executing the method on the chain/API.
     // It performs some safety checks to ensure "safe" method execution before passing it

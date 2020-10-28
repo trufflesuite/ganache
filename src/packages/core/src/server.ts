@@ -64,7 +64,11 @@ export default class Server {
     const _app = (this.#app = uWS.App());
 
     if (this.#options.server.ws) {
-      this.#websocketServer = new WebsocketServer(_app, connector as WebSocketCapableFlavor, opts.server);
+      this.#websocketServer = new WebsocketServer(
+        _app,
+        connector as WebSocketCapableFlavor,
+        opts.server
+      );
     }
     this.#httpServer = new HttpServer(_app, connector);
   }
@@ -77,28 +81,36 @@ export default class Server {
     if (status === Status.closing) {
       // if closing
       const err = new Error(`Cannot start server while it is closing.`);
-      return callbackIsFunction ? process.nextTick(callback!, err) : Promise.reject(err);
+      return callbackIsFunction
+        ? process.nextTick(callback!, err)
+        : Promise.reject(err);
     } else if (status & Status.open) {
       // if open or opening
       const err = new Error(`Server is already open on port: ${port}.`);
-      return callbackIsFunction ? process.nextTick(callback!, err) : Promise.reject(err);
+      return callbackIsFunction
+        ? process.nextTick(callback!, err)
+        : Promise.reject(err);
     }
 
     this.#status = Status.opening;
 
-    const promise = new Promise((resolve: (listenSocket: false | uWS.us_listen_socket) => void) => {
-      // Make sure we have *exclusive* use of this port.
-      // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
-      const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
-      this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
-    }).then(listenSocket => {
+    const promise = new Promise(
+      (resolve: (listenSocket: false | uWS.us_listen_socket) => void) => {
+        // Make sure we have *exclusive* use of this port.
+        // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
+        const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
+        this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+      }
+    ).then(listenSocket => {
       if (listenSocket) {
         this.#status = Status.open;
         this.#listenSocket = listenSocket;
         if (callbackIsFunction) callback!(null);
       } else {
         this.#status = Status.closed;
-        const err = new Error(`listen EADDRINUSE: address already in use 127.0.0.1:${port}.`);
+        const err = new Error(
+          `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
+        );
         if (callbackIsFunction) callback!(err);
         else throw err;
       }

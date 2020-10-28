@@ -10,7 +10,11 @@ import { join, resolve } from "path";
 import { version } from "../lerna.json";
 import { highlight } from "cli-highlight";
 import { mkdir, mkdirSync, writeFile } from "fs-extra";
-import { lstatSync as lstat, readdirSync as readDir, readFileSync as readFile } from "fs";
+import {
+  lstatSync as lstat,
+  readdirSync as readDir,
+  readFileSync as readFile
+} from "fs";
 
 const isDir = (s: string) => lstat(s).isDirectory();
 const getDirectories = (s: string) => readDir(s).filter(n => isDir(join(s, n)));
@@ -23,29 +27,33 @@ const COLORS = {
 
 const scopes = getDirectories(join(__dirname, "../src"));
 const argv = yargs
-  .command(`$0 <name> --location`, `Create a new package in the given location with the provided name.`, yargs => {
-    return yargs
-      .usage(
-        chalk`{hex("#e4a663").bold Create a new package in the given location with the provided name.}\n\n` +
-          chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}${scopes.join(
-            chalk.dim(" | ")
-          )}{dim >}`
-      )
-      .positional("<name>", {
-        describe: `        The name of the new package`,
-        type: "string",
-        demandOption: true
-      })
-      .alias("name", "<name>")
-      .option("location", {
-        alias: "l",
-        default: "packages",
-        describe: `The location for the new package.`,
-        choices: scopes,
-        type: "string",
-        demandOption: true
-      });
-  })
+  .command(
+    `$0 <name> --location`,
+    `Create a new package in the given location with the provided name.`,
+    yargs => {
+      return yargs
+        .usage(
+          chalk`{hex("#e4a663").bold Create a new package in the given location with the provided name.}\n\n` +
+            chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}${scopes.join(
+              chalk.dim(" | ")
+            )}{dim >}`
+        )
+        .positional("<name>", {
+          describe: `        The name of the new package`,
+          type: "string",
+          demandOption: true
+        })
+        .alias("name", "<name>")
+        .option("location", {
+          alias: "l",
+          default: "packages",
+          describe: `The location for the new package.`,
+          choices: scopes,
+          type: "string",
+          demandOption: true
+        });
+    }
+  )
   .demandCommand()
   .version(false)
   .help(false)
@@ -150,7 +158,10 @@ export * from "./src/index";
     const src = join(dir, "src");
 
     function initSrc() {
-      return writeFile(join(src, "index.ts"), prettier.format(indexFile, { ...prettierConfig, parser: "typescript" }));
+      return writeFile(
+        join(src, "index.ts"),
+        prettier.format(indexFile, { ...prettierConfig, parser: "typescript" })
+      );
     }
 
     function initRootIndex() {
@@ -197,7 +208,10 @@ typedoc.json
       initRootIndex(),
       mkdir(tests).then(initTests),
       mkdir(src).then(initSrc),
-      writeFile(join(dir, "tsconfig.json"), JSON.stringify(tsConfig, null, 2) + "\n"),
+      writeFile(
+        join(dir, "tsconfig.json"),
+        JSON.stringify(tsConfig, null, 2) + "\n"
+      ),
       writeFile(
         join(dir, "README.md"),
         prettier.format(`# ${packageName}\n> TODO: description`, {
@@ -206,7 +220,10 @@ typedoc.json
         })
       ),
       writeFile(pkgPath, pkgStr),
-      writeFile(join(dir, "npm-shrinkwrap.json"), JSON.stringify(shrinkwrap) + "\n")
+      writeFile(
+        join(dir, "npm-shrinkwrap.json"),
+        JSON.stringify(shrinkwrap) + "\n"
+      )
     ]);
 
     console.log(
@@ -225,6 +242,8 @@ typedoc.json
   } catch (e) {
     console.error(e);
     console.log("");
-    console.log(chalk`{red fail} {magenta create} New package {bgBlack  ${name} } not created. See error above.`);
+    console.log(
+      chalk`{red fail} {magenta create} New package {bgBlack  ${name} } not created. See error above.`
+    );
   }
 })();

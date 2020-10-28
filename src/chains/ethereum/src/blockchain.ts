@@ -89,7 +89,10 @@ function setStateRootSync(stateManager: VM["stateManager"], stateRoot: Buffer) {
   stateManager._storageTries = {};
 }
 
-export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, BlockchainEvents> {
+export default class Blockchain extends Emittery.Typed<
+  BlockchainTypedEvents,
+  BlockchainEvents
+> {
   #state: Status = Status.starting;
   #miner: Miner;
   #blockBeingSavedPromise: Promise<{ block: Block; blockLogs: BlockLogs }>;
@@ -114,12 +117,18 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
    * initialized.
    * @param options
    */
-  constructor(options: EthereumInternalOptions, common: Common, initialAccounts: Account[], coinbaseAddress: Address) {
+  constructor(
+    options: EthereumInternalOptions,
+    common: Common,
+    initialAccounts: Account[],
+    coinbaseAddress: Address
+  ) {
     super();
     this.#options = options;
     this.#common = common;
 
-    const instamine = (this.#instamine = !options.miner.blockTime || options.miner.blockTime <= 0);
+    const instamine = (this.#instamine =
+      !options.miner.blockTime || options.miner.blockTime <= 0);
     const legacyInstamine = options.miner.legacyInstamine;
 
     {
@@ -132,7 +141,9 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
       if (instamine === false) {
         if (legacyInstamine === true) {
-          console.info("Setting `legacyInstamine` to `true` has no effect when blockTime is non-zero");
+          console.info(
+            "Setting `legacyInstamine` to `true` has no effect when blockTime is non-zero"
+          );
         }
 
         if (options.chain.vmErrorsOnRPCResponse) {
@@ -145,7 +156,11 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
     const database = (this.#database = new Database(options.database, this));
     database.once("ready").then(async () => {
-      const blocks = (this.blocks = await BlockManager.initialize(common, database.blockIndexes, database.blocks));
+      const blocks = (this.blocks = await BlockManager.initialize(
+        common,
+        database.blockIndexes,
+        database.blocks
+      ));
 
       // if we have a latest block, use it to set up the trie.
       const latest = blocks.latest;
@@ -154,20 +169,34 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           block: latest,
           blockLogs: null
         });
-        this.trie = new CheckpointTrie(database.trie, latest.value.header.stateRoot);
+        this.trie = new CheckpointTrie(
+          database.trie,
+          latest.value.header.stateRoot
+        );
       } else {
         this.trie = new CheckpointTrie(database.trie, null);
       }
 
       this.blockLogs = new BlockLogManager(database.blockLogs);
-      this.transactions = new TransactionManager(options.miner, common, this, database.transactions);
-      this.transactionReceipts = new Manager(database.transactionReceipts, TransactionReceipt);
+      this.transactions = new TransactionManager(
+        options.miner,
+        common,
+        this,
+        database.transactions
+      );
+      this.transactionReceipts = new Manager(
+        database.transactionReceipts,
+        TransactionReceipt
+      );
       this.accounts = new AccountManager(this, database.trie);
 
       this.coinbase = coinbaseAddress;
 
       // create VM and listen to step events
-      this.vm = this.createVmFromStateTrie(this.trie, options.chain.allowUnlimitedContractSize);
+      this.vm = this.createVmFromStateTrie(
+        this.trie,
+        options.chain.allowUnlimitedContractSize
+      );
       this.vm.on("step", this.emit.bind(this, "step"));
 
       await this.#commitAccounts(initialAccounts);
@@ -185,8 +214,13 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
         // if we don't already have a latest block, create a genesis block!
         if (!latest) {
-          this.#blockBeingSavedPromise = this.#initializeGenesisBlock(firstBlockTime, options.miner.blockGasLimit);
-          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(({ block }) => block);
+          this.#blockBeingSavedPromise = this.#initializeGenesisBlock(
+            firstBlockTime,
+            options.miner.blockGasLimit
+          );
+          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(
+            ({ block }) => block
+          );
         }
       }
 
@@ -204,14 +238,19 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
         {
           // automatic mining
-          const mineAll = async (maxTransactions: number) => (this.#isPaused() ? null : this.mine(maxTransactions));
+          const mineAll = async (maxTransactions: number) =>
+            this.#isPaused() ? null : this.mine(maxTransactions);
           if (instamine) {
             // insta mining
             // whenever the transaction pool is drained mine the txs into blocks
-            this.transactions.transactionPool.on("drain", mineAll.bind(null, 1));
+            this.transactions.transactionPool.on(
+              "drain",
+              mineAll.bind(null, 1)
+            );
           } else {
             // interval mining
-            const wait = () => unref(setTimeout(mineNext, options.miner.blockTime * 1000));
+            const wait = () =>
+              unref(setTimeout(mineNext, options.miner.blockTime * 1000));
             const mineNext = () => mineAll(-1).then(wait);
             wait();
           }
@@ -221,7 +260,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           await this.#blockBeingSavedPromise;
           const previousBlock = blocks.latest;
           const previousHeader = previousBlock.value.header;
-          const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
+          const previousNumber =
+            Quantity.from(previousHeader.number).toBigInt() || 0n;
           const block = blocks.createBlock({
             parentHash: previousHeader.hash(),
             number: Quantity.from(previousNumber + 1n).toBuffer(),
@@ -243,45 +283,60 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             const blockNumber = header.number;
             const blockNumberQ = Quantity.from(blockNumber);
             const blockLogs = BlockLogs.create(blockHash);
-            const timestamp = new Date(Quantity.from(header.timestamp).toNumber() * 1000).toString();
-            blockData.blockTransactions.forEach((tx: Transaction, i: number) => {
-              const hash = tx.hash();
-              const index = Quantity.from(i).toBuffer();
-              const txAndExtraData = [...tx.raw, blockHash, blockNumber, index, Buffer.from([tx.type]), tx.from];
-              const encodedTx = rlpEncode(txAndExtraData);
-              this.transactions.set(hash, encodedTx);
+            const timestamp = new Date(
+              Quantity.from(header.timestamp).toNumber() * 1000
+            ).toString();
+            blockData.blockTransactions.forEach(
+              (tx: Transaction, i: number) => {
+                const hash = tx.hash();
+                const index = Quantity.from(i).toBuffer();
+                const txAndExtraData = [
+                  ...tx.raw,
+                  blockHash,
+                  blockNumber,
+                  index,
+                  Buffer.from([tx.type]),
+                  tx.from
+                ];
+                const encodedTx = rlpEncode(txAndExtraData);
+                this.transactions.set(hash, encodedTx);
 
-              const receipt = tx.getReceipt();
-              const encodedReceipt = receipt.serialize(true);
-              this.transactionReceipts.set(hash, encodedReceipt);
+                const receipt = tx.getReceipt();
+                const encodedReceipt = receipt.serialize(true);
+                this.transactionReceipts.set(hash, encodedReceipt);
 
-              tx.getLogs().forEach(log => {
-                blockLogs.append(index, hash, log);
-              });
+                tx.getLogs().forEach(log => {
+                  blockLogs.append(index, hash, log);
+                });
 
-              logger.log("");
-              logger.log("  Transaction: " + Data.from(hash));
+                logger.log("");
+                logger.log("  Transaction: " + Data.from(hash));
 
-              const contractAddress = receipt.contractAddress;
-              if (contractAddress != null) {
-                logger.log("  Contract created: " + Address.from(contractAddress));
-              }
-
-              const raw = receipt.raw;
-              logger.log("  Gas usage: " + Quantity.from(raw[1]));
-              logger.log("  Block Number: " + blockNumberQ);
-              logger.log("  Block Time: " + timestamp);
-
-              const error = tx.execException;
-              if (error) {
-                logger.log("  Runtime Error: " + error.data.message);
-                if ((error as any).reason) {
-                  logger.log("  Revert reason: " + (error as any).data.reason);
+                const contractAddress = receipt.contractAddress;
+                if (contractAddress != null) {
+                  logger.log(
+                    "  Contract created: " + Address.from(contractAddress)
+                  );
                 }
-              }
 
-              logger.log("");
-            });
+                const raw = receipt.raw;
+                logger.log("  Gas usage: " + Quantity.from(raw[1]));
+                logger.log("  Block Number: " + blockNumberQ);
+                logger.log("  Block Time: " + timestamp);
+
+                const error = tx.execException;
+                if (error) {
+                  logger.log("  Runtime Error: " + error.data.message);
+                  if ((error as any).reason) {
+                    logger.log(
+                      "  Revert reason: " + (error as any).data.reason
+                    );
+                  }
+                }
+
+                logger.log("");
+              }
+            );
             blockLogs.blockNumber = blockNumberQ;
             this.blockLogs.set(blockNumber, blockLogs.serialize());
             value.transactions = blockData.blockTransactions;
@@ -292,7 +347,9 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
           // emit the block once everything has been fully saved to the database
           return this.#blockBeingSavedPromise.then(({ block, blockLogs }) => {
             block.value.transactions.forEach(transaction => {
-              const error = options.chain.vmErrorsOnRPCResponse ? transaction.execException : null;
+              const error = options.chain.vmErrorsOnRPCResponse
+                ? transaction.execException
+                : null;
               transaction.finalize("confirmed", error);
             });
 
@@ -321,7 +378,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
   #readyNextBlock = (previousBlock: EthereumBlock, timestamp?: number) => {
     const previousHeader = previousBlock.header;
-    const previousNumber = Quantity.from(previousHeader.number).toBigInt() || 0n;
+    const previousNumber =
+      Quantity.from(previousHeader.number).toBigInt() || 0n;
     return this.blocks.createBlock({
       number: Quantity.from(previousNumber + 1n).toBuffer(),
       gasLimit: this.#options.miner.blockGasLimit.toBuffer(),
@@ -334,7 +392,11 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     return this.#state === Status.started;
   };
 
-  mine = async (maxTransactions: number, timestamp?: number, onlyOneBlock: boolean = false) => {
+  mine = async (
+    maxTransactions: number,
+    timestamp?: number,
+    onlyOneBlock: boolean = false
+  ) => {
     await this.#blockBeingSavedPromise;
     const nextBlock = this.#readyNextBlock(this.blocks.latest.value, timestamp);
     return this.#miner.mine(nextBlock, maxTransactions, onlyOneBlock);
@@ -363,7 +425,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }
   }
 
-  createVmFromStateTrie = (stateTrie: CheckpointTrie, allowUnlimitedContractSize: boolean): any => {
+  createVmFromStateTrie = (
+    stateTrie: CheckpointTrie,
+    allowUnlimitedContractSize: boolean
+  ): any => {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
     const getBlock = class T {
@@ -395,14 +460,21 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     for (let i = 0; i < l; i++) {
       const account = accounts[i];
       const ethereumJsAccount = new EthereumJsAccount();
-      (ethereumJsAccount.nonce = account.nonce.toBuffer()), (ethereumJsAccount.balance = account.balance.toBuffer());
-      pendingAccounts[i] = putAccount(account.address.toBuffer(), ethereumJsAccount);
+      (ethereumJsAccount.nonce = account.nonce.toBuffer()),
+        (ethereumJsAccount.balance = account.balance.toBuffer());
+      pendingAccounts[i] = putAccount(
+        account.address.toBuffer(),
+        ethereumJsAccount
+      );
     }
     await Promise.all(pendingAccounts);
     await commit();
   };
 
-  #initializeGenesisBlock = async (timestamp: number, blockGasLimit: Quantity) => {
+  #initializeGenesisBlock = async (
+    timestamp: number,
+    blockGasLimit: Quantity
+  ) => {
     // create the genesis block
     const genesis = this.blocks.next({
       // If we were given a timestamp, use it instead of the `_currentTime`
@@ -588,7 +660,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     // `transaction.hash()`, as the transactionPool may change the transaction
     // (and thus its hash!)
     // It may also throw Errors that must be returned to the caller.
-    const isExecutable = (await this.transactions.add(transaction, secretKey)) === true;
+    const isExecutable =
+      (await this.transactions.add(transaction, secretKey)) === true;
     if (isExecutable) {
       process.nextTick(this.emit.bind(this), "pendingTransaction", transaction);
     }
@@ -605,7 +678,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     }
   }
 
-  public async simulateTransaction(transaction: SimulationTransaction, parentBlock: Block) {
+  public async simulateTransaction(
+    transaction: SimulationTransaction,
+    parentBlock: Block
+  ) {
     let result: EVMResult;
     const options = this.#options;
 
@@ -613,11 +689,20 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     let gasLeft = transaction.gas.toBigInt();
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
-    gasLeft -= Transaction.calculateIntrinsicGas(data ? data.toBuffer() : null, options.chain.hardfork);
+    gasLeft -= Transaction.calculateIntrinsicGas(
+      data ? data.toBuffer() : null,
+      options.chain.hardfork
+    );
 
     if (gasLeft >= 0) {
-      const stateTrie = new CheckpointTrie(this.#database.trie, parentBlock.value.header.stateRoot);
-      const vm = this.createVmFromStateTrie(stateTrie, this.vm.allowUnlimitedContractSize);
+      const stateTrie = new CheckpointTrie(
+        this.#database.trie,
+        parentBlock.value.header.stateRoot
+      );
+      const vm = this.createVmFromStateTrie(
+        stateTrie,
+        this.vm.allowUnlimitedContractSize
+      );
       vm.on("step", this.emit.bind(this, "step"));
 
       result = await vm.runCall({

@@ -2,7 +2,10 @@ import { INTRINSIC_GAS_TOO_LOW } from "../errors/errors";
 import RuntimeError, { RETURN_TYPES } from "../errors/runtime-error";
 import { utils, Data, Quantity } from "@ganache/utils";
 import params from "./params";
-import { Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction } from "ethereumjs-tx";
+import {
+  Transaction as EthereumJsTransaction,
+  FakeTransaction as EthereumJsFakeTransaction
+} from "ethereumjs-tx";
 import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
 import { decode as rlpDecode } from "rlp";
@@ -28,7 +31,10 @@ const fakeHash = function (this: Transaction) {
   if (this._hash != null) {
     return this._hash;
   }
-  return EthereumJsFakeTransaction.prototype.hash.apply(this, (arguments as unknown) as [(boolean | undefined)?]);
+  return EthereumJsFakeTransaction.prototype.hash.apply(
+    this,
+    (arguments as unknown) as [(boolean | undefined)?]
+  );
 };
 
 function configZeroableField(tx: any, fieldName: string, fieldLength = 32) {
@@ -39,7 +45,10 @@ function configZeroableField(tx: any, fieldName: string, fieldLength = 32) {
     set: v => {
       descriptor.set.call(tx, v);
       v = ethUtil.toBuffer(v);
-      assert(fieldLength >= v.length, `The field ${fieldName} must not have more ${fieldLength} bytes`);
+      assert(
+        fieldLength >= v.length,
+        `The field ${fieldName} must not have more ${fieldLength} bytes`
+      );
       tx._originals[index] = v;
     },
     get: () => {
@@ -195,7 +204,9 @@ function initData(tx: Transaction, data: any) {
 
 //#endregion
 
-type TransactionFinalization = { status: "confirmed"; error?: Error } | { status: "rejected"; error: Error };
+type TransactionFinalization =
+  | { status: "confirmed"; error?: Error }
+  | { status: "rejected"; error: Error };
 
 interface Transaction extends Omit<EthereumJsTransaction, "toJSON"> {}
 // TODO fix the EthereumJsTransaction as any via some "fake" multi-inheritance:
@@ -218,7 +229,11 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Number} type The `Transaction.types` bit flag for this transaction
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
-  constructor(data: any, common: Common, type: number = Transaction.types.none) {
+  constructor(
+    data: any,
+    common: Common,
+    type: number = Transaction.types.none
+  ) {
     super(void 0, { common });
 
     // EthereumJS-TX Transaction overwrites our `toJSON`, so we overwrite it back here:
@@ -251,7 +266,8 @@ class Transaction extends (EthereumJsTransaction as any) {
 
   cost(): bigint {
     return (
-      Quantity.from(this.gasPrice).toBigInt() * Quantity.from(this.gasLimit).toBigInt() +
+      Quantity.from(this.gasPrice).toBigInt() *
+        Quantity.from(this.gasLimit).toBigInt() +
       Quantity.from(this.value).toBigInt()
     );
   }
@@ -289,7 +305,12 @@ class Transaction extends (EthereumJsTransaction as any) {
    */
   public static calculateIntrinsicGas(
     data: Buffer | null,
-    hardfork: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier"
+    hardfork:
+      | "constantinople"
+      | "byzantium"
+      | "petersburg"
+      | "istanbul"
+      | "muirGlacier"
   ) {
     // Set the starting gas for the raw transaction
     let gas = params.TRANSACTION_GAS;
@@ -297,7 +318,9 @@ class Transaction extends (EthereumJsTransaction as any) {
       // Bump the required gas by the amount of transactional data
       const dataLength = data.byteLength;
       if (dataLength > 0) {
-        const TRANSACTION_DATA_NON_ZERO_GAS = params.TRANSACTION_DATA_NON_ZERO_GAS.get(hardfork);
+        const TRANSACTION_DATA_NON_ZERO_GAS = params.TRANSACTION_DATA_NON_ZERO_GAS.get(
+          hardfork
+        );
         const TRANSACTION_DATA_ZERO_GAS = params.TRANSACTION_DATA_ZERO_GAS;
 
         // Zero and non-zero bytes are priced differently
@@ -335,7 +358,11 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Number} type The `Transaction.types` bit flag for this transaction
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
-  static fromJSON(json: any, common: Common, type: ExtractValuesFromType<typeof Transaction.types>) {
+  static fromJSON(
+    json: any,
+    common: Common,
+    type: ExtractValuesFromType<typeof Transaction.types>
+  ) {
     let toAccount: Buffer;
     if (json.to) {
       // Remove all padding and make it easily comparible.
@@ -463,7 +490,11 @@ class Transaction extends (EthereumJsTransaction as any) {
     let status: Buffer;
     if (execException) {
       status = ZERO_BUFFER;
-      this.execException = new RuntimeError(this.hash(), result, RETURN_TYPES.TRANSACTION_HASH);
+      this.execException = new RuntimeError(
+        this.hash(),
+        result,
+        RETURN_TYPES.TRANSACTION_HASH
+      );
     } else {
       status = ONE_BUFFER;
     }

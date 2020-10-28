@@ -1,6 +1,11 @@
 import { Definitions } from "@ganache/options";
 
-export type Hardfork = "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier";
+export type Hardfork =
+  | "constantinople"
+  | "byzantium"
+  | "petersburg"
+  | "istanbul"
+  | "muirGlacier";
 
 export type ChainConfig = {
   options: {

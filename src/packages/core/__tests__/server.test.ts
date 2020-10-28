@@ -49,7 +49,9 @@ describe("server", () => {
 
   describe("http", () => {
     async function simpleTest() {
-      const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
+      const response = await request
+        .post("http://localhost:" + port)
+        .send(jsonRpcJson);
       assert.strictEqual(response.status, 200);
 
       const json = JSON.parse(response.text);
@@ -63,16 +65,28 @@ describe("server", () => {
         assert.strictEqual(s.status, Status.closed);
         const pendingListen = s.listen(port);
         assert.strictEqual(s.status, Status.opening);
-        assert.ok(s.status & Status.opening, "Bitmask broken: can't be used to determine `open || closed` state");
+        assert.ok(
+          s.status & Status.opening,
+          "Bitmask broken: can't be used to determine `open || closed` state"
+        );
         await pendingListen;
         assert.strictEqual(s.status, Status.open);
-        assert.ok(s.status & Status.open, "Bitmask broken: can't be used to determine `open || closed` state");
+        assert.ok(
+          s.status & Status.open,
+          "Bitmask broken: can't be used to determine `open || closed` state"
+        );
         const pendingClose = s.close();
         assert.strictEqual(s.status, Status.closing);
-        assert.ok(s.status & Status.closing, "Bitmask broken: can't be used to determine `closed || closing` state");
+        assert.ok(
+          s.status & Status.closing,
+          "Bitmask broken: can't be used to determine `closed || closing` state"
+        );
         await pendingClose;
         assert.strictEqual(s.status, Status.closed);
-        assert.ok(s.status & Status.closed, "Bitmask broken: can't be used to determine `closed || closing` state");
+        assert.ok(
+          s.status & Status.closed,
+          "Bitmask broken: can't be used to determine `closed || closing` state"
+        );
       } catch (e) {
         // in case of failure, make sure we properly shut things down
         if (s.status & Status.open) {
@@ -187,24 +201,27 @@ describe("server", () => {
     });
 
     // skip on Windows until https://github.com/uNetworking/uSockets/pull/101 is merged
-    (IS_WINDOWS ? xit : it)("fails to listen if the socket is already in use by Ganache", async () => {
-      await setup();
-      const s2 = Ganache.server();
+    (IS_WINDOWS ? xit : it)(
+      "fails to listen if the socket is already in use by Ganache",
+      async () => {
+        await setup();
+        const s2 = Ganache.server();
 
-      try {
-        await assert.rejects(s2.listen(port), {
-          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
-        });
-      } catch (e) {
-        // in case of failure, make sure we properly shut things down
-        if (s2.status & Status.open) {
-          await s2.close().catch(e => e);
+        try {
+          await assert.rejects(s2.listen(port), {
+            message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
+          });
+        } catch (e) {
+          // in case of failure, make sure we properly shut things down
+          if (s2.status & Status.open) {
+            await s2.close().catch(e => e);
+          }
+          throw e;
+        } finally {
+          await teardown();
         }
-        throw e;
-      } finally {
-        await teardown();
       }
-    });
+    );
 
     it("rejects if listen called while server is closing, Promise", async () => {
       await setup();
@@ -307,9 +324,14 @@ describe("server", () => {
         params: []
       };
       try {
-        const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
+        const response = await request
+          .post("http://localhost:" + port)
+          .send(jsonRpcJson);
         assert.strictEqual(response.status, 200);
-        assert.strictEqual(JSON.parse(response.text).error.message, "notifications not supported");
+        assert.strictEqual(
+          JSON.parse(response.text).error.message,
+          "notifications not supported"
+        );
       } finally {
         await teardown();
       }
@@ -338,7 +360,9 @@ describe("server", () => {
         }
       ];
       try {
-        const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
+        const response = await request
+          .post("http://localhost:" + port)
+          .send(jsonRpcJson);
         const json = JSON.parse(response.text);
         assert.deepStrictEqual(json[0], {
           jsonrpc: "2.0",
@@ -353,7 +377,10 @@ describe("server", () => {
         assert.deepStrictEqual(json[2].jsonrpc, "2.0");
         assert.deepStrictEqual(json[2].id, "3");
         assert.deepStrictEqual(json[2].error.code, -32004);
-        assert.deepStrictEqual(json[2].error.message, "notifications not supported");
+        assert.deepStrictEqual(
+          json[2].error.message,
+          "notifications not supported"
+        );
       } finally {
         await teardown();
       }
@@ -362,7 +389,9 @@ describe("server", () => {
     it("returns a teapot (easter egg)", async () => {
       await setup();
       try {
-        const result = await request.get("http://localhost:" + port + "/418").catch(e => e);
+        const result = await request
+          .get("http://localhost:" + port + "/418")
+          .catch(e => e);
         assert.strictEqual(result.status, 418);
         assert.strictEqual(result.message, "I'm a Teapot");
       } finally {
@@ -372,10 +401,21 @@ describe("server", () => {
 
     it("returns 404 for bad routes", async () => {
       await setup();
-      const methods = ["get", "post", "head", "options", "put", "delete", "patch", "trace"] as const;
+      const methods = [
+        "get",
+        "post",
+        "head",
+        "options",
+        "put",
+        "delete",
+        "patch",
+        "trace"
+      ] as const;
       try {
         const requests = methods.map(async method => {
-          const result = await request[method]("http://localhost:" + port + "/there-is-no-spoon").catch((e: any) => e);
+          const result = await request[method](
+            "http://localhost:" + port + "/there-is-no-spoon"
+          ).catch((e: any) => e);
           assert.strictEqual(result.status, 404);
           assert.strictEqual(result.message, "Not Found");
         });
@@ -444,7 +484,10 @@ describe("server", () => {
         "Access-Control-Allow-Headers",
         "Access-Control-Max-Age"
       ] as const;
-      const baseHeaders = ["Access-Control-Allow-Credentials", "Access-Control-Allow-Origin"] as const;
+      const baseHeaders = [
+        "Access-Control-Allow-Credentials",
+        "Access-Control-Allow-Origin"
+      ] as const;
       const allCorsHeaders = [...optionsHeaders, ...baseHeaders] as const;
 
       it("does not return CORS headers for non-CORS requests", async () => {
@@ -472,8 +515,14 @@ describe("server", () => {
             .set("origin", origin)
             .send(jsonRpcJson);
           assert.strictEqual(resp.status, 200);
-          assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
-          assert.strictEqual(resp.header["access-control-allow-origin"], origin);
+          assert.strictEqual(
+            resp.header["access-control-allow-credentials"],
+            "true"
+          );
+          assert.strictEqual(
+            resp.header["access-control-allow-origin"],
+            origin
+          );
           optionsHeaders.forEach(header => {
             assert.strictEqual(
               resp.header[header.toLowerCase()],
@@ -495,11 +544,20 @@ describe("server", () => {
             .set("origin", origin)
             .send(jsonRpcJson);
           assert.strictEqual(resp.status, 204);
-          assert.strictEqual(resp.header["access-control-allow-methods"], "POST");
-          assert.strictEqual(resp.header["access-control-allow-origin"], origin);
+          assert.strictEqual(
+            resp.header["access-control-allow-methods"],
+            "POST"
+          );
+          assert.strictEqual(
+            resp.header["access-control-allow-origin"],
+            origin
+          );
           assert.strictEqual(resp.header["access-control-max-age"], "600");
           assert.strictEqual(resp.header["content-length"], "0");
-          assert.strictEqual(resp.header["access-control-allow-credentials"], "true");
+          assert.strictEqual(
+            resp.header["access-control-allow-credentials"],
+            "true"
+          );
         } finally {
           await teardown();
         }
@@ -546,22 +604,36 @@ describe("server", () => {
       const ws = new WebSocket("ws://localhost:" + port);
       const response: any = await new Promise(resolve => {
         ws.on("open", () => {
-          const strToAB = (str: string) => new Uint8Array(str.split("").map(c => c.charCodeAt(0))).buffer;
+          const strToAB = (str: string) =>
+            new Uint8Array(str.split("").map(c => c.charCodeAt(0))).buffer;
           ws.send(strToAB(JSON.stringify(jsonRpcJson)));
         });
         ws.on("message", resolve);
       });
-      assert.strictEqual(response.constructor, Buffer, "response doesn't seem to be a Buffer as expect");
+      assert.strictEqual(
+        response.constructor,
+        Buffer,
+        "response doesn't seem to be a Buffer as expect"
+      );
       const json = JSON.parse(response);
-      assert.strictEqual(json.result, `${networkId}`, "Binary data result is not as expected");
+      assert.strictEqual(
+        json.result,
+        `${networkId}`,
+        "Binary data result is not as expected"
+      );
     });
 
     it("doesn't crash when sending bad data over http", async () => {
-      await assert.rejects(request.post("http://localhost:" + port).send("This is _not_ pudding."), {
-        message: "Bad Request"
-      });
+      await assert.rejects(
+        request.post("http://localhost:" + port).send("This is _not_ pudding."),
+        {
+          message: "Bad Request"
+        }
+      );
 
-      const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
+      const response = await request
+        .post("http://localhost:" + port)
+        .send(jsonRpcJson);
       const json = JSON.parse(response.text);
       assert.strictEqual(json.result, `${networkId}`);
     });
@@ -592,7 +664,9 @@ describe("server", () => {
           // If we get a message that means things didn't get closed as they
           // should have OR they are closing too late for some reason and
           // this test isn't testing anything.
-          ws.on("message", () => reject("Got a message when we shouldn't have!"));
+          ws.on("message", () =>
+            reject("Got a message when we shouldn't have!")
+          );
 
           // make sure we leave enough time for things to crash if it does end
           // up crashing.

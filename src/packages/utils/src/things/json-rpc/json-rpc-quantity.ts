@@ -3,7 +3,10 @@ const toBigIntBE = require("bigint-buffer").toBigIntBE;
 
 export class Quantity extends BaseJsonRpcType {
   _nullable: boolean = false;
-  public static from(value: number | bigint | string | Buffer, nullable = false) {
+  public static from(
+    value: number | bigint | string | Buffer,
+    nullable = false
+  ) {
     if (value instanceof Quantity) return value;
     const q = new Quantity(value);
     q._nullable = nullable;
@@ -67,7 +70,9 @@ export class Quantity extends BaseJsonRpcType {
     }
   }
   public toNumber() {
-    return typeof this.value === "number" ? this.value : Number(this.toBigInt());
+    return typeof this.value === "number"
+      ? this.value
+      : Number(this.toBigInt());
   }
   valueOf(): bigint {
     const value = this.value;

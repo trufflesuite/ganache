@@ -1,12 +1,18 @@
 import Emittery from "emittery";
 import EthereumApi from "./api";
 import { JsonRpcTypes } from "@ganache/utils";
-import { EthereumProviderOptions, EthereumInternalOptions, EthereumOptionsConfig } from "./options";
+import {
+  EthereumProviderOptions,
+  EthereumInternalOptions,
+  EthereumOptionsConfig
+} from "./options";
 import cloneDeep from "lodash.clonedeep";
 import { PromiEvent, types, utils } from "@ganache/utils";
 declare type RequestMethods = types.KnownKeys<EthereumApi>;
 
-type mergePromiseGenerics<Type> = Promise<Type extends Promise<infer X> ? X : never>;
+type mergePromiseGenerics<Type> = Promise<
+  Type extends Promise<infer X> ? X : never
+>;
 
 interface Callback {
   (err?: Error, response?: JsonRpcTypes.Response): void;
@@ -28,7 +34,9 @@ export default class EthereumProvider
 
   constructor(options: EthereumProviderOptions = {}, executor: utils.Executor) {
     super();
-    const providerOptions = (this.#options = EthereumOptionsConfig.normalize(options));
+    const providerOptions = (this.#options = EthereumOptionsConfig.normalize(
+      options
+    ));
 
     this.#executor = executor;
 
@@ -52,7 +60,10 @@ export default class EthereumProvider
    * @param callback
    * @deprecated Use the `request` method
    */
-  public send(payload: JsonRpcTypes.Request<EthereumApi>, callback?: Callback): undefined;
+  public send(
+    payload: JsonRpcTypes.Request<EthereumApi>,
+    callback?: Callback
+  ): undefined;
   /**
    * Legacy callback style API
    * @param payload JSON-RPC payload
@@ -60,15 +71,24 @@ export default class EthereumProvider
    * @deprecated Batch transactions have been deprecated. Send payloads
    * individually via the `request` method.
    */
-  public send(payloads: JsonRpcTypes.Request<EthereumApi>[], callback?: Callback): undefined;
+  public send(
+    payloads: JsonRpcTypes.Request<EthereumApi>[],
+    callback?: Callback
+  ): undefined;
   /**
    * @param method
    * @param params
    * @ignore Non standard! Do not use.
    */
-  public send(method: RequestMethods, params?: Parameters<EthereumApi[typeof method]>): any;
   public send(
-    arg1: RequestMethods | JsonRpcTypes.Request<EthereumApi> | JsonRpcTypes.Request<EthereumApi>[],
+    method: RequestMethods,
+    params?: Parameters<EthereumApi[typeof method]>
+  ): any;
+  public send(
+    arg1:
+      | RequestMethods
+      | JsonRpcTypes.Request<EthereumApi>
+      | JsonRpcTypes.Request<EthereumApi>[],
     arg2?: Callback | any[]
   ) {
     let method: RequestMethods;
@@ -108,7 +128,10 @@ export default class EthereumProvider
    * @param callback callback
    * @deprecated Use the `request` method.
    */
-  public sendAsync(payload: JsonRpcTypes.Request<EthereumApi>, callback?: Callback): void {
+  public sendAsync(
+    payload: JsonRpcTypes.Request<EthereumApi>,
+    callback?: Callback
+  ): void {
     return this.send(payload, callback);
   }
 
@@ -119,7 +142,9 @@ export default class EthereumProvider
    * @EIP [1193](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1193.md)
    */
   public async request<Method extends RequestMethods>(
-    args: Parameters<EthereumApi[Method]>["length"] extends 0 ? Pick<RequestParams<Method>, "method"> : never
+    args: Parameters<EthereumApi[Method]>["length"] extends 0
+      ? Pick<RequestParams<Method>, "method">
+      : never
   ): mergePromiseGenerics<ReturnType<EthereumApi[Method]>>;
   /**
    * EIP-1193 style request method
@@ -130,7 +155,9 @@ export default class EthereumProvider
   public async request<Method extends RequestMethods>(
     args: RequestParams<Method>
   ): mergePromiseGenerics<ReturnType<EthereumApi[Method]>>;
-  public async request<Method extends RequestMethods>(args: RequestParams<Method>) {
+  public async request<Method extends RequestMethods>(
+    args: RequestParams<Method>
+  ) {
     const rawResult = await this.requestRaw(args);
     const value = await rawResult.value;
     return JSON.parse(JSON.stringify(value));
@@ -141,7 +168,10 @@ export default class EthereumProvider
    * otherwise be flattened into a regular Promise through the Promise chain.
    * @param request
    */
-  public async requestRaw<Method extends RequestMethods>({ method, params }: RequestParams<Method>) {
+  public async requestRaw<Method extends RequestMethods>({
+    method,
+    params
+  }: RequestParams<Method>) {
     this.#logRequest(method, params);
 
     const result = await this.#executor.execute(this.#api, method, params);
@@ -166,7 +196,9 @@ export default class EthereumProvider
         if (hasOwn(error, "result")) {
           // stringify the result here
           // TODO: not sure why the stringification is even needed.
-          (error as any).result = JSON.parse(JSON.stringify((error as any).result));
+          (error as any).result = JSON.parse(
+            JSON.stringify((error as any).result)
+          );
         }
       }
       // then rethrow
@@ -175,11 +207,18 @@ export default class EthereumProvider
     return { value: value };
   }
 
-  #logRequest = (method: string, params: Parameters<EthereumApi[typeof method]>) => {
+  #logRequest = (
+    method: string,
+    params: Parameters<EthereumApi[typeof method]>
+  ) => {
     const options = this.#options;
     if (options.logging.verbose) {
       options.logging.logger.log(
-        `   >  ${method}: ${params == null ? params : JSON.stringify(params, null, 2).split("\n").join("\n   > ")}`
+        `   >  ${method}: ${
+          params == null
+            ? params
+            : JSON.stringify(params, null, 2).split("\n").join("\n   > ")
+        }`
       );
     }
   };
@@ -214,7 +253,10 @@ export default class EthereumProvider
       const result = await this.request({ method, params });
       return {
         error: null as JsonRpcTypes.Error,
-        result: JsonRpcTypes.Response(payload.id, JSON.parse(JSON.stringify(result)))
+        result: JsonRpcTypes.Response(
+          payload.id,
+          JSON.parse(JSON.stringify(result))
+        )
       };
     } catch (error) {
       let result: any;

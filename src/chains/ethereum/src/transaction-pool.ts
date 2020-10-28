@@ -9,7 +9,10 @@ import { EthereumInternalOptions } from "./options";
 import { Executables } from "./types/executables";
 
 function byNonce(values: Transaction[], a: number, b: number) {
-  return (Quantity.from(values[b].nonce).toBigInt() || 0n) > (Quantity.from(values[a].nonce).toBigInt() || 0n);
+  return (
+    (Quantity.from(values[b].nonce).toBigInt() || 0n) >
+    (Quantity.from(values[a].nonce).toBigInt() || 0n)
+  );
 }
 
 export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
@@ -21,7 +24,10 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   #priceBump: bigint = 10n;
 
   #blockchain: Blockchain;
-  constructor(options: EthereumInternalOptions["miner"], blockchain: Blockchain) {
+  constructor(
+    options: EthereumInternalOptions["miner"],
+    blockchain: Blockchain
+  ) {
     super();
     this.#blockchain = blockchain;
     this.#options = options;
@@ -97,7 +103,10 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     let executableOriginTransactions = executables.get(origin);
 
     let length: number;
-    if (executableOriginTransactions && (length = executableOriginTransactions.length)) {
+    if (
+      executableOriginTransactions &&
+      (length = executableOriginTransactions.length)
+    ) {
       // check if a transaction with the same nonce is in the origin's
       // executables queue already. Replace the matching transaction or throw this
       // new transaction away as neccessary.
@@ -124,7 +133,10 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
             currentPendingTx.finalize(
               "rejected",
-              new CodedError("Transaction replaced by better transaction", ErrorCodes.TRANSACTION_REJECTED)
+              new CodedError(
+                "Transaction replaced by better transaction",
+                ErrorCodes.TRANSACTION_REJECTED
+              )
             );
           } else {
             throw new CodedError(

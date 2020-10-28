@@ -17,7 +17,11 @@ export class Executor {
    * @param methodName The name of the JSON-RPC method to execute.
    * @param params The params to pass to the JSON-RPC method.
    */
-  public execute<T extends Api, M extends KnownKeys<T>>(api: T, methodName: M, params: Parameters<T[M]>) {
+  public execute<T extends Api, M extends KnownKeys<T>>(
+    api: T,
+    methodName: M,
+    params: Parameters<T[M]>
+  ) {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
@@ -30,7 +34,10 @@ export class Executor {
       //      class SomeClass {
       //        method(){} // api.__proto__.hasOwnProperty("method") === true
       //      }
-      if ((hasOwn(api.__proto__, methodName) && methodName !== "constructor") || hasOwn(api, methodName)) {
+      if (
+        (hasOwn(api.__proto__, methodName) && methodName !== "constructor") ||
+        hasOwn(api, methodName)
+      ) {
         // cast methodName from `KnownKeys<T> & string` back to KnownKeys<T> so our return type isn't weird.
         const fn = api[methodName as M];
         // just double check, in case a API breaks the rules and adds non-fns

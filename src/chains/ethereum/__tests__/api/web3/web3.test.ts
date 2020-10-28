@@ -19,7 +19,10 @@ describe("api", () => {
       const input = "Tim is a swell guy.";
       const result = await provider.send("web3_sha3", [input]);
 
-      assert.strictEqual(result, "0xee80d4ac03202e2246d51a596c76a18e1a6d899bed9f05246d998fb656d9bd1f");
+      assert.strictEqual(
+        result,
+        "0xee80d4ac03202e2246d51a596c76a18e1a6d899bed9f05246d998fb656d9bd1f"
+      );
     });
   });
 });

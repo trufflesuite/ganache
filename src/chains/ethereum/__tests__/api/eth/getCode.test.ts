@@ -20,12 +20,16 @@ describe("api", () => {
         });
 
         it("should return 0x for null address", async () => {
-          const code = await provider.send("eth_getCode", ["0x0000000000000000000000000000000000000000"]);
+          const code = await provider.send("eth_getCode", [
+            "0x0000000000000000000000000000000000000000"
+          ]);
           assert.strictEqual(code, "0x");
         });
 
         it("should return 0x for un-initialized address", async () => {
-          const code = await provider.send("eth_getCode", ["0xabcdefg012345678abcdefg012345678abcdefg0"]);
+          const code = await provider.send("eth_getCode", [
+            "0xabcdefg012345678abcdefg012345678abcdefg0"
+          ]);
           assert.strictEqual(code, "0x");
         });
 
@@ -56,16 +60,28 @@ describe("api", () => {
             }
           ]);
           await provider.once("message");
-          const transactionReceipt = await provider.send("eth_getTransactionReceipt", [transactionHash]);
+          const transactionReceipt = await provider.send(
+            "eth_getTransactionReceipt",
+            [transactionHash]
+          );
           contractAddress = transactionReceipt.contractAddress;
-          assert(contractAddress !== null, "Contract wasn't deployed as expected");
+          assert(
+            contractAddress !== null,
+            "Contract wasn't deployed as expected"
+          );
 
           blockNumber = Quantity.from(transactionReceipt.blockNumber);
         });
 
         it("should return the code at the deployed block number", async () => {
-          const code = await provider.send("eth_getCode", [contractAddress, blockNumber.toString()]);
-          assert.strictEqual(code, `0x${contract.contract.evm.deployedBytecode.object}`);
+          const code = await provider.send("eth_getCode", [
+            contractAddress,
+            blockNumber.toString()
+          ]);
+          assert.strictEqual(
+            code,
+            `0x${contract.contract.evm.deployedBytecode.object}`
+          );
         });
 
         it("should return the no code at the previous block number", async () => {

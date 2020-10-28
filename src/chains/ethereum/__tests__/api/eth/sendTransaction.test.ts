@@ -10,8 +10,13 @@ describe("api", () => {
     describe("sendTransaction", () => {
       describe("contracts", () => {
         describe("revert", () => {
-          async function deployContract(provider: EthereumProvider, accounts: string[]) {
-            const contract = compile(join(__dirname, "./contracts/Reverts.sol"));
+          async function deployContract(
+            provider: EthereumProvider,
+            accounts: string[]
+          ) {
+            const contract = compile(
+              join(__dirname, "./contracts/Reverts.sol")
+            );
 
             const from = accounts[0];
 
@@ -27,7 +32,9 @@ describe("api", () => {
 
             await provider.once("message");
 
-            const receipt = await provider.send("eth_getTransactionReceipt", [transactionHash]);
+            const receipt = await provider.send("eth_getTransactionReceipt", [
+              transactionHash
+            ]);
             assert.strictEqual(receipt.blockNumber, "0x1");
 
             const contractAddress = receipt.contractAddress;
@@ -41,7 +48,10 @@ describe("api", () => {
             async function test(opts: EthereumProviderOptions) {
               const provider = await getProvider(opts);
               const accounts = await provider.send("eth_accounts");
-              const { contract, contractAddress } = await deployContract(provider, accounts);
+              const { contract, contractAddress } = await deployContract(
+                provider,
+                accounts
+              );
               const contractMethods = contract.contract.evm.methodIdentifiers;
               const prom = provider.send("eth_call", [
                 {
@@ -51,19 +61,36 @@ describe("api", () => {
                 }
               ]);
 
-              const revertString = "0x08c379a0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0";
+              const revertString =
+                "0x08c379a0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0";
               if (opts.chain.vmErrorsOnRPCResponse) {
                 const result = await prom.catch(e => e);
-                assert.strictEqual(result.code, -32000, "Error code should be -32000");
-                assert.strictEqual(result.data.reason, null, "The reason is undecodable, and thus should be null");
+                assert.strictEqual(
+                  result.code,
+                  -32000,
+                  "Error code should be -32000"
+                );
+                assert.strictEqual(
+                  result.data.reason,
+                  null,
+                  "The reason is undecodable, and thus should be null"
+                );
                 assert.strictEqual(
                   result.data.message,
                   "revert",
                   "The message should not have a reason string included"
                 );
-                assert.strictEqual(result.data.result, revertString, "The revert reason should be encoded as hex");
+                assert.strictEqual(
+                  result.data.result,
+                  revertString,
+                  "The revert reason should be encoded as hex"
+                );
               } else {
-                assert.strictEqual(await prom, revertString, "The revert reason should be encoded as hex");
+                assert.strictEqual(
+                  await prom,
+                  revertString,
+                  "The revert reason should be encoded as hex"
+                );
               }
             }
             await test({ chain: { vmErrorsOnRPCResponse: false } });

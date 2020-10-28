@@ -33,7 +33,9 @@ describe("api", () => {
         // fast forward time by 10 seconds (plus 2 seconds in case testing is slow)
         const newTime = now + 10000 + 2000;
 
-        const timeAdjustment = await provider.send("evm_setTime", [`0x${newTime.toString(16)}`]);
+        const timeAdjustment = await provider.send("evm_setTime", [
+          `0x${newTime.toString(16)}`
+        ]);
 
         // it should return `newTime - now`, floored to the nearest second
         const baseLineOffset = Math.floor((newTime - now) / 1000);
@@ -58,14 +60,18 @@ describe("api", () => {
       it("should return the `timeAdjustment` value via `evm_increaseTime` when provided as a number", async () => {
         const provider = await getProvider();
         const seconds = 10;
-        const timeAdjustment = await provider.send("evm_increaseTime", [seconds]);
+        const timeAdjustment = await provider.send("evm_increaseTime", [
+          seconds
+        ]);
         assert.strictEqual(timeAdjustment, seconds);
       });
 
       it("should return the `timeAdjustment` value via `evm_increaseTime` when provided as hex string", async () => {
         const provider = await getProvider();
         const seconds = 10;
-        const timeAdjustment = await provider.send("evm_increaseTime", [`0x${seconds.toString(16)}`]);
+        const timeAdjustment = await provider.send("evm_increaseTime", [
+          `0x${seconds.toString(16)}`
+        ]);
         assert.strictEqual(timeAdjustment, seconds);
       });
     });
@@ -81,10 +87,14 @@ describe("api", () => {
 
       it("should mine a block on demand at the specified timestamp", async () => {
         const startDate = new Date(2019, 3, 15);
-        const miningTimestamp = Math.floor(new Date(2020, 3, 15).getTime() / 1000);
+        const miningTimestamp = Math.floor(
+          new Date(2020, 3, 15).getTime() / 1000
+        );
         const provider = await getProvider({ chain: { time: startDate } });
         await provider.send("evm_mine", [miningTimestamp]);
-        const currentBlock = await provider.send("eth_getBlockByNumber", ["latest"]);
+        const currentBlock = await provider.send("eth_getBlockByNumber", [
+          "latest"
+        ]);
         assert.strictEqual(parseInt(currentBlock.timestamp), miningTimestamp);
       });
 
@@ -120,11 +130,18 @@ describe("api", () => {
         const provider = await getProvider();
         const [account] = await provider.send("eth_accounts");
         const newCount = Quantity.from(1000);
-        const initialCount = parseInt(await provider.send("eth_getTransactionCount", [account]));
+        const initialCount = parseInt(
+          await provider.send("eth_getTransactionCount", [account])
+        );
         assert.strictEqual(initialCount, 0);
-        const status = await provider.send("evm_setAccountNonce", [account, newCount.toString()]);
+        const status = await provider.send("evm_setAccountNonce", [
+          account,
+          newCount.toString()
+        ]);
         assert.strictEqual(status, true);
-        const afterCount = parseInt(await provider.send("eth_getTransactionCount", [account]));
+        const afterCount = parseInt(
+          await provider.send("eth_getTransactionCount", [account])
+        );
         assert.strictEqual(afterCount, newCount.toNumber());
       });
     });
@@ -138,11 +155,15 @@ describe("api", () => {
 
       it("should unlock any account after server has been started", async () => {
         const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-        const result1 = await provider.send("evm_unlockUnknownAccount", [address]);
+        const result1 = await provider.send("evm_unlockUnknownAccount", [
+          address
+        ]);
         assert.strictEqual(result1, true);
 
         // should return `false` if account was already locked
-        const result2 = await provider.send("evm_unlockUnknownAccount", [address]);
+        const result2 = await provider.send("evm_unlockUnknownAccount", [
+          address
+        ]);
         assert.strictEqual(result2, false);
       });
 
@@ -165,35 +186,53 @@ describe("api", () => {
 
       it("should lock any unlocked unknown account via evm_lockUnknownAccount", async () => {
         const address = "0x842d35Cc6634C0532925a3b844Bc454e4438f44f";
-        const unlockResult = await provider.send("evm_unlockUnknownAccount", [address]);
+        const unlockResult = await provider.send("evm_unlockUnknownAccount", [
+          address
+        ]);
         assert.strictEqual(unlockResult, true);
 
-        const lockResult1 = await provider.send("evm_lockUnknownAccount", [address]);
+        const lockResult1 = await provider.send("evm_lockUnknownAccount", [
+          address
+        ]);
         assert.strictEqual(lockResult1, true);
 
         // bonus: also make sure we return false when the account is already locked:
-        const lockResult2 = await provider.send("evm_lockUnknownAccount", [address]);
+        const lockResult2 = await provider.send("evm_lockUnknownAccount", [
+          address
+        ]);
         assert.strictEqual(lockResult2, false);
       });
 
       it("should not lock a known account via evm_lockUnknownAccount", async () => {
-        await assert.rejects(provider.send("evm_lockUnknownAccount", [accounts[0]]), {
-          message: "cannot lock known/personal account"
-        });
+        await assert.rejects(
+          provider.send("evm_lockUnknownAccount", [accounts[0]]),
+          {
+            message: "cannot lock known/personal account"
+          }
+        );
       });
 
       it("should not lock a personal account via evm_lockUnknownAccount", async () => {
         // create a new personal account
-        const address = await provider.send("personal_newAccount", ["password"]);
+        const address = await provider.send("personal_newAccount", [
+          "password"
+        ]);
 
         // then explicitly unlock it
-        const result = await provider.send("personal_unlockAccount", [address, "password", 0]);
+        const result = await provider.send("personal_unlockAccount", [
+          address,
+          "password",
+          0
+        ]);
         assert.strictEqual(result, true);
 
         // then try to lock it via evm_lockUnknownAccount
-        await assert.rejects(provider.send("evm_lockUnknownAccount", [address]), {
-          message: "cannot lock known/personal account"
-        });
+        await assert.rejects(
+          provider.send("evm_lockUnknownAccount", [address]),
+          {
+            message: "cannot lock known/personal account"
+          }
+        );
       });
 
       it("should return `false` upon lock if account isn't locked (unknown account)", async () => {

@@ -6,7 +6,9 @@ import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
 import CodedError, { ErrorCodes } from "./errors/coded-error";
 import { EthereumProviderOptions } from "./options";
 
-function isHttp(connection: HttpRequest | WebSocket): connection is HttpRequest {
+function isHttp(
+  connection: HttpRequest | WebSocket
+): connection is HttpRequest {
   return connection.constructor.name === "uWS.HttpRequest";
 }
 
@@ -28,10 +30,16 @@ export class Connector
     return this.#provider;
   }
 
-  constructor(providerOptions: ProviderOptions = null, executor: utils.Executor) {
+  constructor(
+    providerOptions: ProviderOptions = null,
+    executor: utils.Executor
+  ) {
     super();
 
-    const provider = (this.#provider = new EthereumProvider(providerOptions, executor));
+    const provider = (this.#provider = new EthereumProvider(
+      providerOptions,
+      executor
+    ));
     provider.on("connect", () => {
       // tell the consumer (like a `ganache-core` server/connector) everything is ready
       this.emit("ready");
@@ -47,7 +55,9 @@ export class Connector
   }
 
   handle(
-    payload: JsonRpcTypes.Request<EthereumApi> | JsonRpcTypes.Request<EthereumApi>[],
+    payload:
+      | JsonRpcTypes.Request<EthereumApi>
+      | JsonRpcTypes.Request<EthereumApi>[],
     connection: HttpRequest | WebSocket
   ) {
     if (Array.isArray(payload)) {
@@ -62,22 +72,38 @@ export class Connector
       return this.#handle(payload, connection);
     }
   }
-  #handle = (payload: JsonRpcTypes.Request<EthereumApi>, connection: HttpRequest | WebSocket) => {
+  #handle = (
+    payload: JsonRpcTypes.Request<EthereumApi>,
+    connection: HttpRequest | WebSocket
+  ) => {
     const method = payload.method;
     if (method === "eth_subscribe") {
       if (isHttp(connection)) {
-        return Promise.reject(new CodedError("notifications not supported", ErrorCodes.METHOD_NOT_SUPPORTED));
+        return Promise.reject(
+          new CodedError(
+            "notifications not supported",
+            ErrorCodes.METHOD_NOT_SUPPORTED
+          )
+        );
       }
     }
     const params = payload.params as Parameters<EthereumApi[typeof method]>;
     return this.#provider.requestRaw({ method, params });
   };
 
-  format(result: any, payload: JsonRpcTypes.Request<EthereumApi>): RecognizedString;
-  format(results: any[], payloads: JsonRpcTypes.Request<EthereumApi>[]): RecognizedString;
+  format(
+    result: any,
+    payload: JsonRpcTypes.Request<EthereumApi>
+  ): RecognizedString;
+  format(
+    results: any[],
+    payloads: JsonRpcTypes.Request<EthereumApi>[]
+  ): RecognizedString;
   format(
     results: any | any[],
-    payload: JsonRpcTypes.Request<EthereumApi> | JsonRpcTypes.Request<EthereumApi>[]
+    payload:
+      | JsonRpcTypes.Request<EthereumApi>
+      | JsonRpcTypes.Request<EthereumApi>[]
   ): RecognizedString {
     if (Array.isArray(payload)) {
       return JSON.stringify(
@@ -96,8 +122,14 @@ export class Connector
     }
   }
 
-  formatError(error: Error & { code: number }, payload: JsonRpcTypes.Request<EthereumApi>): RecognizedString {
-    const json = JsonRpcTypes.Error(payload && payload.id ? payload.id : null, error);
+  formatError(
+    error: Error & { code: number },
+    payload: JsonRpcTypes.Request<EthereumApi>
+  ): RecognizedString {
+    const json = JsonRpcTypes.Error(
+      payload && payload.id ? payload.id : null,
+      error
+    );
     return JSON.stringify(json);
   }
 

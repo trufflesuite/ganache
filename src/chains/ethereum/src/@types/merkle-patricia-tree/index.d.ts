@@ -27,7 +27,12 @@ declare module "merkle-patricia-tree" {
     revert(cb: Callback<never>): void;
     createScratchReadStream(scratch: Database): ScratchReadStream;
     static prove(trie: Trie, key: LargeNumber, cb: Callback<MerkleProof>): void;
-    static verifyProof(rootHash: LargeNumber, key: LargeNumber, proof: MerkleProof, cb: Callback<Buffer>): void;
+    static verifyProof(
+      rootHash: LargeNumber,
+      key: LargeNumber,
+      proof: MerkleProof,
+      cb: Callback<Buffer>
+    ): void;
   }
   export default CheckpointTrie;
 }

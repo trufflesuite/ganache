@@ -16,7 +16,12 @@ export default class TransactionManager extends Manager<Transaction> {
   #resumer: Promise<void>;
   #resolver: (value: void) => void;
 
-  constructor(options: EthereumInternalOptions["miner"], common: Common, blockchain: Blockchain, base: LevelUp) {
+  constructor(
+    options: EthereumInternalOptions["miner"],
+    common: Common,
+    blockchain: Blockchain,
+    base: LevelUp
+  ) {
     super(base, Transaction, common);
 
     this.transactionPool = new TransactionPool(options, blockchain);
@@ -40,7 +45,10 @@ export default class TransactionManager extends Manager<Transaction> {
     // potentially affect the order in which transactions are inserted into the
     // pool, so we use a FIFO queue to _return_ transaction insertions in the
     // order the were received.
-    const insertion = this.transactionPool.prepareTransaction(transaction, secretKey);
+    const insertion = this.transactionPool.prepareTransaction(
+      transaction,
+      secretKey
+    );
     const result = await this.#queue.add(insertion);
     if (result) {
       this.transactionPool.drain();

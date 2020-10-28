@@ -51,7 +51,11 @@ export class RequestCoordinator {
   #process = () => {
     // if we aren't paused and the number of things we're processing is under
     // our limit and we have things to process: do it!
-    while (!this.paused && this.pending.length > 0 && (!this.limit || this.runningTasks < this.limit)) {
+    while (
+      !this.paused &&
+      this.pending.length > 0 &&
+      (!this.limit || this.runningTasks < this.limit)
+    ) {
       const current = this.pending.shift();
       this.runningTasks++;
       current()
@@ -80,7 +84,11 @@ export class RequestCoordinator {
       // const executor is `async` to force the return value into a Promise.
       const executor = async () => {
         try {
-          const value = Reflect.apply(fn, thisArgument, argumentsList || []) as ReturnType<typeof fn>;
+          const value = Reflect.apply(
+            fn,
+            thisArgument,
+            argumentsList || []
+          ) as ReturnType<typeof fn>;
           resolve({ value });
           return value;
         } catch (e) {

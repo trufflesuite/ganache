@@ -60,7 +60,11 @@ describe("api", () => {
 
     describe("eth_submitWork", () => {
       it("should get compilers list", async () => {
-        const result = await provider.send("eth_submitWork", [hex(8), hex(32), hex(32)]);
+        const result = await provider.send("eth_submitWork", [
+          hex(8),
+          hex(32),
+          hex(32)
+        ]);
         assert.deepStrictEqual(result, false);
       });
     });
@@ -74,7 +78,10 @@ describe("api", () => {
 
     describe("eth_submitHashrate", () => {
       it("should return the status of eth_submitHashrate", async () => {
-        const result = await provider.send("eth_submitHashrate", [hex(32), hex(32)]);
+        const result = await provider.send("eth_submitHashrate", [
+          hex(32),
+          hex(32)
+        ]);
         assert.deepStrictEqual(result, false);
       });
     });
@@ -87,7 +94,9 @@ describe("api", () => {
 
       it("should use the default chain id when signing transactions", async () => {
         await provider.send("eth_subscribe", ["newHeads"]);
-        const txHash = await provider.send("eth_sendTransaction", [{ from: accounts[0], to: accounts[0] }]);
+        const txHash = await provider.send("eth_sendTransaction", [
+          { from: accounts[0], to: accounts[0] }
+        ]);
         await provider.once("message");
         const tx = await provider.send("eth_getTransactionByHash", [txHash]);
         assert.strictEqual(tx.v, "0xa95");
@@ -107,7 +116,9 @@ describe("api", () => {
       });
 
       it("should return 0 for non-existent account", async () => {
-        const balance = await provider.send("eth_getBalance", ["0x1234567890123456789012345678901234567890"]);
+        const balance = await provider.send("eth_getBalance", [
+          "0x1234567890123456789012345678901234567890"
+        ]);
         assert.strictEqual(balance, "0x0");
       });
     });
@@ -120,10 +131,15 @@ describe("api", () => {
           value: 1
         };
 
-        const txCount1 = await provider.send("eth_getTransactionCount", [accounts[0]]);
+        const txCount1 = await provider.send("eth_getTransactionCount", [
+          accounts[0]
+        ]);
         assert.strictEqual(txCount1, "0x0");
         const initialBlockNumber = await provider.send("eth_blockNumber");
-        const txCount2 = await provider.send("eth_getTransactionCount", [accounts[0], initialBlockNumber]);
+        const txCount2 = await provider.send("eth_getTransactionCount", [
+          accounts[0],
+          initialBlockNumber
+        ]);
         assert.strictEqual(txCount2, "0x0");
 
         await provider.send("eth_subscribe", ["newHeads"]);
@@ -134,7 +150,10 @@ describe("api", () => {
         await provider.send("miner_start");
         const message1 = await provider.once("message");
 
-        const txCount3 = await provider.send("eth_getTransactionCount", [accounts[0], message1.data.result.number]);
+        const txCount3 = await provider.send("eth_getTransactionCount", [
+          accounts[0],
+          message1.data.result.number
+        ]);
         assert.strictEqual(txCount3, "0x1");
 
         // send two txs, then check the count
@@ -144,24 +163,41 @@ describe("api", () => {
         await provider.send("miner_start");
         const message2 = await provider.once("message");
 
-        const txCount4 = await provider.send("eth_getTransactionCount", [accounts[0], message2.data.result.number]);
+        const txCount4 = await provider.send("eth_getTransactionCount", [
+          accounts[0],
+          message2.data.result.number
+        ]);
         assert.strictEqual(txCount4, "0x3");
 
         // the check the count at different block numbers...
 
-        const txCount5 = await provider.send("eth_getTransactionCount", [accounts[0], message1.data.result.number]);
+        const txCount5 = await provider.send("eth_getTransactionCount", [
+          accounts[0],
+          message1.data.result.number
+        ]);
         assert.strictEqual(txCount5, txCount3);
 
-        const txCount6 = await provider.send("eth_getTransactionCount", [accounts[0], initialBlockNumber]);
+        const txCount6 = await provider.send("eth_getTransactionCount", [
+          accounts[0],
+          initialBlockNumber
+        ]);
         assert.strictEqual(txCount6, "0x0");
 
-        const txCount7 = await provider.send("eth_getTransactionCount", [accounts[0]]);
+        const txCount7 = await provider.send("eth_getTransactionCount", [
+          accounts[0]
+        ]);
         assert.strictEqual(txCount7, txCount4);
 
-        const txCount8 = await provider.send("eth_getTransactionCount", [accounts[0], "earliest"]);
+        const txCount8 = await provider.send("eth_getTransactionCount", [
+          accounts[0],
+          "earliest"
+        ]);
         assert.strictEqual(txCount8, "0x0");
 
-        const txCount9 = await provider.send("eth_getTransactionCount", [accounts[0], "latest"]);
+        const txCount9 = await provider.send("eth_getTransactionCount", [
+          accounts[0],
+          "latest"
+        ]);
         assert.strictEqual(txCount9, txCount4);
       });
     });
@@ -179,7 +215,9 @@ describe("api", () => {
           value: 1
         };
 
-        const startingBlockNumber = parseInt(await provider.send("eth_blockNumber"));
+        const startingBlockNumber = parseInt(
+          await provider.send("eth_blockNumber")
+        );
         await provider.send("eth_subscribe", ["newHeads"]);
         await provider.send("eth_sendTransaction", [{ ...tx }]);
         await provider.once("message");
@@ -223,7 +261,9 @@ describe("api", () => {
     });
 
     it("eth_getBlockByNumber", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+      const _subscriptionId = await provider.send("eth_subscribe", [
+        "newHeads"
+      ]);
       await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
@@ -240,7 +280,9 @@ describe("api", () => {
     });
 
     it("eth_getBlockByHash", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+      const _subscriptionId = await provider.send("eth_subscribe", [
+        "newHeads"
+      ]);
       await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
@@ -265,7 +307,9 @@ describe("api", () => {
     });
 
     it("eth_getBlockTransactionCountByHash", async () => {
-      const _subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+      const _subscriptionId = await provider.send("eth_subscribe", [
+        "newHeads"
+      ]);
       await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
@@ -276,7 +320,9 @@ describe("api", () => {
       const _message = await provider.once("message");
       const block = await provider.send("eth_getBlockByNumber", ["0x1"]);
 
-      const count = await provider.send("eth_getBlockTransactionCountByHash", [block.hash]);
+      const count = await provider.send("eth_getBlockTransactionCountByHash", [
+        block.hash
+      ]);
       assert(count, "1");
     });
 
@@ -291,7 +337,10 @@ describe("api", () => {
       ]);
       await provider.once("message");
 
-      const count = await provider.send("eth_getBlockTransactionCountByNumber", ["0x1"]);
+      const count = await provider.send(
+        "eth_getBlockTransactionCountByNumber",
+        ["0x1"]
+      );
       assert.strictEqual(count, "0x1");
     });
 
@@ -359,7 +408,10 @@ describe("api", () => {
       ]);
       await provider.once("message");
 
-      const tx = await provider.send("eth_getTransactionByBlockNumberAndIndex", ["0x1", "0x0"]);
+      const tx = await provider.send(
+        "eth_getTransactionByBlockNumberAndIndex",
+        ["0x1", "0x0"]
+      );
       assert.strictEqual(
         tx.hash,
         "0xab338178ffd130f1b7724a687ef20afcc75d44020184f82127ab1bc59f17d7e2",
@@ -384,7 +436,10 @@ describe("api", () => {
       const _message = await provider.once("message");
       const block = await provider.send("eth_getBlockByNumber", ["0x1"]);
 
-      const tx = await provider.send("eth_getTransactionByBlockHashAndIndex", [block.hash, "0x0"]);
+      const tx = await provider.send("eth_getTransactionByBlockHashAndIndex", [
+        block.hash,
+        "0x0"
+      ]);
       assert.strictEqual(
         tx.hash,
         "0xab338178ffd130f1b7724a687ef20afcc75d44020184f82127ab1bc59f17d7e2",

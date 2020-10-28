@@ -8,7 +8,9 @@ import solc from "solc";
   if (solcListener && solcListener.name === "abort") {
     process.removeListener("unhandledRejection", solcListener);
   } else {
-    throw new Error("Looks like either the solc listener was finally removed, or they changed the name. Check it!");
+    throw new Error(
+      "Looks like either the solc listener was finally removed, or they changed the name. Check it!"
+    );
   }
 }
 

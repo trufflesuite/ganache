@@ -32,7 +32,11 @@ export default class BlockManager extends Manager<Block> {
   #common: Common;
   #blockIndexes: LevelUp;
 
-  static async initialize(common: Common, blockIndexes: LevelUp, base: LevelUp) {
+  static async initialize(
+    common: Common,
+    blockIndexes: LevelUp,
+    base: LevelUp
+  ) {
     const bm = new BlockManager(common, blockIndexes, base);
     await bm.updateTaggedBlocks();
     return bm;
@@ -147,7 +151,10 @@ export default class BlockManager extends Manager<Block> {
       key = Buffer.from([0]);
     }
     const secondaryKey = header.hash();
-    await Promise.all([this.#blockIndexes.put(secondaryKey, key), super.set(key, block.serialize())]);
+    await Promise.all([
+      this.#blockIndexes.put(secondaryKey, key),
+      super.set(key, block.serialize())
+    ]);
     return block;
   }
 
@@ -186,7 +193,10 @@ export class Block {
     if (raw) {
       this.size = raw.length;
       const data = (rlpDecode(raw) as any) as [Buffer[], Buffer[], Buffer[]];
-      this.value = new EthereumJsBlock({ header: data[0], uncleHeaders: data[2] }, { common });
+      this.value = new EthereumJsBlock(
+        { header: data[0], uncleHeaders: data[2] },
+        { common }
+      );
       const rawTransactions = data[1];
 
       // parse transactions so we can use our own transaction class
@@ -208,7 +218,11 @@ export class Block {
     return serialized;
   }
 
-  getTxFn = (include = false): ((tx: Transaction) => { [key: string]: string | Data | Quantity } | Data) => {
+  getTxFn = (
+    include = false
+  ): ((
+    tx: Transaction
+  ) => { [key: string]: string | Data | Quantity } | Data) => {
     if (include) {
       return (tx: Transaction) => tx.toJSON(this);
     } else {
@@ -239,7 +253,9 @@ export class Block {
       gasLimit: Quantity.from(header.gasLimit),
       gasUsed: Quantity.from(header.gasUsed),
       timestamp: Quantity.from(header.timestamp),
-      transactions: this.value.transactions.map(this.getTxFn(includeFullTransactions)),
+      transactions: this.value.transactions.map(
+        this.getTxFn(includeFullTransactions)
+      ),
       uncles: [] as string[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
     };
   }

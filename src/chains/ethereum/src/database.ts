@@ -36,7 +36,10 @@ export default class Database extends Emittery {
    * store instance) or `dbPath` (the path to store/read the db instance)
    * @param blockchain
    */
-  constructor(options: EthereumInternalOptions["database"], blockchain: Blockchain) {
+  constructor(
+    options: EthereumInternalOptions["database"],
+    blockchain: Blockchain
+  ) {
     super();
 
     this.#options = options;

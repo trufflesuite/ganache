@@ -24,7 +24,11 @@ export type WebsocketServerOptions = Pick<ServerOptions["server"], "wsBinary">;
 
 export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
-  constructor(app: TemplatedApp, connector: WebSocketCapableFlavor, options: WebsocketServerOptions) {
+  constructor(
+    app: TemplatedApp,
+    connector: WebSocketCapableFlavor,
+    options: WebsocketServerOptions
+  ) {
     const connections = this.#connections;
     const wsBinary = options.wsBinary;
     const autoBinary = wsBinary === "auto";
@@ -40,7 +44,11 @@ export default class WebsocketServer {
         connections.set(ws, new Set());
       },
 
-      message: async (ws: GanacheWebSocket, message: ArrayBuffer, isBinary: boolean) => {
+      message: async (
+        ws: GanacheWebSocket,
+        message: ArrayBuffer,
+        isBinary: boolean
+      ) => {
         let payload: ReturnType<typeof connector.parse>;
         const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
         try {
@@ -108,6 +116,8 @@ export default class WebsocketServer {
     });
   }
   close() {
-    this.#connections.forEach((_, ws) => ws.end(WebSocketCloseCodes.CLOSE_GOING_AWAY, "Server closed by client"));
+    this.#connections.forEach((_, ws) =>
+      ws.end(WebSocketCloseCodes.CLOSE_GOING_AWAY, "Server closed by client")
+    );
   }
 }

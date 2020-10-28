@@ -10,7 +10,13 @@ export const toBuffers = new WeakMap();
 
 const inspect = Symbol.for("nodejs.util.inspect.custom");
 
-export class BaseJsonRpcType<T extends number | bigint | string | Buffer = number | bigint | string | Buffer> {
+export class BaseJsonRpcType<
+  T extends number | bigint | string | Buffer =
+    | number
+    | bigint
+    | string
+    | Buffer
+> {
   public [Symbol.toStringTag]: string;
 
   protected value: T;
@@ -97,4 +103,6 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
   }
 }
 
-export type JsonRpcType<T extends number | bigint | string | Buffer> = BaseJsonRpcType<T>;
+export type JsonRpcType<
+  T extends number | bigint | string | Buffer
+> = BaseJsonRpcType<T>;

@@ -7,7 +7,8 @@ import Common from "ethereumjs-common";
 describe("api", () => {
   describe("eth", () => {
     describe("eth_sendRawTransaction*", () => {
-      let secretKey = "0x4c3fc38239e503913706205746ef2dcc54a5ea9971988bfcac136b43e3190841";
+      let secretKey =
+        "0x4c3fc38239e503913706205746ef2dcc54a5ea9971988bfcac136b43e3190841";
       let provider: EthereumProvider;
       let accounts: string[];
       const common = Common.forCustomChain(
@@ -45,10 +46,14 @@ describe("api", () => {
         transaction.sign(secretKeyBuffer);
 
         await provider.send("eth_subscribe", ["newHeads"]);
-        const txHash = await provider.send("eth_sendRawTransaction", [transaction.serialize()]);
+        const txHash = await provider.send("eth_sendRawTransaction", [
+          transaction.serialize()
+        ]);
         await provider.once("message");
 
-        const receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
+        const receipt = await provider.send("eth_getTransactionReceipt", [
+          txHash
+        ]);
         assert.strictEqual(receipt.transactionHash, txHash);
       });
     });

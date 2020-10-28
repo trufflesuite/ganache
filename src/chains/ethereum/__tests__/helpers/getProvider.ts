@@ -3,7 +3,8 @@ import EthereumProvider from "../../src/provider";
 import { EthereumProviderOptions } from "../../src/options";
 const { RequestCoordinator, Executor } = utils;
 
-const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
+const mnemonic =
+  "into trim cross then helmet popular suit hammer cart shrug oval student";
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
@@ -17,7 +18,8 @@ const getProvider = async (
 
   // set `asyncRequestProcessing` to `true` by default
   let doAsync = options.chain.asyncRequestProcessing;
-  doAsync = options.chain.asyncRequestProcessing = doAsync != null ? doAsync : true;
+  doAsync = options.chain.asyncRequestProcessing =
+    doAsync != null ? doAsync : true;
 
   // don't write to stdout in tests
   if (!options.logging.logger) {

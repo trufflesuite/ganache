@@ -23,8 +23,14 @@ declare module "hdkey" {
     public verify: (hash: Buffer, signature: Buffer) => boolean;
     public wipePrivateData: () => HDKey;
     public toJSON: (path: string) => HDKeyJSON;
-    public static fromMasterSeed: (seedBuffer: Buffer, version?: HDKeyVersions) => HDKey;
-    public static fromExtendedKey: (base58key: string, version?: HDKeyVersions) => HDKey;
+    public static fromMasterSeed: (
+      seedBuffer: Buffer,
+      version?: HDKeyVersions
+    ) => HDKey;
+    public static fromExtendedKey: (
+      base58key: string,
+      version?: HDKeyVersions
+    ) => HDKey;
     public static fromJSON: (obj: HDKeyJSON) => HDKey;
     public static HARDENED_OFFSET: 0x80000000;
   }

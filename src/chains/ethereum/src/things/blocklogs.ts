@@ -3,7 +3,11 @@ import { Data, Quantity } from "@ganache/utils";
 import Address from "./address";
 import { utils } from "@ganache/utils";
 
-export type TransactionLog = [address: Buffer, topics: Buffer[], data: Buffer | Buffer[]];
+export type TransactionLog = [
+  address: Buffer,
+  topics: Buffer[],
+  data: Buffer | Buffer[]
+];
 export type BlockLog = [
   removed: Buffer,
   transactionIndex: Buffer,
@@ -16,7 +20,10 @@ export type BlockLog = [
 const _raw = Symbol("raw");
 const _logs = Symbol("logs");
 
-const filterByTopic = (expectedTopics: (string | string[])[], logTopics: Buffer[]) => {
+const filterByTopic = (
+  expectedTopics: (string | string[])[],
+  logTopics: Buffer[]
+) => {
   // Exclude log if its number of topics is less than the number expected
   if (expectedTopics.length > logTopics.length) return false;
 
@@ -35,7 +42,9 @@ const filterByTopic = (expectedTopics: (string | string[])[], logTopics: Buffer[
 
     const logTopic = logTopics[logPosition];
     // "OR" logic, e.g., [[A, B]] means log topic in the first position matching either "A" OR "B":
-    return expectedTopicSet.some(expectedTopic => logTopic.equals(Data.from(expectedTopic).toBuffer()));
+    return expectedTopicSet.some(expectedTopic =>
+      logTopic.equals(Data.from(expectedTopic).toBuffer())
+    );
   });
 };
 
@@ -73,7 +82,11 @@ export default class BlockLogs {
    * @param transactionHash
    * @param log
    */
-  public append(/*removed: boolean, */ transactionIndex: Buffer, transactionHash: Buffer, log: TransactionLog) {
+  public append(
+    /*removed: boolean, */ transactionIndex: Buffer,
+    transactionHash: Buffer,
+    log: TransactionLog
+  ) {
     this[_raw][1].push([
       utils.BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
       transactionIndex, // transactionIndex
@@ -108,7 +121,12 @@ export default class BlockLogs {
         return {
           *[Symbol.iterator]() {
             for (let i = 0; i < l; i++) {
-              yield BlockLogs.logToJSON(logs[i], Quantity.from(i), blockHash, blockNumber);
+              yield BlockLogs.logToJSON(
+                logs[i],
+                Quantity.from(i),
+                blockHash,
+                blockNumber
+              );
             }
           }
         };
@@ -121,7 +139,8 @@ export default class BlockLogs {
           yield {
             address,
             topics,
-            toJSON: () => BlockLogs.logToJSON(log, Quantity.from(i), blockHash, blockNumber)
+            toJSON: () =>
+              BlockLogs.logToJSON(log, Quantity.from(i), blockHash, blockNumber)
           };
         }
       }
@@ -135,7 +154,12 @@ export default class BlockLogs {
    * @param blockHash The hash of the block
    * @param blockNumber The block number
    */
-  protected static logToJSON(log: BlockLog, logIndex: Quantity, blockHash: Data, blockNumber: Quantity) {
+  protected static logToJSON(
+    log: BlockLog,
+    logIndex: Quantity,
+    blockHash: Data,
+    blockNumber: Quantity
+  ) {
     const topics = log[4];
     const data = log[5];
 
@@ -143,10 +167,14 @@ export default class BlockLogs {
       address: Address.from(log[3]),
       blockHash,
       blockNumber,
-      data: Array.isArray(data) ? data.map(d => Data.from(d, d.length)) : Data.from(data, data.length),
+      data: Array.isArray(data)
+        ? data.map(d => Data.from(d, d.length))
+        : Data.from(data, data.length),
       logIndex, // this is the index in the *block*
       removed: log[0].equals(utils.BUFFER_ZERO) ? false : true,
-      topics: Array.isArray(topics) ? topics.map(t => Data.from(t, 32)) : Data.from(topics, 32),
+      topics: Array.isArray(topics)
+        ? topics.map(t => Data.from(t, 32))
+        : Data.from(topics, 32),
       transactionHash: Data.from(log[2], 32),
       transactionIndex: Quantity.from(log[1])
     };
@@ -171,11 +199,13 @@ export default class BlockLogs {
     if (expectedAddresses.length !== 0) {
       if (expectedTopics.length === 0) {
         for (const log of logs) {
-          if (expectedAddresses.some(address => address.equals(log.address))) yield log.toJSON();
+          if (expectedAddresses.some(address => address.equals(log.address)))
+            yield log.toJSON();
         }
       } else {
         for (const log of logs) {
-          if (!expectedAddresses.some(address => address.equals(log.address))) continue;
+          if (!expectedAddresses.some(address => address.equals(log.address)))
+            continue;
           if (filterByTopic(expectedTopics, log.topics)) yield log.toJSON();
         }
       }

@@ -1,7 +1,9 @@
 const cheerio = require("cheerio");
 const { readFileSync, writeFileSync } = require("fs");
 const { randomBytes } = require("crypto");
-const $ = cheerio.load(readFileSync("./lib/docs/classes/_api_.ethereumapi.html"));
+const $ = cheerio.load(
+  readFileSync("./lib/docs/classes/_api_.ethereumapi.html")
+);
 
 $(`.tsd-page-title`).after(`<script src="https://embed.runkit.com"></script>`);
 

@@ -17,7 +17,10 @@ export default class AccountManager {
     this.#trie = trie;
   }
 
-  public async getRaw(address: Address, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Buffer> {
+  public async getRaw(
+    address: Address,
+    blockNumber: Buffer | Tag = Tag.LATEST
+  ): Promise<Buffer> {
     const blockchain = this.#blockchain;
     const block = await blockchain.blocks.get(blockNumber);
     const trieCopy = new Trie(this.#trie, block.value.header.stateRoot);
@@ -29,7 +32,10 @@ export default class AccountManager {
     });
   }
 
-  public async getNonce(address: Address, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Quantity> {
+  public async getNonce(
+    address: Address,
+    blockNumber: Buffer | Tag = Tag.LATEST
+  ): Promise<Quantity> {
     return this.getRaw(address, blockNumber).then(data => {
       if (data) {
         const [nonce] = (rlp.decode(data) as any) as Buffer[];
@@ -40,7 +46,10 @@ export default class AccountManager {
     });
   }
 
-  public async getBalance(address: Address, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Quantity> {
+  public async getBalance(
+    address: Address,
+    blockNumber: Buffer | Tag = Tag.LATEST
+  ): Promise<Quantity> {
     return this.getRaw(address, blockNumber).then(data => {
       if (data) {
         const [, balance] = (rlp.decode(data) as any) as Buffer[];
@@ -51,7 +60,10 @@ export default class AccountManager {
     });
   }
 
-  public async get(address: Address, blockNumber: Buffer | Tag = Tag.LATEST): Promise<Account> {
+  public async get(
+    address: Address,
+    blockNumber: Buffer | Tag = Tag.LATEST
+  ): Promise<Account> {
     return this.getRaw(address, blockNumber).then(data => {
       return Account.fromBuffer(data);
     });

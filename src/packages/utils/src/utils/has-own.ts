@@ -12,6 +12,6 @@
 export const hasOwn: <X extends unknown, Y extends string | number | symbol>(
   obj: X,
   prop: Y
-) => obj is X extends Record<Y, infer I> ? X & Required<Record<Y, I>> : never = {}.hasOwnProperty.call.bind(
-  {}.hasOwnProperty
-) as any;
+) => obj is X extends Record<Y, infer I>
+  ? X & Required<Record<Y, I>>
+  : never = {}.hasOwnProperty.call.bind({}.hasOwnProperty) as any;

@@ -14,7 +14,9 @@ describe("api", () => {
 
     describe("miner_stop/eth_mining/miner_start", () => {
       async function testStopStartMining(provider) {
-        const initialBlockNumber = parseInt(await provider.send("eth_blockNumber"));
+        const initialBlockNumber = parseInt(
+          await provider.send("eth_blockNumber")
+        );
         const [account] = await provider.send("eth_accounts");
 
         // stop the miner
@@ -27,14 +29,21 @@ describe("api", () => {
 
         // send a transaction, and make sure it does *not* get mined
         await provider.send("eth_subscribe", ["newHeads"]);
-        const txHash = await provider.send("eth_sendTransaction", [{ from: account, to: account, value: 1 }]);
-        const fail = () => assert.fail("No message should have been received while mining was stopped");
+        const txHash = await provider.send("eth_sendTransaction", [
+          { from: account, to: account, value: 1 }
+        ]);
+        const fail = () =>
+          assert.fail(
+            "No message should have been received while mining was stopped"
+          );
         provider.on("message", fail);
         await new Promise(resolve => setTimeout(resolve, 2000));
         provider.off("message", fail);
 
         // let's relaly make sure it wasn't mined by checking for a receipt
-        let receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
+        let receipt = await provider.send("eth_getTransactionReceipt", [
+          txHash
+        ]);
         assert.strictEqual(receipt, null);
 
         // now start the miner back up
@@ -51,7 +60,10 @@ describe("api", () => {
         receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
 
         // make sure we're on the next block!
-        assert.strictEqual(parseInt(receipt.blockNumber), initialBlockNumber + 1);
+        assert.strictEqual(
+          parseInt(receipt.blockNumber),
+          initialBlockNumber + 1
+        );
       }
 
       it("should stop mining, then mine when started", async () => {
@@ -67,18 +79,27 @@ describe("api", () => {
 
     describe("miner_setEtherbase", () => {
       it("sets the etherbase", async () => {
-        const setState = await provider.send("miner_setEtherbase", [accounts[1]]);
+        const setState = await provider.send("miner_setEtherbase", [
+          accounts[1]
+        ]);
         assert.strictEqual(setState, true);
 
         const coinbase = await provider.send("eth_coinbase");
         assert.strictEqual(coinbase, accounts[1]);
 
         await provider.send("eth_subscribe", ["newHeads"]);
-        const txHash = await provider.send("eth_sendTransaction", [{ from: accounts[0], to: accounts[0] }]);
+        const txHash = await provider.send("eth_sendTransaction", [
+          { from: accounts[0], to: accounts[0] }
+        ]);
         await provider.once("message");
-        const { status, blockNumber } = await provider.send("eth_getTransactionReceipt", [txHash]);
+        const {
+          status,
+          blockNumber
+        } = await provider.send("eth_getTransactionReceipt", [txHash]);
         assert.strictEqual(status, 1);
-        const { miner } = await provider.send("eth_getBlockByNumber", [blockNumber]);
+        const { miner } = await provider.send("eth_getBlockByNumber", [
+          blockNumber
+        ]);
         assert.strictEqual(miner, accounts[1]);
       });
     });
@@ -86,17 +107,23 @@ describe("api", () => {
     describe("miner_setGasPrice", () => {
       it("sets the gasPrice and uses it as the default price in tranactions", async () => {
         const newGasPrice = "0xffff";
-        const setState = await provider.send("miner_setGasPrice", [newGasPrice]);
+        const setState = await provider.send("miner_setGasPrice", [
+          newGasPrice
+        ]);
         assert.strictEqual(setState, true);
 
         const ethGasPrice = await provider.send("eth_gasPrice");
         assert.strictEqual(ethGasPrice, newGasPrice);
 
         await provider.send("eth_subscribe", ["newHeads"]);
-        const txHash = await provider.send("eth_sendTransaction", [{ from: accounts[0], to: accounts[0] }]);
+        const txHash = await provider.send("eth_sendTransaction", [
+          { from: accounts[0], to: accounts[0] }
+        ]);
         await provider.once("message");
 
-        const { gasPrice } = await provider.send("eth_getTransactionByHash", [txHash]);
+        const { gasPrice } = await provider.send("eth_getTransactionByHash", [
+          txHash
+        ]);
         assert.strictEqual(gasPrice, newGasPrice);
       });
     });

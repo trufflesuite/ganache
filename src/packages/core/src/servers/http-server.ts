@@ -1,4 +1,9 @@
-import { TemplatedApp, HttpResponse, HttpRequest, RecognizedString } from "uWebSockets.js";
+import {
+  TemplatedApp,
+  HttpResponse,
+  HttpRequest,
+  RecognizedString
+} from "uWebSockets.js";
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
 import { Connectors } from "@ganache/flavors";
@@ -89,7 +94,12 @@ export default class HttpServer {
 
     // because Easter Eggs are fun...
     app.get("/418", response => {
-      sendResponse(response, HttpResponseCodes.IM_A_TEAPOT, ContentTypes.PLAIN, "418 I'm a teapot");
+      sendResponse(
+        response,
+        HttpResponseCodes.IM_A_TEAPOT,
+        ContentTypes.PLAIN,
+        "418 I'm a teapot"
+      );
     });
 
     // fallback routes...
@@ -98,10 +108,20 @@ export default class HttpServer {
       if (connectionHeader && connectionHeader.toLowerCase() === "upgrade") {
         // if we got here it means the websocket server wasn't enabled but
         // a client tried to connect via websocket. This is a Bad Request.
-        sendResponse(response, HttpResponseCodes.BAD_REQUEST, ContentTypes.PLAIN, "400 Bad Request");
+        sendResponse(
+          response,
+          HttpResponseCodes.BAD_REQUEST,
+          ContentTypes.PLAIN,
+          "400 Bad Request"
+        );
       } else {
         // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
-        sendResponse(response, HttpResponseCodes.NOT_FOUND, ContentTypes.PLAIN, "404 Not Found");
+        sendResponse(
+          response,
+          HttpResponseCodes.NOT_FOUND,
+          ContentTypes.PLAIN,
+          "404 Not Found"
+        );
       }
     });
   }
@@ -145,7 +165,13 @@ export default class HttpServer {
               return;
             }
             const data = connector.format(result, payload);
-            sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
+            sendResponse(
+              response,
+              HttpResponseCodes.OK,
+              ContentTypes.JSON,
+              data,
+              writeHeaders
+            );
           })
           .catch(error => {
             if (aborted) {
@@ -154,7 +180,13 @@ export default class HttpServer {
               return;
             }
             const data = connector.formatError(error, payload);
-            sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
+            sendResponse(
+              response,
+              HttpResponseCodes.OK,
+              ContentTypes.JSON,
+              data,
+              writeHeaders
+            );
           });
       } else {
         if (buffer) {
@@ -170,7 +202,13 @@ export default class HttpServer {
     // handle CORS preflight requests...
     const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
     // OPTIONS responses don't have a body, so respond with `204 No Content`...
-    sendResponse(response, HttpResponseCodes.NO_CONTENT, void 0, "", writeHeaders);
+    sendResponse(
+      response,
+      HttpResponseCodes.NO_CONTENT,
+      void 0,
+      "",
+      writeHeaders
+    );
   };
   public close() {
     // currently a no op.

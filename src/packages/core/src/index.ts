@@ -4,5 +4,6 @@ import Server from "./server";
 
 export default {
   server: (options?: ServerOptions) => new Server(options),
-  provider: (options?: ProviderOptions) => Connector.initialize(options).provider
+  provider: (options?: ProviderOptions) =>
+    Connector.initialize(options).provider
 };

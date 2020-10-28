@@ -40,12 +40,19 @@ declare module "ethereumjs-block/header" {
     public mixHash!: Buffer;
     public nonce!: Buffer;
 
-    constructor(data: Buffer | PrefixedHexString | BufferLike[] | BlockHeaderData = {}, opts: ChainOptions = {});
+    constructor(
+      data: Buffer | PrefixedHexString | BufferLike[] | BlockHeaderData = {},
+      opts: ChainOptions = {}
+    );
     serialize(): Buffer;
     canonicalDifficulty(block: Block): BN;
     validateDifficulty(block: Block): boolean;
     validateGasLimit(block: Block): boolean;
-    validate(blockChain: Blockchain, height: BN | Callback<never>, cb?: Callback<never>): void;
+    validate(
+      blockChain: Blockchain,
+      height: BN | Callback<never>,
+      cb?: Callback<never>
+    ): void;
     hash(): Buffer;
     isGenesis(): boolean;
     toJSON(labeled: boolean): object;

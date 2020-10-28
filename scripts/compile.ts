@@ -35,7 +35,12 @@ function serializeToAst(v: any): ts.Expression {
       }
       const keys = Object.keys(v);
       return ts.createObjectLiteral(
-        keys.map(k => ts.createPropertyAssignment(ts.createStringLiteral(k), serializeToAst(v[k])))
+        keys.map(k =>
+          ts.createPropertyAssignment(
+            ts.createStringLiteral(k),
+            serializeToAst(v[k])
+          )
+        )
       );
     default:
       throw new Error(`Can't serializeToAst ${typeof v}`);
@@ -60,7 +65,13 @@ function serializeToTypeAst(v: any): ts.TypeNode {
       const keys = Object.keys(v);
       return ts.createTypeLiteralNode(
         keys.map(k =>
-          ts.createPropertySignature(void 0, ts.createStringLiteral(k), void 0, serializeToTypeAst(v[k]), void 0)
+          ts.createPropertySignature(
+            void 0,
+            ts.createStringLiteral(k),
+            void 0,
+            serializeToTypeAst(v[k]),
+            void 0
+          )
         )
       );
     default:
@@ -68,15 +79,28 @@ function serializeToTypeAst(v: any): ts.TypeNode {
   }
 }
 
-function resolveJsonImportFromNode(node: ts.ImportDeclaration, sf: SourceFile): string {
+function resolveJsonImportFromNode(
+  node: ts.ImportDeclaration,
+  sf: SourceFile
+): string {
   const jsonPath = trimQuote(node.moduleSpecifier.getText());
-  return jsonPath && resolveJsonImport(resolve(dirname(sf.getFilePath()), jsonPath));
+  return (
+    jsonPath && resolveJsonImport(resolve(dirname(sf.getFilePath()), jsonPath))
+  );
 }
 
 const parseConfigHost: ts.ParseConfigHost = ts.sys;
-const configFileName = ts.findConfigFile("./", ts.sys.fileExists, "tsconfig.json") as string;
+const configFileName = ts.findConfigFile(
+  "./",
+  ts.sys.fileExists,
+  "tsconfig.json"
+) as string;
 const configFile = ts.readConfigFile(configFileName, ts.sys.readFile);
-const compilerOptions = ts.parseJsonConfigFileContent(configFile.config, parseConfigHost, "./");
+const compilerOptions = ts.parseJsonConfigFileContent(
+  configFile.config,
+  parseConfigHost,
+  "./"
+);
 const project = new Project({
   compilerOptions: compilerOptions.options
 });
@@ -86,17 +110,30 @@ sources.forEach(sourceFile => {
   sourceFile.transform(traversal => {
     const node = traversal.visitChildren();
     let jsonPath: string;
-    if (ts.isImportDeclaration(node) && (jsonPath = resolveJsonImportFromNode(node, sourceFile)) && node.importClause) {
+    if (
+      ts.isImportDeclaration(node) &&
+      (jsonPath = resolveJsonImportFromNode(node, sourceFile)) &&
+      node.importClause
+    ) {
       const namedBindings = node.importClause.namedBindings;
       if (namedBindings && "elements" in namedBindings) {
         const jsonFile = require(jsonPath);
         const json = namedBindings.elements.map(element => {
           const name = element.name.text;
-          const propertyName = element.propertyName ? element.propertyName.text : name;
+          const propertyName = element.propertyName
+            ? element.propertyName.text
+            : name;
           const value = jsonFile[propertyName];
-          return ts.createVariableDeclaration(name, serializeToTypeAst(value), serializeToAst(value));
+          return ts.createVariableDeclaration(
+            name,
+            serializeToTypeAst(value),
+            serializeToAst(value)
+          );
         });
-        return ts.createVariableStatement([], ts.createVariableDeclarationList(json, NodeFlags.Const));
+        return ts.createVariableStatement(
+          [],
+          ts.createVariableDeclarationList(json, NodeFlags.Const)
+        );
       }
     }
 

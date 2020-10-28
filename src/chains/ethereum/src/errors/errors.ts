@@ -31,4 +31,5 @@ export const VM_EXCEPTION = "VM Exception while processing transaction: ";
 /**
  * Prefix for multiple VM Exceptions occuring when running transactions or a block
  */
-export const VM_EXCEPTIONS = "Multiple VM Exceptions while processing transactions: : \n\n";
+export const VM_EXCEPTIONS =
+  "Multiple VM Exceptions while processing transactions: : \n\n";

@@ -17,7 +17,9 @@ describe("api", () => {
             value: 1
           }
         ]);
-        const receipt = await provider.send("eth_getTransactionReceipt", [hash]);
+        const receipt = await provider.send("eth_getTransactionReceipt", [
+          hash
+        ]);
         assert.strictEqual(receipt, null);
       });
 
@@ -34,7 +36,9 @@ describe("api", () => {
             value: 1
           }
         ]);
-        const receipt = await provider.send("eth_getTransactionReceipt", [hash]);
+        const receipt = await provider.send("eth_getTransactionReceipt", [
+          hash
+        ]);
         assert.notStrictEqual(receipt, null);
       });
 
@@ -59,7 +63,11 @@ describe("api", () => {
               ]
             },
             (e, r) => {
-              assert(e.message.includes("sender doesn't have enough funds to send tx"));
+              assert(
+                e.message.includes(
+                  "sender doesn't have enough funds to send tx"
+                )
+              );
               assert.strictEqual(e.message, (r as any).error.message);
               assert.strictEqual((r as any).error.code, -32000);
               assert.strictEqual(typeof (r as any).error.data.result, "string");

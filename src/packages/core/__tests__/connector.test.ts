@@ -12,13 +12,18 @@ describe("connector", () => {
     const p = Ganache.provider({ logging: { logger, verbose: true } });
 
     logger.log = msg => {
-      assert.strictEqual(msg, "   >  net_version: undefined", "doesn't work when no params");
+      assert.strictEqual(
+        msg,
+        "   >  net_version: undefined",
+        "doesn't work when no params"
+      );
     };
     await p.send("net_version");
 
     return new Promise(async resolve => {
       logger.log = msg => {
-        const expected = "   >  web3_sha3: [\n" + '   >   "Tim is a swell guy."\n' + "   > ]";
+        const expected =
+          "   >  web3_sha3: [\n" + '   >   "Tim is a swell guy."\n' + "   > ]";
         assert.strictEqual(msg, expected, "doesn't work with params");
         resolve();
       };

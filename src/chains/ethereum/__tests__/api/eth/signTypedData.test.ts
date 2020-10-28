@@ -62,7 +62,10 @@ describe("api", () => {
           }
         };
 
-        const result = await provider.send("eth_signTypedData", [accounts[0], typedData]);
+        const result = await provider.send("eth_signTypedData", [
+          accounts[0],
+          typedData
+        ]);
         assert.strictEqual(
           result,
           "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
@@ -102,7 +105,10 @@ describe("api", () => {
           message: {
             from: {
               name: "Cow",
-              wallets: ["0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826", "0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF"]
+              wallets: [
+                "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+                "0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF"
+              ]
             },
             to: [
               {
@@ -118,7 +124,10 @@ describe("api", () => {
           }
         };
 
-        const result = await provider.send("eth_signTypedData", [accounts[0], typedData]);
+        const result = await provider.send("eth_signTypedData", [
+          accounts[0],
+          typedData
+        ]);
         assert.strictEqual(
           result,
           "0x65cbd956f2fae28a601bebc9b906cea0191744bd4c4247bcd27cd08f8eb6b71c78efdf7a31dc9abee78f492292721f362d296cf86b4538e07b51303b67f749061b"

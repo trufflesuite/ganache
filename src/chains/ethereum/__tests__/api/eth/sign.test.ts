@@ -1,5 +1,10 @@
 import assert from "assert";
-import { ecrecover, pubToAddress, fromSigned, hashPersonalMessage } from "ethereumjs-util";
+import {
+  ecrecover,
+  pubToAddress,
+  fromSigned,
+  hashPersonalMessage
+} from "ethereumjs-util";
 import getProvider from "../../helpers/getProvider";
 import { Data } from "@ganache/utils";
 
@@ -15,7 +20,8 @@ describe("api", () => {
         // '0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627'. (See Issue #190)
         const acc = {
           balance: "0x0",
-          secretKey: "0xe6d66f02cd45a13982b99a5abf3deab1f67cf7be9fee62f0a072cb70896342e4"
+          secretKey:
+            "0xe6d66f02cd45a13982b99a5abf3deab1f67cf7be9fee62f0a072cb70896342e4"
         };
         provider = await getProvider({
           wallet: {
@@ -30,7 +36,10 @@ describe("api", () => {
         const msgHash = hashPersonalMessage(msg);
 
         const address = accounts[0];
-        let sgn = await provider.send("eth_sign", [address, Data.from(msg).toString()]);
+        let sgn = await provider.send("eth_sign", [
+          address,
+          Data.from(msg).toString()
+        ]);
         sgn = sgn.slice(2);
 
         const r = Buffer.from(sgn.slice(0, 64), "hex");
@@ -45,7 +54,8 @@ describe("api", () => {
       it("should work if ecsign produces 'r' or 's' components that start with 0", async () => {
         // This message produces a zero prefixed 'r' component when signed by
         // ecsign w/ the account set in this test's 'before' block.
-        const msgHex = "0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627";
+        const msgHex =
+          "0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627";
         const edgeCaseMsg = Data.from(msgHex).toBuffer();
         const msgHash = hashPersonalMessage(edgeCaseMsg);
 

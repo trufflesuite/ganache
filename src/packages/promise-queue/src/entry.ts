@@ -8,7 +8,11 @@ export default class Entry<T> {
   public resolved = false;
   public onSetteled: (queue: Entry<T>[], entry: Entry<T>) => void;
 
-  constructor(promise: Promise<T>, queue: Entry<T>[], onSetteled: (queue: Entry<T>[], entry: Entry<T>) => void) {
+  constructor(
+    promise: Promise<T>,
+    queue: Entry<T>[],
+    onSetteled: (queue: Entry<T>[], entry: Entry<T>) => void
+  ) {
     this.value = promise;
     this.queue = queue;
     this.onSetteled = onSetteled;

@@ -10,21 +10,39 @@ import {
 } from "./getters";
 
 //#region options not part of exclusive groups
-type UnconstrainedOptions<C extends Base.Config> = Omit<Options<C>, ExclusiveGroupOptionName<C>>;
-type UnconstrainedOptionName<C extends Base.Config> = string & keyof UnconstrainedOptions<C>;
-type UnconstrainedOptionsByType<C extends Base.Config, T extends "type" | "rawType"> = {
-  [N in UnconstrainedOptionName<C>]: T extends "type" ? OptionType<C, N> : OptionRawType<C, N>;
+type UnconstrainedOptions<C extends Base.Config> = Omit<
+  Options<C>,
+  ExclusiveGroupOptionName<C>
+>;
+type UnconstrainedOptionName<C extends Base.Config> = string &
+  keyof UnconstrainedOptions<C>;
+type UnconstrainedOptionsByType<
+  C extends Base.Config,
+  T extends "type" | "rawType"
+> = {
+  [N in UnconstrainedOptionName<C>]: T extends "type"
+    ? OptionType<C, N>
+    : OptionRawType<C, N>;
 };
 //#endregion options not part of exclusive groups
 
 //#region exclusive group options helpers
-type ExclusiveGroupOptionPairs<C extends Base.Config, G extends unknown[]> = G extends []
+type ExclusiveGroupOptionPairs<
+  C extends Base.Config,
+  G extends unknown[]
+> = G extends []
   ? []
   : G extends [infer N, ...infer R]
-  ? [[N, ExclusiveGroupOptionNameOption<C, N>], ...ExclusiveGroupOptionPairs<C, R>]
+  ? [
+      [N, ExclusiveGroupOptionNameOption<C, N>],
+      ...ExclusiveGroupOptionPairs<C, R>
+    ]
   : never;
 
-type ExclusiveGroupOptionNameOption<C extends Base.Config, N> = N extends OptionName<C> ? Option<C, N> : never;
+type ExclusiveGroupOptionNameOption<
+  C extends Base.Config,
+  N
+> = N extends OptionName<C> ? Option<C, N> : never;
 type PairsToMapping<T extends unknown[]> = T extends []
   ? {}
   : T extends [[infer N, infer O], ...infer R]
@@ -49,12 +67,22 @@ type ExclusiveGroupOptionalUnionByName<
     : never;
 };
 
-type Combine<C extends Base.Config, O extends unknown, GRP extends ExclusiveGroup<C>, T extends "rawType" | "type"> = {
+type Combine<
+  C extends Base.Config,
+  O extends unknown,
+  GRP extends ExclusiveGroup<C>,
+  T extends "rawType" | "type"
+> = {
   [N in keyof GRP]: GRP[N] extends OptionName<C>
     ? {
         [Key in keyof (ExclusiveGroupOptionalUnionByName<C, GRP, GRP[N], T> &
           UnconstrainedOptionsByType<C, T> &
-          O)]: Key extends keyof ExclusiveGroupOptionalUnionByName<C, GRP, GRP[N], T>
+          O)]: Key extends keyof ExclusiveGroupOptionalUnionByName<
+          C,
+          GRP,
+          GRP[N],
+          T
+        >
           ? ExclusiveGroupOptionalUnionByName<C, GRP, GRP[N], T>[Key]
           : Key extends keyof UnconstrainedOptionsByType<C, T>
           ? UnconstrainedOptionsByType<C, T>[Key]
@@ -78,7 +106,12 @@ export type ExclusiveGroupUnionAndUnconstrainedPlus<
     ? Rest extends any[]
       ? O extends []
         ? // first time through
-          ExclusiveGroupUnionAndUnconstrainedPlus<C, T, Rest, UnionToTuple<Combine<C, {}, GRP, T>>>
+          ExclusiveGroupUnionAndUnconstrainedPlus<
+            C,
+            T,
+            Rest,
+            UnionToTuple<Combine<C, {}, GRP, T>>
+          >
         : // recurse
           ExclusiveGroupUnionAndUnconstrainedPlus<
             C,
@@ -103,31 +136,49 @@ export type ExclusiveGroupUnionAndUnconstrainedPlus<
     // directly
     true extends IsNeverType<I>
     ? {
-        [Key in keyof UnconstrainedOptionsByType<C, T>]: UnconstrainedOptionsByType<C, T>[Key];
+        [Key in keyof UnconstrainedOptionsByType<
+          C,
+          T
+        >]: UnconstrainedOptionsByType<C, T>[Key];
       }
     : I
   : never;
 
 //#region UnionToTuple
-type TuplePrepend<Tuple extends readonly unknown[], NewElement> = [NewElement, ...Tuple];
+type TuplePrepend<Tuple extends readonly unknown[], NewElement> = [
+  NewElement,
+  ...Tuple
+];
 
 type Consumer<Value> = (value: Value) => void;
 
-type IntersectionFromUnion<Union> = (Union extends unknown ? Consumer<Union> : never) extends Consumer<
-  infer ResultIntersection
->
+type IntersectionFromUnion<Union> = (
+  Union extends unknown ? Consumer<Union> : never
+) extends Consumer<infer ResultIntersection>
   ? ResultIntersection
   : never;
 
-type OverloadedConsumerFromUnion<Union> = IntersectionFromUnion<Union extends unknown ? Consumer<Union> : never>;
+type OverloadedConsumerFromUnion<Union> = IntersectionFromUnion<
+  Union extends unknown ? Consumer<Union> : never
+>;
 
-type UnionLast<Union> = OverloadedConsumerFromUnion<Union> extends (a: infer A) => void ? A : never;
+type UnionLast<Union> = OverloadedConsumerFromUnion<Union> extends (
+  a: infer A
+) => void
+  ? A
+  : never;
 
 type UnionExcludingLast<Union> = Exclude<Union, UnionLast<Union>>;
 
-type TupleFromUnionRec<RemainingUnion, CurrentTuple extends readonly unknown[]> = [RemainingUnion] extends [never]
+type TupleFromUnionRec<
+  RemainingUnion,
+  CurrentTuple extends readonly unknown[]
+> = [RemainingUnion] extends [never]
   ? CurrentTuple
-  : TupleFromUnionRec<UnionExcludingLast<RemainingUnion>, TuplePrepend<CurrentTuple, UnionLast<RemainingUnion>>>;
+  : TupleFromUnionRec<
+      UnionExcludingLast<RemainingUnion>,
+      TuplePrepend<CurrentTuple, UnionLast<RemainingUnion>>
+    >;
 
 export type UnionToTuple<Union> = TupleFromUnionRec<Union, []>;
 //#endregion
@@ -135,9 +186,10 @@ export type UnionToTuple<Union> = TupleFromUnionRec<Union, []>;
 //#endregion exclusive group options helpers
 
 //#region exclusive groups
-type ExclusiveGroup<C extends Base.Config, K extends ExclusiveGroupIndex<C> = ExclusiveGroupIndex<C>> = ExclusiveGroups<
-  C
->[K];
+type ExclusiveGroup<
+  C extends Base.Config,
+  K extends ExclusiveGroupIndex<C> = ExclusiveGroupIndex<C>
+> = ExclusiveGroups<C>[K];
 
 type ExclusiveGroupOptionName<
   C extends Base.Config,
@@ -154,7 +206,8 @@ type DeepTupleToUnion<T extends unknown[]> = T extends [] // empty tuple case (b
 //#endregion exclusive groups
 
 //#region options separated by exclusive group
-type ExclusiveGroupOptionsByGroup<C extends Base.Config, G extends ExclusiveGroup<C>> = PairsToMapping<
-  ExclusiveGroupOptionPairs<C, G>
->;
+type ExclusiveGroupOptionsByGroup<
+  C extends Base.Config,
+  G extends ExclusiveGroup<C>
+> = PairsToMapping<ExclusiveGroupOptionPairs<C, G>>;
 //#endregion
