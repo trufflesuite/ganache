@@ -1,14 +1,19 @@
-import {utils} from "@ganache/utils";
-import {ConnectorsByName, DefaultFlavor} from "@ganache/flavors";
-import {Options as ProviderOptions} from "@ganache/flavors";
+import { utils } from "@ganache/utils";
+import { ConnectorsByName, DefaultFlavor } from "@ganache/flavors";
+import { Options as ProviderOptions } from "@ganache/flavors";
 
 /**
  * Loads the connector specified by the given `flavor`
  */
 export default {
-  initialize: (providerOptions: ProviderOptions = {flavor: DefaultFlavor, chain: {asyncRequestProcessing: true}}) => {
+  initialize: (
+    providerOptions: ProviderOptions = {
+      flavor: DefaultFlavor,
+      chain: { asyncRequestProcessing: true }
+    }
+  ) => {
     const flavor = providerOptions.flavor || DefaultFlavor;
-    
+
     // Set up our request coordinator to either use FIFO or or async request processing.
     //   The RequestCoordinator _can_ be used to coordinate the number of requests being processed, but we don't use it
     //   for that (yet), instead of "all" (0) or just 1 as we are doing here:
@@ -17,7 +22,7 @@ export default {
       providerOptions.chain.asyncRequestProcessing = true;
     }
     const requestCoordinator = new utils.RequestCoordinator(providerOptions.chain.asyncRequestProcessing ? 0 : 1);
-    
+
     // The Executor is responsible for actually executing the method on the chain/API.
     // It performs some safety checks to ensure "safe" method execution before passing it
     // to a RequestCoordinator.

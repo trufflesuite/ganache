@@ -2,23 +2,23 @@ import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
 import Miner from "./miner";
 import Database from "./database";
 import Emittery from "emittery";
-import BlockManager, {Block} from "./data-managers/block-manager";
+import BlockManager, { Block } from "./data-managers/block-manager";
 import BlockLogs from "./things/blocklogs";
 import TransactionManager from "./data-managers/transaction-manager";
 import CheckpointTrie from "merkle-patricia-tree";
-import {BN} from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 import Account from "./things/account";
-import {promisify} from "util";
-import {Quantity, Data} from "@ganache/utils";
+import { promisify } from "util";
+import { Quantity, Data } from "@ganache/utils";
 import EthereumJsAccount from "ethereumjs-account";
 import AccountManager from "./data-managers/account-manager";
-import {utils} from "@ganache/utils";
+import { utils } from "@ganache/utils";
 import Transaction from "./things/transaction";
 import Manager from "./data-managers/manager";
 import TransactionReceipt from "./things/transaction-receipt";
-import {encode as rlpEncode} from "rlp";
+import { encode as rlpEncode } from "rlp";
 import Common from "ethereumjs-common";
-import {Block as EthereumBlock} from "ethereumjs-block";
+import { Block as EthereumBlock } from "ethereumjs-block";
 import VM from "ethereumjs-vm";
 import Address from "./things/address";
 import BlockLogManager from "./data-managers/blocklog-manager";
@@ -31,51 +31,55 @@ type SimulationTransaction = {
   /**
    * The address the transaction is sent from.
    */
-  from: Address,
+  from: Address;
   /**
    * The address the transaction is directed to.
    */
-  to?: Address,
+  to?: Address;
   /**
    * Integer of the gas provided for the transaction execution. eth_call consumes zero gas, but this parameter may be needed by some executions.
    */
-  gas: Quantity,
+  gas: Quantity;
   /**
    * Integer of the gasPrice used for each paid gas
    */
-  gasPrice: Quantity,
+  gasPrice: Quantity;
   /**
    * Integer of the value sent with this transaction
    */
-  value?: Quantity,
+  value?: Quantity;
   /**
    * Hash of the method signature and encoded parameters. For details see Ethereum Contract ABI in the Solidity documentation
    */
-  data?: Data,
-  block: Block
-}
+  data?: Data;
+  block: Block;
+};
 
 const unref = utils.unref;
 
 export enum Status {
   // Flags
-  started = 1,		// 0000 0001
-  starting = 2,		// 0000 0010
-  stopped = 4,		// 0000 0100
-  stopping = 8,		// 0000 1000
-  paused = 16			// 0001 0000
+  started = 1, // 0000 0001
+  starting = 2, // 0000 0010
+  stopped = 4, // 0000 0100
+  stopping = 8, // 0000 1000
+  paused = 16 // 0001 0000
 }
 
-type BlockchainTypedEvents = {block: Block, blockLogs: BlockLogs, pendingTransaction: Transaction};
+type BlockchainTypedEvents = {
+  block: Block;
+  blockLogs: BlockLogs;
+  pendingTransaction: Transaction;
+};
 type BlockchainEvents = "start" | "stop" | "step";
 
 /**
  * Sets the provided VM state manager's state root *without* first
  * checking for checkpoints or flushing the existing cache.
- * 
+ *
  * Useful if you know the state manager is not in a checkpoint and its internal
  * cache is safe to discard.
- * 
+ *
  * @param stateManager
  * @param stateRoot
  */
@@ -88,7 +92,7 @@ function setStateRootSync(stateManager: VM["stateManager"], stateRoot: Buffer) {
 export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, BlockchainEvents> {
   #state: Status = Status.starting;
   #miner: Miner;
-  #blockBeingSavedPromise: Promise<{block: Block, blockLogs: BlockLogs}>;
+  #blockBeingSavedPromise: Promise<{ block: Block; blockLogs: BlockLogs }>;
   public blocks: BlockManager;
   public blockLogs: BlockLogManager;
   public transactions: TransactionManager;
@@ -115,12 +119,15 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     this.#options = options;
     this.#common = common;
 
-    const instamine = this.#instamine = !options.miner.blockTime || options.miner.blockTime <= 0;
+    const instamine = (this.#instamine = !options.miner.blockTime || options.miner.blockTime <= 0);
     const legacyInstamine = options.miner.legacyInstamine;
 
-    { // warnings
+    {
+      // warnings
       if (legacyInstamine) {
-        console.info("Legacy instamining, where transactions are fully mined before the hash is returned, is deprecated and will be removed in the future.");
+        console.info(
+          "Legacy instamining, where transactions are fully mined before the hash is returned, is deprecated and will be removed in the future."
+        );
       }
 
       if (instamine === false) {
@@ -129,30 +136,32 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         }
 
         if (options.chain.vmErrorsOnRPCResponse) {
-          console.info("Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero");
+          console.info(
+            "Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero"
+          );
         }
       }
     }
 
     const database = (this.#database = new Database(options.database, this));
     database.once("ready").then(async () => {
-      const blocks = this.blocks = await BlockManager.initialize(common, database.blockIndexes, database.blocks);
+      const blocks = (this.blocks = await BlockManager.initialize(common, database.blockIndexes, database.blocks));
 
       // if we have a latest block, use it to set up the trie.
       const latest = blocks.latest;
       if (latest) {
-        this.#blockBeingSavedPromise = Promise.resolve({block: latest, blockLogs: null});
+        this.#blockBeingSavedPromise = Promise.resolve({
+          block: latest,
+          blockLogs: null
+        });
         this.trie = new CheckpointTrie(database.trie, latest.value.header.stateRoot);
       } else {
         this.trie = new CheckpointTrie(database.trie, null);
       }
-      
+
       this.blockLogs = new BlockLogManager(database.blockLogs);
       this.transactions = new TransactionManager(options.miner, common, this, database.transactions);
-      this.transactionReceipts = new Manager(
-        database.transactionReceipts,
-        TransactionReceipt
-      );
+      this.transactionReceipts = new Manager(database.transactionReceipts, TransactionReceipt);
       this.accounts = new AccountManager(this, database.trie);
 
       this.coinbase = coinbaseAddress;
@@ -163,7 +172,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
       await this.#commitAccounts(initialAccounts);
 
-      { // create first block
+      {
+        // create first block
         let firstBlockTime: number;
         if (options.chain.time != null) {
           const t = +options.chain.time;
@@ -176,27 +186,31 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         // if we don't already have a latest block, create a genesis block!
         if (!latest) {
           this.#blockBeingSavedPromise = this.#initializeGenesisBlock(firstBlockTime, options.miner.blockGasLimit);
-          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(({block}) => block);
+          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(({ block }) => block);
         }
       }
 
-      { // configure and start miner
+      {
+        // configure and start miner
         const logger = options.logging.logger;
 
-        const miner = this.#miner = new Miner(
+        const miner = (this.#miner = new Miner(
           options.miner,
           this.transactions.transactionPool.executables,
           instamine,
           this.vm,
           this.#readyNextBlock
-        );
+        ));
 
-        { // automatic mining
-          const mineAll = async (maxTransactions: number) => this.#isPaused() ? null : this.mine(maxTransactions);
-          if (instamine) { // insta mining
+        {
+          // automatic mining
+          const mineAll = async (maxTransactions: number) => (this.#isPaused() ? null : this.mine(maxTransactions));
+          if (instamine) {
+            // insta mining
             // whenever the transaction pool is drained mine the txs into blocks
             this.transactions.transactionPool.on("drain", mineAll.bind(null, 1));
-          } else { // interval mining
+          } else {
+            // interval mining
             const wait = () => unref(setTimeout(mineNext, options.miner.blockTime * 1000));
             const mineNext = () => mineAll(-1).then(wait);
             wait();
@@ -242,11 +256,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
               this.transactionReceipts.set(hash, encodedReceipt);
 
               tx.getLogs().forEach(log => {
-                blockLogs.append(
-                  index,
-                  hash,
-                  log
-                );
+                blockLogs.append(index, hash, log);
               });
 
               logger.log("");
@@ -276,16 +286,16 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
             this.blockLogs.set(blockNumber, blockLogs.serialize());
             value.transactions = blockData.blockTransactions;
             blocks.putBlock(block);
-            return {block, blockLogs};
+            return { block, blockLogs };
           });
 
           // emit the block once everything has been fully saved to the database
-          return this.#blockBeingSavedPromise.then(({block, blockLogs}) => {
+          return this.#blockBeingSavedPromise.then(({ block, blockLogs }) => {
             block.value.transactions.forEach(transaction => {
-              const error = options.chain.vmErrorsOnRPCResponse ? transaction.execException : null
+              const error = options.chain.vmErrorsOnRPCResponse ? transaction.execException : null;
               transaction.finalize("confirmed", error);
             });
-            
+
             if (instamine && options.miner.legacyInstamine) {
               // in legacy instamine mode we must delay the broadcast of new blocks
               process.nextTick(() => {
@@ -315,24 +325,24 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     return this.blocks.createBlock({
       number: Quantity.from(previousNumber + 1n).toBuffer(),
       gasLimit: this.#options.miner.blockGasLimit.toBuffer(),
-      timestamp: timestamp == null ? this.#currentTime(): timestamp,
+      timestamp: timestamp == null ? this.#currentTime() : timestamp,
       parentHash: previousHeader.hash()
     }).value;
-  }
+  };
 
   isStarted = () => {
     return this.#state === Status.started;
-  }
+  };
 
   mine = async (maxTransactions: number, timestamp?: number, onlyOneBlock: boolean = false) => {
     await this.#blockBeingSavedPromise;
     const nextBlock = this.#readyNextBlock(this.blocks.latest.value, timestamp);
     return this.#miner.mine(nextBlock, maxTransactions, onlyOneBlock);
-  }
+  };
 
   #isPaused = () => {
     return (this.#state & Status.paused) !== 0;
-  }
+  };
 
   pause() {
     this.#state |= Status.paused;
@@ -357,7 +367,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
     const getBlock = class T {
-      static async [promisify.custom] (number: BN) {
+      static async [promisify.custom](number: BN) {
         const block = await blocks.get(number.toBuffer()).catch(_ => null);
         return block ? block.value : null;
       }
@@ -403,7 +413,10 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     });
 
     // store the genesis block in the database
-    return this.blocks.putBlock(genesis).then(block => ({block, blockLogs: BlockLogs.create(block.value.hash())}));
+    return this.blocks.putBlock(genesis).then(block => ({
+      block,
+      blockLogs: BlockLogs.create(block.value.hash())
+    }));
   };
 
   #timeAdjustment: number = 0;
@@ -423,21 +436,21 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     if (seconds < 0) {
       seconds = 0;
     }
-    return this.#timeAdjustment += seconds;
+    return (this.#timeAdjustment += seconds);
   }
-  
+
   /**
    * @param seconds
    * @returns the total time offset *in milliseconds*
    */
   public setTime(timestamp: number) {
-    return this.#timeAdjustment = timestamp - Date.now();
+    return (this.#timeAdjustment = timestamp - Date.now());
   }
 
   #deleteBlockData = (blocksToDelete: Block[]) => {
     return this.#database.batch(() => {
-      const {blocks, transactions, transactionReceipts, blockLogs} = this;
-      blocksToDelete.forEach(({value}) => {
+      const { blocks, transactions, transactionReceipts, blockLogs } = this;
+      blocksToDelete.forEach(({ value }) => {
         value.transactions.forEach(tx => {
           const txHash = tx.hash();
           transactions.del(txHash);
@@ -448,8 +461,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         blockLogs.del(value.header.number);
       });
     });
-  }
-
+  };
 
   // TODO(stability): this.#snapshots is a potential unbound memory suck. Caller
   // could call `evm_snapshot` over and over to grow the snapshot stack
@@ -464,7 +476,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
   public snapshot() {
     const snapshots = this.#snapshots;
     const snaps = snapshots.snaps;
-    
+
     // Subscription ids are based on the number of active snapshots. Weird? Yes.
     // But it's the way it's been since the beginning so it just hasn't been
     // changed. Feel free to change it so ids are unique if it bothers you
@@ -476,8 +488,11 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
 
     // start listening to new blocks if this is the first snapshot
     if (id === 1) {
-      snapshots.unsubscribeFromBlocks = this.on("block", (block) => {
-        snapshots.blocks = {current: block.value.hash(), next: snapshots.blocks};
+      snapshots.unsubscribeFromBlocks = this.on("block", block => {
+        snapshots.blocks = {
+          current: block.value.hash(),
+          next: snapshots.blocks
+        };
       });
     }
 
@@ -565,8 +580,6 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     // resume processing transactions
     this.transactions.resume();
 
-
-
     return true;
   }
 
@@ -575,8 +588,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
     // `transaction.hash()`, as the transactionPool may change the transaction
     // (and thus its hash!)
     // It may also throw Errors that must be returned to the caller.
-    const isExecutable = await this.transactions.add(transaction, secretKey) === true;
-    if ( isExecutable ) {
+    const isExecutable = (await this.transactions.add(transaction, secretKey)) === true;
+    if (isExecutable) {
       process.nextTick(this.emit.bind(this), "pendingTransaction", transaction);
     }
 
@@ -585,8 +598,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
       return hash;
     } else {
       if (this.#instamine && this.#options.miner.legacyInstamine) {
-        const {error} = await transaction.once("finalized");
-        if (error) throw error
+        const { error } = await transaction.once("finalized");
+        if (error) throw error;
       }
       return hash;
     }
@@ -617,7 +630,13 @@ export default class Blockchain extends Emittery.Typed<BlockchainTypedEvents, Bl
         block: transaction.block.value
       });
     } else {
-      result = {execResult: {runState: {programCounter: 0}, exceptionError: new VmError(ERROR.OUT_OF_GAS), returnValue: Buffer.allocUnsafe(0)}} as any;
+      result = {
+        execResult: {
+          runState: { programCounter: 0 },
+          exceptionError: new VmError(ERROR.OUT_OF_GAS),
+          returnValue: Buffer.allocUnsafe(0)
+        }
+      } as any;
     }
     if (result.execResult.exceptionError) {
       if (this.#options.chain.vmErrorsOnRPCResponse) {

@@ -14,7 +14,7 @@ export default class TransactionManager extends Manager<Transaction> {
   #queue = new PromiseQueue<boolean>();
   #paused = false;
   #resumer: Promise<void>;
-  #resolver: (value: void ) => void;
+  #resolver: (value: void) => void;
 
   constructor(options: EthereumInternalOptions["miner"], common: Common, blockchain: Blockchain, base: LevelUp) {
     super(base, Transaction, common);
@@ -24,11 +24,11 @@ export default class TransactionManager extends Manager<Transaction> {
 
   /**
    * Adds the transaction to the transaction pool.
-   * 
+   *
    * Returns a promise that is only resolved in the order it was added.
-   * 
-   * @param transaction 
-   * @param secretKey 
+   *
+   * @param transaction
+   * @param secretKey
    * @returns `true` if the `transaction` is immediately executable, `false` if
    * it may be valid in the future. Throws if the transaction is invalid.
    */
@@ -54,9 +54,9 @@ export default class TransactionManager extends Manager<Transaction> {
    * Immediately ignores all transactions that were in the process of being
    * added to the pool. These transactions' `push` promises will be resolved
    * immediately with the value `false` and will _not_ be added to the pool.
-   * 
+   *
    * Also clears all transactions that were already added to the pool.
-   * 
+   *
    * Transactions that are currently in the process of being mined may still be
    * mined.
    */
@@ -90,8 +90,8 @@ export default class TransactionManager extends Manager<Transaction> {
    */
   public resume = () => {
     if (!this.#paused) return;
-    
+
     this.#paused = false;
     this.#resolver();
-  }
+  };
 }

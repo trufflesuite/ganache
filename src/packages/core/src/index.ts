@@ -1,5 +1,5 @@
 import Connector from "./connector";
-import {ProviderOptions, ServerOptions} from "./options";
+import { ProviderOptions, ServerOptions } from "./options";
 import Server from "./server";
 
 export default {

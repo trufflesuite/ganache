@@ -7,7 +7,7 @@ export type DatabaseConfig = {
      */
     readonly db: {
       type: string | object;
-    }
+    };
     /**
      * Specify a path to a directory to save the chain database. If a database
      * already exists, that chain will be initialized instead of creating a new
@@ -15,16 +15,14 @@ export type DatabaseConfig = {
      */
     readonly dbPath: {
       type: string;
-    }
-  },
-  exclusiveGroups: [
-    ["db", "dbPath"]
-  ]
-}
+    };
+  };
+  exclusiveGroups: [["db", "dbPath"]];
+};
 
 export const DatabaseOptions: Definitions<DatabaseConfig> = {
   db: {
-    normalize: rawInput => rawInput,
+    normalize: rawInput => rawInput
   },
   dbPath: {
     normalize: rawInput => rawInput,

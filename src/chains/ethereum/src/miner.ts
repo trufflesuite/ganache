@@ -1,31 +1,28 @@
 import params from "./things/params";
-import {utils} from "@ganache/utils";
+import { utils } from "@ganache/utils";
 import Transaction from "./things/transaction";
-import {Quantity, Data} from "@ganache/utils";
-import {promisify} from "util";
+import { Quantity, Data } from "@ganache/utils";
+import { promisify } from "util";
 import Trie from "merkle-patricia-tree";
 import Emittery from "emittery";
 import Block from "ethereumjs-block";
 import VM from "ethereumjs-vm";
-import {encode as rlpEncode} from "rlp";
+import { encode as rlpEncode } from "rlp";
 import { EthereumInternalOptions } from "./options";
 import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
 import { Executables } from "./types/executables";
 
 type BlockData = {
-  blockTransactions: Transaction[],
-  transactionsTrie: Trie,
-  receiptTrie: Trie,
-  gasUsed: bigint,
-  timestamp: Buffer
-}
+  blockTransactions: Transaction[];
+  transactionsTrie: Trie;
+  receiptTrie: Trie;
+  gasUsed: bigint;
+  timestamp: Buffer;
+};
 
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) => promisify(trie.put.bind(trie))(key, val);
 
-function replaceFromHeap(
-  priced: utils.Heap<Transaction>,
-  source: utils.Heap<Transaction>
-) {
+function replaceFromHeap(priced: utils.Heap<Transaction>, source: utils.Heap<Transaction>) {
   // get the next best for this account, removing from the source Heap:
   const next = source.peek();
   if (next) {
@@ -44,14 +41,14 @@ function byPrice(values: Transaction[], a: number, b: number) {
   return Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 }
 
-export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
+export default class Miner extends Emittery.Typed<{ block: BlockData }, "idle"> {
   #currentlyExecutingPrice = 0n;
   #origins = new Set<string>();
   #pending: boolean;
   #isBusy: boolean = false;
   #paused: boolean = false;
   #resumer: Promise<void>;
-  #resolver: (value: void ) => void;
+  #resolver: (value: void) => void;
   readonly #executables: Executables;
   readonly #options: EthereumInternalOptions["miner"];
   readonly #instamine: boolean;
@@ -61,7 +58,7 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   readonly #revert: () => Promise<any>;
   readonly #createBlock: (previousBlock: Block) => Block;
 
-  public async pause(){
+  public async pause() {
     if (this.#paused) return;
 
     this.#paused = true;
@@ -76,7 +73,7 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
 
   public resume() {
     if (!this.#paused) return;
-    
+
     this.#paused = false;
     this.#resolver();
   }
@@ -84,11 +81,17 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   // create a Heap that sorts by gasPrice
   readonly #priced = new utils.Heap<Transaction>(byPrice);
   /*
-  * @param executables A live Map of pending transactions from the transaction
-  * pool. The miner will update this Map by removing the best transactions
-  * and putting them in new blocks.
-  */
-  constructor(options: EthereumInternalOptions["miner"], executables: Executables, instamine: boolean, vm: VM, createBlock: (previousBlock: Block) => Block) {
+   * @param executables A live Map of pending transactions from the transaction
+   * pool. The miner will update this Map by removing the best transactions
+   * and putting them in new blocks.
+   */
+  constructor(
+    options: EthereumInternalOptions["miner"],
+    executables: Executables,
+    instamine: boolean,
+    vm: VM,
+    createBlock: (previousBlock: Block) => Block
+  ) {
     super();
     const stateManager = vm.stateManager;
 
@@ -109,7 +112,7 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
    * @param maxTransactions: maximum number of transactions per block. If `-1`,
    * unlimited.
    * @param onlyOneBlock: set to `true` if only 1 block should be mined.
-   * 
+   *
    * @returns the transactions mined in the _first_ block
    */
   public async mine(block: Block, maxTransactions: number = -1, onlyOneBlock = false) {
@@ -134,7 +137,7 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   }
 
   #mine = async (block: Block, maxTransactions: number = -1, onlyOneBlock = false) => {
-    const {block: lastBlock, transactions} = await this.#mineTxs(block, maxTransactions, onlyOneBlock);
+    const { block: lastBlock, transactions } = await this.#mineTxs(block, maxTransactions, onlyOneBlock);
 
     // if there are more txs to mine, start mining them without awaiting their
     // result.
@@ -145,10 +148,10 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
       await this.#mine(nextBlock, this.#instamine ? 1 : -1);
     }
     return transactions;
-  }
+  };
 
   #mineTxs = async (block: Block, maxTransactions: number, onlyOneBlock: boolean) => {
-    const {pending, inProgress} = this.#executables;
+    const { pending, inProgress } = this.#executables;
 
     let keepMining = true;
     const priced = this.#priced;
@@ -176,7 +179,7 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
         await this.#commit();
         this.emit("block", blockData);
         this.#reset();
-        return {block, transactions: []};
+        return { block, transactions: [] };
       }
 
       let numTransactions = 0;
@@ -225,10 +228,10 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
             // if the transaction will fit in the block, commit it!
             await this.#commit();
             blockTransactions[numTransactions] = best;
-            
+
             blockGasLeft -= gasUsed;
             blockData.gasUsed += gasUsed;
-            
+
             // calculate receipt and tx tries
             const txKey = rlpEncode(numTransactions);
             promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
@@ -271,7 +274,7 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
               }
               break;
             }
-          
+
             if (keepMining) {
               // remove the newest (`best`) tx from this account's pending queue
               // as we know we can fit another transaction in the block. Stick
@@ -282,7 +285,8 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
               // next bext transaction sorted in our `priced` heap.
               keepMining = priced.removeBest();
             }
-          } else { // didn't fit in the current block
+          } else {
+            // didn't fit in the current block
             await this.#revert();
 
             // unlock the transaction so the transaction pool can reconsider this
@@ -331,32 +335,37 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
           this.#reset();
         }
       }
-    }
-    while (keepMining);
-    
-    return {block, transactions: blockTransactions};
-  }
+    } while (keepMining);
+
+    return { block, transactions: blockTransactions };
+  };
 
   #runTx = async (tx: Transaction, block: Block, origin: string, pending: Map<string, utils.Heap<Transaction>>) => {
     try {
-      return await this.#vm.runTx({tx, block} as any);
+      return await this.#vm.runTx({ tx, block } as any);
     } catch (err) {
       const errorMessage = err.message;
       // We do NOT want to re-run this transaction.
       // Update the `priced` heap with the next best transaction from this
       // account
-      const pendingOrigin = pending.get(origin)
+      const pendingOrigin = pending.get(origin);
       if (pendingOrigin.removeBest()) {
         replaceFromHeap(this.#priced, pendingOrigin);
       } else {
         this.#priced.removeBest();
       }
 
-      const e = {execResult: {runState: {programCounter: 0}, exceptionError: {error: errorMessage}, returnValue: Buffer.allocUnsafe(0)}} as any;
+      const e = {
+        execResult: {
+          runState: { programCounter: 0 },
+          exceptionError: { error: errorMessage },
+          returnValue: Buffer.allocUnsafe(0)
+        }
+      } as any;
       tx.finalize("rejected", new RuntimeError(tx.hash(), e, RETURN_TYPES.TRANSACTION_HASH));
       return null;
     }
-  }
+  };
 
   #reset = () => {
     this.#origins.clear();
@@ -365,7 +374,7 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   };
 
   #setPricedHeap = () => {
-    const {pending} = this.#executables;
+    const { pending } = this.#executables;
     const origins = this.#origins;
     const priced = this.#priced;
 
@@ -382,7 +391,7 @@ export default class Miner extends Emittery.Typed<{block: BlockData}, "idle"> {
   };
 
   #updatePricedHeap = () => {
-    const {pending} = this.#executables;
+    const { pending } = this.#executables;
     const origins = this.#origins;
     const priced = this.#priced;
     // Note: the `pending` Map passed here is "live", meaning it is constantly

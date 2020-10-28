@@ -1,9 +1,9 @@
-import {LevelUp} from "levelup";
-import {Data} from "@ganache/utils";
+import { LevelUp } from "levelup";
+import { Data } from "@ganache/utils";
 import Tag from "../things/tags";
 const NOTFOUND = 404;
 
-export type Instantiable<T> = {new (...args: any[]): T};
+export type Instantiable<T> = { new (...args: any[]): T };
 
 export default class Manager<T> {
   #Type: Instantiable<T>;

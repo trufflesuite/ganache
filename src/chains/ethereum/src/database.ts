@@ -1,6 +1,6 @@
-import {AbstractLevelDOWN} from "abstract-leveldown";
+import { AbstractLevelDOWN } from "abstract-leveldown";
 import Emittery from "emittery";
-import {dir, setGracefulCleanup} from "tmp-promise";
+import { dir, setGracefulCleanup } from "tmp-promise";
 import levelup, { LevelUp } from "levelup";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "./options";
@@ -9,7 +9,7 @@ const sub = require("subleveldown");
 const encode = require("encoding-down");
 
 setGracefulCleanup();
-const tmpOptions = {prefix: "ganache-core_", unsafeCleanup: true};
+const tmpOptions = { prefix: "ganache-core_", unsafeCleanup: true };
 const noop = () => Promise.resolve();
 
 export default class Database extends Emittery {
@@ -45,7 +45,7 @@ export default class Database extends Emittery {
   }
 
   #initialize = async () => {
-    const levelupOptions: any = {valueEncoding: "binary"};
+    const levelupOptions: any = { valueEncoding: "binary" };
     const store = this.#options.db;
     let db: levelup.LevelUp;
     if (store) {
@@ -145,10 +145,12 @@ export default class Database extends Emittery {
   #cleanup = async () => {
     const db = this.db;
     if (db) {
-      await new Promise((resolve, reject) => db.close((err => {
-        if (err) return void reject(err);
-        resolve(void 0);
-      })));
+      await new Promise((resolve, reject) =>
+        db.close(err => {
+          if (err) return void reject(err);
+          resolve(void 0);
+        })
+      );
       await Promise.all([
         this.blocks.close(),
         this.blockIndexes.close(),

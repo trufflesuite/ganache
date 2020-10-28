@@ -2,7 +2,7 @@ import assert from "assert";
 import getProvider from "../../helpers/getProvider";
 
 describe("api", () => {
-  describe("net", () => {;
+  describe("net", () => {
     it("net_version", async () => {
       const roundedTo5Seconds = (num: number) => Math.round(num / 5000) * 5000;
       const nowIsh = roundedTo5Seconds(Date.now());

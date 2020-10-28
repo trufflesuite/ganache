@@ -13,13 +13,15 @@ export type EthereumOptions = {
   wallet: WalletConfig;
 };
 
-export type EthereumProviderOptions = Partial<{
-  [K in keyof EthereumOptions]: ExternalConfig<EthereumOptions[K]>;
-}>
+export type EthereumProviderOptions = Partial<
+  {
+    [K in keyof EthereumOptions]: ExternalConfig<EthereumOptions[K]>;
+  }
+>;
 
 export type EthereumInternalOptions = {
   [K in keyof EthereumOptions]: InternalConfig<EthereumOptions[K]>;
-}
+};
 
 export type EthereumDefaults = {
   [K in keyof EthereumOptions]: Definitions<EthereumOptions[K]>;

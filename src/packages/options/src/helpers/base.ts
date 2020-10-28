@@ -3,7 +3,7 @@ export namespace Base {
     rawType?: any;
     type: any;
     hasDefault?: true;
-  }
+  };
 
   export type ExclusiveGroupOptionName = string;
   export type ExclusiveGroup = ExclusiveGroupOptionName[];
@@ -14,5 +14,5 @@ export namespace Base {
     };
 
     exclusiveGroups: ExclusiveGroup[];
-  }
+  };
 }

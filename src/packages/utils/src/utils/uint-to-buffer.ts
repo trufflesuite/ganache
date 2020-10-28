@@ -5,21 +5,21 @@ const MAX_UINT32 = 0xffffffff;
  * draw attention to it. It is much faster the `Buffer.alloc(size)` because it
  * doesn't initialize its memory first. It's safe for us to use below because we
  * guarantee that we will fill every octet ourselves.
- * 
+ *
  * Allocates a new buffer of {size} octets, leaving memory not initialized, so
- * the contents of the newly created Buffer are unknown and may contain 
+ * the contents of the newly created Buffer are unknown and may contain
  * sensitive data.
- * 
+ *
  * @param {number} size count of octets to allocate
  */
 const allocUnsafe = Buffer.allocUnsafe;
 
 /**
- * Converts positive whole numbers that are 32 bits of fewer to a Buffer. Any 
+ * Converts positive whole numbers that are 32 bits of fewer to a Buffer. Any
  * more bits and who knows what will happen!?!1?!
- * 
+ *
  * @param num A positive whole number less than 33 bits wide, i.e. a uint32.
- * @returns an optimally sized buffer holding `num` in big-endian order (LSB is 
+ * @returns an optimally sized buffer holding `num` in big-endian order (LSB is
  * the _last_ value in the Buffer)
  */
 function uint32ToBuf(num: number) {
@@ -32,21 +32,18 @@ function uint32ToBuf(num: number) {
 
   // shift the first 8 least signficant bits off current num, if it's non-zero
   // our value contains at least 2 bytes!
-  if (num >>>= 8) {
-
+  if ((num >>>= 8)) {
     /** `second` now holds the second most least significant byte in its
      * "first" (right most) 8 bits */
     const second = num;
 
     // shift the next 8 least signficant bits off current num, if it's non-zero
     // our value contains at least 3 bytes!
-    if (num >>>= 8) {
-
+    if ((num >>>= 8)) {
       /** `third` now holds the third most least significant byte in its
-      * "first" (right most) 8 bits */
+       * "first" (right most) 8 bits */
       const third = num;
-      if (num >>>= 8) {
-
+      if ((num >>>= 8)) {
         // since we have all 4 bytes, create a 4 byte Buffer and fill it with
         // our values!
         buf = allocUnsafe(4);
@@ -86,14 +83,14 @@ function uint32ToBuf(num: number) {
  * Converts positive whole numbers less than or equal to
  * `Number.MAX_SAFE_INTEGER` to a Buffer. If your value is less than 2**32 you
  * should use `uint32ToBuf` instead.
- * 
+ *
  * @param num A positive whole number <= `Number.MAX_SAFE_INTEGER`
- * @returns an optimally sized buffer holding `num` in big-endian order (LSB is 
+ * @returns an optimally sized buffer holding `num` in big-endian order (LSB is
  * the _last_ value in the Buffer)
  */
 function uintWideToBuf(num: number) {
   // This function is similar to `uint32ToBuf`, but splits the number into its
-  // 32 lowest bits and its 32 highest bits. We have to do this because numeric 
+  // 32 lowest bits and its 32 highest bits. We have to do this because numeric
   // Bitwise operations can only operate on 32 bit-wide values.
   // There are some differences, but if you first grasp `uint32ToBuf`, you can
   // handle this just fine.
@@ -111,11 +108,11 @@ function uintWideToBuf(num: number) {
 
   // the high bits determine the size of the Buffer, so we compute the high bits
   // first
-  if (hi >>>= 8) {
+  if ((hi >>>= 8)) {
     const six = hi;
-    if (hi >>>= 8) {
+    if ((hi >>>= 8)) {
       const five = hi;
-      if (hi >>>= 8) {
+      if ((hi >>>= 8)) {
         buf = allocUnsafe(8);
         buf[0] = hi; // msb
         buf[1] = five;
@@ -144,24 +141,24 @@ function uintWideToBuf(num: number) {
   // set the low bytes:
   let lo = num & MAX_UINT32;
   const lsb = lo;
-  if (lo >>>= 8) {
+  if ((lo >>>= 8)) {
     const two = lo;
-    if (lo >>>= 8) {
+    if ((lo >>>= 8)) {
       const one = lo;
-      buf[offset-3] = (lo >>>= 8);
-      buf[offset-2] = one;
-      buf[offset-1] = two;
+      buf[offset - 3] = lo >>>= 8;
+      buf[offset - 2] = one;
+      buf[offset - 1] = two;
       buf[offset] = lsb;
     } else {
-      buf[offset-3] = 0;
-      buf[offset-2] = 0;
-      buf[offset-1] = two;
+      buf[offset - 3] = 0;
+      buf[offset - 2] = 0;
+      buf[offset - 1] = two;
       buf[offset] = lsb;
     }
   } else {
-    buf[offset-3] = 0;
-    buf[offset-2] = 0;
-    buf[offset-1] = 0;
+    buf[offset - 3] = 0;
+    buf[offset - 2] = 0;
+    buf[offset - 1] = 0;
     buf[offset] = lsb;
   }
   return buf;
@@ -170,11 +167,11 @@ function uintWideToBuf(num: number) {
 /**
  * Converts a JavaScript number, treated as a Whole Number (0, 1, 2, 3, 4, ...)
  * less than 64 bits wide, to a Buffer.
- * 
+ *
  * Numbers that are negative, fractional, or greater than 64 bits wide will
  * return very unexpected results. Numbers that are greater than
  * `Number.MAX_SAFE_INTEGER` will return unexpected results.
- * 
+ *
  * @param num A positive whole number <= `Number.MAX_SAFE_INTEGER`
  */
 export function uintToBuffer(num: number) {

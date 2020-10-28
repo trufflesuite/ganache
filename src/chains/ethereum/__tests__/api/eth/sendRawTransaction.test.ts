@@ -1,4 +1,3 @@
-
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
@@ -26,29 +25,32 @@ describe("api", () => {
         provider = await getProvider({
           wallet: {
             mnemonic: "sweet treat",
-            accounts: [{secretKey, balance: "0xffffff"}]
+            accounts: [{ secretKey, balance: "0xffffff" }]
           }
         });
         accounts = await provider.send("eth_accounts");
       });
 
       it("processes a signed transaction", async () => {
-        const transaction = new Transaction({
-          value: "0xff",
-          gasLimit: "0x33450",
-          to: accounts[0]
-        }, {common});
-  
+        const transaction = new Transaction(
+          {
+            value: "0xff",
+            gasLimit: "0x33450",
+            to: accounts[0]
+          },
+          { common }
+        );
+
         const secretKeyBuffer = Buffer.from(secretKey.substr(2), "hex");
         transaction.sign(secretKeyBuffer);
-          
+
         await provider.send("eth_subscribe", ["newHeads"]);
         const txHash = await provider.send("eth_sendRawTransaction", [transaction.serialize()]);
         await provider.once("message");
 
         const receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
         assert.strictEqual(receipt.transactionHash, txHash);
-      })
+      });
     });
   });
 });

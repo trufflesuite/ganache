@@ -6,14 +6,12 @@ import { FilterArgs, RangeFilterArgs } from "../types/filters";
 export function parseFilterDetails(filter: Pick<FilterArgs, "address" | "topics">) {
   // `filter.address` may be a single address or an array
   const addresses = filter.address
-    ? (
-        Array.isArray(filter.address)
-          ? filter.address
-          : [filter.address]).map(a => Address.from(a.toLowerCase()).toBuffer()
-        )
+    ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(a =>
+        Address.from(a.toLowerCase()).toBuffer()
+      )
     : [];
   const topics = filter.topics ? filter.topics : [];
-  return {addresses, topics};
+  return { addresses, topics };
 }
 
 export function parseFilterRange(filter: Omit<RangeFilterArgs, "address" | "topics">, blockchain: Blockchain) {
@@ -33,11 +31,11 @@ export function parseFilterRange(filter: Omit<RangeFilterArgs, "address" | "topi
     fromBlock,
     toBlock,
     toBlockNumber
-  }
+  };
 }
-export function parseFilter(filter: RangeFilterArgs = {address: [], topics: []}, blockchain: Blockchain) {
-  const {addresses, topics} = parseFilterDetails(filter);
-  const {fromBlock, toBlock, toBlockNumber} = parseFilterRange(filter, blockchain);
+export function parseFilter(filter: RangeFilterArgs = { address: [], topics: [] }, blockchain: Blockchain) {
+  const { addresses, topics } = parseFilterDetails(filter);
+  const { fromBlock, toBlock, toBlockNumber } = parseFilterRange(filter, blockchain);
 
   return {
     addresses,

@@ -6,38 +6,37 @@ const emitteryMethods = ["emit", "once"] as const;
 /**
  * Creates a FIFO queue to that ensures promises are _resolved_ in the order
  * they were added.
- * 
+ *
  * This is different than a FIFO queue that _executes_ functions that
  * return promises; this queue is for the promises themselves.
- * 
+ *
  * @example
  * const queue = new PromiseQueue();
- * 
+ *
  * const slow = new Promise(resolve => setTimeout(resolve, 1000, "slow"));
  * const fast = Promise.resolve("fast");
- * 
+ *
  * await Promise.race([
  *   queue.add(slow),
  *   queue.add(fast)
  * ]); // returns "slow"
- * 
+ *
  * Additionally, the queued promise chain can be cleared via `queue.clear(value)`.
  * This will cause the chain of promises to all resolve immediately with the
  * given value. *
- * 
+ *
  * * note: whatever the promise starting doing when it was created will still
  * happen, no promises are aborted; rather, the return value is ignored.
  */
 @Emittery.mixin(Symbol.for("emittery"), emitteryMethods)
 class PromiseQueue<T> {
-  
   /**
    * Returns true if there are promises pending in the queue
    */
-  public isBusy(){
+  public isBusy() {
     return this.#queue.length !== 0;
   }
-  
+
   // TODO(perf): a singly linked list is probably a better option here
   readonly #queue: Entry<T>[] = [];
 
@@ -52,7 +51,7 @@ class PromiseQueue<T> {
     } else {
       entry.resolved = true;
     }
-  }
+  };
 
   /**
    * Adds the promise to the end of the queue.
@@ -96,11 +95,11 @@ class PromiseQueue<T> {
     if (queue.length === 0) {
       this.emit("idle");
     }
-  }
+  };
 }
 
 interface PromiseQueue<T> extends Pick<Emittery, typeof emitteryMethods[number]> {
-  emittery: Emittery
+  emittery: Emittery;
 }
 
 export default PromiseQueue;

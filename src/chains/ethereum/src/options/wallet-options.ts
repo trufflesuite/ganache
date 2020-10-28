@@ -1,5 +1,5 @@
 import seedrandom from "seedrandom";
-import {entropyToMnemonic} from "bip39";
+import { entropyToMnemonic } from "bip39";
 
 import { Quantity } from "@ganache/utils";
 
@@ -27,7 +27,10 @@ const randomAlphaNumericString = (() => {
   };
 })();
 
-export type OptionsAccount = {balance: string | number | bigint | Buffer, secretKey?: string};
+export type OptionsAccount = {
+  balance: string | number | bigint | Buffer;
+  secretKey?: string;
+};
 
 export type WalletConfig = {
   options: {
@@ -71,7 +74,7 @@ export type WalletConfig = {
      */
     unlockedAccounts: {
       type: Array<string | number>;
-    }
+    };
 
     /**
      * Lock available accounts by default (good for third party transaction signing). Defaults to `false`.
@@ -83,25 +86,25 @@ export type WalletConfig = {
 
     /**
      * Specifies a file to save accounts and private keys to, for testing.
-     * 
+     *
      * Can be a filename or file descriptor.
-     * 
+     *
      * If specifying a filename, the directory path must already exist.
-     * 
+     *
      * See: https://nodejs.org/api/fs.html#fs_fs_writefilesync_file_data_options
      */
     accountKeysPath: {
       type: string | number;
-    }
+    };
 
     /**
      * The default account balance, specified in ether. Defaults to `100` ether
      */
     defaultBalance: {
-      type: number,
+      type: number;
       rawType: number;
       hasDefault: true;
-    },
+    };
 
     /**
      * The hierarchical deterministic path to use when generating accounts.
@@ -110,12 +113,9 @@ export type WalletConfig = {
     hdPath: {
       type: string;
       hasDefault: true;
-    }
+    };
   };
-  exclusiveGroups: [
-    ["totalAccounts", "accounts"],
-    ["mnemonic", "seed"]
-  ];
+  exclusiveGroups: [["totalAccounts", "accounts"], ["mnemonic", "seed"]];
 };
 
 export const WalletOptions: Definitions<WalletConfig> = {
@@ -133,7 +133,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
   },
   mnemonic: {
     normalize: rawInput => rawInput,
-    default: (config) => entropyToMnemonic(randomBytes(16, seedrandom(config.seed)))
+    default: config => entropyToMnemonic(randomBytes(16, seedrandom(config.seed)))
   },
   unlockedAccounts: {
     normalize: rawInput => rawInput,
@@ -148,7 +148,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     legacyName: "account_keys_path"
   },
   defaultBalance: {
-    normalize: (rawInput) => rawInput,
+    normalize: rawInput => rawInput,
     default: () => 100,
     legacyName: "default_balance_ether"
   },

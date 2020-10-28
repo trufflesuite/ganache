@@ -8,9 +8,9 @@ let _bigIntToBuffer: (val: bigint) => Buffer;
  * Returns the number of bytes contained in this given `value`.
  * @param value
  */
-function bigIntByteLength(value: bigint){
+function bigIntByteLength(value: bigint) {
   let length = 1;
-  while (value >>= 8n) length++;
+  while ((value >>= 8n)) length++;
   return length;
 }
 
@@ -24,7 +24,7 @@ try {
       const size = bigIntByteLength(value);
       return toBufferBE(value, size);
     }
-  }
+  };
 } catch (e) {
   _bigIntToBuffer = (value: bigint): Buffer => {
     if (value <= MAX_SAFE_INTEGER) {

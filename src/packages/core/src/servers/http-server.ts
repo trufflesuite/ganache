@@ -1,7 +1,7 @@
-import {TemplatedApp, HttpResponse, HttpRequest, RecognizedString} from "uWebSockets.js";
+import { TemplatedApp, HttpResponse, HttpRequest, RecognizedString } from "uWebSockets.js";
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
-import {Connectors} from "@ganache/flavors";
+import { Connectors } from "@ganache/flavors";
 
 type HttpMethods = "GET" | "OPTIONS" | "POST";
 
@@ -137,7 +137,7 @@ export default class HttpServer {
 
         connector
           .handle(payload, request)
-          .then(({value}) => value)
+          .then(({ value }) => value)
           .then(result => {
             if (aborted) {
               // if the request has been aborted don't try sending (it'll
@@ -146,20 +146,15 @@ export default class HttpServer {
             }
             const data = connector.format(result, payload);
             sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
-          }).catch(error => {
+          })
+          .catch(error => {
             if (aborted) {
               // if the request has been aborted don't try sending (it'll
               // cause an `Unhandled promise rejection` if we try)
               return;
             }
             const data = connector.formatError(error, payload);
-            sendResponse(
-              response,
-              HttpResponseCodes.OK,
-              ContentTypes.JSON,
-              data,
-              writeHeaders
-            );
+            sendResponse(response, HttpResponseCodes.OK, ContentTypes.JSON, data, writeHeaders);
           });
       } else {
         if (buffer) {

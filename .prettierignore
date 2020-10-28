@@ -1,0 +1,8 @@
+.DS_Store
+.vscode
+.nyc_output
+lerna-debug.log
+npm-debug.log
+src/**/*/lib
+coverage
+npm-shrinkwrap.json

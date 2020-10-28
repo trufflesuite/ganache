@@ -1,9 +1,9 @@
 import Emittery from "emittery";
 import Blockchain from "./blockchain";
-import {utils} from "@ganache/utils";
+import { utils } from "@ganache/utils";
 import Transaction from "./things/transaction";
-import {Data, Quantity} from "@ganache/utils";
-import {GAS_LIMIT, INTRINSIC_GAS_TOO_LOW} from "./errors/errors";
+import { Data, Quantity } from "@ganache/utils";
+import { GAS_LIMIT, INTRINSIC_GAS_TOO_LOW } from "./errors/errors";
 import CodedError, { ErrorCodes } from "./errors/coded-error";
 import { EthereumInternalOptions } from "./options";
 import { Executables } from "./types/executables";
@@ -29,16 +29,16 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   public readonly executables: Executables = {
     inProgress: new Set(),
     pending: new Map()
-  }
+  };
   readonly #origins: Map<string, utils.Heap<Transaction>> = new Map();
   readonly #accountPromises = new Map<string, Promise<Quantity>>();
 
   /**
    * Inserts a transaction into the pending queue, if executable, or future pool
    * if not.
-   * 
-   * @param transaction 
-   * @param secretKey 
+   *
+   * @param transaction
+   * @param secretKey
    * @returns data that can be used to drain the queue
    */
   public async prepareTransaction(transaction: Transaction, secretKey?: Data) {
@@ -85,7 +85,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // then a new tx comes in _before_ the block is persisted to the database, the nonce might be of the second
     // tx would be too low.
     //  * rough idea for a fix: transactions have a `finalize` method that is called _after_ the tx is saved. Maybe
-    // when tx's are executed their nonce is moved to a `highNonceByOrigin` map? We'd check this map in addition to the 
+    // when tx's are executed their nonce is moved to a `highNonceByOrigin` map? We'd check this map in addition to the
     // `executableOriginTransactions` map, always taking the highest of the two.
     let highestNonce = 0n;
 
@@ -122,11 +122,15 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
             // heap.
             pendingArray[i] = transaction;
 
-            currentPendingTx.finalize("rejected", new CodedError(
-              "Transaction replaced by better transaction", ErrorCodes.TRANSACTION_REJECTED
-            ));
+            currentPendingTx.finalize(
+              "rejected",
+              new CodedError("Transaction replaced by better transaction", ErrorCodes.TRANSACTION_REJECTED)
+            );
           } else {
-            throw new CodedError("transaction rejected; gas price too low to replace existing transaction", ErrorCodes.TRANSACTION_REJECTED);
+            throw new CodedError(
+              "transaction rejected; gas price too low to replace existing transaction",
+              ErrorCodes.TRANSACTION_REJECTED
+            );
           }
         }
         if (thisNonce > highestNonce) {
@@ -156,7 +160,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         });
       }
       const transactor = await transactorNoncePromise;
-      
+
       const transactorNonce = transactor ? transactor.toBigInt() : 0n;
       if (secretKey && transactionNonce === void 0) {
         // if we don't have a transactionNonce, just use the account's next
@@ -167,7 +171,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         transaction.nonce = Quantity.from(transactionNonce).toBuffer();
       } else if (transactionNonce < transactorNonce) {
         // it's an error if the transaction's nonce is <= the persisted nonce
-        throw new Error(`the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${transactionNonce}`);
+        throw new Error(
+          `the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${transactionNonce}`
+        );
       } else if (transactionNonce === transactorNonce) {
         isExecutableTransaction = true;
       }
@@ -236,12 +242,12 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
   /**
    * TODO(perf): this looks super slow, doesn't it?
-   * 
+   *
    * Returns the transaction matching the given hash
-   * @param transactionHash 
+   * @param transactionHash
    */
   public find(transactionHash: Buffer) {
-    const {pending, inProgress} = this.executables;
+    const { pending, inProgress } = this.executables;
 
     // first search pending transactions
     for (let [_, transactions] of this.#origins) {
@@ -272,7 +278,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   }
 
   readonly drain = () => {
-    // notify listeners (the blockchain, then the miner, eventually) that we 
+    // notify listeners (the blockchain, then the miner, eventually) that we
     // have executable transactions ready
     this.emit("drain");
   };

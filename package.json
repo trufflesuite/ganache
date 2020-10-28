@@ -14,7 +14,7 @@
     "create": "ts-node ./scripts/create",
     "prepare": "lerna bootstrap && echo \"\n\\033[1;36m Tip:\\033[0;36m run \\033[1;2;33msource completions.sh\\033[0;36m to supply bash completions for npm scripts\\033[0m\n\"",
     "reinstall": "npm run clean && npm install",
-    "test": "lerna exec -- npm test",
+    "test": "lerna exec -- npm run test",
     "tsc": "lerna exec -- npm run tsc",
     "tsc.clean": "npx lerna exec -- npx shx rm -rf lib"
   },
@@ -56,12 +56,14 @@
     "cross-env": "7.0.2",
     "fs-extra": "9.0.1",
     "git-user-name": "2.0.0",
+    "husky": "4.3.0",
     "into-stream": "6.0.0",
     "lerna": "3.22.1",
     "mocha": "8.2.0",
     "npm-package-arg": "8.1.0",
     "nyc": "15.1.0",
     "prettier": "2.1.2",
+    "pretty-quick": "3.1.0",
     "shx": "0.3.3",
     "solc": "0.7.4",
     "superagent": "6.1.0",
@@ -75,5 +77,10 @@
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  }
 }

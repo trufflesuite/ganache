@@ -1,18 +1,18 @@
-import {InternalOptions, ServerOptions, serverOptionsConfig} from "./options";
+import { InternalOptions, ServerOptions, serverOptionsConfig } from "./options";
 
-import uWS, {TemplatedApp, us_listen_socket} from "uWebSockets.js";
-import {Connectors} from "@ganache/flavors";
+import uWS, { TemplatedApp, us_listen_socket } from "uWebSockets.js";
+import { Connectors } from "@ganache/flavors";
 import Connector from "./connector";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 
 type Providers = Connectors["provider"];
 
-type Callback = (err: Error | null) => void
+type Callback = (err: Error | null) => void;
 
 /**
  * Server ready state constants.
- * 
+ *
  * These are bit flags. This means that you can check if the status is:
  *  * open: `status === Status.open`
  *  * opening: `status === Status.opening`
@@ -57,7 +57,7 @@ export default class Server {
     return this.#status;
   }
 
-  constructor(serverOptions: ServerOptions = {flavor: "ethereum"}) {
+  constructor(serverOptions: ServerOptions = { flavor: "ethereum" }) {
     const opts = (this.#options = serverOptionsConfig.normalize(serverOptions));
     const connector = (this.#connector = Connector.initialize(serverOptions));
 

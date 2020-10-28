@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
 declare module "levelup" {
-  import {AbstractLevelDOWN} from "abstract-leveldown";
+  import { AbstractLevelDOWN } from "abstract-leveldown";
 
   export = levelup;
 
@@ -32,33 +32,41 @@ declare module "levelup" {
 
       put(key: any, value: any): Promise<never>;
       put(key: any, value: any, callback: (error: any) => any): void;
-      put(key: any, value: any, options: {sync?: boolean}): Promise<never>;
-      put(key: any, value: any, options: {sync?: boolean}, callback: (error: any) => any): void;
+      put(key: any, value: any, options: { sync?: boolean }): Promise<never>;
+      put(key: any, value: any, options: { sync?: boolean }, callback: (error: any) => any): void;
 
       get(key: any): Promise<any>;
       get(key: any, callback: (error: any, value: any) => any): void;
-      get(key: any, options: {keyEncoding?: Encoding; fillCache?: boolean}): Promise<any>;
+      get(key: any, options: { keyEncoding?: Encoding; fillCache?: boolean }): Promise<any>;
       get(
         key: any,
-        options: {keyEncoding?: Encoding; fillCache?: boolean},
+        options: { keyEncoding?: Encoding; fillCache?: boolean },
         callback: (error: any, value: any) => any
       ): void;
 
       del(key: any): Promise<never>;
       del(key: any, callback: (error: any) => any): void;
-      del(key: any, options: {keyEncoding?: Encoding; sync?: boolean}): Promise<never>;
-      del(key: any, options: {keyEncoding?: Encoding; sync?: boolean}, callback: (error: any) => any): void;
+      del(key: any, options: { keyEncoding?: Encoding; sync?: boolean }): Promise<never>;
+      del(key: any, options: { keyEncoding?: Encoding; sync?: boolean }, callback: (error: any) => any): void;
 
       batch(): LevelUpChain;
       batch(array: BatchType[]): Promise<never>;
       batch(array: BatchType[], callback: (error?: any) => any): void;
       batch(
         array: BatchType[],
-        options: {keyEncoding?: Encoding; valueEncoding?: Encoding; sync?: boolean}
+        options: {
+          keyEncoding?: Encoding;
+          valueEncoding?: Encoding;
+          sync?: boolean;
+        }
       ): Promise<never>;
       batch(
         array: BatchType[],
-        options: {keyEncoding?: Encoding; valueEncoding?: Encoding; sync?: boolean},
+        options: {
+          keyEncoding?: Encoding;
+          valueEncoding?: Encoding;
+          sync?: boolean;
+        },
         callback: (error?: any) => any
       ): void;
 
@@ -73,9 +81,9 @@ declare module "levelup" {
 
     interface LevelUpChain {
       put(key: any, value: any): LevelUpChain;
-      put(key: any, value: any, options?: {sync?: boolean}): LevelUpChain;
+      put(key: any, value: any, options?: { sync?: boolean }): LevelUpChain;
       del(key: any): LevelUpChain;
-      del(key: any, options?: {keyEncoding?: Encoding; sync?: boolean}): LevelUpChain;
+      del(key: any, options?: { keyEncoding?: Encoding; sync?: boolean }): LevelUpChain;
       clear(): LevelUpChain;
       write(): Promise<never>;
       write(callback?: (error?: any) => any): void;

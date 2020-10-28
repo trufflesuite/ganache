@@ -1,5 +1,5 @@
 import Emittery from "emittery";
-import {utils, types} from "@ganache/utils";
+import { utils, types } from "@ganache/utils";
 import Provider from "./provider";
 import TezosApi from "./api";
 import { HttpRequest } from "uWebSockets.js";
@@ -7,7 +7,8 @@ import { HttpRequest } from "uWebSockets.js";
 export type TezosProvider = Provider;
 export const TezosProvider = Provider;
 
-export class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
+export class TezosConnector
+  extends Emittery.Typed<undefined, "ready" | "close">
   implements types.Connector<TezosApi, unknown, unknown> {
   provider: Provider;
   #api: TezosApi;
@@ -29,14 +30,13 @@ export class TezosConnector extends Emittery.Typed<undefined, "ready" | "close">
 
   parse(message: Buffer) {
     return JSON.parse(message);
-  };
+  }
 
-  handle (payload: any, _connection: HttpRequest): Promise<any> {
+  handle(payload: any, _connection: HttpRequest): Promise<any> {
     return Promise.resolve(123);
-  };
+  }
 
   close() {
     return {};
   }
 }
-

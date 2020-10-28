@@ -8,8 +8,10 @@ declare var Promise: {
    * @param onrejected The callback to execute when the Promise is rejected.
    * @returns A Promise for the completion of the callback.
    */
-  catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): PromiEvent<TResult>;
-  
+  catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+  ): PromiEvent<TResult>;
+
   /**
    * Creates a new resolved promievent for the provided value.
    * @param value A promise.
@@ -28,7 +30,7 @@ const emitteryMethods = ["clearListeners", "once", "on", "emit", "onAny"] as con
 
 @Emittery.mixin(Symbol.for("emittery"), emitteryMethods)
 class PromiEvent<T> extends Promise<T> {
-  constructor (executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) {
+  constructor(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) {
     super(executor);
   }
 
@@ -40,7 +42,7 @@ class PromiEvent<T> extends Promise<T> {
   catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null) {
     const prom = new PromiEvent<T | TResult>((resolve, reject) => {
       this.onAny((eventName, eventData) => {
-          return prom.emit(eventName, eventData);
+        return prom.emit(eventName, eventData);
       });
       const p = super.catch<TResult>(onrejected);
       p.then(resolve, reject);
@@ -68,9 +70,9 @@ class PromiEvent<T> extends Promise<T> {
   /**
    * Used to immediately clear all event listeners on the instance and prevent
    * any additional binding or emission from the Emitter.
-   * 
+   *
    * Once disposed no listeners can be bound to this emitter.
-   * 
+   *
    * Note: `dispose` is pre-bound to the `this`, making it possible to pass the
    * method around detached from it's context.
    */
@@ -83,18 +85,19 @@ class PromiEvent<T> extends Promise<T> {
     const fn = () => {
       throw new Error("PromiEvent bound after dispose");
     };
-    emitteryMethods.filter(m => m !== "emit").forEach(methodName => {
-      Object.defineProperty(this, methodName, {
-        enumerable: false,
-        value: fn
+    emitteryMethods
+      .filter(m => m !== "emit")
+      .forEach(methodName => {
+        Object.defineProperty(this, methodName, {
+          enumerable: false,
+          value: fn
+        });
       });
-    });
-  }
+  };
 }
 
-
 interface PromiEvent<T> extends Promise<T>, Pick<Emittery, typeof emitteryMethods[number]> {
-  emittery: Emittery
+  emittery: Emittery;
 }
 
 export default PromiEvent;

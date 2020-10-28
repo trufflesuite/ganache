@@ -1,6 +1,6 @@
 declare module "ethereumjs-block" {
   import BN from "bn.js";
-  import {Blockchain} from "ethereumjs-blockchain";
+  import { Blockchain } from "ethereumjs-blockchain";
   import Transaction from "ethereumjs-tx";
   import BlockHeader from "ethereumjs-block/header";
   import Trie from "merkle-patricia-tree/baseTrie";

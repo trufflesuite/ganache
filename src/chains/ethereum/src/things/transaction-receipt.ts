@@ -1,11 +1,18 @@
 import Transaction from "./transaction";
-import {Block} from "../data-managers/block-manager";
-import {encode as rlpEncode, decode as rlpDecode} from "rlp";
-import {Data, Quantity} from "@ganache/utils";
+import { Block } from "../data-managers/block-manager";
+import { encode as rlpEncode, decode as rlpDecode } from "rlp";
+import { Data, Quantity } from "@ganache/utils";
 import BlockLogs, { TransactionLog } from "./blocklogs";
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [...infer A, infer _L] ? A : never;
-type FullRawReceipt = [status: Buffer, cumulativeGasUsed: Buffer, logsBloom: Buffer, logs: Buffer[], gasUsed: Buffer, contractAddress: Buffer | null];
+type FullRawReceipt = [
+  status: Buffer,
+  cumulativeGasUsed: Buffer,
+  logsBloom: Buffer,
+  logs: Buffer[],
+  gasUsed: Buffer,
+  contractAddress: Buffer | null
+];
 type RawReceipt = OmitLastType<OmitLastType<FullRawReceipt>>;
 
 export default class TransactionReceipt {
@@ -19,13 +26,27 @@ export default class TransactionReceipt {
       this.#init(decoded[0], decoded[1], decoded[2], decoded[3], decoded[4], decoded[5]);
     }
   }
-  #init = (status: Buffer, cumulativeGasUsed: Buffer, logsBloom: Buffer, logs: Buffer[], gasUsed: Buffer, contractAddress: Buffer = null) => {
+  #init = (
+    status: Buffer,
+    cumulativeGasUsed: Buffer,
+    logsBloom: Buffer,
+    logs: Buffer[],
+    gasUsed: Buffer,
+    contractAddress: Buffer = null
+  ) => {
     this.raw = [status, cumulativeGasUsed, logsBloom, logs];
     this.contractAddress = contractAddress;
     this.#gasUsed = gasUsed;
-  }
+  };
 
-  static fromValues(status: Buffer, cumulativeGasUsed: Buffer, logsBloom: Buffer, logs: Buffer[], gasUsed: Buffer, contractAddress: Buffer) {
+  static fromValues(
+    status: Buffer,
+    cumulativeGasUsed: Buffer,
+    logsBloom: Buffer,
+    logs: Buffer[],
+    gasUsed: Buffer,
+    contractAddress: Buffer
+  ) {
     const receipt = new TransactionReceipt();
     receipt.#init(status, cumulativeGasUsed, logsBloom, logs, contractAddress, gasUsed);
     return receipt;
@@ -46,7 +67,7 @@ export default class TransactionReceipt {
     const contractAddress = this.contractAddress.length === 0 ? null : Data.from(this.contractAddress);
     const blockLog = BlockLogs.create(block.value.hash());
     blockLog.blockNumber = Quantity.from(block.value.header.number);
-    (raw[3] as any as TransactionLog[]).forEach(log => {
+    ((raw[3] as any) as TransactionLog[]).forEach(log => {
       blockLog.append(transaction._index, transaction.hash(), log);
     });
     const logs = [...blockLog.toJSON()];

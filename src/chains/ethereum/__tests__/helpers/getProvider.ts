@@ -7,9 +7,13 @@ const mnemonic = "into trim cross then helmet popular suit hammer cart shrug ova
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
-const getProvider = async (options: Writeable<EthereumProviderOptions> = {wallet: {mnemonic: mnemonic}}) => {
+const getProvider = async (
+  options: Writeable<EthereumProviderOptions> = {
+    wallet: { mnemonic: mnemonic }
+  }
+) => {
   options.chain = options.chain || {};
-  options.logging = options.logging || {logger: {log: ()=>{}}};
+  options.logging = options.logging || { logger: { log: () => {} } };
 
   // set `asyncRequestProcessing` to `true` by default
   let doAsync = options.chain.asyncRequestProcessing;
@@ -17,7 +21,7 @@ const getProvider = async (options: Writeable<EthereumProviderOptions> = {wallet
 
   // don't write to stdout in tests
   if (!options.logging.logger) {
-    options.logging.logger = {log:()=>{}};
+    options.logging.logger = { log: () => {} };
   }
 
   const requestCoordinator = new RequestCoordinator(doAsync ? 0 : 1);
@@ -30,6 +34,6 @@ const getProvider = async (options: Writeable<EthereumProviderOptions> = {wallet
     });
   });
   return provider;
-}
+};
 
 export default getProvider;

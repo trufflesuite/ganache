@@ -4,7 +4,7 @@ export const ErrorCodes = {
    * An error occurred on the server while parsing the JSON text.
    */
   PARSE_ERROR: -32700,
-  
+
   /**
    * The JSON sent is not a valid Request object.
    */
@@ -47,8 +47,8 @@ export const ErrorCodes = {
 } as const;
 
 export default class CodedError extends Error {
-  code: number
-  constructor(message: string, code: number){
+  code: number;
+  constructor(message: string, code: number) {
     super(message);
     Error.captureStackTrace(this, this.constructor);
 

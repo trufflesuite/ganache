@@ -1,8 +1,8 @@
 declare module "merkle-patricia-tree" {
   import BN from "bn.js";
-  import {Readable} from "stream";
+  import { Readable } from "stream";
 
-  import {Trie, Database} from "merkle-patricia-tree/baseTrie";
+  import { Trie, Database } from "merkle-patricia-tree/baseTrie";
   import TrieNode from "merkle-patricia-tree/trieNode";
 
   type MerkleProof = TrieNode[];
@@ -21,7 +21,7 @@ declare module "merkle-patricia-tree" {
     get(key: LargeNumber, cb: Callback<Buffer | null>): void;
     put(key: LargeNumber, value: LargeNumber, cb: Callback<never>): void;
     copy(): Trie;
-    
+
     checkpoint(): void;
     commit(cb: Callback<never>): void;
     revert(cb: Callback<never>): void;

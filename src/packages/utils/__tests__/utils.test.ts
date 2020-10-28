@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-const utils = require('..');
+const utils = require("..");
 
-describe('@ganache/utils', () => {
-    it('needs tests');
+describe("@ganache/utils", () => {
+  it("needs tests");
 });

@@ -1,13 +1,13 @@
-import {INTRINSIC_GAS_TOO_LOW} from "../errors/errors";
+import { INTRINSIC_GAS_TOO_LOW } from "../errors/errors";
 import RuntimeError, { RETURN_TYPES } from "../errors/runtime-error";
-import {utils, Data, Quantity} from "@ganache/utils";
+import { utils, Data, Quantity } from "@ganache/utils";
 import params from "./params";
-import {Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction} from "ethereumjs-tx";
+import { Transaction as EthereumJsTransaction, FakeTransaction as EthereumJsFakeTransaction } from "ethereumjs-tx";
 import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
-import {decode as rlpDecode} from "rlp";
-import {RunTxResult} from "ethereumjs-vm/dist/runTx";
-import {Block} from "../data-managers/block-manager";
+import { decode as rlpDecode } from "rlp";
+import { RunTxResult } from "ethereumjs-vm/dist/runTx";
+import { Block } from "../data-managers/block-manager";
 import TransactionReceipt from "./transaction-receipt";
 import Common from "ethereumjs-common";
 import { TransactionLog } from "./blocklogs";
@@ -28,7 +28,7 @@ const fakeHash = function (this: Transaction) {
   if (this._hash != null) {
     return this._hash;
   }
-  return EthereumJsFakeTransaction.prototype.hash.apply(this, arguments as unknown as [(boolean | undefined)?]);
+  return EthereumJsFakeTransaction.prototype.hash.apply(this, (arguments as unknown) as [(boolean | undefined)?]);
 };
 
 function configZeroableField(tx: any, fieldName: string, fieldLength = 32) {
@@ -88,7 +88,7 @@ function fixProps(tx: any, data: any) {
   });
 }
 
-function makeFake(tx: any, data: any){
+function makeFake(tx: any, data: any) {
   if (tx.isFake()) {
     /**
      * @prop {Buffer} from (read/write) Set from address to bypass transaction
@@ -123,11 +123,14 @@ function makeFake(tx: any, data: any){
 function initData(tx: Transaction, data: any) {
   if (data) {
     let parts: Buffer[];
-    if (typeof data === "string") { //hex
-      parts = rlpDecode(Data.from(data).toBuffer()) as any as Buffer[];
-    } else if (Buffer.isBuffer(data)) { // Buffer
-      parts = rlpDecode(data) as any as Buffer[];
-    } else if (data.type === "Buffer") { // wire Buffer
+    if (typeof data === "string") {
+      //hex
+      parts = (rlpDecode(Data.from(data).toBuffer()) as any) as Buffer[];
+    } else if (Buffer.isBuffer(data)) {
+      // Buffer
+      parts = (rlpDecode(data) as any) as Buffer[];
+    } else if (data.type === "Buffer") {
+      // wire Buffer
       // handle case where a Buffer is sent as `{data: "Buffer", data: number[]}`
       // like if someone does `web3.eth.sendRawTransaction(tx.serialize())`
       const obj = data.data;
@@ -136,10 +139,12 @@ function initData(tx: Transaction, data: any) {
       for (let i = 0; i < length; i++) {
         buf[i] = obj[i];
       }
-      parts = rlpDecode(buf) as any as Buffer[];
-    } else if (Array.isArray(data)) { // rlpdecoded data
+      parts = (rlpDecode(buf) as any) as Buffer[];
+    } else if (Array.isArray(data)) {
+      // rlpdecoded data
       parts = data;
-    } else if (typeof data === "object") { // JSON
+    } else if (typeof data === "object") {
+      // JSON
       const keys = Object.keys(data);
       tx._fields.forEach((field: any) => {
         if (keys.indexOf(field) !== -1) {
@@ -190,7 +195,7 @@ function initData(tx: Transaction, data: any) {
 
 //#endregion
 
-type TransactionFinalization = {status: "confirmed", error?: Error} | {status: "rejected", error: Error};
+type TransactionFinalization = { status: "confirmed"; error?: Error } | { status: "rejected"; error: Error };
 
 interface Transaction extends Omit<EthereumJsTransaction, "toJSON"> {}
 // TODO fix the EthereumJsTransaction as any via some "fake" multi-inheritance:
@@ -214,7 +219,7 @@ class Transaction extends (EthereumJsTransaction as any) {
    *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
    */
   constructor(data: any, common: Common, type: number = Transaction.types.none) {
-    super(void 0, {common});
+    super(void 0, { common });
 
     // EthereumJS-TX Transaction overwrites our `toJSON`, so we overwrite it back here:
     this.toJSON = Transaction.prototype.toJSON.bind(this);
@@ -225,9 +230,8 @@ class Transaction extends (EthereumJsTransaction as any) {
     initData(this, data);
 
     if (this.isFake()) {
-      makeFake(this, data)
+      makeFake(this, data);
     }
-
 
     let finalizer: (value: TransactionFinalization) => void;
     this.#finalized = new Promise<TransactionFinalization>(resolve => {
@@ -253,29 +257,29 @@ class Transaction extends (EthereumJsTransaction as any) {
   }
 
   /**
-   * Returns a Promise that is resolve with the confirmation status and, if 
+   * Returns a Promise that is resolve with the confirmation status and, if
    * appropriate, an error property.
-   * 
+   *
    * Note: it is possible to be confirmed AND
-   * 
+   *
    * @param event "finalized"
    */
   once(event: "finalized") {
     return this.#finalized;
-  };
-  
+  }
+
   /**
    * Mark this transaction as finalized, notifying all past and future
    * "finalized" event subscribers.
-   * 
+   *
    * Note:
-   * 
-   * @param status 
-   * @param error 
+   *
+   * @param status
+   * @param error
    */
   finalize(status: "confirmed" | "rejected", error: Error = null) {
     // resolves the `#finalized` promise
-    this.#finalizer({status, error});
+    this.#finalizer({ status, error });
   }
 
   /**
@@ -283,7 +287,10 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param data The transaction's data
    * @param hardfork The hardfork use to determine gas costs
    */
-  public static calculateIntrinsicGas(data: Buffer | null, hardfork: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier") {
+  public static calculateIntrinsicGas(
+    data: Buffer | null,
+    hardfork: "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier"
+  ) {
     // Set the starting gas for the raw transaction
     let gas = params.TRANSACTION_GAS;
     if (data) {
@@ -291,7 +298,7 @@ class Transaction extends (EthereumJsTransaction as any) {
       const dataLength = data.byteLength;
       if (dataLength > 0) {
         const TRANSACTION_DATA_NON_ZERO_GAS = params.TRANSACTION_DATA_NON_ZERO_GAS.get(hardfork);
-        const TRANSACTION_DATA_ZERO_GAS = params.TRANSACTION_DATA_ZERO_GAS
+        const TRANSACTION_DATA_ZERO_GAS = params.TRANSACTION_DATA_ZERO_GAS;
 
         // Zero and non-zero bytes are priced differently
         let nonZeroBytes: bigint = 0n;
@@ -319,7 +326,7 @@ class Transaction extends (EthereumJsTransaction as any) {
    * Compute the 'intrinsic gas' for a message with the given data.
    */
   public calculateIntrinsicGas(): bigint {
-    return Transaction.calculateIntrinsicGas(this.data, this._common._hardfork)
+    return Transaction.calculateIntrinsicGas(this.data, this._common._hardfork);
   }
 
   /**
@@ -447,10 +454,10 @@ class Transaction extends (EthereumJsTransaction as any) {
 
   /**
    * Initializes the receipt and logs
-   * @param result 
+   * @param result
    * @returns RLP encoded data for use in a transaction trie
    */
-  fillFromResult (result: RunTxResult, cumulativeGasUsed: bigint) {
+  fillFromResult(result: RunTxResult, cumulativeGasUsed: bigint) {
     const vmResult = result.execResult;
     const execException = vmResult.exceptionError;
     let status: Buffer;
@@ -461,24 +468,25 @@ class Transaction extends (EthereumJsTransaction as any) {
       status = ONE_BUFFER;
     }
 
-    const receipt = this.#receipt = TransactionReceipt.fromValues(
-      status, Quantity.from(cumulativeGasUsed).toBuffer(),
+    const receipt = (this.#receipt = TransactionReceipt.fromValues(
+      status,
+      Quantity.from(cumulativeGasUsed).toBuffer(),
       result.bloom.bitvector,
-      (this.#logs = vmResult.logs || [] as TransactionLog[]),
+      (this.#logs = vmResult.logs || ([] as TransactionLog[])),
       result.createdAddress,
       result.gasUsed.toBuffer()
-    );
+    ));
 
     return receipt.serialize(false);
-  };
+  }
 
   getReceipt() {
     return this.#receipt;
-  };
+  }
 
   getLogs() {
     return this.#logs;
-  };
+  }
 
   public execException: RuntimeError = null;
 }

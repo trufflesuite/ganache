@@ -16,7 +16,7 @@ describe("api", () => {
         });
 
         after(async () => {
-          provider && await provider.disconnect();
+          provider && (await provider.disconnect());
         });
 
         it("should return 0x for null address", async () => {
@@ -48,26 +48,31 @@ describe("api", () => {
           provider = await getProvider();
           accounts = await provider.send("eth_accounts");
           await provider.send("eth_subscribe", ["newHeads"]);
-          const transactionHash = await provider.send("eth_sendTransaction", [{
-            from: accounts[0],
-            data: contract.code,
-            gas: 3141592
-          }]);
+          const transactionHash = await provider.send("eth_sendTransaction", [
+            {
+              from: accounts[0],
+              data: contract.code,
+              gas: 3141592
+            }
+          ]);
           await provider.once("message");
           const transactionReceipt = await provider.send("eth_getTransactionReceipt", [transactionHash]);
           contractAddress = transactionReceipt.contractAddress;
           assert(contractAddress !== null, "Contract wasn't deployed as expected");
-          
-          blockNumber =  Quantity.from(transactionReceipt.blockNumber);
+
+          blockNumber = Quantity.from(transactionReceipt.blockNumber);
         });
 
-        it("should return the code at the deployed block number", async function() {
+        it("should return the code at the deployed block number", async () => {
           const code = await provider.send("eth_getCode", [contractAddress, blockNumber.toString()]);
           assert.strictEqual(code, `0x${contract.contract.evm.deployedBytecode.object}`);
         });
 
-        it("should return the no code at the previous block number", async function() {
-          const code = await provider.send("eth_getCode", [contractAddress, Quantity.from(blockNumber.toBigInt() - 1n).toString()]);
+        it("should return the no code at the previous block number", async () => {
+          const code = await provider.send("eth_getCode", [
+            contractAddress,
+            Quantity.from(blockNumber.toBigInt() - 1n).toString()
+          ]);
           assert.strictEqual(code, "0x");
         });
       });

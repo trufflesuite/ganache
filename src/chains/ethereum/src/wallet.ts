@@ -9,7 +9,7 @@ import HDKey from "hdkey";
 import { alea as rng } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
-import {writeFileSync} from "fs";
+import { writeFileSync } from "fs";
 import { EthereumInternalOptions } from "./options";
 
 //#region Constants
@@ -44,13 +44,17 @@ const uncompressedPublicKeyToAddress = (uncompressedPublicKey: Buffer) => {
   const hasher = createKeccakHash("keccak256");
   (hasher as any)._state.absorb(compresedPublicKey);
   return Address.from(hasher.digest().slice(-20));
-}
+};
 
 const asUUID = (uuid: Buffer | { length: 16 }) => {
-  return `${uuid.toString("hex", 0, 4)}-${uuid.toString("hex", 4, 6)}-${uuid.toString("hex", 6, 8)}-${uuid.toString("hex", 8, 10)}-${uuid.toString("hex", 10)}`;
-}
+  return `${uuid.toString("hex", 0, 4)}-${uuid.toString("hex", 4, 6)}-${uuid.toString("hex", 6, 8)}-${uuid.toString(
+    "hex",
+    8,
+    10
+  )}-${uuid.toString("hex", 10)}`;
+};
 
-type ThenArg<T> = T extends PromiseLike<infer U> ? U : T
+type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 type EncryptType = ThenArg<ReturnType<Wallet["encrypt"]>>;
 
 export default class Wallet {
@@ -66,7 +70,7 @@ export default class Wallet {
   constructor(opts: EthereumInternalOptions["wallet"]) {
     this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
 
-    const initialAccounts = this.initialAccounts = this.#initializeAccounts(opts);
+    const initialAccounts = (this.initialAccounts = this.#initializeAccounts(opts));
     const l = initialAccounts.length;
 
     const knownAccounts = this.knownAccounts;
@@ -90,7 +94,7 @@ export default class Wallet {
               // don't use parseInt because strings like `"123abc"` parse
               // to `123`, and there is probably an error on the user's side we'd
               // want to uncover.
-              const index = (arg as any as number) - 0;
+              const index = ((arg as any) as number) - 0;
               // if we don't have a valid number, or the number isn't a valid JS
               // integer (no bigints or decimals, please), throw an error.
               if (!Number.isSafeInteger(index)) {
@@ -137,12 +141,12 @@ export default class Wallet {
       unlockedAccounts.set(strAddress, account.privateKey);
     }
     //#endregion
-  
+
     //#region save accounts to disk
     if (opts.accountKeysPath != null) {
       const fileData = {
-        addresses: {} as {[address: string]: string},
-        private_keys: {} as {[address: string]: Data}
+        addresses: {} as { [address: string]: string },
+        private_keys: {} as { [address: string]: Data }
       };
       unlockedAccounts.forEach((privateKey, address) => {
         fileData.addresses[address] = address;
@@ -165,7 +169,7 @@ export default class Wallet {
       buf[i] = (rand() * 255) | 0;
     }
     return buf;
-  }
+  };
 
   #initializeAccounts = (options: EthereumInternalOptions["wallet"]): Account[] => {
     // convert a potentially fractional balance of Ether to WEI
@@ -174,7 +178,7 @@ export default class Wallet {
     const fractionalStr = balanceParts[1] || "0";
     const fractional = BigInt(fractionalStr);
     const magnitude = 10n ** BigInt(fractionalStr.length);
-    const defaultBalanceInWei = (WEI * significand) + (fractional * (WEI / magnitude));
+    const defaultBalanceInWei = WEI * significand + fractional * (WEI / magnitude);
     const etherInWei = Quantity.from(defaultBalanceInWei);
     let accounts: Account[];
 
@@ -196,7 +200,7 @@ export default class Wallet {
           accounts[i] = Wallet.createAccount(Quantity.from(account.balance), privateKey, address);
         } else {
           privateKey = Data.from(secretKey);
-          const a = accounts[i] = Wallet.createAccountFromPrivateKey(privateKey);
+          const a = (accounts[i] = Wallet.createAccountFromPrivateKey(privateKey));
           a.balance = Quantity.from(account.balance);
         }
       }
@@ -226,10 +230,15 @@ export default class Wallet {
     const iv = random.slice(32, 32 + 16); // next 16 bytes
     const uuid = random.slice(32 + 16); // last 16 bytes
 
-    const derivedKey = await scrypt(passphrase, salt, SCRYPT_PARAMS.dklen, { ...SCRYPT_PARAMS, N: SCRYPT_PARAMS.n });
+    const derivedKey = await scrypt(passphrase, salt, SCRYPT_PARAMS.dklen, {
+      ...SCRYPT_PARAMS,
+      N: SCRYPT_PARAMS.n
+    });
     const cipher = crypto.createCipheriv(CIPHER, derivedKey.slice(0, 16), iv);
     const ciphertext = Buffer.concat([cipher.update(privateKey.toBuffer()), cipher.final()]);
-    const mac = createKeccakHash("keccak256").update(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).digest();
+    const mac = createKeccakHash("keccak256")
+      .update(Buffer.concat([derivedKey.slice(16, 32), ciphertext]))
+      .digest();
     return {
       crypto: {
         cipher: CIPHER,
@@ -269,7 +278,9 @@ export default class Wallet {
     if (passphrase != null) {
       try {
         derivedKey = await scrypt(passphrase, salt.toBuffer(), kdfParams.dklen, { ...kdfParams, N: kdfParams.n });
-        localMac = createKeccakHash("keccak256").update(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).digest();
+        localMac = createKeccakHash("keccak256")
+          .update(Buffer.concat([derivedKey.slice(16, 32), ciphertext]))
+          .digest();
       } catch {
         localMac = null;
       }
@@ -360,7 +371,7 @@ export default class Wallet {
     this.lockTimers.delete(lowerAddress);
     this.unlockedAccounts.delete(lowerAddress);
     return true;
-  }
+  };
 
   public lockAccount(lowerAddress: string) {
     if (!this.unlockedAccounts.has(lowerAddress)) return false;

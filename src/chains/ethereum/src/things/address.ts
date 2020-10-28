@@ -1,8 +1,8 @@
-import {Data} from "@ganache/utils";
+import { Data } from "@ganache/utils";
 
 class Address extends Data {
   /**
-   * 
+   *
    * @param value
    * @param byteLength the exact length the value represents when encoded as
    * Ethereum JSON-RPC DATA.
@@ -12,4 +12,4 @@ class Address extends Data {
   }
 }
 
-export default Address
+export default Address;

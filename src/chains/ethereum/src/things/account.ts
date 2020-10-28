@@ -1,6 +1,6 @@
-import {Data, Quantity} from "@ganache/utils";
+import { Data, Quantity } from "@ganache/utils";
 import Address from "./address";
-import {rlp, KECCAK256_RLP, KECCAK256_NULL} from "ethereumjs-util";
+import { rlp, KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
 import { utils } from "@ganache/utils";
 
 const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;

@@ -1,4 +1,3 @@
-
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
@@ -58,7 +57,7 @@ describe("api", () => {
         const block = await provider.send("eth_getBlockByNumber", ["0x1"]);
 
         const result = await provider.send("eth_getUncleByBlockHashAndIndex", [block.hash, "0x0"]);
-        assert.deepStrictEqual(result, null)
+        assert.deepStrictEqual(result, null);
       });
 
       it("eth_getUncleByBlockNumberAndIndex", async () => {
@@ -73,7 +72,7 @@ describe("api", () => {
         await provider.once("message");
 
         const result = await provider.send("eth_getUncleByBlockNumberAndIndex", ["0x1", "0x0"]);
-        assert.deepStrictEqual(result, null)
+        assert.deepStrictEqual(result, null);
       });
     });
   });

@@ -1,7 +1,7 @@
 declare module "ethereumjs-block/header" {
   import BN from "bn.js";
-  import {Block} from "ethereumjs-block";
-  import {Blockchain} from "ethereumjs-blockchain";
+  import { Block } from "ethereumjs-block";
+  import { Blockchain } from "ethereumjs-blockchain";
 
   type LargeNumber = string | Buffer | BN;
   type Callback<T> = (err: Error | null, result: T) => void;

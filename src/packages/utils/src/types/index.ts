@@ -6,7 +6,7 @@ import { Api } from "./api";
 
 export type KnownKeys<T> = {
   [K in keyof T]: string extends K ? never : number extends K ? never : K;
-} extends {[_ in keyof T]: infer U}
+} extends { [_ in keyof T]: infer U }
   ? U
   : never;
 
@@ -18,6 +18,6 @@ export type RequestType<T extends Api = Api> = (eventDetails: {
 
 declare global {
   interface JSON {
-      parse(text: Buffer, reviver?: (key: any, value: any) => any): any;
+    parse(text: Buffer, reviver?: (key: any, value: any) => any): any;
   }
 }

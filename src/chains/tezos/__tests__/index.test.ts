@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-const tezos = require('..');
+const tezos = require("..");
 
-describe('@ganache/tezos', () => {
-    it('needs tests');
+describe("@ganache/tezos", () => {
+  it("needs tests");
 });

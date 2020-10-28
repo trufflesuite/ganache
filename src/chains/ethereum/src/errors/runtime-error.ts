@@ -14,12 +14,12 @@ export enum RETURN_TYPES {
 export default class RuntimeError extends CodedError {
   public code: typeof ErrorCodes.INVALID_INPUT;
   public data: {
-    hash: string,
-    programCounter: number,
-    result: string,
-    reason?: string,
-    message: string
-  }
+    hash: string;
+    programCounter: number;
+    result: string;
+    reason?: string;
+    message: string;
+  };
   constructor(transactionHash: Buffer, result: EVMResult, returnType: RETURN_TYPES) {
     const execResult = result.execResult;
     const error = execResult.exceptionError.error;

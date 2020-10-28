@@ -3,7 +3,7 @@ declare module "hdkey" {
     xpriv: string;
     xpub: string;
   };
-  type HDKeyVersions = {private: number; public: number};
+  type HDKeyVersions = { private: number; public: number };
   export default class HDKey {
     public versions: HDKeyVersions;
     public depth: number;

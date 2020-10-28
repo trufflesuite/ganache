@@ -1,4 +1,4 @@
-import {types} from "@ganache/utils";
+import { types } from "@ganache/utils";
 
 export default class TezosApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;

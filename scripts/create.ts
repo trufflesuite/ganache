@@ -1,16 +1,16 @@
 // TODO: make this its own package?
 
-import {mkdir, mkdirSync, writeFile} from "fs-extra";
+import chalk from "chalk";
 import yargs from "yargs";
-import {join, resolve} from "path";
 import prettier from "prettier";
-import {version} from "../lerna.json";
 import camelCase from "camelcase";
 import npa from "npm-package-arg";
-import { lstatSync as lstat, readdirSync as readDir, readFileSync as readFile } from "fs";
-import chalk from "chalk";
-import { highlight } from "cli-highlight";
 import userName from "git-user-name";
+import { join, resolve } from "path";
+import { version } from "../lerna.json";
+import { highlight } from "cli-highlight";
+import { mkdir, mkdirSync, writeFile } from "fs-extra";
+import { lstatSync as lstat, readdirSync as readDir, readFileSync as readFile } from "fs";
 
 const isDir = (s: string) => lstat(s).isDirectory();
 const getDirectories = (s: string) => readDir(s).filter(n => isDir(join(s, n)));
@@ -23,11 +23,14 @@ const COLORS = {
 
 const scopes = getDirectories(join(__dirname, "../src"));
 const argv = yargs
-  .command(`$0 <name> --location`, `Create a new package in the given location with the provided name.`, (yargs) => {
+  .command(`$0 <name> --location`, `Create a new package in the given location with the provided name.`, yargs => {
     return yargs
       .usage(
         chalk`{hex("#e4a663").bold Create a new package in the given location with the provided name.}\n\n` +
-        chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}${scopes.join(chalk.dim(" | "))}{dim >}`)
+          chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}${scopes.join(
+            chalk.dim(" | ")
+          )}{dim >}`
+      )
       .positional("<name>", {
         describe: `        The name of the new package`,
         type: "string",
@@ -41,7 +44,7 @@ const argv = yargs
         choices: scopes,
         type: "string",
         demandOption: true
-      })
+      });
   })
   .demandCommand()
   .version(false)
@@ -50,10 +53,10 @@ const argv = yargs
     "Positionals:": chalk.bold("Options"),
     "Options:": ` `,
     "Not enough non-option arguments: got %s, need at least %s": {
-        "one": chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`,
-        "other": chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`
-      } as any,
-      "Invalid values:": `${COLORS.FgRed}${COLORS.Bold}ERROR! Invalid values:${COLORS.Reset}${COLORS.FgRed}`
+      one: chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`,
+      other: chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`
+    } as any,
+    "Invalid values:": `${COLORS.FgRed}${COLORS.Bold}ERROR! Invalid values:${COLORS.Reset}${COLORS.FgRed}`
   })
   .fail((msg, err, yargs) => {
     // we use a custom `fail` fn so that NPM doesn't print its own giant error message.
@@ -63,8 +66,7 @@ const argv = yargs
     console.error();
     console.error(msg);
     process.exit(0);
-  })
-.argv;
+  }).argv;
 process.stdout.write(`${COLORS.Reset}`);
 
 (async function () {
@@ -102,7 +104,8 @@ process.stdout.write(`${COLORS.Reset}`);
       scripts: {
         tsc: "ts-node ../../../scripts/compile",
         test: "nyc npm run mocha",
-        mocha: "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**/*.test.ts'"
+        mocha:
+          "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**/*.test.ts'"
       },
       bugs: {
         url: "https://github.com/trufflesuite/ganache-core/issues"
@@ -147,12 +150,14 @@ export * from "./src/index";
     const src = join(dir, "src");
 
     function initSrc() {
-      return writeFile(join(src, "index.ts"), prettier.format(indexFile, {...prettierConfig, parser: "typescript"}));
+      return writeFile(join(src, "index.ts"), prettier.format(indexFile, { ...prettierConfig, parser: "typescript" }));
     }
 
     function initRootIndex() {
       return Promise.all([
-        writeFile(join(dir, ".npmignore"), `./index.ts
+        writeFile(
+          join(dir, ".npmignore"),
+          `./index.ts
 __tests__
 .nyc_output
 coverage
@@ -160,8 +165,15 @@ scripts
 src
 tsconfig.json
 typedoc.json
-`),
-        writeFile(join(dir, "index.ts"), prettier.format(rootIndexFile, {...prettierConfig, parser: "typescript"})),
+`
+        ),
+        writeFile(
+          join(dir, "index.ts"),
+          prettier.format(rootIndexFile, {
+            ...prettierConfig,
+            parser: "typescript"
+          })
+        ),
         writeFile(join(dir, "LICENSE"), LICENSE)
       ]);
     }
@@ -169,7 +181,7 @@ typedoc.json
     function initTests() {
       return writeFile(
         join(tests, "index.test.ts"),
-        prettier.format(testFile, {...prettierConfig, parser: "typescript"})
+        prettier.format(testFile, { ...prettierConfig, parser: "typescript" })
       );
     }
 
@@ -185,25 +197,27 @@ typedoc.json
       initRootIndex(),
       mkdir(tests).then(initTests),
       mkdir(src).then(initSrc),
-      writeFile(
-        join(dir, "tsconfig.json"),
-        JSON.stringify(tsConfig, null, 2) + "\n"
-      ),
+      writeFile(join(dir, "tsconfig.json"), JSON.stringify(tsConfig, null, 2) + "\n"),
       writeFile(
         join(dir, "README.md"),
-        prettier.format(`# ${packageName}\n> TODO: description`, {...prettierConfig, parser: "markdown"})
+        prettier.format(`# ${packageName}\n> TODO: description`, {
+          ...prettierConfig,
+          parser: "markdown"
+        })
       ),
       writeFile(pkgPath, pkgStr),
       writeFile(join(dir, "npm-shrinkwrap.json"), JSON.stringify(shrinkwrap) + "\n")
     ]);
 
-    console.log(highlight(pkgStr, {
-      language: "json",
-      theme: {
-        attr: chalk.hex("#3FE0C5"),
-        string: chalk.hex("#e4a663")
-      }
-    }));
+    console.log(
+      highlight(pkgStr, {
+        language: "json",
+        theme: {
+          attr: chalk.hex("#3FE0C5"),
+          string: chalk.hex("#e4a663")
+        }
+      })
+    );
 
     console.log(
       chalk`{green success} {magenta create} New package {bgBlack  ${name} } created. New package created at ./src/packages/${name}.\n\n  package.json: {bold ${dir}/package.json}`
@@ -211,8 +225,6 @@ typedoc.json
   } catch (e) {
     console.error(e);
     console.log("");
-    console.log(
-      chalk`{red fail} {magenta create} New package {bgBlack  ${name} } not created. See error above.`
-    );
+    console.log(chalk`{red fail} {magenta create} New package {bgBlack  ${name} } not created. See error above.`);
   }
 })();

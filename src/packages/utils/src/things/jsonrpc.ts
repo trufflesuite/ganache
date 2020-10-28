@@ -1,5 +1,5 @@
 import { Api, KnownKeys } from "../types";
-type JSError = Error
+type JSError = Error;
 
 namespace JsonRpc {
   const jsonrpc = "2.0";
@@ -19,11 +19,11 @@ namespace JsonRpc {
   };
   export type Error = JsonRpc & {
     readonly error: {
-      readonly [key: string]: unknown,
+      readonly [key: string]: unknown;
       readonly code: number;
       readonly message: any;
     };
-    readonly result?: any
+    readonly result?: any;
   };
   export const Request = <Ledger extends Api>(json: any): Request<Ledger> => {
     return {
@@ -40,11 +40,11 @@ namespace JsonRpc {
       result
     };
   };
-  export const Error = <T extends JSError & {code: number}>(id: string, error: T, result?: unknown): Error => {
-    type E = {[K in keyof T]: K extends string ? T[K] : never};
+  export const Error = <T extends JSError & { code: number }>(id: string, error: T, result?: unknown): Error => {
+    type E = { [K in keyof T]: K extends string ? T[K] : never };
     // Error objects are weird, `message` isn't included in the property names,
     // so it is pulled out separately.
-    const details = {message: error.message} as E;
+    const details = { message: error.message } as E;
     Object.getOwnPropertyNames(error).forEach(name => {
       if (typeof name === "string") {
         details[name] = error[name];

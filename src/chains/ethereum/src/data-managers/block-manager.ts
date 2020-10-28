@@ -2,9 +2,9 @@ import EthereumJsBlock from "ethereumjs-block";
 import Manager from "./manager";
 import Tag from "../things/tags";
 import { LevelUp } from "levelup";
-import {Quantity, Data} from "@ganache/utils";
+import { Quantity, Data } from "@ganache/utils";
 import Transaction from "../things/transaction";
-import {decode as rlpDecode} from "rlp";
+import { decode as rlpDecode } from "rlp";
 import Common from "ethereumjs-common";
 import { utils } from "@ganache/utils";
 
@@ -78,12 +78,12 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST ) {
+  getEffectiveNumber(tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST) {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {
-        const blockNumber = block.value.header.number;;
-        if (blockNumber.length === 0){
+        const blockNumber = block.value.header.number;
+        if (blockNumber.length === 0) {
           return Quantity.from(Buffer.from([0]));
         } else {
           return Quantity.from(blockNumber);
@@ -147,16 +147,14 @@ export default class BlockManager extends Manager<Block> {
       key = Buffer.from([0]);
     }
     const secondaryKey = header.hash();
-    await Promise.all([
-      this.#blockIndexes.put(secondaryKey, key),
-      super.set(key, block.serialize())
-    ]);
+    await Promise.all([this.#blockIndexes.put(secondaryKey, key), super.set(key, block.serialize())]);
     return block;
   }
 
   updateTaggedBlocks() {
     return new Promise<Block>((resolve, reject) => {
-      this.base.createValueStream({limit: 1})
+      this.base
+        .createValueStream({ limit: 1 })
         .on("data", (data: Buffer) => {
           this.earliest = new Block(data, this.#common);
         })
@@ -167,7 +165,8 @@ export default class BlockManager extends Manager<Block> {
           resolve(void 0);
         });
 
-      this.base.createValueStream({reverse: true, limit: 1})
+      this.base
+        .createValueStream({ reverse: true, limit: 1 })
         .on("data", (data: Buffer) => {
           this.latest = new Block(data, this.#common);
         })
@@ -177,7 +176,7 @@ export default class BlockManager extends Manager<Block> {
         .on("end", () => {
           resolve(void 0);
         });
-    })
+    });
   }
 }
 
@@ -187,7 +186,7 @@ export class Block {
     if (raw) {
       this.size = raw.length;
       const data = (rlpDecode(raw) as any) as [Buffer[], Buffer[], Buffer[]];
-      this.value = new EthereumJsBlock({header: data[0], uncleHeaders: data[2]}, {common});
+      this.value = new EthereumJsBlock({ header: data[0], uncleHeaders: data[2] }, { common });
       const rawTransactions = data[1];
 
       // parse transactions so we can use our own transaction class
@@ -196,7 +195,7 @@ export class Block {
         this.value.transactions.push(tx);
       }
     } else {
-      this.value = new EthereumJsBlock(null, {common});
+      this.value = new EthereumJsBlock(null, { common });
       this.size = 0;
     }
   }
@@ -209,7 +208,7 @@ export class Block {
     return serialized;
   }
 
-  getTxFn = (include = false): ((tx: Transaction) => {[key: string]: string | Data | Quantity} | Data) => {
+  getTxFn = (include = false): ((tx: Transaction) => { [key: string]: string | Data | Quantity } | Data) => {
     if (include) {
       return (tx: Transaction) => tx.toJSON(this);
     } else {

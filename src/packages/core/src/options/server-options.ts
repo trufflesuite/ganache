@@ -1,4 +1,4 @@
-import { Definitions} from "@ganache/options";
+import { Definitions } from "@ganache/options";
 
 export type ServerConfig = {
   options: {
@@ -8,7 +8,7 @@ export type ServerConfig = {
     readonly port: {
       type: number;
       hasDefault: true;
-    },
+    };
 
     /**
      * Enable a websocket server. This is `true` by default.
@@ -16,21 +16,21 @@ export type ServerConfig = {
     readonly ws: {
       type: boolean;
       hasDefault: true;
-    },
+    };
 
     /**
      * Wether or not websockets should response with binary data (ArrayBuffers) or
      * strings.
-     * 
+     *
      * Default is "auto", which responds using the same format as the incoming
      * message that triggered the response.
      */
     readonly wsBinary: {
       type: boolean | "auto";
       hasDefault: true;
-    }
-  },
-  exclusiveGroups: []
+    };
+  };
+  exclusiveGroups: [];
 };
 
 export const ServerOptions: Definitions<ServerConfig> = {
@@ -46,4 +46,4 @@ export const ServerOptions: Definitions<ServerConfig> = {
     normalize: rawInput => rawInput,
     default: () => "auto"
   }
-}
+};

@@ -1,9 +1,9 @@
 import { hasOwn } from "./has-own";
 import { KnownKeys, Api } from "../types";
-import {RequestCoordinator} from "./request-coordinator";
+import { RequestCoordinator } from "./request-coordinator";
 
 export class Executor {
-  #requestCoordinator: RequestCoordinator
+  #requestCoordinator: RequestCoordinator;
 
   /**
    * The Executor handles execution of methods on the given API
@@ -17,11 +17,7 @@ export class Executor {
    * @param methodName The name of the JSON-RPC method to execute.
    * @param params The params to pass to the JSON-RPC method.
    */
-  public execute <T extends Api, M extends KnownKeys<T>>(
-    api: T,
-    methodName: M,
-    params: Parameters<T[M]>
-  ) {
+  public execute<T extends Api, M extends KnownKeys<T>>(api: T, methodName: M, params: Parameters<T[M]>) {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
@@ -47,5 +43,5 @@ export class Executor {
     }
 
     throw new Error(`The method ${methodName} does not exist/is not available`);
-  };
+  }
 }

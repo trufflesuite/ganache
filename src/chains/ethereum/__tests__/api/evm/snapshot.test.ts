@@ -3,20 +3,20 @@ import { join } from "path";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 
-const eth = "0x" + (1000000000000000000n).toString(16);
+const eth = "0x" + 1000000000000000000n.toString(16);
 
-describe("api", function() {
-  describe("evm", function() {
-    describe("snapshot / revert", function() {
+describe("api", () => {
+  describe("evm", () => {
+    describe("snapshot / revert", () => {
       let context = {} as any;
       let startingBalance;
       let snapshotId;
 
-      beforeEach("Set up provider and deploy a contract", async function() {
+      beforeEach("Set up provider and deploy a contract", async () => {
         const contract = compile(join(__dirname, "./snapshot.sol"));
 
         const p = await getProvider({
-          miner: {defaultTransactionGasLimit: 6721975}
+          miner: { defaultTransactionGasLimit: 6721975 }
         });
         const accounts = await p.send("eth_accounts");
         const from = accounts[3];
@@ -24,12 +24,12 @@ describe("api", function() {
         await p.send("eth_subscribe", ["newHeads"]);
 
         const transactionHash = await p.send("eth_sendTransaction", [
-            {
-              from,
-              data: contract.code
-            }
+          {
+            from,
+            data: contract.code
+          }
         ]);
-      
+
         await p.once("message");
 
         const receipt = await p.send("eth_getTransactionReceipt", [transactionHash]);
@@ -46,29 +46,31 @@ describe("api", function() {
             const tx = {
               to,
               data: "0x" + methods["n()"]
-            }
+            };
             return p.send("eth_call", [tx]);
           },
           inc: async (tx: any) => {
             tx.from ||= accounts[0];
-            tx.to = to
+            tx.to = to;
             tx.data = "0x" + methods["inc()"];
             const hash = await p.send("eth_sendTransaction", [tx]);
             await p.once("message");
             return await p.send("eth_getTransactionByHash", [hash]);
           }
-        }
+        };
       });
 
-      beforeEach("send a transaction then make a checkpoint", async function() {
-        const { accounts, send, provider } = context
+      beforeEach("send a transaction then make a checkpoint", async () => {
+        const { accounts, send, provider } = context;
 
-        await send("eth_sendTransaction",[{
-          from: accounts[0],
-          to: accounts[1],
-          value: eth,
-          gas: 90000
-        }]);
+        await send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: accounts[1],
+            value: eth,
+            gas: 90000
+          }
+        ]);
 
         await provider.once("message");
 
@@ -84,16 +86,18 @@ describe("api", function() {
         snapshotId = await send("evm_snapshot");
       });
 
-      it("rolls back successfully", async() => {
+      it("rolls back successfully", async () => {
         const { accounts, send, provider } = context;
 
         // Send another transaction, check the balance, then roll it back to the old one and check the balance again.
-        const transactionHash = await send("eth_sendTransaction",[{
-          from: accounts[0],
-          to: accounts[1],
-          value: eth,
-          gas: 90000
-        }]);
+        const transactionHash = await send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: accounts[1],
+            value: eth,
+            gas: 90000
+          }
+        ]);
 
         await provider.once("message");
 
@@ -116,7 +120,7 @@ describe("api", function() {
         assert.strictEqual(oldReceipt, null, "Receipt should be null as it should have been removed");
       });
 
-      it("returns false when reverting a snapshot that doesn't exist", async() => {
+      it("returns false when reverting a snapshot that doesn't exist", async () => {
         const { send } = context;
 
         const snapShotId1 = await send("evm_snapshot");
@@ -131,7 +135,7 @@ describe("api", function() {
         assert.strictEqual(response4, false, "Reverting a snapshot that has never existed does not work");
       });
 
-      it("checkpoints and reverts without persisting contract storage", async() => {
+      it("checkpoints and reverts without persisting contract storage", async () => {
         const { accounts, instance, send } = context;
 
         const snapShotId = await send("evm_snapshot");
@@ -153,43 +157,52 @@ describe("api", function() {
         assert.strictEqual(parseInt(n4), 43, "n is not 43 after calling `inc` again");
       });
 
-      it("evm_revert rejects invalid subscriptionId types without crashing", async() => {
+      it("evm_revert rejects invalid subscriptionId types without crashing", async () => {
         const { send } = context;
         const ids = [{ foo: "bar" }, true, false, 0.5, Infinity, -Infinity];
         await Promise.all(
-          ids.map((id) => assert.rejects(send("evm_revert", [id]), /Cannot wrap a .+? as a json-rpc type/, "evm_revert did not reject as expected"))
+          ids.map(id =>
+            assert.rejects(
+              send("evm_revert", [id]),
+              /Cannot wrap a .+? as a json-rpc type/,
+              "evm_revert did not reject as expected"
+            )
+          )
         );
       });
 
-      it("evm_revert rejects null/undefined subscriptionId values", async() => {
+      it("evm_revert rejects null/undefined subscriptionId values", async () => {
         const { send } = context;
         const ids = [null, undefined];
         await Promise.all(
-          ids.map((id) =>
+          ids.map(id =>
             assert.rejects(send("evm_revert", [id]), /invalid snapshotId/, "evm_revert did not reject as expected")
           )
         );
       });
 
-      it("evm_revert returns false for out-of-range subscriptionId values", async() => {
+      it("evm_revert returns false for out-of-range subscriptionId values", async () => {
         const { send } = context;
         const ids = [-1, Buffer.from([0])];
-        const promises = ids.map((id) => send("evm_revert", [id]).then(result => assert.strictEqual(result, false)));
+        const promises = ids.map(id => send("evm_revert", [id]).then(result => assert.strictEqual(result, false)));
         await Promise.all(promises);
       });
 
-      it("removes transactions that are already in processing at the start of evm_revert", async() => {
-        const { send, accounts: [from, to] } = context;
+      it("removes transactions that are already in processing at the start of evm_revert", async () => {
+        const {
+          send,
+          accounts: [from, to]
+        } = context;
 
         const snapShotId = await send("evm_snapshot");
 
         // increment value for each transaction so the hashes always differ
         let value = 1;
-        
+
         // send some transactions
         const inFlightTxs = [
-          send("eth_sendTransaction", [{from, to, value: value++}]),
-          send("eth_sendTransaction", [{from, to, value: value++}])
+          send("eth_sendTransaction", [{ from, to, value: value++ }]),
+          send("eth_sendTransaction", [{ from, to, value: value++ }])
         ];
         // wait for the tx hashes to be returned; this is confirmation that
         // they've been accepted by the transaction pool.
@@ -200,10 +213,7 @@ describe("api", function() {
 
         const receiptsProm = Promise.all(txHashes.map(getReceipt));
         const transactionsProm = Promise.all(txHashes.map(getTx));
-        const [receipts, transactions] = await Promise.all([
-          receiptsProm,
-          transactionsProm
-        ]);
+        const [receipts, transactions] = await Promise.all([receiptsProm, transactionsProm]);
 
         // verify that we don't yet have a receipt
         receipts.forEach(receipt => {
@@ -220,10 +230,7 @@ describe("api", function() {
 
         const finalReceiptsProm = Promise.all(txHashes.map(getReceipt));
         const finalTransactionsProm = Promise.all(txHashes.map(getTx));
-        const [finalReceipts, finalTransactions] = await Promise.all([
-          finalReceiptsProm,
-          finalTransactionsProm
-        ]);
+        const [finalReceipts, finalTransactions] = await Promise.all([finalReceiptsProm, finalTransactionsProm]);
 
         // verify that we don't have any receipts
         finalReceipts.forEach(receipt => {
@@ -236,19 +243,23 @@ describe("api", function() {
         });
       });
 
-      it("removes transactions that are in pending transactions at the start of evm_revert", async() => {
-        const { provider, send, accounts: [from, to] } = context;
+      it("removes transactions that are in pending transactions at the start of evm_revert", async () => {
+        const {
+          provider,
+          send,
+          accounts: [from, to]
+        } = context;
 
         const snapShotId = await send("evm_snapshot");
 
         // increment value for each transaction so the hashes always differ
         let value = 1;
-        
+
         // send some transactions
         const accountNonce = parseInt(await send("eth_getTransactionCount", [from]), 16);
         const inFlightTxs = [
-          send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce + 1}]),
-          send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce + 2}])
+          send("eth_sendTransaction", [{ from, to, value: value++, nonce: accountNonce + 1 }]),
+          send("eth_sendTransaction", [{ from, to, value: value++, nonce: accountNonce + 2 }])
         ];
         // wait for the tx hashes to be returned; this is confirmation that
         // they've been accepted by the transaction pool.
@@ -268,7 +279,7 @@ describe("api", function() {
         await send("evm_revert", [snapShotId]);
 
         // mine a transaction to fill in the nonce gap (this would normally cause the pending transactions to be mined)
-        await send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce}]);
+        await send("eth_sendTransaction", [{ from, to, value: value++, nonce: accountNonce }]);
         await provider.once("message");
 
         // and mine one more block just to force the any transactions to be immediately mined
@@ -276,10 +287,7 @@ describe("api", function() {
 
         const finalReceiptsProm = Promise.all(txHashes.map(getReceipt));
         const finalTransactionsProm = Promise.all(txHashes.map(getTx));
-        const [finalReceipts, finalTransactions] = await Promise.all([
-          finalReceiptsProm,
-          finalTransactionsProm
-        ]);
+        const [finalReceipts, finalTransactions] = await Promise.all([finalReceiptsProm, finalTransactionsProm]);
 
         // verify that we don't have any receipts
         finalReceipts.forEach(receipt => {
@@ -292,8 +300,12 @@ describe("api", function() {
         });
       });
 
-      it("doesn't revert transactions that were added *after* the start of evm_revert", async() => {
-        const { provider, send, accounts: [from, to] } = context;
+      it("doesn't revert transactions that were added *after* the start of evm_revert", async () => {
+        const {
+          provider,
+          send,
+          accounts: [from, to]
+        } = context;
 
         const accountNonce = parseInt(await send("eth_getTransactionCount", [from]), 16);
 
@@ -303,22 +315,22 @@ describe("api", function() {
         let value = 1;
 
         // send a transaction so we have something to revert
-        const revertedTx = await send("eth_sendTransaction", [{from, to, value: value++}]);
+        const revertedTx = await send("eth_sendTransaction", [{ from, to, value: value++ }]);
         await provider.once("message");
-        
+
         // revert while these transactions are being mined
         const revertPromise = send("evm_revert", [snapShotId]);
 
         // send some transactions
         const inFlightTxs = [
-          send("eth_sendTransaction", [{from, to, value: value++}]),
-          send("eth_sendTransaction", [{from, to, value: value++}]),
+          send("eth_sendTransaction", [{ from, to, value: value++ }]),
+          send("eth_sendTransaction", [{ from, to, value: value++ }])
         ];
 
         // these two transactions have nonces that are too high to be executed immediately
         const laterTxs = [
-          send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce + 3}]),
-          send("eth_sendTransaction", [{from, to, value: value++, nonce: accountNonce + 3}]),
+          send("eth_sendTransaction", [{ from, to, value: value++, nonce: accountNonce + 3 }]),
+          send("eth_sendTransaction", [{ from, to, value: value++, nonce: accountNonce + 3 }])
         ];
         const txsMinedProm = new Promise(resolve => {
           let count = 0;
@@ -352,10 +364,7 @@ describe("api", function() {
 
         const finalReceiptsProm = Promise.all(txHashes.map(getReceipt));
         const finalTransactionsProm = Promise.all(txHashes.map(getTx));
-        const [finalReceipts, finalTransactions] = await Promise.all([
-          finalReceiptsProm,
-          finalTransactionsProm
-        ]);
+        const [finalReceipts, finalTransactions] = await Promise.all([finalReceiptsProm, finalTransactionsProm]);
 
         // verify that we do have the receipts
         finalReceipts.forEach(receipt => {
@@ -385,7 +394,7 @@ describe("api", function() {
         });
 
         // send one more transaction to fill in the gap
-        send("eth_sendTransaction", [{from, to, value: value++}]);
+        send("eth_sendTransaction", [{ from, to, value: value++ }]);
 
         await new Promise(resolve => {
           let count = 0;

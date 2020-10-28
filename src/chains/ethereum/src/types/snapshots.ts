@@ -1,11 +1,11 @@
 import Emittery from "emittery";
-import {Block} from "../data-managers/block-manager";
+import { Block } from "../data-managers/block-manager";
 
-type SinglyLinkedList<T> = {current: T, next: SinglyLinkedList<T>};
+type SinglyLinkedList<T> = { current: T; next: SinglyLinkedList<T> };
 
 export type Snapshot = {
-  block: Block,
-  timeAdjustment: number
+  block: Block;
+  timeAdjustment: number;
 };
 
 export type Snapshots = {
@@ -21,4 +21,4 @@ export type Snapshots = {
    * Function that should be used to remove the "block" listener
    */
   unsubscribeFromBlocks: Emittery.UnsubscribeFn | null;
-}
+};

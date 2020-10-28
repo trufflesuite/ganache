@@ -17,7 +17,7 @@ import { parse } from "path";
 
 export default function compile(contractPath: string, contractName?: string) {
   const parsedPath = parse(contractPath);
-  const content = readFileSync(contractPath, {encoding: "utf8"});
+  const content = readFileSync(contractPath, { encoding: "utf8" });
   const globalName = parsedPath.base;
   contractName ||= parsedPath.name;
 

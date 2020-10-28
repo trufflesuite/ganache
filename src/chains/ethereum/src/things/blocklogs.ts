@@ -1,10 +1,17 @@
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
 import Address from "./address";
-import {utils} from "@ganache/utils";
+import { utils } from "@ganache/utils";
 
-export type TransactionLog = [address: Buffer, topics: Buffer[], data: Buffer|Buffer[]]
-export type BlockLog = [removed: Buffer, transactionIndex: Buffer, transactionHash: Buffer, address: TransactionLog[0], topics: TransactionLog[1], data: TransactionLog[2]];
+export type TransactionLog = [address: Buffer, topics: Buffer[], data: Buffer | Buffer[]];
+export type BlockLog = [
+  removed: Buffer,
+  transactionIndex: Buffer,
+  transactionHash: Buffer,
+  address: TransactionLog[0],
+  topics: TransactionLog[1],
+  data: TransactionLog[2]
+];
 
 const _raw = Symbol("raw");
 const _logs = Symbol("logs");
@@ -30,20 +37,20 @@ const filterByTopic = (expectedTopics: (string | string[])[], logTopics: Buffer[
     // "OR" logic, e.g., [[A, B]] means log topic in the first position matching either "A" OR "B":
     return expectedTopicSet.some(expectedTopic => logTopic.equals(Data.from(expectedTopic).toBuffer()));
   });
-}
+};
 
 export default class BlockLogs {
   [_raw]: [blockHash: Buffer, blockLog: BlockLog[]];
 
   constructor(data: Buffer) {
     if (data) {
-      const decoded = rlpDecode(data) as unknown as [Buffer, BlockLog[]];
+      const decoded = (rlpDecode(data) as unknown) as [Buffer, BlockLog[]];
       this[_raw] = decoded;
     }
   }
 
   /**
-   * 
+   *
    * @param blockHash Creates an BlogLogs entity with an empty internal logs
    * array.
    */
@@ -62,19 +69,19 @@ export default class BlockLogs {
 
   /**
    * Appends the data to the internal logs array
-   * @param transactionIndex 
-   * @param transactionHash 
-   * @param log 
+   * @param transactionIndex
+   * @param transactionHash
+   * @param log
    */
-  public append(/*removed: boolean, */transactionIndex: Buffer, transactionHash: Buffer, log: TransactionLog) {
+  public append(/*removed: boolean, */ transactionIndex: Buffer, transactionHash: Buffer, log: TransactionLog) {
     this[_raw][1].push([
       utils.BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
-      transactionIndex,  // transactionIndex
-      transactionHash,   // transactionHash
-      log[0],            // `address`
-      log[1],            // `topics`
-      log[2]             // `data`
-    ])
+      transactionIndex, // transactionIndex
+      transactionHash, // transactionHash
+      log[0], // `address`
+      log[1], // `topics`
+      log[2] // `data`
+    ]);
   }
 
   /**
@@ -104,22 +111,26 @@ export default class BlockLogs {
               yield BlockLogs.logToJSON(logs[i], Quantity.from(i), blockHash, blockNumber);
             }
           }
-        }
+        };
       },
       *[Symbol.iterator]() {
         for (let i = 0; i < l; i++) {
           const log = logs[i];
           const address = log[3];
           const topics = log[4];
-          yield { address, topics, toJSON: () => BlockLogs.logToJSON(log, Quantity.from(i), blockHash, blockNumber) };
+          yield {
+            address,
+            topics,
+            toJSON: () => BlockLogs.logToJSON(log, Quantity.from(i), blockHash, blockNumber)
+          };
         }
       }
-    }
+    };
   }
 
   /**
-   * 
-   * @param log 
+   *
+   * @param log
    * @param logIndex The index this log appears in the block
    * @param blockHash The hash of the block
    * @param blockNumber The block number
@@ -143,7 +154,7 @@ export default class BlockLogs {
 
   /**
    * Note: you must set `this.blockNumber: Quantity` first!
-   * 
+   *
    * Topics are order-dependent. A transaction with a log with topics [A, B] will be matched by the following topic
    * filters:
    *  ▸ [] "anything"
@@ -151,11 +162,11 @@ export default class BlockLogs {
    *  ▸ [null, B] "anything in first position AND B in second position (and anything after)"
    *  ▸ [A, B] "A" in first position AND B in second position (and anything after)"
    *  ▸ [[A, B], [A, B]] "(A OR B) in first position AND (A OR B) in second position (and anything after)"
-   * @param expectedAddresses 
-   * @param expectedTopics 
+   * @param expectedAddresses
+   * @param expectedTopics
    * @returns JSON representation of the filtered logs
    */
-  * filter(expectedAddresses: Buffer[], expectedTopics: (string | string[])[]) {
+  *filter(expectedAddresses: Buffer[], expectedTopics: (string | string[])[]) {
     const logs = this[_logs]();
     if (expectedAddresses.length !== 0) {
       if (expectedTopics.length === 0) {

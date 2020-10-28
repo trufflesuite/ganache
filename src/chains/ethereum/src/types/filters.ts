@@ -6,16 +6,19 @@ export enum FilterTypes {
   log,
   block,
   pendingTransaction
+}
+export type Topic = string | string[];
+export type BaseFilterArgs = { address?: string | string[]; topics?: Topic[] };
+export type BlockHashFilterArgs = BaseFilterArgs & { blockHash?: string };
+export type RangeFilterArgs = BaseFilterArgs & {
+  fromBlock?: string | Tag;
+  toBlock?: string | Tag;
 };
-export type Topic = string|string[];
-export type BaseFilterArgs = {address?: string | string[], topics?: Topic[]};
-export type BlockHashFilterArgs = BaseFilterArgs & {blockHash?: string};
-export type RangeFilterArgs = BaseFilterArgs & {fromBlock?: string | Tag, toBlock?: string | Tag};
 export type FilterArgs = BlockHashFilterArgs | RangeFilterArgs;
 
 export type Filter = {
-  type: FilterTypes,
-  updates: Data[],
-  unsubscribe: Emittery.UnsubscribeFn,
-  filter: FilterArgs
+  type: FilterTypes;
+  updates: Data[];
+  unsubscribe: Emittery.UnsubscribeFn;
+  filter: FilterArgs;
 };

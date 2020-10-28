@@ -16,29 +16,29 @@ describe("api", () => {
       accounts = await provider.send("eth_accounts");
     });
 
-    describe("eth_coinbase", function() {
-      it("should return correct address", async function() {
+    describe("eth_coinbase", () => {
+      it("should return correct address", async () => {
         const coinbase = await provider.send("eth_coinbase");
         assert.strictEqual(coinbase, "0x" + "0".repeat(40));
       });
     });
 
-    describe("eth_mining", function() {
+    describe("eth_mining", () => {
       it("should return true", async () => {
         const result = await provider.send("eth_mining");
         assert.strictEqual(result, true);
       });
     });
 
-    describe("eth_syncing", function() {
+    describe("eth_syncing", () => {
       it("should return true", async () => {
         const result = await provider.send("eth_syncing");
         assert.strictEqual(result, false);
       });
     });
 
-    describe("eth_hashrate", function() {
-      it("should return hashrate of zero", async function() {
+    describe("eth_hashrate", () => {
+      it("should return hashrate of zero", async () => {
         const result = await provider.send("eth_hashrate");
         assert.deepStrictEqual(result, "0x0");
       });
@@ -87,33 +87,33 @@ describe("api", () => {
 
       it("should use the default chain id when signing transactions", async () => {
         await provider.send("eth_subscribe", ["newHeads"]);
-        const txHash = await provider.send("eth_sendTransaction", [{from: accounts[0], to: accounts[0]}]);
+        const txHash = await provider.send("eth_sendTransaction", [{ from: accounts[0], to: accounts[0] }]);
         await provider.once("message");
         const tx = await provider.send("eth_getTransactionByHash", [txHash]);
         assert.strictEqual(tx.v, "0xa95");
       });
 
       it("chainid option should change the chain id", async () => {
-        const provider = await getProvider({chain: {chainId: 1234}});
+        const provider = await getProvider({ chain: { chainId: 1234 } });
         const result = await provider.send("eth_chainId");
         assert.deepStrictEqual(result, "0x4d2");
       });
     });
 
     describe("eth_getBalance", () => {
-      it("should return initial balance", async() => {
+      it("should return initial balance", async () => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);
         assert.strictEqual(balance, "0x56bc75e2d63100000");
       });
 
-      it("should return 0 for non-existent account", async() => {
+      it("should return 0 for non-existent account", async () => {
         const balance = await provider.send("eth_getBalance", ["0x1234567890123456789012345678901234567890"]);
         assert.strictEqual(balance, "0x0");
       });
     });
 
     describe("eth_getTransactionCount", () => {
-      it("should get the tranasction count of the block", async function() {
+      it("should get the tranasction count of the block", async () => {
         const tx = {
           from: accounts[0],
           to: accounts[1],
@@ -130,17 +130,17 @@ describe("api", () => {
 
         // send one tx, then check the count
         await provider.send("miner_stop");
-        await provider.send("eth_sendTransaction", [{...tx}]);
+        await provider.send("eth_sendTransaction", [{ ...tx }]);
         await provider.send("miner_start");
         const message1 = await provider.once("message");
 
         const txCount3 = await provider.send("eth_getTransactionCount", [accounts[0], message1.data.result.number]);
         assert.strictEqual(txCount3, "0x1");
-        
+
         // send two txs, then check the count
         await provider.send("miner_stop");
-        await provider.send("eth_sendTransaction", [{...tx}]);
-        await provider.send("eth_sendTransaction", [{...tx}]);
+        await provider.send("eth_sendTransaction", [{ ...tx }]);
+        await provider.send("eth_sendTransaction", [{ ...tx }]);
         await provider.send("miner_start");
         const message2 = await provider.once("message");
 
@@ -167,49 +167,50 @@ describe("api", () => {
     });
 
     describe("eth_blockNumber", () => {
-      it("should return initial block number of zero", async function() {
+      it("should return initial block number of zero", async () => {
         const blockNumber = await provider.send("eth_blockNumber");
         assert.strictEqual(parseInt(blockNumber, 10), 0);
       });
 
-      it("should increment the block number after a transaction", async function() {
+      it("should increment the block number after a transaction", async () => {
         const tx = {
           from: accounts[0],
           to: accounts[1],
           value: 1
-        }
+        };
 
         const startingBlockNumber = parseInt(await provider.send("eth_blockNumber"));
         await provider.send("eth_subscribe", ["newHeads"]);
-        await provider.send("eth_sendTransaction", [{...tx}]);
+        await provider.send("eth_sendTransaction", [{ ...tx }]);
         await provider.once("message");
         const blockx1 = await provider.send("eth_blockNumber");
         assert.strictEqual(+blockx1, startingBlockNumber + 1);
 
-        const awaitFor = (count) => new Promise(resolve => {
-          let counter = 0;
-          const off = provider.on("message", ((_block: any) => {
-            counter++;
-            if (counter === count) {
-              off();
-              resolve(void 0);
-            }
-          }));
-        });
+        const awaitFor = count =>
+          new Promise(resolve => {
+            let counter = 0;
+            const off = provider.on("message", (_block: any) => {
+              counter++;
+              if (counter === count) {
+                off();
+                resolve(void 0);
+              }
+            });
+          });
 
         let wait = awaitFor(4);
         await Promise.all([
-          provider.send("eth_sendTransaction", [{...tx}]),
-          provider.send("eth_sendTransaction", [{...tx}]),
-          provider.send("eth_sendTransaction", [{...tx}]),
-          provider.send("eth_sendTransaction", [{...tx}])
+          provider.send("eth_sendTransaction", [{ ...tx }]),
+          provider.send("eth_sendTransaction", [{ ...tx }]),
+          provider.send("eth_sendTransaction", [{ ...tx }]),
+          provider.send("eth_sendTransaction", [{ ...tx }])
         ]);
 
         await Promise.all([
-          provider.send("eth_sendTransaction", [{...tx}]),
-          provider.send("eth_sendTransaction", [{...tx}]),
-          provider.send("eth_sendTransaction", [{...tx}]),
-          provider.send("eth_sendTransaction", [{...tx}])
+          provider.send("eth_sendTransaction", [{ ...tx }]),
+          provider.send("eth_sendTransaction", [{ ...tx }]),
+          provider.send("eth_sendTransaction", [{ ...tx }]),
+          provider.send("eth_sendTransaction", [{ ...tx }])
         ]);
         await wait;
         wait = awaitFor(4);
@@ -295,48 +296,56 @@ describe("api", () => {
     });
 
     it("eth_sendTransaction bad data (tiny gas limit)", async () => {
-      await provider.send("eth_sendTransaction", [
-        {
-          from: accounts[0],
-          to: accounts[1],
-          gas: "0x01"
-        }
-      ])
-      .catch(e => {
-        assert.strictEqual(e.code, -32000);
-        assert.strictEqual(e.message, "intrinsic gas too low");
-      })
+      await provider
+        .send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: accounts[1],
+            gas: "0x01"
+          }
+        ])
+        .catch(e => {
+          assert.strictEqual(e.code, -32000);
+          assert.strictEqual(e.message, "intrinsic gas too low");
+        });
     });
 
     it("eth_sendTransaction bad data (huge gas limit)", async () => {
-      await provider.send("eth_sendTransaction", [
-        {
-          from: accounts[0],
-          to: accounts[1],
-          gas: "0xfffffffff"
-        }
-      ])
-      .catch(e => {
-        assert.strictEqual(e.code, -32000);
-        assert.strictEqual(e.message, "exceeds block gas limit");
-      })
+      await provider
+        .send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: accounts[1],
+            gas: "0xfffffffff"
+          }
+        ])
+        .catch(e => {
+          assert.strictEqual(e.code, -32000);
+          assert.strictEqual(e.message, "exceeds block gas limit");
+        });
     });
 
-    it("handles block gas limit errors, callback style", (done) => {
-      provider.send({
-        jsonrpc:"2.0",
-        id: "1",
-        method: "eth_sendTransaction",
-        params: [{
-          from: accounts[0],
-          to: accounts[1],
-          gas: "0xfffffffff" // generates an "exceeds block gas limit" error
-        }]}, (e, r) => {
+    it("handles block gas limit errors, callback style", done => {
+      provider.send(
+        {
+          jsonrpc: "2.0",
+          id: "1",
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: accounts[0],
+              to: accounts[1],
+              gas: "0xfffffffff" // generates an "exceeds block gas limit" error
+            }
+          ]
+        },
+        (e, r) => {
           assert.strictEqual(e.message, "exceeds block gas limit");
           assert.strictEqual((r as any).error.code, -32000);
           assert.strictEqual((r as any).error.message, e.message);
-          done()
-      });
+          done();
+        }
+      );
     });
 
     it("eth_getTransactionByBlockNumberAndIndex", async () => {

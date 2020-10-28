@@ -1,4 +1,4 @@
-import uWS, {TemplatedApp, WebSocket} from "uWebSockets.js";
+import uWS, { TemplatedApp, WebSocket } from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import { ServerOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
@@ -6,25 +6,24 @@ import { PromiEvent } from "@ganache/utils";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 
-type HandlesWebSocketSignature= ((payload: any, connection: WebSocket) => any);
+type HandlesWebSocketSignature = (payload: any, connection: WebSocket) => any;
 
 type WebSocketCapableFlavorMap = {
-  [k in keyof Flavors.ConnectorsByName]:
-    Flavors.ConnectorsByName[k]["handle"] extends HandlesWebSocketSignature
-      ? Flavors.ConnectorsByName[k]
-      : never;
+  [k in keyof Flavors.ConnectorsByName]: Flavors.ConnectorsByName[k]["handle"] extends HandlesWebSocketSignature
+    ? Flavors.ConnectorsByName[k]
+    : never;
 };
 
 export type WebSocketCapableFlavor = {
   [k in keyof WebSocketCapableFlavorMap]: WebSocketCapableFlavorMap[k];
 }[keyof WebSocketCapableFlavorMap];
 
-export type GanacheWebSocket = WebSocket & {closed?: boolean};
+export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
-export type WebsocketServerOptions = Pick<ServerOptions["server"], "wsBinary">
+export type WebsocketServerOptions = Pick<ServerOptions["server"], "wsBinary">;
 
 export default class WebsocketServer {
-  #connections = new Map<WebSocket,Set<() => void>>();
+  #connections = new Map<WebSocket, Set<() => void>>();
   constructor(app: TemplatedApp, connector: WebSocketCapableFlavor, options: WebsocketServerOptions) {
     const connections = this.#connections;
     const wsBinary = options.wsBinary;
@@ -53,10 +52,10 @@ export default class WebsocketServer {
         }
 
         let response: uWS.RecognizedString;
-        
+
         try {
-          const {value} = await connector.handle(payload, ws);
-          
+          const { value } = await connector.handle(payload, ws);
+
           // The socket may have closed while we were waiting for the response
           // Don't bother trying to send to it if it was.
           if (ws.closed) return;
@@ -66,20 +65,24 @@ export default class WebsocketServer {
           if (ws.closed) return;
 
           response = connector.format(result, payload);
-          
+
           // if the result is an emitter listen to its `"message"` event
           if (resultEmitter instanceof PromiEvent) {
             resultEmitter.on("message", (result: any) => {
               // note: we _don't_ need to check if `ws.closed` here because when
               // `ws.closed` is set we remove this event handler anyway.
-              const message = JSON.stringify({jsonrpc: "2.0", method: result.type, params: result.data});
+              const message = JSON.stringify({
+                jsonrpc: "2.0",
+                method: result.type,
+                params: result.data
+              });
               ws.send(message, isBinary, true);
             });
 
             // keep track of listeners to dispose off when the ws disconnects
             connections.get(ws).add(resultEmitter.dispose);
           }
-        } catch(err) {
+        } catch (err) {
           // ensure the connector's `handle` fn doesn't throw outside of a Promise
 
           if (ws.closed) return;

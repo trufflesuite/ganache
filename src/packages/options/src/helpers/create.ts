@@ -6,23 +6,25 @@ import { utils } from "@ganache/utils";
 
 const hasOwn = utils.hasOwn;
 
-export type Options = {[key: string] : Base.Config};
+export type Options = { [key: string]: Base.Config };
 
-export type ProviderOptions<O extends Options> = Partial<{
-  [K in keyof O]: ExternalConfig<O[K]>;
-}>
+export type ProviderOptions<O extends Options> = Partial<
+  {
+    [K in keyof O]: ExternalConfig<O[K]>;
+  }
+>;
 
 export type InternalOptions<O extends Options> = {
   [K in keyof O]: InternalConfig<O[K]>;
-}
+};
 
 export type Defaults<O extends Options> = {
   [K in keyof O]: Definitions<O[K]>;
-}
+};
 
 function fill(defaults: any, options: any, target: any, namespace: any) {
   const def = defaults[namespace];
-  const config = target[namespace] = target[namespace] || {};
+  const config = (target[namespace] = target[namespace] || {});
 
   if (hasOwn(options, namespace)) {
     const userOpts = options[namespace];
@@ -59,7 +61,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
 }
 
 export class OptionsConfig<O extends Options> {
-  #defaults: Defaults<O>
+  #defaults: Defaults<O>;
   #namespaces: UnionToTuple<keyof Defaults<O>>;
 
   constructor(defaults: Defaults<O>) {

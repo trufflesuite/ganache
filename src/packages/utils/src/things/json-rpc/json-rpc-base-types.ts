@@ -1,5 +1,5 @@
-import {bigIntToBuffer} from "../../utils";
-import {uintToBuffer} from "../../utils";
+import { bigIntToBuffer } from "../../utils";
+import { uintToBuffer } from "../../utils";
 
 const EMPTY_BUFFER = Buffer.allocUnsafe(0);
 
@@ -12,7 +12,7 @@ const inspect = Symbol.for("nodejs.util.inspect.custom");
 
 export class BaseJsonRpcType<T extends number | bigint | string | Buffer = number | bigint | string | Buffer> {
   public [Symbol.toStringTag]: string;
-  
+
   protected value: T;
   // used to make console.log debugging a little easier
   private [inspect](_depth: number, _options: any): T {
@@ -28,7 +28,7 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
       const type = typeof value;
       switch (type) {
         case "number":
-          if (value as number % 1 !== 0) {
+          if ((value as number) % 1 !== 0) {
             throw new Error("`Cannot wrap a decimal value as a json-rpc type`");
           }
           toStrings.set(this, () => (value as number).toString(16));
@@ -50,7 +50,9 @@ export class BaseJsonRpcType<T extends number | bigint | string | Buffer = numbe
               return Buffer.from(fixedValue, "hex");
             });
           } else {
-            throw new Error(`cannot convert string value "${value}" into type \`${this.constructor.name}\`; strings must be hex-encoded and prefixed with "0x".`);
+            throw new Error(
+              `cannot convert string value "${value}" into type \`${this.constructor.name}\`; strings must be hex-encoded and prefixed with "0x".`
+            );
           }
           break;
         }

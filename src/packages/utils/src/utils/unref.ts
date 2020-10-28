@@ -1,4 +1,3 @@
-
 /**
  * In node, calling `unref(timer)` on a running timer ensures that the timer
  * does not require that the Node.js event remain active. If there is no other

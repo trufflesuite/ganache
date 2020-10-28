@@ -4,26 +4,26 @@ import getProvider from "../../helpers/getProvider";
 
 describe("api", () => {
   describe("eth", () => {
-    describe("signTypedData", function () {
+    describe("signTypedData", () => {
       let accounts;
       let provider;
 
       // Load account.
-      before(async function () {
+      before(async () => {
         // Account based on https://github.com/ethereum/EIPs/blob/master/assets/eip-712/Example.js
         const acc = {
           balance: "0x0",
           secretKey: createKeccakHash("keccak256").update("cow").digest()
         };
         provider = await getProvider({
-          wallet:{
+          wallet: {
             accounts: [acc]
           }
-        })
+        });
         accounts = await provider.send("eth_accounts");
       });
 
-      it("should produce a signature whose signer can be recovered", async function () {
+      it("should produce a signature whose signer can be recovered", async () => {
         const typedData = {
           types: {
             EIP712Domain: [
@@ -50,8 +50,14 @@ describe("api", () => {
             verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
           },
           message: {
-            from: { name: "Cow", wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826" },
-            to: { name: "Bob", wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB" },
+            from: {
+              name: "Cow",
+              wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            },
+            to: {
+              name: "Bob",
+              wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            },
             contents: "Hello, Bob!"
           }
         };
@@ -63,7 +69,7 @@ describe("api", () => {
         );
       });
 
-      it("should produce a signature whose signer can be recovered (for arrays)", async function () {
+      it("should produce a signature whose signer can be recovered (for arrays)", async () => {
         const typedData = {
           types: {
             EIP712Domain: [

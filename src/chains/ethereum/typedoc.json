@@ -7,10 +7,7 @@
   "ignoreCompilerErrors": true,
   "preserveConstEnums": true,
   "excludeExternals": true,
-  "categoryOrder": [
-  ],
-  "exclude": [
-    "**/test/*"
-  ],
+  "categoryOrder": [],
+  "exclude": ["**/test/*"],
   "target": "ES6"
 }

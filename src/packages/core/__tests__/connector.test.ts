@@ -8,8 +8,8 @@ describe("connector", () => {
   });
 
   it("it logs when `options.verbose` is `true`", async () => {
-    const logger = {log: (_msg: string) => {}};
-    const p = Ganache.provider({logging: {logger, verbose: true}});
+    const logger = { log: (_msg: string) => {} };
+    const p = Ganache.provider({ logging: { logger, verbose: true } });
 
     logger.log = msg => {
       assert.strictEqual(msg, "   >  net_version: undefined", "doesn't work when no params");
@@ -40,7 +40,7 @@ describe("connector", () => {
   });
 
   it("it processes requests syncronously when `asyncRequestProcessing` is `false`", async () => {
-    const p = Ganache.provider({chain:{asyncRequestProcessing: false}});
+    const p = Ganache.provider({ chain: { asyncRequestProcessing: false } });
     const accounts = await p.send("eth_accounts");
     // eth_getBalance should return first even though eth_accounts is faster;
     // eth_getBalance should return before eth_accounts because of the
@@ -78,11 +78,13 @@ describe("connector", () => {
       " ",
       "constructor"
     ] as const;
-    await Promise.all(illegalMethodNames.map(methodName => {
-      assert.rejects(() => p.send(methodName as any), {
-        message: `The method ${methodName} does not exist/is not available`
-      });
-    }));
+    await Promise.all(
+      illegalMethodNames.map(methodName => {
+        assert.rejects(() => p.send(methodName as any), {
+          message: `The method ${methodName} does not exist/is not available`
+        });
+      })
+    );
 
     // make sure we reject non-strings over the classical send interface
     const circular: any = {};
@@ -95,7 +97,7 @@ describe("connector", () => {
       void 0,
       {},
       [],
-      {foo: "bar"},
+      { foo: "bar" },
       [1, 2],
       new Date(),
       Infinity,

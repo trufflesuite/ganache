@@ -1,5 +1,5 @@
-import {BaseJsonRpcType} from "./json-rpc-base-types";
-import {strCache, toStrings} from "./json-rpc-base-types";
+import { BaseJsonRpcType } from "./json-rpc-base-types";
+import { strCache, toStrings } from "./json-rpc-base-types";
 
 function validateByteLength(byteLength?: number) {
   if (typeof byteLength !== "number" || byteLength < 0) {

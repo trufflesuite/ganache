@@ -1,6 +1,6 @@
-import {ts, Project, SourceFile} from "ts-morph";
-import {resolve, dirname} from "path";
-import {NodeFlags} from "typescript";
+import { ts, Project, SourceFile } from "ts-morph";
+import { resolve, dirname } from "path";
+import { NodeFlags } from "typescript";
 
 function trimQuote(path: string) {
   return path.slice(1, path.length - 1);
@@ -37,8 +37,8 @@ function serializeToAst(v: any): ts.Expression {
       return ts.createObjectLiteral(
         keys.map(k => ts.createPropertyAssignment(ts.createStringLiteral(k), serializeToAst(v[k])))
       );
-      default:
-        throw new Error(`Can't serializeToAst ${typeof v}`);
+    default:
+      throw new Error(`Can't serializeToAst ${typeof v}`);
   }
 }
 
@@ -60,13 +60,7 @@ function serializeToTypeAst(v: any): ts.TypeNode {
       const keys = Object.keys(v);
       return ts.createTypeLiteralNode(
         keys.map(k =>
-          ts.createPropertySignature(
-            void 0,
-            ts.createStringLiteral(k),
-            void 0,
-            serializeToTypeAst(v[k]),
-            void 0
-          )
+          ts.createPropertySignature(void 0, ts.createStringLiteral(k), void 0, serializeToTypeAst(v[k]), void 0)
         )
       );
     default:

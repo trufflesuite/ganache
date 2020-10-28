@@ -2,12 +2,12 @@ import Ganache from "../src";
 import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
-import Server, {Status} from "../src/server";
+import Server, { Status } from "../src/server";
 import http from "http";
 // https://github.com/sindresorhus/into-stream/releases/tag/v6.0.0
 import intoStream = require("into-stream");
 import { PromiEvent } from "@ganache/utils";
-import {promisify} from "util";
+import { promisify } from "util";
 import { ServerOptions } from "../src/options";
 
 const IS_WINDOWS = process.platform === "win32";
@@ -93,7 +93,7 @@ describe("server", () => {
 
     it("returns the net_version over a legacy-style connection listener", done => {
       s = Ganache.server({
-        chain: {networkId}
+        chain: { networkId }
       });
       s.listen(port, async () => {
         try {
@@ -246,9 +246,11 @@ describe("server", () => {
     });
 
     it("does not start a websocket server when `ws` is false", async () => {
-      await setup({server:{
-        ws: false
-      }});
+      await setup({
+        server: {
+          ws: false
+        }
+      });
       try {
         const ws = new WebSocket("ws://localhost:" + port);
 
@@ -296,7 +298,6 @@ describe("server", () => {
       }
     });
 
-
     it("returns 200/OK for RPC errors over HTTP", async () => {
       await setup();
       const jsonRpcJson: any = {
@@ -316,22 +317,26 @@ describe("server", () => {
 
     it("handles batched json-rpc requests/responses", async () => {
       await setup();
-      const jsonRpcJson: any = [{
-        jsonrpc: "2.0",
-        id: "1",
-        method: "net_version",
-        params: []
-      }, {
-        jsonrpc: "2.0",
-        id: "2",
-        method: "eth_chainId",
-        params: []
-      }, {
-        jsonrpc: "2.0",
-        id: "3",
-        method: "eth_subscribe", // this one fails over HTTP
-        params: ["newHeads"]
-      }];
+      const jsonRpcJson: any = [
+        {
+          jsonrpc: "2.0",
+          id: "1",
+          method: "net_version",
+          params: []
+        },
+        {
+          jsonrpc: "2.0",
+          id: "2",
+          method: "eth_chainId",
+          params: []
+        },
+        {
+          jsonrpc: "2.0",
+          id: "3",
+          method: "eth_subscribe", // this one fails over HTTP
+          params: ["newHeads"]
+        }
+      ];
       try {
         const response = await request.post("http://localhost:" + port).send(jsonRpcJson);
         const json = JSON.parse(response.text);
@@ -367,16 +372,7 @@ describe("server", () => {
 
     it("returns 404 for bad routes", async () => {
       await setup();
-      const methods = [
-        "get",
-        "post",
-        "head",
-        "options",
-        "put",
-        "delete",
-        "patch",
-        "trace"
-      ] as const;
+      const methods = ["get", "post", "head", "options", "put", "delete", "patch", "trace"] as const;
       try {
         const requests = methods.map(async method => {
           const result = await request[method]("http://localhost:" + port + "/there-is-no-spoon").catch((e: any) => e);
@@ -406,7 +402,7 @@ describe("server", () => {
               setImmediate(setImmediate, () => {
                 // resolve the `provider.send` to make sure the server can
                 // handle _not_ responding to a request that has been aborted:
-                innerResolve( {value: Promise.resolve() as any});
+                innerResolve({ value: Promise.resolve() as any });
                 // and finally, resolve the `abort` promise:
                 resolve(void 0);
               });
@@ -443,7 +439,11 @@ describe("server", () => {
     });
 
     describe("CORS", () => {
-      const optionsHeaders = ["Access-Control-Allow-Methods", "Access-Control-Allow-Headers", "Access-Control-Max-Age"] as const;
+      const optionsHeaders = [
+        "Access-Control-Allow-Methods",
+        "Access-Control-Allow-Headers",
+        "Access-Control-Max-Age"
+      ] as const;
       const baseHeaders = ["Access-Control-Allow-Credentials", "Access-Control-Allow-Origin"] as const;
       const allCorsHeaders = [...optionsHeaders, ...baseHeaders] as const;
 
@@ -583,7 +583,7 @@ describe("server", () => {
       provider.requestRaw = (async () => {
         // close our websocket after intercepting the request
         await s.close();
-        return {value: Promise.resolve(void 0)};
+        return { value: Promise.resolve(void 0) };
       }) as any;
 
       const ws = new WebSocket("ws://localhost:" + port);
@@ -613,16 +613,20 @@ describe("server", () => {
         const promiEvent = new PromiEvent(resolve => {
           const subId = "0xsubscriptionId";
           resolve(subId);
-          setImmediate(() => promiEvent.emit("message", {data: {subscription: subId, result: message}}));
+          setImmediate(() =>
+            promiEvent.emit("message", {
+              data: { subscription: subId, result: message }
+            })
+          );
         });
-        return {value: promiEvent};
+        return { value: promiEvent };
       }) as any;
 
       const ws = new WebSocket("ws://localhost:" + port);
       const result = await new Promise(resolve => {
         ws.on("open", () => {
           ws.on("message", data => {
-            const {result, params} = JSON.parse(data.toString());
+            const { result, params } = JSON.parse(data.toString());
             // ignore the initial response
             if (result === "0xsubscriptionId") return;
 
@@ -645,22 +649,26 @@ describe("server", () => {
     });
 
     it("handles batched json-rpc requests/responses", async () => {
-      const jsonRpcJson: any = [{
-        jsonrpc: "2.0",
-        id: "1",
-        method: "net_version",
-        params: []
-      }, {
-        jsonrpc: "2.0",
-        id: "2",
-        method: "eth_chainId",
-        params: []
-      }, {
-        jsonrpc: "2.0",
-        id: "3",
-        method: "eth_subscribe", // this one works here in WS-land
-        params: ["newHeads"]
-      }];
+      const jsonRpcJson: any = [
+        {
+          jsonrpc: "2.0",
+          id: "1",
+          method: "net_version",
+          params: []
+        },
+        {
+          jsonrpc: "2.0",
+          id: "2",
+          method: "eth_chainId",
+          params: []
+        },
+        {
+          jsonrpc: "2.0",
+          id: "3",
+          method: "eth_subscribe", // this one works here in WS-land
+          params: ["newHeads"]
+        }
+      ];
 
       const ws = new WebSocket("ws://localhost:" + port);
       const response: any = await new Promise(resolve => {
@@ -677,11 +685,13 @@ describe("server", () => {
           jsonrpc: "2.0",
           id: "1",
           result: "1234"
-        }, {
+        },
+        {
           jsonrpc: "2.0",
           id: "2",
           result: "0x539"
-        }, {
+        },
+        {
           jsonrpc: "2.0",
           id: "3",
           result: "0x1"
@@ -695,7 +705,7 @@ describe("server", () => {
         ws.on("open", () => {
           ws.send(JSON.stringify(null));
         });
-        ws.on("message", (data) => {
+        ws.on("message", data => {
           resolve(JSON.parse(data.toString()));
         });
       });
@@ -709,7 +719,7 @@ describe("server", () => {
         promiEvent = new PromiEvent(resolve => {
           resolve("0xsubscriptionId");
         });
-        return {value: promiEvent};
+        return { value: promiEvent };
       }) as any;
 
       const ws = new WebSocket("ws://localhost:" + port);
@@ -750,9 +760,9 @@ describe("server", () => {
       {
         // create tons of data to force websocket backpressure
         const huge = {};
-        for (let i = 0; i < 1e6; i++) huge["prop_" + i] = {i};
+        for (let i = 0; i < 1e6; i++) huge["prop_" + i] = { i };
         s.provider.requestRaw = (async () => {
-          return {value: Promise.resolve(huge)};
+          return { value: Promise.resolve(huge) };
         }) as any;
       }
 

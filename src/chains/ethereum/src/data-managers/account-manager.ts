@@ -3,7 +3,7 @@ import Address from "../things/address";
 import Trie from "merkle-patricia-tree/baseTrie";
 import Blockchain from "../blockchain";
 import Tag from "../things/tags";
-import {LevelUp} from "levelup";
+import { LevelUp } from "levelup";
 import { rlp } from "ethereumjs-util";
 import { utils, Quantity } from "@ganache/utils";
 
@@ -44,7 +44,7 @@ export default class AccountManager {
     return this.getRaw(address, blockNumber).then(data => {
       if (data) {
         const [, balance] = (rlp.decode(data) as any) as Buffer[];
-        return balance.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(balance) ;
+        return balance.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(balance);
       } else {
         return RPCQUANTITY_ZERO;
       }

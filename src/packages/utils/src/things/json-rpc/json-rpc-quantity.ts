@@ -71,12 +71,11 @@ export class Quantity extends BaseJsonRpcType {
   }
   valueOf(): bigint {
     const value = this.value;
-    if(value === null) {
+    if (value === null) {
       return value as null;
-    } else if (value === undefined){
+    } else if (value === undefined) {
       return value as undefined;
-    }
-    else {
+    } else {
       return this.toBigInt();
     }
   }
