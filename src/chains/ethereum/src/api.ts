@@ -574,7 +574,6 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(0)
   async net_listening() {
-    // TODO: this should return false when ganache isn't used with a server.
     return true;
   }
 
