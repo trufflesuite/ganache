@@ -1,9 +1,9 @@
 {
   "name": "@ganache/utils",
   "version": "2.2.1",
-  "description": "> TODO: description",
+  "description": "Utility functions for @ganache packages",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core#readme",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/utils#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -28,5 +28,19 @@
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
-  }
+  },
+  "keywords": [
+    "ganache",
+    "ganache-utils",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling"
+  ]
 }

@@ -96,7 +96,7 @@ process.stdout.write(`${COLORS.Reset}`);
       name: packageName,
       version: version,
       author: packageAuthor || require("../package.json").author,
-      homepage: "https://github.com/trufflesuite/ganache-core#readme",
+      homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${name}#readme`,
       license: "MIT",
       main: "lib/index.js",
       types: "src/index.ts",
@@ -107,7 +107,8 @@ process.stdout.write(`${COLORS.Reset}`);
       files: ["lib"],
       repository: {
         type: "git",
-        url: "git+https://github.com/trufflesuite/ganache-core.git"
+        url: "https://github.com/trufflesuite/ganache-core.git",
+        directory: `src/${location}/${name}`
       },
       scripts: {
         tsc: "ts-node ../../../scripts/compile",
@@ -117,7 +118,22 @@ process.stdout.write(`${COLORS.Reset}`);
       },
       bugs: {
         url: "https://github.com/trufflesuite/ganache-core/issues"
-      }
+      },
+      keywords: [
+        "ganache",
+        `ganache-${name}`,
+        "ethereum",
+        "evm",
+        "blockchain",
+        "smart contracts",
+        "dapps",
+        "solidity",
+        "vyper",
+        "fe",
+        "web3",
+        "tooling",
+        "truffle"
+      ]
     };
 
     const tsConfig = {
@@ -237,7 +253,11 @@ typedoc.json
     );
 
     console.log(
-      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created. New package created at ./src/packages/${name}.\n\n  package.json: {bold ${dir}/package.json}`
+      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created at ./src/packages/${name}.`
+    );
+    console.log("");
+    console.log(
+      chalk`  Update the package.json here: {bold ${dir}/package.json}`
     );
   } catch (e) {
     console.error(e);

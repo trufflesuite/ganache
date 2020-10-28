@@ -3,7 +3,7 @@
   "version": "2.2.1",
   "description": "ganache-core's Ethereum client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core#readme",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/ethereum#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -34,6 +34,20 @@
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
+  "keywords": [
+    "ganache",
+    "ganache-ethereum",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling"
+  ],
   "dependencies": {
     "@ganache/options": "^2.2.1",
     "@ganache/promise-queue": "^2.2.1",

@@ -1,9 +1,9 @@
 {
   "name": "@ganache/flavors",
   "version": "2.2.1",
-  "description": "> TODO: description",
+  "description": "Ganache's flavors enumeration and TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core#readme",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/flavors#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -26,6 +26,20 @@
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
+  "keywords": [
+    "ganache",
+    "ganache-flavors",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling"
+  ],
   "dependencies": {
     "@ganache/ethereum": "^2.2.1",
     "@ganache/tezos": "^2.2.1",
