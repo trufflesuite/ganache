@@ -14,7 +14,7 @@
     "reinstall": "npm run clean && npm install",
     "test": "lerna exec -- npm test",
     "tsc": "lerna exec -- npm run tsc",
-    "tsc.clean": "lerna exec -- npx shx rm -rf lib"
+    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib"
   },
   "dependencies": {
     "bip39": "3.0.2",
