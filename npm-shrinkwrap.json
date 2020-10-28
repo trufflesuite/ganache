@@ -5936,6 +5936,12 @@
       "integrity": "sha512-Xu2Qh8yqYuDhQGOhD5iJGninErSfI9A3FrriD3tjUgV5VbJFeH8vfgZ9HnC6jWN80QDVNQK5vmxRAmEAp7Mevw==",
       "dev": true
     },
+    "fs-exists-sync": {
+      "version": "0.1.0",
+      "resolved": "https://registry.npmjs.org/fs-exists-sync/-/fs-exists-sync-0.1.0.tgz",
+      "integrity": "sha1-mC1ok6+RjnLQjeyehnP/K1qNat0=",
+      "dev": true
+    },
     "fs-extra": {
       "version": "9.0.1",
       "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-9.0.1.tgz",
@@ -6282,6 +6288,28 @@
         "assert-plus": "^1.0.0"
       }
     },
+    "git-config-path": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/git-config-path/-/git-config-path-1.0.1.tgz",
+      "integrity": "sha1-bTP37WPbDQ4RgTFQO6s6ykfVRmQ=",
+      "dev": true,
+      "requires": {
+        "extend-shallow": "^2.0.1",
+        "fs-exists-sync": "^0.1.0",
+        "homedir-polyfill": "^1.0.0"
+      },
+      "dependencies": {
+        "extend-shallow": {
+          "version": "2.0.1",
+          "resolved": "https://registry.npmjs.org/extend-shallow/-/extend-shallow-2.0.1.tgz",
+          "integrity": "sha1-Ua99YUrZqfYQ6huvu5idaxxWiQ8=",
+          "dev": true,
+          "requires": {
+            "is-extendable": "^0.1.0"
+          }
+        }
+      }
+    },
     "git-raw-commits": {
       "version": "2.0.0",
       "resolved": "https://registry.npmjs.org/git-raw-commits/-/git-raw-commits-2.0.0.tgz",
@@ -6518,6 +6546,28 @@
       "dev": true,
       "requires": {
         "git-up": "^4.0.0"
+      }
+    },
+    "git-user-name": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/git-user-name/-/git-user-name-2.0.0.tgz",
+      "integrity": "sha512-1DC8rUNm2I5V9v4eIpK6PSjKCp9bI0t6Wl05WSk+xEMS8GhR8GWzxM3aGZfPrfuqEfWxSbui5/pQJryJFXqCzQ==",
+      "dev": true,
+      "requires": {
+        "extend-shallow": "^2.0.1",
+        "git-config-path": "^1.0.1",
+        "parse-git-config": "^1.1.1"
+      },
+      "dependencies": {
+        "extend-shallow": {
+          "version": "2.0.1",
+          "resolved": "https://registry.npmjs.org/extend-shallow/-/extend-shallow-2.0.1.tgz",
+          "integrity": "sha1-Ua99YUrZqfYQ6huvu5idaxxWiQ8=",
+          "dev": true,
+          "requires": {
+            "is-extendable": "^0.1.0"
+          }
+        }
       }
     },
     "gitconfiglocal": {
@@ -6764,6 +6814,15 @@
         "hash.js": "^1.0.3",
         "minimalistic-assert": "^1.0.0",
         "minimalistic-crypto-utils": "^1.0.1"
+      }
+    },
+    "homedir-polyfill": {
+      "version": "1.0.3",
+      "resolved": "https://registry.npmjs.org/homedir-polyfill/-/homedir-polyfill-1.0.3.tgz",
+      "integrity": "sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA==",
+      "dev": true,
+      "requires": {
+        "parse-passwd": "^1.0.0"
       }
     },
     "hosted-git-info": {
@@ -9670,6 +9729,29 @@
         }
       }
     },
+    "parse-git-config": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/parse-git-config/-/parse-git-config-1.1.1.tgz",
+      "integrity": "sha1-06mYQxcTL1c5hxK7pDjhKVkN34w=",
+      "dev": true,
+      "requires": {
+        "extend-shallow": "^2.0.1",
+        "fs-exists-sync": "^0.1.0",
+        "git-config-path": "^1.0.1",
+        "ini": "^1.3.4"
+      },
+      "dependencies": {
+        "extend-shallow": {
+          "version": "2.0.1",
+          "resolved": "https://registry.npmjs.org/extend-shallow/-/extend-shallow-2.0.1.tgz",
+          "integrity": "sha1-Ua99YUrZqfYQ6huvu5idaxxWiQ8=",
+          "dev": true,
+          "requires": {
+            "is-extendable": "^0.1.0"
+          }
+        }
+      }
+    },
     "parse-github-repo-url": {
       "version": "1.4.1",
       "resolved": "https://registry.npmjs.org/parse-github-repo-url/-/parse-github-repo-url-1.4.1.tgz",
@@ -9685,6 +9767,12 @@
         "error-ex": "^1.3.1",
         "json-parse-better-errors": "^1.0.1"
       }
+    },
+    "parse-passwd": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/parse-passwd/-/parse-passwd-1.0.0.tgz",
+      "integrity": "sha1-bVuTSkVpk7I9N/QKOC1vFmao5cY=",
+      "dev": true
     },
     "parse-path": {
       "version": "4.0.2",

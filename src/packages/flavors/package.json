@@ -1,6 +1,8 @@
 {
   "name": "@ganache/flavors",
   "version": "2.2.1",
+  "description": "> TODO: description",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core#readme",
   "license": "MIT",
   "main": "lib/index.js",

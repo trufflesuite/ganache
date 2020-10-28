@@ -2,7 +2,7 @@
   "name": "@ganache/tezos",
   "version": "2.2.1",
   "description": "ganache-core's Tezos client implementation",
-  "author": "David Murdoch <david@davidmurdoch.com>",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core#readme",
   "license": "MIT",
   "main": "lib/index.js",

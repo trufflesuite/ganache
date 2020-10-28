@@ -1,3 +1,5 @@
+// TODO: make this its own package?
+
 import {mkdir, mkdirSync, writeFile} from "fs-extra";
 import yargs from "yargs";
 import {join, resolve} from "path";
@@ -8,8 +10,7 @@ import npa from "npm-package-arg";
 import { lstatSync as lstat, readdirSync as readDir, readFileSync as readFile } from "fs";
 import chalk from "chalk";
 import { highlight } from "cli-highlight";
-import { promisify } from "util";
-
+import userName from "git-user-name";
 
 const isDir = (s: string) => lstat(s).isDirectory();
 const getDirectories = (s: string) => readDir(s).filter(n => isDir(join(s, n)));
@@ -79,14 +80,16 @@ process.stdout.write(`${COLORS.Reset}`);
     name = npa(name).name;
 
     const packageName = `@ganache/${name}`;
+    let packageAuthor = userName();
 
     const pkg = {
       name: packageName,
       version: version,
+      author: packageAuthor || require("../package.json").author,
       homepage: "https://github.com/trufflesuite/ganache-core#readme",
       license: "MIT",
       main: "lib/index.js",
-      typings: "src/index.ts",
+      types: "src/index.ts",
       directories: {
         lib: "lib",
         test: "__tests__"
@@ -203,7 +206,7 @@ typedoc.json
     }));
 
     console.log(
-      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created. New package created at ./src/packages/${name}.\n\n  Entry point: {bold ${dir}/src/index.ts}`
+      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created. New package created at ./src/packages/${name}.\n\n  package.json: {bold ${dir}/package.json}`
     );
   } catch (e) {
     console.error(e);

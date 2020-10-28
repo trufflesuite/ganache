@@ -1,5 +1,7 @@
 {
   "name": "root",
+  "description": "> TODO: description",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "private": true,
   "engines": {
     "node": ">=10.7.0 <=14.14.0",
@@ -53,6 +55,7 @@
     "cli-highlight": "2.1.4",
     "cross-env": "7.0.2",
     "fs-extra": "9.0.1",
+    "git-user-name": "2.0.0",
     "into-stream": "6.0.0",
     "lerna": "3.22.1",
     "mocha": "8.2.0",
