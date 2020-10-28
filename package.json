@@ -1,6 +1,5 @@
 {
   "name": "root",
-  "description": "> TODO: description",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "private": true,
   "engines": {
