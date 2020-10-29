@@ -230,7 +230,7 @@ typedoc.json
       ),
       writeFile(
         join(dir, "README.md"),
-        prettier.format(`# ${packageName}\n> TODO: description`, {
+        prettier.format(`# \`${packageName}\`\n> TODO: description`, {
           ...prettierConfig,
           parser: "markdown"
         })

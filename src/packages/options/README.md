@@ -1,3 +1,3 @@
-# options
+# `@ganache/options`
 
-> TODO: description
+Ganache's server/provider options TypeScript types

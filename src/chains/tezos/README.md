@@ -1,11 +1,3 @@
 # `@ganache/tezos`
 
-> TODO: description
-
-## Usage
-
-```
-const tezos = require('@ganache/tezos');
-
-// TODO: DEMONSTRATE API
-```
+This is ganache's Tezos client implementation.

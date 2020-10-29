@@ -1,3 +1,3 @@
-# @ganache/promise-queue
+# `@ganache/promise-queue`
 
-> TODO: description
+A queue that resolves Promise instances in first-in first-out order.

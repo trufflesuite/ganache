@@ -1,11 +1,5 @@
 # `@ganache/core`
 
-> TODO: description
+The `ganache-core` npm package.
 
-## Usage
-
-```
-const core = require('@ganache/core');
-
-// TODO: DEMONSTRATE API
-```
+See [README.md](../../../README.md) for info.

@@ -1,7 +1,7 @@
 {
   "name": "@ganache/ethereum",
   "version": "2.2.1",
-  "description": "ganache-core's Ethereum client implementation",
+  "description": "Ganache's Ethereum client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/ethereum#readme",
   "license": "MIT",

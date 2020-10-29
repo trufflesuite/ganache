@@ -1,11 +1,3 @@
 # `@ganache/ethereum`
 
-> TODO: description
-
-## Usage
-
-```
-const ethereum = require('@ganache/ethereum');
-
-// TODO: DEMONSTRATE API
-```
+This is ganache's Ethereum client implementation.

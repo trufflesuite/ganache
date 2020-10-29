@@ -1,3 +1,3 @@
-# flavors
+# `@ganache/flavors`
 
-> TODO: description
+Ganache's flavors enumeration and TypeScript types
