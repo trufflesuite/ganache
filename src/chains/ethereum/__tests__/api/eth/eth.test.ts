@@ -222,7 +222,11 @@ describe("api", () => {
         await provider.send("eth_sendTransaction", [{ ...tx }]);
         await provider.once("message");
         const blockx1 = await provider.send("eth_blockNumber");
-        assert.strictEqual(+blockx1, startingBlockNumber + 1);
+        assert.strictEqual(
+          +blockx1,
+          startingBlockNumber + 1,
+          "first tx's block number not as expected"
+        );
 
         const awaitFor = count =>
           new Promise(resolve => {
@@ -253,10 +257,18 @@ describe("api", () => {
         await wait;
         wait = awaitFor(4);
         const blockx5 = await provider.send("eth_blockNumber");
-        assert.strictEqual(+blockx5, startingBlockNumber + 5);
+        assert.strictEqual(
+          +blockx5,
+          startingBlockNumber + 5,
+          "second block's number not as expected"
+        );
         await wait;
         const blockx9 = await provider.send("eth_blockNumber");
-        assert.strictEqual(+blockx9, startingBlockNumber + 9);
+        assert.strictEqual(
+          +blockx9,
+          startingBlockNumber + 9,
+          "third block's number not as expected"
+        );
       });
     });
 
