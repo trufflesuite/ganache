@@ -387,12 +387,10 @@ describe("api", () => {
           send,
           accounts: [from, to]
         } = context;
-        console.log("got here 1");
         const accountNonce = parseInt(
           await send("eth_getTransactionCount", [from]),
           16
         );
-        console.log("got here 2");
         const snapShotId = await send("evm_snapshot");
 
         // increment value for each transaction so the hashes always differ
@@ -402,9 +400,7 @@ describe("api", () => {
         const revertedTx = await send("eth_sendTransaction", [
           { from, to, value: value++ }
         ]);
-        console.log("got here 3");
         await provider.once("message");
-        console.log("got here 4");
 
         // revert while these transactions are being mined
         const revertPromise = send("evm_revert", [snapShotId]);
@@ -446,7 +442,6 @@ describe("api", () => {
           send("eth_getTransactionByHash", [hash]);
 
         // wait for the revert to finish up
-        console.log("got here 5");
         const result = await Promise.race([revertPromise, txHashPromises]);
         assert.strictEqual(
           result,
@@ -455,16 +450,12 @@ describe("api", () => {
         );
 
         // wait for the inFlightTxs to be mined
-        console.log("got here 6");
         await txsMinedProm;
-        console.log("got here 7");
         const txHashes = await txHashPromises;
-        console.log("got here 8");
         const laterHashes = await Promise.all(laterTxs);
 
         // and mine one more block just to force the any executable transactions
         // to be immediately mined
-        console.log("got here 9");
 
         const gotTxsProm = new Promise(resolve => {
           let count = 0;
@@ -481,7 +472,6 @@ describe("api", () => {
 
         const finalReceiptsProm = Promise.all(txHashes.map(getReceipt));
         const finalTransactionsProm = Promise.all(txHashes.map(getTx));
-        console.log("got here 10");
         const [finalReceipts, finalTransactions] = await Promise.all([
           finalReceiptsProm,
           finalTransactionsProm
@@ -504,7 +494,6 @@ describe("api", () => {
 
         const laterTxsReceiptsProm = Promise.all(laterHashes.map(getReceipt));
         const laterTxsTransactionsProm = Promise.all(laterHashes.map(getTx));
-        console.log("got here 11");
         const [laterTxsReceipts, laterTxsTransactions] = await Promise.all([
           laterTxsReceiptsProm,
           laterTxsTransactionsProm
@@ -526,12 +515,10 @@ describe("api", () => {
 
         // send one more transaction to fill in the gap
         send("eth_sendTransaction", [{ from, to, value: value++ }]);
-        console.log("got here 12");
         await gotTxsProm;
 
         const finalLaterTxsReceiptsProm = Promise.all(txHashes.map(getReceipt));
         const finalLaterTxsTransactionsProm = Promise.all(txHashes.map(getTx));
-        console.log("got here 13");
         const [
           finalLaterTxsReceipts,
           finalLaterTxsTransactions
@@ -554,9 +541,7 @@ describe("api", () => {
           );
         });
 
-        console.log("got here 14");
         const revertedTxReceipt = await getReceipt(revertedTx);
-        console.log("got here 15");
         const revertedTxTransactions = await getTx(revertedTx);
         assert.strictEqual(
           revertedTxReceipt,
