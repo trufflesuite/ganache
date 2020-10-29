@@ -1,4 +1,4 @@
-# Developer Documentation
+# Contributing to Ganache
 
 ## Getting set up
 
