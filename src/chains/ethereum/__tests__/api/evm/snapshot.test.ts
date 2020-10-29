@@ -407,6 +407,16 @@ describe("api", () => {
         // revert while these transactions are being mined
         const revertPromise = send("evm_revert", [snapShotId]);
 
+        const txsMinedProm = new Promise(resolve => {
+          let count = 0;
+          const unsub = provider.on("message", () => {
+            if (++count === 2) {
+              unsub();
+              resolve(null);
+            }
+          });
+        });
+
         // send some transactions
         const inFlightTxs = [
           send("eth_sendTransaction", [{ from, to, value: value++ }]),
@@ -422,15 +432,6 @@ describe("api", () => {
             { from, to, value: value++, nonce: accountNonce + 3 }
           ])
         ];
-        const txsMinedProm = new Promise(resolve => {
-          let count = 0;
-          const unsub = provider.on("message", () => {
-            if (++count === 2) {
-              unsub();
-              resolve(null);
-            }
-          });
-        });
 
         // wait for the tx hashes to be returned; this is confirmation that
         // they've been accepted by the transaction pool.
@@ -500,10 +501,7 @@ describe("api", () => {
           );
         });
 
-        // send one more transaction to fill in the gap
-        send("eth_sendTransaction", [{ from, to, value: value++ }]);
-
-        await new Promise(resolve => {
+        const gotTxsProm = new Promise(resolve => {
           let count = 0;
           const unsub = provider.on("message", () => {
             if (++count === 3) {
@@ -512,6 +510,11 @@ describe("api", () => {
             }
           });
         });
+
+        // send one more transaction to fill in the gap
+        send("eth_sendTransaction", [{ from, to, value: value++ }]);
+
+        await gotTxsProm;
 
         const finalLaterTxsReceiptsProm = Promise.all(txHashes.map(getReceipt));
         const finalLaterTxsTransactionsProm = Promise.all(txHashes.map(getTx));
