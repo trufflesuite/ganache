@@ -253,9 +253,12 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   }
 
   /**
-   * TODO(perf): this looks super slow, doesn't it?
+   * Returns the transaction matching the given hash.
    *
-   * Returns the transaction matching the given hash
+   * This isn't the fastest thing... but querying for pending transactions is
+   * likely rare, so leaving this slow so other code paths can be faster might
+   * be okay.
+   *
    * @param transactionHash
    */
   public find(transactionHash: Buffer) {
@@ -264,7 +267,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // first search pending transactions
     for (let [_, transactions] of this.#origins) {
       if (transactions === undefined) continue;
-      for (let tx of transactions.array) {
+      const arr = transactions.array;
+      for (let i = 0; i < transactions.length; i++) {
+        const tx = arr[i];
         if (tx.hash().equals(transactionHash)) {
           return tx;
         }
@@ -273,7 +278,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     // then transactions eligible for execution
     for (let [_, transactions] of pending) {
-      for (let tx of transactions.array) {
+      const arr = transactions.array;
+      for (let i = 0; i < transactions.length; i++) {
+        const tx = arr[i];
         if (tx.hash().equals(transactionHash)) {
           return tx;
         }
