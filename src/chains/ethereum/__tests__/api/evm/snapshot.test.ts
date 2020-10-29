@@ -465,6 +465,18 @@ describe("api", () => {
         // and mine one more block just to force the any executable transactions
         // to be immediately mined
         console.log("got here 9");
+
+        const gotTxsProm = new Promise(resolve => {
+          let count = 0;
+          const unsub = provider.on("message", m => {
+            console.log(m);
+            if (++count === 3) {
+              unsub();
+              resolve(null);
+            }
+          });
+        });
+
         await send("evm_mine");
 
         const finalReceiptsProm = Promise.all(txHashes.map(getReceipt));
@@ -510,17 +522,6 @@ describe("api", () => {
             null,
             "Transaction should not be null"
           );
-        });
-
-        const gotTxsProm = new Promise(resolve => {
-          let count = 0;
-          const unsub = provider.on("message", m => {
-            console.log(m);
-            if (++count === 3) {
-              unsub();
-              resolve(null);
-            }
-          });
         });
 
         // send one more transaction to fill in the gap
