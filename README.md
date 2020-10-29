@@ -47,13 +47,13 @@ You must first install [Node.js](https://nodejs.org/) >= v10.7.0 and npm >= 6.1.
 
 To install ganache-cli globally, run:
 
-```bash
+```console
 $ npm install ganache-cli --global
 ```
 
 Once installed globally, you can start ganache-cli right from your command line:
 
-```bash
+```console
 $ ganache-cli
 Ganache CLI v6.12.1 (ganache-core: 2.13.1)
 
@@ -105,7 +105,7 @@ Listening on 127.0.0.1:8545
 
 To install ganache-cli into an npm project, run:
 
-```bash
+```console
 $ npm install ganache-cli
 ```
 
@@ -121,7 +121,7 @@ _see [Documentation](#documentation) additional command line options_
 
 then start it:
 
-```bash
+```console
 $ npm run ganache
 ```
 
@@ -129,8 +129,8 @@ $ npm run ganache
 
 You can use ganache-cli programmatically from Node.js. Install ganache-cli into your npm package:
 
-```bash
-npm install ganache-cli
+```console
+$ npm install ganache-cli
 ```
 
 then start ganache as an EIP-1193 provider only:
