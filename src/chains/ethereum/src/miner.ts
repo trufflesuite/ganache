@@ -383,7 +383,11 @@ export default class Miner extends Emittery.Typed<
       if (pendingOrigin.removeBest()) {
         replaceFromHeap(this.#priced, pendingOrigin);
       } else {
+        // if there are no more transactions from this origin remove this tx
+        // from the priced heap and clear out it's origin so it can accept new
+        // transactions from this origin.
         this.#priced.removeBest();
+        this.#origins.delete(origin);
       }
 
       const e = {
