@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img alt="Ganache" src="./.github/ganache-logo-dark.svg" alt="drawing" width="160"/>
+  <a href="#"><img alt="Ganache" src="./.github/ganache-logo-dark.svg" alt="drawing" width="160"/></a>
 </h1>
 
 <h3 align="center">
