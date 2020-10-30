@@ -117,7 +117,7 @@ You can then add ganache-cli to your package.json scripts:
 }
 ```
 
-_see [Documentation](#documentation) additional command line options_
+_See [Documentation](#documentation) for additional command line options._
 
 then start it:
 
@@ -136,7 +136,7 @@ $ npm install ganache-cli
 then start ganache as an EIP-1193 provider only:
 
 ```javascript
-import ganache from "ganache-cli";
+const ganache = require("ganache-cli");
 
 const options = {};
 const provider = ganache.provider(options);
@@ -146,7 +146,7 @@ const accounts = await provider.request({ method: "eth_accounts", params: [] });
 or as an EIP-1193 provider _and_ JSON-RPC web server:
 
 ```javascript
-import ganache from "ganache-cli";
+const ganache = require("ganache-cli");
 
 const options = {};
 const server = ganache.server(options);
@@ -164,9 +164,9 @@ server.listen(PORT, err => {
 
 To use ganache as a Web3 provider:
 
-```
-import Web3 from "web3";
-import ganache from "ganache-cli";
+```javascript
+const Web3 = require("web3");
+const ganache = require("ganache-cli");
 
 const web3 = new Web3(ganache.provider());
 ```
@@ -179,8 +179,8 @@ const web3 = new Web3(ganache.provider(), null, { transactionConfirmationBlocks:
 
 #### As an [ethers.js]() provider:
 
-```
-import ganache from "ganache-core";
+```javascript
+const ganache = require("ganache-cli");
 
 const provider = new ethers.providers.Web3Provider(ganache.provider());
 ```
