@@ -285,7 +285,6 @@ export default class Blockchain extends Emittery.Typed<
   };
 
   #saveNewBlock = (block: Block) => {
-    const logger = this.#options.logging.logger;
     const blocks = this.blocks;
     blocks.latest = block;
     const value = block.value;
