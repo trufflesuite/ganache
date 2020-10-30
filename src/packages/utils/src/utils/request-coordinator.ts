@@ -37,7 +37,6 @@ export class RequestCoordinator {
    * running.
    */
   public pause = () => {
-    console.log("here 19");
     this.#paused = true;
   };
 
@@ -45,13 +44,11 @@ export class RequestCoordinator {
    * Resume processing.
    */
   public resume = () => {
-    console.log("here 20");
     this.#paused = false;
     this.#process();
   };
 
   #process = () => {
-    console.log("here 15");
     // if we aren't paused and the number of things we're processing is under
     // our limit and we have things to process: do it!
     while (
@@ -59,7 +56,6 @@ export class RequestCoordinator {
       this.pending.length > 0 &&
       (!this.limit || this.runningTasks < this.limit)
     ) {
-      console.log("here 16");
       const current = this.pending.shift();
       this.runningTasks++;
       current()
@@ -70,7 +66,6 @@ export class RequestCoordinator {
         // `Promise.allSettled([current()]).finally` to do this instead of the `current().catch(noop).finally`. /shrug
         .catch(noop)
         .finally(() => {
-          console.log("here 18");
           this.runningTasks--;
           this.#process();
         });
@@ -85,13 +80,10 @@ export class RequestCoordinator {
     thisArgument: any,
     argumentsList: Parameters<T>
   ) => {
-    console.log("here 11");
     return new Promise<{ value: ReturnType<typeof fn> }>((resolve, reject) => {
       // const executor is `async` to force the return value into a Promise.
-      console.log("here 12");
       const executor = async () => {
         try {
-          console.log("here 13");
           const value = Reflect.apply(
             fn,
             thisArgument,
@@ -100,7 +92,6 @@ export class RequestCoordinator {
           resolve({ value });
           return value;
         } catch (e) {
-          console.log("here 14 (catch)");
           reject(e);
         }
       };

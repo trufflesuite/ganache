@@ -408,7 +408,6 @@ describe("api", () => {
         const txsMinedProm = new Promise(resolve => {
           let count = 0;
           const unsub = provider.on("message", m => {
-            console.log(m);
             if (++count === 2) {
               unsub();
               resolve(null);
@@ -460,7 +459,6 @@ describe("api", () => {
         const gotTxsProm = new Promise(resolve => {
           let count = 0;
           const unsub = provider.on("message", m => {
-            console.log(m);
             if (++count === 3) {
               unsub();
               resolve(null);
@@ -478,7 +476,6 @@ describe("api", () => {
         ]);
 
         // verify that we do have the receipts
-        console.log(finalReceipts);
         finalReceipts.forEach(receipt => {
           assert.notStrictEqual(receipt, null, "Receipt should not be null");
         });
