@@ -5,10 +5,13 @@ import EthereumProvider from "../../../src/provider";
 describe("api", () => {
   describe("bzz", () => {
     let provider: EthereumProvider;
-    before(async () => {
+    beforeEach(async () => {
       // will this make GitHub Action's windwos-2019 Node v14 test work
+      console.log("here a");
+      console.log(Date.now());
       provider = await getProvider();
       console.log("here 0");
+      console.log(Date.now());
     });
 
     it("bzz_hive stub returns value", async () => {
