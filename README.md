@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="#"><img alt="Ganache" src="./.github/ganache-logo-dark.svg" alt="drawing" width="160"/></a>
+  <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="./.github/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
 </h1>
 
 <h3 align="center">
