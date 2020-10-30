@@ -226,155 +226,33 @@ export default class Blockchain extends Emittery.Typed<
 
       {
         // configure and start miner
-        const logger = options.logging.logger;
-
+        const txPool = this.transactions.transactionPool;
+        const minerOpts = options.miner;
         const miner = (this.#miner = new Miner(
-          options.miner,
-          this.transactions.transactionPool.executables,
+          minerOpts,
+          txPool.executables,
           instamine,
           this.vm,
           this.#readyNextBlock
         ));
 
-        {
-          // automatic mining
-          const mineAll = async (maxTransactions: number) =>
-            this.#isPaused() ? null : this.mine(maxTransactions);
-          if (instamine) {
-            // insta mining
-            // whenever the transaction pool is drained mine the txs into blocks
-            this.transactions.transactionPool.on(
-              "drain",
-              mineAll.bind(null, 1)
-            );
-          } else {
-            // interval mining
-            const wait = () =>
-              unref(setTimeout(mineNext, options.miner.blockTime * 1000));
-            const mineNext = () => mineAll(-1).then(wait);
-            wait();
-          }
+        //#region automatic mining
+        const nullResolved = Promise.resolve(null);
+        const mineAll = (maxTransactions: number) =>
+          this.#isPaused() ? nullResolved : this.mine(maxTransactions);
+        if (instamine) {
+          // insta mining
+          // whenever the transaction pool is drained mine the txs into blocks
+          txPool.on("drain", mineAll.bind(null, 1));
+        } else {
+          // interval mining
+          const wait = () => unref(setTimeout(next, minerOpts.blockTime * 1e3));
+          const next = () => mineAll(-1).then(wait);
+          wait();
         }
+        //#endregion
 
-        miner.on("block", async (blockData: any) => {
-          return (this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
-            .then(() => {
-              const previousBlock = blocks.latest;
-              const previousHeader = previousBlock.value.header;
-              const previousNumber =
-                Quantity.from(previousHeader.number).toBigInt() || 0n;
-              const block = blocks.createBlock({
-                parentHash: previousHeader.hash(),
-                number: Quantity.from(previousNumber + 1n).toBuffer(),
-                coinbase: this.coinbase.toBuffer(),
-                timestamp: blockData.timestamp,
-                // difficulty:
-                gasLimit: options.miner.blockGasLimit.toBuffer(),
-                transactionsTrie: blockData.transactionsTrie.root,
-                receiptTrie: blockData.receiptTrie.root,
-                stateRoot: this.trie.root,
-                gasUsed: Quantity.from(blockData.gasUsed).toBuffer()
-              });
-
-              blocks.latest = block;
-              const value = block.value;
-              const header = value.header;
-              return database.batch(() => {
-                const blockHash = value.hash();
-                const blockNumber = header.number;
-                const blockNumberQ = Quantity.from(blockNumber);
-                const blockLogs = BlockLogs.create(blockHash);
-                const timestamp = new Date(
-                  Quantity.from(header.timestamp).toNumber() * 1000
-                ).toString();
-                blockData.blockTransactions.forEach(
-                  (tx: Transaction, i: number) => {
-                    const hash = tx.hash();
-                    const index = Quantity.from(i).toBuffer();
-                    const txAndExtraData = [
-                      ...tx.raw,
-                      blockHash,
-                      blockNumber,
-                      index,
-                      Buffer.from([tx.type]),
-                      tx.from
-                    ];
-                    const encodedTx = rlpEncode(txAndExtraData);
-                    this.transactions.set(hash, encodedTx);
-
-                    const receipt = tx.getReceipt();
-                    const encodedReceipt = receipt.serialize(true);
-                    this.transactionReceipts.set(hash, encodedReceipt);
-
-                    tx.getLogs().forEach(log => {
-                      blockLogs.append(index, hash, log);
-                    });
-
-                    logger.log("");
-                    logger.log("  Transaction: " + Data.from(hash));
-
-                    const contractAddress = receipt.contractAddress;
-                    if (contractAddress != null) {
-                      logger.log(
-                        "  Contract created: " + Address.from(contractAddress)
-                      );
-                    }
-
-                    const raw = receipt.raw;
-                    logger.log("  Gas usage: " + Quantity.from(raw[1]));
-                    logger.log("  Block Number: " + blockNumberQ);
-                    logger.log("  Block Time: " + timestamp);
-
-                    const error = tx.execException;
-                    if (error) {
-                      logger.log("  Runtime Error: " + error.data.message);
-                      if ((error as any).reason) {
-                        logger.log(
-                          "  Revert reason: " + (error as any).data.reason
-                        );
-                      }
-                    }
-
-                    logger.log("");
-                  }
-                );
-                blockLogs.blockNumber = blockNumberQ;
-                this.blockLogs.set(blockNumber, blockLogs.serialize());
-                value.transactions = blockData.blockTransactions;
-                blocks.putBlock(block);
-                return { block, blockLogs };
-              });
-            })
-            .then(async ({ block, blockLogs }) => {
-              // emit the block once everything has been fully saved to the database
-              block.value.transactions.forEach(transaction => {
-                const error = options.chain.vmErrorsOnRPCResponse
-                  ? transaction.execException
-                  : null;
-                transaction.finalize("confirmed", error);
-              });
-
-              if (instamine && options.miner.legacyInstamine) {
-                // in legacy instamine mode we must delay the broadcast of new blocks
-                await new Promise(resolve => {
-                  process.nextTick(async () => {
-                    // emit block logs first so filters can pick them up before
-                    // block listeners are notified
-                    await this.emit("blockLogs", blockLogs);
-                    await this.emit("block", block);
-                    resolve(void 0);
-                  });
-                });
-              } else {
-                // emit block logs first so filters can pick them up before
-                // block listeners are notified
-                await this.emit("blockLogs", blockLogs);
-                await this.emit("block", block);
-              }
-
-              return { block, blockLogs };
-            }));
-        });
+        miner.on("block", this.#handleNewBlockData);
 
         this.once("stop").then(() => miner.clearListeners());
       }
@@ -383,6 +261,147 @@ export default class Blockchain extends Emittery.Typed<
       this.emit("start");
     });
   }
+
+  #fillNewBlock = (blockData: any) => {
+    const blocks = this.blocks;
+    const options = this.#options;
+    const prevBlock = blocks.latest;
+    const prevHeader = prevBlock.value.header;
+    const prevNumber = Quantity.from(prevHeader.number).toBigInt() || 0n;
+    const block = blocks.createBlock({
+      parentHash: prevHeader.hash(),
+      number: Quantity.from(prevNumber + 1n).toBuffer(),
+      coinbase: this.coinbase.toBuffer(),
+      timestamp: blockData.timestamp,
+      // difficulty:
+      gasLimit: options.miner.blockGasLimit.toBuffer(),
+      transactionsTrie: blockData.transactionsTrie.root,
+      receiptTrie: blockData.receiptTrie.root,
+      stateRoot: this.trie.root,
+      gasUsed: Quantity.from(blockData.gasUsed).toBuffer()
+    });
+    block.value.transactions = blockData.blockTransactions;
+    return block;
+  };
+
+  #saveNewBlock = (block: Block) => {
+    const logger = this.#options.logging.logger;
+    const blocks = this.blocks;
+    blocks.latest = block;
+    const value = block.value;
+    const header = value.header;
+    return this.#database.batch(() => {
+      const blockHash = value.hash();
+      const blockNumber = header.number;
+      const blockNumberQ = Quantity.from(blockNumber);
+      const blockLogs = BlockLogs.create(blockHash);
+      const timestamp = new Date(
+        Quantity.from(header.timestamp).toNumber() * 1000
+      ).toString();
+      value.transactions.forEach((tx: Transaction, i: number) => {
+        const hash = tx.hash();
+        const index = Quantity.from(i).toBuffer();
+        const txAndExtraData = [
+          ...tx.raw,
+          blockHash,
+          blockNumber,
+          index,
+          Buffer.from([tx.type]),
+          tx.from
+        ];
+        const encodedTx = rlpEncode(txAndExtraData);
+        this.transactions.set(hash, encodedTx);
+
+        const receipt = tx.getReceipt();
+        const encodedReceipt = receipt.serialize(true);
+        this.transactionReceipts.set(hash, encodedReceipt);
+
+        tx.getLogs().forEach(blockLogs.append.bind(blockLogs, index, hash));
+
+        const error = tx.execException;
+        this.#logTransaction(hash, receipt, blockNumberQ, timestamp, error);
+      });
+      blockLogs.blockNumber = blockNumberQ;
+      this.blockLogs.set(blockNumber, blockLogs.serialize());
+      blocks.putBlock(block);
+      return { block, blockLogs };
+    });
+  };
+
+  #emitNewBlock = async (blockInfo: { block: Block; blockLogs: BlockLogs }) => {
+    const options = this.#options;
+    const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
+    const { block, blockLogs } = blockInfo;
+
+    // emit the block once everything has been fully saved to the database
+    block.value.transactions.forEach(transaction => {
+      const error = vmErrorsOnRPCResponse ? transaction.execException : null;
+      transaction.finalize("confirmed", error);
+    });
+
+    if (this.#instamine && options.miner.legacyInstamine) {
+      // in legacy instamine mode we must delay the broadcast of new blocks
+      await new Promise(resolve => {
+        process.nextTick(async () => {
+          // emit block logs first so filters can pick them up before
+          // block listeners are notified
+          await Promise.all([
+            this.emit("blockLogs", blockLogs),
+            this.emit("block", block)
+          ]);
+          resolve(void 0);
+        });
+      });
+    } else {
+      // emit block logs first so filters can pick them up before
+      // block listeners are notified
+      await Promise.all([
+        this.emit("blockLogs", blockLogs),
+        this.emit("block", block)
+      ]);
+    }
+
+    return blockInfo;
+  };
+
+  #logTransaction = (
+    hash: Buffer,
+    receipt: TransactionReceipt,
+    blockNumber: Quantity,
+    timestamp: string,
+    error: RuntimeError | undefined
+  ) => {
+    const logger = this.#options.logging.logger;
+    logger.log("");
+    logger.log("  Transaction: " + Data.from(hash));
+
+    const contractAddress = receipt.contractAddress;
+    if (contractAddress != null) {
+      logger.log("  Contract created: " + Address.from(contractAddress));
+    }
+
+    logger.log("  Gas usage: " + Quantity.from(receipt.raw[1]));
+    logger.log("  Block Number: " + blockNumber);
+    logger.log("  Block Time: " + timestamp);
+
+    if (error) {
+      logger.log("  Runtime Error: " + error.data.message);
+      if ((error as any).reason) {
+        logger.log("  Revert reason: " + (error as any).data.reason);
+      }
+    }
+
+    logger.log("");
+  };
+
+  #handleNewBlockData = async (blockData: any) => {
+    this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
+      .then(() => this.#fillNewBlock(blockData))
+      .then(this.#saveNewBlock)
+      .then(this.#emitNewBlock);
+
+    return this.#blockBeingSavedPromise;
+  };
 
   coinbase: Address;
 
