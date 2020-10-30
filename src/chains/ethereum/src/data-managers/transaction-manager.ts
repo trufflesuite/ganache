@@ -78,13 +78,13 @@ export default class TransactionManager extends Manager<Transaction> {
    * affect if already paused.
    */
   public async pause() {
-    if (this.#paused) return;
-
-    // stop processing new transactions immediately
-    this.#paused = true;
-    this.#resumer = new Promise(resolve => {
-      this.#resolver = resolve;
-    });
+    if (!this.#paused) {
+      // stop processing new transactions immediately
+      this.#paused = true;
+      this.#resumer = new Promise(resolve => {
+        this.#resolver = resolve;
+      });
+    }
 
     // then wait until all async things we were already processing are done
     // before returning

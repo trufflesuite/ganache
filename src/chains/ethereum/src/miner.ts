@@ -66,12 +66,12 @@ export default class Miner extends Emittery.Typed<
   readonly #createBlock: (previousBlock: Block) => Block;
 
   public async pause() {
-    if (this.#paused) return;
-
-    this.#paused = true;
-    this.#resumer = new Promise(resolve => {
-      this.#resolver = resolve;
-    });
+    if (!this.#paused) {
+      this.#paused = true;
+      this.#resumer = new Promise(resolve => {
+        this.#resolver = resolve;
+      });
+    }
 
     if (this.#isBusy) {
       await this.once("idle");
