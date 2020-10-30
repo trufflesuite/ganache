@@ -271,10 +271,15 @@ describe("api", () => {
           transactionsProm
         ]);
 
-        // verify that we don't yet have a receipt
-        receipts.forEach(receipt => {
-          assert.strictEqual(receipt, null, "Receipt should be null");
-        });
+        // sometimes ganache is REALLY fast and mines and saves the first tx
+        // before we even get here (which is fine). As long as we have tx that
+        // is still pending (meaning its receipt is `null`) the test is still
+        // testing what we want it to.
+        assert.strictEqual(
+          receipts.some(r => r === null),
+          true,
+          "At least 1 receipt should be null"
+        );
 
         // and that the transations were all accepted
         transactions.forEach(transaction => {
