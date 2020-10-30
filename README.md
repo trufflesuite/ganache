@@ -30,7 +30,7 @@ Ganache is an Ethereum simulator that makes developing Ethereum applications fas
 - Fork any Ethereum network without waiting to sync
 - Ethereum json-rpc support
 - Snapshot/revert state
-- Mine blocks _instantly_, _on demand_, or at an interval
+- Mine blocks instantly, on demand, or at an interval
 - Fast-forward time
 - Impersonate any account (no private keys required!)
 - Listens for JSON-RPC 2.0 requests over HTTP/WebSockets
