@@ -7,8 +7,8 @@ describe("api", () => {
     let provider: EthereumProvider;
     before(async () => {
       // will this make GitHub Action's windwos-2019 Node v14 test work
-      await new Promise(resolve => setTimeout(resolve, 1000));
       provider = await getProvider();
+      await new Promise(resolve => setTimeout(resolve, 1000));
     });
 
     it("bzz_hive stub returns value", async () => {
