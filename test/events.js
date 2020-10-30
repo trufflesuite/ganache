@@ -54,11 +54,11 @@ var tests = function(web3, EventTest) {
 
       var listener = function(result) {
         assert.strictEqual(result.returnValues.first, expectedValue);
-        done();
+        event.unsubscribe(done);
       };
 
       event.once("data", listener);
-      event.once("error", (err) => done(err));
+      event.once("error", (err) => event.unsubscribe(() => done(err)));
 
       instance.methods.triggerEvent(1, 6).send({ from: accounts[0], gas: 3141592 });
     });
@@ -71,7 +71,7 @@ var tests = function(web3, EventTest) {
 
       var listener = function(result) {
         assert.strictEqual(result.returnValues.first, expectedValue);
-        done();
+        event.unsubscribe(done);
       };
 
       event.once("data", listener);
@@ -96,7 +96,7 @@ var tests = function(web3, EventTest) {
 
         if (Object.keys(waitingFor).length === 0) {
           event.removeAllListeners();
-          done();
+          event.unsubscribe(done);
         }
       };
 
@@ -104,7 +104,7 @@ var tests = function(web3, EventTest) {
 
       event.once("error", (err) => {
         event.removeAllListeners();
-        done(err);
+        event.unsubscribe(() => done(err));
       });
 
       instance.methods
@@ -131,7 +131,7 @@ var tests = function(web3, EventTest) {
           event.on("data", function(result) {
             assert(result.returnValues.first === expectedValue);
             // event.removeAllListeners()
-            done();
+            event.unsubscribe(done);
           });
 
           instance.methods
@@ -199,6 +199,7 @@ var tests = function(web3, EventTest) {
             } else if (err) {
               return done(err);
             }
+
             const firstChanges = result.params.result.hash;
             assert.strictEqual(firstChanges.length, 66); // Ensure we have a hash
             if (provider.clearListeners) {
@@ -247,7 +248,7 @@ var tests = function(web3, EventTest) {
           // have to finish somehow...
           setTimeout(() => {
             event.removeAllListeners();
-            done();
+            event.unsubscribe(done);
           }, 250);
         });
     });
@@ -269,7 +270,7 @@ var tests = function(web3, EventTest) {
           // have to finish somehow...
           setTimeout(() => {
             event.removeAllListeners();
-            done();
+            event.unsubscribe(done);
           }, 250);
         });
     });
