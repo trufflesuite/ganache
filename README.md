@@ -25,7 +25,7 @@
 
 ## Features
 
-Ganache uses simulates full Ethereum client behavior and makes developing Ethereum applications faster, easier, and safer. It includes all popular RPC functions and features (like events) and can be run deterministically to make development a breeze.
+Ganache is an Ethereum simulator that makes developing Ethereum applications faster, easier, and safer. It includes all popular RPC functions and features (like events) and can be run deterministically to make development a breeze.
 
 - Fork any Ethereum network without waiting to sync
 - Ethereum json-rpc support
