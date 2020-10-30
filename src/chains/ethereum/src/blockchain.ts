@@ -273,7 +273,6 @@ export default class Blockchain extends Emittery.Typed<
       number: Quantity.from(prevNumber + 1n).toBuffer(),
       coinbase: this.coinbase.toBuffer(),
       timestamp: blockData.timestamp,
-      // difficulty:
       gasLimit: options.miner.blockGasLimit.toBuffer(),
       transactionsTrie: blockData.transactionsTrie.root,
       receiptTrie: blockData.receiptTrie.root,
