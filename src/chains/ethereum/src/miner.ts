@@ -160,7 +160,7 @@ export default class Miner extends Emittery.Typed<
 
     // if there are more txs to mine, start mining them without awaiting their
     // result.
-    if (!onlyOneBlock && this.#pending) {
+    if (!onlyOneBlock && this.#pending && this.#priced.length > 0) {
       this.#setPricedHeap();
       this.#pending = false;
       const nextBlock = this.#createBlock(lastBlock);
