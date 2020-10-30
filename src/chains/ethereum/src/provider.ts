@@ -91,6 +91,7 @@ export default class EthereumProvider
       | JsonRpcTypes.Request<EthereumApi>[],
     arg2?: Callback | any[]
   ) {
+    console.log("here 2");
     let method: RequestMethods;
     let params: any;
     let response: Promise<{}> | undefined;
@@ -158,8 +159,11 @@ export default class EthereumProvider
   public async request<Method extends RequestMethods>(
     args: RequestParams<Method>
   ) {
+    console.log("here 3");
     const rawResult = await this.requestRaw(args);
+    console.log("here 4");
     const value = await rawResult.value;
+    console.log("here 5");
     return JSON.parse(JSON.stringify(value));
   }
 
@@ -174,7 +178,9 @@ export default class EthereumProvider
   }: RequestParams<Method>) {
     this.#logRequest(method, params);
 
+    console.log("here 6");
     const result = await this.#executor.execute(this.#api, method, params);
+    console.log("here 7");
     const promise = result.value as mergePromiseGenerics<typeof result.value>;
     if (promise instanceof PromiEvent) {
       promise.on("message", data => {
@@ -192,6 +198,7 @@ export default class EthereumProvider
       });
     }
     const value = promise.catch((error: Error) => {
+      console.log("here 8 (catch)");
       if (this.#options.chain.vmErrorsOnRPCResponse) {
         if (hasOwn(error, "result")) {
           // stringify the result here
@@ -204,6 +211,7 @@ export default class EthereumProvider
       // then rethrow
       throw error;
     });
+    console.log("here 9");
     return { value: value };
   }
 

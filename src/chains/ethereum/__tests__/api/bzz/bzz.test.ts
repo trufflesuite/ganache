@@ -8,11 +8,13 @@ describe("api", () => {
     before(async () => {
       // will this make GitHub Action's windwos-2019 Node v14 test work
       provider = await getProvider();
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log("here 0");
     });
 
     it("bzz_hive stub returns value", async () => {
+      console.log("here 1");
       const result = await provider.send("bzz_hive");
+      console.log("here last");
       assert.deepStrictEqual(result, []);
     });
 

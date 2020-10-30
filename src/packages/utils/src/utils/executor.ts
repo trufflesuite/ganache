@@ -22,6 +22,7 @@ export class Executor {
     methodName: M,
     params: Parameters<T[M]>
   ) {
+    console.log("here 10");
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache
     if (typeof methodName === "string") {
