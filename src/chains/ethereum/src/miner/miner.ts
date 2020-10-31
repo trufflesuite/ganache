@@ -1,6 +1,6 @@
-import params from "./things/params";
+import params from "../things/params";
 import { utils } from "@ganache/utils";
-import Transaction from "./things/transaction";
+import Transaction from "../things/transaction";
 import { Quantity, Data } from "@ganache/utils";
 import { promisify } from "util";
 import Trie from "merkle-patricia-tree";
@@ -8,11 +8,12 @@ import Emittery from "emittery";
 import Block from "ethereumjs-block";
 import VM from "ethereumjs-vm";
 import { encode as rlpEncode } from "rlp";
-import { EthereumInternalOptions } from "./options";
-import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
-import { Executables } from "./types/executables";
+import { EthereumInternalOptions } from "../options";
+import RuntimeError, { RETURN_TYPES } from "../errors/runtime-error";
+import { Executables } from "../types/executables";
+import replaceFromHeap from "./replace-from-heap";
 
-type BlockData = {
+export type BlockData = {
   blockTransactions: Transaction[];
   transactionsTrie: Trie;
   receiptTrie: Trie;
@@ -23,27 +24,8 @@ type BlockData = {
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) =>
   promisify(trie.put.bind(trie))(key, val);
 
-function replaceFromHeap(
-  priced: utils.Heap<Transaction>,
-  source: utils.Heap<Transaction>
-) {
-  // get the next best for this account, removing from the source Heap:
-  const next = source.peek();
-  if (next) {
-    // remove the current best priced transaction from this account and replace
-    // it with the account's next lowest nonce transaction:
-    priced.replaceBest(next);
-    next.locked = true;
-    return true;
-  } else {
-    // since we don't have a next, just remove this item from priced
-    return priced.removeBest();
-  }
-}
-
-function byPrice(values: Transaction[], a: number, b: number) {
-  return Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
-}
+const sortByPrice = (values: Transaction[], a: number, b: number) =>
+  Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 
 export default class Miner extends Emittery.Typed<
   { block: BlockData },
@@ -86,7 +68,7 @@ export default class Miner extends Emittery.Typed<
   }
 
   // create a Heap that sorts by gasPrice
-  readonly #priced = new utils.Heap<Transaction>(byPrice);
+  readonly #priced = new utils.Heap<Transaction>(sortByPrice);
   /*
    * @param executables A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -130,6 +112,7 @@ export default class Miner extends Emittery.Typed<
     if (this.#paused) {
       await this.#resumer;
     }
+
     // only allow mining a single block at a time (per miner)
     if (this.#isBusy) {
       // if we are currently mining a block, set the `pending` property
@@ -140,11 +123,10 @@ export default class Miner extends Emittery.Typed<
       return;
     } else {
       this.#setPricedHeap();
+      const result = await this.#mine(block, maxTransactions, onlyOneBlock);
+      this.emit("idle");
+      return result;
     }
-
-    const result = await this.#mine(block, maxTransactions, onlyOneBlock);
-    this.emit("idle");
-    return result;
   }
 
   #mine = async (
@@ -160,11 +142,13 @@ export default class Miner extends Emittery.Typed<
 
     // if there are more txs to mine, start mining them without awaiting their
     // result.
-    if (!onlyOneBlock && this.#pending && this.#priced.length > 0) {
+    if (this.#pending) {
       this.#setPricedHeap();
       this.#pending = false;
-      const nextBlock = this.#createBlock(lastBlock);
-      await this.#mine(nextBlock, this.#instamine ? 1 : -1);
+      if (!onlyOneBlock && this.#priced.length > 0) {
+        const nextBlock = this.#createBlock(lastBlock);
+        await this.#mine(nextBlock, this.#instamine ? 1 : -1);
+      }
     }
     return transactions;
   };
@@ -208,13 +192,12 @@ export default class Miner extends Emittery.Typed<
       let numTransactions = 0;
       let blockGasLeft = this.#options.blockGasLimit.toBigInt();
 
+      const blockBloom = block.header.bloom;
       const promises: Promise<never>[] = [];
 
       // Set a block-level checkpoint so our unsaved trie doesn't update the
       // vm's "live" trie.
       await this.#checkpoint();
-
-      const blockBloom = block.header.bloom;
 
       // Run until we run out of items, or until the inner loop stops us.
       // we don't call `shift()` here because we will may need to `replace`
@@ -232,9 +215,8 @@ export default class Miner extends Emittery.Typed<
           // same account.
           //  * We do "unlock" this transaction in the transaction pool's `pending`
           // queue so it can be replaced, if needed.
-          priced.removeBest();
           best.locked = false;
-          this.#origins.delete(origin);
+          this.#removeBestAndOrigin(origin);
           continue;
         }
 
@@ -296,7 +278,7 @@ export default class Miner extends Emittery.Typed<
                 // this tx into our `priced` heap.
                 keepMining = replaceFromHeap(priced, pendingOrigin);
               } else {
-                keepMining = priced.removeBest();
+                keepMining = this.#removeBestAndOrigin(origin);
               }
               break;
             }
@@ -309,7 +291,7 @@ export default class Miner extends Emittery.Typed<
             } else {
               // since we don't have any more txs from this account, just get the
               // next bext transaction sorted in our `priced` heap.
-              keepMining = priced.removeBest();
+              keepMining = this.#removeBestAndOrigin(origin);
             }
           } else {
             // didn't fit in the current block
@@ -325,9 +307,9 @@ export default class Miner extends Emittery.Typed<
             keepMining = priced.removeBest();
           }
         } else {
-          // no result means the tranasction is an "always failing tx", so we
-          // revert it's changes here.
-          // Note: we don't clean up ()`removeBest`, etc) because `runTx`'s
+          // no result means the transaction is an "always failing tx", so we
+          // revert its changes here.
+          // Note: we don't clean up (`removeBest`, etc) because `runTx`'s
           // error handler does the clean up itself.
           await this.#revert();
         }
@@ -335,13 +317,13 @@ export default class Miner extends Emittery.Typed<
 
       await Promise.all(promises);
       await this.#commit();
+
+      const emitBlockProm = this.emit("block", blockData);
       if (legacyInstamine === true) {
         // we need to wait for each block to be done mining when in legacy
         // mode because things like `mine` and `miner_start` must wait for the
-        // first mine operation to be completed.
-        await this.emit("block", blockData);
-      } else {
-        this.emit("block", blockData);
+        // first mine operation to be fully complete.
+        await emitBlockProm;
       }
 
       if (onlyOneBlock) {
@@ -355,7 +337,6 @@ export default class Miner extends Emittery.Typed<
         if (priced.length !== 0) {
           maxTransactions = this.#instamine ? 1 : -1;
           block = this.#createBlock(block);
-          continue;
         } else {
           // reset the miner
           this.#reset();
@@ -386,8 +367,7 @@ export default class Miner extends Emittery.Typed<
         // if there are no more transactions from this origin remove this tx
         // from the priced heap and clear out it's origin so it can accept new
         // transactions from this origin.
-        this.#priced.removeBest();
-        this.#origins.delete(origin);
+        this.#removeBestAndOrigin(origin);
       }
 
       const e = {
@@ -396,13 +376,18 @@ export default class Miner extends Emittery.Typed<
           exceptionError: { error: errorMessage },
           returnValue: Buffer.allocUnsafe(0)
         }
-      } as any;
+      };
       tx.finalize(
         "rejected",
-        new RuntimeError(tx.hash(), e, RETURN_TYPES.TRANSACTION_HASH)
+        new RuntimeError(tx.hash(), e as any, RETURN_TYPES.TRANSACTION_HASH)
       );
       return null;
     }
+  };
+
+  #removeBestAndOrigin = (origin: string) => {
+    this.#origins.delete(origin);
+    return this.#priced.removeBest();
   };
 
   #reset = () => {
@@ -411,6 +396,10 @@ export default class Miner extends Emittery.Typed<
     this.#isBusy = false;
   };
 
+  /**
+   * Adds one transaction from each origin into the "priced" heap, which
+   * sorts each tx by gasPrice (high to low)
+   */
   #setPricedHeap = () => {
     const { pending } = this.#executables;
     const origins = this.#origins;
@@ -428,6 +417,10 @@ export default class Miner extends Emittery.Typed<
     }
   };
 
+  /**
+   * Updates the "priced" heap with transactions from origins it doesn't yet
+   * contain.
+   */
   #updatePricedHeap = () => {
     const { pending } = this.#executables;
     const origins = this.#origins;

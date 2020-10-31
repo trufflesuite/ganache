@@ -1,5 +1,5 @@
 import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
-import Miner from "./miner";
+import Miner, { BlockData } from "./miner/miner";
 import Database from "./database";
 import Emittery from "emittery";
 import BlockManager, { Block } from "./data-managers/block-manager";
@@ -262,7 +262,7 @@ export default class Blockchain extends Emittery.Typed<
     });
   }
 
-  #fillNewBlock = (blockData: any) => {
+  #fillNewBlock = (blockData: BlockData) => {
     const blocks = this.blocks;
     const options = this.#options;
     const prevBlock = blocks.latest;
@@ -392,7 +392,7 @@ export default class Blockchain extends Emittery.Typed<
     logger.log("");
   };
 
-  #handleNewBlockData = async (blockData: any) => {
+  #handleNewBlockData = async (blockData: BlockData) => {
     this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
       .then(() => this.#fillNewBlock(blockData))
       .then(this.#saveNewBlock)
@@ -455,7 +455,7 @@ export default class Blockchain extends Emittery.Typed<
   createVmFromStateTrie = (
     stateTrie: CheckpointTrie,
     allowUnlimitedContractSize: boolean
-  ): any => {
+  ) => {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
     const getBlock = class T {
