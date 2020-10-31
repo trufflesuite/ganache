@@ -95,6 +95,7 @@ process.stdout.write(`${COLORS.Reset}`);
     const pkg = {
       name: packageName,
       version: version,
+      description: "",
       author: packageAuthor || require("../package.json").author,
       homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${name}#readme`,
       license: "MIT",
