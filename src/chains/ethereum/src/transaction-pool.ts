@@ -140,7 +140,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
             );
           } else {
             throw new CodedError(
-              "transaction rejected; gas price too low to replace existing transaction",
+              "replacement transaction underpriced",
               ErrorCodes.TRANSACTION_REJECTED
             );
           }
