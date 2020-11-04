@@ -107,7 +107,7 @@ diff --git a/.vscode/launch.json b/.vscode/launch.json
 index 2a2aa9e..57cbf21 100644
 --- a/.vscode/launch.json
 +++ b/.vscode/launch.json
-@@ -23,7 +23,7 @@
+@@ -24,7 +24,7 @@
          "--colors",
          "--require",
          "ts-node/register",

@@ -13,6 +13,7 @@ function isHttp(
 }
 
 export type ProviderOptions = EthereumProviderOptions;
+export type Provider = EthereumProvider;
 export const Provider = EthereumProvider;
 export const FlavorName = "ethereum" as const;
 

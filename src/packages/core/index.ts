@@ -3,4 +3,5 @@
 //            files when developing, debugging, and running tests            //
 // ************************************************************************* //
 
-export * from "./src/index";
+import core from "./src/index";
+export default core;

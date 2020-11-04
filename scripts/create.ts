@@ -7,7 +7,6 @@ import camelCase from "camelcase";
 import npa from "npm-package-arg";
 import userName from "git-user-name";
 import { join, resolve } from "path";
-import { version } from "../lerna.json";
 import { highlight } from "cli-highlight";
 import { mkdir, mkdirSync, writeFile } from "fs-extra";
 import {
@@ -91,10 +90,11 @@ process.stdout.write(`${COLORS.Reset}`);
 
     const packageName = `@ganache/${name}`;
     let packageAuthor = userName();
+    const version = "0.1.0";
 
     const pkg = {
       name: packageName,
-      version: version,
+      version,
       description: "",
       author: packageAuthor || require("../package.json").author,
       homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${name}#readme`,

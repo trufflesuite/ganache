@@ -1,0 +1,52 @@
+{
+  "name": "ganache",
+  "version": "3.0.0-internal.0",
+  "description": "A library and cli to create a local blockchain for fast Ethereum development.",
+  "author": "David Murdoch",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
+  "license": "MIT",
+  "main": "dist/node/ganache.min.js",
+  "browser": "dist/web/ganache.min.js",
+  "types": "src/index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/packages/ganache"
+  },
+  "scripts": {
+    "tsc": "ttsc",
+    "test": "nyc npm run mocha",
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**/*.test.ts'",
+    "prepare": "webpack"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling",
+    "truffle"
+  ],
+  "devDependencies": {
+    "@ganache/core": "2.2.1",
+    "webpack": "5.4.0",
+    "webpack-cli": "4.2.0",
+    "@ganache/flavors": "2.2.1"
+  }
+}

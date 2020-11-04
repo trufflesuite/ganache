@@ -18,8 +18,8 @@ const config: webpack.Configuration = merge({}, base, {
       //#endregion node polyfills
     },
     alias: {
-      "tmp-promise": require.resolve("./browser-tmp-promise"),
-      "bigint-buffer": require.resolve("./browser-bigint-buffer"),
+      "tmp-promise": require.resolve("./polyfills/browser-tmp-promise"),
+      "bigint-buffer": require.resolve("./polyfills/browser-bigint-buffer"),
       // replace leveldown with a browser version
       leveldown: require.resolve("level-js/"),
       // browser version can't start a server, so just remove the websocket server since it can't work anyway

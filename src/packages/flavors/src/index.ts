@@ -17,6 +17,8 @@ export type Connectors = {
   [K in keyof ConnectorsByName]: ConnectorsByName[K];
 }[keyof ConnectorsByName];
 
+export type Providers = Ethereum.Provider /*| Tezos.Provider */;
+
 export type Options = {
   flavor?: typeof Ethereum.FlavorName;
 } & Ethereum.ProviderOptions;
