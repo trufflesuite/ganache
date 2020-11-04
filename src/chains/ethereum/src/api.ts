@@ -425,13 +425,13 @@ export default class EthereumApi implements types.Api {
    * @returns `true` if a snapshot was reverted, otherwise `false`
    *
    * @example
-   * <div class="runkit-example">
+   * ```javascript
    * const snapshotId = await provider.send("evm_snapshot");
    * const isReverted = await provider.send("evm_revert", [snapshotId]);
-   * </div>
+   * ```
    *
    * @example
-   * <div class="runkit-example">
+   * ```javascript
    * const provider = ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
    * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
@@ -454,7 +454,7 @@ export default class EthereumApi implements types.Api {
    *
    * const endingBalance = await provider.send("eth_getBalance", [from]);
    * assert.strictEqual(BigInt(endingBalance), startingBalance);
-   * </div>
+   * ```
    */
   @assertArgLength(1)
   async evm_revert(snapshotId: string | number) {
@@ -471,12 +471,12 @@ export default class EthereumApi implements types.Api {
    * @returns The hex-encoded identifier for this snapshot
    *
    * @example
-   * <div class="runkit-example">
+   * ```javascript
    * const snapshotId = await provider.send("evm_snapshot");
-   * </div>
+   * ```
    *
    * @example
-   * <div class="runkit-example">
+   * ```javascript
    * const provider = ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
    * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
@@ -499,7 +499,7 @@ export default class EthereumApi implements types.Api {
    *
    * const endingBalance = await provider.send("eth_getBalance", [from]);
    * assert.strictEqual(BigInt(endingBalance), startingBalance);
-   * </div>
+   * ```
    */
   async evm_snapshot() {
     return Quantity.from(this.#blockchain.snapshot());
@@ -975,7 +975,12 @@ export default class EthereumApi implements types.Api {
    * Returns the currently configured chain id, a value used in
    * replay-protected transaction signing as introduced by EIP-155.
    * @returns The chain id as a string.
-   * @EIP [155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
+   * @EIP [155 – Simple replay attack protection](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
+   * 
+   * @example
+   * ```javascript
+   * await provider.send("eth_chainId");
+   * ```
    */
   @assertArgLength(0)
   async eth_chainId() {
