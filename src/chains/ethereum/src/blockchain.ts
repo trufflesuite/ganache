@@ -71,7 +71,7 @@ type BlockchainTypedEvents = {
   blockLogs: BlockLogs;
   pendingTransaction: Transaction;
 };
-type BlockchainEvents = "start" | "stop" | "step";
+type BlockchainEvents = "start" | "stop";
 
 /**
  * Sets the provided VM state manager's state root *without* first
@@ -197,7 +197,6 @@ export default class Blockchain extends Emittery.Typed<
         this.trie,
         options.chain.allowUnlimitedContractSize
       );
-      this.vm.on("step", this.emit.bind(this, "step"));
 
       await this.#commitAccounts(initialAccounts);
 
@@ -730,7 +729,6 @@ export default class Blockchain extends Emittery.Typed<
         stateTrie,
         this.vm.allowUnlimitedContractSize
       );
-      vm.on("step", this.emit.bind(this, "step"));
 
       result = await vm.runCall({
         caller: transaction.from.toBuffer(),
