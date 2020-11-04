@@ -1,5 +1,5 @@
 import { BaseJsonRpcType } from "./json-rpc-base-types";
-const toBigIntBE = require("bigint-buffer").toBigIntBE;
+import { toBigIntBE } from "bigint-buffer";
 
 export class Quantity extends BaseJsonRpcType {
   _nullable: boolean = false;

@@ -16,7 +16,12 @@ function bigIntByteLength(value: bigint) {
 
 const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
 try {
-  const toBufferBE = require("bigint-buffer").toBufferBE;
+  const { toBufferBE } = require("bigint-buffer");
+
+  // force fallback if only `toBufferBE` is missing (this can happen if toBufferBE isn't polyfilled for the browser,
+  // which, at the time of this writing... it isn't)
+  if (!toBufferBE) throw new Error("Missing function `toBufferBE`!");
+
   _bigIntToBuffer = (value: bigint) => {
     if (value <= MAX_SAFE_INTEGER) {
       return uintToBuffer(Number(value));
