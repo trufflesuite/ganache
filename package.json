@@ -11,7 +11,7 @@
     "docs.preview": "lerna exec --no-bail npm run docs.preview",
     "clean": "npx shx rm -rf node_modules && npx lerna clean -y && npm run tsc.clean",
     "create": "ts-node ./scripts/create",
-    "prepare": "lerna bootstrap && echo \"\n\\033[1;36m Tip:\\033[0;36m run \\033[1;2;33msource completions.sh\\033[0;36m to supply bash completions for npm scripts\\033[0m\n\"",
+    "postinstall": "lerna bootstrap && ts-node ./scripts/postinstall",
     "reinstall": "npm run clean && npm install",
     "test": "lerna exec -- npm run test",
     "tsc": "lerna exec -- npm run tsc",
