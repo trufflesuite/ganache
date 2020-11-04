@@ -65,7 +65,10 @@ export default class Database extends Emittery {
         if (this.#closed) return this.#cleanup();
       }
       this.directory = directory;
-      const store = encode(leveldown(directory), levelupOptions);
+
+      // specify an empty `prefix` for browser-based leveldown (level-js)
+      const leveldownOpts = { prefix: "" };
+      const store = encode(leveldown(directory, leveldownOpts), levelupOptions);
       this.#rootStore = store;
       db = levelup(store, {});
     }
