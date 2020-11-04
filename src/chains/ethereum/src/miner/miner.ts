@@ -228,7 +228,9 @@ export default class Miner extends Emittery.Typed<
 
         const result = await this.#runTx(best, block, origin, pending);
         if (result !== null) {
-          const gasUsed = Quantity.from(result.gasUsed.toBuffer()).toBigInt();
+          const gasUsed = Quantity.from(
+            result.gasUsed.toArrayLike(Buffer)
+          ).toBigInt();
           if (blockGasLeft >= gasUsed) {
             // if the transaction will fit in the block, commit it!
             await this.#commit();

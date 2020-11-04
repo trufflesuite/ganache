@@ -505,7 +505,7 @@ class Transaction extends (EthereumJsTransaction as any) {
       result.bloom.bitvector,
       (this.#logs = vmResult.logs || ([] as TransactionLog[])),
       result.createdAddress,
-      result.gasUsed.toBuffer()
+      result.gasUsed.toArrayLike(Buffer)
     ));
 
     return receipt.serialize(false);
