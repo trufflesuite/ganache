@@ -976,7 +976,7 @@ export default class EthereumApi implements types.Api {
    * replay-protected transaction signing as introduced by EIP-155.
    * @returns The chain id as a string.
    * @EIP [155 – Simple replay attack protection](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
-   * 
+   *
    * @example
    * ```javascript
    * await provider.send("eth_chainId");
