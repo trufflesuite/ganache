@@ -24,7 +24,7 @@
     "directory": "src/packages/core"
   },
   "scripts": {
-    "tsc": "ts-node ../../../scripts/compile",
+    "tsc": "ttsc",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true mocha --exit --throw-deprecation --trace-warnings --check-leaks --require ts-node/register '__tests__/**/*.test.ts'"
   },

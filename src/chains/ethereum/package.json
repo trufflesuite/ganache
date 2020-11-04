@@ -26,8 +26,7 @@
   "scripts": {
     "docs.build": "rm -rf ./lib/docs ./lib/api.json && typedoc --options ./typedoc.json --readme ./README.md --out ./lib/docs --json ./lib/api.json src/api.ts && npm run docs.post-process",
     "docs.post-process": "node ./scripts/post-process-docs.js",
-    "docs.preview": "ws --open --port 3010 --directory ./lib/docs",
-    "tsc": "ts-node ../../../scripts/compile",
+    "tsc": "ttsc",
     "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**/*.test.ts'"
   },
@@ -66,6 +65,7 @@
     "cheerio": "1.0.0-rc.3",
     "local-web-server": "4.2.1",
     "open-cli": "6.0.1",
+    "ts-transformer-inline-file": "0.1.1",
     "typedoc": "0.17.8"
   }
 }

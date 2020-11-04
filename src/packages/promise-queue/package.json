@@ -20,7 +20,7 @@
     "directory": "src/packages/promise-queue"
   },
   "scripts": {
-    "tsc": "ts-node ../../../scripts/compile",
+    "tsc": "ttsc",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --exit --require ts-node/register --recursive --check-leaks '__tests__/**.ts'"
   },

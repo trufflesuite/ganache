@@ -112,7 +112,7 @@ process.stdout.write(`${COLORS.Reset}`);
         directory: `src/${location}/${name}`
       },
       scripts: {
-        tsc: "ts-node ../../../scripts/compile",
+        tsc: "ttsc",
         test: "nyc npm run mocha",
         mocha:
           "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**/*.test.ts'"

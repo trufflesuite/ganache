@@ -15,10 +15,10 @@ import Address from "./things/address";
 import Transaction from "./things/transaction";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
+import { $INLINE_JSON } from "ts-transformer-inline-file";
 
 const createKeccakHash = require("keccak");
-// Read in the current ganache version from core's package.json
-import { version } from "../../../packages/core/package.json";
+
 import { PromiEvent, utils } from "@ganache/utils";
 import Emittery from "emittery";
 import Common from "ethereumjs-common";
@@ -44,6 +44,9 @@ import {
   parseFilterRange
 } from "./helpers/filter-parsing";
 import { Hardfork } from "./options/chain-options";
+
+// Read in the current ganache version from core's package.json
+const { version } = $INLINE_JSON("../../../packages/core/package.json");
 //#endregion
 
 //#region Constants
