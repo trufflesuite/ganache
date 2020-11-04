@@ -1,7 +1,8 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
-import { version } from "../../../../../packages/core/package.json";
+import { $INLINE_JSON } from "ts-transformer-inline-file";
+const { version } = $INLINE_JSON("../../../../../packages/core/package.json");
 
 describe("api", () => {
   describe("web3", () => {

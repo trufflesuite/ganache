@@ -10,6 +10,7 @@
       "name": "Typescript Mocha All",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "env": {
+        "TS_NODE_COMPILER": "ttypescript",
         "TS_NODE_FILES": "true"
       },
       // 10.7.0 is the earliest version of Node.js that we support, and is the first version to support BigInt literals.
