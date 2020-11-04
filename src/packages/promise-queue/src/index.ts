@@ -11,6 +11,7 @@ const emitteryMethods = ["emit", "once"] as const;
  * return promises; this queue is for the promises themselves.
  *
  * @example
+ * ```javascript
  * const queue = new PromiseQueue();
  *
  * const slow = new Promise(resolve => setTimeout(resolve, 1000, "slow"));
@@ -27,6 +28,7 @@ const emitteryMethods = ["emit", "once"] as const;
  *
  * * note: whatever the promise starting doing when it was created will still
  * happen, no promises are aborted; rather, the return value is ignored.
+ * ```
  */
 @Emittery.mixin(Symbol.for("emittery"), emitteryMethods)
 class PromiseQueue<T> {
