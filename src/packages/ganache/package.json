@@ -44,9 +44,9 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/core": "2.2.1",
+    "@ganache/core": "^0.1.0",
     "webpack": "5.4.0",
     "webpack-cli": "4.2.0",
-    "@ganache/flavors": "2.2.1"
+    "@ganache/flavors": "^0.1.0"
   }
 }

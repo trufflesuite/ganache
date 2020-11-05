@@ -1,6 +1,6 @@
 {
   "name": "@ganache/ethereum",
-  "version": "2.2.1",
+  "version": "0.1.0",
   "description": "Ganache's Ethereum client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/ethereum#readme",
@@ -48,9 +48,9 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/options": "^2.2.1",
-    "@ganache/promise-queue": "^2.2.1",
-    "@ganache/utils": "^2.2.1",
+    "@ganache/options": "^0.1.0",
+    "@ganache/promise-queue": "^0.1.0",
+    "@ganache/utils": "^0.1.0",
     "@types/keccak": "3.0.1",
     "eth-sig-util": "2.5.3",
     "ethereumjs-abi": "0.6.8",
