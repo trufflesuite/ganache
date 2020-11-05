@@ -44,7 +44,7 @@
     "tooling"
   ],
   "dependencies": {
-    "emittery": "^0.7.2"
+    "emittery": "0.7.2"
   },
   "devDependencies": {
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
