@@ -1283,12 +1283,16 @@ export default class EthereumApi implements types.Api {
     }
 
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
-    const signature = ecsign(messageHash, privateKey.toBuffer());
+    const signature = ecsign(
+      messageHash,
+      privateKey.toBuffer(),
+      this.#options.chain.chainId
+    );
     return toRpcSig(
       signature.v,
       signature.r,
       signature.s,
-      +this.#options.chain.chainId
+      this.#options.chain.chainId
     );
   }
 

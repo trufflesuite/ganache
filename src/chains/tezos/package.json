@@ -41,12 +41,14 @@
   ],
   "dependencies": {
     "@ganache/options": "^0.1.0",
-    "@ganache/utils": "^0.1.0"
+    "@ganache/utils": "^0.1.0",
+    "emittery": "0.7.2"
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
     "cheerio": "1.0.0-rc.3",
     "local-web-server": "4.2.1",
-    "typedoc": "0.17.8"
+    "typedoc": "0.17.8",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
   }
 }

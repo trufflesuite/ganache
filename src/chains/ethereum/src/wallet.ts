@@ -88,7 +88,7 @@ export default class Wallet {
   readonly knownAccounts = new Set<string>();
   readonly encryptedKeyFiles = new Map<string, EncryptType>();
   readonly unlockedAccounts = new Map<string, Data>();
-  readonly lockTimers = new Map<string, NodeJS.Timeout | number>();
+  readonly lockTimers = new Map<string, NodeJS.Timeout>();
 
   #hdKey: HDKey;
 
@@ -397,7 +397,7 @@ export default class Wallet {
 
     const existingTimer = this.lockTimers.get(lowerAddress);
     if (existingTimer) {
-      clearTimeout(existingTimer as number);
+      clearTimeout(existingTimer);
     }
 
     // a duration <= 0 will remain unlocked
@@ -405,7 +405,7 @@ export default class Wallet {
     if (durationMs > 0) {
       const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
       utils.unref(timeout);
-      this.lockTimers.set(lowerAddress, timeout);
+      this.lockTimers.set(lowerAddress, timeout as any);
     }
 
     this.unlockedAccounts.set(lowerAddress, Data.from(secretKey));
@@ -428,7 +428,7 @@ export default class Wallet {
     if (durationMs > 0) {
       const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
       utils.unref(timeout);
-      this.lockTimers.set(lowerAddress, timeout);
+      this.lockTimers.set(lowerAddress, timeout as any);
     }
 
     // otherwise, unlock it!
@@ -445,7 +445,7 @@ export default class Wallet {
   public lockAccount(lowerAddress: string) {
     if (!this.unlockedAccounts.has(lowerAddress)) return false;
 
-    clearTimeout(this.lockTimers.get(lowerAddress) as number);
+    clearTimeout(this.lockTimers.get(lowerAddress));
     return this.#lockAccount(lowerAddress);
   }
 }

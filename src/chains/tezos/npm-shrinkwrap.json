@@ -471,6 +471,11 @@
       "integrity": "sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=",
       "dev": true
     },
+    "emittery": {
+      "version": "0.7.2",
+      "resolved": "https://registry.npmjs.org/emittery/-/emittery-0.7.2.tgz",
+      "integrity": "sha512-A8OG5SR/ij3SsJdWDJdkkSYUjQdCUx6APQXem0SaEePBSRg4eymGYwBkKo1Y6DU+af/Jn2dBQqDBvjnr9Vi8nQ=="
+    },
     "encodeurl": {
       "version": "1.0.2",
       "resolved": "https://registry.npmjs.org/encodeurl/-/encodeurl-1.0.2.tgz",
@@ -1830,6 +1835,11 @@
       "version": "6.0.1",
       "resolved": "https://registry.npmjs.org/typical/-/typical-6.0.1.tgz",
       "integrity": "sha512-+g3NEp7fJLe9DPa1TArHm9QAA7YciZmWnfAqEaFrBihQ7epOv9i99rjtgb6Iz0wh3WuQDjsCTDfgRoGnmHN81A==",
+      "dev": true
+    },
+    "uWebSockets.js": {
+      "version": "github:uNetworking/uWebSockets.js#3dbec7b56d627193e20705844b6bd10e49848b8c",
+      "from": "github:uNetworking/uWebSockets.js#v18.4.0",
       "dev": true
     },
     "uglify-js": {

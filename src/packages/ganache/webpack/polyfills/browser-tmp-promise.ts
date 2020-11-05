@@ -1,3 +1,5 @@
+declare const indexedDB: any;
+
 import { resolve, isAbsolute, basename, join, relative } from "path";
 import { randomBytes, pseudoRandomBytes } from "crypto";
 

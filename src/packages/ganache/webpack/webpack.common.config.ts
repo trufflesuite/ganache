@@ -12,7 +12,6 @@ const base: webpack.Configuration = {
         test: /\.tsx?$/,
         use: [
           {
-            // webpack typescript modules
             loader: "ts-loader",
             options: {
               getCustomTransformers: program => ({
@@ -29,10 +28,13 @@ const base: webpack.Configuration = {
     extensions: [".tsx", ".ts", ".js"]
   },
   output: {
-    libraryTarget: "umd",
     filename: "ganache.min.js",
     library: "Ganache",
-    libraryExport: "default"
+    libraryExport: "default",
+    libraryTarget: "umd"
+  },
+  stats: {
+    colors: true
   }
 };
 

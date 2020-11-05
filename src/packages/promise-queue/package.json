@@ -40,5 +40,11 @@
     "fe",
     "web3",
     "tooling"
-  ]
+  ],
+  "dependencies": {
+    "emittery": "0.7.2"
+  },
+  "devDependencies": {
+    "ts-transformer-inline-file": "0.1.1"
+  }
 }

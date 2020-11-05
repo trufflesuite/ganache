@@ -14,6 +14,9 @@ const config: webpack.Configuration = merge({}, base, {
       assert: require.resolve("assert/"),
       stream: require.resolve("stream-browserify/"),
       os: require.resolve("os-browserify/browser"),
+      process: require.resolve("process/browser"),
+      events: require.resolve("events/"),
+      buffer: require.resolve("buffer/"),
       fs: false
       //#endregion node polyfills
     },

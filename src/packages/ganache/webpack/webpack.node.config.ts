@@ -4,7 +4,7 @@ import path from "path";
 import merge from "webpack-merge";
 
 const config: webpack.Configuration = merge({}, base, {
-  target: "node",
+  target: "node10.7",
   output: {
     path: path.resolve(__dirname, "../", "dist", "node")
   },
