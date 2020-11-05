@@ -4,7 +4,7 @@
     "alwaysStrict": true,
     "declaration": true,
     "skipLibCheck": true,
-    "module": "ES6",
+    "module": "CommonJS",
     "esModuleInterop": true,
     "target": "ES2020",
     "moduleResolution": "node",
