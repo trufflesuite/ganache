@@ -1,0 +1,43 @@
+{
+  "name": "@ganache/ts-transformer-type-const",
+  "version": "0.1.0",
+  "description": "A TypeScript custom transformer to literal types as JS runtime values",
+  "author": "David Murdoch",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ts-transformer-type-const#readme",
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "transformer.js",
+    "transformer.ts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/packages/ts-transformer-type-const"
+  },
+  "scripts": {
+    "tsc": "ttsc"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-ts-transformer-type-const",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling",
+    "truffle"
+  ],
+  "peerDependencies": {
+    "typescript": ">=3.2.0"
+  }
+}
