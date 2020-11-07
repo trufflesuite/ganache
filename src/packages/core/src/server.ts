@@ -6,9 +6,9 @@ import Connector from "./connector";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 
-const DEFAULT_HOST = "127.0.0.1";
-
 type Providers = Connectors["provider"];
+
+const DEFAULT_HOST = "127.0.0.1";
 
 type Callback = (err: Error | null) => void;
 
@@ -84,12 +84,10 @@ export default class Server {
     host?: string | Callback,
     callback?: Callback
   ): void | Promise<void> {
-    let hostname: string;
+    let hostname: string = null;
     if (typeof host === "function") {
       callback = host;
-      hostname = DEFAULT_HOST;
-    } else if (host == null) {
-      hostname = DEFAULT_HOST;
+      hostname = null;
     }
     const callbackIsFunction = typeof callback === "function";
     const status = this.#status;
@@ -114,12 +112,14 @@ export default class Server {
         // Make sure we have *exclusive* use of this port.
         // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
         const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
-        (this.#app as any).listen(
-          hostname,
-          port as any,
-          LIBUS_LISTEN_EXCLUSIVE_PORT,
-          resolve
-        );
+        hostname
+          ? this.#app.listen(
+              hostname,
+              port,
+              LIBUS_LISTEN_EXCLUSIVE_PORT,
+              resolve
+            )
+          : this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
       }
     ).then(listenSocket => {
       if (listenSocket) {
@@ -129,7 +129,9 @@ export default class Server {
       } else {
         this.#status = Status.closed;
         const err = new Error(
-          `listen EADDRINUSE: address already in use ${hostname}:${port}.`
+          `listen EADDRINUSE: address already in use ${
+            hostname || DEFAULT_HOST
+          }:${port}.`
         );
         if (callbackIsFunction) callback!(err);
         else throw err;
