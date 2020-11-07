@@ -45,7 +45,6 @@ export type ServerConfig = {
       };
     };
   };
-  exclusiveGroups: [];
 };
 const normalize = <T>(rawInput: T) => rawInput;
 

@@ -4,7 +4,7 @@ import webpack from "webpack";
 import packageJsonTransformer from "ts-transformer-inline-file/transformer";
 
 const base: webpack.Configuration = {
-  entry: "./src/index.ts",
+  entry: "./index.ts",
   devtool: "source-map",
   module: {
     rules: [

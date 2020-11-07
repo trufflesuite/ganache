@@ -7,10 +7,10 @@
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "source": "src/index.ts",
+  "source": "index.ts",
   "directories": {
     "lib": "lib",
-    "test": "__tests__"
+    "test": "tests"
   },
   "files": [
     "lib"
@@ -28,7 +28,7 @@
     "docs.post-process": "node ./scripts/post-process-docs.js",
     "tsc": "ttsc",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -80,7 +80,6 @@
     "@types/lodash.clonedeep": "4.5.6",
     "@types/secp256k1": "4.0.1",
     "@types/seedrandom": "2.4.28",
-    "@types/uws": "0.13.2",
     "@types/ws": "7.2.7",
     "cheerio": "1.0.0-rc.3",
     "fs-extra": "9.0.1",

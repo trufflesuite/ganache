@@ -1,5 +1,5 @@
 import assert from "assert";
-import Ganache from "../src";
+import Ganache from "../";
 import { Provider as EthereumProvider } from "@ganache/ethereum";
 
 describe("connector", () => {

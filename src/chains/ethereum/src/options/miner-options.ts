@@ -1,7 +1,7 @@
-import { Data, Quantity, utils } from "@ganache/utils";
+import { normalize } from "./helpers";
+import { Quantity, utils } from "@ganache/utils";
 import { Definitions } from "@ganache/options";
 import Address from "../things/address";
-import { DatabaseOptions } from "./database-options";
 
 export type MinerConfig = {
   options: {
@@ -120,10 +120,7 @@ export type MinerConfig = {
       type: string;
     };
   };
-  exclusiveGroups: [];
 };
-
-const normalize = <T>(rawInput: T) => rawInput;
 
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
@@ -143,7 +140,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   defaultTransactionGasLimit: {
     normalize: Quantity.from,
-    default: () => Quantity.from(90000)
+    default: () => Quantity.from(90_000)
   },
   callGasLimit: {
     normalize: Quantity.from,
@@ -159,11 +156,11 @@ export const MinerOptions: Definitions<MinerConfig> = {
     default: () => false
   },
   extraData: {
-    normalize: rawType => {
-      if (rawType.length > 32) {
-        throw new Error(`extra exceeds max length. ${rawType.length} > 32`);
+    normalize: extra => {
+      if (extra.length > 32) {
+        throw new Error(`extra exceeds max length. ${extra.length} > 32`);
       }
-      return rawType;
+      return extra;
     }
   }
 };

@@ -1,3 +1,4 @@
+import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 
 export type Logger = {
@@ -63,11 +64,9 @@ export type LoggingConfig = {
       };
     };
   };
-  exclusiveGroups: [];
 };
 
 const logger: Logger = { log: console.log.bind(console) };
-const normalize = <T>(rawInput: T) => rawInput;
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
   debug: {

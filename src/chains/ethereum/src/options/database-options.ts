@@ -1,3 +1,4 @@
+import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 
 export type DatabaseConfig = {
@@ -31,7 +32,6 @@ export type DatabaseConfig = {
   };
   exclusiveGroups: [["db", "dbPath"]];
 };
-const normalize = <T>(rawInput: T) => rawInput;
 
 export const DatabaseOptions: Definitions<DatabaseConfig> = {
   db: {

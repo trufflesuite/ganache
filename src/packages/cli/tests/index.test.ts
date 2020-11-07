@@ -1,5 +1,5 @@
 import assert from "assert";
-import cli from "../src/";
+import cli from "..";
 
 describe("@ganache/cli", () => {
   it("needs tests");

@@ -6,10 +6,11 @@
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/promise-queue#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "src/index.ts",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
   "directories": {
     "lib": "lib",
-    "test": "__tests__"
+    "test": "tests"
   },
   "files": [
     "lib"
@@ -22,7 +23,7 @@
   "scripts": {
     "tsc": "ttsc",
     "test": "nyc npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --require ts-node/register --recursive --check-leaks '__tests__/**.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --require ts-node/register --recursive --check-leaks 'tests/**.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -43,5 +44,6 @@
   ],
   "dependencies": {
     "emittery": "0.7.2"
-  }
+  },
+  "devDependencies": {}
 }

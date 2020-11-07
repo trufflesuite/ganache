@@ -1,3 +1,4 @@
+import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 
 export type Hardfork =
@@ -128,10 +129,7 @@ export type ChainConfig = {
       };
     };
   };
-  exclusiveGroups: [];
 };
-
-const normalize = <T>(rawInput: T) => rawInput;
 
 export const ChainOptions: Definitions<ChainConfig> = {
   allowUnlimitedContractSize: {

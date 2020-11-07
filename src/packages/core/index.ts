@@ -1,5 +1,11 @@
+import Connector from "./src/connector";
+import { ProviderOptions, ServerOptions } from "./src/options";
+import Server from "./src/server";
+
 export { ProviderOptions, ServerOptions } from "./src/options";
 
-import core from "./src/index";
-
-export default core;
+export default {
+  server: (options?: ServerOptions) => new Server(options),
+  provider: (options?: ProviderOptions) =>
+    Connector.initialize(options).provider
+};

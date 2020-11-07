@@ -1,6 +1,7 @@
-// ************************************************************************* //
-// This file is necessary to "trick" typescript into using our ./src/**/*.ts //
-//            files when developing, debugging, and running tests            //
-// ************************************************************************* //
-
-export * from "./src/index";
+export * as types from "./src/types";
+export * as utils from "./src/utils";
+export * as JsonRpc from "./src/things/json-rpc";
+export * from "./src/things/json-rpc/json-rpc-quantity";
+export * from "./src/things/json-rpc/json-rpc-data";
+export { default as JsonRpcTypes } from "./src/things/jsonrpc";
+export { default as PromiEvent } from "./src/things/promievent";

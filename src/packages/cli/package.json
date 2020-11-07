@@ -6,10 +6,15 @@
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/cli#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "src/index.ts",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
+  "bin": {
+    "ganache": "./lib/cli.js",
+    "ganache-cli": "./lib/cli.js"
+  },
   "directories": {
     "lib": "lib",
-    "test": "__tests__"
+    "test": "tests"
   },
   "files": [
     "lib"
@@ -22,7 +27,7 @@
   "scripts": {
     "tsc": "ttsc",
     "test": "nyc npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -43,7 +48,8 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/core": "^0.1.0"
+    "@ganache/core": "^0.1.0",
+    "google-closure-compiler": "20201102.0.1"
   },
   "dependencies": {
     "@types/node": "14.14.6",

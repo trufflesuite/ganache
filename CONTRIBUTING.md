@@ -111,8 +111,8 @@ index 2a2aa9e..57cbf21 100644
          "--colors",
          "--require",
          "ts-node/register",
--        "${workspaceFolder}/src/**/__tests__/**/*.test.ts"
-+        "${workspaceFolder}/src/chains/ethereum/__tests__/**/*.test.ts"
+-        "${workspaceFolder}/src/**/tests/**/*.test.ts"
++        "${workspaceFolder}/src/chains/ethereum/tests/**/*.test.ts"
        ],
        "skipFiles": ["<node_internals>/**"],
        "console": "integratedTerminal",

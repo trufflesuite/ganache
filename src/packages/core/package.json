@@ -7,10 +7,10 @@
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "source": "src/index.ts",
+  "source": "index.ts",
   "directories": {
     "lib": "lib",
-    "test": "__tests__"
+    "test": "tests"
   },
   "files": [
     "lib"
@@ -26,7 +26,7 @@
   "scripts": {
     "tsc": "ttsc",
     "test": "nyc npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --throw-deprecation --trace-warnings --check-leaks --require ts-node/register '__tests__/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --throw-deprecation --trace-warnings --check-leaks --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -46,16 +46,15 @@
     "tooling"
   ],
   "dependencies": {
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0",
     "@ganache/ethereum": "^0.1.0",
     "@ganache/flavors": "^0.1.0",
     "@ganache/options": "^0.1.0",
     "@ganache/tezos": "^0.1.0",
-    "@ganache/utils": "^0.1.0"
+    "@ganache/utils": "^0.1.0",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
   },
   "devDependencies": {
     "@types/superagent": "4.1.10",
-    "@types/uws": "0.13.2",
     "superagent": "6.1.0",
     "ws": "7.3.1"
   }

@@ -39,12 +39,6 @@
 				"@types/node": "*"
 			}
 		},
-		"@types/events": {
-			"version": "3.0.0",
-			"resolved": "https://registry.npmjs.org/@types/events/-/events-3.0.0.tgz",
-			"integrity": "sha512-EaObqwIvayI5a8dCzhFrjKzVwKLxjoG9T6Ppd5CEo07LRKfQ8Yokw54r5+Wq7FaBQ+yXRvQAYPrHwya1/UFt9g==",
-			"dev": true
-		},
 		"@types/fs-extra": {
 			"version": "9.0.2",
 			"resolved": "https://registry.npmjs.org/@types/fs-extra/-/fs-extra-9.0.2.tgz",
@@ -103,16 +97,6 @@
 			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-2.4.28.tgz",
 			"integrity": "sha512-SMA+fUwULwK7sd/ZJicUztiPs8F1yCPwF3O23Z9uQ32ME5Ha0NmDK9+QTsYE4O2tHXChzXomSWWeIhCnoN1LqA==",
 			"dev": true
-		},
-		"@types/uws": {
-			"version": "0.13.2",
-			"resolved": "https://registry.npmjs.org/@types/uws/-/uws-0.13.2.tgz",
-			"integrity": "sha512-PtSuctnHZPMJKGDvpBpX+3EvL8PPcErNOv6A0HacFJV1954ggrTZusLVrZjqBrActKf/C91dbdl/piOmLMeg8A==",
-			"dev": true,
-			"requires": {
-				"@types/events": "*",
-				"@types/node": "*"
-			}
 		},
 		"@types/ws": {
 			"version": "7.2.7",

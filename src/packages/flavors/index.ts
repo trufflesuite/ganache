@@ -1,6 +1,25 @@
-// ************************************************************************* //
-// This file is necessary to "trick" typescript into using our ./src/**/*.ts //
-//            files when developing, debugging, and running tests            //
-// ************************************************************************* //
+// import {TezosConnector} from "@ganache/tezos";
+import * as Ethereum from "@ganache/ethereum";
 
-export * from "./src/index";
+export const DefaultFlavor = Ethereum.FlavorName;
+
+export type ConnectorsByName = {
+  [Ethereum.FlavorName]: Ethereum.Connector;
+  // [Tezos.FlavorName]: Tezos.Connector
+};
+
+export const ConnectorsByName = {
+  [Ethereum.FlavorName]: Ethereum.Connector
+  // [Tezos.FlavorName]: Tezos.Connector
+};
+
+export type Connectors = {
+  [K in keyof ConnectorsByName]: ConnectorsByName[K];
+}[keyof ConnectorsByName];
+
+export type Providers = Ethereum.Provider /*| Tezos.Provider */;
+
+export type Options = {
+  flavor?: typeof Ethereum.FlavorName;
+} & Ethereum.ProviderOptions;
+// | [Tezos.FlavorName]: Tezos.ProviderOptions;

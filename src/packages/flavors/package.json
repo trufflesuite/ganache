@@ -7,10 +7,10 @@
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "source": "src/index.ts",
+  "source": "index.ts",
   "directories": {
     "lib": "lib",
-    "test": "__tests__"
+    "test": "tests"
   },
   "files": [
     "lib"
@@ -44,5 +44,8 @@
     "@ganache/ethereum": "^0.1.0",
     "@ganache/tezos": "^0.1.0",
     "@ganache/utils": "^0.1.0"
+  },
+  "devDependencies": {
+    "google-closure-compiler": "20201102.0.1"
   }
 }

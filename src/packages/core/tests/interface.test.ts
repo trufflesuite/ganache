@@ -1,4 +1,4 @@
-import Ganache from "../src";
+import Ganache from "..";
 import * as assert from "assert";
 
 describe("interface", () => {

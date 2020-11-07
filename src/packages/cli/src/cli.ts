@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 
-import Ganache from "@ganache/core";
+import Ganache from "../index";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import { toChecksumAddress } from "ethereumjs-util";
-
-export default Ganache;
 
 const { version: ganacheVersion } = $INLINE_JSON("../../core/package.json");
 const { version } = $INLINE_JSON("../package.json");

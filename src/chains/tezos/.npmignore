@@ -1,5 +1,5 @@
 ./index.ts
-__tests__
+tests
 .nyc_output
 coverage
 scripts

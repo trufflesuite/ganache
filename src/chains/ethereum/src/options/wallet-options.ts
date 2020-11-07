@@ -1,3 +1,4 @@
+import { normalize } from "./helpers";
 import seedrandom from "seedrandom";
 import { entropyToMnemonic } from "bip39";
 
@@ -176,7 +177,6 @@ export type WalletConfig = {
   };
   exclusiveGroups: [["totalAccounts", "accounts"], ["mnemonic", "seed"]];
 };
-const normalize = <T>(rawInput: T) => rawInput;
 
 export const WalletOptions: Definitions<WalletConfig> = {
   totalAccounts: {

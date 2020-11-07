@@ -1,10 +1,10 @@
 export namespace Base {
   export type Option = {
-    rawType?: any;
-    type: any;
+    rawType?: unknown;
+    type: unknown;
     hasDefault?: true;
     legacy?: {
-      [k: string]: any;
+      [name: string]: unknown;
     };
   };
 
@@ -16,6 +16,6 @@ export namespace Base {
       [optionName: string]: Option;
     };
 
-    exclusiveGroups: ExclusiveGroup[];
+    exclusiveGroups?: ExclusiveGroup[];
   };
 }

@@ -101,9 +101,10 @@ process.stdout.write(`${COLORS.Reset}`);
       license: "MIT",
       main: "lib/index.js",
       types: "src/index.ts",
+      source: "index.ts",
       directories: {
         lib: "lib",
-        test: "__tests__"
+        test: "test"
       },
       files: ["lib"],
       repository: {
@@ -115,7 +116,7 @@ process.stdout.write(`${COLORS.Reset}`);
         tsc: "ttsc",
         test: "nyc npm run mocha",
         mocha:
-          "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register '__tests__/**/*.test.ts'"
+          "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
       },
       bugs: {
         url: "https://github.com/trufflesuite/ganache-core/issues"
@@ -163,15 +164,8 @@ describe("${packageName}", () => {
 }
 `;
 
-    const rootIndexFile = `// ************************************************************************* //
-// This file is necessary to "trick" typescript into using our ./src/**/*.ts //
-//            files when developing, debugging, and running tests            //
-// ************************************************************************* //
-export * from "./src/index";
-`;
-
     const dir = join(workspaceDir, "src", location, name);
-    const tests = join(dir, "__tests__");
+    const tests = join(dir, "tests");
     const src = join(dir, "src");
 
     function initSrc() {
@@ -181,12 +175,33 @@ export * from "./src/index";
       );
     }
 
-    function initRootIndex() {
+    function initIndex() {
+      // When a bundler compiles our libs this headerdoc comment will cause that
+      // tool to retain our LICENSE information in their bundled output.
+      const headerdoc = `/*!
+  * ${packageName}
+  *
+  * @copyright Truffle Blockchain Group
+  * @author ${pkg.author}
+  * @license ${pkg.license}
+*/
+
+`;
+      return writeFile(
+        join(dir, "index.ts"),
+        prettier.format(headerdoc + indexFile, {
+          ...prettierConfig,
+          parser: "typescript"
+        })
+      );
+    }
+
+    function initRootFiles() {
       return Promise.all([
         writeFile(
           join(dir, ".npmignore"),
           `./index.ts
-__tests__
+tests
 .nyc_output
 coverage
 scripts
@@ -194,13 +209,6 @@ src
 tsconfig.json
 typedoc.json
 `
-        ),
-        writeFile(
-          join(dir, "index.ts"),
-          prettier.format(rootIndexFile, {
-            ...prettierConfig,
-            parser: "typescript"
-          })
         ),
         writeFile(join(dir, "LICENSE"), LICENSE)
       ]);
@@ -222,7 +230,8 @@ typedoc.json
     mkdirSync(dir);
 
     await Promise.all([
-      initRootIndex(),
+      initRootFiles(),
+      initIndex(),
       mkdir(tests).then(initTests),
       mkdir(src).then(initSrc),
       writeFile(
