@@ -1,23 +1,26 @@
 #!/usr/bin/env node
 
-import Ganache from "../index";
+import Ganache from "./index";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import { toChecksumAddress } from "ethereumjs-util";
+import args from "./args";
 
-const { version: ganacheVersion } = $INLINE_JSON("../../core/package.json");
-const { version } = $INLINE_JSON("../package.json");
+const { version: ganacheVersion } = $INLINE_JSON("../core/package.json");
+const { version } = $INLINE_JSON("./package.json");
 const detailedVersion =
   "Ganache CLI v" + version + " (ganache-core: " + ganacheVersion + ")";
 
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
-function parseAccounts(accounts) {
-  function splitAccount(account) {
-    account = account.split(",");
+const argv = args(detailedVersion, isDocker).argv;
+
+function parseAccounts(accounts: string[]) {
+  function splitAccount(account: string) {
+    const accountParts = account.split(",");
     return {
-      secretKey: account[0],
-      balance: account[1]
+      secretKey: accountParts[0],
+      balance: accountParts[1]
     };
   }
 
@@ -30,11 +33,6 @@ function parseAccounts(accounts) {
   }
   return ret;
 }
-
-// TODO: CLI parser:
-const argv: any = {};
-const port = 8545;
-const host = "127.0.0.1";
 
 if (argv.d) {
   argv.s = "TestRPC is awesome!"; // Seed phrase; don't change to Ganache, maintain original determinism
@@ -67,7 +65,7 @@ if (argv.mem === true) {
   }, 1000);
 }
 
-var options: any = {
+var options = {
   wallet: {
     accountKeysPath: argv.account_keys_path,
     mnemonic: argv.m,
@@ -78,7 +76,7 @@ var options: any = {
     unlockedAccounts: argv.unlock,
     secure: argv.n,
     hdPath: argv.hdPath
-  } as any,
+  } as any, // any type this because we just pass whatever the user gives us
   logging: {
     debug: argv.debug,
     verbose: argv.v,
@@ -100,15 +98,15 @@ var options: any = {
     vmErrorsOnRPCResponse: !argv.noVMErrorsOnRPCResponse,
     allowUnlimitedContractSize: argv.allowUnlimitedContractSize,
     time: argv.t,
-    chainId: argv.chainId
-    // keepAliveTimeout: argv.keepAliveTimeout,// TODO: this was removed on purpose
-  },
+    chainId: argv.chainId,
+    keepAliveTimeout: argv.keepAliveTimeout
+  } as any,
   database: {
     dbPath: argv.db
   }
 };
 
-var server = Ganache.server(options);
+const server = Ganache.server(options);
 
 console.log(detailedVersion);
 
@@ -179,9 +177,9 @@ async function startGanache(err) {
       address
     )} (${about}${strBalance} ETH)`;
 
-    // if (state.isUnlocked(address) == false) {
-    //   line += " 🔒";
-    // }
+    if (!accounts[address].unlocked) {
+      line += " 🔒";
+    }
 
     console.log(line);
   });
@@ -252,7 +250,7 @@ async function startGanache(err) {
   // }
 
   console.log("");
-  console.log("Listening on " + host + ":" + port);
+  console.log("Listening on " + argv.h + ":" + argv.p);
 }
 
-server.listen(port, host, startGanache);
+server.listen(argv.p, argv.h, startGanache);

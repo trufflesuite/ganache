@@ -66,7 +66,7 @@ export type LoggingConfig = {
   };
 };
 
-const logger: Logger = { log: console.log.bind(console) };
+const logger: Logger = { log: () => {} };
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
   debug: {

@@ -61,11 +61,18 @@ export default class EthereumProvider
    * Returns the unlocked accounts
    */
   public getInitialAccounts() {
-    const accounts: Record<string, { secretKey: string; balance: bigint }> = {};
-    this.#wallet.initialAccounts.forEach(account => {
-      accounts[account.address.toString()] = {
+    const accounts: Record<
+      string,
+      { unlocked: boolean; secretKey: string; balance: bigint }
+    > = {};
+    const wallet = this.#wallet;
+    const unlockedAccounts = this.#wallet.unlockedAccounts;
+    wallet.initialAccounts.forEach(account => {
+      const address = account.address.toString();
+      accounts[address] = {
         secretKey: account.privateKey.toString(),
-        balance: account.balance.toBigInt()
+        balance: account.balance.toBigInt(),
+        unlocked: unlockedAccounts.has(address)
       };
     });
     return accounts;

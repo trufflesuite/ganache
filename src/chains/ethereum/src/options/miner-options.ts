@@ -100,6 +100,14 @@ export type MinerConfig = {
     legacyInstamine: {
       type: boolean;
       hasDefault: true;
+      // legacyInstamine is _not_ a legacy option, but it is used as one so users
+      // can use it just as they would other legacy options (without a namespace)
+      legacy: {
+        /**
+         * @deprecated Use miner.legacyInstamine instead. Will be removed in v4.
+         */
+        legacyInstamine: boolean;
+      };
     };
 
     /**
@@ -153,7 +161,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   legacyInstamine: {
     normalize,
-    default: () => false
+    default: () => false,
+    legacyName: "legacyInstamine"
   },
   extraData: {
     normalize: extra => {
