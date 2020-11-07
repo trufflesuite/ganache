@@ -276,7 +276,8 @@ export default class Blockchain extends Emittery.Typed<
       transactionsTrie: blockData.transactionsTrie.root,
       receiptTrie: blockData.receiptTrie.root,
       stateRoot: this.trie.root,
-      gasUsed: Quantity.from(blockData.gasUsed).toBuffer()
+      gasUsed: Quantity.from(blockData.gasUsed).toBuffer(),
+      extraData: blockData.extraData
     });
     block.value.transactions = blockData.blockTransactions;
     return block;

@@ -1,7 +1,5 @@
-// ************************************************************************* //
-// This file is necessary to "trick" typescript into using our ./src/**/*.ts //
-//            files when developing, debugging, and running tests            //
-// ************************************************************************* //
+export { ProviderOptions, ServerOptions } from "./src/options";
 
 import core from "./src/index";
+
 export default core;

@@ -1,8 +1,6 @@
 import seedrandom from "seedrandom";
 import { entropyToMnemonic } from "bip39";
 
-import { Quantity } from "@ganache/utils";
-
 import { Definitions } from "@ganache/options";
 
 const { alea } = seedrandom;
@@ -36,11 +34,19 @@ export type OptionsAccount = {
 export type WalletConfig = {
   options: {
     /**
-     * Number of accounts to generate at startup. Defaults to `10`.
+     * Number of accounts to generate at startup.
+     *
+     * @default 10
      */
     totalAccounts: {
       type: number;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use wallet.totalAccounts instead
+         */
+        total_accounts: number;
+      };
     };
 
     /**
@@ -52,6 +58,12 @@ export type WalletConfig = {
      */
     accounts: {
       type: OptionsAccount[];
+      legacy: {
+        /**
+         * @deprecated Use wallet.accounts instead
+         */
+        accounts: number;
+      };
     };
 
     /**
@@ -60,6 +72,12 @@ export type WalletConfig = {
     seed: {
       type: string;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use wallet.seed instead
+         */
+        seed: number;
+      };
     };
 
     /**
@@ -68,6 +86,12 @@ export type WalletConfig = {
     mnemonic: {
       type: string;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use wallet.mnemonic instead
+         */
+        mnemonic: number;
+      };
     };
 
     /**
@@ -75,14 +99,28 @@ export type WalletConfig = {
      */
     unlockedAccounts: {
       type: Array<string | number>;
+      legacy: {
+        /**
+         * @deprecated Use wallet.unlockedAccounts instead
+         */
+        unlocked_accounts: Array<string | number>;
+      };
     };
 
     /**
      * Lock available accounts by default (good for third party transaction signing). Defaults to `false`.
+     *
+     * @default false
      */
     secure: {
       type: boolean;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use wallet.secure instead
+         */
+        secure: number;
+      };
     };
 
     /**
@@ -96,66 +134,91 @@ export type WalletConfig = {
      */
     accountKeysPath: {
       type: string | number;
+      legacy: {
+        /**
+         * @deprecated Use wallet.accountKeysPath instead
+         */
+        account_keys_path: string | number;
+      };
     };
 
     /**
      * The default account balance, specified in ether. Defaults to `100` ether
+     *
+     * @default 100 // ether
      */
     defaultBalance: {
       type: number;
-      rawType: number;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use wallet.defaultBalance instead
+         */
+        default_balance_ether: number;
+      };
     };
 
     /**
      * The hierarchical deterministic path to use when generating accounts.
-     * Default: "m/44'/60'/0'/0/"
+     *
+     * @default "m/44'/60'/0'/0/"
      */
     hdPath: {
       type: string;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use wallet.totalAcchdPathounts instead
+         */
+        hd_path: string;
+      };
     };
   };
   exclusiveGroups: [["totalAccounts", "accounts"], ["mnemonic", "seed"]];
 };
+const normalize = <T>(rawInput: T) => rawInput;
 
 export const WalletOptions: Definitions<WalletConfig> = {
   totalAccounts: {
-    normalize: rawInput => rawInput,
+    normalize,
     default: () => 10,
     legacyName: "total_accounts"
   },
   accounts: {
-    normalize: rawInput => rawInput
+    normalize,
+    legacyName: "accounts"
   },
   seed: {
-    normalize: rawInput => rawInput,
-    default: () => randomAlphaNumericString(10, alea())
+    normalize,
+    default: () => randomAlphaNumericString(10, alea()),
+    legacyName: "seed"
   },
   mnemonic: {
-    normalize: rawInput => rawInput,
+    normalize,
     default: config =>
-      entropyToMnemonic(randomBytes(16, seedrandom(config.seed)))
+      entropyToMnemonic(randomBytes(16, seedrandom(config.seed))),
+    legacyName: "mnemonic"
   },
   unlockedAccounts: {
-    normalize: rawInput => rawInput,
+    normalize,
     legacyName: "unlocked_accounts"
   },
   secure: {
-    normalize: rawInput => rawInput,
-    default: () => false
+    normalize,
+    default: () => false,
+    legacyName: "secure"
   },
   accountKeysPath: {
-    normalize: rawInput => rawInput,
+    normalize,
     legacyName: "account_keys_path"
   },
   defaultBalance: {
-    normalize: rawInput => rawInput,
+    normalize,
     default: () => 100,
     legacyName: "default_balance_ether"
   },
   hdPath: {
-    normalize: rawInput => rawInput,
+    normalize,
     default: () => "m/44'/60'/0'/0/",
     legacyName: "hd_path"
   }

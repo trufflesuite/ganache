@@ -3,29 +3,43 @@ import { Definitions } from "@ganache/options";
 export type DatabaseConfig = {
   options: {
     /**
-     * Specify an alternative database instance, for instance MemDOWN.
+     * Specify an alternative database instance, like MemDOWN
      */
-    readonly db: {
+    db: {
       type: string | object;
+      legacy: {
+        /**
+         * @deprecated Use database.db instead
+         */
+        db: string | object;
+      };
     };
     /**
      * Specify a path to a directory to save the chain database. If a database
      * already exists, that chain will be initialized instead of creating a new
      * one.
      */
-    readonly dbPath: {
+    dbPath: {
       type: string;
+      legacy: {
+        /**
+         * @deprecated Use database.dbPath instead
+         */
+        db_path: string;
+      };
     };
   };
   exclusiveGroups: [["db", "dbPath"]];
 };
+const normalize = <T>(rawInput: T) => rawInput;
 
 export const DatabaseOptions: Definitions<DatabaseConfig> = {
   db: {
-    normalize: rawInput => rawInput
+    normalize,
+    legacyName: "db"
   },
   dbPath: {
-    normalize: rawInput => rawInput,
+    normalize,
     legacyName: "db_path"
   }
 };

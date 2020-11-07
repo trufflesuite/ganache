@@ -4,7 +4,7 @@ import { JsonRpcTypes, types, utils } from "@ganache/utils";
 import EthereumProvider from "./provider";
 import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
 import CodedError, { ErrorCodes } from "./errors/coded-error";
-import { EthereumProviderOptions } from "./options";
+import { EthereumProviderOptions, EthereumLegacyOptions } from "./options";
 
 function isHttp(
   connection: HttpRequest | WebSocket
@@ -12,7 +12,7 @@ function isHttp(
   return connection.constructor.name === "uWS.HttpRequest";
 }
 
-export type ProviderOptions = EthereumProviderOptions;
+export type ProviderOptions = EthereumProviderOptions | EthereumLegacyOptions;
 export type Provider = EthereumProvider;
 export const Provider = EthereumProvider;
 export const FlavorName = "ethereum" as const;

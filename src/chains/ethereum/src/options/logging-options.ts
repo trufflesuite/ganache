@@ -1,15 +1,25 @@
 import { Definitions } from "@ganache/options";
 
+export type Logger = {
+  log(message?: any, ...optionalParams: any[]): void;
+};
+
 export type LoggingConfig = {
   options: {
     /**
      * Set to `true` to log EVM opcodes.
      *
-     * Defaults to `false`.
+     * @default false
      */
     readonly debug: {
       type: boolean;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use logging.debug instead
+         */
+        debug: boolean;
+      };
     };
 
     /**
@@ -27,38 +37,52 @@ export type LoggingConfig = {
      * ```
      */
     readonly logger: {
-      type: {
-        log(message?: any, ...optionalParams: any[]): void;
-      };
+      type: Logger;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use logging.logger instead
+         */
+        logger: Logger;
+      };
     };
 
     /**
      * Set to `true` to log all RPC requests and responses.
      *
-     * Defaults to `false`.
+     * @default false
      */
     readonly verbose: {
       type: boolean;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use logging.verbose instead
+         */
+        verbose: boolean;
+      };
     };
   };
   exclusiveGroups: [];
 };
 
-const logger = { log: console.log.bind(console) };
+const logger: Logger = { log: console.log.bind(console) };
+const normalize = <T>(rawInput: T) => rawInput;
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
   debug: {
-    normalize: rawInput => rawInput,
-    default: () => false
+    normalize,
+    default: () => false,
+    legacyName: "debug"
   },
   logger: {
-    normalize: rawInput => rawInput,
-    default: () => logger
+    normalize,
+    default: () => logger,
+    legacyName: "logger"
   },
   verbose: {
-    normalize: rawInput => rawInput,
-    default: () => false
+    normalize,
+    default: () => false,
+    legacyName: "verbose"
   }
 };

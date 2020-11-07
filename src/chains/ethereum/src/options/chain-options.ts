@@ -17,16 +17,33 @@ export type ChainConfig = {
      * differently than production environments. You should only set this to
      * `true` during local debugging.
      *
-     * Default is `false`.
+     * @default false
      */
     readonly allowUnlimitedContractSize: {
       type: boolean;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use chain.allowUnlimitedContractSize instead
+         */
+        allowUnlimitedContractSize: boolean;
+      };
     };
 
+    /**
+     * When set to `false` only one request will be processed at a time.
+     *
+     * @default true
+     */
     readonly asyncRequestProcessing: {
       type: boolean;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use chain.asyncRequestProcessing instead
+         */
+        asyncRequestProcessing: boolean;
+      };
     };
 
     /**
@@ -34,11 +51,17 @@ export type ChainConfig = {
      * transaction signing as introduced by
      * [EIP-155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md).
      *
-     * Defaults to `1337`.
+     * @default 1337
      */
     readonly chainId: {
       type: number;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use chain.chainId instead
+         */
+        chainId: number;
+      };
     };
 
     /**
@@ -46,10 +69,18 @@ export type ChainConfig = {
      *
      * Defaults to the current timestamp, via JavaScript's `Date.now()` (the
      * number of millisconds since the UNIX epoch).
+     *
+     * @default Date.now()
      */
     readonly networkId: {
       type: number;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use chain.networkId instead
+         */
+        networkId: number;
+      };
     };
 
     /**
@@ -58,55 +89,83 @@ export type ChainConfig = {
      */
     readonly time: {
       type: number | Date;
+      legacy: {
+        /**
+         * @deprecated Use chain.time instead
+         */
+        time: number | Date;
+      };
     };
 
     /**
      * Set the hardfork rules for the EVM.
+     * @default "muirGlacier"
      */
     readonly hardfork: {
       type: Hardfork;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use chain.hardfork instead
+         */
+        hardfork: Hardfork;
+      };
     };
 
     /**
      * Whether to report runtime errors from EVM code as RPC errors.
      *
-     * Defaults to `false`.
+     * @default false
      */
     readonly vmErrorsOnRPCResponse: {
       type: boolean;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use chain.vmErrorsOnRPCResponse instead
+         */
+        vmErrorsOnRPCResponse: boolean;
+      };
     };
   };
   exclusiveGroups: [];
 };
 
+const normalize = <T>(rawInput: T) => rawInput;
+
 export const ChainOptions: Definitions<ChainConfig> = {
   allowUnlimitedContractSize: {
-    normalize: rawInput => rawInput,
-    default: () => false
+    normalize,
+    default: () => false,
+    legacyName: "allowUnlimitedContractSize"
   },
   asyncRequestProcessing: {
-    normalize: rawInput => rawInput,
-    default: () => true
+    normalize,
+    default: () => true,
+    legacyName: "asyncRequestProcessing"
   },
   chainId: {
-    normalize: rawInput => rawInput,
-    default: () => 1337
+    normalize,
+    default: () => 1337,
+    legacyName: "chainId"
   },
   networkId: {
-    normalize: rawInput => rawInput,
-    default: () => Date.now()
+    normalize,
+    default: () => Date.now(),
+    legacyName: "networkId"
   },
   time: {
-    normalize: rawInput => rawInput
+    normalize,
+    legacyName: "time"
   },
   hardfork: {
-    normalize: rawInput => rawInput,
-    default: () => "muirGlacier"
+    normalize,
+    default: () => "muirGlacier",
+    legacyName: "hardfork"
   },
   vmErrorsOnRPCResponse: {
-    normalize: rawInput => rawInput,
-    default: () => false
+    normalize,
+    default: () => false,
+    legacyName: "vmErrorsOnRPCResponse"
   }
 };

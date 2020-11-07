@@ -6,7 +6,7 @@ import { utils } from "@ganache/utils";
 
 const hasOwn = utils.hasOwn;
 
-export type Options = { [key: string]: Base.Config };
+type Options = { [key: string]: Base.Config };
 
 export type ProviderOptions<O extends Options> = Partial<
   {
@@ -27,34 +27,31 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
   const config = (target[namespace] = target[namespace] || {});
 
   if (hasOwn(options, namespace)) {
-    const userOpts = options[namespace];
+    const namespaceOptions = options[namespace];
 
     const keys = Object.keys(def);
     for (let i = 0, l = keys.length; i < l; i++) {
       const key = keys[i];
-      const defProp = def[key];
-      if (hasOwn(userOpts, key)) {
-        config[key] = defProp.normalize(userOpts[key]);
-      } else {
-        const legacyName = defProp.legacyName || key;
-        if (hasOwn(options, legacyName)) {
-          config[key] = defProp.normalize(options[legacyName]);
-        } else if (hasOwn(defProp, "default")) {
-          config[key] = defProp.default(config);
-        }
+      const propDefinition = def[key];
+      const value = namespaceOptions[key];
+      if (value != null) {
+        config[key] = propDefinition.normalize(value);
+      } else if (hasOwn(propDefinition, "default")) {
+        config[key] = propDefinition.default(config);
       }
     }
   } else {
     const keys = Object.keys(def);
     for (let i = 0, l = keys.length; i < l; i++) {
       const key = keys[i];
-      const defProp = def[key];
+      const propDefinition = def[key];
 
-      const legacyName = defProp.legacyName || key;
-      if (hasOwn(options, legacyName)) {
-        config[key] = defProp.normalize(options[legacyName]);
-      } else if (hasOwn(defProp, "default")) {
-        config[key] = defProp.default(config);
+      const legacyName = propDefinition.legacyName || key;
+      const value = options[legacyName];
+      if (value != null) {
+        config[key] = propDefinition.normalize(value);
+      } else if (hasOwn(propDefinition, "default")) {
+        config[key] = propDefinition.default(config);
       }
     }
   }

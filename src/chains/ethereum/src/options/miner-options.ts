@@ -1,6 +1,7 @@
-import { Quantity, utils } from "@ganache/utils";
+import { Data, Quantity, utils } from "@ganache/utils";
 import { Definitions } from "@ganache/options";
 import Address from "../things/address";
+import { DatabaseOptions } from "./database-options";
 
 export type MinerConfig = {
   options: {
@@ -12,40 +13,57 @@ export type MinerConfig = {
      * Using the `blockTime` option is discouraged unless you have tests which
      * require a specific mining interval.
      *
-     * Defaults to `0` ("instamine mode").
+     * @default 0 // "instamine mode"
      */
     blockTime: {
       type: number;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use miner.blockTime instead
+         */
+        blockTime: number;
+      };
     };
 
     /**
      * Sets the default gas price in WEI for transactions if not otherwise specified.
      *
-     * Defaults to `2_000_000`.
+     * @default 2_000_000
      */
     gasPrice: {
       type: Quantity;
       rawType: string | number | bigint;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use miner.gasPrice instead
+         */
+        gasPrice: string | number | bigint;
+      };
     };
 
     /**
      * Sets the block gas limit in WEI.
      *
-     * Defaults to `12_000_000`.
+     * @default 12_000_000
      */
     blockGasLimit: {
       type: Quantity;
       rawType: string | number | bigint;
       hasDefault: true;
-      legacyName: "gasLimit";
+      legacy: {
+        /**
+         * @deprecated Use miner.blockGasLimit instead
+         */
+        gasLimit: string | number | bigint;
+      };
     };
 
     /**
      * Sets the _default_ transaction gas limit in WEI.
      *
-     * Defaults to `9_000`.
+     * @default 9_000
      */
     defaultTransactionGasLimit: {
       type: Quantity;
@@ -57,12 +75,18 @@ export type MinerConfig = {
      * Sets the transaction gas limit in WEI for `eth_call` and
      * eth_estimateGas` calls.
      *
-     * Defaults to `9_007_199_254_740_991` (`2**53 - 1`).
+     * @default 9_007_199_254_740_991 // 2**53 - 1
      */
     callGasLimit: {
       type: Quantity;
       rawType: string | number | bigint;
       hasDefault: true;
+      legacy: {
+        /**
+         * @deprecated Use miner.callGasLimit instead
+         */
+        callGasLimit: string | number | bigint;
+      };
     };
 
     /**
@@ -70,7 +94,8 @@ export type MinerConfig = {
      * the transaction's hash is returned to the caller. If `legacyInstamine` is
      * `true`, `blockTime` must be `0` (default).
      *
-     * Defaults to `false`.
+     * @default false
+     * @deprecated Will be removed in v4
      */
     legacyInstamine: {
       type: boolean;
@@ -83,25 +108,33 @@ export type MinerConfig = {
      * * `{string}` hex-encoded address
      * * `{number}` index of the account returned by `eth_getAccounts`
      *
-     * Defaults to `0x0000000000000000000000000000000000000000`.
+     * @default "0x0000000000000000000000000000000000000000"
      */
     coinbase: {
       rawType: string | number;
       type: string | number | Address;
       hasDefault: true;
     };
+
+    extraData: {
+      type: string;
+    };
   };
   exclusiveGroups: [];
 };
 
+const normalize = <T>(rawInput: T) => rawInput;
+
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
-    normalize: rawInput => rawInput,
-    default: () => 0
+    normalize,
+    default: () => 0,
+    legacyName: "blockTime"
   },
   gasPrice: {
     normalize: Quantity.from,
-    default: () => Quantity.from(2_000_000_000)
+    default: () => Quantity.from(2_000_000_000),
+    legacyName: "gasPrice"
   },
   blockGasLimit: {
     normalize: Quantity.from,
@@ -114,14 +147,23 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   callGasLimit: {
     normalize: Quantity.from,
-    default: () => Quantity.from(Number.MAX_SAFE_INTEGER)
+    default: () => Quantity.from(Number.MAX_SAFE_INTEGER),
+    legacyName: "callGasLimit"
   },
   coinbase: {
-    normalize: rawInput => rawInput,
+    normalize,
     default: () => Address.from(utils.ACCOUNT_ZERO)
   },
   legacyInstamine: {
-    normalize: rawInput => rawInput,
+    normalize,
     default: () => false
+  },
+  extraData: {
+    normalize: rawType => {
+      if (rawType.length > 32) {
+        throw new Error(`extra exceeds max length. ${rawType.length} > 32`);
+      }
+      return rawType;
+    }
   }
 };

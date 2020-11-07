@@ -3,6 +3,9 @@ export namespace Base {
     rawType?: any;
     type: any;
     hasDefault?: true;
+    legacy?: {
+      [k: string]: any;
+    };
   };
 
   export type ExclusiveGroupOptionName = string;

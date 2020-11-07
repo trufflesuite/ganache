@@ -19,6 +19,7 @@ export type BlockData = {
   receiptTrie: Trie;
   gasUsed: bigint;
   timestamp: Buffer;
+  extraData: string;
 };
 
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) =>
@@ -159,6 +160,7 @@ export default class Miner extends Emittery.Typed<
     onlyOneBlock: boolean
   ) => {
     const { pending, inProgress } = this.#executables;
+    const options = this.#options;
 
     let keepMining = true;
     const priced = this.#priced;
@@ -177,7 +179,8 @@ export default class Miner extends Emittery.Typed<
         transactionsTrie,
         receiptTrie,
         gasUsed: 0n,
-        timestamp: block.header.timestamp
+        timestamp: block.header.timestamp,
+        extraData: options.extraData
       };
 
       // don't mine anything at all if maxTransactions is `0`
@@ -190,7 +193,7 @@ export default class Miner extends Emittery.Typed<
       }
 
       let numTransactions = 0;
-      let blockGasLeft = this.#options.blockGasLimit.toBigInt();
+      let blockGasLeft = options.blockGasLimit.toBigInt();
 
       const blockBloom = block.header.bloom;
       const promises: Promise<never>[] = [];

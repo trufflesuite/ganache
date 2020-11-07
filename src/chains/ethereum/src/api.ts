@@ -46,7 +46,7 @@ import {
 import { Hardfork } from "./options/chain-options";
 
 // Read in the current ganache version from core's package.json
-const { version } = $INLINE_JSON("../../../packages/core/package.json");
+const { version } = $INLINE_JSON("../../../packages/ganache/package.json");
 //#endregion
 
 //#region Constants
@@ -166,12 +166,13 @@ export default class EthereumApi implements types.Api {
    */
   constructor(
     options: EthereumInternalOptions,
+    wallet: Wallet,
     emitter: Emittery.Typed<{ message: any }, "connect" | "disconnect">
   ) {
     this.#options = options;
 
     const chain = options.chain;
-    const { initialAccounts } = (this.#wallet = new Wallet(options.wallet));
+    const { initialAccounts } = (this.#wallet = wallet);
     const coinbaseAddress = parseCoinbaseAddress(
       options.miner.coinbase,
       initialAccounts
@@ -592,6 +593,19 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(1)
   async miner_setEtherbase(address: string) {
     this.#blockchain.coinbase = Address.from(address);
+    return true;
+  }
+
+  /**
+   * Set the extraData block header field a miner can include
+   * @param address
+   */
+  @assertArgLength(1)
+  async miner_setExtra(extra: string) {
+    if (extra.length > 32) {
+      throw new Error(`extra exceeds max length. ${extra.length} > 32`);
+    }
+    this.#options.miner.extraData = extra;
     return true;
   }
   //#endregion

@@ -23,5 +23,3 @@ export type Options = {
   flavor?: typeof Ethereum.FlavorName;
 } & Ethereum.ProviderOptions;
 // | [Tezos.FlavorName]: Tezos.ProviderOptions;
-
-// export type Apis<T extends Flavors = Flavors> = T extends types.Connector<infer R, unknown, unknown> ? R : never;

@@ -4,10 +4,12 @@ import { JsonRpcTypes } from "@ganache/utils";
 import {
   EthereumProviderOptions,
   EthereumInternalOptions,
-  EthereumOptionsConfig
+  EthereumOptionsConfig,
+  EthereumLegacyOptions
 } from "./options";
 import cloneDeep from "lodash.clonedeep";
 import { PromiEvent, types, utils } from "@ganache/utils";
+import Wallet from "./wallet";
 declare type RequestMethods = types.KnownKeys<EthereumApi>;
 
 type mergePromiseGenerics<Type> = Promise<
@@ -31,16 +33,21 @@ export default class EthereumProvider
   #options: EthereumInternalOptions;
   #api: EthereumApi;
   #executor: utils.Executor;
+  #wallet: Wallet;
 
-  constructor(options: EthereumProviderOptions = {}, executor: utils.Executor) {
+  constructor(
+    options: EthereumProviderOptions | EthereumLegacyOptions = {},
+    executor: utils.Executor
+  ) {
     super();
     const providerOptions = (this.#options = EthereumOptionsConfig.normalize(
-      options
+      options as EthereumProviderOptions
     ));
 
     this.#executor = executor;
+    const wallet = (this.#wallet = new Wallet(providerOptions.wallet));
 
-    this.#api = new EthereumApi(providerOptions, this);
+    this.#api = new EthereumApi(providerOptions, wallet, this);
   }
 
   /**
@@ -48,6 +55,20 @@ export default class EthereumProvider
    */
   public getOptions() {
     return cloneDeep(this.#options);
+  }
+
+  /**
+   * Returns the unlocked accounts
+   */
+  public getInitialAccounts() {
+    const accounts: Record<string, { secretKey: string; balance: bigint }> = {};
+    this.#wallet.initialAccounts.forEach(account => {
+      accounts[account.address.toString()] = {
+        secretKey: account.privateKey.toString(),
+        balance: account.balance.toBigInt()
+      };
+    });
+    return accounts;
   }
 
   /**

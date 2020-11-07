@@ -20,7 +20,6 @@
     "experimentalDecorators": true,
     "plugins": [
       {
-        // Inlines package.json
         "transform": "ts-transformer-inline-file/transformer"
       }
     ]
