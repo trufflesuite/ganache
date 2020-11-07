@@ -1,0 +1,8 @@
+./index.ts
+__tests__
+.nyc_output
+coverage
+scripts
+src
+tsconfig.json
+typedoc.json
