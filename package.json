@@ -26,6 +26,7 @@
     "@types/npm-package-arg": "6.1.0",
     "@types/prettier": "2.1.5",
     "@types/yargs": "15.0.9",
+    "@zerollup/ts-transform-paths": "1.7.18",
     "camelcase": "6.1.0",
     "chalk": "4.1.0",
     "cli-highlight": "2.1.4",

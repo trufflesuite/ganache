@@ -9,6 +9,10 @@
   "browser": "dist/web/ganache.min.js",
   "types": "lib/index.d.ts",
   "source": "index.ts",
+  "bin": {
+    "ganache": "./lib/cli.js",
+    "ganache-cli": "./lib/cli.js"
+  },
   "directories": {
     "lib": "lib",
     "test": "tests"

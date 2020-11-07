@@ -2425,6 +2425,24 @@
       "integrity": "sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==",
       "dev": true
     },
+    "@zerollup/ts-helpers": {
+      "version": "1.7.18",
+      "resolved": "https://registry.npmjs.org/@zerollup/ts-helpers/-/ts-helpers-1.7.18.tgz",
+      "integrity": "sha512-S9zN+y+i5yN/evfWquzSO3lubqPXIsPQf6p9OiPMpRxDx/0totPLF39XoRw48Dav5dSvbIE8D2eAPpXXJxvKwg==",
+      "dev": true,
+      "requires": {
+        "resolve": "^1.12.0"
+      }
+    },
+    "@zerollup/ts-transform-paths": {
+      "version": "1.7.18",
+      "resolved": "https://registry.npmjs.org/@zerollup/ts-transform-paths/-/ts-transform-paths-1.7.18.tgz",
+      "integrity": "sha512-YPVUxvWQVzRx1OBN0Pmkd58+R9FcfUJuwTaPUSoi5rKxuXMtxevTXdfi0w5mEaIH8b0DfL+wg0wFDHiJE+S2zA==",
+      "dev": true,
+      "requires": {
+        "@zerollup/ts-helpers": "^1.7.18"
+      }
+    },
     "@zkochan/cmd-shim": {
       "version": "3.1.0",
       "resolved": "https://registry.npmjs.org/@zkochan/cmd-shim/-/cmd-shim-3.1.0.tgz",
