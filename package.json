@@ -16,7 +16,7 @@
     "reinstall": "npm run clean && npm install",
     "test": "lerna exec -- npm run test",
     "tsc": "lerna exec -- npm run tsc",
-    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib"
+    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.1",
