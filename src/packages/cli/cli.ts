@@ -211,21 +211,21 @@ async function startGanache(err) {
     console.log("");
     console.log("Gas Price");
     console.log("==================");
-    console.log(liveOptions.miner.gasPrice);
+    console.log(liveOptions.miner.gasPrice.toBigInt());
   }
 
   if (liveOptions.miner.blockGasLimit) {
     console.log("");
     console.log("BlockGas Limit");
     console.log("==================");
-    console.log(liveOptions.miner.blockGasLimit);
+    console.log(liveOptions.miner.blockGasLimit.toBigInt());
   }
 
   if (liveOptions.miner.callGasLimit) {
     console.log("");
     console.log("Call Gas Limit");
     console.log("==================");
-    console.log(liveOptions.miner.callGasLimit);
+    console.log(liveOptions.miner.callGasLimit.toBigInt());
   }
 
   // if (options.fork) {

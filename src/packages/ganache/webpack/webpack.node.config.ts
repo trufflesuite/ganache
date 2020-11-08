@@ -8,6 +8,7 @@ const config: webpack.Configuration = merge({}, base, {
   output: {
     path: path.resolve(__dirname, "../", "dist", "node")
   },
+  externals: ["leveldown", "secp256k1", "keccak"],
   module: {
     rules: [
       {
