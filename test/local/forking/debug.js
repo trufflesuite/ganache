@@ -2,6 +2,7 @@ const assert = require("assert");
 const bootstrap = require("../../helpers/contract/bootstrap");
 const generateSend = require("../../helpers/utils/rpc");
 const initializeTestProvider = require("../../helpers/web3/initializeTestProvider");
+const Common = require("ethereumjs-common").default;
 
 /**
  * NOTE: Naming in these tests is a bit confusing. Here, the "main chain"
@@ -15,6 +16,7 @@ describe("Forking Debugging", () => {
   let forkedContext;
   let mainContext;
   let mainAccounts;
+  let common;
   const logger = {
     log: function(msg) {}
   };
@@ -41,6 +43,10 @@ describe("Forking Debugging", () => {
       fork: forkedProvider,
       logger,
       seed: "forked provider"
+    });
+
+    common = Common.forCustomChain("mainnet", {
+      name: "ganache"
     });
     mainAccounts = await mainContext.web3.eth.getAccounts();
   });
@@ -69,5 +75,28 @@ describe("Forking Debugging", () => {
     const txMemory = txStructLogs[txStructLogs.length - 1].memory;
     const txReturnValue = parseInt(txMemory[txMemory.length - 1], 16);
     assert.strictEqual(txReturnValue, 2);
+  });
+
+  it("successfully manages storage slot creation gas consumption", async() => {
+    const { bytecode } = forkedContext;
+    const { web3: mainWeb3 } = mainContext;
+
+    const deployedContract = await mainWeb3.eth.sendTransaction({
+      from: mainAccounts[0],
+      data: bytecode,
+      gas: 3141592
+    });
+
+    const send = generateSend(mainWeb3.currentProvider);
+
+    const result = await send("debug_traceTransaction", deployedContract.transactionHash, {});
+
+    for (let i = 0; i < result.result.structLogs.length; i++) {
+      if (result.result.structLogs[i].op === "SSTORE") {
+        // ensure that every SSTORE in contract creation triggers slot creation
+        const gasCost = common.param("gasPrices", "sstoreInitGasEIP2200", "istanbul");
+        assert.strictEqual(result.result.structLogs[i].gasCost, gasCost);
+      }
+    }
   });
 });
