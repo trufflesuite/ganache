@@ -3,6 +3,9 @@ import { Block } from "../data-managers/block-manager";
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
 import BlockLogs, { TransactionLog } from "./blocklogs";
+import { utils } from "@ganache/utils";
+
+const STATUSES = [utils.RPCQUANTITY_ZERO, utils.RPCQUANTITY_ONE];
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [
   ...infer A,
@@ -109,7 +112,7 @@ export default class TransactionReceipt {
       contractAddress,
       logs,
       logsBloom: Data.from(raw[2], 256),
-      status: raw[0][0]
+      status: STATUSES[raw[0][0]]
     };
   }
 }

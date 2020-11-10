@@ -12,7 +12,10 @@ describe("api", () => {
 
     it("web3_clientVersion returns the client version", async () => {
       const result = await provider.send("web3_clientVersion");
-      assert.deepStrictEqual(result, "Ganache/v" + version);
+      assert.deepStrictEqual(
+        result,
+        `Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`
+      );
     });
 
     it("web3_sha should hash the given input", async () => {

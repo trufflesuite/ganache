@@ -1,3 +1,4 @@
+import { EOL } from "os";
 import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
 import Miner, { BlockData } from "./miner/miner";
 import Database from "./database";
@@ -26,6 +27,7 @@ import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 import { EthereumInternalOptions } from "./options";
 import { Snapshots } from "./types/snapshots";
+import { options } from "yargs";
 
 type SimulationTransaction = {
   /**
@@ -132,15 +134,15 @@ export default class Blockchain extends Emittery.Typed<
     const legacyInstamine = options.miner.legacyInstamine;
 
     {
-      // warnings
+      // warnings and errors
       if (legacyInstamine) {
         console.info(
           "Legacy instamining, where transactions are fully mined before the hash is returned, is deprecated and will be removed in the future."
         );
       }
 
-      if (instamine === false) {
-        if (legacyInstamine === true) {
+      if (!instamine) {
+        if (legacyInstamine) {
           console.info(
             "Setting `legacyInstamine` to `true` has no effect when blockTime is non-zero"
           );
@@ -268,10 +270,10 @@ export default class Blockchain extends Emittery.Typed<
     const prevHeader = prevBlock.value.header;
     const prevNumber = Quantity.from(prevHeader.number).toBigInt() || 0n;
     const block = blocks.createBlock({
-      parentHash: prevHeader.hash(),
       number: Quantity.from(prevNumber + 1n).toBuffer(),
-      coinbase: this.coinbase.toBuffer(),
       timestamp: blockData.timestamp,
+      parentHash: prevHeader.hash(),
+      coinbase: this.coinbase.toBuffer(),
       gasLimit: options.miner.blockGasLimit.toBuffer(),
       transactionsTrie: blockData.transactionsTrie.root,
       receiptTrie: blockData.receiptTrie.root,
@@ -284,10 +286,10 @@ export default class Blockchain extends Emittery.Typed<
   };
 
   #saveNewBlock = (block: Block) => {
-    const blocks = this.blocks;
+    const { blocks } = this;
     blocks.latest = block;
-    const value = block.value;
-    const header = value.header;
+    const { value } = block;
+    const { header } = value;
     return this.#database.batch(() => {
       const blockHash = value.hash();
       const blockNumber = header.number;
@@ -296,6 +298,7 @@ export default class Blockchain extends Emittery.Typed<
       const timestamp = new Date(
         Quantity.from(header.timestamp).toNumber() * 1000
       ).toString();
+      const logOutput: string[] = [];
       value.transactions.forEach((tx: Transaction, i: number) => {
         const hash = tx.hash();
         const index = Quantity.from(i).toBuffer();
@@ -316,25 +319,32 @@ export default class Blockchain extends Emittery.Typed<
 
         tx.getLogs().forEach(blockLogs.append.bind(blockLogs, index, hash));
 
-        const error = tx.execException;
-        this.#logTransaction(hash, receipt, blockNumberQ, timestamp, error);
+        logOutput.push(
+          this.#getTransactionLogOutput(
+            hash,
+            receipt,
+            blockNumberQ,
+            timestamp,
+            tx.execException
+          )
+        );
       });
+
       blockLogs.blockNumber = blockNumberQ;
       this.blockLogs.set(blockNumber, blockLogs.serialize());
       blocks.putBlock(block);
+      this.#options.logging.logger.log(logOutput.join(EOL));
       return { block, blockLogs };
     });
   };
 
   #emitNewBlock = async (blockInfo: { block: Block; blockLogs: BlockLogs }) => {
     const options = this.#options;
-    const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
     const { block, blockLogs } = blockInfo;
 
     // emit the block once everything has been fully saved to the database
     block.value.transactions.forEach(transaction => {
-      const error = vmErrorsOnRPCResponse ? transaction.execException : null;
-      transaction.finalize("confirmed", error);
+      transaction.finalize("confirmed", transaction.execException);
     });
 
     if (this.#instamine && options.miner.legacyInstamine) {
@@ -362,34 +372,32 @@ export default class Blockchain extends Emittery.Typed<
     return blockInfo;
   };
 
-  #logTransaction = (
+  #getTransactionLogOutput = (
     hash: Buffer,
     receipt: TransactionReceipt,
     blockNumber: Quantity,
     timestamp: string,
     error: RuntimeError | undefined
   ) => {
-    const logger = this.#options.logging.logger;
-    logger.log("");
-    logger.log("  Transaction: " + Data.from(hash));
+    let str = `${EOL}  Transaction: ${Data.from(hash)}${EOL}`;
 
     const contractAddress = receipt.contractAddress;
     if (contractAddress != null) {
-      logger.log("  Contract created: " + Address.from(contractAddress));
+      str += `  Contract created: ${Address.from(contractAddress)}${EOL}`;
     }
 
-    logger.log("  Gas usage: " + Quantity.from(receipt.raw[1]));
-    logger.log("  Block Number: " + blockNumber);
-    logger.log("  Block Time: " + timestamp);
+    str += `  Gas usage: ${Quantity.from(receipt.raw[1]).toNumber()}${EOL}
+  Block number: ${blockNumber.toNumber()}${EOL}
+  Block time: ${timestamp}${EOL}`;
 
     if (error) {
-      logger.log("  Runtime Error: " + error.data.message);
-      if ((error as any).reason) {
-        logger.log("  Revert reason: " + (error as any).data.reason);
+      str += `  Runtime error: ${error.data.message}${EOL}`;
+      if (error.data.reason) {
+        str += `  Revert reason: ${error.data.reason}${EOL}`;
       }
     }
 
-    logger.log("");
+    return str;
   };
 
   #handleNewBlockData = async (blockData: BlockData) => {
@@ -698,8 +706,17 @@ export default class Blockchain extends Emittery.Typed<
       return hash;
     } else {
       if (this.#instamine && this.#options.miner.legacyInstamine) {
-        const { error } = await transaction.once("finalized");
-        if (error) throw error;
+        // in legacyInstamine mode we must wait for the transaction to be saved
+        // before we can return the hash
+        const { status, error } = await transaction.once("finalized");
+        // in legacyInstamine mode we must throw on all rejected transaction
+        // errors. We must also throw on `confirmed` tranactions when
+        // vmErrorsOnRPCResposnse is enabled.
+        if (
+          error &&
+          (status === "rejected" || this.#options.chain.vmErrorsOnRPCResponse)
+        )
+          throw error;
       }
       return hash;
     }

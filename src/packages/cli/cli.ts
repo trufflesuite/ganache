@@ -250,6 +250,11 @@ async function startGanache(err) {
   // }
 
   console.log("");
+  console.log("Chain Id");
+  console.log("==================");
+  console.log(liveOptions.chain.chainId);
+
+  console.log("");
   console.log("Listening on " + argv.h + ":" + argv.p);
 }
 

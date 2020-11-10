@@ -1,7 +1,7 @@
 import { bigIntToBuffer } from "../../utils";
 import { uintToBuffer } from "../../utils";
 
-const EMPTY_BUFFER = Buffer.allocUnsafe(0);
+import { BUFFER_EMPTY } from "../../utils/constants";
 
 export const strCache = new WeakMap();
 export const bufCache = new WeakMap();
@@ -47,7 +47,7 @@ export class BaseJsonRpcType<
         case "string": {
           // handle hex-encoded string
           if ((value as string).indexOf("0x") === 0) {
-            strCache.set(this, value);
+            strCache.set(this, (value as string).toLowerCase());
             toBuffers.set(this, () => {
               let fixedValue = (value as string).slice(2);
               if (fixedValue.length % 2 === 1) {
@@ -68,7 +68,7 @@ export class BaseJsonRpcType<
             // This is a weird thing that returns undefined/null for a call
             // to toString().
             this.toString = () => value as string;
-            bufCache.set(this, EMPTY_BUFFER);
+            bufCache.set(this, BUFFER_EMPTY);
             break;
           }
           throw new Error(`Cannot wrap a "${type}" as a json-rpc type`);

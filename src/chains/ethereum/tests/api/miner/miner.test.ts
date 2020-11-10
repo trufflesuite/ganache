@@ -96,7 +96,7 @@ describe("api", () => {
           status,
           blockNumber
         } = await provider.send("eth_getTransactionReceipt", [txHash]);
-        assert.strictEqual(status, 1);
+        assert.strictEqual(status, "0x1");
         const { miner } = await provider.send("eth_getBlockByNumber", [
           blockNumber
         ]);

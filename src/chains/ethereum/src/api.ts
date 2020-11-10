@@ -16,8 +16,7 @@ import Transaction from "./things/transaction";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
-
-const createKeccakHash = require("keccak");
+import keccak from "keccak";
 
 import { PromiEvent, utils } from "@ganache/utils";
 import Emittery from "emittery";
@@ -51,7 +50,7 @@ const { version } = $INLINE_JSON("../../../packages/ganache/package.json");
 
 //#region Constants
 const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
-const CLIENT_VERSION = `Ganache/v${version}`;
+const CLIENT_VERSION = `Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPC_MODULES = {
   eth: "1.0",
@@ -171,7 +170,7 @@ export default class EthereumApi implements types.Api {
   ) {
     this.#options = options;
 
-    const chain = options.chain;
+    const { chain } = options;
     const { initialAccounts } = (this.#wallet = wallet);
     const coinbaseAddress = parseCoinbaseAddress(
       options.miner.coinbase,
@@ -627,7 +626,7 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1)
   async web3_sha3(data: string) {
-    return Data.from(createKeccakHash("keccak256").update(data).digest());
+    return Data.from(keccak("keccak256").update(data).digest());
   }
   //#endregion
 
@@ -687,14 +686,14 @@ export default class EthereumApi implements types.Api {
       return blockchain.vm.copy();
     };
     return new Promise((resolve, reject) => {
-      const coinbase = blockchain.coinbase;
+      const { coinbase } = blockchain;
       const tx = Transaction.fromJSON(
         transaction,
         this.#common,
         Transaction.types.fake
       );
       if (tx._from == null) {
-        tx._from = blockchain.coinbase.toBuffer();
+        tx._from = coinbase.toBuffer();
       }
       if (tx.gasLimit.length !== 0) {
         tx.gas = tx.gasLimit;
@@ -711,7 +710,6 @@ export default class EthereumApi implements types.Api {
         timestamp: parentHeader.timestamp,
         parentHash: parentHeader.parentHash,
         coinbase: coinbase.toBuffer(),
-        // gas estimates and eth_calls aren't subject to regular block gas limits
         gasLimit: tx.gas
       });
       newBlock.value.transactions.push(tx);
@@ -1148,17 +1146,19 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1)
   async eth_getTransactionByHash(transactionHash: string) {
-    const chain = this.#blockchain;
+    // Note: we do NOT use the transactionManager's finalizationQueue, because
+    // we might actually want to get transactions that aren't yet finalized.
+    const { transactions } = this.#blockchain;
     const hashBuffer = Data.from(transactionHash).toBuffer();
 
     // we must check the database before checking the pending cache, because the
     // cache is updated _after_ the transaction is already in the database, and
     // the database contains block info whereas the pending cache doesn't.
-    const transaction = await chain.transactions.get(hashBuffer);
+    const transaction = await transactions.get(hashBuffer);
 
     if (transaction === null) {
       // if we can't find it in the list of pending transactions, check the db!
-      const tx = chain.transactions.transactionPool.find(hashBuffer);
+      const tx = transactions.transactionPool.find(hashBuffer);
       return tx ? tx.toJSON(null) : null;
     } else {
       return transaction.toJSON();
@@ -1175,11 +1175,17 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1)
   async eth_getTransactionReceipt(transactionHash: string) {
-    const blockchain = this.#blockchain;
-    const transactionPromise = blockchain.transactions.get(transactionHash);
-    const receiptPromise = blockchain.transactionReceipts.get(transactionHash);
+    const { transactions, transactionReceipts, blocks } = this.#blockchain;
+    const txHash = Data.from(transactionHash).toBuffer();
+    if (this.#blockchain.isStarted() && this.#options.miner.blockTime === 0) {
+      const prom = transactions.finalizationQueue.get(txHash.toString("hex"));
+      if (prom) await prom;
+    }
+
+    const transactionPromise = transactions.get(txHash);
+    const receiptPromise = transactionReceipts.get(txHash);
     const blockPromise = transactionPromise.then(t =>
-      t ? blockchain.blocks.get(t._blockNum) : null
+      t ? blocks.get(t._blockNum) : null
     );
     const [transaction, receipt, block] = await Promise.all([
       transactionPromise,
@@ -1253,9 +1259,9 @@ export default class EthereumApi implements types.Api {
     if (isUnlockedAccount) {
       const secretKey = wallet.unlockedAccounts.get(fromString);
       return this.#blockchain.queueTransaction(tx, secretKey);
+    } else {
+      return this.#blockchain.queueTransaction(tx);
     }
-
-    return this.#blockchain.queueTransaction(tx);
   }
 
   /**
@@ -1290,24 +1296,16 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(2)
   async eth_sign(address: string | Buffer, message: string | Buffer) {
     const account = Address.from(address).toString().toLowerCase();
-    const wallet = this.#wallet;
-    const privateKey = wallet.unlockedAccounts.get(account);
+
+    const privateKey = this.#wallet.unlockedAccounts.get(account);
     if (privateKey == null) {
       throw new Error("cannot sign data; no private key");
     }
 
+    const chainId = this.#options.chain.chainId;
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
-    const signature = ecsign(
-      messageHash,
-      privateKey.toBuffer(),
-      this.#options.chain.chainId
-    );
-    return toRpcSig(
-      signature.v,
-      signature.r,
-      signature.s,
-      this.#options.chain.chainId
-    );
+    const { v, r, s } = ecsign(messageHash, privateKey.toBuffer(), chainId);
+    return toRpcSig(v, r, s, chainId);
   }
 
   /**
@@ -1761,7 +1759,7 @@ export default class EthereumApi implements types.Api {
       timestamp: parentHeader.timestamp,
       parentHash: parentHeader.parentHash,
       coinbase: blockchain.coinbase.toBuffer(),
-      gas
+      gasLimit: gas.toBuffer()
     });
 
     const simulatedTransaction = {

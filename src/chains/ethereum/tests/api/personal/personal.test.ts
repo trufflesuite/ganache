@@ -59,7 +59,7 @@ describe("api", () => {
       ]);
       assert.strictEqual(
         receipt.status,
-        1,
+        "0x1",
         "Transaction failed when it should have succeeded"
       );
 
@@ -158,7 +158,7 @@ describe("api", () => {
       ]);
       assert.strictEqual(
         receipt.status,
-        1,
+        "0x1",
         "Transaction failed when it should have succeeded"
       );
 

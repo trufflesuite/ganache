@@ -9,9 +9,10 @@ import Common from "ethereumjs-common";
 import { Data } from "@ganache/utils";
 
 export default class TransactionManager extends Manager<Transaction> {
-  public transactionPool: TransactionPool;
+  public readonly transactionPool: TransactionPool;
 
-  #queue = new PromiseQueue<boolean>();
+  public readonly finalizationQueue = new Map<string, Promise<any>>();
+  readonly #queue = new PromiseQueue<boolean>();
   #paused = false;
   #resumer: Promise<void>;
   #resolver: (value: void) => void;
@@ -50,12 +51,17 @@ export default class TransactionManager extends Manager<Transaction> {
       secretKey
     );
     const result = await this.#queue.add(insertion);
+
     if (result) {
+      const hash = transaction.hash().toString("hex");
+      const txQueue = this.finalizationQueue.set(
+        hash,
+        transaction.once("finalized").then(() => txQueue.delete(hash))
+      );
+
       this.transactionPool.drain();
-      return true;
-    } else {
-      return false;
     }
+    return result;
   }
 
   /**
@@ -71,6 +77,7 @@ export default class TransactionManager extends Manager<Transaction> {
   public clear() {
     this.#queue.clear(false);
     this.transactionPool.clear();
+    this.finalizationQueue.clear();
   }
 
   /**

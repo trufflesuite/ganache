@@ -141,7 +141,7 @@ export default function (version: string, isDocker: boolean) {
       describe:
         "Do not transmit transaction failures as RPC errors. Enable this flag for error reporting behaviour which is compatible with other clients such as geth and Parity.",
       type: "boolean",
-      default: false
+      default: true
     })
     .option("b", {
       group: "Chain:",
