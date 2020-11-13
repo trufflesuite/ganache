@@ -1146,8 +1146,6 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1)
   async eth_getTransactionByHash(transactionHash: string) {
-    // Note: we do NOT use the transactionManager's finalizationQueue, because
-    // we might actually want to get transactions that aren't yet finalized.
     const { transactions } = this.#blockchain;
     const hashBuffer = Data.from(transactionHash).toBuffer();
 
@@ -1177,10 +1175,6 @@ export default class EthereumApi implements types.Api {
   async eth_getTransactionReceipt(transactionHash: string) {
     const { transactions, transactionReceipts, blocks } = this.#blockchain;
     const txHash = Data.from(transactionHash).toBuffer();
-    if (this.#blockchain.isStarted() && this.#options.miner.blockTime === 0) {
-      const prom = transactions.finalizationQueue.get(txHash.toString("hex"));
-      if (prom) await prom;
-    }
 
     const transactionPromise = transactions.get(txHash);
     const receiptPromise = transactionReceipts.get(txHash);

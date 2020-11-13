@@ -11,7 +11,6 @@ import { Data } from "@ganache/utils";
 export default class TransactionManager extends Manager<Transaction> {
   public readonly transactionPool: TransactionPool;
 
-  public readonly finalizationQueue = new Map<string, Promise<any>>();
   readonly #queue = new PromiseQueue<boolean>();
   #paused = false;
   #resumer: Promise<void>;
@@ -53,12 +52,6 @@ export default class TransactionManager extends Manager<Transaction> {
     const result = await this.#queue.add(insertion);
 
     if (result) {
-      const hash = transaction.hash().toString("hex");
-      const txQueue = this.finalizationQueue.set(
-        hash,
-        transaction.once("finalized").then(() => txQueue.delete(hash))
-      );
-
       this.transactionPool.drain();
     }
     return result;
@@ -77,7 +70,6 @@ export default class TransactionManager extends Manager<Transaction> {
   public clear() {
     this.#queue.clear(false);
     this.transactionPool.clear();
-    this.finalizationQueue.clear();
   }
 
   /**
