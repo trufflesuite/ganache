@@ -332,7 +332,8 @@ const tests = function(web3) {
           gasLimit: 6721975,
           legacyInstamine: true,
           vmErrorsOnRPCResponse: true,
-          accounts: [acc]
+          accounts: [acc],
+          chainId: 1
         })
       );
       accounts = await signingWeb3.eth.getAccounts();
@@ -350,8 +351,8 @@ const tests = function(web3) {
 
       const r = Buffer.from(sgn.slice(0, 64), "hex");
       const s = Buffer.from(sgn.slice(64, 128), "hex");
-      const v = parseInt(sgn.slice(128, 130), 16) + 27;
-      const pub = utils.ecrecover(msgHash, v, r, s);
+      const v = parseInt(sgn.slice(128), 16);
+      const pub = utils.ecrecover(msgHash, v, r, s, 1);
       let addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
       addr = to.hex(addr);
       assert.deepStrictEqual(addr, accounts[0]);
@@ -369,8 +370,8 @@ const tests = function(web3) {
 
       const r = Buffer.from(sgn.slice(0, 64), "hex");
       const s = Buffer.from(sgn.slice(64, 128), "hex");
-      const v = parseInt(sgn.slice(128, 130), 16) + 27;
-      const pub = utils.ecrecover(msgHash, v, r, s);
+      const v = parseInt(sgn.slice(128), 16);
+      const pub = utils.ecrecover(msgHash, v, r, s, 1);
       let addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
       addr = to.hex(addr);
       assert.deepStrictEqual(addr, accounts[0]);
@@ -401,7 +402,8 @@ const tests = function(web3) {
           gasLimit: 6721975,
           legacyInstamine: true,
           vmErrorsOnRPCResponse: true,
-          accounts: [acc]
+          accounts: [acc],
+          chainId: 1
         })
       );
       accounts = await signingWeb3.eth.getAccounts();

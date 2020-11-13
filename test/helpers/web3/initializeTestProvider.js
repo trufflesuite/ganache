@@ -14,7 +14,9 @@ const initializeTestProvider = async(options = {}, provider = null) => {
   }
   options.gasLimit = options.gasLimit || 6721975;
   options.legacyInstamine = true;
-  options.chainId = 1;
+  // options.legacyInstamine = options.miner.legacyInstamine;
+  options.chain = options.chain || {};
+  options.chainId = options.chain.chainId = options.chainId || 1;
   provider = provider || options.provider || Ganache.provider(options);
   const send = generateSend(provider);
   const web3 = new Web3(provider);
