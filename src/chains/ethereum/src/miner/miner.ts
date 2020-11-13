@@ -1,17 +1,17 @@
 import params from "../things/params";
-import { utils } from "@ganache/utils";
 import Transaction from "../things/transaction";
-import { Quantity, Data } from "@ganache/utils";
+import { utils, Quantity, Data } from "@ganache/utils";
 import { promisify } from "util";
 import Trie from "merkle-patricia-tree";
 import Emittery from "emittery";
-import Block from "ethereumjs-block";
 import VM from "ethereumjs-vm";
 import { encode as rlpEncode } from "rlp";
 import { EthereumInternalOptions } from "../options";
 import RuntimeError, { RETURN_TYPES } from "../errors/runtime-error";
 import { Executables } from "../types/executables";
 import replaceFromHeap from "./replace-from-heap";
+import { Block, RuntimeBlock } from "../things/runtime-block";
+const { BUFFER_EMPTY, BUFFER_256_ZERO } = utils;
 
 export type BlockData = {
   blockTransactions: Transaction[];
@@ -29,7 +29,7 @@ const sortByPrice = (values: Transaction[], a: number, b: number) =>
   Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 
 export default class Miner extends Emittery.Typed<
-  { block: BlockData },
+  { block: { block: Block; serialized: Buffer } },
   "idle"
 > {
   #currentlyExecutingPrice = 0n;
@@ -46,7 +46,7 @@ export default class Miner extends Emittery.Typed<
   readonly #checkpoint: () => Promise<any>;
   readonly #commit: () => Promise<any>;
   readonly #revert: () => Promise<any>;
-  readonly #createBlock: (previousBlock: Block) => Block;
+  readonly #createBlock: (previousBlock: Block) => RuntimeBlock;
 
   public async pause() {
     if (!this.#paused) {
@@ -80,7 +80,7 @@ export default class Miner extends Emittery.Typed<
     executables: Executables,
     instamine: boolean,
     vm: VM,
-    createBlock: (previousBlock: Block) => Block
+    createBlock: (previousBlock: Block) => RuntimeBlock
   ) {
     super();
     const stateManager = vm.stateManager;
@@ -106,7 +106,7 @@ export default class Miner extends Emittery.Typed<
    * @returns the transactions mined in the _first_ block
    */
   public async mine(
-    block: Block,
+    block: RuntimeBlock,
     maxTransactions: number = -1,
     onlyOneBlock = false
   ) {
@@ -131,7 +131,7 @@ export default class Miner extends Emittery.Typed<
   }
 
   #mine = async (
-    block: Block,
+    block: RuntimeBlock,
     maxTransactions: number = -1,
     onlyOneBlock = false
   ) => {
@@ -155,10 +155,12 @@ export default class Miner extends Emittery.Typed<
   };
 
   #mineTxs = async (
-    block: Block,
+    runtimeBlock: RuntimeBlock,
     maxTransactions: number,
     onlyOneBlock: boolean
   ) => {
+    let block: Block;
+
     const { pending, inProgress } = this.#executables;
     const options = this.#options;
 
@@ -174,28 +176,29 @@ export default class Miner extends Emittery.Typed<
       const transactionsTrie = new Trie(null, null);
       const receiptTrie = new Trie(null, null);
 
-      const blockData: BlockData = {
-        blockTransactions,
-        transactionsTrie,
-        receiptTrie,
-        gasUsed: 0n,
-        timestamp: block.header.timestamp,
-        extraData: options.extraData
-      };
-
       // don't mine anything at all if maxTransactions is `0`
       if (maxTransactions === 0) {
         await this.#checkpoint();
         await this.#commit();
-        this.emit("block", blockData);
+        const finalizedBlockData = runtimeBlock.finalize(
+          transactionsTrie.root,
+          receiptTrie.root,
+          BUFFER_256_ZERO,
+          this.#vm.stateManager._trie.root,
+          BUFFER_EMPTY, // gas used
+          options.extraData,
+          []
+        );
+        this.emit("block", finalizedBlockData);
         this.#reset();
-        return { block, transactions: [] };
+        return { block: finalizedBlockData.block, transactions: [] };
       }
 
       let numTransactions = 0;
       let blockGasLeft = options.blockGasLimit.toBigInt();
+      let blockGasUsed = 0n;
 
-      const blockBloom = block.header.bloom;
+      const blockBloom = Buffer.allocUnsafe(256).fill(0);
       const promises: Promise<never>[] = [];
 
       // Set a block-level checkpoint so our unsaved trie doesn't update the
@@ -229,7 +232,7 @@ export default class Miner extends Emittery.Typed<
         // the case where the transaction is rejected by the VM.
         await this.#checkpoint();
 
-        const result = await this.#runTx(best, block, origin, pending);
+        const result = await this.#runTx(best, runtimeBlock, origin, pending);
         if (result !== null) {
           const gasUsed = Quantity.from(
             result.gasUsed.toArrayLike(Buffer)
@@ -240,12 +243,12 @@ export default class Miner extends Emittery.Typed<
             blockTransactions[numTransactions] = best;
 
             blockGasLeft -= gasUsed;
-            blockData.gasUsed += gasUsed;
+            blockGasUsed += gasUsed;
 
             // calculate receipt and tx tries
             const txKey = rlpEncode(numTransactions);
             promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
-            const receipt = best.fillFromResult(result, blockData.gasUsed);
+            const receipt = best.fillFromResult(result, blockGasUsed);
             promises.push(putInTrie(receiptTrie, txKey, receipt));
 
             // update the block's bloom
@@ -323,7 +326,19 @@ export default class Miner extends Emittery.Typed<
       await Promise.all(promises);
       await this.#commit();
 
-      const emitBlockProm = this.emit("block", blockData);
+      const finalizedBlockData = runtimeBlock.finalize(
+        transactionsTrie.root,
+        receiptTrie.root,
+        blockBloom,
+        this.#vm.stateManager._trie.root,
+        blockGasUsed === 0n
+          ? BUFFER_EMPTY
+          : Quantity.from(blockGasUsed).toBuffer(),
+        options.extraData,
+        blockTransactions
+      );
+      block = finalizedBlockData.block;
+      const emitBlockProm = this.emit("block", finalizedBlockData);
       if (legacyInstamine === true) {
         // we need to wait for each block to be done mining when in legacy
         // mode because things like `mine` and `miner_start` must wait for the
@@ -341,7 +356,7 @@ export default class Miner extends Emittery.Typed<
 
         if (priced.length !== 0) {
           maxTransactions = this.#instamine ? 1 : -1;
-          block = this.#createBlock(block);
+          runtimeBlock = this.#createBlock(block);
         } else {
           // reset the miner
           this.#reset();
@@ -354,7 +369,7 @@ export default class Miner extends Emittery.Typed<
 
   #runTx = async (
     tx: Transaction,
-    block: Block,
+    block: RuntimeBlock,
     origin: string,
     pending: Map<string, utils.Heap<Transaction>>
   ) => {
@@ -379,7 +394,7 @@ export default class Miner extends Emittery.Typed<
         execResult: {
           runState: { programCounter: 0 },
           exceptionError: { error: errorMessage },
-          returnValue: Buffer.allocUnsafe(0)
+          returnValue: BUFFER_EMPTY
         }
       };
       tx.finalize(

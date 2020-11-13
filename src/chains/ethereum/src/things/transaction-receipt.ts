@@ -1,9 +1,9 @@
 import Transaction from "./transaction";
-import { Block } from "../data-managers/block-manager";
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
 import BlockLogs, { TransactionLog } from "./blocklogs";
 import { utils } from "@ganache/utils";
+import { Block } from "./runtime-block";
 
 const STATUSES = [utils.RPCQUANTITY_ZERO, utils.RPCQUANTITY_ONE];
 
@@ -94,8 +94,10 @@ export default class TransactionReceipt {
       this.contractAddress.length === 0
         ? null
         : Data.from(this.contractAddress);
-    const blockLog = BlockLogs.create(block.value.hash());
-    blockLog.blockNumber = Quantity.from(block.value.header.number);
+    const blockHash = block.hash();
+    const blockNumber = block.header.number;
+    const blockLog = BlockLogs.create(blockHash.toBuffer());
+    blockLog.blockNumber = blockNumber;
     ((raw[3] as any) as TransactionLog[]).forEach(log => {
       blockLog.append(transaction._index, transaction.hash(), log);
     });
@@ -103,8 +105,8 @@ export default class TransactionReceipt {
     return {
       transactionHash: Data.from(transaction.hash()),
       transactionIndex: Quantity.from((transaction as any)._index),
-      blockNumber: Quantity.from(block.value.header.number),
-      blockHash: Data.from(block.value.hash()),
+      blockNumber,
+      blockHash,
       from: Data.from(transaction.from),
       to: contractAddress ? null : Data.from(transaction.to),
       cumulativeGasUsed: Quantity.from(raw[1]),

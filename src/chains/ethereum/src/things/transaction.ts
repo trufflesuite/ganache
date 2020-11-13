@@ -10,12 +10,12 @@ import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
 import { decode as rlpDecode } from "rlp";
 import { RunTxResult } from "ethereumjs-vm/dist/runTx";
-import { Block } from "../data-managers/block-manager";
 import TransactionReceipt from "./transaction-receipt";
 import Common from "ethereumjs-common";
 import { TransactionLog } from "./blocklogs";
 import Address from "./address";
 import { ExtractValuesFromType } from "../types/extract-values-from-types";
+import { Block } from "./runtime-block";
 
 const MAX_UINT64 = (1n << 64n) - 1n;
 const ZERO_BUFFER = Buffer.from([0]);
@@ -459,13 +459,20 @@ class Transaction extends (EthereumJsTransaction as any) {
    * @param {Object} block The block this Transaction appears in.
    */
   toJSON(block?: Block) {
-    const blockHash = block ? block.value.hash() : this._blockHash;
-    const blockNum = block ? block.value.header.number : this._blockNum;
+    let blockHash: Data;
+    let blockNum: Quantity;
+    if (block) {
+      blockHash = block.hash();
+      blockNum = block.header.number;
+    } else {
+      blockHash = this._blockHash ? Data.from(this._blockHash, 32) : null;
+      blockNum = this._blockNum ? Quantity.from(this._blockNum) : null;
+    }
     return {
       hash: Data.from(this.hash(), 32),
       nonce: Quantity.from(this.nonce),
-      blockHash: blockHash ? Data.from(blockHash, 32) : null,
-      blockNumber: blockNum ? Quantity.from(blockNum) : null,
+      blockHash: blockHash ? blockHash : null,
+      blockNumber: blockNum ? blockNum : null,
       transactionIndex: this._index ? Quantity.from(this._index) : null,
       from: Address.from(this.from),
       to: this.to.length === 0 ? null : Address.from(this.to),

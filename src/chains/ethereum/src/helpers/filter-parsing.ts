@@ -21,8 +21,7 @@ export function parseFilterRange(
   filter: Omit<RangeFilterArgs, "address" | "topics">,
   blockchain: Blockchain
 ) {
-  const latestBlockNumberBuffer = blockchain.blocks.latest.value.header.number;
-  const latestBlock = Quantity.from(latestBlockNumberBuffer);
+  const latestBlock = blockchain.blocks.latest.header.number;
   const fromBlock = blockchain.blocks.getEffectiveNumber(
     filter.fromBlock || "latest"
   );

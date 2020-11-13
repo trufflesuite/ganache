@@ -1,5 +1,5 @@
 import Emittery from "emittery";
-import { Block } from "../data-managers/block-manager";
+import { Block } from "../things/runtime-block";
 
 type SinglyLinkedList<T> = { current: T; next: SinglyLinkedList<T> };
 

@@ -1,14 +1,10 @@
-import EthereumJsBlock from "ethereumjs-block";
 import Manager from "./manager";
 import Tag from "../things/tags";
 import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
-import Transaction from "../things/transaction";
-import { decode as rlpDecode } from "rlp";
 import Common from "ethereumjs-common";
-import { utils } from "@ganache/utils";
+import { Block } from "../things/runtime-block";
 
-const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
 const NOTFOUND = 404;
 
 const EMPTY_BUFFER = Buffer.from([]);
@@ -49,18 +45,6 @@ export default class BlockManager extends Manager<Block> {
     this.#blockIndexes = blockIndexes;
   }
 
-  /**
-   * Gets or creates the next block (which might be the *pending* block). Uses the values in the optional `header`
-   * object to create the block
-   * @param header The values to set on the block's header. These typically come from the parent block.
-   */
-  next(header?: {}) {
-    if (!this.pending) {
-      this.pending = this.createBlock(header);
-    }
-    return this.pending;
-  }
-
   getBlockByTag(tag: Tag) {
     switch (Tag.normalize(tag as Tag)) {
       case Tag.LATEST:
@@ -71,7 +55,7 @@ export default class BlockManager extends Manager<Block> {
         break;
       case Tag.PENDING:
         // TODO: build a real pending block!
-        return this.createBlock(this.latest.value.header);
+        return this.latest; // this.createBlock(this.latest.header);
       case Tag.EARLIEST:
         return this.earliest;
       default:
@@ -86,26 +70,10 @@ export default class BlockManager extends Manager<Block> {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {
-        const blockNumber = block.value.header.number;
-        if (blockNumber.length === 0) {
-          return Quantity.from(Buffer.from([0]));
-        } else {
-          return Quantity.from(blockNumber);
-        }
+        return block.header.number;
       }
     }
     return Quantity.from(tagOrBlockNumber);
-  }
-
-  /**
-   * Creates a Block object with the specified header values
-   * @param header
-   */
-  createBlock(header: {}): Block {
-    const block = new Block(null, this.#common);
-    // TODO: make better
-    Object.assign(block.value.header, header);
-    return block;
   }
 
   async getNumberFromHash(hash: string | Buffer | Tag) {
@@ -142,20 +110,17 @@ export default class BlockManager extends Manager<Block> {
    * Writes the block object to the underlying database.
    * @param block
    */
-  async putBlock(block: Block) {
-    const blockValue = block.value;
-    const header = blockValue.header;
-    let key = header.number;
+  async putBlock(number: Buffer, hash: Buffer, serialized: Buffer) {
+    let key = number;
     // ensure we can store Block #0 as key "00", not ""
     if (EMPTY_BUFFER.equals(key)) {
       key = Buffer.from([0]);
     }
-    const secondaryKey = header.hash();
+    const secondaryKey = hash;
     await Promise.all([
       this.#blockIndexes.put(secondaryKey, key),
-      super.set(key, block.serialize())
+      super.set(key, serialized)
     ]);
-    return block;
   }
 
   updateTaggedBlocks() {
@@ -184,79 +149,5 @@ export default class BlockManager extends Manager<Block> {
           resolve(void 0);
         });
     });
-  }
-}
-
-export class Block {
-  public readonly value: EthereumJsBlock;
-  constructor(raw: Buffer, common: Common) {
-    if (raw) {
-      this.size = raw.length;
-      const data = (rlpDecode(raw) as any) as [Buffer[], Buffer[], Buffer[]];
-      this.value = new EthereumJsBlock(
-        { header: data[0], uncleHeaders: data[2] },
-        { common }
-      );
-      const rawTransactions = data[1];
-
-      // parse transactions so we can use our own transaction class
-      for (let i = 0; i < rawTransactions.length; i++) {
-        const tx = new Transaction(rawTransactions[i], common);
-        this.value.transactions.push(tx);
-      }
-    } else {
-      this.value = new EthereumJsBlock(null, { common });
-      this.size = 0;
-    }
-  }
-
-  size: number;
-
-  serialize() {
-    const serialized = this.value.serialize(true);
-    this.size = serialized.length;
-    return serialized;
-  }
-
-  getTxFn = (
-    include = false
-  ): ((
-    tx: Transaction
-  ) => { [key: string]: string | Data | Quantity } | Data) => {
-    if (include) {
-      return (tx: Transaction) => tx.toJSON(this);
-    } else {
-      return (tx: Transaction) => Data.from(tx.hash());
-    }
-  };
-
-  toJSON(includeFullTransactions = false) {
-    const header = this.value.header;
-    return {
-      number: Quantity.from(header.number),
-      hash: Data.from(this.value.hash()),
-      parentHash: Data.from(header.parentHash),
-      mixHash: Data.from(header.mixHash),
-      nonce: Data.from(header.nonce, 8),
-      sha3Uncles: Data.from(header.uncleHash),
-      logsBloom: Data.from(header.bloom),
-      transactionsRoot: Data.from(header.transactionsTrie),
-      stateRoot: Data.from(header.stateRoot),
-      receiptsRoot: Data.from(header.receiptTrie),
-      miner: Data.from(header.coinbase),
-      difficulty: Quantity.from(header.difficulty),
-      // TODO(forking): since ganache's difficulty is always 0, `totalDifficulty` for new blocks
-      // should just be the forked block's `difficulty`. See https://ethereum.stackexchange.com/a/7102/44640
-      totalDifficulty: RPCQUANTITY_ZERO,
-      extraData: Data.from(header.extraData),
-      size: Quantity.from(this.size),
-      gasLimit: Quantity.from(header.gasLimit),
-      gasUsed: Quantity.from(header.gasUsed),
-      timestamp: Quantity.from(header.timestamp),
-      transactions: this.value.transactions.map(
-        this.getTxFn(includeFullTransactions)
-      ),
-      uncles: [] as string[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
-    };
   }
 }

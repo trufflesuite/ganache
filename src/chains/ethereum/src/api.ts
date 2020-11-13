@@ -1,4 +1,5 @@
 //#region Imports
+import { RuntimeBlock, Block } from "./things/runtime-block";
 import {
   toRpcSig,
   KECCAK256_NULL,
@@ -23,7 +24,6 @@ import Emittery from "emittery";
 import Common from "ethereumjs-common";
 import BlockLogs from "./things/blocklogs";
 import EthereumAccount from "ethereumjs-account";
-import { Block } from "./data-managers/block-manager";
 import estimateGas from "./helpers/gas-estimator";
 import CodedError, { ErrorCodes } from "./errors/coded-error";
 import { WhisperPostObject } from "./types/shh";
@@ -597,14 +597,16 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Set the extraData block header field a miner can include
-   * @param address
+   * @param extra
    */
   @assertArgLength(1)
   async miner_setExtra(extra: string) {
-    if (extra.length > 32) {
-      throw new Error(`extra exceeds max length. ${extra.length} > 32`);
+    const bytes = Data.from(extra);
+    const length = bytes.toBuffer().length;
+    if (length > 32) {
+      throw new Error(`extra exceeds max length. ${length} > 32`);
     }
-    this.#options.miner.extraData = extra;
+    this.#options.miner.extraData = bytes;
     return true;
   }
   //#endregion
@@ -679,7 +681,7 @@ export default class EthereumApi implements types.Api {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
-    const parentHeader = parentBlock.value.header;
+    const parentHeader = parentBlock.header;
     const options = this.#options;
 
     const generateVM = () => {
@@ -705,17 +707,16 @@ export default class EthereumApi implements types.Api {
           tx.gas = tx.gasLimit = options.miner.callGasLimit.toBuffer();
         }
       }
-      const newBlock = blocks.createBlock({
-        number: parentHeader.number,
-        timestamp: parentHeader.timestamp,
-        parentHash: parentHeader.parentHash,
-        coinbase: coinbase.toBuffer(),
-        gasLimit: tx.gas
-      });
-      newBlock.value.transactions.push(tx);
+      const newBlock = new RuntimeBlock(
+        parentHeader.number,
+        parentHeader.parentHash,
+        parentHeader.miner,
+        tx.gas,
+        parentHeader.timestamp
+      );
       const runArgs = {
         tx: tx,
-        block: newBlock.value,
+        block: newBlock,
         skipBalance: true,
         skipNonce: true
       };
@@ -982,8 +983,7 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(0)
   async eth_blockNumber() {
-    const latest = await this.#blockchain.blocks.get(Tag.LATEST);
-    return Quantity.from(latest.value.header.number);
+    return this.#blockchain.blocks.latest.header.number;
   }
 
   /**
@@ -1386,25 +1386,25 @@ export default class EthereumApi implements types.Api {
         const promiEvent = PromiEvent.resolve(subscription);
 
         const unsubscribe = this.#blockchain.on("block", (block: Block) => {
-          const value = block.value;
+          const value = block;
           const header = value.header;
           const result = {
-            logsBloom: Data.from(header.bloom, 256),
-            miner: Address.from(header.coinbase),
-            difficulty: Quantity.from(header.difficulty),
-            extraData: Data.from(header.extraData),
-            gasLimit: Quantity.from(header.gasLimit),
-            gasUsed: Quantity.from(header.gasUsed),
-            hash: Data.from(value.hash(), 32),
-            mixHash: Data.from(header.mixHash, 32),
-            nonce: Data.from(header.nonce, 8),
-            number: Quantity.from(header.number, true),
-            parentHash: Data.from(header.parentHash, 32),
-            receiptsRoot: Data.from(header.receiptTrie, 32),
-            stateRoot: Data.from(header.stateRoot, 32),
-            timestamp: Quantity.from(header.timestamp),
-            transactionsRoot: Data.from(header.transactionsTrie, 32),
-            sha3Uncles: Data.from(header.uncleHash, 32)
+            logsBloom: header.logsBloom,
+            miner: header.miner,
+            difficulty: header.difficulty,
+            extraData: header.extraData,
+            gasLimit: header.gasLimit,
+            gasUsed: header.gasUsed,
+            hash: block.hash(),
+            mixHash: block.header.mixHash,
+            nonce: header.nonce,
+            number: header.number,
+            parentHash: header.parentHash,
+            receiptsRoot: header.receiptsRoot,
+            stateRoot: header.stateRoot,
+            timestamp: header.timestamp,
+            transactionsRoot: header.transactionsRoot,
+            sha3Uncles: header.sha3Uncles
           };
 
           // TODO: move the JSON stringification closer to where the message
@@ -1505,7 +1505,7 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(0)
   async eth_newBlockFilter() {
     const unsubscribe = this.#blockchain.on("block", (block: Block) => {
-      value.updates.push(Data.from(block.value.hash(), 32));
+      value.updates.push(block.hash());
     });
     const value = {
       updates: [],
@@ -1730,7 +1730,7 @@ export default class EthereumApi implements types.Api {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
-    const parentHeader = parentBlock.value.header;
+    const parentHeader = parentBlock.header;
     const options = this.#options;
 
     let gas: Quantity;
@@ -1754,13 +1754,13 @@ export default class EthereumApi implements types.Api {
       data = Data.from(transaction.data);
     }
 
-    const block = blocks.createBlock({
-      number: parentHeader.number,
-      timestamp: parentHeader.timestamp,
-      parentHash: parentHeader.parentHash,
-      coinbase: blockchain.coinbase.toBuffer(),
-      gasLimit: gas.toBuffer()
-    });
+    const block = new RuntimeBlock(
+      parentHeader.number,
+      parentHeader.parentHash,
+      blockchain.coinbase,
+      gas.toBuffer(),
+      parentHeader.timestamp
+    );
 
     const simulatedTransaction = {
       gas,

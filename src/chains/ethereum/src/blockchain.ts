@@ -1,13 +1,13 @@
 import { EOL } from "os";
 import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
-import Miner, { BlockData } from "./miner/miner";
+import Miner from "./miner/miner";
 import Database from "./database";
 import Emittery from "emittery";
-import BlockManager, { Block } from "./data-managers/block-manager";
+import BlockManager from "./data-managers/block-manager";
 import BlockLogs from "./things/blocklogs";
 import TransactionManager from "./data-managers/transaction-manager";
 import CheckpointTrie from "merkle-patricia-tree";
-import { BN } from "ethereumjs-util";
+import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import Account from "./things/account";
 import { promisify } from "util";
 import { Quantity, Data } from "@ganache/utils";
@@ -19,7 +19,6 @@ import Manager from "./data-managers/manager";
 import TransactionReceipt from "./things/transaction-receipt";
 import { encode as rlpEncode } from "rlp";
 import Common from "ethereumjs-common";
-import { Block as EthereumBlock } from "ethereumjs-block";
 import VM from "ethereumjs-vm";
 import Address from "./things/address";
 import BlockLogManager from "./data-managers/blocklog-manager";
@@ -27,7 +26,14 @@ import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 import { EthereumInternalOptions } from "./options";
 import { Snapshots } from "./types/snapshots";
-import { options } from "yargs";
+import { RuntimeBlock, Block } from "./things/runtime-block";
+const {
+  BUFFER_EMPTY,
+  RPCQUANTITY_EMPTY,
+  BUFFER_32_ZERO,
+  BUFFER_256_ZERO,
+  RPCQUANTITY_ZERO
+} = utils;
 
 type SimulationTransaction = {
   /**
@@ -54,7 +60,7 @@ type SimulationTransaction = {
    * Hash of the method signature and encoded parameters. For details see Ethereum Contract ABI in the Solidity documentation
    */
   data?: Data;
-  block: Block;
+  block: RuntimeBlock;
 };
 
 const unref = utils.unref;
@@ -173,7 +179,7 @@ export default class Blockchain extends Emittery.Typed<
         });
         this.trie = new CheckpointTrie(
           database.trie,
-          latest.value.header.stateRoot
+          latest.header.stateRoot.toBuffer()
         );
       } else {
         this.trie = new CheckpointTrie(database.trie, null);
@@ -206,6 +212,7 @@ export default class Blockchain extends Emittery.Typed<
         // create first block
         let firstBlockTime: number;
         if (options.chain.time != null) {
+          // If we were given a timestamp, use it instead of the `_currentTime`
           const t = +options.chain.time;
           firstBlockTime = Math.floor(t / 1000);
           this.setTime(t);
@@ -263,43 +270,26 @@ export default class Blockchain extends Emittery.Typed<
     });
   }
 
-  #fillNewBlock = (blockData: BlockData) => {
-    const blocks = this.blocks;
-    const options = this.#options;
-    const prevBlock = blocks.latest;
-    const prevHeader = prevBlock.value.header;
-    const prevNumber = Quantity.from(prevHeader.number).toBigInt() || 0n;
-    const block = blocks.createBlock({
-      number: Quantity.from(prevNumber + 1n).toBuffer(),
-      timestamp: blockData.timestamp,
-      parentHash: prevHeader.hash(),
-      coinbase: this.coinbase.toBuffer(),
-      gasLimit: options.miner.blockGasLimit.toBuffer(),
-      transactionsTrie: blockData.transactionsTrie.root,
-      receiptTrie: blockData.receiptTrie.root,
-      stateRoot: this.trie.root,
-      gasUsed: Quantity.from(blockData.gasUsed).toBuffer(),
-      extraData: blockData.extraData
-    });
-    block.value.transactions = blockData.blockTransactions;
-    return block;
-  };
-
-  #saveNewBlock = (block: Block) => {
+  #saveNewBlock = ({
+    block,
+    serialized
+  }: {
+    block: Block;
+    serialized: Buffer;
+  }) => {
     const { blocks } = this;
     blocks.latest = block;
-    const { value } = block;
-    const { header } = value;
     return this.#database.batch(() => {
-      const blockHash = value.hash();
-      const blockNumber = header.number;
-      const blockNumberQ = Quantity.from(blockNumber);
+      const blockHash = block.hash().toBuffer();
+      const blockHeader = block.header;
+      const blockNumberQ = blockHeader.number;
+      const blockNumber = blockHeader.number.toBuffer();
       const blockLogs = BlockLogs.create(blockHash);
       const timestamp = new Date(
-        Quantity.from(header.timestamp).toNumber() * 1000
+        blockHeader.timestamp.toNumber() * 1000
       ).toString();
       const logOutput: string[] = [];
-      value.transactions.forEach((tx: Transaction, i: number) => {
+      block.getTransactions().forEach((tx: Transaction, i: number) => {
         const hash = tx.hash();
         const index = Quantity.from(i).toBuffer();
         const txAndExtraData = [
@@ -332,7 +322,7 @@ export default class Blockchain extends Emittery.Typed<
 
       blockLogs.blockNumber = blockNumberQ;
       this.blockLogs.set(blockNumber, blockLogs.serialize());
-      blocks.putBlock(block);
+      blocks.putBlock(blockNumber, blockHash, serialized);
       this.#options.logging.logger.log(logOutput.join(EOL));
       return { block, blockLogs };
     });
@@ -343,7 +333,7 @@ export default class Blockchain extends Emittery.Typed<
     const { block, blockLogs } = blockInfo;
 
     // emit the block once everything has been fully saved to the database
-    block.value.transactions.forEach(transaction => {
+    block.getTransactions().forEach(transaction => {
       transaction.finalize("confirmed", transaction.execException);
     });
 
@@ -400,10 +390,12 @@ export default class Blockchain extends Emittery.Typed<
     return str;
   };
 
-  #handleNewBlockData = async (blockData: BlockData) => {
+  #handleNewBlockData = async (blockData: {
+    block: Block;
+    serialized: Buffer;
+  }) => {
     this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
-      .then(() => this.#fillNewBlock(blockData))
-      .then(this.#saveNewBlock)
+      .then(() => this.#saveNewBlock(blockData))
       .then(this.#emitNewBlock);
 
     return this.#blockBeingSavedPromise;
@@ -411,16 +403,16 @@ export default class Blockchain extends Emittery.Typed<
 
   coinbase: Address;
 
-  #readyNextBlock = (previousBlock: EthereumBlock, timestamp?: number) => {
+  #readyNextBlock = (previousBlock: Block, timestamp?: number) => {
     const previousHeader = previousBlock.header;
-    const previousNumber =
-      Quantity.from(previousHeader.number).toBigInt() || 0n;
-    return this.blocks.createBlock({
-      number: Quantity.from(previousNumber + 1n).toBuffer(),
-      gasLimit: this.#options.miner.blockGasLimit.toBuffer(),
-      timestamp: timestamp == null ? this.#currentTime() : timestamp,
-      parentHash: previousHeader.hash()
-    }).value;
+    const previousNumber = previousHeader.number.toBigInt() || 0n;
+    return new RuntimeBlock(
+      Quantity.from(previousNumber + 1n),
+      previousBlock.hash(),
+      this.coinbase,
+      this.#options.miner.blockGasLimit.toBuffer(),
+      Quantity.from(timestamp == null ? this.#currentTime() : timestamp)
+    );
   };
 
   isStarted = () => {
@@ -433,7 +425,7 @@ export default class Blockchain extends Emittery.Typed<
     onlyOneBlock: boolean = false
   ) => {
     await this.#blockBeingSavedPromise;
-    const nextBlock = this.#readyNextBlock(this.blocks.latest.value, timestamp);
+    const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
     return this.#miner.mine(nextBlock, maxTransactions, onlyOneBlock);
   };
 
@@ -469,7 +461,7 @@ export default class Blockchain extends Emittery.Typed<
     const getBlock = class T {
       static async [promisify.custom](number: BN) {
         const block = await blocks.get(number.toBuffer()).catch(_ => null);
-        return block ? block.value : null;
+        return block ? { hash: () => block.hash().toBuffer() } : null;
       }
     };
 
@@ -510,20 +502,40 @@ export default class Blockchain extends Emittery.Typed<
     timestamp: number,
     blockGasLimit: Quantity
   ) => {
+    // README: block `0` is weird in that a `0` _should_ be hashed as `[]`,
+    // but actually return a real `0` with read back later. So we pull some
+    // shenangians here so we don't require checks in functions that consume
+    // this block's `0` value later
+    const rawBlockNumber = RPCQUANTITY_EMPTY;
+
     // create the genesis block
-    const genesis = this.blocks.next({
-      // If we were given a timestamp, use it instead of the `_currentTime`
-      timestamp,
-      gasLimit: blockGasLimit.toBuffer(),
-      stateRoot: this.trie.root,
-      number: "0x0"
-    });
+    const genesis = new RuntimeBlock(
+      rawBlockNumber,
+      Quantity.from(BUFFER_32_ZERO),
+      this.#options.miner.coinbase as Address,
+      blockGasLimit.toBuffer(),
+      Quantity.from(timestamp)
+    );
 
     // store the genesis block in the database
-    return this.blocks.putBlock(genesis).then(block => ({
-      block,
-      blockLogs: BlockLogs.create(block.value.hash())
-    }));
+    const { block, serialized } = genesis.finalize(
+      KECCAK256_RLP,
+      KECCAK256_RLP,
+      BUFFER_256_ZERO,
+      this.trie.root,
+      BUFFER_EMPTY,
+      this.#options.miner.extraData,
+      []
+    );
+    // README: set the block number to an actual 0 now.
+    block.header.number = RPCQUANTITY_ZERO;
+    const hash = block.hash().toBuffer();
+    return this.blocks
+      .putBlock(block.header.number.toBuffer(), hash, serialized)
+      .then(_ => ({
+        block,
+        blockLogs: BlockLogs.create(hash)
+      }));
   };
 
   #timeAdjustment: number = 0;
@@ -557,15 +569,16 @@ export default class Blockchain extends Emittery.Typed<
   #deleteBlockData = (blocksToDelete: Block[]) => {
     return this.#database.batch(() => {
       const { blocks, transactions, transactionReceipts, blockLogs } = this;
-      blocksToDelete.forEach(({ value }) => {
-        value.transactions.forEach(tx => {
+      blocksToDelete.forEach(value => {
+        value.getTransactions().forEach(tx => {
           const txHash = tx.hash();
           transactions.del(txHash);
           transactionReceipts.del(txHash);
         });
-        blocks.del(value.header.number);
-        blocks.del(value.header.hash());
-        blockLogs.del(value.header.number);
+        const blockNum = value.header.number.toBuffer();
+        blocks.del(blockNum);
+        blocks.del(value.hash().toBuffer());
+        blockLogs.del(blockNum);
       });
     });
   };
@@ -597,7 +610,7 @@ export default class Blockchain extends Emittery.Typed<
     if (id === 1) {
       snapshots.unsubscribeFromBlocks = this.on("block", block => {
         snapshots.blocks = {
-          current: block.value.hash(),
+          current: block.hash().toBuffer(),
           next: snapshots.blocks
         };
       });
@@ -645,10 +658,10 @@ export default class Blockchain extends Emittery.Typed<
     this.transactions.clear();
 
     const blocks = this.blocks;
-    const currentHash = blocks.latest.value.header.hash();
+    const currentHash = blocks.latest.hash().toBuffer();
     const snapshotBlock = snapshot.block;
-    const snapshotHeader = snapshotBlock.value.header;
-    const snapshotHash = snapshotHeader.hash();
+    const snapshotHeader = snapshotBlock.header;
+    const snapshotHash = snapshotBlock.hash().toBuffer();
 
     // remove this and all stored snapshots after this snapshot
     snaps.splice(snapshotIndex);
@@ -674,7 +687,10 @@ export default class Blockchain extends Emittery.Typed<
 
       await Promise.all(blockPromises).then(this.#deleteBlockData);
 
-      setStateRootSync(this.vm.stateManager, snapshotHeader.stateRoot);
+      setStateRootSync(
+        this.vm.stateManager,
+        snapshotHeader.stateRoot.toBuffer()
+      );
       blocks.latest = snapshotBlock;
     }
 
@@ -741,7 +757,7 @@ export default class Blockchain extends Emittery.Typed<
     if (gasLeft >= 0) {
       const stateTrie = new CheckpointTrie(
         this.#database.trie,
-        parentBlock.value.header.stateRoot
+        parentBlock.header.stateRoot.toBuffer()
       );
       const vm = this.createVmFromStateTrie(
         stateTrie,
@@ -755,21 +771,21 @@ export default class Blockchain extends Emittery.Typed<
         gasLimit: Quantity.from(gasLeft).toBuffer(),
         to: transaction.to && transaction.to.toBuffer(),
         value: transaction.value && transaction.value.toBuffer(),
-        block: transaction.block.value
+        block: transaction.block
       });
     } else {
       result = {
         execResult: {
           runState: { programCounter: 0 },
           exceptionError: new VmError(ERROR.OUT_OF_GAS),
-          returnValue: Buffer.allocUnsafe(0)
+          returnValue: BUFFER_EMPTY
         }
       } as any;
     }
     if (result.execResult.exceptionError) {
       if (this.#options.chain.vmErrorsOnRPCResponse) {
         // eth_call transactions don't really have a transaction hash
-        const hash = Buffer.allocUnsafe(0);
+        const hash = BUFFER_EMPTY;
         throw new RuntimeError(hash, result, RETURN_TYPES.RETURN_VALUE);
       } else {
         return Data.from(result.execResult.returnValue || "0x");

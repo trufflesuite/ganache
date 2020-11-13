@@ -1,5 +1,5 @@
 import { normalize } from "./helpers";
-import { Quantity, utils } from "@ganache/utils";
+import { Data, Quantity, utils } from "@ganache/utils";
 import { Definitions } from "@ganache/options";
 import Address from "../things/address";
 
@@ -120,12 +120,14 @@ export type MinerConfig = {
      */
     coinbase: {
       rawType: string | number;
-      type: string | number | Address;
+      type: Address | number;
       hasDefault: true;
     };
 
     extraData: {
-      type: string;
+      rawType: string;
+      type: Data;
+      hasDefault: true;
     };
   };
 };
@@ -156,7 +158,9 @@ export const MinerOptions: Definitions<MinerConfig> = {
     legacyName: "callGasLimit"
   },
   coinbase: {
-    normalize,
+    normalize: rawType => {
+      return typeof rawType === "number" ? rawType : Address.from(rawType);
+    },
     default: () => Address.from(utils.ACCOUNT_ZERO)
   },
   legacyInstamine: {
@@ -165,11 +169,15 @@ export const MinerOptions: Definitions<MinerConfig> = {
     legacyName: "legacyInstamine"
   },
   extraData: {
-    normalize: extra => {
-      if (extra.length > 32) {
-        throw new Error(`extra exceeds max length. ${extra.length} > 32`);
+    normalize: (extra: string) => {
+      const bytes = Data.from(extra);
+      if (bytes.toBuffer().length > 32) {
+        throw new Error(
+          `extra exceeds max length. ${bytes.toBuffer().length} > 32`
+        );
       }
-      return extra;
-    }
+      return bytes;
+    },
+    default: () => Data.from(utils.BUFFER_EMPTY)
   }
 };

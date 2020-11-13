@@ -23,7 +23,7 @@ export default class AccountManager {
   ): Promise<Buffer> {
     const blockchain = this.#blockchain;
     const block = await blockchain.blocks.get(blockNumber);
-    const trieCopy = new Trie(this.#trie, block.value.header.stateRoot);
+    const trieCopy = new Trie(this.#trie, block.header.stateRoot.toBuffer());
     return new Promise((resolve, reject) => {
       trieCopy.get(address.toBuffer(), (err, data) => {
         if (err) return reject(err);

@@ -9,12 +9,12 @@ describe("api", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       const gasLimit = "0x6691b7";
-      const now = new Date("2019/03/15 GMT");
+      const time = new Date("2019/03/15 GMT");
 
       beforeEach(async () => {
         provider = await getProvider({
           chain: {
-            time: now
+            time
           },
           miner: {
             blockGasLimit: gasLimit
@@ -28,7 +28,7 @@ describe("api", () => {
 
       describe("newHeads", () => {
         it("subscribes and unsubscribes", async () => {
-          const timestamp = ((+now / 1000) | 0) + 1;
+          const timestamp = ((+time / 1000) | 0) + 1;
           const startingBlockNumber = parseInt(
             await provider.send("eth_blockNumber")
           );
