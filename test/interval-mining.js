@@ -216,7 +216,7 @@ describe("Interval Mining", function() {
         /The contract code couldn't be stored, please check your gas limit/
       );
 
-      assert(logData.indexOf("Runtime Error: revert") >= 0);
+      assert(logData.indexOf("Runtime error: revert") >= 0);
     });
   });
 });
