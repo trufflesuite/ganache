@@ -89,7 +89,7 @@ export class Connector
       }
     }
     const params = payload.params as Parameters<EthereumApi[typeof method]>;
-    return this.#provider.requestRaw({ method, params });
+    return this.#provider._requestRaw({ method, params });
   };
 
   format(

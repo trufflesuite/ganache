@@ -186,17 +186,17 @@ export default class EthereumProvider
   public async request<Method extends RequestMethods>(
     args: RequestParams<Method>
   ) {
-    const rawResult = await this.requestRaw(args);
+    const rawResult = await this._requestRaw(args);
     const value = await rawResult.value;
     return JSON.parse(JSON.stringify(value));
   }
 
   /**
-   * Used when the caller wants to access the orignal `PromiEvent`, which would
+   * INTERNAL. Used when the caller wants to access the orignal `PromiEvent`, which would
    * otherwise be flattened into a regular Promise through the Promise chain.
    * @param request
    */
-  public async requestRaw<Method extends RequestMethods>({
+  public async _requestRaw<Method extends RequestMethods>({
     method,
     params
   }: RequestParams<Method>) {

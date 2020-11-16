@@ -430,10 +430,10 @@ describe("server", () => {
 
       try {
         const provider = s.provider;
-        const oldRequestRaw = provider.requestRaw;
+        const oldRequestRaw = (provider as any)._requestRaw;
         const req = request.post("http://localhost:" + port);
         const abortPromise = new Promise(resolve => {
-          provider.requestRaw = () => {
+          (provider as any)._requestRaw = () => {
             // abort the request object after intercepting the request
             req.abort();
             return new Promise(innerResolve => {
@@ -455,7 +455,7 @@ describe("server", () => {
         // wait for the server to react to the requesrt's `abort`
         await abortPromise;
 
-        provider.requestRaw = oldRequestRaw;
+        provider._requestRaw = oldRequestRaw;
 
         // now make sure we are still up and running:
         await simpleTest();
@@ -652,7 +652,7 @@ describe("server", () => {
 
     it("doesn't crash when the connection is closed while a request is in flight", async () => {
       const provider = s.provider;
-      provider.requestRaw = (async () => {
+      provider._requestRaw = (async () => {
         // close our websocket after intercepting the request
         await s.close();
         return { value: Promise.resolve(void 0) };
@@ -682,8 +682,8 @@ describe("server", () => {
     it("handles PromiEvent messages", async () => {
       const provider = s.provider;
       const message = "I hope you get this message";
-      const oldRequestRaw = provider.requestRaw.bind(provider);
-      provider.requestRaw = (async () => {
+      const oldRequestRaw = provider._requestRaw.bind(provider);
+      provider._requestRaw = (async () => {
         const promiEvent = new PromiEvent(resolve => {
           const subId = "0xsubscriptionId";
           resolve(subId);
@@ -719,7 +719,7 @@ describe("server", () => {
 
       assert.strictEqual(result, message);
 
-      provider.requestRaw = oldRequestRaw;
+      provider._requestRaw = oldRequestRaw;
     });
 
     it("handles batched json-rpc requests/responses", async () => {
@@ -789,7 +789,7 @@ describe("server", () => {
     it("doesn't crash when the connection is closed while a subscription is in flight", async () => {
       const provider = s.provider;
       let promiEvent: PromiEvent<any>;
-      provider.requestRaw = (async () => {
+      provider._requestRaw = (async () => {
         promiEvent = new PromiEvent(resolve => {
           resolve("0xsubscriptionId");
         });
@@ -835,7 +835,7 @@ describe("server", () => {
         // create tons of data to force websocket backpressure
         const huge = {};
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = { i };
-        s.provider.requestRaw = (async () => {
+        s.provider._requestRaw = (async () => {
           return { value: Promise.resolve(huge) };
         }) as any;
       }
