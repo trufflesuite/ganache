@@ -1,9 +1,9 @@
 node_modules
-TODO
-*.log
-.eslintrc.js
-.tern-project
 .DS_Store
-.tern-port
 .vscode
-build
+.nyc_output
+lerna-debug.log
+npm-debug.log
+src/**/*/lib
+coverage
+dist/

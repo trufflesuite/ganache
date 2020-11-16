@@ -1,0 +1,4 @@
+{
+  "packages": ["src/packages/*", "src/chains/*"],
+  "version": "independent"
+}

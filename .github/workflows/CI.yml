@@ -1,0 +1,52 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [10.7.0, 10.x, 11.x, 12.x, 13.x, 14.x]
+        os:
+          [
+            windows-2016,
+            windows-2019,
+            ubuntu-16.04,
+            ubuntu-18.04,
+            ubuntu-20.04,
+            macos-11.0,
+          ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      # we need build tools for the `bigint-buffer` module
+      - name: Add msbuild to PATH
+        if: startsWith(matrix.os, 'windows-')
+        uses: microsoft/setup-msbuild@v1.0.2
+      - name: install node tools
+        if: startsWith(matrix.os, 'windows-')
+        # windows-build-tools@5.2.2 failed to install, so we use 4.0.0
+        run: npm install --global --production windows-build-tools@4.0.0
+      - name: install node-gyp
+        if: startsWith(matrix.os, 'windows-')
+        run: npm install --global node-gyp@latest
+      - name: Set node config to use python2.7
+        if: startsWith(matrix.os, 'windows-')
+        run: npm config set python python2.7
+      - name: Set node config to set msvs_version to 2015
+        if: startsWith(matrix.os, 'windows-')
+        run: npm config set msvs_version 2015
+      - run: npm ci
+      - run: npm test
+        env:
+          FORCE_COLOR: 1

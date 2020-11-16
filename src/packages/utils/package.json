@@ -1,0 +1,55 @@
+{
+  "name": "@ganache/utils",
+  "version": "0.1.0",
+  "description": "Utility functions for @ganache packages",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/utils#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/packages/utils"
+  },
+  "scripts": {
+    "tsc": "ttsc"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-utils",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling"
+  ],
+  "dependencies": {
+    "emittery": "0.7.2"
+  },
+  "devDependencies": {
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+  },
+  "optionalDependencies": {
+    "bigint-buffer": "1.1.5"
+  }
+}

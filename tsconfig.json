@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "outDir": "lib",
+    "alwaysStrict": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "target": "ES2020",
+    "moduleResolution": "node",
+    "noErrorTruncation": true,
+    "sourceMap": true,
+    "strict": true,
+    /** `noImplicitAny: false` and `strictNullChecks: false` are temporary during initial rapid development. */
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "newLine": "lf",
+    "lib": ["ES2020"],
+    "typeRoots": ["./node_modules/@types", "src/@types"],
+    "experimentalDecorators": true,
+    "paths": {
+      "@ganache/cli/cli": ["../cli/lib/cli"]
+    },
+    "plugins": [
+      {
+        "transform": "ts-transformer-inline-file/transformer"
+      },
+      {
+        "transform": "@zerollup/ts-transform-paths",
+        "exclude": "*"
+      }
+    ]
+  }
+}

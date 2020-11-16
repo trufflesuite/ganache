@@ -1,74 +1,58 @@
 {
-  "name": "ganache-core",
-  "version": "2.2.1",
-  "main": "./index.js",
+  "name": "root",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
+  "private": true,
   "engines": {
-    "node": ">=8.9.0"
-  },
-  "directories": {
-    "lib": "./lib"
+    "node": ">=10.7.0 <=14.14.0",
+    "npm": ">=6.1.0"
   },
   "scripts": {
-    "build": "npm run build-core",
-    "build-core": "webpack-cli --config ./webpack/node/core.webpack.config.js",
-    "build-provider": "webpack-cli --config ./webpack/node/provider.webpack.config.js",
-    "build-server": "webpack-cli --config ./webpack/node/server.webpack.config.js",
-    "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js && webpack-cli --config ./webpack/web-experimental/server.webpack.config.js && webpack-cli --config ./webpack/web-experimental/provider.webpack.config.js",
-    "prepublishOnly": "npm run test && npm run build && npm run test-build",
-    "test": "mocha --check-leaks --recursive --globals _scratch,sanitizedData",
-    "test-build": "cross-env TEST_BUILD=node mocha --check-leaks --recursive --globals _scratch,sanitizedData",
-    "test-web-experimental": "cross-env TEST_BUILD=web-experimental mocha --check-leaks --recursive --globals _scratch,sanitizedData"
-  },
-  "dependencies": {
-    "abstract-leveldown": "3.0.0",
-    "async": "2.6.1",
-    "bip39": "2.5.0",
-    "bn.js": "4.11.8",
-    "cachedown": "1.0.0",
-    "clone": "2.1.2",
-    "debug": "3.1.0",
-    "encoding-down": "5.0.4",
-    "eth-sig-util": "2.0.2",
-    "ethereumjs-abi": "0.6.5",
-    "ethereumjs-account": "2.0.5",
-    "ethereumjs-block": "1.2.2",
-    "ethereumjs-tx": "1.3.4",
-    "ethereumjs-util": "5.2.0",
-    "ethereumjs-vm": "2.4.0",
-    "heap": "0.2.6",
-    "intercept-require": "^1.1.0",
-    "level-sublevel": "6.6.4",
-    "levelup": "3.1.1",
-    "lodash": "4.17.10",
-    "merkle-patricia-tree": "2.3.1",
-    "seedrandom": "2.4.4",
-    "tmp": "0.0.33",
-    "web3-provider-engine": "^14.0.6",
-    "websocket": "1.0.26"
+    "build": "lerna run build",
+    "clean": "npx shx rm -rf node_modules && npx lerna clean -y && npm run tsc.clean",
+    "create": "ts-node ./scripts/create",
+    "docs.build": "lerna run docs.build",
+    "docs.preview": "lerna run docs.preview",
+    "postinstall": "lerna bootstrap && ts-node ./scripts/postinstall",
+    "reinstall": "npm run clean && npm install",
+    "test": "lerna exec -- npm run test",
+    "tsc": "lerna exec -- npm run tsc",
+    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist"
   },
   "devDependencies": {
-    "ethereumjs-wallet": "0.6.2",
-    "assert-match": "1.1.1",
-    "browserfs": "1.4.3",
-    "cross-env": "5.2.0",
-    "memdown": "1.3.1",
-    "mocha": "5.2.0",
-    "pify": "4.0.0",
-    "solc": "0.4.24",
-    "source-map-support": "^0.5.9",
-    "temp": "0.8.3",
-    "webpack": "4.17.1",
-    "webpack-bundle-size-analyzer": "2.7.0",
-    "webpack-cli": "3.1.0",
-    "web3": "1.0.0-beta.35"
+    "@istanbuljs/nyc-config-typescript": "1.0.1",
+    "@types/fs-extra": "9.0.2",
+    "@types/mocha": "8.0.3",
+    "@types/node": "14.14.6",
+    "@types/npm-package-arg": "6.1.0",
+    "@types/prettier": "2.1.5",
+    "@types/yargs": "15.0.9",
+    "@zerollup/ts-transform-paths": "1.7.18",
+    "camelcase": "6.1.0",
+    "chalk": "4.1.0",
+    "cli-highlight": "2.1.4",
+    "cross-env": "7.0.2",
+    "fs-extra": "9.0.1",
+    "git-user-name": "2.0.0",
+    "husky": "4.3.0",
+    "into-stream": "6.0.0",
+    "lerna": "3.22.1",
+    "mocha": "8.2.0",
+    "monaco-editor": "0.21.2",
+    "npm-package-arg": "8.1.0",
+    "nyc": "15.1.0",
+    "prettier": "2.1.2",
+    "pretty-quick": "3.1.0",
+    "shx": "0.3.3",
+    "ts-node": "9.0.0",
+    "ts-transformer-inline-file": "0.1.1",
+    "ttypescript": "1.5.12",
+    "typescript": "4.1.1-rc",
+    "yargs": "16.1.0"
   },
-  "optionalDependencies": {
-    "ethereumjs-wallet": "0.6.2",
-    "web3": "1.0.0-beta.35"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core"
-  },
-  "license": "MIT"
+  "license": "MIT",
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  }
 }
