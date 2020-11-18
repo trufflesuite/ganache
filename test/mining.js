@@ -391,7 +391,6 @@ describe("Mining", function() {
 
       await provider.send("eth_subscribe", ["newHeads"]);
       provider.on("message", (b) => {
-        console.log(b);
         if (closed) {
           clearTimeout(timer);
           assert.fail("evm_mine after provider closed");
