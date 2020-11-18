@@ -20,7 +20,6 @@ describe("api", () => {
     let from: string;
     let contractAddress: string;
     let transactionHash: string;
-    let revertTransactionHash: string;
     let initialValue: string;
     let methods: Record<string, string>;
 
@@ -76,7 +75,7 @@ describe("api", () => {
       // Send another transaction thate changes the state, to ensure traces don't change state
       const newValue =
         "0000000000000000000000000000000000000000000000000000000000001337";
-      const newTransactionHash = await provider.send("eth_sendTransaction", [
+      await provider.send("eth_sendTransaction", [
         {
           from,
           to: contractAddress,
@@ -86,13 +85,13 @@ describe("api", () => {
 
       await provider.once("message");
 
-      revertTransactionHash = await provider.send("eth_sendTransaction", [
+      await provider.send("eth_sendTransaction", [
         { from, to: contractAddress, data: "0x" + methods["doARevert()"] }
       ]);
     });
 
     it("should trace a successful transaction without changing state", async () => {
-      let { structLogs } = await provider.send("debug_traceTransaction", [
+      const { structLogs } = await provider.send("debug_traceTransaction", [
         transactionHash,
         {}
       ]);
@@ -101,7 +100,7 @@ describe("api", () => {
       assert(structLogs.length > 0);
 
       // Check formatting of stack
-      for (const [index, op] of structLogs.entries()) {
+      for (const [, op] of structLogs.entries()) {
         if (op.stack.length > 0) {
           // check formatting of stack - it was broken when updating to ethereumjs-vm v2.3.3
           assert.strictEqual(op.stack[0].length, 64);
@@ -111,7 +110,7 @@ describe("api", () => {
       }
 
       // Check formatting of memory
-      for (const [index, op] of structLogs.entries()) {
+      for (const [, op] of structLogs.entries()) {
         if (op.memory.length > 0) {
           // check formatting of memory
           assert.strictEqual(op.memory[0].length, 64);
@@ -148,7 +147,7 @@ describe("api", () => {
     });
 
     it("should still trace reverted transactions", async () => {
-      let { structLogs } = await provider.send("debug_traceTransaction", [
+      const { structLogs } = await provider.send("debug_traceTransaction", [
         transactionHash,
         {}
       ]);
@@ -158,7 +157,7 @@ describe("api", () => {
       // If we haven't errored at this state, we're doing pretty good.
 
       // Let's make sure the last operation is a STOP instruction.
-      let op = structLogs.pop();
+      const op = structLogs.pop();
 
       assert.strictEqual(op.op, "STOP");
     });
@@ -175,27 +174,27 @@ describe("api", () => {
       // in the final trace is found through execution. Again,
       // this test is meant as a change detector, not necessarily a
       // failure detector.
-      let expectedObjectsInFinalTrace = 22814;
-      let timesToRunLoop = 100;
-      let address = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
-      let privateKey =
+      const expectedObjectsInFinalTrace = 22814;
+      const timesToRunLoop = 100;
+      const address = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
+      const privateKey =
         "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d";
 
       // The next line is gross, but it makes testing new values easy.
-      let timesToRunLoopArgument = Data.from(
+      const timesToRunLoopArgument = Data.from(
         Quantity.from(timesToRunLoop).toBuffer(),
         32
       )
         .toString()
         .replace("0x", "");
 
-      let initialAccounts = [new Account(new Address(address))];
+      const initialAccounts = [new Account(new Address(address))];
 
       // The following will set up a vm, deploy the debugging contract,
       // then run the transaction against that contract that we want to trace.
-      let common = new Common("mainnet", "muirGlacier");
+      const common = new Common("mainnet", "muirGlacier");
 
-      let blockchain = new Blockchain(
+      const blockchain = new Blockchain(
         EthereumOptionsConfig.normalize({
           miner: {
             blockGasLimit: 126721975
@@ -209,7 +208,7 @@ describe("api", () => {
       await blockchain.once("start");
 
       // Deployment transaction
-      var deploymentTransaction = new Transaction(
+      const deploymentTransaction = new Transaction(
         {
           data: contract.code,
           from: address,
@@ -220,19 +219,19 @@ describe("api", () => {
       );
       deploymentTransaction._from = Data.from(address).toBuffer();
 
-      let deploymentTransactionHash = await blockchain.queueTransaction(
+      const deploymentTransactionHash = await blockchain.queueTransaction(
         deploymentTransaction,
         Data.from(privateKey)
       );
 
       await blockchain.once("block");
 
-      let receipt = await blockchain.transactionReceipts.get(
+      const receipt = await blockchain.transactionReceipts.get(
         deploymentTransactionHash.toBuffer()
       );
 
       // Transaction to call the loop function
-      let loopTransaction = new Transaction(
+      const loopTransaction = new Transaction(
         {
           data: Buffer.from(
             methods["loop(uint256)"] + timesToRunLoopArgument,
@@ -246,7 +245,7 @@ describe("api", () => {
         common
       );
       loopTransaction._from = Data.from(address).toBuffer();
-      let loopTransactionHash = await blockchain.queueTransaction(
+      const loopTransactionHash = await blockchain.queueTransaction(
         loopTransaction,
         Data.from(privateKey)
       );
@@ -254,7 +253,7 @@ describe("api", () => {
       await blockchain.once("block");
 
       // Get the trace so we can count all of the items in the result
-      let trace = await blockchain.traceTransaction(
+      const trace = await blockchain.traceTransaction(
         loopTransactionHash.toString(),
         {}
       );
@@ -264,8 +263,8 @@ describe("api", () => {
       // same object (e.g., only counted once). There might be some gotcha's here;
       // quality of this test is dependent on the correctness of the counter.
 
-      let countMap = new Map();
-      let stack: Array<any> = [trace];
+      const countMap = new Map();
+      const stack: Array<any> = [trace];
 
       while (stack.length > 0) {
         // pop is faster than shift, outcome is the same
@@ -279,7 +278,7 @@ describe("api", () => {
           obj = new Number(obj);
         }
 
-        let isCounted = typeof countMap.get(obj) != "undefined";
+        const isCounted = typeof countMap.get(obj) != "undefined";
 
         // if counted, don't recount.
         if (isCounted) {
@@ -306,7 +305,7 @@ describe("api", () => {
             entries = Object.entries(obj);
           }
 
-          for (const [key, value] of entries) {
+          for (const [, value] of entries) {
             if (value != null) {
               stack.push(value);
             }

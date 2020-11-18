@@ -887,13 +887,13 @@ export default class Blockchain extends Emittery.Typed<
     //
     // TODO: Forking needs the forked block number passed during this step:
     // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
-    let trie = new CheckpointTrie(
+    const trie = new CheckpointTrie(
       this.#database.trie,
       parentBlock.header.stateRoot.toBuffer()
     );
 
     // Prepare the "next" block with necessary transactions
-    let newBlock = new RuntimeBlock(
+    const newBlock = new RuntimeBlock(
       Quantity.from(parentBlock.header.number.toBigInt() + 1n),
       parentBlock.hash(),
       parentBlock.header.miner,
@@ -928,7 +928,7 @@ export default class Blockchain extends Emittery.Typed<
 
     const TraceData = TraceDataFactory();
 
-    let stepListener = (
+    const stepListener = (
       event: StepEvent,
       next: (error?: any, cb?: any) => void
     ) => {
@@ -947,7 +947,7 @@ export default class Blockchain extends Emittery.Typed<
         // Let's cut it up into 32 byte chunks as required by the spec.
         let index = 0;
         while (index < event.memory.length) {
-          let slice = event.memory.slice(index, index + 32);
+          const slice = event.memory.slice(index, index + 32);
           memory.push(TraceData.from(Buffer.from(slice)));
           index += 32;
         }
@@ -960,7 +960,7 @@ export default class Blockchain extends Emittery.Typed<
         }
       }
 
-      let structLog: StructLog = {
+      const structLog: StructLog = {
         depth: event.depth,
         error: "",
         gas: gasLeft,
@@ -999,8 +999,8 @@ export default class Blockchain extends Emittery.Typed<
 
       switch (event.opcode.name) {
         case "SSTORE": {
-          let key = stack[stack.length - 1];
-          let value = stack[stack.length - 2];
+          const key = stack[stack.length - 1];
+          const value = stack[stack.length - 2];
 
           // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
           structLog.storage = new TraceStorageMap(
@@ -1017,7 +1017,7 @@ export default class Blockchain extends Emittery.Typed<
           break;
         }
         case "SLOAD": {
-          let key = stack[stack.length - 1];
+          const key = stack[stack.length - 1];
           vm.stateManager.getContractStorage(
             event.address,
             key.toBuffer(),
@@ -1026,7 +1026,7 @@ export default class Blockchain extends Emittery.Typed<
                 return next(err);
               }
 
-              let value = TraceData.from(result);
+              const value = TraceData.from(result);
               storageStack.stack[storageStack.currentDepth].set(key, value);
 
               // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
@@ -1051,26 +1051,26 @@ export default class Blockchain extends Emittery.Typed<
 
     let txHashCurrentlyProcessing: string = null;
 
-    let beforeTxListener = (tx: Transaction) => {
+    const beforeTxListener = (tx: Transaction) => {
       txHashCurrentlyProcessing = Data.from(tx.hash()).toString();
       if (txHashCurrentlyProcessing == transactionHash) {
         vm.on("step", stepListener);
       }
     };
 
-    let afterTxListener = () => {
+    const afterTxListener = () => {
       if (txHashCurrentlyProcessing == transactionHash) {
         removeListeners();
       }
     };
 
-    let removeListeners = () => {
+    const removeListeners = () => {
       vm.removeListener("step", stepListener);
       vm.removeListener("beforeTx", beforeTxListener);
       vm.removeListener("afterTx", afterTxListener);
     };
 
-    let blocks = this.blocks;
+    const blocks = this.blocks;
 
     // ethereumjs vm doesn't use the callback style anymore
     const getBlock = class T {
@@ -1080,7 +1080,7 @@ export default class Blockchain extends Emittery.Typed<
       }
     };
 
-    let vm = new VM({
+    const vm = new VM({
       state: trie,
       activatePrecompiles: true,
       common: this.#common,
@@ -1114,7 +1114,7 @@ export default class Blockchain extends Emittery.Typed<
     // The previous implementation had specific error handling.
     // It's possible we've removed handling specific cases in this implementation.
     // e.g., the previous incatation of RuntimeError
-    let results = await vm.runBlock({
+    await vm.runBlock({
       block: newBlock, // .value is the object the vm expects
       generate: true,
       skipBlockValidation: true
