@@ -940,7 +940,7 @@ export default class Blockchain extends Emittery.Typed<
       const gasUsedPreviousStep = totalGasUsedAfterThisStep - returnVal.gas;
       returnVal.gas += gasUsedPreviousStep;
 
-      let memory: TraceData[] = [];
+      const memory: TraceData[] = [];
       if (!params.disableMemory) {
         // We get the memory as one large array.
         // Let's cut it up into 32 byte chunks as required by the spec.
@@ -952,7 +952,7 @@ export default class Blockchain extends Emittery.Typed<
         }
       }
 
-      let stack: TraceData[] = [];
+      const stack: TraceData[] = [];
       if (!params.disableStack) {
         for (const stackItem of event.stack) {
           stack.push(TraceData.from(stackItem.toBuffer()));
