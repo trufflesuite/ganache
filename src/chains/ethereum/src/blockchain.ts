@@ -27,8 +27,7 @@ import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 import { EthereumInternalOptions } from "./options";
 import { Snapshots } from "./types/snapshots";
 import { RuntimeBlock, Block } from "./things/runtime-block";
-import params from "./things/params";
-import TraceData from "./things/trace-data";
+import { ITraceData, TraceDataFactory } from "./things/trace-data";
 import TraceStorageMap from "./things/trace-storage-map";
 
 const {
@@ -97,10 +96,10 @@ export type StructLog = {
   error: string;
   gas: number;
   gasCost: number;
-  memory: Array<TraceData>;
+  memory: Array<ITraceData>;
   op: string;
   pc: number;
-  stack: Array<TraceData>;
+  stack: Array<ITraceData>;
   storage: TraceStorageMap;
 };
 
@@ -927,6 +926,8 @@ export default class Blockchain extends Emittery.Typed<
       address: Buffer;
     };
 
+    const TraceData = TraceDataFactory();
+
     let stepListener = (
       event: StepEvent,
       next: (error?: any, cb?: any) => void
@@ -940,7 +941,7 @@ export default class Blockchain extends Emittery.Typed<
       const gasUsedPreviousStep = totalGasUsedAfterThisStep - returnVal.gas;
       returnVal.gas += gasUsedPreviousStep;
 
-      const memory: TraceData[] = [];
+      const memory: ITraceData[] = [];
       if (!params.disableMemory) {
         // We get the memory as one large array.
         // Let's cut it up into 32 byte chunks as required by the spec.
@@ -952,7 +953,7 @@ export default class Blockchain extends Emittery.Typed<
         }
       }
 
-      const stack: TraceData[] = [];
+      const stack: ITraceData[] = [];
       if (!params.disableStack) {
         for (const stackItem of event.stack) {
           stack.push(TraceData.from(stackItem.toBuffer()));

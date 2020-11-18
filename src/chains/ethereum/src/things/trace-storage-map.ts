@@ -1,8 +1,8 @@
-import TraceData from "./trace-data";
+import { ITraceData } from "./trace-data";
 
-class TraceStorageMap extends Map<TraceData, TraceData> {
-  toJSON(): Record<string, TraceData> {
-    const obj: Record<string, TraceData> = {};
+class TraceStorageMap extends Map<ITraceData, ITraceData> {
+  toJSON(): Record<string, ITraceData> {
+    const obj: Record<string, ITraceData> = {};
 
     for (const [key, value] of this.entries()) {
       obj[key.toString()] = value;

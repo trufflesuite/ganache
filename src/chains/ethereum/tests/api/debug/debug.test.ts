@@ -10,7 +10,6 @@ import Address from "../../../src/things/address";
 import Common from "ethereumjs-common";
 import Transaction from "../../../src/things/transaction";
 import { EthereumOptionsConfig } from "../../../src/options/index";
-import TraceData from "../../../src/things/trace-data";
 import TraceStorageMap from "../../../src/things/trace-storage-map";
 
 describe("api", () => {
@@ -294,7 +293,7 @@ describe("api", () => {
         if (
           !(obj instanceof String) &&
           !(obj instanceof Number) &&
-          !(obj instanceof TraceData)
+          !(obj.constructor && obj.constructor.name === "TraceData")
         ) {
           // key/value pairs that can be iterated over via for...of
           let entries: IterableIterator<[any, any]> | Array<[any, any]>;
