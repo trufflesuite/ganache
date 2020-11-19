@@ -1779,11 +1779,28 @@ export default class EthereumApi implements types.Api {
 
   //#region debug
 
+  /**
+   * Attempt to run the transaction in the exact same manner as it was executed
+   * on the network. It will replay any transaction that may have been executed
+   * prior to this one before it will finally attempt to execute the transaction
+   * that corresponds to the given hash.
+   *
+   * In addition to the hash of the transaction you may give it a secondary
+   * optional argument, which specifies the options for this specific call.
+   * The possible options are:
+   *
+   * * `disableStorage`: {boolean} Setting this to `true` will disable storage capture (default = `false`).
+   * * `disableMemory`: {boolean} Setting this to `true` will disable memory capture (default = `false`).
+   * * `disableStack`: {boolean} Setting this to `true` will disable stack capture (default = `false`).
+   *
+   * @param transactionHash
+   * @param options
+   */
   async debug_traceTransaction(
     transactionHash: string,
-    params: TransactionTraceOptions
+    options?: TransactionTraceOptions
   ) {
-    return this.#blockchain.traceTransaction(transactionHash, params);
+    return this.#blockchain.traceTransaction(transactionHash, options);
   }
 
   //#endregion

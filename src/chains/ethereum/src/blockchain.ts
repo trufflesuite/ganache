@@ -88,7 +88,6 @@ export type TransactionTraceOptions = {
   disableStorage?: boolean;
   disableMemory?: boolean;
   disableStack?: boolean;
-  tracer?: string;
 };
 
 export type StructLog = {
@@ -851,9 +850,8 @@ export default class Blockchain extends Emittery.Typed<
    *  3. Rerun every transaction in that block prior to and including the requested transaction
    *  4. Send trace results back.
    *
-   * @param  {[type]}   tx       [description]
-   * @param  {Function} callback [description]
-   * @return [type]              [description]
+   * @param transactionHash
+   * @param params
    */
   public async traceTransaction(
     transactionHash: string,
