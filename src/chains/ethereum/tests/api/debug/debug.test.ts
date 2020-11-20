@@ -34,8 +34,7 @@ describe("api", () => {
         }
       });
 
-      accounts = await provider.send("eth_accounts");
-      from = accounts[1];
+      [from] = await provider.send("eth_accounts");
 
       await provider.send("eth_subscribe", ["newHeads"]);
 
@@ -100,21 +99,21 @@ describe("api", () => {
       assert(structLogs.length > 0);
 
       // Check formatting of stack
-      for (const [, op] of structLogs.entries()) {
-        if (op.stack.length > 0) {
+      for (const [, { stack }] of structLogs.entries()) {
+        if (stack.length > 0) {
           // check formatting of stack - it was broken when updating to ethereumjs-vm v2.3.3
-          assert.strictEqual(op.stack[0].length, 64);
-          assert.notStrictEqual(op.stack[0].substr(0, 2), "0x");
+          assert.strictEqual(stack[0].length, 64);
+          assert.notStrictEqual(stack[0].substr(0, 2), "0x");
           break;
         }
       }
 
       // Check formatting of memory
-      for (const [, op] of structLogs.entries()) {
-        if (op.memory.length > 0) {
+      for (const [, { memory }] of structLogs.entries()) {
+        if (memory.length > 0) {
           // check formatting of memory
-          assert.strictEqual(op.memory[0].length, 64);
-          assert.notStrictEqual(op.memory[0].substr(0, 2), "0x");
+          assert.strictEqual(memory[0].length, 64);
+          assert.notStrictEqual(memory[0].substr(0, 2), "0x");
           break;
         }
       }
@@ -157,9 +156,9 @@ describe("api", () => {
       // If we haven't errored at this state, we're doing pretty good.
 
       // Let's make sure the last operation is a STOP instruction.
-      const op = structLogs.pop();
+      const { op } = structLogs.pop();
 
-      assert.strictEqual(op.op, "STOP");
+      assert.strictEqual(op, "STOP");
     });
 
     it("should have a low memory footprint", async () => {
@@ -174,11 +173,12 @@ describe("api", () => {
       // in the final trace is found through execution. Again,
       // this test is meant as a change detector, not necessarily a
       // failure detector.
-      const expectedObjectsInFinalTrace = 22814;
+      const expectedObjectsInFinalTrace = 30899;
       const timesToRunLoop = 100;
-      const address = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
-      const privateKey =
-        "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d";
+      const from = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
+      const privateKey = Data.from(
+        "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
+      );
 
       // The next line is gross, but it makes testing new values easy.
       const timesToRunLoopArgument = Data.from(
@@ -188,21 +188,18 @@ describe("api", () => {
         .toString()
         .replace("0x", "");
 
-      const initialAccounts = [new Account(new Address(address))];
+      const address = new Address(from);
+      const initialAccounts = [new Account(address)];
 
       // The following will set up a vm, deploy the debugging contract,
       // then run the transaction against that contract that we want to trace.
       const common = new Common("mainnet", "muirGlacier");
 
       const blockchain = new Blockchain(
-        EthereumOptionsConfig.normalize({
-          miner: {
-            blockGasLimit: 126721975
-          }
-        }),
+        EthereumOptionsConfig.normalize({}),
         common,
         initialAccounts,
-        initialAccounts[0].address
+        address
       );
 
       await blockchain.once("start");
@@ -211,22 +208,22 @@ describe("api", () => {
       const deploymentTransaction = new Transaction(
         {
           data: contract.code,
-          from: address,
-          gasLimit: Quantity.from(6721975).toString(),
+          from,
+          gasLimit: 6721975,
           nonce: "0x0"
         },
         common
       );
-      deploymentTransaction._from = Data.from(address).toBuffer();
+      deploymentTransaction._from = address.toBuffer();
 
       const deploymentTransactionHash = await blockchain.queueTransaction(
         deploymentTransaction,
-        Data.from(privateKey)
+        privateKey
       );
 
       await blockchain.once("block");
 
-      const receipt = await blockchain.transactionReceipts.get(
+      const { contractAddress } = await blockchain.transactionReceipts.get(
         deploymentTransactionHash.toBuffer()
       );
 
@@ -237,17 +234,17 @@ describe("api", () => {
             methods["loop(uint256)"] + timesToRunLoopArgument,
             "hex"
           ),
-          to: receipt.contractAddress,
-          from: address,
-          gasLimit: Quantity.from(6721975).toString(),
+          to: contractAddress,
+          from,
+          gasLimit: 6721975,
           nonce: "0x1"
         },
         common
       );
-      loopTransaction._from = Data.from(address).toBuffer();
+      loopTransaction._from = address.toBuffer();
       const loopTransactionHash = await blockchain.queueTransaction(
         loopTransaction,
-        Data.from(privateKey)
+        privateKey
       );
 
       await blockchain.once("block");
@@ -263,7 +260,7 @@ describe("api", () => {
       // same object (e.g., only counted once). There might be some gotcha's here;
       // quality of this test is dependent on the correctness of the counter.
 
-      const countMap = new Map();
+      const countMap = new Set();
       const stack: Array<any> = [trace];
 
       while (stack.length > 0) {
@@ -272,27 +269,25 @@ describe("api", () => {
 
         // Create new objects for literals as they take up
         // their own memory slots
-        if (typeof obj == "string") {
+        if (typeof obj === "string") {
           obj = new String(obj);
-        } else if (typeof obj == "number") {
+        } else if (typeof obj === "number") {
           obj = new Number(obj);
         }
 
-        const isCounted = typeof countMap.get(obj) != "undefined";
-
         // if counted, don't recount.
-        if (isCounted) {
+        if (countMap.has(obj)) {
           continue;
         }
 
         // Not counted? Set it.
-        countMap.set(obj, 1);
+        countMap.add(obj);
 
         // Let's not do anything with Strings, Numbers, & TraceData; we have them counted.
         if (
           !(obj instanceof String) &&
           !(obj instanceof Number) &&
-          !(obj.constructor && obj.constructor.name === "TraceData")
+          !(obj.toBuffer && obj.toJSON)
         ) {
           // key/value pairs that can be iterated over via for...of
           let entries: IterableIterator<[any, any]> | Array<[any, any]>;

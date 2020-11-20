@@ -1,91 +1,104 @@
+import { utils } from "@ganache/utils";
+const { bufferToMinHexKey } = utils;
+
 export interface ITraceData {
-  _buffer: Buffer;
   toBuffer(): Buffer;
   toString(): string;
   toJSON(): string;
 }
 
+const BYTE_LENGTH = 32;
+
+/**
+ * Precomputed 32-byte prefixes to make stringification a faster
+ */
+const PREFIXES = [
+  "",
+  "00",
+  "0000",
+  "000000",
+  "00000000",
+  "0000000000",
+  "000000000000",
+  "00000000000000",
+  "0000000000000000",
+  "000000000000000000",
+  "00000000000000000000",
+  "0000000000000000000000",
+  "000000000000000000000000",
+  "00000000000000000000000000",
+  "0000000000000000000000000000",
+  "000000000000000000000000000000",
+  "00000000000000000000000000000000",
+  "0000000000000000000000000000000000",
+  "000000000000000000000000000000000000",
+  "00000000000000000000000000000000000000",
+  "0000000000000000000000000000000000000000",
+  "000000000000000000000000000000000000000000",
+  "00000000000000000000000000000000000000000000",
+  "0000000000000000000000000000000000000000000000",
+  "000000000000000000000000000000000000000000000000",
+  "00000000000000000000000000000000000000000000000000",
+  "0000000000000000000000000000000000000000000000000000",
+  "000000000000000000000000000000000000000000000000000000",
+  "00000000000000000000000000000000000000000000000000000000",
+  "0000000000000000000000000000000000000000000000000000000000",
+  "000000000000000000000000000000000000000000000000000000000000",
+  "00000000000000000000000000000000000000000000000000000000000000",
+  "0000000000000000000000000000000000000000000000000000000000000000"
+];
+
 export const TraceDataFactory = () => {
   const traceDataLookup: Map<string, any> = new Map();
 
-  const TraceData = class implements ITraceData {
-    static BYTE_LENGTH: number = 32;
-    _buffer: Buffer;
-    _str: string;
-
-    /**
-     * @param value Buffer to be stored within the Trace Data. If you'd like
-     *   the value to be memoized, use TraceData.from().
-     */
-    constructor(value: Buffer) {
-      const length = value.length;
-      if (length === 0) {
-        throw new Error("Empty buffer passed to TraceData.from()");
-      } else if (length > TraceData.BYTE_LENGTH) {
-        throw new Error(
-          `TraceData can only store up to ${TraceData.BYTE_LENGTH} bytes`
-        );
-      } else {
-        // Remove all leading zeroes from keys.
-        // This should match all buffers converted to strings,
-        // and the third item in the result is the value without leading zeroes.
-        const str = value.toString("hex");
-        const key = str.match(/(00)*([0-9A-Fa-f]+)/)[2];
-
-        const existing = traceDataLookup.get(key);
-        if (existing) {
-          return existing;
-        }
-
-        traceDataLookup.set(key, this);
-
-        if (length === TraceData.BYTE_LENGTH) {
-          this._buffer = value;
-          this._str = str;
-        } else {
-          const lengthDiff = TraceData.BYTE_LENGTH - length;
-          const buffer = Buffer.allocUnsafe(TraceData.BYTE_LENGTH).fill(
-            0,
-            0,
-            lengthDiff
-          );
-          value.copy(buffer, lengthDiff, 0, length);
-          this._buffer = buffer;
-          this._str = `${"00".repeat(lengthDiff)}${str}`;
-        }
-      }
-    }
-
-    public toString(): string {
-      return this._str;
-    }
-
-    public toBuffer(): Buffer {
-      return this._buffer;
-    }
-
-    public toJSON(): string {
-      return this._str;
-    }
-
-    public static from(value: Buffer) {
+  const TraceData = {
+    from: (value: Buffer) => {
       // Remove all leading zeroes from keys.
-      // This should match all buffers converted to strings,
-      // and the third item in the result is the value without leading zeroes.
-      let key = value.toString("hex").match(/(00)*([0-9A-Fa-f]+)/)[2];
-
+      const key = bufferToMinHexKey(value);
       const existing = traceDataLookup.get(key);
+
       if (existing) {
         return existing;
       }
 
-      const data = new TraceData(value);
+      let buffer: Buffer;
+      let str: string;
+
+      const data = {
+        /**
+         * Returns a 32-byte 0-padded Buffer
+         */
+        toBuffer: () => {
+          if (buffer) {
+            return buffer;
+          }
+          const length = value.byteLength;
+          if (length === BYTE_LENGTH) {
+            buffer = value;
+          } else {
+            // convert the buffer into the appropriately sized buffer.
+            const lengthDiff = BYTE_LENGTH - length;
+            buffer = Buffer.allocUnsafe(BYTE_LENGTH).fill(0, 0, lengthDiff);
+            value.copy(buffer, lengthDiff, 0, length);
+          }
+          return buffer;
+        },
+        /**
+         * Returns a 32-byte hex-string representation
+         */
+        toJSON: () => {
+          if (str) {
+            return str;
+          }
+          // convert a hex key like "ab01" into "00...00ab01"
+          return (str = `${PREFIXES[BYTE_LENGTH - key.length / 2]}${key}`);
+        }
+      };
+
       traceDataLookup.set(key, data);
       return data;
     }
   };
-
-  Object.defineProperty(TraceData, "name", { value: "TraceData" });
 
   return TraceData;
 };

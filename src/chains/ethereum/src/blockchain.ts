@@ -857,16 +857,17 @@ export default class Blockchain extends Emittery.Typed<
     transactionHash: string,
     params: TransactionTraceOptions
   ) {
-    const storageStack = {
-      currentDepth: -1,
-      stack: [] as Array<TraceStorageMap>
-    };
+    let currentDepth = -1;
+    const storageStack: TraceStorageMap[] = [];
 
-    const returnVal = {
-      gas: 0,
-      returnValue: "",
-      structLogs: [] as Array<StructLog>
-    };
+    // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
+    // (Ganache v2 didn't handle this possibility either, so it hasn't been
+    // updated yet)
+    let gas = 0;
+    // TODO: returnValue isn't used... it wasn't used in v2 either. What's this
+    // supposed to be?
+    let returnValue = "";
+    const structLogs: Array<StructLog> = [];
 
     const transactionHashBuffer = Data.from(transactionHash).toBuffer();
     // #1 - get block via transaction object
@@ -936,11 +937,11 @@ export default class Blockchain extends Emittery.Typed<
       const gasLeft = event.gasLeft.toNumber();
       const totalGasUsedAfterThisStep =
         Quantity.from(transaction.gasLimit).toNumber() - gasLeft;
-      const gasUsedPreviousStep = totalGasUsedAfterThisStep - returnVal.gas;
-      returnVal.gas += gasUsedPreviousStep;
+      const gasUsedPreviousStep = totalGasUsedAfterThisStep - gas;
+      gas += gasUsedPreviousStep;
 
       const memory: ITraceData[] = [];
-      if (!params.disableMemory) {
+      if (params.disableMemory !== true) {
         // We get the memory as one large array.
         // Let's cut it up into 32 byte chunks as required by the spec.
         let index = 0;
@@ -952,7 +953,7 @@ export default class Blockchain extends Emittery.Typed<
       }
 
       const stack: ITraceData[] = [];
-      if (!params.disableStack) {
+      if (params.disableStack !== true) {
         for (const stackItem of event.stack) {
           stack.push(TraceData.from(stackItem.toBuffer()));
         }
@@ -972,78 +973,70 @@ export default class Blockchain extends Emittery.Typed<
 
       // The gas difference calculated for each step is indicative of gas consumed in
       // the previous step. Gas consumption in the final step will always be zero.
-      if (returnVal.structLogs.length) {
-        returnVal.structLogs[
-          returnVal.structLogs.length - 1
-        ].gasCost = gasUsedPreviousStep;
+      if (structLogs.length) {
+        structLogs[structLogs.length - 1].gasCost = gasUsedPreviousStep;
       }
 
-      if (params.disableStorage) {
+      if (params.disableStorage === true) {
         // Add the struct log as is - nothing more to do.
-        returnVal.structLogs.push(structLog);
+        structLogs.push(structLog);
         next();
-      }
-
-      // The rest of this function previously resided in its own function called processStorageTrace
-      // I found it odd as its own function since it mutates variables of this function.
-      if (storageStack.currentDepth > event.depth) {
-        storageStack.stack.pop();
-      }
-      if (storageStack.currentDepth < event.depth) {
-        storageStack.stack.push(new TraceStorageMap());
-      }
-
-      storageStack.currentDepth = event.depth;
-
-      switch (event.opcode.name) {
-        case "SSTORE": {
-          const key = stack[stack.length - 1];
-          const value = stack[stack.length - 2];
-
-          // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
-          structLog.storage = new TraceStorageMap(
-            storageStack.stack[storageStack.currentDepth]
-          );
-
-          // Tell vm to move on to the next instruction. See below.
-          returnVal.structLogs.push(structLog);
-          next();
-
-          // assign after callback because this storage change actually takes
-          // effect _after_ this opcode executes
-          storageStack.stack[storageStack.currentDepth].set(key, value);
-          break;
+      } else {
+        const { depth: eventDepth } = event;
+        if (currentDepth > eventDepth) {
+          storageStack.pop();
+        } else if (currentDepth < eventDepth) {
+          storageStack.push(new TraceStorageMap());
         }
-        case "SLOAD": {
-          const key = stack[stack.length - 1];
-          vm.stateManager.getContractStorage(
-            event.address,
-            key.toBuffer(),
-            (err, result) => {
-              if (err) {
-                return next(err);
+
+        currentDepth = eventDepth;
+
+        switch (event.opcode.name) {
+          case "SSTORE": {
+            const key = stack[stack.length - 1];
+            const value = stack[stack.length - 2];
+
+            // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+            structLog.storage = new TraceStorageMap(storageStack[eventDepth]);
+
+            // Tell vm to move on to the next instruction. See below.
+            structLogs.push(structLog);
+            next();
+
+            // assign after callback because this storage change actually takes
+            // effect _after_ this opcode executes
+            storageStack[eventDepth].set(key, value);
+            break;
+          }
+          case "SLOAD": {
+            const key = stack[stack.length - 1];
+            vm.stateManager.getContractStorage(
+              event.address,
+              key.toBuffer(),
+              (err: Error, result: Buffer) => {
+                if (err) {
+                  return next(err);
+                }
+
+                const value = TraceData.from(result);
+                storageStack[eventDepth].set(key, value);
+
+                // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+                structLog.storage = new TraceStorageMap(
+                  storageStack[eventDepth]
+                );
+                structLogs.push(structLog);
+                next();
               }
-
-              const value = TraceData.from(result);
-              storageStack.stack[storageStack.currentDepth].set(key, value);
-
-              // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
-              structLog.storage = new TraceStorageMap(
-                storageStack.stack[storageStack.currentDepth]
-              );
-              returnVal.structLogs.push(structLog);
-              next();
-            }
-          );
-          break;
+            );
+            break;
+          }
+          default:
+            // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+            structLog.storage = new TraceStorageMap(storageStack[eventDepth]);
+            structLogs.push(structLog);
+            next();
         }
-        default:
-          // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
-          structLog.storage = new TraceStorageMap(
-            storageStack.stack[storageStack.currentDepth]
-          );
-          returnVal.structLogs.push(structLog);
-          next();
       }
     };
 
@@ -1122,7 +1115,11 @@ export default class Blockchain extends Emittery.Typed<
     removeListeners();
 
     // #4 - send state results back
-    return returnVal;
+    return {
+      gas,
+      structLogs,
+      returnValue
+    };
   }
 
   /**

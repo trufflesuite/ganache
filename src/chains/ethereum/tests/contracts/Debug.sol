@@ -17,7 +17,7 @@ contract Debug {
 
   function loop(uint times) public {
     for (uint i = 0; i < times; i++) {
-      value = i;
+      value += i;
     }
   }
 
