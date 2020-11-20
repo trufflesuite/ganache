@@ -9,7 +9,7 @@ import {
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import { EthereumInternalOptions } from "./options";
 import { types, Data, Quantity } from "@ganache/utils";
-import Blockchain from "./blockchain";
+import Blockchain, { TransactionTraceOptions } from "./blockchain";
 import Tag from "./things/tags";
 import { VM_EXCEPTION, VM_EXCEPTIONS } from "./errors/errors";
 import Address from "./things/address";
@@ -1775,6 +1775,34 @@ export default class EthereumApi implements types.Api {
 
     return blockchain.simulateTransaction(simulatedTransaction, parentBlock);
   }
+  //#endregion
+
+  //#region debug
+
+  /**
+   * Attempt to run the transaction in the exact same manner as it was executed
+   * on the network. It will replay any transaction that may have been executed
+   * prior to this one before it will finally attempt to execute the transaction
+   * that corresponds to the given hash.
+   *
+   * In addition to the hash of the transaction you may give it a secondary
+   * optional argument, which specifies the options for this specific call.
+   * The possible options are:
+   *
+   * * `disableStorage`: {boolean} Setting this to `true` will disable storage capture (default = `false`).
+   * * `disableMemory`: {boolean} Setting this to `true` will disable memory capture (default = `false`).
+   * * `disableStack`: {boolean} Setting this to `true` will disable stack capture (default = `false`).
+   *
+   * @param transactionHash
+   * @param options
+   */
+  async debug_traceTransaction(
+    transactionHash: string,
+    options?: TransactionTraceOptions
+  ) {
+    return this.#blockchain.traceTransaction(transactionHash, options);
+  }
+
   //#endregion
 
   //#region personal
