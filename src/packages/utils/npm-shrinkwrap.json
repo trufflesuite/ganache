@@ -33,6 +33,25 @@
       "integrity": "sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==",
       "optional": true
     },
+    "keccak": {
+      "version": "3.0.1",
+      "resolved": "https://registry.npmjs.org/keccak/-/keccak-3.0.1.tgz",
+      "integrity": "sha512-epq90L9jlFWCW7+pQa6JOnKn2Xgl2mtI664seYR6MHskvI9agt7AnDqmAlp9TqU4/caMYbA08Hi5DMZAl5zdkA==",
+      "requires": {
+        "node-addon-api": "^2.0.0",
+        "node-gyp-build": "^4.2.0"
+      }
+    },
+    "node-addon-api": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/node-addon-api/-/node-addon-api-2.0.2.tgz",
+      "integrity": "sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA=="
+    },
+    "node-gyp-build": {
+      "version": "4.2.3",
+      "resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.2.3.tgz",
+      "integrity": "sha512-MN6ZpzmfNCRM+3t57PTJHgHyw/h4OWnZ6mR8P5j/uZtqQr46RRuDE/P+g3n0YR/AiYXeWixZZzaip77gdICfRg=="
+    },
     "uWebSockets.js": {
       "version": "github:uNetworking/uWebSockets.js#3dbec7b56d627193e20705844b6bd10e49848b8c",
       "from": "github:uNetworking/uWebSockets.js#v18.4.0",

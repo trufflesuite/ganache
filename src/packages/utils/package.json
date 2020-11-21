@@ -44,7 +44,8 @@
     "tooling"
   ],
   "dependencies": {
-    "emittery": "0.7.2"
+    "emittery": "0.7.2",
+    "keccak": "3.0.1"
   },
   "devDependencies": {
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"

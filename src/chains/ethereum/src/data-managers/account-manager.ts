@@ -7,7 +7,7 @@ import { LevelUp } from "levelup";
 import { rlp } from "ethereumjs-util";
 import { utils, Quantity } from "@ganache/utils";
 
-const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
+const { keccak, RPCQUANTITY_ZERO } = utils;
 
 export default class AccountManager {
   #blockchain: Blockchain;
@@ -25,7 +25,7 @@ export default class AccountManager {
     const block = await blockchain.blocks.get(blockNumber);
     const trieCopy = new Trie(this.#trie, block.header.stateRoot.toBuffer());
     return new Promise((resolve, reject) => {
-      trieCopy.get(address.toBuffer(), (err, data) => {
+      trieCopy.get(keccak(address.toBuffer()), (err: Error, data: Buffer) => {
         if (err) return reject(err);
         resolve(data);
       });

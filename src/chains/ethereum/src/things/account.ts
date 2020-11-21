@@ -20,7 +20,7 @@ export default class Account {
   }
 
   public static fromBuffer(buffer: Buffer) {
-    const account = Object.create(Account);
+    const account = Object.create(Account.prototype);
     const arr = (rlp.decode(buffer) as any) as [Buffer, Buffer, Buffer, Buffer];
     account.nonce = Quantity.from(arr[0]);
     account.balance = Quantity.from(arr[1]);
@@ -30,13 +30,11 @@ export default class Account {
   }
 
   public serialize() {
-    return rlp.encode(
-      Buffer.concat([
-        this.nonce.toBuffer(),
-        this.balance.toBuffer(),
-        this.stateRoot,
-        this.codeHash
-      ])
-    );
+    return rlp.encode([
+      this.nonce.toBuffer(),
+      this.balance.toBuffer(),
+      this.stateRoot,
+      this.codeHash
+    ]);
   }
 }

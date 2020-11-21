@@ -6,12 +6,11 @@ import Emittery from "emittery";
 import BlockManager from "./data-managers/block-manager";
 import BlockLogs from "./things/blocklogs";
 import TransactionManager from "./data-managers/transaction-manager";
-import CheckpointTrie from "merkle-patricia-tree";
+import SecureTrie from "merkle-patricia-tree/secure";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import Account from "./things/account";
 import { promisify } from "util";
 import { Quantity, Data } from "@ganache/utils";
-import EthereumJsAccount from "ethereumjs-account";
 import AccountManager from "./data-managers/account-manager";
 import { utils } from "@ganache/utils";
 import Transaction from "./things/transaction";
@@ -152,7 +151,7 @@ export default class Blockchain extends Emittery.Typed<
   public transactionReceipts: Manager<TransactionReceipt>;
   public accounts: AccountManager;
   public vm: VM;
-  public trie: CheckpointTrie;
+  public trie: SecureTrie;
 
   readonly #database: Database;
   readonly #common: Common;
@@ -219,12 +218,12 @@ export default class Blockchain extends Emittery.Typed<
           block: latest,
           blockLogs: null
         });
-        this.trie = new CheckpointTrie(
+        this.trie = new SecureTrie(
           database.trie,
           latest.header.stateRoot.toBuffer()
         );
       } else {
-        this.trie = new CheckpointTrie(database.trie, null);
+        this.trie = new SecureTrie(database.trie, null);
       }
 
       this.blockLogs = new BlockLogManager(database.blockLogs);
@@ -495,7 +494,7 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   createVmFromStateTrie = (
-    stateTrie: CheckpointTrie,
+    stateTrie: SecureTrie,
     allowUnlimitedContractSize: boolean
   ) => {
     const blocks = this.blocks;
@@ -518,26 +517,20 @@ export default class Blockchain extends Emittery.Typed<
     });
   };
 
-  #commitAccounts = async (accounts: Account[]): Promise<void> => {
-    const stateManager = this.vm.stateManager;
-    const putAccount = promisify(stateManager.putAccount.bind(stateManager));
-    const checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
-    const commit = promisify(stateManager.commit.bind(stateManager));
-    await checkpoint();
-    const l = accounts.length;
-    const pendingAccounts = Array(l);
-    for (let i = 0; i < l; i++) {
-      const account = accounts[i];
-      const ethereumJsAccount = new EthereumJsAccount();
-      (ethereumJsAccount.nonce = account.nonce.toBuffer()),
-        (ethereumJsAccount.balance = account.balance.toBuffer());
-      pendingAccounts[i] = putAccount(
-        account.address.toBuffer(),
-        ethereumJsAccount
-      );
-    }
-    await Promise.all(pendingAccounts);
-    await commit();
+  #commitAccounts = (accounts: Account[]) => {
+    return new Promise<void>((resolve, reject) => {
+      let length = accounts.length;
+      const cb = (err: Error) => {
+        if (err) reject(err);
+        else {
+          if (--length === 0) resolve(void 0);
+        }
+      };
+      for (let i = 0; i < length; i++) {
+        const account = accounts[i];
+        this.trie.put(account.address.toBuffer(), account.serialize(), cb);
+      }
+    });
   };
 
   #initializeGenesisBlock = async (
@@ -797,7 +790,7 @@ export default class Blockchain extends Emittery.Typed<
     );
 
     if (gasLeft >= 0) {
-      const stateTrie = new CheckpointTrie(
+      const stateTrie = new SecureTrie(
         this.#database.trie,
         parentBlock.header.stateRoot.toBuffer()
       );
@@ -886,7 +879,7 @@ export default class Blockchain extends Emittery.Typed<
     //
     // TODO: Forking needs the forked block number passed during this step:
     // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
-    const trie = new CheckpointTrie(
+    const trie = new SecureTrie(
       this.#database.trie,
       parentBlock.header.stateRoot.toBuffer()
     );
@@ -1136,7 +1129,16 @@ export default class Blockchain extends Emittery.Typed<
 
     // clean up listeners
     this.vm.removeAllListeners();
-    this.transactions.transactionPool.clearListeners();
+
+    // pause processing new transactions...
+    await this.transactions.pause();
+
+    // then pause the miner, too.
+    await this.#miner.pause();
+
+    // wait for anything in the process of being saved to finish up
+    await this.#blockBeingSavedPromise;
+
     await this.emit("stop");
 
     if (this.#state === Status.started) {
