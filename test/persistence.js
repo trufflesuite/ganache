@@ -44,7 +44,7 @@ const runTests = function(providerInit) {
       assert(res === 1);
       // Close the first provider now that we've gotten where we need to be.
       // Note: we specifically close the provider so we can read from the same db.
-      provider.disconnect().then(() => null); // pass dummy fn to satisfy callback expectation
+      await provider.disconnect();
     }).timeout(5000);
 
     it("should reopen the provider", function() {
@@ -54,9 +54,18 @@ const runTests = function(providerInit) {
       });
     }).slow(200);
 
-    it("should still be on block height 1", async function() {
+    it("should still be able to send txs", async function() {
+      const tx = await web3.eth.sendTransaction({
+        from: accounts[0],
+        gas: "0x2fefd8",
+        data: "0x" + result.contracts["Example.sol"].Example.evm.bytecode.object
+      });
+      assert(tx != null);
+    });
+
+    it("should now be on block height 1", async function() {
       const result = await web3.eth.getBlockNumber();
-      assert(result === 1);
+      assert(result === 2);
     }).timeout(5000);
 
     it("should still have block data for first block", async function() {
