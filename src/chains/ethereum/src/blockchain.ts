@@ -247,8 +247,6 @@ export default class Blockchain extends Emittery.Typed<
         options.chain.allowUnlimitedContractSize
       );
 
-      await this.#commitAccounts(initialAccounts);
-
       {
         // create first block
         let firstBlockTime: number;
@@ -263,6 +261,8 @@ export default class Blockchain extends Emittery.Typed<
 
         // if we don't already have a latest block, create a genesis block!
         if (!latest) {
+          await this.#commitAccounts(initialAccounts);
+
           this.#blockBeingSavedPromise = this.#initializeGenesisBlock(
             firstBlockTime,
             options.miner.blockGasLimit
