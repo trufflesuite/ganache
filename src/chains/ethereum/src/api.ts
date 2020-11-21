@@ -17,7 +17,6 @@ import Transaction from "./things/transaction";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
-import keccak from "keccak";
 
 import { PromiEvent, utils } from "@ganache/utils";
 import Emittery from "emittery";
@@ -46,10 +45,11 @@ import { Hardfork } from "./options/chain-options";
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../packages/ganache/package.json");
+const { keccak } = utils;
 //#endregion
 
 //#region Constants
-const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
+const { RPCQUANTITY_ZERO } = utils;
 const CLIENT_VERSION = `Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPC_MODULES = {
@@ -347,10 +347,12 @@ export default class EthereumApi implements types.Api {
    *
    * @param address
    * @param nonce
-   * @returns true if it worked
+   * @returns `true` if it worked
    */
   @assertArgLength(2)
   async evm_setAccountNonce(address: string, nonce: string) {
+    // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
+    // issues. We need to figure out a good way of timing this.
     return new Promise<boolean>((resolve, reject) => {
       const buffer = Address.from(address).toBuffer();
       const blockchain = this.#blockchain;
@@ -369,6 +371,8 @@ export default class EthereumApi implements types.Api {
               return;
             }
 
+            // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
+            // and produce an invalid trie going forward.
             blockchain.mine(0).then(() => resolve(true), reject);
           });
         }
@@ -628,7 +632,7 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1)
   async web3_sha3(data: string) {
-    return Data.from(keccak("keccak256").update(data).digest());
+    return Data.from(keccak(Buffer.from(data)));
   }
   //#endregion
 

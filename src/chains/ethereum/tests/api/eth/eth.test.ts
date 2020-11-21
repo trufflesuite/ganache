@@ -124,7 +124,7 @@ describe("api", () => {
     });
 
     describe("eth_getTransactionCount", () => {
-      it("should get the tranasction count of the block", async () => {
+      it("should get the transaction count of the block", async () => {
         const tx = {
           from: accounts[0],
           to: accounts[1],
