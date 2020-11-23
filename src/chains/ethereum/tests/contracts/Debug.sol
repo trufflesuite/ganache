@@ -6,7 +6,7 @@ contract Debug {
 
   event ValueSet(uint);
 
-  constructor() public payable {
+  constructor() payable {
     value = 5;
   }
 
@@ -21,7 +21,7 @@ contract Debug {
     }
   }
 
-  function doARevert() public {
+  function doARevert() public pure {
     revert("all your base");
   }
 }
