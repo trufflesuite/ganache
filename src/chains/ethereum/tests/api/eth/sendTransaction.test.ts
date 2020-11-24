@@ -8,6 +8,41 @@ import { EthereumProviderOptions } from "../../../src/options";
 describe("api", () => {
   describe("eth", () => {
     describe("sendTransaction", () => {
+      describe("options", () => {
+        describe("defaultTransactionGasLimit", () => {
+          it('uses an estimate when `defaultTransactionGasLimit` is set to `"estimate"`', async () => {
+            const provider = await getProvider({
+              miner: {
+                defaultTransactionGasLimit: "estimate"
+              }
+            });
+            const [from] = await provider.send("eth_accounts");
+
+            const gasEstimate = await provider.send("eth_estimateGas", [
+              {
+                from,
+                to: from
+              }
+            ]);
+            await provider.send("eth_subscribe", ["newHeads"]);
+
+            const hash = await provider.send("eth_sendTransaction", [
+              {
+                from,
+                to: from
+              }
+            ]);
+
+            await provider.once("message");
+
+            const { gas } = await provider.send("eth_getTransactionByHash", [
+              hash
+            ]);
+            assert.strictEqual(gas, gasEstimate);
+          });
+        });
+      });
+
       describe("contracts", () => {
         const contractDir = join(__dirname, "contracts");
         describe("out of gas", () => {
