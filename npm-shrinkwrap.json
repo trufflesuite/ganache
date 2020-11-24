@@ -18200,7 +18200,7 @@
         "cross-fetch": "^2.1.0",
         "eth-block-tracker": "^3.0.0",
         "eth-json-rpc-infura": "^3.1.0",
-        "eth-sig-util": "^2.0.0",
+        "eth-sig-util": "^1.4.2",
         "ethereumjs-block": "^1.2.2",
         "ethereumjs-tx": "^1.2.0",
         "ethereumjs-util": "^5.1.5",
@@ -18225,9 +18225,9 @@
           }
         },
         "eth-sig-util": {
-          "version": "2.5.2",
-          "resolved": "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-2.5.2.tgz",
-          "integrity": "sha512-xvDojS/4reXsw8Pz/+p/qcM5rVB61FOdPbEtMZ8FQ0YHnPEzPy5F8zAAaZ+zj5ud0SwRLWPfor2Cacjm7EzMIw==",
+          "version": "1.4.2",
+          "resolved": "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-1.4.2.tgz",
+          "integrity": "sha1-jZWCAsftuq6Dlwf7pvCf8ydgYhA=",
           "requires": {
             "buffer": "^5.2.1",
             "elliptic": "^6.4.0",
