@@ -538,9 +538,11 @@ export default class Blockchain extends Emittery.Typed<
     blockGasLimit: Quantity
   ) => {
     // README: block `0` is weird in that a `0` _should_ be hashed as `[]`,
-    // but actually return a real `0` with read back later. So we pull some
-    // shenangians here so we don't require checks in functions that consume
-    // this block's `0` value later
+    // instead of `[0]`, so we set it to `RPCQUANTITY_EMPTY` instead of
+    // `RPCQUANTITY_ZERO` here. A few lines down in this function we swap
+    // this `RPCQUANTITY_EMPTY` for `RPCQUANTITY_ZERO`. This is all so we don't
+    // have to have a "treat empty as 0` check in every function that uses the
+    // "latest" block (which this genesis block will be for breif moment).
     const rawBlockNumber = RPCQUANTITY_EMPTY;
 
     // create the genesis block
