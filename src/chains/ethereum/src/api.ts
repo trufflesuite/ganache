@@ -681,7 +681,7 @@ export default class EthereumApi implements types.Api {
   async eth_estimateGas(
     transaction: any,
     blockNumber: Buffer | Tag | string = Tag.LATEST
-  ) {
+  ): Promise<Quantity> {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
@@ -712,7 +712,7 @@ export default class EthereumApi implements types.Api {
         }
       }
       const newBlock = new RuntimeBlock(
-        parentHeader.number,
+        Quantity.from(parentHeader.number.toBigInt() + 1n),
         parentHeader.parentHash,
         parentHeader.miner,
         tx.gas,
@@ -729,7 +729,6 @@ export default class EthereumApi implements types.Api {
         resolve(Quantity.from(result.gasEstimate.toBuffer()));
       });
     });
-    // return GasEstimator.binSearch(blockchain, tx, blockNumber);
   }
 
   /**
@@ -1238,8 +1237,17 @@ export default class EthereumApi implements types.Api {
       : Transaction.types.fake;
 
     const tx = Transaction.fromJSON(transaction, this.#common, type);
+
     if (tx.gasLimit.length === 0) {
-      tx.gasLimit = this.#options.miner.defaultTransactionGasLimit.toBuffer();
+      const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
+      if (defaultLimit === utils.RPCQUANTITY_EMPTY) {
+        // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
+        tx.gasLimit = (
+          await this.eth_estimateGas(transaction, "latest")
+        ).toBuffer();
+      } else {
+        tx.gasLimit = defaultLimit.toBuffer();
+      }
     }
 
     if (tx.gasPrice.length === 0) {

@@ -61,13 +61,14 @@ export type MinerConfig = {
     };
 
     /**
-     * Sets the _default_ transaction gas limit in WEI.
+     * Sets the _default_ transaction gas limit in WEI. Set to `"estimate"` to
+     * use an estimate (slows down transaction execution by 40%+).
      *
-     * @default 9_000
+     * @default 90_000
      */
     defaultTransactionGasLimit: {
       type: Quantity;
-      rawType: string | number | bigint;
+      rawType: "estimate" | string | number | bigint;
       hasDefault: true;
     };
 
@@ -149,7 +150,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
     legacyName: "gasLimit"
   },
   defaultTransactionGasLimit: {
-    normalize: Quantity.from,
+    normalize: rawType =>
+      rawType === "estimate" ? utils.RPCQUANTITY_EMPTY : Quantity.from(rawType),
     default: () => Quantity.from(90_000)
   },
   callGasLimit: {
