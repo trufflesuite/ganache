@@ -3,6 +3,13 @@ import yargs from "yargs";
 export default function (version: string, isDocker: boolean) {
   return yargs
     .strict()
+    .option("legacyInstamine", {
+      group: "Chain:",
+      type: "boolean",
+      default: false,
+      describe:
+        "When enabled, transactions are fully mined before the transaction's hash is returned to the caller. If `legacyInstamine` is `true`, `blockTime` must be `0`."
+    })
     .option("p", {
       group: "Network:",
       alias: "port",
