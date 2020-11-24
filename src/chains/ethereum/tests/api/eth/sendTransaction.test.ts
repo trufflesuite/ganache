@@ -9,14 +9,48 @@ describe("api", () => {
   describe("eth", () => {
     describe("sendTransaction", () => {
       describe("contracts", () => {
+        const contractDir = join(__dirname, "contracts");
+        describe("out of gas", () => {
+          let provider: EthereumProvider;
+          let from: string;
+          beforeEach(async () => {
+            provider = await getProvider();
+            [from] = await provider.send("eth_accounts");
+          });
+
+          it('returns `"0x0"` `status`, `null` `to`, and a non-empty `contractAddress` on OOG failure', async () => {
+            const { code: data } = compile(join(contractDir, "NoOp.sol"));
+
+            await provider.send("eth_subscribe", ["newHeads"]);
+
+            const transactionHash = await provider.send("eth_sendTransaction", [
+              {
+                from,
+                data,
+                gas: 60000 // not enough gas for this tx
+              }
+            ]);
+
+            await provider.once("message");
+
+            const receipt = await provider.send("eth_getTransactionReceipt", [
+              transactionHash
+            ]);
+            assert.strictEqual(receipt.status, "0x0");
+            // ensure that even though the status is `"0x0"` (failure), the
+            // `contractAddress` is included and the `to` prop is still `null`.
+            assert.strictEqual(receipt.to, null);
+            assert.notStrictEqual(receipt.contractAddress, null);
+            assert.strictEqual(receipt.contractAddress.length, 42);
+          });
+        });
+
         describe("revert", () => {
           async function deployContract(
             provider: EthereumProvider,
             accounts: string[]
           ) {
-            const contract = compile(
-              join(__dirname, "./contracts/Reverts.sol")
-            );
+            const contract = compile(join(contractDir, "Reverts.sol"));
 
             const from = accounts[0];
 
