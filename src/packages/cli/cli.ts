@@ -87,7 +87,8 @@ var options = {
     gasPrice: argv.g,
     blockGasLimit: argv.l,
     callGasLimit: argv.callGasLimit,
-    legacyInstamine: argv.legacyInstamine
+    legacyInstamine: argv.legacyInstamine,
+    defaultTransactionGasLimit: argv.defaultTransactionGasLimit
   },
   // forking: {
   //   fork: argv.f,

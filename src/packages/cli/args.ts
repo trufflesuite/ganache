@@ -197,6 +197,31 @@ export default function (version: string, isDocker: boolean) {
       type: "number",
       default: 0x1fffffffffffff
     })
+    .option("defaultTransactionGasLimit", {
+      group: "Chain:",
+      describe:
+        'Sets the _default_ transaction gas limit in WEI. Set to `"estimate"` to use an estimate (slows down transaction execution by 40%+).',
+      string: true,
+      number: true,
+      coerce: arg => {
+        if (typeof arg === "string") {
+          if (parseInt(arg).toString() === arg && parseInt(arg) >= 0) {
+            return parseInt(arg);
+          } else if (arg === "estimate") {
+            return arg;
+          }
+        } else {
+          if (arg >= 0) {
+            return arg;
+          }
+        }
+
+        throw new Error(
+          'defaultTransactionGasLimit must be the string "estimate" or a positive integer.'
+        );
+      },
+      default: 90_000
+    })
     .option("allowUnlimitedContractSize", {
       group: "Chain:",
       describe:
