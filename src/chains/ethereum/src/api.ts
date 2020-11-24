@@ -1039,7 +1039,7 @@ export default class EthereumApi implements types.Api {
     const trie = blockchain.trie.copy();
     const getFromTrie = (address: Buffer): Promise<Buffer> =>
       new Promise((resolve, reject) => {
-        trie.get(address, (err, data) => {
+        trie.get(address, (err: Error, data: Buffer) => {
           if (err) return void reject(err);
           resolve(data);
         });
@@ -1071,7 +1071,7 @@ export default class EthereumApi implements types.Api {
       return Data.from("0x");
     }
     return new Promise((resolve, reject) => {
-      trie.getRaw(codeHash, (err, data) => {
+      trie.getRaw(codeHash, (err: Error, data: Buffer) => {
         if (err) return void reject(err);
         resolve(Data.from(data));
       });
