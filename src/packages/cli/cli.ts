@@ -86,7 +86,8 @@ var options = {
     blockTime: argv.b,
     gasPrice: argv.g,
     blockGasLimit: argv.l,
-    callGasLimit: argv.callGasLimit
+    callGasLimit: argv.callGasLimit,
+    legacyInstamine: argv.legacyInstamine
   },
   // forking: {
   //   fork: argv.f,
