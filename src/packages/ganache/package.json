@@ -1,6 +1,6 @@
 {
   "name": "ganache",
-  "version": "3.0.0-internal.1",
+  "version": "3.0.0-internal.3",
   "description": "A library and cli to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
@@ -63,6 +63,7 @@
     "process": "0.11.10",
     "shebang-loader": "0.0.1",
     "stream-browserify": "3.0.0",
+    "terser-webpack-plugin": "5.0.3",
     "ts-loader": "8.0.7",
     "ts-node": "9.0.0",
     "ttypescript": "1.5.12",
