@@ -3,7 +3,11 @@ import Blockchain from "./blockchain";
 import { utils } from "@ganache/utils";
 import Transaction from "./things/transaction";
 import { Data, Quantity } from "@ganache/utils";
-import { GAS_LIMIT, INTRINSIC_GAS_TOO_LOW } from "./errors/errors";
+import {
+  GAS_LIMIT,
+  INTRINSIC_GAS_TOO_LOW,
+  NONCE_TOO_LOW
+} from "./errors/errors";
 import CodedError, { ErrorCodes } from "./errors/coded-error";
 import { EthereumInternalOptions } from "./options";
 import { Executables } from "./types/executables";
@@ -60,7 +64,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     if (secretKey == null || transaction.nonce.length !== 0) {
       transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
       if (transactionNonce < 0n) {
-        throw new Error("Transaction nonce cannot be negative.");
+        throw new CodedError(NONCE_TOO_LOW, ErrorCodes.INVALID_INPUT);
       }
     }
 
@@ -310,7 +314,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     // Should supply enough intrinsic gas
     const gas = transaction.calculateIntrinsicGas();
-    if (Quantity.from(transaction.gasLimit).toBigInt() < gas) {
+    if (gas === -1n || Quantity.from(transaction.gasLimit).toBigInt() < gas) {
       return new CodedError(INTRINSIC_GAS_TOO_LOW, ErrorCodes.INVALID_INPUT);
     }
 
