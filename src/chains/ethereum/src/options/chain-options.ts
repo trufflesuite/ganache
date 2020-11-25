@@ -80,7 +80,7 @@ export type ChainConfig = {
         /**
          * @deprecated Use chain.networkId instead
          */
-        networkId: number;
+        network_id: number;
       };
     };
 
