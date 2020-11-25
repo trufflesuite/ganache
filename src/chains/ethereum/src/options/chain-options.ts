@@ -150,7 +150,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
   networkId: {
     normalize,
     default: () => Date.now(),
-    legacyName: "networkId"
+    legacyName: "network_id"
   },
   time: {
     normalize,
