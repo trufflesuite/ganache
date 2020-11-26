@@ -13,11 +13,11 @@
     "ganache-cli": "./lib/cli.js"
   },
   "directories": {
-    "lib": "lib",
-    "test": "tests"
+    "lib": "/lib",
+    "test": "/tests"
   },
   "files": [
-    "lib"
+    "/lib"
   ],
   "repository": {
     "type": "git",
