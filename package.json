@@ -22,8 +22,7 @@
     "test": "npm run _lint && npm run nyc_mocha",
     "test-build": "cross-env TEST_BUILD=node npm run _mocha",
     "test-web-experimental": "cross-env TEST_BUILD=web-experimental npm run _mocha",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "postinstall": "patch-package"
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "dependencies": {
     "abstract-leveldown": "3.0.0",
@@ -48,7 +47,6 @@
     "libsodium-wrappers": "0.7.6",
     "lodash": "4.17.14",
     "merkle-patricia-tree": "2.3.2",
-    "patch-package": "^6.2.2",
     "seedrandom": "3.0.1",
     "source-map-support": "0.5.12",
     "superagent": "5.2.2",
