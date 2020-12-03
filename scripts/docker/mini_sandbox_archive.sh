@@ -21,15 +21,15 @@ all_commands="$all_commands
 * start : Start the sandbox."
 start () {
     flextesa mini \
-             --root /tmp/mini-carthage --size 1 "$@" \
+             --root /tmp/mini-delhpi --size 1 "$@" \
              --time-between-blocks 0 \
              --timestamp-delay 0 \
              --no-baking \
-             --tezos-baker tezos-baker-006-PsCARTHA \
-             --tezos-endorser tezos-endorser-006-PsCARTHA \
-             --tezos-accuser tezos-accuser-006-PsCARTHA \
-             --protocol-hash PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb \
-             --protocol-kind Carthage \
+             --tezos-baker tezos-baker-007-PsDELPH1 \
+             --tezos-endorser tezos-endorser-007-PsDELPH1 \
+             --tezos-accuser tezos-accuser-007-PsDELPH1 \
+             --protocol-hash PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo \
+             --protocol-kind Delphi \
              --set-history-mode N000:archive
 }
 

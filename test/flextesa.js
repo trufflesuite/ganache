@@ -16,7 +16,7 @@ describe("Flextesa", () => {
     Flextesa.close();
 
     counterContract = TruffleContract(Counter, "tezos");
-    counterContract.setProvider(`http://${host}:${port}`);
+    counterContract.setProvider({ provider: `http://${host}:${port}` });
     // set alice's wallet using alice's secretKey
     counterContract.setWallet({ secretKey: "edsk3QoqBuvdamxouPhin7swCvkQNgq4jP5KZPbwWNnwdZpSpJiEbq" });
   });

@@ -57,7 +57,7 @@
     "websocket": "1.0.29"
   },
   "devDependencies": {
-    "@truffle/contract": "^4.3.0-tezos.4",
+    "@truffle/contract": "^5.1.0-tezos.0",
     "@types/web3": "^1.0.19",
     "assert-match": "^1.1.1",
     "browserfs": "1.4.3",
