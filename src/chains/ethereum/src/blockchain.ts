@@ -764,7 +764,7 @@ export default class Blockchain extends Emittery.Typed<
         const { status, error } = await transaction.once("finalized");
         // in legacyInstamine mode we must throw on all rejected transaction
         // errors. We must also throw on `confirmed` tranactions when
-        // vmErrorsOnRPCResposnse is enabled.
+        // vmErrorsOnRPCResponse is enabled.
         if (
           error &&
           (status === "rejected" || this.#options.chain.vmErrorsOnRPCResponse)
