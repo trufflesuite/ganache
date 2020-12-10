@@ -17,7 +17,14 @@ type mergePromiseGenerics<Type> = Promise<
 >;
 
 interface Callback {
-  (err?: Error, response?: JsonRpcTypes.Response): void;
+  (err?: Error, response?: JsonRpcTypes.Response | JsonRpcTypes.Error): void;
+}
+
+interface BatchedCallback {
+  (
+    err?: Error,
+    response?: (JsonRpcTypes.Response | JsonRpcTypes.Error)[]
+  ): void;
 }
 
 type RequestParams<Method extends RequestMethods> = {
@@ -101,7 +108,7 @@ export default class EthereumProvider
    */
   public send(
     payloads: JsonRpcTypes.Request<EthereumApi>[],
-    callback?: Callback
+    callback?: BatchedCallback
   ): undefined;
   /**
    * @param method
@@ -117,8 +124,31 @@ export default class EthereumProvider
       | RequestMethods
       | JsonRpcTypes.Request<EthereumApi>
       | JsonRpcTypes.Request<EthereumApi>[],
-    arg2?: Callback | any[]
+    arg2?: Callback | BatchedCallback | any[]
   ) {
+    return this.#send(arg1, arg2);
+  }
+
+  /**
+   * Legacy callback style API
+   * @param payload JSON-RPC payload
+   * @param callback callback
+   * @deprecated Use the `request` method.
+   */
+  public sendAsync(
+    payload: JsonRpcTypes.Request<EthereumApi>,
+    callback?: Callback | BatchedCallback
+  ): void {
+    this.#send(payload, callback);
+  }
+
+  #send = (
+    arg1:
+      | RequestMethods
+      | JsonRpcTypes.Request<EthereumApi>
+      | JsonRpcTypes.Request<EthereumApi>[],
+    arg2?: Callback | BatchedCallback | any[]
+  ): Promise<{}> | void => {
     let method: RequestMethods;
     let params: any;
     let response: Promise<{}> | undefined;
@@ -130,14 +160,15 @@ export default class EthereumProvider
       response = this.request({ method, params });
     } else if (typeof arg2 === "function") {
       // handle backward compatibility with callback-style ganache-core
-      const callback = arg2 as Callback;
       if (Array.isArray(arg1)) {
+        const callback = arg2 as BatchedCallback;
         this.#legacySendPayloads(arg1).then(({ error, result }) => {
-          process.nextTick(callback, error, result);
+          callback(error, result);
         });
       } else {
+        const callback = arg2 as Callback;
         this.#legacySendPayload(arg1).then(({ error, result }) => {
-          process.nextTick(callback, error, result);
+          callback(error, result);
         });
       }
     } else {
@@ -148,20 +179,7 @@ export default class EthereumProvider
     }
 
     return response;
-  }
-
-  /**
-   * Legacy callback style API
-   * @param payload JSON-RPC payload
-   * @param callback callback
-   * @deprecated Use the `request` method.
-   */
-  public sendAsync(
-    payload: JsonRpcTypes.Request<EthereumApi>,
-    callback?: Callback
-  ): void {
-    return this.send(payload, callback);
-  }
+  };
 
   /**
    * EIP-1193 style request method
