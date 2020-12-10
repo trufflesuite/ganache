@@ -6,7 +6,7 @@ require.config({
 });
 
 require([
-  "../../../../../../dist/web/ganache.min.js",
+  "../../../../../packages/ganache/dist/web/ganache.min.js",
   "vs/editor/editor.main"
 ], function (Ganache) {
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
