@@ -4,14 +4,6 @@ import getProvider from "../../helpers/getProvider";
 
 describe("api", () => {
   describe("miner", () => {
-    let provider: EthereumProvider;
-    let accounts: string[];
-
-    beforeEach(async () => {
-      provider = await getProvider();
-      accounts = await provider.send("eth_accounts");
-    });
-
     describe("miner_stop/eth_mining/miner_start", () => {
       async function testStopStartMining(provider) {
         const initialBlockNumber = parseInt(
@@ -78,6 +70,14 @@ describe("api", () => {
     });
 
     describe("miner_setEtherbase", () => {
+      let provider: EthereumProvider;
+      let accounts: string[];
+
+      beforeEach(async () => {
+        provider = await getProvider();
+        accounts = await provider.send("eth_accounts");
+      });
+
       it("sets the etherbase", async () => {
         const setState = await provider.send("miner_setEtherbase", [
           accounts[1]
@@ -105,6 +105,14 @@ describe("api", () => {
     });
 
     describe("miner_setGasPrice", () => {
+      let provider: EthereumProvider;
+      let accounts: string[];
+
+      beforeEach(async () => {
+        provider = await getProvider();
+        accounts = await provider.send("eth_accounts");
+      });
+
       it("sets the gasPrice and uses it as the default price in tranactions", async () => {
         const newGasPrice = "0xffff";
         const setState = await provider.send("miner_setGasPrice", [
