@@ -25,11 +25,6 @@ start () {
              --time-between-blocks 0 \
              --timestamp-delay 0 \
              --no-baking \
-             --tezos-baker tezos-baker-007-PsDELPH1 \
-             --tezos-endorser tezos-endorser-007-PsDELPH1 \
-             --tezos-accuser tezos-accuser-007-PsDELPH1 \
-             --protocol-hash PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo \
-             --protocol-kind Delphi \
              --set-history-mode N000:archive
 }
 
