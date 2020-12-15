@@ -1139,7 +1139,7 @@ export default class EthereumApi implements types.Api {
       Buffer /*codeHash*/
     ])[2];
     const value = await getFromTrie(paddedPosBuff);
-    return Data.from(value);
+    return Data.from(rlpDecode(value));
   }
 
   /**
