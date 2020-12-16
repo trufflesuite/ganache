@@ -2,11 +2,11 @@
 $("body").off("keydown");
 
 require.config({
-  paths: { vs: "../../../../../../node_modules/monaco-editor/min/vs" }
+  paths: { vs: "https://unpkg.com/browse/monaco-editor@0.21.2/min/vs/" }
 });
 
 require([
-  "../../../../../packages/ganache/dist/web/ganache.min.js",
+  "../src/packages/ganache/dist/web/ganache.min.js",
   "vs/editor/editor.main"
 ], function (Ganache) {
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
