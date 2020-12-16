@@ -846,11 +846,11 @@ export default class Blockchain extends Emittery.Typed<
    *  4. Send trace results back.
    *
    * @param transactionHash
-   * @param params
+   * @param options
    */
   public async traceTransaction(
     transactionHash: string,
-    params: TransactionTraceOptions
+    options: TransactionTraceOptions
   ) {
     let currentDepth = -1;
     const storageStack: TraceStorageMap[] = [];
@@ -888,7 +888,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // Prepare the "next" block with necessary transactions
     const newBlock = new RuntimeBlock(
-      Quantity.from(parentBlock.header.number.toBigInt() + 1n),
+      Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
       parentBlock.hash(),
       parentBlock.header.miner,
       parentBlock.header.gasLimit.toBuffer(),
@@ -936,7 +936,7 @@ export default class Blockchain extends Emittery.Typed<
       gas += gasUsedPreviousStep;
 
       const memory: ITraceData[] = [];
-      if (params.disableMemory !== true) {
+      if (options.disableMemory !== true) {
         // We get the memory as one large array.
         // Let's cut it up into 32 byte chunks as required by the spec.
         let index = 0;
@@ -948,9 +948,9 @@ export default class Blockchain extends Emittery.Typed<
       }
 
       const stack: ITraceData[] = [];
-      if (params.disableStack !== true) {
+      if (options.disableStack !== true) {
         for (const stackItem of event.stack) {
-          stack.push(TraceData.from(stackItem.toBuffer()));
+          stack.push(TraceData.from(stackItem.toArrayLike(Buffer)));
         }
       }
 
@@ -972,7 +972,7 @@ export default class Blockchain extends Emittery.Typed<
         structLogs[structLogs.length - 1].gasCost = gasUsedPreviousStep;
       }
 
-      if (params.disableStorage === true) {
+      if (options.disableStorage === true) {
         // Add the struct log as is - nothing more to do.
         structLogs.push(structLog);
         next();

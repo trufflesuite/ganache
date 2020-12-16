@@ -6,3 +6,5 @@ npm-debug.log
 src/**/*/lib
 coverage
 npm-shrinkwrap.json
+docs/assets/js/ganache/*
+docs/typedoc/**/*
