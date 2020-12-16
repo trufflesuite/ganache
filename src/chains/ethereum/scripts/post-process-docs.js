@@ -2,7 +2,7 @@ const cheerio = require("cheerio");
 const { readFileSync, writeFileSync } = require("fs");
 const { randomBytes } = require("crypto");
 const $ = cheerio.load(
-  readFileSync("./lib/docs/classes/_api_.ethereumapi.html")
+  readFileSync("../../../docs/typedoc/classes/_api_.ethereumapi.html")
 );
 
 $(`.tsd-page-title`).after(`<script src="https://embed.runkit.com"></script>`);
@@ -20,4 +20,4 @@ $(".runkit-example").each(function () {
   );
 });
 
-writeFileSync("./lib/docs/classes/_api_.ethereumapi.html", $.html());
+writeFileSync("../../../docs/typedoc/classes/_api_.ethereumapi.html", $.html());
