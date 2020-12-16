@@ -94,7 +94,7 @@ will add our local `@ganache/options` package to the `@ganache/filecoin` package
 
 ### To debug tests in VS Code
 
-- Copy the [`launch.json`](./launch.json) file into a folder named `.vscode` in root of the project.
+- Copy the [`launch.json`](./docs/assets/launch.json) file into a folder named `.vscode` in root of the project.
 - Set breakpoints by clicking the margin to the left of the line numbers (you can set conditional breakpoints or
   logpoints by right-clicking instead)
 - Press <kbd>F5</kbd> (or select `Run` 🡺 `Start Debugging` from the menu bar) to automatically start debugging.
