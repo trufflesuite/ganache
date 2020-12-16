@@ -7,7 +7,7 @@
     "npm": ">=6.1.0"
   },
   "scripts": {
-    "build": "lerna run build",
+    "build": "lerna run build && shx cp -r ./src/packages/ganache/dist/web ./docs/assets/js/ganache",
     "clean": "npx shx rm -rf node_modules && npx lerna clean -y && npm run tsc.clean",
     "create": "ts-node ./scripts/create",
     "docs.build": "lerna run docs.build",
