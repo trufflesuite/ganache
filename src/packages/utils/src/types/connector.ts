@@ -49,5 +49,12 @@ export interface Connector<
    */
   format(result: ResponseFormat, payload: RequestFormat): RecognizedString;
 
+  /**
+   * Formats the error response
+   * @param error
+   * @param payload
+   */
+  formatError(error: Error, payload: RequestFormat): RecognizedString;
+
   close(): void;
 }
