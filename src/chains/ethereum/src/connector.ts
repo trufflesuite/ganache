@@ -6,16 +6,16 @@ import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
 import CodedError, { ErrorCodes } from "./errors/coded-error";
 import { EthereumProviderOptions, EthereumLegacyOptions } from "./options";
 
+export type ProviderOptions = EthereumProviderOptions | EthereumLegacyOptions;
+export type Provider = EthereumProvider;
+export const Provider = EthereumProvider;
+export const FlavorName = "ethereum" as const;
+
 function isHttp(
   connection: HttpRequest | WebSocket
 ): connection is HttpRequest {
   return connection.constructor.name === "uWS.HttpRequest";
 }
-
-export type ProviderOptions = EthereumProviderOptions | EthereumLegacyOptions;
-export type Provider = EthereumProvider;
-export const Provider = EthereumProvider;
-export const FlavorName = "ethereum" as const;
 
 export class Connector
   extends Emittery.Typed<undefined, "ready" | "close">

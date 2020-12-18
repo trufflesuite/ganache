@@ -1,8 +1,8 @@
 import { ChainConfig, ChainOptions } from "./chain-options";
-import { DatabaseConfig, DatabaseOptions } from "./database-options";
 import { LoggingConfig, LoggingOptions } from "./logging-options";
 import { MinerConfig, MinerOptions } from "./miner-options";
 import { WalletConfig, WalletOptions } from "./wallet-options";
+
 import {
   Base,
   Defaults,
@@ -17,9 +17,8 @@ import {
   OptionsConfig
 } from "@ganache/options";
 
-export type EthereumOptions = {
+export type FilecoinOptions = {
   chain: ChainConfig;
-  database: DatabaseConfig;
   logging: LoggingConfig;
   miner: MinerConfig;
   wallet: WalletConfig;
@@ -39,34 +38,32 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   ? I
   : never;
 
-export type EthereumLegacyOptions = Partial<
+export type FilecoinLegacyOptions = Partial<
   MakeLegacyOptions<ChainConfig> &
-    MakeLegacyOptions<DatabaseConfig> &
     MakeLegacyOptions<LoggingConfig> &
     MakeLegacyOptions<MinerConfig> &
     MakeLegacyOptions<WalletConfig>
 >;
 
-export type EthereumProviderOptions = Partial<
+export type FilecoinProviderOptions = Partial<
   {
-    [K in keyof EthereumOptions]: ExternalConfig<EthereumOptions[K]>;
+    [K in keyof FilecoinOptions]: ExternalConfig<FilecoinOptions[K]>;
   }
 >;
 
-export type EthereumInternalOptions = {
-  [K in keyof EthereumOptions]: InternalConfig<EthereumOptions[K]>;
+export type FilecoinInternalOptions = {
+  [K in keyof FilecoinOptions]: InternalConfig<FilecoinOptions[K]>;
 };
 
-export type EthereumDefaults = {
-  [K in keyof EthereumOptions]: Definitions<EthereumOptions[K]>;
+export type FilecoinDefaults = {
+  [K in keyof FilecoinOptions]: Definitions<FilecoinOptions[K]>;
 };
 
-export const ethereumDefaults: Defaults<EthereumOptions> = {
+export const filecoinDefaults: Defaults<FilecoinOptions> = {
   chain: ChainOptions,
-  database: DatabaseOptions,
   logging: LoggingOptions,
   miner: MinerOptions,
   wallet: WalletOptions
 };
 
-export const EthereumOptionsConfig = new OptionsConfig(ethereumDefaults);
+export const FilecoinOptionsConfig = new OptionsConfig(filecoinDefaults);
