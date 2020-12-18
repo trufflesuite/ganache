@@ -1,6 +1,3 @@
-// remove the typedoc theme's keydown handler so we can type in our monaco-editors
-$("body").off("keydown");
-
 require.config({
   paths: {
     vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.21.2/min/vs"
@@ -17,9 +14,32 @@ function escapeHtml(unsafe) {
 }
 
 require([
-  "../../assets/js/ganache/ganache.min.js",
+  "./assets/js/ganache/ganache.min.js",
   "vs/editor/editor.main"
 ], function (Ganache) {
+  monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+    target: monaco.languages.typescript.ScriptTarget.ESNext,
+    module: monaco.languages.typescript.ModuleKind.ESNext,
+    allowJs: true,
+    allowNonTsExtensions: true,
+    allowSyntheticDefaultImports: true,
+    esModuleInterop: true,
+    moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs
+  });
+  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+    target: monaco.languages.typescript.ScriptTarget.ESNext,
+    module: monaco.languages.typescript.ModuleKind.ESNext,
+    allowJs: true,
+    allowNonTsExtensions: true,
+    allowSyntheticDefaultImports: true,
+    esModuleInterop: true,
+    moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs
+  });
+  const libSource = `declare const provider = {request: any, send: any, once: any, off: any, removeListener: any, on: any, sendAsync: any, disconnect: any, getOptions: any, getInitialAccounts: any};`;
+  const libUri = "ts:filename/provider.d.ts";
+  monaco.languages.typescript.javascriptDefaults.addExtraLib(libSource, libUri);
+  monaco.editor.createModel(libSource, "typescript", monaco.Uri.parse(libUri));
+
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
   document.querySelectorAll(".monaco").forEach(codeNode => {
@@ -27,42 +47,56 @@ require([
       e.preventDefault();
       e.stopPropagation();
 
-      const code = editor.getValue();
+      // clean up out user's code
+      const code = editor
+        .getValue()
+        .replace(/^export \{\/\*magic\*\/\};\n/, "");
 
       consoleDiv.innerHTML = "";
+      outputDiv.innerHTML = "";
 
-      const k = {
-        log: (...args) => {
-          // very naive console implementation
-          const line = document.createElement("div");
-          line.className = "mtk1";
-          line.innerHTML = args
-            .map(a => {
-              if (typeof a === "object") {
-                try {
+      const makeConsole = element => {
+        return {
+          log: (...args) => {
+            // very naive console implementation
+            const line = document.createElement("div");
+            line.classList.add("mtk1");
+            line.classList.add("console-line");
+            line.innerHTML = args
+              .map(a => {
+                if (typeof a === "object") {
+                  try {
+                    return (
+                      "<pre style='white-space:pre-wrap'>" +
+                      escapeHtml(JSON.stringify(a, null, 2)) +
+                      "</pre>"
+                    );
+                  } catch {
+                    return escapeHtml(a);
+                  }
+                } else if (typeof a === "string") {
                   return (
-                    "<pre>" + escapeHtml(JSON.stringify(a, null, 2)) + "</pre>"
+                    "<pre style='white-space:pre-wrap'>" +
+                    escapeHtml(a) +
+                    "</pre>"
                   );
-                } catch {
-                  return escapeHtml(a);
+                } else {
+                  return escapeHtml("" + a);
                 }
-              } else if (typeof a === "string") {
-                return "<pre>" + escapeHtml(a) + "</pre>";
-              } else {
-                return escapeHtml("" + a);
-              }
-            })
-            .join(" ");
-          consoleDiv.appendChild(line);
-        }
+              })
+              .join(" ");
+            element.prepend(line);
+          }
+        };
       };
+      const k = makeConsole(consoleDiv);
       const ganache = {
         provider: (options = {}) => {
           delete options.logger;
           if (!options.logging) {
             options.logging = {};
           }
-          options.logging.logger = k;
+          options.logging.logger = makeConsole(outputDiv);
           return Ganache.provider(options);
         }
       };
@@ -106,38 +140,120 @@ require([
       await fn(ganache, assert, k);
     }
 
-    const consoleDiv = document.createElement("div");
-    consoleDiv.className = "monaco-editor-background";
-    consoleDiv.style.borderTop = "solid 1px #393939";
-    consoleDiv.style.fontFamily =
-      '"Droid Sans Mono", monospace, monospace, "Droid Sans Fallback"';
-    consoleDiv.style.fontSize = "14px";
-    consoleDiv.style.fontFeatureSettings = '"liga" 0, "calt" 0';
-    consoleDiv.style.lineHeight = "19px";
-    consoleDiv.style.letterSpacing = "0px";
-    consoleDiv.style.height = "200px";
-    consoleDiv.style.position = "relative";
-    consoleDiv.style.overflow = "auto";
-    consoleDiv.style.padding = ".3em 26px";
-    codeNode.parentNode.insertBefore(consoleDiv, codeNode.nextSibling);
+    const codeText = codeNode.innerText.trim();
+
+    const { consoleContainer, consoleDiv, outputDiv } = createConsole();
+    consoleContainer.style.display = "none";
+    codeNode.parentNode.insertBefore(consoleContainer, codeNode.nextSibling);
 
     const container = document.createElement("div");
+    container.classList.add("editor-container");
     codeNode.parentNode.insertBefore(container, codeNode.nextSibling);
     codeNode.style.display = "none";
-    container.style.height = "600px";
+    container.style.height =
+      Math.max(100, codeText.split(/\n/).length * 20 + 20) + "px";
 
     const editor = monaco.editor.create(container, {
-      value: codeNode.innerText.trim(),
-      language: "javascript", // TODO, get language from element
-      // lineNumbers: "off",
+      automaticLayout: true,
+      model: monaco.editor.createModel(
+        // we prepend `export {/*magic*/}` so the typechecker doesn't think the code is global and shared between editors
+        "export {/*magic*/};\n" + codeText,
+        codeNode.dataset.language || "javascript",
+        monaco.Uri.parse(`js:${codeNode.dataset.method}.js`)
+      ),
+      lineNumbers: "off",
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
-      theme: "vs" // use light theme until
+      theme: "vs-dark"
+    });
+    // hide the first line (export {/*magic*/};)
+    editor.setHiddenAreas([{ startLineNumber: 1, endLineNumber: 1 }]);
+
+    editor.onDidChangeCursorSelection(e => {
+      // because we hide the first line we need to make sure the user can't select it
+      if (
+        e.selection.startLineNumber === 1 ||
+        e.selection.selectionStartLineNumber === 1 ||
+        e.selection.positionLineNumber === 1
+      ) {
+        e.selection.startLineNumber = Math.max(e.selection.startLineNumber, 2);
+        e.selection.selectionStartLineNumber = Math.max(
+          e.selection.selectionStartLineNumber,
+          2
+        );
+        e.selection.positionLineNumber = Math.max(
+          e.selection.positionLineNumber,
+          2
+        );
+        editor.setSelection(e.selection);
+      }
     });
 
-    const runButton = document.createElement("button");
-    runButton.innerText = "Run";
-    runButton.addEventListener("click", run);
+    const runButton = document.createElement("div");
+    runButton.innerText = "▶ Try it!";
+    runButton.classList.add("run-button");
+    runButton.addEventListener("click", async e => {
+      consoleContainer.style.display = "block";
+      runButton.style.opacity = ".5";
+      await run(e);
+      runButton.style.opacity = "";
+    });
     codeNode.parentNode.insertBefore(runButton, codeNode.nextSibling);
   });
 });
+
+function makeConsoleEl() {
+  const consoleDiv = document.createElement("div");
+  consoleDiv.classList.add("monaco-editor-background");
+  consoleDiv.classList.add("console");
+
+  return consoleDiv;
+}
+
+function createConsole() {
+  const consoleContainer = document.createElement("div");
+  consoleContainer.classList.add("console-container");
+
+  const consoleDiv = makeConsoleEl();
+  const outputDiv = makeConsoleEl();
+  outputDiv.style.display = "none";
+
+  consoleContainer.appendChild(createTabs(consoleDiv, outputDiv));
+  consoleContainer.appendChild(consoleDiv);
+  consoleContainer.appendChild(outputDiv);
+
+  return { consoleContainer, consoleDiv, outputDiv };
+}
+
+function createTabs(consoleDiv, outputDiv) {
+  const tabContainer = document.createElement("div");
+  tabContainer.classList.add("tab-container");
+  tabContainer.classList.add("monaco-editor-background");
+
+  const tabA = document.createElement("div");
+  tabA.classList.add("tab");
+  tabA.classList.add("tab-active");
+  tabA.innerHTML = "Console";
+  tabA.onclick = function () {
+    tabA.classList.add("tab-active");
+    tabB.classList.remove("tab-active");
+
+    consoleDiv.style.display = "flex";
+    outputDiv.style.display = "none";
+  };
+
+  const tabB = document.createElement("div");
+  tabB.classList.add("tab");
+  tabB.innerHTML = "Logs";
+  tabB.onclick = function () {
+    tabB.classList.add("tab-active");
+    tabA.classList.remove("tab-active");
+
+    outputDiv.style.display = "flex";
+    consoleDiv.style.display = "none";
+  };
+
+  tabContainer.appendChild(tabA);
+  tabContainer.appendChild(tabB);
+  return tabContainer;
+}

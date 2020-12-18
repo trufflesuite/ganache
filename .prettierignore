@@ -8,3 +8,4 @@ coverage
 npm-shrinkwrap.json
 docs/assets/js/ganache/*
 docs/typedoc/**/*
+docs/index.html

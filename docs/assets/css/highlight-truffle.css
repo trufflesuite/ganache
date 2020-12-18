@@ -1,0 +1,160 @@
+.code {
+  position: relative;
+  margin-top: 2.5vw;
+}
+.code strike {
+  opacity: 0.5;
+}
+.code strike,
+.code strike * {
+  color: red !important;
+  font-style: italic;
+}
+.code:before {
+  content: " ";
+  width: 100%;
+  height: 90%;
+  position: absolute;
+  left: 0;
+  top: 5%;
+  border-radius: 5%/50%;
+  background: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 100px 0 white;
+  z-index: 9;
+  opacity: 0.025;
+  animation: lights 0.4s infinite alternate;
+  animation-timing-function: linear;
+  mix-blend-mode: hard-light;
+  pointer-events: none;
+}
+@keyframes lights {
+  to {
+    opacity: 0.03;
+  }
+}
+.code-lang {
+  float: right;
+  padding: 0.5vw 1vw;
+  position: absolute;
+  right: 0;
+  top: 0;
+  border-radius: 10%/40%;
+  font-size: 0.8em;
+  background: var(--dark-porsche);
+  font-family: "Open sans";
+  transform: translate(-3vw, calc(-100% + 3.05vw));
+  padding: 0.5vw 1vw 3vw;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 -1px 1px rgba(224, 191, 168, 1);
+}
+.code-inner {
+  border-radius: 50%/5%;
+  overflow: hidden;
+  box-shadow: 0 5px 50px rgba(0, 0, 0, 0.1);
+}
+.code pre {
+  overflow: hidden;
+  border-radius: 5%/50%;
+  border: solid var(--dark-porsche);
+  border-width: 0 0.5vw;
+
+  box-shadow: 0 5px 50px rgba(0, 0, 0, 0.2), 0 -1px 1px rgba(224, 191, 168, 1),
+    0 1px 1px rgba(29, 21, 11, 0.75);
+  margin-bottom: -1px;
+}
+*:not(pre) > code,
+.hljs {
+  font-family: "Share Tech Mono", monospace;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.7);
+}
+.hljs {
+  overflow: visible;
+  display: block;
+  overflow-x: auto;
+  padding: 2.5vw 3.25vw;
+  line-height: 1.3;
+  background: var(--dark-chocolate);
+  color: var(--very-light-porsche);
+  border-radius: 50%/5%;
+  border: solid var(--dark-porsche);
+  border-width: 0.5vw 0;
+  position: relative;
+  transition: box-shadow 3s ease-in-out;
+  transition-delay: 0.5s;
+  z-index: 3;
+  margin: 1px 0;
+
+  box-shadow: 0 -3px 1px rgba(224, 191, 168, 1),
+    0 1px 1px rgba(29, 21, 11, 0.75);
+}
+
+.hljs-comment,
+.hljs-quote,
+.hljs-meta {
+  color: var(--light-pink);
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-tag,
+.hljs-name {
+  color: var(--porsche);
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-selector-id {
+  color: var(--light-turquoise);
+}
+
+.hljs-string,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-addition {
+  color: var(--dark-turquoise);
+}
+
+.hljs-subst {
+  color: var(--turquoise);
+}
+
+.hljs-regexp,
+.hljs-link {
+  color: var(--medium-dark-porsche);
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-type,
+.hljs-doctag {
+  color: var(--light-turquoise);
+}
+
+.hljs-built_in {
+  color: var(--medium-dark-turquoise);
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-literal {
+  color: var(--light-pink);
+}
+
+.hljs-params {
+  color: var(--light-porsche);
+}
+
+.hljs-number,
+.hljs-deletion {
+  color: var(--pink);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}

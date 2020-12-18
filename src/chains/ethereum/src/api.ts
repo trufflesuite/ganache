@@ -263,7 +263,13 @@ export default class EthereumApi implements types.Api {
    * Mines a block independent of whether or not mining is started or stopped.
    * Will mine an empty block if there are no available transactions to mine.
    *
-   * @param timestamp the timestamp a block should setup as the mining time.
+   * @param timestamp the timestamp the block should be mined with.
+   * @returns The string `"0x0"`. May return additional meta-data in the future.
+   *
+   * @example
+   * ```javascript
+   * await provider.evm_mine(Date.now());
+   * ```
    */
   @assertArgLength(0, 1)
   async evm_mine(timestamp?: number) {
@@ -981,7 +987,7 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
-   * Returns the number of most recent block.
+   * Returns the number of the most recent block.
    * @returns integer of the current block number the client is on.
    */
   @assertArgLength(0)
@@ -1808,6 +1814,7 @@ export default class EthereumApi implements types.Api {
    *
    * @param transactionHash
    * @param options
+   * @returns returns comment
    * @example
    * ```javascript
    * // Simple.sol
