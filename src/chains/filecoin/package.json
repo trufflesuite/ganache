@@ -1,0 +1,75 @@
+{
+  "name": "@ganache/filecoin",
+  "version": "0.1.0",
+  "description": "Ganache's Filecoin client implementation",
+  "author": "Tim Coulter",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/filecoin#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/chains/filecoin"
+  },
+  "scripts": {
+    "docs.build": "rm -rf ./lib/docs ./lib/api.json && npm run docs.typedoc",
+    "docs.typedoc": "typedoc --options ./typedoc.json --readme ./README.md --out ../../../docs/typedoc --json ../../../docs/typedoc/api.json src/api.ts",
+    "docs.preview": "ws --open --port 3012 --directory ../../../",
+    "tsc": "ttsc",
+    "test": "nyc --reporter lcov npm run mocha",
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register --timeout 10000 'tests/**/*.test.ts'"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-filecion",
+    "filecion",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "web3",
+    "tooling"
+  ],
+  "dependencies": {
+    "@filecoin-shipyard/lotus-client-schema": "0.0.12",
+    "@ganache/options": "0.1.0",
+    "@ganache/utils": "0.1.0",
+    "base32-encoding": "1.0.0",
+    "blakejs": "1.1.0",
+    "bn.js": "5.1.2",
+    "borc": "2.1.2",
+    "cids": "0.8.3",
+    "deep-equal": "2.0.3",
+    "emittery": "0.7.2",
+    "ipfs": "0.48.1",
+    "ipfs-http-client": "45.0.0",
+    "ipld-dag-cbor": "0.16.0",
+    "mocha": "8.0.1",
+    "multicodec": "1.0.4",
+    "multihashing": "0.3.3",
+    "noble-bls12-381": "0.4.3",
+    "seedrandom": "3.0.5"
+  },
+  "devDependencies": {
+    "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",
+    "@filecoin-shipyard/lotus-client-rpc": "0.0.11",
+    "cross-env": "7.0.2",
+    "nyc": "^15.1.0",
+    "typedoc": "0.17.8",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+  }
+}
