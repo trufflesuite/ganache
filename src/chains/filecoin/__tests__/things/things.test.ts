@@ -1,10 +1,10 @@
 import assert from "assert";
-import { RootCID } from "../../src/things/rootcid";
+import { RootCID } from "../../src/things/root-cid";
 import { CID } from "../../src/things/cid";
 import { Tipset } from "../../src/things/tipset";
 import { Block } from "../../src/things/block";
-import { StorageProposal } from "../../src/things/storageproposal";
-import { StorageProposalData } from "../../src/things/storageproposaldata";
+import { StorageProposal } from "../../src/things/storage-proposal";
+import { StorageProposalData } from "../../src/things/storage-proposal-data";
 import { Address } from "../../src/things/address";
 import { Miner } from "../../src/things/miner";
 
@@ -12,7 +12,7 @@ describe("things", () => {
 
   describe("general", () => {
     it("can create a new object from both a serialized object and a deserialized object", async() => {
-      // We'll use RootCID here because it's a simple example 
+      // We'll use RootCID here because it's a simple example
       // with no recursive members during deserialization
 
       let rootCidFromSerializedData = new RootCID({
@@ -97,12 +97,12 @@ describe("things", () => {
       assert(block.timestamp >= timestamp);
       assert.strictEqual(block.blockSignature.data, "t1vv8DSsC2vAVmJsEjVyZgLcYS4+AG0qQzViaVWhfdW24YOt7qkRuDxSftbis/ZlDgCc1sGom26PvnLKLe4H0qJP7B4wW3yw8vp0zovZUV9zW1QkpKGJgO7HIhFlQcg9");
       assert.strictEqual(block.forkSignaling, 0);
-    }) 
+    })
   })
 
   describe("Address", () => {
     it("should derive a real address from a private key", async() => {
-      // These were pulled directly from Lotus. This private key should 
+      // These were pulled directly from Lotus. This private key should
       // create the associated address.
       const privateKey = "f47e78b912695e50283ffb6bf032e489055add72fc5da206e3fc29bda8cafc52"
       const expectedAddress = "t3vc4eetfk32n3tv5z55p73a2vm32pwxnqgr3jmpf7ssnwff6yh34bjc4vvarzivian5advbmvpmgw7ijxrboa"

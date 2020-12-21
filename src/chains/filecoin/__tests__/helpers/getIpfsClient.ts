@@ -1,5 +1,5 @@
 import IpfsHttpClient from "ipfs-http-client";
-import IPFSServer from "../../src/ipfsserver";
+import IPFSServer from "../../src/ipfs-server";
 
 export default () => {
   return IpfsHttpClient({

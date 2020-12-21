@@ -5,11 +5,11 @@ import getIpfsClient from "../../helpers/getIpfsClient";
 import { IPFSClient } from "ipfs-http-client";
 import { CID } from "../../../src/things/cid";
 import { Address } from "../../../src/things/address";
-import { StorageProposal } from "../../../src/things/storageproposal";
-import { RootCID } from "../../../src/things/rootcid";
-import { StorageProposalData } from "../../../src/things/storageproposaldata";
+import { StorageProposal } from "../../../src/things/storage-proposal";
+import { RootCID } from "../../../src/things/root-cid";
+import { StorageProposalData } from "../../../src/things/storage-proposal-data";
 import { SerializedDeal } from "../../../src/things/deal";
-import { SerializedRetrievalOffer, RetrievalOffer } from "../../../src/things/retrievaloffer";
+import { SerializedRetrievalOffer, RetrievalOffer } from "../../../src/things/retrieval-offer";
 import BN from "bn.js";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
@@ -52,7 +52,7 @@ describe("api", () => {
         assert(CID.isValid(genesis["Cids"][0]["/"]));
       });
     });
-    
+
     describe("Filecoin.ChainHead", () => {
       it("should return a serialized tipset with blocks", async() => {
         const head = await client.chainHead();
@@ -104,7 +104,7 @@ describe("api", () => {
       })
 
       it("should accept a new deal", async() => {
-        const data = "some data"; 
+        const data = "some data";
         const expectedSize = 15;
 
         let miners = await client.stateListMiners();
@@ -162,7 +162,7 @@ describe("api", () => {
       })
 
       it("should provide a remote offer", async() => {
-        const data = "some data"; 
+        const data = "some data";
         const expectedSize = 15;
         const expectedMinPrice = "30";
 
@@ -190,7 +190,7 @@ describe("api", () => {
 
         let endingBalance = await client.walletBalance(address);
         assert(new BN(endingBalance).lt(new BN(beginningBalance)));
-      }) 
+      })
 
       it("errors if we try to retrieve a file our IPFS server doesn't know about", async() => {
         let err:Error;
