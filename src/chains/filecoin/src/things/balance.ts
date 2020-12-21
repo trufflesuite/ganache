@@ -1,4 +1,4 @@
-import { SerializableLiteral } from "./serializableliteral";
+import { SerializableLiteral } from "./serializable-literal";
 import BN from "bn.js";
 
 interface BalanceConfig {

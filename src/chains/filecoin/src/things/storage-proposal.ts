@@ -1,7 +1,7 @@
 import {
   StorageProposalData,
   SerializedStorageProposalData
-} from "./storageproposaldata";
+} from "./storage-proposal-data";
 import { Address, SerializedAddress } from "./address";
 import { Miner, SerializedMiner } from "./miner";
 import {
@@ -9,7 +9,7 @@ import {
   DeserializedObject,
   Definitions,
   SerializedObject
-} from "./serializableobject";
+} from "./serializable-object";
 
 type StorageProposalConfig = {
   properties: {

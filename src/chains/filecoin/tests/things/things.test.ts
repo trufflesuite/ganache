@@ -1,5 +1,5 @@
 import assert from "assert";
-import { RootCID } from "../../src/things/rootcid";
+import { RootCID } from "../../src/things/root-cid";
 import { CID } from "../../src/things/cid";
 import { Tipset } from "../../src/things/tipset";
 import { Block } from "../../src/things/block";

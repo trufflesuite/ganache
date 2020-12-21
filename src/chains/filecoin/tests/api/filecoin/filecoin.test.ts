@@ -5,11 +5,11 @@ import getIpfsClient from "../../helpers/getIpfsClient";
 import { IPFSClient } from "ipfs-http-client";
 import { CID } from "../../../src/things/cid";
 import { Address } from "../../../src/things/address";
-import { StorageProposal } from "../../../src/things/storageproposal";
-import { RootCID } from "../../../src/things/rootcid";
-import { StorageProposalData } from "../../../src/things/storageproposaldata";
+import { StorageProposal } from "../../../src/things/storage-proposal";
+import { RootCID } from "../../../src/things/root-cid";
+import { StorageProposalData } from "../../../src/things/storage-proposal-data";
 import { SerializedDeal } from "../../../src/things/deal";
-import { SerializedRetrievalOffer } from "../../../src/things/retrievaloffer";
+import { SerializedRetrievalOffer } from "../../../src/things/retrieval-offer";
 import BN from "bn.js";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;

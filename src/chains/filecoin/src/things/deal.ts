@@ -1,12 +1,12 @@
-import { RootCID, SerializedRootCID } from "./rootcid";
-import { DealState, nextSuccessfulState } from "../dealstates";
+import { RootCID, SerializedRootCID } from "./root-cid";
+import { DealState, nextSuccessfulState } from "../deal-state";
 import { Miner, SerializedMiner } from "./miner";
 import {
   SerializableObject,
   DeserializedObject,
   Definitions,
   SerializedObject
-} from "./serializableobject";
+} from "./serializable-object";
 
 type DealConfig = {
   properties: {
