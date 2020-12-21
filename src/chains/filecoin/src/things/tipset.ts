@@ -1,8 +1,8 @@
 import {Block, SerializedBlock} from "./block";
-import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
-import { RootCID, SerializedRootCID } from "./rootcid";
+import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializable-object";
+import { RootCID, SerializedRootCID } from "./root-cid";
 
-interface TipsetConfig { 
+interface TipsetConfig {
   properties: {
     cids: {
       type: Array<RootCID>;
@@ -10,7 +10,7 @@ interface TipsetConfig {
       serializedName: "Cids";
     },
     blocks: {
-      type: Array<Block>, 
+      type: Array<Block>,
       serializedType: Array<SerializedBlock>;
       serializedName: "Blocks";
     },

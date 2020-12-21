@@ -1,11 +1,11 @@
 import { Ticket, SerializedTicket } from "./ticket";
-import { ElectionProof, SerializedElectionProof } from "./electionproof";
-import { BeaconEntry, SerializedBeaconEntry } from "./beaconentry";
-import { BLSAggregate, SerializedBLSAggregate } from "./blsaggregate";
-import { BlockSignature, SerializedBlockSignature } from "./blocksignature";
-import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
-import { WinPoStProof, SerializedWinPoStProof } from "./winpostproof";
-import { RootCID, SerializedRootCID } from "./rootcid";
+import { ElectionProof, SerializedElectionProof } from "./election-proof";
+import { BeaconEntry, SerializedBeaconEntry } from "./beacon-entry";
+import { BLSAggregate, SerializedBLSAggregate } from "./bls-aggregate";
+import { BlockSignature, SerializedBlockSignature } from "./block-signature";
+import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializable-object";
+import { WinPoStProof, SerializedWinPoStProof } from "./win-post-proof";
+import { RootCID, SerializedRootCID } from "./root-cid";
 import { Miner } from "./miner";
 import { CID } from "./cid";
 import cbor from "borc";
@@ -180,7 +180,7 @@ class Block extends SerializableObject<BlockConfig> implements DeserializedObjec
 
   get cid():CID {
     let blockHeader:Partial<DeserializedObject<BlockConfig>> = {};
-    
+
     for (const [deserializedName, {serializedName}] of Object.entries(this.config)) {
       blockHeader[serializedName] = this[deserializedName];
     }

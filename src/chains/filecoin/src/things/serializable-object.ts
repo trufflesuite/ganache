@@ -1,4 +1,4 @@
-import { SerializableLiteral } from "./serializableliteral";
+import { SerializableLiteral } from "./serializable-literal";
 import deepEqual from "deep-equal";
 
 
@@ -60,7 +60,7 @@ interface Wrapper {
 type Values<W extends Wrapper> = W[keyof W];
 ​
 // this evil magic comes from https://stackoverflow.com/a/50375286
-type UnionToIntersection<U> = 
+type UnionToIntersection<U> =
   (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never
 ​
 // Flattens two union types into a single type with optional values
@@ -152,9 +152,9 @@ abstract class SerializableObject<C extends BaseConfig> implements Serializable<
         throw new Error(`${deserializedName} is required for class ${this.constructor.name}`);
       }
     };
-     
+
   }
-  
+
   private serializeValue(value:any) {
     let returnVal:any = value;
     if (value instanceof SerializableObject || value instanceof SerializableLiteral) {

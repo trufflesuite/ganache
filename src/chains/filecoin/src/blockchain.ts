@@ -1,18 +1,18 @@
 import { Tipset } from "./things/tipset";
 import { Block } from "./things/block";
 import { CID } from "./things/cid";
-import { RootCID } from "./things/rootcid";
+import { RootCID } from "./things/root-cid";
 import { utils } from "@ganache/utils";
 import Emittery from "emittery";
 import { Miner } from "./things/miner";
 import { Address } from "./things/address";
 import { Deal } from "./things/deal";
 import Balance from "./things/balance";
-import { StorageProposal } from "./things/storageproposal";
-import { DealState } from "./dealstates";
-import IPFSServer, { IPFSNode } from "./ipfsserver";
+import { StorageProposal } from "./things/storage-proposal";
+import { DealState } from "./deal-state";
+import IPFSServer, { IPFSNode } from "./ipfs-server";
 import dagCBOR from "ipld-dag-cbor";
-import { RetrievalOffer } from "./things/retrievaloffer";
+import { RetrievalOffer } from "./things/retrieval-offer";
 import { FilecoinOptions } from "@ganache/options";
 import seedrandom from "seedrandom";
 import BN from "bn.js";
@@ -26,7 +26,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
   readonly miner:Miner;
   readonly address:Address;
   readonly privateKey:string;
-  
+
   #balance:Balance;
   get balance():Balance {return this.#balance};
 
@@ -77,7 +77,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     setTimeout(async() => {
       // Create the IPFS server
       this.ipfsServer = new IPFSServer(this.ipfsPort);
-      
+
       await this.ipfsServer.start();
 
       // Fire up the miner if necessary
@@ -85,7 +85,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
         const intervalMine = () => {
           this.mineTipset();
         }
-  
+
         this.miningTimeout = setInterval(intervalMine, this.blockTime);
 
         utils.unref(this.miningTimeout);
@@ -97,7 +97,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
 
       // Don't log until things are all ready
       this.logLatestTipset();
-    }, 0)    
+    }, 0)
   }
 
   async waitForReady() {
@@ -130,7 +130,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     return this.tipsets[this.tipsets.length - 1];
   }
 
-  // Note that this is naive - it always assumes the first block in the 
+  // Note that this is naive - it always assumes the first block in the
   // previous tipset is the parent of the new blocks.
   async mineTipset(numNewBlocks:number = 1):Promise<void> {
     let previousTipset:Tipset = this.latestTipset();
@@ -153,7 +153,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
 
     this.tipsets.push(newTipset);
 
-    // Advance the state of all deals in process. 
+    // Advance the state of all deals in process.
     for (const deal of this.inProcessDeals) {
       deal.advanceState(this.automining);
 
@@ -212,7 +212,7 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
       dealId: this.deals.length + 1
     })
 
-    // Because we're not cryptographically valid, let's 
+    // Because we're not cryptographically valid, let's
     // register the deal with the newly created CID
     this.dealsByCid[proposalCid.value] = deal;
 
@@ -250,8 +250,8 @@ export default class Blockchain extends Emittery.Typed<BlockchainEvents, keyof B
     // IPFS and Filecoin nodes. Because of this, there's no need to
     // actually retrieve anything. That said, we'll check to make sure
     // we have the content locally in our IPFS server, and error if it
-    // doesn't exist. 
-    
+    // doesn't exist.
+
     let hasLocal:boolean = await this.hasLocal(retrievalOffer.root["/"].value)
 
     if (!hasLocal) {

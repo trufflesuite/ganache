@@ -2,13 +2,13 @@
 import Emittery from "emittery";
 import {types} from "@ganache/utils";
 import Blockchain from "./blockchain";
-import { StorageProposal, SerializedStorageProposal } from "./things/storageproposal";
-import { SerializedRootCID, RootCID } from "./things/rootcid";
+import { StorageProposal, SerializedStorageProposal } from "./things/storage-proposal";
+import { SerializedRootCID, RootCID } from "./things/root-cid";
 import { SerializedDeal } from "./things/deal";
 import { SerializedTipset } from "./things/tipset";
 import { SerializedAddress } from "./things/address";
 import { SerializedMiner } from "./things/miner";
-import { SerializedRetrievalOffer, RetrievalOffer } from "./things/retrievaloffer";
+import { SerializedRetrievalOffer, RetrievalOffer } from "./things/retrieval-offer";
 import { FilecoinOptions } from "@ganache/options";
 
 const _blockchain = Symbol("blockchain");
@@ -78,11 +78,11 @@ export default class FilecoinApi implements types.Api {
 
     // Return value is a placeholder.
     //
-    // 1) JSON wants to parse the result, so this prevents it parsing `undefined`. 
+    // 1) JSON wants to parse the result, so this prevents it parsing `undefined`.
     // 2) This API is going to change very soon, according to Lotus devs.
-    // 
+    //
     // As of this writing, this API function is *supposed* to return nothing at all.
-    return {}; 
+    return {};
   }
 
   async "Filecoin.GanacheMineTipset"():Promise<SerializedTipset> {

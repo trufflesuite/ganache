@@ -1,8 +1,8 @@
-import { SerializableLiteral } from "./serializableliteral";
+import { SerializableLiteral } from "./serializable-literal";
 import blake from 'blakejs';
 import * as bls from "noble-bls12-381";
 import base32 from "base32-encoding";
-import { StorageProposal } from "./storageproposal";
+import { StorageProposal } from "./storage-proposal";
 import cbor from "borc";
 
 interface AddressConfig {
@@ -46,7 +46,7 @@ class Address extends SerializableLiteral<AddressConfig>  {
     if (protocol != AddressProtocol.BLS) {
       throw new Error("Protocol type not yet supported. Supported address protocols: BLS");
     }
-    
+
     let address = Address.fromPrivateKey(privateKey, protocol, network);
 
     // The serialized value is the address
@@ -75,7 +75,7 @@ class Address extends SerializableLiteral<AddressConfig>  {
 
     // Get the public key
     let publicKey = Buffer.from(bls.getPublicKey(bigEndian));
-    
+
     // Create a checksum using the blake2b algorithm
     let checksumBuffer = Buffer.concat([Buffer.from([protocol]), publicKey])
     let checksum = blake.blake2b(checksumBuffer, null, Address.CHECKSUM_BYTES);
@@ -83,7 +83,7 @@ class Address extends SerializableLiteral<AddressConfig>  {
     // Merge the public key and checksum
     let checksummedPubKey = Buffer.concat([publicKey, checksum]);
 
-    // Use a custom alphabet to base32 encode the checksummed public key, 
+    // Use a custom alphabet to base32 encode the checksummed public key,
     // and prepend the network and protocol identifiers.
     let customBase32Alpahbet = "abcdefghijklmnopqrstuvwxyz234567";
     let address = network.toString() + protocol.toString() + base32.stringify(checksummedPubKey, customBase32Alpahbet)
@@ -95,7 +95,7 @@ class Address extends SerializableLiteral<AddressConfig>  {
     // Note that this private key isn't cryptographically secure!
     // It uses insecure randomization! Don't use it in production!
     let alphabet = "0123456789abcdef";
-    let privateKey = "_".repeat(64).split("").map(() => alphabet[Math.floor(rng()*alphabet.length)]).join(""); 
+    let privateKey = "_".repeat(64).split("").map(() => alphabet[Math.floor(rng()*alphabet.length)]).join("");
 
     return new Address(privateKey);
   }

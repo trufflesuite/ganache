@@ -1,7 +1,7 @@
-import { StorageProposalData, SerializedStorageProposalData } from "./storageproposaldata";
+import { StorageProposalData, SerializedStorageProposalData } from "./storage-proposal-data";
 import { Address, SerializedAddress } from "./address";
 import { Miner, SerializedMiner } from "./miner";
-import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
+import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializable-object";
 
 type StorageProposalConfig = {
   properties: {
@@ -45,7 +45,7 @@ class StorageProposal extends SerializableObject<StorageProposalConfig> implemen
       },
       miner: {
         serializedName: "Miner"
-      }, 
+      },
       epochPrice: {
         serializedName: "EpochPrice",
         defaultValue: "2500"

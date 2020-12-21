@@ -1,7 +1,7 @@
-import { RootCID, SerializedRootCID } from "./rootcid";
-import { DealState, nextSuccessfulState } from "../dealstates";
+import { RootCID, SerializedRootCID } from "./root-cid";
+import { DealState, nextSuccessfulState } from "../deal-state";
 import { Miner, SerializedMiner } from "./miner";
-import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
+import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializable-object";
 
 type DealConfig = {
   properties: {
@@ -67,7 +67,7 @@ class Deal extends SerializableObject<DealConfig> implements DeserializedObject<
         serializedName: "Message"
       },
       provider: {
-        serializedName: "Provider", 
+        serializedName: "Provider",
         defaultValue: (options) => new Miner(options)
       },
       pieceCid: {

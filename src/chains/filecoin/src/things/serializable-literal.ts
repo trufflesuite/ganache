@@ -1,4 +1,4 @@
-import { Serializable } from "./serializableobject"; 
+import { Serializable } from "./serializable-object";
 import { config } from "yargs";
 
 type BaseConfig = {

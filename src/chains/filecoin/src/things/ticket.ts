@@ -1,4 +1,4 @@
-import { SerializableObject, DeserializedObject, SerializedObject, Definitions } from "./serializableobject";
+import { SerializableObject, DeserializedObject, SerializedObject, Definitions } from "./serializable-object";
 
 interface TicketConfig {
   properties: {

@@ -1,4 +1,4 @@
-import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializableobject";
+import { SerializableObject, DeserializedObject, Definitions, SerializedObject } from "./serializable-object";
 
 interface BlockSignatureConfig {
   properties: {

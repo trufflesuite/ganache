@@ -1,4 +1,4 @@
-import { SerializableObject, SerializedObject, DeserializedObject, Definitions } from "./serializableobject";
+import { SerializableObject, SerializedObject, DeserializedObject, Definitions } from "./serializable-object";
 
 interface BeaconEntryConfig {
   properties: {
