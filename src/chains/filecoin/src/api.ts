@@ -4,8 +4,8 @@ import Blockchain from "./blockchain";
 import {
   StorageProposal,
   SerializedStorageProposal
-} from "./things/storageproposal";
-import { SerializedRootCID, RootCID } from "./things/rootcid";
+} from "./things/storage-proposal";
+import { SerializedRootCID, RootCID } from "./things/root-cid";
 import { SerializedDeal } from "./things/deal";
 import { SerializedTipset } from "./things/tipset";
 import { SerializedAddress } from "./things/address";
@@ -13,7 +13,7 @@ import { SerializedMiner } from "./things/miner";
 import {
   SerializedRetrievalOffer,
   RetrievalOffer
-} from "./things/retrievaloffer";
+} from "./things/retrieval-offer";
 
 const _blockchain = Symbol("blockchain");
 
