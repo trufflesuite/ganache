@@ -1,8 +1,8 @@
-import { SerializableLiteral } from "./serializableliteral";
+import { SerializableLiteral } from "./serializable-literal";
 import blake from "blakejs";
 import * as bls from "noble-bls12-381";
 import base32 from "base32-encoding";
-import { StorageProposal } from "./storageproposal";
+import { StorageProposal } from "./storage-proposal";
 import cbor from "borc";
 
 interface AddressConfig {
