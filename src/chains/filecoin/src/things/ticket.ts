@@ -3,7 +3,7 @@ import {
   DeserializedObject,
   SerializedObject,
   Definitions
-} from "./serializableobject";
+} from "./serializable-object";
 
 interface TicketConfig {
   properties: {
