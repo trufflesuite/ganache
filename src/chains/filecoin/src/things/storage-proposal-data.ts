@@ -1,10 +1,10 @@
-import { RootCID, SerializedRootCID } from "./rootcid";
+import { RootCID, SerializedRootCID } from "./root-cid";
 import {
   SerializableObject,
   SerializedObject,
   DeserializedObject,
   Definitions
-} from "./serializableobject";
+} from "./serializable-object";
 
 type StorageProposalDataConfig = {
   properties: {

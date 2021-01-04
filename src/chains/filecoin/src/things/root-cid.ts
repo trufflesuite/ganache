@@ -4,7 +4,7 @@ import {
   DeserializedObject,
   Definitions,
   SerializedObject
-} from "./serializableobject";
+} from "./serializable-object";
 
 interface RootCIDConfig {
   properties: {

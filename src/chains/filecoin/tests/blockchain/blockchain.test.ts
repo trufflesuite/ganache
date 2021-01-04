@@ -2,10 +2,10 @@ import assert from "assert";
 import Blockchain from "../../src/blockchain";
 import { Tipset } from "../../src/things/tipset";
 import IpfsHttpClient from "ipfs-http-client";
-import { StorageProposal } from "../../src/things/storageproposal";
-import { StorageProposalData } from "../../src/things/storageproposaldata";
-import { RootCID } from "../../src/things/rootcid";
-import { DealState } from "../../src/dealstates";
+import { StorageProposal } from "../../src/things/storage-proposal";
+import { StorageProposalData } from "../../src/things/storage-proposal-data";
+import { RootCID } from "../../src/things/root-cid";
+import { DealState } from "../../src/deal-state";
 
 import { FilecoinOptionsConfig } from "../../src/options/index";
 
