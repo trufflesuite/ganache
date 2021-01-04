@@ -3,7 +3,7 @@ import {
   SerializedObject,
   DeserializedObject,
   Definitions
-} from "./serializableobject";
+} from "./serializable-object";
 
 interface BeaconEntryConfig {
   properties: {

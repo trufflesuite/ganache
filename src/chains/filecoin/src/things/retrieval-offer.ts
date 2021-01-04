@@ -1,11 +1,11 @@
-import { RootCID, SerializedRootCID } from "./rootcid";
+import { RootCID, SerializedRootCID } from "./root-cid";
 import { Miner, SerializedMiner } from "./miner";
 import {
   SerializableObject,
   SerializedObject,
   DeserializedObject,
   Definitions
-} from "./serializableobject";
+} from "./serializable-object";
 
 type RetrievalOfferConfig = {
   properties: {
