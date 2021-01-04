@@ -4,8 +4,8 @@ import {
   DeserializedObject,
   Definitions,
   SerializedObject
-} from "./serializableobject";
-import { RootCID, SerializedRootCID } from "./rootcid";
+} from "./serializable-object";
+import { RootCID, SerializedRootCID } from "./root-cid";
 
 interface TipsetConfig {
   properties: {
