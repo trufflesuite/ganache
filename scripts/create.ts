@@ -5,6 +5,7 @@ import yargs from "yargs";
 import prettier from "prettier";
 import camelCase from "camelcase";
 import npa from "npm-package-arg";
+import npmValiddate from "validate-npm-package-name";
 import userName from "git-user-name";
 import { join, resolve } from "path";
 import { highlight } from "cli-highlight";
@@ -24,32 +25,40 @@ const COLORS = {
   FgRed: "\x1b[31m"
 };
 
-const scopes = getDirectories(join(__dirname, "../src"));
+let locations = getDirectories(join(__dirname, "../src")).filter(
+  d => d !== "chains"
+);
+const chainLocations = getDirectories(join(__dirname, "../src/chains")).map(
+  d => `chains/${d}`
+);
+locations = locations.concat(chainLocations);
 const argv = yargs
   .command(
-    `$0 <name> --location`,
+    `$0 <name> [options]`,
     `Create a new package in the given location with the provided name.`,
     yargs => {
       return yargs
         .usage(
           chalk`{hex("#e4a663").bold Create a new package in the given location with the provided name.}\n\n` +
-            chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}${scopes.join(
-              chalk.dim(" | ")
-            )}{dim >}`
+            chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim [}options{dim ]}`
         )
-        .positional("<name>", {
-          describe: `        The name of the new package`,
+        .positional("name", {
+          describe: `The name of the new package`,
           type: "string",
           demandOption: true
         })
-        .alias("name", "<name>")
         .option("location", {
           alias: "l",
-          default: "packages",
           describe: `The location for the new package.`,
-          choices: scopes,
+          choices: locations,
           type: "string",
           demandOption: true
+        })
+        .option("folder", {
+          alias: "f",
+          default: null,
+          describe: `Optional override for the folder name of the package instead of using <name>`,
+          type: "string"
         });
     }
   )
@@ -57,8 +66,6 @@ const argv = yargs
   .version(false)
   .help(false)
   .updateStrings({
-    "Positionals:": chalk.bold("Options"),
-    "Options:": ` `,
     "Not enough non-option arguments: got %s, need at least %s": {
       one: chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`,
       other: chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`
@@ -78,7 +85,20 @@ process.stdout.write(`${COLORS.Reset}`);
 
 (async function () {
   let name = argv.name;
-  let location = argv.location;
+  const location = argv.location;
+  const folderName = argv.folder as null | string;
+  console.log(argv);
+
+  const nameValidation = npmValiddate(name);
+  if (!nameValidation.validForNewPackages) {
+    throw new Error(
+      `Name "${name}" is not a valid NPM name:\n${nameValidation.errors}`
+    );
+  }
+
+  // determines how many `../` are needed for package contents
+  const numDirectoriesAwayFromRoot = 3 + (/\//g.exec(location) || []).length;
+  const relativePathToRoot = "../".repeat(numDirectoriesAwayFromRoot);
 
   try {
     const workspaceDir = join(__dirname, "../");
@@ -86,6 +106,7 @@ process.stdout.write(`${COLORS.Reset}`);
 
     const prettierConfig = await prettier.resolveConfig(process.cwd());
 
+    console.log(npa(name));
     name = npa(name).name;
 
     const packageName = `@ganache/${name}`;
@@ -97,7 +118,9 @@ process.stdout.write(`${COLORS.Reset}`);
       version,
       description: "",
       author: packageAuthor || require("../package.json").author,
-      homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${name}#readme`,
+      homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${
+        folderName || name
+      }#readme`,
       license: "MIT",
       main: "lib/index.js",
       types: "src/index.ts",
@@ -110,7 +133,7 @@ process.stdout.write(`${COLORS.Reset}`);
       repository: {
         type: "git",
         url: "https://github.com/trufflesuite/ganache-core.git",
-        directory: `src/${location}/${name}`
+        directory: `src/${location}/${folderName || name}`
       },
       scripts: {
         tsc: "ttsc",
@@ -139,7 +162,7 @@ process.stdout.write(`${COLORS.Reset}`);
     };
 
     const tsConfig = {
-      extends: "../../../tsconfig.json",
+      extends: `${relativePathToRoot}tsconfig.json`,
       compilerOptions: {
         outDir: "lib"
       },
@@ -164,7 +187,7 @@ describe("${packageName}", () => {
 }
 `;
 
-    const dir = join(workspaceDir, "src", location, name);
+    const dir = join(workspaceDir, "src", location, folderName || name);
     const tests = join(dir, "tests");
     const src = join(dir, "src");
 
@@ -263,7 +286,9 @@ typedoc.json
     );
 
     console.log(
-      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created at ./src/packages/${name}.`
+      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created at ./src/${location}/${
+        folderName || name
+      }.`
     );
     console.log("");
     console.log(
