@@ -46,6 +46,7 @@
   ],
   "dependencies": {
     "@filecoin-shipyard/lotus-client-schema": "0.0.12",
+    "@ganache/filecoin-options": "0.1.0",
     "@ganache/options": "0.1.0",
     "@ganache/utils": "0.1.0",
     "base32-encoding": "1.0.0",

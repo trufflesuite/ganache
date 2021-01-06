@@ -1,7 +1,7 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
-const { version } = require("../../../../../packages/ganache/package.json");
+const { version } = require("../../../../../../packages/ganache/package.json");
 
 describe("api", () => {
   describe("web3", () => {

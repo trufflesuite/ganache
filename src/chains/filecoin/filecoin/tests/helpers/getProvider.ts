@@ -1,9 +1,9 @@
-import { RequestCoordinator, Executor } from "@ganache/utils/src/utils";
+import { utils } from "@ganache/utils";
 import FilecoinProvider from "../../src/provider";
 
 const getProvider = async () => {
-  const requestCoordinator = new RequestCoordinator(0);
-  const executor = new Executor(requestCoordinator);
+  const requestCoordinator = new utils.RequestCoordinator(0);
+  const executor = new utils.Executor(requestCoordinator);
   const provider = new FilecoinProvider(
     {
       chain: {
