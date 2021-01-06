@@ -5,7 +5,10 @@ import FilecoinApi from "./api";
 import GanacheSchema from "./schema";
 import { Schema } from "@filecoin-shipyard/lotus-client-schema";
 import Blockchain from "./blockchain";
-import { FilecoinOptionsConfig, FilecoinProviderOptions } from "./options";
+import {
+  FilecoinOptionsConfig,
+  FilecoinProviderOptions
+} from "@ganache/filecoin-options";
 
 // Meant to mimic this provider:
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser

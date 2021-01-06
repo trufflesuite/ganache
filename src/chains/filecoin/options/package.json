@@ -42,5 +42,9 @@
     "web3",
     "tooling",
     "truffle"
-  ]
+  ],
+  "dependencies": {
+    "@ganache/options": "0.1.0",
+    "seedrandom": "3.0.5"
+  }
 }
