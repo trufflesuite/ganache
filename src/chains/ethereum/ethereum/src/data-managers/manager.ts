@@ -1,6 +1,6 @@
 import { LevelUp } from "levelup";
 import { Data } from "@ganache/utils";
-import Tag from "../things/tags";
+import { Tag } from "@ganache/ethereum-utils";
 const NOTFOUND = 404;
 
 export type Instantiable<T> = { new (...args: any[]): T };

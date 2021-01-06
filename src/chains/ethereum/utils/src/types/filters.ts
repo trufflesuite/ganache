@@ -1,6 +1,6 @@
 import { Data } from "@ganache/utils";
 import Emittery from "emittery";
-import Tag from "../things/tags";
+import { Tag } from "../things/tags";
 
 export enum FilterTypes {
   log,

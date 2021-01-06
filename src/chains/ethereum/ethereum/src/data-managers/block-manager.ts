@@ -1,9 +1,8 @@
 import Manager from "./manager";
-import Tag from "../things/tags";
+import { Tag, Block } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
 import Common from "ethereumjs-common";
-import { Block } from "../things/runtime-block";
 
 const NOTFOUND = 404;
 

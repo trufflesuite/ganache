@@ -1,16 +1,20 @@
-import params from "../things/params";
-import Transaction from "../things/transaction";
+import {
+  params,
+  Transaction,
+  Block,
+  RuntimeBlock,
+  RuntimeError,
+  RETURN_TYPES,
+  Executables
+} from "@ganache/ethereum-utils";
 import { utils, Quantity, Data } from "@ganache/utils";
 import { promisify } from "util";
 import Trie from "merkle-patricia-tree";
 import Emittery from "emittery";
 import VM from "ethereumjs-vm";
 import { encode as rlpEncode } from "rlp";
-import { EthereumInternalOptions } from "../options";
-import RuntimeError, { RETURN_TYPES } from "../errors/runtime-error";
-import { Executables } from "../types/executables";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
-import { Block, RuntimeBlock } from "../things/runtime-block";
 const { BUFFER_EMPTY, BUFFER_256_ZERO } = utils;
 
 export type BlockData = {

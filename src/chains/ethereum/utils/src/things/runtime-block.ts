@@ -3,8 +3,8 @@ import { utils } from "@ganache/utils";
 import Common from "ethereumjs-common";
 import keccak from "keccak";
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
-import Transaction from "../things/transaction";
-import Address from "./address";
+import { Transaction } from "./transaction";
+import { Address } from "./address";
 import { KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 
 const { BUFFER_EMPTY, RPCQUANTITY_ZERO } = utils;

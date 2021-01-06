@@ -1,11 +1,11 @@
 import { Data, Quantity } from "@ganache/utils";
-import Address from "./address";
+import { Address } from "./address";
 import { rlp, KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
 import { utils } from "@ganache/utils";
 
 const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
 
-export default class Account {
+export class Account {
   public address: Address;
   public balance: Quantity;
   public privateKey: Data;

@@ -1,7 +1,6 @@
 import { Quantity } from "@ganache/utils";
 import Blockchain from "../blockchain";
-import Address from "../things/address";
-import { FilterArgs, RangeFilterArgs } from "../types/filters";
+import { Address, FilterArgs, RangeFilterArgs } from "@ganache/ethereum-utils";
 
 export function parseFilterDetails(
   filter: Pick<FilterArgs, "address" | "topics">

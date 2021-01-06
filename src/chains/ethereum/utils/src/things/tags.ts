@@ -1,4 +1,4 @@
-enum Tag {
+export enum Tag {
   EARLIEST = "earliest",
   LATEST = "latest",
   PENDING = "pending"
@@ -9,7 +9,7 @@ enum _Tag {
   pending
 }
 
-namespace Tag {
+export namespace Tag {
   export function normalize(tag: keyof typeof _Tag | Tag): Tag {
     if (typeof tag === "string") {
       return (<any>Tag)[tag.toUpperCase()];
@@ -25,5 +25,3 @@ namespace Tag {
     }
   }
 }
-
-export default Tag;

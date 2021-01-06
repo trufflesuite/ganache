@@ -2,7 +2,7 @@ import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VM_EXCEPTION } from "./errors";
 import { Data } from "@ganache/utils";
 import { rawDecode } from "ethereumjs-abi";
-import CodedError, { ErrorCodes } from "./coded-error";
+import { CodedError, ErrorCodes } from "./coded-error";
 
 const REVERT_REASON = Buffer.from("08c379a0", "hex"); // keccak("Error(string)").slice(0, 4)
 
@@ -11,7 +11,7 @@ export enum RETURN_TYPES {
   RETURN_VALUE
 }
 
-export default class RuntimeError extends CodedError {
+export class RuntimeError extends CodedError {
   public code: typeof ErrorCodes.INVALID_INPUT;
   public data: {
     hash: string;

@@ -1,7 +1,7 @@
-import Transaction from "../things/transaction";
+import { Transaction } from "@ganache/ethereum-utils";
 import Manager from "./manager";
 import TransactionPool from "../transaction-pool";
-import { EthereumInternalOptions } from "../options";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import PromiseQueue from "@ganache/promise-queue";

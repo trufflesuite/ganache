@@ -3,8 +3,11 @@ import EthereumApi from "./api";
 import { JsonRpcTypes, types, utils } from "@ganache/utils";
 import EthereumProvider from "./provider";
 import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
-import CodedError, { ErrorCodes } from "./errors/coded-error";
-import { EthereumProviderOptions, EthereumLegacyOptions } from "./options";
+import { CodedError, ErrorCodes } from "@ganache/ethereum-utils";
+import {
+  EthereumProviderOptions,
+  EthereumLegacyOptions
+} from "@ganache/ethereum-options";
 
 export type ProviderOptions = EthereumProviderOptions | EthereumLegacyOptions;
 export type Provider = EthereumProvider;

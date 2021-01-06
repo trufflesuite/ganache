@@ -3,7 +3,7 @@ import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
 import levelup, { LevelUp } from "levelup";
 import Blockchain from "./blockchain";
-import { EthereumInternalOptions } from "./options";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 const leveldown = require("leveldown");
 const sub = require("subleveldown");
 const encode = require("encoding-down");

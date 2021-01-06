@@ -1,7 +1,7 @@
-import Transaction from "./transaction";
+import { Transaction } from "./transaction";
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
-import BlockLogs, { TransactionLog } from "./blocklogs";
+import { BlockLogs, TransactionLog } from "./blocklogs";
 import { utils } from "@ganache/utils";
 import { Block } from "./runtime-block";
 
@@ -23,7 +23,7 @@ type FullRawReceipt = [
 ];
 type RawReceipt = OmitLastType<OmitLastType<FullRawReceipt>>;
 
-export default class TransactionReceipt {
+export class TransactionReceipt {
   public contractAddress: Buffer;
   #gasUsed: Buffer;
   raw: RawReceipt;

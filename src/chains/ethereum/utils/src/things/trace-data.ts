@@ -102,5 +102,3 @@ export const TraceDataFactory = () => {
 
   return TraceData;
 };
-
-export default TraceDataFactory;

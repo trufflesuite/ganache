@@ -46,7 +46,7 @@ export const ErrorCodes = {
   JSON_RPC_VERSION_NOT_SUPPORTED: -32006
 } as const;
 
-export default class CodedError extends Error {
+export class CodedError extends Error {
   code: number;
   constructor(message: string, code: number) {
     super(message);

@@ -1,6 +1,6 @@
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
-import Address from "./address";
+import { Address } from "./address";
 import { utils } from "@ganache/utils";
 
 export type TransactionLog = [
@@ -48,7 +48,7 @@ const filterByTopic = (
   });
 };
 
-export default class BlockLogs {
+export class BlockLogs {
   [_raw]: [blockHash: Buffer, blockLog: BlockLog[]];
 
   constructor(data: Buffer) {

@@ -1,8 +1,6 @@
-import Account from "../things/account";
-import Address from "../things/address";
+import { Account, Address, Tag } from "@ganache/ethereum-utils";
 import Trie from "merkle-patricia-tree/baseTrie";
 import Blockchain from "../blockchain";
-import Tag from "../things/tags";
 import { LevelUp } from "levelup";
 import { rlp } from "ethereumjs-util";
 import { utils, Quantity } from "@ganache/utils";

@@ -6,7 +6,7 @@ import {
   EthereumInternalOptions,
   EthereumOptionsConfig,
   EthereumLegacyOptions
-} from "./options";
+} from "@ganache/ethereum-options";
 import cloneDeep from "lodash.clonedeep";
 import { PromiEvent, types, utils } from "@ganache/utils";
 import Wallet from "./wallet";

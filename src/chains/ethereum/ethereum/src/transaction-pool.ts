@@ -1,16 +1,17 @@
 import Emittery from "emittery";
 import Blockchain from "./blockchain";
 import { utils } from "@ganache/utils";
-import Transaction from "./things/transaction";
 import { Data, Quantity } from "@ganache/utils";
 import {
+  Transaction,
   GAS_LIMIT,
   INTRINSIC_GAS_TOO_LOW,
-  NONCE_TOO_LOW
-} from "./errors/errors";
-import CodedError, { ErrorCodes } from "./errors/coded-error";
-import { EthereumInternalOptions } from "./options";
-import { Executables } from "./types/executables";
+  NONCE_TOO_LOW,
+  CodedError,
+  ErrorCodes,
+  Executables
+} from "@ganache/ethereum-utils";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 
 function byNonce(values: Transaction[], a: number, b: number) {
   return (

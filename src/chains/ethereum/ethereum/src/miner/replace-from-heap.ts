@@ -1,5 +1,5 @@
 import { utils } from "@ganache/utils";
-import Transaction from "../things/transaction";
+import { Transaction } from "@ganache/ethereum-utils";
 
 export default function replaceFromHeap(
   priced: utils.Heap<Transaction>,

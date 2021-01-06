@@ -1,7 +1,7 @@
 // NOTE these params may need to be changed at each hardfork
 // they can be tracked here: https://github.com/ethereumjs/ethereumjs-vm/blob/master/packages/common/src/hardforks/
 
-export default {
+export const params = {
   /**
    *  Per transaction not creating a contract. NOTE: Not payable on data of calls between transactions.
    */

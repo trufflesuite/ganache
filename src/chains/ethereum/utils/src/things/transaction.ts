@@ -1,7 +1,7 @@
 import { INTRINSIC_GAS_TOO_LOW } from "../errors/errors";
-import RuntimeError, { RETURN_TYPES } from "../errors/runtime-error";
+import { RuntimeError, RETURN_TYPES } from "../errors/runtime-error";
 import { utils, Data, Quantity } from "@ganache/utils";
-import params from "./params";
+import { params } from "./params";
 import {
   Transaction as EthereumJsTransaction,
   FakeTransaction as EthereumJsFakeTransaction
@@ -10,10 +10,10 @@ import * as ethUtil from "ethereumjs-util";
 import assert from "assert";
 import { decode as rlpDecode } from "rlp";
 import { RunTxResult } from "ethereumjs-vm/dist/runTx";
-import TransactionReceipt from "./transaction-receipt";
+import { TransactionReceipt } from "./transaction-receipt";
 import Common from "ethereumjs-common";
 import { TransactionLog } from "./blocklogs";
-import Address from "./address";
+import { Address } from "./address";
 import { ExtractValuesFromType } from "../types/extract-values-from-types";
 import { Block } from "./runtime-block";
 
@@ -208,9 +208,9 @@ type TransactionFinalization =
   | { status: "confirmed"; error?: Error }
   | { status: "rejected"; error: Error };
 
-interface Transaction extends Omit<EthereumJsTransaction, "toJSON"> {}
+export interface Transaction extends Omit<EthereumJsTransaction, "toJSON"> {}
 // TODO fix the EthereumJsTransaction as any via some "fake" multi-inheritance:
-class Transaction extends (EthereumJsTransaction as any) {
+export class Transaction extends (EthereumJsTransaction as any) {
   public locked: boolean = false;
   type: number;
   v: Buffer;
@@ -543,5 +543,3 @@ class Transaction extends (EthereumJsTransaction as any) {
 
   public execException: RuntimeError = null;
 }
-
-export default Transaction;

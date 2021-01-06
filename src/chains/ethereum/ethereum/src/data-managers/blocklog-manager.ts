@@ -1,11 +1,11 @@
-import BlockLog from "../things/blocklogs";
+import { BlockLogs } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import Manager from "./manager";
 import { Quantity } from "@ganache/utils";
 
-export default class BlockLogManager extends Manager<BlockLog> {
+export default class BlockLogManager extends Manager<BlockLogs> {
   constructor(base: LevelUp) {
-    super(base, BlockLog);
+    super(base, BlockLogs);
   }
 
   async get(key: string | Buffer) {

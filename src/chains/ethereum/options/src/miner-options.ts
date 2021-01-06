@@ -1,7 +1,7 @@
 import { normalize } from "./helpers";
 import { Data, Quantity, utils } from "@ganache/utils";
+import { Address } from "@ganache/ethereum-utils";
 import { Definitions } from "@ganache/options";
-import Address from "../things/address";
 
 export type MinerConfig = {
   options: {

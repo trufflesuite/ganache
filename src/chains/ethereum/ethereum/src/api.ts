@@ -1,5 +1,25 @@
 //#region Imports
-import { RuntimeBlock, Block } from "./things/runtime-block";
+import {
+  RuntimeBlock,
+  Block,
+  Tag,
+  Address,
+  Transaction,
+  BlockLogs,
+  Account,
+  VM_EXCEPTION,
+  VM_EXCEPTIONS,
+  CodedError,
+  ErrorCodes,
+  WhisperPostObject,
+  BaseFilterArgs,
+  Filter,
+  FilterArgs,
+  FilterTypes,
+  RangeFilterArgs,
+  SubscriptionId,
+  SubscriptionName
+} from "@ganache/ethereum-utils";
 import {
   toRpcSig,
   KECCAK256_NULL,
@@ -7,44 +27,27 @@ import {
   hashPersonalMessage
 } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
-import { EthereumInternalOptions } from "./options";
-import { types, Data, Quantity } from "@ganache/utils";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { types, Data, Quantity, PromiEvent, utils } from "@ganache/utils";
 import Blockchain, { TransactionTraceOptions } from "./blockchain";
-import Tag from "./things/tags";
-import { VM_EXCEPTION, VM_EXCEPTIONS } from "./errors/errors";
-import Address from "./things/address";
-import Transaction from "./things/transaction";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 
-import { PromiEvent, utils } from "@ganache/utils";
 import Emittery from "emittery";
 import Common from "ethereumjs-common";
-import BlockLogs from "./things/blocklogs";
 import EthereumAccount from "ethereumjs-account";
 import estimateGas from "./helpers/gas-estimator";
-import CodedError, { ErrorCodes } from "./errors/coded-error";
-import { WhisperPostObject } from "./types/shh";
-import {
-  BaseFilterArgs,
-  Filter,
-  FilterArgs,
-  FilterTypes,
-  RangeFilterArgs
-} from "./types/filters";
 import { assertArgLength } from "./helpers/assert-arg-length";
-import Account from "./things/account";
-import { SubscriptionId, SubscriptionName } from "./types/subscriptions";
 import {
   parseFilter,
   parseFilterDetails,
   parseFilterRange
 } from "./helpers/filter-parsing";
-import { Hardfork } from "./options/chain-options";
+import { Hardfork } from "@ganache/ethereum-options";
 
 // Read in the current ganache version from core's package.json
-const { version } = $INLINE_JSON("../../../packages/ganache/package.json");
+const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
 const { keccak } = utils;
 //#endregion
 

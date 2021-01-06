@@ -1,33 +1,37 @@
 import { EOL } from "os";
-import RuntimeError, { RETURN_TYPES } from "./errors/runtime-error";
 import Miner from "./miner/miner";
 import Database from "./database";
 import Emittery from "emittery";
 import BlockManager from "./data-managers/block-manager";
-import BlockLogs from "./things/blocklogs";
+import {
+  BlockLogs,
+  Account,
+  Transaction,
+  TransactionReceipt,
+  Address,
+  RuntimeBlock,
+  Block,
+  ITraceData,
+  TraceDataFactory,
+  TraceStorageMap,
+  RuntimeError,
+  RETURN_TYPES,
+  Snapshots
+} from "@ganache/ethereum-utils";
 import TransactionManager from "./data-managers/transaction-manager";
 import SecureTrie from "merkle-patricia-tree/secure";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
-import Account from "./things/account";
 import { promisify } from "util";
-import { Quantity, Data } from "@ganache/utils";
+import { Quantity, Data, utils } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
-import { utils } from "@ganache/utils";
-import Transaction from "./things/transaction";
 import Manager from "./data-managers/manager";
-import TransactionReceipt from "./things/transaction-receipt";
 import { encode as rlpEncode } from "rlp";
 import Common from "ethereumjs-common";
 import VM from "ethereumjs-vm";
-import Address from "./things/address";
 import BlockLogManager from "./data-managers/blocklog-manager";
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
-import { EthereumInternalOptions } from "./options";
-import { Snapshots } from "./types/snapshots";
-import { RuntimeBlock, Block } from "./things/runtime-block";
-import { ITraceData, TraceDataFactory } from "./things/trace-data";
-import TraceStorageMap from "./things/trace-storage-map";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 
 const {
   BUFFER_EMPTY,

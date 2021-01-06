@@ -3,14 +3,11 @@ import compile, { CompileOutput } from "../../helpers/compile";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import path from "path";
-import { Quantity, Data } from "@ganache/utils";
+import { Quantity, Data, EthereumAddress } from "@ganache/utils";
 import Blockchain from "../../../src/blockchain";
-import Account from "../../../src/things/account";
-import Address from "../../../src/things/address";
+import { Account, Transaction, TraceStorageMap } from "@ganache/ethereum-utils";
 import Common from "ethereumjs-common";
-import Transaction from "../../../src/things/transaction";
-import { EthereumOptionsConfig } from "../../../src/options/index";
-import TraceStorageMap from "../../../src/things/trace-storage-map";
+import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 
 describe("api", () => {
   describe("debug", () => {
@@ -188,7 +185,7 @@ describe("api", () => {
         .toString()
         .replace("0x", "");
 
-      const address = new Address(from);
+      const address = new EthereumAddress(from);
       const initialAccounts = [new Account(address)];
 
       // The following will set up a vm, deploy the debugging contract,

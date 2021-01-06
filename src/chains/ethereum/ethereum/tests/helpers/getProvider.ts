@@ -1,6 +1,6 @@
 import { utils } from "@ganache/utils";
 import EthereumProvider from "../../src/provider";
-import { EthereumProviderOptions } from "../../src/options";
+import { EthereumProviderOptions } from "@ganache/ethereum-options";
 const { RequestCoordinator, Executor } = utils;
 
 const mnemonic =

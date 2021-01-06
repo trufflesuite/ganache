@@ -1,8 +1,6 @@
-import { utils } from "@ganache/utils";
-import { Data, Quantity } from "@ganache/utils";
-import Address from "./things/address";
+import { Address, Account } from "@ganache/ethereum-utils";
+import { Data, Quantity, utils } from "@ganache/utils";
 import { privateToAddress } from "ethereumjs-util";
-import Account from "./things/account";
 import secp256k1 from "secp256k1";
 import { mnemonicToSeedSync } from "bip39";
 import HDKey from "hdkey";
@@ -10,7 +8,7 @@ import { alea as rng } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
 import { writeFileSync } from "fs";
-import { EthereumInternalOptions } from "./options";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 
 //#region Constants
 const SCRYPT_PARAMS = {
