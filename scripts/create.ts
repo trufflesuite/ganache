@@ -54,7 +54,7 @@ const argv = yargs
         .option("folder", {
           alias: "f",
           default: null,
-          describe: `Optional override for the folder name for the package instead of using <name>.`,
+          describe: chalk`Optional override for the folder name for the package instead of using {dim <}name{dim >}.`,
           type: "string"
         });
     }
