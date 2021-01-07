@@ -31,7 +31,7 @@ const chainLocations = getDirectories(join(__dirname, "../src/chains")).map(
 locations = locations.concat(chainLocations);
 const argv = yargs
   .command(
-    `$0 <name> [options]`,
+    `$0 <name> --location`,
     `Create a new package in the given location with the provided name.`,
     yargs => {
       return yargs
@@ -40,7 +40,7 @@ const argv = yargs
             chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim [}options{dim ]}`
         )
         .positional("name", {
-          describe: `The name of the new package`,
+          describe: `          The name for the new package.`,
           type: "string",
           demandOption: true
         })
@@ -54,7 +54,7 @@ const argv = yargs
         .option("folder", {
           alias: "f",
           default: null,
-          describe: `Optional override for the folder name of the package instead of using <name>`,
+          describe: `Optional override for the folder name for the package instead of using <name>.`,
           type: "string"
         });
     }

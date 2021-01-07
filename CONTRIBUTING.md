@@ -59,9 +59,7 @@ Runs all tests:
 
 ## To create a new package
 
-- `npm run create -- <name> --location <location> [--folder <folder>]`
-
-**NOTE:** You must pass the `--` that follows `create`.
+- `npm run create <name> --location <location> [--folder <folder>]`
 
 This will create a new package with Ganache defaults at `src/<location>/<name>`.
 
