@@ -6,7 +6,7 @@ import prettier from "prettier";
 import camelCase from "camelcase";
 import npmValiddate from "validate-npm-package-name";
 import userName from "git-user-name";
-import { join, resolve } from "path";
+import { sep, join, resolve } from "path";
 import { highlight } from "cli-highlight";
 import { mkdir, mkdirSync, writeFile } from "fs-extra";
 import {
@@ -95,7 +95,7 @@ process.stdout.write(`${COLORS.Reset}`);
   }
 
   // determines how many `../` are needed for package contents
-  const numDirectoriesAwayFromRoot = 3 + (/\//g.exec(location) || []).length;
+  const numDirectoriesAwayFromRoot = 3 + location.split(sep).length;
   const relativePathToRoot = "../".repeat(numDirectoriesAwayFromRoot);
 
   try {
