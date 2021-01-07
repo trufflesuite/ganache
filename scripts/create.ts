@@ -90,7 +90,7 @@ process.stdout.write(`${COLORS.Reset}`);
   const nameValidation = npmValiddate(name);
   if (!nameValidation.validForNewPackages) {
     throw new Error(
-      `Name "${name}" is not a valid NPM name:\n${nameValidation.errors}`
+      `the name "${name}" is not a valid npm package name:\n${nameValidation.errors}`
     );
   }
 
