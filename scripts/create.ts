@@ -24,9 +24,7 @@ const COLORS = {
   FgRed: "\x1b[31m"
 };
 
-let locations = getDirectories(join(__dirname, "../src")).filter(
-  d => d !== "chains"
-);
+let locations = getDirectories(join(__dirname, "../src"));
 const chainLocations = getDirectories(join(__dirname, "../src/chains")).map(
   d => `chains/${d}`
 );
@@ -97,9 +95,25 @@ process.stdout.write(`${COLORS.Reset}`);
   // determines how many `../` are needed for package contents
   const numDirectoriesAwayFromRoot = 3 + location.split(sep).length;
   const relativePathToRoot = "../".repeat(numDirectoriesAwayFromRoot);
+  const isNewChain = location === "chains";
 
+  const workspaceDir = join(__dirname, "../");
+  const dir = join(workspaceDir, "src", location, folderName || name);
+
+  if (isNewChain) {
+    mkdirSync(dir);
+
+    const fullLocation = `${location}/${folderName || name}`;
+    console.log(
+      chalk`{green success} {magenta create} New chain folder {bgBlack  ${name} } created at ./src/${fullLocation}.`
+    );
+    console.log("");
+    console.log(
+      chalk`  Add packages to this chain by running: {bgBlack {bold npm run create {dim <}name{dim >} {dim --}location ${fullLocation}}}`
+    );
+    return;
+  }
   try {
-    const workspaceDir = join(__dirname, "../");
     const LICENSE = readFile(join(workspaceDir, "LICENSE"), "utf-8");
 
     const prettierConfig = await prettier.resolveConfig(process.cwd());
@@ -182,7 +196,6 @@ describe("${packageName}", () => {
 }
 `;
 
-    const dir = join(workspaceDir, "src", location, folderName || name);
     const tests = join(dir, "tests");
     const src = join(dir, "src");
 
