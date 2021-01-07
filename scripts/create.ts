@@ -31,13 +31,13 @@ const chainLocations = getDirectories(join(__dirname, "../src/chains")).map(
 locations = locations.concat(chainLocations);
 const argv = yargs
   .command(
-    `$0 <name> --location`,
+    `$0 <name> --location [--folder]`,
     `Create a new package in the given location with the provided name.`,
     yargs => {
       return yargs
         .usage(
-          chalk`{hex("#e4a663").bold Create a new package in the given location with the provided name.}\n\n` +
-            chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim [}options{dim ]}`
+          chalk`{hex("#e4a663").bold Create a new package in the given {dim <}location{dim >} with the provided {dim <}name{dim >}.}\n\n` +
+            chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}location{dim >} {dim [--folder <folder>]}`
         )
         .positional("name", {
           describe: `          The name for the new package.`,
@@ -48,14 +48,11 @@ const argv = yargs
           alias: "l",
           describe: `The location for the new package.`,
           choices: locations,
-          type: "string",
           demandOption: true
         })
         .option("folder", {
           alias: "f",
-          default: null,
-          describe: chalk`Optional override for the folder name for the package instead of using {dim <}name{dim >}.`,
-          type: "string"
+          describe: chalk`Optional override for the folder name for the package instead of using {dim <}name{dim >}.`
         });
     }
   )
@@ -63,6 +60,8 @@ const argv = yargs
   .version(false)
   .help(false)
   .updateStrings({
+    "Positionals:": chalk.bold("Options"),
+    "Options:": ` `,
     "Not enough non-option arguments: got %s, need at least %s": {
       one: chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`,
       other: chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`
@@ -83,7 +82,7 @@ process.stdout.write(`${COLORS.Reset}`);
 (async function () {
   let name = argv.name;
   const location = argv.location;
-  const folderName = argv.folder as null | string;
+  const folderName = (argv.folder as string) || name;
 
   const nameValidation = npmValiddate(name);
   if (!nameValidation.validForNewPackages) {
@@ -98,12 +97,12 @@ process.stdout.write(`${COLORS.Reset}`);
   const isNewChain = location === "chains";
 
   const workspaceDir = join(__dirname, "../");
-  const dir = join(workspaceDir, "src", location, folderName || name);
+  const dir = join(workspaceDir, "src", location, folderName);
 
   if (isNewChain) {
     mkdirSync(dir);
 
-    const fullLocation = `${location}/${folderName || name}`;
+    const fullLocation = join(location, folderName);
     console.log(
       chalk`{green success} {magenta create} New chain folder {bgBlack  ${name} } created at ./src/${fullLocation}.`
     );
@@ -127,12 +126,10 @@ process.stdout.write(`${COLORS.Reset}`);
       version,
       description: "",
       author: packageAuthor || require("../package.json").author,
-      homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${
-        folderName || name
-      }#readme`,
+      homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${folderName}#readme`,
       license: "MIT",
       main: "lib/index.js",
-      types: "src/index.ts",
+      types: "lib/index.d.ts",
       source: "index.ts",
       directories: {
         lib: "lib",
@@ -142,7 +139,7 @@ process.stdout.write(`${COLORS.Reset}`);
       repository: {
         type: "git",
         url: "https://github.com/trufflesuite/ganache-core.git",
-        directory: `src/${location}/${folderName || name}`
+        directory: `src/${location}/${folderName}`
       },
       scripts: {
         tsc: "ttsc",
@@ -297,9 +294,11 @@ typedoc.json
     );
 
     console.log(
-      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created at ./src/${location}/${
-        folderName || name
-      }.`
+      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created at .${sep}${join(
+        "src",
+        location,
+        folderName
+      )}.`
     );
     console.log("");
     console.log(
