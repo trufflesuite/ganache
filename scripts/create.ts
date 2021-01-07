@@ -86,7 +86,6 @@ process.stdout.write(`${COLORS.Reset}`);
   let name = argv.name;
   const location = argv.location;
   const folderName = argv.folder as null | string;
-  console.log(argv);
 
   const nameValidation = npmValiddate(name);
   if (!nameValidation.validForNewPackages) {
