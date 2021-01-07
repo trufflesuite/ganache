@@ -2,7 +2,7 @@
   "name": "@ganache/filecoin-options",
   "version": "0.1.0",
   "description": "",
-  "author": "ConsenSys",
+  "author": "Tim Coulter",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/filecoin/options#readme",
   "license": "MIT",
   "main": "lib/index.js",

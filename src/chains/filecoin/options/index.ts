@@ -2,7 +2,7 @@
  * @ganache/filecoin-options
  *
  * @copyright Truffle Blockchain Group
- * @author Mike Seese
+ * @author Tim Coulter
  * @license MIT
  */
 

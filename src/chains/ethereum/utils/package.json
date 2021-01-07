@@ -2,11 +2,11 @@
   "name": "@ganache/ethereum-utils",
   "version": "0.1.0",
   "description": "",
-  "author": "Mike Seese",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/utils#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "src/index.ts",
+  "types": "lib/index.d.ts",
   "source": "index.ts",
   "directories": {
     "lib": "lib",

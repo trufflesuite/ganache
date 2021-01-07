@@ -1,7 +1,7 @@
 /*!
  * @ganache/ethereum
  *
- * @copyright 2019-2020 Truffle Blockchain Group
+ * @copyright Truffle Blockchain Group
  * @author David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)
  * @license MIT
  */
