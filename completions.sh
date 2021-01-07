@@ -16,7 +16,7 @@ _npmScriptsCompletions() {
       while [[ "$#" -gt 0 ]]; do
         case $1 in
         -l | --location)
-          type_list=$(ls src)
+          type_list=$(cd src && find * chains/* -maxdepth 0 -type d && cd ../)
           shift
           ;;
         - | --l | --lo | --loc | --loca | --locat | --locati | --locatio)
