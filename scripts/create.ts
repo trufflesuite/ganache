@@ -202,7 +202,10 @@ describe("${packageName}", () => {
     function initSrc() {
       return writeFile(
         join(src, "index.ts"),
-        prettier.format(indexFile, { ...prettierConfig, parser: "typescript" })
+        prettier.format(indexFile, {
+          ...prettierConfig,
+          parser: "typescript"
+        })
       );
     }
 
