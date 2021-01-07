@@ -4,7 +4,6 @@ import chalk from "chalk";
 import yargs from "yargs";
 import prettier from "prettier";
 import camelCase from "camelcase";
-import npa from "npm-package-arg";
 import npmValiddate from "validate-npm-package-name";
 import userName from "git-user-name";
 import { join, resolve } from "path";
@@ -105,9 +104,6 @@ process.stdout.write(`${COLORS.Reset}`);
     const LICENSE = readFile(join(workspaceDir, "LICENSE"), "utf-8");
 
     const prettierConfig = await prettier.resolveConfig(process.cwd());
-
-    console.log(npa(name));
-    name = npa(name).name;
 
     const packageName = `@ganache/${name}`;
     let packageAuthor = userName();
