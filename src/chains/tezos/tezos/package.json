@@ -40,8 +40,8 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/options": "^0.1.0",
-    "@ganache/utils": "^0.1.0",
+    "@ganache/options": "0.1.0",
+    "@ganache/utils": "0.1.0",
     "emittery": "0.7.2"
   },
   "devDependencies": {

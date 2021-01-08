@@ -49,11 +49,10 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/core": "^0.1.0",
-    "google-closure-compiler": "20201102.0.1"
+    "@ganache/core": "0.1.0"
   },
   "dependencies": {
     "@types/node": "14.14.6",
-    "ethereumjs-util": "^7.0.7"
+    "ethereumjs-util": "7.0.7"
   }
 }
