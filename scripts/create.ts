@@ -31,7 +31,7 @@ const chainLocations = getDirectories(join(__dirname, "../src/chains")).map(
 locations = locations.concat(chainLocations);
 const argv = yargs
   .command(
-    `$0 <name> --location [--folder]`,
+    `$0 <name> [options]`,
     `Create a new package in the given location with the provided name.`,
     yargs => {
       return yargs
@@ -40,19 +40,22 @@ const argv = yargs
             chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}location{dim >} {dim [--folder <folder>]}`
         )
         .positional("name", {
-          describe: `          The name for the new package.`,
+          describe: `The name for the new package.`,
           type: "string",
           demandOption: true
         })
         .option("location", {
           alias: "l",
           describe: `The location for the new package.`,
+          type: "string",
           choices: locations,
           demandOption: true
         })
         .option("folder", {
           alias: "f",
-          describe: chalk`Optional override for the folder name for the package instead of using {dim <}name{dim >}.`
+          describe: chalk`Optional override for the folder name for the package instead of using {dim <}name{dim >}.`,
+          type: "string",
+          demandOption: false
         });
     }
   )
@@ -60,8 +63,6 @@ const argv = yargs
   .version(false)
   .help(false)
   .updateStrings({
-    "Positionals:": chalk.bold("Options"),
-    "Options:": ` `,
     "Not enough non-option arguments: got %s, need at least %s": {
       one: chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`,
       other: chalk`{red {bold ERROR! Not enough non-option arguments:}\n  got %s, need at least %s}`
