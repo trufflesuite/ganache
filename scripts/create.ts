@@ -31,28 +31,29 @@ const chainLocations = getDirectories(join(__dirname, "../src/chains")).map(
 locations = locations.concat(chainLocations);
 const argv = yargs
   .command(
-    `$0 <name> --location [--folder]`,
+    `$0 <name> <location> [<folder>]`,
     `Create a new package in the given location with the provided name.`,
     yargs => {
       return yargs
         .usage(
           chalk`{hex("#e4a663").bold Create a new package in the given {dim <}location{dim >} with the provided {dim <}name{dim >}.}\n\n` +
-            chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}location{dim >} {dim [--folder <folder>]}`
+            chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim <}location{dim >} {dim [<folder>]}`
         )
         .positional("name", {
-          describe: `          The name for the new package.`,
+          describe: `The name for the new package.`,
           type: "string",
           demandOption: true
         })
-        .option("location", {
-          alias: "l",
+        .positional("location", {
           describe: `The location for the new package.`,
+          type: "string",
           choices: locations,
           demandOption: true
         })
-        .option("folder", {
-          alias: "f",
-          describe: chalk`Optional override for the folder name for the package instead of using {dim <}name{dim >}.`
+        .positional("folder", {
+          describe: chalk`Optional override for the folder name for the package instead of using {dim <}name{dim >}.`,
+          type: "string",
+          demandOption: false
         });
     }
   )
