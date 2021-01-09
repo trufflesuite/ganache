@@ -5,7 +5,7 @@
 
 import { resolve, join, relative } from "path";
 import glob from "glob";
-import { readFileSync, writeFileSync } from "fs-extra";
+import { writeFileSync } from "fs-extra";
 
 type Mapping = { [key: string]: string };
 
