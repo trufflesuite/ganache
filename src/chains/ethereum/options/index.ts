@@ -6,6 +6,4 @@
  * @license MIT
  */
 
-export default {
-  // TODO
-};
+export * from "./src";
