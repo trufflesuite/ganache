@@ -44,8 +44,5 @@
     "@ganache/ethereum": "^0.1.0",
     "@ganache/tezos": "^0.1.0",
     "@ganache/utils": "^0.1.0"
-  },
-  "devDependencies": {
-    "google-closure-compiler": "20201102.0.1"
   }
 }

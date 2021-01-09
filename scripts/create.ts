@@ -4,9 +4,9 @@ import chalk from "chalk";
 import yargs from "yargs";
 import prettier from "prettier";
 import camelCase from "camelcase";
-import npa from "npm-package-arg";
+import npmValiddate from "validate-npm-package-name";
 import userName from "git-user-name";
-import { join, resolve } from "path";
+import { sep, join, resolve } from "path";
 import { highlight } from "cli-highlight";
 import { mkdir, mkdirSync, writeFile } from "fs-extra";
 import {
@@ -24,32 +24,35 @@ const COLORS = {
   FgRed: "\x1b[31m"
 };
 
-const scopes = getDirectories(join(__dirname, "../src"));
+let locations = getDirectories(join(__dirname, "../src"));
+const chainLocations = getDirectories(join(__dirname, "../src/chains")).map(
+  d => `chains/${d}`
+);
+locations = locations.concat(chainLocations);
 const argv = yargs
   .command(
-    `$0 <name> --location`,
+    `$0 <name> --location [--folder]`,
     `Create a new package in the given location with the provided name.`,
     yargs => {
       return yargs
         .usage(
-          chalk`{hex("#e4a663").bold Create a new package in the given location with the provided name.}\n\n` +
-            chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}${scopes.join(
-              chalk.dim(" | ")
-            )}{dim >}`
+          chalk`{hex("#e4a663").bold Create a new package in the given {dim <}location{dim >} with the provided {dim <}name{dim >}.}\n\n` +
+            chalk`{bold Usage}\n  {bold $} {dim <}name{dim >} {dim --}location {dim <}location{dim >} {dim [--folder <folder>]}`
         )
-        .positional("<name>", {
-          describe: `        The name of the new package`,
+        .positional("name", {
+          describe: `          The name for the new package.`,
           type: "string",
           demandOption: true
         })
-        .alias("name", "<name>")
         .option("location", {
           alias: "l",
-          default: "packages",
           describe: `The location for the new package.`,
-          choices: scopes,
-          type: "string",
+          choices: locations,
           demandOption: true
+        })
+        .option("folder", {
+          alias: "f",
+          describe: chalk`Optional override for the folder name for the package instead of using {dim <}name{dim >}.`
         });
     }
   )
@@ -78,15 +81,41 @@ process.stdout.write(`${COLORS.Reset}`);
 
 (async function () {
   let name = argv.name;
-  let location = argv.location;
+  const location = argv.location;
+  const folderName = (argv.folder as string) || name;
 
+  const nameValidation = npmValiddate(name);
+  if (!nameValidation.validForNewPackages) {
+    throw new Error(
+      `the name "${name}" is not a valid npm package name:\n${nameValidation.errors}`
+    );
+  }
+
+  // determines how many `../` are needed for package contents
+  const numDirectoriesAwayFromRoot = 3 + location.split(sep).length;
+  const relativePathToRoot = "../".repeat(numDirectoriesAwayFromRoot);
+  const isNewChain = location === "chains";
+
+  const workspaceDir = join(__dirname, "../");
+  const dir = join(workspaceDir, "src", location, folderName);
+
+  if (isNewChain) {
+    mkdirSync(dir);
+
+    const fullLocation = join(location, folderName);
+    console.log(
+      chalk`{green success} {magenta create} New chain folder {bgBlack  ${name} } created at ./src/${fullLocation}.`
+    );
+    console.log("");
+    console.log(
+      chalk`  Add packages to this chain by running: {bgBlack {bold npm run create {dim <}name{dim >} {dim --}location ${fullLocation}}}`
+    );
+    return;
+  }
   try {
-    const workspaceDir = join(__dirname, "../");
     const LICENSE = readFile(join(workspaceDir, "LICENSE"), "utf-8");
 
     const prettierConfig = await prettier.resolveConfig(process.cwd());
-
-    name = npa(name).name;
 
     const packageName = `@ganache/${name}`;
     let packageAuthor = userName();
@@ -97,10 +126,10 @@ process.stdout.write(`${COLORS.Reset}`);
       version,
       description: "",
       author: packageAuthor || require("../package.json").author,
-      homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${name}#readme`,
+      homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${folderName}#readme`,
       license: "MIT",
       main: "lib/index.js",
-      types: "src/index.ts",
+      types: "lib/index.d.ts",
       source: "index.ts",
       directories: {
         lib: "lib",
@@ -110,7 +139,7 @@ process.stdout.write(`${COLORS.Reset}`);
       repository: {
         type: "git",
         url: "https://github.com/trufflesuite/ganache-core.git",
-        directory: `src/${location}/${name}`
+        directory: `src/${location}/${folderName}`
       },
       scripts: {
         tsc: "ttsc",
@@ -139,7 +168,7 @@ process.stdout.write(`${COLORS.Reset}`);
     };
 
     const tsConfig = {
-      extends: "../../../tsconfig.json",
+      extends: `${relativePathToRoot}tsconfig.json`,
       compilerOptions: {
         outDir: "lib"
       },
@@ -164,14 +193,16 @@ describe("${packageName}", () => {
 }
 `;
 
-    const dir = join(workspaceDir, "src", location, name);
     const tests = join(dir, "tests");
     const src = join(dir, "src");
 
     function initSrc() {
       return writeFile(
         join(src, "index.ts"),
-        prettier.format(indexFile, { ...prettierConfig, parser: "typescript" })
+        prettier.format(indexFile, {
+          ...prettierConfig,
+          parser: "typescript"
+        })
       );
     }
 
@@ -263,7 +294,11 @@ typedoc.json
     );
 
     console.log(
-      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created at ./src/packages/${name}.`
+      chalk`{green success} {magenta create} New package {bgBlack  ${name} } created at .${sep}${join(
+        "src",
+        location,
+        folderName
+      )}.`
     );
     console.log("");
     console.log(

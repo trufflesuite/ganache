@@ -45,7 +45,6 @@
     "seedrandom": "3.0.5"
   },
   "devDependencies": {
-    "@types/seedrandom": "2.4.28",
-    "google-closure-compiler": "20201102.0.1"
+    "@types/seedrandom": "2.4.28"
   }
 }
