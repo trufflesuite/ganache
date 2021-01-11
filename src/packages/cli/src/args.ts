@@ -1,5 +1,9 @@
 import yargs from "yargs";
-import { DefaultFlavor, DefaultOptionsByName } from "@ganache/flavors";
+import {
+  DefaultFlavor,
+  DefaultOptionsByName,
+  EthereumFlavorName
+} from "@ganache/flavors";
 import { Definitions } from "@ganache/options";
 
 const COLORS = {
@@ -14,6 +18,15 @@ export default function (version: string, isDocker: boolean) {
 
   for (const [flavor, flavorDefaults] of Object.entries(DefaultOptionsByName)) {
     const commandAliases = flavor === DefaultFlavor ? ["$0", flavor] : flavor;
+    let defaultPort: number;
+    switch (flavor) {
+      case EthereumFlavorName:
+      default: {
+        defaultPort = 8545;
+        break;
+      }
+    }
+
     args = args.command(
       commandAliases,
       `Use the ${flavor} flavor of Ganache`,
@@ -21,6 +34,10 @@ export default function (version: string, isDocker: boolean) {
         const categories = Object.keys(flavorDefaults);
 
         for (const category of categories) {
+          flavorArgs = flavorArgs.option(category, {
+            hidden: true
+          });
+
           const group = `${category.charAt(0).toUpperCase()}${category.substr(
             1
           )}:`;
@@ -52,6 +69,19 @@ export default function (version: string, isDocker: boolean) {
                   defaultValue = defaultGetter();
                 }
               } catch (e) {}
+              if (
+                optionObj.cliType === "array" &&
+                !Array.isArray(defaultValue)
+              ) {
+                // if we pass `default: undefined`, yargs will return `[ undefined ]`
+                // this just explicitly fixes array types
+
+                if (typeof defaultValue === "undefined") {
+                  defaultValue = [];
+                } else {
+                  defaultValue = [defaultValue];
+                }
+              }
 
               flavorArgs = flavorArgs.option(`${category}.${option}`, {
                 group,
@@ -59,13 +89,46 @@ export default function (version: string, isDocker: boolean) {
                 alias,
                 default: defaultValue,
                 defaultDescription: (optionObj as any).defaultDescription,
-                type: optionObj.cliType,
+                type: optionObj.cliChoices ? undefined : optionObj.cliType,
                 choices: optionObj.cliChoices,
                 coerce: optionObj.normalize
               });
             }
           }
         }
+
+        flavorArgs = flavorArgs
+          .option("server", {
+            hidden: true
+          })
+          .option("server.host", {
+            group: "Server:",
+            description: `Hostname to listen on.\n${COLORS.Bold}${COLORS.FgYellow}Deprecated aliases: host, hostname${COLORS.Reset}\n`,
+            alias: ["h", "host", "hostname"],
+            type: "string",
+            default: isDocker ? "0.0.0.0" : "127.0.0.1"
+          })
+          .option("server.port", {
+            group: "Server:",
+            description: `Hostname to listen on.\n${COLORS.Bold}${COLORS.FgYellow}Deprecated aliases: port${COLORS.Reset}\n`,
+            alias: ["p", "port"],
+            type: "number",
+            default: defaultPort
+          })
+          .check(argv => {
+            const serverSettings = argv.server as any;
+            if (serverSettings.port < 1 || serverSettings.port > 65535) {
+              throw new Error(`Invalid port number '${serverSettings.port}'`);
+            }
+
+            if (serverSettings.host.trim() === "") {
+              throw new Error(
+                "Cannot leave hostname blank; please provide a hostname"
+              );
+            }
+
+            return true;
+          });
       }
     );
   }
@@ -78,20 +141,4 @@ export default function (version: string, isDocker: boolean) {
     .version(version);
 
   return args;
-
-  // return yargs
-  //   .strict()
-  //   .check(argv => {
-  //     if (argv.p < 1 || argv.p > 65535) {
-  //       throw new Error(`Invalid port number '${argv.p}'`);
-  //     }
-
-  //     if (argv.h.trim() == "") {
-  //       throw new Error(
-  //         "Cannot leave hostname blank; please provide a hostname"
-  //       );
-  //     }
-
-  //     return true;
-  //   });
 }

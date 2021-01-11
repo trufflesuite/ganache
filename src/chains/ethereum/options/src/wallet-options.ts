@@ -2,7 +2,7 @@ import { normalize } from "./helpers";
 import seedrandom from "seedrandom";
 import { entropyToMnemonic } from "bip39";
 
-import { Definitions } from "@ganache/options";
+import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
 const { alea } = seedrandom;
 
@@ -223,7 +223,10 @@ export const WalletOptions: Definitions<WalletConfig> = {
   seed: {
     normalize,
     shortDescription: "Seed to use to generate a mnemonic.",
-    default: () => randomAlphaNumericString(10, alea()),
+    default: config =>
+      config.deterministic
+        ? DeterministicSeedPhrase
+        : randomAlphaNumericString(10, alea()),
     defaultDescription:
       "Random value, unless wallet.deterministic is specified",
     legacyName: "seed",

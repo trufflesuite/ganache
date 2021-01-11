@@ -1,21 +1,23 @@
 import * as Ethereum from "@ganache/ethereum";
 import { ethereumDefaults } from "@ganache/ethereum-options";
 
-export const DefaultFlavor = Ethereum.FlavorName;
+export const EthereumFlavorName = "ethereum";
+
+export const DefaultFlavor = EthereumFlavorName;
 
 export const DefaultOptionsByName: any = {
-  [Ethereum.FlavorName]: ethereumDefaults
+  [EthereumFlavorName]: ethereumDefaults
 };
 
 export type ConnectorsByName = {
-  [Ethereum.FlavorName]: Ethereum.Connector;
+  [EthereumFlavorName]: Ethereum.Connector;
 };
 
 export const ConnectorsByName = {
-  [Ethereum.FlavorName]: Ethereum.Connector
+  [EthereumFlavorName]: Ethereum.Connector
 };
 
-export type Flavor = keyof ConnectorsByName;
+export type FlavorName = keyof ConnectorsByName;
 
 export type Connector = {
   [K in keyof ConnectorsByName]: ConnectorsByName[K];
@@ -24,7 +26,7 @@ export type Connector = {
 export type Providers = Ethereum.Provider;
 
 type EthereumOptions = {
-  flavor?: typeof Ethereum.FlavorName;
+  flavor?: typeof EthereumFlavorName;
 } & Ethereum.ProviderOptions;
 
 export type Options = EthereumOptions;
