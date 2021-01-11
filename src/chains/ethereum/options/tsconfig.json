@@ -2,7 +2,12 @@
   "extends": "../../../../tsconfig.json",
   "compilerOptions": {
     "outDir": "lib",
-    "composite": true
+    "composite": true,
+    "plugins": [
+      {
+        "transform": "ts-transformer-enumerate/transformer"
+      }
+    ]
   },
   "include": ["index.ts", "src"],
   "references": [

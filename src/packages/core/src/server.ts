@@ -1,12 +1,12 @@
 import { InternalOptions, ServerOptions, serverOptionsConfig } from "./options";
 
 import uWS, { TemplatedApp, us_listen_socket } from "uWebSockets.js";
-import { Connectors } from "@ganache/flavors";
-import Connector from "./connector";
+import { Connector, DefaultFlavor } from "@ganache/flavors";
+import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 
-type Providers = Connectors["provider"];
+type Provider = Connector["provider"];
 
 const DEFAULT_HOST = "127.0.0.1";
 
@@ -47,11 +47,11 @@ export default class Server {
   #httpServer: HttpServer;
   #listenSocket?: us_listen_socket;
   #options: InternalOptions;
-  #connector: Connectors;
+  #connector: Connector;
   #status = Status.closed;
   #websocketServer: WebsocketServer | null = null;
 
-  public get provider(): Providers {
+  public get provider(): Provider {
     return this.#connector.provider;
   }
 
@@ -59,9 +59,11 @@ export default class Server {
     return this.#status;
   }
 
-  constructor(serverOptions: ServerOptions = { flavor: "ethereum" }) {
+  constructor(serverOptions: ServerOptions = { flavor: DefaultFlavor }) {
     const opts = (this.#options = serverOptionsConfig.normalize(serverOptions));
-    const connector = (this.#connector = Connector.initialize(serverOptions));
+    const connector = (this.#connector = ConnectorLoader.initialize(
+      serverOptions
+    ));
 
     const _app = (this.#app = uWS.App());
 

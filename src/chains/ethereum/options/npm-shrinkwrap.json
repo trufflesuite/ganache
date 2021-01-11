@@ -145,6 +145,11 @@
 				"safe-buffer": "~5.2.0"
 			}
 		},
+		"ts-transformer-enumerate": {
+			"version": "0.5.1",
+			"resolved": "https://registry.npmjs.org/ts-transformer-enumerate/-/ts-transformer-enumerate-0.5.1.tgz",
+			"integrity": "sha512-GLNLUSsuWD6AimzDM2nDmBzBOsUC/wLu1192o/CS4//G8ZawB71qXkF2FGrjbSvRXzAtPhqdoXWANkVGTVrjJw=="
+		},
 		"util-deprecate": {
 			"version": "1.0.2",
 			"resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",

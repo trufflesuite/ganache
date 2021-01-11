@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 
-import Ganache from "./index";
+import Ganache from "../index";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import { toChecksumAddress } from "ethereumjs-util";
 import args from "./args";
 
-const { version: ganacheVersion } = $INLINE_JSON("../core/package.json");
-const { version } = $INLINE_JSON("./package.json");
+const { version: ganacheVersion } = $INLINE_JSON("../../core/package.json");
+const { version } = $INLINE_JSON("../package.json");
 const detailedVersion =
   "Ganache CLI v" + version + " (ganache-core: " + ganacheVersion + ")";
 
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
-const argv = args(detailedVersion, isDocker).argv;
+const argv = args(detailedVersion, isDocker).argv as any;
 
 function parseAccounts(accounts: string[]) {
   function splitAccount(account: string) {
