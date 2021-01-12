@@ -74,7 +74,7 @@ export default class Server {
         opts.server
       );
     }
-    this.#httpServer = new HttpServer(_app, connector);
+    this.#httpServer = new HttpServer(_app, connector, opts.server);
   }
 
   listen(port: number): Promise<void>;
