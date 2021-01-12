@@ -176,7 +176,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   callGasLimit: {
     normalize: Quantity.from,
     shortDescription:
-      "Sets the transaction gas limit in WEI for `eth_call` and eth_estimateGas` calls.",
+      "Sets the transaction gas limit in WEI for `eth_call` and `eth_estimateGas` calls.",
     default: () => Quantity.from(Number.MAX_SAFE_INTEGER),
     legacyName: "callGasLimit",
     cliType: "string"
