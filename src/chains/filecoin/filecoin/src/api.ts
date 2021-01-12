@@ -15,43 +15,41 @@ import {
   RetrievalOffer
 } from "./things/retrieval-offer";
 
-const _blockchain = Symbol("blockchain");
-
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
-  private readonly [_blockchain]: Blockchain;
+  readonly #blockchain: Blockchain;
 
   constructor(blockchain: Blockchain) {
-    this[_blockchain] = blockchain;
+    this.#blockchain = blockchain;
   }
 
   async stop(): Promise<void> {
-    return await this[_blockchain].stop();
+    return await this.#blockchain.stop();
   }
 
   async "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset> {
-    return this[_blockchain].latestTipset().serialize();
+    return this.#blockchain.latestTipset().serialize();
   }
 
   async "Filecoin.ChainHead"(): Promise<SerializedTipset> {
-    return this[_blockchain].latestTipset().serialize();
+    return this.#blockchain.latestTipset().serialize();
   }
 
   async "Filecoin.StateListMiners"(): Promise<Array<SerializedMiner>> {
-    return [this[_blockchain].miner.serialize()];
+    return [this.#blockchain.miner.serialize()];
   }
 
   async "Filecoin.WalletDefaultAddress"(): Promise<SerializedAddress> {
-    return this[_blockchain].address.serialize();
+    return this.#blockchain.address.serialize();
   }
 
   async "Filecoin.WalletBalance"(address: string): Promise<string> {
-    let managedAddress = this[_blockchain].address;
+    let managedAddress = this.#blockchain.address;
 
     // For now, anything but our default address will have no balance
     if (managedAddress.value == address) {
-      return this[_blockchain].balance.serialize();
+      return this.#blockchain.balance.serialize();
     } else {
       return "0";
     }
@@ -61,19 +59,19 @@ export default class FilecoinApi implements types.Api {
     serializedProposal: SerializedStorageProposal
   ): Promise<SerializedRootCID> {
     let proposal = new StorageProposal(serializedProposal);
-    let proposalRootCid = await this[_blockchain].startDeal(proposal);
+    let proposalRootCid = await this.#blockchain.startDeal(proposal);
 
     return proposalRootCid.serialize();
   }
 
   async "Filecoin.ClientListDeals"(): Promise<Array<SerializedDeal>> {
-    return this[_blockchain].deals.map(deal => deal.serialize());
+    return this.#blockchain.deals.map(deal => deal.serialize());
   }
 
   async "Filecoin.ClientFindData"(
     rootCid: SerializedRootCID
   ): Promise<Array<SerializedRetrievalOffer>> {
-    let remoteOffer = await this[_blockchain].createRetrievalOffer(
+    let remoteOffer = await this.#blockchain.createRetrievalOffer(
       new RootCID(rootCid)
     );
     return [remoteOffer.serialize()];
@@ -82,13 +80,13 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.ClientHasLocal"(
     rootCid: SerializedRootCID
   ): Promise<boolean> {
-    return await this[_blockchain].hasLocal(rootCid["/"]);
+    return await this.#blockchain.hasLocal(rootCid["/"]);
   }
 
   async "Filecoin.ClientRetrieve"(
     retrievalOffer: SerializedRetrievalOffer
   ): Promise<object> {
-    await this[_blockchain].retrieve(new RetrievalOffer(retrievalOffer));
+    await this.#blockchain.retrieve(new RetrievalOffer(retrievalOffer));
 
     // Return value is a placeholder.
     //
@@ -100,7 +98,7 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.GanacheMineTipset"(): Promise<SerializedTipset> {
-    await this[_blockchain].mineTipset();
-    return this[_blockchain].latestTipset().serialize();
+    await this.#blockchain.mineTipset();
+    return this.#blockchain.latestTipset().serialize();
   }
 }
