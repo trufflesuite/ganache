@@ -52,7 +52,10 @@ export default class WebsocketServer {
         message: ArrayBuffer,
         isBinary: boolean
       ) => {
-        let payload: ReturnType<typeof connector.parse>;
+        // We have to use type any instead of ReturnType<typeof connector.parse>
+        // on `payload` because Typescript isn't smart enough to understand the
+        // ambiguity doesn't actually exist
+        let payload: any;
         const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
         try {
           payload = connector.parse(Buffer.from(message));
