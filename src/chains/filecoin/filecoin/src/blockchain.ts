@@ -19,6 +19,7 @@ import { FilecoinInternalOptions } from "@ganache/filecoin-options";
 
 export type BlockchainEvents = {
   ready(): void;
+  tipset: Tipset;
 };
 
 export default class Blockchain extends Emittery.Typed<
@@ -166,6 +167,8 @@ export default class Blockchain extends Emittery.Typed<
     }
 
     this.logLatestTipset();
+
+    this.emit("tipset", newTipset);
   }
 
   async hasLocal(cid: string): Promise<boolean> {
