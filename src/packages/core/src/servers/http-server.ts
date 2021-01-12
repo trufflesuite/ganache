@@ -139,8 +139,12 @@ export default class HttpServer {
     response.onData((message: ArrayBuffer, isLast: boolean) => {
       const chunk = Buffer.from(message);
       if (isLast) {
-        const connector = this.#connector;
-        let payload: ReturnType<typeof connector.parse>;
+        // we have to use any here because typescript isn't smart enough
+        // to understand the ambiguity of RequestFormat and ReturnType
+        // on the Connector interface must match up appropriately
+        const connector = this.#connector as any;
+
+        let payload: ReturnType<Connector["parse"]>;
         try {
           const message = buffer ? Buffer.concat([buffer, chunk]) : chunk;
           payload = connector.parse(message);
