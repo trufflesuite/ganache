@@ -69,6 +69,14 @@ export type WalletConfig = {
     };
 
     /**
+     * Use pre-defined, deterministic seed.
+     */
+    deterministic: {
+      type: boolean;
+      hasDefault: true;
+    };
+
+    /**
      * Seed to use to generate a mnemonic.
      */
     seed: {
@@ -80,14 +88,6 @@ export type WalletConfig = {
          */
         seed: number;
       };
-    };
-
-    /**
-     * Use pre-defined, deterministic seed.
-     */
-    deterministic: {
-      type: boolean;
-      hasDefault: true;
     };
 
     /**
@@ -220,9 +220,19 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliAliases: ["account"],
     cliType: "array"
   },
+  deterministic: {
+    normalize,
+    shortDescription: "Use pre-defined, deterministic seed.",
+    default: () => false,
+    cliAliases: ["d", "deterministic"],
+    cliType: "boolean"
+  },
   seed: {
     normalize,
     shortDescription: "Seed to use to generate a mnemonic.",
+    // The order of the options matter here! `wallet.deterministic`
+    // needs to be prior to `wallet.seed` for `config.deterministic`
+    // below to be set correctly
     default: config =>
       config.deterministic
         ? DeterministicSeedPhrase
@@ -233,17 +243,13 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliAliases: ["s", "seed"],
     cliType: "string"
   },
-  deterministic: {
-    normalize,
-    shortDescription: "Use pre-defined, deterministic seed.",
-    default: () => false,
-    cliAliases: ["d", "deterministic"],
-    cliType: "boolean"
-  },
   mnemonic: {
     normalize,
     shortDescription:
       "Use a specific HD wallet mnemonic to generate initial addresses.",
+    // The order of the options matter here! `wallet.seed`
+    // needs to be prior to `wallet.mnemonic` for `config.seed`
+    // below to be set correctly
     default: config =>
       entropyToMnemonic(randomBytes(16, seedrandom(config.seed))),
     defaultDescription: "Generated from wallet.seed",
