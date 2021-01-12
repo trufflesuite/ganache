@@ -1,0 +1,145 @@
+# Contributing to Ganache
+
+## Getting set up
+
+- Use Node.js v10.7.0, this is the earliest version we support.
+  - Why v10.7.0? Because this is the first version that supports BigInt literals (the `n` in `100n`).
+  - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
+    Windows, to configure your node version.
+    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v10.7.0.
+- `git clone git@github.com:trufflesuite/ganache-core.git`
+- `cd ganache-core`
+- `npm install` (use npm v6)
+- On Linux and macOS: run `source completions.sh` to enable autocomplete for npm scripts.
+
+## Solving node-gyp issues
+
+If installation fails due to a `node-gyp` issue you may need to perform some additional system configuration.
+
+### on Linux (Ubuntu-based)
+
+- Determine if you have Python 2.7 installed
+  - example: `which python2.7`
+- If you do not have Python 2.7 installed, you need to install it
+  - example: `sudo apt update && sudo apt install python2.7`
+- Finally, run `npm config set python python2.7`
+
+### on Windows
+
+- Install [https://www.npmjs.com/package/windows-build-tools](Windows-Build-Tools)
+  - `npm install --global windows-build-tools`
+
+### On macOS
+
+- I have no idea.
+
+## Clean install
+
+- `npm run reinstall`
+
+Which just runs these commands for you:
+
+- `npm run clean`
+- `npm install`
+
+This deletes all `node_modules` folders, as well as all generated `lib`
+directories, then reinstalls all modules.
+
+## To build
+
+Builds all packages:
+
+- `npm run tsc`
+
+## To test
+
+Runs all tests:
+
+- `npm test` (or the shorthand, `npm t`)
+
+## To create a new package
+
+- `npm run create <name> --location <location>`
+
+This will create a new package with Ganache defaults at `src/<location>/<name>`.
+
+## To add a module to a package:
+
+- `npx lerna add <module>[@version] -E [--dev] [--peer] --scope=<package>`
+
+Where `<module>` is the npm-module you want to add and `<package>` is where you want to add it. See
+[@lerna/add documentation](https://github.com/lerna/lerna/tree/master/commands/add) for more details.
+
+Example:
+
+```bash
+npx lerna add @ganache/options -E --scope=@ganache/filecoin
+```
+
+will add our local `@ganache/options` package to the `@ganache/filecoin` package.
+
+## To remove a module from another package:
+
+`cd` to the package and then run `npm uninstall <module>`
+
+## Editor Integrations
+
+### Automated Code Formatting
+
+- See: https://prettier.io/docs/en/editors.html
+
+### VSCode On Windows (10)
+
+- Enable "Developer Mode" by going to Settings -> Developer Settings -> Then select Developer Mode.
+
+### To debug tests in VS Code
+
+- Copy the [`launch.json`](./launch.json) file into a folder named `.vscode` in root of the project.
+- Set breakpoints by clicking the margin to the left of the line numbers (you can set conditional breakpoints or
+  logpoints by right-clicking instead)
+- Press <kbd>F5</kbd> (or select `Run` 🡺 `Start Debugging` from the menu bar) to automatically start debugging.
+
+To change which files are debugged update your `.vscode/launch.json` file glob to match your target files. Here is an
+example to debug only test files in the `@ganache/ethereum` package:
+
+```diff
+diff --git a/.vscode/launch.json b/.vscode/launch.json
+index 2a2aa9e..57cbf21 100644
+--- a/.vscode/launch.json
++++ b/.vscode/launch.json
+@@ -24,7 +24,7 @@
+         "--colors",
+         "--require",
+         "ts-node/register",
+-        "${workspaceFolder}/src/**/tests/**/*.test.ts"
++        "${workspaceFolder}/src/chains/ethereum/tests/**/*.test.ts"
+       ],
+       "skipFiles": ["<node_internals>/**"],
+       "console": "integratedTerminal",
+```
+
+## Code Conventions
+
+These are guidelines, not rules. :-)
+
+- Use Node.js v10.7.0 for most local development.
+- Use `bigint` literals, e.g., `123n`; if the number is externally configurable and/or could exceed
+  `Number.MAX_SAFE_INTEGER`.
+- Write tests.
+- Do not use "Optional Chaining" (`obj?.prop`). I'd love to enable this, but TypeScript makes it hard to use bigint
+  literals and optional chaining together. If you figure it out, delete this rule!
+- Prefer using a single loop to functional chaining.
+- Prefer performant code over your own developer experience.
+- Document complex code. Explain why the code does what it does.
+- Feel free to be clever, just document _why_ you're being clever. If it's hard to read, comment _what_ the code does,
+  too.
+- Add JSDoc comments to public class members where it makes sense.
+- Before adding an external dependency check its code for quality, its # of external dependencies, its node version
+  support, and make sure it's absolutely necessary.
+- Pin all dependencies, even dev dependencies.
+- Use npm; do not use yarn.
+- Don't use web3, ethers, etc in ganache-core core code. (Tests are fine)
+- Ensure a smooth development experience on Windows, Mac, and Linux.
+- Do not use bash scripts for critical development or configuration.
+- Do not use CLI commands in npm scripts or build scripts that aren't available by default on supported platforms.
+- Push your code often (at least every-other day!), even broken WIP code (to your own branch, of course).

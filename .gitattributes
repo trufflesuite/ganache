@@ -1,0 +1,3 @@
+docs/launch.json linguist-language=JSON5
+.nycrc linguist-language=JSON
+.prettierrc linguist-language=JSON

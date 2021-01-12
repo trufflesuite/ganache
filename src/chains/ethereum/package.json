@@ -1,0 +1,92 @@
+{
+  "name": "@ganache/ethereum",
+  "version": "0.1.0",
+  "description": "Ganache's Ethereum client implementation",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/ethereum#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/chains/ethereum"
+  },
+  "scripts": {
+    "docs.build": "rm -rf ./lib/docs ./lib/api.json && typedoc --options ./typedoc.json --readme ./README.md --out ./lib/docs --json ./lib/api.json src/api.ts && npm run docs.post-process",
+    "docs.post-process": "node ./scripts/post-process-docs.js",
+    "tsc": "ttsc",
+    "test": "nyc --reporter lcov npm run mocha",
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-ethereum",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling"
+  ],
+  "dependencies": {
+    "@ganache/options": "^0.1.0",
+    "@ganache/promise-queue": "^0.1.0",
+    "@ganache/utils": "^0.1.0",
+    "@types/keccak": "3.0.1",
+    "bip39": "3.0.2",
+    "emittery": "0.7.2",
+    "eth-sig-util": "2.5.3",
+    "ethereumjs-abi": "0.6.8",
+    "ethereumjs-account": "3.0.0",
+    "ethereumjs-block": "2.2.2",
+    "ethereumjs-common": "1.5.2",
+    "ethereumjs-tx": "2.1.2",
+    "ethereumjs-util": "7.0.7",
+    "ethereumjs-vm": "4.2.0",
+    "hdkey": "2.0.1",
+    "keccak": "3.0.0",
+    "leveldown": "5.6.0",
+    "levelup": "4.4.0",
+    "lodash.clonedeep": "4.5.0",
+    "merkle-patricia-tree": "3.0.0",
+    "scrypt-js": "3.0.1",
+    "secp256k1": "4.0.2",
+    "seedrandom": "3.0.5",
+    "subleveldown": "5.0.1",
+    "tmp-promise": "3.0.2"
+  },
+  "devDependencies": {
+    "@trufflesuite/typedoc-default-themes": "0.6.1",
+    "@types/fs-extra": "9.0.2",
+    "@types/lodash.clonedeep": "4.5.6",
+    "@types/secp256k1": "4.0.1",
+    "@types/seedrandom": "2.4.28",
+    "@types/ws": "7.2.7",
+    "cheerio": "1.0.0-rc.3",
+    "fs-extra": "9.0.1",
+    "local-web-server": "4.2.1",
+    "solc": "0.7.4",
+    "ts-transformer-inline-file": "0.1.1",
+    "typedoc": "0.17.8",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+  }
+}

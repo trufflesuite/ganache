@@ -1,0 +1,34 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Typescript Mocha All",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_COMPILER": "ttypescript",
+        "TS_NODE_FILES": "true"
+      },
+      // 10.7.0 is the earliest version of Node.js that we support, and is the first version to support BigInt literals.
+      "runtimeVersion": "10.7.0",
+      "args": [
+        "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+        "--throw-deprecation",
+        "--trace-warnings",
+        "--check-leaks",
+        "--no-timeout",
+        "--colors",
+        "--require",
+        "ts-node/register",
+        "${workspaceFolder}/src/**/tests/**/*.test.ts"
+      ],
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}

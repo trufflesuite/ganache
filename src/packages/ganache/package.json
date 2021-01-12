@@ -1,0 +1,80 @@
+{
+  "name": "ganache",
+  "version": "3.0.0-internal.0",
+  "description": "A library and cli to create a local blockchain for fast Ethereum development.",
+  "author": "David Murdoch",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
+  "license": "MIT",
+  "main": "dist/node/ganache.min.js",
+  "browser": "dist/web/ganache.min.js",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
+  "bin": {
+    "ganache": "dist/cli/ganache.min.js",
+    "ganache-cli": "dist/cli/ganache.min.js"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/packages/ganache"
+  },
+  "scripts": {
+    "build": "webpack",
+    "tsc": "ttsc",
+    "test": "nyc npm run mocha",
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling",
+    "truffle"
+  ],
+  "devDependencies": {
+    "@ganache/cli": "^0.1.0",
+    "@ganache/flavors": "^0.1.0",
+    "@types/node": "14.14.6",
+    "assert": "2.0.0",
+    "buffer": "6.0.1",
+    "crypto-browserify": "3.12.0",
+    "events": "3.2.0",
+    "level-js": "5.0.2",
+    "node-loader": "1.0.2",
+    "os-browserify": "0.3.0",
+    "path-browserify": "1.0.1",
+    "process": "0.11.10",
+    "shebang-loader": "0.0.1",
+    "stream-browserify": "3.0.0",
+    "ts-loader": "8.0.7",
+    "ts-node": "9.0.0",
+    "ttypescript": "1.5.12",
+    "typescript": "4.1.1-rc",
+    "util": "0.12.3",
+    "webpack": "5.4.0",
+    "webpack-cli": "4.2.0"
+  },
+  "dependencies": {
+    "bigint-buffer": "1.1.5",
+    "keccak": "3.0.1",
+    "leveldown": "5.6.0",
+    "secp256k1": "4.0.2"
+  }
+}
