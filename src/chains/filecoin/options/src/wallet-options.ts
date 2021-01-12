@@ -26,38 +26,41 @@ export type OptionsAccount = {
 export type WalletConfig = {
   options: {
     /**
-     * Seed to use to generate a mnemonic.
-     */
-    seed: {
-      type: string;
-      hasDefault: true;
-    };
-
-    /**
      * Use pre-defined, deterministic seed.
      */
     deterministic: {
       type: boolean;
       hasDefault: true;
     };
+
+    /**
+     * Seed to use to generate a mnemonic.
+     */
+    seed: {
+      type: string;
+      hasDefault: true;
+    };
   };
 };
 
 export const WalletOptions: Definitions<WalletConfig> = {
-  seed: {
-    normalize,
-    shortDescription: "Seed to use to generate a mnemonic.",
-    default: config =>
-      config.deterministic
-        ? DeterministicSeedPhrase
-        : randomAlphaNumericString(10, alea()),
-    cliType: "string"
-  },
   deterministic: {
     normalize,
     shortDescription: "Use pre-defined, deterministic seed.",
     default: () => false,
     cliAliases: ["d"],
     cliType: "boolean"
+  },
+  seed: {
+    normalize,
+    shortDescription: "Seed to use to generate a mnemonic.",
+    // The order of the options matter here! `wallet.deterministic`
+    // needs to be prior to `wallet.seed` for `config.deterministic`
+    // below to be set correctly
+    default: config =>
+      config.deterministic
+        ? DeterministicSeedPhrase
+        : randomAlphaNumericString(10, alea()),
+    cliType: "string"
   }
 };
