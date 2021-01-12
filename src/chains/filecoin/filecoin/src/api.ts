@@ -16,6 +16,7 @@ import {
 } from "./things/retrieval-offer";
 import Emittery from "emittery";
 import { HeadChange, HeadChangeType } from "./things/head-change";
+import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -44,33 +45,48 @@ export default class FilecoinApi implements types.Api {
     const subscription = this.#getId();
     const promiEvent = PromiEvent.resolve(subscription);
 
-    // There currently isn't an unsubscribe method,
-    // but it would go here
-    this.#subscriptions.set(subscription.toString(), () => {});
-
     const currentHead = new HeadChange({
       type: HeadChangeType.HCCurrent,
       val: this.#blockchain.latestTipset()
     });
 
-    this.#blockchain.on("tipset", (tipset: Tipset) => {
+    const unsubscribe = this.#blockchain.on("tipset", (tipset: Tipset) => {
       const newHead = new HeadChange({
         type: HeadChangeType.HCApply,
         val: tipset
       });
 
       promiEvent.emit("message", {
-        type: "xrpc.ch.val",
+        type: SubscriptionMethod.ChannelUpdated,
         data: [subscription.toString(), [newHead.serialize()]]
       });
     });
 
+    // There currently isn't an unsubscribe method,
+    // but it would go here
+    this.#subscriptions.set(subscription.toString(), unsubscribe);
+
     promiEvent.emit("message", {
-      type: "xrpc.ch.val",
+      type: SubscriptionMethod.ChannelUpdated,
       data: [subscription.toString(), [currentHead.serialize()]]
     });
 
     return promiEvent;
+  }
+
+  [SubscriptionMethod.ChannelClosed](
+    subscriptionId: SubscriptionId
+  ): Promise<boolean> {
+    const subscriptions = this.#subscriptions;
+    const unsubscribe = subscriptions.get(subscriptionId);
+
+    if (unsubscribe) {
+      subscriptions.delete(subscriptionId);
+      unsubscribe();
+      return Promise.resolve(true);
+    } else {
+      return Promise.resolve(false);
+    }
   }
 
   async "Filecoin.StateListMiners"(): Promise<Array<SerializedMiner>> {
