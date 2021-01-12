@@ -165,7 +165,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
     defaultDescription:
       "System time at process start or Network ID of forked blockchain if configured.",
     legacyName: "network_id",
-    cliAliases: ["i", "networkId", "network_id"],
+    cliAliases: ["i", "networkId"],
     cliType: "number"
   },
   time: {
