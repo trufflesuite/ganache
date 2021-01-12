@@ -1,13 +1,16 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
-import { enumerate } from "ts-transformer-enumerate";
 
-export type Hardfork =
-  | "constantinople"
-  | "byzantium"
-  | "petersburg"
-  | "istanbul"
-  | "muirGlacier";
+const HARDFORKS = [
+  "constantinople",
+  "byzantium",
+  "petersburg",
+  "istanbul",
+  "muirGlacier"
+] as const;
+type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+type ArrayToTuple<T extends Readonly<string[]>> = T[number];
+export type Hardfork = Writeable<ArrayToTuple<typeof HARDFORKS>>;
 
 export type ChainConfig = {
   options: {
@@ -188,7 +191,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
     cliType: "string",
-    cliChoices: Object.keys(enumerate<Hardfork>())
+    cliChoices: HARDFORKS as Writeable<typeof HARDFORKS>
   },
   vmErrorsOnRPCResponse: {
     normalize,
