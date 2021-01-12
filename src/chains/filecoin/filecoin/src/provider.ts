@@ -1,5 +1,5 @@
 import Emittery from "emittery";
-import { types, utils } from "@ganache/utils";
+import { PromiEvent, types, utils } from "@ganache/utils";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
 import GanacheSchema from "./schema";
@@ -82,15 +82,22 @@ export default class FilecoinProvider
     payload: JsonRpc.Request<FilecoinApi>
   ) {
     // I'm not entirely sure why I need the `as [string]`... but it seems to work.
-    return this.#executor
-      .execute(this.#api, payload.method, payload.params as [string])
-      .then(result => {
-        const promise = (result.value as unknown) as PromiseLike<
-          ReturnType<FilecoinApi[Method]>
-        >;
+    const result = await this.#executor.execute(
+      this.#api,
+      payload.method,
+      payload.params as any
+    );
+    const promise = (result.value as unknown) as PromiseLike<
+      ReturnType<FilecoinApi[Method]>
+    >;
 
-        return promise.then(JSON.stringify).then(JSON.parse);
+    if (promise instanceof PromiEvent) {
+      promise.on("message", data => {
+        this.emit("message" as never, data as never);
       });
+    }
+
+    return { value: promise };
   }
 
   async sendHttp() {
