@@ -57,11 +57,20 @@ Runs all tests:
 
 - `npm test` (or the shorthand, `npm t`)
 
+## To create a new chain/flavor
+
+- `npm run create <name> --location chains`
+
+This will create a new folder at `src/chains/<name>` where `<name>` should be the flavor name (e.g. `ethereum`), which
+you then can [create packages under](#to-create-a-new-package).
+
 ## To create a new package
 
-- `npm run create <name> --location <location>`
+- `npm run create <name> --location <location> [--folder <folder>]`
 
 This will create a new package with Ganache defaults at `src/<location>/<name>`.
+
+If you provide the optional `--folder` option, the package will be created at `src/<location>/<folder>`.
 
 ## To add a module to a package:
 

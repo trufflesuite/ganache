@@ -1,0 +1,55 @@
+{
+  "name": "@ganache/ethereum-utils",
+  "version": "0.1.0",
+  "description": "",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/utils#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/chains/ethereum/utils"
+  },
+  "scripts": {
+    "tsc": "ttsc",
+    "test": "nyc npm run mocha",
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-ethereum-utils",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling",
+    "truffle"
+  ],
+  "dependencies": {
+    "@ganache/utils": "0.1.0",
+    "emittery": "0.8.1",
+    "ethereumjs-abi": "0.6.8",
+    "ethereumjs-tx": "2.1.2",
+    "ethereumjs-util": "7.0.7",
+    "ethereumjs-vm": "4.2.0",
+    "rlp": "2.2.6"
+  }
+}

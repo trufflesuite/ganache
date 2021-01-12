@@ -1,7 +1,14 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "lib"
+    "outDir": "lib",
+    "composite": true
   },
-  "include": ["index.ts", "cli.ts"]
+  "include": ["index.ts", "cli.ts", "args.ts"],
+  "references": [
+    {
+      "name": "@ganache/core",
+      "path": "../core"
+    }
+  ]
 }
