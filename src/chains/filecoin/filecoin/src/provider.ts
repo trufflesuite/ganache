@@ -7,8 +7,10 @@ import { Schema } from "@filecoin-shipyard/lotus-client-schema";
 import Blockchain from "./blockchain";
 import {
   FilecoinOptionsConfig,
-  FilecoinProviderOptions
+  FilecoinProviderOptions,
+  FilecoinInternalOptions
 } from "@ganache/filecoin-options";
+import cloneDeep from "lodash.clonedeep";
 
 // Meant to mimic this provider:
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
@@ -16,7 +18,7 @@ export default class FilecoinProvider
   extends Emittery.Typed<undefined, "ready">
   // Do I actually need this? `types.Provider` doesn't actually define anything behavior
   implements types.Provider<FilecoinApi> {
-  #options: FilecoinProviderOptions;
+  #options: FilecoinInternalOptions;
   #api: FilecoinApi;
   #executor: utils.Executor;
 
@@ -42,6 +44,29 @@ export default class FilecoinProvider
     });
 
     this.#api = new FilecoinApi(this.blockchain);
+  }
+
+  /**
+   * Returns the options, including defaults and generated, used to start Ganache.
+   */
+  public getOptions() {
+    return cloneDeep(this.#options);
+  }
+
+  /**
+   * Returns the unlocked accounts
+   */
+  public getInitialAccounts() {
+    const accounts: Record<
+      string,
+      { unlocked: boolean; secretKey: string; balance: number }
+    > = {};
+    accounts[this.blockchain.address.serialize()] = {
+      unlocked: true,
+      secretKey: this.blockchain.address.privateKey,
+      balance: this.blockchain.balance.toFIL()
+    };
+    return accounts;
   }
 
   async connect() {

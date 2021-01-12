@@ -8,7 +8,6 @@ import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 export type ProviderOptions = FilecoinProviderOptions;
 export type Provider = FilecoinProvider;
 export const Provider = FilecoinProvider;
-export const FlavorName = "filecoin" as const;
 
 export class Connector
   extends Emittery.Typed<undefined, "ready" | "close">

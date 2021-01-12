@@ -39,6 +39,9 @@ const logger: Logger = { log: () => {} };
 export const LoggingOptions: Definitions<LoggingConfig> = {
   logger: {
     normalize,
+    shortDescription:
+      "An object, like `console`, that implements a `log` function.",
+    disableInCLI: true,
     default: () => logger,
     legacyName: "logger"
   }
