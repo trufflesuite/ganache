@@ -6,9 +6,13 @@ import args from "./args";
 import {
   DefaultFlavor,
   FlavorName,
-  EthereumFlavorName
+  EthereumFlavorName,
+  FilecoinFlavorName
 } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
+import initializeFilecoin from "./initialize/filecoin";
+import { Provider as FilecoinProvider } from "@ganache/filecoin";
+import { Provider as EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -99,9 +103,13 @@ async function startGanache(err: Error) {
   started = true;
 
   switch (flavor) {
+    case FilecoinFlavorName: {
+      initializeFilecoin(server.provider as FilecoinProvider, cliSettings);
+      break;
+    }
     case EthereumFlavorName:
     default: {
-      initializeEthereum(server.provider, cliSettings);
+      initializeEthereum(server.provider as EthereumProvider, cliSettings);
       break;
     }
   }
