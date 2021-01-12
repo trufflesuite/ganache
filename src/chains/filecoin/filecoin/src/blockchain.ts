@@ -134,6 +134,7 @@ export default class Blockchain extends Emittery.Typed<
   // previous tipset is the parent of the new blocks.
   async mineTipset(numNewBlocks: number = 1): Promise<void> {
     let previousTipset: Tipset = this.latestTipset();
+    const newTipsetHeight = previousTipset.height + 1;
 
     let newBlocks: Array<Block> = [];
 
@@ -141,14 +142,15 @@ export default class Blockchain extends Emittery.Typed<
       newBlocks.push(
         new Block({
           miner: this.miner,
-          parents: [previousTipset.cids[0]]
+          parents: [previousTipset.cids[0]],
+          height: newTipsetHeight
         })
       );
     }
 
     let newTipset = new Tipset({
       blocks: newBlocks,
-      height: previousTipset.height + 1
+      height: newTipsetHeight
     });
 
     this.tipsets.push(newTipset);
