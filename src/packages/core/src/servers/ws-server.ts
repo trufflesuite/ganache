@@ -20,7 +20,10 @@ export type WebSocketCapableFlavor = {
 
 export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
-export type WebsocketServerOptions = Pick<ServerOptions["server"], "wsBinary">;
+export type WebsocketServerOptions = Pick<
+  ServerOptions["server"],
+  "wsBinary" | "rpcEndpoint"
+>;
 
 export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
@@ -32,7 +35,7 @@ export default class WebsocketServer {
     const connections = this.#connections;
     const wsBinary = options.wsBinary;
     const autoBinary = wsBinary === "auto";
-    app.ws("/", {
+    app.ws(options.rpcEndpoint || "/", {
       /* WS Options */
       compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
       maxPayloadLength: 16 * 1024, // 128 Kibibits

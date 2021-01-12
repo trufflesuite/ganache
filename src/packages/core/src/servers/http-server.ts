@@ -7,6 +7,7 @@ import {
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
 import { Connector } from "@ganache/flavors";
+import { ServerOptions } from "../options";
 
 type HttpMethods = "GET" | "OPTIONS" | "POST";
 
@@ -84,13 +85,21 @@ function sendResponse(
   });
 }
 
+export type HttpServerOptions = Pick<ServerOptions["server"], "rpcEndpoint">;
+
 export default class HttpServer {
   #connector: Connector;
-  constructor(app: TemplatedApp, connector: Connector) {
+  constructor(
+    app: TemplatedApp,
+    connector: Connector,
+    options: HttpServerOptions
+  ) {
     this.#connector = connector;
 
     // JSON-RPC routes...
-    app.post("/", this.#handlePost).options("/", this.#handleOptions);
+    app
+      .post(options.rpcEndpoint || "/", this.#handlePost)
+      .options(options.rpcEndpoint || "/", this.#handleOptions);
 
     // because Easter Eggs are fun...
     app.get("/418", response => {
