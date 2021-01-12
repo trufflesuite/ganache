@@ -34,7 +34,7 @@ export type LoggingConfig = {
   };
 };
 
-const logger: Logger = { log: () => {} };
+const logger: Logger = { log: console.log };
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
   logger: {
