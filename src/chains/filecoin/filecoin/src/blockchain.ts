@@ -10,12 +10,15 @@ import { Deal } from "./things/deal";
 import Balance from "./things/balance";
 import { StorageProposal } from "./things/storage-proposal";
 import { DealState } from "./deal-state";
-import IPFSServer, { IPFSNode } from "./ipfs-server";
+import IPFSServer from "./ipfs-server";
 import dagCBOR from "ipld-dag-cbor";
 import { RetrievalOffer } from "./things/retrieval-offer";
 import seedrandom from "seedrandom";
-import BN from "bn.js";
 import { FilecoinInternalOptions } from "@ganache/filecoin-options";
+import { FileRef } from "./things/file-ref";
+import fs from "fs";
+import path from "path";
+import { IPFS, CID as IPFS_CID } from "ipfs";
 
 export type BlockchainEvents = {
   ready(): void;
@@ -119,7 +122,7 @@ export default class Blockchain extends Emittery.Typed<
     await this.ipfsServer.stop();
   }
 
-  get ipfs(): IPFSNode {
+  get ipfs(): IPFS {
     return this.ipfsServer.node;
   }
 
@@ -184,11 +187,39 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   private async getIPFSObjectSize(cid: string): Promise<number> {
-    let stat = await this.ipfsServer.node.object.stat(cid, {
+    let stat = await this.ipfsServer.node.object.stat(cid as any, {
       timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
     });
 
-    return stat.DataSize;
+    return stat.CumulativeSize;
+  }
+
+  private async downloadFile(cid: string, ref: FileRef): Promise<void> {
+    const size = await this.getIPFSObjectSize(cid);
+    const content = new Uint8Array(size);
+    const chunks = this.ipfsServer.node.files.read(new IPFS_CID(cid), {
+      timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
+    });
+
+    let index = 0;
+    for await (const chunk of chunks) {
+      content.set(chunk, index);
+      index += chunk.byteLength;
+    }
+
+    const dirname = path.dirname(ref.path);
+    try {
+      if (!fs.existsSync(dirname)) {
+        await fs.promises.mkdir(dirname, { recursive: true });
+      }
+      await fs.promises.writeFile(ref.path, content.slice(0, index), "binary");
+    } catch (e) {
+      throw new Error(
+        `Could not save file.\n  CID: ${cid}\n  Path: ${
+          ref.path
+        }\n  Error: ${e.toString()}`
+      );
+    }
   }
 
   async startDeal(proposal: StorageProposal): Promise<RootCID> {
@@ -210,8 +241,8 @@ export default class Blockchain extends Emittery.Typed<
       state: DealState.Validating, // Not sure if this is right, but we'll start here
       message: "",
       provider: this.miner,
-      pieceCid: null,
-      size: size,
+      pieceCid: proposal.data.pieceCid,
+      size: proposal.data.pieceSize || size,
       pricePerEpoch: proposal.epochPrice,
       duration: proposal.minBlocksDuration,
       dealId: this.deals.length + 1
@@ -250,18 +281,14 @@ export default class Blockchain extends Emittery.Typed<
     });
   }
 
-  async retrieve(retrievalOffer: RetrievalOffer): Promise<void> {
-    // Since this is a simulator, we're not actually interacting with other
-    // IPFS and Filecoin nodes. Because of this, there's no need to
-    // actually retrieve anything. That said, we'll check to make sure
-    // we have the content locally in our IPFS server, and error if it
-    // doesn't exist.
-
+  async retrieve(retrievalOffer: RetrievalOffer, ref: FileRef): Promise<void> {
     let hasLocal: boolean = await this.hasLocal(retrievalOffer.root["/"].value);
 
     if (!hasLocal) {
       throw new Error(`Object not found: ${retrievalOffer.root["/"].value}`);
     }
+
+    await this.downloadFile(retrievalOffer.root["/"].value, ref);
 
     this.#balance = this.#balance.sub(retrievalOffer.minPrice);
   }

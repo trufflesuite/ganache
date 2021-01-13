@@ -14,7 +14,7 @@ import { RootCID, SerializedRootCID } from "./root-cid";
 import { Miner } from "./miner";
 import { CID } from "./cid";
 import cbor from "borc";
-import IPFSCid from "cids";
+import { CID as IPFS_CID } from "ipfs";
 import multihashing from "multihashing";
 import multicodec from "multicodec";
 
@@ -203,7 +203,7 @@ class Block
     // but it was async, which caused a number of issues during object construction.
     let cborBlockHeader = cbor.encode(blockHeader);
     let multihash = multihashing(cborBlockHeader, "blake2b-256");
-    let rawCid = new IPFSCid(
+    let rawCid = new IPFS_CID(
       1,
       multicodec.print[multicodec.DAG_CBOR],
       multihash

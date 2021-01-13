@@ -17,6 +17,7 @@ import {
 import Emittery from "emittery";
 import { HeadChange, HeadChangeType } from "./things/head-change";
 import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
+import { FileRef, SerializedFileRef } from "./things/file-ref";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -137,9 +138,13 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.ClientRetrieve"(
-    retrievalOffer: SerializedRetrievalOffer
+    retrievalOffer: SerializedRetrievalOffer,
+    ref: SerializedFileRef
   ): Promise<object> {
-    await this.#blockchain.retrieve(new RetrievalOffer(retrievalOffer));
+    await this.#blockchain.retrieve(
+      new RetrievalOffer(retrievalOffer),
+      new FileRef(ref)
+    );
 
     // Return value is a placeholder.
     //

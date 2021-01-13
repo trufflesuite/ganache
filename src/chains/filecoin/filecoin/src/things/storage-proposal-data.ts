@@ -19,13 +19,13 @@ type StorageProposalDataConfig = {
       serializedName: "Root";
     };
     pieceCid: {
-      type: null;
-      serializedType: null;
+      type: RootCID;
+      serializedType: SerializedRootCID;
       serializedName: "PieceCid";
     };
     pieceSize: {
-      type: 0;
-      serializedType: 0;
+      type: number;
+      serializedType: number;
       serializedName: "PieceSize";
     };
   };
@@ -46,7 +46,12 @@ class StorageProposalData
       },
       pieceCid: {
         serializedName: "PieceCid",
-        defaultValue: null
+        defaultValue: options =>
+          new RootCID(
+            options || {
+              "/": "Piece CIDs are not supported in Ganache"
+            }
+          )
       },
       pieceSize: {
         serializedName: "PieceSize",
@@ -57,8 +62,8 @@ class StorageProposalData
 
   transferType: "graphsync";
   root: RootCID;
-  pieceCid: null;
-  pieceSize: 0;
+  pieceCid: RootCID;
+  pieceSize: number;
 }
 
 type SerializedStorageProposalData = SerializedObject<
