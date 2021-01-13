@@ -1,11 +1,14 @@
 import { Serializable } from "./serializable-object";
-import { config } from "yargs";
 
 type BaseConfig = {
   type: any;
 };
 
 type Literal<C extends BaseConfig> = C["type"];
+
+type SerializedLiteral<C extends BaseConfig> = C["type"] extends bigint
+  ? string
+  : Literal<C>;
 
 type DefaultValue<D> = D | ((options: D) => D);
 
@@ -15,7 +18,7 @@ type LiteralDefinition<C extends BaseConfig> = {
 };
 
 abstract class SerializableLiteral<C extends BaseConfig>
-  implements Serializable<Literal<C>> {
+  implements Serializable<SerializedLiteral<C>> {
   protected abstract get config(): LiteralDefinition<C>;
   value: Literal<C>;
 
@@ -41,8 +44,12 @@ abstract class SerializableLiteral<C extends BaseConfig>
     }
   }
 
-  serialize(): Literal<C> {
-    return this.value;
+  serialize(): SerializedLiteral<C> {
+    if (typeof this.value === "bigint") {
+      return this.value.toString(10) as SerializedLiteral<C>;
+    } else {
+      return this.value;
+    }
   }
 
   equals(obj: Serializable<Literal<C>>): boolean {

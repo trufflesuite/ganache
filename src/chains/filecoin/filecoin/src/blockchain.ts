@@ -233,9 +233,7 @@ export default class Blockchain extends Emittery.Typed<
     }
 
     // Subtract the cost from our current balance
-    let totalPrice = new BN(deal.pricePerEpoch)
-      .mul(new BN(deal.duration))
-      .toString(10);
+    let totalPrice = BigInt(deal.pricePerEpoch) * BigInt(deal.duration);
     this.#balance = this.#balance.sub(totalPrice);
 
     return deal.proposalCid;
