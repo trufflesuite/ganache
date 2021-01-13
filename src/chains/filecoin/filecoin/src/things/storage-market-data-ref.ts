@@ -26,8 +26,8 @@ type StorageMarketDataRefConfig = {
       serializedName: "PieceCid";
     };
     pieceSize: {
-      type: 0;
-      serializedType: 0;
+      type: number;
+      serializedType: number;
       serializedName: "PieceSize";
     };
   };
@@ -51,7 +51,12 @@ class StorageMarketDataRef
       pieceCid: {
         deserializedName: "pieceCid",
         serializedName: "PieceCid",
-        defaultValue: null
+        defaultValue: options =>
+          new RootCID(
+            options || {
+              "/": "Piece CIDs are not supported in Ganache"
+            }
+          )
       },
       pieceSize: {
         deserializedName: "pieceSize",
@@ -80,7 +85,7 @@ class StorageMarketDataRef
   transferType: "graphsync";
   root: RootCID;
   pieceCid: RootCID | null;
-  pieceSize: 0;
+  pieceSize: number;
 }
 
 type SerializedStorageMarketDataRef = SerializedObject<StorageMarketDataRefConfig>;

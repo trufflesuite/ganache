@@ -2,37 +2,8 @@ import path from "path";
 import fs from "fs";
 import os from "os";
 
-const JsIpfs: any = require("ipfs");
-const IpfsHttpApi: any = require("ipfs/src/http");
-
-export type IPFSNode = {
-  apiAddr: {
-    toString(): string;
-  };
-  stop(): Promise<void>;
-
-  // API endpoints used
-
-  add(
-    data: any
-  ): Promise<{
-    path: string;
-  }>;
-
-  object: {
-    stat(
-      key: string,
-      options: any
-    ): Promise<{
-      BlockSize: number;
-      CumulativeSize: number;
-      DataSize: number;
-      Hash: string;
-      LinksSize: number;
-      NumLinks: number;
-    }>;
-  };
-};
+import { IPFS, create as createIPFS } from "ipfs";
+import IPFSHttpServer from "ipfs-http-server";
 
 type IPFSHttpServer = {
   start(): Promise<void>;
@@ -42,10 +13,9 @@ type IPFSHttpServer = {
 class IPFSServer {
   static readonly DEFAULT_PORT = 5001;
 
-  public readonly serverPort: number = 43134;
   public readonly apiPort: number = IPFSServer.DEFAULT_PORT;
 
-  public node: IPFSNode | null;
+  public node: IPFS | null;
 
   private httpServer: IPFSHttpServer | null;
 
@@ -57,7 +27,7 @@ class IPFSServer {
 
   async start() {
     // Uses a temp folder for now.
-    let folder = await new Promise((resolve, reject) => {
+    const folder: string = await new Promise((resolve, reject) => {
       fs.mkdtemp(path.join(os.tmpdir(), "foo-"), (err, folder) => {
         if (err) {
           return reject(err);
@@ -66,7 +36,7 @@ class IPFSServer {
       });
     });
 
-    this.node = await JsIpfs.create({
+    this.node = await createIPFS({
       repo: folder,
       config: {
         Addresses: {
@@ -75,13 +45,29 @@ class IPFSServer {
           API: `/ip4/127.0.0.1/tcp/${this.apiPort}`,
           Gateway: `/ip4/127.0.0.1/tcp/9090`
         },
-        Bootstrap: []
+        Bootstrap: [],
+        Discovery: {
+          MDNS: {
+            Enabled: false
+          },
+          webRTCStar: {
+            Enabled: false
+          }
+        },
+        // API isn't in the types, but it's used by ipfs-http-server
+        // @ts-ignore
+        API: {
+          HTTPHeaders: {
+            "Access-Control-Allow-Origin": ["*"],
+            "Access-Control-Allow-Credentials": "true"
+          }
+        }
       },
       start: true,
       silent: true
     });
 
-    this.httpServer = new IpfsHttpApi(this.node) as IPFSHttpServer;
+    this.httpServer = new IPFSHttpServer(this.node) as IPFSHttpServer;
 
     await this.httpServer.start();
   }
