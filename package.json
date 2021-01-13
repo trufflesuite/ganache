@@ -14,6 +14,7 @@
     "docs.preview": "lerna run docs.preview",
     "postinstall": "lerna bootstrap && ts-node ./scripts/link-ts-references.ts && ts-node ./scripts/postinstall",
     "reinstall": "npm run clean && npm install",
+    "start": "lerna exec --scope @ganache/cli -- npm run start -- ",
     "test": "lerna exec -- npm run test",
     "tsc": "lerna exec -- npm run tsc",
     "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist"
