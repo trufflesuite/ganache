@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Ganache's Ethereum client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/ethereum#readme",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/ethereum/ethereum#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -21,7 +21,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache-core.git",
-    "directory": "src/chains/ethereum"
+    "directory": "src/chains/ethereum/ethereum"
   },
   "scripts": {
     "docs.build": "rm -rf ./lib/docs ./lib/api.json && npm run docs.typedoc",
