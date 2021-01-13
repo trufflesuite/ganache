@@ -11,7 +11,7 @@ import { PoStProof, SerializedPoStProof } from "./post-proof";
 import { RootCID, SerializedRootCID } from "./root-cid";
 import { CID } from "./cid";
 import cbor from "borc";
-import IPFSCid from "cids";
+import { CID as IPFS_CID } from "ipfs";
 import multihashing from "multihashing";
 import multicodec from "multicodec";
 import { SerializedSignature, Signature } from "./signature";
@@ -276,7 +276,7 @@ class BlockHeader
     // but it was async, which caused a number of issues during object construction.
     const cborBlockHeader = cbor.encode(this.serialize());
     const multihash = multihashing(cborBlockHeader, "blake2b-256");
-    const rawCid = new IPFSCid(
+    const rawCid = new IPFS_CID(
       1,
       multicodec.print[multicodec.DAG_CBOR],
       multihash
