@@ -13,8 +13,8 @@
         "TS_NODE_COMPILER": "ttypescript",
         "TS_NODE_FILES": "true"
       },
-      // 10.7.0 is the earliest version of Node.js that we support, and is the first version to support BigInt literals.
-      "runtimeVersion": "10.7.0",
+      // 10.13.0 is the earliest version of Node.js that our dev tooling supports.
+      "runtimeVersion": "10.13.0",
       "args": [
         "${workspaceFolder}/node_modules/mocha/bin/_mocha",
         "--throw-deprecation",
