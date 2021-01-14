@@ -21,6 +21,10 @@
     {
       "name": "@ganache/ethereum-options",
       "path": "../../chains/ethereum/options"
+    },
+    {
+      "name": "@ganache/options",
+      "path": "../options"
     }
   ]
 }

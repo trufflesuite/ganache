@@ -1,11 +1,14 @@
 import * as Ethereum from "@ganache/ethereum";
 import { ethereumDefaults } from "@ganache/ethereum-options";
 
+// we need "@ganache/options" in order for TS to properly infer types for `DefaultOptionsByName`
+import "@ganache/options";
+
 export const EthereumFlavorName = "ethereum";
 
 export const DefaultFlavor = EthereumFlavorName;
 
-export const DefaultOptionsByName: any = {
+export const DefaultOptionsByName = {
   [EthereumFlavorName]: ethereumDefaults
 };
 
