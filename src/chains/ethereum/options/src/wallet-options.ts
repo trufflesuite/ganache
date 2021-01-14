@@ -287,7 +287,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     shortDescription: "The default account balance, specified in ether.",
     default: () => 100,
     legacyName: "default_balance_ether",
-    cliAliases: ["e", "defaultBalanceEther", "default_balance_ether"],
+    cliAliases: ["e", "defaultBalanceEther"],
     cliType: "number"
   },
   hdPath: {
