@@ -31,19 +31,6 @@ export type ServerConfig = {
       type: boolean | "auto";
       hasDefault: true;
     };
-
-    /**
-     * @obsolete Option removed in v3
-     */
-    readonly keepAliveTimeout: {
-      type: void;
-      legacy: {
-        /**
-         * @obsolete Option removed in v3
-         */
-        keepAliveTimeout: void;
-      };
-    };
   };
 };
 const normalize = <T>(rawInput: T) => rawInput;
@@ -60,13 +47,5 @@ export const ServerOptions: Definitions<ServerConfig> = {
     shortDescription:
       "Whether or not websockets should response with binary data (ArrayBuffers) or strings.",
     default: () => "auto"
-  },
-  keepAliveTimeout: {
-    normalize: () => {
-      throw new Error("`keepAliveTimeout` was removed in v3");
-    },
-    shortDescription: "Option removed in v3",
-    disableInCLI: true,
-    legacyName: "keepAliveTimeout"
   }
 };
