@@ -9,6 +9,7 @@ import {
   EthereumFlavorName
 } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
+import { CliSettings } from "./types";
 
 const { version: ganacheVersion } = $INLINE_JSON("../../core/package.json");
 const { version } = $INLINE_JSON("../package.json");
@@ -25,10 +26,7 @@ if (argv._.length > 0) {
   flavor = argv._[0] as FlavorName;
 }
 
-const serverSettings = argv.server as {
-  host: string;
-  port: number;
-};
+const cliSettings = argv.server as CliSettings;
 
 const server = Ganache.server({
   flavor,
@@ -90,10 +88,10 @@ async function startGanache(err) {
   switch (flavor) {
     case EthereumFlavorName:
     default: {
-      initializeEthereum(server.provider, serverSettings);
+      initializeEthereum(server.provider, cliSettings);
       break;
     }
   }
 }
 
-server.listen(serverSettings.port, serverSettings.host, startGanache);
+server.listen(cliSettings.port, cliSettings.host, startGanache);

@@ -1,10 +1,8 @@
 import { Provider } from "@ganache/ethereum";
 import { toChecksumAddress } from "ethereumjs-util";
+import { CliSettings } from "../types";
 
-export default function (
-  provider: Provider,
-  serverSettings: { host: string; port: number }
-) {
+export default function (provider: Provider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
 
@@ -101,7 +99,5 @@ export default function (
   console.log(liveOptions.chain.chainId);
 
   console.log("");
-  console.log(
-    "Listening on " + serverSettings.host + ":" + serverSettings.port
-  );
+  console.log("Listening on " + cliSettings.host + ":" + cliSettings.port);
 }
