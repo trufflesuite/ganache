@@ -18,9 +18,6 @@
     "lib": ["ES2020"],
     "typeRoots": ["./node_modules/@types", "src/@types"],
     "experimentalDecorators": true,
-    "paths": {
-      "@ganache/cli/cli": ["../cli/lib/cli"]
-    },
     "plugins": [
       {
         "transform": "ts-transformer-inline-file/transformer"
