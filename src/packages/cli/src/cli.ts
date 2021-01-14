@@ -11,6 +11,25 @@ import {
 import initializeEthereum from "./initialize/ethereum";
 import { CliSettings } from "./types";
 
+const logAndForceExit = (messages: any[], exitCode = 0) => {
+  // https://nodejs.org/api/process.html#process_process_exit_code
+  // writes to process.stdout in Node.js are sometimes asynchronous and may occur over
+  // multiple ticks of the Node.js event loop. Calling process.exit(), however, forces
+  // the process to exit before those additional writes to stdout can be performed.
+  // se we set stdout to block in order to successfully log before exiting
+  if ((process.stdout as any)._handle) {
+    (process.stdout as any)._handle.setBlocking(true);
+  }
+  try {
+    messages.forEach(console.log);
+  } catch (e) {
+    console.log(e);
+  }
+
+  // force the process to exit
+  process.exit(exitCode);
+};
+
 const { version: ganacheVersion } = $INLINE_JSON("../../core/package.json");
 const { version } = $INLINE_JSON("../package.json");
 const detailedVersion =
@@ -38,11 +57,10 @@ console.log(detailedVersion);
 let started = false;
 process.on("uncaughtException", function (e) {
   if (started) {
-    console.log(e);
+    logAndForceExit([e], 1);
   } else {
-    console.log(e.stack);
+    logAndForceExit([e.stack], 1);
   }
-  process.exit(1);
 });
 
 // See http://stackoverflow.com/questions/10021373/what-is-the-windows-equivalent-of-process-onsigint-in-node-js
@@ -58,19 +76,20 @@ if (process.platform === "win32") {
 }
 
 const closeHandler = async function () {
-  // graceful shutdown
   try {
-    await server.close();
-    process.exit(0);
+    // graceful shutdown
+    if (server.status === 1) {
+      await server.close();
+    }
+    process.exitCode = 0;
   } catch (err) {
-    // https://nodejs.org/api/process.html#process_process_exit_code
-    // writes to process.stdout in Node.js are sometimes asynchronous and may occur over
-    // multiple ticks of the Node.js event loop. Calling process.exit(), however, forces
-    // the process to exit before those additional writes to stdout can be performed.
-    if ((process.stdout as any)._handle)
-      (process.stdout as any).setBlocking(true);
-    console.log(err.stack || err);
-    process.exit();
+    logAndForceExit(
+      [
+        "\nReceived an error while attempting to close the server: ",
+        err.stack || err
+      ],
+      1
+    );
   }
 };
 
@@ -78,9 +97,10 @@ process.on("SIGINT", closeHandler);
 process.on("SIGTERM", closeHandler);
 process.on("SIGHUP", closeHandler);
 
-async function startGanache(err) {
+async function startGanache(err: Error) {
   if (err) {
     console.log(err);
+    process.exitCode = 1;
     return;
   }
   started = true;
