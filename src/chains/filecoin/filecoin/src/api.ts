@@ -135,6 +135,9 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.StateMinerPower"(
     minerAddress: string
   ): Promise<SerializedMinerPower> {
+    // I don't fully understand what these values are supposed to be/mean
+    // but since we're the only miner on this "network", I figure they don't
+    // super matter. I'm putting in these placeholder values for now
     if (minerAddress === this.#blockchain.miner.value) {
       const power = new MinerPower({
         minerPower: new PowerClaim({
