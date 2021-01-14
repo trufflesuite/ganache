@@ -18,6 +18,8 @@ import Emittery from "emittery";
 import { HeadChange, HeadChangeType } from "./things/head-change";
 import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
 import { FileRef, SerializedFileRef } from "./things/file-ref";
+import { MinerPower, SerializedMinerPower } from "./things/miner-power";
+import { PowerClaim } from "./things/power-claim";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -128,6 +130,40 @@ export default class FilecoinApi implements types.Api {
 
   async "Filecoin.StateListMiners"(): Promise<Array<string>> {
     return [this.#blockchain.miner];
+  }
+
+  async "Filecoin.StateMinerPower"(
+    minerAddress: string
+  ): Promise<SerializedMinerPower> {
+    if (minerAddress === this.#blockchain.miner.value) {
+      const power = new MinerPower({
+        minerPower: new PowerClaim({
+          rawBytePower: 1n,
+          qualityAdjPower: 1n
+        }),
+        totalPower: new PowerClaim({
+          rawBytePower: 1n,
+          qualityAdjPower: 1n
+        }),
+        hasMinPower: false
+      });
+
+      return power.serialize();
+    } else {
+      const power = new MinerPower({
+        minerPower: new PowerClaim({
+          rawBytePower: 0n,
+          qualityAdjPower: 0n
+        }),
+        totalPower: new PowerClaim({
+          rawBytePower: 0n,
+          qualityAdjPower: 0n
+        }),
+        hasMinPower: false
+      });
+
+      return power.serialize();
+    }
   }
 
   async "Filecoin.WalletDefaultAddress"(): Promise<SerializedAddress> {
