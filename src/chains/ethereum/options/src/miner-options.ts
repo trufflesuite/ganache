@@ -142,7 +142,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
     normalize,
     cliDescription:
-      'Sets the `blockTime` in seconds for automatic mining. blockTime of `0` enables "instamine mode", where new executable transactions will be mined instantly.',
+      'Sets the `blockTime` in seconds for automatic mining. A blockTime of `0` enables "instamine mode", where new executable transactions will be mined instantly.',
     default: () => 0,
     legacyName: "blockTime",
     cliAliases: ["b", "blockTime"],
@@ -169,7 +169,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
     normalize: rawType =>
       rawType === "estimate" ? utils.RPCQUANTITY_EMPTY : Quantity.from(rawType),
     cliDescription:
-      'Sets the **default** transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
+      'Sets the default transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
     default: () => Quantity.from(90_000),
     cliType: "string"
   },
