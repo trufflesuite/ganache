@@ -1,3 +1,4 @@
+import { TruffleColors } from "@ganache/colors";
 import yargs from "yargs";
 import { DefaultFlavor, DefaultOptionsByName } from "@ganache/flavors";
 import {
@@ -10,26 +11,38 @@ import chalk from "chalk";
 import { EOL } from "os";
 import marked from "marked";
 import TerminalRenderer from "marked-terminal";
+
 marked.setOptions({
-  renderer: new TerminalRenderer()
+  renderer: new TerminalRenderer({
+    codespan: chalk.hex(TruffleColors.porsche),
+    // Disable `unescape` since doesn't work for everything (we just do it ourselves)
+    unescape: false
+  })
 });
 
 const wrapWidth = Math.min(120, yargs.terminalWidth());
 const NEED_HELP = "Need more help? Reach out to the Truffle community at";
 const COMMUNITY_LINK = "https://gitter.im/ConsenSys/truffle";
 
-const highlight = (t: string) =>
-  marked.parseInline(t).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+function unescapeEntities(html: string) {
+  return html
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+const highlight = (t: string) => unescapeEntities(marked.parseInline(t));
 const center = (t: string) => " ".repeat((wrapWidth - t.length) >> 1) + t;
 
 export default function (version: string, isDocker: boolean) {
   let args = yargs
     .strict()
-    .usage(chalk`{hex("#e4a663").bold ${center(version)}}`)
+    .usage(chalk`{hex("${TruffleColors.porsche}").bold ${center(version)}}`)
     .epilogue(
-      chalk`{hex("#e4a663").bold ${center(NEED_HELP)}}` +
+      chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
         EOL +
-        chalk`{hex("#3fe0c5") ${center(COMMUNITY_LINK)}}`
+        chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
     );
 
   let flavor: keyof typeof DefaultOptionsByName;
