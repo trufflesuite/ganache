@@ -4,6 +4,12 @@ import os from "os";
 
 import { IPFS, create as createIPFS } from "ipfs";
 import IPFSHttpServer from "ipfs-http-server";
+import { FilecoinInternalOptions } from "@ganache/filecoin-options";
+
+type IPFSChainOptions = Pick<
+  FilecoinInternalOptions["chain"],
+  "ipfsHost" | "ipfsPort"
+>;
 
 type IPFSHttpServer = {
   start(): Promise<void>;
@@ -11,22 +17,20 @@ type IPFSHttpServer = {
 };
 
 class IPFSServer {
-  static readonly DEFAULT_PORT = 5001;
-
-  public readonly apiPort = IPFSServer.DEFAULT_PORT;
+  public readonly options: IPFSChainOptions;
 
   public node: IPFS;
 
   private httpServer: IPFSHttpServer;
 
-  constructor(apiPort) {
-    this.apiPort = apiPort;
+  constructor(chainOptions: IPFSChainOptions) {
+    this.options = chainOptions;
   }
 
   async start() {
     // Uses a temp folder for now.
     const folder: string = await new Promise((resolve, reject) => {
-      fs.mkdtemp(path.join(os.tmpdir(), "foo-"), (err, folder) => {
+      fs.mkdtemp(path.join(os.tmpdir(), "ganache-ipfs-"), (err, folder) => {
         if (err) {
           return reject(err);
         }
@@ -40,8 +44,8 @@ class IPFSServer {
         Addresses: {
           Swarm: [], // No need to connect to the swarm
           // Note that this config doesn't actually trigger the API and gateway; see below.
-          API: `/ip4/127.0.0.1/tcp/${this.apiPort}`,
-          Gateway: `/ip4/127.0.0.1/tcp/9090`
+          API: `/ip4/${this.options.ipfsHost}/tcp/${this.options.ipfsPort}`,
+          Gateway: `/ip4/${this.options.ipfsHost}/tcp/9090`
         },
         Bootstrap: [],
         Discovery: {
