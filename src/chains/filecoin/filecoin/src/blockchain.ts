@@ -85,7 +85,7 @@ export default class Blockchain extends Emittery.Typed<
     );
 
     // Create the IPFS server
-    this.ipfsServer = new IPFSServer(this.options.chain.ipfsPort);
+    this.ipfsServer = new IPFSServer(this.options.chain);
 
     // Fire up the miner if necessary
     if (this.options.miner.blockTime > 0) {
