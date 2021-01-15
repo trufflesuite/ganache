@@ -5,7 +5,9 @@ import {
   SerializedObject
 } from "./serializable-object";
 
-interface BlockSignatureConfig {
+// https://pkg.go.dev/github.com/filecoin-project/go-state-types/crypto#Signature
+
+interface SignatureConfig {
   properties: {
     type: {
       type: number;
@@ -13,17 +15,17 @@ interface BlockSignatureConfig {
       serializedName: "Type";
     };
     data: {
-      type: string;
+      type: string; // should probably be uint8array https://pkg.go.dev/github.com/filecoin-project/go-state-types/crypto#Signature
       serializedType: string;
       serializedName: "Data";
     };
   };
 }
 
-class BlockSignature
-  extends SerializableObject<BlockSignatureConfig>
-  implements DeserializedObject<BlockSignatureConfig> {
-  get config(): Definitions<BlockSignatureConfig> {
+class Signature
+  extends SerializableObject<SignatureConfig>
+  implements DeserializedObject<SignatureConfig> {
+  get config(): Definitions<SignatureConfig> {
     return {
       type: {
         serializedName: "Type",
@@ -41,6 +43,6 @@ class BlockSignature
   data: string;
 }
 
-type SerializedBlockSignature = SerializedObject<BlockSignatureConfig>;
+type SerializedSignature = SerializedObject<SignatureConfig>;
 
-export { BlockSignature, SerializedBlockSignature };
+export { Signature, SerializedSignature };

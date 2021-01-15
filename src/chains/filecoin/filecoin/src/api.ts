@@ -2,18 +2,18 @@
 import { types, Quantity, PromiEvent, Subscription } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import {
-  StorageProposal,
-  SerializedStorageProposal
-} from "./things/storage-proposal";
+  StartDealParams,
+  SerializedStartDealParams
+} from "./things/start-deal-params";
 import { SerializedRootCID, RootCID } from "./things/root-cid";
-import { SerializedDeal } from "./things/deal";
+import { SerializedDealInfo } from "./things/deal-info";
 import { SerializedTipset, Tipset } from "./things/tipset";
 import { SerializedAddress } from "./things/address";
-import { SerializedMiner } from "./things/miner";
 import {
-  SerializedRetrievalOffer,
-  RetrievalOffer
-} from "./things/retrieval-offer";
+  SerializedRetrievalOrder,
+  RetrievalOrder
+} from "./things/retrieval-order";
+import { SerializedQueryOffer } from "./things/query-offer";
 import Emittery from "emittery";
 import { HeadChange, HeadChangeType } from "./things/head-change";
 import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
@@ -125,8 +125,8 @@ export default class FilecoinApi implements types.Api {
     }
   }
 
-  async "Filecoin.StateListMiners"(): Promise<Array<SerializedMiner>> {
-    return [this.#blockchain.miner.serialize()];
+  async "Filecoin.StateListMiners"(): Promise<Array<string>> {
+    return [this.#blockchain.miner];
   }
 
   async "Filecoin.WalletDefaultAddress"(): Promise<SerializedAddress> {
@@ -145,22 +145,22 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.ClientStartDeal"(
-    serializedProposal: SerializedStorageProposal
+    serializedProposal: SerializedStartDealParams
   ): Promise<SerializedRootCID> {
-    let proposal = new StorageProposal(serializedProposal);
+    let proposal = new StartDealParams(serializedProposal);
     let proposalRootCid = await this.#blockchain.startDeal(proposal);
 
     return proposalRootCid.serialize();
   }
 
-  async "Filecoin.ClientListDeals"(): Promise<Array<SerializedDeal>> {
+  async "Filecoin.ClientListDeals"(): Promise<Array<SerializedDealInfo>> {
     return this.#blockchain.deals.map(deal => deal.serialize());
   }
 
   async "Filecoin.ClientFindData"(
     rootCid: SerializedRootCID
-  ): Promise<Array<SerializedRetrievalOffer>> {
-    let remoteOffer = await this.#blockchain.createRetrievalOffer(
+  ): Promise<Array<SerializedQueryOffer>> {
+    let remoteOffer = await this.#blockchain.createQueryOffer(
       new RootCID(rootCid)
     );
     return [remoteOffer.serialize()];
@@ -173,9 +173,9 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.ClientRetrieve"(
-    retrievalOffer: SerializedRetrievalOffer
+    retrievalOffer: SerializedRetrievalOrder
   ): Promise<object> {
-    await this.#blockchain.retrieve(new RetrievalOffer(retrievalOffer));
+    await this.#blockchain.retrieve(new RetrievalOrder(retrievalOffer));
 
     // Return value is a placeholder.
     //

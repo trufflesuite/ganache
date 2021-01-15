@@ -5,7 +5,9 @@ import {
   Definitions
 } from "./serializable-object";
 
-interface WinPoStProofConfig {
+// https://pkg.go.dev/github.com/filecoin-project/specs-actors/actors/runtime/proof#PoStProof
+
+interface PoStProofConfig {
   properties: {
     postProof: {
       type: number;
@@ -13,17 +15,17 @@ interface WinPoStProofConfig {
       serializedName: "PoStProof";
     };
     proofBytes: {
-      type: string;
+      type: string; // should probably be uint8array https://pkg.go.dev/github.com/filecoin-project/specs-actors/actors/runtime/proof#PoStProof
       serializedType: string;
       serializedName: "ProofBytes";
     };
   };
 }
 
-class WinPoStProof
-  extends SerializableObject<WinPoStProofConfig>
-  implements DeserializedObject<WinPoStProofConfig> {
-  get config(): Definitions<WinPoStProofConfig> {
+class PoStProof
+  extends SerializableObject<PoStProofConfig>
+  implements DeserializedObject<PoStProofConfig> {
+  get config(): Definitions<PoStProofConfig> {
     return {
       postProof: {
         serializedName: "PoStProof",
@@ -40,6 +42,6 @@ class WinPoStProof
   proofBytes: string;
 }
 
-type SerializedWinPoStProof = SerializedObject<WinPoStProofConfig>;
+type SerializedPoStProof = SerializedObject<PoStProofConfig>;
 
-export { WinPoStProof, SerializedWinPoStProof };
+export { PoStProof, SerializedPoStProof };

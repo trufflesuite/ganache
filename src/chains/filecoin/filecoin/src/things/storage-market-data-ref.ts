@@ -6,7 +6,9 @@ import {
   Definitions
 } from "./serializable-object";
 
-type StorageProposalDataConfig = {
+// https://pkg.go.dev/github.com/filecoin-project/go-fil-markets/storagemarket#DataRef
+
+type StorageMarketDataRefConfig = {
   properties: {
     transferType: {
       type: "graphsync";
@@ -31,10 +33,10 @@ type StorageProposalDataConfig = {
   };
 };
 
-class StorageProposalData
-  extends SerializableObject<StorageProposalDataConfig>
-  implements DeserializedObject<StorageProposalDataConfig> {
-  get config(): Definitions<StorageProposalDataConfig> {
+class StorageMarketDataRef
+  extends SerializableObject<StorageMarketDataRefConfig>
+  implements DeserializedObject<StorageMarketDataRefConfig> {
+  get config(): Definitions<StorageMarketDataRefConfig> {
     return {
       transferType: {
         serializedName: "TransferType",
@@ -61,8 +63,6 @@ class StorageProposalData
   pieceSize: 0;
 }
 
-type SerializedStorageProposalData = SerializedObject<
-  StorageProposalDataConfig
->;
+type SerializedStorageMarketDataRef = SerializedObject<StorageMarketDataRefConfig>;
 
-export { StorageProposalData, SerializedStorageProposalData };
+export { StorageMarketDataRef, SerializedStorageMarketDataRef };
