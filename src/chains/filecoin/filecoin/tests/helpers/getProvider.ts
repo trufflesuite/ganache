@@ -8,6 +8,11 @@ const getProvider = async () => {
     {
       chain: {
         ipfsPort: 5002 // Use a different port than the default, to test it works
+      },
+      logging: {
+        logger: {
+          log: () => {}
+        }
       }
     },
     executor
