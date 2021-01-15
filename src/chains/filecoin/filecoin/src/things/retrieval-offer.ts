@@ -1,11 +1,12 @@
 import { RootCID, SerializedRootCID } from "./root-cid";
-import { Miner, SerializedMiner } from "./miner";
 import {
   SerializableObject,
   SerializedObject,
   DeserializedObject,
   Definitions
 } from "./serializable-object";
+import { RetrievalPeer, SerializedRetrievalPeer } from "./retrieval-peer";
+import { Miner, SerializedMiner } from "./miner";
 
 type RetrievalOfferConfig = {
   properties: {
@@ -44,10 +45,10 @@ type RetrievalOfferConfig = {
       serializedType: SerializedMiner;
       serializedName: "Miner";
     };
-    minerPeerId: {
-      type: string;
-      serializedType: string;
-      serializedName: "MinerPeerID";
+    minerPeer: {
+      type: RetrievalPeer;
+      serializedType: SerializedRetrievalPeer;
+      serializedName: "MinerPeer";
     };
   };
 };
@@ -82,16 +83,9 @@ class RetrievalOffer
       miner: {
         serializedName: "Miner"
       },
-      minerPeerId: {
-        serializedName: "MinerPeerID",
-        defaultValue: options => {
-          let alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
-          return " "
-            .repeat(52)
-            .split("")
-            .map(() => alphabet[Math.floor(Math.random() * alphabet.length)])
-            .join("");
-        }
+      minerPeer: {
+        serializedName: "MinerPeer",
+        defaultValue: options => new RetrievalPeer(options)
       }
     };
   }
@@ -103,7 +97,7 @@ class RetrievalOffer
   paymentInterval: number;
   paymentIntervalIncrease: number;
   miner: Miner;
-  minerPeerId: string;
+  minerPeer: RetrievalPeer;
 }
 
 type SerializedRetrievalOffer = SerializedObject<RetrievalOfferConfig>;
