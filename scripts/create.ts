@@ -109,7 +109,7 @@ process.stdout.write(`${COLORS.Reset}`);
   }
 
   // determines how many `../` are needed for package contents
-  const numDirectoriesAwayFromRoot = 3 + location.split(sep).length;
+  const numDirectoriesAwayFromRoot = 2 + location.split(sep).length;
   const relativePathToRoot = "../".repeat(numDirectoriesAwayFromRoot);
   const isNewChain = location === "chains";
 
