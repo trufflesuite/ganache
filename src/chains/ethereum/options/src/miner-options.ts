@@ -61,7 +61,7 @@ export type MinerConfig = {
     };
 
     /**
-     * Sets the _default_ transaction gas limit in WEI. Set to `"estimate"` to
+     * Sets the default transaction gas limit in WEI. Set to `"estimate"` to
      * use an estimate (slows down transaction execution by 40%+).
      *
      * @default 90_000
