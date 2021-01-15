@@ -35,12 +35,12 @@ export type Definitions<C extends Base.Config> = {
     readonly cliChoices?: string[] | number[];
   } & (void extends OptionHasCliType<C, N>
     ? {
-        readonly cliType?: CliTypeMap<CliTypes>;
+        readonly cliType?: CliTypeMap<CliTypes> | null;
       }
     : {
-        readonly cliType: CliTypeMap<OptionCliType<C, N>>;
+        readonly cliType?: CliTypeMap<OptionCliType<C, N>> | null;
         readonly cliCoerce?: (
-          rawType: OptionCliType<C, N>
+          cliType: OptionCliType<C, N>
         ) => OptionRawType<C, N>;
       }) &
     (void extends OptionHasDefault<C, N>

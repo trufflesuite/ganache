@@ -106,7 +106,7 @@ export default function (version: string, isDocker: boolean) {
               // we need to specify the type of each array so yargs properly casts
               // the types held within each array
               const { cliType } = optionObj;
-              const array = cliType.startsWith("array:"); // e.g. array:string or array:number
+              const array = cliType && cliType.startsWith("array:"); // e.g. array:string or array:number
               const type = (array
                 ? cliType.slice(6) // remove the "array:" part
                 : cliType) as YargsPrimitiveCliTypeStrings;
@@ -114,16 +114,21 @@ export default function (version: string, isDocker: boolean) {
               const options = {
                 group,
                 description,
+                // keep single-letter aliases around
                 alias: alias.filter(a => a.length === 1),
                 defaultDescription,
                 array,
                 type,
-                choices: optionObj.cliChoices
+                choices: optionObj.cliChoices,
+                coerce: optionObj.cliCoerce
               };
               flavorArgs = flavorArgs.option(`${category}.${option}`, options);
+
+              // create *hidden* deprecated aliases:
               const aliasOptions = { hidden: true, ...options };
               aliasOptions.alias = [`${category}.${option}`];
               alias.forEach(a => {
+                // don't make hidden aliases for single-letter aliases
                 if (a.length === 1) return;
                 flavorArgs = flavorArgs.option(a, aliasOptions);
               });
