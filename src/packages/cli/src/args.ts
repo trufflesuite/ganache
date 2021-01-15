@@ -143,14 +143,14 @@ export default function (version: string, isDocker: boolean) {
           })
           .option("server.host", {
             group: "Server:",
-            description: chalk`Hostname to listen on.${EOL}{dim Deprecated aliases: --host, --hostname}${EOL}`,
+            description: chalk`Hostname to listen on.${EOL}{dim deprecated aliases: --host, --hostname}${EOL}`,
             alias: ["h", "host", "hostname"],
             type: "string",
             default: isDocker ? "0.0.0.0" : "127.0.0.1"
           })
           .option("server.port", {
             group: "Server:",
-            description: chalk`Port to listen on.${EOL}{dim Deprecated aliases: --port}${EOL}`,
+            description: chalk`Port to listen on.${EOL}{dim deprecated aliases: --port}${EOL}`,
             alias: ["p", "port"],
             type: "number",
             default: defaultPort
