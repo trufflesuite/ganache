@@ -38,13 +38,13 @@ const normalize = <T>(rawInput: T) => rawInput;
 export const ServerOptions: Definitions<ServerConfig> = {
   ws: {
     normalize,
-    shortDescription: "Enable a websocket server.",
+    cliDescription: "Enable a websocket server.",
     default: () => true,
     legacyName: "ws"
   },
   wsBinary: {
     normalize,
-    shortDescription:
+    cliDescription:
       "Whether or not websockets should response with binary data (ArrayBuffers) or strings.",
     default: () => "auto"
   }

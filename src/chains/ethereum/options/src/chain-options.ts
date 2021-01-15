@@ -1,5 +1,6 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
+import { ArrayToTuple, Writeable } from "./helper-types";
 
 const HARDFORKS = [
   "constantinople",
@@ -8,8 +9,7 @@ const HARDFORKS = [
   "istanbul",
   "muirGlacier"
 ] as const;
-type Writeable<T> = { -readonly [P in keyof T]: T[P] };
-type ArrayToTuple<T extends Readonly<string[]>> = T[number];
+
 export type Hardfork = Writeable<ArrayToTuple<typeof HARDFORKS>>;
 
 export type ChainConfig = {
@@ -139,7 +139,7 @@ export type ChainConfig = {
 export const ChainOptions: Definitions<ChainConfig> = {
   allowUnlimitedContractSize: {
     normalize,
-    shortDescription:
+    cliDescription:
       "Allows unlimited contract sizes while debugging. Setting this to `true` will cause ganache to behave differently than production environments.",
     default: () => false,
     legacyName: "allowUnlimitedContractSize",
@@ -147,7 +147,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
   },
   asyncRequestProcessing: {
     normalize,
-    shortDescription:
+    cliDescription:
       "When set to `false` only one request will be processed at a time.",
     default: () => true,
     legacyName: "asyncRequestProcessing",
@@ -155,14 +155,14 @@ export const ChainOptions: Definitions<ChainConfig> = {
   },
   chainId: {
     normalize,
-    shortDescription: "The currently configured chain id.",
+    cliDescription: "The currently configured chain id.",
     default: () => 1337,
     legacyName: "chainId",
     cliType: "number"
   },
   networkId: {
     normalize,
-    shortDescription:
+    cliDescription:
       "The id of the network returned by the RPC method `net_version`.",
     default: () => Date.now(),
     defaultDescription:
@@ -179,14 +179,14 @@ export const ChainOptions: Definitions<ChainConfig> = {
         return rawInput;
       }
     },
-    shortDescription: "Date that the first block should start.",
+    cliDescription: "Date that the first block should start.",
     legacyName: "time",
     cliAliases: ["t", "time"],
     cliType: "number"
   },
   hardfork: {
     normalize,
-    shortDescription: "Set the hardfork rules for the EVM.",
+    cliDescription: "Set the hardfork rules for the EVM.",
     default: () => "muirGlacier",
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
@@ -195,7 +195,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
   },
   vmErrorsOnRPCResponse: {
     normalize,
-    shortDescription:
+    cliDescription:
       "Whether to report runtime errors from EVM code as RPC errors.",
     default: () => false,
     legacyName: "vmErrorsOnRPCResponse",
