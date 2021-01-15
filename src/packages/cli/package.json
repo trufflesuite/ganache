@@ -52,6 +52,7 @@
     "@ganache/core": "0.1.0"
   },
   "dependencies": {
+    "@ganache/colors": "^0.1.0",
     "@ganache/ethereum": "0.1.0",
     "@ganache/ethereum-options": "0.1.0",
     "@ganache/flavors": "0.1.0",
