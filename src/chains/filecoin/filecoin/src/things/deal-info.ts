@@ -9,6 +9,15 @@ import {
   Definitions,
   SerializedObject
 } from "./serializable-object";
+import {
+  SerializedStorageMarketDataRef,
+  StorageMarketDataRef
+} from "./storage-market-data-ref";
+import { ChannelID, SerializedChannelID } from "./channel-id";
+import {
+  DataTransferChannel,
+  SerializedDataTransferChannel
+} from "./data-transfer-channel";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus/api#DealInfo
 
@@ -34,7 +43,11 @@ type DealInfoConfig = {
       serializedType: string;
       serializedName: "Provider";
     };
-    // TODO: DataRef?
+    dataRef: {
+      type: StorageMarketDataRef;
+      serializedType: SerializedStorageMarketDataRef;
+      serializedName: "DataRef";
+    };
     pieceCid: {
       type: RootCID;
       serializedType: SerializedRootCID;
@@ -70,8 +83,16 @@ type DealInfoConfig = {
       serializedType: boolean;
       serializedName: "Verified";
     };
-    // TODO: TransferChannelID?
-    // TODO: DataTransfer?
+    transferChannelId: {
+      type: ChannelID;
+      serializedType: SerializedChannelID;
+      serializedName: "TransferChannelID";
+    };
+    dataTransfer: {
+      type: DataTransferChannel;
+      serializedType: SerializedDataTransferChannel;
+      serializedName: "DataTransfer";
+    };
   };
 };
 
@@ -94,6 +115,9 @@ class DealInfo
         serializedName: "Provider",
         defaultValue: "t01000"
       },
+      dataRef: {
+        serializedName: "DataRef"
+      },
       pieceCid: {
         serializedName: "PieceCID"
       },
@@ -115,6 +139,12 @@ class DealInfo
       },
       verified: {
         serializedName: "Verified"
+      },
+      transferChannelId: {
+        serializedName: "TransferChannelID"
+      },
+      dataTransfer: {
+        serializedName: "DataTransfer"
       }
     };
   }
@@ -123,6 +153,7 @@ class DealInfo
   state: StorageDealStatus;
   message: string;
   provider: string;
+  dataRef: StorageMarketDataRef;
   pieceCid: RootCID;
   size: number;
   pricePerEpoch: bigint;
@@ -130,6 +161,8 @@ class DealInfo
   dealId: number;
   creationTime: Date;
   verified: boolean;
+  transferChannelId: ChannelID;
+  dataTransfer: DataTransferChannel;
 
   advanceState(fullyAdvance: boolean = false) {
     if (fullyAdvance) {
