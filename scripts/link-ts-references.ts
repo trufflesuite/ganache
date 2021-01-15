@@ -5,7 +5,8 @@
 
 import { resolve, join, relative } from "path";
 import glob from "glob";
-import { writeFileSync } from "fs-extra";
+import { readFileSync, writeFileSync } from "fs-extra";
+import JSON5 from "comment-json";
 
 type Mapping = { [key: string]: string };
 
@@ -129,7 +130,7 @@ function saveConfigs(configs: PackageInfo[]) {
   configs.forEach(({ modified, path, tsConfig }) => {
     if (modified) {
       const tsConfigFile = join(path, "tsconfig.json");
-      writeFileSync(tsConfigFile, JSON.stringify(tsConfig, null, 2));
+      writeFileSync(tsConfigFile, JSON5.stringify(tsConfig, null, 2));
     }
   });
 }
@@ -154,7 +155,7 @@ const configs: PackageInfo[] = packageDirectories.map(pkg => {
   let tsConfig: TsConfigFile;
   let packageJson: PackageJson;
 
-  tsConfig = require(tsConfigFile);
+  tsConfig = JSON5.parse(readFileSync(tsConfigFile, "utf8"));
   packageJson = require(join(pkg, "package.json"));
 
   // filter for only `@ganache/` dependencies
