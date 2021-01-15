@@ -12,7 +12,6 @@ import {
 export type ProviderOptions = EthereumProviderOptions | EthereumLegacyOptions;
 export type Provider = EthereumProvider;
 export const Provider = EthereumProvider;
-export const FlavorName = "ethereum" as const;
 
 function isHttp(
   connection: HttpRequest | WebSocket

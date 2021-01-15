@@ -2,11 +2,11 @@
 
 ## Getting set up
 
-- Use Node.js v10.7.0, this is the earliest version we support.
-  - Why v10.7.0? Because this is the first version that supports BigInt literals (the `n` in `100n`).
+- Use Node.js v10.13.0 (even though Ganache itself is compatible back to 10.7.0).
+  - Why v10.13.0? Because this is the first version prettier supports.
   - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
     Windows, to configure your node version.
-    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v10.7.0.
+    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v10.13.0.
 - `git clone git@github.com:trufflesuite/ganache-core.git`
 - `cd ganache-core`
 - `npm install` (use npm v6)
@@ -131,7 +131,7 @@ index 2a2aa9e..57cbf21 100644
 
 These are guidelines, not rules. :-)
 
-- Use Node.js v10.7.0 for most local development.
+- Use Node.js v10.13.0 for most local development.
 - Use `bigint` literals, e.g., `123n`; if the number is externally configurable and/or could exceed
   `Number.MAX_SAFE_INTEGER`.
 - Write tests.

@@ -1,9 +1,6 @@
 import webpack from "webpack";
 import TerserPlugin from "terser-webpack-plugin";
 
-// inlines files, like package.json
-import packageJsonTransformer from "ts-transformer-inline-file/transformer";
-
 const base: webpack.Configuration = {
   entry: "./index.ts",
   devtool: "source-map",
@@ -15,13 +12,19 @@ const base: webpack.Configuration = {
           {
             loader: "ts-loader",
             options: {
-              getCustomTransformers: program => ({
-                before: [packageJsonTransformer(program)]
-              })
+              // we need to use ttypescript because of we use ts transformers
+              compiler: "ttypescript",
+              // Symlinked paths to our packages aren't resolving correctly...
+              // E.g., if PackageA and PackageB both import PackageC, the
+              // compiler assumes PackageA's PackageC is incompatible with
+              // PackageB's PackageC.
+              // Note: if all packages are precompiled before running webpack
+              // this issue doesn't occur, which makes me think this might be a
+              // ts-loader issue.
+              transpileOnly: true
             }
           }
-        ],
-        exclude: /node_modules/
+        ]
       }
     ]
   },

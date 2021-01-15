@@ -10,7 +10,7 @@
   "source": "index.ts",
   "directories": {
     "lib": "lib",
-    "test": "test"
+    "test": "tests"
   },
   "files": [
     "lib"

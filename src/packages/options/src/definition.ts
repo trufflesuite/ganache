@@ -32,9 +32,17 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 export type Definitions<C extends Base.Config> = {
   [N in OptionName<C>]: {
     readonly normalize: Normalize<C, N>;
+    readonly shortDescription: string;
+    readonly disableInCLI?: boolean;
+    readonly cliAliases?: string[];
+    readonly cliType?: "string" | "number" | "boolean" | "array";
+    readonly cliChoices?: string[] | number[];
   } & (void extends OptionHasDefault<C, N>
     ? {}
-    : { readonly default: (config: InternalConfig<C>) => OptionType<C, N> }) &
+    : {
+        readonly default: (config: InternalConfig<C>) => OptionType<C, N>;
+        readonly defaultDescription?: string;
+      }) &
     (void extends OptionHasLegacy<C, N>
       ? {}
       : {

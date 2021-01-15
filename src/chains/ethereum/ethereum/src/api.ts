@@ -609,7 +609,7 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
-   * Set the extraData block header field a miner can include
+   * Set the extraData block header field a miner can include.
    * @param extra
    */
   @assertArgLength(1)

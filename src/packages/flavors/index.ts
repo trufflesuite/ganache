@@ -1,25 +1,35 @@
-// import {TezosConnector} from "@ganache/tezos";
 import * as Ethereum from "@ganache/ethereum";
+import { ethereumDefaults } from "@ganache/ethereum-options";
 
-export const DefaultFlavor = Ethereum.FlavorName;
+// we need "@ganache/options" in order for TS to properly infer types for `DefaultOptionsByName`
+import "@ganache/options";
+
+export const EthereumFlavorName = "ethereum";
+
+export const DefaultFlavor = EthereumFlavorName;
+
+export const DefaultOptionsByName = {
+  [EthereumFlavorName]: ethereumDefaults
+};
 
 export type ConnectorsByName = {
-  [Ethereum.FlavorName]: Ethereum.Connector;
-  // [Tezos.FlavorName]: Tezos.Connector
+  [EthereumFlavorName]: Ethereum.Connector;
 };
 
 export const ConnectorsByName = {
-  [Ethereum.FlavorName]: Ethereum.Connector
-  // [Tezos.FlavorName]: Tezos.Connector
+  [EthereumFlavorName]: Ethereum.Connector
 };
 
-export type Connectors = {
+export type FlavorName = keyof ConnectorsByName;
+
+export type Connector = {
   [K in keyof ConnectorsByName]: ConnectorsByName[K];
 }[keyof ConnectorsByName];
 
-export type Providers = Ethereum.Provider /*| Tezos.Provider */;
+export type Providers = Ethereum.Provider;
 
-export type Options = {
-  flavor?: typeof Ethereum.FlavorName;
+type EthereumOptions = {
+  flavor?: typeof EthereumFlavorName;
 } & Ethereum.ProviderOptions;
-// | [Tezos.FlavorName]: Tezos.ProviderOptions;
+
+export type Options = EthereumOptions;

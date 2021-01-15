@@ -125,6 +125,11 @@ export type MinerConfig = {
       hasDefault: true;
     };
 
+    /**
+     * Set the extraData block header field a miner can include.
+     *
+     * @default ""
+     */
     extraData: {
       rawType: string;
       type: Data;
@@ -136,39 +141,80 @@ export type MinerConfig = {
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
     normalize,
+    shortDescription:
+      'Sets the `blockTime` in seconds for automatic mining. blockTime of `0` enables "instamine mode", where new executable transactions will be mined instantly.',
     default: () => 0,
-    legacyName: "blockTime"
+    legacyName: "blockTime",
+    cliAliases: ["b", "blockTime"],
+    cliType: "number"
   },
   gasPrice: {
     normalize: Quantity.from,
+    shortDescription:
+      "Sets the default gas price in WEI for transactions if not otherwise specified.",
     default: () => Quantity.from(2_000_000_000),
-    legacyName: "gasPrice"
+    legacyName: "gasPrice",
+    cliAliases: ["g", "gasPrice"],
+    cliType: "string"
   },
   blockGasLimit: {
     normalize: Quantity.from,
+    shortDescription: "Sets the block gas limit in WEI.",
     default: () => Quantity.from(12_000_000),
-    legacyName: "gasLimit"
+    legacyName: "gasLimit",
+    cliAliases: ["l", "gasLimit"],
+    cliType: "string"
   },
   defaultTransactionGasLimit: {
     normalize: rawType =>
       rawType === "estimate" ? utils.RPCQUANTITY_EMPTY : Quantity.from(rawType),
-    default: () => Quantity.from(90_000)
+    shortDescription:
+      'Sets the _default_ transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
+    default: () => Quantity.from(90_000),
+    cliType: "string"
   },
   callGasLimit: {
     normalize: Quantity.from,
+    shortDescription:
+      "Sets the transaction gas limit in WEI for `eth_call` and `eth_estimateGas` calls.",
     default: () => Quantity.from(Number.MAX_SAFE_INTEGER),
-    legacyName: "callGasLimit"
-  },
-  coinbase: {
-    normalize: rawType => {
-      return typeof rawType === "number" ? rawType : Address.from(rawType);
-    },
-    default: () => Address.from(utils.ACCOUNT_ZERO)
+    legacyName: "callGasLimit",
+    cliType: "string"
   },
   legacyInstamine: {
     normalize,
+    shortDescription:
+      "Enables legacy instamine mode, where transactions are fully mined before the transaction's hash is returned to the caller.",
     default: () => false,
-    legacyName: "legacyInstamine"
+    legacyName: "legacyInstamine",
+    cliType: "boolean"
+  },
+  coinbase: {
+    normalize: rawType => {
+      if (typeof rawType === "number") {
+        return rawType;
+      } else {
+        if (/^0x/i.exec(rawType)) {
+          return Address.from(rawType);
+        } else {
+          // try to convert the arg string to a number.
+          // don't use parseInt because strings like `"123abc"` parse
+          // to `123`, and there is probably an error on the user's side we'd
+          // want to uncover.
+          const index = ((rawType as any) as number) - 0;
+          if (Number.isSafeInteger(index)) {
+            return index;
+          } else {
+            throw new Error(
+              `Invalid value for option miner.coinbase: ${rawType}`
+            );
+          }
+        }
+      }
+    },
+    shortDescription: "Sets the address where mining rewards will go.",
+    default: () => Address.from(utils.ACCOUNT_ZERO),
+    cliType: "string"
   },
   extraData: {
     normalize: (extra: string) => {
@@ -180,6 +226,9 @@ export const MinerOptions: Definitions<MinerConfig> = {
       }
       return bytes;
     },
-    default: () => Data.from(utils.BUFFER_EMPTY)
+    shortDescription:
+      "Set the extraData block header field a miner can include.",
+    default: () => Data.from(utils.BUFFER_EMPTY),
+    cliType: "string"
   }
 };

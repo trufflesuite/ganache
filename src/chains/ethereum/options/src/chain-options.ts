@@ -1,12 +1,16 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 
-export type Hardfork =
-  | "constantinople"
-  | "byzantium"
-  | "petersburg"
-  | "istanbul"
-  | "muirGlacier";
+const HARDFORKS = [
+  "constantinople",
+  "byzantium",
+  "petersburg",
+  "istanbul",
+  "muirGlacier"
+] as const;
+type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+type ArrayToTuple<T extends Readonly<string[]>> = T[number];
+export type Hardfork = Writeable<ArrayToTuple<typeof HARDFORKS>>;
 
 export type ChainConfig = {
   options: {
@@ -89,12 +93,13 @@ export type ChainConfig = {
      * `evm_increaseTime` RPC, to test time-dependent code.
      */
     readonly time: {
-      type: number | Date;
+      type: Date;
+      rawType: Date | string;
       legacy: {
         /**
          * @deprecated Use chain.time instead
          */
-        time: number | Date;
+        time: Date | string;
       };
     };
 
@@ -134,36 +139,66 @@ export type ChainConfig = {
 export const ChainOptions: Definitions<ChainConfig> = {
   allowUnlimitedContractSize: {
     normalize,
+    shortDescription:
+      "Allows unlimited contract sizes while debugging. Setting this to `true` will cause ganache to behave differently than production environments.",
     default: () => false,
-    legacyName: "allowUnlimitedContractSize"
+    legacyName: "allowUnlimitedContractSize",
+    cliType: "boolean"
   },
   asyncRequestProcessing: {
     normalize,
+    shortDescription:
+      "When set to `false` only one request will be processed at a time.",
     default: () => true,
-    legacyName: "asyncRequestProcessing"
+    legacyName: "asyncRequestProcessing",
+    cliType: "boolean"
   },
   chainId: {
     normalize,
+    shortDescription: "The currently configured chain id.",
     default: () => 1337,
-    legacyName: "chainId"
+    legacyName: "chainId",
+    cliType: "number"
   },
   networkId: {
     normalize,
+    shortDescription:
+      "The id of the network returned by the RPC method `net_version`.",
     default: () => Date.now(),
-    legacyName: "network_id"
+    defaultDescription:
+      "System time at process start or Network ID of forked blockchain if configured.",
+    legacyName: "network_id",
+    cliAliases: ["i", "networkId"],
+    cliType: "number"
   },
   time: {
-    normalize,
-    legacyName: "time"
+    normalize: rawInput => {
+      if (typeof rawInput === "string") {
+        return new Date(rawInput);
+      } else {
+        return rawInput;
+      }
+    },
+    shortDescription: "Date that the first block should start.",
+    legacyName: "time",
+    cliAliases: ["t", "time"],
+    cliType: "number"
   },
   hardfork: {
     normalize,
+    shortDescription: "Set the hardfork rules for the EVM.",
     default: () => "muirGlacier",
-    legacyName: "hardfork"
+    legacyName: "hardfork",
+    cliAliases: ["k", "hardfork"],
+    cliType: "string",
+    cliChoices: HARDFORKS as Writeable<typeof HARDFORKS>
   },
   vmErrorsOnRPCResponse: {
     normalize,
+    shortDescription:
+      "Whether to report runtime errors from EVM code as RPC errors.",
     default: () => false,
-    legacyName: "vmErrorsOnRPCResponse"
+    legacyName: "vmErrorsOnRPCResponse",
+    cliType: "boolean"
   }
 };
