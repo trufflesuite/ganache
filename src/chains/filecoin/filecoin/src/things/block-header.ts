@@ -1,27 +1,27 @@
 import { Ticket, SerializedTicket } from "./ticket";
 import { ElectionProof, SerializedElectionProof } from "./election-proof";
 import { BeaconEntry, SerializedBeaconEntry } from "./beacon-entry";
-import { BLSAggregate, SerializedBLSAggregate } from "./bls-aggregate";
-import { BlockSignature, SerializedBlockSignature } from "./block-signature";
 import {
   SerializableObject,
   DeserializedObject,
   Definitions,
   SerializedObject
 } from "./serializable-object";
-import { WinPoStProof, SerializedWinPoStProof } from "./win-post-proof";
+import { PoStProof, SerializedPoStProof } from "./post-proof";
 import { RootCID, SerializedRootCID } from "./root-cid";
-import { Miner } from "./miner";
 import { CID } from "./cid";
 import cbor from "borc";
 import { CID as IPFS_CID } from "ipfs";
 import multihashing from "multihashing";
 import multicodec from "multicodec";
+import { SerializedSignature, Signature } from "./signature";
 
-interface BlockConfig {
+// https://pkg.go.dev/github.com/filecoin-project/lotus/chain/types#BlockHeader
+
+interface BlockHeaderConfig {
   properties: {
     miner: {
-      type: Miner;
+      type: string; // string until we can support more address types in Address
       serializedType: string;
       serializedName: "Miner";
     };
@@ -41,8 +41,8 @@ interface BlockConfig {
       serializedName: "BeaconEntries";
     };
     winPoStProof: {
-      type: Array<WinPoStProof>;
-      serializedType: Array<SerializedWinPoStProof>;
+      type: Array<PoStProof>;
+      serializedType: Array<SerializedPoStProof>;
       serializedName: "WinPoStProof";
     };
     parents: {
@@ -51,8 +51,8 @@ interface BlockConfig {
       serializedName: "Parents";
     };
     parentWeight: {
-      type: number;
-      serializedType: number;
+      type: bigint;
+      serializedType: string;
       serializedName: "ParentWeight";
     };
     height: {
@@ -61,23 +61,23 @@ interface BlockConfig {
       serializedName: "Height";
     };
     parentStateRoot: {
-      type: Array<RootCID>;
-      serializedType: Array<SerializedRootCID>;
+      type: RootCID;
+      serializedType: SerializedRootCID;
       serializedName: "ParentStateRoot";
     };
     parentMessageReceipts: {
-      type: Array<RootCID>;
-      serializedType: Array<SerializedRootCID>;
+      type: RootCID;
+      serializedType: SerializedRootCID;
       serializedName: "ParentMessageReceipts";
     };
     messages: {
-      type: Array<RootCID>;
-      serializedType: Array<SerializedRootCID>;
+      type: RootCID;
+      serializedType: SerializedRootCID;
       serializedName: "Messages";
     };
     blsAggregate: {
-      type: BLSAggregate;
-      serializedType: SerializedBLSAggregate;
+      type: Signature;
+      serializedType: SerializedSignature;
       serializedName: "BLSAggregate";
     };
     timestamp: {
@@ -86,8 +86,8 @@ interface BlockConfig {
       serializedName: "Timestamp";
     };
     blockSignature: {
-      type: BlockSignature;
-      serializedType: SerializedBlockSignature;
+      type: Signature;
+      serializedType: SerializedSignature;
       serializedName: "BlockSig";
     };
     forkSignaling: {
@@ -95,17 +95,22 @@ interface BlockConfig {
       serializedType: 0 | 1;
       serializedName: "ForkSignaling";
     };
+    parentBaseFee: {
+      type: bigint;
+      serializedType: string;
+      serializedName: "ParentBaseFee";
+    };
   };
 }
 
-class Block
-  extends SerializableObject<BlockConfig>
-  implements DeserializedObject<BlockConfig> {
-  get config(): Definitions<BlockConfig> {
+class BlockHeader
+  extends SerializableObject<BlockHeaderConfig>
+  implements DeserializedObject<BlockHeaderConfig> {
+  get config(): Definitions<BlockHeaderConfig> {
     return {
       miner: {
         serializedName: "Miner",
-        defaultValue: options => new Miner(options)
+        defaultValue: "t01000"
       },
       ticket: {
         serializedName: "Ticket",
@@ -123,7 +128,7 @@ class Block
       winPoStProof: {
         serializedName: "WinPoStProof",
         defaultValue: options =>
-          options ? options.map(proof => new WinPoStProof(proof)) : []
+          options ? options.map(proof => new PoStProof(proof)) : []
       },
       parents: {
         serializedName: "Parents",
@@ -132,7 +137,7 @@ class Block
       },
       parentWeight: {
         serializedName: "ParentWeight",
-        defaultValue: 0
+        defaultValue: 0n
       },
       height: {
         serializedName: "Height",
@@ -140,22 +145,26 @@ class Block
       },
       parentStateRoot: {
         serializedName: "ParentStateRoot",
-        defaultValue: options =>
-          options ? options.map(parent => new RootCID(parent)) : []
+        defaultValue: options => new RootCID(options || { "/": "" })
       },
       parentMessageReceipts: {
         serializedName: "ParentMessageReceipts",
-        defaultValue: options =>
-          options ? options.map(parent => new RootCID(parent)) : []
+        defaultValue: options => new RootCID(options || { "/": "" })
       },
       messages: {
         serializedName: "Messages",
-        defaultValue: options =>
-          options ? options.map(parent => new RootCID(parent)) : []
+        defaultValue: options => new RootCID(options || { "/": "" })
       },
       blsAggregate: {
         serializedName: "BLSAggregate",
-        defaultValue: options => new BLSAggregate(options)
+        defaultValue: options =>
+          new Signature(
+            options || {
+              type: 2,
+              data:
+                "wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          )
       },
       timestamp: {
         serializedName: "Timestamp",
@@ -165,33 +174,38 @@ class Block
       },
       blockSignature: {
         serializedName: "BlockSig",
-        defaultValue: options => new BlockSignature(options)
+        defaultValue: options => new Signature(options)
       },
       forkSignaling: {
         serializedName: "ForkSignaling",
         defaultValue: 0
+      },
+      parentBaseFee: {
+        serializedName: "ParentBaseFee",
+        defaultValue: 0n
       }
     };
   }
 
-  miner: Miner;
+  miner: string;
   ticket: Ticket;
   electionProof: ElectionProof;
   beaconEntries: Array<BeaconEntry>;
-  winPoStProof: Array<WinPoStProof>;
+  winPoStProof: Array<PoStProof>;
   parents: Array<RootCID>;
-  parentWeight: number;
+  parentWeight: bigint;
   height: number;
-  parentStateRoot: Array<RootCID>;
-  parentMessageReceipts: Array<RootCID>;
-  messages: Array<RootCID>;
-  blsAggregate: BLSAggregate;
+  parentStateRoot: RootCID;
+  parentMessageReceipts: RootCID;
+  messages: RootCID;
+  blsAggregate: Signature;
   timestamp: number;
-  blockSignature: BlockSignature;
+  blockSignature: Signature;
   forkSignaling: 0 | 1;
+  parentBaseFee: bigint;
 
   get cid(): CID {
-    let blockHeader: Partial<DeserializedObject<BlockConfig>> = {};
+    let blockHeader: Partial<DeserializedObject<BlockHeaderConfig>> = {};
 
     for (const [deserializedName, { serializedName }] of Object.entries(
       this.config
@@ -213,6 +227,6 @@ class Block
   }
 }
 
-type SerializedBlock = SerializedObject<BlockConfig>;
+type SerializedBlockHeader = SerializedObject<BlockHeaderConfig>;
 
-export { Block, SerializedBlock };
+export { BlockHeader, SerializedBlockHeader };

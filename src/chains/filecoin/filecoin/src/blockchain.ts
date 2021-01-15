@@ -1,24 +1,24 @@
 import { Tipset } from "./things/tipset";
-import { Block } from "./things/block";
+import { BlockHeader } from "./things/block-header";
 import { CID } from "./things/cid";
 import { RootCID } from "./things/root-cid";
 import { utils } from "@ganache/utils";
 import Emittery from "emittery";
-import { Miner } from "./things/miner";
 import { Address } from "./things/address";
-import { Deal } from "./things/deal";
+import { DealInfo } from "./things/deal-info";
 import Balance from "./things/balance";
-import { StorageProposal } from "./things/storage-proposal";
-import { DealState } from "./deal-state";
+import { StartDealParams } from "./things/start-deal-params";
+import { StorageDealStatus } from "./types/storage-deal-status";
 import IPFSServer from "./ipfs-server";
 import dagCBOR from "ipld-dag-cbor";
-import { RetrievalOffer } from "./things/retrieval-offer";
+import { RetrievalOrder } from "./things/retrieval-order";
 import seedrandom from "seedrandom";
 import { FilecoinInternalOptions } from "@ganache/filecoin-options";
 import { FileRef } from "./things/file-ref";
 import fs from "fs";
 import path from "path";
 import { IPFS, CID as IPFS_CID } from "ipfs";
+import { QueryOffer } from "./things/query-offer";
 
 export type BlockchainEvents = {
   ready(): void;
@@ -30,7 +30,7 @@ export default class Blockchain extends Emittery.Typed<
   keyof BlockchainEvents
 > {
   readonly tipsets: Array<Tipset> = [];
-  readonly miner: Miner;
+  readonly miner: string; // using string until we can support more address types in Address
   readonly address: Address;
   readonly privateKey: string;
 
@@ -39,9 +39,9 @@ export default class Blockchain extends Emittery.Typed<
     return this.#balance;
   }
 
-  readonly deals: Array<Deal> = [];
-  readonly dealsByCid: Record<string, Deal> = {};
-  readonly inProcessDeals: Array<Deal> = [];
+  readonly deals: Array<DealInfo> = [];
+  readonly dealsByCid: Record<string, DealInfo> = {};
+  readonly inProcessDeals: Array<DealInfo> = [];
 
   readonly options: FilecoinInternalOptions;
 
@@ -61,7 +61,7 @@ export default class Blockchain extends Emittery.Typed<
       this.rng = Math.random;
     }
 
-    this.miner = new Miner();
+    this.miner = "t01000";
     this.address = Address.random(this.rng);
     this.#balance = new Balance();
 
@@ -70,7 +70,7 @@ export default class Blockchain extends Emittery.Typed<
     // Create genesis tipset
     this.tipsets.push(
       new Tipset({
-        blocks: [new Block()],
+        blocks: [new BlockHeader()],
         height: 0
       })
     );
@@ -140,11 +140,11 @@ export default class Blockchain extends Emittery.Typed<
     let previousTipset: Tipset = this.latestTipset();
     const newTipsetHeight = previousTipset.height + 1;
 
-    let newBlocks: Array<Block> = [];
+    let newBlocks: Array<BlockHeader> = [];
 
     for (let i = 0; i < numNewBlocks; i++) {
       newBlocks.push(
-        new Block({
+        new BlockHeader({
           miner: this.miner,
           parents: [previousTipset.cids[0]],
           height: newTipsetHeight
@@ -163,7 +163,7 @@ export default class Blockchain extends Emittery.Typed<
     for (const deal of this.inProcessDeals) {
       deal.advanceState(this.options.miner.blockTime > 0);
 
-      if (deal.state == DealState.Active) {
+      if (deal.state == StorageDealStatus.Active) {
         // Remove the deal from the in-process array
         this.inProcessDeals.splice(this.inProcessDeals.indexOf(deal), 1);
       }
@@ -226,7 +226,7 @@ export default class Blockchain extends Emittery.Typed<
     }
   }
 
-  async startDeal(proposal: StorageProposal): Promise<RootCID> {
+  async startDeal(proposal: StartDealParams): Promise<RootCID> {
     // Get size of IPFS object represented by the proposal
     let size = await this.getIPFSObjectSize(proposal.data.root["/"].value);
 
@@ -238,11 +238,11 @@ export default class Blockchain extends Emittery.Typed<
     let proposalRawCid = await dagCBOR.util.cid(signature.toString("hex"));
     let proposalCid = new CID(proposalRawCid.toString());
 
-    let deal = new Deal({
+    let deal = new DealInfo({
       proposalCid: new RootCID({
         "/": proposalCid
       }),
-      state: DealState.Validating, // Not sure if this is right, but we'll start here
+      state: StorageDealStatus.Validating, // Not sure if this is right, but we'll start here
       message: "",
       provider: this.miner,
       pieceCid: proposal.data.pieceCid,
@@ -262,7 +262,7 @@ export default class Blockchain extends Emittery.Typed<
     // If we're automining, mine a new block. Note that this will
     // automatically advance the deal to the active state.
     if (this.options.miner.blockTime > 0) {
-      while (deal.state != DealState.Active) {
+      while (deal.state != StorageDealStatus.Active) {
         this.mineTipset();
       }
     }
@@ -274,27 +274,27 @@ export default class Blockchain extends Emittery.Typed<
     return deal.proposalCid;
   }
 
-  async createRetrievalOffer(rootCid: RootCID): Promise<RetrievalOffer> {
+  async createQueryOffer(rootCid: RootCID): Promise<QueryOffer> {
     let size = await this.getIPFSObjectSize(rootCid["/"].value);
 
-    return new RetrievalOffer({
+    return new QueryOffer({
       root: rootCid,
       size: size,
       miner: this.miner,
-      minPrice: "" + size * 2 // This seems to be what powergate does
+      minPrice: BigInt(size * 2) // This seems to be what powergate does
     });
   }
 
-  async retrieve(retrievalOffer: RetrievalOffer, ref: FileRef): Promise<void> {
-    let hasLocal: boolean = await this.hasLocal(retrievalOffer.root["/"].value);
+  async retrieve(retrievalOrder: RetrievalOrder, ref: FileRef): Promise<void> {
+    let hasLocal: boolean = await this.hasLocal(retrievalOrder.root["/"].value);
 
     if (!hasLocal) {
-      throw new Error(`Object not found: ${retrievalOffer.root["/"].value}`);
+      throw new Error(`Object not found: ${retrievalOrder.root["/"].value}`);
     }
 
-    await this.downloadFile(retrievalOffer.root["/"].value, ref);
+    await this.downloadFile(retrievalOrder.root["/"].value, ref);
 
-    this.#balance = this.#balance.sub(retrievalOffer.minPrice);
+    this.#balance = this.#balance.sub(retrievalOrder.total);
   }
 
   private logLatestTipset() {

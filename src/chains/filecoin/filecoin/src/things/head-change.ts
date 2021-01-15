@@ -6,6 +6,8 @@ import {
 } from "./serializable-object";
 import { Tipset, SerializedTipset } from "./tipset";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus/api#HeadChange
+
 interface HeadChangeConfig {
   properties: {
     type: {

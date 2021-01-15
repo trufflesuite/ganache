@@ -1,4 +1,4 @@
-import { Block, SerializedBlock } from "./block";
+import { BlockHeader, SerializedBlockHeader } from "./block-header";
 import {
   SerializableObject,
   DeserializedObject,
@@ -15,8 +15,8 @@ interface TipsetConfig {
       serializedName: "Cids";
     };
     blocks: {
-      type: Array<Block>;
-      serializedType: Array<SerializedBlock>;
+      type: Array<BlockHeader>;
+      serializedType: Array<SerializedBlockHeader>;
       serializedName: "Blocks";
     };
     height: {
@@ -39,7 +39,8 @@ class Tipset
       },
       blocks: {
         serializedName: "Blocks",
-        defaultValue: (options = []) => options.map(block => new Block(block))
+        defaultValue: (options = []) =>
+          options.map(block => new BlockHeader(block))
       },
       height: {
         serializedName: "Height",
@@ -68,7 +69,7 @@ class Tipset
   }
 
   cids: Array<RootCID>;
-  blocks: Array<Block>;
+  blocks: Array<BlockHeader>;
   height: number;
 }
 

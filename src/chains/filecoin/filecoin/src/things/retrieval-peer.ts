@@ -5,13 +5,14 @@ import {
   Definitions
 } from "./serializable-object";
 import { CID, SerializedCID } from "./cid";
-import { Miner, SerializedMiner } from "./miner";
+
+// https://pkg.go.dev/github.com/filecoin-project/go-fil-markets/retrievalmarket#RetrievalPeer
 
 type RetrievalPeerConfig = {
   properties: {
     address: {
-      type: Miner;
-      serializedType: SerializedMiner;
+      type: string; // using string until we can support more address types in Address
+      serializedType: string;
       serializedName: "Address";
     };
     id: {
@@ -34,7 +35,7 @@ class RetrievalPeer
     return {
       address: {
         serializedName: "Address",
-        defaultValue: options => new Miner(options)
+        defaultValue: "t01000"
       },
       id: {
         serializedName: "ID",
@@ -48,7 +49,7 @@ class RetrievalPeer
     };
   }
 
-  address: Miner;
+  address: string;
   id: string;
   pieceCID: CID;
 }

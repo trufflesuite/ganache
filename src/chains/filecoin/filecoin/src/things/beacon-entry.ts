@@ -5,6 +5,8 @@ import {
   Definitions
 } from "./serializable-object";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus/chain/types#BeaconEntry
+
 interface BeaconEntryConfig {
   properties: {
     round: {
@@ -13,7 +15,7 @@ interface BeaconEntryConfig {
       serializedName: "Round";
     };
     data: {
-      type: string;
+      type: string; // should probably be uint8array https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#BeaconEntry
       serializedType: string;
       serializedName: "Data";
     };

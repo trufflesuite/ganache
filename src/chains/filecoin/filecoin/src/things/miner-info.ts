@@ -6,6 +6,8 @@ import {
 } from "./serializable-object";
 import { Address, SerializedAddress } from "./address";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus/chain/actors/builtin/miner#MinerInfo
+
 type MinerInfoConfig = {
   properties: {
     owner: {

@@ -1,6 +1,8 @@
 import { RootCID, SerializedRootCID } from "./root-cid";
-import { DealState, nextSuccessfulState } from "../deal-state";
-import { Miner, SerializedMiner } from "./miner";
+import {
+  StorageDealStatus,
+  nextSuccessfulState
+} from "../types/storage-deal-status";
 import {
   SerializableObject,
   DeserializedObject,
@@ -8,7 +10,9 @@ import {
   SerializedObject
 } from "./serializable-object";
 
-type DealConfig = {
+// https://pkg.go.dev/github.com/filecoin-project/lotus/api#DealInfo
+
+type DealInfoConfig = {
   properties: {
     proposalCid: {
       type: RootCID;
@@ -16,8 +20,8 @@ type DealConfig = {
       serializedName: "ProposalCid";
     };
     state: {
-      type: DealState;
-      serializedType: DealState; // Remember: Enums are numbers at runtime!,
+      type: StorageDealStatus;
+      serializedType: StorageDealStatus; // Remember: Enums are numbers at runtime!,
       serializedName: "State";
     };
     message: {
@@ -26,10 +30,11 @@ type DealConfig = {
       serializedName: "Message";
     };
     provider: {
-      type: Miner;
-      serializedType: SerializedMiner;
+      type: string; // using string until we can support more address types in Address
+      serializedType: string;
       serializedName: "Provider";
     };
+    // TODO: DataRef?
     pieceCid: {
       type: RootCID;
       serializedType: SerializedRootCID;
@@ -41,7 +46,7 @@ type DealConfig = {
       serializedName: "Size";
     };
     pricePerEpoch: {
-      type: string;
+      type: bigint;
       serializedType: string;
       serializedName: "PricePerEpoch";
     };
@@ -55,13 +60,25 @@ type DealConfig = {
       serializedType: number;
       serializedName: "DealID";
     };
+    creationTime: {
+      type: Date;
+      serializedType: string;
+      serializedName: "CreationTime";
+    };
+    verified: {
+      type: boolean;
+      serializedType: boolean;
+      serializedName: "Verified";
+    };
+    // TODO: TransferChannelID?
+    // TODO: DataTransfer?
   };
 };
 
-class Deal
-  extends SerializableObject<DealConfig>
-  implements DeserializedObject<DealConfig> {
-  get config(): Definitions<DealConfig> {
+class DealInfo
+  extends SerializableObject<DealInfoConfig>
+  implements DeserializedObject<DealInfoConfig> {
+  get config(): Definitions<DealInfoConfig> {
     return {
       proposalCid: {
         serializedName: "ProposalCid",
@@ -75,7 +92,7 @@ class Deal
       },
       provider: {
         serializedName: "Provider",
-        defaultValue: options => new Miner(options)
+        defaultValue: "t01000"
       },
       pieceCid: {
         serializedName: "PieceCID"
@@ -91,25 +108,38 @@ class Deal
       },
       dealId: {
         serializedName: "DealID"
+      },
+      creationTime: {
+        serializedName: "CreationTime",
+        defaultValue: new Date()
+      },
+      verified: {
+        serializedName: "Verified"
       }
     };
   }
 
   proposalCid: RootCID;
-  state: DealState;
+  state: StorageDealStatus;
   message: string;
-  provider: Miner;
+  provider: string;
   pieceCid: RootCID;
   size: number;
-  pricePerEpoch: string;
+  pricePerEpoch: bigint;
   duration: number;
   dealId: number;
+  creationTime: Date;
+  verified: boolean;
 
   advanceState(fullyAdvance: boolean = false) {
-    this.state = nextSuccessfulState[this.state];
+    if (fullyAdvance) {
+      this.state = StorageDealStatus.Active;
+    } else {
+      this.state = nextSuccessfulState[this.state];
+    }
   }
 }
 
-type SerializedDeal = SerializedObject<DealConfig>;
+type SerializedDealInfo = SerializedObject<DealInfoConfig>;
 
-export { Deal, SerializedDeal };
+export { DealInfo, SerializedDealInfo };

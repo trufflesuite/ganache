@@ -5,10 +5,12 @@ import {
   Definitions
 } from "./serializable-object";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus/chain/types#Ticket
+
 interface TicketConfig {
   properties: {
     vrfProof: {
-      type: string;
+      type: string; // probably should be uint8array https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#Ticket
       serializedType: string;
       serializedName: "VRFProof";
     };

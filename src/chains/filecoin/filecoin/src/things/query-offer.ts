@@ -6,9 +6,10 @@ import {
   Definitions
 } from "./serializable-object";
 import { RetrievalPeer, SerializedRetrievalPeer } from "./retrieval-peer";
-import { Miner, SerializedMiner } from "./miner";
 
-type RetrievalOfferConfig = {
+// https://pkg.go.dev/github.com/filecoin-project/lotus/api#QueryOffer
+
+type QueryOfferConfig = {
   properties: {
     err: {
       type: string;
@@ -20,15 +21,25 @@ type RetrievalOfferConfig = {
       serializedType: SerializedRootCID;
       serializedName: "Root";
     };
+    piece: {
+      type: RootCID;
+      serializedType: SerializedRootCID;
+      serializedName: "Piece";
+    };
     size: {
       type: number;
       serializedType: number;
       serializedName: "Size";
     };
     minPrice: {
-      type: string;
+      type: bigint;
       serializedType: string;
       serializedName: "MinPrice";
+    };
+    unsealPrice: {
+      type: bigint;
+      serializedType: string;
+      serializedName: "UnsealPrice";
     };
     paymentInterval: {
       type: number;
@@ -41,8 +52,8 @@ type RetrievalOfferConfig = {
       serializedName: "PaymentIntervalIncrease";
     };
     miner: {
-      type: Miner;
-      serializedType: SerializedMiner;
+      type: string; // using string until we can support more address types in Address
+      serializedType: string;
       serializedName: "Miner";
     };
     minerPeer: {
@@ -53,10 +64,10 @@ type RetrievalOfferConfig = {
   };
 };
 
-class RetrievalOffer
-  extends SerializableObject<RetrievalOfferConfig>
-  implements DeserializedObject<RetrievalOfferConfig> {
-  get config(): Definitions<RetrievalOfferConfig> {
+class QueryOffer
+  extends SerializableObject<QueryOfferConfig>
+  implements DeserializedObject<QueryOfferConfig> {
+  get config(): Definitions<QueryOfferConfig> {
     return {
       err: {
         serializedName: "Err",
@@ -66,11 +77,18 @@ class RetrievalOffer
         serializedName: "Root",
         defaultValue: options => new RootCID(options)
       },
+      piece: {
+        serializedName: "Piece",
+        defaultValue: options => new RootCID(options)
+      },
       size: {
         serializedName: "Size"
       },
       minPrice: {
         serializedName: "MinPrice"
+      },
+      unsealPrice: {
+        serializedName: "UnsealPrice"
       },
       paymentInterval: {
         serializedName: "PaymentInterval",
@@ -92,14 +110,16 @@ class RetrievalOffer
 
   err: string;
   root: RootCID;
+  piece: RootCID;
   size: number;
-  minPrice: string;
+  minPrice: bigint;
+  unsealPrice: bigint;
   paymentInterval: number;
   paymentIntervalIncrease: number;
-  miner: Miner;
+  miner: string;
   minerPeer: RetrievalPeer;
 }
 
-type SerializedRetrievalOffer = SerializedObject<RetrievalOfferConfig>;
+type SerializedQueryOffer = SerializedObject<QueryOfferConfig>;
 
-export { RetrievalOffer, SerializedRetrievalOffer };
+export { QueryOffer, SerializedQueryOffer };

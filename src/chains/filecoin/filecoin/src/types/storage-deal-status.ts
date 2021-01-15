@@ -6,7 +6,7 @@
 // Don't reorganize unless you know what you're doing.
 
 // Updated to v1.1.1 (https://github.com/filecoin-project/go-fil-markets/blob/v1.1.1/storagemarket/dealstatus.go)
-export enum DealState {
+export enum StorageDealStatus {
   // Unknown means the current status of a deal is undefined
   Unknown,
 
@@ -109,30 +109,30 @@ export enum DealState {
   AwaitingPreCommit
 }
 
-export let terminalStates: Array<DealState> = [
-  DealState.ProposalNotFound,
-  DealState.ProposalRejected,
-  DealState.Error,
-  DealState.Expired
+export let terminalStates: Array<StorageDealStatus> = [
+  StorageDealStatus.ProposalNotFound,
+  StorageDealStatus.ProposalRejected,
+  StorageDealStatus.Error,
+  StorageDealStatus.Expired
 ];
 
-export let nextSuccessfulState: Record<DealState, DealState> = [
-  DealState.Validating,
-  DealState.Staged,
-  DealState.ReserveProviderFunds,
-  DealState.ReserveClientFunds,
-  DealState.FundsReserved,
-  DealState.ProviderFunding,
-  DealState.ClientFunding,
-  DealState.Publish,
-  DealState.Publishing,
-  DealState.Transferring,
-  DealState.Sealing,
-  DealState.Active
+export let nextSuccessfulState: Record<StorageDealStatus, StorageDealStatus> = [
+  StorageDealStatus.Validating,
+  StorageDealStatus.Staged,
+  StorageDealStatus.ReserveProviderFunds,
+  StorageDealStatus.ReserveClientFunds,
+  StorageDealStatus.FundsReserved,
+  StorageDealStatus.ProviderFunding,
+  StorageDealStatus.ClientFunding,
+  StorageDealStatus.Publish,
+  StorageDealStatus.Publishing,
+  StorageDealStatus.Transferring,
+  StorageDealStatus.Sealing,
+  StorageDealStatus.Active
 ].reduce((obj, currentValue, index, array) => {
   // This creates an object linking each state to its next state
 
-  let nextValue: DealState;
+  let nextValue: StorageDealStatus;
   if (index + 1 < array.length) {
     nextValue = array[index + 1];
   } else {
@@ -142,4 +142,4 @@ export let nextSuccessfulState: Record<DealState, DealState> = [
   obj[currentValue] = nextValue;
 
   return obj;
-}, {} as Record<DealState, DealState>);
+}, {} as Record<StorageDealStatus, StorageDealStatus>);
