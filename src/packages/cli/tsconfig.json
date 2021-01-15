@@ -29,6 +29,10 @@
     {
       "name": "@ganache/utils",
       "path": "../utils"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../colors"
     }
   ]
 }
