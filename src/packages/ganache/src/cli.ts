@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-import "@ganache/cli/cli";
+import "@ganache/cli/src/cli";

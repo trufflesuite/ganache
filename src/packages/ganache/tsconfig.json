@@ -4,6 +4,9 @@
     "outDir": "lib"
   },
   "include": ["index.ts", "src/**/*", "src/cli.ts"],
+  "paths": {
+    "@ganache/cli/src/cli": ["../cli/src/cli"]
+  },
   "references": [
     {
       "name": "@ganache/cli",

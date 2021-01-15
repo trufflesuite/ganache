@@ -63,6 +63,17 @@ export type LoggingConfig = {
         verbose: boolean;
       };
     };
+
+    /**
+     * Set to `true` to disable logging. This option overrides
+     * logging.logger and option.verbose.
+     *
+     * @default false
+     */
+    readonly quiet: {
+      type: boolean;
+      hasDefault: true;
+    };
   };
 };
 
@@ -71,17 +82,32 @@ const logger: Logger = { log: () => {} };
 export const LoggingOptions: Definitions<LoggingConfig> = {
   debug: {
     normalize,
+    shortDescription: "Set to `true` to log EVM opcodes.",
     default: () => false,
-    legacyName: "debug"
+    legacyName: "debug",
+    cliType: "boolean"
   },
   logger: {
     normalize,
+    shortDescription:
+      "An object, like `console`, that implements a `log` function.",
+    disableInCLI: true,
     default: () => logger,
     legacyName: "logger"
   },
   verbose: {
     normalize,
+    shortDescription: "Set to `true` to log all RPC requests and responses.",
     default: () => false,
-    legacyName: "verbose"
+    legacyName: "verbose",
+    cliAliases: ["v", "verbose"],
+    cliType: "boolean"
+  },
+  quiet: {
+    normalize,
+    shortDescription: "Set to `true` to disable logging.",
+    default: () => false,
+    cliAliases: ["q", "quiet"],
+    cliType: "boolean"
   }
 };

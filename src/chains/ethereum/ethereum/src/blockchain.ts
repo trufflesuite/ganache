@@ -256,7 +256,7 @@ export default class Blockchain extends Emittery.Typed<
         let firstBlockTime: number;
         if (options.chain.time != null) {
           // If we were given a timestamp, use it instead of the `_currentTime`
-          const t = +options.chain.time;
+          const t = options.chain.time.getTime();
           firstBlockTime = Math.floor(t / 1000);
           this.setTime(t);
         } else {

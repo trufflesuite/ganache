@@ -12,6 +12,12 @@ export default class TezosProvider
     super();
     this.emit("ready");
   }
+  public getOptions() {
+    throw new Error("Method not supported (getOptions)");
+  }
+  public getInitialAccounts() {
+    throw new Error("Method not supported (getOptions)");
+  }
   public async close() {
     this.emit("close");
   }

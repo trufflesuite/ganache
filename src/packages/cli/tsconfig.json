@@ -4,11 +4,31 @@
     "outDir": "lib",
     "composite": true
   },
-  "include": ["index.ts", "cli.ts", "args.ts"],
+  "include": ["index.ts", "src/**/*.ts"],
   "references": [
     {
       "name": "@ganache/core",
       "path": "../core"
+    },
+    {
+      "name": "@ganache/ethereum-options",
+      "path": "../../chains/ethereum/options"
+    },
+    {
+      "name": "@ganache/flavors",
+      "path": "../flavors"
+    },
+    {
+      "name": "@ganache/options",
+      "path": "../options"
+    },
+    {
+      "name": "@ganache/ethereum",
+      "path": "../../chains/ethereum/ethereum"
+    },
+    {
+      "name": "@ganache/utils",
+      "path": "../utils"
     }
   ]
 }

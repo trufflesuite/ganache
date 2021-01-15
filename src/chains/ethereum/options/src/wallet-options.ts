@@ -2,7 +2,7 @@ import { normalize } from "./helpers";
 import seedrandom from "seedrandom";
 import { entropyToMnemonic } from "bip39";
 
-import { Definitions } from "@ganache/options";
+import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
 const { alea } = seedrandom;
 
@@ -59,6 +59,7 @@ export type WalletConfig = {
      */
     accounts: {
       type: OptionsAccount[];
+      rawType: OptionsAccount[] | string[];
       legacy: {
         /**
          * @deprecated Use wallet.accounts instead
@@ -68,7 +69,15 @@ export type WalletConfig = {
     };
 
     /**
-     * Seed to use to generate a mnemonic
+     * Use pre-defined, deterministic seed.
+     */
+    deterministic: {
+      type: boolean;
+      hasDefault: true;
+    };
+
+    /**
+     * Seed to use to generate a mnemonic.
      */
     seed: {
       type: string;
@@ -109,7 +118,7 @@ export type WalletConfig = {
     };
 
     /**
-     * Lock available accounts by default (good for third party transaction signing). Defaults to `false`.
+     * Lock available accounts by default (good for third party transaction signing).
      *
      * @default false
      */
@@ -144,7 +153,7 @@ export type WalletConfig = {
     };
 
     /**
-     * The default account balance, specified in ether. Defaults to `100` ether
+     * The default account balance, specified in ether.
      *
      * @default 100 // ether
      */
@@ -181,45 +190,112 @@ export type WalletConfig = {
 export const WalletOptions: Definitions<WalletConfig> = {
   totalAccounts: {
     normalize,
+    shortDescription: "Number of accounts to generate at startup.",
     default: () => 10,
-    legacyName: "total_accounts"
+    legacyName: "total_accounts",
+    cliAliases: ["a", "accounts"],
+    cliType: "number"
   },
   accounts: {
+    normalize: rawInput => {
+      if (rawInput.length > 0) {
+        if (typeof rawInput[0] === "string") {
+          return (rawInput as string[]).map(accountString => {
+            const accountParts = accountString.split(",");
+            return {
+              secretKey: accountParts[0],
+              balance: accountParts[1]
+            } as OptionsAccount;
+          });
+        } else {
+          return rawInput as OptionsAccount[];
+        }
+      } else {
+        return [];
+      }
+    },
+    shortDescription:
+      "Array of Accounts. Each object should have a balance key with a hexadecimal value.",
+    legacyName: "accounts",
+    cliAliases: ["account"],
+    cliType: "array"
+  },
+  deterministic: {
     normalize,
-    legacyName: "accounts"
+    shortDescription: "Use pre-defined, deterministic seed.",
+    default: () => false,
+    cliAliases: ["d", "deterministic"],
+    cliType: "boolean"
   },
   seed: {
     normalize,
-    default: () => randomAlphaNumericString(10, alea()),
-    legacyName: "seed"
+    shortDescription: "Seed to use to generate a mnemonic.",
+    // The order of the options matter here! `wallet.deterministic`
+    // needs to be prior to `wallet.seed` for `config.deterministic`
+    // below to be set correctly
+    default: config =>
+      config.deterministic
+        ? DeterministicSeedPhrase
+        : randomAlphaNumericString(10, alea()),
+    defaultDescription:
+      "Random value, unless wallet.deterministic is specified",
+    legacyName: "seed",
+    cliAliases: ["s", "seed"],
+    cliType: "string"
   },
   mnemonic: {
     normalize,
+    shortDescription:
+      "Use a specific HD wallet mnemonic to generate initial addresses.",
+    // The order of the options matter here! `wallet.seed`
+    // needs to be prior to `wallet.mnemonic` for `config.seed`
+    // below to be set correctly
     default: config =>
       entropyToMnemonic(randomBytes(16, seedrandom(config.seed))),
-    legacyName: "mnemonic"
+    defaultDescription: "Generated from wallet.seed",
+    legacyName: "mnemonic",
+    cliAliases: ["m", "mnemonic"],
+    cliType: "string"
   },
   unlockedAccounts: {
     normalize,
-    legacyName: "unlocked_accounts"
+    shortDescription:
+      "Array of addresses or address indexes specifying which accounts should be unlocked.",
+    legacyName: "unlocked_accounts",
+    cliAliases: ["u", "unlock"],
+    cliType: "array"
   },
   secure: {
     normalize,
+    shortDescription:
+      "Lock available accounts by default (good for third party transaction signing).",
     default: () => false,
-    legacyName: "secure"
+    legacyName: "secure",
+    cliAliases: ["n", "secure"],
+    cliType: "boolean"
   },
   accountKeysPath: {
     normalize,
-    legacyName: "account_keys_path"
+    shortDescription:
+      "Specifies a file to save accounts and private keys to, for testing.",
+    legacyName: "account_keys_path",
+    cliAliases: ["account_keys_path", "acctKeys"],
+    cliType: "string"
   },
   defaultBalance: {
     normalize,
+    shortDescription: "The default account balance, specified in ether.",
     default: () => 100,
-    legacyName: "default_balance_ether"
+    legacyName: "default_balance_ether",
+    cliAliases: ["e", "defaultBalanceEther"],
+    cliType: "number"
   },
   hdPath: {
     normalize,
+    shortDescription:
+      "The hierarchical deterministic path to use when generating accounts.",
     default: () => "m/44'/60'/0'/0/",
-    legacyName: "hd_path"
+    legacyName: "hd_path",
+    cliType: "string"
   }
 };

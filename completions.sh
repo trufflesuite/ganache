@@ -8,7 +8,8 @@ _npmScriptsCompletions() {
 
   if [ "${COMP_WORDS[1]}" == "run" ] && [ ${#COMP_WORDS[@]} == 3 ]; then
     # get a list of all npm scripts and add them to the bash autocomplete reply
-    type_list=$(node -e "console.log(Object.keys(require('./package.json').scripts).join('\n'))")
+    # NODE_OPTIONS="" prevents vscode's Auto Attach feature from attaching to this node script
+    type_list=$(NODE_OPTIONS="" node -pe "Object.keys(require('./package.json').scripts).join(' ')")
     COMPREPLY=($(compgen -W "${type_list}" -- ${cur_word}))
   else
     # if the command if the create command (npm run create) get its completion values

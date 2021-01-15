@@ -74,7 +74,6 @@ export const EthereumOptionsConfig = new OptionsConfig(ethereumDefaults);
 export * from "./chain-options";
 export * from "./database-options";
 export * from "./helpers";
-// export * from "./legacy-options";
 export * from "./logging-options";
 export * from "./miner-options";
 export * from "./wallet-options";

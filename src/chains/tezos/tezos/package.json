@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Ganache's Tezos client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/tezos#readme",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/tezos/tezos#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -21,7 +21,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache-core.git",
-    "directory": "src/chains/tezos"
+    "directory": "src/chains/tezos/tezos"
   },
   "scripts": {
     "tsc": "ttsc"

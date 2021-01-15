@@ -36,10 +36,16 @@ export type DatabaseConfig = {
 export const DatabaseOptions: Definitions<DatabaseConfig> = {
   db: {
     normalize,
+    shortDescription: "Specify an alternative database instance, like MemDOWN",
+    disableInCLI: true,
     legacyName: "db"
   },
   dbPath: {
     normalize,
-    legacyName: "db_path"
+    shortDescription:
+      "Specify a path to a directory to save the chain database.",
+    legacyName: "db_path",
+    cliAliases: ["db", "db_path"],
+    cliType: "string"
   }
 };
