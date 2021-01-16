@@ -16,7 +16,7 @@ import {
   Options,
   OptionsConfig
 } from "@ganache/options";
-import { UnionToIntersection } from "@ganache/options/src/types";
+import { UnionToIntersection } from "./helper-types";
 
 export type EthereumOptions = {
   chain: ChainConfig;
