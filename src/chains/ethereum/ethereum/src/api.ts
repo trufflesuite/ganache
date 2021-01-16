@@ -175,10 +175,10 @@ export default class EthereumApi implements types.Api {
 
     const { chain } = options;
     const { initialAccounts } = (this.#wallet = wallet);
-    const coinbaseAddress = (options.miner.coinbase = parseCoinbaseAddress(
+    const coinbaseAddress = parseCoinbaseAddress(
       options.miner.coinbase,
       initialAccounts
-    ));
+    );
     const common = (this.#common = createCommon(
       chain.chainId,
       chain.networkId,
