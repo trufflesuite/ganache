@@ -95,7 +95,7 @@ export default function (version: string, isDocker: boolean) {
               }
 
               const generateDefaultDescription = () => {
-                // default sometimes requires a config, so we set supply one
+                // default sometimes requires a config, so we supply one
                 return (state[option] = optionObj.default
                   ? optionObj.default(state).toString()
                   : undefined);
