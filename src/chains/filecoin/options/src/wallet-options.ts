@@ -46,14 +46,14 @@ export type WalletConfig = {
 export const WalletOptions: Definitions<WalletConfig> = {
   deterministic: {
     normalize,
-    shortDescription: "Use pre-defined, deterministic seed.",
+    cliDescription: "Use pre-defined, deterministic seed.",
     default: () => false,
     cliAliases: ["d"],
     cliType: "boolean"
   },
   seed: {
     normalize,
-    shortDescription: "Seed to use to generate a mnemonic.",
+    cliDescription: "Seed to use to generate a mnemonic.",
     // The order of the options matter here! `wallet.deterministic`
     // needs to be prior to `wallet.seed` for `config.deterministic`
     // below to be set correctly

@@ -35,14 +35,14 @@ export type MinerConfig = {
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
     normalize,
-    shortDescription:
+    cliDescription:
       'Sets the `blockTime` in seconds for automatic mining. A blockTime of `0`  enables "instamine mode", where new executable transactions will be mined instantly.',
     default: () => 0,
     cliType: "number"
   },
   automining: {
     normalize,
-    shortDescription:
+    cliDescription:
       "Internal flag to determine if ganache should automine/instamine.",
     disableInCLI: true,
     default: () => true
