@@ -40,12 +40,14 @@ export const ServerOptions: Definitions<ServerConfig> = {
     normalize,
     cliDescription: "Enable a websocket server.",
     default: () => true,
-    legacyName: "ws"
+    legacyName: "ws",
+    cliType: "boolean"
   },
   wsBinary: {
     normalize,
     cliDescription:
       "Whether or not websockets should response with binary data (ArrayBuffers) or strings.",
-    default: () => "auto"
+    default: () => "auto",
+    cliChoices: [true, false, "auto"]
   }
 };
