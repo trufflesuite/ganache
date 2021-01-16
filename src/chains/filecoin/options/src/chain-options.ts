@@ -38,19 +38,19 @@ export type ChainConfig = {
 export const ChainOptions: Definitions<ChainConfig> = {
   ipfsHost: {
     normalize,
-    shortDescription: "The IPFS simulator host name/address to listen on.",
+    cliDescription: "The IPFS simulator host name/address to listen on.",
     default: () => "127.0.0.1",
     cliType: "string"
   },
   ipfsPort: {
     normalize,
-    shortDescription: "The IPFS simulator port.",
+    cliDescription: "The IPFS simulator port.",
     default: () => 5001,
     cliType: "number"
   },
   asyncRequestProcessing: {
     normalize,
-    shortDescription:
+    cliDescription:
       "When set to `false` only one request will be processed at a time.",
     default: () => true,
     cliType: "boolean"
