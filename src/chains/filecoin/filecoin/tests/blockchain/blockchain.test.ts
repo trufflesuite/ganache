@@ -7,7 +7,7 @@ import { StorageProposalData } from "../../src/things/storage-proposal-data";
 import { RootCID } from "../../src/things/root-cid";
 import { DealState } from "../../src/deal-state";
 
-import { FilecoinOptionsConfig } from "../../src/options/index";
+import { FilecoinOptionsConfig } from "@ganache/filecoin-options";
 
 describe("Blockchain", () => {
   describe("general", () => {
