@@ -37,13 +37,9 @@ const detailedVersion =
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
-const { argv } = args(detailedVersion, isDocker);
+const argv = args(detailedVersion, isDocker);
 
-let flavor: FlavorName = DefaultFlavor;
-if (argv._.length > 0) {
-  flavor = argv._[0] as FlavorName;
-}
-argv.flavor = flavor;
+const flavor = argv.flavor;
 
 const cliSettings = argv.server;
 
