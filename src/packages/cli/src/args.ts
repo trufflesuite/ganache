@@ -6,7 +6,7 @@ import {
   Definitions,
   YargsPrimitiveCliTypeStrings
 } from "@ganache/options";
-import { Command, CliOptions, Yargs } from "./types";
+import { Command, Argv } from "./types";
 import chalk from "chalk";
 import { EOL } from "os";
 import marked from "marked";
@@ -37,6 +37,9 @@ const center = (t: string) => " ".repeat((wrapWidth - t.length) >> 1) + t;
 
 export default function (version: string, isDocker: boolean) {
   let args = yargs
+    // disable dot-notation because yargs just can't coerce args properly...
+    // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
+    .parserConfiguration({ "dot-notation": false })
     .strict()
     .usage(chalk`{hex("${TruffleColors.porsche}").bold ${center(version)}}`)
     .epilogue(
@@ -155,8 +158,8 @@ export default function (version: string, isDocker: boolean) {
             type: "number",
             default: defaultPort
           })
-          .check(({ server }) => {
-            const { port, host } = server as CliOptions;
+          .check(argv => {
+            const { "server.port": port, "server.host": host } = argv;
             if (port < 1 || port > 65535) {
               throw new Error(`Invalid port number '${port}'`);
             }
@@ -177,5 +180,22 @@ export default function (version: string, isDocker: boolean) {
     .wrap(wrapWidth)
     .version(version);
 
-  return (args as unknown) as Yargs;
+  const parsedArgs = args.argv;
+  const finalArgs = {
+    flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor
+  } as Argv;
+  for (let key in parsedArgs) {
+    const parts = key.split(".");
+    // only copy namespaced keys
+    if (parts.length > 1) {
+      const last = parts.pop();
+      const obj = parts.reduce((acc: any, part: string) => {
+        // build the obj path (e..g, `finalArgs: {wallet: {}}`)
+        return (acc[part] = acc[part] || {});
+      }, finalArgs);
+      obj[last] = parsedArgs[key];
+    }
+  }
+
+  return finalArgs;
 }
