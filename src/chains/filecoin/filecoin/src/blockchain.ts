@@ -214,7 +214,7 @@ export default class Blockchain extends Emittery.Typed<
       return 0;
     }
 
-    let stat = await this.ipfsServer.node.object.stat(cid as any, {
+    let stat = await this.ipfsServer.node.object.stat(cid, {
       timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
     });
 
@@ -222,30 +222,34 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   private async downloadFile(cid: string, ref: FileRef): Promise<void> {
-    const size = await this.getIPFSObjectSize(cid);
-    const content = new Uint8Array(size);
-    const chunks = this.ipfsServer.node.files.read(new IPFS_CID(cid), {
-      timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
-    });
-
-    let index = 0;
-    for await (const chunk of chunks) {
-      content.set(chunk, index);
-      index += chunk.byteLength;
-    }
-
     const dirname = path.dirname(ref.path);
     try {
       if (!fs.existsSync(dirname)) {
         await fs.promises.mkdir(dirname, { recursive: true });
       }
-      await fs.promises.writeFile(ref.path, content.slice(0, index), "binary");
+      await fs.promises.writeFile(ref.path, "");
     } catch (e) {
       throw new Error(
-        `Could not save file.\n  CID: ${cid}\n  Path: ${
+        `Could not create file.\n  CID: ${cid}\n  Path: ${
           ref.path
         }\n  Error: ${e.toString()}`
       );
+    }
+
+    const chunks = this.ipfsServer.node.files.read(new IPFS_CID(cid), {
+      timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
+    });
+
+    for await (const chunk of chunks) {
+      try {
+        await fs.promises.appendFile(ref.path, chunk, "binary");
+      } catch (e) {
+        throw new Error(
+          `Could not save file.\n  CID: ${cid}\n  Path: ${
+            ref.path
+          }\n  Error: ${e.toString()}`
+        );
+      }
     }
   }
 
