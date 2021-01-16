@@ -3,7 +3,7 @@ import FilecoinApi from "./api";
 import { JsonRpcTypes, types, utils, PromiEvent } from "@ganache/utils";
 import FilecoinProvider from "./provider";
 import { RecognizedString, HttpRequest } from "uWebSockets.js";
-import { FilecoinProviderOptions } from "./options";
+import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 
 export type ProviderOptions = FilecoinProviderOptions;
 export type Provider = FilecoinProvider;

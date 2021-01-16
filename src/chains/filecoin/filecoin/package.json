@@ -46,6 +46,7 @@
   ],
   "dependencies": {
     "@filecoin-shipyard/lotus-client-schema": "0.0.12",
+    "@ganache/filecoin-options": "0.1.0",
     "@ganache/options": "0.1.0",
     "@ganache/utils": "0.1.0",
     "base32-encoding": "1.0.0",
@@ -68,7 +69,7 @@
     "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",
     "@filecoin-shipyard/lotus-client-rpc": "0.0.11",
     "cross-env": "7.0.2",
-    "nyc": "^15.1.0",
+    "nyc": "15.1.0",
     "typedoc": "0.17.8",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
   }
