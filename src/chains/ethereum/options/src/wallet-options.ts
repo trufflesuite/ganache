@@ -205,10 +205,11 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliType: "array:string",
     cliCoerce: rawInput => {
       return rawInput.map(accountString => {
-        const accountParts = accountString.split(",");
+        // split *1* time on the first comma
+        const [secretKey, balance] = accountString.split(/,(.+)/);
         return {
-          secretKey: accountParts[0],
-          balance: accountParts[1]
+          secretKey,
+          balance: BigInt(balance)
         } as OptionsAccount;
       });
     }
