@@ -15,7 +15,7 @@ import dagCBOR from "ipld-dag-cbor";
 import { RetrievalOffer } from "./things/retrieval-offer";
 import seedrandom from "seedrandom";
 import BN from "bn.js";
-import { FilecoinInternalOptions } from "./options";
+import { FilecoinInternalOptions } from "@ganache/filecoin-options";
 
 export type BlockchainEvents = {
   ready(): void;
