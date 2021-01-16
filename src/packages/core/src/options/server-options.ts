@@ -48,6 +48,6 @@ export const ServerOptions: Definitions<ServerConfig> = {
     cliDescription:
       "Whether or not websockets should response with binary data (ArrayBuffers) or strings.",
     default: () => "auto",
-    cliChoices: [true, false, "auto"]
+    cliChoices: [true, false, "auto"] as any[]
   }
 };
