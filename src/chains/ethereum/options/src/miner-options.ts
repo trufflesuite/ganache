@@ -123,7 +123,6 @@ export type MinerConfig = {
       rawType: string | number;
       type: Address | number;
       hasDefault: true;
-      cliType: string | number;
     };
 
     /**
@@ -195,10 +194,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return typeof rawType === "number" ? rawType : Address.from(rawType);
     },
     cliDescription: "Sets the address where mining rewards will go.",
-    default: () => Address.from(utils.ACCOUNT_ZERO),
-    // omit the cliType for `coinbase` as yargs automatically casts
-    // number-strings to numbers and everything else will stay as a string:
-    cliType: null as "string" | "number"
+    default: () => Address.from(utils.ACCOUNT_ZERO)
   },
   extraData: {
     normalize: (extra: string) => {
