@@ -1,7 +1,7 @@
 /*!
  * @ganache/filecoin
  *
- * @copyright 2019-2020 Truffle Blockchain Group
+ * @copyright Truffle Blockchain Group
  * @author Tim Coulter
  * @license MIT
  */
