@@ -94,7 +94,7 @@ describe("Random tests that are temporary!", () => {
         }
       }),
       {
-        message: `Invalid value in unlocked_accounts: ${bigNumber}`
+        message: `Invalid value in wallet.unlockedAccounts: ${bigNumber}`
       }
     );
   });
