@@ -185,15 +185,14 @@ export default function (version: string, isDocker: boolean) {
     flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor
   } as Argv;
   for (let key in parsedArgs) {
-    const parts = key.split(".");
-    // only copy namespaced keys
-    if (parts.length > 1) {
-      const last = parts.pop();
-      const obj = parts.reduce((acc: any, part: string) => {
-        // build the obj path (e..g, `finalArgs: {wallet: {}}`)
-        return (acc[part] = acc[part] || {});
-      }, finalArgs);
-      obj[last] = parsedArgs[key];
+    // split on the first "."
+    const [group, option] = key.split(/\.(.+)/);
+    // only copy namespaced/group keys
+    if (option) {
+      if (!finalArgs[group]) {
+        finalArgs[group] = {};
+      }
+      finalArgs[group][option] = parsedArgs[key];
     }
   }
 
