@@ -188,7 +188,7 @@ process.stdout.write(`${COLORS.Reset}`);
       compilerOptions: {
         outDir: "lib"
       },
-      include: ["src"]
+      include: ["src", "index.ts"]
     };
 
     const shrinkwrap = {
