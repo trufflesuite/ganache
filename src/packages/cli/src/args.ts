@@ -33,7 +33,8 @@ function unescapeEntities(html: string) {
     .replace(/&#39;/g, "'");
 }
 const highlight = (t: string) => unescapeEntities(marked.parseInline(t));
-const center = (t: string) => " ".repeat((wrapWidth - t.length) >> 1) + t;
+const center = (str: string) =>
+  wrapWidth ? " ".repeat((wrapWidth - str.length) >> 1) + str : str;
 
 export default function (version: string, isDocker: boolean) {
   let args = yargs
