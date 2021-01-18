@@ -151,15 +151,21 @@ export default function (version: string, isDocker: boolean) {
           const state = {};
           for (const option in categoryObj) {
             const optionObj = categoryObj[option];
-            processOption(state, category, group, option, optionObj, flavorArgs);
+            processOption(
+              state,
+              category,
+              group,
+              option,
+              optionObj,
+              flavorArgs
+            );
           }
         }
 
         const state = {};
         const categoryObj = serverDefaults.server;
-        const options = Object.keys(categoryObj);
         const group = "Server:";
-        for (const option of options) {
+        for (const option in categoryObj) {
           const optionObj = categoryObj[option];
 
           processOption(state, "server", group, option, optionObj, flavorArgs);
