@@ -1,3 +1,4 @@
+import { DefaultFlavor, FilecoinFlavorName } from "@ganache/flavors";
 import { Definitions } from "@ganache/options";
 
 export type ServerConfig = {
@@ -64,7 +65,15 @@ export const ServerOptions: Definitions<ServerConfig> = {
     normalize,
     cliDescription:
       "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
-    default: () => "/",
+    default: config => {
+      switch (config.flavor) {
+        case FilecoinFlavorName:
+          return "/rpc/v0";
+        case DefaultFlavor:
+        default:
+          return "/";
+      }
+    },
     defaultDescription: "'/rpc/v0' for Filecoin, '/' otherwise"
   }
 };

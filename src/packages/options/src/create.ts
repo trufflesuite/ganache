@@ -25,6 +25,7 @@ export type Defaults<O extends Options> = {
 function fill(defaults: any, options: any, target: any, namespace: any) {
   const def = defaults[namespace];
   const config = (target[namespace] = target[namespace] || {});
+  const flavor = options.flavor;
 
   if (hasOwn(options, namespace)) {
     const namespaceOptions = options[namespace];
@@ -42,7 +43,10 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
         if (value !== undefined) {
           config[key] = propDefinition.normalize(value);
         } else if (hasOwn(propDefinition, "default")) {
-          config[key] = propDefinition.default(config);
+          config[key] = propDefinition.default({
+            ...config,
+            flavor
+          });
         }
       }
     }
@@ -57,7 +61,10 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       if (value !== undefined) {
         config[key] = propDefinition.normalize(value);
       } else if (hasOwn(propDefinition, "default")) {
-        config[key] = propDefinition.default(config);
+        config[key] = propDefinition.default({
+          ...config,
+          flavor
+        });
       }
     }
   }
