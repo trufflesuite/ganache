@@ -187,7 +187,10 @@ export type WalletConfig = {
       };
     };
   };
-  exclusiveGroups: [["totalAccounts", "accounts"], ["mnemonic", "seed"]];
+  exclusiveGroups: [
+    ["accounts", "totalAccounts"],
+    ["deterministic", "mnemonic", "seed"]
+  ];
 };
 
 export const WalletOptions: Definitions<WalletConfig> = {
