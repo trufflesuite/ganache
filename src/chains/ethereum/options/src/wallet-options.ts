@@ -115,7 +115,9 @@ export type WalletConfig = {
          */
         unlocked_accounts: Array<string | number>;
       };
-      cliType: (string | number)[];
+      // the provider _does_ accept a string|number, but yargs is overzealous in
+      //  its auto-coercion and will treat hex addresses as numbers, causing issues.
+      cliType: string[];
     };
 
     /**
@@ -257,7 +259,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
       "Array of addresses or address indexes specifying which accounts should be unlocked.",
     legacyName: "unlocked_accounts",
     cliAliases: ["u", "unlock"],
-    cliType: "array"
+    cliType: "array:string"
   },
   secure: {
     normalize,
