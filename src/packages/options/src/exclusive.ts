@@ -95,6 +95,20 @@ type Combine<
   ? I
   : never;
 
+export type ExclusiveGroupsByName<
+  C extends Base.Config,
+  N extends OptionName<C>,
+  GRPS extends ExclusiveGroups<C> = ExclusiveGroups<C>
+> = GRPS extends [infer GRP, ...infer Rest]
+  ? GRP extends unknown[]
+    ? N extends DeepTupleToUnion<GRP>
+      ? Exclude<DeepTupleToUnion<GRP>, N>
+      : Rest extends any[]
+      ? ExclusiveGroupsByName<C, N, Rest>
+      : never
+    : never
+  : never;
+
 type IsNeverType<T> = [T] extends [never] ? true : never;
 export type ExclusiveGroupUnionAndUnconstrainedPlus<
   C extends Base.Config,

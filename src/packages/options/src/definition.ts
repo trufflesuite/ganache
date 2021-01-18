@@ -1,5 +1,8 @@
 import { Base, CliTypeMap, CliTypes } from "./base";
-import { ExclusiveGroupUnionAndUnconstrainedPlus } from "./exclusive";
+import {
+  ExclusiveGroupsByName,
+  ExclusiveGroupUnionAndUnconstrainedPlus
+} from "./exclusive";
 import {
   Legacy,
   OptionCliType,
@@ -33,22 +36,31 @@ export type Definitions<C extends Base.Config> = {
     readonly disableInCLI?: boolean;
     readonly cliAliases?: string[];
     readonly cliChoices?: string[] | number[];
-  } & (void extends OptionHasCliType<C, N>
-    ? {
-        readonly cliType?: CliTypeMap<CliTypes> | null;
-      }
+    // exclusiveGroups (conflicts)
+  } & (C[ExclusiveGroupsByName<C, N>] extends never
+    ? {}
     : {
-        readonly cliType?: CliTypeMap<OptionCliType<C, N>> | null;
-        readonly cliCoerce?: (
-          cliType: OptionCliType<C, N>
-        ) => OptionRawType<C, N>;
+        readonly conflicts: ExclusiveGroupsByName<C, N>[];
       }) &
+    // cliType
+    (void extends OptionHasCliType<C, N>
+      ? {
+          readonly cliType?: CliTypeMap<CliTypes> | null;
+        }
+      : {
+          readonly cliType?: CliTypeMap<OptionCliType<C, N>> | null;
+          readonly cliCoerce?: (
+            cliType: OptionCliType<C, N>
+          ) => OptionRawType<C, N>;
+        }) &
+    // hasDefault
     (void extends OptionHasDefault<C, N>
       ? {}
       : {
           readonly default: (config: InternalConfig<C>) => OptionType<C, N>;
           readonly defaultDescription?: string;
         }) &
+    // hasLegacy
     (void extends OptionHasLegacy<C, N>
       ? {}
       : {
