@@ -1,5 +1,5 @@
 import { TruffleColors } from "@ganache/colors";
-import yargs from "yargs";
+import yargs, { Options } from "yargs";
 import { DefaultFlavor, DefaultOptionsByName } from "@ganache/flavors";
 import {
   Base,
@@ -35,6 +35,11 @@ function unescapeEntities(html: string) {
 const highlight = (t: string) => unescapeEntities(marked.parseInline(t));
 const center = (str: string) =>
   wrapWidth ? " ".repeat((wrapWidth - str.length) >> 1) + str : str;
+
+const addAliases = (args: yargs.Argv<{}>, aliases: string[], key: string) => {
+  const options = { hidden: true, alias: key };
+  return aliases.reduce((args, a) => args.option(a, options), args);
+};
 
 export default function (version: string, isDocker: boolean) {
   let args = yargs
@@ -82,16 +87,18 @@ export default function (version: string, isDocker: boolean) {
           for (const option in categoryObj) {
             const optionObj = categoryObj[option];
             if (optionObj.disableInCLI !== true) {
-              let alias = optionObj.cliAliases;
+              const shortHand = [];
+              const legacyAliases = [];
 
               let description = highlight(optionObj.cliDescription || "");
-              if (alias) {
-                description = chalk`${description}${EOL}{dim deprecated aliases: ${alias
-                  .filter(a => a.length > 1)
+              if (optionObj.cliAliases) {
+                optionObj.cliAliases.forEach(alias => {
+                  if (alias.length === 1) shortHand.push(alias);
+                  else legacyAliases.push(alias);
+                });
+                description = chalk`${description}${EOL}{dim deprecated aliases: ${legacyAliases
                   .map(a => `--${a}`)
                   .join(", ")}}`;
-              } else {
-                alias = [];
               }
 
               const generateDefaultDescription = () => {
@@ -111,27 +118,27 @@ export default function (version: string, isDocker: boolean) {
                 ? cliType.slice(6) // remove the "array:" part
                 : cliType) as YargsPrimitiveCliTypeStrings;
 
-              const options = {
+              const options: Options = {
                 group,
                 description,
-                // keep single-letter aliases around
-                alias: alias.filter(a => a.length === 1),
+                alias: shortHand,
                 defaultDescription,
                 array,
                 type,
                 choices: optionObj.cliChoices,
                 coerce: optionObj.cliCoerce
               };
-              flavorArgs = flavorArgs.option(`${category}.${option}`, options);
 
-              // create *hidden* deprecated aliases:
-              const aliasOptions = { hidden: true, ...options };
-              aliasOptions.alias = [`${category}.${option}`];
-              alias.forEach(a => {
-                // don't make hidden aliases for single-letter aliases
-                if (a.length === 1) return;
-                flavorArgs = flavorArgs.option(a, aliasOptions);
-              });
+              const key = `${category}.${option}`;
+
+              // First, create *hidden* deprecated aliases...
+              flavorArgs = addAliases(flavorArgs, legacyAliases, key);
+
+              // and *then* create the main option, as options added later take precedence
+              // example: `-d --wallet.seed 123` is invalid (mutally exclusive). If aliases are defined _after_
+              // the main option definition the error message will be `Arguments deterministic and wallet.seed are mutually exclusive`
+              // when it should be `Arguments wallet.deterministic and wallet.seed are mutually exclusive`
+              flavorArgs = flavorArgs.option(key, options);
             }
           }
         }
