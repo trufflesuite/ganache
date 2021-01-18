@@ -4,5 +4,5 @@
     "outDir": "lib",
     "composite": true
   },
-  "include": ["src"]
+  "include": ["src", "index.ts"]
 }
