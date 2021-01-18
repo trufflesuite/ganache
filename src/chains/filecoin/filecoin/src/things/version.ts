@@ -55,7 +55,8 @@ class Version
       },
       apiVersion: {
         serializedName: "APIVersion",
-        defaultValue: createBinarySemverVersion("0.0.1") // TODO: not sure what to put here
+        // Version determined by what we're using for at https://pkg.go.dev/github.com/filecoin-project/lotus/api
+        defaultValue: createBinarySemverVersion("1.4.0")
       },
       blockDelay: {
         serializedName: "BlockDelay",
