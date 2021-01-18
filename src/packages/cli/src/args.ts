@@ -34,7 +34,7 @@ function unescapeEntities(html: string) {
 }
 const highlight = (t: string) => unescapeEntities(marked.parseInline(t));
 const center = (str: string) =>
-  wrapWidth ? " ".repeat((wrapWidth - str.length) >> 1) + str : str;
+  " ".repeat(Math.max(0, Math.floor((wrapWidth - str.length) / 2))) + str;
 
 const addAliases = (args: yargs.Argv<{}>, aliases: string[], key: string) => {
   const options = { hidden: true, alias: key };
