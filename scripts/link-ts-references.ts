@@ -5,7 +5,7 @@
 
 import { resolve, join, relative } from "path";
 import glob from "glob";
-import { writeFileSync } from "fs-extra";
+import { writeFileSync, existsSync } from "fs-extra";
 
 type Mapping = { [key: string]: string };
 
@@ -142,7 +142,7 @@ const packageDirectories = flat(
   packages.map(pkg => {
     return glob.sync(pkg + "/", options);
   })
-);
+).filter(dir => existsSync(join(dir, "package.json")));
 
 function keys(object: {}) {
   return object ? Object.keys(object) : [];
