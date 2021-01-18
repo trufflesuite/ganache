@@ -57,7 +57,10 @@ export type Definitions<C extends Base.Config> = {
     (void extends OptionHasDefault<C, N>
       ? {}
       : {
-          readonly default: (config: InternalConfig<C>) => OptionType<C, N>;
+          // using type string for flavor to prevent circular dependency
+          readonly default: (
+            config: InternalConfig<C> & { flavor: string }
+          ) => OptionType<C, N>;
           readonly defaultDescription?: string;
         }) &
     // hasLegacy
