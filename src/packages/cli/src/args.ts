@@ -70,10 +70,6 @@ export default function (version: string, isDocker: boolean) {
       flavorArgs => {
         let category: keyof typeof flavorDefaults;
         for (category in flavorDefaults) {
-          flavorArgs = flavorArgs.option(category, {
-            hidden: true
-          });
-
           type GroupType = `${Capitalize<typeof category>}:`;
           const group = `${category[0].toUpperCase()}${category.slice(
             1
@@ -141,9 +137,6 @@ export default function (version: string, isDocker: boolean) {
 
         // TODO: combine these cli options with core's `ServerOptions`
         flavorArgs = flavorArgs
-          .option("server", {
-            hidden: true
-          })
           .option("server.host", {
             group: "Server:",
             description: chalk`Hostname to listen on.${EOL}{dim deprecated aliases: --host, --hostname}${EOL}`,
