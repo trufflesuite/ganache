@@ -6,10 +6,10 @@ import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
 import { CodedError, ErrorCodes } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,
-  EthereumLegacyOptions
+  EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
 
-export type ProviderOptions = EthereumProviderOptions | EthereumLegacyOptions;
+type ProviderOptions = EthereumProviderOptions | EthereumLegacyProviderOptions;
 export type Provider = EthereumProvider;
 export const Provider = EthereumProvider;
 
