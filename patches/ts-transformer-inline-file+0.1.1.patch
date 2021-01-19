@@ -1,0 +1,47 @@
+diff --git a/node_modules/ts-transformer-inline-file/transformer.js b/node_modules/ts-transformer-inline-file/transformer.js
+index ff7a082..5ea1449 100644
+--- a/node_modules/ts-transformer-inline-file/transformer.js
++++ b/node_modules/ts-transformer-inline-file/transformer.js
+@@ -24,6 +24,7 @@ function visitNodeAndChildren(node, program, context) {
+         ? typescript_1.default.visitEachChild(newNode, (child) => visitNodeAndChildren(child, program, context), context)
+         : undefined;
+ }
++
+ function visitNode(node, program) {
+     try {
+         if (typescript_1.default.isCallExpression(node)) {
+@@ -42,22 +43,10 @@ function visitNode(node, program) {
+     }
+ }
+ function visitCallExpression(node, program) {
+-    const typeChecker = program.getTypeChecker();
+-    const signature = typeChecker.getResolvedSignature(node);
+-    if (!signature) {
++    if (node.expression.escapedText !== "$INLINE_JSON" && node.expression.escapedText !== "$INLINE_FILE") {
+         return node;
+     }
+-    const { declaration } = signature;
+-    if (!declaration
+-        || typescript_1.default.isJSDocSignature(declaration)
+-        || !isOurStubModule(declaration.getSourceFile())) {
+-        return node;
+-    }
+-    const funcName = declaration.name && declaration.name.getText();
+-    if (!funcName) {
+-        return node;
+-    }
+-    return handleInlineCallExpression(node, funcName);
++    return handleInlineCallExpression(node, node.expression.escapedText);
+ }
+ function visitImportClause(node, program) {
+     if (!node.importClause) {
+@@ -67,8 +56,7 @@ function visitImportClause(node, program) {
+     if (!node.importClause.name && !namedBindings) {
+         return node;
+     }
+-    const importSymbol = program.getTypeChecker().getSymbolAtLocation(node.moduleSpecifier);
+-    if (!importSymbol || !isOurStubModule(importSymbol.valueDeclaration.getSourceFile())) {
++    if (node.moduleSpecifier.text !== "ts-transformer-inline-file") {
+         return node;
+     }
+     return undefined; // drop the import

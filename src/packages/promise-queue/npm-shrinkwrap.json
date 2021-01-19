@@ -1,0 +1,13 @@
+{
+	"name": "@ganache/promise-queue",
+	"version": "0.1.0",
+	"lockfileVersion": 1,
+	"requires": true,
+	"dependencies": {
+		"emittery": {
+			"version": "0.7.2",
+			"resolved": "https://registry.npmjs.org/emittery/-/emittery-0.7.2.tgz",
+			"integrity": "sha512-A8OG5SR/ij3SsJdWDJdkkSYUjQdCUx6APQXem0SaEePBSRg4eymGYwBkKo1Y6DU+af/Jn2dBQqDBvjnr9Vi8nQ=="
+		}
+	}
+}

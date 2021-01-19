@@ -1,0 +1,49 @@
+{
+  "name": "@ganache/promise-queue",
+  "version": "0.1.0",
+  "description": "A queue that resolves Promise instances in first-in first-out order.",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/promise-queue#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/packages/promise-queue"
+  },
+  "scripts": {
+    "tsc": "ttsc",
+    "test": "nyc npm run mocha",
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --require ts-node/register --recursive --check-leaks 'tests/**.ts'"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-promise-queue",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling"
+  ],
+  "dependencies": {
+    "emittery": "0.7.2"
+  },
+  "devDependencies": {}
+}

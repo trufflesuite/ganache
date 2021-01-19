@@ -1,0 +1,66 @@
+{
+  "name": "@ganache/cli",
+  "version": "0.1.0",
+  "description": "",
+  "author": "David Murdoch",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/cli#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
+  "bin": {
+    "ganache": "./lib/src/cli.js",
+    "ganache-cli": "./lib/src/cli.js"
+  },
+  "directories": {
+    "lib": "/lib",
+    "test": "/tests"
+  },
+  "files": [
+    "/lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/packages/cli"
+  },
+  "scripts": {
+    "tsc": "ttsc",
+    "test": "nyc npm run mocha",
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
+    "start": "cross-env TS_NODE_COMPILER=ttypescript node --require ts-node/register --inspect src/cli.ts"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-cli",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling",
+    "truffle"
+  ],
+  "devDependencies": {
+    "@ganache/core": "0.1.0"
+  },
+  "dependencies": {
+    "@ganache/colors": "^0.1.0",
+    "@ganache/ethereum": "0.1.0",
+    "@ganache/ethereum-options": "0.1.0",
+    "@ganache/flavors": "0.1.0",
+    "@ganache/options": "0.1.0",
+    "@ganache/utils": "0.1.0",
+    "@types/node": "14.14.6",
+    "chalk": "4.1.0",
+    "ethereumjs-util": "7.0.7",
+    "marked-terminal": "4.1.0"
+  }
+}

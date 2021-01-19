@@ -1,174 +1,62 @@
 {
-  "name": "ganache-core",
-  "version": "2.13.2",
-  "main": "./index.js",
-  "types": "./typings/index.d.ts",
+  "name": "root",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
+  "private": true,
   "engines": {
-    "node": ">=8.9.0"
-  },
-  "directories": {
-    "lib": "./lib"
+    "node": ">=10.7.0 <=14.14.0",
+    "npm": ">=6.4.1"
   },
   "scripts": {
-    "_mocha": "mocha --check-leaks --recursive",
-    "nyc_mocha": "nyc npm run _mocha",
-    "_lint": "eslint --ignore-path .gitignore .",
-    "build": "webpack-cli --config ./webpack/node/core.webpack.config.js",
-    "build-web": "webpack-cli --config ./webpack/web-experimental/core.webpack.config.js",
-    "format": "prettier --write \"{lib,perf,test}/**/*.js\" && eslint --fix --ignore-path .gitignore .",
-    "prepare": "patch-package --exclude 'nothing'",
-    "prepublishOnly": "npm run test && npm run build && npm run test-build && npm prune --production && mv npm-shrinkwrap.json npm-shrinkwrap.json.bak && npm shrinkwrap",
-    "postpublish": "rm npm-shrinkwrap.json && mv npm-shrinkwrap.json.bak npm-shrinkwrap.json && npm ci",
-    "test": "npm run _lint && npm run nyc_mocha ./test/local",
-    "test-smoke": "npm run _mocha ./test/smoke",
-    "test-build": "cross-env TEST_BUILD=node npm run _mocha",
-    "test-web-experimental": "cross-env TEST_BUILD=web-experimental npm run _mocha",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
-  },
-  "bundleDependencies": [
-    "keccak"
-  ],
-  "dependencies": {
-    "abstract-leveldown": "3.0.0",
-    "async": "2.6.2",
-    "bip39": "2.5.0",
-    "cachedown": "1.0.0",
-    "clone": "2.1.2",
-    "debug": "3.2.6",
-    "encoding-down": "5.0.4",
-    "eth-sig-util": "3.0.0",
-    "ethereumjs-abi": "0.6.8",
-    "ethereumjs-account": "3.0.0",
-    "ethereumjs-block": "2.2.2",
-    "ethereumjs-common": "1.5.0",
-    "ethereumjs-tx": "2.1.2",
-    "ethereumjs-util": "6.2.1",
-    "ethereumjs-vm": "4.2.0",
-    "ethereumjs-wallet": "0.6.5",
-    "heap": "0.2.6",
-    "keccak": "3.0.1",
-    "level-sublevel": "6.6.4",
-    "levelup": "3.1.1",
-    "lodash": "4.17.20",
-    "lru-cache": "5.1.1",
-    "merkle-patricia-tree": "3.0.0",
-    "patch-package": "6.2.2",
-    "seedrandom": "3.0.1",
-    "source-map-support": "0.5.12",
-    "tmp": "0.1.0",
-    "web3": "1.2.11",
-    "web3-provider-engine": "14.2.1",
-    "websocket": "1.0.32"
+    "build": "lerna run build && shx cp -r ./src/packages/ganache/dist/web ./docs/assets/js/ganache",
+    "clean": "npm run tsc.clean && npx lerna clean -y && npx shx rm -rf node_modules",
+    "create": "ts-node ./scripts/create",
+    "docs.build": "lerna run docs.build && ts-node ./scripts/build-docs/",
+    "docs.preview": "lerna run docs.preview",
+    "postinstall": "lerna bootstrap && npx patch-package && ts-node ./scripts/link-ts-references.ts && ts-node ./scripts/postinstall",
+    "reinstall": "npm run clean && npm install",
+    "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
+    "test": "lerna exec -- npm run test",
+    "tsc": "lerna exec -- npm run tsc",
+    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist"
   },
   "devDependencies": {
-    "@types/web3": "^1.0.19",
-    "assert-match": "^1.1.1",
-    "browserfs": "1.4.3",
-    "coveralls": "^3.0.9",
-    "cross-env": "6.0.3",
-    "eslint": "6.8.0",
-    "eslint-config-standard": "14.1.0",
-    "eslint-plugin-import": "2.20.0",
-    "eslint-plugin-node": "11.0.0",
-    "eslint-plugin-promise": "4.2.1",
-    "eslint-plugin-standard": "4.0.1",
-    "ethereumjs-wallet": "0.6.5",
-    "ethers": "4.0.48",
-    "husky": "4.0.10",
-    "js-scrypt": "0.2.0",
-    "lint-staged": "10.0.0",
-    "memdown": "5.1.0",
-    "mocha": "7.2.0",
-    "mocha-lcov-reporter": "^1.3.0",
-    "number-to-bn": "1.7.0",
-    "nyc": "^15.1.0",
-    "pify": "4.0.1",
-    "portfinder": "^1.0.25",
-    "prettier": "^1.19.1",
-    "request": "^2.88.0",
-    "semver": "7.1.1",
-    "solc": "0.6.1",
-    "temp": "0.9.1",
-    "terser-webpack-plugin": "2.3.8",
-    "web3": "1.2.11",
-    "webpack": "4.41.5",
-    "webpack-bundle-size-analyzer": "3.1.0",
-    "webpack-cli": "3.3.10"
-  },
-  "optionalDependencies": {
-    "ethereumjs-wallet": "0.6.5",
-    "web3": "1.2.11"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core"
+    "@istanbuljs/nyc-config-typescript": "1.0.1",
+    "@types/fs-extra": "9.0.2",
+    "@types/mocha": "8.0.3",
+    "@types/node": "14.14.6",
+    "@types/prettier": "2.1.5",
+    "@types/yargs": "15.0.9",
+    "@zerollup/ts-transform-paths": "1.7.18",
+    "camelcase": "6.1.0",
+    "chalk": "4.1.0",
+    "cli-highlight": "2.1.4",
+    "comment-json": "4.1.0",
+    "cross-env": "7.0.2",
+    "fs-extra": "9.0.1",
+    "git-user-name": "2.0.0",
+    "glob": "7.1.6",
+    "husky": "4.3.0",
+    "into-stream": "6.0.0",
+    "lerna": "3.22.1",
+    "marked": "1.2.7",
+    "mocha": "8.2.0",
+    "monaco-editor": "0.21.2",
+    "nyc": "15.1.0",
+    "prettier": "2.2.1",
+    "pretty-quick": "3.1.0",
+    "shx": "0.3.3",
+    "ts-node": "9.0.0",
+    "ts-transformer-inline-file": "0.1.1",
+    "ttypescript": "1.5.12",
+    "typescript": "4.1.3",
+    "validate-npm-package-name": "3.0.0",
+    "yargs": "16.1.0"
   },
   "license": "MIT",
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "pretty-quick --staged"
     }
   },
-  "lint-staged": {
-    "*.js": [
-      "prettier --write",
-      "eslint --fix --ignore-path .gitignore",
-      "git add"
-    ]
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true,
-      "es6": true
-    },
-    "parserOptions": {
-      "ecmaVersion": 8,
-      "sourceType": "module",
-      "ecmaFeatures": {
-        "impliedStrict": true
-      }
-    },
-    "extends": "standard",
-    "rules": {
-      "brace-style": [
-        "error",
-        "1tbs",
-        {
-          "allowSingleLine": false
-        }
-      ],
-      "curly": [
-        "error",
-        "all"
-      ],
-      "max-len": [
-        "error",
-        120,
-        {
-          "ignoreRegExpLiterals": true
-        }
-      ],
-      "quotes": [
-        "error",
-        "double"
-      ],
-      "semi": [
-        "error",
-        "always"
-      ],
-      "space-before-function-paren": [
-        "error",
-        "never"
-      ],
-      "wrap-iife": [
-        "error",
-        "outside"
-      ]
-    }
-  },
-  "prettier": {
-    "printWidth": 120,
-    "arrowParens": "always"
-  }
+  "dependencies": {}
 }

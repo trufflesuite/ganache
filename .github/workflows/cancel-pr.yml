@@ -1,0 +1,16 @@
+# This workflow will cancel PR workflow runs when a new one gets started
+
+name: Cancel Redundant PR Builds
+
+on: [pull_request]
+
+jobs:
+  cancel:
+    name: Cancel Previous Runs
+    runs-on: ubuntu-20.04
+    timeout-minutes: 3
+    steps:
+      - uses: styfle/cancel-workflow-action@0.7.0
+        with:
+          workflow_id: 5127767
+          access_token: ${{ github.token }}
