@@ -63,7 +63,7 @@ export type WalletConfig = {
         /**
          * @deprecated Use wallet.accounts instead
          */
-        accounts: number;
+        accounts: OptionsAccount[];
       };
       cliType: string[];
     };
@@ -86,7 +86,7 @@ export type WalletConfig = {
         /**
          * @deprecated Use wallet.seed instead
          */
-        seed: number;
+        seed: string;
       };
     };
 
@@ -100,7 +100,7 @@ export type WalletConfig = {
         /**
          * @deprecated Use wallet.mnemonic instead
          */
-        mnemonic: number;
+        mnemonic: string;
       };
     };
 
@@ -132,7 +132,7 @@ export type WalletConfig = {
         /**
          * @deprecated Use wallet.secure instead
          */
-        secure: number;
+        secure: boolean;
       };
     };
 
