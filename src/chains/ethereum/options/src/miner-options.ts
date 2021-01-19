@@ -61,7 +61,7 @@ export type MinerConfig = {
     };
 
     /**
-     * Sets the _default_ transaction gas limit in WEI. Set to `"estimate"` to
+     * Sets the default transaction gas limit in WEI. Set to `"estimate"` to
      * use an estimate (slows down transaction execution by 40%+).
      *
      * @default 90_000
@@ -141,8 +141,8 @@ export type MinerConfig = {
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
     normalize,
-    shortDescription:
-      'Sets the `blockTime` in seconds for automatic mining. blockTime of `0` enables "instamine mode", where new executable transactions will be mined instantly.',
+    cliDescription:
+      'Sets the `blockTime` in seconds for automatic mining. A blockTime of `0` enables "instamine mode", where new executable transactions will be mined instantly.',
     default: () => 0,
     legacyName: "blockTime",
     cliAliases: ["b", "blockTime"],
@@ -150,7 +150,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   gasPrice: {
     normalize: Quantity.from,
-    shortDescription:
+    cliDescription:
       "Sets the default gas price in WEI for transactions if not otherwise specified.",
     default: () => Quantity.from(2_000_000_000),
     legacyName: "gasPrice",
@@ -159,7 +159,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   blockGasLimit: {
     normalize: Quantity.from,
-    shortDescription: "Sets the block gas limit in WEI.",
+    cliDescription: "Sets the block gas limit in WEI.",
     default: () => Quantity.from(12_000_000),
     legacyName: "gasLimit",
     cliAliases: ["l", "gasLimit"],
@@ -168,14 +168,14 @@ export const MinerOptions: Definitions<MinerConfig> = {
   defaultTransactionGasLimit: {
     normalize: rawType =>
       rawType === "estimate" ? utils.RPCQUANTITY_EMPTY : Quantity.from(rawType),
-    shortDescription:
-      'Sets the _default_ transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
+    cliDescription:
+      'Sets the default transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
     default: () => Quantity.from(90_000),
     cliType: "string"
   },
   callGasLimit: {
     normalize: Quantity.from,
-    shortDescription:
+    cliDescription:
       "Sets the transaction gas limit in WEI for `eth_call` and `eth_estimateGas` calls.",
     default: () => Quantity.from(Number.MAX_SAFE_INTEGER),
     legacyName: "callGasLimit",
@@ -183,7 +183,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   legacyInstamine: {
     normalize,
-    shortDescription:
+    cliDescription:
       "Enables legacy instamine mode, where transactions are fully mined before the transaction's hash is returned to the caller.",
     default: () => false,
     legacyName: "legacyInstamine",
@@ -191,30 +191,10 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   coinbase: {
     normalize: rawType => {
-      if (typeof rawType === "number") {
-        return rawType;
-      } else {
-        if (/^0x/i.exec(rawType)) {
-          return Address.from(rawType);
-        } else {
-          // try to convert the arg string to a number.
-          // don't use parseInt because strings like `"123abc"` parse
-          // to `123`, and there is probably an error on the user's side we'd
-          // want to uncover.
-          const index = ((rawType as any) as number) - 0;
-          if (Number.isSafeInteger(index)) {
-            return index;
-          } else {
-            throw new Error(
-              `Invalid value for option miner.coinbase: ${rawType}`
-            );
-          }
-        }
-      }
+      return typeof rawType === "number" ? rawType : Address.from(rawType);
     },
-    shortDescription: "Sets the address where mining rewards will go.",
-    default: () => Address.from(utils.ACCOUNT_ZERO),
-    cliType: "string"
+    cliDescription: "Sets the address where mining rewards will go.",
+    default: () => Address.from(utils.ACCOUNT_ZERO)
   },
   extraData: {
     normalize: (extra: string) => {
@@ -226,8 +206,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       }
       return bytes;
     },
-    shortDescription:
-      "Set the extraData block header field a miner can include.",
+    cliDescription: "Set the extraData block header field a miner can include.",
     default: () => Data.from(utils.BUFFER_EMPTY),
     cliType: "string"
   }

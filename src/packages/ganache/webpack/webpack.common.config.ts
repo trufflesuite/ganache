@@ -12,7 +12,7 @@ const base: webpack.Configuration = {
           {
             loader: "ts-loader",
             options: {
-              // we need to use ttypescript because of we use ts transformers
+              // we need to use ttypescript because we use ts transformers
               compiler: "ttypescript",
               // Symlinked paths to our packages aren't resolving correctly...
               // E.g., if PackageA and PackageB both import PackageC, the

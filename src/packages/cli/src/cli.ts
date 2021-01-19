@@ -9,7 +9,6 @@ import {
   EthereumFlavorName
 } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
-import { CliSettings } from "./types";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -38,19 +37,13 @@ const detailedVersion =
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
-const argv = args(detailedVersion, isDocker).argv;
+const argv = args(detailedVersion, isDocker);
 
-let flavor: FlavorName = DefaultFlavor;
-if (argv._.length > 0) {
-  flavor = argv._[0] as FlavorName;
-}
+const flavor = argv.flavor;
 
-const cliSettings = argv.server as CliSettings;
+const cliSettings = argv.server;
 
-const server = Ganache.server({
-  flavor,
-  ...argv
-});
+const server = Ganache.server(argv);
 
 console.log(detailedVersion);
 

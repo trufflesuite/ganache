@@ -16,6 +16,7 @@ import {
   Options,
   OptionsConfig
 } from "@ganache/options";
+import { UnionToIntersection } from "./helper-types";
 
 export type EthereumOptions = {
   chain: ChainConfig;
@@ -32,12 +33,6 @@ type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
       : Record<K, OptionRawType<C, K>>;
   }[keyof Options<C>]
 >;
-
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
-  ? I
-  : never;
 
 export type EthereumLegacyOptions = Partial<
   MakeLegacyOptions<ChainConfig> &

@@ -77,19 +77,19 @@ export type LoggingConfig = {
   };
 };
 
-const logger: Logger = { log: () => {} };
+const logger: Logger = { log: console.log };
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
   debug: {
     normalize,
-    shortDescription: "Set to `true` to log EVM opcodes.",
+    cliDescription: "Set to `true` to log EVM opcodes.",
     default: () => false,
     legacyName: "debug",
     cliType: "boolean"
   },
   logger: {
     normalize,
-    shortDescription:
+    cliDescription:
       "An object, like `console`, that implements a `log` function.",
     disableInCLI: true,
     default: () => logger,
@@ -97,7 +97,7 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
   },
   verbose: {
     normalize,
-    shortDescription: "Set to `true` to log all RPC requests and responses.",
+    cliDescription: "Set to `true` to log all RPC requests and responses.",
     default: () => false,
     legacyName: "verbose",
     cliAliases: ["v", "verbose"],
@@ -105,7 +105,7 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
   },
   quiet: {
     normalize,
-    shortDescription: "Set to `true` to disable logging.",
+    cliDescription: "Set to `true` to disable logging.",
     default: () => false,
     cliAliases: ["q", "quiet"],
     cliType: "boolean"

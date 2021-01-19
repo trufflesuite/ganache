@@ -26,6 +26,13 @@ export type OptionRawType<
   ? Option<C, N>["type"]
   : Option<C, N>["rawType"];
 
+export type OptionCliType<
+  C extends Base.Config,
+  N extends OptionName<C> = OptionName<C>
+> = void extends Option<C, N>["cliType"]
+  ? Option<C, N>["type"]
+  : Option<C, N>["cliType"];
+
 export type OptionType<
   C extends Base.Config,
   N extends OptionName<C> = OptionName<C>
@@ -35,6 +42,11 @@ export type OptionHasDefault<
   C extends Base.Config,
   N extends OptionName<C> = OptionName<C>
 > = Option<C, N>["hasDefault"];
+
+export type OptionHasCliType<
+  C extends Base.Config,
+  N extends OptionName<C> = OptionName<C>
+> = Option<C, N>["cliType"];
 
 export type OptionHasLegacy<
   C extends Base.Config,
