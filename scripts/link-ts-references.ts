@@ -89,7 +89,7 @@ function updateConfig(config: PackageInfo) {
   // add package.json deps to tsconfig references:
   references.forEach(name => {
     const referenceConfig = getConfigByName(name);
-    // projects that are references by other projects must have the `composite: true` in their tsconfig compileOptions
+    // projects that are referenced by other projects must have the `composite: true` in their tsconfig compileOptions
     if (
       !referenceConfig.tsConfig.compilerOptions ||
       !referenceConfig.tsConfig.compilerOptions.composite
@@ -100,7 +100,7 @@ function updateConfig(config: PackageInfo) {
       referenceConfig.modified = true;
     }
     const absPath = referenceConfig.path;
-    const relPath = relative(path, absPath);
+    const relPath = relative(path, absPath).replace(/\\/g, "/"); // only posix paths, please
     const alreadyExists = tsConfigReferences.some(tsConfigReference => {
       const existingRefPath = resolve(path, tsConfigReference.path);
       if (absPath === existingRefPath) {
