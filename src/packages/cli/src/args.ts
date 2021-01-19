@@ -1,130 +1,199 @@
-import yargs from "yargs";
+import { TruffleColors } from "@ganache/colors";
+import yargs, { Options } from "yargs";
+import { DefaultFlavor, DefaultOptionsByName } from "@ganache/flavors";
 import {
-  DefaultFlavor,
-  DefaultOptionsByName,
-  EthereumFlavorName
-} from "@ganache/flavors";
-import { Definitions } from "@ganache/options";
+  Base,
+  Definitions,
+  YargsPrimitiveCliTypeStrings
+} from "@ganache/options";
+import { serverDefaults } from "@ganache/core";
+import { Command, Argv } from "./types";
+import chalk from "chalk";
+import { EOL } from "os";
+import marked from "marked";
+import TerminalRenderer from "marked-terminal";
 
-const COLORS = {
-  Bold: "\x1b[1m",
-  Reset: "\x1b[0m",
-  FgRed: "\x1b[31m",
-  FgYellow: "\x1b[33m"
+marked.setOptions({
+  renderer: new TerminalRenderer({
+    codespan: chalk.hex(TruffleColors.porsche),
+    // Disable `unescape` since doesn't work for everything (we just do it ourselves)
+    unescape: false
+  })
+});
+
+const wrapWidth = Math.min(120, yargs.terminalWidth());
+const NEED_HELP = "Need more help? Reach out to the Truffle community at";
+const COMMUNITY_LINK = "https://gitter.im/ConsenSys/truffle";
+
+function unescapeEntities(html: string) {
+  return html
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+const highlight = (t: string) => unescapeEntities(marked.parseInline(t));
+const center = (str: string) =>
+  " ".repeat(Math.max(0, Math.floor((wrapWidth - str.length) / 2))) + str;
+
+const addAliases = (args: yargs.Argv<{}>, aliases: string[], key: string) => {
+  const options = { hidden: true, alias: key };
+  return aliases.reduce((args, a) => args.option(a, options), args);
 };
 
-export default function (version: string, isDocker: boolean) {
-  let args = yargs.strict();
+function processOption(
+  state: any,
+  category: string,
+  group: string,
+  option: string,
+  optionObj: Definitions<Base.Config>[string | number],
+  argv: yargs.Argv
+) {
+  if (optionObj.disableInCLI !== true) {
+    const shortHand = [];
+    const legacyAliases = [];
 
-  for (const [flavor, flavorDefaults] of Object.entries(DefaultOptionsByName)) {
-    const commandAliases = flavor === DefaultFlavor ? ["$0", flavor] : flavor;
+    let description = highlight(optionObj.cliDescription || "");
+    if (optionObj.cliAliases) {
+      optionObj.cliAliases.forEach(alias => {
+        if (alias.length === 1) shortHand.push(alias);
+        else legacyAliases.push(alias);
+      });
+      description = chalk`${description}${EOL}{dim deprecated aliases: ${legacyAliases
+        .map(a => `--${a}`)
+        .join(", ")}}`;
+    }
+
+    const generateDefaultDescription = () => {
+      // default sometimes requires a config, so we supply one
+      return (state[option] = optionObj.default
+        ? optionObj.default(state).toString()
+        : undefined);
+    };
+    const defaultDescription =
+      optionObj.defaultDescription || generateDefaultDescription();
+
+    // we need to specify the type of each array so yargs properly casts
+    // the types held within each array
+    const { cliType } = optionObj;
+    const array = cliType && cliType.startsWith("array:"); // e.g. array:string or array:number
+    const type = (array
+      ? cliType.slice(6) // remove the "array:" part
+      : cliType) as YargsPrimitiveCliTypeStrings;
+
+    const options: Options = {
+      group,
+      description,
+      alias: shortHand,
+      defaultDescription,
+      array,
+      type,
+      choices: optionObj.cliChoices,
+      coerce: optionObj.cliCoerce
+    };
+
+    const key = `${category}.${option}`;
+
+    // First, create *hidden* deprecated aliases...
+    argv = addAliases(argv, legacyAliases, key);
+
+    // and *then* create the main option, as options added later take precedence
+    // example: `-d --wallet.seed 123` is invalid (mutally exclusive). If aliases are defined _after_
+    // the main option definition the error message will be `Arguments deterministic and wallet.seed are mutually exclusive`
+    // when it should be `Arguments wallet.deterministic and wallet.seed are mutually exclusive`
+    argv = argv.option(key, options);
+  }
+}
+
+export default function (version: string, isDocker: boolean) {
+  let args = yargs
+    // disable dot-notation because yargs just can't coerce args properly...
+    // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
+    .parserConfiguration({ "dot-notation": false })
+    .strict()
+    .usage(chalk`{hex("${TruffleColors.porsche}").bold ${center(version)}}`)
+    .epilogue(
+      chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
+        EOL +
+        chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
+    );
+
+  let flavor: keyof typeof DefaultOptionsByName;
+  for (flavor in DefaultOptionsByName) {
+    const flavorDefaults = DefaultOptionsByName[flavor];
+    let command: Command;
     let defaultPort: number;
     switch (flavor) {
-      case EthereumFlavorName:
-      default: {
+      // since "ethereum" is the DefaultFlavor we don't need a `case` for it
+      case DefaultFlavor:
+        command = ["$0", flavor];
         defaultPort = 8545;
         break;
-      }
+      default:
+        command = flavor;
+        defaultPort = 8545;
     }
 
     args = args.command(
-      commandAliases,
-      `Use the ${flavor} flavor of Ganache`,
+      command,
+      chalk`Use the {bold ${flavor}} flavor of Ganache`,
       flavorArgs => {
-        const categories = Object.keys(flavorDefaults);
-
-        for (const category of categories) {
-          flavorArgs = flavorArgs.option(category, {
-            hidden: true
-          });
-
-          const group = `${category.charAt(0).toUpperCase()}${category.substr(
+        let category: keyof typeof flavorDefaults;
+        for (category in flavorDefaults) {
+          type GroupType = `${Capitalize<typeof category>}:`;
+          const group = `${category[0].toUpperCase()}${category.slice(
             1
-          )}:`;
-          const categoryObj = flavorDefaults[category] as Definitions<any>;
-          const options = Object.keys(categoryObj);
-          for (const option of options) {
+          )}:` as GroupType;
+          const categoryObj = (flavorDefaults[
+            category
+          ] as unknown) as Definitions<Base.Config>;
+          const state = {};
+          for (const option in categoryObj) {
             const optionObj = categoryObj[option];
-            if (optionObj.disableInCLI !== true) {
-              const useAliases = typeof optionObj.cliAliases !== "undefined";
-              const alias = useAliases
-                ? optionObj.cliAliases
-                : (optionObj as any).legacyName;
-
-              let description = optionObj.shortDescription;
-              if (alias) {
-                description = `${description}\n${COLORS.Bold}${
-                  COLORS.FgYellow
-                }Deprecated aliases: ${
-                  Array.isArray(alias)
-                    ? alias.filter(a => a.length > 1).join(", ")
-                    : alias
-                }${COLORS.Reset}\n`;
-              }
-
-              let defaultValue;
-              try {
-                const defaultGetter = (optionObj as any).default;
-                if (defaultGetter && defaultGetter.length > 0) {
-                  defaultValue = defaultGetter();
-                }
-              } catch (e) {}
-              if (
-                optionObj.cliType === "array" &&
-                !Array.isArray(defaultValue)
-              ) {
-                // if we pass `default: undefined`, yargs will return `[ undefined ]`
-                // this just explicitly fixes array types
-
-                if (typeof defaultValue === "undefined") {
-                  defaultValue = [];
-                } else {
-                  defaultValue = [defaultValue];
-                }
-              }
-
-              flavorArgs = flavorArgs.option(`${category}.${option}`, {
-                group,
-                description,
-                alias,
-                default: defaultValue,
-                defaultDescription: (optionObj as any).defaultDescription,
-                type: optionObj.cliChoices ? undefined : optionObj.cliType,
-                choices: optionObj.cliChoices,
-                coerce: optionObj.normalize
-              });
-            }
+            processOption(
+              state,
+              category,
+              group,
+              option,
+              optionObj,
+              flavorArgs
+            );
           }
         }
 
+        const state = {};
+        const categoryObj = serverDefaults.server;
+        const group = "Server:";
+        for (const option in categoryObj) {
+          const optionObj = categoryObj[option];
+
+          processOption(state, "server", group, option, optionObj, flavorArgs);
+        }
+
         flavorArgs = flavorArgs
-          .option("server", {
-            hidden: true
-          })
           .option("server.host", {
             group: "Server:",
-            description: `Hostname to listen on.\n${COLORS.Bold}${COLORS.FgYellow}Deprecated aliases: host, hostname${COLORS.Reset}\n`,
+            description: chalk`Hostname to listen on.${EOL}{dim deprecated aliases: --host, --hostname}${EOL}`,
             alias: ["h", "host", "hostname"],
             type: "string",
             default: isDocker ? "0.0.0.0" : "127.0.0.1"
           })
           .option("server.port", {
             group: "Server:",
-            description: `Hostname to listen on.\n${COLORS.Bold}${COLORS.FgYellow}Deprecated aliases: port${COLORS.Reset}\n`,
+            description: chalk`Port to listen on.${EOL}{dim deprecated aliases: --port}${EOL}`,
             alias: ["p", "port"],
             type: "number",
             default: defaultPort
           })
           .check(argv => {
-            const serverSettings = argv.server as any;
-            if (serverSettings.port < 1 || serverSettings.port > 65535) {
-              throw new Error(`Invalid port number '${serverSettings.port}'`);
+            const { "server.port": port, "server.host": host } = argv;
+            if (port < 1 || port > 65535) {
+              throw new Error(`Invalid port number '${port}'`);
             }
 
-            if (serverSettings.host.trim() === "") {
-              throw new Error(
-                "Cannot leave hostname blank; please provide a hostname"
-              );
+            if (host.trim() === "") {
+              throw new Error("Cannot leave host blank; please provide a host");
             }
 
             return true;
@@ -135,10 +204,25 @@ export default function (version: string, isDocker: boolean) {
 
   args = args
     .showHelpOnFail(false, "Specify -? or --help for available options")
-    .help("help")
     .alias("help", "?")
-    .wrap(Math.min(120, yargs.terminalWidth()))
+    .wrap(wrapWidth)
     .version(version);
 
-  return args;
+  const parsedArgs = args.argv;
+  const finalArgs = {
+    flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor
+  } as Argv;
+  for (let key in parsedArgs) {
+    // split on the first "."
+    const [group, option] = key.split(/\.(.+)/);
+    // only copy namespaced/group keys
+    if (option) {
+      if (!finalArgs[group]) {
+        finalArgs[group] = {};
+      }
+      finalArgs[group][option] = parsedArgs[key];
+    }
+  }
+
+  return finalArgs;
 }

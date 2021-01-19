@@ -59,13 +59,13 @@ export type WalletConfig = {
      */
     accounts: {
       type: OptionsAccount[];
-      rawType: OptionsAccount[] | string[];
       legacy: {
         /**
          * @deprecated Use wallet.accounts instead
          */
         accounts: number;
       };
+      cliType: string[];
     };
 
     /**
@@ -115,6 +115,9 @@ export type WalletConfig = {
          */
         unlocked_accounts: Array<string | number>;
       };
+      // the provider _does_ accept a string|number, but yargs is overzealous in
+      //  its auto-coercion and will treat hex addresses as numbers, causing issues.
+      cliType: string[];
     };
 
     /**
@@ -184,52 +187,48 @@ export type WalletConfig = {
       };
     };
   };
-  exclusiveGroups: [["totalAccounts", "accounts"], ["mnemonic", "seed"]];
+  exclusiveGroups: [
+    ["accounts", "totalAccounts"],
+    ["deterministic", "mnemonic", "seed"]
+  ];
 };
 
 export const WalletOptions: Definitions<WalletConfig> = {
   totalAccounts: {
     normalize,
-    shortDescription: "Number of accounts to generate at startup.",
+    cliDescription: "Number of accounts to generate at startup.",
     default: () => 10,
     legacyName: "total_accounts",
     cliAliases: ["a", "accounts"],
     cliType: "number"
   },
   accounts: {
-    normalize: rawInput => {
-      if (rawInput.length > 0) {
-        if (typeof rawInput[0] === "string") {
-          return (rawInput as string[]).map(accountString => {
-            const accountParts = accountString.split(",");
-            return {
-              secretKey: accountParts[0],
-              balance: accountParts[1]
-            } as OptionsAccount;
-          });
-        } else {
-          return rawInput as OptionsAccount[];
-        }
-      } else {
-        return [];
-      }
-    },
-    shortDescription:
-      "Array of Accounts. Each object should have a balance key with a hexadecimal value.",
+    normalize,
+    cliDescription: `Account data in the form \`<private_key>,<initial_balance>\`, can be specified multiple times. Note that private keys are 64 characters long and must be entered as an 0x-prefixed hex string. Balance can either be input as an integer, or as a 0x-prefixed hex string with either form specifying the initial balance in wei.`,
     legacyName: "accounts",
     cliAliases: ["account"],
-    cliType: "array"
+    cliType: "array:string",
+    cliCoerce: rawInput => {
+      return rawInput.map(accountString => {
+        // split *1* time on the first comma
+        const [secretKey, balance] = accountString.split(/,(.+)/);
+        return {
+          secretKey,
+          balance: BigInt(balance)
+        } as OptionsAccount;
+      });
+    }
   },
   deterministic: {
     normalize,
-    shortDescription: "Use pre-defined, deterministic seed.",
+    cliDescription: "Use pre-defined, deterministic seed.",
     default: () => false,
     cliAliases: ["d", "deterministic"],
     cliType: "boolean"
   },
   seed: {
     normalize,
-    shortDescription: "Seed to use to generate a mnemonic.",
+    cliDescription: "Seed to use to generate a mnemonic.",
     // The order of the options matter here! `wallet.deterministic`
     // needs to be prior to `wallet.seed` for `config.deterministic`
     // below to be set correctly
@@ -245,7 +244,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
   },
   mnemonic: {
     normalize,
-    shortDescription:
+    cliDescription:
       "Use a specific HD wallet mnemonic to generate initial addresses.",
     // The order of the options matter here! `wallet.seed`
     // needs to be prior to `wallet.mnemonic` for `config.seed`
@@ -259,15 +258,15 @@ export const WalletOptions: Definitions<WalletConfig> = {
   },
   unlockedAccounts: {
     normalize,
-    shortDescription:
+    cliDescription:
       "Array of addresses or address indexes specifying which accounts should be unlocked.",
     legacyName: "unlocked_accounts",
     cliAliases: ["u", "unlock"],
-    cliType: "array"
+    cliType: "array:string"
   },
   secure: {
     normalize,
-    shortDescription:
+    cliDescription:
       "Lock available accounts by default (good for third party transaction signing).",
     default: () => false,
     legacyName: "secure",
@@ -276,7 +275,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
   },
   accountKeysPath: {
     normalize,
-    shortDescription:
+    cliDescription:
       "Specifies a file to save accounts and private keys to, for testing.",
     legacyName: "account_keys_path",
     cliAliases: ["account_keys_path", "acctKeys"],
@@ -284,7 +283,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
   },
   defaultBalance: {
     normalize,
-    shortDescription: "The default account balance, specified in ether.",
+    cliDescription: "The default account balance, specified in ether.",
     default: () => 100,
     legacyName: "default_balance_ether",
     cliAliases: ["e", "defaultBalanceEther"],
@@ -292,7 +291,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
   },
   hdPath: {
     normalize,
-    shortDescription:
+    cliDescription:
       "The hierarchical deterministic path to use when generating accounts.",
     default: () => "m/44'/60'/0'/0/",
     legacyName: "hd_path",

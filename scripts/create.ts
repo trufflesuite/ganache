@@ -1,5 +1,4 @@
-// TODO: make this its own package?
-
+import { TruffleColors } from "../src/packages/colors";
 import chalk from "chalk";
 import yargs from "yargs";
 import prettier from "prettier";
@@ -52,7 +51,7 @@ const argv = yargs(getArgv())
   .command(`${COMMAND_NAME} <name>`, "", yargs => {
     return yargs
       .usage(
-        chalk`{hex("#e4a663").bold Create a new package in the given {dim <}location{dim >} with the provided {dim <}name{dim >}.}\n\n` +
+        chalk`{hex("${TruffleColors.porsche}").bold Create a new package in the given {dim <}location{dim >} with the provided {dim <}name{dim >}.}\n\n` +
           chalk`{bold Usage}\n  {bold $} ${COMMAND_NAME} {dim <}name{dim >} {dim --}location {dim <}location{dim >} {dim [--folder <folder>]}`
       )
       .positional("name", {
@@ -109,7 +108,7 @@ process.stdout.write(`${COLORS.Reset}`);
   }
 
   // determines how many `../` are needed for package contents
-  const numDirectoriesAwayFromRoot = 3 + location.split(sep).length;
+  const numDirectoriesAwayFromRoot = 2 + location.split(sep).length;
   const relativePathToRoot = "../".repeat(numDirectoriesAwayFromRoot);
   const isNewChain = location === "chains";
 
@@ -189,7 +188,7 @@ process.stdout.write(`${COLORS.Reset}`);
       compilerOptions: {
         outDir: "lib"
       },
-      include: ["src"]
+      include: ["src", "index.ts"]
     };
 
     const shrinkwrap = {
@@ -304,8 +303,8 @@ typedoc.json
       highlight(pkgStr, {
         language: "json",
         theme: {
-          attr: chalk.hex("#3FE0C5"),
-          string: chalk.hex("#e4a663")
+          attr: chalk.hex(TruffleColors.turquoise),
+          string: chalk.hex(TruffleColors.porsche)
         }
       })
     );

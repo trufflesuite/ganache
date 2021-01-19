@@ -123,7 +123,9 @@ export default class Wallet {
               // if we don't have a valid number, or the number isn't a valid JS
               // integer (no bigints or decimals, please), throw an error.
               if (!Number.isSafeInteger(index)) {
-                throw new Error(`Invalid value in unlocked_accounts: ${arg}`);
+                throw new Error(
+                  `Invalid value in wallet.unlockedAccounts: ${arg}`
+                );
               }
               arg = index;
               // not `break`ing here because I want this to fall through to the

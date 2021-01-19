@@ -1,13 +1,16 @@
-import { Base } from "./base";
+import { Base, CliTypeMap, CliTypes } from "./base";
 import { ExclusiveGroupUnionAndUnconstrainedPlus } from "./exclusive";
 import {
   Legacy,
+  OptionCliType,
+  OptionHasCliType,
   OptionHasDefault,
   OptionHasLegacy,
   OptionName,
   OptionRawType,
   OptionType
 } from "./getters";
+import { UnionToIntersection } from "./types";
 
 //#region Definition helpers
 type Normalize<
@@ -23,26 +26,29 @@ export type InternalConfig<
   C extends Base.Config
 > = ExclusiveGroupUnionAndUnconstrainedPlus<C, "type">;
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
-  ? I
-  : never;
-
 export type Definitions<C extends Base.Config> = {
   [N in OptionName<C>]: {
     readonly normalize: Normalize<C, N>;
-    readonly shortDescription: string;
+    readonly cliDescription: string;
     readonly disableInCLI?: boolean;
     readonly cliAliases?: string[];
-    readonly cliType?: "string" | "number" | "boolean" | "array";
     readonly cliChoices?: string[] | number[];
-  } & (void extends OptionHasDefault<C, N>
-    ? {}
+  } & (void extends OptionHasCliType<C, N>
+    ? {
+        readonly cliType?: CliTypeMap<CliTypes> | null;
+      }
     : {
-        readonly default: (config: InternalConfig<C>) => OptionType<C, N>;
-        readonly defaultDescription?: string;
+        readonly cliType?: CliTypeMap<OptionCliType<C, N>> | null;
+        readonly cliCoerce?: (
+          cliType: OptionCliType<C, N>
+        ) => OptionRawType<C, N>;
       }) &
+    (void extends OptionHasDefault<C, N>
+      ? {}
+      : {
+          readonly default: (config: InternalConfig<C>) => OptionType<C, N>;
+          readonly defaultDescription?: string;
+        }) &
     (void extends OptionHasLegacy<C, N>
       ? {}
       : {
