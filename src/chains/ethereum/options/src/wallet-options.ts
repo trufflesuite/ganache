@@ -200,7 +200,8 @@ export const WalletOptions: Definitions<WalletConfig> = {
     default: () => 10,
     legacyName: "total_accounts",
     cliAliases: ["a", "accounts"],
-    cliType: "number"
+    cliType: "number",
+    conflicts: ["accounts"]
   },
   accounts: {
     normalize,
@@ -217,14 +218,16 @@ export const WalletOptions: Definitions<WalletConfig> = {
           balance: BigInt(balance)
         } as OptionsAccount;
       });
-    }
+    },
+    conflicts: ["totalAccounts"]
   },
   deterministic: {
     normalize,
     cliDescription: "Use pre-defined, deterministic seed.",
     default: () => false,
     cliAliases: ["d", "deterministic"],
-    cliType: "boolean"
+    cliType: "boolean",
+    conflicts: ["mnemonic", "seed"]
   },
   seed: {
     normalize,
@@ -240,7 +243,8 @@ export const WalletOptions: Definitions<WalletConfig> = {
       "Random value, unless wallet.deterministic is specified",
     legacyName: "seed",
     cliAliases: ["s", "seed"],
-    cliType: "string"
+    cliType: "string",
+    conflicts: ["mnemonic", "deterministic"]
   },
   mnemonic: {
     normalize,
@@ -254,7 +258,8 @@ export const WalletOptions: Definitions<WalletConfig> = {
     defaultDescription: "Generated from wallet.seed",
     legacyName: "mnemonic",
     cliAliases: ["m", "mnemonic"],
-    cliType: "string"
+    cliType: "string",
+    conflicts: ["seed", "deterministic"]
   },
   unlockedAccounts: {
     normalize,

@@ -93,6 +93,12 @@ function processOption(
       coerce: optionObj.cliCoerce
     };
 
+    if ("conflicts" in optionObj) {
+      options.conflicts = (optionObj as {
+        conflicts: string[];
+      }).conflicts.map(c => `${category}.${c}`);
+    }
+
     const key = `${category}.${option}`;
 
     // First, create *hidden* deprecated aliases...
