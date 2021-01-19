@@ -5,7 +5,6 @@ import FilecoinProvider from "./provider";
 import { RecognizedString, HttpRequest } from "uWebSockets.js";
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 
-export type ProviderOptions = FilecoinProviderOptions;
 export type Provider = FilecoinProvider;
 export const Provider = FilecoinProvider;
 
@@ -24,7 +23,7 @@ export class Connector
   }
 
   constructor(
-    providerOptions: ProviderOptions = null,
+    providerOptions: FilecoinProviderOptions = null,
     executor: utils.Executor
   ) {
     super();
