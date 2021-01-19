@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [10.13.0]
+        node: [10.7.0]
         os: [windows-2019]
 
     runs-on: ${{ matrix.os }}
@@ -38,6 +38,7 @@ jobs:
       - name: Set node config to set msvs_version to 2015
         if: startsWith(matrix.os, 'windows-')
         run: npm config set msvs_version 2015
+      - run: npm install npm@6.4.1 -g
       - run: npm ci
       - run: npm test
         env:
