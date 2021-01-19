@@ -18,7 +18,7 @@ jobs:
             ubuntu-16.04,
             ubuntu-18.04,
             ubuntu-20.04,
-            macos-11.0,
+            macos-11.0
           ]
 
     runs-on: ${{ matrix.os }}
@@ -33,6 +33,11 @@ jobs:
       - name: Add msbuild to PATH
         if: startsWith(matrix.os, 'windows-')
         uses: microsoft/setup-msbuild@v1.0.2
+      - name: Update npm for node 10.7.0
+        # lerna bootstrap was failing on node 10.7.0 with npm 6.1.0, updating
+        # to npm 6.4.1 seems to fix the problem
+        if: ${{ startsWith(matrix.os, 'windows-') && matrix.node == '10.7.0' }}
+        run: npm install npm@6.4.1 --global
       - name: install node tools
         if: startsWith(matrix.os, 'windows-')
         # windows-build-tools@5.2.2 failed to install, so we use 4.0.0
