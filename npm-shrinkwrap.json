@@ -2386,12 +2386,6 @@
       "integrity": "sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==",
       "dev": true
     },
-    "@types/npm-package-arg": {
-      "version": "6.1.0",
-      "resolved": "https://registry.npmjs.org/@types/npm-package-arg/-/npm-package-arg-6.1.0.tgz",
-      "integrity": "sha512-vbt5fb0y1svMhu++1lwtKmZL76d0uPChFlw7kEzyUmTwfmpHRcFb8i0R8ElT69q/L+QLgK2hgECivIAvaEDwag==",
-      "dev": true
-    },
     "@types/parse-json": {
       "version": "4.0.0",
       "resolved": "https://registry.npmjs.org/@types/parse-json/-/parse-json-4.0.0.tgz",
