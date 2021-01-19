@@ -1,9 +1,9 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: CI
+name: Pull Requests
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   build:
@@ -11,19 +11,15 @@ jobs:
       fail-fast: false
       matrix:
         node: [10.7.0, 10.x, 11.x, 12.x, 13.x, 14.x]
-        os:
-          [
-            windows-2016,
-            windows-2019,
-            ubuntu-16.04,
-            ubuntu-18.04,
-            ubuntu-20.04,
-            macos-11.0
-          ]
+        os: [windows-2019, ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-11.0]
 
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.7.0
+        with:
+          access_token: ${{ github.token }}
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v1
