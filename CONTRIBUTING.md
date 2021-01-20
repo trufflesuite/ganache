@@ -45,17 +45,33 @@ Which just runs these commands for you:
 This deletes all `node_modules` folders, as well as all generated `lib`
 directories, then reinstalls all modules.
 
-## To build
+## To compile
 
-Builds all packages:
+Compiles all packages:
 
 - `npm run tsc`
+
+## To build the ganache package
+
+Creates the bundle that can be published to npm
+
+- `npm run build`
 
 ## To test
 
 Runs all tests:
 
 - `npm test` (or the shorthand, `npm t`)
+
+## To start cli
+
+To start the cli run:
+
+- `npm start`
+
+To pass options to the cli you must separate the args with `--`, e.g.:
+
+- `npm start -- --chain.chainId 1 --wallet.totalAccounts 5`
 
 ## To create a new chain/flavor
 
