@@ -31,7 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         node: [10.7.0, 10.x, 11.x, 12.x, 13.x, 14.x]
-        os: [windows-2019, ubuntu-16.04, ubuntu-18.04, macos-11.0]
+        os: [windows-2019, ubuntu-16.04, ubuntu-18.04]
 
     runs-on: ${{ matrix.os }}
 
