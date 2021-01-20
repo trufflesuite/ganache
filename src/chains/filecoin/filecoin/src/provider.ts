@@ -64,7 +64,7 @@ export default class FilecoinProvider
     accounts[this.blockchain.address.serialize()] = {
       unlocked: true,
       secretKey: this.blockchain.address.privateKey,
-      balance: BigInt(this.blockchain.balance.value)
+      balance: this.blockchain.balance.value
     };
     return accounts;
   }
