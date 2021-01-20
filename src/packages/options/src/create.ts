@@ -43,10 +43,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
         if (value !== undefined) {
           config[key] = propDefinition.normalize(value);
         } else if (hasOwn(propDefinition, "default")) {
-          config[key] = propDefinition.default({
-            ...config,
-            flavor
-          });
+          config[key] = propDefinition.default(config, flavor);
         }
       }
     }
@@ -61,10 +58,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       if (value !== undefined) {
         config[key] = propDefinition.normalize(value);
       } else if (hasOwn(propDefinition, "default")) {
-        config[key] = propDefinition.default({
-          ...config,
-          flavor
-        });
+        config[key] = propDefinition.default(config, flavor);
       }
     }
   }

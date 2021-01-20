@@ -1,6 +1,6 @@
 import uWS, { TemplatedApp, WebSocket } from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import { ServerOptions } from "../options";
+import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
 import { PromiEvent } from "@ganache/utils";
 
@@ -21,7 +21,7 @@ export type WebSocketCapableFlavor = {
 export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
 export type WebsocketServerOptions = Pick<
-  ServerOptions["server"],
+  InternalOptions["server"],
   "wsBinary" | "rpcEndpoint"
 >;
 
@@ -35,7 +35,7 @@ export default class WebsocketServer {
     const connections = this.#connections;
     const wsBinary = options.wsBinary;
     const autoBinary = wsBinary === "auto";
-    app.ws(options.rpcEndpoint || "/", {
+    app.ws(options.rpcEndpoint, {
       /* WS Options */
       compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
       maxPayloadLength: 16 * 1024, // 128 Kibibits

@@ -12,10 +12,13 @@ export default function (
   console.log("==================");
 
   const addresses = Object.keys(accounts);
+  const attoFILinFIL = 1000000000000000000n;
 
   addresses.forEach(function (address, index) {
     const balance = accounts[address].balance;
-    let line = `(${index}) ${address} (${balance} FIL)`;
+    const strBalance = balance / attoFILinFIL;
+    const about = balance % attoFILinFIL === 0n ? "" : "~";
+    let line = `(${index}) ${address} (${about}${strBalance} ETH)`;
 
     if (!accounts[address].unlocked) {
       line += " 🔒";
@@ -34,9 +37,9 @@ export default function (
 
   console.log("");
   console.log(
-    `Lotus API started on ${serverSettings.host}:${serverSettings.port}`
+    `Lotus RPC listening on ${serverSettings.host}:${serverSettings.port}`
   );
   console.log(
-    `IPFS  API started on ${liveOptions.chain.ipfsHost}:${liveOptions.chain.ipfsPort}`
+    `IPFS  RPC listening on ${liveOptions.chain.ipfsHost}:${liveOptions.chain.ipfsPort}`
   );
 }
