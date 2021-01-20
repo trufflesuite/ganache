@@ -1,5 +1,7 @@
 <h1 align="center">
-  <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://trufflesuite.github.io/ganache-core/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
+  <center>
+    <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://trufflesuite.github.io/ganache-core/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
+  </center>
 </h1>
 
 <h3 align="center">
