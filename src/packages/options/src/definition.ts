@@ -59,7 +59,8 @@ export type Definitions<C extends Base.Config> = {
       : {
           // using type string for flavor to prevent circular dependency
           readonly default: (
-            config: InternalConfig<C> & { flavor: string }
+            config: InternalConfig<C>,
+            flavor: string
           ) => OptionType<C, N>;
           readonly defaultDescription?: string;
         }) &

@@ -17,34 +17,21 @@ export type MinerConfig = {
       type: number;
       hasDefault: true;
     };
-
-    /**
-     * Internal flag to determine if ganache should automine/instamine.
-     * Is set/overridden by the miner.blockTime option.
-     *
-     * @default true
-     */
-    automining: {
-      type: boolean;
-      rawType: boolean;
-      hasDefault: true;
-    };
   };
 };
 
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
-    normalize,
+    normalize: rawInput => {
+      if (rawInput < 0) {
+        throw new Error("miner.blockTime must be 0 or a positive number.");
+      }
+
+      return rawInput;
+    },
     cliDescription:
       'Sets the `blockTime` in seconds for automatic mining. A blockTime of `0`  enables "instamine mode", where new executable transactions will be mined instantly.',
     default: () => 0,
     cliType: "number"
-  },
-  automining: {
-    normalize,
-    cliDescription:
-      "Internal flag to determine if ganache should automine/instamine.",
-    disableInCLI: true,
-    default: () => true
   }
 };

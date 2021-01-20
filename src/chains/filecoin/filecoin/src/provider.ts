@@ -59,12 +59,12 @@ export default class FilecoinProvider
   public getInitialAccounts() {
     const accounts: Record<
       string,
-      { unlocked: boolean; secretKey: string; balance: number }
+      { unlocked: boolean; secretKey: string; balance: bigint }
     > = {};
     accounts[this.blockchain.address.serialize()] = {
       unlocked: true,
       secretKey: this.blockchain.address.privateKey,
-      balance: this.blockchain.balance.toFIL()
+      balance: BigInt(this.blockchain.balance.value)
     };
     return accounts;
   }

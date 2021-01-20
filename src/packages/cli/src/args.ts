@@ -1,6 +1,10 @@
 import { TruffleColors } from "@ganache/colors";
 import yargs, { Options } from "yargs";
-import { DefaultFlavor, FilecoinFlavorName, DefaultOptionsByName } from "@ganache/flavors";
+import {
+  DefaultFlavor,
+  FilecoinFlavorName,
+  DefaultOptionsByName
+} from "@ganache/flavors";
 import {
   Base,
   Definitions,
@@ -48,7 +52,8 @@ function processOption(
   group: string,
   option: string,
   optionObj: Definitions<Base.Config>[string | number],
-  argv: yargs.Argv
+  argv: yargs.Argv,
+  flavor: string
 ) {
   if (optionObj.disableInCLI !== true) {
     const shortHand = [];
@@ -68,7 +73,7 @@ function processOption(
     const generateDefaultDescription = () => {
       // default sometimes requires a config, so we supply one
       return (state[option] = optionObj.default
-        ? optionObj.default(state).toString()
+        ? optionObj.default(state, flavor).toString()
         : undefined);
     };
     const defaultDescription =
@@ -167,7 +172,8 @@ export default function (version: string, isDocker: boolean) {
               group,
               option,
               optionObj,
-              flavorArgs
+              flavorArgs,
+              flavor
             );
           }
         }
@@ -178,7 +184,15 @@ export default function (version: string, isDocker: boolean) {
         for (const option in categoryObj) {
           const optionObj = categoryObj[option];
 
-          processOption(state, "server", group, option, optionObj, flavorArgs);
+          processOption(
+            state,
+            "server",
+            group,
+            option,
+            optionObj,
+            flavorArgs,
+            flavor
+          );
         }
 
         flavorArgs = flavorArgs
