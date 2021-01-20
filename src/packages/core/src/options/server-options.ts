@@ -74,6 +74,6 @@ export const ServerOptions: Definitions<ServerConfig> = {
           return "/";
       }
     },
-    defaultDescription: "'/rpc/v0' for Filecoin, '/' otherwise"
+    defaultDescription: '"/" (Ethereum), "/rpc/v0" (Filecoin)'
   }
 };
