@@ -99,5 +99,5 @@ export default function (provider: Provider, cliSettings: CliSettings) {
   console.log(liveOptions.chain.chainId);
 
   console.log("");
-  console.log("Listening on " + cliSettings.host + ":" + cliSettings.port);
+  console.log("RPC Listening on " + cliSettings.host + ":" + cliSettings.port);
 }

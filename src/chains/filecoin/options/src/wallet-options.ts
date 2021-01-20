@@ -41,6 +41,7 @@ export type WalletConfig = {
       hasDefault: true;
     };
   };
+  exclusiveGroups: [["deterministic", "seed"]];
 };
 
 export const WalletOptions: Definitions<WalletConfig> = {
@@ -49,7 +50,8 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliDescription: "Use pre-defined, deterministic seed.",
     default: () => false,
     cliAliases: ["d"],
-    cliType: "boolean"
+    cliType: "boolean",
+    conflicts: ["seed"]
   },
   seed: {
     normalize,
@@ -61,6 +63,8 @@ export const WalletOptions: Definitions<WalletConfig> = {
       config.deterministic
         ? DeterministicSeedPhrase
         : randomAlphaNumericString(10, alea()),
-    cliType: "string"
+    cliAliases: ["s"],
+    cliType: "string",
+    conflicts: ["deterministic"]
   }
 };
