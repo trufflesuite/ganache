@@ -46,16 +46,16 @@ Ganache can be used from the command line or programmatically via Node.js.
 
 You must first install [Node.js](https://nodejs.org/) >= v10.7.0 and npm >= 6.1.0.
 
-To install ganache-cli globally, run:
+To install ganache globally, run:
 
 ```console
-$ npm install ganache-cli --global
+$ npm install ganache --global
 ```
 
-Once installed globally, you can start ganache-cli right from your command line:
+Once installed globally, you can start ganache right from your command line:
 
 ```console
-$ ganache-cli
+$ ganache
 Ganache CLI v6.12.1 (ganache-core: 2.13.1)
 
 Available Accounts
@@ -104,17 +104,17 @@ Call Gas Limit
 Listening on 127.0.0.1:8545
 ```
 
-To install ganache-cli into an npm project, run:
+To install Ganache into an npm project, run:
 
 ```console
-$ npm install ganache-cli
+$ npm install ganache
 ```
 
-You can then add ganache-cli to your package.json scripts:
+You can then add ganache to your package.json scripts:
 
 ```json
 "scripts": {
-  "ganache": "ganache-cli --seed myCustomSeed"
+  "ganache": "ganache --wallet.seed myCustomSeed"
 }
 ```
 
@@ -128,16 +128,16 @@ $ npm run ganache
 
 ### Programmatic use
 
-You can use ganache-cli programmatically from Node.js. Install ganache-cli into your npm package:
+You can use Ganache programmatically from Node.js. Install Ganache into your npm package:
 
 ```console
-$ npm install ganache-cli
+$ npm install ganache
 ```
 
 then start ganache as an EIP-1193 provider only:
 
 ```javascript
-const ganache = require("ganache-cli");
+const ganache = require("ganache");
 
 const options = {};
 const provider = ganache.provider(options);
@@ -147,7 +147,7 @@ const accounts = await provider.request({ method: "eth_accounts", params: [] });
 or as an EIP-1193 provider _and_ JSON-RPC web server:
 
 ```javascript
-const ganache = require("ganache-cli");
+const ganache = require("ganache");
 
 const options = {};
 const server = ganache.server(options);
@@ -155,7 +155,7 @@ const PORT = 8545;
 server.listen(PORT, err => {
   if (err) throw err;
 
-  console.log(`ganache-cli listening on port ${PORT}...`);
+  console.log(`ganache listening on port ${PORT}...`);
   const provider = server.provider;
   const accounts = await provider.request({ method: "eth_accounts", params:[] });
 });
@@ -167,7 +167,7 @@ To use ganache as a Web3 provider:
 
 ```javascript
 const Web3 = require("web3");
-const ganache = require("ganache-cli");
+const ganache = require("ganache");
 
 const web3 = new Web3(ganache.provider());
 ```
@@ -181,22 +181,24 @@ const web3 = new Web3(ganache.provider(), null, { transactionConfirmationBlocks:
 #### As an [ethers.js]() provider:
 
 ```javascript
-const ganache = require("ganache-cli");
+const ganache = require("ganache");
 
 const provider = new ethers.providers.Web3Provider(ganache.provider());
 ```
 
 ## Documentation
 
-TODO
+New RPC documentation coming soon! See https://github.com/trufflesuite/ganache-core/tree/master#options for Ganache v2 documentation.
 
 ## Community
 
-TODO
+- [Gitter](https://gitter.im/ConsenSys/truffle)
+- [Spectrum](https://spectrum.chat/trufflesuite)
+- [Reddit](https://www.reddit.com/r/Truffle/)
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for our guide to contributing to ganache.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for our guide to contributing to Ganache.
 
 ## Related
 
