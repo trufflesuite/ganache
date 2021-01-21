@@ -105,7 +105,9 @@ describe("api", () => {
     describe("Filecoin.ChainHead", () => {
       it("should return a serialized tipset with blocks", async () => {
         const head = await client.chainHead();
+        assert.strictEqual(head.Height, 0);
         assert(head.Blocks.length > 0);
+        assert.strictEqual(head.Blocks[0].Height, head.Height);
       });
     });
 
