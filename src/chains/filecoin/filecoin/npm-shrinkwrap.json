@@ -250,9 +250,9 @@
 			"dev": true
 		},
 		"@filecoin-shipyard/lotus-client-schema": {
-			"version": "0.0.12",
-			"resolved": "https://registry.npmjs.org/@filecoin-shipyard/lotus-client-schema/-/lotus-client-schema-0.0.12.tgz",
-			"integrity": "sha512-wwqarwcUtqpy1pKq4o0jWM5ppbYxsnMZ5uQZ+WJ8dJmNiJuVTz6GjCtWNaCa+4kw2GgfkItj2BIjzweL7/5QNA=="
+			"version": "2.0.0",
+			"resolved": "https://registry.npmjs.org/@filecoin-shipyard/lotus-client-schema/-/lotus-client-schema-2.0.0.tgz",
+			"integrity": "sha512-3XIoyCPr7FyK9rbI3LIKAB755TlpQ0ankFs7uDpU8JXA38gZK7YGc+zcXMLiyIzknbhOmlfGPJ1jpcm3n9Y/0A=="
 		},
 		"@hapi/accept": {
 			"version": "3.2.4",

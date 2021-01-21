@@ -1,14 +1,16 @@
 declare module "@filecoin-shipyard/lotus-client-schema" {
   export type Schema = {
     methods: {
-      [propertyName: string]: {};
+      [propertyName: string]: {
+        subscription?: boolean;
+      };
     };
   };
 
-  export type TestNetDeclaration = {
+  export type MainNetDeclaration = {
     fullNode: Schema;
     storageMiner: Schema;
   };
 
-  let testnet: TestNetDeclaration;
+  let mainnet: MainNetDeclaration;
 }
