@@ -105,7 +105,7 @@ class Deal
   duration: number;
   dealId: number;
 
-  advanceState(fullyAdvance: boolean = false) {
+  advanceState() {
     this.state = nextSuccessfulState[this.state];
   }
 }

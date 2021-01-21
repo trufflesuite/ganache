@@ -111,7 +111,9 @@ describe("Blockchain", () => {
     it("advances state of in process deals on every block", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
-          miner: { automining: false }
+          miner: {
+            blockTime: -1
+          }
         })
       );
 
@@ -189,7 +191,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           miner: {
-            automining: true
+            blockTime: 0
           }
         })
       );
