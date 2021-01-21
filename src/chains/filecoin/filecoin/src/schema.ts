@@ -7,7 +7,7 @@ const GanacheSchema: Schema = {
 
 // Use the FilecoinAPI to create a schema object representing the functions supported.
 for (const methodName of Object.getOwnPropertyNames(FilecoinApi.prototype)) {
-  if (methodName == "constructor") {
+  if (methodName === "constructor") {
     continue;
   }
 
