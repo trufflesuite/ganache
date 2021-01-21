@@ -155,7 +155,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // Advance the state of all deals in process.
     for (const deal of this.inProcessDeals) {
-      deal.advanceState(this.options.miner.blockTime > 0);
+      deal.advanceState();
 
       if (deal.state == DealState.Active) {
         // Remove the deal from the in-process array
@@ -221,7 +221,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // If we're automining, mine a new block. Note that this will
     // automatically advance the deal to the active state.
-    if (this.options.miner.blockTime > 0) {
+    if (this.options.miner.blockTime === 0) {
       while (deal.state != DealState.Active) {
         this.mineTipset();
       }

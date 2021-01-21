@@ -6,7 +6,8 @@ export type MinerConfig = {
     /**
      * Sets the `blockTime` in seconds for automatic mining. A blockTime of `0`
      * (default) enables "instamine mode", where new executable transactions
-     * will be mined instantly.
+     * will be mined instantly. A negative blockTime will require mining by
+     * manually calling Ganache.MineTipset.
      *
      * Using the `blockTime` option is discouraged unless you have tests which
      * require a specific mining interval.
@@ -22,13 +23,7 @@ export type MinerConfig = {
 
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
-    normalize: rawInput => {
-      if (rawInput < 0) {
-        throw new Error("miner.blockTime must be 0 or a positive number.");
-      }
-
-      return rawInput;
-    },
+    normalize,
     cliDescription:
       'Sets the `blockTime` in seconds for automatic mining. A blockTime of `0`  enables "instamine mode", where new executable transactions will be mined instantly.',
     default: () => 0,
