@@ -14,7 +14,15 @@ describe("Blockchain", () => {
     let blockchain: Blockchain;
 
     before(async () => {
-      blockchain = new Blockchain(FilecoinOptionsConfig.normalize({}));
+      blockchain = new Blockchain(
+        FilecoinOptionsConfig.normalize({
+          logging: {
+            logger: {
+              log: () => {}
+            }
+          }
+        })
+      );
       await blockchain.waitForReady();
     });
 
@@ -51,6 +59,11 @@ describe("Blockchain", () => {
         FilecoinOptionsConfig.normalize({
           miner: {
             blockTime: 100
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
           }
         })
       );
@@ -73,7 +86,15 @@ describe("Blockchain", () => {
 
   describe("ipfs server", () => {
     it("creates an ipfs server", async () => {
-      let blockchain = new Blockchain(FilecoinOptionsConfig.normalize({}));
+      let blockchain = new Blockchain(
+        FilecoinOptionsConfig.normalize({
+          logging: {
+            logger: {
+              log: () => {}
+            }
+          }
+        })
+      );
 
       try {
         await blockchain.waitForReady();
@@ -113,6 +134,11 @@ describe("Blockchain", () => {
         FilecoinOptionsConfig.normalize({
           miner: {
             blockTime: -1
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
           }
         })
       );
@@ -192,6 +218,11 @@ describe("Blockchain", () => {
         FilecoinOptionsConfig.normalize({
           miner: {
             blockTime: 0
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
           }
         })
       );
@@ -237,6 +268,11 @@ describe("Blockchain", () => {
         FilecoinOptionsConfig.normalize({
           wallet: {
             seed: "tim is a swell guy"
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
           }
         })
       );
