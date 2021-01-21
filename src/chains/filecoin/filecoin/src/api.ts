@@ -45,7 +45,8 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.ActorAddress"(): Promise<string> {
-    return this.#blockchain.address.serialize();
+    // this is the StorageMiner API Actor Address, which is the miner
+    return this.#blockchain.miner;
   }
 
   async "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset> {
