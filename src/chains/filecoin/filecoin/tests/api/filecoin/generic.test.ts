@@ -4,6 +4,7 @@ import getProvider from "../../helpers/getProvider";
 import { CID } from "../../../src/things/cid";
 import LotusSchema from "@filecoin-shipyard/lotus-client-schema";
 import GanacheSchema from "../../../src/schema";
+import FilecoinApi from "../../../src/api";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
@@ -37,7 +38,14 @@ describe("api", () => {
       });
 
       it("should return invalid methods for all unimplemented methods", async () => {
-        const methods = Object.keys(LotusSchema.mainnet.fullNode.methods)
+        const combinedMethods = {
+          ...LotusSchema.mainnet.fullNode.methods,
+          ...LotusSchema.mainnet.storageMiner.methods,
+          ...LotusSchema.mainnet.gatewayApi.methods,
+          ...LotusSchema.mainnet.walletApi.methods,
+          ...LotusSchema.mainnet.workerApi.methods
+        };
+        const methods = Object.keys(combinedMethods)
           .filter(
             method => typeof GanacheSchema.methods[method] === "undefined"
           )
@@ -60,6 +68,29 @@ describe("api", () => {
           }
 
           assert.fail(`Unsupported method ${method} was sent successfully`);
+        }
+      });
+
+      it("should only have valid Filecoin.<...> methods", async () => {
+        const combinedMethods = {
+          ...LotusSchema.mainnet.fullNode.methods,
+          ...LotusSchema.mainnet.storageMiner.methods,
+          ...LotusSchema.mainnet.gatewayApi.methods,
+          ...LotusSchema.mainnet.walletApi.methods,
+          ...LotusSchema.mainnet.workerApi.methods
+        };
+        const methods = Object.getOwnPropertyNames(FilecoinApi.prototype)
+          .filter(
+            method => method !== "constructor" && method.startsWith("Filecoin.")
+          )
+          .map(method => method.replace("Filecoin.", ""));
+
+        for (const method of methods) {
+          if (typeof combinedMethods[method] === "undefined") {
+            assert.fail(
+              `Filecoin method Filecoin.${method} is implemented, but not part of the official schema`
+            );
+          }
         }
       });
     });
