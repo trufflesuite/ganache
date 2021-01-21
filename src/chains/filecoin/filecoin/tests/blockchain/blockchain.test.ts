@@ -58,7 +58,7 @@ describe("Blockchain", () => {
       let blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           miner: {
-            blockTime: 100
+            blockTime: 1
           },
           logging: {
             logger: {
@@ -71,13 +71,12 @@ describe("Blockchain", () => {
       try {
         await blockchain.waitForReady();
 
-        // After 1 second, we should have well over 4 blocks
-        // I'm not checking for exactly 5 to dodge race conditions
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // After 3.5 seconds, we should have 3 blocks
+        await new Promise(resolve => setTimeout(resolve, 3500));
 
         let latest: Tipset = blockchain.latestTipset();
 
-        assert(latest.height >= 4);
+        assert.strictEqual(latest.height, 3);
       } finally {
         blockchain.stop();
       }
