@@ -9,7 +9,9 @@ describe("connector", () => {
 
   it("it logs when `options.verbose` is `true`", async () => {
     const logger = { log: (_msg: string) => {} };
-    const p = Ganache.provider({ logging: { logger, verbose: true } });
+    const p = Ganache.provider({
+      logging: { logger, verbose: true }
+    }) as EthereumProvider;
 
     logger.log = msg => {
       assert.strictEqual(
@@ -32,7 +34,7 @@ describe("connector", () => {
   });
 
   it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
-    const p = Ganache.provider();
+    const p = Ganache.provider() as EthereumProvider;
     const accounts = await p.send("eth_accounts");
     // `eth_accounts` should always be faster than eth_getBalance; eth_accounts
     // should return before eth_getBalance because of the
@@ -45,7 +47,9 @@ describe("connector", () => {
   });
 
   it("it processes requests syncronously when `asyncRequestProcessing` is `false`", async () => {
-    const p = Ganache.provider({ chain: { asyncRequestProcessing: false } });
+    const p = Ganache.provider({
+      chain: { asyncRequestProcessing: false }
+    }) as EthereumProvider;
     const accounts = await p.send("eth_accounts");
     // eth_getBalance should return first even though eth_accounts is faster;
     // eth_getBalance should return before eth_accounts because of the
@@ -60,7 +64,7 @@ describe("connector", () => {
   // to make sure that 3rd party API implementations can't shoot themselves
   // in the foot on accident
   it.skip("TODO: allow 'injecting' our own engine or API into a provider!", async () => {
-    const p = Ganache.provider();
+    const p = Ganache.provider() as EthereumProvider;
     // this won't work becase ganache uses _real_ private properties that can't
     // be duck punched. This test is supposed to ensure that _real_ non-function
     // own properties (and __proto__ properties) can't be executed.
@@ -71,7 +75,7 @@ describe("connector", () => {
   });
 
   it("rejects invalid rpc methods", async () => {
-    const p = Ganache.provider();
+    const p = Ganache.provider() as EthereumProvider;
 
     const illegalMethodNames = [
       "toString",
