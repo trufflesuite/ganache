@@ -2,7 +2,7 @@ import assert from "assert";
 import { RootCID } from "../../src/things/root-cid";
 import { CID } from "../../src/things/cid";
 import { Tipset } from "../../src/things/tipset";
-import { Block } from "../../src/things/block";
+import { BlockHeader } from "../../src/things/block-header";
 import { Address } from "../../src/things/address";
 
 describe("things", () => {
@@ -91,9 +91,9 @@ describe("things", () => {
     it("has default values", async () => {
       let timestamp = new Date().getTime();
 
-      let block = new Block();
+      let block = new BlockHeader();
 
-      assert.strictEqual(block.miner.value, "t01000");
+      assert.strictEqual(block.miner, "t01000");
       assert.strictEqual(
         block.ticket.vrfProof,
         "tPnuOjWp9LS/w5VuB+ALc0wn+0aNRF9SkOSykAszkppjnSYGY1qFhhI2fI7PvS39FufkkH8AKCqctU23D4EkAKqZvnMEp8eVjy528BPWE394/n2Z4pJCgjHau2bK26vN"
@@ -105,11 +105,8 @@ describe("things", () => {
       assert.strictEqual(block.beaconEntries.length, 0);
       assert.strictEqual(block.winPoStProof.length, 0);
       assert.strictEqual(block.parents.length, 0);
-      assert.strictEqual(block.parentWeight, 0);
+      assert.strictEqual(block.parentWeight, 0n);
       assert.strictEqual(block.height, 0);
-      assert.strictEqual(block.parentStateRoot.length, 0);
-      assert.strictEqual(block.parentMessageReceipts.length, 0);
-      assert.strictEqual(block.messages.length, 0);
       assert.strictEqual(
         block.blsAggregate.data,
         "wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"

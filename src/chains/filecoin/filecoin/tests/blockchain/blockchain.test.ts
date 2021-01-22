@@ -2,10 +2,10 @@ import assert from "assert";
 import Blockchain from "../../src/blockchain";
 import { Tipset } from "../../src/things/tipset";
 import IpfsHttpClient from "ipfs-http-client";
-import { StorageProposal } from "../../src/things/storage-proposal";
-import { StorageProposalData } from "../../src/things/storage-proposal-data";
+import { StartDealParams } from "../../src/things/start-deal-params";
+import { StorageMarketDataRef } from "../../src/things/storage-market-data-ref";
 import { RootCID } from "../../src/things/root-cid";
-import { DealState } from "../../src/deal-state";
+import { StorageDealStatus } from "../../src/types/storage-deal-status";
 
 import { FilecoinOptionsConfig } from "@ganache/filecoin-options";
 
@@ -146,8 +146,8 @@ describe("Blockchain", () => {
 
       let result = await blockchain.ipfs.add("some data");
 
-      let proposal = new StorageProposal({
-        data: new StorageProposalData({
+      let proposal = new StartDealParams({
+        data: new StorageMarketDataRef({
           transferType: "graphsync",
           root: new RootCID({
             "/": result.path
@@ -157,7 +157,7 @@ describe("Blockchain", () => {
         }),
         wallet: blockchain.address,
         miner: blockchain.miner,
-        epochPrice: "2500",
+        epochPrice: 2500n,
         minBlocksDuration: 300
       });
 
@@ -166,7 +166,7 @@ describe("Blockchain", () => {
       // First state should be validating
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.Validating
+        StorageDealStatus.Validating
       );
 
       await blockchain.mineTipset();
@@ -174,22 +174,23 @@ describe("Blockchain", () => {
       // Next state should be Staged
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.Staged
+        StorageDealStatus.Staged
       );
 
       await blockchain.mineTipset();
 
-      // Next state should be EnsureProviderFunds
+      // Next state should be ReserveProviderFunds
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.EnsureProviderFunds
+        StorageDealStatus.ReserveProviderFunds
       );
 
       // ... and on and on
 
       // Let's mine all the way to the Sealing state
       while (
-        blockchain.dealsByCid[proposalCid.value].state != DealState.Sealing
+        blockchain.dealsByCid[proposalCid.value].state !=
+        StorageDealStatus.Sealing
       ) {
         await blockchain.mineTipset();
       }
@@ -207,7 +208,7 @@ describe("Blockchain", () => {
 
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.Active
+        StorageDealStatus.Active
       );
       assert.strictEqual(blockchain.inProcessDeals.length, 0);
     });
@@ -230,8 +231,8 @@ describe("Blockchain", () => {
 
       let result = await blockchain.ipfs.add("some data");
 
-      let proposal = new StorageProposal({
-        data: new StorageProposalData({
+      let proposal = new StartDealParams({
+        data: new StorageMarketDataRef({
           transferType: "graphsync",
           root: new RootCID({
             "/": result.path
@@ -241,7 +242,7 @@ describe("Blockchain", () => {
         }),
         wallet: blockchain.address,
         miner: blockchain.miner,
-        epochPrice: "2500",
+        epochPrice: 2500n,
         minBlocksDuration: 300
       });
 
@@ -251,7 +252,7 @@ describe("Blockchain", () => {
       // the state to be state to be set to active.
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.Active
+        StorageDealStatus.Active
       );
 
       // We create 1 tipset per state change. Let's make sure that occurred.

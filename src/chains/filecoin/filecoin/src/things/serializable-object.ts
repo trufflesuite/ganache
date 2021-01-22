@@ -159,7 +159,9 @@ abstract class SerializableObject<C extends BaseConfig>
 
   private serializeValue(value: any) {
     let returnVal: any = value;
-    if (
+    if (typeof value === "bigint") {
+      returnVal = value.toString(10);
+    } else if (
       value instanceof SerializableObject ||
       value instanceof SerializableLiteral
     ) {

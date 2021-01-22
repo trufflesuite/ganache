@@ -39,7 +39,7 @@ describe("api", () => {
 
       it("should return a balance for the default address", async () => {
         const balance = await client.walletBalance(address);
-        assert.strictEqual(balance, "500000000000000000000000");
+        assert.strictEqual(balance, "500000000000000000000");
       });
 
       it("should not return a balance for any other address", async () => {

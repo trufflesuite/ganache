@@ -4,12 +4,13 @@ import getProvider from "../../helpers/getProvider";
 import getIpfsClient from "../../helpers/getIpfsClient";
 import { IPFSClient } from "ipfs-http-client";
 import { CID } from "../../../src/things/cid";
-import { StorageProposal } from "../../../src/things/storage-proposal";
+import { StartDealParams } from "../../../src/things/start-deal-params";
 import { RootCID } from "../../../src/things/root-cid";
-import { StorageProposalData } from "../../../src/things/storage-proposal-data";
-import { SerializedDeal } from "../../../src/things/deal";
-import { SerializedRetrievalOffer } from "../../../src/things/retrieval-offer";
+import { StorageMarketDataRef } from "../../../src/things/storage-market-data-ref";
+import { SerializedDealInfo } from "../../../src/things/deal-info";
+import { SerializedRetrievalOrder } from "../../../src/things/retrieval-order";
 import BN from "bn.js";
+import { SerializedQueryOffer } from "../../../src/things/query-offer";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
@@ -47,8 +48,8 @@ describe("api", () => {
         let result = await ipfs.add(data);
         let cid = result.path;
 
-        let proposal = new StorageProposal({
-          data: new StorageProposalData({
+        let proposal = new StartDealParams({
+          data: new StorageMarketDataRef({
             transferType: "graphsync",
             root: new RootCID({
               "/": cid
@@ -58,7 +59,7 @@ describe("api", () => {
           }),
           wallet: address,
           miner: miners[0],
-          epochPrice: "2500",
+          epochPrice: 2500n,
           minBlocksDuration: 300
         });
 
@@ -71,7 +72,7 @@ describe("api", () => {
 
         assert.strictEqual(deals.length, 1);
 
-        let deal: SerializedDeal = deals[0];
+        let deal: SerializedDealInfo = deals[0];
         assert.strictEqual(deal.ProposalCid["/"], proposalCid["/"]);
         assert.strictEqual(deal.Size, expectedSize);
 
@@ -83,7 +84,7 @@ describe("api", () => {
 
     describe("Filecoin.ClientFindData, Filecoin.ClientRetrieve, and Filecoin.ClientHasLocal", () => {
       let ipfs: IPFSClient;
-      let offer: SerializedRetrievalOffer;
+      let offer: SerializedQueryOffer;
       let address: string;
       let beginningBalance: string;
 
@@ -117,7 +118,20 @@ describe("api", () => {
       });
 
       it("should 'retrieve' without error (but we all know it's not actually retrieving anything...), and subtract balance", async () => {
-        await client.clientRetrieve(offer);
+        const order: SerializedRetrievalOrder = {
+          Root: offer.Root,
+          Piece: offer.Piece,
+          Size: offer.Size,
+          Total: offer.MinPrice,
+          UnsealPrice: offer.UnsealPrice,
+          PaymentInterval: offer.PaymentInterval,
+          PaymentIntervalIncrease: offer.PaymentIntervalIncrease,
+          Client: address,
+          Miner: offer.Miner,
+          MinerPeer: offer.MinerPeer
+        };
+
+        await client.clientRetrieve(order);
 
         // No error? Great, let's make sure it subtracted the retreival cost.
 
@@ -126,27 +140,35 @@ describe("api", () => {
       });
 
       it("errors if we try to retrieve a file our IPFS server doesn't know about", async () => {
-        let err: Error;
-
         let cidIMadeUp = "QmY7Yh4UquoXdL9Fo2XbhXkhBvFoLwmQUfa92pxnxjQuPU";
 
-        let madeUpOffer: SerializedRetrievalOffer = {
-          Err: "",
+        let madeUpOrder: SerializedRetrievalOrder = {
           Root: {
             "/": cidIMadeUp
           },
+          Piece: {
+            "/": cidIMadeUp
+          },
           Size: 1234,
-          MinPrice: "2468",
+          Total: "2468",
+          UnsealPrice: "2468",
           PaymentInterval: 1048576,
           PaymentIntervalIncrease: 1048576,
-          Miner: "t0100",
-          MinerPeerID: "6vuxqgevbl6irx7tymbj7o4t8bz1s5vy88zmum7flxywy1qugjfd"
+          Client: address,
+          Miner: "t01000",
+          MinerPeer: {
+            Address: "t01000",
+            ID: "t01000",
+            PieceCID: {
+              "/": "6vuxqgevbl6irx7tymbj7o4t8bz1s5vy88zmum7flxywy1qugjfd"
+            }
+          }
         };
 
         let error: Error;
 
         try {
-          await client.clientRetrieve(madeUpOffer);
+          await client.clientRetrieve(madeUpOrder);
         } catch (e) {
           error = e;
         }

@@ -24,7 +24,7 @@ class RootCID
       "/": {
         serializedName: "/",
         defaultValue: options => {
-          return new CID(options);
+          return new CID(options || "No CID value provided");
         }
       }
     };
