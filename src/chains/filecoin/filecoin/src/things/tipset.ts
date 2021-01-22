@@ -67,6 +67,12 @@ class Tipset
     }
   }
 
+  /**
+   * An array that contains the BlockHeader.cid().
+   * If not provided, constructor will auto add this array.
+   * There's no documentation specifying this, so here is
+   * the reference Implementation: https://git.io/Jt3VM
+   */
   cids: Array<RootCID>;
   blocks: Array<Block>;
   height: number;

@@ -65,9 +65,18 @@ export default class Blockchain extends Emittery.Typed<
     this.ready = false;
 
     // Create genesis tipset
+    const genesisBlock = new Block({
+      parents: [
+        // Both lotus and lotus-devnet always have the Filecoin genesis CID
+        // hardcoded here. Reference implementation: https://git.io/Jt3oK
+        new RootCID({
+          "/": "bafyreiaqpwbbyjo4a42saasj36kkrpv4tsherf2e7bvezkert2a7dhonoi"
+        })
+      ]
+    });
     this.tipsets.push(
       new Tipset({
-        blocks: [new Block()],
+        blocks: [genesisBlock],
         height: 0
       })
     );
