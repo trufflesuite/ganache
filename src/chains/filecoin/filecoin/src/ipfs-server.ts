@@ -85,8 +85,12 @@ class IPFSServer {
   }
 
   async stop() {
-    await this.httpServer.stop();
-    await this.node.stop();
+    if (this.httpServer) {
+      await this.httpServer.stop();
+    }
+    if (this.node) {
+      await this.node.stop();
+    }
   }
 }
 

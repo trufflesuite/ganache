@@ -1,5 +1,5 @@
 import Emittery from "emittery";
-import { PromiEvent, types, utils } from "@ganache/utils";
+import { PromiEvent, Subscription, types, utils } from "@ganache/utils";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
 import GanacheSchema from "./schema";
@@ -78,15 +78,19 @@ export default class FilecoinProvider
     return this.#connectPromise;
   }
 
-  async send<Method extends keyof FilecoinApi = keyof FilecoinApi>(
+  async send(payload: JsonRpc.Request<FilecoinApi>) {
+    const result = await this._requestRaw(payload);
+    return result.value;
+  }
+
+  async _requestRaw<Method extends keyof FilecoinApi = keyof FilecoinApi>(
     payload: JsonRpc.Request<FilecoinApi>
   ) {
     // I'm not entirely sure why I need the `as [string]`... but it seems to work.
-    const result = await this.#executor.execute(
-      this.#api,
-      payload.method,
-      payload.params as any
-    );
+    const result = await this.#executor.execute(this.#api, payload.method, [
+      ...(payload.params || []),
+      payload.id
+    ] as any);
     const promise = (result.value as unknown) as PromiseLike<
       ReturnType<FilecoinApi[Method]>
     >;
@@ -95,6 +99,23 @@ export default class FilecoinProvider
       promise.on("message", data => {
         this.emit("message" as never, data as never);
       });
+
+      const value = await promise;
+
+      if (
+        typeof value === "object" &&
+        typeof value.unsubscribe === "function"
+      ) {
+        // since the class instance gets ripped away,
+        // we can't use instanceof Subscription, so we
+        // just use an interface and check for the unsubscribe
+        // function 🤷
+        const newPromiEvent = PromiEvent.resolve(value.id);
+        promise.on("message", data => {
+          newPromiEvent.emit("message" as never, data as never);
+        });
+        return { value: newPromiEvent };
+      }
     }
 
     return { value: promise };
@@ -108,8 +129,28 @@ export default class FilecoinProvider
     throw new Error("Method not supported (sendWs)");
   }
 
-  async sendSubscription() {
-    throw new Error("Method not supported (sendSubscription)");
+  // Reference implementation: https://git.io/JtO3H
+  async sendSubscription(
+    payload: JsonRpc.Request<FilecoinApi>,
+    schemaMethod: { subscription?: boolean },
+    subscriptionCallback: (data: any) => void
+  ) {
+    // I'm not entirely sure why I need the `as [string]`... but it seems to work.
+    const result = await this.#executor.execute(this.#api, payload.method, [
+      ...(payload.params || []),
+      payload.id
+    ] as any);
+    const promiEvent = (result.value as unknown) as PromiEvent<Subscription>;
+
+    if (promiEvent instanceof PromiEvent) {
+      promiEvent.on("message", data => {
+        subscriptionCallback(data);
+      });
+    }
+
+    const value = await promiEvent;
+
+    return [value.unsubscribe, Promise.resolve(value.id.toString())];
   }
 
   async receive() {

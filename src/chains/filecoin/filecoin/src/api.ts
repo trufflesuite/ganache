@@ -1,5 +1,5 @@
 //#region Imports
-import { types, Quantity, PromiEvent } from "@ganache/utils";
+import { types, Quantity, PromiEvent, Subscription } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import {
   StorageProposal,
@@ -41,34 +41,70 @@ export default class FilecoinApi implements types.Api {
     return this.#blockchain.latestTipset().serialize();
   }
 
-  "Filecoin.ChainNotify"(): PromiEvent<Quantity> {
-    const subscription = this.#getId();
-    const promiEvent = PromiEvent.resolve(subscription);
+  // Reference implementation entry point: https://git.io/JtO3a
+  "Filecoin.ChainNotify"(rpcId?: string): PromiEvent<Subscription> {
+    const subscriptionId = this.#getId();
+    let promiEvent: PromiEvent<Subscription>;
 
     const currentHead = new HeadChange({
       type: HeadChangeType.HCCurrent,
       val: this.#blockchain.latestTipset()
     });
 
-    const unsubscribe = this.#blockchain.on("tipset", (tipset: Tipset) => {
-      const newHead = new HeadChange({
-        type: HeadChangeType.HCApply,
-        val: tipset
-      });
+    const unsubscribeFromEmittery = this.#blockchain.on(
+      "tipset",
+      (tipset: Tipset) => {
+        // Ganache currently doesn't support Filecoin reorgs,
+        // so we'll always only have one tipset per head change
+        // See reference implementations here: https://git.io/JtOOk;
+        // other lines of interest are line 207 which shows only the chainstore only
+        // references the "hcnf" (head change notification function) in the
+        // reorgWorker function (lines 485-560)
 
-      promiEvent.emit("message", {
-        type: SubscriptionMethod.ChannelUpdated,
-        data: [subscription.toString(), [newHead.serialize()]]
-      });
+        // Ganache currently doesn't support Filecoin reverts,
+        // so we'll always use HCApply for now
+
+        const newHead = new HeadChange({
+          type: HeadChangeType.HCApply,
+          val: tipset
+        });
+
+        if (promiEvent) {
+          promiEvent.emit("message", {
+            type: SubscriptionMethod.ChannelUpdated,
+            data: [subscriptionId.toString(), [newHead.serialize()]]
+          });
+        }
+      }
+    );
+
+    const unsubscribe = (): void => {
+      unsubscribeFromEmittery();
+      // Per https://git.io/JtOc1 and https://git.io/JtO3H
+      // implementations, we're should cancel the subscription
+      // since the protocol technically supports multiple channels
+      // per subscription, but implementation seems to show that there's
+      // only one channel per subscription
+      if (rpcId) {
+        promiEvent.emit("message", {
+          type: SubscriptionMethod.SubscriptionCanceled,
+          data: [rpcId]
+        });
+      }
+    };
+
+    promiEvent = PromiEvent.resolve({
+      unsubscribe,
+      id: subscriptionId
     });
 
     // There currently isn't an unsubscribe method,
     // but it would go here
-    this.#subscriptions.set(subscription.toString(), unsubscribe);
+    this.#subscriptions.set(subscriptionId.toString(), unsubscribe);
 
     promiEvent.emit("message", {
       type: SubscriptionMethod.ChannelUpdated,
-      data: [subscription.toString(), [currentHead.serialize()]]
+      data: [subscriptionId.toString(), [currentHead.serialize()]]
     });
 
     return promiEvent;
@@ -78,7 +114,7 @@ export default class FilecoinApi implements types.Api {
     subscriptionId: SubscriptionId
   ): Promise<boolean> {
     const subscriptions = this.#subscriptions;
-    const unsubscribe = subscriptions.get(subscriptionId);
+    const unsubscribe = this.#subscriptions.get(subscriptionId);
 
     if (unsubscribe) {
       subscriptions.delete(subscriptionId);

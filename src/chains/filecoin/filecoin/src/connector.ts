@@ -47,7 +47,7 @@ export class Connector
     payload: JsonRpcTypes.Request<FilecoinApi>,
     _connection: HttpRequest | WebSocket
   ): Promise<any> {
-    return this.#provider.send(payload);
+    return this.#provider._requestRaw(payload);
   }
 
   format(
