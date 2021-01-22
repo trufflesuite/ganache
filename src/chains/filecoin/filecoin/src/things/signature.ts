@@ -15,7 +15,7 @@ interface SignatureConfig {
       serializedName: "Type";
     };
     data: {
-      type: string; // should probably be uint8array https://pkg.go.dev/github.com/filecoin-project/go-state-types/crypto#Signature
+      type: Buffer;
       serializedType: string;
       serializedName: "Data";
     };
@@ -33,14 +33,13 @@ class Signature
       },
       data: {
         serializedName: "Data",
-        defaultValue:
-          "t1vv8DSsC2vAVmJsEjVyZgLcYS4+AG0qQzViaVWhfdW24YOt7qkRuDxSftbis/ZlDgCc1sGom26PvnLKLe4H0qJP7B4wW3yw8vp0zovZUV9zW1QkpKGJgO7HIhFlQcg9"
+        defaultValue: Buffer.from([0])
       }
     };
   }
 
   type: number;
-  data: string;
+  data: Buffer;
 }
 
 type SerializedSignature = SerializedObject<SignatureConfig>;

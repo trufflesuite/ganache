@@ -157,14 +157,7 @@ class BlockHeader
       },
       blsAggregate: {
         serializedName: "BLSAggregate",
-        defaultValue: options =>
-          new Signature(
-            options || {
-              type: 2,
-              data:
-                "wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-            }
-          )
+        defaultValue: options => new Signature(options)
       },
       timestamp: {
         serializedName: "Timestamp",

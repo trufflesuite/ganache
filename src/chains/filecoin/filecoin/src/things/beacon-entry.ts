@@ -15,7 +15,7 @@ interface BeaconEntryConfig {
       serializedName: "Round";
     };
     data: {
-      type: string; // should probably be uint8array https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#BeaconEntry
+      type: Buffer;
       serializedType: string;
       serializedName: "Data";
     };
@@ -33,13 +33,13 @@ class BeaconEntry
       },
       data: {
         serializedName: "Data",
-        defaultValue: "qrwddPErWZxCQkTKvTkgKwxazkKZu2Q9nXHW1sPgW7I="
+        defaultValue: Buffer.from([0])
       }
     };
   }
 
   round: number;
-  data: string;
+  data: Buffer;
 }
 
 type SerializedBeaconEntry = SerializedObject<BeaconEntryConfig>;

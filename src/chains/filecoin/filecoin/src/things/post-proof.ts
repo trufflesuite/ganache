@@ -15,7 +15,7 @@ interface PoStProofConfig {
       serializedName: "PoStProof";
     };
     proofBytes: {
-      type: string; // should probably be uint8array https://pkg.go.dev/github.com/filecoin-project/specs-actors/actors/runtime/proof#PoStProof
+      type: Buffer;
       serializedType: string;
       serializedName: "ProofBytes";
     };
@@ -33,13 +33,13 @@ class PoStProof
       },
       proofBytes: {
         serializedName: "ProofBytes",
-        defaultValue: "dmFsaWQgcHJvb2Y="
+        defaultValue: Buffer.from([0])
       }
     };
   }
 
   postProof: number;
-  proofBytes: string;
+  proofBytes: Buffer;
 }
 
 type SerializedPoStProof = SerializedObject<PoStProofConfig>;

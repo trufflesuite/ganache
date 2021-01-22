@@ -15,7 +15,7 @@ interface ElectionProofConfig {
       serializedName: "WinCount";
     };
     vrfProof: {
-      type: string; // should probably be uint8array https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#ElectionProof
+      type: Buffer;
       serializedType: string;
       serializedName: "VRFProof";
     };
@@ -33,15 +33,13 @@ class ElectionProof
       },
       vrfProof: {
         serializedName: "VRFProof",
-        defaultValue: () => {
-          return "kQHqldOpdnmexjOh8KwzR6kjSGHAD6tWWM9DpTgf1e/FuxZXwB6lSXg9rlVyMk1OFbRbOOqvbHL5ZER/HTD3a3d3DTlmJ6T8H+oAqVTkh64hdoX2QTyL9EHymMIpgTKX";
-        }
+        defaultValue: Buffer.from([0])
       }
     };
   }
 
   winCount: number;
-  vrfProof: string;
+  vrfProof: Buffer;
 }
 
 type SerializedElectionProof = SerializedObject<ElectionProofConfig>;
