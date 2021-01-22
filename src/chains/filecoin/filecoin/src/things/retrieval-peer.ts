@@ -4,7 +4,7 @@ import {
   DeserializedObject,
   Definitions
 } from "./serializable-object";
-import { CID, SerializedCID } from "./cid";
+import { RootCID, SerializedRootCID } from "./root-cid";
 
 // https://pkg.go.dev/github.com/filecoin-project/go-fil-markets/retrievalmarket#RetrievalPeer
 
@@ -21,8 +21,8 @@ type RetrievalPeerConfig = {
       serializedName: "ID";
     };
     pieceCID: {
-      type: CID;
-      serializedType: SerializedCID;
+      type: RootCID;
+      serializedType: SerializedRootCID;
       serializedName: "PieceCID";
     };
   };
@@ -44,14 +44,16 @@ class RetrievalPeer
       pieceCID: {
         serializedName: "PieceCID",
         defaultValue: options =>
-          new CID(options || "Piece CIDs are not supported in Ganache")
+          new RootCID(
+            options || { "/": "Piece CIDs are not supported in Ganache" }
+          )
       }
     };
   }
 
   address: string;
   id: string;
-  pieceCID: CID;
+  pieceCID: RootCID;
 }
 
 type SerializedRetrievalPeer = SerializedObject<RetrievalPeerConfig>;
