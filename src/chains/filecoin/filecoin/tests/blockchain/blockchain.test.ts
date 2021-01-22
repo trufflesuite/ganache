@@ -263,7 +263,16 @@ describe("Blockchain", () => {
   describe("determinism", () => {
     let blockchain: Blockchain;
 
-    before(async () => {
+    const expectedAddress =
+      "t3ssgs4mt4o2ho72bcpenbcnioeaypwdoqiervbi6yaxazqv5rhufnxyi3ror3xrnlpnhttzfikjdeh566odta";
+
+    afterEach(async () => {
+      if (blockchain) {
+        await blockchain.stop();
+      }
+    });
+
+    it("creates the expected address from seed", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           wallet: {
@@ -277,17 +286,26 @@ describe("Blockchain", () => {
         })
       );
       await blockchain.waitForReady();
-    });
-
-    after(async () => {
-      await blockchain.stop();
-    });
-
-    it("creates the expected address from seed", async () => {
-      let expectedAddress =
-        "t3teloaxbdlmh3q3pbnwofxmpg4oszq6p6ohbj2b5ya6evk3gqi4qfdksjq2vanvsppp634uadfuka7igxymca";
 
       assert.strictEqual(blockchain.address.value, expectedAddress);
+    });
+
+    it("uses the seed to create a different level of determinism", async () => {
+      blockchain = new Blockchain(
+        FilecoinOptionsConfig.normalize({
+          wallet: {
+            seed: "tim is a swell person"
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
+          }
+        })
+      );
+      await blockchain.waitForReady();
+
+      assert.notStrictEqual(blockchain.address.value, expectedAddress);
     });
   });
 });
