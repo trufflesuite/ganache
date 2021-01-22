@@ -4,6 +4,7 @@ import * as bls from "noble-bls12-381";
 import base32 from "base32-encoding";
 import { StartDealParams } from "./start-deal-params";
 import cbor from "borc";
+import { RandomNumberGenerator } from "@ganache/utils/src/utils";
 
 // https://spec.filecoin.io/appendix/address/
 
@@ -106,18 +107,13 @@ class Address extends SerializableLiteral<AddressConfig> {
   }
 
   static random(
-    rng: () => number = Math.random,
+    rng: RandomNumberGenerator = new RandomNumberGenerator(),
     protocol: AddressProtocol = AddressProtocol.BLS,
     network: AddressNetwork = AddressNetwork.Testnet
   ): Address {
     // Note that this private key isn't cryptographically secure!
     // It uses insecure randomization! Don't use it in production!
-    const alphabet = "0123456789abcdef";
-    const privateKey = "_"
-      .repeat(64)
-      .split("")
-      .map(() => alphabet[Math.floor(rng() * alphabet.length)])
-      .join("");
+    const privateKey = rng.getBuffer(32).toString("hex");
 
     return new Address(privateKey, protocol, network);
   }

@@ -12,10 +12,10 @@ import { StorageDealStatus } from "./types/storage-deal-status";
 import IPFSServer, { IPFSNode } from "./ipfs-server";
 import dagCBOR from "ipld-dag-cbor";
 import { RetrievalOrder } from "./things/retrieval-order";
-import seedrandom from "seedrandom";
-import BN from "bn.js";
 import { FilecoinInternalOptions } from "@ganache/filecoin-options";
 import { QueryOffer } from "./things/query-offer";
+import { RandomNumberGenerator } from "@ganache/utils/src/utils";
+import { Ticket } from "./things/ticket";
 
 export type BlockchainEvents = {
   ready(): void;
@@ -44,7 +44,7 @@ export default class Blockchain extends Emittery.Typed<
 
   private ipfsServer: IPFSServer;
   private miningTimeout: NodeJS.Timeout;
-  private rng: () => number;
+  private rng: RandomNumberGenerator;
 
   private ready: boolean;
 
@@ -52,11 +52,7 @@ export default class Blockchain extends Emittery.Typed<
     super();
     this.options = options;
 
-    if (this.options.wallet.seed) {
-      this.rng = seedrandom.alea(this.options.wallet.seed);
-    } else {
-      this.rng = Math.random;
-    }
+    this.rng = new RandomNumberGenerator(this.options.wallet.seed);
 
     this.miner = "t01000";
     this.address = Address.random(this.rng);
@@ -66,6 +62,10 @@ export default class Blockchain extends Emittery.Typed<
 
     // Create genesis tipset
     const genesisBlock = new BlockHeader({
+      ticket: new Ticket({
+        // Reference implementation https://git.io/Jt31s
+        vrfProof: this.rng.getBuffer(32)
+      }),
       parents: [
         // Both lotus and lotus-devnet always have the Filecoin genesis CID
         // hardcoded here. Reference implementation: https://git.io/Jt3oK

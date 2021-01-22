@@ -161,6 +161,10 @@ abstract class SerializableObject<C extends BaseConfig>
     let returnVal: any = value;
     if (typeof value === "bigint") {
       returnVal = value.toString(10);
+    } else if (Buffer.isBuffer(value)) {
+      // golang serializes "byte[]" with base-64 encoding
+      // https://golang.org/src/encoding/json/encode.go?s=6458:6501#L55
+      returnVal = value.toString("base64");
     } else if (
       value instanceof SerializableObject ||
       value instanceof SerializableLiteral
