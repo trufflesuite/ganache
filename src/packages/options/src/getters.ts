@@ -6,7 +6,7 @@ export type ExclusiveGroups<C extends Base.Config> = C["exclusiveGroups"];
 //#endregion
 
 //#region getters for keys
-export type OptionName<C extends Base.Config> = keyof Options<C>;
+export type OptionName<C extends Base.Config> = keyof Options<C> & string;
 export type ExclusiveGroupIndex<C extends Base.Config> = number &
   keyof ExclusiveGroups<C>;
 //#endregion
@@ -54,10 +54,8 @@ export type OptionHasLegacy<
 > = Option<C, N>["legacy"];
 
 export type LegacyOptions<C extends Base.Config> = {
-  [K in keyof C["options"]]: C["options"][K] extends { legacy: any }
-    ? K
-    : never;
-}[keyof C["options"]];
+  [K in OptionName<C>]: Option<C, K> extends { legacy: any } ? K : never;
+}[OptionName<C>];
 
 export type Legacy<C extends Base.Config, N extends OptionName<C>> = Option<
   C,
