@@ -38,7 +38,7 @@ type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
     [K in OptionName<C>]: K extends LegacyOptions<C>
       ? Legacy<C, K>
       : Record<K, OptionRawType<C, K>>;
-  }[keyof Options<C>]
+  }[OptionName<C>]
 >;
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (

@@ -49,13 +49,6 @@ export function GetConnector(
 ): Connector {
   switch (flavor) {
     case DefaultFlavor:
-      // TODO: (Issue #889) Remove warning after `ganache` with `ethereum` is stable
-      console.warn(
-        chalk`\n\n{yellow.bold WARNING:} Using the "{bold ethereum}" flavor via the {bold ganache} package is currently not stable.\n` +
-          chalk`Please use {bold ganache-cli} instead: {hex("${TruffleColors.turquoise}") https://npmjs.com/package/ganache-cli}.\n\n` +
-          chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
-          chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
-      );
       return new Ethereum.Connector(providerOptions, executor);
     case FilecoinFlavorName:
       try {
