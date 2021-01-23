@@ -33,6 +33,10 @@
     {
       "name": "@ganache/options",
       "path": "../options"
+    },
+    {
+      "name": "@ganache/filecoin-types",
+      "path": "../../chains/filecoin/types"
     }
   ]
 }

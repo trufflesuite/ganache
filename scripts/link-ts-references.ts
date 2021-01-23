@@ -144,11 +144,7 @@ const packageDirectories = flat(
   packages.map(pkg => {
     return glob.sync(pkg + "/", options);
   })
-).filter(
-  dir =>
-    existsSync(join(dir, "package.json")) &&
-    existsSync(join(dir, "tsconfig.json"))
-);
+).filter(dir => existsSync(join(dir, "package.json")));
 
 function keys(object: {}) {
   return object ? Object.keys(object) : [];

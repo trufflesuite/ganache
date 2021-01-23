@@ -31,8 +31,8 @@
       "path": "../colors"
     },
     {
-      "name": "@ganache/filecoin",
-      "path": "../../chains/filecoin/filecoin"
+      "name": "@ganache/filecoin-types",
+      "path": "../../chains/filecoin/types"
     }
   ]
 }
