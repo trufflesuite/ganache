@@ -4,6 +4,7 @@ import {
   Definitions,
   SerializedObject
 } from "./serializable-object";
+import { SigType } from "./sig-type";
 
 // https://pkg.go.dev/github.com/filecoin-project/go-state-types/crypto#Signature
 
@@ -29,7 +30,7 @@ class Signature
     return {
       type: {
         serializedName: "Type",
-        defaultValue: 2
+        defaultValue: SigType.SigTypeUnknown
       },
       data: {
         serializedName: "Data",
