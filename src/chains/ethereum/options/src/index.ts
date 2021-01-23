@@ -3,9 +3,11 @@ import { DatabaseConfig, DatabaseOptions } from "./database-options";
 import { LoggingConfig, LoggingOptions } from "./logging-options";
 import { MinerConfig, MinerOptions } from "./miner-options";
 import { WalletConfig, WalletOptions } from "./wallet-options";
+import { ForkConfig, ForkOptions } from "./fork-options";
 import {
   Base,
   Defaults,
+  Definitions,
   ExternalConfig,
   InternalConfig,
   Legacy,
@@ -23,14 +25,7 @@ type EthereumConfig = {
   logging: LoggingConfig;
   miner: MinerConfig;
   wallet: WalletConfig;
-};
-
-export const EthereumDefaults: Defaults<EthereumConfig> = {
-  chain: ChainOptions,
-  database: DatabaseOptions,
-  logging: LoggingOptions,
-  miner: MinerOptions,
-  wallet: WalletOptions
+  fork: ForkConfig;
 };
 
 type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
@@ -38,7 +33,7 @@ type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
     [K in OptionName<C>]: K extends LegacyOptions<C>
       ? Legacy<C, K>
       : Record<K, OptionRawType<C, K>>;
-  }[keyof Options<C>]
+  }[OptionName<C>]
 >;
 
 export type EthereumLegacyProviderOptions = Partial<
@@ -46,7 +41,8 @@ export type EthereumLegacyProviderOptions = Partial<
     MakeLegacyOptions<DatabaseConfig> &
     MakeLegacyOptions<LoggingConfig> &
     MakeLegacyOptions<MinerConfig> &
-    MakeLegacyOptions<WalletConfig>
+    MakeLegacyOptions<WalletConfig> &
+    MakeLegacyOptions<ForkConfig>
 >;
 
 export type EthereumProviderOptions = Partial<
@@ -59,6 +55,15 @@ export type EthereumInternalOptions = {
   [K in keyof EthereumConfig]: InternalConfig<EthereumConfig[K]>;
 };
 
+export const EthereumDefaults: Defaults<EthereumConfig> = {
+  chain: ChainOptions,
+  database: DatabaseOptions,
+  logging: LoggingOptions,
+  miner: MinerOptions,
+  wallet: WalletOptions,
+  fork: ForkOptions
+};
+
 export const EthereumOptionsConfig = new OptionsConfig(EthereumDefaults);
 
 export * from "./chain-options";
@@ -67,3 +72,4 @@ export * from "./helpers";
 export * from "./logging-options";
 export * from "./miner-options";
 export * from "./wallet-options";
+export * from "./fork-options";
