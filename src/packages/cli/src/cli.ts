@@ -3,15 +3,10 @@
 import Ganache from "../index";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
-import {
-  DefaultFlavor,
-  FlavorName,
-  EthereumFlavorName,
-  FilecoinFlavorName
-} from "@ganache/flavors";
+import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
-import { Provider as FilecoinProvider } from "@ganache/filecoin";
+import { Provider as FilecoinProvider } from "@ganache/filecoin-types";
 import { Provider as EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {

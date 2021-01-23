@@ -5,7 +5,7 @@ import {
   EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
 
-import * as Filecoin from "@ganache/filecoin";
+import * as Filecoin from "@ganache/filecoin-types";
 import {
   FilecoinDefaults,
   FilecoinProviderOptions,
@@ -30,16 +30,33 @@ export type ConnectorsByName = {
   [FilecoinFlavorName]: Filecoin.Connector;
 };
 
-export const ConnectorsByName = {
-  [EthereumFlavorName]: Ethereum.Connector,
-  [FilecoinFlavorName]: Filecoin.Connector
-};
-
 export type FlavorName = keyof ConnectorsByName;
 
 export type Connector = {
   [K in keyof ConnectorsByName]: ConnectorsByName[K];
 }[keyof ConnectorsByName];
+
+export function GetConnector(
+  flavor: FlavorName,
+  providerOptions: any,
+  executor
+): Connector {
+  switch (flavor) {
+    case DefaultFlavor:
+      return new Ethereum.Connector(providerOptions, executor);
+    case FilecoinFlavorName:
+      try {
+        const connector: Filecoin.Connector = require("@ganache/filecoin")
+          .Connector;
+        // @ts-ignore
+        return new connector(providerOptions, executor);
+      } catch (e) {
+        throw new Error(
+          "Could not find module @ganache/filecoin peer dependency; please run `npm install @ganache/filecoin`"
+        );
+      }
+  }
+}
 
 export type Providers = Ethereum.Provider | Filecoin.Provider;
 
