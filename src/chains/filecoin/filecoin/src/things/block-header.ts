@@ -162,7 +162,7 @@ class BlockHeader
       timestamp: {
         serializedName: "Timestamp",
         defaultValue: () => {
-          return new Date().getTime();
+          return new Date().getTime() / 1000;
         }
       },
       blockSignature: {
@@ -192,6 +192,9 @@ class BlockHeader
   parentMessageReceipts: RootCID;
   messages: RootCID;
   blsAggregate: Signature;
+  /**
+   * Timestamp in seconds. Reference implementation: https://git.io/Jt3HJ.
+   */
   timestamp: number;
   blockSignature: Signature;
   forkSignaling: 0 | 1;

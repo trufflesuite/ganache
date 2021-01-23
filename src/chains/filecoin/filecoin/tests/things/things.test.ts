@@ -89,7 +89,7 @@ describe("things", () => {
 
   describe("Block", () => {
     it("has default values", async () => {
-      let timestamp = new Date().getTime();
+      let timestamp = new Date().getTime() / 1000;
 
       let block = new BlockHeader();
 
