@@ -71,3 +71,7 @@ jobs:
       - run: npm test
         env:
           FORCE_COLOR: 1
+      - run: npm run test.filecoin
+        if: ${{ startsWith(matrix.node, '12.') || startsWith(matrix.node, '13.') || startsWith(matrix.node, '14.') }}
+        env:
+          FORCE_COLOR: 1
