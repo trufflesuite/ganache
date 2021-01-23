@@ -29,7 +29,7 @@ class BeaconEntry
     return {
       round: {
         serializedName: "Round",
-        defaultValue: 1321
+        defaultValue: 0
       },
       data: {
         serializedName: "Data",
