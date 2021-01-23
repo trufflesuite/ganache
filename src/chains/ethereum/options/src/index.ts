@@ -3,6 +3,7 @@ import { DatabaseConfig, DatabaseOptions } from "./database-options";
 import { LoggingConfig, LoggingOptions } from "./logging-options";
 import { MinerConfig, MinerOptions } from "./miner-options";
 import { WalletConfig, WalletOptions } from "./wallet-options";
+import { ForkConfig, ForkOptions } from "./fork-options";
 import {
   Base,
   Defaults,
@@ -24,6 +25,7 @@ export type EthereumOptions = {
   logging: LoggingConfig;
   miner: MinerConfig;
   wallet: WalletConfig;
+  fork: ForkConfig;
 };
 
 type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
@@ -31,7 +33,7 @@ type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
     [K in OptionName<C>]: K extends LegacyOptions<C>
       ? Legacy<C, K>
       : Record<K, OptionRawType<C, K>>;
-  }[keyof Options<C>]
+  }[OptionName<C>]
 >;
 
 export type EthereumLegacyOptions = Partial<
@@ -39,7 +41,8 @@ export type EthereumLegacyOptions = Partial<
     MakeLegacyOptions<DatabaseConfig> &
     MakeLegacyOptions<LoggingConfig> &
     MakeLegacyOptions<MinerConfig> &
-    MakeLegacyOptions<WalletConfig>
+    MakeLegacyOptions<WalletConfig> &
+    MakeLegacyOptions<ForkConfig>
 >;
 
 export type EthereumProviderOptions = Partial<
@@ -61,7 +64,8 @@ export const ethereumDefaults: Defaults<EthereumOptions> = {
   database: DatabaseOptions,
   logging: LoggingOptions,
   miner: MinerOptions,
-  wallet: WalletOptions
+  wallet: WalletOptions,
+  fork: ForkOptions
 };
 
 export const EthereumOptionsConfig = new OptionsConfig(ethereumDefaults);
@@ -72,3 +76,4 @@ export * from "./helpers";
 export * from "./logging-options";
 export * from "./miner-options";
 export * from "./wallet-options";
+export * from "./fork-options";

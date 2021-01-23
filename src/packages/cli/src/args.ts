@@ -31,7 +31,8 @@ function unescapeEntities(html: string) {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+    .replace(/&#39;/g, "'")
+    .replace(/\*\#COLON\|\*/g, ":");
 }
 const highlight = (t: string) => unescapeEntities(marked.parseInline(t));
 const center = (str: string) =>
@@ -47,7 +48,7 @@ function processOption(
   category: string,
   group: string,
   option: string,
-  optionObj: Definitions<Base.Config>[string | number],
+  optionObj: Definitions<Base.Config>[string],
   argv: yargs.Argv
 ) {
   if (optionObj.disableInCLI !== true) {
@@ -72,7 +73,9 @@ function processOption(
         : undefined);
     };
     const defaultDescription =
-      optionObj.defaultDescription || generateDefaultDescription();
+      "defaultDescription" in optionObj
+        ? optionObj.defaultDescription
+        : generateDefaultDescription();
 
     // we need to specify the type of each array so yargs properly casts
     // the types held within each array
@@ -90,7 +93,8 @@ function processOption(
       array,
       type,
       choices: optionObj.cliChoices,
-      coerce: optionObj.cliCoerce
+      coerce: optionObj.cliCoerce,
+      implies: optionObj.implies
     };
 
     const key = `${category}.${option}`;
@@ -107,14 +111,20 @@ function processOption(
 }
 
 export default function (version: string, isDocker: boolean) {
+  const versionUsageOutputText = chalk`{hex("${
+    TruffleColors.porsche
+  }").bold ${center(version)}}`;
   let args = yargs
     // disable dot-notation because yargs just can't coerce args properly...
     // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
     .parserConfiguration({ "dot-notation": false })
     .strict()
-    .usage(chalk`{hex("${TruffleColors.porsche}").bold ${center(version)}}`)
+    .usage(versionUsageOutputText)
     .epilogue(
-      chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
+      versionUsageOutputText +
+        EOL +
+        EOL +
+        chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
         EOL +
         chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
     );
@@ -145,9 +155,7 @@ export default function (version: string, isDocker: boolean) {
           const group = `${category[0].toUpperCase()}${category.slice(
             1
           )}:` as GroupType;
-          const categoryObj = (flavorDefaults[
-            category
-          ] as unknown) as Definitions<Base.Config>;
+          const categoryObj = flavorDefaults[category];
           const state = {};
           for (const option in categoryObj) {
             const optionObj = categoryObj[option];
