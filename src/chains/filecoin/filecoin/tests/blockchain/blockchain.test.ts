@@ -111,7 +111,9 @@ describe("Blockchain", () => {
 
         const testData = "this is some data!";
 
-        let result = await ipfs.add(testData);
+        let result = await ipfs.add({
+          content: testData
+        });
         let cid = result.path;
 
         // This is the exact CID expected from the test data.
@@ -148,7 +150,9 @@ describe("Blockchain", () => {
 
       await blockchain.waitForReady();
 
-      let result = await blockchain.ipfs!.add("some data");
+      let result = await blockchain.ipfs!.add({
+        content: "some data"
+      });
 
       let proposal = new StartDealParams({
         data: new StorageMarketDataRef({
@@ -232,7 +236,9 @@ describe("Blockchain", () => {
 
       await blockchain.waitForReady();
 
-      let result = await blockchain.ipfs!.add("some data");
+      let result = await blockchain.ipfs!.add({
+        content: "some data"
+      });
 
       let proposal = new StartDealParams({
         data: new StorageMarketDataRef({
