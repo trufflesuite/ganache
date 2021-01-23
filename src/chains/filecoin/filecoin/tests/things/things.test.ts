@@ -103,11 +103,11 @@ describe("things", () => {
 
       // The below verifies these CIDs point to 0
       let cid = new IPFSCid(block.parentStateRoot.root.value);
-      assert(multihashing.verify(cid.multihash, Buffer.from([0])));
+      assert(multihashing.verify(Buffer.from(cid.multihash), Buffer.from([0])));
       cid = new IPFSCid(block.parentMessageReceipts.root.value);
-      assert(multihashing.verify(cid.multihash, Buffer.from([0])));
+      assert(multihashing.verify(Buffer.from(cid.multihash), Buffer.from([0])));
       cid = new IPFSCid(block.messages.root.value);
-      assert(multihashing.verify(cid.multihash, Buffer.from([0])));
+      assert(multihashing.verify(Buffer.from(cid.multihash), Buffer.from([0])));
 
       assert.strictEqual(block.height, 0);
       assert(block.timestamp >= timestamp);
