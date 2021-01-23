@@ -153,7 +153,13 @@ export default class Blockchain extends Emittery.Typed<
         new BlockHeader({
           miner: this.miner,
           parents: [previousTipset.cids[0]],
-          height: newTipsetHeight
+          height: newTipsetHeight,
+          // Determined by interpreting the description of `weight`
+          // as an accumulating weight of win counts (which default to 1)
+          // See the description here: https://spec.filecoin.io/#section-glossary.weight
+          parentWeight:
+            BigInt(previousTipset.blocks[0].electionProof.winCount) +
+            previousTipset.blocks[0].parentWeight
         })
       );
     }

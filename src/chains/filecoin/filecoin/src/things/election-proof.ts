@@ -29,7 +29,7 @@ class ElectionProof
     return {
       winCount: {
         serializedName: "WinCount",
-        defaultValue: 0
+        defaultValue: 1
       },
       vrfProof: {
         serializedName: "VRFProof",
