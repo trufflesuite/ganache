@@ -5,6 +5,10 @@
   "author": "Tim Coulter",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/filecoin#readme",
   "license": "MIT",
+  "engines": {
+    "node": ">=12.13.0 <=14.14.0",
+    "npm": ">=6.4.1"
+  },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "source": "index.ts",
@@ -28,6 +32,7 @@
     "docs.typedoc": "typedoc --options ./typedoc.json --readme ./README.md --out ../../../docs/typedoc --json ../../../docs/typedoc/api.json src/api.ts",
     "docs.preview": "ws --open --port 3012 --directory ../../../",
     "tsc": "ttsc",
+    "tsc.declarations": "ttsc --project tsconfig.declaration.json",
     "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --colors --check-leaks --throw-deprecation --trace-warnings --require ts-node/register --timeout 10000 'tests/**/*.test.ts'"
   },

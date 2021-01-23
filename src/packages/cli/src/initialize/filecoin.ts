@@ -1,4 +1,4 @@
-import { Provider } from "@ganache/filecoin";
+import { Provider } from "@ganache/filecoin-types";
 
 export default function (
   provider: Provider,
