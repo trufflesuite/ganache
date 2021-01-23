@@ -54,7 +54,6 @@ describe("api", () => {
             root: new RootCID({
               "/": cid
             }),
-            pieceCid: null,
             pieceSize: 0
           }),
           wallet: address,

@@ -43,10 +43,7 @@ class RetrievalPeer
       },
       pieceCID: {
         serializedName: "PieceCID",
-        defaultValue: options =>
-          new RootCID(
-            options || { "/": "Piece CIDs are not supported in Ganache" }
-          )
+        defaultValue: options => new RootCID(options)
       }
     };
   }

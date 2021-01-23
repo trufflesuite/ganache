@@ -152,7 +152,6 @@ describe("Blockchain", () => {
           root: new RootCID({
             "/": result.path
           }),
-          pieceCid: null,
           pieceSize: 0
         }),
         wallet: blockchain.address,
@@ -237,7 +236,6 @@ describe("Blockchain", () => {
           root: new RootCID({
             "/": result.path
           }),
-          pieceCid: null,
           pieceSize: 0
         }),
         wallet: blockchain.address,

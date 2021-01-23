@@ -21,8 +21,8 @@ type StorageMarketDataRefConfig = {
       serializedName: "Root";
     };
     pieceCid: {
-      type: null;
-      serializedType: null;
+      type: RootCID;
+      serializedType: SerializedRootCID;
       serializedName: "PieceCid";
     };
     pieceSize: {
@@ -59,7 +59,7 @@ class StorageMarketDataRef
 
   transferType: "graphsync";
   root: RootCID;
-  pieceCid: null;
+  pieceCid: RootCID;
   pieceSize: 0;
 }
 

@@ -145,15 +145,15 @@ class BlockHeader
       },
       parentStateRoot: {
         serializedName: "ParentStateRoot",
-        defaultValue: options => new RootCID(options || { "/": "" })
+        defaultValue: options => new RootCID(options)
       },
       parentMessageReceipts: {
         serializedName: "ParentMessageReceipts",
-        defaultValue: options => new RootCID(options || { "/": "" })
+        defaultValue: options => new RootCID(options)
       },
       messages: {
         serializedName: "Messages",
-        defaultValue: options => new RootCID(options || { "/": "" })
+        defaultValue: options => new RootCID(options)
       },
       blsAggregate: {
         serializedName: "BLSAggregate",
@@ -211,9 +211,9 @@ class BlockHeader
 
     // We could have used the ipld-dag-cbor package for the following,
     // but it was async, which caused a number of issues during object construction.
-    let cborBlockHeader = cbor.encode(blockHeader);
-    let multihash = multihashing(cborBlockHeader, "blake2b-256");
-    let rawCid = new IPFSCid(
+    const cborBlockHeader = cbor.encode(blockHeader);
+    const multihash = multihashing(cborBlockHeader, "blake2b-256");
+    const rawCid = new IPFSCid(
       1,
       multicodec.print[multicodec.DAG_CBOR],
       multihash

@@ -4,6 +4,8 @@ import { CID } from "../../src/things/cid";
 import { Tipset } from "../../src/things/tipset";
 import { BlockHeader } from "../../src/things/block-header";
 import { Address } from "../../src/things/address";
+import IPFSCid from "cids";
+import multihashing from "multihashing";
 
 describe("things", () => {
   describe("general", () => {
@@ -98,6 +100,15 @@ describe("things", () => {
       assert.strictEqual(block.winPoStProof.length, 0);
       assert.strictEqual(block.parents.length, 0);
       assert.strictEqual(block.parentWeight, 0n);
+
+      // The below verifies these CIDs point to 0
+      let cid = new IPFSCid(block.parentStateRoot["/"].value);
+      assert(multihashing.verify(cid.multihash, Buffer.from([0])));
+      cid = new IPFSCid(block.parentMessageReceipts["/"].value);
+      assert(multihashing.verify(cid.multihash, Buffer.from([0])));
+      cid = new IPFSCid(block.messages["/"].value);
+      assert(multihashing.verify(cid.multihash, Buffer.from([0])));
+
       assert.strictEqual(block.height, 0);
       assert(block.timestamp >= timestamp);
       assert.strictEqual(block.forkSignaling, 0);
