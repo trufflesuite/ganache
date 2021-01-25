@@ -7,6 +7,8 @@ import {
 } from "./serializable-object";
 import { PowerClaim, SerializedPowerClaim } from "./power-claim";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#MinerPower
+
 type MinerPowerConfig = {
   properties: {
     minerPower: {
