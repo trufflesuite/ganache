@@ -5,6 +5,8 @@ import {
   Definitions
 } from "./serializable-object";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#FileRef
+
 type FileRefConfig = {
   properties: {
     path: {
