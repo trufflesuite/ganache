@@ -21,6 +21,7 @@ import { FileRef, SerializedFileRef } from "./things/file-ref";
 import { MinerPower, SerializedMinerPower } from "./things/miner-power";
 import { PowerClaim } from "./things/power-claim";
 import { MinerInfo, SerializedMinerInfo } from "./things/miner-info";
+import { SerializedVersion, Version } from "./things/version";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -35,6 +36,12 @@ export default class FilecoinApi implements types.Api {
 
   async stop(): Promise<void> {
     return await this.#blockchain.stop();
+  }
+
+  async "Filecoin.Version"(): Promise<SerializedVersion> {
+    return new Version({
+      blockDelay: BigInt(this.#blockchain.options.miner.blockTime)
+    }).serialize();
   }
 
   async "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset> {
