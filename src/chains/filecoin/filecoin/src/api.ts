@@ -20,6 +20,7 @@ import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
 import { FileRef, SerializedFileRef } from "./things/file-ref";
 import { MinerPower, SerializedMinerPower } from "./things/miner-power";
 import { PowerClaim } from "./things/power-claim";
+import { MinerInfo, SerializedMinerInfo } from "./things/miner-info";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -176,6 +177,21 @@ export default class FilecoinApi implements types.Api {
       });
 
       return power.serialize();
+    }
+  }
+
+  // This function technically takes an additional TipSetKey
+  // argument, but since the miner info won't change in Ganache,
+  // it will go unused, and therefore not provided.
+  async "Filecoin.StateMinerInfo"(
+    minerAddress: string
+  ): Promise<SerializedMinerInfo> {
+    if (minerAddress === this.#blockchain.miner) {
+      // The defaults are set up to correspond to the current
+      // miner address t01000, which is not configurable currently
+      return new MinerInfo().serialize();
+    } else {
+      throw new Error("Failed to load miner actor: actor not found");
     }
   }
 
