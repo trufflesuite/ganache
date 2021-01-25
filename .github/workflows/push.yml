@@ -22,6 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm ci
+      - run: npm run link.filecoin # create symlink for @ganache/flavors peerDependency
       - run: npm test
         env:
           FORCE_COLOR: 1

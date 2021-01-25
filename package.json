@@ -17,7 +17,8 @@
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec -- npm run test",
     "tsc": "lerna exec -- npm run tsc",
-    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist"
+    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist",
+    "link.filecoin": "mkdir -p node_modules/@ganache && cd node_modules/@ganache && unlink filecoin && ln -s ../../src/chains/filecoin/filecoin"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.1",
