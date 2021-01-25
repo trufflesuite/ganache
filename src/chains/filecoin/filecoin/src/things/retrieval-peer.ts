@@ -6,7 +6,7 @@ import {
 } from "./serializable-object";
 import { RootCID, SerializedRootCID } from "./root-cid";
 
-// https://pkg.go.dev/github.com/filecoin-project/go-fil-markets/retrievalmarket#RetrievalPeer
+// https://pkg.go.dev/github.com/filecoin-project/go-fil-markets@v1.1.1/retrievalmarket#RetrievalPeer
 
 type RetrievalPeerConfig = {
   properties: {

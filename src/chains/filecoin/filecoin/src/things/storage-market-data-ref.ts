@@ -6,7 +6,7 @@ import {
   Definitions
 } from "./serializable-object";
 
-// https://pkg.go.dev/github.com/filecoin-project/go-fil-markets/storagemarket#DataRef
+// https://pkg.go.dev/github.com/filecoin-project/go-fil-markets@v1.1.1/storagemarket#DataRef
 
 type StorageMarketDataRefConfig = {
   properties: {

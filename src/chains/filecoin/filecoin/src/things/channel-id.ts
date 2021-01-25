@@ -5,7 +5,7 @@ import {
   SerializedObject
 } from "./serializable-object";
 
-// https://pkg.go.dev/github.com/filecoin-project/go-data-transfer#ChannelID
+// https://pkg.go.dev/github.com/filecoin-project/go-data-transfer@v1.2.5#ChannelID
 
 type ChannelIDConfig = {
   properties: {

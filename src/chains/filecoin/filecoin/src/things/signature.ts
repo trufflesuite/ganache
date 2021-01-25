@@ -6,7 +6,7 @@ import {
 } from "./serializable-object";
 import { SigType } from "./sig-type";
 
-// https://pkg.go.dev/github.com/filecoin-project/go-state-types/crypto#Signature
+// https://pkg.go.dev/github.com/filecoin-project/go-state-types@v0.0.0-20201203022337-7cab7f0d4bfb/crypto#Signature
 
 interface SignatureConfig {
   properties: {

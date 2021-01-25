@@ -7,6 +7,8 @@ import {
 } from "./serializable-object";
 import { RootCID, SerializedRootCID } from "./root-cid";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#TipSet
+
 interface TipsetConfig {
   properties: {
     cids: {

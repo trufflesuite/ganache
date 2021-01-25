@@ -5,7 +5,7 @@ import {
   Definitions
 } from "./serializable-object";
 
-// https://pkg.go.dev/github.com/filecoin-project/specs-actors/actors/runtime/proof#PoStProof
+// https://pkg.go.dev/github.com/filecoin-project/specs-actors@v0.9.13/actors/runtime/proof#PoStProof
 
 interface PoStProofConfig {
   properties: {
