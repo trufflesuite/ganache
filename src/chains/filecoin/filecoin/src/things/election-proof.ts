@@ -5,7 +5,7 @@ import {
   Definitions
 } from "./serializable-object";
 
-// https://pkg.go.dev/github.com/filecoin-project/lotus/chain/types#ElectionProof
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#ElectionProof
 
 interface ElectionProofConfig {
   properties: {

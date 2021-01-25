@@ -7,7 +7,7 @@ import {
 } from "./serializable-object";
 import { RetrievalPeer, SerializedRetrievalPeer } from "./retrieval-peer";
 
-// https://pkg.go.dev/github.com/filecoin-project/lotus/api#RetrievalOrder
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#RetrievalOrder
 
 type RetrievalOrderConfig = {
   properties: {

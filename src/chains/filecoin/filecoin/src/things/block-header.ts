@@ -16,7 +16,7 @@ import multihashing from "multihashing";
 import multicodec from "multicodec";
 import { SerializedSignature, Signature } from "./signature";
 
-// https://pkg.go.dev/github.com/filecoin-project/lotus/chain/types#BlockHeader
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#BlockHeader
 
 interface BlockHeaderConfig {
   properties: {

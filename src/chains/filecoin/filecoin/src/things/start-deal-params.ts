@@ -10,7 +10,7 @@ import {
   SerializedObject
 } from "./serializable-object";
 
-// https://pkg.go.dev/github.com/filecoin-project/lotus/api#StartDealParams
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#StartDealParams
 
 type StartDealParamsConfig = {
   properties: {

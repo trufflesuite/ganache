@@ -6,7 +6,7 @@ import {
   SerializedObject
 } from "./serializable-object";
 
-// https://pkg.go.dev/github.com/filecoin-project/lotus/api#DataTransferChannel
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#DataTransferChannel
 
 type DataTransferChannelConfig = {
   properties: {
@@ -106,8 +106,6 @@ class DataTransferChannel
   transferred: number;
 }
 
-type SerializedDataTransferChannel = SerializedObject<
-  DataTransferChannelConfig
->;
+type SerializedDataTransferChannel = SerializedObject<DataTransferChannelConfig>;
 
 export { DataTransferChannel, SerializedDataTransferChannel };

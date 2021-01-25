@@ -19,7 +19,7 @@ import {
   SerializedDataTransferChannel
 } from "./data-transfer-channel";
 
-// https://pkg.go.dev/github.com/filecoin-project/lotus/api#DealInfo
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#DealInfo
 
 type DealInfoConfig = {
   properties: {
