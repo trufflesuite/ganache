@@ -6,7 +6,7 @@ import {
 } from "./serializable-object";
 import { RegisteredSealProof } from "../types/registered-seal-proof";
 
-// https://pkg.go.dev/github.com/filecoin-project/lotus/chain/actors/builtin/miner#MinerInfo
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/actors/builtin/miner#MinerInfo
 
 type MinerInfoConfig = {
   properties: {
