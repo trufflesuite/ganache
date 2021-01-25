@@ -8,7 +8,7 @@ import { $INLINE_JSON } from "ts-transformer-inline-file";
 
 const { version: GanacheFilecoinVersion } = $INLINE_JSON("../../package.json");
 
-// https://pkg.go.dev/github.com/filecoin-project/lotus/api#Version
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#Version
 
 function createBinarySemverVersion(version: string): number {
   const versionParts = version.split(".");
