@@ -51,5 +51,28 @@ describe("api", () => {
         assert.strictEqual(minerPower.HasMinPower, false);
       });
     });
+
+    describe("Filecoin.StateMinerInfo", () => {
+      it("should return the miner info for the default miner", async () => {
+        const minerInfo = await client.stateMinerInfo("t01000");
+
+        assert.strictEqual(minerInfo.Owner, "t01000");
+        assert.strictEqual(minerInfo.Worker, "t01000");
+        assert.strictEqual(minerInfo.WorkerChangeEpoch, -1);
+        assert.strictEqual(minerInfo.SectorSize, 2048);
+        assert.strictEqual(minerInfo.ConsensusFaultElapsed, -1);
+      });
+
+      it("should fail to retrieve miner info for other miners", async () => {
+        try {
+          const minerInfo = await client.stateMinerInfo("t01001");
+          assert.fail(
+            `Should not have retrieved a miner info for miner t01001, but receive: ${minerInfo}`
+          );
+        } catch (e) {
+          return;
+        }
+      });
+    });
   });
 });
