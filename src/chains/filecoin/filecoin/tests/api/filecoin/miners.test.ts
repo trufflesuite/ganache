@@ -74,5 +74,24 @@ describe("api", () => {
         }
       });
     });
+
+    describe("Filecoin.ActorAddress", () => {
+      it("should return the miner info for the default miner", async () => {
+        const minerActorAddress = await client.actorAddress();
+
+        assert.strictEqual(minerActorAddress, "t01000");
+      });
+
+      it("should fail to retrieve miner info for other miners", async () => {
+        try {
+          const minerInfo = await client.stateMinerInfo("t01001");
+          assert.fail(
+            `Should not have retrieved a miner info for miner t01001, but receive: ${minerInfo}`
+          );
+        } catch (e) {
+          return;
+        }
+      });
+    });
   });
 });
