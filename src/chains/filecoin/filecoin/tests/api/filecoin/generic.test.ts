@@ -97,6 +97,20 @@ describe("api", () => {
       });
     });
 
+    describe("Filecoin.Version", () => {
+      it("should return a value", async () => {
+        const versionInfo = await client.version();
+
+        assert(versionInfo.Version.includes("@ganache/filecoin v"));
+
+        assert.strictEqual(typeof versionInfo.APIVersion, "number");
+        assert(versionInfo.APIVersion > 0);
+
+        // should be 0 since we didn't specify in options
+        assert.strictEqual(versionInfo.BlockDelay, "0");
+      });
+    });
+
     describe("Filecoin.ChainGetGenesis", () => {
       it("should return a value", async () => {
         const genesis = await client.chainGetGenesis();
