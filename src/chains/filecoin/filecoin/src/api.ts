@@ -132,21 +132,31 @@ export default class FilecoinApi implements types.Api {
     return [this.#blockchain.miner];
   }
 
+  // "A storage miner's storage power is a value roughly proportional
+  // to the amount of storage capacity they make available on behalf
+  // of the network via capacity commitments or storage deals."
+  // https://docs.filecoin.io/reference/glossary/#storage-power
+  // Since Ganache is currently only supporting 1 miner per Ganache
+  // instance, then it will have a raw byte power of 1n and everything else will
+  // have 0n. This indicates the supported miner contains all of the storage
+  // power for the entire network (which is true). Any number would do, so we'll
+  // stick with 1n. However quality adjusted power will be 0n always as relative
+  // power doesn't change:
+  // "The storage power a storage miner earns from a storage deal offered by a
+  // verified client will be augmented by a multiplier."
+  // https://docs.filecoin.io/reference/glossary/#quality-adjusted-storage-power
   async "Filecoin.StateMinerPower"(
     minerAddress: string
   ): Promise<SerializedMinerPower> {
-    // I don't fully understand what these values are supposed to be/mean
-    // but since we're the only miner on this "network", I figure they don't
-    // super matter. I'm putting in these placeholder values for now
-    if (minerAddress === this.#blockchain.miner.value) {
+    if (minerAddress === this.#blockchain.miner) {
       const power = new MinerPower({
         minerPower: new PowerClaim({
           rawBytePower: 1n,
-          qualityAdjPower: 1n
+          qualityAdjPower: 0n
         }),
         totalPower: new PowerClaim({
           rawBytePower: 1n,
-          qualityAdjPower: 1n
+          qualityAdjPower: 0n
         }),
         hasMinPower: false
       });
