@@ -5,6 +5,8 @@ import {
   Definitions
 } from "./serializable-object";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/actors/builtin/power#Claim
+
 type PowerClaimConfig = {
   properties: {
     rawBytePower: {
