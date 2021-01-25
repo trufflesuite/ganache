@@ -129,6 +129,14 @@ export default class FilecoinApi implements types.Api {
     }
   }
 
+  // This method is part of the StorageMiner API,
+  // so it's supposed to return the actor address
+  // for the mining side of things (since Ganache
+  // represents multiple actors in this simulator)
+  async "Filecoin.ActorAddress"(): Promise<string> {
+    return this.#blockchain.miner;
+  }
+
   async "Filecoin.StateListMiners"(): Promise<Array<string>> {
     return [this.#blockchain.miner];
   }
