@@ -24,7 +24,7 @@ export type ForkConfig = {
      */
     url: {
       type: ForkUrl;
-      rawType: "string";
+      rawType: string;
       legacy: {
         /**
          * @deprecated Use fork.url instead
