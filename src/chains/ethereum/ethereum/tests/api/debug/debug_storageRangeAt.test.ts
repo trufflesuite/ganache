@@ -60,16 +60,28 @@ describe("api", () => {
         provider && (await provider.disconnect());
       });
 
-      it.only("should return hellooooo", async () => {
+      it.only("should return the storage for the given range", async () => {
         const result = await provider.send("debug_storageRangeAt", [
           blockHash,
           0,
           contractAddress,
           "0x00",
-          3
+          2
         ]);
 
-        assert.strictEqual(result, "hellllllooooo!");
+        const storage = {
+          "0x0000000000000000000000000000000000000000000000000000000000000000":
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+          "0x0000000000000000000000000000000000000000000000000000000000000001":
+            "0x0000000000000000000000000000000000000000000000000000000000000001"
+        };
+
+        assert.deepStrictEqual(result.storage, storage);
+
+        assert.strictEqual(
+          result.nextKey,
+          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace"
+        );
       });
     });
   });

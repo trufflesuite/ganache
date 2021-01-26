@@ -1444,9 +1444,7 @@ export default class Blockchain extends Emittery.Typed<
       }
     }
 
-    console.log(result);
-
-    return "hellllllooooo!";
+    return result;
   }
 
   /**
