@@ -1381,6 +1381,25 @@ export default class Blockchain extends Emittery.Typed<
     removeListeners();
 
     // #4 - send state results back
+    const getFromTrie = (address: Buffer): Promise<Buffer> =>
+      new Promise((resolve, reject) => {
+        trie.get(address, (err, data) => {
+          if (err) return void reject(err);
+          resolve(data);
+        });
+      });
+    const addressDataPromise = getFromTrie(
+      Address.from(contractAddress).toBuffer()
+    );
+
+    const addressData = await addressDataPromise;
+    // An address's stateRoot is stored in the 3rd rlp entry
+    trie.root = ((rlpDecode(addressData) as any) as [
+      Buffer /*nonce*/,
+      Buffer /*amount*/,
+      Buffer /*stateRoot*/,
+      Buffer /*codeHash*/
+    ])[2];
     return "hellllllooooo!";
   }
 
