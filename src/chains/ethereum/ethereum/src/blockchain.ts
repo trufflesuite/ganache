@@ -1379,16 +1379,10 @@ export default class Blockchain extends Emittery.Typed<
     removeListeners();
 
     // #4 - send state results back
-
-    // Need to format like this:
-    // const result = {
-    //   storage: {
-    //     "hashed-key": {
-    //       "key": "value",
-    //     }
-    //   },
-    //   nextKey: "next-hashed-key"
-    // };
+    const result = {
+      storage: {},
+      nextKey: null
+    };
 
     const getFromTrie = (address: Buffer): Promise<Buffer> =>
       new Promise((resolve, reject) => {
@@ -1411,7 +1405,7 @@ export default class Blockchain extends Emittery.Typed<
     ])[2];
 
     // convert start key to number so I can iterate over it;
-    for (let i = Quantity.from(startKey).toNumber(); i < maxResult; i++) {
+    for (let i = Quantity.from(startKey).toNumber(); i <= maxResult; i++) {
       // convert i to buffer;
       const key = Quantity.from(i).toBuffer();
       const length = key.length;
@@ -1430,16 +1424,27 @@ export default class Blockchain extends Emittery.Typed<
       }
 
       const value = await getFromTrie(paddedPosBuff);
+      const hashedKey = Data.from(keccak(Buffer.from(paddedPosBuff))).toJSON();
 
-      console.log(
-        "hashed key: ",
-        Data.from(keccak(Buffer.from(paddedPosBuff))).toJSON(),
-        "valuee... ",
-        Data.from(rlpDecode(value)).toJSON(),
-        "keyyyyy....",
-        Data.from(paddedPosBuff).toJSON()
-      );
+      if (i < maxResult) {
+        if (value) {
+          result.storage[Data.from(paddedPosBuff).toJSON()] = Data.from(
+            rlpDecode(value),
+            32
+          ).toJSON();
+        } else {
+          console.log(value);
+        }
+      } else {
+        if (value) {
+          result.nextKey = hashedKey;
+        } else {
+          result.nextKey = null;
+        }
+      }
     }
+
+    console.log(result);
 
     return "hellllllooooo!";
   }
