@@ -49,6 +49,7 @@
     "seedrandom": "3.0.5"
   },
   "devDependencies": {
+    "@types/seedrandom": "2.4.28",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
   },
   "optionalDependencies": {
