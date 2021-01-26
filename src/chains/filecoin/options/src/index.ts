@@ -1,4 +1,5 @@
 import { ChainConfig, ChainOptions } from "./chain-options";
+import { DatabaseConfig, DatabaseOptions } from "./database-options";
 import { LoggingConfig, LoggingOptions } from "./logging-options";
 import { MinerConfig, MinerOptions } from "./miner-options";
 import { WalletConfig, WalletOptions } from "./wallet-options";
@@ -18,6 +19,7 @@ import {
 
 type FilecoinConfig = {
   chain: ChainConfig;
+  database: DatabaseConfig;
   logging: LoggingConfig;
   miner: MinerConfig;
   wallet: WalletConfig;
@@ -25,6 +27,7 @@ type FilecoinConfig = {
 
 export const FilecoinDefaults: Defaults<FilecoinConfig> = {
   chain: ChainOptions,
+  database: DatabaseOptions,
   logging: LoggingOptions,
   miner: MinerOptions,
   wallet: WalletOptions
