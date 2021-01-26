@@ -25,13 +25,14 @@ import { promisify } from "util";
 import { Quantity, Data, utils } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import Manager from "./data-managers/manager";
-import { encode as rlpEncode } from "rlp";
+import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import Common from "ethereumjs-common";
 import VM from "ethereumjs-vm";
 import BlockLogManager from "./data-managers/blocklog-manager";
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { keccak } from "@ganache/utils/src/utils/keccak";
 
 const {
   BUFFER_EMPTY,
@@ -1381,6 +1382,17 @@ export default class Blockchain extends Emittery.Typed<
     removeListeners();
 
     // #4 - send state results back
+
+    // Need to format like this:
+    // const result = {
+    //   storage: {
+    //     "hashed-key": {
+    //       "key": "value",
+    //     }
+    //   },
+    //   nextKey: "next-hashed-key"
+    // };
+
     const getFromTrie = (address: Buffer): Promise<Buffer> =>
       new Promise((resolve, reject) => {
         trie.get(address, (err, data) => {
@@ -1400,6 +1412,38 @@ export default class Blockchain extends Emittery.Typed<
       Buffer /*stateRoot*/,
       Buffer /*codeHash*/
     ])[2];
+
+    // convert start key to number so I can iterate over it;
+    for (let i = Quantity.from(startKey).toNumber(); i < maxResult; i++) {
+      // convert i to buffer;
+      const key = Quantity.from(i).toBuffer();
+      const length = key.length;
+      let paddedPosBuff: Buffer;
+      if (length < 32) {
+        // storage locations are 32 bytes wide, so we need to expand any value
+        // given to 32 bytes.
+        paddedPosBuff = Buffer.allocUnsafe(32).fill(0);
+        key.copy(paddedPosBuff, 32 - length);
+      } else if (length === 32) {
+        paddedPosBuff = key;
+      } else {
+        // if the position value we're passed is > 32 bytes, truncate it. This is
+        // what geth does.
+        paddedPosBuff = key.slice(-32);
+      }
+
+      const value = await getFromTrie(paddedPosBuff);
+
+      console.log(
+        "hashed key: ",
+        Data.from(keccak(Buffer.from(paddedPosBuff))).toJSON(),
+        "valuee... ",
+        Data.from(rlpDecode(value)).toJSON(),
+        "keyyyyy....",
+        Data.from(paddedPosBuff).toJSON()
+      );
+    }
+
     return "hellllllooooo!";
   }
 
