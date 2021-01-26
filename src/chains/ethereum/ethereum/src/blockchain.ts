@@ -1134,6 +1134,253 @@ export default class Blockchain extends Emittery.Typed<
     startKey: string | Buffer, // hash for start key
     maxResult: number // number of storage entries to return
   ) {
+    let currentDepth = -1;
+    const storageStack: TraceStorageMap[] = [];
+
+    // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
+    // (Ganache v2 didn't handle this possibility either, so it hasn't been
+    // updated yet)
+    let gas = 0;
+    // TODO: returnValue isn't used... it wasn't used in v2 either. What's this
+    // supposed to be?
+    let returnValue = "";
+    const structLogs: Array<StructLog> = [];
+
+    // get block information
+    const targetBlock = await this.blocks.getByHash(blockHash);
+    const transactions = targetBlock.getTransactions();
+
+    // get tx information using txIndex
+    const transactionHashBuffer = transactions[txIndex].hash();
+    const transactionHash = Data.from(transactionHashBuffer).toString();
+
+    // #1 - get block via transaction object
+    const transaction = await this.transactions.get(transactionHashBuffer);
+
+    if (!transaction) {
+      throw new Error("Unknown transaction " + transactionHash);
+    }
+
+    // computeTxEnv logic starts here: <TODO: remove comment>
+    const parentBlock = await this.blocks.getByHash(
+      targetBlock.header.parentHash.toBuffer()
+    );
+
+    // #2 - Set state root of original block
+    //
+    // TODO: Forking needs the forked block number passed during this step:
+    // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
+
+    // create state trie using parent block
+    const trie = new SecureTrie(
+      this.#database.trie,
+      parentBlock.header.stateRoot.toBuffer()
+    );
+
+    // Prepare the "next" block with necessary transactions
+    const newBlock = new RuntimeBlock(
+      Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
+      parentBlock.hash(),
+      parentBlock.header.miner,
+      parentBlock.header.gasLimit.toBuffer(),
+      // make sure we use the same timestamp as the target block
+      targetBlock.header.timestamp
+    ) as RuntimeBlock & { uncleHeaders: []; transactions: Transaction[] };
+    newBlock.transactions = [];
+    newBlock.uncleHeaders = [];
+
+    for (const tx of transactions) {
+      newBlock.transactions.push(tx);
+
+      // After including the target transaction, that's all we need to do.
+      if (tx.hash().equals(transactionHashBuffer)) {
+        break;
+      }
+    }
+
+    type StepEvent = {
+      gasLeft: BN;
+      memory: Array<number>; // Not officially sure the type. Not a buffer or uint8array
+      stack: Array<BN>;
+      depth: number;
+      opcode: {
+        name: string;
+      };
+      pc: number;
+      address: Buffer;
+    };
+
+    const TraceData = TraceDataFactory();
+
+    const stepListener = (
+      event: StepEvent,
+      next: (error?: any, cb?: any) => void
+    ) => {
+      // See these docs:
+      // https://github.com/ethereum/go-ethereum/wiki/Management-APIs
+
+      const gasLeft = event.gasLeft.toNumber();
+      const totalGasUsedAfterThisStep =
+        Quantity.from(transaction.gasLimit).toNumber() - gasLeft;
+      const gasUsedPreviousStep = totalGasUsedAfterThisStep - gas;
+      gas += gasUsedPreviousStep;
+
+      const memory: ITraceData[] = [];
+      const stack: ITraceData[] = [];
+      for (const stackItem of event.stack) {
+        stack.push(TraceData.from(stackItem.toArrayLike(Buffer)));
+      }
+
+      const structLog: StructLog = {
+        depth: event.depth,
+        error: "",
+        gas: gasLeft,
+        gasCost: 0,
+        memory,
+        op: event.opcode.name,
+        pc: event.pc,
+        stack,
+        storage: null
+      };
+
+      // The gas difference calculated for each step is indicative of gas consumed in
+      // the previous step. Gas consumption in the final step will always be zero.
+      if (structLogs.length) {
+        structLogs[structLogs.length - 1].gasCost = gasUsedPreviousStep;
+      }
+
+      const { depth: eventDepth } = event;
+      if (currentDepth > eventDepth) {
+        storageStack.pop();
+      } else if (currentDepth < eventDepth) {
+        storageStack.push(new TraceStorageMap());
+      }
+
+      currentDepth = eventDepth;
+      switch (event.opcode.name) {
+        case "SSTORE": {
+          const key = stack[stack.length - 1];
+          const value = stack[stack.length - 2];
+
+          // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+          structLog.storage = new TraceStorageMap(storageStack[eventDepth]);
+
+          // Tell vm to move on to the next instruction. See below.
+          structLogs.push(structLog);
+          next();
+
+          // assign after callback because this storage change actually takes
+          // effect _after_ this opcode executes
+          storageStack[eventDepth].set(key, value);
+
+          // if it's greater we can create a next variable and set it to true
+          // and return the key for it :shrug:
+          break;
+        }
+        case "SLOAD": {
+          const key = stack[stack.length - 1];
+          vm.stateManager.getContractStorage(
+            event.address,
+            key.toBuffer(),
+            (err: Error, result: Buffer) => {
+              if (err) {
+                return next(err);
+              }
+
+              const value = TraceData.from(result);
+              storageStack[eventDepth].set(key, value);
+
+              // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+              structLog.storage = new TraceStorageMap(storageStack[eventDepth]);
+              structLogs.push(structLog);
+              next();
+            }
+          );
+          break;
+        }
+        default:
+          // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+          structLog.storage = new TraceStorageMap(storageStack[eventDepth]);
+          structLogs.push(structLog);
+          next();
+      }
+    };
+
+    let txHashCurrentlyProcessing: string | Buffer = null;
+
+    const beforeTxListener = (tx: Transaction) => {
+      txHashCurrentlyProcessing = Data.from(tx.hash()).toString();
+      if (txHashCurrentlyProcessing == transactionHash.toString()) {
+        vm.on("step", stepListener);
+      }
+    };
+
+    const afterTxListener = async () => {
+      if (txHashCurrentlyProcessing == transactionHash) {
+        removeListeners();
+      }
+    };
+
+    const removeListeners = () => {
+      vm.removeListener("step", stepListener);
+      vm.removeListener("beforeTx", beforeTxListener);
+      vm.removeListener("afterTx", afterTxListener);
+    };
+
+    const blocks = this.blocks;
+
+    // ethereumjs vm doesn't use the callback style anymore
+    const getBlock = class T {
+      static async [promisify.custom](number: BN) {
+        const block = await blocks.get(number.toBuffer()).catch(_ => null);
+        return block ? block.value : null;
+      }
+    };
+
+    const vm = new VM({
+      state: trie,
+      activatePrecompiles: true,
+      common: this.#common,
+      allowUnlimitedContractSize: this.#options.chain
+        .allowUnlimitedContractSize,
+      blockchain: {
+        getBlock
+      } as any
+    });
+
+    // Listen to beforeTx and afterTx so we know when our target transaction
+    // is processing. These events will add the event listener for getting the trace data.
+    vm.on("beforeTx", beforeTxListener);
+    vm.on("afterTx", afterTxListener);
+
+    // Don't even let the vm try to flush the block's _cache to the stateTrie.
+    // When forking some of the data that the traced function may request will
+    // exist only on the main chain. Because we pretty much lie to the VM by
+    // telling it we DO have data in our Trie, when we really don't, it gets
+    // lost during the commit phase when it traverses the "borrowed" data's
+    // trie (as it may not have a valid root). Because this is a trace, and we
+    // don't need to commit the data, duck punching the `flush` method (the
+    // simplest method I could find) is fine.
+    // Remove this and you may see the infamous
+    // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
+    vm.stateManager._cache.flush = cb => cb();
+
+    // #3 - Process the block without committing the data.
+
+    // The vmerr key on the result appears to be removed.
+    // The previous implementation had specific error handling.
+    // It's possible we've removed handling specific cases in this implementation.
+    // e.g., the previous incatation of RuntimeError
+    await vm.runBlock({
+      block: newBlock, // .value is the object the vm expects
+      generate: true,
+      skipBlockValidation: true
+    });
+
+    // Just to be safe
+    removeListeners();
+
+    // #4 - send state results back
     return "hellllllooooo!";
   }
 
