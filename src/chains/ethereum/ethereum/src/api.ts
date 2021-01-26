@@ -1907,6 +1907,22 @@ export default class EthereumApi implements types.Api {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
+  async debug_storageRangeAt(
+    blockHash: string | Buffer,
+    transactionIndex: number,
+    contractAddress: string,
+    keyStart: string | Buffer,
+    maxResult: number
+  ) {
+    return this.#blockchain.storageRangeAt(
+      blockHash,
+      transactionIndex,
+      contractAddress,
+      keyStart,
+      maxResult
+    );
+  }
+
   //#endregion
 
   //#region personal

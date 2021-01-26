@@ -1127,6 +1127,16 @@ export default class Blockchain extends Emittery.Typed<
     };
   }
 
+  public async storageRangeAt(
+    blockHash: string | Buffer, // block hash
+    txIndex: number, // integer
+    contractAddress: string, // contract address
+    startKey: string | Buffer, // hash for start key
+    maxResult: number // number of storage entries to return
+  ) {
+    return "hellllllooooo!";
+  }
+
   /**
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
