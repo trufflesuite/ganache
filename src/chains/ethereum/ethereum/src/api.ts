@@ -186,9 +186,7 @@ export default class EthereumApi implements types.Api {
       chain.hardfork
     ));
 
-    const ChainConstructor =
-      options.fork && options.fork.url ? ForkBlockchain : Blockchain;
-    const blockchain = (this.#blockchain = new ChainConstructor(
+    const blockchain = (this.#blockchain = new Blockchain(
       options,
       common,
       initialAccounts,

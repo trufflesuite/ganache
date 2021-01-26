@@ -3,7 +3,7 @@ import Trie from "merkle-patricia-tree/baseTrie";
 import Blockchain from "../blockchain";
 import { LevelUp } from "levelup";
 import { rlp } from "ethereumjs-util";
-import { utils, Quantity } from "@ganache/utils";
+import { utils, Quantity, Data } from "@ganache/utils";
 
 const { keccak, RPCQUANTITY_ZERO } = utils;
 
@@ -15,6 +15,30 @@ export default class AccountManager {
     this.#trie = trie;
   }
 
+  #fromFallback = async (
+    address: Address,
+    blockNumber: Buffer | Tag = Tag.LATEST
+  ) => {
+    const fallback = this.#blockchain.fallback;
+    const [nonce, balance, codeHash] = await Promise.all([
+      fallback
+        .request("eth_getTransactionCount", [address, blockNumber])
+        .then(Quantity.from),
+      fallback
+        .request("eth_getBalance", [address, blockNumber])
+        .then(Quantity.from),
+      fallback.request("eth_getCode", [address, blockNumber]).then(Data.from)
+    ]);
+    const account = new Account(address);
+    account.nonce = nonce;
+    account.balance = balance;
+    account.stateRoot = null;
+    if (codeHash) {
+      account.codeHash = codeHash.toBuffer();
+    }
+    return account.serialize();
+  };
+
   public async getRaw(
     address: Address,
     blockNumber: Buffer | Tag = Tag.LATEST
@@ -25,7 +49,11 @@ export default class AccountManager {
     return new Promise((resolve, reject) => {
       trieCopy.get(keccak(address.toBuffer()), (err: Error, data: Buffer) => {
         if (err) return reject(err);
-        resolve(data);
+        if (data == null && blockchain.fallback) {
+          resolve(this.#fromFallback(address, blockNumber));
+        } else {
+          resolve(data);
+        }
       });
     });
   }

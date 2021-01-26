@@ -74,7 +74,8 @@
     "secp256k1": "4.0.2",
     "seedrandom": "3.0.5",
     "subleveldown": "5.0.1",
-    "tmp-promise": "3.0.2"
+    "tmp-promise": "3.0.2",
+    "ws": "7.4.2"
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
@@ -90,5 +91,9 @@
     "ts-transformer-inline-file": "0.1.1",
     "typedoc": "0.17.8",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "4.0.3",
+    "utf-8-validate": "5.0.4"
   }
 }
