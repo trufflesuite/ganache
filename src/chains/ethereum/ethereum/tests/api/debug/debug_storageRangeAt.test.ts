@@ -11,6 +11,7 @@ describe("api", () => {
       let accounts: string[];
       let contractAddress: string;
       let blockHash: string | Buffer;
+      let deploymentBlockHash: string | Buffer;
 
       before(async () => {
         provider = await getProvider();
@@ -33,6 +34,7 @@ describe("api", () => {
           [deploymentHash]
         );
         contractAddress = deploymentTxReceipt.contractAddress;
+        deploymentBlockHash = deploymentTxReceipt.blockHash;
 
         const methods = contract.contract.evm.methodIdentifiers;
         const initialValue =
@@ -60,7 +62,7 @@ describe("api", () => {
         provider && (await provider.disconnect());
       });
 
-      it.only("should return the storage for the given range", async () => {
+      it("should return the storage for the given range", async () => {
         const result = await provider.send("debug_storageRangeAt", [
           blockHash,
           0,
@@ -82,6 +84,44 @@ describe("api", () => {
           result.nextKey,
           "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace"
         );
+      });
+
+      it("should return only the filled storage slots", async () => {
+        const result = await provider.send("debug_storageRangeAt", [
+          blockHash,
+          0,
+          contractAddress,
+          "0x00",
+          4 // give me 4 entries
+        ]);
+
+        // although we asked for a total number of 4 entries, we only have 3
+        // and should return the 3 we have
+        const storage = {
+          "0x0000000000000000000000000000000000000000000000000000000000000000":
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+          "0x0000000000000000000000000000000000000000000000000000000000000001":
+            "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000000002":
+            "0x68656c6c6f207270647200000000000000000000000000000000000000000014"
+        };
+        assert.deepStrictEqual(result.storage, storage);
+
+        assert.strictEqual(result.nextKey, null);
+      });
+
+      it("should return empty storage when debugging a deployment transaction", async () => {
+        const result = await provider.send("debug_storageRangeAt", [
+          deploymentBlockHash,
+          0,
+          contractAddress,
+          "0x00",
+          2
+        ]);
+
+        assert.deepStrictEqual(result.storage, {});
+
+        assert.strictEqual(result.nextKey, null);
       });
     });
   });
