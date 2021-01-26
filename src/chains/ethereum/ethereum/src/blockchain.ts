@@ -1273,9 +1273,6 @@ export default class Blockchain extends Emittery.Typed<
           // assign after callback because this storage change actually takes
           // effect _after_ this opcode executes
           storageStack[eventDepth].set(key, value);
-
-          // if it's greater we can create a next variable and set it to true
-          // and return the key for it :shrug:
           break;
         }
         case "SLOAD": {
