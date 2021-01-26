@@ -12,7 +12,9 @@
     "url": "https://github.com/trufflesuite/ganache-core.git",
     "directory": "src/chains/filecoin/types"
   },
-  "scripts": {},
+  "scripts": {
+    "tsc": "echo '@ganache/types does not get compiled directly; see @ganache/filecoin'"
+  },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
   },
