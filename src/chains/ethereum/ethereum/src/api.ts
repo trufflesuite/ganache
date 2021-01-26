@@ -30,7 +30,6 @@ import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import { types, Data, Quantity, PromiEvent, utils } from "@ganache/utils";
 import Blockchain, { TransactionTraceOptions } from "./blockchain";
-import ForkBlockchain from "./forking/fork-blockchain";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
@@ -185,9 +184,7 @@ export default class EthereumApi implements types.Api {
       chain.hardfork
     ));
 
-    const ChainConstructor =
-      options.fork && options.fork.url ? ForkBlockchain : Blockchain;
-    const blockchain = (this.#blockchain = new ChainConstructor(
+    const blockchain = (this.#blockchain = new Blockchain(
       options,
       common,
       coinbaseAddress

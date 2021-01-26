@@ -1,6 +1,8 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { URL } from "url";
+import { $INLINE_JSON } from "ts-transformer-inline-file";
+const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
 
 // we aren't going to treat block numbers as big ints, so we don't want to
 // accept block numbers we can't add to
@@ -93,6 +95,7 @@ export type ForkConfig = {
      */
     userAgent: {
       type: string;
+      hasDefault: true;
     };
 
     /**
@@ -285,7 +288,10 @@ Shorthand for \`fork: { headers: { "Authorization": "Bearer {YOUR-ENCODED-JWT}" 
 
 Sent as Api-User-Agent when used in the browser.
  
-Will be overriden by a \`"User-Agent"\` defined in the \`fork.headers\` option, if provided.`
+Will be overriden by a \`"User-Agent"\` defined in the \`fork.headers\` option, if provided.`,
+    default: () => {
+      return `Ganache/${version} (https://www.trufflesuite.com/ganache; ganache<at>trufflesuite.com)`;
+    }
     // implies: ["url"]
   },
   origin: {
