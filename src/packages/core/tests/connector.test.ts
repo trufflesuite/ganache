@@ -1,6 +1,5 @@
 import assert from "assert";
 import Ganache from "../";
-import { Provider as EthereumProvider } from "@ganache/ethereum";
 
 describe("connector", () => {
   it("works without passing options", async () => {
