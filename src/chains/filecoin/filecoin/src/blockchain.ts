@@ -19,7 +19,9 @@ import { FileRef } from "./things/file-ref";
 import fs from "fs";
 import path from "path";
 import { IPFS, CID as IPFS_CID } from "ipfs";
-import { rootCertificates } from "tls";
+import Database from "./database";
+import TipsetManager from "./data-managers/tipset-manager";
+import BlockHeaderManager from "./data-managers/block-manager";
 
 export type BlockchainEvents = {
   ready(): void;
@@ -30,7 +32,8 @@ export default class Blockchain extends Emittery.Typed<
   BlockchainEvents,
   keyof BlockchainEvents
 > {
-  readonly tipsets: Array<Tipset> = [];
+  public tipsetManager: TipsetManager;
+  public blockHeaderManager: BlockHeaderManager;
   readonly miner: string; // using string until we can support more address types in Address
   readonly address: Address;
 
@@ -49,6 +52,8 @@ export default class Blockchain extends Emittery.Typed<
   private miningTimeout: NodeJS.Timeout | null;
   private rng: utils.RandomNumberGenerator;
 
+  readonly #database: Database;
+
   private ready: boolean;
 
   constructor(options: FilecoinInternalOptions) {
@@ -63,48 +68,60 @@ export default class Blockchain extends Emittery.Typed<
 
     this.ready = false;
 
-    // Create genesis tipset
-    const genesisBlock = new BlockHeader({
-      ticket: new Ticket({
-        // Reference implementation https://git.io/Jt31s
-        vrfProof: this.rng.getBuffer(32)
-      }),
-      parents: [
-        // Both lotus and lotus-devnet always have the Filecoin genesis CID
-        // hardcoded here. Reference implementation: https://git.io/Jt3oK
-        new RootCID({
-          "/": "bafyreiaqpwbbyjo4a42saasj36kkrpv4tsherf2e7bvezkert2a7dhonoi"
-        })
-      ]
-    });
-    this.tipsets.push(
-      new Tipset({
-        blocks: [genesisBlock],
-        height: 0
-      })
-    );
-
     // Create the IPFS server
     this.ipfsServer = new IPFSServer(this.options.chain);
 
-    // Fire up the miner if necessary
-    if (this.options.miner.blockTime > 0) {
-      const intervalMine = () => {
-        this.mineTipset();
-      };
+    this.miningTimeout = null;
 
-      this.miningTimeout = setInterval(
-        intervalMine,
-        this.options.miner.blockTime * 1000
+    const database = (this.#database = new Database(options.database));
+    database.once("ready").then(async () => {
+      this.blockHeaderManager = await BlockHeaderManager.initialize(
+        database.blocks
+      );
+      this.tipsetManager = await TipsetManager.initialize(
+        database.tipsets,
+        this.blockHeaderManager
       );
 
-      utils.unref(this.miningTimeout);
-    } else {
-      this.miningTimeout = null;
-    }
+      if ((await this.tipsetManager.get(0)) === null) {
+        // Create genesis tipset
+        const genesisBlock = new BlockHeader({
+          ticket: new Ticket({
+            // Reference implementation https://git.io/Jt31s
+            vrfProof: this.rng.getBuffer(32)
+          }),
+          parents: [
+            // Both lotus and lotus-devnet always have the Filecoin genesis CID
+            // hardcoded here. Reference implementation: https://git.io/Jt3oK
+            new RootCID({
+              "/": "bafyreiaqpwbbyjo4a42saasj36kkrpv4tsherf2e7bvezkert2a7dhonoi"
+            })
+          ]
+        });
 
-    setTimeout(async () => {
+        const genesisTipset = new Tipset({
+          blocks: [genesisBlock],
+          height: 0
+        });
+
+        await this.tipsetManager.putTipset(genesisTipset);
+      }
+
       await this.ipfsServer.start();
+
+      // Fire up the miner if necessary
+      if (this.options.miner.blockTime > 0) {
+        const intervalMine = () => {
+          this.mineTipset();
+        };
+
+        this.miningTimeout = setInterval(
+          intervalMine,
+          this.options.miner.blockTime * 1000
+        );
+
+        utils.unref(this.miningTimeout);
+      }
 
       // Get this party started!
       this.ready = true;
@@ -112,7 +129,7 @@ export default class Blockchain extends Emittery.Typed<
 
       // Don't log until things are all ready
       this.logLatestTipset();
-    }, 0);
+    });
   }
 
   async waitForReady() {
@@ -132,7 +149,9 @@ export default class Blockchain extends Emittery.Typed<
     if (this.miningTimeout) {
       clearInterval(this.miningTimeout);
     }
-    await this.ipfsServer.stop();
+    if (this.ipfsServer) {
+      await this.ipfsServer.stop();
+    }
   }
 
   get ipfs(): IPFS | null {
@@ -140,11 +159,11 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   genesisTipset(): Tipset {
-    return this.tipsets[0];
+    return this.tipsetManager.earliest;
   }
 
   latestTipset(): Tipset {
-    return this.tipsets[this.tipsets.length - 1];
+    return this.tipsetManager.latest;
   }
 
   // Note that this is naive - it always assumes the first block in the
@@ -171,12 +190,12 @@ export default class Blockchain extends Emittery.Typed<
       );
     }
 
-    let newTipset = new Tipset({
+    const newTipset = new Tipset({
       blocks: newBlocks,
       height: newTipsetHeight
     });
 
-    this.tipsets.push(newTipset);
+    await this.tipsetManager.putTipset(newTipset);
 
     // Advance the state of all deals in process.
     for (const deal of this.inProcessDeals) {
