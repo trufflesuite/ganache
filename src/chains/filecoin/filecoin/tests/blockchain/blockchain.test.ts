@@ -264,7 +264,7 @@ describe("Blockchain", () => {
       );
 
       // We create 1 tipset per state change. Let's make sure that occurred.
-      assert.strictEqual(blockchain.tipsets.length, 12);
+      assert.strictEqual(blockchain.tipsetManager.latest.height, 12);
     });
   });
 
