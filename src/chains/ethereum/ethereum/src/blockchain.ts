@@ -2,7 +2,6 @@ import { EOL } from "os";
 import Miner from "./miner/miner";
 import Database from "./database";
 import Emittery from "emittery";
-import BlockManager from "./data-managers/block-manager";
 import {
   BlockLogs,
   Account,
@@ -23,20 +22,23 @@ import {
   StorageRecords,
   RangedStorageKeys
 } from "@ganache/ethereum-utils";
-import TransactionManager from "./data-managers/transaction-manager";
 import SecureTrie from "merkle-patricia-tree/secure";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import { promisify } from "util";
 import { Quantity, Data, utils } from "@ganache/utils";
-import AccountManager from "./data-managers/account-manager";
-import Manager from "./data-managers/manager";
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
+
 import Common from "ethereumjs-common";
 import VM from "ethereumjs-vm";
-import BlockLogManager from "./data-managers/blocklog-manager";
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import AccountManager from "./data-managers/account-manager";
+import BlockManager from "./data-managers/block-manager";
+import BlockLogManager from "./data-managers/blocklog-manager";
+import Manager from "./data-managers/manager";
+import TransactionManager from "./data-managers/transaction-manager";
+import { Fork } from "./forking/fork";
 
 const {
   BUFFER_EMPTY,
@@ -169,6 +171,8 @@ export default class Blockchain extends Emittery.Typed<
   readonly #options: EthereumInternalOptions;
   readonly #instamine: boolean;
 
+  public fallback: any;
+
   /**
    * Initializes the underlying Database and handles synchronization between
    * the API and the database.
@@ -185,6 +189,8 @@ export default class Blockchain extends Emittery.Typed<
     super();
     this.#options = options;
     this.#common = common;
+
+    this.fallback = options.fork.url ? new Fork(options) : null;
 
     const instamine = (this.#instamine =
       !options.miner.blockTime || options.miner.blockTime <= 0);
