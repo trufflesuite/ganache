@@ -18,7 +18,7 @@ export default function (
     const balance = accounts[address].balance;
     const strBalance = balance / attoFILinFIL;
     const about = balance % attoFILinFIL === 0n ? "" : "~";
-    let line = `(${index}) ${address} (${about}${strBalance} ETH)`;
+    let line = `(${index}) ${address} (${about}${strBalance} FIL)`;
 
     if (!accounts[address].unlocked) {
       line += " 🔒";
