@@ -167,6 +167,9 @@ export default class Blockchain extends Emittery.Typed<
     if (this.ipfsServer) {
       await this.ipfsServer.stop();
     }
+    if (this.#database) {
+      await this.#database.close();
+    }
   }
 
   get ipfs(): IPFS | null {
