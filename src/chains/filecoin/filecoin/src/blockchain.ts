@@ -2,7 +2,7 @@ import { Tipset } from "./things/tipset";
 import { BlockHeader } from "./things/block-header";
 import { CID } from "./things/cid";
 import { RootCID } from "./things/root-cid";
-import { utils } from "@ganache/utils";
+import { Quantity, utils } from "@ganache/utils";
 import Emittery from "emittery";
 import { Address } from "./things/address";
 import { DealInfo } from "./things/deal-info";
@@ -73,17 +73,20 @@ export default class Blockchain extends Emittery.Typed<
 
     this.miningTimeout = null;
 
-    const database = (this.#database = new Database(options.database));
-    database.once("ready").then(async () => {
+    this.#database = new Database(options.database);
+    this.#database.once("ready").then(async () => {
       this.blockHeaderManager = await BlockHeaderManager.initialize(
-        database.blocks
+        this.#database.blocks
       );
       this.tipsetManager = await TipsetManager.initialize(
-        database.tipsets,
+        this.#database.tipsets,
         this.blockHeaderManager
       );
 
-      if ((await this.tipsetManager.get(0)) === null) {
+      const recordedGenesisTipset = await this.tipsetManager.getTipsetWithBlocks(
+        0
+      );
+      if (recordedGenesisTipset === null) {
         // Create genesis tipset
         const genesisBlock = new BlockHeader({
           ticket: new Ticket({
@@ -104,7 +107,19 @@ export default class Blockchain extends Emittery.Typed<
           height: 0
         });
 
-        await this.tipsetManager.putTipset(genesisTipset);
+        this.tipsetManager.earliest = genesisTipset; // initialize earliest
+        await this.tipsetManager.putTipset(genesisTipset); // sets latest
+        await this.#database.db.put(
+          "latest-tipset",
+          Quantity.from(0).toBuffer()
+        );
+      } else {
+        this.tipsetManager.earliest = recordedGenesisTipset; // initialize earliest
+        const data: Buffer = await this.#database.db.get("latest-tipset");
+        const height = Quantity.from(data).toNumber();
+        this.tipsetManager.latest = await this.tipsetManager.getTipsetWithBlocks(
+          height
+        ); // initialize latest
       }
 
       await this.ipfsServer.start();
@@ -196,6 +211,10 @@ export default class Blockchain extends Emittery.Typed<
     });
 
     await this.tipsetManager.putTipset(newTipset);
+    await this.#database.db.put(
+      "latest-tipset",
+      Quantity.from(newTipsetHeight).toBuffer()
+    );
 
     // Advance the state of all deals in process.
     for (const deal of this.inProcessDeals) {
@@ -336,7 +355,7 @@ export default class Blockchain extends Emittery.Typed<
     // automatically advance the deal to the active state.
     if (this.options.miner.blockTime === 0) {
       while (deal.state !== StorageDealStatus.Active) {
-        this.mineTipset();
+        await this.mineTipset();
       }
     }
 

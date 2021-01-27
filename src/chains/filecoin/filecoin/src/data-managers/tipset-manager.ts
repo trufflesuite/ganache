@@ -21,13 +21,6 @@ export default class TipsetManager extends Manager<Tipset> {
     blockHeaderManager: BlockHeaderManager
   ) {
     const manager = new TipsetManager(base, blockHeaderManager);
-    try {
-      await manager.updateTaggedTipsets();
-    } catch (e) {
-      // it's possible we won't have anything yet for brand new db's
-      console.log("TODO:");
-      console.log(e);
-    }
     return manager;
   }
 
@@ -46,14 +39,14 @@ export default class TipsetManager extends Manager<Tipset> {
       blocks: [] // remove blocks array here as they'll be stored in their own manager
     };
     super.set(
-      Buffer.from([tipset.height]),
+      Buffer.from(`${tipset.height}`),
       Buffer.from(JSON.stringify(serializedTipset))
     );
     for (const block of tipset.blocks) {
       await this.#blockHeaderManager.putBlockHeader(block);
     }
 
-    await this.updateTaggedTipsets();
+    this.latest = tipset;
   }
 
   async getTipsetWithBlocks(height: number): Promise<Tipset | null> {
@@ -84,35 +77,5 @@ export default class TipsetManager extends Manager<Tipset> {
       );
       tipset.blocks.push(blockHeader);
     }
-  }
-
-  updateTaggedTipsets() {
-    return new Promise<Tipset>((resolve, reject) => {
-      this.base
-        .createValueStream({ limit: 1 })
-        .on("data", (data: Buffer) => {
-          this.earliest = new Tipset(JSON.parse(data.toString()));
-          this.fillTipsetBlocks(this.earliest);
-        })
-        .on("error", (err: Error) => {
-          reject(err);
-        })
-        .on("end", () => {
-          resolve(void 0);
-        });
-
-      this.base
-        .createValueStream({ reverse: true, limit: 1 })
-        .on("data", (data: Buffer) => {
-          this.latest = new Tipset(JSON.parse(data.toString()));
-          this.fillTipsetBlocks(this.latest);
-        })
-        .on("error", (err: Error) => {
-          reject(err);
-        })
-        .on("end", () => {
-          resolve(void 0);
-        });
-    });
   }
 }
