@@ -51,9 +51,13 @@ export function GetConnector(
         // @ts-ignore
         return new connector(providerOptions, executor);
       } catch (e) {
-        throw new Error(
-          "Could not find module @ganache/filecoin peer dependency; please run `npm install @ganache/filecoin`"
-        );
+        if (e.message.includes("Cannot find module '@ganache/filecoin'")) {
+          throw new Error(
+            "Could not find module @ganache/filecoin peer dependency; please run `npm install @ganache/filecoin`"
+          );
+        } else {
+          throw e;
+        }
       }
   }
 }
