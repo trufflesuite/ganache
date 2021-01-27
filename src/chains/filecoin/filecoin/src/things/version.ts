@@ -65,7 +65,7 @@ class Version
       blockDelay: {
         deserializedName: "blockDelay",
         serializedName: "BlockDelay",
-        defaultValue: 0n
+        defaultValue: literal => (literal ? BigInt(literal) : 0n)
       }
     };
   }

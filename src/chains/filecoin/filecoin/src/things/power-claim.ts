@@ -30,12 +30,12 @@ class PowerClaim
       rawBytePower: {
         deserializedName: "rawBytePower",
         serializedName: "RawBytePower",
-        defaultValue: 1n
+        defaultValue: literal => (literal ? BigInt(literal) : 1n)
       },
       qualityAdjPower: {
         deserializedName: "qualityAdjPower",
         serializedName: "QualityAdjPower",
-        defaultValue: 1n
+        defaultValue: literal => (literal ? BigInt(literal) : 1n)
       }
     };
   }

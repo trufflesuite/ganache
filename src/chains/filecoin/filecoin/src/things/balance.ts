@@ -9,8 +9,8 @@ interface BalanceConfig {
 class Balance extends SerializableLiteral<BalanceConfig> {
   get config(): LiteralDefinition<BalanceConfig> {
     return {
-      defaultValue: options =>
-        options ? BigInt(options) : 500n * 1000000000000000000n
+      defaultValue: literal =>
+        literal ? BigInt(literal) : 500n * 1000000000000000000n
     };
   }
 
