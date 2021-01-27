@@ -38,7 +38,7 @@ describe("Blockchain", () => {
     });
 
     it("mines a new tipset and creates parent/child relationship between blocks", async () => {
-      blockchain.mineTipset();
+      await blockchain.mineTipset();
 
       let genesis: Tipset = blockchain.genesisTipset();
       let latest: Tipset = blockchain.latestTipset();
@@ -264,7 +264,7 @@ describe("Blockchain", () => {
       );
 
       // We create 1 tipset per state change. Let's make sure that occurred.
-      assert.strictEqual(blockchain.tipsetManager.latest.height, 12);
+      assert.strictEqual(blockchain.tipsetManager.latest.height, 11);
     });
   });
 
