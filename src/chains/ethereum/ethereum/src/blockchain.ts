@@ -1425,13 +1425,13 @@ export default class Blockchain extends Emittery.Typed<
 
       const value = await getFromTrie(paddedPosBuff);
       const hashedKey = Data.from(keccak(Buffer.from(paddedPosBuff))).toJSON();
+      const storageSlotKey = Data.from(paddedPosBuff).toJSON();
 
       if (i < maxResult) {
         if (value) {
-          result.storage[Data.from(paddedPosBuff).toJSON()] = Data.from(
-            rlpDecode(value),
-            32
-          ).toJSON();
+          result.storage[hashedKey] = {
+            [storageSlotKey]: Data.from(rlpDecode(value), 32).toJSON()
+          };
         } else {
           console.log(value);
         }
