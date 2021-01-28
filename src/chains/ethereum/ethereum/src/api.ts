@@ -30,7 +30,6 @@ import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { types, Data, Quantity, PromiEvent, utils } from "@ganache/utils";
 import Blockchain, { TransactionTraceOptions } from "./blockchain";
-import ForkBlockchain from "./forking/fork-blockchain";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
