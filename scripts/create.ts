@@ -158,7 +158,7 @@ process.stdout.write(`${COLORS.Reset}`);
         directory: `src/${location}/${folderName}`
       },
       scripts: {
-        tsc: "ttsc",
+        tsc: `cross-env ${relativePathToRoot}scripts/lerna-ttsc.sh`,
         test: "nyc npm run mocha",
         mocha:
           "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
