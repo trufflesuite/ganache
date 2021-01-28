@@ -1,4 +1,5 @@
 export * from "./bigint-to-buffer";
+export * from "./buffer-to-bigint";
 export * from "./executor";
 export * from "./heap";
 export * from "./request-coordinator";
