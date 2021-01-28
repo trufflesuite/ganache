@@ -27,9 +27,10 @@ function timeTruncate(timestamp: number, duration: number) {
 }
 
 class LimitCounter {
-  counters: Map<number, Count> = new Map();
-  windowLength: number;
-  lastEvict: number;
+  private counters: Map<number, Count> = new Map();
+  private windowLength: number;
+  private lastEvict: number;
+
   constructor(windowLength: number) {
     this.windowLength = windowLength;
   }
@@ -88,7 +89,7 @@ class LimitCounter {
  * │       ║previous minute         ┃         current minute         │
  * │       ║  42 requests           ┃         ║18 requests           │
  * └───────╫────────────────────────┸─────────╫──────────────────────┘
- *          ║         45 secs        ┃ 15 secs ║
+ *         ║         45 secs        ┃ 15 secs ║
  *         ╚══════════════════════════════════╝
  * ```
  *
@@ -113,6 +114,7 @@ export default class RateLimiter {
   private requestLimit: number;
   private windowLength: number;
   private limitCounter: LimitCounter;
+
   constructor(requestLimit: number, windowLength: number) {
     this.requestLimit = requestLimit;
     this.windowLength = windowLength;
@@ -150,9 +152,10 @@ export default class RateLimiter {
   }
 
   backpressure: PromiseFn[] = [];
-  handle(next: PromiseFn, skipQueue: boolean = false) {
+
+  handle(skipQueue: boolean = false) {
     if (!skipQueue && this.backpressure.length > 0) {
-      return this.defer(this.handle.bind(this, next, true));
+      return this.defer(this.handle.bind(this, true));
     }
     const currentWindow = timeTruncate(Date.now(), this.windowLength);
     const rate = this.status();
@@ -161,10 +164,7 @@ export default class RateLimiter {
     const remaining = this.requestLimit - nrate;
     process.stdout.write("Rate: " + rate + "!               \r");
     if (nrate >= this.requestLimit) {
-      const deferred = this.defer(
-        this.handle.bind(this, next, true),
-        skipQueue
-      );
+      const deferred = this.defer(this.handle.bind(this, true), skipQueue);
 
       // if we weren't already waiting on a request, starting waiting on them now
       if (skipQueue || this.backpressure.length === 1) {
@@ -185,6 +185,6 @@ export default class RateLimiter {
         remaining === 1 ? this.windowLength / this.requestLimit : 0
       );
     }
-    return next();
+    return Promise.resolve();
   }
 }
