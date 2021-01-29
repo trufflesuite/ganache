@@ -22,26 +22,37 @@ type FileRefConfig = {
   };
 };
 
-class FileRef
-  extends SerializableObject<FileRefConfig>
-  implements DeserializedObject<FileRefConfig> {
-  get config(): Definitions<FileRefConfig> {
+type C = FileRefConfig;
+
+class FileRef extends SerializableObject<C> implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       path: {
+        deserializedName: "path",
         serializedName: "Path",
         defaultValue: ""
       },
       isCAR: {
+        deserializedName: "isCAR",
         serializedName: "IsCAR",
         defaultValue: false
       }
     };
   }
 
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.path = super.initializeValue(this.config.path, options);
+    this.isCAR = super.initializeValue(this.config.isCAR, options);
+  }
+
   path: string;
   isCAR: boolean;
 }
 
-type SerializedFileRef = SerializedObject<FileRefConfig>;
+type SerializedFileRef = SerializedObject<C>;
 
 export { FileRef, SerializedFileRef };

@@ -222,6 +222,10 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   private async downloadFile(cid: string, ref: FileRef): Promise<void> {
+    if (!this.ipfsServer.node) {
+      throw new Error("IPFS server is not running");
+    }
+
     const dirname = path.dirname(ref.path);
     try {
       if (!fs.existsSync(dirname)) {
