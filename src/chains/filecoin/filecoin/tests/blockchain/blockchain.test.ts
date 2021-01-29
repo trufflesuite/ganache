@@ -76,7 +76,10 @@ describe("Blockchain", () => {
 
         let latest: Tipset = blockchain.latestTipset();
 
-        assert(latest.height === 3 || latest.height === 4);
+        assert(
+          latest.height === 3 || latest.height === 4,
+          `Expected 3 or 4 blocks to be mined, but got ${latest.height}`
+        );
       } finally {
         blockchain.stop();
       }
