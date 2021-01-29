@@ -46,25 +46,38 @@ interface VersionConfig {
   };
 }
 
-class Version
-  extends SerializableObject<VersionConfig>
-  implements DeserializedObject<VersionConfig> {
-  get config(): Definitions<VersionConfig> {
+type C = VersionConfig;
+
+class Version extends SerializableObject<C> implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       version: {
+        deserializedName: "version",
         serializedName: "Version",
         defaultValue: `@ganache/filecoin v${GanacheFilecoinVersion}`
       },
       apiVersion: {
+        deserializedName: "apiVersion",
         serializedName: "APIVersion",
         // Version determined by what we're using for at https://pkg.go.dev/github.com/filecoin-project/lotus/api
         defaultValue: createBinarySemverVersion("1.4.0")
       },
       blockDelay: {
+        deserializedName: "blockDelay",
         serializedName: "BlockDelay",
         defaultValue: 0n
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.version = super.initializeValue(this.config.version, options);
+    this.apiVersion = super.initializeValue(this.config.apiVersion, options);
+    this.blockDelay = super.initializeValue(this.config.blockDelay, options);
   }
 
   version: string;
@@ -72,6 +85,6 @@ class Version
   blockDelay: bigint;
 }
 
-type SerializedVersion = SerializedObject<VersionConfig>;
+type SerializedVersion = SerializedObject<C>;
 
 export { Version, SerializedVersion };
