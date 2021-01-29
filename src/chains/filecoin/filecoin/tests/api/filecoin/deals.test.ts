@@ -12,7 +12,7 @@ import { SerializedRetrievalOrder } from "../../../src/things/retrieval-order";
 import BN from "bn.js";
 import { SerializedQueryOffer } from "../../../src/things/query-offer";
 import { SerializedFileRef } from "../../../src/things/file-ref";
-import tmp from "tmp";
+import tmp from "tmp-promise";
 import path from "path";
 import fs from "fs";
 
@@ -139,8 +139,8 @@ describe("api", () => {
           MinerPeer: offer.MinerPeer
         };
 
-        const tmpObj = tmp.dirSync();
-        const file = path.join(tmpObj.name, "content");
+        const tmpObj = await tmp.dir();
+        const file = path.join(tmpObj.path, "content");
 
         const fileRef: SerializedFileRef = {
           Path: file,
@@ -184,8 +184,8 @@ describe("api", () => {
           }
         };
 
-        const tmpObj = tmp.dirSync();
-        const file = path.join(tmpObj.name, "content");
+        const tmpObj = await tmp.dir();
+        const file = path.join(tmpObj.path, "content");
 
         const fileRef: SerializedFileRef = {
           Path: file,
