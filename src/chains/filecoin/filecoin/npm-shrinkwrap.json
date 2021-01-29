@@ -703,6 +703,15 @@
 				"@types/node": "*"
 			}
 		},
+		"@types/bn.js": {
+			"version": "5.1.0",
+			"resolved": "https://registry.npmjs.org/@types/bn.js/-/bn.js-5.1.0.tgz",
+			"integrity": "sha512-QSSVYj7pYFN49kW77o2s9xTCwZ8F2xLbjLLSEVh8D2F4JUhZtPAGOFLTD+ffqksBx/u4cE/KImFjyhqCjn/LIA==",
+			"dev": true,
+			"requires": {
+				"@types/node": "*"
+			}
+		},
 		"@types/color-name": {
 			"version": "1.1.1",
 			"resolved": "https://registry.npmjs.org/@types/color-name/-/color-name-1.1.1.tgz",
@@ -8302,6 +8311,15 @@
 			"dev": true,
 			"requires": {
 				"rimraf": "^3.0.0"
+			}
+		},
+		"tmp-promise": {
+			"version": "3.0.2",
+			"resolved": "https://registry.npmjs.org/tmp-promise/-/tmp-promise-3.0.2.tgz",
+			"integrity": "sha512-OyCLAKU1HzBjL6Ev3gxUeraJNlbNingmi8IrHHEsYH8LTmEuhvYfqvhn2F/je+mjf4N58UmZ96OMEy1JanSCpA==",
+			"dev": true,
+			"requires": {
+				"tmp": "^0.2.0"
 			}
 		},
 		"to-array": {
