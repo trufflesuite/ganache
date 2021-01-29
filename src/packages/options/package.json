@@ -20,7 +20,7 @@
     "directory": "src/packages/options"
   },
   "scripts": {
-    "tsc": "cross-env ../../../scripts/lerna-ttsc.sh"
+    "tsc": "../../../scripts/lerna-ttsc.sh"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
