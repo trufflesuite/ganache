@@ -21,7 +21,7 @@
     "directory": "src/packages/flavors"
   },
   "scripts": {
-    "tsc": "../../../scripts/lerna-ttsc.sh"
+    "tsc": "ts-node ../../../scripts/lerna-run.ts ttsc --project _PACKAGEDIR_/tsconfig.json"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
