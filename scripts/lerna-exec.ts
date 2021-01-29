@@ -1,9 +1,8 @@
 import { spawnSync } from "child_process";
 
+const lernaRoot: string | undefined = process.env.LERNA_ROOT_PATH;
 const spawnCwd =
-  process.env.LERNA_ROOT_PATH !== ""
-    ? process.env.LERNA_ROOT_PATH
-    : process.cwd();
+  typeof lernaRoot === "string" && lernaRoot !== "" ? lernaRoot : process.cwd();
 
 export function replaceSpecialStrings(args: string[]): string[] {
   return args.map(arg =>
@@ -24,5 +23,5 @@ export function LernaExec(command?: string, args?: string[]) {
     stdio: ["inherit", "inherit", "inherit"]
   });
 
-  process.exit(result.status);
+  process.exit(result.status || undefined);
 }
