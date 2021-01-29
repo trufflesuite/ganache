@@ -133,6 +133,8 @@ abstract class SerializableObject<C extends BaseConfig>
         options?: SerializedPropertyType<C, N>
       ) => PropertyType<C, N>;
       return typedDef(serializedInput);
+    } else if (typeof serializedInput !== "undefined") {
+      return serializedInput;
     } else if (typeof def !== "function") {
       return def;
     } else {
