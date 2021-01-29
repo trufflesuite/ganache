@@ -22,26 +22,45 @@ type PowerClaimConfig = {
   };
 };
 
+type C = PowerClaimConfig;
+
 class PowerClaim
-  extends SerializableObject<PowerClaimConfig>
-  implements DeserializedObject<PowerClaimConfig> {
-  get config(): Definitions<PowerClaimConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       rawBytePower: {
+        deserializedName: "rawBytePower",
         serializedName: "RawBytePower",
         defaultValue: 1n
       },
       qualityAdjPower: {
+        deserializedName: "qualityAdjPower",
         serializedName: "QualityAdjPower",
         defaultValue: 1n
       }
     };
   }
 
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.rawBytePower = super.initializeValue(
+      this.config.rawBytePower,
+      options
+    );
+    this.qualityAdjPower = super.initializeValue(
+      this.config.qualityAdjPower,
+      options
+    );
+  }
+
   rawBytePower: bigint;
   qualityAdjPower: bigint;
 }
 
-type SerializedPowerClaim = SerializedObject<PowerClaimConfig>;
+type SerializedPowerClaim = SerializedObject<C>;
 
 export { PowerClaim, SerializedPowerClaim };
