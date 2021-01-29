@@ -22,26 +22,38 @@ interface PoStProofConfig {
   };
 }
 
-class PoStProof
-  extends SerializableObject<PoStProofConfig>
-  implements DeserializedObject<PoStProofConfig> {
-  get config(): Definitions<PoStProofConfig> {
+type C = PoStProofConfig;
+
+class PoStProof extends SerializableObject<C> implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       postProof: {
+        deserializedName: "postProof",
         serializedName: "PoStProof",
         defaultValue: 0
       },
       proofBytes: {
+        deserializedName: "proofBytes",
         serializedName: "ProofBytes",
-        defaultValue: Buffer.from([0])
+        defaultValue: literal =>
+          literal ? Buffer.from(literal, "base64") : Buffer.from([0])
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.postProof = super.initializeValue(this.config.postProof, options);
+    this.proofBytes = super.initializeValue(this.config.proofBytes, options);
   }
 
   postProof: number;
   proofBytes: Buffer;
 }
 
-type SerializedPoStProof = SerializedObject<PoStProofConfig>;
+type SerializedPoStProof = SerializedObject<C>;
 
 export { PoStProof, SerializedPoStProof };

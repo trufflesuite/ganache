@@ -29,8 +29,12 @@ describe("api", () => {
     });
 
     after(async () => {
-      ws.close();
-      await server.close();
+      if (ws) {
+        ws.close();
+      }
+      if (server) {
+        await server.close();
+      }
     });
 
     it("should subscribe and unsubscribe properly with websockets", async () => {
@@ -38,7 +42,7 @@ describe("api", () => {
       const chainNotifyId = "1337"; // using something non-zero to ensure functionality
       let receivedMessage = false;
       let receivedSubscriptionCanceled = false;
-      let channelId;
+      let channelId: any;
 
       ws.on("message", message => {
         const response = JSON.parse(message.toString());

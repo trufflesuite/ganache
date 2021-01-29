@@ -103,81 +103,152 @@ interface BlockHeaderConfig {
   };
 }
 
+type C = BlockHeaderConfig;
+
 class BlockHeader
-  extends SerializableObject<BlockHeaderConfig>
-  implements DeserializedObject<BlockHeaderConfig> {
-  get config(): Definitions<BlockHeaderConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       miner: {
+        deserializedName: "miner",
         serializedName: "Miner",
         defaultValue: "t01000"
       },
       ticket: {
+        deserializedName: "ticket",
         serializedName: "Ticket",
         defaultValue: options => new Ticket(options)
       },
       electionProof: {
+        deserializedName: "electionProof",
         serializedName: "ElectionProof",
         defaultValue: options => new ElectionProof(options)
       },
       beaconEntries: {
+        deserializedName: "beaconEntries",
         serializedName: "BeaconEntries",
         defaultValue: options =>
           options ? options.map(entry => new BeaconEntry(entry)) : []
       },
       winPoStProof: {
+        deserializedName: "winPoStProof",
         serializedName: "WinPoStProof",
         defaultValue: options =>
           options ? options.map(proof => new PoStProof(proof)) : []
       },
       parents: {
+        deserializedName: "parents",
         serializedName: "Parents",
         defaultValue: options =>
           options ? options.map(parent => new RootCID(parent)) : []
       },
       parentWeight: {
+        deserializedName: "parentWeight",
         serializedName: "ParentWeight",
-        defaultValue: 0n
+        defaultValue: literal => (literal ? BigInt(literal) : 0n)
       },
       height: {
+        deserializedName: "height",
         serializedName: "Height",
         defaultValue: 0
       },
       parentStateRoot: {
+        deserializedName: "parentStateRoot",
         serializedName: "ParentStateRoot",
         defaultValue: options => new RootCID(options)
       },
       parentMessageReceipts: {
+        deserializedName: "parentMessageReceipts",
         serializedName: "ParentMessageReceipts",
         defaultValue: options => new RootCID(options)
       },
       messages: {
+        deserializedName: "messages",
         serializedName: "Messages",
         defaultValue: options => new RootCID(options)
       },
       blsAggregate: {
+        deserializedName: "blsAggregate",
         serializedName: "BLSAggregate",
         defaultValue: options => new Signature(options)
       },
       timestamp: {
+        deserializedName: "timestamp",
         serializedName: "Timestamp",
         defaultValue: () => {
           return new Date().getTime() / 1000;
         }
       },
       blockSignature: {
+        deserializedName: "blockSignature",
         serializedName: "BlockSig",
         defaultValue: options => new Signature(options)
       },
       forkSignaling: {
+        deserializedName: "forkSignaling",
         serializedName: "ForkSignaling",
         defaultValue: 0
       },
       parentBaseFee: {
+        deserializedName: "parentBaseFee",
         serializedName: "ParentBaseFee",
-        defaultValue: 0n
+        defaultValue: literal => (literal ? BigInt(literal) : 0n)
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.miner = super.initializeValue(this.config.miner, options);
+    this.ticket = super.initializeValue(this.config.ticket, options);
+    this.electionProof = super.initializeValue(
+      this.config.electionProof,
+      options
+    );
+    this.beaconEntries = super.initializeValue(
+      this.config.beaconEntries,
+      options
+    );
+    this.winPoStProof = super.initializeValue(
+      this.config.winPoStProof,
+      options
+    );
+    this.parents = super.initializeValue(this.config.parents, options);
+    this.parentWeight = super.initializeValue(
+      this.config.parentWeight,
+      options
+    );
+    this.height = super.initializeValue(this.config.height, options);
+    this.parentStateRoot = super.initializeValue(
+      this.config.parentStateRoot,
+      options
+    );
+    this.parentMessageReceipts = super.initializeValue(
+      this.config.parentMessageReceipts,
+      options
+    );
+    this.messages = super.initializeValue(this.config.messages, options);
+    this.blsAggregate = super.initializeValue(
+      this.config.blsAggregate,
+      options
+    );
+    this.timestamp = super.initializeValue(this.config.timestamp, options);
+    this.blockSignature = super.initializeValue(
+      this.config.blockSignature,
+      options
+    );
+    this.forkSignaling = super.initializeValue(
+      this.config.forkSignaling,
+      options
+    );
+    this.parentBaseFee = super.initializeValue(
+      this.config.parentBaseFee,
+      options
+    );
   }
 
   miner: string;
@@ -201,17 +272,9 @@ class BlockHeader
   parentBaseFee: bigint;
 
   get cid(): CID {
-    let blockHeader: Partial<DeserializedObject<BlockHeaderConfig>> = {};
-
-    for (const [deserializedName, { serializedName }] of Object.entries(
-      this.config
-    )) {
-      blockHeader[serializedName] = this[deserializedName];
-    }
-
     // We could have used the ipld-dag-cbor package for the following,
     // but it was async, which caused a number of issues during object construction.
-    const cborBlockHeader = cbor.encode(blockHeader);
+    const cborBlockHeader = cbor.encode(this.serialize());
     const multihash = multihashing(cborBlockHeader, "blake2b-256");
     const rawCid = new IPFSCid(
       1,
@@ -223,6 +286,6 @@ class BlockHeader
   }
 }
 
-type SerializedBlockHeader = SerializedObject<BlockHeaderConfig>;
+type SerializedBlockHeader = SerializedObject<C>;
 
 export { BlockHeader, SerializedBlockHeader };

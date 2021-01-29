@@ -17,21 +17,31 @@ interface TicketConfig {
   };
 }
 
-class Ticket
-  extends SerializableObject<TicketConfig>
-  implements DeserializedObject<TicketConfig> {
-  get config(): Definitions<TicketConfig> {
+type C = TicketConfig;
+
+class Ticket extends SerializableObject<C> implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       vrfProof: {
+        deserializedName: "vrfProof",
         serializedName: "VRFProof",
-        defaultValue: Buffer.from([0])
+        defaultValue: literal =>
+          literal ? Buffer.from(literal, "base64") : Buffer.from([0])
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.vrfProof = super.initializeValue(this.config.vrfProof, options);
   }
 
   vrfProof: Buffer;
 }
 
-type SerializedTicket = SerializedObject<TicketConfig>;
+type SerializedTicket = SerializedObject<C>;
 
 export { Ticket, SerializedTicket };

@@ -49,8 +49,8 @@ type DealInfoConfig = {
       serializedName: "DataRef";
     };
     pieceCid: {
-      type: RootCID;
-      serializedType: SerializedRootCID;
+      type: RootCID | null;
+      serializedType: SerializedRootCID | null;
       serializedName: "PieceCID";
     };
     size: {
@@ -96,57 +96,115 @@ type DealInfoConfig = {
   };
 };
 
-class DealInfo
-  extends SerializableObject<DealInfoConfig>
-  implements DeserializedObject<DealInfoConfig> {
-  get config(): Definitions<DealInfoConfig> {
+type C = DealInfoConfig;
+
+class DealInfo extends SerializableObject<C> implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       proposalCid: {
+        deserializedName: "proposalCid",
         serializedName: "ProposalCid",
         defaultValue: options => new RootCID(options)
       },
       state: {
-        serializedName: "State"
+        deserializedName: "state",
+        serializedName: "State",
+        defaultValue: StorageDealStatus.Unknown
       },
       message: {
-        serializedName: "Message"
+        deserializedName: "message",
+        serializedName: "Message",
+        defaultValue: ""
       },
       provider: {
+        deserializedName: "provider",
         serializedName: "Provider",
         defaultValue: "t01000"
       },
       dataRef: {
-        serializedName: "DataRef"
+        deserializedName: "dataRef",
+        serializedName: "DataRef",
+        defaultValue: options => new StorageMarketDataRef(options)
       },
       pieceCid: {
-        serializedName: "PieceCID"
+        deserializedName: "pieceCid",
+        serializedName: "PieceCID",
+        defaultValue: options => (options ? new RootCID(options) : null)
       },
       size: {
-        serializedName: "Size"
+        deserializedName: "size",
+        serializedName: "Size",
+        defaultValue: 0
       },
       pricePerEpoch: {
-        serializedName: "PricePerEpoch"
+        deserializedName: "pricePerEpoch",
+        serializedName: "PricePerEpoch",
+        defaultValue: literal => (literal ? BigInt(literal) : 0n)
       },
       duration: {
-        serializedName: "Duration"
+        deserializedName: "duration",
+        serializedName: "Duration",
+        defaultValue: 0
       },
       dealId: {
-        serializedName: "DealID"
+        deserializedName: "dealId",
+        serializedName: "DealID",
+        defaultValue: 0
       },
       creationTime: {
+        deserializedName: "creationTime",
         serializedName: "CreationTime",
         defaultValue: new Date()
       },
       verified: {
-        serializedName: "Verified"
+        deserializedName: "verified",
+        serializedName: "Verified",
+        defaultValue: false
       },
       transferChannelId: {
-        serializedName: "TransferChannelID"
+        deserializedName: "transferChannelId",
+        serializedName: "TransferChannelID",
+        defaultValue: options => new ChannelID(options)
       },
       dataTransfer: {
-        serializedName: "DataTransfer"
+        deserializedName: "dataTransfer",
+        serializedName: "DataTransfer",
+        defaultValue: options => new DataTransferChannel(options)
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.proposalCid = super.initializeValue(this.config.proposalCid, options);
+    this.state = super.initializeValue(this.config.state, options);
+    this.message = super.initializeValue(this.config.message, options);
+    this.provider = super.initializeValue(this.config.provider, options);
+    this.dataRef = super.initializeValue(this.config.dataRef, options);
+    this.pieceCid = super.initializeValue(this.config.pieceCid, options);
+    this.size = super.initializeValue(this.config.size, options);
+    this.pricePerEpoch = super.initializeValue(
+      this.config.pricePerEpoch,
+      options
+    );
+    this.duration = super.initializeValue(this.config.duration, options);
+    this.dealId = super.initializeValue(this.config.dealId, options);
+    this.creationTime = super.initializeValue(
+      this.config.creationTime,
+      options
+    );
+    this.verified = super.initializeValue(this.config.verified, options);
+    this.transferChannelId = super.initializeValue(
+      this.config.transferChannelId,
+      options
+    );
+    this.dataTransfer = super.initializeValue(
+      this.config.dataTransfer,
+      options
+    );
   }
 
   proposalCid: RootCID;
@@ -154,7 +212,7 @@ class DealInfo
   message: string;
   provider: string;
   dataRef: StorageMarketDataRef;
-  pieceCid: RootCID;
+  pieceCid: RootCID | null;
   size: number;
   pricePerEpoch: bigint;
   duration: number;
@@ -169,6 +227,6 @@ class DealInfo
   }
 }
 
-type SerializedDealInfo = SerializedObject<DealInfoConfig>;
+type SerializedDealInfo = SerializedObject<C>;
 
 export { DealInfo, SerializedDealInfo };

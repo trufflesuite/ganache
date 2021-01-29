@@ -804,6 +804,12 @@
 			"resolved": "https://registry.npmjs.org/@types/debug/-/debug-4.1.5.tgz",
 			"integrity": "sha512-Q1y515GcOdTHgagaVFhHnIFQ38ygs/kmxdNpvpou+raI9UO3YZcHDngBSYKQklcKlvA7iuQlmIKbzvmxcOE9CQ=="
 		},
+		"@types/deep-equal": {
+			"version": "1.0.1",
+			"resolved": "https://registry.npmjs.org/@types/deep-equal/-/deep-equal-1.0.1.tgz",
+			"integrity": "sha512-mMUu4nWHLBlHtxXY17Fg6+ucS/MnndyOWyOe7MmwkoMYxvfQU2ajtRaEvqSUv+aVkMqH/C0NCI8UoVfRNQ10yg==",
+			"dev": true
+		},
 		"@types/lodash": {
 			"version": "4.14.167",
 			"resolved": "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.167.tgz",
@@ -844,6 +850,12 @@
 			"requires": {
 				"@types/node": "*"
 			}
+		},
+		"@types/seedrandom": {
+			"version": "2.4.28",
+			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-2.4.28.tgz",
+			"integrity": "sha512-SMA+fUwULwK7sd/ZJicUztiPs8F1yCPwF3O23Z9uQ32ME5Ha0NmDK9+QTsYE4O2tHXChzXomSWWeIhCnoN1LqA==",
+			"dev": true
 		},
 		"@types/ws": {
 			"version": "7.4.0",
@@ -1695,6 +1707,17 @@
 				"multibase": "^1.0.0",
 				"multicodec": "^1.0.1",
 				"multihashes": "^1.0.1"
+			},
+			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				}
 			}
 		},
 		"cipher-base": {
@@ -3858,6 +3881,15 @@
 						"yallist": "^4.0.0"
 					}
 				},
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				},
 				"semver": {
 					"version": "7.3.4",
 					"resolved": "https://registry.npmjs.org/semver/-/semver-7.3.4.tgz",
@@ -3894,6 +3926,17 @@
 				"protons": "^1.0.1",
 				"streaming-iterables": "^5.0.2",
 				"varint-decoder": "^0.4.0"
+			},
+			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				}
 			}
 		},
 		"ipfs-block-service": {
@@ -3995,6 +4038,15 @@
 						"is-circular": "^1.0.2",
 						"multicodec": "^1.0.0",
 						"multihashing-async": "~0.8.0"
+					}
+				},
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
 					}
 				},
 				"multihashing-async": {
@@ -4222,6 +4274,15 @@
 						"protons": "^1.2.1",
 						"stable": "^0.1.8"
 					}
+				},
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
 				}
 			}
 		},
@@ -4236,6 +4297,17 @@
 				"multicodec": "^1.0.0",
 				"multihashes": "^1.0.1",
 				"multihashing-async": "^1.0.0"
+			},
+			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				}
 			}
 		},
 		"ipld-block": {
@@ -4259,6 +4331,17 @@
 				"is-circular": "^1.0.2",
 				"multicodec": "^1.0.3",
 				"multihashing-async": "^1.0.0"
+			},
+			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				}
 			}
 		},
 		"ipld-dag-pb": {
@@ -4275,6 +4358,15 @@
 				"stable": "^0.1.8"
 			},
 			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				},
 				"multihashing-async": {
 					"version": "0.8.2",
 					"resolved": "https://registry.npmjs.org/multihashing-async/-/multihashing-async-0.8.2.tgz",
@@ -4305,6 +4397,17 @@
 				"multihashes": "^1.0.1",
 				"multihashing-async": "^1.0.0",
 				"rlp": "^2.2.4"
+			},
+			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				}
 			}
 		},
 		"ipld-git": {
@@ -4318,6 +4421,17 @@
 				"multihashing-async": "^1.0.0",
 				"smart-buffer": "^4.1.0",
 				"strftime": "^0.10.0"
+			},
+			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				}
 			}
 		},
 		"ipld-raw": {
@@ -4330,6 +4444,15 @@
 				"multihashing-async": "~0.8.1"
 			},
 			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				},
 				"multihashing-async": {
 					"version": "0.8.2",
 					"resolved": "https://registry.npmjs.org/multihashing-async/-/multihashing-async-0.8.2.tgz",
@@ -4356,6 +4479,17 @@
 				"multihashes": "^1.0.1",
 				"multihashing-async": "^1.0.0",
 				"zcash-block": "^2.0.0"
+			},
+			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				}
 			}
 		},
 		"ipns": {
@@ -5578,6 +5712,15 @@
 				"ursa-optional": "^0.10.1"
 			},
 			"dependencies": {
+				"multicodec": {
+					"version": "1.0.4",
+					"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
+					"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+					"requires": {
+						"buffer": "^5.6.0",
+						"varint": "^5.0.0"
+					}
+				},
 				"multihashing-async": {
 					"version": "0.8.2",
 					"resolved": "https://registry.npmjs.org/multihashing-async/-/multihashing-async-0.8.2.tgz",
@@ -6644,12 +6787,19 @@
 			}
 		},
 		"multicodec": {
-			"version": "1.0.4",
-			"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-1.0.4.tgz",
-			"integrity": "sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==",
+			"version": "2.1.0",
+			"resolved": "https://registry.npmjs.org/multicodec/-/multicodec-2.1.0.tgz",
+			"integrity": "sha512-7AYpK/avswOWvnqQ9/jOkQCS7Fp4aKxw5ojvn5gyK2VQTZz3YVXeLMzoIZDBy745JSfJMXkTS0ptnHci5Mt1mA==",
 			"requires": {
-				"buffer": "^5.6.0",
-				"varint": "^5.0.0"
+				"uint8arrays": "1.1.0",
+				"varint": "^6.0.0"
+			},
+			"dependencies": {
+				"varint": {
+					"version": "6.0.0",
+					"resolved": "https://registry.npmjs.org/varint/-/varint-6.0.0.tgz",
+					"integrity": "sha512-cXEIW6cfr15lFv563k4GuVuW/fiwjknytD37jIOLSdSWuOI6WnO/oKwmP2FQTU2l01LP8/M5TSAJpzUaGe3uWg=="
+				}
 			}
 		},
 		"multihashes": {

@@ -9,7 +9,7 @@ export type Provider = FilecoinProvider;
 export const Provider = FilecoinProvider;
 
 export class Connector
-  extends Emittery.Typed<undefined, "ready" | "close">
+  extends Emittery.Typed<{}, "ready" | "close">
   implements
     types.Connector<
       FilecoinApi,
@@ -23,7 +23,7 @@ export class Connector
   }
 
   constructor(
-    providerOptions: FilecoinProviderOptions = null,
+    providerOptions: FilecoinProviderOptions = {},
     executor: utils.Executor
   ) {
     super();
@@ -63,7 +63,7 @@ export class Connector
     payload: JsonRpcTypes.Request<FilecoinApi>
   ): RecognizedString {
     const json = JsonRpcTypes.Error(
-      payload && payload.id ? payload.id : null,
+      payload && payload.id ? payload.id : undefined,
       error
     );
     return JSON.stringify(json);

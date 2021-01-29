@@ -23,26 +23,38 @@ interface SignatureConfig {
   };
 }
 
-class Signature
-  extends SerializableObject<SignatureConfig>
-  implements DeserializedObject<SignatureConfig> {
-  get config(): Definitions<SignatureConfig> {
+type C = SignatureConfig;
+
+class Signature extends SerializableObject<C> implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       type: {
+        deserializedName: "type",
         serializedName: "Type",
         defaultValue: SigType.SigTypeUnknown
       },
       data: {
+        deserializedName: "data",
         serializedName: "Data",
-        defaultValue: Buffer.from([0])
+        defaultValue: literal =>
+          literal ? Buffer.from(literal, "base64") : Buffer.from([0])
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.type = super.initializeValue(this.config.type, options);
+    this.data = super.initializeValue(this.config.data, options);
   }
 
   type: number;
   data: Buffer;
 }
 
-type SerializedSignature = SerializedObject<SignatureConfig>;
+type SerializedSignature = SerializedObject<C>;
 
 export { Signature, SerializedSignature };

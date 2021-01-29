@@ -21,8 +21,8 @@ type StorageMarketDataRefConfig = {
       serializedName: "Root";
     };
     pieceCid: {
-      type: RootCID;
-      serializedType: SerializedRootCID;
+      type: RootCID | null;
+      serializedType: SerializedRootCID | null;
       serializedName: "PieceCid";
     };
     pieceSize: {
@@ -33,36 +33,56 @@ type StorageMarketDataRefConfig = {
   };
 };
 
+type C = StorageMarketDataRefConfig;
+
 class StorageMarketDataRef
-  extends SerializableObject<StorageMarketDataRefConfig>
-  implements DeserializedObject<StorageMarketDataRefConfig> {
-  get config(): Definitions<StorageMarketDataRefConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       transferType: {
+        deserializedName: "transferType",
         serializedName: "TransferType",
         defaultValue: "graphsync"
       },
       root: {
+        deserializedName: "root",
         serializedName: "Root",
         defaultValue: options => new RootCID(options)
       },
       pieceCid: {
+        deserializedName: "pieceCid",
         serializedName: "PieceCid",
         defaultValue: null
       },
       pieceSize: {
+        deserializedName: "pieceSize",
         serializedName: "PieceSize",
         defaultValue: 0
       }
     };
   }
 
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.transferType = super.initializeValue(
+      this.config.transferType,
+      options
+    );
+    this.root = super.initializeValue(this.config.root, options);
+    this.pieceCid = super.initializeValue(this.config.pieceCid, options);
+    this.pieceSize = super.initializeValue(this.config.pieceSize, options);
+  }
+
   transferType: "graphsync";
   root: RootCID;
-  pieceCid: RootCID;
+  pieceCid: RootCID | null;
   pieceSize: 0;
 }
 
-type SerializedStorageMarketDataRef = SerializedObject<StorageMarketDataRefConfig>;
+type SerializedStorageMarketDataRef = SerializedObject<C>;
 
 export { StorageMarketDataRef, SerializedStorageMarketDataRef };

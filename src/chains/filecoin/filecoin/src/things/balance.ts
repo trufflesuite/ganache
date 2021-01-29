@@ -1,5 +1,5 @@
+import { LiteralDefinition, SerializableLiteral } from "./serializable-literal";
 import BN from "bn.js";
-import { SerializableLiteral } from "./serializable-literal";
 
 interface BalanceConfig {
   type: bigint;
@@ -7,16 +7,16 @@ interface BalanceConfig {
 
 // The smallest denomination of FIL is an attoFIL (10^-18 FIL)
 class Balance extends SerializableLiteral<BalanceConfig> {
-  get config() {
+  get config(): LiteralDefinition<BalanceConfig> {
     return {
-      defaultValue: literal => {
-        return literal || 500n * 1000000000000000000n;
-      }
+      defaultValue: options =>
+        options ? BigInt(options) : 500n * 1000000000000000000n
     };
   }
 
   sub(val: string | number | bigint): Balance {
-    return new Balance(this.value - BigInt(val));
+    const newBalance = this.value - BigInt(val);
+    return new Balance(newBalance.toString(10));
   }
 
   toFIL(): number {

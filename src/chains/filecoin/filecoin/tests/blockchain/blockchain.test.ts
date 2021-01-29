@@ -76,7 +76,7 @@ describe("Blockchain", () => {
 
         let latest: Tipset = blockchain.latestTipset();
 
-        assert.strictEqual(latest.height, 3);
+        assert(latest.height === 3 || latest.height === 4);
       } finally {
         blockchain.stop();
       }
@@ -144,7 +144,7 @@ describe("Blockchain", () => {
 
       await blockchain.waitForReady();
 
-      let result = await blockchain.ipfs.add("some data");
+      let result = await blockchain.ipfs!.add("some data");
 
       let proposal = new StartDealParams({
         data: new StorageMarketDataRef({
@@ -160,7 +160,7 @@ describe("Blockchain", () => {
         minBlocksDuration: 300
       });
 
-      let { "/": proposalCid } = await blockchain.startDeal(proposal);
+      let { root: proposalCid } = await blockchain.startDeal(proposal);
 
       // First state should be validating
       assert.strictEqual(
@@ -197,7 +197,7 @@ describe("Blockchain", () => {
       // The deal should still be considered in process, since it's still sealing
       assert.strictEqual(blockchain.inProcessDeals.length, 1);
       assert.strictEqual(
-        blockchain.inProcessDeals[0].proposalCid["/"].value,
+        blockchain.inProcessDeals[0].proposalCid.root.value,
         proposalCid.value
       );
 
@@ -228,7 +228,7 @@ describe("Blockchain", () => {
 
       await blockchain.waitForReady();
 
-      let result = await blockchain.ipfs.add("some data");
+      let result = await blockchain.ipfs!.add("some data");
 
       let proposal = new StartDealParams({
         data: new StorageMarketDataRef({
@@ -244,7 +244,7 @@ describe("Blockchain", () => {
         minBlocksDuration: 300
       });
 
-      let { "/": proposalCid } = await blockchain.startDeal(proposal);
+      let { root: proposalCid } = await blockchain.startDeal(proposal);
 
       // Since we're automining, starting the deal will trigger
       // the state to be state to be set to active.

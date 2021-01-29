@@ -66,7 +66,7 @@
     "ipld-dag-cbor": "0.16.0",
     "lodash.clonedeep": "4.5.0",
     "mocha": "8.0.1",
-    "multicodec": "1.0.4",
+    "multicodec": "2.1.0",
     "multihashing": "0.3.3",
     "noble-bls12-381": "0.4.3",
     "seedrandom": "3.0.5"
@@ -74,7 +74,9 @@
   "devDependencies": {
     "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",
     "@filecoin-shipyard/lotus-client-rpc": "0.0.11",
+    "@types/deep-equal": "1.0.1",
     "@types/lodash.clonedeep": "4.5.6",
+    "@types/seedrandom": "2.4.28",
     "@types/ws": "7.4.0",
     "cross-env": "7.0.2",
     "nyc": "15.1.0",

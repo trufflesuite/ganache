@@ -29,22 +29,25 @@ interface TipsetConfig {
   };
 }
 
-class Tipset
-  extends SerializableObject<TipsetConfig>
-  implements DeserializedObject<TipsetConfig> {
-  get config(): Definitions<TipsetConfig> {
+type C = TipsetConfig;
+
+class Tipset extends SerializableObject<C> implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       cids: {
+        deserializedName: "cids",
         serializedName: "Cids",
-        defaultValue: (options = []) =>
-          options.map(rootCid => new RootCID(rootCid))
+        defaultValue: options =>
+          options ? options.map(rootCid => new RootCID(rootCid)) : []
       },
       blocks: {
+        deserializedName: "blocks",
         serializedName: "Blocks",
-        defaultValue: (options = []) =>
-          options.map(block => new BlockHeader(block))
+        defaultValue: options =>
+          options ? options.map(block => new BlockHeader(block)) : []
       },
       height: {
+        deserializedName: "height",
         serializedName: "Height",
         defaultValue: 0
       }
@@ -52,18 +55,20 @@ class Tipset
   }
 
   constructor(
-    options?:
-      | Partial<SerializedObject<TipsetConfig>>
-      | Partial<DeserializedObject<TipsetConfig>>
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
   ) {
-    super(options);
+    super();
+
+    this.cids = super.initializeValue(this.config.cids, options);
+    this.blocks = super.initializeValue(this.config.blocks, options);
+    this.height = super.initializeValue(this.config.height, options);
 
     // Calculate Cid's if not specified
-    if (this.cids.length == 0) {
+    if (this.cids.length === 0) {
       for (const block of this.blocks) {
         this.cids.push(
           new RootCID({
-            "/": block.cid
+            root: block.cid
           })
         );
       }
@@ -81,6 +86,6 @@ class Tipset
   height: number;
 }
 
-type SerializedTipset = SerializedObject<TipsetConfig>;
+type SerializedTipset = SerializedObject<C>;
 
 export { Tipset, SerializedTipset };

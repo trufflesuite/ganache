@@ -2,7 +2,9 @@
   "extends": "../../../../tsconfig.json",
   "compilerOptions": {
     "outDir": "lib",
-    "composite": true
+    "composite": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true
   },
   "include": ["index.ts", "src"],
   "references": [

@@ -27,7 +27,7 @@ describe("api", () => {
       let numTipsetsReceived = 0;
 
       it("should receive updates for new tipsets", async () => {
-        const subscription = await client.chainNotify(changes => {
+        const subscription = await client.chainNotify((_changes: any) => {
           numTipsetsReceived++;
         });
 
@@ -59,7 +59,7 @@ describe("api", () => {
       it("should cancel subscription via RPC method", async () => {
         numTipsetsReceived = 0;
 
-        const subscription = await client.chainNotify(changes => {
+        const subscription = await client.chainNotify((_changes: any) => {
           numTipsetsReceived++;
         });
 

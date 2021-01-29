@@ -58,41 +58,76 @@ type DataTransferChannelConfig = {
   };
 };
 
+type C = DataTransferChannelConfig;
+
 class DataTransferChannel
-  extends SerializableObject<DataTransferChannelConfig>
-  implements DeserializedObject<DataTransferChannelConfig> {
-  get config(): Definitions<DataTransferChannelConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       transferId: {
-        serializedName: "TransferID"
+        deserializedName: "transferId",
+        serializedName: "TransferID",
+        defaultValue: 0
       },
       status: {
-        serializedName: "Status"
+        deserializedName: "status",
+        serializedName: "Status",
+        defaultValue: 0
       },
       baseCID: {
+        deserializedName: "baseCID",
         serializedName: "BaseCID",
         defaultValue: options =>
           options ? new RootCID(options) : new RootCID({ "/": "Unknown" })
       },
       isInitiator: {
-        serializedName: "IsInitiator"
+        deserializedName: "isInitiator",
+        serializedName: "IsInitiator",
+        defaultValue: false
       },
       isSender: {
-        serializedName: "IsSender"
+        deserializedName: "isSender",
+        serializedName: "IsSender",
+        defaultValue: false
       },
       voucher: {
-        serializedName: "Voucher"
+        deserializedName: "voucher",
+        serializedName: "Voucher",
+        defaultValue: ""
       },
       message: {
-        serializedName: "Message"
+        deserializedName: "message",
+        serializedName: "Message",
+        defaultValue: ""
       },
       otherPeer: {
-        serializedName: "OtherPeer"
+        deserializedName: "otherPeer",
+        serializedName: "OtherPeer",
+        defaultValue: ""
       },
       transferred: {
-        serializedName: "Transferred"
+        deserializedName: "transferred",
+        serializedName: "Transferred",
+        defaultValue: 0
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.transferId = super.initializeValue(this.config.transferId, options);
+    this.status = super.initializeValue(this.config.status, options);
+    this.baseCID = super.initializeValue(this.config.baseCID, options);
+    this.isInitiator = super.initializeValue(this.config.isInitiator, options);
+    this.isSender = super.initializeValue(this.config.isSender, options);
+    this.voucher = super.initializeValue(this.config.voucher, options);
+    this.message = super.initializeValue(this.config.message, options);
+    this.otherPeer = super.initializeValue(this.config.otherPeer, options);
+    this.transferred = super.initializeValue(this.config.transferred, options);
   }
 
   transferId: number;
@@ -106,6 +141,6 @@ class DataTransferChannel
   transferred: number;
 }
 
-type SerializedDataTransferChannel = SerializedObject<DataTransferChannelConfig>;
+type SerializedDataTransferChannel = SerializedObject<C>;
 
 export { DataTransferChannel, SerializedDataTransferChannel };

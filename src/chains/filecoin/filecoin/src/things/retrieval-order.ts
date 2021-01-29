@@ -64,49 +64,87 @@ type RetrievalOrderConfig = {
   };
 };
 
+type C = RetrievalOrderConfig;
+
 class RetrievalOrder
-  extends SerializableObject<RetrievalOrderConfig>
-  implements DeserializedObject<RetrievalOrderConfig> {
-  get config(): Definitions<RetrievalOrderConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       root: {
+        deserializedName: "root",
         serializedName: "Root",
         defaultValue: options => new RootCID(options)
       },
       piece: {
+        deserializedName: "piece",
         serializedName: "Piece",
         defaultValue: options => new RootCID(options)
       },
       size: {
-        serializedName: "Size"
+        deserializedName: "size",
+        serializedName: "Size",
+        defaultValue: 0
       },
       total: {
-        serializedName: "Total"
+        deserializedName: "total",
+        serializedName: "Total",
+        defaultValue: literal => (literal ? BigInt(literal) : 0n)
       },
       unsealPrice: {
-        serializedName: "UnsealPrice"
+        deserializedName: "unsealPrice",
+        serializedName: "UnsealPrice",
+        defaultValue: literal => (literal ? BigInt(literal) : 0n)
       },
       paymentInterval: {
+        deserializedName: "paymentInterval",
         serializedName: "PaymentInterval",
         defaultValue: 1048576
       },
       paymentIntervalIncrease: {
+        deserializedName: "paymentIntervalIncrease",
         serializedName: "PaymentIntervalIncrease",
         defaultValue: 1048576
       },
       client: {
+        deserializedName: "client",
         serializedName: "Client",
         defaultValue: "t02000"
       },
       miner: {
+        deserializedName: "miner",
         serializedName: "Miner",
         defaultValue: "t01000"
       },
       minerPeer: {
+        deserializedName: "minerPeer",
         serializedName: "MinerPeer",
         defaultValue: options => new RetrievalPeer(options)
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.root = super.initializeValue(this.config.root, options);
+    this.piece = super.initializeValue(this.config.piece, options);
+    this.size = super.initializeValue(this.config.size, options);
+    this.total = super.initializeValue(this.config.total, options);
+    this.unsealPrice = super.initializeValue(this.config.unsealPrice, options);
+    this.paymentInterval = super.initializeValue(
+      this.config.paymentInterval,
+      options
+    );
+    this.paymentIntervalIncrease = super.initializeValue(
+      this.config.paymentIntervalIncrease,
+      options
+    );
+    this.client = super.initializeValue(this.config.client, options);
+    this.miner = super.initializeValue(this.config.miner, options);
+    this.minerPeer = super.initializeValue(this.config.minerPeer, options);
   }
 
   root: RootCID;
@@ -121,6 +159,6 @@ class RetrievalOrder
   minerPeer: RetrievalPeer;
 }
 
-type SerializedRetrievalOrder = SerializedObject<RetrievalOrderConfig>;
+type SerializedRetrievalOrder = SerializedObject<C>;
 
 export { RetrievalOrder, SerializedRetrievalOrder };

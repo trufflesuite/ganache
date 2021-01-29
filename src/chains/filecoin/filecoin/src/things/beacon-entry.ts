@@ -22,26 +22,40 @@ interface BeaconEntryConfig {
   };
 }
 
+type C = BeaconEntryConfig;
+
 class BeaconEntry
-  extends SerializableObject<BeaconEntryConfig>
-  implements DeserializedObject<BeaconEntryConfig> {
-  get config(): Definitions<BeaconEntryConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       round: {
+        deserializedName: "round",
         serializedName: "Round",
         defaultValue: 0
       },
       data: {
+        deserializedName: "data",
         serializedName: "Data",
-        defaultValue: Buffer.from([0])
+        defaultValue: literal =>
+          literal ? Buffer.from(literal, "base64") : Buffer.from([0])
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.round = super.initializeValue(this.config.round, options);
+    this.data = super.initializeValue(this.config.data, options);
   }
 
   round: number;
   data: Buffer;
 }
 
-type SerializedBeaconEntry = SerializedObject<BeaconEntryConfig>;
+type SerializedBeaconEntry = SerializedObject<C>;
 
 export { BeaconEntry, SerializedBeaconEntry };

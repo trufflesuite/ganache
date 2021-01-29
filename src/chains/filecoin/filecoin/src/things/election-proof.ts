@@ -22,26 +22,40 @@ interface ElectionProofConfig {
   };
 }
 
+type C = ElectionProofConfig;
+
 class ElectionProof
-  extends SerializableObject<ElectionProofConfig>
-  implements DeserializedObject<ElectionProofConfig> {
-  get config(): Definitions<ElectionProofConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       winCount: {
+        deserializedName: "winCount",
         serializedName: "WinCount",
         defaultValue: 1
       },
       vrfProof: {
+        deserializedName: "vrfProof",
         serializedName: "VRFProof",
-        defaultValue: Buffer.from([0])
+        defaultValue: literal =>
+          literal ? Buffer.from(literal, "base64") : Buffer.from([0])
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.winCount = super.initializeValue(this.config.winCount, options);
+    this.vrfProof = super.initializeValue(this.config.vrfProof, options);
   }
 
   winCount: number;
   vrfProof: Buffer;
 }
 
-type SerializedElectionProof = SerializedObject<ElectionProofConfig>;
+type SerializedElectionProof = SerializedObject<C>;
 
 export { ElectionProof, SerializedElectionProof };

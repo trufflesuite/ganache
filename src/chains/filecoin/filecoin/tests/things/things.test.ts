@@ -20,14 +20,14 @@ describe("things", () => {
       // Note that the CID is defined as an object, which makes the type of data
       // passed into the constructor a deserialized object
       let rootCidFromDeserializedData = new RootCID({
-        "/": new CID(
+        root: new CID(
           "badvu4qhg4y390tu5i4ongi9t2vdf429cl7kp7tcsnbas1f5d66zeb4q30mbsl"
         )
       });
 
       assert.strictEqual(
-        rootCidFromSerializedData["/"].value,
-        rootCidFromDeserializedData["/"].value
+        rootCidFromSerializedData.root.value,
+        rootCidFromDeserializedData.root.value
       );
 
       // Now let's try a more complex one that has different keys and includes arrays
@@ -45,7 +45,7 @@ describe("things", () => {
       let tipsetFromDeserializedData = new Tipset({
         cids: [
           new RootCID({
-            "/": new CID(
+            root: new CID(
               "badvu4qhg4y390tu5i4ongi9t2vdf429cl7kp7tcsnbas1f5d66zeb4q30mbsl"
             )
           })
@@ -55,8 +55,8 @@ describe("things", () => {
       });
 
       assert.strictEqual(
-        tipsetFromSerializedData.cids[0]["/"].value,
-        tipsetFromDeserializedData.cids[0]["/"].value
+        tipsetFromSerializedData.cids[0].root.value,
+        tipsetFromDeserializedData.cids[0].root.value
       );
     });
   });
@@ -72,7 +72,7 @@ describe("things", () => {
     });
 
     it("will error if no value is passed into the constructor", async () => {
-      let error: Error;
+      let error: Error | undefined;
 
       try {
         new CID();
@@ -85,7 +85,7 @@ describe("things", () => {
         "undefined",
         "Expected CID constructor to throw an error on empty value!"
       );
-      assert.strictEqual(error.message, "A value is required for class CID");
+      assert.strictEqual(error!.message, "A value is required for class CID");
     });
   });
 
@@ -102,11 +102,11 @@ describe("things", () => {
       assert.strictEqual(block.parentWeight, 0n);
 
       // The below verifies these CIDs point to 0
-      let cid = new IPFSCid(block.parentStateRoot["/"].value);
+      let cid = new IPFSCid(block.parentStateRoot.root.value);
       assert(multihashing.verify(cid.multihash, Buffer.from([0])));
-      cid = new IPFSCid(block.parentMessageReceipts["/"].value);
+      cid = new IPFSCid(block.parentMessageReceipts.root.value);
       assert(multihashing.verify(cid.multihash, Buffer.from([0])));
-      cid = new IPFSCid(block.messages["/"].value);
+      cid = new IPFSCid(block.messages.root.value);
       assert(multihashing.verify(cid.multihash, Buffer.from([0])));
 
       assert.strictEqual(block.height, 0);
@@ -124,7 +124,7 @@ describe("things", () => {
       const expectedAddress =
         "t3vc4eetfk32n3tv5z55p73a2vm32pwxnqgr3jmpf7ssnwff6yh34bjc4vvarzivian5advbmvpmgw7ijxrboa";
 
-      let address = new Address(privateKey);
+      const address = Address.fromPrivateKey(privateKey);
 
       assert.strictEqual(address.value, expectedAddress);
     });

@@ -29,7 +29,6 @@ export default class Blockchain extends Emittery.Typed<
   readonly tipsets: Array<Tipset> = [];
   readonly miner: string; // using string until we can support more address types in Address
   readonly address: Address;
-  readonly privateKey: string;
 
   #balance: Balance;
   get balance(): Balance {
@@ -43,7 +42,7 @@ export default class Blockchain extends Emittery.Typed<
   readonly options: FilecoinInternalOptions;
 
   private ipfsServer: IPFSServer;
-  private miningTimeout: NodeJS.Timeout;
+  private miningTimeout: NodeJS.Timeout | null;
   private rng: RandomNumberGenerator;
 
   private ready: boolean;
@@ -81,25 +80,27 @@ export default class Blockchain extends Emittery.Typed<
       })
     );
 
+    // Create the IPFS server
+    this.ipfsServer = new IPFSServer(this.options.chain.ipfsPort);
+
+    // Fire up the miner if necessary
+    if (this.options.miner.blockTime > 0) {
+      const intervalMine = () => {
+        this.mineTipset();
+      };
+
+      this.miningTimeout = setInterval(
+        intervalMine,
+        this.options.miner.blockTime * 1000
+      );
+
+      utils.unref(this.miningTimeout);
+    } else {
+      this.miningTimeout = null;
+    }
+
     setTimeout(async () => {
-      // Create the IPFS server
-      this.ipfsServer = new IPFSServer(this.options.chain.ipfsPort);
-
       await this.ipfsServer.start();
-
-      // Fire up the miner if necessary
-      if (this.options.miner.blockTime > 0) {
-        const intervalMine = () => {
-          this.mineTipset();
-        };
-
-        this.miningTimeout = setInterval(
-          intervalMine,
-          this.options.miner.blockTime * 1000
-        );
-
-        utils.unref(this.miningTimeout);
-      }
 
       // Get this party started!
       this.ready = true;
@@ -124,11 +125,13 @@ export default class Blockchain extends Emittery.Typed<
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
   async stop() {
-    clearInterval(this.miningTimeout);
+    if (this.miningTimeout) {
+      clearInterval(this.miningTimeout);
+    }
     await this.ipfsServer.stop();
   }
 
-  get ipfs(): IPFSNode {
+  get ipfs(): IPFSNode | null {
     return this.ipfsServer.node;
   }
 
@@ -187,6 +190,10 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   async hasLocal(cid: string): Promise<boolean> {
+    if (!this.ipfsServer.node) {
+      return false;
+    }
+
     try {
       // This stat will fail if the object doesn't exist.
       await this.ipfsServer.node.object.stat(cid, {
@@ -199,6 +206,10 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   private async getIPFSObjectSize(cid: string): Promise<number> {
+    if (!this.ipfsServer.node) {
+      return 0;
+    }
+
     let stat = await this.ipfsServer.node.object.stat(cid, {
       timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
     });
@@ -208,7 +219,7 @@ export default class Blockchain extends Emittery.Typed<
 
   async startDeal(proposal: StartDealParams): Promise<RootCID> {
     // Get size of IPFS object represented by the proposal
-    let size = await this.getIPFSObjectSize(proposal.data.root["/"].value);
+    let size = await this.getIPFSObjectSize(proposal.data.root.root.value);
 
     let signature = await this.address.signProposal(proposal);
 
@@ -220,7 +231,7 @@ export default class Blockchain extends Emittery.Typed<
 
     let deal = new DealInfo({
       proposalCid: new RootCID({
-        "/": proposalCid
+        root: proposalCid
       }),
       state: StorageDealStatus.Validating, // Not sure if this is right, but we'll start here
       message: "",
@@ -255,7 +266,7 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   async createQueryOffer(rootCid: RootCID): Promise<QueryOffer> {
-    let size = await this.getIPFSObjectSize(rootCid["/"].value);
+    let size = await this.getIPFSObjectSize(rootCid.root.value);
 
     return new QueryOffer({
       root: rootCid,
@@ -272,10 +283,10 @@ export default class Blockchain extends Emittery.Typed<
     // we have the content locally in our IPFS server, and error if it
     // doesn't exist.
 
-    let hasLocal: boolean = await this.hasLocal(retrievalOrder.root["/"].value);
+    let hasLocal: boolean = await this.hasLocal(retrievalOrder.root.root.value);
 
     if (!hasLocal) {
-      throw new Error(`Object not found: ${retrievalOrder.root["/"].value}`);
+      throw new Error(`Object not found: ${retrievalOrder.root.root.value}`);
     }
 
     this.#balance = this.#balance.sub(retrievalOrder.total);
@@ -286,7 +297,7 @@ export default class Blockchain extends Emittery.Typed<
     let tipset = this.latestTipset();
 
     this.options.logging.logger.log(
-      `${date} INFO New heaviest tipset! [${tipset.cids[0]["/"].value}] (height=${tipset.height})`
+      `${date} INFO New heaviest tipset! [${tipset.cids[0].root.value}] (height=${tipset.height})`
     );
   }
 }

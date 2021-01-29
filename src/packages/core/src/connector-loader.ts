@@ -20,7 +20,7 @@ export default {
     //   for that (yet), instead of "all" (0) or just 1 as we are doing here:
     const asyncRequestProcessing =
       "chain" in providerOptions
-        ? providerOptions.chain.asyncRequestProcessing
+        ? providerOptions.chain!.asyncRequestProcessing
         : (providerOptions as any).asyncRequestProcessing;
     const requestCoordinator = new utils.RequestCoordinator(
       asyncRequestProcessing ? 0 : 1

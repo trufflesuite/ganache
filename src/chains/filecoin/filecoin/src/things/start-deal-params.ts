@@ -20,8 +20,8 @@ type StartDealParamsConfig = {
       serializedName: "Data";
     };
     wallet: {
-      type: Address;
-      serializedType: SerializedAddress;
+      type: Address | null;
+      serializedType: SerializedAddress | null;
       serializedName: "Wallet";
     };
     miner: {
@@ -62,47 +62,94 @@ type StartDealParamsConfig = {
   };
 };
 
+type C = StartDealParamsConfig;
+
 class StartDealParams
-  extends SerializableObject<StartDealParamsConfig>
-  implements DeserializedObject<StartDealParamsConfig> {
-  get config(): Definitions<StartDealParamsConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       data: {
+        deserializedName: "data",
         serializedName: "Data",
         defaultValue: options => new StorageMarketDataRef(options)
       },
       wallet: {
-        serializedName: "Wallet"
+        deserializedName: "wallet",
+        serializedName: "Wallet",
+        defaultValue: options => (options ? new Address(options) : null)
       },
       miner: {
+        deserializedName: "miner",
         serializedName: "Miner",
         defaultValue: "t01000"
       },
       epochPrice: {
+        deserializedName: "epochPrice",
         serializedName: "EpochPrice",
-        defaultValue: 2500n
+        defaultValue: literal => (literal ? BigInt(literal) : 2500n)
       },
       minBlocksDuration: {
+        deserializedName: "minBlocksDuration",
         serializedName: "MinBlocksDuration",
         defaultValue: 300
       },
       providerCollateral: {
-        serializedName: "ProviderCollateral"
+        deserializedName: "providerCollateral",
+        serializedName: "ProviderCollateral",
+        defaultValue: literal => (literal ? BigInt(literal) : 0n)
       },
       dealStartEpoch: {
-        serializedName: "dealStartEpoch"
+        deserializedName: "dealStartEpoch",
+        serializedName: "dealStartEpoch",
+        defaultValue: 0
       },
       fastRetrieval: {
-        serializedName: "FastRetrieval"
+        deserializedName: "fastRetrieval",
+        serializedName: "FastRetrieval",
+        defaultValue: false
       },
       verifiedDeal: {
-        serializedName: "VerifiedDeal"
+        deserializedName: "verifiedDeal",
+        serializedName: "VerifiedDeal",
+        defaultValue: false
       }
     };
   }
 
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.data = super.initializeValue(this.config.data, options);
+    this.wallet = super.initializeValue(this.config.wallet, options);
+    this.miner = super.initializeValue(this.config.miner, options);
+    this.epochPrice = super.initializeValue(this.config.epochPrice, options);
+    this.minBlocksDuration = super.initializeValue(
+      this.config.minBlocksDuration,
+      options
+    );
+    this.providerCollateral = super.initializeValue(
+      this.config.providerCollateral,
+      options
+    );
+    this.dealStartEpoch = super.initializeValue(
+      this.config.dealStartEpoch,
+      options
+    );
+    this.fastRetrieval = super.initializeValue(
+      this.config.fastRetrieval,
+      options
+    );
+    this.verifiedDeal = super.initializeValue(
+      this.config.verifiedDeal,
+      options
+    );
+  }
+
   data: StorageMarketDataRef;
-  wallet: Address;
+  wallet: Address | null;
   miner: string;
   epochPrice: bigint;
   minBlocksDuration: number;
@@ -112,6 +159,6 @@ class StartDealParams
   verifiedDeal: boolean;
 }
 
-type SerializedStartDealParams = SerializedObject<StartDealParamsConfig>;
+type SerializedStartDealParams = SerializedObject<C>;
 
 export { StartDealParams, SerializedStartDealParams };

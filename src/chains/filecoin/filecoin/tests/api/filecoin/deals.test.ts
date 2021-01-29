@@ -27,7 +27,9 @@ describe("api", () => {
     });
 
     after(async () => {
-      await provider.stop();
+      if (provider) {
+        await provider.stop();
+      }
     });
 
     describe("Filecoin.ClientStartDeal and Filecoin.ClientListDeals", () => {
@@ -56,7 +58,7 @@ describe("api", () => {
             }),
             pieceSize: 0
           }),
-          wallet: address,
+          Wallet: address,
           miner: miners[0],
           epochPrice: 2500n,
           minBlocksDuration: 300
@@ -108,6 +110,7 @@ describe("api", () => {
         offer = offers[0];
 
         assert.ok(offer);
+        assert.strictEqual(offer.Root["/"], result.path);
         assert.strictEqual(offer.Size, expectedSize);
         assert.strictEqual(offer.MinPrice, expectedMinPrice);
 
@@ -164,7 +167,7 @@ describe("api", () => {
           }
         };
 
-        let error: Error;
+        let error: Error | undefined;
 
         try {
           await client.clientRetrieve(madeUpOrder);
@@ -177,7 +180,7 @@ describe("api", () => {
           "undefined",
           "Expected ClientRetrieve to throw an error!"
         );
-        assert(error.message.indexOf("Object not found") >= 0);
+        assert(error!.message.indexOf("Object not found") >= 0);
 
         let hasLocal = await client.clientHasLocal({ "/": cidIMadeUp });
 

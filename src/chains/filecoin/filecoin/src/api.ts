@@ -100,7 +100,7 @@ export default class FilecoinApi implements types.Api {
 
     // There currently isn't an unsubscribe method,
     // but it would go here
-    this.#subscriptions.set(subscriptionId.toString(), unsubscribe);
+    this.#subscriptions.set(subscriptionId.toString()!, unsubscribe);
 
     promiEvent.emit("message", {
       type: SubscriptionMethod.ChannelUpdated,

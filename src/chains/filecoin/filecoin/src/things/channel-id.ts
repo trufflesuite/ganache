@@ -27,21 +27,37 @@ type ChannelIDConfig = {
   };
 };
 
-class ChannelID
-  extends SerializableObject<ChannelIDConfig>
-  implements DeserializedObject<ChannelIDConfig> {
-  get config(): Definitions<ChannelIDConfig> {
+type C = ChannelIDConfig;
+
+class ChannelID extends SerializableObject<C> implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       initiator: {
-        serializedName: "Initiator"
+        deserializedName: "initiator",
+        serializedName: "Initiator",
+        defaultValue: ""
       },
       responder: {
-        serializedName: "Responder"
+        deserializedName: "responder",
+        serializedName: "Responder",
+        defaultValue: ""
       },
       id: {
-        serializedName: "ID"
+        deserializedName: "id",
+        serializedName: "ID",
+        defaultValue: 0
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.initiator = super.initializeValue(this.config.initiator, options);
+    this.responder = super.initializeValue(this.config.responder, options);
+    this.id = super.initializeValue(this.config.id, options);
   }
 
   initiator: string;
@@ -49,6 +65,6 @@ class ChannelID
   id: number;
 }
 
-type SerializedChannelID = SerializedObject<ChannelIDConfig>;
+type SerializedChannelID = SerializedObject<C>;
 
 export { ChannelID, SerializedChannelID };

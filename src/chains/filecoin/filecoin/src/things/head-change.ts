@@ -23,16 +23,20 @@ interface HeadChangeConfig {
   };
 }
 
+type C = HeadChangeConfig;
+
 class HeadChange
-  extends SerializableObject<HeadChangeConfig>
-  implements DeserializedObject<HeadChangeConfig> {
-  get config(): Definitions<HeadChangeConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       type: {
+        deserializedName: "type",
         serializedName: "Type",
-        defaultValue: (options = HeadChangeType.HCCurrent) => options
+        defaultValue: options => options || HeadChangeType.HCCurrent
       },
       val: {
+        deserializedName: "val",
         serializedName: "Val",
         defaultValue: options => new Tipset(options)
       }
@@ -40,18 +44,19 @@ class HeadChange
   }
 
   constructor(
-    options?:
-      | Partial<SerializedObject<HeadChangeConfig>>
-      | Partial<DeserializedObject<HeadChangeConfig>>
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
   ) {
-    super(options);
+    super();
+
+    this.type = super.initializeValue(this.config.type, options);
+    this.val = super.initializeValue(this.config.val, options);
   }
 
   type: string;
   val: Tipset;
 }
 
-type SerializedHeadChange = SerializedObject<HeadChangeConfig>;
+type SerializedHeadChange = SerializedObject<C>;
 
 // Retrieved these from https://git.io/Jtvke
 export enum HeadChangeType {
