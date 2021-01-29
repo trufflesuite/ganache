@@ -160,8 +160,7 @@ process.stdout.write(`${COLORS.Reset}`);
       scripts: {
         tsc: `ts-node ${relativePathToRoot}scripts/lerna-run.sh ttsc --project _PACKAGEDIR_/tsconfig.json`,
         test: "nyc npm run mocha",
-        mocha:
-          "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+        mocha: `cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true ts-node ${relativePathToRoot}scripts/lerna-mocha.ts --require ts-node/register '_PACKAGEDIR_/tests/**/*.test.ts'`
       },
       bugs: {
         url: "https://github.com/trufflesuite/ganache-core/issues"
