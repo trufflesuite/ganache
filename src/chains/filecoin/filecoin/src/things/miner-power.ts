@@ -29,24 +29,39 @@ type MinerPowerConfig = {
   };
 };
 
+type C = MinerPowerConfig;
+
 class MinerPower
-  extends SerializableObject<MinerPowerConfig>
-  implements DeserializedObject<MinerPowerConfig> {
-  get config(): Definitions<MinerPowerConfig> {
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C> {
     return {
       minerPower: {
+        deserializedName: "minerPower",
         serializedName: "MinerPower",
         defaultValue: options => new PowerClaim(options)
       },
       totalPower: {
+        deserializedName: "totalPower",
         serializedName: "TotalPower",
         defaultValue: options => new PowerClaim(options)
       },
       hasMinPower: {
+        deserializedName: "hasMinPower",
         serializedName: "HasMinPower",
         defaultValue: false
       }
     };
+  }
+
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ) {
+    super();
+
+    this.minerPower = super.initializeValue(this.config.minerPower, options);
+    this.totalPower = super.initializeValue(this.config.totalPower, options);
+    this.hasMinPower = super.initializeValue(this.config.hasMinPower, options);
   }
 
   minerPower: PowerClaim;
@@ -54,6 +69,6 @@ class MinerPower
   hasMinPower: boolean;
 }
 
-type SerializedMinerPower = SerializedObject<MinerPowerConfig>;
+type SerializedMinerPower = SerializedObject<C>;
 
 export { MinerPower, SerializedMinerPower };
