@@ -1,6 +1,6 @@
 import Emittery from "emittery";
 import Blockchain from "./blockchain";
-import { utils } from "@ganache/utils";
+import { JsonRpcTypes, utils } from "@ganache/utils";
 import { Data, Quantity } from "@ganache/utils";
 import {
   Transaction,
@@ -8,7 +8,6 @@ import {
   INTRINSIC_GAS_TOO_LOW,
   NONCE_TOO_LOW,
   CodedError,
-  ErrorCodes,
   Executables
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -65,7 +64,10 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     if (secretKey == null || transaction.nonce.length !== 0) {
       transactionNonce = Quantity.from(transaction.nonce).toBigInt() || 0n;
       if (transactionNonce < 0n) {
-        throw new CodedError(NONCE_TOO_LOW, ErrorCodes.INVALID_INPUT);
+        throw new CodedError(
+          NONCE_TOO_LOW,
+          JsonRpcTypes.ErrorCode.INVALID_INPUT
+        );
       }
     }
 
@@ -140,13 +142,13 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
               "rejected",
               new CodedError(
                 "Transaction replaced by better transaction",
-                ErrorCodes.TRANSACTION_REJECTED
+                JsonRpcTypes.ErrorCode.TRANSACTION_REJECTED
               )
             );
           } else {
             throw new CodedError(
               "replacement transaction underpriced",
-              ErrorCodes.TRANSACTION_REJECTED
+              JsonRpcTypes.ErrorCode.TRANSACTION_REJECTED
             );
           }
         }
@@ -310,13 +312,16 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   readonly #validateTransaction = (transaction: Transaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
     if (Quantity.from(transaction.gasLimit) > this.#options.blockGasLimit) {
-      return new CodedError(GAS_LIMIT, ErrorCodes.INVALID_INPUT);
+      return new CodedError(GAS_LIMIT, JsonRpcTypes.ErrorCode.INVALID_INPUT);
     }
 
     // Should supply enough intrinsic gas
     const gas = transaction.calculateIntrinsicGas();
     if (gas === -1n || Quantity.from(transaction.gasLimit).toBigInt() < gas) {
-      return new CodedError(INTRINSIC_GAS_TOO_LOW, ErrorCodes.INVALID_INPUT);
+      return new CodedError(
+        INTRINSIC_GAS_TOO_LOW,
+        JsonRpcTypes.ErrorCode.INVALID_INPUT
+      );
     }
 
     return null;
