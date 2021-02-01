@@ -9,11 +9,6 @@ import {
 } from "./serializable-object";
 import { PoStProof, SerializedPoStProof } from "./post-proof";
 import { RootCID, SerializedRootCID } from "./root-cid";
-import { CID } from "./cid";
-import cbor from "borc";
-import { CID as IPFS_CID } from "ipfs";
-import multihashing from "multihashing";
-import multicodec from "multicodec";
 import { SerializedSignature, Signature } from "./signature";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#BlockHeader
@@ -270,20 +265,6 @@ class BlockHeader
   blockSignature: Signature;
   forkSignaling: 0 | 1;
   parentBaseFee: bigint;
-
-  get cid(): CID {
-    // We could have used the ipld-dag-cbor package for the following,
-    // but it was async, which caused a number of issues during object construction.
-    const cborBlockHeader = cbor.encode(this.serialize());
-    const multihash = multihashing(cborBlockHeader, "blake2b-256");
-    const rawCid = new IPFS_CID(
-      1,
-      multicodec.print[multicodec.DAG_CBOR],
-      multihash
-    );
-
-    return new CID(rawCid.toString());
-  }
 }
 
 type SerializedBlockHeader = SerializedObject<BlockHeaderConfig>;

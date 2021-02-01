@@ -21,6 +21,16 @@ import { Account } from "./things/account";
 import Database from "./database";
 import TipsetManager from "./data-managers/tipset-manager";
 import BlockHeaderManager from "./data-managers/block-header-manager";
+import { SignedMessage } from "./things/signed-message";
+import { Message } from "./things/message";
+import { MessageSendSpec } from "./things/message-send-spec";
+import { Address, AddressProtocol } from "./things/address";
+import { Signature } from "./things/signature";
+import { SigType } from "./things/sig-type";
+import { Sema } from "async-sema";
+import SignedMessageManager from "./data-managers/message-manager";
+import BlockMessagesManager from "./data-managers/block-messages-manager";
+import { BlockMessages } from "./things/block-messages";
 import AccountManager from "./data-managers/account-manager";
 import PrivateKeyManager from "./data-managers/private-key-manager";
 
@@ -37,8 +47,13 @@ export default class Blockchain extends Emittery.Typed<
   public blockHeaderManager: BlockHeaderManager | null;
   public accountManager: AccountManager | null;
   public privateKeyManager: PrivateKeyManager | null;
+  public signedMessagesManager: SignedMessageManager | null;
+  public blockMessagesManager: BlockMessagesManager | null;
 
   readonly miner: string; // using string until we can support more address types in Address
+
+  public messagePool: Array<SignedMessage>;
+  readonly #messagePoolLock: Sema;
 
   readonly deals: Array<DealInfo> = [];
   readonly dealsByCid: Record<string, DealInfo> = {};
@@ -62,6 +77,9 @@ export default class Blockchain extends Emittery.Typed<
 
     this.miner = "t01000";
 
+    this.messagePool = [];
+    this.#messagePoolLock = new Sema(1);
+
     this.ready = false;
 
     // Create the IPFS server
@@ -76,6 +94,8 @@ export default class Blockchain extends Emittery.Typed<
     this.blockHeaderManager = null;
     this.accountManager = null;
     this.privateKeyManager = null;
+    this.signedMessagesManager = null;
+    this.blockMessagesManager = null;
 
     this.#database = new Database(options.database);
     this.#database.once("ready").then(async () => {
@@ -92,6 +112,13 @@ export default class Blockchain extends Emittery.Typed<
       this.accountManager = await AccountManager.initialize(
         this.#database.accounts!,
         this.privateKeyManager
+      );
+      this.signedMessagesManager = await SignedMessageManager.initialize(
+        this.#database.signedMessages!
+      );
+      this.blockMessagesManager = await BlockMessagesManager.initialize(
+        this.#database.blockMessages!,
+        this.signedMessagesManager
       );
 
       const controllableAccounts = await this.accountManager.getControllableAccounts();
@@ -215,10 +242,173 @@ export default class Blockchain extends Emittery.Typed<
     return this.tipsetManager.latest;
   }
 
+  // Reference implementation: https://git.io/JtWnk
+  async fillGasInformation(message: Message, spec: MessageSendSpec) {
+    if (message.gasLimit === 0) {
+      // Instead of doing the full gas estimation implementation
+      // (see reference implementation here: https://git.io/JtWZB),
+      // since we're only supporting value transfer messages, let's
+      // hardcode the limit.
+      // Gas usage for value transfers is either:
+      // 491868 or 493168 (1800 more) on filscan.io
+      // or 416268 on lotus-devnet. Since this is a limit, I'm just
+      // rounding up to 525000
+      message.gasLimit = 525000;
+    }
+
+    if (message.gasPremium === 0n) {
+      // Reference implementation: https://git.io/JtWnm
+      // Since this seems to look at prior prices and try to determine
+      // them from there, and it implies a network coming up with those
+      // prices, I'm just going to use 1 * MinGasPremium (https://git.io/JtWnG)
+      message.gasPremium = 100000n;
+    }
+
+    if (message.gasFeeCap === 0n) {
+      // Reference implementation: https://git.io/JtWn4
+      // This algorithm is also assuming that fees will increase over time
+      // I'm going to keep this one simple for now
+      message.gasFeeCap = message.gasPremium * BigInt(message.gasLimit);
+    }
+
+    // Reference Implementation: https://git.io/JtWng
+    if (spec.maxFee === 0n) {
+      // since the default is to guess network on conditions if 0, we're just going to skip
+      return;
+    } else {
+      const totalFee = BigInt(message.gasLimit) * message.gasFeeCap;
+      if (totalFee <= spec.maxFee) {
+        return;
+      }
+      message.gasFeeCap = spec.maxFee / BigInt(message.gasLimit);
+      message.gasPremium =
+        message.gasFeeCap < message.gasPremium
+          ? message.gasFeeCap
+          : message.gasPremium;
+    }
+  }
+
+  // Reference Implementation: https://git.io/JtWnM
+  async push(message: Message, spec: MessageSendSpec): Promise<SignedMessage> {
+    await this.waitForReady();
+
+    if (message.method !== 0) {
+      throw new Error(
+        `Unsupported Method (${message.method}); only value transfers (Method: 0) are supported in Ganache.`
+      );
+    }
+
+    if (message.nonce !== 0) {
+      throw new Error(
+        `MpoolPushMessage expects message nonce to be 0, was ${message.nonce}`
+      );
+    }
+
+    // the reference implementation doesn't allow
+    // just the address protocol ID, but we're only
+    // going to support BLS for now
+    if (Address.parseProtocol(message.from) !== AddressProtocol.BLS) {
+      throw new Error(
+        "The From address is not a BLS public key; Ganache currently only supports the BLS address protocol"
+      );
+    }
+    if (Address.parseProtocol(message.to) !== AddressProtocol.BLS) {
+      throw new Error(
+        "The To address is not a BLS public key; Ganache currently only supports the BLS address protocol"
+      );
+    }
+
+    await this.fillGasInformation(message, spec);
+
+    await this.#messagePoolLock.acquire();
+
+    const pendingMessagesForAccount = this.messagePool.filter(
+      queuedMessage => queuedMessage.message.from === message.from
+    );
+    const nonceFromPendingMessages = pendingMessagesForAccount.reduce(
+      (nonce, m) => {
+        return Math.max(nonce, m.message.nonce);
+      },
+      0
+    );
+
+    message.nonce = nonceFromPendingMessages + 1;
+
+    // check if enough funds
+    const messageBalanceRequired =
+      message.gasFeeCap * BigInt(message.gasLimit) + message.value;
+    const pendingBalanceRequired = pendingMessagesForAccount.reduce(
+      (balanceSpent, m) => {
+        return (
+          balanceSpent +
+          m.message.gasFeeCap * BigInt(m.message.gasLimit) +
+          m.message.value
+        );
+      },
+      0n
+    );
+    const totalRequired = messageBalanceRequired + pendingBalanceRequired;
+    const account = await this.accountManager!.getAccount(message.from);
+    if (account.balance.value < totalRequired) {
+      throw new Error(
+        `mpool push: not enough funds: ${
+          account.balance.value - pendingBalanceRequired
+        } < ${messageBalanceRequired}`
+      );
+    }
+
+    // sign the message
+    const signature = await account.address.signMessage(message);
+    const signedMessage = new SignedMessage({
+      Message: message.serialize(),
+      Signature: new Signature({
+        type: SigType.SigTypeBLS,
+        data: signature
+      }).serialize()
+    });
+
+    // add to pool
+    await this.pushSigned(signedMessage, false);
+
+    this.#messagePoolLock.release();
+
+    return signedMessage;
+  }
+
+  async pushSigned(
+    signedMessage: SignedMessage,
+    acquireLock: boolean = true
+  ): Promise<RootCID> {
+    // TODO: check funds?
+
+    if (acquireLock) {
+      await this.#messagePoolLock.acquire();
+    }
+
+    this.messagePool.push(signedMessage);
+
+    if (acquireLock) {
+      this.#messagePoolLock.release();
+    }
+
+    return new RootCID({
+      root: signedMessage.cid
+    });
+  }
+
   // Note that this is naive - it always assumes the first block in the
   // previous tipset is the parent of the new blocks.
   async mineTipset(numNewBlocks: number = 1): Promise<void> {
     await this.waitForReady();
+
+    // let's grab the messages going into the next tipset
+    // immediately and clear the message pool for the next tipset
+    await this.#messagePoolLock.acquire();
+    const nextMessagePool: Array<SignedMessage> = ([] as Array<SignedMessage>).concat(
+      this.messagePool
+    );
+    this.messagePool = [];
+    this.#messagePoolLock.release();
 
     let previousTipset: Tipset = this.latestTipset();
     const newTipsetHeight = previousTipset.height + 1;
@@ -238,6 +428,39 @@ export default class Blockchain extends Emittery.Typed<
             BigInt(previousTipset.blocks[0].electionProof.winCount) +
             previousTipset.blocks[0].parentWeight
         })
+      );
+    }
+
+    if (nextMessagePool.length > 0) {
+      const successfulMessages: SignedMessage[] = [];
+      for (const signedMessage of nextMessagePool) {
+        const { from, to, value } = signedMessage.message;
+
+        const successful = await this.accountManager!.transferFunds(
+          from,
+          to,
+          value
+        );
+
+        if (!successful) {
+          // While we should have
+          const fromAccount = await this.accountManager!.getAccount(from);
+          console.warn(
+            `Could not transfer ${value} attoFIL from address ${from} to address ${to} due to lack of funds. ${fromAccount.balance.value} attoFIL available`
+          );
+          continue;
+        }
+
+        // TODO: figure out nonce/error logic
+        await this.accountManager!.incrementNonce(from);
+
+        successfulMessages.push(signedMessage);
+      }
+
+      // TODO: fill newBlocks[0].blsAggregate?
+      await this.blockMessagesManager!.putBlockMessages(
+        newBlocks[0].cid,
+        BlockMessages.fromSignedMessages(successfulMessages)
       );
     }
 
