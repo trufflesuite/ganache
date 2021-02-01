@@ -3,7 +3,7 @@ import EthereumApi from "./api";
 import { JsonRpcTypes, types, utils } from "@ganache/utils";
 import EthereumProvider from "./provider";
 import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
-import { CodedError, ErrorCodes } from "@ganache/ethereum-utils";
+import { CodedError } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,
   EthereumLegacyOptions
@@ -53,7 +53,7 @@ export class Connector
     try {
       return JSON.parse(message) as JsonRpcTypes.Request<EthereumApi>;
     } catch (e) {
-      throw new CodedError(e.message, ErrorCodes.PARSE_ERROR);
+      throw new CodedError(e.message, JsonRpcTypes.ErrorCode.PARSE_ERROR);
     }
   }
 
@@ -85,7 +85,7 @@ export class Connector
         return Promise.reject(
           new CodedError(
             "notifications not supported",
-            ErrorCodes.METHOD_NOT_SUPPORTED
+            JsonRpcTypes.ErrorCode.METHOD_NOT_SUPPORTED
           )
         );
       }
