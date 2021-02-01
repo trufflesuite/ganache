@@ -3,13 +3,13 @@ type JSError = Error;
 
 namespace JsonRpc {
   const jsonrpc = "2.0";
-  type JsonRpc = {
-    readonly id: string;
+  export type JsonRpc = {
+    readonly id: number | string;
     readonly jsonrpc: string;
     toString(): string;
   };
   export type Request<Ledger extends Api> = JsonRpc & {
-    readonly id: string;
+    readonly id: number | string;
     readonly jsonrpc: string;
     readonly method: KnownKeys<Ledger>;
     readonly params?: any[];
@@ -33,15 +33,15 @@ namespace JsonRpc {
       params: json.params
     };
   };
-  export const Response = (id: string, result: any): Response => {
+  export const Response = (id: number | string, result: any): Response => {
     return {
-      id: id,
+      id,
       jsonrpc,
       result
     };
   };
   export const Error = <T extends JSError & { code: number }>(
-    id: string,
+    id: number | string,
     error: T,
     result?: unknown
   ): Error => {
