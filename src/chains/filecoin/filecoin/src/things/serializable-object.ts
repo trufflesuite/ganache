@@ -1,5 +1,10 @@
 import { SerializableLiteral } from "./serializable-literal";
 import deepEqual from "deep-equal";
+import { CID } from "./cid";
+import cbor from "borc";
+import { CID as IPFS_CID } from "ipfs";
+import multihashing from "multihashing";
+import multicodec from "multicodec";
 
 // provides shape
 export type BaseConfig = {
@@ -181,6 +186,20 @@ abstract class SerializableObject<C extends BaseConfig>
     let b: SerializedObject<C> = obj.serialize();
 
     return deepEqual(a, b);
+  }
+
+  get cid(): CID {
+    // We could have used the ipld-dag-cbor package for the following,
+    // but it was async, which caused a number of issues during object construction.
+    const cborBuffer = cbor.encode(this.serialize());
+    const multihash = multihashing(cborBuffer, "blake2b-256");
+    const rawCid = new IPFS_CID(
+      1,
+      multicodec.print[multicodec.DAG_CBOR],
+      multihash
+    );
+
+    return new CID(rawCid.toString());
   }
 }
 

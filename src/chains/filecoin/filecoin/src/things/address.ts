@@ -5,6 +5,7 @@ import base32 from "base32-encoding";
 import { StartDealParams } from "./start-deal-params";
 import cbor from "borc";
 import { utils } from "@ganache/utils";
+import { Message } from "./message";
 
 // https://spec.filecoin.io/appendix/address/
 
@@ -63,6 +64,20 @@ class Address extends SerializableLiteral<AddressConfig> {
     } else {
       throw new Error(
         `Could not sign proposal with address ${this.value} due to not having the associated private key.`
+      );
+    }
+  }
+
+  async signMessage(message: Message): Promise<Buffer> {
+    if (this.#privateKey) {
+      const serialized = message.serialize();
+      const encoded = cbor.encode(serialized);
+
+      const signature = await bls.sign(encoded, this.#privateKey);
+      return Buffer.from(signature);
+    } else {
+      throw new Error(
+        `Could not sign message with address ${this.value} due to not having the associated private key.`
       );
     }
   }

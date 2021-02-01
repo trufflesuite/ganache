@@ -22,6 +22,16 @@ import { MinerPower, SerializedMinerPower } from "./things/miner-power";
 import { PowerClaim } from "./things/power-claim";
 import { MinerInfo, SerializedMinerInfo } from "./things/miner-info";
 import { SerializedVersion, Version } from "./things/version";
+import { Account } from "./things/account";
+import { Message, SerializedMessage } from "./things/message";
+import {
+  MessageSendSpec,
+  SerializedMessageSendSpec
+} from "./things/message-send-spec";
+import {
+  SerializedSignedMessage,
+  SignedMessage
+} from "./things/signed-message";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -136,6 +146,58 @@ export default class FilecoinApi implements types.Api {
     } else {
       return Promise.resolve(false);
     }
+  }
+
+  async "Filecoin.MpoolPush"(
+    signedMessage: SerializedSignedMessage
+  ): Promise<SerializedRootCID> {
+    const rootCid = await this.#blockchain.pushSigned(
+      new SignedMessage(signedMessage)
+    );
+
+    return rootCid.serialize();
+  }
+
+  async "Filecoin.MpoolBatchPush"(
+    signedMessages: Array<SerializedSignedMessage>
+  ): Promise<Array<SerializedRootCID>> {
+    const rootCids = await Promise.all<RootCID>(
+      signedMessages.map(async signedMessage => {
+        return await this.#blockchain.pushSigned(
+          new SignedMessage(signedMessage)
+        );
+      })
+    );
+
+    return rootCids.map(cid => cid.serialize());
+  }
+
+  async "Filecoin.MpoolPushMessage"(
+    message: SerializedMessage,
+    spec: SerializedMessageSendSpec
+  ): Promise<SerializedSignedMessage> {
+    const signedMessage = await this.#blockchain.push(
+      new Message(message),
+      new MessageSendSpec(spec)
+    );
+
+    return signedMessage.serialize();
+  }
+
+  async "Filecoin.MpoolBatchPushMessage"(
+    messages: Array<SerializedMessage>,
+    spec: SerializedMessageSendSpec
+  ): Promise<Array<SerializedSignedMessage>> {
+    const signedMessages = await Promise.all<SignedMessage>(
+      messages.map(async message => {
+        return await this.#blockchain.push(
+          new Message(message),
+          new MessageSendSpec(spec)
+        );
+      })
+    );
+
+    return signedMessages.map(sm => sm.serialize());
   }
 
   // This method is part of the StorageMiner API,
