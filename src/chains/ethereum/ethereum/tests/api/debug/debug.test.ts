@@ -311,6 +311,6 @@ describe("api", () => {
       }
 
       assert.strictEqual(countMap.size, expectedObjectsInFinalTrace);
-    });
+    }).timeout(5000);
   });
 });
