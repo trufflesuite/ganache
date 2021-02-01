@@ -37,6 +37,9 @@ describe("server", () => {
       }
     }
   ) {
+    // @ts-ignore - `s` errors if you run tsc and then test
+    // because it tries to compare the built declaration file to
+    // the TS file, causing missing #<var> private variables
     s = Ganache.server(options);
     return s.listen(port);
   }
@@ -107,6 +110,9 @@ describe("server", () => {
     });
 
     it("returns the net_version over a legacy-style connection listener", done => {
+      // @ts-ignore - `s` errors if you run tsc and then test
+      // because it tries to compare the built declaration file to
+      // the TS file, causing missing #<var> private variables
       s = Ganache.server({
         chain: { networkId }
       });
@@ -190,6 +196,9 @@ describe("server", () => {
       server.listen(port);
 
       try {
+        // @ts-ignore - `s` errors if you run tsc and then test
+        // because it tries to compare the built declaration file to
+        // the TS file, causing missing #<var> private variables
         const s = Ganache.server();
         const listen = promisify(s.listen.bind(s));
         await assert.rejects(listen(port), {
@@ -206,6 +215,9 @@ describe("server", () => {
       "fails to listen if the socket is already in use by Ganache",
       async () => {
         await setup();
+        // @ts-ignore - `s` errors if you run tsc and then test
+        // because it tries to compare the built declaration file to
+        // the TS file, causing missing #<var> private variables
         const s2 = Ganache.server();
 
         try {
