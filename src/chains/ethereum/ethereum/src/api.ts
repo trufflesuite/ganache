@@ -10,7 +10,6 @@ import {
   VM_EXCEPTION,
   VM_EXCEPTIONS,
   CodedError,
-  ErrorCodes,
   WhisperPostObject,
   BaseFilterArgs,
   Filter,
@@ -28,7 +27,14 @@ import {
 } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
-import { types, Data, Quantity, PromiEvent, utils } from "@ganache/utils";
+import {
+  types,
+  Data,
+  Quantity,
+  PromiEvent,
+  utils,
+  JsonRpcTypes
+} from "@ganache/utils";
 import Blockchain, { TransactionTraceOptions } from "./blockchain";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
@@ -1543,7 +1549,7 @@ export default class EthereumApi implements types.Api {
       default:
         throw new CodedError(
           `no \"${subscriptionName}\" subscription in eth namespace`,
-          ErrorCodes.METHOD_NOT_FOUND
+          JsonRpcTypes.ErrorCode.METHOD_NOT_FOUND
         );
     }
   }
