@@ -161,6 +161,6 @@ describe("api", () => {
           `Did not receive ${SubscriptionMethod.SubscriptionCanceled} after closing channel/subscription`
         );
       }
-    });
+    }).timeout(5000);
   });
 });
