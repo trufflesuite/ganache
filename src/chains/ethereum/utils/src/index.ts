@@ -1,6 +1,7 @@
 export * from "./errors/coded-error";
 export * from "./errors/errors";
 export * from "./errors/runtime-error";
+export * from "./errors/abort-error";
 
 export * from "./things/account";
 export * from "./things/address";
