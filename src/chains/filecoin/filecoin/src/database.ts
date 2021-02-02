@@ -15,12 +15,19 @@ export default class Database extends Emittery {
   readonly #options: FilecoinInternalOptions["database"];
   #cleanupDirectory = noop;
   #closed = false;
-  public directory: string = null;
-  public db: LevelUp = null;
-  public tipsets: LevelUp;
-  public blocks: LevelUp;
-  public readonly initialized: boolean;
-  #rootStore: AbstractLevelDOWN;
+
+  public directory: string | null = null;
+  public db: LevelUp | null = null;
+
+  public tipsets: LevelUp | null = null;
+  public blocks: LevelUp | null = null;
+
+  #initialized: boolean = false;
+  get initialized() {
+    return this.#initialized;
+  }
+
+  #rootStore: AbstractLevelDOWN | null = null;
 
   /**
    * The Database handles the creation of the database, and all access to it.
@@ -43,7 +50,10 @@ export default class Database extends Emittery {
     let db: LevelUp;
     if (store) {
       this.#rootStore = encode(store, levelupOptions);
-      db = levelup(this.#rootStore, {});
+      // @ts-ignore - I get an error in ts-node that I don't get running ttsc:
+      // Argument of type 'AbstractLevelDOWN<any, any>' is not assignable to parameter of type 'string'
+      // But this error just doesn't make any sense. I'm just going to ignore the error
+      db = levelup(this.#rootStore!, {});
     } else {
       let directory = this.#options.dbPath;
       if (!directory) {
@@ -77,6 +87,7 @@ export default class Database extends Emittery {
     this.tipsets = sub(db, "t", levelupOptions);
     this.blocks = sub(db, "b", levelupOptions);
 
+    this.#initialized = true;
     return this.emit("ready");
   };
 
@@ -92,8 +103,14 @@ export default class Database extends Emittery {
    * of the provided function.
    */
   public batch<T>(fn: () => T) {
-    const rootDb = this.#rootStore.db;
-    const batch = this.db.batch();
+    if (!this.initialized) {
+      throw new Error(
+        "Could not call Database.batch as the database isn't initialized yet."
+      );
+    }
+
+    const rootDb = this.#rootStore!.db;
+    const batch = this.db!.batch();
 
     const originalPut = rootDb.put;
     const originalDel = rootDb.del;
@@ -143,7 +160,13 @@ export default class Database extends Emittery {
           resolve(void 0);
         })
       );
-      await Promise.all([this.tipsets.close()]);
+
+      if (this.tipsets) {
+        await this.tipsets.close();
+      }
+      if (this.blocks) {
+        await this.blocks.close();
+      }
     }
     return this.#cleanupDirectory();
   };

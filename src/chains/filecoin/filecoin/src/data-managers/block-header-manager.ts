@@ -1,8 +1,11 @@
 import Manager from "./manager";
 import { LevelUp } from "levelup";
-import { BlockHeader } from "../things/block-header";
+import { BlockHeader, BlockHeaderConfig } from "../things/block-header";
 
-export default class BlockHeaderManager extends Manager<BlockHeader> {
+export default class BlockHeaderManager extends Manager<
+  BlockHeader,
+  BlockHeaderConfig
+> {
   static async initialize(base: LevelUp) {
     const manager = new BlockHeaderManager(base);
     return manager;
@@ -17,10 +20,6 @@ export default class BlockHeaderManager extends Manager<BlockHeader> {
    * @param blockHeader
    */
   async putBlockHeader(blockHeader: BlockHeader) {
-    const serializedBlockHeader = blockHeader.serialize();
-    super.set(
-      Buffer.from(blockHeader.cid.value),
-      Buffer.from(JSON.stringify(serializedBlockHeader))
-    );
+    await super.set(blockHeader.cid.value, blockHeader);
   }
 }

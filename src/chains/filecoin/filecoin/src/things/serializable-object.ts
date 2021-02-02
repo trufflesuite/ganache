@@ -2,7 +2,7 @@ import { SerializableLiteral } from "./serializable-literal";
 import deepEqual from "deep-equal";
 
 // provides shape
-type BaseConfig = {
+export type BaseConfig = {
   properties: {
     // lowercase (deserialized)
     [deserializedName: string]: {
