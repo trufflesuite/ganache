@@ -6,12 +6,12 @@ import { StartDealParams } from "../../src/things/start-deal-params";
 import { StorageMarketDataRef } from "../../src/things/storage-market-data-ref";
 import { RootCID } from "../../src/things/root-cid";
 import { StorageDealStatus } from "../../src/types/storage-deal-status";
-
 import { FilecoinOptionsConfig } from "@ganache/filecoin-options";
 
 describe("Blockchain", () => {
   describe("general", () => {
     let blockchain: Blockchain;
+    let blockchain2: Blockchain;
 
     before(async () => {
       blockchain = new Blockchain(
@@ -23,11 +23,43 @@ describe("Blockchain", () => {
           }
         })
       );
+      blockchain2 = new Blockchain(
+        FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
+          wallet: {
+            totalAccounts: 2
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
+          }
+        })
+      );
       await blockchain.waitForReady();
+      await blockchain2.waitForReady();
     });
 
     after(async () => {
-      await blockchain.stop();
+      if (blockchain) {
+        await blockchain.stop();
+      }
+      if (blockchain2) {
+        await blockchain2.stop();
+      }
+    });
+
+    it("creates multiple accounts", async () => {
+      const accounts = await blockchain.accountManager.getControllableAccounts();
+      assert.strictEqual(accounts.length, 10);
+      assert.notStrictEqual(accounts[0].address, accounts[1].address);
+    });
+
+    it("creates a configurable amount of accounts", async () => {
+      const accounts = await blockchain2.accountManager.getControllableAccounts();
+      assert.strictEqual(accounts.length, 2);
     });
 
     it("creates new tipset with one block on creation", async () => {
@@ -154,6 +186,7 @@ describe("Blockchain", () => {
         content: "some data"
       });
 
+      const accounts = await blockchain.accountManager.getControllableAccounts();
       let proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
@@ -162,7 +195,7 @@ describe("Blockchain", () => {
           }),
           pieceSize: 0
         }),
-        wallet: blockchain.address,
+        wallet: accounts[0].address,
         miner: blockchain.miner,
         epochPrice: 2500n,
         minBlocksDuration: 300
@@ -240,6 +273,7 @@ describe("Blockchain", () => {
         content: "some data"
       });
 
+      const accounts = await blockchain.accountManager.getControllableAccounts();
       let proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
@@ -248,7 +282,7 @@ describe("Blockchain", () => {
           }),
           pieceSize: 0
         }),
-        wallet: blockchain.address,
+        wallet: accounts[0].address,
         miner: blockchain.miner,
         epochPrice: 2500n,
         minBlocksDuration: 300
@@ -294,8 +328,9 @@ describe("Blockchain", () => {
         })
       );
       await blockchain.waitForReady();
+      const accounts = await blockchain.accountManager.getControllableAccounts();
 
-      assert.strictEqual(blockchain.address.value, expectedAddress);
+      assert.strictEqual(accounts[0].address.value, expectedAddress);
     });
 
     it("uses the seed to create a different level of determinism", async () => {
@@ -312,8 +347,9 @@ describe("Blockchain", () => {
         })
       );
       await blockchain.waitForReady();
+      const accounts = await blockchain.accountManager.getControllableAccounts();
 
-      assert.notStrictEqual(blockchain.address.value, expectedAddress);
+      assert.notStrictEqual(accounts[0].address.value, expectedAddress);
     });
   });
 });

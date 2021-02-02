@@ -48,8 +48,9 @@ describe("api", () => {
 
       it("should accept a new deal", async () => {
         let miners = await client.stateListMiners();
-        let address = await client.walletDefaultAddress();
-        let beginningBalance = await client.walletBalance(address);
+        const accounts = await provider.blockchain.accountManager.getControllableAccounts();
+        const address = accounts[0].address;
+        let beginningBalance = await client.walletBalance(address.serialize());
 
         let result = await ipfs.add({
           content: data
@@ -64,7 +65,7 @@ describe("api", () => {
             }),
             pieceSize: 0
           }),
-          Wallet: address,
+          wallet: address,
           miner: miners[0],
           epochPrice: 2500n,
           minBlocksDuration: 300
@@ -152,7 +153,7 @@ describe("api", () => {
         const content = await fs.promises.readFile(file, { encoding: "utf-8" });
         assert.strictEqual(content, data);
 
-        // No error? Great, let's make sure it subtracted the retreival cost.
+        // No error? Great, let's make sure it subtracted the retrieval cost.
 
         let endingBalance = await client.walletBalance(address);
         assert(new BN(endingBalance).lt(new BN(beginningBalance)));

@@ -4,9 +4,7 @@ import { CID } from "./things/cid";
 import { RootCID } from "./things/root-cid";
 import { Quantity, utils } from "@ganache/utils";
 import Emittery from "emittery";
-import { Address } from "./things/address";
 import { DealInfo } from "./things/deal-info";
-import Balance from "./things/balance";
 import { StartDealParams } from "./things/start-deal-params";
 import { StorageDealStatus } from "./types/storage-deal-status";
 import IPFSServer from "./ipfs-server";
@@ -19,9 +17,12 @@ import { FileRef } from "./things/file-ref";
 import fs from "fs";
 import path from "path";
 import { IPFS, CID as IPFS_CID } from "ipfs";
+import { Account } from "./things/account";
 import Database from "./database";
 import TipsetManager from "./data-managers/tipset-manager";
 import BlockHeaderManager from "./data-managers/block-header-manager";
+import AccountManager from "./data-managers/account-manager";
+import PrivateKeyManager from "./data-managers/private-key-manager";
 
 export type BlockchainEvents = {
   ready(): void;
@@ -34,13 +35,10 @@ export default class Blockchain extends Emittery.Typed<
 > {
   public tipsetManager: TipsetManager | null;
   public blockHeaderManager: BlockHeaderManager | null;
-  readonly miner: string; // using string until we can support more address types in Address
-  readonly address: Address;
+  public accountManager: AccountManager | null;
+  public privateKeyManager: PrivateKeyManager | null;
 
-  #balance: Balance;
-  get balance(): Balance {
-    return this.#balance;
-  }
+  readonly miner: string; // using string until we can support more address types in Address
 
   readonly deals: Array<DealInfo> = [];
   readonly dealsByCid: Record<string, DealInfo> = {};
@@ -63,8 +61,6 @@ export default class Blockchain extends Emittery.Typed<
     this.rng = new utils.RandomNumberGenerator(this.options.wallet.seed);
 
     this.miner = "t01000";
-    this.address = Address.random(this.rng);
-    this.#balance = new Balance();
 
     this.ready = false;
 
@@ -78,6 +74,8 @@ export default class Blockchain extends Emittery.Typed<
     // but this is more technically correct (and check for not null later)
     this.tipsetManager = null;
     this.blockHeaderManager = null;
+    this.accountManager = null;
+    this.privateKeyManager = null;
 
     this.#database = new Database(options.database);
     this.#database.once("ready").then(async () => {
@@ -88,6 +86,22 @@ export default class Blockchain extends Emittery.Typed<
         this.#database.tipsets!,
         this.blockHeaderManager
       );
+      this.privateKeyManager = await PrivateKeyManager.initialize(
+        this.#database.privateKeys!
+      );
+      this.accountManager = await AccountManager.initialize(
+        this.#database.accounts!,
+        this.privateKeyManager
+      );
+
+      const controllableAccounts = await this.accountManager.getControllableAccounts();
+      if (controllableAccounts.length === 0) {
+        for (let i = 0; i < this.options.wallet.totalAccounts; i++) {
+          await this.accountManager.putAccount(
+            Account.random(this.options.wallet.defaultBalance, this.rng)
+          );
+        }
+      }
 
       const recordedGenesisTipset = await this.tipsetManager.getTipsetWithBlocks(
         0
@@ -344,7 +358,26 @@ export default class Blockchain extends Emittery.Typed<
   async startDeal(proposal: StartDealParams): Promise<RootCID> {
     await this.waitForReady();
 
-    let signature = await this.address.signProposal(proposal);
+    if (!proposal.wallet) {
+      throw new Error(
+        "StartDealParams.Wallet not provided and is required to start a storage deal."
+      );
+    }
+
+    // Get size of IPFS object represented by the proposal
+    let size = await this.getIPFSObjectSize(proposal.data.root.root.value);
+
+    // have to specify type since node types are not correct
+    const account = await this.accountManager!.getAccount(
+      proposal.wallet.value
+    );
+    if (!account.address.privateKey) {
+      throw new Error(
+        `Invalid StartDealParams.Wallet provided. Ganache doesn't have the private key for account with address ${proposal.wallet.value}`
+      );
+    }
+
+    let signature = await account.address.signProposal(proposal);
 
     // TODO: I'm not sure if should pass in a hex string or the Buffer alone.
     // I *think* it's the string, as that matches my understanding of the Go code.
@@ -385,12 +418,18 @@ export default class Blockchain extends Emittery.Typed<
 
     // Subtract the cost from our current balance
     let totalPrice = BigInt(deal.pricePerEpoch) * BigInt(deal.duration);
-    this.#balance = this.#balance.sub(totalPrice);
+    await this.accountManager!.transferFunds(
+      proposal.wallet.value,
+      proposal.miner,
+      totalPrice
+    );
 
     return deal.proposalCid;
   }
 
   async createQueryOffer(rootCid: RootCID): Promise<QueryOffer> {
+    await this.waitForReady();
+
     let size = await this.getIPFSObjectSize(rootCid.root.value);
 
     return new QueryOffer({
@@ -402,7 +441,18 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   async retrieve(retrievalOrder: RetrievalOrder, ref: FileRef): Promise<void> {
+    await this.waitForReady();
+
     let hasLocal: boolean = await this.hasLocal(retrievalOrder.root.root.value);
+
+    const account = await this.accountManager!.getAccount(
+      retrievalOrder.client
+    );
+    if (!account.address.privateKey) {
+      throw new Error(
+        `Invalid RetrievalOrder.Client provided. Ganache doesn't have the private key for account with address ${retrievalOrder.client}`
+      );
+    }
 
     if (!hasLocal) {
       throw new Error(`Object not found: ${retrievalOrder.root.root.value}`);
@@ -410,7 +460,11 @@ export default class Blockchain extends Emittery.Typed<
 
     await this.downloadFile(retrievalOrder.root.root.value, ref);
 
-    this.#balance = this.#balance.sub(retrievalOrder.total);
+    await this.accountManager!.transferFunds(
+      retrievalOrder.client,
+      retrievalOrder.miner,
+      retrievalOrder.total
+    );
   }
 
   private logLatestTipset() {

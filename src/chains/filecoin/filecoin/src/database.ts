@@ -21,6 +21,8 @@ export default class Database extends Emittery {
 
   public tipsets: LevelUp | null = null;
   public blocks: LevelUp | null = null;
+  public accounts: LevelUp | null = null;
+  public privateKeys: LevelUp | null = null;
 
   #initialized: boolean = false;
   get initialized() {
@@ -86,6 +88,8 @@ export default class Database extends Emittery {
 
     this.tipsets = sub(db, "t", levelupOptions);
     this.blocks = sub(db, "b", levelupOptions);
+    this.accounts = sub(db, "a", levelupOptions);
+    this.privateKeys = sub(db, "pk", levelupOptions);
 
     this.#initialized = true;
     return this.emit("ready");
@@ -166,6 +170,12 @@ export default class Database extends Emittery {
       }
       if (this.blocks) {
         await this.blocks.close();
+      }
+      if (this.accounts) {
+        await this.accounts.close();
+      }
+      if (this.privateKeys) {
+        await this.privateKeys.close();
       }
     }
     return this.#cleanupDirectory();

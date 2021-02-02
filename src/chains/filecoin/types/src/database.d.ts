@@ -7,6 +7,8 @@ export default class Database extends Emittery {
   db: LevelUp | null;
   tipsets: LevelUp | null;
   blocks: LevelUp | null;
+  accounts: LevelUp | null;
+  privateKeys: LevelUp | null;
   get initialized(): boolean;
   /**
    * The Database handles the creation of the database, and all access to it.

@@ -10,20 +10,33 @@ class Balance extends SerializableLiteral<BalanceConfig> {
   get config(): LiteralDefinition<BalanceConfig> {
     return {
       defaultValue: literal =>
-        literal ? BigInt(literal) : 500n * 1000000000000000000n
+        literal ? BigInt(literal) : Balance.FILToLowestDenomination(100)
     };
   }
 
-  sub(val: string | number | bigint): Balance {
-    const newBalance = this.value - BigInt(val);
-    return new Balance(newBalance.toString(10));
+  sub(val: string | number | bigint): void {
+    this.value -= BigInt(val);
+  }
+
+  add(val: string | number | bigint): void {
+    this.value += BigInt(val);
   }
 
   toFIL(): number {
-    return new BN(this.value.toString(10))
+    return Balance.LowestDenominationToFIL(this.value);
+  }
+
+  static FILToLowestDenomination(fil: number): bigint {
+    return BigInt(fil) * 1000000000000000000n;
+  }
+
+  static LowestDenominationToFIL(attoFil: bigint): number {
+    return new BN(attoFil.toString(10))
       .div(new BN(10).pow(new BN(18)))
       .toNumber();
   }
 }
 
-export default Balance;
+type SerializedBalance = string;
+
+export { Balance, SerializedBalance };
