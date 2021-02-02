@@ -33,11 +33,15 @@ import BlockMessagesManager from "./data-managers/block-messages-manager";
 import { BlockMessages } from "./things/block-messages";
 import AccountManager from "./data-managers/account-manager";
 import PrivateKeyManager from "./data-managers/private-key-manager";
+import { fillGasInformation, getBaseFee, getMinerFee } from "./gas";
 
 export type BlockchainEvents = {
   ready(): void;
   tipset: Tipset;
 };
+
+// Reference implementation: https://git.io/JtEVW
+const BurntFundsAddress = "t099";
 
 export default class Blockchain extends Emittery.Typed<
   BlockchainEvents,
@@ -242,52 +246,6 @@ export default class Blockchain extends Emittery.Typed<
     return this.tipsetManager.latest;
   }
 
-  // Reference implementation: https://git.io/JtWnk
-  async fillGasInformation(message: Message, spec: MessageSendSpec) {
-    if (message.gasLimit === 0) {
-      // Instead of doing the full gas estimation implementation
-      // (see reference implementation here: https://git.io/JtWZB),
-      // since we're only supporting value transfer messages, let's
-      // hardcode the limit.
-      // Gas usage for value transfers is either:
-      // 491868 or 493168 (1800 more) on filscan.io
-      // or 416268 on lotus-devnet. Since this is a limit, I'm just
-      // rounding up to 525000
-      message.gasLimit = 525000;
-    }
-
-    if (message.gasPremium === 0n) {
-      // Reference implementation: https://git.io/JtWnm
-      // Since this seems to look at prior prices and try to determine
-      // them from there, and it implies a network coming up with those
-      // prices, I'm just going to use 1 * MinGasPremium (https://git.io/JtWnG)
-      message.gasPremium = 100000n;
-    }
-
-    if (message.gasFeeCap === 0n) {
-      // Reference implementation: https://git.io/JtWn4
-      // This algorithm is also assuming that fees will increase over time
-      // I'm going to keep this one simple for now
-      message.gasFeeCap = message.gasPremium * BigInt(message.gasLimit);
-    }
-
-    // Reference Implementation: https://git.io/JtWng
-    if (spec.maxFee === 0n) {
-      // since the default is to guess network on conditions if 0, we're just going to skip
-      return;
-    } else {
-      const totalFee = BigInt(message.gasLimit) * message.gasFeeCap;
-      if (totalFee <= spec.maxFee) {
-        return;
-      }
-      message.gasFeeCap = spec.maxFee / BigInt(message.gasLimit);
-      message.gasPremium =
-        message.gasFeeCap < message.gasPremium
-          ? message.gasFeeCap
-          : message.gasPremium;
-    }
-  }
-
   // Reference Implementation: https://git.io/JtWnM
   async push(message: Message, spec: MessageSendSpec): Promise<SignedMessage> {
     await this.waitForReady();
@@ -317,7 +275,7 @@ export default class Blockchain extends Emittery.Typed<
       );
     }
 
-    await this.fillGasInformation(message, spec);
+    fillGasInformation(message, spec);
 
     try {
       await this.#messagePoolLock.acquire();
@@ -458,14 +416,30 @@ export default class Blockchain extends Emittery.Typed<
       for (const signedMessage of nextMessagePool) {
         const { from, to, value, gasLimit, gasPremium } = signedMessage.message;
 
-        // TODO: burn BaseFee
+        const baseFee = getBaseFee();
+        if (baseFee !== 0) {
+          const successful = await this.accountManager!.transferFunds(
+            from,
+            BurntFundsAddress,
+            getMinerFee(signedMessage.message)
+          );
+
+          if (!successful) {
+            // While we should have checked this when the message was sent,
+            // we double check here just in case
+            const fromAccount = await this.accountManager!.getAccount(from);
+            console.warn(
+              `Could not burn the base fee of ${baseFee} attoFIL from address ${from} due to lack of funds. ${fromAccount.balance.value} attoFIL available`
+            );
+            continue;
+          }
+        }
 
         // send mining funds
-        const miningFunds = BigInt(gasLimit) * gasPremium;
         let successful = await this.accountManager!.transferFunds(
           from,
           this.miner,
-          miningFunds
+          getMinerFee(signedMessage.message)
         );
 
         if (!successful) {
@@ -473,7 +447,11 @@ export default class Blockchain extends Emittery.Typed<
           // we double check here just in case
           const fromAccount = await this.accountManager!.getAccount(from);
           console.warn(
-            `Could not transfer the mining fees of ${miningFunds} attoFIL from address ${from} due to lack of funds. ${fromAccount.balance.value} attoFIL available`
+            `Could not transfer the mining fees of ${getMinerFee(
+              signedMessage.message
+            )} attoFIL from address ${from} due to lack of funds. ${
+              fromAccount.balance.value
+            } attoFIL available`
           );
           continue;
         }
@@ -493,7 +471,7 @@ export default class Blockchain extends Emittery.Typed<
         }
 
         // TODO: figure out nonce/error logic
-        await this.accountManager!.incrementNonce(from);
+        this.accountManager!.incrementNonce(from);
 
         successfulMessages.push(signedMessage);
       }
