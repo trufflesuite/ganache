@@ -304,9 +304,8 @@ export default class Blockchain extends Emittery.Typed<
       );
     }
 
-    // the reference implementation doesn't allow
-    // just the address protocol ID, but we're only
-    // going to support BLS for now
+    // the reference implementation doesn't allow the address to be
+    // the ID protocol, but we're only going to support BLS for now
     if (Address.parseProtocol(message.from) !== AddressProtocol.BLS) {
       throw new Error(
         "The From address is not a BLS public key; Ganache currently only supports the BLS address protocol"
@@ -320,59 +319,64 @@ export default class Blockchain extends Emittery.Typed<
 
     await this.fillGasInformation(message, spec);
 
-    await this.#messagePoolLock.acquire();
+    try {
+      await this.#messagePoolLock.acquire();
 
-    const pendingMessagesForAccount = this.messagePool.filter(
-      queuedMessage => queuedMessage.message.from === message.from
-    );
-    const nonceFromPendingMessages = pendingMessagesForAccount.reduce(
-      (nonce, m) => {
-        return Math.max(nonce, m.message.nonce);
-      },
-      0
-    );
-
-    message.nonce = nonceFromPendingMessages + 1;
-
-    // check if enough funds
-    const messageBalanceRequired =
-      message.gasFeeCap * BigInt(message.gasLimit) + message.value;
-    const pendingBalanceRequired = pendingMessagesForAccount.reduce(
-      (balanceSpent, m) => {
-        return (
-          balanceSpent +
-          m.message.gasFeeCap * BigInt(m.message.gasLimit) +
-          m.message.value
-        );
-      },
-      0n
-    );
-    const totalRequired = messageBalanceRequired + pendingBalanceRequired;
-    const account = await this.accountManager!.getAccount(message.from);
-    if (account.balance.value < totalRequired) {
-      throw new Error(
-        `mpool push: not enough funds: ${
-          account.balance.value - pendingBalanceRequired
-        } < ${messageBalanceRequired}`
+      const pendingMessagesForAccount = this.messagePool.filter(
+        queuedMessage => queuedMessage.message.from === message.from
       );
+      const nonceFromPendingMessages = pendingMessagesForAccount.reduce(
+        (nonce, m) => {
+          return Math.max(nonce, m.message.nonce);
+        },
+        0
+      );
+
+      message.nonce = nonceFromPendingMessages + 1;
+
+      // check if enough funds
+      const messageBalanceRequired =
+        message.gasFeeCap * BigInt(message.gasLimit) + message.value;
+      const pendingBalanceRequired = pendingMessagesForAccount.reduce(
+        (balanceSpent, m) => {
+          return (
+            balanceSpent +
+            m.message.gasFeeCap * BigInt(m.message.gasLimit) +
+            m.message.value
+          );
+        },
+        0n
+      );
+      const totalRequired = messageBalanceRequired + pendingBalanceRequired;
+      const account = await this.accountManager!.getAccount(message.from);
+      if (account.balance.value < totalRequired) {
+        throw new Error(
+          `mpool push: not enough funds: ${
+            account.balance.value - pendingBalanceRequired
+          } < ${messageBalanceRequired}`
+        );
+      }
+
+      // sign the message
+      const signature = await account.address.signMessage(message);
+      const signedMessage = new SignedMessage({
+        Message: message.serialize(),
+        Signature: new Signature({
+          type: SigType.SigTypeBLS,
+          data: signature
+        }).serialize()
+      });
+
+      // add to pool
+      await this.pushSigned(signedMessage, false);
+
+      this.#messagePoolLock.release();
+
+      return signedMessage;
+    } catch (e) {
+      this.#messagePoolLock.release();
+      throw e;
     }
-
-    // sign the message
-    const signature = await account.address.signMessage(message);
-    const signedMessage = new SignedMessage({
-      Message: message.serialize(),
-      Signature: new Signature({
-        type: SigType.SigTypeBLS,
-        data: signature
-      }).serialize()
-    });
-
-    // add to pool
-    await this.pushSigned(signedMessage, false);
-
-    this.#messagePoolLock.release();
-
-    return signedMessage;
   }
 
   async pushSigned(
@@ -381,19 +385,33 @@ export default class Blockchain extends Emittery.Typed<
   ): Promise<RootCID> {
     // TODO: check funds?
 
-    if (acquireLock) {
-      await this.#messagePoolLock.acquire();
+    try {
+      if (acquireLock) {
+        await this.#messagePoolLock.acquire();
+      }
+
+      this.messagePool.push(signedMessage);
+
+      if (acquireLock) {
+        this.#messagePoolLock.release();
+      }
+
+      if (this.options.miner.blockTime === 0) {
+        // we should instamine this message
+        // purposely not awaiting on this as we'll
+        // deadlock for Filecoin.MpoolPushMessage calls
+        this.mineTipset();
+      }
+
+      return new RootCID({
+        root: signedMessage.cid
+      });
+    } catch (e) {
+      if (acquireLock) {
+        this.#messagePoolLock.release();
+      }
+      throw e;
     }
-
-    this.messagePool.push(signedMessage);
-
-    if (acquireLock) {
-      this.#messagePoolLock.release();
-    }
-
-    return new RootCID({
-      root: signedMessage.cid
-    });
   }
 
   // Note that this is naive - it always assumes the first block in the
@@ -403,12 +421,16 @@ export default class Blockchain extends Emittery.Typed<
 
     // let's grab the messages going into the next tipset
     // immediately and clear the message pool for the next tipset
-    await this.#messagePoolLock.acquire();
-    const nextMessagePool: Array<SignedMessage> = ([] as Array<SignedMessage>).concat(
-      this.messagePool
-    );
-    this.messagePool = [];
-    this.#messagePoolLock.release();
+    let nextMessagePool: Array<SignedMessage>;
+    try {
+      await this.#messagePoolLock.acquire();
+      nextMessagePool = ([] as Array<SignedMessage>).concat(this.messagePool);
+      this.messagePool = [];
+      this.#messagePoolLock.release();
+    } catch (e) {
+      this.#messagePoolLock.release();
+      throw e;
+    }
 
     let previousTipset: Tipset = this.latestTipset();
     const newTipsetHeight = previousTipset.height + 1;
@@ -434,20 +456,39 @@ export default class Blockchain extends Emittery.Typed<
     if (nextMessagePool.length > 0) {
       const successfulMessages: SignedMessage[] = [];
       for (const signedMessage of nextMessagePool) {
-        const { from, to, value } = signedMessage.message;
+        const { from, to, value, gasLimit, gasPremium } = signedMessage.message;
 
-        const successful = await this.accountManager!.transferFunds(
+        // TODO: burn BaseFee
+
+        // send mining funds
+        const miningFunds = BigInt(gasLimit) * gasPremium;
+        let successful = await this.accountManager!.transferFunds(
           from,
-          to,
-          value
+          this.miner,
+          miningFunds
         );
 
         if (!successful) {
-          // While we should have
+          // While we should have checked this when the message was sent,
+          // we double check here just in case
+          const fromAccount = await this.accountManager!.getAccount(from);
+          console.warn(
+            `Could not transfer the mining fees of ${miningFunds} attoFIL from address ${from} due to lack of funds. ${fromAccount.balance.value} attoFIL available`
+          );
+          continue;
+        }
+
+        successful = await this.accountManager!.transferFunds(from, to, value);
+
+        if (!successful) {
+          // While we should have checked this when the message was sent,
+          // we double check here just in case
           const fromAccount = await this.accountManager!.getAccount(from);
           console.warn(
             `Could not transfer ${value} attoFIL from address ${from} to address ${to} due to lack of funds. ${fromAccount.balance.value} attoFIL available`
           );
+
+          // do not revert miner transfer as the miner attempted to mine
           continue;
         }
 

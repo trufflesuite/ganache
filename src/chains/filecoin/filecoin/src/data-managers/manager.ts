@@ -51,11 +51,14 @@ export default class Manager<
       return;
     }
 
-    return this.base.put(key, value);
+    return await this.base.put(key, value);
   }
 
   async set(key: number | string | Buffer, value: T): Promise<void> {
-    return this.setRaw(key, Buffer.from(JSON.stringify(value.serialize())));
+    return await this.setRaw(
+      key,
+      Buffer.from(JSON.stringify(value.serialize()))
+    );
   }
 
   del(key: Buffer) {
