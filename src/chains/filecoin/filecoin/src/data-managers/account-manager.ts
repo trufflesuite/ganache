@@ -33,7 +33,9 @@ export default class AccountManager extends Manager<Account, AccountConfig> {
   async getAccount(address: string): Promise<Account> {
     let account = await super.get(address);
     if (!account) {
-      account = new Account();
+      account = new Account({
+        address: new Address(address)
+      });
       await this.putAccount(account);
     }
 
