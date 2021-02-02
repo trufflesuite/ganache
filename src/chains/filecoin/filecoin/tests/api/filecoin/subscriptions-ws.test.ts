@@ -16,8 +16,8 @@ describe("api", () => {
 
       await new Promise<void>((resolve, reject) => {
         const id = setTimeout(async () => {
-          ws.close();
           await server.close();
+          ws.terminate();
           reject("Could not connect to the websocket server");
         }, 2000);
 
