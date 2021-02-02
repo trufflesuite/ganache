@@ -1,15 +1,22 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
-import { URL } from "url";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
+import { types } from "@ganache/utils";
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
+
+declare var URL: {
+  prototype: types.URL;
+  new (url: string, base?: string | types.URL): types.URL;
+  createObjectURL(object: any): string;
+  revokeObjectURL(url: string): void;
+};
 
 // we aren't going to treat block numbers as big ints, so we don't want to
 // accept block numbers we can't add to
 const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 
 type HeaderRecord = { name: string; value: string };
-type ForkUrl = URL & { _blockNumber?: number | "latest" };
+type ForkUrl = types.URL & { _blockNumber?: number | "latest" };
 
 export type ForkConfig = {
   options: {
@@ -172,12 +179,14 @@ export const ForkOptions: Definitions<ForkConfig> = {
   // as the defaults are processed in order, and they rely on the `fork.url`
   url: {
     normalize: rawInput => {
-      const url = new URL(rawInput) as ForkUrl;
-      const pathname = url.pathname;
-      const lastIndex = pathname.lastIndexOf("@");
+      let url = new URL(rawInput) as ForkUrl;
+      const path = url.pathname + url.search;
+      const lastIndex = path.lastIndexOf("@");
       // pull the blockNumber out of the URL
       if (lastIndex !== -1) {
-        const blockNumber = pathname.substr(lastIndex);
+        // remove everything after the last @
+        url = new URL(path.substr(0, lastIndex), url);
+        const blockNumber = path.substr(lastIndex);
         if (blockNumber && blockNumber !== "latest") {
           // don't use parseInt because strings like `"123abc"` parse
           // to `123`, and there is probably an error on the user's side we'd
@@ -196,7 +205,6 @@ export const ForkOptions: Definitions<ForkConfig> = {
           } else {
             url._blockNumber = asNum;
           }
-          url.pathname = pathname.substr(0, lastIndex);
         }
         if (!ALLOWED_PROTOCOLS.includes(url.protocol)) {
           throw new Error(
