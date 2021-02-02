@@ -52,16 +52,21 @@ export default class FilecoinProvider
   /**
    * Returns the unlocked accounts
    */
-  public getInitialAccounts() {
+  public async getInitialAccounts() {
     const accounts: Record<
       string,
       { unlocked: boolean; secretKey: string; balance: bigint }
     > = {};
-    accounts[this.blockchain.address.serialize()] = {
-      unlocked: true,
-      secretKey: this.blockchain.address.privateKey!,
-      balance: this.blockchain.balance.value
-    };
+
+    const controllableAccounts = await this.blockchain.accountManager!.getControllableAccounts();
+    for (const account of controllableAccounts) {
+      accounts[account.address.serialize()] = {
+        unlocked: true,
+        secretKey: account.address.privateKey!,
+        balance: account.balance.value
+      };
+    }
+
     return accounts;
   }
 

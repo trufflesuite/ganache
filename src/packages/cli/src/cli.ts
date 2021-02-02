@@ -123,12 +123,18 @@ async function startGanache(err: Error) {
 
   switch (flavor) {
     case FilecoinFlavorName: {
-      initializeFilecoin(server.provider as FilecoinProvider, cliSettings);
+      await initializeFilecoin(
+        server.provider as FilecoinProvider,
+        cliSettings
+      );
       break;
     }
     case EthereumFlavorName:
     default: {
-      initializeEthereum(server.provider as EthereumProvider, cliSettings);
+      await initializeEthereum(
+        server.provider as EthereumProvider,
+        cliSettings
+      );
       break;
     }
   }

@@ -45,11 +45,13 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset> {
-    return this.#blockchain.latestTipset().serialize();
+    const tipset = this.#blockchain.latestTipset();
+    return tipset.serialize();
   }
 
   async "Filecoin.ChainHead"(): Promise<SerializedTipset> {
-    return this.#blockchain.latestTipset().serialize();
+    const tipset = this.#blockchain.latestTipset();
+    return tipset.serialize();
   }
 
   // Reference implementation entry point: https://git.io/JtO3a
@@ -211,18 +213,16 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.WalletDefaultAddress"(): Promise<SerializedAddress> {
-    return this.#blockchain.address.serialize();
+    await this.#blockchain.waitForReady();
+    const accounts = await this.#blockchain.accountManager!.getControllableAccounts();
+    return accounts[0].address.serialize();
   }
 
   async "Filecoin.WalletBalance"(address: string): Promise<string> {
-    let managedAddress = this.#blockchain.address;
+    await this.#blockchain.waitForReady();
 
-    // For now, anything but our default address will have no balance
-    if (managedAddress.value == address) {
-      return this.#blockchain.balance.serialize();
-    } else {
-      return "0";
-    }
+    const account = await this.#blockchain.accountManager!.getAccount(address);
+    return account.balance.serialize();
   }
 
   async "Filecoin.ClientStartDeal"(
@@ -273,6 +273,7 @@ export default class FilecoinApi implements types.Api {
 
   async "Ganache.MineTipset"(): Promise<SerializedTipset> {
     await this.#blockchain.mineTipset();
-    return this.#blockchain.latestTipset().serialize();
+    const tipset = this.#blockchain.latestTipset();
+    return tipset.serialize();
   }
 }

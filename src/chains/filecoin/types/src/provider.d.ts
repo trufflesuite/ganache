@@ -22,13 +22,15 @@ export default class FilecoinProvider
   /**
    * Returns the unlocked accounts
    */
-  getInitialAccounts(): Record<
-    string,
-    {
-      unlocked: boolean;
-      secretKey: string;
-      balance: bigint;
-    }
+  getInitialAccounts(): Promise<
+    Record<
+      string,
+      {
+        unlocked: boolean;
+        secretKey: string;
+        balance: bigint;
+      }
+    >
   >;
   connect(): Promise<void>;
   send(payload: JsonRpc.Request<FilecoinApi>): Promise<any>;
