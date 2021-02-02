@@ -19,7 +19,7 @@ describe("api", () => {
           ws.close();
           await server.close();
           reject("Could not connect to the websocket server");
-        }, 500);
+        }, 2000);
 
         ws.on("open", () => {
           clearTimeout(id);
@@ -161,6 +161,6 @@ describe("api", () => {
           `Did not receive ${SubscriptionMethod.SubscriptionCanceled} after closing channel/subscription`
         );
       }
-    }).timeout(5000);
-  });
+    });
+  }).timeout(10000);
 });
