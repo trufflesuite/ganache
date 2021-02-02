@@ -26,6 +26,16 @@ export type OptionsAccount = {
 export type WalletConfig = {
   options: {
     /**
+     * Number of accounts to generate at startup.
+     *
+     * @default 10
+     */
+    totalAccounts: {
+      type: number;
+      hasDefault: true;
+    };
+
+    /**
      * Use pre-defined, deterministic seed.
      */
     deterministic: {
@@ -40,11 +50,28 @@ export type WalletConfig = {
       type: string;
       hasDefault: true;
     };
+
+    /**
+     * The default account balance, specified in FIL.
+     *
+     * @default 100 // FIL
+     */
+    defaultBalance: {
+      type: number;
+      hasDefault: true;
+    };
   };
   exclusiveGroups: [["deterministic", "seed"]];
 };
 
 export const WalletOptions: Definitions<WalletConfig> = {
+  totalAccounts: {
+    normalize,
+    cliDescription: "Number of accounts to generate at startup.",
+    default: () => 10,
+    cliAliases: ["a"],
+    cliType: "number"
+  },
   deterministic: {
     normalize,
     cliDescription: "Use pre-defined, deterministic seed.",
@@ -66,5 +93,12 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliAliases: ["s"],
     cliType: "string",
     conflicts: ["deterministic"]
+  },
+  defaultBalance: {
+    normalize,
+    cliDescription: "The default account balance, specified in FIL.",
+    default: () => 100,
+    cliAliases: ["b"],
+    cliType: "number"
   }
 };

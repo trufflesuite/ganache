@@ -2,7 +2,7 @@ import { Provider } from "@ganache/ethereum";
 import { toChecksumAddress } from "ethereumjs-util";
 import { CliSettings } from "../types";
 
-export default function (provider: Provider, cliSettings: CliSettings) {
+export default async function (provider: Provider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
 

@@ -1,11 +1,11 @@
 import { Provider } from "@ganache/filecoin-types";
 
-export default function (
+export default async function (
   provider: Provider,
   serverSettings: { host: string; port: number }
 ) {
   const liveOptions = provider.getOptions();
-  const accounts = provider.getInitialAccounts();
+  const accounts = await provider.getInitialAccounts();
 
   console.log("");
   console.log("Available Accounts");
