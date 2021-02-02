@@ -2,6 +2,7 @@ import Manager from "./manager";
 import { LevelUp } from "levelup";
 import { Account, AccountConfig } from "../things/account";
 import PrivateKeyManager from "./private-key-manager";
+import { Address } from "../things/address";
 
 export default class AccountManager extends Manager<Account, AccountConfig> {
   #privateKeyManager: PrivateKeyManager;
