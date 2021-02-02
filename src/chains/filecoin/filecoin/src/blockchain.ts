@@ -21,7 +21,7 @@ import path from "path";
 import { IPFS, CID as IPFS_CID } from "ipfs";
 import Database from "./database";
 import TipsetManager from "./data-managers/tipset-manager";
-import BlockHeaderManager from "./data-managers/block-manager";
+import BlockHeaderManager from "./data-managers/block-header-manager";
 
 export type BlockchainEvents = {
   ready(): void;
@@ -32,8 +32,8 @@ export default class Blockchain extends Emittery.Typed<
   BlockchainEvents,
   keyof BlockchainEvents
 > {
-  public tipsetManager: TipsetManager;
-  public blockHeaderManager: BlockHeaderManager;
+  public tipsetManager: TipsetManager | null;
+  public blockHeaderManager: BlockHeaderManager | null;
   readonly miner: string; // using string until we can support more address types in Address
   readonly address: Address;
 
@@ -73,13 +73,19 @@ export default class Blockchain extends Emittery.Typed<
 
     this.miningTimeout = null;
 
+    // We set these to null since they get initialized in
+    // an async callback below. We could ignore the TS error,
+    // but this is more technically correct (and check for not null later)
+    this.tipsetManager = null;
+    this.blockHeaderManager = null;
+
     this.#database = new Database(options.database);
     this.#database.once("ready").then(async () => {
       this.blockHeaderManager = await BlockHeaderManager.initialize(
-        this.#database.blocks
+        this.#database.blocks!
       );
       this.tipsetManager = await TipsetManager.initialize(
-        this.#database.tipsets,
+        this.#database.tipsets!,
         this.blockHeaderManager
       );
 
@@ -109,17 +115,18 @@ export default class Blockchain extends Emittery.Typed<
 
         this.tipsetManager.earliest = genesisTipset; // initialize earliest
         await this.tipsetManager.putTipset(genesisTipset); // sets latest
-        await this.#database.db.put(
+        await this.#database.db!.put(
           "latest-tipset",
           Quantity.from(0).toBuffer()
         );
       } else {
         this.tipsetManager.earliest = recordedGenesisTipset; // initialize earliest
-        const data: Buffer = await this.#database.db.get("latest-tipset");
+        const data: Buffer = await this.#database.db!.get("latest-tipset");
         const height = Quantity.from(data).toNumber();
-        this.tipsetManager.latest = await this.tipsetManager.getTipsetWithBlocks(
+        const latestTipset = await this.tipsetManager.getTipsetWithBlocks(
           height
-        ); // initialize latest
+        );
+        this.tipsetManager.latest = latestTipset!; // initialize latest
       }
 
       await this.ipfsServer.start();
@@ -177,16 +184,28 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   genesisTipset(): Tipset {
+    if (!this.tipsetManager || !this.tipsetManager.earliest) {
+      throw new Error(
+        "Could not get genesis tipset due to not being initialized yet"
+      );
+    }
     return this.tipsetManager.earliest;
   }
 
   latestTipset(): Tipset {
+    if (!this.tipsetManager || !this.tipsetManager.latest) {
+      throw new Error(
+        "Could not get latest tipset due to not being initialized yet"
+      );
+    }
     return this.tipsetManager.latest;
   }
 
   // Note that this is naive - it always assumes the first block in the
   // previous tipset is the parent of the new blocks.
   async mineTipset(numNewBlocks: number = 1): Promise<void> {
+    await this.waitForReady();
+
     let previousTipset: Tipset = this.latestTipset();
     const newTipsetHeight = previousTipset.height + 1;
 
@@ -213,8 +232,8 @@ export default class Blockchain extends Emittery.Typed<
       height: newTipsetHeight
     });
 
-    await this.tipsetManager.putTipset(newTipset);
-    await this.#database.db.put(
+    await this.tipsetManager!.putTipset(newTipset);
+    await this.#database.db!.put(
       "latest-tipset",
       Quantity.from(newTipsetHeight).toBuffer()
     );
@@ -323,6 +342,8 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   async startDeal(proposal: StartDealParams): Promise<RootCID> {
+    await this.waitForReady();
+
     let signature = await this.address.signProposal(proposal);
 
     // TODO: I'm not sure if should pass in a hex string or the Buffer alone.

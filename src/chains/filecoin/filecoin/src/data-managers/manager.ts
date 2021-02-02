@@ -1,10 +1,13 @@
 import { LevelUp } from "levelup";
-import { Data } from "@ganache/utils";
+import { SerializableObject, BaseConfig } from "../things/serializable-object";
 const NOTFOUND = 404;
 
 export type Instantiable<T> = { new (...args: any[]): T };
 
-export default class Manager<T> {
+export default class Manager<
+  T extends SerializableObject<C>,
+  C extends BaseConfig
+> {
   #Type: Instantiable<T>;
   #options: {};
   protected base: LevelUp;
@@ -17,7 +20,8 @@ export default class Manager<T> {
     this.#options = options;
     this.base = base;
   }
-  getRaw(key: number | string | Buffer): Promise<Buffer> {
+
+  async getRaw(key: number | string | Buffer): Promise<Buffer | null> {
     if (typeof key === "string" || typeof key === "number") {
       key = Buffer.from(`${key}`);
     }
@@ -31,14 +35,29 @@ export default class Manager<T> {
       throw e;
     }) as Promise<Buffer>;
   }
+
   async get(key: number | string | Buffer): Promise<T | null> {
     const raw = await this.getRaw(key);
     if (!raw) return null;
     return new this.#Type(JSON.parse(raw.toString()), this.#options);
   }
-  set(key: Buffer, value: Buffer): Promise<void> {
+
+  async setRaw(key: number | string | Buffer, value: Buffer): Promise<void> {
+    if (typeof key === "string" || typeof key === "number") {
+      key = Buffer.from(`${key}`);
+    }
+
+    if (key.length === 0) {
+      return;
+    }
+
     return this.base.put(key, value);
   }
+
+  async set(key: number | string | Buffer, value: T): Promise<void> {
+    return this.setRaw(key, Buffer.from(JSON.stringify(value.serialize())));
+  }
+
   del(key: Buffer) {
     return this.base.del(key);
   }

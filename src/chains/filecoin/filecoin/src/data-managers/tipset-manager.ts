@@ -1,18 +1,18 @@
 import Manager from "./manager";
 import { LevelUp } from "levelup";
-import { Tipset } from "../things/tipset";
-import BlockHeaderManager from "./block-manager";
+import { Tipset, TipsetConfig } from "../things/tipset";
+import BlockHeaderManager from "./block-header-manager";
 
-export default class TipsetManager extends Manager<Tipset> {
+export default class TipsetManager extends Manager<Tipset, TipsetConfig> {
   /**
    * The earliest tipset
    */
-  public earliest: Tipset;
+  public earliest: Tipset | null = null;
 
   /**
    * The latest tipset
    */
-  public latest: Tipset;
+  public latest: Tipset | null = null;
 
   readonly #blockHeaderManager: BlockHeaderManager;
 
@@ -34,14 +34,14 @@ export default class TipsetManager extends Manager<Tipset> {
    * @param tipset
    */
   async putTipset(tipset: Tipset) {
-    const serializedTipset = {
-      ...tipset.serialize(),
-      blocks: [] // remove blocks array here as they'll be stored in their own manager
-    };
-    super.set(
-      Buffer.from(`${tipset.height}`),
-      Buffer.from(JSON.stringify(serializedTipset))
-    );
+    // remove blocks array here as they'll be stored in their own manager
+    const tipsetWithoutBlocks = new Tipset({
+      height: tipset.height,
+      cids: tipset.cids
+    });
+
+    await super.set(tipset.height, tipsetWithoutBlocks);
+
     for (const block of tipset.blocks) {
       await this.#blockHeaderManager.putBlockHeader(block);
     }
@@ -71,10 +71,15 @@ export default class TipsetManager extends Manager<Tipset> {
     tipset.blocks = [];
 
     for (const cid of tipset.cids) {
-      const cidString = cid["/"].value;
+      const cidString = cid.root.value;
       const blockHeader = await this.#blockHeaderManager.get(
         Buffer.from(cidString)
       );
+      if (!blockHeader) {
+        throw new Error(
+          `Could not find block with cid ${cidString} for tipset ${tipset.height}`
+        );
+      }
       tipset.blocks.push(blockHeader);
     }
   }

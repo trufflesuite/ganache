@@ -288,4 +288,4 @@ class BlockHeader
 
 type SerializedBlockHeader = SerializedObject<BlockHeaderConfig>;
 
-export { BlockHeader, SerializedBlockHeader };
+export { BlockHeader, BlockHeaderConfig, SerializedBlockHeader };

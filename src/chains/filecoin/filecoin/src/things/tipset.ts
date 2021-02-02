@@ -90,4 +90,4 @@ class Tipset
 
 type SerializedTipset = SerializedObject<TipsetConfig>;
 
-export { Tipset, SerializedTipset };
+export { Tipset, TipsetConfig, SerializedTipset };
