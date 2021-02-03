@@ -28,6 +28,14 @@ enum AddressNetwork {
   Unknown = "UNKNOWN"
 }
 
+function switchEndianness(hexString: string) {
+  const regex = hexString.match(/.{2}/g);
+  if (!regex) {
+    throw new Error(`Could not switch endianness of hex string: ${hexString}`);
+  }
+  return regex.reverse().join("");
+}
+
 class Address extends SerializableLiteral<AddressConfig> {
   get config() {
     return {};
@@ -71,11 +79,50 @@ class Address extends SerializableLiteral<AddressConfig> {
 
   async signMessage(message: Message): Promise<Buffer> {
     if (this.#privateKey) {
-      const serialized = message.serialize();
-      const encoded = cbor.encode(serialized);
+      // From the code at https://git.io/Jtud2, it appears that messages
+      // are signed using the CID. However there are two issues here that
+      // I spent too much time trying to figure out:
+      //   1. We don't generate an identical CID
+      //   2. Even if we did, this signature doesn't match what lotus provides
+      // But here's the catch, I know for certain `signBuffer` mimics lotus's
+      // Filecoin.WalletSign method. In other words, if I take the CID that lotus gives me
+      // and put it back into Filecoin.WalletSign, it matches the below output
+      // (given that message.cid.value was replaced by the CID string provided
+      // by lotus for the same message). I'm not sure what's wrong here without
+      // debugging lotus itself and watching the values change, but since we're
+      // not guaranteeing cryptographic integrity, I'm letting this one slide for now.
+      return await this.signBuffer(Buffer.from(message.cid.value));
+    } else {
+      throw new Error(
+        `Could not sign message with address ${this.value} due to not having the associated private key.`
+      );
+    }
+  }
 
-      const signature = await bls.sign(encoded, this.#privateKey);
-      return Buffer.from(signature);
+  async signBuffer(buffer: Buffer): Promise<Buffer> {
+    if (this.#privateKey) {
+      switch (this.protocol) {
+        case AddressProtocol.BLS: {
+          const signature = await bls.sign(
+            buffer,
+            switchEndianness(this.#privateKey)
+          );
+          return Buffer.from(signature);
+        }
+        case AddressProtocol.SECP256K1: {
+          const hash = blake.blake2b(buffer, null, 32);
+          const result = secp256K1.ecdsaSign(
+            hash,
+            Buffer.from(this.#privateKey, "hex")
+          );
+          return Buffer.concat([result.signature, Buffer.from([result.recid])]);
+        }
+        default: {
+          throw new Error(
+            `Cannot sign with this protocol ${this.protocol}. Supported protocols: BLS and SECP256K1`
+          );
+        }
+      }
     } else {
       throw new Error(
         `Could not sign message with address ${this.value} due to not having the associated private key.`
@@ -89,22 +136,21 @@ class Address extends SerializableLiteral<AddressConfig> {
     network: AddressNetwork = AddressNetwork.Testnet
   ): Address {
     let publicKey: Buffer;
+    let payload: Buffer;
     if (protocol === AddressProtocol.BLS) {
-      // Reverse the key from little endian to big endian
-      const regex = privateKey.match(/.{2}/g);
-      if (!regex) {
-        throw new Error(
-          `Could not create address from private key ${privateKey}`
-        );
-      }
-      const bigEndian = regex.reverse().join("");
-
       // Get the public key
-      publicKey = Buffer.from(bls.getPublicKey(bigEndian));
+      // BLS uses big endian, but we use little endian
+      publicKey = Buffer.from(bls.getPublicKey(switchEndianness(privateKey)));
+      payload = publicKey;
     } else if (protocol === AddressProtocol.SECP256K1) {
       publicKey = Buffer.from(
-        secp256K1.publicKeyCreate(Buffer.from(privateKey), false)
+        secp256K1.publicKeyCreate(Buffer.from(privateKey, "hex"), false)
       );
+      // https://bit.ly/3atGMwX says blake2b-160, but calls the checksum
+      // both blake2b-4 and 4 bytes, so there is inconsistency of the
+      // terminology of bytes vs bits, but the implementation at
+      // https://git.io/JtEM6 shows 20 bytes and 4 bytes respectively
+      payload = Buffer.from(blake.blake2b(publicKey, null, 20));
     } else {
       throw new Error(
         "Protocol type not yet supported. Supported address protocols: BLS, SECP256K1"
@@ -112,7 +158,7 @@ class Address extends SerializableLiteral<AddressConfig> {
     }
 
     // Create a checksum using the blake2b algorithm
-    const checksumBuffer = Buffer.concat([Buffer.from([protocol]), publicKey]);
+    const checksumBuffer = Buffer.concat([Buffer.from([protocol]), payload]);
     const checksum = blake.blake2b(
       checksumBuffer,
       null,
@@ -120,19 +166,21 @@ class Address extends SerializableLiteral<AddressConfig> {
     );
 
     // Merge the public key and checksum
-    const checksummedPubKey = Buffer.concat([publicKey, checksum]);
+    const payloadAndChecksum = Buffer.concat([payload, checksum]);
 
     // Use a custom alphabet to base32 encode the checksummed public key,
     // and prepend the network and protocol identifiers.
-    const customBase32Alpahbet = "abcdefghijklmnopqrstuvwxyz234567";
+    const customBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
     const address = `${network}${protocol}${base32.stringify(
-      checksummedPubKey,
-      customBase32Alpahbet
+      payloadAndChecksum,
+      customBase32Alphabet
     )}`;
 
     return new Address(address, privateKey);
   }
-
+  // bafy2bzacebf6iacrgturdmhdhnlb3sy2aerstv3zahn7pckbzbbghksiq3bfg
+  // bafy2bzacebuunkmqu6toz54dgicjjbckh7qcchc3xfeqwcuoz4gj4qkmji4wy
+  // bafyreieclpob2quklfdbardaojv4ylxjasrihgt5kqoki267xarbldqgmi
   static random(
     rng: utils.RandomNumberGenerator = new utils.RandomNumberGenerator(),
     protocol: AddressProtocol = AddressProtocol.BLS,
