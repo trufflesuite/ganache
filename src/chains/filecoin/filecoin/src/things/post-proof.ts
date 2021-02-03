@@ -36,7 +36,9 @@ class PoStProof extends SerializableObject<C> implements DeserializedObject<C> {
         deserializedName: "proofBytes",
         serializedName: "ProofBytes",
         defaultValue: literal =>
-          literal ? Buffer.from(literal, "base64") : Buffer.from([0])
+          typeof literal !== "undefined"
+            ? Buffer.from(literal, "base64")
+            : Buffer.from([0])
       }
     };
   }

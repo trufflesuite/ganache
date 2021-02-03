@@ -37,7 +37,9 @@ class Signature extends SerializableObject<C> implements DeserializedObject<C> {
         deserializedName: "data",
         serializedName: "Data",
         defaultValue: literal =>
-          literal ? Buffer.from(literal, "base64") : Buffer.from([0])
+          typeof literal !== "undefined"
+            ? Buffer.from(literal, "base64")
+            : Buffer.from([0])
       }
     };
   }
