@@ -3,7 +3,7 @@ import { Address, AddressProtocol } from "../../src/things/address";
 import { Message, SerializedMessage } from "../../src/things/message";
 
 describe("things", () => {
-  describe.only("Address", () => {
+  describe("Address", () => {
     // These were pulled directly from Lotus. You can use the lotusKeyInfo
     // with Filecoin.WalletImport to expand these tests with the same keys
     const blsAddress = {
