@@ -34,6 +34,7 @@ import { BlockMessages } from "./things/block-messages";
 import AccountManager from "./data-managers/account-manager";
 import PrivateKeyManager from "./data-managers/private-key-manager";
 import { fillGasInformation, getBaseFee, getMinerFee } from "./gas";
+import { checkMessage } from "./message";
 
 export type BlockchainEvents = {
   ready(): void;
@@ -341,7 +342,10 @@ export default class Blockchain extends Emittery.Typed<
     signedMessage: SignedMessage,
     acquireLock: boolean = true
   ): Promise<RootCID> {
-    // TODO: check funds?
+    const error = await checkMessage(signedMessage);
+    if (error) {
+      throw error;
+    }
 
     try {
       if (acquireLock) {
