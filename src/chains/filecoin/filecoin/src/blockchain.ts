@@ -280,6 +280,7 @@ export default class Blockchain extends Emittery.Typed<
     try {
       await this.#messagePoolLock.acquire();
 
+      const account = await this.accountManager!.getAccount(message.from);
       const pendingMessagesForAccount = this.messagePool.filter(
         queuedMessage => queuedMessage.message.from === message.from
       );
@@ -287,7 +288,7 @@ export default class Blockchain extends Emittery.Typed<
         (nonce, m) => {
           return Math.max(nonce, m.message.nonce);
         },
-        0
+        account.nonce
       );
 
       message.nonce = nonceFromPendingMessages + 1;
@@ -306,7 +307,6 @@ export default class Blockchain extends Emittery.Typed<
         0n
       );
       const totalRequired = messageBalanceRequired + pendingBalanceRequired;
-      const account = await this.accountManager!.getAccount(message.from);
       if (account.balance.value < totalRequired) {
         throw new Error(
           `mpool push: not enough funds: ${
