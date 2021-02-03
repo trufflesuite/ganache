@@ -74,6 +74,7 @@
     "multicodec": "2.1.0",
     "multihashing": "0.3.3",
     "noble-bls12-381": "0.4.3",
+    "secp256k1": "4.0.2",
     "seedrandom": "3.0.5",
     "subleveldown": "5.0.1",
     "tmp-promise": "3.0.2"
@@ -85,6 +86,7 @@
     "@types/deep-equal": "1.0.1",
     "@types/levelup": "4.3.0",
     "@types/lodash.clonedeep": "4.5.6",
+    "@types/secp256k1": "4.0.1",
     "@types/seedrandom": "2.4.28",
     "@types/ws": "7.4.0",
     "cross-env": "7.0.2",
