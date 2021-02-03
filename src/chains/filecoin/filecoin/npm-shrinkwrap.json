@@ -778,6 +778,15 @@
 				"safe-buffer": "*"
 			}
 		},
+		"@types/secp256k1": {
+			"version": "4.0.1",
+			"resolved": "https://registry.npmjs.org/@types/secp256k1/-/secp256k1-4.0.1.tgz",
+			"integrity": "sha512-+ZjSA8ELlOp8SlKi0YLB2tz9d5iPNEmOBd+8Rz21wTMdaXQIa9b6TEnD6l5qKOCypE7FSyPyck12qZJxSDNoog==",
+			"dev": true,
+			"requires": {
+				"@types/node": "*"
+			}
+		},
 		"@types/seedrandom": {
 			"version": "2.4.28",
 			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-2.4.28.tgz",

@@ -1,6 +1,7 @@
 import { SerializableLiteral } from "./serializable-literal";
 import blake from "blakejs";
 import * as bls from "noble-bls12-381";
+import secp256K1 from "secp256k1";
 import base32 from "base32-encoding";
 import { StartDealParams } from "./start-deal-params";
 import cbor from "borc";
@@ -87,23 +88,28 @@ class Address extends SerializableLiteral<AddressConfig> {
     protocol: AddressProtocol = AddressProtocol.BLS,
     network: AddressNetwork = AddressNetwork.Testnet
   ): Address {
-    if (protocol != AddressProtocol.BLS) {
+    let publicKey: Buffer;
+    if (protocol === AddressProtocol.BLS) {
+      // Reverse the key from little endian to big endian
+      const regex = privateKey.match(/.{2}/g);
+      if (!regex) {
+        throw new Error(
+          `Could not create address from private key ${privateKey}`
+        );
+      }
+      const bigEndian = regex.reverse().join("");
+
+      // Get the public key
+      publicKey = Buffer.from(bls.getPublicKey(bigEndian));
+    } else if (protocol === AddressProtocol.SECP256K1) {
+      publicKey = Buffer.from(
+        secp256K1.publicKeyCreate(Buffer.from(privateKey), false)
+      );
+    } else {
       throw new Error(
-        "Protocol type not yet supported. Supported address protocols: BLS"
+        "Protocol type not yet supported. Supported address protocols: BLS, SECP256K1"
       );
     }
-
-    // Reverse the key from little endian to big endian
-    const regex = privateKey.match(/.{2}/g);
-    if (!regex) {
-      throw new Error(
-        `Could not create address from private key ${privateKey}`
-      );
-    }
-    const bigEndian = regex.reverse().join("");
-
-    // Get the public key
-    const publicKey = Buffer.from(bls.getPublicKey(bigEndian));
 
     // Create a checksum using the blake2b algorithm
     const checksumBuffer = Buffer.concat([Buffer.from([protocol]), publicKey]);
