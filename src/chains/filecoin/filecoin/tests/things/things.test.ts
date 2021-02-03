@@ -3,7 +3,6 @@ import { RootCID } from "../../src/things/root-cid";
 import { CID } from "../../src/things/cid";
 import { Tipset } from "../../src/things/tipset";
 import { BlockHeader } from "../../src/things/block-header";
-import { Address } from "../../src/things/address";
 import IPFSCid from "cids";
 import multihashing from "multihashing";
 
@@ -112,27 +111,6 @@ describe("things", () => {
       assert.strictEqual(block.height, 0);
       assert(block.timestamp >= timestamp);
       assert.strictEqual(block.forkSignaling, 0);
-    });
-  });
-
-  describe("Address", () => {
-    it("should derive a real address from a private key", async () => {
-      // These were pulled directly from Lotus. This private key should
-      // create the associated address.
-      const privateKey =
-        "f47e78b912695e50283ffb6bf032e489055add72fc5da206e3fc29bda8cafc52";
-      const expectedAddress =
-        "t3vc4eetfk32n3tv5z55p73a2vm32pwxnqgr3jmpf7ssnwff6yh34bjc4vvarzivian5advbmvpmgw7ijxrboa";
-
-      const address = Address.fromPrivateKey(privateKey);
-
-      assert.strictEqual(address.value, expectedAddress);
-    });
-
-    it("should create a random address when calling Address.random()", async () => {
-      let address = Address.random();
-
-      assert(Address.isValid(address.value));
     });
   });
 });
