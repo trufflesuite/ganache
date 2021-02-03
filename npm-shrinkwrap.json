@@ -705,14 +705,6 @@
           "integrity": "sha512-ItfYfPLkWHUjckQCk8xC+LwxgK8NYcXywGigJgSwOP8Y2iyWT4f2vsZnoOXTTbo+o5yXmIUJ4gn5538SO5S3gA==",
           "dev": true
         },
-        "debug": {
-          "version": "2.6.9",
-          "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
-          "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",
-          "requires": {
-            "ms": "2.0.0"
-          }
-        },
         "eth-lib": {
           "version": "0.2.7",
           "resolved": "https://registry.npmjs.org/eth-lib/-/eth-lib-0.2.7.tgz",
@@ -743,7 +735,8 @@
         "ms": {
           "version": "2.0.0",
           "resolved": "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz",
-          "integrity": "sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g="
+          "integrity": "sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g=",
+          "dev": true
         },
         "scrypt-js": {
           "version": "2.0.3",
@@ -1072,18 +1065,31 @@
           "dev": true,
           "requires": {
             "underscore": "1.9.1",
-            "web3-core-helpers": "1.2.1"
+            "web3-core-helpers": "1.2.1",
+            "websocket": "github:web3-js/WebSocket-Node#polyfill/globalThis"
           },
           "dependencies": {
             "websocket": {
               "version": "github:web3-js/WebSocket-Node#ef5ea2f41daf4a2113b80c9223df884b4d56c400",
-              "from": "github:web3-js/WebSocket-Node#ef5ea2f41daf4a2113b80c9223df884b4d56c400",
+              "from": "github:web3-js/WebSocket-Node#polyfill/globalThis",
+              "dev": true,
               "requires": {
                 "debug": "^2.2.0",
                 "es5-ext": "^0.10.50",
                 "nan": "^2.14.0",
                 "typedarray-to-buffer": "^3.1.5",
                 "yaeti": "^0.0.6"
+              },
+              "dependencies": {
+                "debug": {
+                  "version": "2.6.9",
+                  "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
+                  "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",
+                  "dev": true,
+                  "requires": {
+                    "ms": "2.0.0"
+                  }
+                }
               }
             }
           }
@@ -1119,7 +1125,6 @@
           "version": "github:web3-js/WebSocket-Node#ef5ea2f41daf4a2113b80c9223df884b4d56c400",
           "from": "github:web3-js/WebSocket-Node#polyfill/globalThis",
           "requires": {
-            "debug": "^2.2.0",
             "es5-ext": "^0.10.50",
             "nan": "^2.14.0",
             "typedarray-to-buffer": "^3.1.5",
@@ -1192,14 +1197,6 @@
           "integrity": "sha1-4h3xCtbCBTKVvLuNq0Cwnb6ofk0=",
           "dev": true
         },
-        "debug": {
-          "version": "2.6.9",
-          "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
-          "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",
-          "requires": {
-            "ms": "2.0.0"
-          }
-        },
         "eth-lib": {
           "version": "0.2.7",
           "resolved": "https://registry.npmjs.org/eth-lib/-/eth-lib-0.2.7.tgz",
@@ -1230,7 +1227,8 @@
         "ms": {
           "version": "2.0.0",
           "resolved": "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz",
-          "integrity": "sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g="
+          "integrity": "sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g=",
+          "dev": true
         },
         "scrypt-js": {
           "version": "2.0.3",
@@ -1567,18 +1565,31 @@
           "dev": true,
           "requires": {
             "underscore": "1.9.1",
-            "web3-core-helpers": "1.2.1"
+            "web3-core-helpers": "1.2.1",
+            "websocket": "github:web3-js/WebSocket-Node#polyfill/globalThis"
           },
           "dependencies": {
             "websocket": {
               "version": "github:web3-js/WebSocket-Node#ef5ea2f41daf4a2113b80c9223df884b4d56c400",
-              "from": "github:web3-js/WebSocket-Node#ef5ea2f41daf4a2113b80c9223df884b4d56c400",
+              "from": "github:web3-js/WebSocket-Node#polyfill/globalThis",
+              "dev": true,
               "requires": {
                 "debug": "^2.2.0",
                 "es5-ext": "^0.10.50",
                 "nan": "^2.14.0",
                 "typedarray-to-buffer": "^3.1.5",
                 "yaeti": "^0.0.6"
+              },
+              "dependencies": {
+                "debug": {
+                  "version": "2.6.9",
+                  "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
+                  "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",
+                  "dev": true,
+                  "requires": {
+                    "ms": "2.0.0"
+                  }
+                }
               }
             }
           }
@@ -1622,7 +1633,6 @@
           "version": "github:web3-js/WebSocket-Node#ef5ea2f41daf4a2113b80c9223df884b4d56c400",
           "from": "github:web3-js/WebSocket-Node#polyfill/globalThis",
           "requires": {
-            "debug": "^2.2.0",
             "es5-ext": "^0.10.50",
             "nan": "^2.14.0",
             "typedarray-to-buffer": "^3.1.5",
@@ -1660,14 +1670,6 @@
           "resolved": "https://registry.npmjs.org/bn.js/-/bn.js-4.11.8.tgz",
           "integrity": "sha512-ItfYfPLkWHUjckQCk8xC+LwxgK8NYcXywGigJgSwOP8Y2iyWT4f2vsZnoOXTTbo+o5yXmIUJ4gn5538SO5S3gA==",
           "dev": true
-        },
-        "debug": {
-          "version": "2.6.9",
-          "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
-          "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",
-          "requires": {
-            "ms": "2.0.0"
-          }
         },
         "eth-lib": {
           "version": "0.2.7",
@@ -1731,7 +1733,8 @@
         "ms": {
           "version": "2.0.0",
           "resolved": "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz",
-          "integrity": "sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g="
+          "integrity": "sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g=",
+          "dev": true
         },
         "scrypt-js": {
           "version": "2.0.3",
@@ -2012,18 +2015,31 @@
           "dev": true,
           "requires": {
             "underscore": "1.9.1",
-            "web3-core-helpers": "1.2.1"
+            "web3-core-helpers": "1.2.1",
+            "websocket": "github:web3-js/WebSocket-Node#polyfill/globalThis"
           },
           "dependencies": {
             "websocket": {
               "version": "github:web3-js/WebSocket-Node#ef5ea2f41daf4a2113b80c9223df884b4d56c400",
-              "from": "github:web3-js/WebSocket-Node#ef5ea2f41daf4a2113b80c9223df884b4d56c400",
+              "from": "github:web3-js/WebSocket-Node#polyfill/globalThis",
+              "dev": true,
               "requires": {
                 "debug": "^2.2.0",
                 "es5-ext": "^0.10.50",
                 "nan": "^2.14.0",
                 "typedarray-to-buffer": "^3.1.5",
                 "yaeti": "^0.0.6"
+              },
+              "dependencies": {
+                "debug": {
+                  "version": "2.6.9",
+                  "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
+                  "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",
+                  "dev": true,
+                  "requires": {
+                    "ms": "2.0.0"
+                  }
+                }
               }
             }
           }
@@ -2059,7 +2075,6 @@
           "version": "github:web3-js/WebSocket-Node#ef5ea2f41daf4a2113b80c9223df884b4d56c400",
           "from": "github:web3-js/WebSocket-Node#polyfill/globalThis",
           "requires": {
-            "debug": "^2.2.0",
             "es5-ext": "^0.10.50",
             "nan": "^2.14.0",
             "typedarray-to-buffer": "^3.1.5",
@@ -17579,6 +17594,7 @@
           "resolved": "https://registry.npmjs.org/is-glob/-/is-glob-4.0.1.tgz",
           "integrity": "sha512-5G0tKtBTFImOqDnLB2hG6Bp2qcKEFduo4tZu9MT/H6NQv/ghhy30o55ufafxJ/LdH79LLs2Kfrn85TLKyA7BUg==",
           "dev": true,
+          "optional": true,
           "requires": {
             "is-extglob": "^2.1.1"
           }
@@ -17757,7 +17773,8 @@
           "version": "5.1.2",
           "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
           "integrity": "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==",
-          "dev": true
+          "dev": true,
+          "optional": true
         },
         "string_decoder": {
           "version": "1.1.1",
@@ -18149,7 +18166,7 @@
         "cross-fetch": "^2.1.0",
         "eth-block-tracker": "^3.0.0",
         "eth-json-rpc-infura": "^3.1.0",
-        "eth-sig-util": "^1.4.2",
+        "eth-sig-util": "^2.0.0",
         "ethereumjs-block": "^1.2.2",
         "ethereumjs-tx": "^1.2.0",
         "ethereumjs-util": "^5.1.5",
@@ -18178,7 +18195,7 @@
           "resolved": "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-1.4.2.tgz",
           "integrity": "sha1-jZWCAsftuq6Dlwf7pvCf8ydgYhA=",
           "requires": {
-            "ethereumjs-abi": "https://registry.npmjs.org/ethereumjs-abi/-/ethereumjs-abi-0.6.5.tgz",
+            "ethereumjs-abi": "ethereumjs-abi@0.6.5",
             "ethereumjs-util": "^5.1.1"
           }
         },
