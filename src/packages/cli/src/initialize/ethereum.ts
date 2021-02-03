@@ -6,41 +6,43 @@ export default function (provider: Provider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
 
-  console.log("");
-  console.log("Available Accounts");
-  console.log("==================");
-
   const addresses = Object.keys(accounts);
-  const ethInWei = 1000000000000000000n;
-
-  addresses.forEach(function (address, index) {
-    const balance = accounts[address].balance;
-    const strBalance = balance / ethInWei;
-    const about = balance % ethInWei === 0n ? "" : "~";
-    let line = `(${index}) ${toChecksumAddress(
-      address
-    )} (${about}${strBalance} ETH)`;
-
-    if (!accounts[address].unlocked) {
-      line += " 🔒";
-    }
-
-    console.log(line);
-  });
-
-  console.log("");
-  console.log("Private Keys");
-  console.log("==================");
-
-  addresses.forEach(function (address, index) {
-    console.log(`(${index}) ${accounts[address].secretKey}`);
-  });
-
-  if (liveOptions.wallet.accountKeysPath != null) {
+  if (addresses.length > 0) {
     console.log("");
-    console.log(
-      `Accounts and keys saved to ${liveOptions.wallet.accountKeysPath}`
-    );
+    console.log("Available Accounts");
+    console.log("==================");
+
+    const ethInWei = 1000000000000000000n;
+
+    addresses.forEach(function (address, index) {
+      const balance = accounts[address].balance;
+      const strBalance = balance / ethInWei;
+      const about = balance % ethInWei === 0n ? "" : "~";
+      let line = `(${index}) ${toChecksumAddress(
+        address
+      )} (${about}${strBalance} ETH)`;
+
+      if (!accounts[address].unlocked) {
+        line += " 🔒";
+      }
+
+      console.log(line);
+    });
+
+    console.log("");
+    console.log("Private Keys");
+    console.log("==================");
+
+    addresses.forEach(function (address, index) {
+      console.log(`(${index}) ${accounts[address].secretKey}`);
+    });
+
+    if (liveOptions.wallet.accountKeysPath != null) {
+      console.log("");
+      console.log(
+        `Accounts and keys saved to ${liveOptions.wallet.accountKeysPath}`
+      );
+    }
   }
 
   if (liveOptions.wallet.accounts == null) {
