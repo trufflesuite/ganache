@@ -116,7 +116,9 @@ class Message extends SerializableObject<C> implements DeserializedObject<C> {
         deserializedName: "params",
         serializedName: "Params",
         defaultValue: literal =>
-          literal ? Buffer.from(literal) : Buffer.from([0])
+          typeof literal !== "undefined"
+            ? Buffer.from(literal)
+            : Buffer.from([0])
       }
     };
   }
