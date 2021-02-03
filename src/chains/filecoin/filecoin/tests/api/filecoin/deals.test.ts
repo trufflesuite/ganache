@@ -50,7 +50,7 @@ describe("api", () => {
         let miners = await client.stateListMiners();
         const accounts = await provider.blockchain.accountManager.getControllableAccounts();
         const address = accounts[0].address;
-        let beginningBalance = await client.walletBalance(address.serialize());
+        let beginningBalance = await client.walletBalance(address.value);
 
         let result = await ipfs.add({
           content: data
@@ -84,7 +84,7 @@ describe("api", () => {
         assert.strictEqual(deal.ProposalCid["/"], proposalCid["/"]);
         assert.strictEqual(deal.Size, expectedSize);
 
-        let endingBalance = await client.walletBalance(address);
+        let endingBalance = await client.walletBalance(address.value);
 
         assert(new BN(endingBalance).lt(new BN(beginningBalance)));
       });
