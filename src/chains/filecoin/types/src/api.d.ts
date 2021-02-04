@@ -22,6 +22,7 @@ export default class FilecoinApi implements types.Api {
   [SubscriptionMethod.ChannelClosed](
     subscriptionId: SubscriptionId
   ): Promise<boolean>;
+  "Filecoin.ActorAddress"(): Promise<string>;
   "Filecoin.StateListMiners"(): Promise<Array<string>>;
   "Filecoin.StateMinerPower"(
     minerAddress: string
