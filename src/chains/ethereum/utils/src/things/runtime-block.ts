@@ -144,6 +144,7 @@ export class Block {
 export class RuntimeBlock {
   public readonly header: {
     parentHash: Buffer;
+    difficulty: Buffer;
     coinbase: Buffer;
     number: Buffer;
     gasLimit: Buffer;
@@ -155,13 +156,15 @@ export class RuntimeBlock {
     parentHash: Data,
     coinbase: Address,
     gasLimit: Buffer,
-    timestamp: Quantity
+    timestamp: Quantity,
+    difficulty: Quantity
   ) {
     const ts = timestamp.toBuffer();
     this.header = {
       parentHash: parentHash.toBuffer(),
       coinbase: coinbase.toBuffer(),
       number: number.toBuffer(),
+      difficulty: difficulty.toBuffer(),
       gasLimit: gasLimit.length === 0 ? BUFFER_EMPTY : gasLimit,
       timestamp: ts.length === 0 ? BUFFER_EMPTY : ts
     };
@@ -197,7 +200,7 @@ export class RuntimeBlock {
       transactionsTrie,
       receiptTrie,
       bloom,
-      BUFFER_EMPTY, // difficulty
+      header.difficulty,
       header.number,
       header.gasLimit,
       gasUsed,

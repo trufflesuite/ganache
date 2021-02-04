@@ -758,12 +758,14 @@ export default class EthereumApi implements types.Api {
           tx.gas = tx.gasLimit = options.miner.callGasLimit.toBuffer();
         }
       }
+
       const newBlock = new RuntimeBlock(
         Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
         parentHeader.parentHash,
         parentHeader.miner,
         tx.gas,
-        parentHeader.timestamp
+        parentHeader.timestamp,
+        parentHeader.difficulty
       );
       const runArgs = {
         tx: tx,
@@ -1813,7 +1815,8 @@ export default class EthereumApi implements types.Api {
       parentHeader.parentHash,
       blockchain.coinbase,
       gas.toBuffer(),
-      parentHeader.timestamp
+      parentHeader.timestamp,
+      parentHeader.difficulty
     );
 
     const simulatedTransaction = {

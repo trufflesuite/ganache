@@ -456,7 +456,8 @@ export default class Blockchain extends Emittery.Typed<
       previousBlock.hash(),
       this.coinbase,
       this.#options.miner.blockGasLimit.toBuffer(),
-      Quantity.from(timestamp == null ? this.#currentTime() : timestamp)
+      Quantity.from(timestamp == null ? this.#currentTime() : timestamp),
+      previousHeader.difficulty
     );
   };
 
@@ -555,7 +556,8 @@ export default class Blockchain extends Emittery.Typed<
       Quantity.from(BUFFER_32_ZERO),
       this.coinbase,
       blockGasLimit.toBuffer(),
-      Quantity.from(timestamp)
+      Quantity.from(timestamp),
+      this.#options.miner.difficulty
     );
 
     // store the genesis block in the database
@@ -897,7 +899,8 @@ export default class Blockchain extends Emittery.Typed<
       parentBlock.header.miner,
       parentBlock.header.gasLimit.toBuffer(),
       // make sure we use the same timestamp as the target block
-      targetBlock.header.timestamp
+      targetBlock.header.timestamp,
+      parentBlock.header.difficulty
     ) as RuntimeBlock & { uncleHeaders: []; transactions: Transaction[] };
     newBlock.transactions = [];
     newBlock.uncleHeaders = [];
