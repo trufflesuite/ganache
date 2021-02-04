@@ -37,15 +37,9 @@ describe("api", () => {
     });
 
     const waitForExpectedHeight = async () => {
-      let newHead: SerializedBlockHeader;
-      for (let i = 0; i < 5; i++) {
-        // small wait
-        await new Promise(resolve => setTimeout(resolve, 25));
-        newHead = await client.chainHead();
-        if (newHead.Height >= expectedHeight) {
-          break;
-        }
-      }
+      // give some time for it to finish mining any/all blocks
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const newHead: SerializedBlockHeader = await client.chainHead();
       assert.strictEqual(newHead.Height, expectedHeight);
     };
 
@@ -1420,6 +1414,134 @@ describe("api", () => {
             e.message
           );
         }
+      });
+    });
+
+    describe("Filecoin.MpoolBatchPushMessage", () => {
+      afterEach(async () => {
+        // we need to make sure any mining has finished from a prior test
+        // to not affect the next test
+        await waitForExpectedHeight();
+      });
+
+      it("should transfer funds with two messages in one batch", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        const priorFromBalance: string = await client.walletBalance(From);
+        const priorToBalance: string = await client.walletBalance(To);
+        const signedMessages: SerializedSignedMessage[] = await client.mpoolBatchPushMessage(
+          [message, message],
+          messageSendSpec
+        );
+        expectedHeight += 2; // theres a block per transaction
+        assert.ok(signedMessages);
+        await waitForExpectedHeight();
+
+        const newFromBalance: string = await client.walletBalance(From);
+        const newToBalance: string = await client.walletBalance(To);
+        const minerFee =
+          BigInt(signedMessages[0].Message.GasLimit) *
+            BigInt(signedMessages[0].Message.GasPremium) +
+          BigInt(signedMessages[1].Message.GasLimit) *
+            BigInt(signedMessages[1].Message.GasPremium);
+        assert.notStrictEqual(minerFee.toString(), "0"); // gas should be auto generated
+
+        // we have to compare as strings rather than bigints due to a bug
+        // in mocha: https://git.io/JtE8r; pending PR: https://git.io/JtE8o
+        assert.strictEqual(
+          BigInt(newFromBalance).toString(),
+          (
+            BigInt(priorFromBalance) -
+            BigInt(message.Value) * 2n -
+            minerFee
+          ).toString()
+        );
+        assert.strictEqual(
+          BigInt(newToBalance).toString(),
+          (BigInt(priorToBalance) + BigInt(message.Value) * 2n).toString()
+        );
+      });
+    });
+
+    describe("Filecoin.MpoolBatchPush", () => {
+      afterEach(async () => {
+        // we need to make sure any mining has finished from a prior test
+        // to not affect the next test
+        await waitForExpectedHeight();
+      });
+
+      it("should accept two properly signed (with BLS address) transfer messages in batch", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+        const message2 = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce + 1,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+        const signature2 = await accounts[0].address.signMessage(message2);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+        const signedMessage2 = new SignedMessage({
+          message: message2,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature2
+          })
+        });
+
+        const result = await client.mpoolBatchPush([
+          signedMessage,
+          signedMessage2
+        ]);
+        expectedHeight += 2; // theres a block per transaction
+        assert.ok(result);
       });
     });
   });

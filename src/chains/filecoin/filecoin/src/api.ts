@@ -185,18 +185,28 @@ export default class FilecoinApi implements types.Api {
     return rootCid.serialize();
   }
 
+  // Reference implementation: https://git.io/JtgeG
   async "Filecoin.MpoolBatchPush"(
     signedMessages: Array<SerializedSignedMessage>
   ): Promise<Array<SerializedRootCID>> {
-    const rootCids = await Promise.all<RootCID>(
-      signedMessages.map(async signedMessage => {
-        return await this.#blockchain.pushSigned(
-          new SignedMessage(signedMessage)
-        );
-      })
-    );
+    const cids: RootCID[] = [];
 
-    return rootCids.map(cid => cid.serialize());
+    // The lotus code makes it seem like it tries to
+    // still send a response with the signed messages that
+    // succeeded if one of them fails (see line 195 in ref impl).
+    // However, after trying it on lotus-devnet, I only receive the
+    // error (if the second message is the one that errors).
+    // So just letting the error bubble up should do the trick here.
+    // The reference implementation also doesn't revert/clear the messages
+    // that did successfully get added.
+    for (const signedMessage of signedMessages) {
+      const cid = await this.#blockchain.pushSigned(
+        new SignedMessage(signedMessage)
+      );
+      cids.push(cid);
+    }
+
+    return cids.map(c => c.serialize());
   }
 
   async "Filecoin.MpoolPushMessage"(
@@ -211,18 +221,28 @@ export default class FilecoinApi implements types.Api {
     return signedMessage.serialize();
   }
 
+  // Reference implementation: https://git.io/JtgeU
   async "Filecoin.MpoolBatchPushMessage"(
     messages: Array<SerializedMessage>,
     spec: SerializedMessageSendSpec
   ): Promise<Array<SerializedSignedMessage>> {
-    const signedMessages = await Promise.all<SignedMessage>(
-      messages.map(async message => {
-        return await this.#blockchain.push(
-          new Message(message),
-          new MessageSendSpec(spec)
-        );
-      })
-    );
+    const signedMessages: SignedMessage[] = [];
+
+    // The lotus code makes it seem like it tries to
+    // still send a response with the signed messages that
+    // succeeded if one of them fails (see line 219 in ref impl).
+    // However, after trying it on lotus-devnet, I only receive the
+    // error (if the second message is the one that errors).
+    // So just letting the error bubble up should do the trick here.
+    // The reference implementation also doesn't revert/clear the messages
+    // that did successfully get added.
+    for (const message of messages) {
+      const signedMessage = await this.#blockchain.push(
+        new Message(message),
+        new MessageSendSpec(spec)
+      );
+      signedMessages.push(signedMessage);
+    }
 
     return signedMessages.map(sm => sm.serialize());
   }
