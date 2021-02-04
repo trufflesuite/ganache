@@ -2,12 +2,17 @@ import assert from "assert";
 import FilecoinProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Address } from "../../../src/things/address";
-import { SerializedMessage } from "../../../src/things/message";
+import { Message, SerializedMessage } from "../../../src/things/message";
 import { Account } from "../../../src/things/account";
 import { SerializedMessageSendSpec } from "../../../src/things/message-send-spec";
-import { SerializedSignedMessage } from "../../../src/things/signed-message";
+import {
+  SerializedSignedMessage,
+  SignedMessage
+} from "../../../src/things/signed-message";
 import { SerializedBlockHeader } from "../../../src/things/block-header";
 import { Balance } from "../../../src/things/balance";
+import { Signature } from "../../../src/things/signature";
+import { SigType } from "../../../src/things/sig-type";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
@@ -27,7 +32,7 @@ describe("api", () => {
       await provider.stop();
     });
 
-    describe("Filecoin.MpoolPushMessage", () => {
+    describe("Filecoin.MpoolPushMessage and Filecoin.MpoolGetNonce", () => {
       let accounts: Account[];
 
       before(async () => {
@@ -105,7 +110,7 @@ describe("api", () => {
         const toNonce = await client.mpoolGetNonce(To);
         assert.strictEqual(fromNonce, 1);
         assert.strictEqual(toNonce, 0);
-      })
+      });
 
       it("should reject transfer message if there aren't enough funds", async () => {
         const From = accounts[0].address.value;
@@ -135,6 +140,9 @@ describe("api", () => {
           await client.mpoolPushMessage(message, messageSendSpec);
           assert.fail("Successfully sent message without enough funds");
         } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
           assert(e.message.includes("mpool push: not enough funds"), e.message);
         }
       });
@@ -166,6 +174,9 @@ describe("api", () => {
           await client.mpoolPushMessage(message, messageSendSpec);
           assert.fail("Successfully sent message without enough funds");
         } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
           assert(e.message.includes("mpool push: not enough funds"), e.message);
         }
       });
@@ -195,6 +206,9 @@ describe("api", () => {
           await client.mpoolPushMessage(message, messageSendSpec);
           assert.fail("Successfully sent unsigned message with non-zero nonce");
         } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
           assert(
             e.message.includes(
               "MpoolPushMessage expects message nonce to be 0"
@@ -231,6 +245,9 @@ describe("api", () => {
             "Successfully sent unsigned message with non-zero method"
           );
         } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
           assert.strictEqual(
             e.message,
             "Unsupported Method (1); only value transfers (Method: 0) are supported in Ganache."
@@ -295,10 +312,88 @@ describe("api", () => {
             "Successfully sent unsigned message with an account we don't have the private key for"
           );
         } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
           assert(
             e.message.includes("Could not sign message with address"),
             e.message
           );
+        }
+      });
+
+      it("should accept a properly signed transfer message", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        const result = await client.mpoolPush(signedMessage);
+        assert.ok(result);
+      });
+
+      it("should reject a signed transfer message with the wrong signature", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[1].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with the wrong signature"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          console.log(e);
         }
       });
     });
