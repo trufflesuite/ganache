@@ -14,7 +14,6 @@ import dagCBOR from "ipld-dag-cbor";
 import { RetrievalOrder } from "./things/retrieval-order";
 import { FilecoinInternalOptions } from "@ganache/filecoin-options";
 import { QueryOffer } from "./things/query-offer";
-import { RandomNumberGenerator } from "@ganache/utils/src/utils";
 import { Ticket } from "./things/ticket";
 
 export type BlockchainEvents = {
@@ -43,7 +42,7 @@ export default class Blockchain extends Emittery.Typed<
 
   private ipfsServer: IPFSServer;
   private miningTimeout: NodeJS.Timeout | null;
-  private rng: RandomNumberGenerator;
+  private rng: utils.RandomNumberGenerator;
 
   private ready: boolean;
 
@@ -51,7 +50,7 @@ export default class Blockchain extends Emittery.Typed<
     super();
     this.options = options;
 
-    this.rng = new RandomNumberGenerator(this.options.wallet.seed);
+    this.rng = new utils.RandomNumberGenerator(this.options.wallet.seed);
 
     this.miner = "t01000";
     this.address = Address.random(this.rng);

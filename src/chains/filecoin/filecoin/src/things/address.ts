@@ -4,7 +4,7 @@ import * as bls from "noble-bls12-381";
 import base32 from "base32-encoding";
 import { StartDealParams } from "./start-deal-params";
 import cbor from "borc";
-import { RandomNumberGenerator } from "@ganache/utils/src/utils";
+import { utils } from "@ganache/utils";
 
 // https://spec.filecoin.io/appendix/address/
 
@@ -113,7 +113,7 @@ class Address extends SerializableLiteral<AddressConfig> {
   }
 
   static random(
-    rng: RandomNumberGenerator = new RandomNumberGenerator(),
+    rng: utils.RandomNumberGenerator = new utils.RandomNumberGenerator(),
     protocol: AddressProtocol = AddressProtocol.BLS,
     network: AddressNetwork = AddressNetwork.Testnet
   ): Address {
