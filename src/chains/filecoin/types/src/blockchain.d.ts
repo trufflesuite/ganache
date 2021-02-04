@@ -5,10 +5,11 @@ import { Address } from "./things/address";
 import { DealInfo } from "./things/deal-info";
 import Balance from "./things/balance";
 import { StartDealParams } from "./things/start-deal-params";
-import { IPFSNode } from "./ipfs-server";
 import { RetrievalOrder } from "./things/retrieval-order";
 import { FilecoinInternalOptions } from "@ganache/filecoin-options";
 import { QueryOffer } from "./things/query-offer";
+import { FileRef } from "./things/file-ref";
+import { IPFS } from "ipfs";
 export declare type BlockchainEvents = {
   ready(): void;
   tipset: Tipset;
@@ -36,14 +37,15 @@ export default class Blockchain extends Emittery.Typed<
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
   stop(): Promise<void>;
-  get ipfs(): IPFSNode | null;
+  get ipfs(): IPFS | null;
   genesisTipset(): Tipset;
   latestTipset(): Tipset;
   mineTipset(numNewBlocks?: number): Promise<void>;
   hasLocal(cid: string): Promise<boolean>;
   private getIPFSObjectSize;
+  private downloadFile;
   startDeal(proposal: StartDealParams): Promise<RootCID>;
   createQueryOffer(rootCid: RootCID): Promise<QueryOffer>;
-  retrieve(retrievalOrder: RetrievalOrder): Promise<void>;
+  retrieve(retrievalOrder: RetrievalOrder, ref: FileRef): Promise<void>;
   private logLatestTipset;
 }
