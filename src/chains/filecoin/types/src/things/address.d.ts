@@ -2,6 +2,7 @@
 import { SerializableLiteral } from "./serializable-literal";
 import { StartDealParams } from "./start-deal-params";
 import { utils } from "@ganache/utils";
+import { Message } from "./message";
 interface AddressConfig {
   type: string;
 }
@@ -27,6 +28,9 @@ declare class Address extends SerializableLiteral<AddressConfig> {
   constructor(publicAddress: string, privateKey?: string);
   setPrivateKey(privateKey: string): void;
   signProposal(proposal: StartDealParams): Promise<Buffer>;
+  signMessage(message: Message): Promise<Buffer>;
+  signBuffer(buffer: Buffer): Promise<Buffer>;
+  static recoverPublicKey(address: string): Buffer;
   static fromPrivateKey(
     privateKey: string,
     protocol?: AddressProtocol,
