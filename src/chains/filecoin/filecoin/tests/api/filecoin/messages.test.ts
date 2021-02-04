@@ -437,7 +437,902 @@ describe("api", () => {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
-          assert(e.message.includes("bls signature failed to verify"));
+          assert(
+            e.message.includes("bls signature failed to verify"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject a signed message with the wrong version", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 1,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with the wrong version"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(e.message.includes("'Version' unsupported"), e.message);
+        }
+      });
+
+      it("should reject an unsigned message with the wrong version", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const message: SerializedMessage = {
+          Version: 1,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with the wrong version"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(e.message.includes("'Version' unsupported"), e.message);
+        }
+      });
+
+      it("should reject a signed message with an empty To field", async () => {
+        const From = accounts[0].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To: "",
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with an empty To field"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(e.message.includes("'To' address cannot be empty"), e.message);
+        }
+      });
+
+      it("should reject an unsigned message with an empty To field", async () => {
+        const From = accounts[0].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To: "",
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with an empty To field"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes(
+              "The To address is an invalid protocol; please use a BLS or SECP256K1 address."
+            ),
+            e.message
+          );
+        }
+      });
+
+      it("should reject a signed message with an empty From field", async () => {
+        const To = accounts[1].address.value;
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From: "",
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with an empty To field"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("'From' address cannot be empty"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject an unsigned message with an empty From field", async () => {
+        const To = accounts[1].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From: "",
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with an empty From field"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes(
+              "The From address is an invalid protocol; please use a BLS or SECP256K1 address."
+            ),
+            e.message
+          );
+        }
+      });
+
+      it("should reject a signed message with the To field being the zero address", async () => {
+        const From = accounts[0].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To:
+            "t3yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaby2smx7a",
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with the To field being the zero address"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(e.message.includes("invalid 'To' address"), e.message);
+        }
+      });
+
+      it("should reject an unsigned message with an empty To field", async () => {
+        const From = accounts[0].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To:
+            "t3yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaby2smx7a",
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with the To field being the zero address"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(e.message.includes("invalid 'To' address"), e.message);
+        }
+      });
+
+      it("should reject a signed message with a negative Value", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "-1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with a negative Value"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("'Value' field cannot be negative"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject an unsigned message with a negative Value", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "-1",
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with a negative Value"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("'Value' field cannot be negative"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject a signed message with a value greater than the total filecoin supply", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: Balance.FILToLowestDenomination(2000000001).toString(),
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with a value greater than the total filecoin supply"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes(
+              "'Value' field cannot be greater than total filecoin supply"
+            ),
+            e.message
+          );
+        }
+      });
+
+      it("should reject an unsigned message with a value greater than the total filecoin supply", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: Balance.FILToLowestDenomination(2000000001).toString(),
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with a value greater than the total filecoin supply"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(e.message.includes("mpool push: not enough funds"), e.message);
+        }
+      });
+
+      it("should reject a signed message with a negative GasFeeCap", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "-1",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with a negative GasFeeCap"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("'GasFeeCap' field cannot be negative"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject an unsigned message with a negative GasFeeCap", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "-1",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with a negative GasFeeCap"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("'GasFeeCap' field cannot be negative"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject a signed message with a negative GasPremium", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "-1",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with a negative GasPremium"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("'GasPremium' field cannot be negative"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject an unsigned message with a negative GasPremium", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "1",
+          GasPremium: "-1",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with a negative GasPremium"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("'GasPremium' field cannot be negative"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject a signed message with a GasPremium > GasFeeCap", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 520000,
+          GasFeeCap: "1000",
+          GasPremium: "1001",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with a GasPremium > GasFeeCap"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("'GasFeeCap' less than 'GasPremium'"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject an unsigned message with a GasPremium > GasFeeCap", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "1000",
+          GasPremium: "1001",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with a GasPremium > GasFeeCap"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("'GasFeeCap' less than 'GasPremium'"),
+            e.message
+          );
+        }
+      });
+
+      it("should reject a signed message with a GasLimit > BlockGasLimit", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: 10000000001,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with a GasLimit > BlockGasLimit"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes(
+              "'GasLimit' field cannot be greater than a block's gas limit"
+            ),
+            e.message
+          );
+        }
+      });
+
+      it("should reject an unsigned message with a GasLimit > BlockGasLimit", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 10000000001,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with a GasLimit > BlockGasLimit"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes(
+              "'GasLimit' field cannot be greater than a block's gas limit"
+            ),
+            e.message
+          );
+        }
+      });
+
+      it("should reject a signed message with a GasLimit < minGas", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const nonce = await client.mpoolGetNonce(From);
+
+        const message = new Message({
+          Version: 0,
+          To,
+          From,
+          Nonce: nonce,
+          Value: "1",
+          GasLimit: -1,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        });
+
+        const signature = await accounts[0].address.signMessage(message);
+
+        const signedMessage = new SignedMessage({
+          message,
+          signature: new Signature({
+            type: SigType.SigTypeBLS,
+            data: signature
+          })
+        });
+
+        try {
+          await client.mpoolPush(signedMessage);
+          assert.fail(
+            "Successfully sent a signed message with a GasLimit < minGas"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes(
+              "'GasLimit' field cannot be less than the cost of storing a message on chain"
+            ),
+            e.message
+          );
+        }
+      });
+
+      it("should reject an unsigned message with a GasLimit < minGas", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: -1,
+          GasFeeCap: "1000",
+          GasPremium: "1000",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        try {
+          await client.mpoolPushMessage(message, messageSendSpec);
+          assert.fail(
+            "Successfully sent an unsigned message with a GasLimit < minGas"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes(
+              "'GasLimit' field cannot be less than the cost of storing a message on chain"
+            ),
+            e.message
+          );
         }
       });
     });
