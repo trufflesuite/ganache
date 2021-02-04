@@ -1,10 +1,13 @@
 import Emittery from "emittery";
-import { types, utils } from "@ganache/utils";
+import { PromiEvent, types, utils } from "@ganache/utils";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
 import { Schema } from "@filecoin-shipyard/lotus-client-schema";
 import Blockchain from "./blockchain";
-import { FilecoinProviderOptions } from "@ganache/filecoin-options";
+import {
+  FilecoinProviderOptions,
+  FilecoinInternalOptions
+} from "@ganache/filecoin-options";
 export default class FilecoinProvider
   extends Emittery.Typed<{}, "ready">
   implements types.Provider<FilecoinApi> {
@@ -15,7 +18,7 @@ export default class FilecoinProvider
   /**
    * Returns the options, including defaults and generated, used to start Ganache.
    */
-  getOptions(): any;
+  getOptions(): FilecoinInternalOptions;
   /**
    * Returns the unlocked accounts
    */
@@ -31,9 +34,14 @@ export default class FilecoinProvider
   send(payload: JsonRpc.Request<FilecoinApi>): Promise<any>;
   _requestRaw<Method extends keyof FilecoinApi = keyof FilecoinApi>(
     payload: JsonRpc.Request<FilecoinApi>
-  ): Promise<{
-    value: any;
-  }>;
+  ): Promise<
+    | {
+        value: PromiEvent<any>;
+      }
+    | {
+        value: PromiseLike<ReturnType<FilecoinApi[Method]>>;
+      }
+  >;
   sendHttp(): Promise<void>;
   sendWs(): Promise<void>;
   sendSubscription(
@@ -42,7 +50,7 @@ export default class FilecoinProvider
       subscription?: boolean;
     },
     subscriptionCallback: (data: any) => void
-  ): Promise<any[]>;
+  ): Promise<(Promise<string> | (() => void))[]>;
   receive(): Promise<void>;
   import(): Promise<void>;
   destroy(): Promise<void>;

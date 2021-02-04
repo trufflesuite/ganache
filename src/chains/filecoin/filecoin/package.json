@@ -32,7 +32,7 @@
     "docs.typedoc": "typedoc --options ./typedoc.json --readme ./README.md --out ../../../docs/typedoc --json ../../../docs/typedoc/api.json src/api.ts",
     "docs.preview": "ws --open --port 3012 --directory ../../../",
     "tsc": "ts-node ../../../../scripts/lerna-run.ts ttsc --project _PACKAGEDIR_/tsconfig.json",
-    "tsc.declarations": "ts-node ../../../../scripts/lerna-run.ts ttsc --project _PACKAGEDIR_/tsconfig.declarations.json",
+    "tsc.declarations": "ts-node ../../../../scripts/lerna-run.ts ttsc --build _PACKAGEDIR_/tsconfig.declarations.json",
     "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true ts-node ../../../../scripts/lerna-mocha.ts --timeout 10000 --require ts-node/register '_PACKAGEDIR_/tests/**/*.test.ts'"
   },
