@@ -1,6 +1,9 @@
 import { Provider } from "@ganache/ethereum";
+import { utils } from "@ganache/utils";
 import { toChecksumAddress } from "ethereumjs-util";
 import { CliSettings } from "../types";
+
+const WEI = utils.WEI;
 
 export default function (provider: Provider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
@@ -11,12 +14,11 @@ export default function (provider: Provider, cliSettings: CliSettings) {
   console.log("==================");
 
   const addresses = Object.keys(accounts);
-  const ethInWei = 1000000000000000000n;
 
   addresses.forEach(function (address, index) {
     const balance = accounts[address].balance;
-    const strBalance = balance / ethInWei;
-    const about = balance % ethInWei === 0n ? "" : "~";
+    const strBalance = balance / WEI;
+    const about = balance % WEI === 0n ? "" : "~";
     let line = `(${index}) ${toChecksumAddress(
       address
     )} (${about}${strBalance} ETH)`;

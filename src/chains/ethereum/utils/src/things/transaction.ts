@@ -1,4 +1,4 @@
-import { INTRINSIC_GAS_TOO_LOW } from "../errors/errors";
+import { ecrecover } from "ethereumjs-util";
 import { RuntimeError, RETURN_TYPES } from "../errors/runtime-error";
 import { utils, Data, Quantity } from "@ganache/utils";
 import { params } from "./params";
@@ -17,9 +17,9 @@ import { Address } from "./address";
 import { ExtractValuesFromType } from "../types/extract-values-from-types";
 import { Block } from "./runtime-block";
 
+const { KNOWN_CHAINIDS, BUFFER_ZERO, RPCQUANTITY_ONE } = utils;
 const MAX_UINT64 = (1n << 64n) - 1n;
-const ZERO_BUFFER = Buffer.from([0]);
-const ONE_BUFFER = Buffer.from([1]);
+const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
 
 //#region helpers
 const sign = EthereumJsTransaction.prototype.sign;
@@ -511,7 +511,7 @@ export class Transaction extends (EthereumJsTransaction as any) {
     const execException = vmResult.exceptionError;
     let status: Buffer;
     if (execException) {
-      status = ZERO_BUFFER;
+      status = BUFFER_ZERO;
       this.execException = new RuntimeError(
         this.hash(),
         result,

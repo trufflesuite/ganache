@@ -58,7 +58,7 @@ const { keccak } = utils;
 //#endregion
 
 //#region Constants
-const { RPCQUANTITY_ZERO } = utils;
+const { RPCQUANTITY_ZERO, KNOWN_CHAINIDS } = utils;
 const CLIENT_VERSION = `Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPC_MODULES = {
@@ -69,7 +69,6 @@ const RPC_MODULES = {
   evm: "1.0",
   personal: "1.0"
 } as const;
-const KNOWN_CHAINIDS = new Set([1, 3, 4, 5, 42]);
 //#endregion
 
 //#region misc types
