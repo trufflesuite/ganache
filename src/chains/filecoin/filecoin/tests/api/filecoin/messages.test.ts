@@ -437,7 +437,7 @@ describe("api", () => {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
-          console.log(e);
+          assert(e.message.includes("bls signature failed to verify"));
         }
       });
     });
