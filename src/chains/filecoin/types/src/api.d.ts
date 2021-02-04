@@ -9,6 +9,7 @@ import { SerializedRetrievalOrder } from "./things/retrieval-order";
 import { SerializedQueryOffer } from "./things/query-offer";
 import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
 import { SerializedFileRef } from "./things/file-ref";
+import { SerializedMinerPower } from "./things/miner-power";
 export default class FilecoinApi implements types.Api {
   #private;
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -21,6 +22,9 @@ export default class FilecoinApi implements types.Api {
     subscriptionId: SubscriptionId
   ): Promise<boolean>;
   "Filecoin.StateListMiners"(): Promise<Array<string>>;
+  "Filecoin.StateMinerPower"(
+    minerAddress: string
+  ): Promise<SerializedMinerPower>;
   "Filecoin.WalletDefaultAddress"(): Promise<SerializedAddress>;
   "Filecoin.WalletBalance"(address: string): Promise<string>;
   "Filecoin.ClientStartDeal"(
