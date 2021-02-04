@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import {
   SerializableObject,
   DeserializedObject,
@@ -6,18 +7,28 @@ import {
 } from "./serializable-object";
 interface ElectionProofConfig {
   properties: {
+    winCount: {
+      type: number;
+      serializedType: number;
+      serializedName: "WinCount";
+    };
     vrfProof: {
-      type: string;
+      type: Buffer;
       serializedType: string;
       serializedName: "VRFProof";
     };
   };
 }
+declare type C = ElectionProofConfig;
 declare class ElectionProof
-  extends SerializableObject<ElectionProofConfig>
-  implements DeserializedObject<ElectionProofConfig> {
-  get config(): Definitions<ElectionProofConfig>;
-  vrfProof: string;
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C>;
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  );
+  winCount: number;
+  vrfProof: Buffer;
 }
-declare type SerializedElectionProof = SerializedObject<ElectionProofConfig>;
+declare type SerializedElectionProof = SerializedObject<C>;
 export { ElectionProof, SerializedElectionProof };

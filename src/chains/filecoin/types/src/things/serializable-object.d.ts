@@ -52,11 +52,11 @@ declare type FlattenUnion<T> = {
 declare type SerializedObject<C extends BaseConfig> = FlattenUnion<
   Values<SerializedObjectWrapper<C>>
 >;
-declare type DefaultValue<D, S> = D | ((options: S) => D);
+declare type DefaultValue<D, S> = D | ((options?: S) => D);
 declare type Definition<C extends BaseConfig, N extends PropertyName<C>> = {
+  deserializedName: N;
   serializedName: SerializedPropertyName<C, N>;
-  defaultValue?: DefaultValue<PropertyType<C, N>, SerializedPropertyType<C, N>>;
-  required?: boolean;
+  defaultValue: DefaultValue<PropertyType<C, N>, SerializedPropertyType<C, N>>;
 };
 declare type Definitions<C extends BaseConfig> = {
   [N in PropertyName<C>]: Definition<C, N>;
@@ -68,10 +68,10 @@ interface Serializable<C> {
 declare abstract class SerializableObject<C extends BaseConfig>
   implements Serializable<SerializedObject<C>> {
   protected abstract get config(): Definitions<C>;
-  constructor(
+  initializeValue<N extends PropertyName<C>>(
+    valueConfig: Definition<C, N>,
     options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
-  );
-  private initialize;
+  ): PropertyType<C, N>;
   private serializeValue;
   serialize(): SerializedObject<C>;
   equals(obj: Serializable<SerializedObject<C>>): boolean;

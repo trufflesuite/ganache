@@ -1,4 +1,4 @@
-import { Block, SerializedBlock } from "./block";
+import { BlockHeader, SerializedBlockHeader } from "./block-header";
 import {
   SerializableObject,
   DeserializedObject,
@@ -14,8 +14,8 @@ interface TipsetConfig {
       serializedName: "Cids";
     };
     blocks: {
-      type: Array<Block>;
-      serializedType: Array<SerializedBlock>;
+      type: Array<BlockHeader>;
+      serializedType: Array<SerializedBlockHeader>;
       serializedName: "Blocks";
     };
     height: {
@@ -25,18 +25,23 @@ interface TipsetConfig {
     };
   };
 }
+declare type C = TipsetConfig;
 declare class Tipset
-  extends SerializableObject<TipsetConfig>
-  implements DeserializedObject<TipsetConfig> {
-  get config(): Definitions<TipsetConfig>;
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C>;
   constructor(
-    options?:
-      | Partial<SerializedObject<TipsetConfig>>
-      | Partial<DeserializedObject<TipsetConfig>>
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
   );
+  /**
+   * An array that contains the BlockHeader.cid().
+   * If not provided, constructor will auto add this array.
+   * There's no documentation specifying this, so here is
+   * the reference Implementation: https://git.io/Jt3VM
+   */
   cids: Array<RootCID>;
-  blocks: Array<Block>;
+  blocks: Array<BlockHeader>;
   height: number;
 }
-declare type SerializedTipset = SerializedObject<TipsetConfig>;
+declare type SerializedTipset = SerializedObject<C>;
 export { Tipset, SerializedTipset };

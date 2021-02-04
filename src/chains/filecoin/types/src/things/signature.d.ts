@@ -1,16 +1,16 @@
 /// <reference types="node" />
 import {
   SerializableObject,
-  SerializedObject,
   DeserializedObject,
-  Definitions
+  Definitions,
+  SerializedObject
 } from "./serializable-object";
-interface BeaconEntryConfig {
+interface SignatureConfig {
   properties: {
-    round: {
+    type: {
       type: number;
       serializedType: number;
-      serializedName: "Round";
+      serializedName: "Type";
     };
     data: {
       type: Buffer;
@@ -19,16 +19,16 @@ interface BeaconEntryConfig {
     };
   };
 }
-declare type C = BeaconEntryConfig;
-declare class BeaconEntry
+declare type C = SignatureConfig;
+declare class Signature
   extends SerializableObject<C>
   implements DeserializedObject<C> {
   get config(): Definitions<C>;
   constructor(
     options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
   );
-  round: number;
+  type: number;
   data: Buffer;
 }
-declare type SerializedBeaconEntry = SerializedObject<C>;
-export { BeaconEntry, SerializedBeaconEntry };
+declare type SerializedSignature = SerializedObject<C>;
+export { Signature, SerializedSignature };

@@ -1,16 +1,17 @@
 import { Tipset } from "./things/tipset";
 import { RootCID } from "./things/root-cid";
 import Emittery from "emittery";
-import { Miner } from "./things/miner";
 import { Address } from "./things/address";
-import { Deal } from "./things/deal";
+import { DealInfo } from "./things/deal-info";
 import Balance from "./things/balance";
-import { StorageProposal } from "./things/storage-proposal";
+import { StartDealParams } from "./things/start-deal-params";
 import { IPFSNode } from "./ipfs-server";
-import { RetrievalOffer } from "./things/retrieval-offer";
+import { RetrievalOrder } from "./things/retrieval-order";
 import { FilecoinInternalOptions } from "@ganache/filecoin-options";
+import { QueryOffer } from "./things/query-offer";
 export declare type BlockchainEvents = {
   ready(): void;
+  tipset: Tipset;
 };
 export default class Blockchain extends Emittery.Typed<
   BlockchainEvents,
@@ -18,13 +19,12 @@ export default class Blockchain extends Emittery.Typed<
 > {
   #private;
   readonly tipsets: Array<Tipset>;
-  readonly miner: Miner;
+  readonly miner: string;
   readonly address: Address;
-  readonly privateKey: string;
   get balance(): Balance;
-  readonly deals: Array<Deal>;
-  readonly dealsByCid: Record<string, Deal>;
-  readonly inProcessDeals: Array<Deal>;
+  readonly deals: Array<DealInfo>;
+  readonly dealsByCid: Record<string, DealInfo>;
+  readonly inProcessDeals: Array<DealInfo>;
   readonly options: FilecoinInternalOptions;
   private ipfsServer;
   private miningTimeout;
@@ -36,14 +36,14 @@ export default class Blockchain extends Emittery.Typed<
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
   stop(): Promise<void>;
-  get ipfs(): IPFSNode;
+  get ipfs(): IPFSNode | null;
   genesisTipset(): Tipset;
   latestTipset(): Tipset;
   mineTipset(numNewBlocks?: number): Promise<void>;
   hasLocal(cid: string): Promise<boolean>;
   private getIPFSObjectSize;
-  startDeal(proposal: StorageProposal): Promise<RootCID>;
-  createRetrievalOffer(rootCid: RootCID): Promise<RetrievalOffer>;
-  retrieve(retrievalOffer: RetrievalOffer): Promise<void>;
+  startDeal(proposal: StartDealParams): Promise<RootCID>;
+  createQueryOffer(rootCid: RootCID): Promise<QueryOffer>;
+  retrieve(retrievalOrder: RetrievalOrder): Promise<void>;
   private logLatestTipset;
 }

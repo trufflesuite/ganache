@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { SerializableLiteral } from "./serializable-literal";
-import { StorageProposal } from "./storage-proposal";
+import { StartDealParams } from "./start-deal-params";
+import { utils } from "@ganache/utils";
 interface AddressConfig {
   type: string;
 }
@@ -13,35 +14,32 @@ declare enum AddressProtocol {
 }
 declare enum AddressNetwork {
   Testnet = "t",
-  Mainnet = "m"
+  Mainnet = "f",
+  Unknown = "UNKNOWN"
 }
 declare class Address extends SerializableLiteral<AddressConfig> {
-  get config(): {
-    defaultValue: (literal: any) => any;
-  };
-  static readonly MAINNET_PREFIX = "f";
-  static readonly TESTNET_PREFIX = "t";
+  #private;
+  get config(): {};
   static readonly CHECKSUM_BYTES = 4;
-  readonly privateKey: string;
-  readonly protocol: AddressProtocol;
-  readonly network: AddressNetwork;
-  constructor(
+  get privateKey(): string | undefined;
+  get network(): AddressNetwork;
+  get protocol(): AddressProtocol;
+  constructor(publicAddress: string, privateKey?: string);
+  setPrivateKey(privateKey: string): void;
+  signProposal(proposal: StartDealParams): Promise<Buffer>;
+  static fromPrivateKey(
     privateKey: string,
     protocol?: AddressProtocol,
     network?: AddressNetwork
-  );
-  signProposal(proposal: StorageProposal): Promise<Buffer>;
-  static fromPrivateKey(
-    privateKey: string,
-    protocol: AddressProtocol,
-    network: AddressNetwork
-  ): string;
+  ): Address;
   static random(
-    rng?: () => number,
+    rng?: utils.RandomNumberGenerator,
     protocol?: AddressProtocol,
     network?: AddressNetwork
   ): Address;
   static isValid(value: string): boolean;
+  static parseNetwork(publicAddress: string): AddressNetwork;
+  static parseProtocol(publicAddress: string): AddressProtocol;
 }
 declare type SerializedAddress = string;
 export { Address, SerializedAddress, AddressProtocol };

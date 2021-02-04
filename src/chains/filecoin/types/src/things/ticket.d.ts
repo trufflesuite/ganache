@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import {
   SerializableObject,
   DeserializedObject,
@@ -7,17 +8,21 @@ import {
 interface TicketConfig {
   properties: {
     vrfProof: {
-      type: string;
+      type: Buffer;
       serializedType: string;
       serializedName: "VRFProof";
     };
   };
 }
+declare type C = TicketConfig;
 declare class Ticket
-  extends SerializableObject<TicketConfig>
-  implements DeserializedObject<TicketConfig> {
-  get config(): Definitions<TicketConfig>;
-  vrfProof: string;
+  extends SerializableObject<C>
+  implements DeserializedObject<C> {
+  get config(): Definitions<C>;
+  constructor(
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  );
+  vrfProof: Buffer;
 }
-declare type SerializedTicket = SerializedObject<TicketConfig>;
+declare type SerializedTicket = SerializedObject<C>;
 export { Ticket, SerializedTicket };

@@ -6,7 +6,7 @@ import { Schema } from "@filecoin-shipyard/lotus-client-schema";
 import Blockchain from "./blockchain";
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 export default class FilecoinProvider
-  extends Emittery.Typed<undefined, "ready">
+  extends Emittery.Typed<{}, "ready">
   implements types.Provider<FilecoinApi> {
   #private;
   readonly blockchain: Blockchain;
@@ -27,13 +27,22 @@ export default class FilecoinProvider
       balance: bigint;
     }
   >;
-  connect(): Promise<never>;
-  send<Method extends keyof FilecoinApi = keyof FilecoinApi>(
+  connect(): Promise<void>;
+  send(payload: JsonRpc.Request<FilecoinApi>): Promise<any>;
+  _requestRaw<Method extends keyof FilecoinApi = keyof FilecoinApi>(
     payload: JsonRpc.Request<FilecoinApi>
-  ): Promise<any>;
+  ): Promise<{
+    value: any;
+  }>;
   sendHttp(): Promise<void>;
   sendWs(): Promise<void>;
-  sendSubscription(): Promise<void>;
+  sendSubscription(
+    payload: JsonRpc.Request<FilecoinApi>,
+    schemaMethod: {
+      subscription?: boolean;
+    },
+    subscriptionCallback: (data: any) => void
+  ): Promise<any[]>;
   receive(): Promise<void>;
   import(): Promise<void>;
   destroy(): Promise<void>;

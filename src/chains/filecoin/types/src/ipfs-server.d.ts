@@ -24,11 +24,11 @@ export declare type IPFSNode = {
 };
 declare class IPFSServer {
   static readonly DEFAULT_PORT = 5001;
-  readonly serverPort = 43134;
-  readonly apiPort = 5001;
-  node: IPFSNode;
+  readonly serverPort: number;
+  readonly apiPort: number;
+  node: IPFSNode | null;
   private httpServer;
-  constructor(apiPort: any);
+  constructor(apiPort: number);
   start(): Promise<void>;
   stop(): Promise<void>;
 }

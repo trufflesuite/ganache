@@ -1,34 +1,34 @@
 /// <reference types="node" />
 import {
   SerializableObject,
-  SerializedObject,
   DeserializedObject,
+  SerializedObject,
   Definitions
 } from "./serializable-object";
-interface BeaconEntryConfig {
+interface PoStProofConfig {
   properties: {
-    round: {
+    postProof: {
       type: number;
       serializedType: number;
-      serializedName: "Round";
+      serializedName: "PoStProof";
     };
-    data: {
+    proofBytes: {
       type: Buffer;
       serializedType: string;
-      serializedName: "Data";
+      serializedName: "ProofBytes";
     };
   };
 }
-declare type C = BeaconEntryConfig;
-declare class BeaconEntry
+declare type C = PoStProofConfig;
+declare class PoStProof
   extends SerializableObject<C>
   implements DeserializedObject<C> {
   get config(): Definitions<C>;
   constructor(
     options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
   );
-  round: number;
-  data: Buffer;
+  postProof: number;
+  proofBytes: Buffer;
 }
-declare type SerializedBeaconEntry = SerializedObject<C>;
-export { BeaconEntry, SerializedBeaconEntry };
+declare type SerializedPoStProof = SerializedObject<C>;
+export { PoStProof, SerializedPoStProof };

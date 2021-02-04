@@ -1,12 +1,10 @@
-import { SerializableLiteral } from "./serializable-literal";
+import { LiteralDefinition, SerializableLiteral } from "./serializable-literal";
 interface BalanceConfig {
-  type: string;
+  type: bigint;
 }
 declare class Balance extends SerializableLiteral<BalanceConfig> {
-  get config(): {
-    defaultValue: (literal: any) => any;
-  };
-  sub(val: string | number): Balance;
+  get config(): LiteralDefinition<BalanceConfig>;
+  sub(val: string | number | bigint): Balance;
   toFIL(): number;
 }
 export default Balance;
