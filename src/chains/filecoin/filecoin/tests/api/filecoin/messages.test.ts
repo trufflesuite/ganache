@@ -106,10 +106,54 @@ describe("api", () => {
         const From = accounts[0].address.value;
         const To = accounts[1].address.value;
 
-        const fromNonce = await client.mpoolGetNonce(From);
-        const toNonce = await client.mpoolGetNonce(To);
-        assert.strictEqual(fromNonce, 1);
-        assert.strictEqual(toNonce, 0);
+        // do this test twice to ensure nonces are incrementing
+        for (let i = 0; i < 2; i++) {
+          const priorFromNonce = await client.mpoolGetNonce(From);
+          const priorToNonce = await client.mpoolGetNonce(To);
+          const priorHead: SerializedBlockHeader = await client.chainHead();
+
+          const message: SerializedMessage = {
+            Version: 0,
+            From,
+            To,
+            Nonce: 0,
+            Value: "1",
+            GasLimit: 0,
+            GasFeeCap: "0",
+            GasPremium: "0",
+            Method: 0,
+            Params: ""
+          };
+
+          const messageSendSpec: SerializedMessageSendSpec = {
+            MaxFee: "0"
+          };
+
+          const signedMessage: SerializedSignedMessage = await client.mpoolPushMessage(
+            message,
+            messageSendSpec
+          );
+
+          assert.strictEqual(signedMessage.Message.Nonce, priorFromNonce);
+
+          // since `mpoolPushMessage` doesn't wait for instamine, we have to poll blocks
+          let newHead: SerializedBlockHeader;
+          for (let i = 0; i < 5; i++) {
+            // small wait
+            await new Promise(resolve => setTimeout(resolve, 25));
+            newHead = await client.chainHead();
+            if (newHead.Height !== priorHead.Height) {
+              break;
+            }
+          }
+          assert.strictEqual(newHead.Height, priorHead.Height + 1);
+
+          const newFromNonce = await client.mpoolGetNonce(From);
+          const newToNonce = await client.mpoolGetNonce(To);
+
+          assert.strictEqual(newFromNonce, priorFromNonce + 1);
+          assert.strictEqual(newToNonce, priorToNonce);
+        }
       });
 
       it("should reject transfer message if there aren't enough funds", async () => {
