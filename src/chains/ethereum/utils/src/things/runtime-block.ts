@@ -18,6 +18,7 @@ type BlockHeader = {
   receiptsRoot: Data;
   logsBloom: Data;
   difficulty: Quantity;
+  totalDifficulty: Quantity;
   number: Quantity;
   gasLimit: Quantity;
   gasUsed: Quantity;
@@ -49,7 +50,8 @@ function makeHeader(raw: Buffer[]) {
     timestamp: Quantity.from(raw[11], false),
     extraData: Data.from(raw[12]),
     mixHash: Data.from(raw[13], 32),
-    nonce: Data.from(raw[14], 8)
+    nonce: Data.from(raw[14], 8),
+    totalDifficulty: Quantity.from(raw[15], false)
   };
 }
 
@@ -117,10 +119,6 @@ export class Block {
     return {
       hash: this.hash(),
       ...this.header,
-
-      // TODO(forking): since ganache's difficulty is always 0, `totalDifficulty` for new blocks
-      // should just be the forked block's `difficulty`. See https://ethereum.stackexchange.com/a/7102/44640
-      totalDifficulty: RPCQUANTITY_ZERO,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
       uncles: [] as string[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
@@ -145,6 +143,7 @@ export class RuntimeBlock {
   public readonly header: {
     parentHash: Buffer;
     difficulty: Buffer;
+    totalDifficulty: Buffer;
     coinbase: Buffer;
     number: Buffer;
     gasLimit: Buffer;
@@ -157,7 +156,8 @@ export class RuntimeBlock {
     coinbase: Address,
     gasLimit: Buffer,
     timestamp: Quantity,
-    difficulty: Quantity
+    difficulty: Quantity,
+    previousBlockTotalDifficulty: Quantity
   ) {
     const ts = timestamp.toBuffer();
     this.header = {
@@ -165,6 +165,9 @@ export class RuntimeBlock {
       coinbase: coinbase.toBuffer(),
       number: number.toBuffer(),
       difficulty: difficulty.toBuffer(),
+      totalDifficulty: Quantity.from(
+        previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
+      ).toBuffer(),
       gasLimit: gasLimit.length === 0 ? BUFFER_EMPTY : gasLimit,
       timestamp: ts.length === 0 ? BUFFER_EMPTY : ts
     };
@@ -207,7 +210,8 @@ export class RuntimeBlock {
       header.timestamp,
       extraData.toBuffer(),
       Buffer.allocUnsafe(32).fill(0), // mixHash
-      Buffer.allocUnsafe(8).fill(0) // nonce
+      Buffer.allocUnsafe(8).fill(0), // nonce
+      header.totalDifficulty
     ];
     const rawTransactions = transactions.map(tx => tx.raw);
     const raw = [rawHeader, rawTransactions];
