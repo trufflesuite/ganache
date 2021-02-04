@@ -9,7 +9,6 @@ import {
 } from "./serializable-object";
 import { PoStProof, SerializedPoStProof } from "./post-proof";
 import { RootCID, SerializedRootCID } from "./root-cid";
-import { CID } from "./cid";
 import { SerializedSignature, Signature } from "./signature";
 interface BlockHeaderConfig {
   properties: {
@@ -123,7 +122,6 @@ declare class BlockHeader
   blockSignature: Signature;
   forkSignaling: 0 | 1;
   parentBaseFee: bigint;
-  get cid(): CID;
 }
 declare type SerializedBlockHeader = SerializedObject<BlockHeaderConfig>;
 export { BlockHeader, BlockHeaderConfig, SerializedBlockHeader };

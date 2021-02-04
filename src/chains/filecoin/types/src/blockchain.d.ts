@@ -10,6 +10,11 @@ import { FileRef } from "./things/file-ref";
 import { IPFS } from "ipfs";
 import TipsetManager from "./data-managers/tipset-manager";
 import BlockHeaderManager from "./data-managers/block-header-manager";
+import { SignedMessage } from "./things/signed-message";
+import { Message } from "./things/message";
+import { MessageSendSpec } from "./things/message-send-spec";
+import SignedMessageManager from "./data-managers/message-manager";
+import BlockMessagesManager from "./data-managers/block-messages-manager";
 import AccountManager from "./data-managers/account-manager";
 import PrivateKeyManager from "./data-managers/private-key-manager";
 export declare type BlockchainEvents = {
@@ -25,7 +30,10 @@ export default class Blockchain extends Emittery.Typed<
   blockHeaderManager: BlockHeaderManager | null;
   accountManager: AccountManager | null;
   privateKeyManager: PrivateKeyManager | null;
+  signedMessagesManager: SignedMessageManager | null;
+  blockMessagesManager: BlockMessagesManager | null;
   readonly miner: string;
+  messagePool: Array<SignedMessage>;
   readonly deals: Array<DealInfo>;
   readonly dealsByCid: Record<string, DealInfo>;
   readonly inProcessDeals: Array<DealInfo>;
@@ -43,6 +51,11 @@ export default class Blockchain extends Emittery.Typed<
   get ipfs(): IPFS | null;
   genesisTipset(): Tipset;
   latestTipset(): Tipset;
+  push(message: Message, spec: MessageSendSpec): Promise<SignedMessage>;
+  pushSigned(
+    signedMessage: SignedMessage,
+    acquireLock?: boolean
+  ): Promise<RootCID>;
   mineTipset(numNewBlocks?: number): Promise<void>;
   hasLocal(cid: string): Promise<boolean>;
   private getIPFSObjectSize;

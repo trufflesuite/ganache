@@ -12,6 +12,9 @@ import { SerializedFileRef } from "./things/file-ref";
 import { SerializedMinerPower } from "./things/miner-power";
 import { SerializedMinerInfo } from "./things/miner-info";
 import { SerializedVersion } from "./things/version";
+import { SerializedMessage } from "./things/message";
+import { SerializedMessageSendSpec } from "./things/message-send-spec";
+import { SerializedSignedMessage } from "./things/signed-message";
 export default class FilecoinApi implements types.Api {
   #private;
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -24,6 +27,21 @@ export default class FilecoinApi implements types.Api {
   [SubscriptionMethod.ChannelClosed](
     subscriptionId: SubscriptionId
   ): Promise<boolean>;
+  "Filecoin.MpoolGetNonce"(address: string): Promise<number>;
+  "Filecoin.MpoolPush"(
+    signedMessage: SerializedSignedMessage
+  ): Promise<SerializedRootCID>;
+  "Filecoin.MpoolBatchPush"(
+    signedMessages: Array<SerializedSignedMessage>
+  ): Promise<Array<SerializedRootCID>>;
+  "Filecoin.MpoolPushMessage"(
+    message: SerializedMessage,
+    spec: SerializedMessageSendSpec
+  ): Promise<SerializedSignedMessage>;
+  "Filecoin.MpoolBatchPushMessage"(
+    messages: Array<SerializedMessage>,
+    spec: SerializedMessageSendSpec
+  ): Promise<Array<SerializedSignedMessage>>;
   "Filecoin.ActorAddress"(): Promise<string>;
   "Filecoin.StateListMiners"(): Promise<Array<string>>;
   "Filecoin.StateMinerPower"(

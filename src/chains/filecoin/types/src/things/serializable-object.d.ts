@@ -1,3 +1,4 @@
+import { CID } from "./cid";
 export declare type BaseConfig = {
   properties: {
     [deserializedName: string]: {
@@ -75,6 +76,7 @@ declare abstract class SerializableObject<C extends BaseConfig>
   private serializeValue;
   serialize(): SerializedObject<C>;
   equals(obj: Serializable<SerializedObject<C>>): boolean;
+  get cid(): CID;
 }
 export {
   Serializable,
