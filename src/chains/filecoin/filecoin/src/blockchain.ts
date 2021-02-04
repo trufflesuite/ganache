@@ -285,14 +285,24 @@ export default class Blockchain extends Emittery.Typed<
       const pendingMessagesForAccount = this.messagePool.filter(
         queuedMessage => queuedMessage.message.from === message.from
       );
-      const nonceFromPendingMessages = pendingMessagesForAccount.reduce(
-        (nonce, m) => {
-          return Math.max(nonce, m.message.nonce);
-        },
-        account.nonce
-      );
 
-      message.nonce = nonceFromPendingMessages + 1;
+      if (pendingMessagesForAccount.length === 0) {
+        // account.nonce already stores the "next nonce"
+        // don't add more to it
+        message.nonce = account.nonce;
+      } else {
+        // in this case, we have messages in the pool with
+        // already incremented nonces (account.nonce only
+        // increments when the block is mined). this will
+        // generate a nonce greater than any other nonce
+        const nonceFromPendingMessages = pendingMessagesForAccount.reduce(
+          (nonce, m) => {
+            return Math.max(nonce, m.message.nonce);
+          },
+          account.nonce
+        );
+        message.nonce = nonceFromPendingMessages + 1;
+      }
 
       // check if enough funds
       const messageBalanceRequired =
