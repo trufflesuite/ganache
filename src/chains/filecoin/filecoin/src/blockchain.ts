@@ -56,6 +56,7 @@ export default class Blockchain extends Emittery.Typed<
   public blockMessagesManager: BlockMessagesManager | null;
 
   readonly miner: string; // using string until we can support more address types in Address
+  readonly #miningLock: Sema;
 
   public messagePool: Array<SignedMessage>;
   readonly #messagePoolLock: Sema;
@@ -91,6 +92,9 @@ export default class Blockchain extends Emittery.Typed<
     this.ipfsServer = new IPFSServer(this.options.chain);
 
     this.miningTimeout = null;
+    // to prevent us from stopping while mining or mining
+    // multiple times simultaneously
+    this.#miningLock = new Sema(1);
 
     // We set these to null since they get initialized in
     // an async callback below. We could ignore the TS error,
@@ -214,6 +218,11 @@ export default class Blockchain extends Emittery.Typed<
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
   async stop() {
+    // make sure we wait until other stuff is finished,
+    // prevent it from starting up again by not releasing
+    await this.#miningLock.acquire();
+    await this.#messagePoolLock.acquire();
+
     if (this.miningTimeout) {
       clearInterval(this.miningTimeout);
     }
@@ -391,50 +400,71 @@ export default class Blockchain extends Emittery.Typed<
   async mineTipset(numNewBlocks: number = 1): Promise<void> {
     await this.waitForReady();
 
-    // let's grab the messages going into the next tipset
-    // immediately and clear the message pool for the next tipset
-    let nextMessagePool: Array<SignedMessage>;
     try {
-      await this.#messagePoolLock.acquire();
-      nextMessagePool = ([] as Array<SignedMessage>).concat(this.messagePool);
-      this.messagePool = [];
-      this.#messagePoolLock.release();
-    } catch (e) {
-      this.#messagePoolLock.release();
-      throw e;
-    }
+      await this.#miningLock.acquire();
 
-    let previousTipset: Tipset = this.latestTipset();
-    const newTipsetHeight = previousTipset.height + 1;
+      // let's grab the messages going into the next tipset
+      // immediately and clear the message pool for the next tipset
+      let nextMessagePool: Array<SignedMessage>;
+      try {
+        await this.#messagePoolLock.acquire();
+        nextMessagePool = ([] as Array<SignedMessage>).concat(this.messagePool);
+        this.messagePool = [];
+        this.#messagePoolLock.release();
+      } catch (e) {
+        this.#messagePoolLock.release();
+        throw e;
+      }
 
-    let newBlocks: Array<BlockHeader> = [];
+      let previousTipset: Tipset = this.latestTipset();
+      const newTipsetHeight = previousTipset.height + 1;
 
-    for (let i = 0; i < numNewBlocks; i++) {
-      newBlocks.push(
-        new BlockHeader({
-          miner: this.miner,
-          parents: [previousTipset.cids[0]],
-          height: newTipsetHeight,
-          // Determined by interpreting the description of `weight`
-          // as an accumulating weight of win counts (which default to 1)
-          // See the description here: https://spec.filecoin.io/#section-glossary.weight
-          parentWeight:
-            BigInt(previousTipset.blocks[0].electionProof.winCount) +
-            previousTipset.blocks[0].parentWeight
-        })
-      );
-    }
+      let newBlocks: Array<BlockHeader> = [];
 
-    if (nextMessagePool.length > 0) {
-      const successfulMessages: SignedMessage[] = [];
-      for (const signedMessage of nextMessagePool) {
-        const { from, to, value, gasLimit, gasPremium } = signedMessage.message;
+      for (let i = 0; i < numNewBlocks; i++) {
+        newBlocks.push(
+          new BlockHeader({
+            miner: this.miner,
+            parents: [previousTipset.cids[0]],
+            height: newTipsetHeight,
+            // Determined by interpreting the description of `weight`
+            // as an accumulating weight of win counts (which default to 1)
+            // See the description here: https://spec.filecoin.io/#section-glossary.weight
+            parentWeight:
+              BigInt(previousTipset.blocks[0].electionProof.winCount) +
+              previousTipset.blocks[0].parentWeight
+          })
+        );
+      }
 
-        const baseFee = getBaseFee();
-        if (baseFee !== 0) {
-          const successful = await this.accountManager!.transferFunds(
+      if (nextMessagePool.length > 0) {
+        const successfulMessages: SignedMessage[] = [];
+        for (const signedMessage of nextMessagePool) {
+          const { from, to, value } = signedMessage.message;
+
+          const baseFee = getBaseFee();
+          if (baseFee !== 0) {
+            const successful = await this.accountManager!.transferFunds(
+              from,
+              BurntFundsAddress,
+              getMinerFee(signedMessage.message)
+            );
+
+            if (!successful) {
+              // While we should have checked this when the message was sent,
+              // we double check here just in case
+              const fromAccount = await this.accountManager!.getAccount(from);
+              console.warn(
+                `Could not burn the base fee of ${baseFee} attoFIL from address ${from} due to lack of funds. ${fromAccount.balance.value} attoFIL available`
+              );
+              continue;
+            }
+          }
+
+          // send mining funds
+          let successful = await this.accountManager!.transferFunds(
             from,
-            BurntFundsAddress,
+            this.miner,
             getMinerFee(signedMessage.message)
           );
 
@@ -443,84 +473,76 @@ export default class Blockchain extends Emittery.Typed<
             // we double check here just in case
             const fromAccount = await this.accountManager!.getAccount(from);
             console.warn(
-              `Could not burn the base fee of ${baseFee} attoFIL from address ${from} due to lack of funds. ${fromAccount.balance.value} attoFIL available`
+              `Could not transfer the mining fees of ${getMinerFee(
+                signedMessage.message
+              )} attoFIL from address ${from} due to lack of funds. ${
+                fromAccount.balance.value
+              } attoFIL available`
             );
             continue;
           }
+
+          successful = await this.accountManager!.transferFunds(
+            from,
+            to,
+            value
+          );
+
+          if (!successful) {
+            // While we should have checked this when the message was sent,
+            // we double check here just in case
+            const fromAccount = await this.accountManager!.getAccount(from);
+            console.warn(
+              `Could not transfer ${value} attoFIL from address ${from} to address ${to} due to lack of funds. ${fromAccount.balance.value} attoFIL available`
+            );
+
+            // do not revert miner transfer as the miner attempted to mine
+            continue;
+          }
+
+          // TODO: figure out nonce/error logic
+          this.accountManager!.incrementNonce(from);
+
+          successfulMessages.push(signedMessage);
         }
 
-        // send mining funds
-        let successful = await this.accountManager!.transferFunds(
-          from,
-          this.miner,
-          getMinerFee(signedMessage.message)
+        // TODO: fill newBlocks[0].blsAggregate?
+        await this.blockMessagesManager!.putBlockMessages(
+          newBlocks[0].cid,
+          BlockMessages.fromSignedMessages(successfulMessages)
         );
-
-        if (!successful) {
-          // While we should have checked this when the message was sent,
-          // we double check here just in case
-          const fromAccount = await this.accountManager!.getAccount(from);
-          console.warn(
-            `Could not transfer the mining fees of ${getMinerFee(
-              signedMessage.message
-            )} attoFIL from address ${from} due to lack of funds. ${
-              fromAccount.balance.value
-            } attoFIL available`
-          );
-          continue;
-        }
-
-        successful = await this.accountManager!.transferFunds(from, to, value);
-
-        if (!successful) {
-          // While we should have checked this when the message was sent,
-          // we double check here just in case
-          const fromAccount = await this.accountManager!.getAccount(from);
-          console.warn(
-            `Could not transfer ${value} attoFIL from address ${from} to address ${to} due to lack of funds. ${fromAccount.balance.value} attoFIL available`
-          );
-
-          // do not revert miner transfer as the miner attempted to mine
-          continue;
-        }
-
-        // TODO: figure out nonce/error logic
-        this.accountManager!.incrementNonce(from);
-
-        successfulMessages.push(signedMessage);
       }
 
-      // TODO: fill newBlocks[0].blsAggregate?
-      await this.blockMessagesManager!.putBlockMessages(
-        newBlocks[0].cid,
-        BlockMessages.fromSignedMessages(successfulMessages)
+      const newTipset = new Tipset({
+        blocks: newBlocks,
+        height: newTipsetHeight
+      });
+
+      await this.tipsetManager!.putTipset(newTipset);
+      await this.#database.db!.put(
+        "latest-tipset",
+        Quantity.from(newTipsetHeight).toBuffer()
       );
-    }
 
-    const newTipset = new Tipset({
-      blocks: newBlocks,
-      height: newTipsetHeight
-    });
+      // Advance the state of all deals in process.
+      for (const deal of this.inProcessDeals) {
+        deal.advanceState();
 
-    await this.tipsetManager!.putTipset(newTipset);
-    await this.#database.db!.put(
-      "latest-tipset",
-      Quantity.from(newTipsetHeight).toBuffer()
-    );
-
-    // Advance the state of all deals in process.
-    for (const deal of this.inProcessDeals) {
-      deal.advanceState();
-
-      if (deal.state == StorageDealStatus.Active) {
-        // Remove the deal from the in-process array
-        this.inProcessDeals.splice(this.inProcessDeals.indexOf(deal), 1);
+        if (deal.state == StorageDealStatus.Active) {
+          // Remove the deal from the in-process array
+          this.inProcessDeals.splice(this.inProcessDeals.indexOf(deal), 1);
+        }
       }
+
+      this.logLatestTipset();
+
+      this.emit("tipset", newTipset);
+
+      this.#miningLock.release();
+    } catch (e) {
+      this.#miningLock.release();
+      throw e;
     }
-
-    this.logLatestTipset();
-
-    this.emit("tipset", newTipset);
   }
 
   async hasLocal(cid: string): Promise<boolean> {
