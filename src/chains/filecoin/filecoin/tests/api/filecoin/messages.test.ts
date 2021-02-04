@@ -62,7 +62,6 @@ describe("api", () => {
           messageSendSpec
         );
         assert.ok(signedMessage);
-        assert(signedMessage.Message.Nonce > 0); // nonce should be auto generated
         // since `mpoolPushMessage` doesn't wait for instamine, we have to poll blocks
         let newHead: SerializedBlockHeader;
         for (let i = 0; i < 5; i++) {
@@ -97,6 +96,16 @@ describe("api", () => {
           (BigInt(priorToBalance) + BigInt(message.Value)).toString()
         );
       });
+
+      it("should get the correct nonce with no pending blocks", async () => {
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+
+        const fromNonce = await client.mpoolGetNonce(From);
+        const toNonce = await client.mpoolGetNonce(To);
+        assert.strictEqual(fromNonce, 1);
+        assert.strictEqual(toNonce, 0);
+      })
 
       it("should reject transfer message if there aren't enough funds", async () => {
         const From = accounts[0].address.value;
