@@ -23,8 +23,8 @@ declare type StorageMarketDataRefConfig = {
       serializedName: "PieceCid";
     };
     pieceSize: {
-      type: 0;
-      serializedType: 0;
+      type: number;
+      serializedType: number;
       serializedName: "PieceSize";
     };
   };
@@ -41,7 +41,7 @@ declare class StorageMarketDataRef
   transferType: "graphsync";
   root: RootCID;
   pieceCid: RootCID | null;
-  pieceSize: 0;
+  pieceSize: number;
 }
 declare type SerializedStorageMarketDataRef = SerializedObject<StorageMarketDataRefConfig>;
 export { StorageMarketDataRef, SerializedStorageMarketDataRef };
