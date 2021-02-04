@@ -1,4 +1,4 @@
-import { RandomNumberGenerator } from "@ganache/utils/src/utils";
+import { utils } from "@ganache/utils";
 import { Address, SerializedAddress } from "./address";
 import { Balance, SerializedBalance } from "./balance";
 import {
@@ -32,7 +32,7 @@ declare class Account
   implements DeserializedObject<C> {
   #private;
   get config(): Definitions<C>;
-  static random(defaultFIL: number, rng?: RandomNumberGenerator): Account;
+  static random(defaultFIL: number, rng?: utils.RandomNumberGenerator): Account;
   constructor(
     options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
   );

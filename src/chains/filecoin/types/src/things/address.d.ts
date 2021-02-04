@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { SerializableLiteral } from "./serializable-literal";
 import { StartDealParams } from "./start-deal-params";
-import { RandomNumberGenerator } from "@ganache/utils/src/utils";
+import { utils } from "@ganache/utils";
 interface AddressConfig {
   type: string;
 }
@@ -33,7 +33,7 @@ declare class Address extends SerializableLiteral<AddressConfig> {
     network?: AddressNetwork
   ): Address;
   static random(
-    rng?: RandomNumberGenerator,
+    rng?: utils.RandomNumberGenerator,
     protocol?: AddressProtocol,
     network?: AddressNetwork
   ): Address;
