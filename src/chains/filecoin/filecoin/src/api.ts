@@ -148,6 +148,33 @@ export default class FilecoinApi implements types.Api {
     }
   }
 
+  async "Filecoin.MpoolGetNonce"(address: string): Promise<number> {
+    await this.#blockchain.waitForReady();
+
+    const account = await this.#blockchain.accountManager!.getAccount(address);
+    const pendingMessagesForAccount = this.#blockchain.messagePool.filter(
+      queuedMessage => queuedMessage.message.from === address
+    );
+
+    if (pendingMessagesForAccount.length === 0) {
+      // account.nonce already stores the "next nonce"
+      // don't add more to it
+      return account.nonce;
+    } else {
+      // in this case, we have messages in the pool with
+      // already incremented nonces (account.nonce only
+      // increments when the block is mined). this will
+      // generate a nonce greater than any other nonce
+      const nonceFromPendingMessages = pendingMessagesForAccount.reduce(
+        (nonce, m) => {
+          return Math.max(nonce, m.message.nonce);
+        },
+        account.nonce
+      );
+      return nonceFromPendingMessages + 1;
+    }
+  }
+
   async "Filecoin.MpoolPush"(
     signedMessage: SerializedSignedMessage
   ): Promise<SerializedRootCID> {
