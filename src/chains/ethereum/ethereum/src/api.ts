@@ -765,7 +765,7 @@ export default class EthereumApi implements types.Api {
         parentHeader.miner,
         tx.gas,
         parentHeader.timestamp,
-        parentHeader.difficulty
+        options.miner.difficulty
       );
       const runArgs = {
         tx: tx,
@@ -1816,7 +1816,7 @@ export default class EthereumApi implements types.Api {
       blockchain.coinbase,
       gas.toBuffer(),
       parentHeader.timestamp,
-      parentHeader.difficulty
+      options.miner.difficulty
     );
 
     const simulatedTransaction = {
