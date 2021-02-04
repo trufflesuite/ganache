@@ -198,7 +198,7 @@ New RPC documentation coming soon! See https://github.com/trufflesuite/ganache-c
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for our guide to contributing to Ganache.
+See [CONTRIBUTING.md](https://github.com/trufflesuite/ganache-core/blob/develop/CONTRIBUTING.md) for our guide to contributing to Ganache.
 
 ## Related
 
