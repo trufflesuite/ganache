@@ -8,6 +8,7 @@ import { SerializedAddress } from "./things/address";
 import { SerializedRetrievalOrder } from "./things/retrieval-order";
 import { SerializedQueryOffer } from "./things/query-offer";
 import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
+import { SerializedFileRef } from "./things/file-ref";
 export default class FilecoinApi implements types.Api {
   #private;
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -31,7 +32,8 @@ export default class FilecoinApi implements types.Api {
   ): Promise<Array<SerializedQueryOffer>>;
   "Filecoin.ClientHasLocal"(rootCid: SerializedRootCID): Promise<boolean>;
   "Filecoin.ClientRetrieve"(
-    retrievalOffer: SerializedRetrievalOrder
+    retrievalOrder: SerializedRetrievalOrder,
+    ref: SerializedFileRef
   ): Promise<object>;
   "Ganache.MineTipset"(): Promise<SerializedTipset>;
 }

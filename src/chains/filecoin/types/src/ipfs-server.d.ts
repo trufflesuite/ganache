@@ -1,34 +1,14 @@
-export declare type IPFSNode = {
-  apiAddr: {
-    toString(): string;
-  };
-  stop(): Promise<void>;
-  add(
-    data: any
-  ): Promise<{
-    path: string;
-  }>;
-  object: {
-    stat(
-      key: string,
-      options: any
-    ): Promise<{
-      BlockSize: number;
-      CumulativeSize: number;
-      DataSize: number;
-      Hash: string;
-      LinksSize: number;
-      NumLinks: number;
-    }>;
-  };
-};
+import { IPFS } from "ipfs";
+import { FilecoinInternalOptions } from "@ganache/filecoin-options";
+declare type IPFSChainOptions = Pick<
+  FilecoinInternalOptions["chain"],
+  "ipfsHost" | "ipfsPort"
+>;
 declare class IPFSServer {
-  static readonly DEFAULT_PORT = 5001;
-  readonly serverPort: number;
-  readonly apiPort: number;
-  node: IPFSNode | null;
+  readonly options: IPFSChainOptions;
+  node: IPFS | null;
   private httpServer;
-  constructor(apiPort: number);
+  constructor(chainOptions: IPFSChainOptions);
   start(): Promise<void>;
   stop(): Promise<void>;
 }
