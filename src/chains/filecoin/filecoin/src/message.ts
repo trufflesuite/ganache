@@ -108,9 +108,9 @@ function sigCacheKey(signedMessage: SignedMessage): Error | string {
   }
 }
 
-export function verifyMessageSignature(
+export async function verifyMessageSignature(
   signedMessage: SignedMessage
-): Error | null {
+): Promise<Error | null> {
   const sck = sigCacheKey(signedMessage);
   if (sck instanceof Error) {
     return sck;
@@ -133,10 +133,10 @@ export function verifyMessageSignature(
   const encoded = cbor.encode(serialized);
   switch (signedMessage.signature.type) {
     case SigType.SigTypeBLS: {
-      const verified = bls.verify(
+      const verified = await bls.verify(
         signedMessage.signature.data,
-        encoded,
-        Buffer.from(signedMessage.message.from)
+        Buffer.from(signedMessage.message.cid.value),
+        Address.recoverPublicKey(signedMessage.message.from)
       );
 
       return verified ? null : new Error("bls signature failed to verify");
@@ -158,7 +158,9 @@ export function verifyMessageSignature(
 }
 
 // Reference implementation: https://git.io/JtErT
-export function checkMessage(signedMessage: SignedMessage): Error | null {
+export async function checkMessage(
+  signedMessage: SignedMessage
+): Promise<Error | null> {
   const size = JSON.stringify(signedMessage.serialize()).length;
   if (size > 32 * 1024) {
     return new Error(`mpool message too large (${size}B): message too big`);
@@ -179,7 +181,7 @@ export function checkMessage(signedMessage: SignedMessage): Error | null {
     return new Error("gas fee cap too low");
   }
 
-  const verifySignature = verifyMessageSignature(signedMessage);
+  const verifySignature = await verifyMessageSignature(signedMessage);
   if (verifySignature !== null) {
     return verifySignature;
   }

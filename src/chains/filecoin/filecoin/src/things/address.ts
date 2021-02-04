@@ -130,6 +130,24 @@ class Address extends SerializableLiteral<AddressConfig> {
     }
   }
 
+  static recoverPublicKey(address: string): Buffer {
+    const protocol = Address.parseProtocol(address);
+    const customBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
+    const decoded = base32.parse(address.slice(2), customBase32Alphabet);
+    const payload = decoded.slice(0, decoded.length - 4);
+    const checksum = decoded.slice(decoded.length - 4);
+
+    if (protocol === AddressProtocol.BLS) {
+      return payload;
+    } else if (protocol === AddressProtocol.SECP256K1) {
+      return payload; // TODO
+    } else {
+      throw new Error(
+        "Protocol type not yet supported. Supported address protocols: BLS, SECP256K1"
+      );
+    }
+  }
+
   static fromPrivateKey(
     privateKey: string,
     protocol: AddressProtocol = AddressProtocol.BLS,
