@@ -8,7 +8,7 @@ import { Address } from "./address";
 import { KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 import { StorageKeys } from "../types/debug-storage";
 
-const { BUFFER_EMPTY } = utils;
+const { BUFFER_EMPTY, BUFFER_32_ZERO, BUFFER_8_ZERO } = utils;
 
 type BlockHeader = {
   parentHash: Data;
@@ -224,8 +224,8 @@ export class RuntimeBlock {
       gasUsed,
       header.timestamp,
       extraData.toBuffer(),
-      Buffer.allocUnsafe(32).fill(0), // mixHash
-      Buffer.allocUnsafe(8).fill(0) // nonce
+      BUFFER_32_ZERO, // mixHash
+      BUFFER_8_ZERO // nonce
     ];
     // TODO: support actual uncle data (needed for forking!)
     // Issue: https://github.com/trufflesuite/ganache-core/issues/786

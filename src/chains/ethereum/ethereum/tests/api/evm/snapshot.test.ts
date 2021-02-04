@@ -1,9 +1,10 @@
+import { utils } from "@ganache/utils";
 import assert from "assert";
 import { join } from "path";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 
-const eth = "0x" + 1000000000000000000n.toString(16);
+const eth = "0x" + utils.WEI.toString(16);
 
 describe("api", () => {
   describe("evm", () => {
