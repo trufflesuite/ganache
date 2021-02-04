@@ -6,6 +6,7 @@ import { SignedMessage } from "./things/signed-message";
 import * as bls from "noble-bls12-381";
 import { ecdsaVerify } from "secp256k1";
 import cbor from "borc";
+import blake from "blakejs";
 
 const ZeroAddress =
   "t3yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaby2smx7a";
@@ -136,16 +137,17 @@ export async function verifyMessageSignature(
       const verified = await bls.verify(
         signedMessage.signature.data,
         Buffer.from(signedMessage.message.cid.value),
-        Address.recoverPublicKey(signedMessage.message.from)
+        Address.recoverBLSPublicKey(signedMessage.message.from)
       );
 
       return verified ? null : new Error("bls signature failed to verify");
     }
     case SigType.SigTypeSecp256k1: {
+      const hash = blake.blake2b(encoded, null, 32);
       const verified = ecdsaVerify(
-        signedMessage.signature.data,
-        encoded,
-        Buffer.from(signedMessage.message.from)
+        signedMessage.signature.data.slice(0, 64), // remove the recid suffix (should be the last/65th byte)
+        hash,
+        Address.recoverSECP256K1PublicKey(signedMessage.signature, hash)
       );
 
       return verified ? null : new Error("signature did not match");

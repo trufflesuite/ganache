@@ -7,6 +7,7 @@ import { StartDealParams } from "./start-deal-params";
 import cbor from "borc";
 import { utils } from "@ganache/utils";
 import { Message } from "./message";
+import { Signature } from "./signature";
 
 // https://spec.filecoin.io/appendix/address/
 
@@ -130,22 +131,32 @@ class Address extends SerializableLiteral<AddressConfig> {
     }
   }
 
-  static recoverPublicKey(address: string): Buffer {
+  static recoverBLSPublicKey(address: string): Buffer {
     const protocol = Address.parseProtocol(address);
     const customBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
     const decoded = base32.parse(address.slice(2), customBase32Alphabet);
     const payload = decoded.slice(0, decoded.length - 4);
-    const checksum = decoded.slice(decoded.length - 4);
 
     if (protocol === AddressProtocol.BLS) {
       return payload;
-    } else if (protocol === AddressProtocol.SECP256K1) {
-      return payload; // TODO
     } else {
       throw new Error(
-        "Protocol type not yet supported. Supported address protocols: BLS, SECP256K1"
+        "Address is not a BLS protocol; cannot recover the public key."
       );
     }
+  }
+
+  static recoverSECP256K1PublicKey(
+    signature: Signature,
+    message: Uint8Array
+  ): Buffer {
+    return Buffer.from(
+      secp256K1.ecdsaRecover(
+        signature.data.slice(0, 64),
+        signature.data[64],
+        message
+      ).buffer
+    );
   }
 
   static fromPrivateKey(
