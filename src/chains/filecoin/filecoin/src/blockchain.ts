@@ -274,14 +274,20 @@ export default class Blockchain extends Emittery.Typed<
 
     // the reference implementation doesn't allow the address to be
     // the ID protocol, but we're only going to support BLS for now
-    if (Address.parseProtocol(message.from) !== AddressProtocol.BLS) {
+    if (
+      Address.parseProtocol(message.from) === AddressProtocol.ID ||
+      Address.parseProtocol(message.from) === AddressProtocol.Unknown
+    ) {
       throw new Error(
-        "The From address is not a BLS public key; Ganache currently only supports the BLS address protocol"
+        "The From address is an invalid protocol; please use a BLS or SECP256K1 address."
       );
     }
-    if (Address.parseProtocol(message.to) !== AddressProtocol.BLS) {
+    if (
+      Address.parseProtocol(message.to) === AddressProtocol.ID ||
+      Address.parseProtocol(message.to) === AddressProtocol.Unknown
+    ) {
       throw new Error(
-        "The To address is not a BLS public key; Ganache currently only supports the BLS address protocol"
+        "The To address is an invalid protocol; please use a BLS or SECP256K1 address."
       );
     }
 
