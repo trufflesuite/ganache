@@ -11,11 +11,13 @@ import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
 import { SerializedFileRef } from "./things/file-ref";
 import { SerializedMinerPower } from "./things/miner-power";
 import { SerializedMinerInfo } from "./things/miner-info";
+import { SerializedVersion } from "./things/version";
 export default class FilecoinApi implements types.Api {
   #private;
   readonly [index: string]: (...args: any) => Promise<any>;
   constructor(blockchain: Blockchain);
   stop(): Promise<void>;
+  "Filecoin.Version"(): Promise<SerializedVersion>;
   "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset>;
   "Filecoin.ChainHead"(): Promise<SerializedTipset>;
   "Filecoin.ChainNotify"(rpcId?: string): PromiEvent<Subscription>;
