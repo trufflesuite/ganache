@@ -24,17 +24,18 @@ declare type RetrievalPeerConfig = {
     };
   };
 };
-declare type C = RetrievalPeerConfig;
 declare class RetrievalPeer
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<RetrievalPeerConfig>
+  implements DeserializedObject<RetrievalPeerConfig> {
+  get config(): Definitions<RetrievalPeerConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<RetrievalPeerConfig>>
+      | Partial<DeserializedObject<RetrievalPeerConfig>>
   );
   address: string;
   id: string;
   pieceCID: RootCID;
 }
-declare type SerializedRetrievalPeer = SerializedObject<C>;
+declare type SerializedRetrievalPeer = SerializedObject<RetrievalPeerConfig>;
 export { RetrievalPeer, SerializedRetrievalPeer };

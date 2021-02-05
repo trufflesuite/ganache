@@ -14,15 +14,16 @@ interface TicketConfig {
     };
   };
 }
-declare type C = TicketConfig;
 declare class Ticket
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<TicketConfig>
+  implements DeserializedObject<TicketConfig> {
+  get config(): Definitions<TicketConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<TicketConfig>>
+      | Partial<DeserializedObject<TicketConfig>>
   );
   vrfProof: Buffer;
 }
-declare type SerializedTicket = SerializedObject<C>;
+declare type SerializedTicket = SerializedObject<TicketConfig>;
 export { Ticket, SerializedTicket };

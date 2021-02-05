@@ -95,13 +95,14 @@ interface BlockHeaderConfig {
     };
   };
 }
-declare type C = BlockHeaderConfig;
 declare class BlockHeader
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<BlockHeaderConfig>
+  implements DeserializedObject<BlockHeaderConfig> {
+  get config(): Definitions<BlockHeaderConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<BlockHeaderConfig>>
+      | Partial<DeserializedObject<BlockHeaderConfig>>
   );
   miner: string;
   ticket: Ticket;
@@ -124,5 +125,5 @@ declare class BlockHeader
   parentBaseFee: bigint;
   get cid(): CID;
 }
-declare type SerializedBlockHeader = SerializedObject<C>;
+declare type SerializedBlockHeader = SerializedObject<BlockHeaderConfig>;
 export { BlockHeader, SerializedBlockHeader };

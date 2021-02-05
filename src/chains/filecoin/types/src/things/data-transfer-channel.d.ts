@@ -54,13 +54,14 @@ declare type DataTransferChannelConfig = {
     };
   };
 };
-declare type C = DataTransferChannelConfig;
 declare class DataTransferChannel
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<DataTransferChannelConfig>
+  implements DeserializedObject<DataTransferChannelConfig> {
+  get config(): Definitions<DataTransferChannelConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<DataTransferChannelConfig>>
+      | Partial<DeserializedObject<DataTransferChannelConfig>>
   );
   transferId: number;
   status: number;
@@ -72,5 +73,5 @@ declare class DataTransferChannel
   otherPeer: string;
   transferred: number;
 }
-declare type SerializedDataTransferChannel = SerializedObject<C>;
+declare type SerializedDataTransferChannel = SerializedObject<DataTransferChannelConfig>;
 export { DataTransferChannel, SerializedDataTransferChannel };

@@ -29,18 +29,19 @@ declare type StorageMarketDataRefConfig = {
     };
   };
 };
-declare type C = StorageMarketDataRefConfig;
 declare class StorageMarketDataRef
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<StorageMarketDataRefConfig>
+  implements DeserializedObject<StorageMarketDataRefConfig> {
+  get config(): Definitions<StorageMarketDataRefConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<StorageMarketDataRefConfig>>
+      | Partial<DeserializedObject<StorageMarketDataRefConfig>>
   );
   transferType: "graphsync";
   root: RootCID;
   pieceCid: RootCID | null;
   pieceSize: 0;
 }
-declare type SerializedStorageMarketDataRef = SerializedObject<C>;
+declare type SerializedStorageMarketDataRef = SerializedObject<StorageMarketDataRefConfig>;
 export { StorageMarketDataRef, SerializedStorageMarketDataRef };

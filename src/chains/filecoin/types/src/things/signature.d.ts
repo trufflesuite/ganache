@@ -19,16 +19,17 @@ interface SignatureConfig {
     };
   };
 }
-declare type C = SignatureConfig;
 declare class Signature
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<SignatureConfig>
+  implements DeserializedObject<SignatureConfig> {
+  get config(): Definitions<SignatureConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<SignatureConfig>>
+      | Partial<DeserializedObject<SignatureConfig>>
   );
   type: number;
   data: Buffer;
 }
-declare type SerializedSignature = SerializedObject<C>;
+declare type SerializedSignature = SerializedObject<SignatureConfig>;
 export { Signature, SerializedSignature };

@@ -58,13 +58,14 @@ declare type StartDealParamsConfig = {
     };
   };
 };
-declare type C = StartDealParamsConfig;
 declare class StartDealParams
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<StartDealParamsConfig>
+  implements DeserializedObject<StartDealParamsConfig> {
+  get config(): Definitions<StartDealParamsConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<StartDealParamsConfig>>
+      | Partial<DeserializedObject<StartDealParamsConfig>>
   );
   data: StorageMarketDataRef;
   wallet: Address | null;
@@ -76,5 +77,5 @@ declare class StartDealParams
   fastRetrieval: boolean;
   verifiedDeal: boolean;
 }
-declare type SerializedStartDealParams = SerializedObject<C>;
+declare type SerializedStartDealParams = SerializedObject<StartDealParamsConfig>;
 export { StartDealParams, SerializedStartDealParams };

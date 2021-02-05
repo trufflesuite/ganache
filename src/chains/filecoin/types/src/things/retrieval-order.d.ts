@@ -60,13 +60,14 @@ declare type RetrievalOrderConfig = {
     };
   };
 };
-declare type C = RetrievalOrderConfig;
 declare class RetrievalOrder
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<RetrievalOrderConfig>
+  implements DeserializedObject<RetrievalOrderConfig> {
+  get config(): Definitions<RetrievalOrderConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<RetrievalOrderConfig>>
+      | Partial<DeserializedObject<RetrievalOrderConfig>>
   );
   root: RootCID;
   piece: RootCID;
@@ -79,5 +80,5 @@ declare class RetrievalOrder
   miner: string;
   minerPeer: RetrievalPeer;
 }
-declare type SerializedRetrievalOrder = SerializedObject<C>;
+declare type SerializedRetrievalOrder = SerializedObject<RetrievalOrderConfig>;
 export { RetrievalOrder, SerializedRetrievalOrder };

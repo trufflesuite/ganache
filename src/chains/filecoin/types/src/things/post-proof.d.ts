@@ -19,16 +19,17 @@ interface PoStProofConfig {
     };
   };
 }
-declare type C = PoStProofConfig;
 declare class PoStProof
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<PoStProofConfig>
+  implements DeserializedObject<PoStProofConfig> {
+  get config(): Definitions<PoStProofConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<PoStProofConfig>>
+      | Partial<DeserializedObject<PoStProofConfig>>
   );
   postProof: number;
   proofBytes: Buffer;
 }
-declare type SerializedPoStProof = SerializedObject<C>;
+declare type SerializedPoStProof = SerializedObject<PoStProofConfig>;
 export { PoStProof, SerializedPoStProof };

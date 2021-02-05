@@ -14,16 +14,17 @@ interface RootCIDConfig {
     };
   };
 }
-declare type C = RootCIDConfig;
 declare class RootCID
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<RootCIDConfig>
+  implements DeserializedObject<RootCIDConfig> {
+  get config(): Definitions<RootCIDConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<RootCIDConfig>>
+      | Partial<DeserializedObject<RootCIDConfig>>
   );
   asPath(): string;
   root: CID;
 }
-declare type SerializedRootCID = SerializedObject<C>;
+declare type SerializedRootCID = SerializedObject<RootCIDConfig>;
 export { RootCID, SerializedRootCID };

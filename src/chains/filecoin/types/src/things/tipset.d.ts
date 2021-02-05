@@ -25,13 +25,14 @@ interface TipsetConfig {
     };
   };
 }
-declare type C = TipsetConfig;
 declare class Tipset
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<TipsetConfig>
+  implements DeserializedObject<TipsetConfig> {
+  get config(): Definitions<TipsetConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<TipsetConfig>>
+      | Partial<DeserializedObject<TipsetConfig>>
   );
   /**
    * An array that contains the BlockHeader.cid().
@@ -43,5 +44,5 @@ declare class Tipset
   blocks: Array<BlockHeader>;
   height: number;
 }
-declare type SerializedTipset = SerializedObject<C>;
+declare type SerializedTipset = SerializedObject<TipsetConfig>;
 export { Tipset, SerializedTipset };

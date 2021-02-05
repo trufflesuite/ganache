@@ -19,18 +19,19 @@ interface HeadChangeConfig {
     };
   };
 }
-declare type C = HeadChangeConfig;
 declare class HeadChange
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<HeadChangeConfig>
+  implements DeserializedObject<HeadChangeConfig> {
+  get config(): Definitions<HeadChangeConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<HeadChangeConfig>>
+      | Partial<DeserializedObject<HeadChangeConfig>>
   );
   type: string;
   val: Tipset;
 }
-declare type SerializedHeadChange = SerializedObject<C>;
+declare type SerializedHeadChange = SerializedObject<HeadChangeConfig>;
 export declare enum HeadChangeType {
   HCRevert = "revert",
   HCApply = "apply",

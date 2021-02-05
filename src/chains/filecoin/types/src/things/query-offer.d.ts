@@ -60,13 +60,14 @@ declare type QueryOfferConfig = {
     };
   };
 };
-declare type C = QueryOfferConfig;
 declare class QueryOffer
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<QueryOfferConfig>
+  implements DeserializedObject<QueryOfferConfig> {
+  get config(): Definitions<QueryOfferConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<QueryOfferConfig>>
+      | Partial<DeserializedObject<QueryOfferConfig>>
   );
   err: string;
   root: RootCID;
@@ -79,5 +80,5 @@ declare class QueryOffer
   miner: string;
   minerPeer: RetrievalPeer;
 }
-declare type SerializedQueryOffer = SerializedObject<C>;
+declare type SerializedQueryOffer = SerializedObject<QueryOfferConfig>;
 export { QueryOffer, SerializedQueryOffer };

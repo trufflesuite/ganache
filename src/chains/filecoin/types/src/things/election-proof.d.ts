@@ -19,16 +19,17 @@ interface ElectionProofConfig {
     };
   };
 }
-declare type C = ElectionProofConfig;
 declare class ElectionProof
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<ElectionProofConfig>
+  implements DeserializedObject<ElectionProofConfig> {
+  get config(): Definitions<ElectionProofConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<ElectionProofConfig>>
+      | Partial<DeserializedObject<ElectionProofConfig>>
   );
   winCount: number;
   vrfProof: Buffer;
 }
-declare type SerializedElectionProof = SerializedObject<C>;
+declare type SerializedElectionProof = SerializedObject<ElectionProofConfig>;
 export { ElectionProof, SerializedElectionProof };

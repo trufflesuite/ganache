@@ -89,13 +89,14 @@ declare type DealInfoConfig = {
     };
   };
 };
-declare type C = DealInfoConfig;
 declare class DealInfo
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<DealInfoConfig>
+  implements DeserializedObject<DealInfoConfig> {
+  get config(): Definitions<DealInfoConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<DealInfoConfig>>
+      | Partial<DeserializedObject<DealInfoConfig>>
   );
   proposalCid: RootCID;
   state: StorageDealStatus;
@@ -113,5 +114,5 @@ declare class DealInfo
   dataTransfer: DataTransferChannel;
   advanceState(): void;
 }
-declare type SerializedDealInfo = SerializedObject<C>;
+declare type SerializedDealInfo = SerializedObject<DealInfoConfig>;
 export { DealInfo, SerializedDealInfo };
