@@ -3,7 +3,7 @@
  * monorepo dependencies in each package's package.json.
  */
 
-import { resolve, join, relative } from "path";
+import { resolve, join, relative, sep } from "path";
 import glob from "glob";
 
 import { readFileSync, existsSync, writeFileSync } from "fs-extra";
@@ -169,7 +169,7 @@ const configs: PackageInfo[] = packageDirectories.map(pkg => {
 
   return {
     modified: false,
-    path: pkg,
+    path: pkg.replace(/\//g, sep),
     tsConfig,
     name: packageJson.name,
     references
