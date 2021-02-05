@@ -24,12 +24,10 @@ type SignedMessageConfig = {
   };
 };
 
-type C = SignedMessageConfig;
-
 class SignedMessage
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<SignedMessageConfig>
+  implements DeserializedObject<SignedMessageConfig> {
+  get config(): Definitions<SignedMessageConfig> {
     return {
       message: {
         deserializedName: "message",
@@ -45,7 +43,9 @@ class SignedMessage
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<SignedMessageConfig>>
+      | Partial<DeserializedObject<SignedMessageConfig>>
   ) {
     super();
 
@@ -57,6 +57,6 @@ class SignedMessage
   signature: Signature;
 }
 
-type SerializedSignedMessage = SerializedObject<C>;
+type SerializedSignedMessage = SerializedObject<SignedMessageConfig>;
 
 export { SignedMessage, SignedMessageConfig, SerializedSignedMessage };
