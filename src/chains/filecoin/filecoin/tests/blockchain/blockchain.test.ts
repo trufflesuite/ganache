@@ -266,7 +266,7 @@ describe("Blockchain", () => {
     let blockchain: Blockchain;
 
     const expectedAddress =
-      "t3ssgs4mt4o2ho72bcpenbcnioeaypwdoqiervbi6yaxazqv5rhufnxyi3ror3xrnlpnhttzfikjdeh566odta";
+      "t3qdqduswwvsvq72iwppn2vytvq2mt7qi5nensswvawpdkmudnzxooi45edyflgnohrfvijy77pn66247nttzq";
 
     afterEach(async () => {
       if (blockchain) {
