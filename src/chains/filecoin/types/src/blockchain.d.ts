@@ -13,6 +13,7 @@ import BlockHeaderManager from "./data-managers/block-header-manager";
 import { SignedMessage } from "./things/signed-message";
 import { Message } from "./things/message";
 import { MessageSendSpec } from "./things/message-send-spec";
+import { Address } from "./things/address";
 import SignedMessageManager from "./data-managers/message-manager";
 import BlockMessagesManager from "./data-managers/block-messages-manager";
 import AccountManager from "./data-managers/account-manager";
@@ -32,7 +33,7 @@ export default class Blockchain extends Emittery.Typed<
   privateKeyManager: PrivateKeyManager | null;
   signedMessagesManager: SignedMessageManager | null;
   blockMessagesManager: BlockMessagesManager | null;
-  readonly miner: string;
+  readonly miner: Address;
   messagePool: Array<SignedMessage>;
   readonly deals: Array<DealInfo>;
   readonly dealsByCid: Record<string, DealInfo>;

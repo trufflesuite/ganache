@@ -22,8 +22,8 @@ declare type StartDealParamsConfig = {
       serializedName: "Wallet";
     };
     miner: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Miner";
     };
     epochPrice: {
@@ -69,7 +69,7 @@ declare class StartDealParams
   );
   data: StorageMarketDataRef;
   wallet: Address | null;
-  miner: string;
+  miner: Address;
   epochPrice: bigint;
   minBlocksDuration: number;
   providerCollateral: bigint;
