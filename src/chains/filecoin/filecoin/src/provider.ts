@@ -77,7 +77,9 @@ export default class FilecoinProvider
   async _requestRaw<Method extends keyof FilecoinApi = keyof FilecoinApi>(
     payload: JsonRpc.Request<FilecoinApi>
   ) {
-    // I'm not entirely sure why I need the `as [string]`... but it seems to work.
+    // The `as any` is needed here because of this hackery of appending the
+    // JSON `id` no longer fits within the strictly typed `execute` `params`
+    // argument
     const result = await this.#executor.execute(this.#api, payload.method, [
       ...(payload.params || []),
       payload.id
