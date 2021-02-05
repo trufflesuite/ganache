@@ -22,10 +22,10 @@ interface PoStProofConfig {
   };
 }
 
-type C = PoStProofConfig;
-
-class PoStProof extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class PoStProof
+  extends SerializableObject<PoStProofConfig>
+  implements DeserializedObject<PoStProofConfig> {
+  get config(): Definitions<PoStProofConfig> {
     return {
       postProof: {
         deserializedName: "postProof",
@@ -44,7 +44,9 @@ class PoStProof extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<PoStProofConfig>>
+      | Partial<DeserializedObject<PoStProofConfig>>
   ) {
     super();
 
@@ -56,6 +58,6 @@ class PoStProof extends SerializableObject<C> implements DeserializedObject<C> {
   proofBytes: Buffer;
 }
 
-type SerializedPoStProof = SerializedObject<C>;
+type SerializedPoStProof = SerializedObject<PoStProofConfig>;
 
 export { PoStProof, SerializedPoStProof };

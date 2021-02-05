@@ -62,12 +62,10 @@ type StartDealParamsConfig = {
   };
 };
 
-type C = StartDealParamsConfig;
-
 class StartDealParams
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<StartDealParamsConfig>
+  implements DeserializedObject<StartDealParamsConfig> {
+  get config(): Definitions<StartDealParamsConfig> {
     return {
       data: {
         deserializedName: "data",
@@ -118,7 +116,9 @@ class StartDealParams
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<StartDealParamsConfig>>
+      | Partial<DeserializedObject<StartDealParamsConfig>>
   ) {
     super();
 
@@ -159,6 +159,6 @@ class StartDealParams
   verifiedDeal: boolean;
 }
 
-type SerializedStartDealParams = SerializedObject<C>;
+type SerializedStartDealParams = SerializedObject<StartDealParamsConfig>;
 
 export { StartDealParams, SerializedStartDealParams };

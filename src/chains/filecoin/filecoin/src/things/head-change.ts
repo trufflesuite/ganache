@@ -23,12 +23,10 @@ interface HeadChangeConfig {
   };
 }
 
-type C = HeadChangeConfig;
-
 class HeadChange
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<HeadChangeConfig>
+  implements DeserializedObject<HeadChangeConfig> {
+  get config(): Definitions<HeadChangeConfig> {
     return {
       type: {
         deserializedName: "type",
@@ -44,7 +42,9 @@ class HeadChange
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<HeadChangeConfig>>
+      | Partial<DeserializedObject<HeadChangeConfig>>
   ) {
     super();
 
@@ -56,7 +56,7 @@ class HeadChange
   val: Tipset;
 }
 
-type SerializedHeadChange = SerializedObject<C>;
+type SerializedHeadChange = SerializedObject<HeadChangeConfig>;
 
 // Retrieved these from https://git.io/Jtvke
 export enum HeadChangeType {

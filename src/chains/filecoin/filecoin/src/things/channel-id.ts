@@ -27,10 +27,10 @@ type ChannelIDConfig = {
   };
 };
 
-type C = ChannelIDConfig;
-
-class ChannelID extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class ChannelID
+  extends SerializableObject<ChannelIDConfig>
+  implements DeserializedObject<ChannelIDConfig> {
+  get config(): Definitions<ChannelIDConfig> {
     return {
       initiator: {
         deserializedName: "initiator",
@@ -51,7 +51,9 @@ class ChannelID extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<ChannelIDConfig>>
+      | Partial<DeserializedObject<ChannelIDConfig>>
   ) {
     super();
 
@@ -65,6 +67,6 @@ class ChannelID extends SerializableObject<C> implements DeserializedObject<C> {
   id: number;
 }
 
-type SerializedChannelID = SerializedObject<C>;
+type SerializedChannelID = SerializedObject<ChannelIDConfig>;
 
 export { ChannelID, SerializedChannelID };

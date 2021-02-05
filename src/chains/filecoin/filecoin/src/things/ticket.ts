@@ -17,10 +17,10 @@ interface TicketConfig {
   };
 }
 
-type C = TicketConfig;
-
-class Ticket extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class Ticket
+  extends SerializableObject<TicketConfig>
+  implements DeserializedObject<TicketConfig> {
+  get config(): Definitions<TicketConfig> {
     return {
       vrfProof: {
         deserializedName: "vrfProof",
@@ -34,7 +34,9 @@ class Ticket extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<TicketConfig>>
+      | Partial<DeserializedObject<TicketConfig>>
   ) {
     super();
 
@@ -44,6 +46,6 @@ class Ticket extends SerializableObject<C> implements DeserializedObject<C> {
   vrfProof: Buffer;
 }
 
-type SerializedTicket = SerializedObject<C>;
+type SerializedTicket = SerializedObject<TicketConfig>;
 
 export { Ticket, SerializedTicket };

@@ -58,12 +58,10 @@ type DataTransferChannelConfig = {
   };
 };
 
-type C = DataTransferChannelConfig;
-
 class DataTransferChannel
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<DataTransferChannelConfig>
+  implements DeserializedObject<DataTransferChannelConfig> {
+  get config(): Definitions<DataTransferChannelConfig> {
     return {
       transferId: {
         deserializedName: "transferId",
@@ -115,7 +113,9 @@ class DataTransferChannel
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<DataTransferChannelConfig>>
+      | Partial<DeserializedObject<DataTransferChannelConfig>>
   ) {
     super();
 
@@ -141,6 +141,6 @@ class DataTransferChannel
   transferred: number;
 }
 
-type SerializedDataTransferChannel = SerializedObject<C>;
+type SerializedDataTransferChannel = SerializedObject<DataTransferChannelConfig>;
 
 export { DataTransferChannel, SerializedDataTransferChannel };

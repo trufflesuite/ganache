@@ -33,12 +33,10 @@ type StorageMarketDataRefConfig = {
   };
 };
 
-type C = StorageMarketDataRefConfig;
-
 class StorageMarketDataRef
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<StorageMarketDataRefConfig>
+  implements DeserializedObject<StorageMarketDataRefConfig> {
+  get config(): Definitions<StorageMarketDataRefConfig> {
     return {
       transferType: {
         deserializedName: "transferType",
@@ -64,7 +62,9 @@ class StorageMarketDataRef
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<StorageMarketDataRefConfig>>
+      | Partial<DeserializedObject<StorageMarketDataRefConfig>>
   ) {
     super();
 
@@ -83,6 +83,6 @@ class StorageMarketDataRef
   pieceSize: 0;
 }
 
-type SerializedStorageMarketDataRef = SerializedObject<C>;
+type SerializedStorageMarketDataRef = SerializedObject<StorageMarketDataRefConfig>;
 
 export { StorageMarketDataRef, SerializedStorageMarketDataRef };

@@ -22,12 +22,10 @@ interface BeaconEntryConfig {
   };
 }
 
-type C = BeaconEntryConfig;
-
 class BeaconEntry
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<BeaconEntryConfig>
+  implements DeserializedObject<BeaconEntryConfig> {
+  get config(): Definitions<BeaconEntryConfig> {
     return {
       round: {
         deserializedName: "round",
@@ -46,7 +44,9 @@ class BeaconEntry
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<BeaconEntryConfig>>
+      | Partial<DeserializedObject<BeaconEntryConfig>>
   ) {
     super();
 
@@ -58,6 +58,6 @@ class BeaconEntry
   data: Buffer;
 }
 
-type SerializedBeaconEntry = SerializedObject<C>;
+type SerializedBeaconEntry = SerializedObject<BeaconEntryConfig>;
 
 export { BeaconEntry, SerializedBeaconEntry };

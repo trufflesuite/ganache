@@ -22,12 +22,10 @@ interface ElectionProofConfig {
   };
 }
 
-type C = ElectionProofConfig;
-
 class ElectionProof
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<ElectionProofConfig>
+  implements DeserializedObject<ElectionProofConfig> {
+  get config(): Definitions<ElectionProofConfig> {
     return {
       winCount: {
         deserializedName: "winCount",
@@ -46,7 +44,9 @@ class ElectionProof
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<ElectionProofConfig>>
+      | Partial<DeserializedObject<ElectionProofConfig>>
   ) {
     super();
 
@@ -58,6 +58,6 @@ class ElectionProof
   vrfProof: Buffer;
 }
 
-type SerializedElectionProof = SerializedObject<C>;
+type SerializedElectionProof = SerializedObject<ElectionProofConfig>;
 
 export { ElectionProof, SerializedElectionProof };

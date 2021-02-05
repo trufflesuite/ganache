@@ -29,10 +29,10 @@ interface TipsetConfig {
   };
 }
 
-type C = TipsetConfig;
-
-class Tipset extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class Tipset
+  extends SerializableObject<TipsetConfig>
+  implements DeserializedObject<TipsetConfig> {
+  get config(): Definitions<TipsetConfig> {
     return {
       cids: {
         deserializedName: "cids",
@@ -55,7 +55,9 @@ class Tipset extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<TipsetConfig>>
+      | Partial<DeserializedObject<TipsetConfig>>
   ) {
     super();
 
@@ -86,6 +88,6 @@ class Tipset extends SerializableObject<C> implements DeserializedObject<C> {
   height: number;
 }
 
-type SerializedTipset = SerializedObject<C>;
+type SerializedTipset = SerializedObject<TipsetConfig>;
 
 export { Tipset, SerializedTipset };

@@ -96,10 +96,10 @@ type DealInfoConfig = {
   };
 };
 
-type C = DealInfoConfig;
-
-class DealInfo extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class DealInfo
+  extends SerializableObject<DealInfoConfig>
+  implements DeserializedObject<DealInfoConfig> {
+  get config(): Definitions<DealInfoConfig> {
     return {
       proposalCid: {
         deserializedName: "proposalCid",
@@ -175,7 +175,9 @@ class DealInfo extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<DealInfoConfig>>
+      | Partial<DeserializedObject<DealInfoConfig>>
   ) {
     super();
 
@@ -227,6 +229,6 @@ class DealInfo extends SerializableObject<C> implements DeserializedObject<C> {
   }
 }
 
-type SerializedDealInfo = SerializedObject<C>;
+type SerializedDealInfo = SerializedObject<DealInfoConfig>;
 
 export { DealInfo, SerializedDealInfo };

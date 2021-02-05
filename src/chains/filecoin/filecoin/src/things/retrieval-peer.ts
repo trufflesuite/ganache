@@ -28,12 +28,10 @@ type RetrievalPeerConfig = {
   };
 };
 
-type C = RetrievalPeerConfig;
-
 class RetrievalPeer
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<RetrievalPeerConfig>
+  implements DeserializedObject<RetrievalPeerConfig> {
+  get config(): Definitions<RetrievalPeerConfig> {
     return {
       address: {
         deserializedName: "address",
@@ -54,7 +52,9 @@ class RetrievalPeer
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<RetrievalPeerConfig>>
+      | Partial<DeserializedObject<RetrievalPeerConfig>>
   ) {
     super();
 
@@ -68,6 +68,6 @@ class RetrievalPeer
   pieceCID: RootCID;
 }
 
-type SerializedRetrievalPeer = SerializedObject<C>;
+type SerializedRetrievalPeer = SerializedObject<RetrievalPeerConfig>;
 
 export { RetrievalPeer, SerializedRetrievalPeer };

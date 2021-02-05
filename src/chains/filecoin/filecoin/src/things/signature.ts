@@ -23,10 +23,10 @@ interface SignatureConfig {
   };
 }
 
-type C = SignatureConfig;
-
-class Signature extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class Signature
+  extends SerializableObject<SignatureConfig>
+  implements DeserializedObject<SignatureConfig> {
+  get config(): Definitions<SignatureConfig> {
     return {
       type: {
         deserializedName: "type",
@@ -45,7 +45,9 @@ class Signature extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<SignatureConfig>>
+      | Partial<DeserializedObject<SignatureConfig>>
   ) {
     super();
 
@@ -57,6 +59,6 @@ class Signature extends SerializableObject<C> implements DeserializedObject<C> {
   data: Buffer;
 }
 
-type SerializedSignature = SerializedObject<C>;
+type SerializedSignature = SerializedObject<SignatureConfig>;
 
 export { Signature, SerializedSignature };

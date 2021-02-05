@@ -103,12 +103,10 @@ interface BlockHeaderConfig {
   };
 }
 
-type C = BlockHeaderConfig;
-
 class BlockHeader
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<BlockHeaderConfig>
+  implements DeserializedObject<BlockHeaderConfig> {
+  get config(): Definitions<BlockHeaderConfig> {
     return {
       miner: {
         deserializedName: "miner",
@@ -199,7 +197,9 @@ class BlockHeader
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<BlockHeaderConfig>>
+      | Partial<DeserializedObject<BlockHeaderConfig>>
   ) {
     super();
 
@@ -286,6 +286,6 @@ class BlockHeader
   }
 }
 
-type SerializedBlockHeader = SerializedObject<C>;
+type SerializedBlockHeader = SerializedObject<BlockHeaderConfig>;
 
 export { BlockHeader, SerializedBlockHeader };

@@ -64,12 +64,10 @@ type QueryOfferConfig = {
   };
 };
 
-type C = QueryOfferConfig;
-
 class QueryOffer
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<QueryOfferConfig>
+  implements DeserializedObject<QueryOfferConfig> {
+  get config(): Definitions<QueryOfferConfig> {
     return {
       err: {
         deserializedName: "err",
@@ -125,7 +123,9 @@ class QueryOffer
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<QueryOfferConfig>>
+      | Partial<DeserializedObject<QueryOfferConfig>>
   ) {
     super();
 
@@ -159,6 +159,6 @@ class QueryOffer
   minerPeer: RetrievalPeer;
 }
 
-type SerializedQueryOffer = SerializedObject<C>;
+type SerializedQueryOffer = SerializedObject<QueryOfferConfig>;
 
 export { QueryOffer, SerializedQueryOffer };

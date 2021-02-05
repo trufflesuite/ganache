@@ -64,12 +64,10 @@ type RetrievalOrderConfig = {
   };
 };
 
-type C = RetrievalOrderConfig;
-
 class RetrievalOrder
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<RetrievalOrderConfig>
+  implements DeserializedObject<RetrievalOrderConfig> {
+  get config(): Definitions<RetrievalOrderConfig> {
     return {
       root: {
         deserializedName: "root",
@@ -125,7 +123,9 @@ class RetrievalOrder
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<RetrievalOrderConfig>>
+      | Partial<DeserializedObject<RetrievalOrderConfig>>
   ) {
     super();
 
@@ -159,6 +159,6 @@ class RetrievalOrder
   minerPeer: RetrievalPeer;
 }
 
-type SerializedRetrievalOrder = SerializedObject<C>;
+type SerializedRetrievalOrder = SerializedObject<RetrievalOrderConfig>;
 
 export { RetrievalOrder, SerializedRetrievalOrder };

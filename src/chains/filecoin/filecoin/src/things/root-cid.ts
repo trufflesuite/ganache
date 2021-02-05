@@ -16,10 +16,10 @@ interface RootCIDConfig {
   };
 }
 
-type C = RootCIDConfig;
-
-class RootCID extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class RootCID
+  extends SerializableObject<RootCIDConfig>
+  implements DeserializedObject<RootCIDConfig> {
+  get config(): Definitions<RootCIDConfig> {
     return {
       root: {
         deserializedName: "root",
@@ -32,7 +32,9 @@ class RootCID extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<RootCIDConfig>>
+      | Partial<DeserializedObject<RootCIDConfig>>
   ) {
     super();
 
@@ -46,6 +48,6 @@ class RootCID extends SerializableObject<C> implements DeserializedObject<C> {
   root: CID;
 }
 
-type SerializedRootCID = SerializedObject<C>;
+type SerializedRootCID = SerializedObject<RootCIDConfig>;
 
 export { RootCID, SerializedRootCID };
