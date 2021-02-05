@@ -4,21 +4,22 @@ import {
   DeserializedObject,
   Definitions
 } from "./serializable-object";
+import { Address, SerializedAddress } from "./address";
 declare type MinerInfoConfig = {
   properties: {
     owner: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Owner";
     };
     worker: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Worker";
     };
     newWorker: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "NewWorker";
     };
     controlAddresses: {
@@ -75,12 +76,12 @@ declare class MinerInfo
   /**
    * The owner address corresponds to a Lotus node address provided during the miner initialization.
    */
-  owner: string;
+  owner: Address;
   /**
    * The worker address is used to send and pay for day-to-day operations performed by the miner.
    */
-  worker: string;
-  newWorker: string;
+  worker: Address;
+  newWorker: Address;
   /**
    * Control addresses are used to submit WindowPoSts proofs to the chain (unused by Ganache).
    */

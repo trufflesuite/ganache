@@ -54,7 +54,7 @@ type RetrievalOrderConfig = {
     };
     miner: {
       type: Address;
-      serializedType: string;
+      serializedType: SerializedAddress;
       serializedName: "Miner";
     };
     minerPeer: {

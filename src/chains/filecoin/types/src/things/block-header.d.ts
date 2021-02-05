@@ -10,11 +10,12 @@ import {
 import { PoStProof, SerializedPoStProof } from "./post-proof";
 import { RootCID, SerializedRootCID } from "./root-cid";
 import { SerializedSignature, Signature } from "./signature";
+import { Address, SerializedAddress } from "./address";
 interface BlockHeaderConfig {
   properties: {
     miner: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Miner";
     };
     ticket: {
@@ -103,7 +104,7 @@ declare class BlockHeader
       | Partial<SerializedObject<BlockHeaderConfig>>
       | Partial<DeserializedObject<BlockHeaderConfig>>
   );
-  miner: string;
+  miner: Address;
   ticket: Ticket;
   electionProof: ElectionProof;
   beaconEntries: Array<BeaconEntry>;

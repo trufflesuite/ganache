@@ -6,6 +6,7 @@ import {
   Definitions
 } from "./serializable-object";
 import { RetrievalPeer, SerializedRetrievalPeer } from "./retrieval-peer";
+import { Address, SerializedAddress } from "./address";
 declare type RetrievalOrderConfig = {
   properties: {
     root: {
@@ -44,13 +45,13 @@ declare type RetrievalOrderConfig = {
       serializedName: "PaymentIntervalIncrease";
     };
     client: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Client";
     };
     miner: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Miner";
     };
     minerPeer: {
@@ -76,8 +77,8 @@ declare class RetrievalOrder
   unsealPrice: bigint;
   paymentInterval: number;
   paymentIntervalIncrease: number;
-  client: string;
-  miner: string;
+  client: Address;
+  miner: Address;
   minerPeer: RetrievalPeer;
 }
 declare type SerializedRetrievalOrder = SerializedObject<RetrievalOrderConfig>;
