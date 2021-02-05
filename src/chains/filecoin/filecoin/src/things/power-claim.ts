@@ -22,12 +22,10 @@ type PowerClaimConfig = {
   };
 };
 
-type C = PowerClaimConfig;
-
 class PowerClaim
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<PowerClaimConfig>
+  implements DeserializedObject<PowerClaimConfig> {
+  get config(): Definitions<PowerClaimConfig> {
     return {
       rawBytePower: {
         deserializedName: "rawBytePower",
@@ -43,7 +41,9 @@ class PowerClaim
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<PowerClaimConfig>>
+      | Partial<DeserializedObject<PowerClaimConfig>>
   ) {
     super();
 
@@ -61,6 +61,6 @@ class PowerClaim
   qualityAdjPower: bigint;
 }
 
-type SerializedPowerClaim = SerializedObject<C>;
+type SerializedPowerClaim = SerializedObject<PowerClaimConfig>;
 
 export { PowerClaim, SerializedPowerClaim };
