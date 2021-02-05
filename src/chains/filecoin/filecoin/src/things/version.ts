@@ -46,10 +46,10 @@ interface VersionConfig {
   };
 }
 
-type C = VersionConfig;
-
-class Version extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class Version
+  extends SerializableObject<VersionConfig>
+  implements DeserializedObject<VersionConfig> {
+  get config(): Definitions<VersionConfig> {
     return {
       version: {
         deserializedName: "version",
@@ -71,7 +71,9 @@ class Version extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<VersionConfig>>
+      | Partial<DeserializedObject<VersionConfig>>
   ) {
     super();
 
@@ -85,6 +87,6 @@ class Version extends SerializableObject<C> implements DeserializedObject<C> {
   blockDelay: bigint;
 }
 
-type SerializedVersion = SerializedObject<C>;
+type SerializedVersion = SerializedObject<VersionConfig>;
 
 export { Version, SerializedVersion };
