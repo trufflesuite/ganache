@@ -3,6 +3,7 @@ import { SerializableLiteral } from "./serializable-literal";
 import { StartDealParams } from "./start-deal-params";
 import { utils } from "@ganache/utils";
 import { Message } from "./message";
+import { Signature } from "./signature";
 interface AddressConfig {
   type: string;
 }
@@ -30,7 +31,11 @@ declare class Address extends SerializableLiteral<AddressConfig> {
   signProposal(proposal: StartDealParams): Promise<Buffer>;
   signMessage(message: Message): Promise<Buffer>;
   signBuffer(buffer: Buffer): Promise<Buffer>;
-  static recoverPublicKey(address: string): Buffer;
+  static recoverBLSPublicKey(address: string): Buffer;
+  static recoverSECP256K1PublicKey(
+    signature: Signature,
+    message: Uint8Array
+  ): Buffer;
   static fromPrivateKey(
     privateKey: string,
     protocol?: AddressProtocol,
