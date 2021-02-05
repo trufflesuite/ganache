@@ -78,19 +78,19 @@ class MinerInfo
         deserializedName: "owner",
         serializedName: "Owner",
         defaultValue: literal =>
-          literal ? new Address(literal) : Address.fromId(0)
+          literal ? new Address(literal) : Address.fromId(0, false, true)
       },
       worker: {
         deserializedName: "worker",
         serializedName: "Worker",
         defaultValue: literal =>
-          literal ? new Address(literal) : Address.fromId(0)
+          literal ? new Address(literal) : Address.fromId(0, false, true)
       },
       newWorker: {
         deserializedName: "newWorker",
         serializedName: "NewWorker",
         defaultValue: literal =>
-          literal ? new Address(literal) : Address.fromId(0)
+          literal ? new Address(literal) : Address.fromId(0, false, true)
       },
       controlAddresses: {
         deserializedName: "controlAddresses",

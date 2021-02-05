@@ -121,7 +121,7 @@ class DealInfo
         deserializedName: "provider",
         serializedName: "Provider",
         defaultValue: literal =>
-          literal ? new Address(literal) : Address.fromId(0)
+          literal ? new Address(literal) : Address.fromId(0, false, true)
       },
       dataRef: {
         deserializedName: "dataRef",
