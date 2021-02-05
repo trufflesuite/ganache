@@ -68,10 +68,10 @@ type MinerInfoConfig = {
   };
 };
 
-type C = MinerInfoConfig;
-
-class MinerInfo extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class MinerInfo
+  extends SerializableObject<MinerInfoConfig>
+  implements DeserializedObject<MinerInfoConfig> {
+  get config(): Definitions<MinerInfoConfig> {
     return {
       owner: {
         deserializedName: "owner",
@@ -135,7 +135,9 @@ class MinerInfo extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<MinerInfoConfig>>
+      | Partial<DeserializedObject<MinerInfoConfig>>
   ) {
     super();
 
@@ -192,6 +194,6 @@ class MinerInfo extends SerializableObject<C> implements DeserializedObject<C> {
   consensusFaultElapsed: number;
 }
 
-type SerializedMinerInfo = SerializedObject<C>;
+type SerializedMinerInfo = SerializedObject<MinerInfoConfig>;
 
 export { MinerInfo, SerializedMinerInfo };
