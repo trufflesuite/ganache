@@ -25,17 +25,18 @@ declare type MinerPowerConfig = {
     };
   };
 };
-declare type C = MinerPowerConfig;
 declare class MinerPower
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<MinerPowerConfig>
+  implements DeserializedObject<MinerPowerConfig> {
+  get config(): Definitions<MinerPowerConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<MinerPowerConfig>>
+      | Partial<DeserializedObject<MinerPowerConfig>>
   );
   minerPower: PowerClaim;
   totalPower: PowerClaim;
   hasMinPower: boolean;
 }
-declare type SerializedMinerPower = SerializedObject<C>;
+declare type SerializedMinerPower = SerializedObject<MinerPowerConfig>;
 export { MinerPower, SerializedMinerPower };
