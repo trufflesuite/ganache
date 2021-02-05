@@ -23,17 +23,18 @@ interface VersionConfig {
     };
   };
 }
-declare type C = VersionConfig;
 declare class Version
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<VersionConfig>
+  implements DeserializedObject<VersionConfig> {
+  get config(): Definitions<VersionConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<VersionConfig>>
+      | Partial<DeserializedObject<VersionConfig>>
   );
   version: string;
   apiVersion: number;
   blockDelay: bigint;
 }
-declare type SerializedVersion = SerializedObject<C>;
+declare type SerializedVersion = SerializedObject<VersionConfig>;
 export { Version, SerializedVersion };
