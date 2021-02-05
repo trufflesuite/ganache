@@ -31,10 +31,10 @@ type AccountConfig = {
   };
 };
 
-type C = AccountConfig;
-
-class Account extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class Account
+  extends SerializableObject<AccountConfig>
+  implements DeserializedObject<AccountConfig> {
+  get config(): Definitions<AccountConfig> {
     return {
       address: {
         deserializedName: "address",
@@ -70,7 +70,9 @@ class Account extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<AccountConfig>>
+      | Partial<DeserializedObject<AccountConfig>>
   ) {
     super();
 
@@ -96,6 +98,6 @@ class Account extends SerializableObject<C> implements DeserializedObject<C> {
   }
 }
 
-type SerializedAccount = SerializedObject<C>;
+type SerializedAccount = SerializedObject<AccountConfig>;
 
 export { Account, AccountConfig, SerializedAccount };
