@@ -1,4 +1,5 @@
 import { spawnSync } from "child_process";
+import os from "os";
 
 const lernaRoot: string | undefined = process.env.LERNA_ROOT_PATH;
 const spawnCwd =
@@ -18,10 +19,26 @@ export function LernaExec(command?: string, args?: string[]) {
     args = replaceSpecialStrings(process.argv.slice(3));
   }
 
-  const result = spawnSync(command, args, {
+  let result = spawnSync(command, args, {
     cwd: spawnCwd,
     stdio: ["inherit", "inherit", "inherit"]
   });
+
+  if (
+    result.error &&
+    result.error.message.includes("ENOENT") &&
+    os.platform() === "win32"
+  ) {
+    // windows needs `npx.cmd` to be command for files in `node_modules/.bin`
+    result = spawnSync("npx.cmd", [command, ...args], {
+      cwd: spawnCwd,
+      stdio: ["inherit", "inherit", "inherit"]
+    });
+  }
+
+  if (result.error) {
+    throw result.error;
+  }
 
   process.exit(result.status || undefined);
 }
