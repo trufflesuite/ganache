@@ -17,12 +17,10 @@ type MessageSendSpecConfig = {
   };
 };
 
-type C = MessageSendSpecConfig;
-
 class MessageSendSpec
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<MessageSendSpecConfig>
+  implements DeserializedObject<MessageSendSpecConfig> {
+  get config(): Definitions<MessageSendSpecConfig> {
     return {
       maxFee: {
         deserializedName: "maxFee",
@@ -33,7 +31,9 @@ class MessageSendSpec
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<MessageSendSpecConfig>>
+      | Partial<DeserializedObject<MessageSendSpecConfig>>
   ) {
     super();
 
@@ -43,6 +43,6 @@ class MessageSendSpec
   maxFee: bigint;
 }
 
-type SerializedMessageSendSpec = SerializedObject<C>;
+type SerializedMessageSendSpec = SerializedObject<MessageSendSpecConfig>;
 
 export { MessageSendSpec, SerializedMessageSendSpec };

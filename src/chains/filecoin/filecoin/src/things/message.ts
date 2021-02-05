@@ -62,10 +62,10 @@ type MessageConfig = {
   };
 };
 
-type C = MessageConfig;
-
-class Message extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class Message
+  extends SerializableObject<MessageConfig>
+  implements DeserializedObject<MessageConfig> {
+  get config(): Definitions<MessageConfig> {
     return {
       version: {
         deserializedName: "version",
@@ -124,7 +124,9 @@ class Message extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<MessageConfig>>
+      | Partial<DeserializedObject<MessageConfig>>
   ) {
     super();
 
@@ -152,6 +154,6 @@ class Message extends SerializableObject<C> implements DeserializedObject<C> {
   params: Buffer;
 }
 
-type SerializedMessage = SerializedObject<C>;
+type SerializedMessage = SerializedObject<MessageConfig>;
 
 export { Message, SerializedMessage };
