@@ -5,14 +5,15 @@ import {
   Definitions
 } from "./serializable-object";
 import { RootCID, SerializedRootCID } from "./root-cid";
+import { Address, SerializedAddress } from "./address";
 
 // https://pkg.go.dev/github.com/filecoin-project/go-fil-markets@v1.1.1/retrievalmarket#RetrievalPeer
 
 type RetrievalPeerConfig = {
   properties: {
     address: {
-      type: string; // using string until we can support more address types in Address
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Address";
     };
     id: {
@@ -36,7 +37,8 @@ class RetrievalPeer
       address: {
         deserializedName: "address",
         serializedName: "Address",
-        defaultValue: "t01000"
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0)
       },
       id: {
         deserializedName: "id",
@@ -63,7 +65,7 @@ class RetrievalPeer
     this.pieceCID = super.initializeValue(this.config.pieceCID, options);
   }
 
-  address: string;
+  address: Address;
   id: string;
   pieceCID: RootCID;
 }

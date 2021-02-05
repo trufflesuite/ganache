@@ -5,24 +5,25 @@ import {
   Definitions
 } from "./serializable-object";
 import { RegisteredSealProof } from "../types/registered-seal-proof";
+import { Address, SerializedAddress } from "./address";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/actors/builtin/miner#MinerInfo
 
 type MinerInfoConfig = {
   properties: {
     owner: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Owner";
     };
     worker: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Worker";
     };
     newWorker: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "NewWorker";
     };
     controlAddresses: {
@@ -76,17 +77,20 @@ class MinerInfo
       owner: {
         deserializedName: "owner",
         serializedName: "Owner",
-        defaultValue: "t01000"
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0)
       },
       worker: {
         deserializedName: "worker",
         serializedName: "Worker",
-        defaultValue: "t01000"
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0)
       },
       newWorker: {
         deserializedName: "newWorker",
         serializedName: "NewWorker",
-        defaultValue: "<empty>" // This is how lotus-devnet responds to StateMinerInfo
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0)
       },
       controlAddresses: {
         deserializedName: "controlAddresses",
@@ -172,12 +176,12 @@ class MinerInfo
   /**
    * The owner address corresponds to a Lotus node address provided during the miner initialization.
    */
-  owner: string;
+  owner: Address;
   /**
    * The worker address is used to send and pay for day-to-day operations performed by the miner.
    */
-  worker: string;
-  newWorker: string;
+  worker: Address;
+  newWorker: Address;
   /**
    * Control addresses are used to submit WindowPoSts proofs to the chain (unused by Ganache).
    */

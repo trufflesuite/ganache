@@ -252,11 +252,11 @@ export default class FilecoinApi implements types.Api {
   // for the mining side of things (since Ganache
   // represents multiple actors in this simulator)
   async "Filecoin.ActorAddress"(): Promise<string> {
-    return this.#blockchain.miner;
+    return this.#blockchain.miner.value;
   }
 
   async "Filecoin.StateListMiners"(): Promise<Array<string>> {
-    return [this.#blockchain.miner];
+    return [this.#blockchain.miner.value];
   }
 
   // "A storage miner's storage power is a value roughly proportional
@@ -275,7 +275,7 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.StateMinerPower"(
     minerAddress: string
   ): Promise<SerializedMinerPower> {
-    if (minerAddress === this.#blockchain.miner) {
+    if (minerAddress === this.#blockchain.miner.value) {
       const power = new MinerPower({
         minerPower: new PowerClaim({
           rawBytePower: 1n,
@@ -312,9 +312,9 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.StateMinerInfo"(
     minerAddress: string
   ): Promise<SerializedMinerInfo> {
-    if (minerAddress === this.#blockchain.miner) {
+    if (minerAddress === this.#blockchain.miner.value) {
       // The defaults are set up to correspond to the current
-      // miner address t01000, which is not configurable currently
+      // miner address t0100, which is not configurable currently
       return new MinerInfo().serialize();
     } else {
       throw new Error("Failed to load miner actor: actor not found");

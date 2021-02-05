@@ -18,6 +18,7 @@ import {
   DataTransferChannel,
   SerializedDataTransferChannel
 } from "./data-transfer-channel";
+import { Address, SerializedAddress } from "./address";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#DealInfo
 
@@ -39,8 +40,8 @@ type DealInfoConfig = {
       serializedName: "Message";
     };
     provider: {
-      type: string; // using string until we can support more address types in Address
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Provider";
     };
     dataRef: {
@@ -119,7 +120,8 @@ class DealInfo
       provider: {
         deserializedName: "provider",
         serializedName: "Provider",
-        defaultValue: "t01000"
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0)
       },
       dataRef: {
         deserializedName: "dataRef",
@@ -212,7 +214,7 @@ class DealInfo
   proposalCid: RootCID;
   state: StorageDealStatus;
   message: string;
-  provider: string;
+  provider: Address;
   dataRef: StorageMarketDataRef;
   pieceCid: RootCID | null;
   size: number;
