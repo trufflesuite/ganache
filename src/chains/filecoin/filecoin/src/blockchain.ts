@@ -452,7 +452,7 @@ export default class Blockchain extends Emittery.Typed<
           if (baseFee !== 0) {
             const successful = await this.accountManager!.transferFunds(
               from,
-              BurntFundsAddress,
+              BurntFundsAddress.value,
               getMinerFee(signedMessage.message)
             );
 
@@ -704,7 +704,7 @@ export default class Blockchain extends Emittery.Typed<
     let totalPrice = BigInt(deal.pricePerEpoch) * BigInt(deal.duration);
     await this.accountManager!.transferFunds(
       proposal.wallet.value,
-      proposal.miner,
+      proposal.miner.value,
       totalPrice
     );
 
@@ -730,7 +730,7 @@ export default class Blockchain extends Emittery.Typed<
     let hasLocal: boolean = await this.hasLocal(retrievalOrder.root.root.value);
 
     const account = await this.accountManager!.getAccount(
-      retrievalOrder.client
+      retrievalOrder.client.value
     );
     if (!account.address.privateKey) {
       throw new Error(
@@ -745,8 +745,8 @@ export default class Blockchain extends Emittery.Typed<
     await this.downloadFile(retrievalOrder.root.root.value, ref);
 
     await this.accountManager!.transferFunds(
-      retrievalOrder.client,
-      retrievalOrder.miner,
+      retrievalOrder.client.value,
+      retrievalOrder.miner.value,
       retrievalOrder.total
     );
   }

@@ -43,6 +43,7 @@ class Address extends SerializableLiteral<AddressConfig> {
   }
 
   static readonly FirstNonSingletonActorId = 100; // Ref impl: https://git.io/JtgqT
+  static readonly FirstMinerId = 1000; // Ref impl: https://git.io/Jt2WE
   static readonly CHECKSUM_BYTES = 4;
 
   #privateKey?: string;
@@ -278,6 +279,7 @@ class Address extends SerializableLiteral<AddressConfig> {
   static fromId(
     id: number,
     isSingletonSystemActor: boolean = false,
+    isMiner: boolean = false,
     network: AddressNetwork = AddressNetwork.Testnet
   ): Address {
     if (Math.round(id) !== id || id < 0) {
@@ -286,7 +288,11 @@ class Address extends SerializableLiteral<AddressConfig> {
 
     return new Address(
       `${network}${AddressProtocol.ID}${
-        isSingletonSystemActor ? id : Address.FirstNonSingletonActorId + id
+        isSingletonSystemActor
+          ? id
+          : isMiner
+          ? Address.FirstMinerId + id
+          : Address.FirstNonSingletonActorId + id
       }`
     );
   }

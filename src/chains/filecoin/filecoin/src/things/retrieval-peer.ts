@@ -38,7 +38,7 @@ class RetrievalPeer
         deserializedName: "address",
         serializedName: "Address",
         defaultValue: literal =>
-          literal ? new Address(literal) : Address.fromId(0)
+          literal ? new Address(literal) : Address.fromId(0, false, true)
       },
       id: {
         deserializedName: "id",

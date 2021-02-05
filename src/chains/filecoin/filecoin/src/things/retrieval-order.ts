@@ -109,13 +109,13 @@ class RetrievalOrder
         deserializedName: "client",
         serializedName: "Client",
         defaultValue: literal =>
-          literal ? new Address(literal) : Address.fromId(1)
+          literal ? new Address(literal) : Address.fromId(0)
       },
       miner: {
         deserializedName: "miner",
         serializedName: "Miner",
         defaultValue: literal =>
-          literal ? new Address(literal) : Address.fromId(0)
+          literal ? new Address(literal) : Address.fromId(0, false, true)
       },
       minerPeer: {
         deserializedName: "minerPeer",
@@ -157,8 +157,8 @@ class RetrievalOrder
   unsealPrice: bigint;
   paymentInterval: number;
   paymentIntervalIncrease: number;
-  client: string;
-  miner: string;
+  client: Address;
+  miner: Address;
   minerPeer: RetrievalPeer;
 }
 

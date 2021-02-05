@@ -108,7 +108,7 @@ class BlockHeader
         deserializedName: "miner",
         serializedName: "Miner",
         defaultValue: literal =>
-          literal ? new Address(literal) : Address.fromId(0)
+          literal ? new Address(literal) : Address.fromId(0, false, true)
       },
       ticket: {
         deserializedName: "ticket",
