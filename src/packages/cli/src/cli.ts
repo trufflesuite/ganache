@@ -48,6 +48,7 @@ const server = Ganache.server(argv);
 console.log(detailedVersion);
 
 let started = false;
+let shuttingDown = false;
 process.on("uncaughtException", function (e) {
   if (started) {
     logAndForceExit([e], 1);
@@ -69,12 +70,20 @@ if (process.platform === "win32") {
 }
 
 const closeHandler = async function () {
+  if (shuttingDown) {
+    logAndForceExit(["User requested to force quit."], 1);
+    return; // should not get here because of process.exit() but just in case
+  }
+
   try {
     // graceful shutdown
     if (server.status === 1) {
+      console.log(
+        "Attempting to gracefully shut down Ganache. Press Ctrl+C again to force quit."
+      );
       await server.close();
     }
-    process.exitCode = 0;
+    process.exit(0);
   } catch (err) {
     logAndForceExit(
       [
