@@ -45,4 +45,4 @@ declare class Tipset
   height: number;
 }
 declare type SerializedTipset = SerializedObject<TipsetConfig>;
-export { Tipset, SerializedTipset };
+export { Tipset, TipsetConfig, SerializedTipset };

@@ -10,6 +10,8 @@ import { FilecoinInternalOptions } from "@ganache/filecoin-options";
 import { QueryOffer } from "./things/query-offer";
 import { FileRef } from "./things/file-ref";
 import { IPFS } from "ipfs";
+import TipsetManager from "./data-managers/tipset-manager";
+import BlockHeaderManager from "./data-managers/block-header-manager";
 export declare type BlockchainEvents = {
   ready(): void;
   tipset: Tipset;
@@ -19,7 +21,8 @@ export default class Blockchain extends Emittery.Typed<
   keyof BlockchainEvents
 > {
   #private;
-  readonly tipsets: Array<Tipset>;
+  tipsetManager: TipsetManager | null;
+  blockHeaderManager: BlockHeaderManager | null;
   readonly miner: string;
   readonly address: Address;
   get balance(): Balance;
