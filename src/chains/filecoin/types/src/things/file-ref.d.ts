@@ -18,16 +18,17 @@ declare type FileRefConfig = {
     };
   };
 };
-declare type C = FileRefConfig;
 declare class FileRef
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<FileRefConfig>
+  implements DeserializedObject<FileRefConfig> {
+  get config(): Definitions<FileRefConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<FileRefConfig>>
+      | Partial<DeserializedObject<FileRefConfig>>
   );
   path: string;
   isCAR: boolean;
 }
-declare type SerializedFileRef = SerializedObject<C>;
+declare type SerializedFileRef = SerializedObject<FileRefConfig>;
 export { FileRef, SerializedFileRef };
