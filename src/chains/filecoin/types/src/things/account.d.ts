@@ -26,15 +26,16 @@ declare type AccountConfig = {
     };
   };
 };
-declare type C = AccountConfig;
 declare class Account
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
+  extends SerializableObject<AccountConfig>
+  implements DeserializedObject<AccountConfig> {
   #private;
-  get config(): Definitions<C>;
+  get config(): Definitions<AccountConfig>;
   static random(defaultFIL: number, rng?: utils.RandomNumberGenerator): Account;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<AccountConfig>>
+      | Partial<DeserializedObject<AccountConfig>>
   );
   addBalance(val: string | number | bigint): void;
   subtractBalance(val: string | number | bigint): void;
@@ -42,5 +43,5 @@ declare class Account
   nonce: number;
   get balance(): Balance;
 }
-declare type SerializedAccount = SerializedObject<C>;
+declare type SerializedAccount = SerializedObject<AccountConfig>;
 export { Account, AccountConfig, SerializedAccount };
