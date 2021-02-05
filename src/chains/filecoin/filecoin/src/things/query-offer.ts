@@ -6,6 +6,7 @@ import {
   Definitions
 } from "./serializable-object";
 import { RetrievalPeer, SerializedRetrievalPeer } from "./retrieval-peer";
+import { Address, SerializedAddress } from "./address";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#QueryOffer
 
@@ -52,8 +53,8 @@ type QueryOfferConfig = {
       serializedName: "PaymentIntervalIncrease";
     };
     miner: {
-      type: string; // using string until we can support more address types in Address
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Miner";
     };
     minerPeer: {
@@ -112,7 +113,8 @@ class QueryOffer
       miner: {
         deserializedName: "miner",
         serializedName: "Miner",
-        defaultValue: "t01000"
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0)
       },
       minerPeer: {
         deserializedName: "minerPeer",
@@ -155,7 +157,7 @@ class QueryOffer
   unsealPrice: bigint;
   paymentInterval: number;
   paymentIntervalIncrease: number;
-  miner: string;
+  miner: Address;
   minerPeer: RetrievalPeer;
 }
 

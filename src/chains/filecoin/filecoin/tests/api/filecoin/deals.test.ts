@@ -15,6 +15,7 @@ import { SerializedFileRef } from "../../../src/things/file-ref";
 import tmp from "tmp-promise";
 import path from "path";
 import fs from "fs";
+import { Address } from "../../../src/things/address";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
@@ -175,10 +176,10 @@ describe("api", () => {
           PaymentInterval: 1048576,
           PaymentIntervalIncrease: 1048576,
           Client: address,
-          Miner: "t01000",
+          Miner: Address.fromId(0).value,
           MinerPeer: {
-            Address: "t01000",
-            ID: "t01000",
+            Address: Address.fromId(0).value,
+            ID: "0",
             PieceCID: {
               "/": "6vuxqgevbl6irx7tymbj7o4t8bz1s5vy88zmum7flxywy1qugjfd"
             }
