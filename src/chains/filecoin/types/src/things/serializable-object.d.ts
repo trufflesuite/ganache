@@ -1,4 +1,4 @@
-declare type BaseConfig = {
+export declare type BaseConfig = {
   properties: {
     [deserializedName: string]: {
       type: any;
