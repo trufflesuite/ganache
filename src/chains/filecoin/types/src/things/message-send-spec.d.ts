@@ -13,15 +13,16 @@ declare type MessageSendSpecConfig = {
     };
   };
 };
-declare type C = MessageSendSpecConfig;
 declare class MessageSendSpec
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<MessageSendSpecConfig>
+  implements DeserializedObject<MessageSendSpecConfig> {
+  get config(): Definitions<MessageSendSpecConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<MessageSendSpecConfig>>
+      | Partial<DeserializedObject<MessageSendSpecConfig>>
   );
   maxFee: bigint;
 }
-declare type SerializedMessageSendSpec = SerializedObject<C>;
+declare type SerializedMessageSendSpec = SerializedObject<MessageSendSpecConfig>;
 export { MessageSendSpec, SerializedMessageSendSpec };

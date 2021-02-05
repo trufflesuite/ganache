@@ -59,13 +59,14 @@ declare type MessageConfig = {
     };
   };
 };
-declare type C = MessageConfig;
 declare class Message
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<MessageConfig>
+  implements DeserializedObject<MessageConfig> {
+  get config(): Definitions<MessageConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<MessageConfig>>
+      | Partial<DeserializedObject<MessageConfig>>
   );
   version: number;
   to: string;
@@ -78,5 +79,5 @@ declare class Message
   method: number;
   params: Buffer;
 }
-declare type SerializedMessage = SerializedObject<C>;
+declare type SerializedMessage = SerializedObject<MessageConfig>;
 export { Message, SerializedMessage };

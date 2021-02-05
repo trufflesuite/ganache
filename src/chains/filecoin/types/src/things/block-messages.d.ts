@@ -26,13 +26,14 @@ declare type BlockMessagesConfig = {
     };
   };
 };
-declare type C = BlockMessagesConfig;
 declare class BlockMessages
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<BlockMessagesConfig>
+  implements DeserializedObject<BlockMessagesConfig> {
+  get config(): Definitions<BlockMessagesConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<BlockMessagesConfig>>
+      | Partial<DeserializedObject<BlockMessagesConfig>>
   );
   /**
    * The messages in the block that were signed with BLS.
@@ -52,5 +53,5 @@ declare class BlockMessages
     signedMessages: Array<SignedMessage>
   ): BlockMessages;
 }
-declare type SerializedBlockMessages = SerializedObject<C>;
+declare type SerializedBlockMessages = SerializedObject<BlockMessagesConfig>;
 export { BlockMessages, BlockMessagesConfig, SerializedBlockMessages };

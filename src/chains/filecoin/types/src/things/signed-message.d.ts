@@ -20,16 +20,17 @@ declare type SignedMessageConfig = {
     };
   };
 };
-declare type C = SignedMessageConfig;
 declare class SignedMessage
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<SignedMessageConfig>
+  implements DeserializedObject<SignedMessageConfig> {
+  get config(): Definitions<SignedMessageConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<SignedMessageConfig>>
+      | Partial<DeserializedObject<SignedMessageConfig>>
   );
   message: Message;
   signature: Signature;
 }
-declare type SerializedSignedMessage = SerializedObject<C>;
+declare type SerializedSignedMessage = SerializedObject<SignedMessageConfig>;
 export { SignedMessage, SignedMessageConfig, SerializedSignedMessage };
