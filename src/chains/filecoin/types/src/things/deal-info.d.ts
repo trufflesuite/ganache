@@ -15,6 +15,7 @@ import {
   DataTransferChannel,
   SerializedDataTransferChannel
 } from "./data-transfer-channel";
+import { Address, SerializedAddress } from "./address";
 declare type DealInfoConfig = {
   properties: {
     proposalCid: {
@@ -33,8 +34,8 @@ declare type DealInfoConfig = {
       serializedName: "Message";
     };
     provider: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Provider";
     };
     dataRef: {
@@ -101,7 +102,7 @@ declare class DealInfo
   proposalCid: RootCID;
   state: StorageDealStatus;
   message: string;
-  provider: string;
+  provider: Address;
   dataRef: StorageMarketDataRef;
   pieceCid: RootCID | null;
   size: number;
