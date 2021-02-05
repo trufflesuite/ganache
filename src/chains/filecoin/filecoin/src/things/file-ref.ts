@@ -22,10 +22,10 @@ type FileRefConfig = {
   };
 };
 
-type C = FileRefConfig;
-
-class FileRef extends SerializableObject<C> implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+class FileRef
+  extends SerializableObject<FileRefConfig>
+  implements DeserializedObject<FileRefConfig> {
+  get config(): Definitions<FileRefConfig> {
     return {
       path: {
         deserializedName: "path",
@@ -41,7 +41,9 @@ class FileRef extends SerializableObject<C> implements DeserializedObject<C> {
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<FileRefConfig>>
+      | Partial<DeserializedObject<FileRefConfig>>
   ) {
     super();
 
@@ -53,6 +55,6 @@ class FileRef extends SerializableObject<C> implements DeserializedObject<C> {
   isCAR: boolean;
 }
 
-type SerializedFileRef = SerializedObject<C>;
+type SerializedFileRef = SerializedObject<FileRefConfig>;
 
 export { FileRef, SerializedFileRef };
