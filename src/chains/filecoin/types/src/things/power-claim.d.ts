@@ -18,16 +18,17 @@ declare type PowerClaimConfig = {
     };
   };
 };
-declare type C = PowerClaimConfig;
 declare class PowerClaim
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<PowerClaimConfig>
+  implements DeserializedObject<PowerClaimConfig> {
+  get config(): Definitions<PowerClaimConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<PowerClaimConfig>>
+      | Partial<DeserializedObject<PowerClaimConfig>>
   );
   rawBytePower: bigint;
   qualityAdjPower: bigint;
 }
-declare type SerializedPowerClaim = SerializedObject<C>;
+declare type SerializedPowerClaim = SerializedObject<PowerClaimConfig>;
 export { PowerClaim, SerializedPowerClaim };
