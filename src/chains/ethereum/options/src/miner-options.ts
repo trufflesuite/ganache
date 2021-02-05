@@ -49,7 +49,7 @@ export type MinerConfig = {
      */
     difficulty: {
       type: Quantity;
-      rawType: string | number;
+      rawType: number;
       hasDefault: true;
     };
 
@@ -187,7 +187,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
     normalize: Quantity.from,
     cliDescription: "Sets the block difficulty for the network.",
     default: () => Quantity.from(1),
-    cliType: "string"
+    cliType: "number"
   },
   callGasLimit: {
     normalize: Quantity.from,
