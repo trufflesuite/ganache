@@ -69,19 +69,20 @@ describe("api", () => {
             type: "eth_subscription",
             data: {
               result: {
-                difficulty: "0x0",
+                difficulty: "0x1",
+                totalDifficulty: "0x2",
                 extraData: "0x",
                 gasLimit: gasLimit,
                 gasUsed: "0x0",
                 hash:
-                  "0x7ffe37737a6a39477f0cd9eeb632a6b393c440ad17b6e82fcbe1ebf6556d768c",
+                  "0x8fe2cfd8278173d82040e23e2d593e82fa616170d5c37746c4ce6e0fc257a0af",
                 logsBloom: `0x${"0".repeat(512)}`,
                 miner: `0x${"0".repeat(40)}`,
                 mixHash: `0x${"0".repeat(64)}`,
                 nonce: "0x0000000000000000",
                 number: Quantity.from(startingBlockNumber + 1).toString(),
                 parentHash:
-                  "0x48ba6f672feca71b75568153ce81c75d0a8074c935d4ab2a23fc7dd64dd13fe2",
+                  "0x595a52280133ab1b357af73a10a8ac8a4f4283d24ae8766581e21e49c8292fab",
                 receiptsRoot:
                   "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
                 sha3Uncles:
