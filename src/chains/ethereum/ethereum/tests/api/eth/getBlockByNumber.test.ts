@@ -2,8 +2,7 @@ import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
-import { join } from "path";
-import { Quantity } from "@ganache/utils";
+const DEFAULT_DIFFICULTY = 1;
 
 describe("api", () => {
   describe("eth", () => {
@@ -19,16 +18,16 @@ describe("api", () => {
       });
 
       describe("difficulty", () => {
-        it("returns 1 for difficulty by default", async () => {
+        it("returns the block difficulty", async () => {
           const block = await provider.send("eth_getBlockByNumber", ["latest"]);
-          assert.strictEqual(block.difficulty, "0x1");
+          assert.strictEqual(block.difficulty, `0x${DEFAULT_DIFFICULTY}`);
         });
       });
 
       describe("totalDifficulty", () => {
-        it("returns 1 for genesis block totalDifficulty", async () => {
+        it("equals the block difficulty for the genesis block", async () => {
           const block = await provider.send("eth_getBlockByNumber", ["0x0"]);
-          assert.strictEqual(block.totalDifficulty, "0x1");
+          assert.strictEqual(block.totalDifficulty, `0x${DEFAULT_DIFFICULTY}`);
         });
       });
     });
