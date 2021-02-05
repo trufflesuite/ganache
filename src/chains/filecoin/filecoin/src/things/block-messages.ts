@@ -31,12 +31,10 @@ type BlockMessagesConfig = {
   };
 };
 
-type C = BlockMessagesConfig;
-
 class BlockMessages
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C> {
+  extends SerializableObject<BlockMessagesConfig>
+  implements DeserializedObject<BlockMessagesConfig> {
+  get config(): Definitions<BlockMessagesConfig> {
     return {
       blsMessages: {
         deserializedName: "blsMessages",
@@ -60,7 +58,9 @@ class BlockMessages
   }
 
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<BlockMessagesConfig>>
+      | Partial<DeserializedObject<BlockMessagesConfig>>
   ) {
     super();
 
@@ -129,6 +129,6 @@ class BlockMessages
   }
 }
 
-type SerializedBlockMessages = SerializedObject<C>;
+type SerializedBlockMessages = SerializedObject<BlockMessagesConfig>;
 
 export { BlockMessages, BlockMessagesConfig, SerializedBlockMessages };
