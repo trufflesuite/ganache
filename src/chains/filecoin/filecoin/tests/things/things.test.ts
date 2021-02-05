@@ -5,6 +5,7 @@ import { Tipset } from "../../src/things/tipset";
 import { BlockHeader } from "../../src/things/block-header";
 import IPFSCid from "cids";
 import multihashing from "multihashing";
+import { Address } from "../../src/things/address";
 
 describe("things", () => {
   describe("general", () => {
@@ -94,7 +95,7 @@ describe("things", () => {
 
       let block = new BlockHeader();
 
-      assert.strictEqual(block.miner, "t01000");
+      assert.strictEqual(block.miner, Address.fromId(0));
       assert.strictEqual(block.beaconEntries.length, 0);
       assert.strictEqual(block.winPoStProof.length, 0);
       assert.strictEqual(block.parents.length, 0);

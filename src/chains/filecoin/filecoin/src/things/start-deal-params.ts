@@ -25,8 +25,8 @@ type StartDealParamsConfig = {
       serializedName: "Wallet";
     };
     miner: {
-      type: string; // using string until we can support more address types in Address
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Miner";
     };
     epochPrice: {
@@ -80,7 +80,8 @@ class StartDealParams
       miner: {
         deserializedName: "miner",
         serializedName: "Miner",
-        defaultValue: "t01000"
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0)
       },
       epochPrice: {
         deserializedName: "epochPrice",
@@ -150,7 +151,7 @@ class StartDealParams
 
   data: StorageMarketDataRef;
   wallet: Address | null;
-  miner: string;
+  miner: Address;
   epochPrice: bigint;
   minBlocksDuration: number;
   providerCollateral: bigint;

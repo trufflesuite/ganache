@@ -10,14 +10,15 @@ import {
 import { PoStProof, SerializedPoStProof } from "./post-proof";
 import { RootCID, SerializedRootCID } from "./root-cid";
 import { SerializedSignature, Signature } from "./signature";
+import { Address, SerializedAddress } from "./address";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#BlockHeader
 
 interface BlockHeaderConfig {
   properties: {
     miner: {
-      type: string; // string until we can support more address types in Address
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Miner";
     };
     ticket: {
@@ -106,7 +107,8 @@ class BlockHeader
       miner: {
         deserializedName: "miner",
         serializedName: "Miner",
-        defaultValue: "t01000"
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0)
       },
       ticket: {
         deserializedName: "ticket",
@@ -246,7 +248,7 @@ class BlockHeader
     );
   }
 
-  miner: string;
+  miner: Address;
   ticket: Ticket;
   electionProof: ElectionProof;
   beaconEntries: Array<BeaconEntry>;

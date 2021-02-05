@@ -42,7 +42,7 @@ export type BlockchainEvents = {
 };
 
 // Reference implementation: https://git.io/JtEVW
-const BurntFundsAddress = "t099";
+const BurntFundsAddress = Address.fromId(99, true);
 
 export default class Blockchain extends Emittery.Typed<
   BlockchainEvents,
@@ -55,7 +55,7 @@ export default class Blockchain extends Emittery.Typed<
   public signedMessagesManager: SignedMessageManager | null;
   public blockMessagesManager: BlockMessagesManager | null;
 
-  readonly miner: string; // using string until we can support more address types in Address
+  readonly miner: Address;
   readonly #miningLock: Sema;
 
   public messagePool: Array<SignedMessage>;
@@ -81,7 +81,7 @@ export default class Blockchain extends Emittery.Typed<
 
     this.rng = new utils.RandomNumberGenerator(this.options.wallet.seed);
 
-    this.miner = "t01000";
+    this.miner = Address.fromId(0);
 
     this.messagePool = [];
     this.#messagePoolLock = new Sema(1);
@@ -470,7 +470,7 @@ export default class Blockchain extends Emittery.Typed<
           // send mining funds
           let successful = await this.accountManager!.transferFunds(
             from,
-            this.miner,
+            this.miner.value,
             getMinerFee(signedMessage.message)
           );
 
