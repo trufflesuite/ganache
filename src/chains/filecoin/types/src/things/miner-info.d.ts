@@ -63,13 +63,14 @@ declare type MinerInfoConfig = {
     };
   };
 };
-declare type C = MinerInfoConfig;
 declare class MinerInfo
-  extends SerializableObject<C>
-  implements DeserializedObject<C> {
-  get config(): Definitions<C>;
+  extends SerializableObject<MinerInfoConfig>
+  implements DeserializedObject<MinerInfoConfig> {
+  get config(): Definitions<MinerInfoConfig>;
   constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+    options?:
+      | Partial<SerializedObject<MinerInfoConfig>>
+      | Partial<DeserializedObject<MinerInfoConfig>>
   );
   /**
    * The owner address corresponds to a Lotus node address provided during the miner initialization.
@@ -95,5 +96,5 @@ declare class MinerInfo
   windowPoStPartitionSectors: number;
   consensusFaultElapsed: number;
 }
-declare type SerializedMinerInfo = SerializedObject<C>;
+declare type SerializedMinerInfo = SerializedObject<MinerInfoConfig>;
 export { MinerInfo, SerializedMinerInfo };
