@@ -769,6 +769,12 @@ describe("api", () => {
     });
 
     describe("Filecoin.MpoolPush", () => {
+      afterEach(async () => {
+        // we need to make sure any mining has finished from a prior test
+        // to not affect the next test
+        await waitForExpectedHeight();
+      });
+
       it("should accept a properly signed (with BLS address) transfer message", async () => {
         const From = accounts[0].address.value;
         const To = accounts[1].address.value;
@@ -1542,6 +1548,99 @@ describe("api", () => {
         ]);
         expectedHeight += 2; // theres a block per transaction
         assert.ok(result);
+      });
+    });
+
+    describe("Message Pool Control Functions", () => {
+      let provider2: FilecoinProvider;
+      let client2: LotusClient;
+      let accounts2: Account[];
+      let expectedHeight2 = 0;
+
+      before(async () => {
+        provider2 = await getProvider({
+          chain: {
+            ipfsPort: 5003
+          },
+          miner: {
+            blockTime: 120 // effectively disable mining
+          }
+        });
+        client2 = new LotusRPC(provider2, { schema: FilecoinProvider.Schema });
+        accounts2 = await provider2.blockchain.accountManager.getControllableAccounts();
+      });
+
+      after(async () => {
+        await provider2.stop();
+      });
+
+      const waitForExpectedHeight2 = async () => {
+        // give some time for it to finish mining any/all blocks
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const newHead: SerializedBlockHeader = await client2.chainHead();
+        assert.strictEqual(newHead.Height, expectedHeight2);
+      };
+
+      afterEach(async () => {
+        // we need to make sure any mining has finished from a prior test
+        // to not affect the next test
+        await waitForExpectedHeight2();
+      });
+
+      it("adds and checks messages to the message pool", async () => {
+        const From = accounts2[0].address.value;
+        const To = accounts2[1].address.value;
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+
+        const signedMessage1: SerializedSignedMessage = await client2.mpoolPushMessage(
+          message,
+          messageSendSpec
+        );
+        const signedMessage2: SerializedSignedMessage = await client2.mpoolPushMessage(
+          message,
+          messageSendSpec
+        );
+
+        const pendingMessages: SerializedSignedMessage[] = await client2.mpoolPending();
+
+        assert.strictEqual(pendingMessages.length, 2);
+        assert.deepStrictEqual(pendingMessages[0], signedMessage1);
+        assert.deepStrictEqual(pendingMessages[1], signedMessage2);
+
+        const selectMessages = await client2.mpoolSelect();
+
+        assert.deepStrictEqual(selectMessages, pendingMessages);
+      });
+
+      it("clears messages from the message pool", async () => {
+        // This should not clear local messages (all of them are local currently)
+        await client2.mpoolClear(false);
+        const localPendingMessages: SerializedSignedMessage[] = await client2.mpoolPending();
+        assert.strictEqual(localPendingMessages.length, 2);
+
+        // This should clear all messages
+        await client2.mpoolClear(true);
+        const allPendingMessages: SerializedSignedMessage[] = await client2.mpoolPending();
+        assert.strictEqual(allPendingMessages.length, 0);
+
+        // make sure we didn't mine a block which would cause the pool to clear
+        const head: SerializedBlockHeader = await client2.chainHead();
+        assert.strictEqual(head.Height, 0);
       });
     });
   });

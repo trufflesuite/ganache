@@ -247,6 +247,32 @@ export default class FilecoinApi implements types.Api {
     return signedMessages.map(sm => sm.serialize());
   }
 
+  async "Filecoin.MpoolClear"(local: boolean): Promise<void> {
+    await this.#blockchain.mpoolClear(local);
+  }
+
+  // This function takes an argument of type TipsetKey,
+  // but the Ganache design will never use it. See implementation
+  // for more details
+  async "Filecoin.MpoolPending"(): Promise<Array<SerializedSignedMessage>> {
+    const signedMessages = await this.#blockchain.mpoolPending();
+
+    return signedMessages.map(signedMessage => signedMessage.serialize());
+  }
+
+  // This function takes an argument of type TipsetKey and
+  // a ticket quality argument. As you can see in the reference
+  // implementation (https://git.io/Jt24C), these are used for
+  // determining what messages are going to be included in the
+  // next block. However, Ganache includes all messages in the
+  // next block, and doesn't really have a decision algorithm.
+  // Therefore, this is identical to MpoolPending
+  async "Filecoin.MpoolSelect"(): Promise<Array<SerializedSignedMessage>> {
+    const signedMessages = await this.#blockchain.mpoolPending();
+
+    return signedMessages.map(signedMessage => signedMessage.serialize());
+  }
+
   // This method is part of the StorageMiner API,
   // so it's supposed to return the actor address
   // for the mining side of things (since Ganache
