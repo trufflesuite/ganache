@@ -401,6 +401,66 @@ export default class Blockchain extends Emittery.Typed<
     }
   }
 
+  // Reference implementation: https://git.io/Jt2lh
+  // I don't believe the reference implementation translates very
+  // easily to our architecture. The implementation below mimics
+  // the desired behavior
+  async mpoolClear(local: boolean): Promise<void> {
+    await this.waitForReady();
+
+    try {
+      await this.#messagePoolLock.acquire();
+
+      if (local) {
+        this.messagePool = [];
+      } else {
+        const localAccounts = await this.accountManager!.getControllableAccounts();
+        const localAddressStrings = localAccounts.map(
+          account => account.address.value
+        );
+        this.messagePool = this.messagePool.filter(signedMessage => {
+          return localAddressStrings.includes(signedMessage.message.from);
+        });
+      }
+
+      this.#messagePoolLock.release();
+    } catch (e) {
+      this.#messagePoolLock.release();
+      throw e;
+    }
+  }
+
+  // Reference implementation: https://git.io/Jt28F
+  // The below implementation makes the assumption that
+  // it's not possible for the user to request a valid
+  // tipset key that is greater than the message pools
+  // pending height. This just cannot happen with the
+  // current design of Ganache. I believe this scenario
+  // would happen in other networks because of syncing
+  // issues preventing the state to always be at the
+  // network head.
+  async mpoolPending(): Promise<Array<SignedMessage>> {
+    await this.waitForReady();
+
+    try {
+      await this.#messagePoolLock.acquire();
+
+      // this does a pseudo clone so that what we send
+      // won't change after the lock is released but before
+      // it goes out the api
+      const pendingMessages = this.messagePool.map(
+        sm => new SignedMessage(sm.serialize())
+      );
+
+      this.#messagePoolLock.release();
+
+      return pendingMessages;
+    } catch (e) {
+      this.#messagePoolLock.release();
+      throw e;
+    }
+  }
+
   // Note that this is naive - it always assumes the first block in the
   // previous tipset is the parent of the new blocks.
   async mineTipset(numNewBlocks: number = 1): Promise<void> {
