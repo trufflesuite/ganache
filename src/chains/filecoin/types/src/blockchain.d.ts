@@ -57,6 +57,8 @@ export default class Blockchain extends Emittery.Typed<
     signedMessage: SignedMessage,
     acquireLock?: boolean
   ): Promise<RootCID>;
+  mpoolClear(local: boolean): Promise<void>;
+  mpoolPending(): Promise<Array<SignedMessage>>;
   mineTipset(numNewBlocks?: number): Promise<void>;
   hasLocal(cid: string): Promise<boolean>;
   private getIPFSObjectSize;
