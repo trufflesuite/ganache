@@ -42,6 +42,9 @@ export default class FilecoinApi implements types.Api {
     messages: Array<SerializedMessage>,
     spec: SerializedMessageSendSpec
   ): Promise<Array<SerializedSignedMessage>>;
+  "Filecoin.MpoolClear"(local: boolean): Promise<void>;
+  "Filecoin.MpoolPending"(): Promise<Array<SerializedSignedMessage>>;
+  "Filecoin.MpoolSelect"(): Promise<Array<SerializedSignedMessage>>;
   "Filecoin.ActorAddress"(): Promise<string>;
   "Filecoin.StateListMiners"(): Promise<Array<string>>;
   "Filecoin.StateMinerPower"(
