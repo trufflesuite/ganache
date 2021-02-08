@@ -95,7 +95,10 @@ describe("things", () => {
 
       let block = new BlockHeader();
 
-      assert.strictEqual(block.miner, Address.fromId(0));
+      assert.strictEqual(
+        block.miner.value,
+        Address.fromId(0, false, true).value
+      );
       assert.strictEqual(block.beaconEntries.length, 0);
       assert.strictEqual(block.winPoStProof.length, 0);
       assert.strictEqual(block.parents.length, 0);

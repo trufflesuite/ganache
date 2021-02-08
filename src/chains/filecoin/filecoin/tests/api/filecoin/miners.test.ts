@@ -11,6 +11,7 @@ describe("api", () => {
   describe("filecoin", () => {
     let provider: FilecoinProvider;
     let client: LotusClient;
+    const minerAddress = Address.fromId(0, false, true);
 
     before(async () => {
       provider = await getProvider();
@@ -27,13 +28,13 @@ describe("api", () => {
       it("should return a single miner", async () => {
         const miners = await client.stateListMiners();
         assert.strictEqual(miners.length, 1);
-        assert.strictEqual(miners[0], Address.fromId(0));
+        assert.strictEqual(miners[0], minerAddress.value);
       });
     });
 
     describe("Filecoin.StateMinerPower", () => {
       it("should returns a nonzero power for the default miner", async () => {
-        const minerPower = await client.stateMinerPower(Address.fromId(0));
+        const minerPower = await client.stateMinerPower(minerAddress.value);
 
         // current implementation uses the default for both of these
         assert.deepStrictEqual(minerPower.MinerPower, minerPower.TotalPower);
@@ -43,7 +44,9 @@ describe("api", () => {
       });
 
       it("should returns a zero power for other miners", async () => {
-        const minerPower = await client.stateMinerPower(Address.fromId(1));
+        const minerPower = await client.stateMinerPower(
+          Address.fromId(1, false, true).value
+        );
 
         // current implementation uses the default for both of these
         assert.deepStrictEqual(minerPower.MinerPower, minerPower.TotalPower);
@@ -55,10 +58,10 @@ describe("api", () => {
 
     describe("Filecoin.StateMinerInfo", () => {
       it("should return the miner info for the default miner", async () => {
-        const minerInfo = await client.stateMinerInfo(Address.fromId(0));
+        const minerInfo = await client.stateMinerInfo(minerAddress.value);
 
-        assert.strictEqual(minerInfo.Owner, Address.fromId(0));
-        assert.strictEqual(minerInfo.Worker, Address.fromId(0));
+        assert.strictEqual(minerInfo.Owner, minerAddress.value);
+        assert.strictEqual(minerInfo.Worker, minerAddress.value);
         assert.strictEqual(minerInfo.WorkerChangeEpoch, -1);
         assert.strictEqual(minerInfo.SectorSize, 2048);
         assert.strictEqual(minerInfo.ConsensusFaultElapsed, -1);
@@ -66,11 +69,10 @@ describe("api", () => {
 
       it("should fail to retrieve miner info for other miners", async () => {
         try {
-          const minerInfo = await client.stateMinerInfo(Address.fromId(1));
+          const otherMiner = Address.fromId(1, false, true);
+          const minerInfo = await client.stateMinerInfo(otherMiner.value);
           assert.fail(
-            `Should not have retrieved a miner info for miner ${Address.fromId(
-              1
-            )}, but receive: ${minerInfo}`
+            `Should not have retrieved a miner info for miner ${otherMiner.value}, but receive: ${minerInfo}`
           );
         } catch (e) {
           if (e.code === "ERR_ASSERTION") {
@@ -85,7 +87,7 @@ describe("api", () => {
       it("should return the miner info for the default miner", async () => {
         const minerActorAddress = await client.actorAddress();
 
-        assert.strictEqual(minerActorAddress, Address.fromId(0));
+        assert.strictEqual(minerActorAddress, minerAddress.value);
       });
     });
   });
