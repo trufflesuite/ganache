@@ -176,9 +176,9 @@ describe("api", () => {
           PaymentInterval: 1048576,
           PaymentIntervalIncrease: 1048576,
           Client: address,
-          Miner: Address.fromId(0).value,
+          Miner: Address.fromId(0, false, true).value,
           MinerPeer: {
-            Address: Address.fromId(0).value,
+            Address: Address.fromId(0, false, true).value,
             ID: "0",
             PieceCID: {
               "/": "6vuxqgevbl6irx7tymbj7o4t8bz1s5vy88zmum7flxywy1qugjfd"
