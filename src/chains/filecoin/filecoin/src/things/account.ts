@@ -1,5 +1,10 @@
 import { utils } from "@ganache/utils";
-import { Address, SerializedAddress } from "./address";
+import {
+  Address,
+  AddressProtocol,
+  SerializedAddress,
+  AddressNetwork
+} from "./address";
 import { Balance, SerializedBalance } from "./balance";
 import {
   Definitions,
@@ -58,10 +63,12 @@ class Account
 
   static random(
     defaultFIL: number,
-    rng: utils.RandomNumberGenerator = new utils.RandomNumberGenerator()
+    rng: utils.RandomNumberGenerator = new utils.RandomNumberGenerator(),
+    protocol: AddressProtocol = AddressProtocol.BLS,
+    network: AddressNetwork = AddressNetwork.Testnet
   ): Account {
     return new Account({
-      address: Address.random(rng),
+      address: Address.random(rng, protocol, network),
       balance: new Balance(
         Balance.FILToLowestDenomination(defaultFIL).toString()
       ),

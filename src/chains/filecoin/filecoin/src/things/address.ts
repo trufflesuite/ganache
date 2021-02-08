@@ -133,6 +133,32 @@ class Address extends SerializableLiteral<AddressConfig> {
     }
   }
 
+  async verifySignature(
+    buffer: Buffer,
+    signature: Signature
+  ): Promise<boolean> {
+    switch (this.protocol) {
+      case AddressProtocol.BLS: {
+        return await bls.verify(
+          signature.data,
+          buffer,
+          Address.recoverBLSPublicKey(this.value)
+        );
+      }
+      case AddressProtocol.SECP256K1: {
+        const hash = blake.blake2b(buffer, null, 32);
+        return secp256K1.ecdsaVerify(
+          signature.data.slice(0, 64), // remove the recid suffix (should be the last/65th byte)
+          hash,
+          Address.recoverSECP256K1PublicKey(signature, hash)
+        );
+      }
+      default: {
+        return false; // TODO: throw?
+      }
+    }
+  }
+
   static recoverBLSPublicKey(address: string): Buffer {
     const protocol = Address.parseProtocol(address);
     const customBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
@@ -188,13 +214,7 @@ class Address extends SerializableLiteral<AddressConfig> {
       );
     }
 
-    // Create a checksum using the blake2b algorithm
-    const checksumBuffer = Buffer.concat([Buffer.from([protocol]), payload]);
-    const checksum = blake.blake2b(
-      checksumBuffer,
-      null,
-      Address.CHECKSUM_BYTES
-    );
+    const checksum = Address.createChecksum(protocol, payload);
 
     // Merge the public key and checksum
     const payloadAndChecksum = Buffer.concat([payload, checksum]);
@@ -296,8 +316,90 @@ class Address extends SerializableLiteral<AddressConfig> {
       }`
     );
   }
+
+  static createChecksum(protocol: AddressProtocol, payload: Buffer): Buffer {
+    // Create a checksum using the blake2b algorithm
+    const checksumBuffer = Buffer.concat([Buffer.from([protocol]), payload]);
+    const checksum = blake.blake2b(
+      checksumBuffer,
+      null,
+      Address.CHECKSUM_BYTES
+    );
+    return Buffer.from(checksum.buffer);
+  }
+
+  static validate(inputAddress: string): Address {
+    inputAddress = inputAddress.trim();
+
+    if (inputAddress === "" || inputAddress === "<empty>") {
+      throw new Error("invalid address length");
+    }
+
+    // MaxAddressStringLength is the max length of an address encoded as a string
+    // it includes the network prefix, protocol, and bls publickey (bls is the longest)
+    const MaxAddressStringLength = 2 + 84;
+    if (
+      inputAddress.length > MaxAddressStringLength ||
+      inputAddress.length < 3
+    ) {
+      throw new Error("invalid address length");
+    }
+
+    const address = new Address(inputAddress);
+    const raw = address.value.slice(2);
+
+    if (address.network === AddressNetwork.Unknown) {
+      throw new Error("unknown address network");
+    }
+
+    if (address.protocol === AddressProtocol.Unknown) {
+      throw new Error("unknown address protocol");
+    }
+
+    if (address.protocol === AddressProtocol.ID) {
+      if (raw.length > 20) {
+        throw new Error("invalid address length");
+      }
+      const id = parseInt(raw, 10);
+      if (isNaN(id) || id.toString(10) !== raw) {
+        throw new Error("invalid address payload");
+      }
+      return address;
+    }
+
+    const customBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
+    const payloadWithChecksum = base32.parse(raw, customBase32Alphabet);
+
+    if (payloadWithChecksum.length < Address.CHECKSUM_BYTES) {
+      throw new Error("invalid address checksum");
+    }
+
+    const payload = payloadWithChecksum.slice(
+      0,
+      payloadWithChecksum.length - Address.CHECKSUM_BYTES
+    );
+    const providedChecksum = payloadWithChecksum.slice(
+      payloadWithChecksum.length - Address.CHECKSUM_BYTES
+    );
+
+    if (
+      address.protocol === AddressProtocol.SECP256K1 ||
+      address.protocol === AddressProtocol.Actor
+    ) {
+      if (payload.length !== 20) {
+        throw new Error("invalid address payload");
+      }
+    }
+
+    const generatedChecksum = Address.createChecksum(address.protocol, payload);
+    if (!generatedChecksum.equals(providedChecksum)) {
+      throw new Error("invalid address checksum");
+    }
+
+    return address;
+  }
 }
 
 type SerializedAddress = string;
 
-export { Address, SerializedAddress, AddressProtocol };
+export { Address, SerializedAddress, AddressProtocol, AddressNetwork };

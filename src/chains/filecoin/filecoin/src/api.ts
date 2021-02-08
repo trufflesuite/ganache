@@ -8,7 +8,7 @@ import {
 import { SerializedRootCID, RootCID } from "./things/root-cid";
 import { SerializedDealInfo } from "./things/deal-info";
 import { SerializedTipset, Tipset } from "./things/tipset";
-import { SerializedAddress } from "./things/address";
+import { Address, AddressProtocol, SerializedAddress } from "./things/address";
 import {
   SerializedRetrievalOrder,
   RetrievalOrder
@@ -32,6 +32,11 @@ import {
   SerializedSignedMessage,
   SignedMessage
 } from "./things/signed-message";
+import { KeyType } from "./things/key-type";
+import { KeyInfo, SerializedKeyInfo } from "./things/key-info";
+import { SerializedSignature, Signature } from "./things/signature";
+import { SigType } from "./things/sig-type";
+import base32 from "base32-encoding";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -347,7 +352,12 @@ export default class FilecoinApi implements types.Api {
     }
   }
 
-  async "Filecoin.WalletDefaultAddress"(): Promise<SerializedAddress> {
+  async "Filecoin.WalletDefaultAddress"(address: string): Promise<void> {
+    await this.#blockchain.waitForReady();
+    await this.#blockchain.privateKeyManager!.setDefault(address);
+  }
+
+  async "Filecoin.WalletSetDefault"(): Promise<SerializedAddress> {
     await this.#blockchain.waitForReady();
     const accounts = await this.#blockchain.accountManager!.getControllableAccounts();
     return accounts[0].address.serialize();
@@ -358,6 +368,186 @@ export default class FilecoinApi implements types.Api {
 
     const account = await this.#blockchain.accountManager!.getAccount(address);
     return account.balance.serialize();
+  }
+
+  async "Filecoin.WalletNew"(keyType: KeyType): Promise<SerializedAddress> {
+    let protocol: AddressProtocol;
+    switch (keyType) {
+      case KeyType.KeyTypeBLS: {
+        protocol = AddressProtocol.BLS;
+        break;
+      }
+      case KeyType.KeyTypeSecp256k1: {
+        protocol = AddressProtocol.SECP256K1;
+      }
+      case KeyType.KeyTypeSecp256k1Ledger:
+      default: {
+        throw new Error(
+          `KeyType of ${keyType} is not supported. Please use "bls" or "secp256k1".`
+        );
+      }
+    }
+
+    const account = await this.#blockchain.createAccount(protocol);
+    return account.address.serialize();
+  }
+
+  async "Filecoin.WalletList"(): Promise<Array<SerializedAddress>> {
+    await this.#blockchain.waitForReady();
+
+    const accounts = await this.#blockchain.accountManager!.getControllableAccounts();
+    return accounts.map(account => account.address.serialize());
+  }
+
+  async "Filecoin.WalletHas"(address: string): Promise<boolean> {
+    await this.#blockchain.waitForReady();
+
+    return await this.#blockchain.privateKeyManager!.hasPrivateKey(address);
+  }
+
+  async "Filecoin.WalletDelete"(address: string): Promise<void> {
+    await this.#blockchain.waitForReady();
+
+    await this.#blockchain.privateKeyManager!.deletePrivateKey(address);
+  }
+
+  async "Filecoin.WalletExport"(address: string): Promise<SerializedKeyInfo> {
+    await this.#blockchain.waitForReady();
+
+    const privateKey = await this.#blockchain.privateKeyManager!.getPrivateKey(
+      address
+    );
+    if (privateKey === null) {
+      throw new Error("key not found");
+    }
+
+    const protocol = Address.parseProtocol(address);
+
+    const keyInfo = new KeyInfo({
+      type:
+        protocol === AddressProtocol.BLS
+          ? KeyType.KeyTypeBLS
+          : KeyType.KeyTypeSecp256k1,
+      privateKey: Buffer.from(privateKey, "hex")
+    });
+
+    return keyInfo.serialize();
+  }
+
+  async "Filecoin.WalletImport"(
+    serializedKeyInfo: SerializedKeyInfo
+  ): Promise<void> {
+    await this.#blockchain.waitForReady();
+
+    const keyInfo = new KeyInfo(serializedKeyInfo);
+
+    if (keyInfo.type === KeyType.KeyTypeSecp256k1Ledger) {
+      throw new Error(
+        "Ganache doesn't support ledger accounts; please use 'bls' or 'secp256k1' key types."
+      );
+    }
+
+    const protocol =
+      keyInfo.type === KeyType.KeyTypeBLS
+        ? AddressProtocol.BLS
+        : AddressProtocol.SECP256K1;
+
+    const address = Address.fromPrivateKey(
+      keyInfo.privateKey.toString("hex"),
+      protocol
+    );
+
+    await this.#blockchain.privateKeyManager!.putPrivateKey(
+      address.value,
+      address.privateKey!
+    );
+  }
+
+  async "Filecoin.WalletSign"(
+    address: string,
+    data: string
+  ): Promise<SerializedSignature> {
+    await this.#blockchain.waitForReady();
+
+    const account = await this.#blockchain.accountManager!.getAccount(address);
+
+    const signedData = await account.address.signBuffer(
+      Buffer.from(data, "base64")
+    );
+
+    const signature = new Signature({
+      type:
+        account.address.protocol === AddressProtocol.BLS
+          ? SigType.SigTypeBLS
+          : SigType.SigTypeSecp256k1,
+      data: signedData
+    });
+
+    return signature.serialize();
+  }
+
+  async "Filecoin.WalletSignMessage"(
+    address: string,
+    serializedMessage: SerializedMessage
+  ): Promise<SerializedSignedMessage> {
+    await this.#blockchain.waitForReady();
+
+    const account = await this.#blockchain.accountManager!.getAccount(address);
+
+    const message = new Message(serializedMessage);
+    const signedData = await account.address.signMessage(message);
+
+    const signedMessage = new SignedMessage({
+      message,
+      signature: new Signature({
+        type:
+          account.address.protocol === AddressProtocol.BLS
+            ? SigType.SigTypeBLS
+            : SigType.SigTypeSecp256k1,
+        data: signedData
+      })
+    });
+
+    return signedMessage.serialize();
+  }
+
+  async "Filecoin.WalletVerify"(
+    inputAddress: string,
+    data: string,
+    serializedSignature: SerializedSignature
+  ): Promise<boolean> {
+    await this.#blockchain.waitForReady();
+
+    const signature = new Signature(serializedSignature);
+
+    const protocol = Address.parseProtocol(inputAddress);
+    const isBLS =
+      protocol === AddressProtocol.BLS && signature.type === SigType.SigTypeBLS;
+    const isSecp =
+      protocol === AddressProtocol.SECP256K1 &&
+      signature.type === SigType.SigTypeSecp256k1;
+    const isValid = isBLS || isSecp;
+    if (isValid) {
+      const address = new Address(inputAddress);
+      return await address.verifySignature(
+        Buffer.from(data, "base64"),
+        signature
+      );
+    } else {
+      throw new Error(
+        "Invalid address protocol with signature. Address protocol should match the corresponding signature Type. Only BLS or SECP256K1 are supported"
+      );
+    }
+  }
+
+  async "Filecoin.WalletValidateAddress"(
+    inputAddress: string
+  ): Promise<SerializedAddress> {
+    await this.#blockchain.waitForReady();
+
+    const address = Address.validate(inputAddress);
+
+    return address.serialize();
   }
 
   async "Filecoin.ClientStartDeal"(

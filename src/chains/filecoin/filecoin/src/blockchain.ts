@@ -811,6 +811,14 @@ export default class Blockchain extends Emittery.Typed<
     );
   }
 
+  async createAccount(protocol: AddressProtocol): Promise<Account> {
+    await this.waitForReady();
+
+    const account = Account.random(0, this.rng, protocol);
+    await this.accountManager!.putAccount(account);
+    return account;
+  }
+
   private logLatestTipset() {
     let date = new Date().toISOString();
     let tipset = this.latestTipset();
