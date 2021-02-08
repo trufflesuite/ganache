@@ -352,15 +352,15 @@ export default class FilecoinApi implements types.Api {
     }
   }
 
-  async "Filecoin.WalletDefaultAddress"(address: string): Promise<void> {
-    await this.#blockchain.waitForReady();
-    await this.#blockchain.privateKeyManager!.setDefault(address);
-  }
-
-  async "Filecoin.WalletSetDefault"(): Promise<SerializedAddress> {
+  async "Filecoin.WalletDefaultAddress"(): Promise<SerializedAddress> {
     await this.#blockchain.waitForReady();
     const accounts = await this.#blockchain.accountManager!.getControllableAccounts();
     return accounts[0].address.serialize();
+  }
+
+  async "Filecoin.WalletSetDefault"(address: string): Promise<void> {
+    await this.#blockchain.waitForReady();
+    await this.#blockchain.privateKeyManager!.setDefault(address);
   }
 
   async "Filecoin.WalletBalance"(address: string): Promise<string> {
@@ -379,6 +379,7 @@ export default class FilecoinApi implements types.Api {
       }
       case KeyType.KeyTypeSecp256k1: {
         protocol = AddressProtocol.SECP256K1;
+        break;
       }
       case KeyType.KeyTypeSecp256k1Ledger:
       default: {
@@ -436,7 +437,7 @@ export default class FilecoinApi implements types.Api {
 
   async "Filecoin.WalletImport"(
     serializedKeyInfo: SerializedKeyInfo
-  ): Promise<void> {
+  ): Promise<SerializedAddress> {
     await this.#blockchain.waitForReady();
 
     const keyInfo = new KeyInfo(serializedKeyInfo);
@@ -461,6 +462,8 @@ export default class FilecoinApi implements types.Api {
       address.value,
       address.privateKey!
     );
+
+    return address.serialize();
   }
 
   async "Filecoin.WalletSign"(

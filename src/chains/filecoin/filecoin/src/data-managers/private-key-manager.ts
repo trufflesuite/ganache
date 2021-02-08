@@ -30,7 +30,7 @@ export default class PrivateKeyManager {
 
   async putPrivateKey(address: string, privateKey: string) {
     address = address.toLowerCase();
-    await this.base.put(Buffer.from(address), Buffer.from(privateKey));
+    await this.base.put(Buffer.from(address), Buffer.from(privateKey, "hex"));
     const addresses = await this.getAddressesWithPrivateKeys();
     if (!addresses.includes(address)) {
       addresses.push(address);
