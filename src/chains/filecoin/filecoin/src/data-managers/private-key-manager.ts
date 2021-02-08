@@ -16,9 +16,10 @@ export default class PrivateKeyManager {
   }
 
   async getPrivateKey(address: string): Promise<string | null> {
+    address = address.toLowerCase();
     try {
       const privateKey: Buffer = await this.base.get(Buffer.from(address));
-      return privateKey.toString();
+      return privateKey.toString("hex");
     } catch (e) {
       if (e.status === NOTFOUND) {
         return null;
@@ -28,6 +29,7 @@ export default class PrivateKeyManager {
   }
 
   async putPrivateKey(address: string, privateKey: string) {
+    address = address.toLowerCase();
     await this.base.put(Buffer.from(address), Buffer.from(privateKey));
     const addresses = await this.getAddressesWithPrivateKeys();
     if (!addresses.includes(address)) {
@@ -54,6 +56,42 @@ export default class PrivateKeyManager {
         return [];
       }
       throw e;
+    }
+  }
+
+  async hasPrivateKey(address: string) {
+    address = address.toLowerCase();
+    const addresses = await this.getAddressesWithPrivateKeys();
+    return addresses.includes(address);
+  }
+
+  async deletePrivateKey(address: string) {
+    address = address.toLowerCase();
+    let addresses = await this.getAddressesWithPrivateKeys();
+    if (addresses.includes(address)) {
+      addresses = addresses.filter(a => a !== address);
+      this.base.del(Buffer.from(address));
+      await this.base.put(
+        PrivateKeyManager.AccountsWithPrivateKeysKey,
+        Buffer.from(JSON.stringify(addresses))
+      );
+    }
+  }
+
+  async setDefault(address: string) {
+    address = address.toLowerCase();
+    if (this.hasPrivateKey(address)) {
+      let addresses = await this.getAddressesWithPrivateKeys();
+      addresses = addresses.filter(a => a !== address);
+      addresses.unshift(address);
+      await this.base.put(
+        PrivateKeyManager.AccountsWithPrivateKeysKey,
+        Buffer.from(JSON.stringify(addresses))
+      );
+    } else {
+      throw new Error(
+        `Cannot set ${address} as the default address as it's not part of the wallet.`
+      );
     }
   }
 }
