@@ -81,7 +81,7 @@ export default class Blockchain extends Emittery.Typed<
 
     this.rng = new utils.RandomNumberGenerator(this.options.wallet.seed);
 
-    this.miner = Address.fromId(0);
+    this.miner = Address.fromId(0, false, true);
 
     this.messagePool = [];
     this.#messagePoolLock = new Sema(1);
