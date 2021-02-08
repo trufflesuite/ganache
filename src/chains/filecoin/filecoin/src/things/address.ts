@@ -242,11 +242,6 @@ class Address extends SerializableLiteral<AddressConfig> {
     return Address.fromPrivateKey(privateKey, protocol, network);
   }
 
-  // Note: This does not (yet) check for cryptographic validity!
-  static isValid(value: string): boolean {
-    return value.length == 86 && value.indexOf("t3") == 0;
-  }
-
   static parseNetwork(publicAddress: string): AddressNetwork {
     if (publicAddress.length < 1) {
       return AddressNetwork.Unknown;
