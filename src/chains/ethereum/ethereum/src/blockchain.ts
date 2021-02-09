@@ -154,6 +154,7 @@ export default class Blockchain extends Emittery.Typed<
   public blockLogs: BlockLogManager;
   public transactions: TransactionManager;
   public transactionReceipts: Manager<TransactionReceipt>;
+  public storageKeys: Database["storageKeys"];
   public accounts: AccountManager;
   public vm: VM;
   public trie: SecureTrie;
@@ -243,6 +244,7 @@ export default class Blockchain extends Emittery.Typed<
         TransactionReceipt
       );
       this.accounts = new AccountManager(this, database.trie);
+      this.storageKeys = database.storageKeys;
 
       this.coinbase = coinbaseAddress;
 
@@ -318,10 +320,12 @@ export default class Blockchain extends Emittery.Typed<
 
   #saveNewBlock = ({
     block,
-    serialized
+    serialized,
+    storageKeys
   }: {
     block: Block;
     serialized: Buffer;
+    storageKeys: Map<Buffer, Buffer>;
   }) => {
     const { blocks } = this;
     blocks.latest = block;
@@ -364,6 +368,11 @@ export default class Blockchain extends Emittery.Typed<
             tx.execException
           )
         );
+      });
+
+      // save storage keys to the database one at a time
+      storageKeys.forEach((value, key) => {
+        this.storageKeys.put(key, value);
       });
 
       blockLogs.blockNumber = blockNumberQ;
@@ -439,6 +448,7 @@ export default class Blockchain extends Emittery.Typed<
   #handleNewBlockData = async (blockData: {
     block: Block;
     serialized: Buffer;
+    storageKeys: Map<Buffer, Buffer>;
   }) => {
     this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
       .then(() => this.#saveNewBlock(blockData))
