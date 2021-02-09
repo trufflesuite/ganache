@@ -5,7 +5,9 @@ import {
   RuntimeBlock,
   RuntimeError,
   RETURN_TYPES,
-  Executables
+  Executables,
+  ITraceData,
+  TraceDataFactory
 } from "@ganache/ethereum-utils";
 import { utils, Quantity, Data } from "@ganache/utils";
 import { promisify } from "util";
@@ -15,6 +17,8 @@ import VM from "ethereumjs-vm";
 import { encode as rlpEncode } from "rlp";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
+import { BN } from "ethereumjs-util";
+import { keccak } from "@ganache/utils/src/utils/keccak";
 const { BUFFER_EMPTY, BUFFER_256_ZERO } = utils;
 
 export type BlockData = {
@@ -220,6 +224,41 @@ export default class Miner extends Emittery.Typed<
       // vm's "live" trie.
       await this.#checkpoint();
 
+      type StepEvent = {
+        gasLeft: BN;
+        memory: Array<number>; // Not officially sure the type. Not a buffer or uint8array
+        stack: Array<BN>;
+        depth: number;
+        opcode: {
+          name: string;
+        };
+        pc: number;
+        address: Buffer;
+      };
+
+      const TraceData = TraceDataFactory();
+      // We need to listen for any SSTORE opcodes so we can grab the raw, unhashed version
+      // of the storage key and save it to the db along with it's keccak hashed version of
+      // the storage key. Why you might ask? So we can reference the raw version in
+      // debug_storageRangeAt.
+      const stepListener = (
+        event: StepEvent,
+        next: (error?: any, cb?: any) => void
+      ) => {
+        const stack: ITraceData[] = [];
+        for (const stackItem of event.stack) {
+          stack.push(TraceData.from(stackItem.toArrayLike(Buffer)));
+        }
+
+        if (event.opcode.name === "SSTORE") {
+          const key = stack[stack.length - 1];
+          const hashedKey = keccak(key.toBuffer());
+          storageKeys.set(hashedKey, key.toBuffer());
+        }
+        next();
+      };
+
+      this.#vm.on("step", stepListener);
       // Run until we run out of items, or until the inner loop stops us.
       // we don't call `shift()` here because we will may need to `replace`
       // this `best` transaction with the next best transaction from the same
@@ -340,6 +379,8 @@ export default class Miner extends Emittery.Typed<
 
       await Promise.all(promises);
       await this.#commit();
+
+      this.#vm.removeListener("step", stepListener);
 
       const serializedBlockData = runtimeBlock.finalize(
         transactionsTrie.root,
