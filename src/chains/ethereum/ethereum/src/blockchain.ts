@@ -1172,7 +1172,6 @@ export default class Blockchain extends Emittery.Typed<
       throw new Error("Unknown transaction " + transactionHash);
     }
 
-    // computeTxEnv logic starts here: <TODO: remove comment>
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
