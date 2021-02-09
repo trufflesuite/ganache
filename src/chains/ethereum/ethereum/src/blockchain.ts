@@ -1413,6 +1413,22 @@ export default class Blockchain extends Emittery.Typed<
       Buffer /*codeHash*/
     ])[2];
 
+    const keys = [];
+    const getAsyncData = () => {
+      return new Promise((resolve, reject) => {
+        trie
+          .createReadStream()
+          .on("data", async data => {
+            keys.push(Data.from(data.key).toJSON());
+          })
+          .on("end", async () => {
+            resolve(keys);
+            return;
+          });
+      });
+    };
+
+    await getAsyncData();
     return result;
   }
 
