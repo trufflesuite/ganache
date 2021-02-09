@@ -1,5 +1,10 @@
 import { utils } from "@ganache/utils";
-import { Address, SerializedAddress } from "./address";
+import {
+  Address,
+  AddressProtocol,
+  SerializedAddress,
+  AddressNetwork
+} from "./address";
 import { Balance, SerializedBalance } from "./balance";
 import {
   Definitions,
@@ -31,7 +36,12 @@ declare class Account
   implements DeserializedObject<AccountConfig> {
   #private;
   get config(): Definitions<AccountConfig>;
-  static random(defaultFIL: number, rng?: utils.RandomNumberGenerator): Account;
+  static random(
+    defaultFIL: number,
+    rng?: utils.RandomNumberGenerator,
+    protocol?: AddressProtocol,
+    network?: AddressNetwork
+  ): Account;
   constructor(
     options?:
       | Partial<SerializedObject<AccountConfig>>
