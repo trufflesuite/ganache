@@ -24,6 +24,7 @@ export default class Database extends Emittery {
   public blockLogs: LevelUp;
   public transactions: LevelUp;
   public transactionReceipts: LevelUp;
+  public storageKeys: LevelUp;
   public trie: LevelUp;
   public readonly initialized: boolean;
   #rootStore: AbstractLevelDOWN;
@@ -90,7 +91,7 @@ export default class Database extends Emittery {
     this.blockLogs = sub(db, "l", levelupOptions);
     this.transactions = sub(db, "t", levelupOptions);
     this.transactionReceipts = sub(db, "r", levelupOptions);
-
+    this.storageKeys = sub(db, "s", levelupOptions);
     return this.emit("ready");
   };
 
@@ -163,6 +164,7 @@ export default class Database extends Emittery {
         this.blockIndexes.close(),
         this.transactionReceipts.close(),
         this.transactions.close(),
+        this.storageKeys.close(),
         this.trie.close()
       ]);
     }
