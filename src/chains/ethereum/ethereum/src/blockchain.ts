@@ -1461,8 +1461,68 @@ export default class Blockchain extends Emittery.Typed<
 
               resolve(result);
               return;
+            } else {
+              // we didn't find the hashed key, so let's try to find the raw key...
+              const rawKey = Data.from(startKey).toBuffer();
+              const length = rawKey.length;
+              let paddedPosBuff: Buffer;
+              if (length < 32) {
+                // storage locations are 32 bytes wide, so we need to expand any value
+                // given to 32 bytes.
+                paddedPosBuff = Buffer.allocUnsafe(32).fill(0);
+                rawKey.copy(paddedPosBuff, 32 - length);
+              } else if (length === 32) {
+                paddedPosBuff = rawKey;
+              } else {
+                // if the position value we're passed is > 32 bytes, truncate it. This is
+                // what geth does.
+                paddedPosBuff = rawKey.slice(-32);
+              }
+
+              // hash the startKey and look for it in the keys array from the trie stream
+              const keccakHashedKey = Data.from(keccak(paddedPosBuff)).toJSON();
+              const startKeyIndex = keys.findIndex(
+                element => element === keccakHashedKey
+              );
+
+              if (startKeyIndex > -1) {
+                // the startKey exists within our keys array from the trie stream, so
+                // we can iterate over that array to get the storage data we need
+                let counter = 0;
+                for (
+                  let i = startKeyIndex;
+                  i < keys.length && counter <= maxResult;
+                  i++
+                ) {
+                  if (counter === maxResult) {
+                    // the last item is the next key, so let's assign that and be done
+                    result.nextKey = keys[i];
+                    break;
+                  }
+                  const keyInQuestion = keys[i];
+                  // use hashed startKey to get raw key from db
+                  const rawKey = await this.#database.storageKeys.get(
+                    Data.from(keyInQuestion, 32).toBuffer()
+                  );
+                  // use rawKey to get the value from the trie
+                  const value = await getFromTrie(rawKey);
+                  const decodedValue = Data.from(rlpDecode(value), 32).toJSON();
+                  const keccakHashedKey = Data.from(keyInQuestion, 32).toJSON();
+
+                  result.storage[keccakHashedKey] = {
+                    key: Data.from(rawKey).toJSON(),
+                    value: decodedValue
+                  };
+
+                  counter += 1;
+                }
+                resolve(result);
+                return;
+              } else {
+                resolve(result);
+                return;
+              }
             }
-            return;
           });
       });
     };
