@@ -1404,46 +1404,6 @@ export default class Blockchain extends Emittery.Typed<
       Buffer /*codeHash*/
     ])[2];
 
-    // convert start key to number so I can iterate over it;
-    for (let i = Quantity.from(startKey).toNumber(); i <= maxResult; i++) {
-      // convert i to buffer;
-      const key = Quantity.from(i).toBuffer();
-      const length = key.length;
-      let paddedPosBuff: Buffer;
-      if (length < 32) {
-        // storage locations are 32 bytes wide, so we need to expand any value
-        // given to 32 bytes.
-        paddedPosBuff = Buffer.allocUnsafe(32).fill(0);
-        key.copy(paddedPosBuff, 32 - length);
-      } else if (length === 32) {
-        paddedPosBuff = key;
-      } else {
-        // if the position value we're passed is > 32 bytes, truncate it. This is
-        // what geth does.
-        paddedPosBuff = key.slice(-32);
-      }
-
-      const value = await getFromTrie(paddedPosBuff);
-      const hashedKey = Data.from(keccak(Buffer.from(paddedPosBuff))).toJSON();
-      const storageSlotKey = Data.from(paddedPosBuff).toJSON();
-
-      if (i < maxResult) {
-        if (value) {
-          result.storage[hashedKey] = {
-            [storageSlotKey]: Data.from(rlpDecode(value), 32).toJSON()
-          };
-        } else {
-          console.log(value);
-        }
-      } else {
-        if (value) {
-          result.nextKey = hashedKey;
-        } else {
-          result.nextKey = null;
-        }
-      }
-    }
-
     return result;
   }
 
