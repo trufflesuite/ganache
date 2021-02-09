@@ -143,6 +143,59 @@ describe("api", () => {
 
         assert.strictEqual(result.nextKey, null);
       });
+
+      it("should accept a nextKey as the startKey for the given range", async () => {
+        const result = await provider.send("debug_storageRangeAt", [
+          blockHash,
+          0,
+          contractAddress,
+          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace",
+          2
+        ]);
+
+        const storage = {
+          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
+            key:
+              "0x0000000000000000000000000000000000000000000000000000000000000002",
+            value:
+              "0x68656c6c6f207270647200000000000000000000000000000000000000000014"
+          },
+          "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
+            key:
+              "0x0000000000000000000000000000000000000000000000000000000000000001",
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000001"
+          }
+        };
+
+        assert.deepStrictEqual(result.storage, storage);
+        assert.strictEqual(result.nextKey, null);
+      });
+
+      it("should accept a nextKey as the startKey for the given range AND provide correct nextKey", async () => {
+        const result = await provider.send("debug_storageRangeAt", [
+          blockHash,
+          0,
+          contractAddress,
+          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace",
+          1
+        ]);
+
+        const storage = {
+          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
+            key:
+              "0x0000000000000000000000000000000000000000000000000000000000000002",
+            value:
+              "0x68656c6c6f207270647200000000000000000000000000000000000000000014"
+          }
+        };
+
+        assert.deepStrictEqual(result.storage, storage);
+        assert.strictEqual(
+          result.nextKey,
+          "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6"
+        );
+      });
     });
   });
 });

@@ -1422,7 +1422,46 @@ export default class Blockchain extends Emittery.Typed<
             keys.push(Data.from(data.key).toJSON());
           })
           .on("end", async () => {
-            resolve(keys);
+            const startKeyIndex = keys.findIndex(
+              element => element === startKey
+            );
+
+            if (startKeyIndex > -1) {
+              // the startKey exists within our keys array from the trie stream, so
+              // we can iterate over that array to get the storage data we need
+              let counter = 0;
+              for (
+                let i = startKeyIndex;
+                i < keys.length && counter <= maxResult;
+                i++
+              ) {
+                if (counter === maxResult) {
+                  // the last item is the next key, so let's assign that and be done
+                  result.nextKey = keys[i];
+                  break;
+                }
+
+                const keyInQuestion = keys[i];
+                // use hashed startKey to get raw key from db
+                const rawKey = await this.#database.storageKeys.get(
+                  Data.from(keyInQuestion).toBuffer()
+                );
+                // use rawKey to get the value from the trie
+                const value = await getFromTrie(rawKey);
+                const decodedValue = Data.from(rlpDecode(value)).toJSON();
+                const keccakHashedKey = Data.from(keyInQuestion).toJSON();
+
+                result.storage[keccakHashedKey] = {
+                  key: Data.from(rawKey).toJSON(),
+                  value: decodedValue
+                };
+
+                counter += 1;
+              }
+
+              resolve(result);
+              return;
+            }
             return;
           });
       });
