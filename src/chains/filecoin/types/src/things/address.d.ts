@@ -33,6 +33,7 @@ declare class Address extends SerializableLiteral<AddressConfig> {
   signProposal(proposal: StartDealParams): Promise<Buffer>;
   signMessage(message: Message): Promise<Buffer>;
   signBuffer(buffer: Buffer): Promise<Buffer>;
+  verifySignature(buffer: Buffer, signature: Signature): Promise<boolean>;
   static recoverBLSPublicKey(address: string): Buffer;
   static recoverSECP256K1PublicKey(
     signature: Signature,
@@ -48,7 +49,6 @@ declare class Address extends SerializableLiteral<AddressConfig> {
     protocol?: AddressProtocol,
     network?: AddressNetwork
   ): Address;
-  static isValid(value: string): boolean;
   static parseNetwork(publicAddress: string): AddressNetwork;
   static parseProtocol(publicAddress: string): AddressProtocol;
   /**
@@ -64,6 +64,8 @@ declare class Address extends SerializableLiteral<AddressConfig> {
     isMiner?: boolean,
     network?: AddressNetwork
   ): Address;
+  static createChecksum(protocol: AddressProtocol, payload: Buffer): Buffer;
+  static validate(inputAddress: string): Address;
 }
 declare type SerializedAddress = string;
-export { Address, SerializedAddress, AddressProtocol };
+export { Address, SerializedAddress, AddressProtocol, AddressNetwork };
