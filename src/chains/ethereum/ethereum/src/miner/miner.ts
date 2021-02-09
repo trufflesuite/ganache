@@ -33,7 +33,13 @@ const sortByPrice = (values: Transaction[], a: number, b: number) =>
   Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 
 export default class Miner extends Emittery.Typed<
-  { block: { block: Block; serialized: Buffer } },
+  {
+    block: {
+      block: Block;
+      serialized: Buffer;
+      storageKeys: Map<Buffer, Buffer>;
+    };
+  },
   "idle"
 > {
   #currentlyExecutingPrice = 0n;
@@ -171,6 +177,7 @@ export default class Miner extends Emittery.Typed<
     let keepMining = true;
     const priced = this.#priced;
     const legacyInstamine = this.#options.legacyInstamine;
+    const storageKeys = new Map<Buffer, Buffer>();
     let blockTransactions: Transaction[];
     do {
       keepMining = false;
@@ -184,7 +191,7 @@ export default class Miner extends Emittery.Typed<
       if (maxTransactions === 0) {
         await this.#checkpoint();
         await this.#commit();
-        const finalizedBlockData = runtimeBlock.finalize(
+        const serializedBlockData = runtimeBlock.finalize(
           transactionsTrie.root,
           receiptTrie.root,
           BUFFER_256_ZERO,
@@ -193,6 +200,10 @@ export default class Miner extends Emittery.Typed<
           options.extraData,
           []
         );
+        const finalizedBlockData = {
+          ...serializedBlockData,
+          storageKeys
+        };
         this.emit("block", finalizedBlockData);
         this.#reset();
         return { block: finalizedBlockData.block, transactions: [] };
@@ -330,7 +341,7 @@ export default class Miner extends Emittery.Typed<
       await Promise.all(promises);
       await this.#commit();
 
-      const finalizedBlockData = runtimeBlock.finalize(
+      const serializedBlockData = runtimeBlock.finalize(
         transactionsTrie.root,
         receiptTrie.root,
         blockBloom,
@@ -341,7 +352,11 @@ export default class Miner extends Emittery.Typed<
         options.extraData,
         blockTransactions
       );
-      block = finalizedBlockData.block;
+      block = serializedBlockData.block;
+      const finalizedBlockData = {
+        ...serializedBlockData,
+        storageKeys
+      };
       const emitBlockProm = this.emit("block", finalizedBlockData);
       if (legacyInstamine === true) {
         // we need to wait for each block to be done mining when in legacy
