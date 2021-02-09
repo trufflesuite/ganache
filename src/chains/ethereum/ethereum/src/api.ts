@@ -1202,6 +1202,17 @@ export default class EthereumApi implements types.Api {
     if (transaction) {
       return receipt.toJSON(block, transaction);
     } else {
+      // check to see if the transaction is pending
+      const tx = this.#blockchain.transactions.transactionPool.find(txHash);
+      if (tx != null) {
+        this.#options.logging.logger.log(
+          " > Ganache `eth_getTransactionReceipt` warning: the requested transaction has not yet been mined."
+        );
+        this.#options.logging.logger.log(
+          " > After it has been mined you will be able to obtain the receipt. See https://trfl.co/v7-instamine for more details."
+        );
+      }
+
       return null;
     }
   }
