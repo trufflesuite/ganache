@@ -8,12 +8,13 @@ import { FilecoinInternalOptions } from "@ganache/filecoin-options";
 import { QueryOffer } from "./things/query-offer";
 import { FileRef } from "./things/file-ref";
 import { IPFS } from "ipfs";
+import { Account } from "./things/account";
 import TipsetManager from "./data-managers/tipset-manager";
 import BlockHeaderManager from "./data-managers/block-header-manager";
 import { SignedMessage } from "./things/signed-message";
 import { Message } from "./things/message";
 import { MessageSendSpec } from "./things/message-send-spec";
-import { Address } from "./things/address";
+import { Address, AddressProtocol } from "./things/address";
 import SignedMessageManager from "./data-managers/message-manager";
 import BlockMessagesManager from "./data-managers/block-messages-manager";
 import AccountManager from "./data-managers/account-manager";
@@ -66,5 +67,6 @@ export default class Blockchain extends Emittery.Typed<
   startDeal(proposal: StartDealParams): Promise<RootCID>;
   createQueryOffer(rootCid: RootCID): Promise<QueryOffer>;
   retrieve(retrievalOrder: RetrievalOrder, ref: FileRef): Promise<void>;
+  createAccount(protocol: AddressProtocol): Promise<Account>;
   private logLatestTipset;
 }
