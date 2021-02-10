@@ -25,12 +25,21 @@ const base: webpack.Configuration = {
             }
           }
         ]
+      },
+      {
+        test: /\.jsx?$/,
+        use: [
+          {
+            loader: "babel-loader"
+          }
+        ]
       }
     ]
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"]
   },
+  externals: ["electron-fetch"],
   output: {
     filename: "ganache.min.js",
     library: "Ganache",

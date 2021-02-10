@@ -17,7 +17,14 @@ const config: webpack.Configuration = merge({}, base, {
       process: require.resolve("process/browser"),
       events: require.resolve("events/"),
       buffer: require.resolve("buffer/"),
-      fs: false
+      fs: false,
+      zlib: require.resolve("browserify-zlib"),
+      http: require.resolve("stream-http"),
+      https: require.resolve("https-browserify"),
+      url: require.resolve("url/"),
+      querystring: require.resolve("querystring-es3"),
+      cluster: false,
+      v8: false
       //#endregion node polyfills
     },
     alias: {
