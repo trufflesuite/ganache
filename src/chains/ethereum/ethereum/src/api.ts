@@ -1907,6 +1907,19 @@ export default class EthereumApi implements types.Api {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
+  /**
+   * Attempts to replay the transaction as it was executed on the network and
+   * return storage data given a starting key and max number of entries to return.
+   *
+   * @param blockHash
+   * @param txIndex
+   * @param contractAddress
+   * @param startKey
+   * @param maxResult
+   * @returns returns a storage object with the keys being keccak-256 hashes of the storage keys,
+   * and the values being the raw, unhashed key and value for that specific storage slot. Also
+   * retuns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.
+   */
   async debug_storageRangeAt(
     blockHash: string | Buffer,
     transactionIndex: number,
