@@ -87,7 +87,6 @@ describe("api", () => {
         };
 
         assert.deepStrictEqual(result.storage, storage);
-
         assert.strictEqual(
           result.nextKey,
           "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6"
@@ -125,8 +124,8 @@ describe("api", () => {
               "0x0000000000000000000000000000000000000000000000000000000000000001"
           }
         };
-        assert.deepStrictEqual(result.storage, storage);
 
+        assert.deepStrictEqual(result.storage, storage);
         assert.strictEqual(result.nextKey, null);
       });
 
@@ -140,7 +139,6 @@ describe("api", () => {
         ]);
 
         assert.deepStrictEqual(result.storage, {});
-
         assert.strictEqual(result.nextKey, null);
       });
 
@@ -346,7 +344,6 @@ describe("api", () => {
         };
 
         assert.deepStrictEqual(result.storage, storage);
-
         assert.strictEqual(
           result.nextKey,
           "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"
