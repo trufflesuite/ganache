@@ -2,7 +2,11 @@ import Emittery from "emittery";
 import EthereumApi from "./api";
 import { JsonRpcTypes, types, utils } from "@ganache/utils";
 import EthereumProvider from "./provider";
-import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
+import {
+  RecognizedString,
+  WebSocket,
+  HttpRequest
+} from "@seesemichaelj/uwebsockets.js";
 import { CodedError, ErrorCodes } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,

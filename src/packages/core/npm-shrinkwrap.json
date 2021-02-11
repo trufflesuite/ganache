@@ -4,6 +4,11 @@
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
+		"@seesemichaelj/uwebsockets.js": {
+			"version": "18.15.3",
+			"resolved": "https://registry.npmjs.org/@seesemichaelj/uwebsockets.js/-/uwebsockets.js-18.15.3.tgz",
+			"integrity": "sha512-WbhILD/EwxJFPcRThLE2JdYw7WN3h9qWyZhtKMZUUokajxZZI4i6KT0M/Vg6MBdr2AaBpIT3tDQW8CxVHHaCTA=="
+		},
 		"@types/cookiejar": {
 			"version": "2.1.2",
 			"resolved": "https://registry.npmjs.org/@types/cookiejar/-/cookiejar-2.1.2.tgz",
@@ -463,10 +468,6 @@
 				"readable-stream": "^3.6.0",
 				"semver": "^7.3.2"
 			}
-		},
-		"uWebSockets.js": {
-			"version": "github:uNetworking/uWebSockets.js#3dbec7b56d627193e20705844b6bd10e49848b8c",
-			"from": "github:uNetworking/uWebSockets.js#v18.4.0"
 		},
 		"unbox-primitive": {
 			"version": "1.0.1",

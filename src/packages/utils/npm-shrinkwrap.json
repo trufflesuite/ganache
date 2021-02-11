@@ -4,6 +4,12 @@
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
+		"@seesemichaelj/uwebsockets.js": {
+			"version": "18.15.3",
+			"resolved": "https://registry.npmjs.org/@seesemichaelj/uwebsockets.js/-/uwebsockets.js-18.15.3.tgz",
+			"integrity": "sha512-WbhILD/EwxJFPcRThLE2JdYw7WN3h9qWyZhtKMZUUokajxZZI4i6KT0M/Vg6MBdr2AaBpIT3tDQW8CxVHHaCTA==",
+			"dev": true
+		},
 		"@types/seedrandom": {
 			"version": "2.4.28",
 			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-2.4.28.tgz",
@@ -62,11 +68,6 @@
 			"version": "3.0.5",
 			"resolved": "https://registry.npmjs.org/seedrandom/-/seedrandom-3.0.5.tgz",
 			"integrity": "sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg=="
-		},
-		"uWebSockets.js": {
-			"version": "github:uNetworking/uWebSockets.js#3dbec7b56d627193e20705844b6bd10e49848b8c",
-			"from": "github:uNetworking/uWebSockets.js#v18.4.0",
-			"dev": true
 		}
 	}
 }
