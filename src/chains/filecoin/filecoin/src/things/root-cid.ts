@@ -8,7 +8,7 @@ import {
 
 interface RootCIDConfig {
   properties: {
-    "/": {
+    root: {
       type: CID;
       serializedType: SerializedCID;
       serializedName: "/";
@@ -21,20 +21,31 @@ class RootCID
   implements DeserializedObject<RootCIDConfig> {
   get config(): Definitions<RootCIDConfig> {
     return {
-      "/": {
+      root: {
+        deserializedName: "root",
         serializedName: "/",
         defaultValue: options => {
-          return new CID(options);
+          return options ? new CID(options) : CID.nullCID();
         }
       }
     };
   }
 
-  asPath(): string {
-    return "/" + this["/"].value;
+  constructor(
+    options?:
+      | Partial<SerializedObject<RootCIDConfig>>
+      | Partial<DeserializedObject<RootCIDConfig>>
+  ) {
+    super();
+
+    this.root = super.initializeValue(this.config.root, options);
   }
 
-  "/": CID;
+  asPath(): string {
+    return "/" + this.root.value;
+  }
+
+  root: CID;
 }
 
 type SerializedRootCID = SerializedObject<RootCIDConfig>;

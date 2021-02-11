@@ -42,15 +42,17 @@ type IPFSHttpServer = {
 class IPFSServer {
   static readonly DEFAULT_PORT = 5001;
 
-  public readonly serverPort = 43134;
-  public readonly apiPort = IPFSServer.DEFAULT_PORT;
+  public readonly serverPort: number = 43134;
+  public readonly apiPort: number = IPFSServer.DEFAULT_PORT;
 
-  public node: IPFSNode;
+  public node: IPFSNode | null;
 
-  private httpServer: IPFSHttpServer;
+  private httpServer: IPFSHttpServer | null;
 
-  constructor(apiPort) {
+  constructor(apiPort: number) {
     this.apiPort = apiPort;
+    this.node = null;
+    this.httpServer = null;
   }
 
   async start() {
@@ -79,14 +81,18 @@ class IPFSServer {
       silent: true
     });
 
-    this.httpServer = new IpfsHttpApi(this.node);
+    this.httpServer = new IpfsHttpApi(this.node) as IPFSHttpServer;
 
     await this.httpServer.start();
   }
 
   async stop() {
-    await this.httpServer.stop();
-    await this.node.stop();
+    if (this.httpServer) {
+      await this.httpServer.stop();
+    }
+    if (this.node) {
+      await this.node.stop();
+    }
   }
 }
 

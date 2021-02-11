@@ -1,7 +1,7 @@
 import { normalize } from "./helpers";
 import seedrandom from "seedrandom";
 
-import { Definitions } from "@ganache/options";
+import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
 const { alea } = seedrandom;
 
@@ -26,18 +26,45 @@ export type OptionsAccount = {
 export type WalletConfig = {
   options: {
     /**
-     * Seed to use to generate a mnemonic
+     * Use pre-defined, deterministic seed.
+     */
+    deterministic: {
+      type: boolean;
+      hasDefault: true;
+    };
+
+    /**
+     * Seed to use to generate a mnemonic.
      */
     seed: {
       type: string;
       hasDefault: true;
     };
   };
+  exclusiveGroups: [["deterministic", "seed"]];
 };
 
 export const WalletOptions: Definitions<WalletConfig> = {
+  deterministic: {
+    normalize,
+    cliDescription: "Use pre-defined, deterministic seed.",
+    default: () => false,
+    cliAliases: ["d"],
+    cliType: "boolean",
+    conflicts: ["seed"]
+  },
   seed: {
     normalize,
-    default: () => randomAlphaNumericString(10, alea())
+    cliDescription: "Seed to use to generate a mnemonic.",
+    // The order of the options matter here! `wallet.deterministic`
+    // needs to be prior to `wallet.seed` for `config.deterministic`
+    // below to be set correctly
+    default: config =>
+      config.deterministic
+        ? DeterministicSeedPhrase
+        : randomAlphaNumericString(10, alea()),
+    cliAliases: ["s"],
+    cliType: "string",
+    conflicts: ["deterministic"]
   }
 };

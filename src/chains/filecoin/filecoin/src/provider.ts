@@ -1,5 +1,5 @@
 import Emittery from "emittery";
-import { types, utils } from "@ganache/utils";
+import { PromiEvent, Subscription, types, utils } from "@ganache/utils";
 import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import FilecoinApi from "./api";
 import GanacheSchema from "./schema";
@@ -7,24 +7,22 @@ import { Schema } from "@filecoin-shipyard/lotus-client-schema";
 import Blockchain from "./blockchain";
 import {
   FilecoinOptionsConfig,
-  FilecoinProviderOptions
+  FilecoinProviderOptions,
+  FilecoinInternalOptions
 } from "@ganache/filecoin-options";
+import cloneDeep from "lodash.clonedeep";
 
 // Meant to mimic this provider:
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
 export default class FilecoinProvider
-  extends Emittery.Typed<undefined, "ready">
+  extends Emittery.Typed<{}, "ready">
   // Do I actually need this? `types.Provider` doesn't actually define anything behavior
   implements types.Provider<FilecoinApi> {
-  #options: FilecoinProviderOptions;
+  #options: FilecoinInternalOptions;
   #api: FilecoinApi;
   #executor: utils.Executor;
 
   readonly blockchain: Blockchain;
-
-  // Used by the original Filecoin provider. Will mimic them for now.
-  // Not entirely sure they're needed.
-  #connectPromise: PromiseLike<never>;
 
   static readonly Schema: Schema = GanacheSchema;
 
@@ -44,28 +42,76 @@ export default class FilecoinProvider
     this.#api = new FilecoinApi(this.blockchain);
   }
 
-  async connect() {
-    if (this.#connectPromise) {
-      this.#connectPromise = new Promise(resolve => {
-        resolve(void 0);
-      });
-    }
-    return this.#connectPromise;
+  /**
+   * Returns the options, including defaults and generated, used to start Ganache.
+   */
+  public getOptions() {
+    return cloneDeep(this.#options);
   }
 
-  async send<Method extends keyof FilecoinApi = keyof FilecoinApi>(
+  /**
+   * Returns the unlocked accounts
+   */
+  public getInitialAccounts() {
+    const accounts: Record<
+      string,
+      { unlocked: boolean; secretKey: string; balance: bigint }
+    > = {};
+    accounts[this.blockchain.address.serialize()] = {
+      unlocked: true,
+      secretKey: this.blockchain.address.privateKey!,
+      balance: this.blockchain.balance.value
+    };
+    return accounts;
+  }
+
+  async connect() {
+    await this.blockchain.waitForReady();
+  }
+
+  async send(payload: JsonRpc.Request<FilecoinApi>) {
+    const result = await this._requestRaw(payload);
+    return result.value;
+  }
+
+  async _requestRaw<Method extends keyof FilecoinApi = keyof FilecoinApi>(
     payload: JsonRpc.Request<FilecoinApi>
   ) {
-    // I'm not entirely sure why I need the `as [string]`... but it seems to work.
-    return this.#executor
-      .execute(this.#api, payload.method, payload.params as [string])
-      .then(result => {
-        const promise = (result.value as unknown) as PromiseLike<
-          ReturnType<FilecoinApi[Method]>
-        >;
+    // The `as any` is needed here because of this hackery of appending the
+    // JSON `id` no longer fits within the strictly typed `execute` `params`
+    // argument
+    const result = await this.#executor.execute(this.#api, payload.method, [
+      ...(payload.params || []),
+      payload.id
+    ] as any);
+    const promise = (result.value as unknown) as PromiseLike<
+      ReturnType<FilecoinApi[Method]>
+    >;
 
-        return promise.then(JSON.stringify).then(JSON.parse);
+    if (promise instanceof PromiEvent) {
+      promise.on("message", data => {
+        this.emit("message" as never, data as never);
       });
+
+      const value = await promise;
+
+      if (
+        typeof value === "object" &&
+        typeof value.unsubscribe === "function"
+      ) {
+        // since the class instance gets ripped away,
+        // we can't use instanceof Subscription, so we
+        // just use an interface and check for the unsubscribe
+        // function 🤷
+        const newPromiEvent = PromiEvent.resolve(value.id);
+        promise.on("message", data => {
+          newPromiEvent.emit("message" as never, data as never);
+        });
+        return { value: newPromiEvent };
+      }
+    }
+
+    return { value: promise };
   }
 
   async sendHttp() {
@@ -76,8 +122,28 @@ export default class FilecoinProvider
     throw new Error("Method not supported (sendWs)");
   }
 
-  async sendSubscription() {
-    throw new Error("Method not supported (sendSubscription)");
+  // Reference implementation: https://git.io/JtO3H
+  async sendSubscription(
+    payload: JsonRpc.Request<FilecoinApi>,
+    schemaMethod: { subscription?: boolean },
+    subscriptionCallback: (data: any) => void
+  ) {
+    // I'm not entirely sure why I need the `as [string]`... but it seems to work.
+    const result = await this.#executor.execute(this.#api, payload.method, [
+      ...(payload.params || []),
+      payload.id
+    ] as any);
+    const promiEvent = (result.value as unknown) as PromiEvent<Subscription>;
+
+    if (promiEvent instanceof PromiEvent) {
+      promiEvent.on("message", data => {
+        subscriptionCallback(data);
+      });
+    }
+
+    const value = await promiEvent;
+
+    return [value.unsubscribe, Promise.resolve(value.id.toString())];
   }
 
   async receive() {

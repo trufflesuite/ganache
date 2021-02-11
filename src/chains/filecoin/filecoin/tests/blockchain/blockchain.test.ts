@@ -2,10 +2,10 @@ import assert from "assert";
 import Blockchain from "../../src/blockchain";
 import { Tipset } from "../../src/things/tipset";
 import IpfsHttpClient from "ipfs-http-client";
-import { StorageProposal } from "../../src/things/storage-proposal";
-import { StorageProposalData } from "../../src/things/storage-proposal-data";
+import { StartDealParams } from "../../src/things/start-deal-params";
+import { StorageMarketDataRef } from "../../src/things/storage-market-data-ref";
 import { RootCID } from "../../src/things/root-cid";
-import { DealState } from "../../src/deal-state";
+import { StorageDealStatus } from "../../src/types/storage-deal-status";
 
 import { FilecoinOptionsConfig } from "@ganache/filecoin-options";
 
@@ -14,7 +14,15 @@ describe("Blockchain", () => {
     let blockchain: Blockchain;
 
     before(async () => {
-      blockchain = new Blockchain(FilecoinOptionsConfig.normalize({}));
+      blockchain = new Blockchain(
+        FilecoinOptionsConfig.normalize({
+          logging: {
+            logger: {
+              log: () => {}
+            }
+          }
+        })
+      );
       await blockchain.waitForReady();
     });
 
@@ -50,7 +58,12 @@ describe("Blockchain", () => {
       let blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           miner: {
-            blockTime: 100
+            blockTime: 0.1
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
           }
         })
       );
@@ -58,13 +71,16 @@ describe("Blockchain", () => {
       try {
         await blockchain.waitForReady();
 
-        // After 1 second, we should have well over 4 blocks
-        // I'm not checking for exactly 5 to dodge race conditions
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // After 0.5 seconds, we should have at least 3 blocks and no more than 10 blocks
+        // Github CI is so unpredictable with their burstable cpus
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         let latest: Tipset = blockchain.latestTipset();
 
-        assert(latest.height >= 4);
+        assert(
+          latest.height >= 3 || latest.height <= 10,
+          `Expected between 3 and 10 blocks to be mined, but got ${latest.height}`
+        );
       } finally {
         blockchain.stop();
       }
@@ -73,7 +89,15 @@ describe("Blockchain", () => {
 
   describe("ipfs server", () => {
     it("creates an ipfs server", async () => {
-      let blockchain = new Blockchain(FilecoinOptionsConfig.normalize({}));
+      let blockchain = new Blockchain(
+        FilecoinOptionsConfig.normalize({
+          logging: {
+            logger: {
+              log: () => {}
+            }
+          }
+        })
+      );
 
       try {
         await blockchain.waitForReady();
@@ -111,35 +135,41 @@ describe("Blockchain", () => {
     it("advances state of in process deals on every block", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
-          miner: { automining: false }
+          miner: {
+            blockTime: -1
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
+          }
         })
       );
 
       await blockchain.waitForReady();
 
-      let result = await blockchain.ipfs.add("some data");
+      let result = await blockchain.ipfs!.add("some data");
 
-      let proposal = new StorageProposal({
-        data: new StorageProposalData({
+      let proposal = new StartDealParams({
+        data: new StorageMarketDataRef({
           transferType: "graphsync",
           root: new RootCID({
             "/": result.path
           }),
-          pieceCid: null,
           pieceSize: 0
         }),
         wallet: blockchain.address,
         miner: blockchain.miner,
-        epochPrice: "2500",
+        epochPrice: 2500n,
         minBlocksDuration: 300
       });
 
-      let { "/": proposalCid } = await blockchain.startDeal(proposal);
+      let { root: proposalCid } = await blockchain.startDeal(proposal);
 
       // First state should be validating
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.Validating
+        StorageDealStatus.Validating
       );
 
       await blockchain.mineTipset();
@@ -147,22 +177,23 @@ describe("Blockchain", () => {
       // Next state should be Staged
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.Staged
+        StorageDealStatus.Staged
       );
 
       await blockchain.mineTipset();
 
-      // Next state should be EnsureProviderFunds
+      // Next state should be ReserveProviderFunds
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.EnsureProviderFunds
+        StorageDealStatus.ReserveProviderFunds
       );
 
       // ... and on and on
 
       // Let's mine all the way to the Sealing state
       while (
-        blockchain.dealsByCid[proposalCid.value].state != DealState.Sealing
+        blockchain.dealsByCid[proposalCid.value].state !=
+        StorageDealStatus.Sealing
       ) {
         await blockchain.mineTipset();
       }
@@ -170,7 +201,7 @@ describe("Blockchain", () => {
       // The deal should still be considered in process, since it's still sealing
       assert.strictEqual(blockchain.inProcessDeals.length, 1);
       assert.strictEqual(
-        blockchain.inProcessDeals[0].proposalCid["/"].value,
+        blockchain.inProcessDeals[0].proposalCid.root.value,
         proposalCid.value
       );
 
@@ -180,7 +211,7 @@ describe("Blockchain", () => {
 
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.Active
+        StorageDealStatus.Active
       );
       assert.strictEqual(blockchain.inProcessDeals.length, 0);
     });
@@ -189,37 +220,41 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           miner: {
-            automining: true
+            blockTime: 0
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
           }
         })
       );
 
       await blockchain.waitForReady();
 
-      let result = await blockchain.ipfs.add("some data");
+      let result = await blockchain.ipfs!.add("some data");
 
-      let proposal = new StorageProposal({
-        data: new StorageProposalData({
+      let proposal = new StartDealParams({
+        data: new StorageMarketDataRef({
           transferType: "graphsync",
           root: new RootCID({
             "/": result.path
           }),
-          pieceCid: null,
           pieceSize: 0
         }),
         wallet: blockchain.address,
         miner: blockchain.miner,
-        epochPrice: "2500",
+        epochPrice: 2500n,
         minBlocksDuration: 300
       });
 
-      let { "/": proposalCid } = await blockchain.startDeal(proposal);
+      let { root: proposalCid } = await blockchain.startDeal(proposal);
 
       // Since we're automining, starting the deal will trigger
       // the state to be state to be set to active.
       assert.strictEqual(
         blockchain.dealsByCid[proposalCid.value].state,
-        DealState.Active
+        StorageDealStatus.Active
       );
 
       // We create 1 tipset per state change. Let's make sure that occurred.
@@ -230,26 +265,49 @@ describe("Blockchain", () => {
   describe("determinism", () => {
     let blockchain: Blockchain;
 
-    before(async () => {
+    const expectedAddress =
+      "t3qdqduswwvsvq72iwppn2vytvq2mt7qi5nensswvawpdkmudnzxooi45edyflgnohrfvijy77pn66247nttzq";
+
+    afterEach(async () => {
+      if (blockchain) {
+        await blockchain.stop();
+      }
+    });
+
+    it("creates the expected address from seed", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           wallet: {
             seed: "tim is a swell guy"
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
           }
         })
       );
       await blockchain.waitForReady();
-    });
-
-    after(async () => {
-      await blockchain.stop();
-    });
-
-    it("creates the expected address from seed", async () => {
-      let expectedAddress =
-        "t3teloaxbdlmh3q3pbnwofxmpg4oszq6p6ohbj2b5ya6evk3gqi4qfdksjq2vanvsppp634uadfuka7igxymca";
 
       assert.strictEqual(blockchain.address.value, expectedAddress);
+    });
+
+    it("uses the seed to create a different level of determinism", async () => {
+      blockchain = new Blockchain(
+        FilecoinOptionsConfig.normalize({
+          wallet: {
+            seed: "tim is a swell person"
+          },
+          logging: {
+            logger: {
+              log: () => {}
+            }
+          }
+        })
+      );
+      await blockchain.waitForReady();
+
+      assert.notStrictEqual(blockchain.address.value, expectedAddress);
     });
   });
 });
