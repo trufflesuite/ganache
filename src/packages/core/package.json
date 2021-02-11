@@ -51,7 +51,7 @@
     "@ganache/options": "^0.1.0",
     "@ganache/tezos": "^0.1.0",
     "@ganache/utils": "^0.1.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+    "@seesemichaelj/uwebsockets.js": "18.15.3"
   },
   "devDependencies": {
     "@types/superagent": "4.1.10",

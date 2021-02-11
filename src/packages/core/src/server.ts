@@ -1,6 +1,9 @@
 import { InternalOptions, ServerOptions, serverOptionsConfig } from "./options";
 
-import uWS, { TemplatedApp, us_listen_socket } from "uWebSockets.js";
+import uWS, {
+  TemplatedApp,
+  us_listen_socket
+} from "@seesemichaelj/uwebsockets.js";
 import { Connector, DefaultFlavor } from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";

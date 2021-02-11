@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@types/seedrandom": "2.4.28",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+    "@seesemichaelj/uwebsockets.js": "18.15.3"
   },
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"
