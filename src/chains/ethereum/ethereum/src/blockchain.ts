@@ -1184,9 +1184,14 @@ export default class Blockchain extends Emittery.Typed<
       throw new Error(e);
     }
 
-    const result = {
-      storage: {},
-      nextKey: null
+    type StorageRangeResult = {
+      nextKey: null | string;
+      storage: any;
+    };
+
+    const result: StorageRangeResult = {
+      nextKey: null,
+      storage: {}
     };
 
     // get parent block and use it create the state trie
@@ -1221,7 +1226,7 @@ export default class Blockchain extends Emittery.Typed<
       Buffer /*codeHash*/
     ])[2];
 
-    const keys = [];
+    const keys: Buffer[] = [];
     const getStorageData = () => {
       return new Promise((resolve, reject) => {
         trie
