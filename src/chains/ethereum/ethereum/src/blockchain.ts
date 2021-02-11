@@ -1141,8 +1141,8 @@ export default class Blockchain extends Emittery.Typed<
   /**
    * storageRangeAt
    *
-   * Run a previously-run transaction in the same state in which it occurred at the time it was run.
-   * This will return the vm-level trace output for debugging purposes.
+   * Returns a contract's storage given a starting key and max number of
+   * entries to return.
    *
    * Strategy:
    *
