@@ -54,7 +54,6 @@
     "@babel/core": "7.12.13",
     "@babel/plugin-proposal-class-properties": "7.12.13",
     "@babel/plugin-proposal-private-methods": "7.12.13",
-    "@babel/preset-env": "7.12.13",
     "@ganache/cli": "^0.1.0",
     "@ganache/flavors": "^0.1.0",
     "@types/node": "14.14.6",
