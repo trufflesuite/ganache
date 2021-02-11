@@ -5,10 +5,17 @@ import {
   Definitions
 } from "./serializable-object";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#ElectionProof
+
 interface ElectionProofConfig {
   properties: {
+    winCount: {
+      type: number;
+      serializedType: number;
+      serializedName: "WinCount";
+    };
     vrfProof: {
-      type: string;
+      type: Buffer;
       serializedType: string;
       serializedName: "VRFProof";
     };
@@ -20,16 +27,35 @@ class ElectionProof
   implements DeserializedObject<ElectionProofConfig> {
   get config(): Definitions<ElectionProofConfig> {
     return {
+      winCount: {
+        deserializedName: "winCount",
+        serializedName: "WinCount",
+        defaultValue: 1
+      },
       vrfProof: {
+        deserializedName: "vrfProof",
         serializedName: "VRFProof",
-        defaultValue: () => {
-          return "kQHqldOpdnmexjOh8KwzR6kjSGHAD6tWWM9DpTgf1e/FuxZXwB6lSXg9rlVyMk1OFbRbOOqvbHL5ZER/HTD3a3d3DTlmJ6T8H+oAqVTkh64hdoX2QTyL9EHymMIpgTKX";
-        }
+        defaultValue: literal =>
+          typeof literal !== "undefined"
+            ? Buffer.from(literal, "base64")
+            : Buffer.from([0])
       }
     };
   }
 
-  vrfProof: string;
+  constructor(
+    options?:
+      | Partial<SerializedObject<ElectionProofConfig>>
+      | Partial<DeserializedObject<ElectionProofConfig>>
+  ) {
+    super();
+
+    this.winCount = super.initializeValue(this.config.winCount, options);
+    this.vrfProof = super.initializeValue(this.config.vrfProof, options);
+  }
+
+  winCount: number;
+  vrfProof: Buffer;
 }
 
 type SerializedElectionProof = SerializedObject<ElectionProofConfig>;

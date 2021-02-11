@@ -74,11 +74,11 @@ type SerializedObject<C extends BaseConfig> = FlattenUnion<
 
 type DefaultValue<D, S> =  // A default value can be:
   | D // the expected type
-  | ((options: S) => D); // a fn that takes in a serialized object and returns the type
+  | ((options?: S) => D); // a fn that takes in a serialized object and returns the type
 type Definition<C extends BaseConfig, N extends PropertyName<C>> = {
+  deserializedName: N;
   serializedName: SerializedPropertyName<C, N>;
-  defaultValue?: DefaultValue<PropertyType<C, N>, SerializedPropertyType<C, N>>;
-  required?: boolean;
+  defaultValue: DefaultValue<PropertyType<C, N>, SerializedPropertyType<C, N>>;
 };
 // purpose of this type is to have a value
 type Definitions<C extends BaseConfig> = {
@@ -106,60 +106,53 @@ abstract class SerializableObject<C extends BaseConfig>
 
   // The constructor can take in a serialized object, or a deserialized one.
   // Note that SerializableObject is the deserialized object in value land.
-  constructor(
-    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
-  ) {
-    this.initialize(options);
-  }
 
-  private initialize(
-    options: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
-  ): void {
+  initializeValue<N extends PropertyName<C>>(
+    valueConfig: Definition<C, N>,
+    options?: Partial<SerializedObject<C>> | Partial<DeserializedObject<C>>
+  ): PropertyType<C, N> {
     if (!options) {
-      options = {} as SerializedObject<C>;
+      options = {};
     }
 
-    for (const [deserializedName, { serializedName }] of Object.entries(
-      this.config
-    )) {
-      let def = this.config[deserializedName].defaultValue;
-      let value: any;
+    const def = valueConfig.defaultValue;
 
-      // We don't know whether we were passed a serialized object or a
-      // deserialized one, so let's look for both keys.
-      if (typeof options[deserializedName] != "undefined") {
-        value = options[deserializedName];
-      } else {
-        value = options[serializedName];
-      }
+    // We don't know whether we were passed a serialized object or a
+    // deserialized one, so let's look for both keys.
+    const deserializedInput: PropertyType<C, N> | undefined = (options as any)[
+      valueConfig.deserializedName
+    ];
+    const serializedInput:
+      | SerializedPropertyType<C, N>
+      | undefined = (options as any)[valueConfig.serializedName];
 
-      // Ensure everything is serialized after this point,
-      // as defaultValue functions expect serialized data
-      value = this.serializeValue(value);
-
-      this[deserializedName] = value;
-
-      if (typeof def == "function") {
-        // TODO: why the `(def as any)` here?
-        this[deserializedName] = (def as any)(value);
-      } else if (typeof value === "undefined") {
-        this[deserializedName] = def;
-      }
-
-      if (
-        this.config[deserializedName].required &&
-        typeof this[deserializedName] == "undefined"
-      ) {
-        throw new Error(
-          `${deserializedName} is required for class ${this.constructor.name}`
-        );
-      }
+    if (typeof deserializedInput !== "undefined") {
+      return deserializedInput;
+    } else if (typeof def === "function") {
+      const typedDef = def as (
+        options?: SerializedPropertyType<C, N>
+      ) => PropertyType<C, N>;
+      return typedDef(serializedInput);
+    } else if (typeof serializedInput !== "undefined") {
+      return serializedInput;
+    } else if (typeof def !== "function") {
+      return def;
+    } else {
+      throw new Error(
+        `A value is required for ${this.constructor.name}.${valueConfig.deserializedName}`
+      );
     }
   }
 
   private serializeValue(value: any) {
     let returnVal: any = value;
-    if (
+    if (typeof value === "bigint") {
+      returnVal = value.toString(10);
+    } else if (Buffer.isBuffer(value)) {
+      // golang serializes "byte[]" with base-64 encoding
+      // https://golang.org/src/encoding/json/encode.go?s=6458:6501#L55
+      returnVal = value.toString("base64");
+    } else if (
       value instanceof SerializableObject ||
       value instanceof SerializableLiteral
     ) {
@@ -176,8 +169,8 @@ abstract class SerializableObject<C extends BaseConfig>
     for (const [deserializedName, { serializedName }] of Object.entries(
       this.config
     )) {
-      let value = this[deserializedName];
-      returnVal[serializedName] = this.serializeValue(value);
+      let value = (this as any)[deserializedName];
+      (returnVal as any)[serializedName] = this.serializeValue(value);
     }
 
     return returnVal;

@@ -5,7 +5,7 @@ import {
   EthereumProviderOptions,
   EthereumInternalOptions,
   EthereumOptionsConfig,
-  EthereumLegacyOptions
+  EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
 import cloneDeep from "lodash.clonedeep";
 import { PromiEvent, types, utils } from "@ganache/utils";
@@ -43,7 +43,7 @@ export default class EthereumProvider
   #wallet: Wallet;
 
   constructor(
-    options: EthereumProviderOptions | EthereumLegacyOptions = {},
+    options: EthereumProviderOptions | EthereumLegacyProviderOptions = {},
     executor: utils.Executor
   ) {
     super();

@@ -34,11 +34,14 @@ export type LoggingConfig = {
   };
 };
 
-const logger: Logger = { log: () => {} };
+const logger: Logger = { log: console.log };
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
   logger: {
     normalize,
+    cliDescription:
+      "An object, like `console`, that implements a `log` function.",
+    disableInCLI: true,
     default: () => logger,
     legacyName: "logger"
   }

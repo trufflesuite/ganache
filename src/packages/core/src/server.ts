@@ -98,7 +98,7 @@ export default class Server {
         this.#options.server
       );
     }
-    this.#httpServer = new HttpServer(_app, connector);
+    this.#httpServer = new HttpServer(_app, connector, this.#options.server);
 
     await connector.once("ready");
   }

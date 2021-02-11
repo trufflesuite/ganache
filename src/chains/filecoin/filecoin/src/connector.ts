@@ -1,17 +1,15 @@
 import Emittery from "emittery";
 import FilecoinApi from "./api";
-import { JsonRpcTypes, types, utils, PromiEvent } from "@ganache/utils";
+import { JsonRpcTypes, types, utils } from "@ganache/utils";
 import FilecoinProvider from "./provider";
-import { RecognizedString, HttpRequest } from "uWebSockets.js";
+import { RecognizedString, HttpRequest, WebSocket } from "uWebSockets.js";
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 
-export type ProviderOptions = FilecoinProviderOptions;
 export type Provider = FilecoinProvider;
 export const Provider = FilecoinProvider;
-export const FlavorName = "filecoin" as const;
 
 export class Connector
-  extends Emittery.Typed<undefined, "ready" | "close">
+  extends Emittery.Typed<{}, "ready" | "close">
   implements
     types.Connector<
       FilecoinApi,
@@ -25,7 +23,7 @@ export class Connector
   }
 
   constructor(
-    providerOptions: ProviderOptions = null,
+    providerOptions: FilecoinProviderOptions = {},
     executor: utils.Executor
   ) {
     super();
@@ -45,15 +43,11 @@ export class Connector
     return JSON.parse(message) as JsonRpcTypes.Request<FilecoinApi>;
   }
 
-  // Note that if we allow Filecoin to support Websockets, ws-server.ts blows up.
-  // TODO: Look into this.
   handle(
     payload: JsonRpcTypes.Request<FilecoinApi>,
-    _connection: HttpRequest /*| WebSocket*/
-  ): PromiEvent<any> {
-    return new PromiEvent(resolve => {
-      return this.#provider.send(payload).then(resolve);
-    });
+    _connection: HttpRequest | WebSocket
+  ): Promise<any> {
+    return this.#provider._requestRaw(payload);
   }
 
   format(
@@ -69,7 +63,7 @@ export class Connector
     payload: JsonRpcTypes.Request<FilecoinApi>
   ): RecognizedString {
     const json = JsonRpcTypes.Error(
-      payload && payload.id ? payload.id : null,
+      payload && payload.id ? payload.id : undefined,
       error
     );
     return JSON.stringify(json);
