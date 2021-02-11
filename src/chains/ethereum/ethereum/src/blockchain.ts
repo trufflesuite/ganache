@@ -1138,12 +1138,32 @@ export default class Blockchain extends Emittery.Typed<
     };
   }
 
+  /**
+   * storageRangeAt
+   *
+   * Run a previously-run transaction in the same state in which it occurred at the time it was run.
+   * This will return the vm-level trace output for debugging purposes.
+   *
+   * Strategy:
+   *
+   *  1. Get transaction hash
+   *  2. Replay transaction
+   *  3. Create read stream to get the storage keys from the transaction
+   *  4. Sort storage keys
+   *  5. Filter, assemble, and send storage data for the given range back
+   *
+   * @param blockHash
+   * @param txIndex
+   * @param contractAddress
+   * @param startKey
+   * @param maxResult
+   */
   public async storageRangeAt(
-    blockHash: string | Buffer, // block hash
-    txIndex: number, // integer
-    contractAddress: string, // contract address
-    startKey: string | Buffer, // hash for start key
-    maxResult: number // number of storage entries to return
+    blockHash: string | Buffer,
+    txIndex: number,
+    contractAddress: string,
+    startKey: string | Buffer,
+    maxResult: number
   ) {
     // get block information
     const targetBlock = await this.blocks.getByHash(blockHash);
@@ -1186,11 +1206,13 @@ export default class Blockchain extends Emittery.Typed<
           resolve(data);
         });
       });
+
     const addressDataPromise = getFromTrie(
       Address.from(contractAddress).toBuffer()
     );
 
     const addressData = await addressDataPromise;
+
     // An address's stateRoot is stored in the 3rd rlp entry
     trie.root = ((rlpDecode(addressData) as any) as [
       Buffer /*nonce*/,
