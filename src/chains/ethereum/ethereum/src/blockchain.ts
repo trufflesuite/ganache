@@ -1222,7 +1222,7 @@ export default class Blockchain extends Emittery.Typed<
     ])[2];
 
     const keys = [];
-    const getAsyncData = () => {
+    const getStorageData = () => {
       return new Promise((resolve, reject) => {
         trie
           .createReadStream()
@@ -1275,7 +1275,7 @@ export default class Blockchain extends Emittery.Typed<
       });
     };
 
-    await getAsyncData();
+    await getStorageData();
     return result;
   }
 
