@@ -5,8 +5,8 @@ import compile from "../../helpers/compile";
 import path from "path";
 
 describe("api", () => {
-  describe("debug: Debug.sol", () => {
-    describe("storageRangeAt", () => {
+  describe("storageRangeAt", () => {
+    describe("DebugStorage", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       let contractAddress: string;
@@ -258,9 +258,8 @@ describe("api", () => {
         assert.strictEqual(result.nextKey, null);
       });
     });
-  });
-  describe("debug: DebugComplexStorage.sol", () => {
-    describe("storageRangeAt", () => {
+
+    describe("DebugComplexStorage", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       let contractAddress: string;
