@@ -1177,6 +1177,30 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
+   * Returns the information about a transaction requested by transaction hash.
+   *
+   * @param transactionHash 32 Bytes - hash of a transaction
+   */
+  @assertArgLength(1)
+  async eth_getRawTransactionByHash(transactionHash: string) {
+    const { transactions } = this.#blockchain;
+    const hashBuffer = Data.from(transactionHash).toBuffer();
+
+    // we must check the database before checking the pending cache, because the
+    // cache is updated _after_ the transaction is already in the database, and
+    // the database contains block info whereas the pending cache doesn't.
+    const transaction = await transactions.get(hashBuffer);
+
+    if (transaction === null) {
+      // if we can't find it in the list of pending transactions, check the db!
+      const tx = transactions.transactionPool.find(hashBuffer);
+      return tx ? tx.serialize() : null;
+    } else {
+      return Data.from(transaction.serialize());
+    }
+  }
+
+  /**
    * Returns the receipt of a transaction by transaction hash.
    *
    * Note That the receipt is not available for pending transactions.
