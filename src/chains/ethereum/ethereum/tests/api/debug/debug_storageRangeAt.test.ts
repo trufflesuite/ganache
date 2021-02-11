@@ -260,7 +260,7 @@ describe("api", () => {
     });
   });
   describe("debug: DebugComplexStorage.sol", () => {
-    describe.only("storageRangeAt", () => {
+    describe("storageRangeAt", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       let contractAddress: string;
