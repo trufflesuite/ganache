@@ -22,6 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm ci
+      - run: npm run tsc
       - run: npm test
         env:
           FORCE_COLOR: 1
@@ -66,6 +67,7 @@ jobs:
         if: startsWith(matrix.os, 'windows-')
         run: npm config set msvs_version 2015
       - run: npm ci
+      - run: npm run tsc
       - run: npm test
         env:
           FORCE_COLOR: 1

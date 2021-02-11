@@ -1,4 +1,4 @@
-import { Block, SerializedBlock } from "./block";
+import { BlockHeader, SerializedBlockHeader } from "./block-header";
 import {
   SerializableObject,
   DeserializedObject,
@@ -6,6 +6,8 @@ import {
   SerializedObject
 } from "./serializable-object";
 import { RootCID, SerializedRootCID } from "./root-cid";
+
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#TipSet
 
 interface TipsetConfig {
   properties: {
@@ -15,8 +17,8 @@ interface TipsetConfig {
       serializedName: "Cids";
     };
     blocks: {
-      type: Array<Block>;
-      serializedType: Array<SerializedBlock>;
+      type: Array<BlockHeader>;
+      serializedType: Array<SerializedBlockHeader>;
       serializedName: "Blocks";
     };
     height: {
@@ -33,15 +35,19 @@ class Tipset
   get config(): Definitions<TipsetConfig> {
     return {
       cids: {
+        deserializedName: "cids",
         serializedName: "Cids",
-        defaultValue: (options = []) =>
-          options.map(rootCid => new RootCID(rootCid))
+        defaultValue: options =>
+          options ? options.map(rootCid => new RootCID(rootCid)) : []
       },
       blocks: {
+        deserializedName: "blocks",
         serializedName: "Blocks",
-        defaultValue: (options = []) => options.map(block => new Block(block))
+        defaultValue: options =>
+          options ? options.map(block => new BlockHeader(block)) : []
       },
       height: {
+        deserializedName: "height",
         serializedName: "Height",
         defaultValue: 0
       }
@@ -53,22 +59,32 @@ class Tipset
       | Partial<SerializedObject<TipsetConfig>>
       | Partial<DeserializedObject<TipsetConfig>>
   ) {
-    super(options);
+    super();
+
+    this.cids = super.initializeValue(this.config.cids, options);
+    this.blocks = super.initializeValue(this.config.blocks, options);
+    this.height = super.initializeValue(this.config.height, options);
 
     // Calculate Cid's if not specified
-    if (this.cids.length == 0) {
+    if (this.cids.length === 0) {
       for (const block of this.blocks) {
         this.cids.push(
           new RootCID({
-            "/": block.cid
+            root: block.cid
           })
         );
       }
     }
   }
 
+  /**
+   * An array that contains the BlockHeader.cid().
+   * If not provided, constructor will auto add this array.
+   * There's no documentation specifying this, so here is
+   * the reference Implementation: https://git.io/Jt3VM
+   */
   cids: Array<RootCID>;
-  blocks: Array<Block>;
+  blocks: Array<BlockHeader>;
   height: number;
 }
 

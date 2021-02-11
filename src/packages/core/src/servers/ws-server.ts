@@ -1,6 +1,6 @@
 import uWS, { TemplatedApp, WebSocket } from "uWebSockets.js";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import { ServerOptions } from "../options";
+import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
 import { PromiEvent } from "@ganache/utils";
 
@@ -20,7 +20,10 @@ export type WebSocketCapableFlavor = {
 
 export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
-export type WebsocketServerOptions = Pick<ServerOptions["server"], "wsBinary">;
+export type WebsocketServerOptions = Pick<
+  InternalOptions["server"],
+  "wsBinary" | "rpcEndpoint"
+>;
 
 export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
@@ -32,7 +35,7 @@ export default class WebsocketServer {
     const connections = this.#connections;
     const wsBinary = options.wsBinary;
     const autoBinary = wsBinary === "auto";
-    app.ws("/", {
+    app.ws(options.rpcEndpoint, {
       /* WS Options */
       compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
       maxPayloadLength: 16 * 1024, // 128 Kibibits
@@ -49,7 +52,10 @@ export default class WebsocketServer {
         message: ArrayBuffer,
         isBinary: boolean
       ) => {
-        let payload: ReturnType<typeof connector.parse>;
+        // We have to use type any instead of ReturnType<typeof connector.parse>
+        // on `payload` because Typescript isn't smart enough to understand the
+        // ambiguity doesn't actually exist
+        let payload: any;
         const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
         try {
           payload = connector.parse(Buffer.from(message));

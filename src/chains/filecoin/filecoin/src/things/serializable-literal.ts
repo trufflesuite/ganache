@@ -1,55 +1,58 @@
 import { Serializable } from "./serializable-object";
-import { config } from "yargs";
 
 type BaseConfig = {
-  type: any;
+  type: number | string | Buffer | bigint | null;
 };
 
 type Literal<C extends BaseConfig> = C["type"];
 
-type DefaultValue<D> = D | ((options: D) => D);
+type SerializedLiteral<C extends BaseConfig> = C["type"] extends bigint | Buffer
+  ? string
+  : Literal<C>;
+
+type DefaultValue<S, D> = D | ((options: S | undefined) => D);
 
 type LiteralDefinition<C extends BaseConfig> = {
-  defaultValue?: DefaultValue<Literal<C>>;
-  required?: boolean;
+  defaultValue?: DefaultValue<SerializedLiteral<C>, Literal<C>>;
 };
 
 abstract class SerializableLiteral<C extends BaseConfig>
-  implements Serializable<Literal<C>> {
+  implements Serializable<SerializedLiteral<C>> {
   protected abstract get config(): LiteralDefinition<C>;
   value: Literal<C>;
 
-  constructor(literal?: Literal<C>) {
-    this.initialize(literal);
+  constructor(literal?: SerializedLiteral<C>) {
+    this.value = this.initialize(literal);
   }
 
-  private initialize(literal: Literal<C>) {
-    if (this.config.defaultValue && literal === undefined) {
-      const def = this.config.defaultValue;
-
-      if (typeof def == "function") {
-        this.value = (def as any)(literal);
-      } else {
-        this.value = def;
-      }
+  private initialize(literal?: SerializedLiteral<C>): Literal<C> {
+    const def = this.config.defaultValue;
+    if (typeof def === "function") {
+      return def(literal);
+    } else if (typeof literal !== "undefined") {
+      return literal;
+    } else if (typeof def !== "function" && typeof def !== "undefined") {
+      return def;
     } else {
-      this.value = literal;
-    }
-
-    if (this.config.required && typeof this.value == "undefined") {
       throw new Error(`A value is required for class ${this.constructor.name}`);
     }
   }
 
-  serialize(): Literal<C> {
-    return this.value;
+  serialize(): SerializedLiteral<C> {
+    if (typeof this.value === "bigint") {
+      return this.value.toString(10) as SerializedLiteral<C>;
+    } else if (Buffer.isBuffer(this.value)) {
+      return this.value.toString("base64") as SerializedLiteral<C>;
+    } else {
+      return this.value as SerializedLiteral<C>;
+    }
   }
 
   equals(obj: Serializable<Literal<C>>): boolean {
     let a: Literal<C> = this.serialize();
     let b: Literal<C> = obj.serialize();
 
-    return a == b;
+    return a === b;
   }
 }
 

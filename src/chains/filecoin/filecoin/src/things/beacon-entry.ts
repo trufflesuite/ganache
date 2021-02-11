@@ -5,6 +5,8 @@ import {
   Definitions
 } from "./serializable-object";
 
+// https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#BeaconEntry
+
 interface BeaconEntryConfig {
   properties: {
     round: {
@@ -13,7 +15,7 @@ interface BeaconEntryConfig {
       serializedName: "Round";
     };
     data: {
-      type: string;
+      type: Buffer;
       serializedType: string;
       serializedName: "Data";
     };
@@ -26,18 +28,34 @@ class BeaconEntry
   get config(): Definitions<BeaconEntryConfig> {
     return {
       round: {
+        deserializedName: "round",
         serializedName: "Round",
-        defaultValue: 1321
+        defaultValue: 0
       },
       data: {
+        deserializedName: "data",
         serializedName: "Data",
-        defaultValue: "qrwddPErWZxCQkTKvTkgKwxazkKZu2Q9nXHW1sPgW7I="
+        defaultValue: literal =>
+          typeof literal !== "undefined"
+            ? Buffer.from(literal, "base64")
+            : Buffer.from([0])
       }
     };
   }
 
+  constructor(
+    options?:
+      | Partial<SerializedObject<BeaconEntryConfig>>
+      | Partial<DeserializedObject<BeaconEntryConfig>>
+  ) {
+    super();
+
+    this.round = super.initializeValue(this.config.round, options);
+    this.data = super.initializeValue(this.config.data, options);
+  }
+
   round: number;
-  data: string;
+  data: Buffer;
 }
 
 type SerializedBeaconEntry = SerializedObject<BeaconEntryConfig>;

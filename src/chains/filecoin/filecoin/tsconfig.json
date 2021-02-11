@@ -1,7 +1,10 @@
 {
-  "extends": "../../../../tsconfig.json",
+  "extends": "../../../tsconfig-base.json",
   "compilerOptions": {
-    "outDir": "lib"
+    "outDir": "lib",
+    "composite": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true
   },
   "include": ["index.ts", "src/**/*"],
   "typeRoots": ["./node_modules/@types", "./src/@types"],

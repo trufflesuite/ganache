@@ -9,6 +9,7 @@ import intoStream = require("into-stream");
 import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
 import { ServerOptions } from "../src/options";
+import { Provider as EthereumProvider } from "@ganache/ethereum";
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -36,6 +37,9 @@ describe("server", () => {
       }
     }
   ) {
+    // @ts-ignore - `s` errors if you run tsc and then test
+    // because it tries to compare the built declaration file to
+    // the TS file, causing missing #<var> private variables
     s = Ganache.server(options);
     return s.listen(port);
   }
@@ -106,6 +110,9 @@ describe("server", () => {
     });
 
     it("returns the net_version over a legacy-style connection listener", done => {
+      // @ts-ignore - `s` errors if you run tsc and then test
+      // because it tries to compare the built declaration file to
+      // the TS file, causing missing #<var> private variables
       s = Ganache.server({
         chain: { networkId }
       });
@@ -189,6 +196,9 @@ describe("server", () => {
       server.listen(port);
 
       try {
+        // @ts-ignore - `s` errors if you run tsc and then test
+        // because it tries to compare the built declaration file to
+        // the TS file, causing missing #<var> private variables
         const s = Ganache.server();
         const listen = promisify(s.listen.bind(s));
         await assert.rejects(listen(port), {
@@ -205,6 +215,9 @@ describe("server", () => {
       "fails to listen if the socket is already in use by Ganache",
       async () => {
         await setup();
+        // @ts-ignore - `s` errors if you run tsc and then test
+        // because it tries to compare the built declaration file to
+        // the TS file, causing missing #<var> private variables
         const s2 = Ganache.server();
 
         try {
@@ -429,7 +442,7 @@ describe("server", () => {
       await setup();
 
       try {
-        const provider = s.provider;
+        const provider = s.provider as EthereumProvider;
         const oldRequestRaw = (provider as any)._requestRaw;
         const req = request.post("http://localhost:" + port);
         const abortPromise = new Promise(resolve => {
@@ -651,7 +664,7 @@ describe("server", () => {
     });
 
     it("doesn't crash when the connection is closed while a request is in flight", async () => {
-      const provider = s.provider;
+      const provider = s.provider as EthereumProvider;
       provider._requestRaw = (async () => {
         // close our websocket after intercepting the request
         await s.close();
@@ -680,7 +693,7 @@ describe("server", () => {
     });
 
     it("handles PromiEvent messages", async () => {
-      const provider = s.provider;
+      const provider = s.provider as EthereumProvider;
       const message = "I hope you get this message";
       const oldRequestRaw = provider._requestRaw.bind(provider);
       provider._requestRaw = (async () => {
@@ -787,7 +800,7 @@ describe("server", () => {
     });
 
     it("doesn't crash when the connection is closed while a subscription is in flight", async () => {
-      const provider = s.provider;
+      const provider = s.provider as EthereumProvider;
       let promiEvent: PromiEvent<any>;
       provider._requestRaw = (async () => {
         promiEvent = new PromiEvent(resolve => {
@@ -835,7 +848,7 @@ describe("server", () => {
         // create tons of data to force websocket backpressure
         const huge = {};
         for (let i = 0; i < 1e6; i++) huge["prop_" + i] = { i };
-        s.provider._requestRaw = (async () => {
+        (s.provider as EthereumProvider)._requestRaw = (async () => {
           return { value: Promise.resolve(huge) };
         }) as any;
       }

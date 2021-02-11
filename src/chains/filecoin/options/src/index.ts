@@ -6,7 +6,6 @@ import { WalletConfig, WalletOptions } from "./wallet-options";
 import {
   Base,
   Defaults,
-  Definitions,
   ExternalConfig,
   InternalConfig,
   Legacy,
@@ -17,11 +16,18 @@ import {
   OptionsConfig
 } from "@ganache/options";
 
-export type FilecoinOptions = {
+type FilecoinConfig = {
   chain: ChainConfig;
   logging: LoggingConfig;
   miner: MinerConfig;
   wallet: WalletConfig;
+};
+
+export const FilecoinDefaults: Defaults<FilecoinConfig> = {
+  chain: ChainOptions,
+  logging: LoggingOptions,
+  miner: MinerOptions,
+  wallet: WalletOptions
 };
 
 type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
@@ -38,7 +44,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   ? I
   : never;
 
-export type FilecoinLegacyOptions = Partial<
+export type FilecoinLegacyProviderOptions = Partial<
   MakeLegacyOptions<ChainConfig> &
     MakeLegacyOptions<LoggingConfig> &
     MakeLegacyOptions<MinerConfig> &
@@ -47,23 +53,12 @@ export type FilecoinLegacyOptions = Partial<
 
 export type FilecoinProviderOptions = Partial<
   {
-    [K in keyof FilecoinOptions]: ExternalConfig<FilecoinOptions[K]>;
+    [K in keyof FilecoinConfig]: ExternalConfig<FilecoinConfig[K]>;
   }
 >;
 
 export type FilecoinInternalOptions = {
-  [K in keyof FilecoinOptions]: InternalConfig<FilecoinOptions[K]>;
+  [K in keyof FilecoinConfig]: InternalConfig<FilecoinConfig[K]>;
 };
 
-export type FilecoinDefaults = {
-  [K in keyof FilecoinOptions]: Definitions<FilecoinOptions[K]>;
-};
-
-export const filecoinDefaults: Defaults<FilecoinOptions> = {
-  chain: ChainOptions,
-  logging: LoggingOptions,
-  miner: MinerOptions,
-  wallet: WalletOptions
-};
-
-export const FilecoinOptionsConfig = new OptionsConfig(filecoinDefaults);
+export const FilecoinOptionsConfig = new OptionsConfig(FilecoinDefaults);
