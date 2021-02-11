@@ -2,7 +2,7 @@ import Emittery from "emittery";
 import { utils, types } from "@ganache/utils";
 import Provider from "./src/provider";
 import TezosApi from "./src/api";
-import { HttpRequest } from "uWebSockets.js";
+import { HttpRequest } from "@seesemichaelj/uwebsockets.js";
 
 export type TezosProvider = Provider;
 export const TezosProvider = Provider;
