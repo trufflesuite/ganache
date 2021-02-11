@@ -1428,7 +1428,7 @@ export default class Blockchain extends Emittery.Typed<
             // find starting point in array of sorted keys
             const startKeyBuffer = Data.from(startKey).toBuffer();
             const filteredKeys = sortedKeys.filter(key => {
-              if (Buffer.compare(startKeyBuffer, key) === -1) {
+              if (Buffer.compare(startKeyBuffer, key) <= 0) {
                 return key;
               }
             });
