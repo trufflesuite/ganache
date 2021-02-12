@@ -6,7 +6,13 @@ import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
 const { alea } = seedrandom;
 
-function randomBytes(length: number, rng: () => number) {
+/**
+ * WARNING: to maintain compatibility with ganache v2 this RNG only generates
+ * numbers from 0-254 instead of 0-255! Hence the name, `notVeryRandomBytes`
+ * @param length
+ * @param rng
+ */
+function notVeryRandomBytes(length: number, rng: () => number) {
   const buf = Buffer.allocUnsafe(length);
   for (let i = 0; i < length; i++) {
     buf[i] = (rng() * 255) | 0;
@@ -254,7 +260,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     // needs to be prior to `wallet.mnemonic` for `config.seed`
     // below to be set correctly
     default: config =>
-      entropyToMnemonic(randomBytes(16, seedrandom(config.seed))),
+      entropyToMnemonic(notVeryRandomBytes(16, seedrandom(config.seed))),
     defaultDescription: "Generated from wallet.seed",
     legacyName: "mnemonic",
     cliAliases: ["m", "mnemonic"],
