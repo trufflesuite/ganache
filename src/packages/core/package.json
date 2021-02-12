@@ -54,9 +54,7 @@
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
   },
   "devDependencies": {
-    "@types/mocha": "8.2.0",
     "@types/superagent": "4.1.10",
-    "mocha": "8.3.0",
     "superagent": "6.1.0",
     "ws": "7.3.1"
   }
