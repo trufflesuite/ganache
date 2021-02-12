@@ -51,7 +51,8 @@
     "@ganache/options": "^0.1.0",
     "@ganache/tezos": "^0.1.0",
     "@ganache/utils": "^0.1.0",
-    "@seesemichaelj/uwebsockets.js": "18.15.3"
+    "@seesemichaelj/uwebsockets.js": "18.15.3",
+    "emittery": "0.8.1"
   },
   "devDependencies": {
     "@types/superagent": "4.1.10",
