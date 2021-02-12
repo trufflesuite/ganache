@@ -7,7 +7,7 @@ import { Transaction } from "./transaction";
 import { Address } from "./address";
 import { KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 
-const { BUFFER_EMPTY, RPCQUANTITY_ZERO } = utils;
+const { BUFFER_EMPTY } = utils;
 
 type BlockHeader = {
   parentHash: Data;
@@ -28,7 +28,19 @@ type BlockHeader = {
   nonce: Data;
 };
 
-function makeHeader(raw: Buffer[]) {
+/**
+ * Returns the size of the serialized data as it would have been calculated had
+ * we stored things geth does, i.e., `totalDfficulty` is not usually stored in
+ * the block header.
+ *
+ * @param serialized
+ * @param totalDifficulty
+ */
+function getBlockSize(serialized: Buffer, totalDifficulty: Buffer) {
+  return serialized.length - totalDifficulty.length;
+}
+
+function makeHeader(raw: Buffer[], totalDifficulty: Buffer) {
   const number = raw[8];
 
   return {
@@ -51,7 +63,7 @@ function makeHeader(raw: Buffer[]) {
     extraData: Data.from(raw[12]),
     mixHash: Data.from(raw[13], 32),
     nonce: Data.from(raw[14], 8),
-    totalDifficulty: Quantity.from(raw[15], false)
+    totalDifficulty: Quantity.from(totalDifficulty, false)
   };
 }
 
@@ -67,14 +79,16 @@ export class Block {
   constructor(serialized: Buffer, common: Common) {
     if (serialized) {
       this._common = common;
-      this._size = serialized.length;
       const deserialized = (rlpDecode(serialized) as any) as [
         Buffer[],
-        Buffer[][]
+        Buffer[][],
+        Buffer
       ];
-      const raw = (this._raw = deserialized[0]);
+      this._raw = deserialized[0];
       this._rawTransactions = deserialized[1];
-      this.header = makeHeader(raw);
+      const totalDifficulty = deserialized[2];
+      this.header = makeHeader(this._raw, totalDifficulty);
+      this._size = getBlockSize(serialized, totalDifficulty);
     }
   }
 
@@ -210,11 +224,11 @@ export class RuntimeBlock {
       header.timestamp,
       extraData.toBuffer(),
       Buffer.allocUnsafe(32).fill(0), // mixHash
-      Buffer.allocUnsafe(8).fill(0), // nonce
-      header.totalDifficulty
+      Buffer.allocUnsafe(8).fill(0) // nonce
     ];
+    const { totalDifficulty } = header;
     const rawTransactions = transactions.map(tx => tx.raw);
-    const raw = [rawHeader, rawTransactions];
+    const raw = [rawHeader, rawTransactions, totalDifficulty];
 
     const serialized = rlpEncode(raw);
 
@@ -223,11 +237,11 @@ export class RuntimeBlock {
     // state here. We'll just set it ourselves by reaching into the "_private"
     // fields.
     const block = new Block(null, null);
-    (block as any)._size = serialized.length;
+    (block as any)._size = getBlockSize(serialized, totalDifficulty);
     (block as any)._raw = rawHeader;
     (block as any)._rawTransactions = rawTransactions;
     (block as any)._transactions = transactions;
-    (block as any).header = makeHeader(rawHeader);
+    (block as any).header = makeHeader(rawHeader, totalDifficulty);
 
     return {
       block,
