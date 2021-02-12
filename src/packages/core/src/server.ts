@@ -132,7 +132,7 @@ export class Server<
   private async initialize(connector: Connector) {
     const _app = (this.#app = uWS.App());
 
-    if (this.#options.server.ws) {
+    if (false && this.#options.server.ws) {
       this.#websocketServer = new WebsocketServer(
         _app,
         connector as WebSocketCapableFlavor,
