@@ -108,6 +108,11 @@
 			"integrity": "sha1-3zrhmayt+31ECqrgsp4icrJOxhk=",
 			"dev": true
 		},
+		"emittery": {
+			"version": "0.8.1",
+			"resolved": "https://registry.npmjs.org/emittery/-/emittery-0.8.1.tgz",
+			"integrity": "sha512-uDfvUjVrfGJJhymx/kz6prltenw1u7WrCg1oa94zYY8xxVpLLUu045LAT0dhDZdXG58/EpPL/5kA180fQ/qudg=="
+		},
 		"es-abstract": {
 			"version": "1.18.0",
 			"resolved": "https://registry.npmjs.org/es-abstract/-/es-abstract-1.18.0.tgz",
