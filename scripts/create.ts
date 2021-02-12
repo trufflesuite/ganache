@@ -108,8 +108,8 @@ process.stdout.write(`${COLORS.Reset}`);
   }
 
   // determines how many `../` are needed for package contents
-  const numDirectoriesAwayFromRoot = 2 + location.split(sep).length;
-  const relativePathToRoot = "../".repeat(numDirectoriesAwayFromRoot);
+  const numDirectoriesAwayFromSrc = 1 + location.split(sep).length;
+  const relativePathToSrc = "../".repeat(numDirectoriesAwayFromSrc);
   const isNewChain = location === "chains";
 
   const workspaceDir = join(__dirname, "../");
@@ -184,7 +184,7 @@ process.stdout.write(`${COLORS.Reset}`);
     };
 
     const tsConfig = {
-      extends: `${relativePathToRoot}tsconfig-base.json`,
+      extends: `${relativePathToSrc}tsconfig-base.json`,
       compilerOptions: {
         outDir: "lib"
       },
