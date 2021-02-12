@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import Ganache from "../index";
+import Readline from "readline";
+import Ganache, { Status } from "@ganache/core";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
 import {
@@ -20,7 +21,7 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
     (process.stdout as any)._handle.setBlocking(true);
   }
   try {
-    messages.forEach(console.log);
+    messages.forEach(message => console.log(message));
   } catch (e) {
     console.log(e);
   }
@@ -56,29 +57,33 @@ process.on("uncaughtException", function (e) {
   }
 });
 
-// See http://stackoverflow.com/questions/10021373/what-is-the-windows-equivalent-of-process-onsigint-in-node-js
-if (process.platform === "win32") {
-  require("readline")
-    .createInterface({
-      input: process.stdin,
-      output: process.stdout
-    })
-    .on("SIGINT", function () {
-      process.emit("SIGINT" as any); // TODO: don't abuse process's emit
-    });
-}
-
-const closeHandler = async function () {
+let receivedShutdownSignal: boolean = false;
+const handleSignal = async (signal: NodeJS.Signals) => {
+  console.log(`Received shutdown signal: ${signal}`);
+  closeHandler();
+};
+const closeHandler = async () => {
   try {
     // graceful shutdown
-    if (server.status === 1) {
-      await server.close();
+    switch (server.status) {
+      case Status.opening:
+        receivedShutdownSignal = true;
+        console.log("Server is currently starting; waiting…");
+        return;
+      case Status.open:
+        console.log("Shutting down…");
+        await server.close();
+        console.log("Server has been shut down");
+        break;
     }
+    // don't just call `process.exit()` here, as we don't want to hide shutdown
+    // errors behind a forced shutdown. Note: `process.exitCode` doesn't do
+    // anything other than act as a place to anchor this comment :-)
     process.exitCode = 0;
   } catch (err) {
     logAndForceExit(
       [
-        "\nReceived an error while attempting to close the server: ",
+        "\nReceived an error while attempting to shut down the server: ",
         err.stack || err
       ],
       1
@@ -86,14 +91,33 @@ const closeHandler = async function () {
   }
 };
 
-process.on("SIGINT", closeHandler);
-process.on("SIGTERM", closeHandler);
-process.on("SIGHUP", closeHandler);
+// See http://stackoverflow.com/questions/10021373/what-is-the-windows-equivalent-of-process-onsigint-in-node-js
+if (process.platform === "win32") {
+  const rl = (require("readline") as typeof Readline)
+    .createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
+    .on("SIGINT", () => {
+      // we must "close" the RL interface otherwise the process will think we
+      // are still listening
+      // https://nodejs.org/api/readline.html#readline_event_sigint
+      rl.close();
+      handleSignal("SIGINT");
+    });
+}
+
+process.on("SIGINT", handleSignal);
+process.on("SIGTERM", handleSignal);
+process.on("SIGHUP", handleSignal);
 
 async function startGanache(err: Error) {
   if (err) {
     console.log(err);
     process.exitCode = 1;
+    return;
+  } else if (receivedShutdownSignal) {
+    closeHandler();
     return;
   }
   started = true;
@@ -106,5 +130,5 @@ async function startGanache(err: Error) {
     }
   }
 }
-
+console.log("Starting RPC server");
 server.listen(cliSettings.port, cliSettings.host, startGanache);
