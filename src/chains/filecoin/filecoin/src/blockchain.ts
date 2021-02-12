@@ -81,6 +81,10 @@ export default class Blockchain extends Emittery.Typed<
 
   readonly #database: Database;
 
+  get dbDirectory(): string | null {
+    return this.#database.directory;
+  }
+
   private ready: boolean;
 
   constructor(options: FilecoinInternalOptions) {
