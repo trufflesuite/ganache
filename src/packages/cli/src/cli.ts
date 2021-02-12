@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import Readline from "readline";
-import Ganache, { Status } from "../index";
+import Ganache, { Status } from "@ganache/core";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
 import {
