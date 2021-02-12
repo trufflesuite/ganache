@@ -98,7 +98,7 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
 
     const _app = (this.#app = uWS.App());
 
-    if (this.#options.server.ws) {
+    if (false && this.#options.server.ws) {
       this.#websocketServer = new WebsocketServer(
         _app,
         connector as WebSocketCapableFlavor,

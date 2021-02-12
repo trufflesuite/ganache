@@ -688,7 +688,8 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(0)
   async net_version() {
-    return this.#options.chain.networkId.toString();
+    const a = this.#options.chain.networkId;
+    return a.toString();
   }
 
   /**
