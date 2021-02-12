@@ -39,7 +39,7 @@ const base: webpack.Configuration = {
   resolve: {
     extensions: [".tsx", ".ts", ".js"]
   },
-  externals: ["electron-fetch"],
+  externals: ["ipfs", "ipfs-http-client", "ipfs-http-server", "ipld-dag-cbor"],
   output: {
     filename: "ganache.min.js",
     library: "Ganache",
@@ -50,7 +50,7 @@ const base: webpack.Configuration = {
     colors: true
   },
   optimization: {
-    minimize: true,
+    minimize: false,
     minimizer: [
       new TerserPlugin({
         terserOptions: {

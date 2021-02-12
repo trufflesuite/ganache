@@ -53,6 +53,8 @@ export default class FilecoinProvider
    * Returns the unlocked accounts
    */
   public async getInitialAccounts() {
+    await this.blockchain.waitForReady();
+
     const accounts: Record<
       string,
       { unlocked: boolean; secretKey: string; balance: bigint }
