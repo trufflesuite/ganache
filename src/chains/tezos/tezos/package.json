@@ -24,7 +24,7 @@
     "directory": "src/chains/tezos/tezos"
   },
   "scripts": {
-    "tsc": "ttsc"
+    "tsc": "ttsc --build"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"

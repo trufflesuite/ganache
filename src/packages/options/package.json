@@ -20,7 +20,7 @@
     "directory": "src/packages/options"
   },
   "scripts": {
-    "tsc": "ttsc"
+    "tsc": "ttsc --build"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
