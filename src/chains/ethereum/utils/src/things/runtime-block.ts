@@ -41,8 +41,6 @@ function getBlockSize(serialized: Buffer, totalDifficulty: Buffer) {
 }
 
 function makeHeader(raw: Buffer[], totalDifficulty: Buffer) {
-  const number = raw[8];
-
   return {
     parentHash: Data.from(raw[0], 32),
     sha3Uncles: Data.from(raw[1], 32),
@@ -52,10 +50,6 @@ function makeHeader(raw: Buffer[], totalDifficulty: Buffer) {
     receiptsRoot: Data.from(raw[5], 32),
     logsBloom: Data.from(raw[6], 256),
     difficulty: Quantity.from(raw[7], false),
-    // HACK: because `number` here is used as a key for the db we need to ensure
-    // that the value here holds an actual `0` when the raw === Buffer([])
-    // the other empty buffer values aren't ever used as keys, so leaving them
-    // empty will probably be okay.
     number: Quantity.from(raw[8], false),
     gasLimit: Quantity.from(raw[9], false),
     gasUsed: Quantity.from(raw[10], false),
