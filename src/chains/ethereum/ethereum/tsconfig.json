@@ -5,7 +5,6 @@
     "composite": true
   },
   "include": ["index.ts", "src/**/*"],
-  "typeRoots": ["./node_modules/@types", "./src/@types"],
   "references": [
     {
       "name": "@ganache/ethereum-utils",
