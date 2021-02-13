@@ -47,9 +47,15 @@ directories, then reinstalls all modules.
 
 ## To compile
 
-Compiles all packages:
+Compiles the `ganache` package and its internal dependencies and subdependencies:
 
 - `npm run tsc`
+
+To compile a package directly:
+
+- `npx lerna run --scope @ganache/<name> tsc`
+
+This can be useful if the package isn't yet in ganache's dependency tree.
 
 ## To build the ganache package
 
