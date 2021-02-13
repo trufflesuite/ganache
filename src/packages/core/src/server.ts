@@ -115,7 +115,7 @@ export default class Server {
         // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
         const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
         hostname
-          ? (this.#app as any).listen(
+          ? this.#app.listen(
               hostname,
               port,
               LIBUS_LISTEN_EXCLUSIVE_PORT,
