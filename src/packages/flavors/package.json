@@ -21,7 +21,7 @@
     "directory": "src/packages/flavors"
   },
   "scripts": {
-    "tsc": "ttsc"
+    "tsc": "ttsc --build"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"

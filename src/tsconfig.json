@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "packages/ganache"
+    }
+  ]
+}

@@ -1,10 +1,4 @@
 import { TruffleColors } from "../src/packages/colors";
-import chalk from "chalk";
-import yargs from "yargs";
-import prettier from "prettier";
-import camelCase from "camelcase";
-import npmValiddate from "validate-npm-package-name";
-import userName from "git-user-name";
 import { sep, join, resolve } from "path";
 import { highlight } from "cli-highlight";
 import { mkdir, mkdirSync, writeFile } from "fs-extra";
@@ -13,6 +7,15 @@ import {
   readdirSync as readDir,
   readFileSync as readFile
 } from "fs";
+
+// using `require` because everything in scripts uses typescript's default
+// compiler settings, and these modules require enabling `esModuleInterop`
+const npmValiddate = require("validate-npm-package-name");
+const userName = require("git-user-name");
+const camelCase = require("camelcase");
+const prettier = require("prettier");
+const chalk = require("chalk");
+const yargs = require("yargs");
 
 const COMMAND_NAME = "create";
 
@@ -108,8 +111,8 @@ process.stdout.write(`${COLORS.Reset}`);
   }
 
   // determines how many `../` are needed for package contents
-  const numDirectoriesAwayFromRoot = 2 + location.split(sep).length;
-  const relativePathToRoot = "../".repeat(numDirectoriesAwayFromRoot);
+  const numDirectoriesAwayFromSrc = 1 + location.split(sep).length;
+  const relativePathToSrc = "../".repeat(numDirectoriesAwayFromSrc);
   const isNewChain = location === "chains";
 
   const workspaceDir = join(__dirname, "../");
@@ -158,7 +161,7 @@ process.stdout.write(`${COLORS.Reset}`);
         directory: `src/${location}/${folderName}`
       },
       scripts: {
-        tsc: "ttsc",
+        tsc: "ttsc --build",
         test: "nyc npm run mocha",
         mocha:
           "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
@@ -184,7 +187,7 @@ process.stdout.write(`${COLORS.Reset}`);
     };
 
     const tsConfig = {
-      extends: `${relativePathToRoot}tsconfig.json`,
+      extends: `${relativePathToSrc}tsconfig-base.json`,
       compilerOptions: {
         outDir: "lib"
       },
@@ -212,6 +215,7 @@ describe("${packageName}", () => {
     const tests = join(dir, "tests");
     const src = join(dir, "src");
 
+    //@ts-ignore
     function initSrc() {
       return writeFile(
         join(src, "index.ts"),
@@ -222,6 +226,7 @@ describe("${packageName}", () => {
       );
     }
 
+    //@ts-ignore
     function initIndex() {
       // When a bundler compiles our libs this headerdoc comment will cause that
       // tool to retain our LICENSE information in their bundled output.
@@ -243,6 +248,7 @@ describe("${packageName}", () => {
       );
     }
 
+    //@ts-ignore
     function initRootFiles() {
       return Promise.all([
         writeFile(
@@ -261,6 +267,7 @@ typedoc.json
       ]);
     }
 
+    //@ts-ignore
     function initTests() {
       return writeFile(
         join(tests, "index.test.ts"),
