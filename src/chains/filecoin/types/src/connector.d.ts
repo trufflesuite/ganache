@@ -3,7 +3,11 @@ import Emittery from "emittery";
 import FilecoinApi from "./api";
 import { JsonRpcTypes, types, utils } from "@ganache/utils";
 import FilecoinProvider from "./provider";
-import { RecognizedString, HttpRequest, WebSocket } from "uWebSockets.js";
+import {
+  RecognizedString,
+  HttpRequest,
+  WebSocket
+} from "@seesemichaelj/uwebsockets.js";
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 export declare type Provider = FilecoinProvider;
 export declare const Provider: typeof FilecoinProvider;

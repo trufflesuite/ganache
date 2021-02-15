@@ -47,6 +47,7 @@ export default class Blockchain extends Emittery.Typed<
   private ipfsServer;
   private miningTimeout;
   private rng;
+  get dbDirectory(): string | null;
   private ready;
   constructor(options: FilecoinInternalOptions);
   waitForReady(): Promise<unknown>;
