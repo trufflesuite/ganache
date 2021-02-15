@@ -50,7 +50,7 @@ const base: webpack.Configuration = {
     colors: true
   },
   optimization: {
-    minimize: false,
+    minimize: true,
     minimizer: [
       new TerserPlugin({
         terserOptions: {
