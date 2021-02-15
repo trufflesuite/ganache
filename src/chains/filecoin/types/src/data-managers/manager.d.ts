@@ -19,5 +19,5 @@ export default class Manager<
   get(key: number | string | Buffer): Promise<T | null>;
   setRaw(key: number | string | Buffer, value: Buffer): Promise<void>;
   set(key: number | string | Buffer, value: T): Promise<void>;
-  del(key: Buffer): any;
+  del(key: Buffer): Promise<void>;
 }
