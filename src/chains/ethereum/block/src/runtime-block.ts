@@ -1,4 +1,10 @@
-import { utils, Data, Quantity } from "@ganache/utils";
+import {
+  Data,
+  Quantity,
+  BUFFER_EMPTY,
+  BUFFER_32_ZERO,
+  BUFFER_8_ZERO
+} from "@ganache/utils";
 import { BN, KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
@@ -21,8 +27,6 @@ class BnExtra extends BN {
     this.buf = number;
   }
 }
-
-const { BUFFER_EMPTY, BUFFER_32_ZERO, BUFFER_8_ZERO } = utils;
 
 export type BlockHeader = {
   parentHash: Data;

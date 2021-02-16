@@ -10,7 +10,7 @@ export type LoggingConfig = {
     /**
      * Set to `true` to log EVM opcodes.
      *
-     * @default false
+     * @defaultValue false
      */
     readonly debug: {
       type: boolean;
@@ -51,7 +51,7 @@ export type LoggingConfig = {
     /**
      * Set to `true` to log all RPC requests and responses.
      *
-     * @default false
+     * @defaultValue false
      */
     readonly verbose: {
       type: boolean;
@@ -68,7 +68,7 @@ export type LoggingConfig = {
      * Set to `true` to disable logging. This option overrides
      * logging.logger and option.verbose.
      *
-     * @default false
+     * @defaultValue false
      */
     readonly quiet: {
       type: boolean;

@@ -3,6 +3,7 @@ import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import Transaction from "@ethereumjs/tx/dist/legacyTransaction";
 import Common from "@ethereumjs/common";
+import { Data } from "@ganache/utils";
 
 describe("api", () => {
   describe("eth", () => {
@@ -47,7 +48,7 @@ describe("api", () => {
 
         await provider.send("eth_subscribe", ["newHeads"]);
         const txHash = await provider.send("eth_sendRawTransaction", [
-          signed.serialize()
+          Data.from(signed.serialize()).toString()
         ]);
         await provider.once("message");
 

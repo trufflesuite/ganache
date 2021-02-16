@@ -1,10 +1,6 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 
-export type Logger = {
-  log(message?: any, ...optionalParams: any[]): void;
-};
-
 export type LoggingConfig = {
   options: {
     /**
@@ -22,13 +18,15 @@ export type LoggingConfig = {
      * ```
      */
     readonly logger: {
-      type: Logger;
+      type: {
+        log(message?: any, ...optionalParams: any[]): void;
+      };
       hasDefault: true;
     };
   };
 };
 
-const logger: Logger = { log: console.log };
+const logger = { log: console.log };
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
   logger: {

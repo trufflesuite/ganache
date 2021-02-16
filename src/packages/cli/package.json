@@ -6,18 +6,18 @@
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/cli#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "lib/index.d.ts",
   "source": "index.ts",
   "bin": {
     "ganache": "./lib/src/cli.js",
     "ganache-cli": "./lib/src/cli.js"
   },
   "directories": {
-    "lib": "/lib",
-    "test": "/tests"
+    "lib": "lib",
+    "test": "tests"
   },
   "files": [
-    "/lib"
+    "lib"
   ],
   "repository": {
     "type": "git",
@@ -49,13 +49,12 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/core": "0.1.0",
-    "@ganache/filecoin-types": "0.1.5"
+    "@ganache/ethereum": "0.1.0",
+    "@ganache/filecoin": "0.1.5"
   },
   "dependencies": {
     "@ganache/core": "0.1.0",
     "@ganache/colors": "^0.1.0",
-    "@ganache/ethereum": "0.1.0",
     "@ganache/flavors": "0.1.0",
     "@ganache/options": "0.1.0",
     "@ganache/utils": "0.1.0",

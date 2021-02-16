@@ -4,7 +4,10 @@
     "outDir": "lib",
     "composite": true
   },
-  "include": ["index.ts", "src/**/*"],
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
   "references": [
     {
       "name": "@ganache/ethereum",
@@ -33,10 +36,6 @@
     {
       "name": "@ganache/options",
       "path": "../options"
-    },
-    {
-      "name": "@ganache/filecoin-types",
-      "path": "../../chains/filecoin/types"
     },
     {
       "name": "@ganache/colors",

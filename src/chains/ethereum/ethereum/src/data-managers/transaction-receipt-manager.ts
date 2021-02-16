@@ -1,11 +1,15 @@
 import { LevelUp } from "levelup";
 import Manager from "./manager";
-import { Data, Quantity, utils } from "@ganache/utils";
+import {
+  Data,
+  Quantity,
+  BUFFER_EMPTY,
+  RPCQUANTITY_ONE,
+  BUFFER_ZERO
+} from "@ganache/utils";
 import Blockchain from "../blockchain";
 import { TransactionReceipt } from "@ganache/ethereum-transaction";
 import { Address } from "@ganache/ethereum-address";
-
-const { BUFFER_EMPTY } = utils;
 
 export default class TransactionReceiptManager extends Manager<TransactionReceipt> {
   #blockchain: Blockchain;
@@ -26,9 +30,7 @@ export default class TransactionReceiptManager extends Manager<TransactionReceip
       if (!res) return null;
 
       const status =
-        res.status === "0x1"
-          ? utils.RPCQUANTITY_ONE.toBuffer()
-          : utils.BUFFER_ZERO;
+        res.status === "0x1" ? RPCQUANTITY_ONE.toBuffer() : BUFFER_ZERO;
       const cumulativeGasUsed = Quantity.from(res.cumulativeGasUsed).toBuffer();
       const logsBloom = Data.from(res.logsBloom, 256).toBuffer();
       const logs = res.logs.map(log => ({

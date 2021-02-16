@@ -6,7 +6,7 @@
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/flavors#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "lib/index.d.ts",
   "source": "index.ts",
   "directories": {
     "lib": "lib",
@@ -51,8 +51,7 @@
     "chalk": "4.1.0"
   },
   "devDependencies": {
-    "@ganache/filecoin": "0.1.5",
-    "@ganache/filecoin-types": "0.1.5"
+    "@ganache/filecoin": "0.1.5"
   },
   "peerDependencies": {
     "@ganache/filecoin": "^0.1.0"

@@ -150,11 +150,11 @@ process.stdout.write(`${COLORS.Reset}`);
       homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${folderName}#readme`,
       license: "MIT",
       main: "lib/index.js",
-      types: "lib/index.d.ts",
+      typings: "lib/index.d.ts",
       source: "index.ts",
       directories: {
         lib: "lib",
-        test: "test"
+        test: "tests"
       },
       files: ["lib"],
       repository: {

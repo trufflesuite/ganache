@@ -4,6 +4,7 @@ import path from "path";
 import merge from "webpack-merge";
 
 const config: webpack.Configuration = merge({}, base, {
+  externals: ["@ganache/filecoin"],
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
     fallback: {
@@ -33,6 +34,7 @@ const config: webpack.Configuration = merge({}, base, {
     }
   },
   output: {
+    filename: "ganache.min.js",
     path: path.resolve(__dirname, "../", "dist", "web")
   },
   plugins: [

@@ -4,7 +4,10 @@
     "outDir": "lib",
     "composite": true
   },
-  "include": ["index.ts", "src/**/*.ts"],
+  "include": [
+    "index.ts",
+    "src/**/*.ts"
+  ],
   "references": [
     {
       "name": "@ganache/core",
@@ -31,8 +34,8 @@
       "path": "../colors"
     },
     {
-      "name": "@ganache/filecoin-types",
-      "path": "../../chains/filecoin/types"
+      "name": "@ganache/filecoin",
+      "path": "../../chains/filecoin/filecoin"
     }
   ]
 }

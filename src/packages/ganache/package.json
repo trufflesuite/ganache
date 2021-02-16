@@ -5,12 +5,12 @@
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
   "license": "MIT",
-  "main": "dist/node/ganache.min.js",
+  "main": "dist/node/core.js",
   "browser": "dist/web/ganache.min.js",
-  "types": "lib/index.d.ts",
+  "typings": "dist/ganache.d.ts",
   "source": "index.ts",
   "bin": {
-    "ganache": "dist/cli/ganache.min.js"
+    "ganache": "dist/node/cli.js"
   },
   "directories": {
     "lib": "lib",
@@ -26,7 +26,7 @@
     "directory": "src/packages/ganache"
   },
   "scripts": {
-    "build": "npm run tsc && webpack",
+    "build": "npm run tsc && npx shx rm -rf ./dist && webpack && npx @microsoft/api-extractor run --local --verbose",
     "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
@@ -50,8 +50,8 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/core": "^0.1.0",
     "@ganache/cli": "^0.1.0",
+    "@ganache/core": "^0.1.0",
     "@ganache/flavors": "^0.1.0",
     "@types/node": "14.14.6",
     "assert": "2.0.0",
@@ -64,6 +64,7 @@
     "path-browserify": "1.0.1",
     "process": "0.11.10",
     "shebang-loader": "0.0.1",
+    "shx": "0.3.3",
     "stream-browserify": "3.0.0",
     "terser-webpack-plugin": "5.0.3",
     "ts-loader": "8.0.7",

@@ -6,7 +6,7 @@
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/utils#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "lib/index.d.ts",
   "source": "index.ts",
   "directories": {
     "lib": "lib",

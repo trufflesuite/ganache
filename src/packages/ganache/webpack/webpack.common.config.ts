@@ -22,10 +22,9 @@ const base: webpack.Configuration = {
     ]
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".js"]
+    extensions: [".ts", ".js"]
   },
   output: {
-    filename: "ganache.min.js",
     library: "Ganache",
     libraryTarget: "umd"
   },
@@ -33,10 +32,18 @@ const base: webpack.Configuration = {
     colors: true
   },
   optimization: {
+    // if we have wasm imports, go ahead and optimize those for size
+    mangleWasmImports: true,
+    // make exports names tiny
+    mangleExports: "size",
+    // make module ids tiny
+    moduleIds: "size",
     minimize: true,
     minimizer: [
       new TerserPlugin({
+        parallel: true,
         terserOptions: {
+          sourceMap: true,
           // Truffle needs our stack traces in its tests:
           // https://github.com/trufflesuite/truffle/blob/b2742bc1187a3c1513173d19c58ce0d3a8fe969b/packages/contract-tests/test/errors.js#L280
           keep_fnames: true

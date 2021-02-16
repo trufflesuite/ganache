@@ -6,7 +6,7 @@ export type ChainConfig = {
     /**
      * The IPFS simulator host name/address to listen on.
      *
-     * @default "127.0.0.1"
+     * @defaultValue "127.0.0.1"
      */
     readonly ipfsHost: {
       type: string;
@@ -16,7 +16,7 @@ export type ChainConfig = {
     /**
      * The IPFS simulator port.
      *
-     * @default 5001
+     * @defaultValue 5001
      */
     readonly ipfsPort: {
       type: number;
@@ -26,7 +26,7 @@ export type ChainConfig = {
     /**
      * When set to `false` only one request will be processed at a time.
      *
-     * @default true
+     * @defaultValue true
      */
     readonly asyncRequestProcessing: {
       type: boolean;

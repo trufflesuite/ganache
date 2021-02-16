@@ -2,9 +2,7 @@ import { Address } from "@ganache/ethereum-address";
 import { Data, Quantity } from "@ganache/utils";
 import { KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
 import { encode, decode } from "@ganache/rlp";
-import { utils } from "@ganache/utils";
-
-const { RPCQUANTITY_EMPTY } = utils;
+import { RPCQUANTITY_EMPTY } from "@ganache/utils";
 
 export type EthereumRawAccount = [
   nonce: Buffer,

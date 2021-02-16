@@ -1,10 +1,10 @@
 import { BlockLogs, TransactionLog } from "@ganache/ethereum-utils";
 import { decode, digest, encodeRange } from "@ganache/rlp";
 import { Data, Quantity } from "@ganache/utils";
-import { utils } from "@ganache/utils";
+import { RPCQUANTITY_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
 import { FrozenTransaction } from "./frozen-transaction";
 
-const STATUSES = [utils.RPCQUANTITY_ZERO, utils.RPCQUANTITY_ONE];
+const STATUSES = [RPCQUANTITY_ZERO, RPCQUANTITY_ONE];
 
 type EthereumRawReceipt = [
   status: Buffer,

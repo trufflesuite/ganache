@@ -1,6 +1,14 @@
 import Emittery from "emittery";
 import FilecoinApi from "./api";
-import { JsonRpcTypes, types, utils } from "@ganache/utils";
+import {
+  Executor,
+  Connector as IConnector,
+  JsonRpcRequest,
+  JsonRpcResponse,
+  makeResponse,
+  makeError,
+  KnownKeys
+} from "@ganache/utils";
 import FilecoinProvider from "./provider";
 import {
   RecognizedString,
@@ -13,14 +21,14 @@ export { StorageDealStatus } from "./types/storage-deal-status";
 export type Provider = FilecoinProvider;
 export const Provider = FilecoinProvider;
 
-export class Connector
-  extends Emittery.Typed<{}, "ready" | "close">
-  implements
-    types.Connector<
+export class Connector<
+    R extends JsonRpcRequest<
       FilecoinApi,
-      JsonRpcTypes.Request<FilecoinApi>,
-      JsonRpcTypes.Response
-    > {
+      KnownKeys<FilecoinApi>
+    > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
+  >
+  extends Emittery.Typed<{}, "ready" | "close">
+  implements IConnector<FilecoinApi, R, JsonRpcResponse> {
   #provider: FilecoinProvider;
 
   get provider() {
@@ -29,7 +37,7 @@ export class Connector
 
   constructor(
     providerOptions: FilecoinProviderOptions = {},
-    executor: utils.Executor
+    executor: Executor
   ) {
     super();
 
@@ -44,29 +52,23 @@ export class Connector
   }
 
   parse(message: Buffer) {
-    return JSON.parse(message) as JsonRpcTypes.Request<FilecoinApi>;
+    return JSON.parse(message) as R;
   }
 
-  handle(
-    payload: JsonRpcTypes.Request<FilecoinApi>,
-    _connection: HttpRequest | WebSocket
-  ): Promise<any> {
+  handle(payload: R, _connection: HttpRequest | WebSocket): Promise<any> {
     return this.#provider._requestRaw(payload);
   }
 
-  format(
-    result: any,
-    payload: JsonRpcTypes.Request<FilecoinApi>
-  ): RecognizedString {
-    const json = JsonRpcTypes.Response(payload.id, result);
+  format(result: any, payload: R): RecognizedString {
+    const json = makeResponse(payload.id, result);
     return JSON.stringify(json);
   }
 
-  formatError(
-    error: Error & { code: number },
-    payload: JsonRpcTypes.Request<FilecoinApi>
-  ): RecognizedString {
-    const json = JsonRpcTypes.Error(payload.id, error);
+  formatError(error: Error & { code: number }, payload: R): RecognizedString {
+    const json = makeError(
+      payload && payload.id ? payload.id : undefined,
+      error
+    );
     return JSON.stringify(json);
   }
 

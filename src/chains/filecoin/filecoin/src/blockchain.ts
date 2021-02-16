@@ -2,7 +2,12 @@ import { Tipset } from "./things/tipset";
 import { BlockHeader } from "./things/block-header";
 import { CID } from "./things/cid";
 import { RootCID } from "./things/root-cid";
-import { Quantity, utils } from "@ganache/utils";
+import {
+  Quantity,
+  RandomNumberGenerator,
+  uintToBuffer,
+  unref
+} from "@ganache/utils";
 import Emittery from "emittery";
 import { DealInfo } from "./things/deal-info";
 import { StartDealParams } from "./things/start-deal-params";
@@ -79,7 +84,7 @@ export default class Blockchain extends Emittery.Typed<
   private ipfsServer: IPFSServer;
   private miningTimeout: NodeJS.Timeout | null;
   readonly #miningTimeoutLock: Sema;
-  private rng: utils.RandomNumberGenerator;
+  private rng: RandomNumberGenerator;
 
   readonly #database: Database;
 
@@ -95,7 +100,7 @@ export default class Blockchain extends Emittery.Typed<
     super();
     this.options = options;
 
-    this.rng = new utils.RandomNumberGenerator(this.options.wallet.seed);
+    this.rng = new RandomNumberGenerator(this.options.wallet.seed);
 
     this.miner = Address.fromId(0, false, true);
 
@@ -194,14 +199,12 @@ export default class Blockchain extends Emittery.Typed<
 
       this.tipsetManager.earliest = genesisTipset; // initialize earliest
       await this.tipsetManager.putTipset(genesisTipset); // sets latest
-      await this.#database.db!.put("latest-tipset", utils.uintToBuffer(0));
+      await this.#database.db!.put("latest-tipset", uintToBuffer(0));
     } else {
       this.tipsetManager.earliest = recordedGenesisTipset; // initialize earliest
       const data: Buffer = await this.#database.db!.get("latest-tipset");
       const height = Quantity.from(data).toNumber();
-      const latestTipset = await this.tipsetManager.getTipsetWithBlocks(
-        height
-      );
+      const latestTipset = await this.tipsetManager.getTipsetWithBlocks(height);
       this.tipsetManager.latest = latestTipset!; // initialize latest
     }
 
@@ -272,7 +275,7 @@ export default class Blockchain extends Emittery.Typed<
       this.intervalMine.bind(this),
       this.options.miner.blockTime * 1000
     );
-    utils.unref(this.miningTimeout);
+    unref(this.miningTimeout);
 
     this.#miningTimeoutLock.release();
   }
@@ -662,7 +665,7 @@ export default class Blockchain extends Emittery.Typed<
       await this.tipsetManager!.putTipset(newTipset);
       await this.#database.db!.put(
         "latest-tipset",
-        utils.uintToBuffer(newTipsetHeight)
+        uintToBuffer(newTipsetHeight)
       );
 
       // Advance the state of all deals in process.

@@ -1,5 +1,5 @@
 import { hasOwn } from "./has-own";
-import { KnownKeys, Api } from "../types";
+import { KnownKeys, Api, OverloadedParameters } from "../types";
 import { RequestCoordinator } from "./request-coordinator";
 
 export class Executor {
@@ -20,7 +20,7 @@ export class Executor {
   public execute<T extends Api, M extends KnownKeys<T>>(
     api: T,
     methodName: M,
-    params: Parameters<T[M]>
+    params: OverloadedParameters<T[M]>
   ) {
     // The methodName is user-entered data and can be all sorts of weird hackery
     // Make sure we only accept what we expect to avoid headache and heartache

@@ -6,7 +6,7 @@ export type ServerConfig = {
     /**
      * Enable a websocket server.
      *
-     * @default true
+     * @defaultValue true
      */
     readonly ws: {
       type: boolean;
@@ -26,7 +26,7 @@ export type ServerConfig = {
      * Default is "auto", which responds using the same format as the incoming
      * message that triggered the response.
      *
-     * @default "auto"
+     * @defaultValue "auto"
      */
     readonly wsBinary: {
       type: boolean | "auto";
@@ -36,7 +36,7 @@ export type ServerConfig = {
     /**
      * Defines the endpoint route the HTTP and WebSocket servers will listen on.
      *
-     * @default "/"
+     * @defaultValue "/"
      */
     readonly rpcEndpoint: {
       type: string;

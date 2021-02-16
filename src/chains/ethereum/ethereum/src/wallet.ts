@@ -1,5 +1,5 @@
 import { Account } from "@ganache/ethereum-utils";
-import { Data, Quantity, utils } from "@ganache/utils";
+import { Data, Quantity, RPCQUANTITY_ZERO, unref, WEI } from "@ganache/utils";
 import { privateToAddress } from "ethereumjs-util";
 import secp256k1 from "secp256k1";
 import { mnemonicToSeedSync } from "bip39";
@@ -19,7 +19,6 @@ const SCRYPT_PARAMS = {
   r: 1
 } as const;
 const CIPHER = "aes-128-ctr";
-const WEI = utils.WEI;
 //#endregion
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [
@@ -385,7 +384,7 @@ export default class Wallet {
     const acct = HDKey.fromMasterSeed(seed);
     const address = uncompressedPublicKeyToAddress(acct.publicKey);
     const privateKey = Data.from(acct.privateKey);
-    return Wallet.createAccount(utils.RPCQUANTITY_ZERO, privateKey, address);
+    return Wallet.createAccount(RPCQUANTITY_ZERO, privateKey, address);
   }
 
   public async unlockAccount(
@@ -408,7 +407,7 @@ export default class Wallet {
     const durationMs = (duration * 1000) | 0;
     if (durationMs > 0) {
       const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
-      utils.unref(timeout);
+      unref(timeout);
       this.lockTimers.set(lowerAddress, timeout as any);
     }
 
@@ -431,7 +430,7 @@ export default class Wallet {
     const durationMs = (duration * 1000) | 0;
     if (durationMs > 0) {
       const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
-      utils.unref(timeout);
+      unref(timeout);
       this.lockTimers.set(lowerAddress, timeout as any);
     }
 

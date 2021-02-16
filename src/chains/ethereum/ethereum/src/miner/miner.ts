@@ -5,7 +5,14 @@ import {
   StepEvent,
   StorageKeys
 } from "@ganache/ethereum-utils";
-import { utils, Quantity, Data } from "@ganache/utils";
+import {
+  Quantity,
+  BUFFER_EMPTY,
+  BUFFER_256_ZERO,
+  keccak,
+  uintToBuffer,
+  Heap
+} from "@ganache/utils";
 import { encode } from "@ganache/rlp";
 import { BaseTrie as Trie } from "merkle-patricia-tree";
 import Emittery from "emittery";
@@ -16,7 +23,6 @@ import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { Params, RuntimeTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
-const { BUFFER_EMPTY, BUFFER_256_ZERO, keccak, uintToBuffer } = utils;
 
 export type BlockData = {
   blockTransactions: RuntimeTransaction[];
@@ -80,7 +86,7 @@ export default class Miner extends Emittery.Typed<
   }
 
   // create a Heap that sorts by gasPrice
-  readonly #priced = new utils.Heap<RuntimeTransaction>(sortByPrice);
+  readonly #priced = new Heap<RuntimeTransaction>(sortByPrice);
   /*
    * @param executables A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -408,7 +414,7 @@ export default class Miner extends Emittery.Typed<
     tx: RuntimeTransaction,
     block: RuntimeBlock,
     origin: string,
-    pending: Map<string, utils.Heap<RuntimeTransaction>>
+    pending: Map<string, Heap<RuntimeTransaction>>
   ) => {
     try {
       const vm = this.#vm;

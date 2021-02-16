@@ -1,10 +1,10 @@
-import { utils } from "@ganache/utils";
+import { WEI } from "@ganache/utils";
 import assert from "assert";
 import { join } from "path";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 
-const eth = "0x" + utils.WEI.toString(16);
+const eth = "0x" + WEI.toString(16);
 
 describe("api", () => {
   describe("evm", () => {
@@ -282,7 +282,7 @@ describe("api", () => {
           "At least 1 receipt should be null"
         );
 
-        // and that the transations were all accepted
+        // and that the transactions were all accepted
         transactions.forEach(transaction => {
           assert.notStrictEqual(
             transaction,
@@ -348,7 +348,7 @@ describe("api", () => {
 
         const transactions = await Promise.all(txHashes.map(getTx));
 
-        // and that the transations were all accepted
+        // and that the transactions were all accepted
         transactions.forEach(transaction => {
           assert.notStrictEqual(
             transaction,
@@ -413,9 +413,9 @@ describe("api", () => {
 
         const txsMinedProm = new Promise(resolve => {
           let count = 0;
-          const unsub = provider.on("message", m => {
+          const unsubscribe = provider.on("message", _ => {
             if (++count === 2) {
-              unsub();
+              unsubscribe();
               resolve(null);
             }
           });
@@ -464,9 +464,9 @@ describe("api", () => {
 
         const gotTxsProm = new Promise(resolve => {
           let count = 0;
-          const unsub = provider.on("message", m => {
+          const unsubscribe = provider.on("message", m => {
             if (++count === 3) {
-              unsub();
+              unsubscribe();
               resolve(null);
             }
           });

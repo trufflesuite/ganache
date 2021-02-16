@@ -1,5 +1,5 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { Data, Quantity, utils } from "@ganache/utils";
+import { Data, Quantity, KNOWN_CHAINIDS } from "@ganache/utils";
 import AbortController from "abort-controller";
 import Common from "@ethereumjs/common";
 import { HttpHandler } from "./handlers/http-handler";
@@ -9,8 +9,6 @@ import { Tag } from "@ganache/ethereum-utils";
 import { Block } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
 import { Account } from "@ganache/ethereum-utils";
-
-const { KNOWN_CHAINIDS } = utils;
 
 function fetchChainId(fork: Fork) {
   return fork

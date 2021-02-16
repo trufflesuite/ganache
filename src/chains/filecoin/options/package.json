@@ -6,7 +6,7 @@
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/filecoin/options#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/src/index.d.ts",
+  "typings": "lib/src/index.d.ts",
   "source": "index.ts",
   "directories": {
     "lib": "lib",

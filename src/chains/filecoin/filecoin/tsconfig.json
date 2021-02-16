@@ -20,10 +20,6 @@
       "path": "../options"
     },
     {
-      "name": "@ganache/options",
-      "path": "../../../packages/options"
-    },
-    {
       "name": "@ganache/utils",
       "path": "../../../packages/utils"
     }

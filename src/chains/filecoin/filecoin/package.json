@@ -10,8 +10,7 @@
     "npm": ">=6.4.1"
   },
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "source": "index.ts",
+  "typings": "lib/index.d.ts",
   "directories": {
     "lib": "lib",
     "test": "tests"
@@ -60,7 +59,6 @@
     "@filecoin-shipyard/lotus-client-rpc": "0.2.0",
     "@filecoin-shipyard/lotus-client-schema": "2.0.0",
     "@ganache/filecoin-options": "0.1.3",
-    "@ganache/options": "0.1.0",
     "@ganache/utils": "0.1.0",
     "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
     "@types/bn.js": "5.1.0",

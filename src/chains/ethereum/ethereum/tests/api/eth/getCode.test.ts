@@ -59,7 +59,7 @@ describe("api", () => {
             {
               from,
               data: contract.code,
-              gas: 3141592
+              gas: "0x2fefd8"
             }
           ]);
           await provider.once("message");

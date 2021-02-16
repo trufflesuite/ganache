@@ -1,5 +1,5 @@
 import { Data, Quantity } from "@ganache/utils";
-import { utils } from "@ganache/utils";
+import { BUFFER_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
 import { decode, encode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
@@ -89,7 +89,7 @@ export class BlockLogs {
     log: TransactionLog
   ) {
     this[_raw][1].push([
-      utils.BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
+      BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
       transactionIndex.toBuffer(), // transactionIndex
       transactionHash.toBuffer(), // transactionHash
       log[0], // `address`
@@ -124,9 +124,7 @@ export class BlockLogs {
         : Data.from(log.data).toBuffer();
       const logIndex = log.logIndex;
       const removed =
-        log.removed === false
-          ? utils.BUFFER_ZERO
-          : utils.RPCQUANTITY_ONE.toBuffer();
+        log.removed === false ? BUFFER_ZERO : RPCQUANTITY_ONE.toBuffer();
       const topics = Array.isArray(log.topics)
         ? log.topics.map(t => Data.from(t, 32).toBuffer())
         : Data.from(log.topics, 32).toBuffer();
@@ -206,7 +204,7 @@ export class BlockLogs {
         ? data.map(d => Data.from(d, d.length))
         : Data.from(data, data.length),
       logIndex, // this is the index in the *block*
-      removed: log[0].equals(utils.BUFFER_ZERO) ? false : true,
+      removed: log[0].equals(BUFFER_ZERO) ? false : true,
       topics: Array.isArray(topics)
         ? topics.map(t => Data.from(t, 32))
         : Data.from(topics, 32),

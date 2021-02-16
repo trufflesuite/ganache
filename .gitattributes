@@ -1,4 +1,5 @@
 docs/assets/launch.json linguist-language=JSON5
 tsconfig-base.json linguist-language=JSON5
+api-extractor.json linguist-language=JSON5
 .nycrc linguist-language=JSON
 .prettierrc linguist-language=JSON
