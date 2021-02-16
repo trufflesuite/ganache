@@ -18166,7 +18166,7 @@
         "cross-fetch": "^2.1.0",
         "eth-block-tracker": "^3.0.0",
         "eth-json-rpc-infura": "^3.1.0",
-        "eth-sig-util": "^2.0.0",
+        "eth-sig-util": "^1.4.2",
         "ethereumjs-block": "^1.2.2",
         "ethereumjs-tx": "^1.2.0",
         "ethereumjs-util": "^5.1.5",
@@ -18195,8 +18195,34 @@
           "resolved": "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-1.4.2.tgz",
           "integrity": "sha1-jZWCAsftuq6Dlwf7pvCf8ydgYhA=",
           "requires": {
-            "ethereumjs-abi": "ethereumjs-abi@0.6.5",
+            "ethereumjs-abi": "git+https://github.com/ethereumjs/ethereumjs-abi.git",
             "ethereumjs-util": "^5.1.1"
+          },
+          "dependencies": {
+            "ethereumjs-abi": {
+              "version": "git+https://github.com/ethereumjs/ethereumjs-abi.git#1a27c59c15ab1e95ee8e5c4ed6ad814c49cc439e",
+              "from": "git+https://github.com/ethereumjs/ethereumjs-abi.git",
+              "requires": {
+                "bn.js": "^4.11.8",
+                "ethereumjs-util": "^6.0.0"
+              },
+              "dependencies": {
+                "ethereumjs-util": {
+                  "version": "6.2.1",
+                  "resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-6.2.1.tgz",
+                  "integrity": "sha512-W2Ktez4L01Vexijrm5EB6w7dg4n/TgpoYU4avuT5T3Vmnw/eCRtiBrJfQYS/DCSvDIOLn2k57GcHdeBcgVxAqw==",
+                  "requires": {
+                    "@types/bn.js": "^4.11.3",
+                    "bn.js": "^4.11.0",
+                    "create-hash": "^1.1.2",
+                    "elliptic": "^6.5.2",
+                    "ethereum-cryptography": "^0.1.3",
+                    "ethjs-util": "0.1.6",
+                    "rlp": "^2.2.3"
+                  }
+                }
+              }
+            }
           }
         },
         "ethereum-common": {
@@ -18206,7 +18232,7 @@
         },
         "ethereumjs-abi": {
           "version": "https://registry.npmjs.org/ethereumjs-abi/-/ethereumjs-abi-0.6.5.tgz",
-          "from": "ethereumjs-abi@0.6.5",
+          "integrity": "sha512-rCjJZ/AE96c/AAZc6O3kaog4FhOsAViaysBxqJNy2+LHP0ttH0zkZ7nXdVHOAyt6lFwLO0nlCwWszysG/ao1+g==",
           "requires": {
             "bn.js": "^4.10.0",
             "ethereumjs-util": "^4.3.0"
