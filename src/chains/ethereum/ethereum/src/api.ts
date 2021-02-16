@@ -267,9 +267,11 @@ export default class EthereumApi implements types.Api {
    * Will mine an empty block if there are no available transactions to mine.
    *
    * @param timestamp the timestamp the block should be mined with.
-   * Optionally, specify an `options` object with `timestamp` and/or `blocks`
-   * fields. If `blocks` is given, ganache will mine `blocks` number of blocks
-   * from the current latest.
+   * EXPERIEMENTAL: Optionally, specify an `options` object with `timestamp`
+   * and/or `blocks` fields. If `blocks` is given, it will mine exactly `blocks`
+   *  number of blocks, regardless of any other blocks mined or reverted during it's
+   * operation. This behavior is subject to change!
+   *
    * @returns The string `"0x0"`. May return additional meta-data in the future.
    *
    * @example
@@ -279,35 +281,40 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * await provider.send("evm_mine", {blocks: 5}); // mines 5 blocks
+   * console.log("start", await provider.send("eth_blockNumber"));
+   * await provider.send("evm_mine", [{blocks: 5}]); // mines 5 blocks
+   * console.log("end", await provider.send("eth_blockNumber"));
    * ```
    */
   async evm_mine(timestamp?: number): Promise<"0x0">;
   async evm_mine(options?: {
     timestamp?: number;
-    blocks?: number | bigint;
+    blocks?: number;
   }): Promise<"0x0">;
   @assertArgLength(0, 1)
   async evm_mine(
-    arg?: number | { timestamp?: number; blocks?: number | bigint }
+    arg?: number | { timestamp?: number; blocks?: number }
   ): Promise<"0x0"> {
-    const options = typeof arg === "number" ? { timestamp: arg } : arg || {};
-    if (typeof options.blocks !== "undefined") {
-      const latest = this.#blockchain.blocks.latest.header.number.toBigInt();
-      const goal = BigInt(options.blocks) - latest;
-      let current = latest;
-      while (current < goal) {
-        this.#blockchain.mine(-1, options.timestamp, true);
-        const block = await this.#blockchain.once("block");
-        current = block.header.number.toBigInt();
+    const blockchain = this.#blockchain;
+    const vmErrorsOnRPCResponse = this.#options.chain.vmErrorsOnRPCResponse;
+    if (typeof arg === "object") {
+      let { blocks, timestamp } = arg;
+      if (blocks == null) {
+        blocks = 1;
+      }
+      // TODO(perf): add an option to mine a bunch of blocks in a batch so
+      // we can save them all to the database in one go.
+      // Devs like to move the blockchain forward by thousands of blocks at a
+      // time and doing this would make it way faster
+      for (let i = 0; i < blocks; i++) {
+        const transactions = await blockchain.mine(-1, timestamp, true);
+        if (vmErrorsOnRPCResponse) {
+          assertExceptionalTransactions(transactions);
+        }
       }
     } else {
-      const transactions = await this.#blockchain.mine(
-        -1,
-        options.timestamp,
-        true
-      );
-      if (this.#options.chain.vmErrorsOnRPCResponse) {
+      const transactions = await blockchain.mine(-1, arg, true);
+      if (vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
       }
     }
