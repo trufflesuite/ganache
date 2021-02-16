@@ -24,6 +24,10 @@ describe("api", () => {
         provider = await getProvider({ logging: { logger } });
       });
 
+      afterEach(() => {
+        logger.clearLoggedStuff();
+      });
+
       it("returns the receipt for the transaction", async () => {
         const [from] = await provider.send("eth_accounts");
         await provider.send("eth_subscribe", ["newHeads"]);
@@ -51,7 +55,6 @@ describe("api", () => {
       });
 
       it("logs a warning if the transaction hasn't been mined yet", async () => {
-        logger.clearLoggedStuff();
         const [from] = await provider.send("eth_accounts");
 
         const hash = await provider.send("eth_sendTransaction", [
