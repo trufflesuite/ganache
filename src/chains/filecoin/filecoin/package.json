@@ -34,7 +34,7 @@
     "tsc": "ttsc --build",
     "tsc.declarations": "ttsc --build tsconfig.declarations.json",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true ts-node ../../../../scripts/lerna-mocha.ts --timeout 10000 --require ts-node/register '_PACKAGEDIR_/tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true TS_NODE_PROJECT=tsconfig.test.json mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
