@@ -1201,20 +1201,23 @@ export default class EthereumApi implements types.Api {
     ]);
     if (transaction) {
       return receipt.toJSON(block, transaction);
-    } else {
-      // check to see if the transaction is pending
+    } else if (
+      this.#options.miner.blockTime <= 0 &&
+      this.#options.miner.legacyInstamine !== true &&
+      this.#blockchain.isStarted()
+    ) {
+      // if we are performing non-legacy instamining, then check to see if the
+      // transaction is pending so as to warn about the v7 breaking change
       const tx = this.#blockchain.transactions.transactionPool.find(txHash);
       if (tx != null) {
         this.#options.logging.logger.log(
-          " > Ganache `eth_getTransactionReceipt` warning: the requested transaction has not yet been mined."
-        );
-        this.#options.logging.logger.log(
-          " > After it has been mined you will be able to obtain the receipt. See https://trfl.co/v7-instamine for more details."
+          " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
+            ` > \`${txHash.toString()}\` has not\n` +
+            " > yet been mined. See https://trfl.co/v7-instamine for additional information."
         );
       }
-
-      return null;
     }
+    return null;
   }
 
   /**

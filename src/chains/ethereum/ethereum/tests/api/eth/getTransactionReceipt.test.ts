@@ -47,7 +47,7 @@ describe("api", () => {
         assert(receipt);
         assert(
           !logger.loggedStuff.includes(
-            "Ganache `eth_getTransactionReceipt` warning"
+            "Ganache `eth_getTransactionReceipt` notice"
           )
         );
       });
@@ -59,12 +59,12 @@ describe("api", () => {
         assert.strictEqual(result, null);
         assert(
           !logger.loggedStuff.includes(
-            "Ganache `eth_getTransactionReceipt` warning"
+            "Ganache `eth_getTransactionReceipt` notice"
           )
         );
       });
 
-      describe("legacy instamine detection and warning", () => {
+      describe("legacy instamine detection and notice", () => {
         it("logs a warning if the transaction hasn't been mined yet", async () => {
           const [from] = await provider.send("eth_accounts");
 
@@ -83,7 +83,36 @@ describe("api", () => {
           assert.strictEqual(result, null);
           assert(
             logger.loggedStuff.includes(
-              "Ganache `eth_getTransactionReceipt` warning"
+              "Ganache `eth_getTransactionReceipt` notice"
+            )
+          );
+        });
+
+        it("doesn't log when instamine is not enabled", async () => {
+          const nonInstamineProvider = await getProvider({
+            logging: { logger },
+            miner: { blockTime: 1 }
+          });
+
+          const [from] = await nonInstamineProvider.send("eth_accounts");
+
+          const hash = await nonInstamineProvider.send("eth_sendTransaction", [
+            {
+              from,
+              to: from
+            }
+          ]);
+
+          // do not wait for the tx to be mined which will create a warning
+          const result = await nonInstamineProvider.send(
+            "eth_getTransactionReceipt",
+            [hash]
+          );
+
+          assert.strictEqual(result, null);
+          assert(
+            !logger.loggedStuff.includes(
+              "Ganache `eth_getTransactionReceipt` notice"
             )
           );
         });
