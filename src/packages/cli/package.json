@@ -48,10 +48,9 @@
     "tooling",
     "truffle"
   ],
-  "devDependencies": {
-    "@ganache/core": "0.1.0"
-  },
+  "devDependencies": {},
   "dependencies": {
+    "@ganache/core": "0.1.0",
     "@ganache/colors": "^0.1.0",
     "@ganache/ethereum": "0.1.0",
     "@ganache/ethereum-options": "0.1.0",
