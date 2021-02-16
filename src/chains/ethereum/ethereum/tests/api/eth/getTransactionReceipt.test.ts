@@ -54,23 +54,29 @@ describe("api", () => {
         assert.strictEqual(result, null);
       });
 
-      it("logs a warning if the transaction hasn't been mined yet", async () => {
-        const [from] = await provider.send("eth_accounts");
+      describe("legacy instamine detection and warning", () => {
+        it("logs a warning if the transaction hasn't been mined yet", async () => {
+          const [from] = await provider.send("eth_accounts");
 
-        const hash = await provider.send("eth_sendTransaction", [
-          {
-            from,
-            to: from
-          }
-        ]);
+          const hash = await provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: from
+            }
+          ]);
 
-        // do not wait for the tx to be mined which will create a warning
-        await provider.send("eth_getTransactionReceipt", [hash]);
-        assert(
-          logger.loggedStuff.includes(
-            "Ganache `eth_getTransactionReceipt` warning"
-          )
-        );
+          // do not wait for the tx to be mined which will create a warning
+          const result = await provider.send("eth_getTransactionReceipt", [
+            hash
+          ]);
+
+          assert.strictEqual(result, null);
+          assert(
+            logger.loggedStuff.includes(
+              "Ganache `eth_getTransactionReceipt` warning"
+            )
+          );
+        });
       });
     });
   });
