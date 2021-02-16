@@ -188,14 +188,13 @@ export default class Wallet {
     //#endregion
   }
 
-  #seedCounter = 0n;
+  #randomRng = rng("ganache");
 
   #randomBytes = (length: number) => {
     // Since this is a mock RPC library, the rng doesn't need to be
     // cryptographically secure, and determinism is desired.
     const buf = Buffer.allocUnsafe(length);
-    const seed = (this.#seedCounter += 1n);
-    const rand = rng(seed.toString());
+    const rand = this.#randomRng;
     for (let i = 0; i < length; i++) {
       buf[i] = (rand() * 256) | 0; // generates a random number from 0 to 255
     }
