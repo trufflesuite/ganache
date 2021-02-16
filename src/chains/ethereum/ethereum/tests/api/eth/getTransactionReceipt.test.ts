@@ -45,6 +45,11 @@ describe("api", () => {
           hash
         ]);
         assert(receipt);
+        assert(
+          !logger.loggedStuff.includes(
+            "Ganache `eth_getTransactionReceipt` warning"
+          )
+        );
       });
 
       it("returns null if the transaction does not exist", async () => {
@@ -52,6 +57,11 @@ describe("api", () => {
           "0x0"
         ]);
         assert.strictEqual(result, null);
+        assert(
+          !logger.loggedStuff.includes(
+            "Ganache `eth_getTransactionReceipt` warning"
+          )
+        );
       });
 
       describe("legacy instamine detection and warning", () => {
