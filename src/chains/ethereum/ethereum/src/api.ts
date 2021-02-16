@@ -267,18 +267,49 @@ export default class EthereumApi implements types.Api {
    * Will mine an empty block if there are no available transactions to mine.
    *
    * @param timestamp the timestamp the block should be mined with.
+   * Optionally, specify an `options` object with `timestamp` and/or `blocks`
+   * fields. If `blocks` is given, ganache will mine `blocks` number of blocks
+   * from the current latest.
    * @returns The string `"0x0"`. May return additional meta-data in the future.
    *
    * @example
    * ```javascript
-   * await provider.evm_mine(Date.now());
+   * await provider.send("evm_mine", Date.now());
+   * ```
+   *
+   * @example
+   * ```javascript
+   * await provider.send("evm_mine", {blocks: 5}); // mines 5 blocks
    * ```
    */
+  async evm_mine(timestamp?: number): Promise<"0x0">;
+  async evm_mine(options?: {
+    timestamp?: number;
+    blocks?: number | bigint;
+  }): Promise<"0x0">;
   @assertArgLength(0, 1)
-  async evm_mine(timestamp?: number) {
-    const transactions = await this.#blockchain.mine(-1, timestamp, true);
-    if (this.#options.chain.vmErrorsOnRPCResponse) {
-      assertExceptionalTransactions(transactions);
+  async evm_mine(
+    arg?: number | { timestamp?: number; blocks?: number | bigint }
+  ): Promise<"0x0"> {
+    const options = typeof arg === "number" ? { timestamp: arg } : arg || {};
+    if (typeof options.blocks !== "undefined") {
+      const latest = this.#blockchain.blocks.latest.header.number.toBigInt();
+      const goal = BigInt(options.blocks) - latest;
+      let current = latest;
+      while (current < goal) {
+        this.#blockchain.mine(-1, options.timestamp, true);
+        const block = await this.#blockchain.once("block");
+        current = block.header.number.toBigInt();
+      }
+    } else {
+      const transactions = await this.#blockchain.mine(
+        -1,
+        options.timestamp,
+        true
+      );
+      if (this.#options.chain.vmErrorsOnRPCResponse) {
+        assertExceptionalTransactions(transactions);
+      }
     }
 
     return "0x0";
