@@ -19,7 +19,9 @@ describe("api", () => {
     });
 
     after(async () => {
-      await provider.stop();
+      if (provider) {
+        await provider.stop();
+      }
     });
 
     describe("Filecoin.ChainNotify", () => {
