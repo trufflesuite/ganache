@@ -17,7 +17,7 @@ describe("api", () => {
           loggedStuff: "",
           log: function (message) {
             if (message) {
-              this.loggedStuff = this.loggedStuff.concat(message);
+              this.loggedStuff += message;
             }
           }
         };
