@@ -1,6 +1,6 @@
 {
   "name": "ganache-core",
-  "version": "2.13.2-tezos.0",
+  "version": "2.13.2-tezos.1",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
