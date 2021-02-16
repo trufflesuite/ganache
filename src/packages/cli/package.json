@@ -53,6 +53,7 @@
     "@ganache/filecoin-types": "0.1.5"
   },
   "dependencies": {
+    "@ganache/core": "0.1.0",
     "@ganache/colors": "^0.1.0",
     "@ganache/ethereum": "0.1.0",
     "@ganache/flavors": "0.1.0",
