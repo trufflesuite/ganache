@@ -1,6 +1,6 @@
 {
   "name": "ganache",
-  "version": "7.0.0-filecoin.0",
+  "version": "7.0.0-filecoin.1",
   "description": "A library and cli to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
@@ -27,7 +27,7 @@
     "directory": "src/packages/ganache"
   },
   "scripts": {
-    "build": "npx --node-arg=--max-old-space-size=10000 webpack",
+    "build": "webpack",
     "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
@@ -51,45 +51,36 @@
     "truffle"
   ],
   "devDependencies": {
-    "@babel/core": "7.12.13",
-    "@babel/plugin-proposal-class-properties": "7.12.13",
-    "@babel/plugin-proposal-private-methods": "7.12.13",
     "@ganache/cli": "^0.1.0",
     "@ganache/flavors": "^0.1.0",
     "@types/node": "14.14.6",
     "assert": "2.0.0",
-    "babel-loader": "8.2.2",
-    "browserify-zlib": "0.2.0",
     "buffer": "6.0.1",
     "crypto-browserify": "3.12.0",
     "events": "3.2.0",
-    "https-browserify": "1.0.0",
     "level-js": "5.0.2",
     "node-loader": "1.0.2",
     "os-browserify": "0.3.0",
     "path-browserify": "1.0.1",
     "process": "0.11.10",
-    "querystring-es3": "0.2.1",
     "shebang-loader": "0.0.1",
     "stream-browserify": "3.0.0",
-    "stream-http": "3.1.1",
     "terser-webpack-plugin": "5.0.3",
     "ts-loader": "8.0.7",
     "ts-node": "9.0.0",
     "ttypescript": "1.5.12",
     "typescript": "4.1.3",
-    "url": "0.11.0",
     "util": "0.12.3",
     "webpack": "5.21.2",
     "webpack-cli": "4.5.0"
   },
   "dependencies": {
     "bigint-buffer": "1.1.5",
-    "ipfs": "0.54.2",
-    "ipfs-http-client": "49.0.2",
-    "ipfs-http-server": "0.3.2",
     "keccak": "3.0.1",
     "leveldown": "5.6.0",
     "secp256k1": "4.0.2"
+  },
+  "peerDependencies": {
+    "@ganache/filecoin": "0.1.0"
   }
 }

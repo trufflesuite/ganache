@@ -53,7 +53,7 @@ export function GetConnector(
       } catch (e) {
         if (e.message.includes("Cannot find module '@ganache/filecoin'")) {
           throw new Error(
-            "Could not find module @ganache/filecoin peer dependency; please run `npm install @ganache/filecoin`"
+            "Could not find module @ganache/filecoin peer dependency; please run `npm install @ganache/filecoin` if you're using as a library or `npm install --global @ganache/filecoin` if you're using in the Ganache CLI"
           );
         } else {
           throw e;
