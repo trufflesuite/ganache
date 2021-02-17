@@ -103,7 +103,7 @@ describe("api", () => {
           );
         });
 
-        it("doesn't log the notice when the chain is stopped", async () => {
+        it("doesn't log when the chain is stopped", async () => {
           await provider.send("miner_stop", []);
           const hash = await provider.send("eth_sendTransaction", [
             { from, to: from }
