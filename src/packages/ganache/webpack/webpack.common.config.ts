@@ -2,6 +2,7 @@ import webpack from "webpack";
 import TerserPlugin from "terser-webpack-plugin";
 
 const base: webpack.Configuration = {
+  mode: "production",
   entry: "./index.ts",
   devtool: "source-map",
   module: {
@@ -25,21 +26,13 @@ const base: webpack.Configuration = {
             }
           }
         ]
-      },
-      {
-        test: /\.jsx?$/,
-        use: [
-          {
-            loader: "babel-loader"
-          }
-        ]
       }
     ]
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"]
   },
-  externals: ["ipfs", "ipfs-http-client", "ipfs-http-server", "ipld-dag-cbor"],
+  externals: ["@ganache/filecoin"],
   output: {
     filename: "ganache.min.js",
     library: "Ganache",
