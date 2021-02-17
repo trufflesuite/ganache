@@ -187,7 +187,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   difficulty: {
     normalize: Quantity.from,
     cliDescription: "Sets the block difficulty.",
-    default: () => Quantity.from(1),
+    default: () => utils.RPCQUANTITY_ONE,
     cliType: "number"
   },
   callGasLimit: {
