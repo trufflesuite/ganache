@@ -52,9 +52,18 @@ export function GetConnector(
         return new connector(providerOptions, executor);
       } catch (e) {
         if (e.message.includes("Cannot find module '@ganache/filecoin'")) {
-          throw new Error(
-            "Could not find module @ganache/filecoin peer dependency; please run `npm install @ganache/filecoin` if you're using as a library or `npm install --global @ganache/filecoin` if you're using in the Ganache CLI"
+          // we print and exit rather than throw to prevent webpack output from being
+          // spat out for the line number
+          const bold = "\x1b[1m";
+          const red = "\x1b[31m";
+          const blue = "\x1b[34m";
+          const reset = "\x1b[0m";
+          console.warn(
+            `\n\n${bold}${red}ERROR:${reset} Could not find module ${bold}@ganache/filecoin${reset} peer dependency; ` +
+              `please run "${bold}${blue}npm install @ganache/filecoin${reset}" if you're using as a library ` +
+              `or "${bold}${blue}npm install --global @ganache/filecoin${reset}" if you're using in the Ganache CLI.\n\n`
           );
+          process.exit(1);
         } else {
           throw e;
         }
