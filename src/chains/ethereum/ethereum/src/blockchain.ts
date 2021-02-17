@@ -1217,6 +1217,9 @@ export default class Blockchain extends Emittery.Typed<
     );
 
     const addressData = await addressDataPromise;
+    if (!addressData) {
+      throw new Error(`account ${contractAddress} doesn't exist`);
+    }
 
     // An address's stateRoot is stored in the 3rd rlp entry
     trie.root = ((rlpDecode(addressData) as any) as [
