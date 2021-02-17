@@ -186,7 +186,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   difficulty: {
     normalize: Quantity.from,
-    cliDescription: "Sets the block difficulty for the network.",
+    cliDescription: "Sets the block difficulty.",
     default: () => Quantity.from(1),
     cliType: "number"
   },
