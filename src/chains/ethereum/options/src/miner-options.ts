@@ -45,7 +45,7 @@ export type MinerConfig = {
 
     /**
      * Sets the block difficulty
-
+     *
      * @default 1
      */
     difficulty: {

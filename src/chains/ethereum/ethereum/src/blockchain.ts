@@ -559,7 +559,7 @@ export default class Blockchain extends Emittery.Typed<
       blockGasLimit.toBuffer(),
       Quantity.from(timestamp),
       this.#options.miner.difficulty,
-      Quantity.from(0) // we start the totalDifficulty at 0
+      RPCQUANTITY_ZERO // we start the totalDifficulty at 0
     );
 
     // store the genesis block in the database
