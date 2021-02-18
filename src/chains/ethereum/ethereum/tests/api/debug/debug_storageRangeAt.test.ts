@@ -12,6 +12,9 @@ describe("api", () => {
       let contractAddress: string;
       let blockHash: string | Buffer;
       let deploymentBlockHash: string | Buffer;
+      let methods: {
+        [methodName: string]: string;
+      };
 
       before(async () => {
         provider = await getProvider();
@@ -36,7 +39,7 @@ describe("api", () => {
         contractAddress = deploymentTxReceipt.contractAddress;
         deploymentBlockHash = deploymentTxReceipt.blockHash;
 
-        const methods = contract.contract.evm.methodIdentifiers;
+        methods = contract.contract.evm.methodIdentifiers;
         const initialValue =
           "0000000000000000000000000000000000000000000000000000000000000019";
 
@@ -257,6 +260,96 @@ describe("api", () => {
 
         assert.deepStrictEqual(result.storage, storage);
         assert.strictEqual(result.nextKey, null);
+      });
+
+      it.only("should return the correct storage or something...", async () => {
+        // so the initial value is 5, but we then set it to 19
+        // now let's do 1, 2, 3 and then start mining
+        await provider.send("eth_subscribe", ["newHeads"]);
+
+        await provider.send("miner_stop");
+
+        const hexOf1 =
+          "0000000000000000000000000000000000000000000000000000000000000001";
+        const tx1 = await provider.send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: contractAddress,
+            gas: 3141592,
+            data: `0x${methods["setValue(uint256)"]}${hexOf1}`
+          }
+        ]);
+
+        const hexOf2 =
+          "0000000000000000000000000000000000000000000000000000000000000002";
+        const tx2 = await provider.send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: contractAddress,
+            gas: 3141592,
+            data: `0x${methods["setValue(uint256)"]}${hexOf2}`
+          }
+        ]);
+
+        const hexOf3 =
+          "0000000000000000000000000000000000000000000000000000000000000003";
+        const tx3 = await provider.send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: contractAddress,
+            gas: 3141592,
+            data: `0x${methods["setValue(uint256)"]}${hexOf3}`
+          }
+        ]);
+
+        await provider.send("miner_start");
+        await provider.once("message");
+
+        const txReceipt1 = await provider.send("eth_getTransactionReceipt", [
+          tx1
+        ]);
+        const blockHash1 = txReceipt1.blockHash;
+
+        const txReceipt2 = await provider.send("eth_getTransactionReceipt", [
+          tx2
+        ]);
+        const blockHash2 = txReceipt2.blockHash;
+
+        const txReceipt3 = await provider.send("eth_getTransactionReceipt", [
+          tx3
+        ]);
+        const blockHash3 = txReceipt3.blockHash;
+
+        // all 3 txs should now be in the same block
+        assert.strictEqual(blockHash1, blockHash2);
+        assert.strictEqual(blockHash1, blockHash3);
+
+        const result = await provider.send("debug_storageRangeAt", [
+          blockHash1,
+          txReceipt1.transactionIndex,
+          contractAddress,
+          "0x00",
+          3
+        ]);
+        console.log(result); // I should get back 19 in the 0 slot
+
+        const result2 = await provider.send("debug_storageRangeAt", [
+          blockHash1,
+          txReceipt2.transactionIndex,
+          contractAddress,
+          "0x00",
+          3
+        ]);
+        console.log(result2); // I should get 1 back in the 0 slot
+
+        const result3 = await provider.send("debug_storageRangeAt", [
+          blockHash1,
+          txReceipt3.transactionIndex,
+          contractAddress,
+          "0x00",
+          3
+        ]);
+        console.log(result3); // I should get 2 back in the 0 slot
       });
     });
 
