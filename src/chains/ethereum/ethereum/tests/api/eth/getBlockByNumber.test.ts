@@ -30,7 +30,10 @@ describe("api", () => {
         });
         it("returns the block difficulty", async () => {
           const block = await provider.send("eth_getBlockByNumber", ["latest"]);
-          assert.strictEqual(block.difficulty, `0x${DEFAULT_DIFFICULTY}`);
+          assert.strictEqual(
+            block.difficulty,
+            `0x${DEFAULT_DIFFICULTY.toString(16)}`
+          );
         });
       });
 
@@ -47,7 +50,7 @@ describe("api", () => {
             const block = await provider.send("eth_getBlockByNumber", ["0x0"]);
             assert.strictEqual(
               block.totalDifficulty,
-              `0x${DEFAULT_DIFFICULTY}`
+              `0x${DEFAULT_DIFFICULTY.toString(16)}`
             );
           });
           it("equals the sum of the difficulty of all blocks (hex)", async () => {
@@ -79,7 +82,10 @@ describe("api", () => {
 
           it("equals the block difficulty for the genesis block", async () => {
             const block = await provider.send("eth_getBlockByNumber", ["0x0"]);
-            assert.strictEqual(block.totalDifficulty, `0x${difficulty}`);
+            assert.strictEqual(
+              block.totalDifficulty,
+              `0x${difficulty.toString(16)}`
+            );
           });
           it("equals the sum of the difficulty of all blocks (hex)", async () => {
             const numberOfBlocksToMine = Math.floor(Math.random() * 10 + 1);
