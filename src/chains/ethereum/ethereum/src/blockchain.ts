@@ -1534,11 +1534,6 @@ export default class Blockchain extends Emittery.Typed<
       Buffer /*codeHash*/
     ])[2];
 
-    // we are reading the keys from the trie - the trie is the Contract Address trie;
-    // we then use those keys to get values;
-    // how do we get values given a txIndex?
-    // we need to iterate over transactions and read trie for given transaction index, right?
-
     let keys: Buffer[] = [];
 
     const getStorageKeys = () => {
@@ -1573,9 +1568,6 @@ export default class Blockchain extends Emittery.Typed<
 
     await getStorageKeys();
 
-    // ERIN: this does nothing, but I need to somehow create something similar to debug_traceTransaction
-    // where I can step through each transaction and get the storage value for the keys at that given index
-    // we are only returning the value at the first txIndex :shrug:
     try {
       const { storage } = await this.erinTraceTransaction(
         transactionHash,
