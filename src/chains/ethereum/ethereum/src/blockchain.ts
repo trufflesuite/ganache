@@ -1353,17 +1353,9 @@ export default class Blockchain extends Emittery.Typed<
           // get the raw key;
           let rawKey = await this.#database.storageKeys.get(key);
 
-          // pad start key
-          // if less than 32 bytes pad the value
-          if (rawKey.length < 32) {
-            const paddedBuffer = Buffer.allocUnsafe(32).fill(0);
-            rawKey.copy(paddedBuffer, 32 - rawKey.length);
-            rawKey = paddedBuffer;
-          }
-
           vm.stateManager.getContractStorage(
             Address.from(contractAddress).toBuffer(),
-            rawKey, // this is a number, this is not a hashed value;
+            rawKey,
             (err: Error, result: Buffer) => {
               if (err) {
                 console.log(err);
