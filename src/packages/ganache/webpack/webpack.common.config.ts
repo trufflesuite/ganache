@@ -27,7 +27,6 @@ const base: webpack.Configuration = {
   output: {
     filename: "ganache.min.js",
     library: "Ganache",
-    libraryExport: "default",
     libraryTarget: "umd"
   },
   stats: {
