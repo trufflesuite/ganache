@@ -5,18 +5,6 @@ import compile from "../../helpers/compile";
 const DEFAULT_DIFFICULTY = 1;
 let provider: EthereumProvider;
 
-// helper to mine an arbitrary number of blocks using dummy transactions
-const mineBlocks = async (number: number, provider: EthereumProvider) => {
-  const [from] = await provider.send("eth_accounts");
-  for (let x = number; x > 0; x--) {
-    await provider.send("eth_subscribe", ["newHeads"]);
-
-    await provider.send("eth_sendTransaction", [{ from, to: from }]);
-
-    await provider.once("message");
-  }
-};
-
 describe("api", () => {
   describe("eth", () => {
     describe("getBlockByNumber", () => {
@@ -24,10 +12,10 @@ describe("api", () => {
         beforeEach(async () => {
           provider = await getProvider();
         });
-
         afterEach(async () => {
           provider && (await provider.disconnect());
         });
+
         it("returns the block difficulty", async () => {
           const block = await provider.send("eth_getBlockByNumber", ["latest"]);
           assert.strictEqual(
@@ -55,7 +43,7 @@ describe("api", () => {
           });
           it("equals the sum of the difficulty of all blocks (hex)", async () => {
             const numberOfBlocksToMine = Math.floor(Math.random() * 10 + 1);
-            await mineBlocks(numberOfBlocksToMine, provider);
+            await provider.send("evm_mine", [{ blocks: numberOfBlocksToMine }]);
             const block = await provider.send("eth_getBlockByNumber", [
               `0x${numberOfBlocksToMine}`
             ]);
@@ -89,7 +77,7 @@ describe("api", () => {
           });
           it("equals the sum of the difficulty of all blocks (hex)", async () => {
             const numberOfBlocksToMine = Math.floor(Math.random() * 10 + 1);
-            await mineBlocks(numberOfBlocksToMine, provider);
+            await provider.send("evm_mine", [{ blocks: numberOfBlocksToMine }]);
             const block = await provider.send("eth_getBlockByNumber", [
               `0x${numberOfBlocksToMine}`
             ]);
