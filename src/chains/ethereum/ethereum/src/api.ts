@@ -635,6 +635,13 @@ export default class EthereumApi implements types.Api {
    * including EVM mechanics and node performance.
    *
    * @returns the amount of gas used.
+   *
+   * @example
+   * ```javascript
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * const gasEstimate = await provider.request({ method: "eth_estimateGas", params: [{ from: accounts[0], to: accounts[1] }, "latest" ] });
+   * console.log(gasEstimate);
+   * ```
    */
   @assertArgLength(1, 2)
   async eth_estimateGas(
