@@ -262,43 +262,40 @@ describe("api", () => {
         assert.strictEqual(result.nextKey, null);
       });
 
-      it.only("should return the correct storage or something...", async () => {
-        // so the initial value is 5, but we then set it to 19
-        // now let's do 1, 2, 3 and then start mining
-        await provider.send("eth_subscribe", ["newHeads"]);
+      it("should return correct storage given different transaction indexes", async () => {
+        /* 
+          Strategy for this test:
+            1. Call miner.stop() so we can send a few transactions
+            2. Call miner.start() so we can mine all of the txs in a single block
+            3. Call debug_storageRangeAt for each transaction using the transaction index
+            4. Assert that the result will be the value we think it is in storage
+        */
 
+        await provider.send("eth_subscribe", ["newHeads"]);
         await provider.send("miner_stop");
 
-        const hexOf1 =
-          "0000000000000000000000000000000000000000000000000000000000000001";
         const tx1 = await provider.send("eth_sendTransaction", [
           {
             from: accounts[0],
             to: contractAddress,
             gas: 3141592,
-            data: `0x${methods["setValue(uint256)"]}${hexOf1}`
+            data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000001`
           }
         ]);
-
-        const hexOf2 =
-          "0000000000000000000000000000000000000000000000000000000000000002";
         const tx2 = await provider.send("eth_sendTransaction", [
           {
             from: accounts[0],
             to: contractAddress,
             gas: 3141592,
-            data: `0x${methods["setValue(uint256)"]}${hexOf2}`
+            data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000002`
           }
         ]);
-
-        const hexOf3 =
-          "0000000000000000000000000000000000000000000000000000000000000003";
         const tx3 = await provider.send("eth_sendTransaction", [
           {
             from: accounts[0],
             to: contractAddress,
             gas: 3141592,
-            data: `0x${methods["setValue(uint256)"]}${hexOf3}`
+            data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000003`
           }
         ]);
 
@@ -308,48 +305,64 @@ describe("api", () => {
         const txReceipt1 = await provider.send("eth_getTransactionReceipt", [
           tx1
         ]);
-        const blockHash1 = txReceipt1.blockHash;
-
         const txReceipt2 = await provider.send("eth_getTransactionReceipt", [
           tx2
         ]);
-        const blockHash2 = txReceipt2.blockHash;
-
         const txReceipt3 = await provider.send("eth_getTransactionReceipt", [
           tx3
         ]);
-        const blockHash3 = txReceipt3.blockHash;
 
         // all 3 txs should now be in the same block
-        assert.strictEqual(blockHash1, blockHash2);
-        assert.strictEqual(blockHash1, blockHash3);
+        assert.strictEqual(txReceipt1.blockHash, txReceipt2.blockHash);
+        assert.strictEqual(txReceipt1.blockHash, txReceipt3.blockHash);
 
-        const result = await provider.send("debug_storageRangeAt", [
-          blockHash1,
-          txReceipt1.transactionIndex,
+        const resultForTx1 = await provider.send("debug_storageRangeAt", [
+          txReceipt1.blockHash,
+          txReceipt1.transactionIndex, // 0
           contractAddress,
           "0x00",
-          3
+          1
         ]);
-        console.log(result); // I should get back 19 in the 0 slot
+        assert.deepStrictEqual(resultForTx1.storage, {
+          "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
+            key:
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000019"
+          }
+        });
 
-        const result2 = await provider.send("debug_storageRangeAt", [
-          blockHash1,
-          txReceipt2.transactionIndex,
+        const resultForTx2 = await provider.send("debug_storageRangeAt", [
+          txReceipt2.blockHash,
+          txReceipt2.transactionIndex, // 1
           contractAddress,
           "0x00",
-          3
+          1
         ]);
-        console.log(result2); // I should get 1 back in the 0 slot
+        assert.deepStrictEqual(resultForTx2.storage, {
+          "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
+            key:
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000001"
+          }
+        });
 
-        const result3 = await provider.send("debug_storageRangeAt", [
-          blockHash1,
-          txReceipt3.transactionIndex,
+        const resultForTx3 = await provider.send("debug_storageRangeAt", [
+          txReceipt3.blockHash,
+          txReceipt3.transactionIndex, // 2
           contractAddress,
           "0x00",
-          3
+          1
         ]);
-        console.log(result3); // I should get 2 back in the 0 slot
+        assert.deepStrictEqual(resultForTx3.storage, {
+          "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
+            key:
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000002"
+          }
+        });
       });
     });
 
