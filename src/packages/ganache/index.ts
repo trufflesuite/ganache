@@ -1,4 +1,4 @@
-import Ganache from "@ganache/cli";
+import Ganache from "@ganache/core";
 
 export default {
   /**

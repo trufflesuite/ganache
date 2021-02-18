@@ -50,6 +50,7 @@
     "truffle"
   ],
   "devDependencies": {
+    "@ganache/core": "^0.1.0",
     "@ganache/cli": "^0.1.0",
     "@ganache/flavors": "^0.1.0",
     "@types/node": "14.14.6",
