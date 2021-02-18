@@ -1479,16 +1479,6 @@ export default class Blockchain extends Emittery.Typed<
     startKey: string | Buffer,
     maxResult: number
   ) {
-    // get block information
-    const targetBlock = await this.blocks.getByHash(blockHash);
-    const transactions = targetBlock.getTransactions();
-
-    // get tx information using txIndex
-    const transactionHashBuffer = transactions[
-      Quantity.from(txIndex).toNumber()
-    ].hash();
-    const transactionHash = Data.from(transactionHashBuffer).toString();
-
     type StorageRangeResult = {
       nextKey: null | string;
       storage: any;
@@ -1499,11 +1489,13 @@ export default class Blockchain extends Emittery.Typed<
       storage: {}
     };
 
+    // get block information
+    const targetBlock = await this.blocks.getByHash(blockHash);
+
     // get parent block and use it create the state trie
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
-
     const trie = new SecureTrie(
       this.#database.trie,
       parentBlock.header.stateRoot.toBuffer()
@@ -1516,11 +1508,9 @@ export default class Blockchain extends Emittery.Typed<
           resolve(data);
         });
       });
-
     const addressDataPromise = getFromTrie(
       Address.from(contractAddress).toBuffer()
     );
-
     const addressData = await addressDataPromise;
     if (!addressData) {
       throw new Error(`account ${contractAddress} doesn't exist`);
@@ -1534,8 +1524,8 @@ export default class Blockchain extends Emittery.Typed<
       Buffer /*codeHash*/
     ])[2];
 
+    // use the addresses storage trie to get relevant hashed keys
     let keys: Buffer[] = [];
-
     const getStorageKeys = () => {
       return new Promise((resolve, reject) => {
         trie
@@ -1555,8 +1545,10 @@ export default class Blockchain extends Emittery.Typed<
               }
             });
 
+            // only take the keys that we care about
             keys = keys.slice(0, maxResult + 1);
             if (keys.length > maxResult) {
+              // assign nextKey and remove it from array of keys
               const nextKey = keys.pop();
               result.nextKey = Data.from(nextKey).toJSON();
             }
@@ -1565,9 +1557,16 @@ export default class Blockchain extends Emittery.Typed<
           });
       });
     };
-
     await getStorageKeys();
 
+    // get txHash using txIndex
+    const transactions = targetBlock.getTransactions();
+    const transactionHashBuffer = transactions[
+      Quantity.from(txIndex).toNumber()
+    ].hash();
+    const transactionHash = Data.from(transactionHashBuffer).toString();
+
+    // use the txHash to find storage at that point in time
     try {
       const { storage } = await this.erinTraceTransaction(
         transactionHash,
