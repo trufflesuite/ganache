@@ -92,6 +92,8 @@ export default class Wallet {
 
   constructor(opts: EthereumInternalOptions["wallet"]) {
     this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
+    // create a RNG from our initial starting conditions (opts.mnemonic)
+    this.#randomRng = rng("ganache " + opts.mnemonic);
 
     const initialAccounts = (this.initialAccounts = this.#initializeAccounts(
       opts
@@ -188,7 +190,7 @@ export default class Wallet {
     //#endregion
   }
 
-  #randomRng = rng("ganache");
+  #randomRng: seedrandom.prng;
 
   #randomBytes = (length: number) => {
     // Since this is a mock RPC library, the rng doesn't need to be
@@ -370,13 +372,10 @@ export default class Wallet {
     return account;
   }
 
-  public createRandomAccount(startingSeed: string) {
+  public createRandomAccount() {
     // create some seeded deterministic psuedo-randomness based on the chain's
-    // initial starting conditions (`startingSeed`)
-    const seed = Buffer.concat([
-      Buffer.from(startingSeed),
-      this.#randomBytes(64)
-    ]);
+    // initial starting conditions
+    const seed = this.#randomBytes(128);
     const acct = HDKey.fromMasterSeed(seed);
     const address = uncompressedPublicKeyToAddress(acct.publicKey);
     const privateKey = Data.from(acct.privateKey);
