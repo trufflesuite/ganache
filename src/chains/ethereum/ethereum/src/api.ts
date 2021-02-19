@@ -950,6 +950,11 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns the number of the most recent block.
    * @returns integer of the current block number the client is on.
+   * @example
+   * ```javascript
+   * const blockNumber = await provider.request({ method: "eth_blockNumber" });
+   * console.log(blockNumber);
+   * ```
    */
   @assertArgLength(0)
   async eth_blockNumber() {
