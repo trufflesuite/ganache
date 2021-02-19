@@ -1239,9 +1239,26 @@ export default class EthereumApi implements types.Api {
     ]);
     if (transaction) {
       return receipt.toJSON(block, transaction);
-    } else {
-      return null;
     }
+
+    // if we are performing non-legacy instamining, then check to see if the
+    // transaction is pending so as to warn about the v7 breaking change
+    const options = this.#options;
+    if (
+      options.miner.blockTime <= 0 &&
+      options.miner.legacyInstamine !== true &&
+      this.#blockchain.isStarted()
+    ) {
+      const tx = this.#blockchain.transactions.transactionPool.find(txHash);
+      if (tx != null) {
+        options.logging.logger.log(
+          " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
+            ` > \`${txHash.toString()}\` has not\n` +
+            " > yet been mined. See https://trfl.co/v7-instamine for additional information."
+        );
+      }
+    }
+    return null;
   }
 
   /**
