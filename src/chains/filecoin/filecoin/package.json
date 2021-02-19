@@ -29,7 +29,7 @@
     "directory": "src/chains/filecoin"
   },
   "scripts": {
-    "build": "npm run tsc && npx --node-arg=--max-old-space-size=10000 webpack",
+    "build": "npx --node-arg=--max-old-space-size=10000 webpack",
     "docs.build": "rm -rf ./lib/docs ./lib/api.json && npm run docs.typedoc",
     "docs.typedoc": "typedoc --options ./typedoc.json --readme ./README.md --out ../../../docs/typedoc --json ../../../docs/typedoc/api.json src/api.ts",
     "docs.preview": "ws --open --port 3012 --directory ../../../",
