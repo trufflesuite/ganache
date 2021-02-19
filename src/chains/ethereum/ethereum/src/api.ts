@@ -936,6 +936,11 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns a list of addresses owned by client.
    * @returns Array of 20 Bytes - addresses owned by the client.
+   * @example
+   * ```javascript
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * console.log(accounts);
+   * ```
    */
   @assertArgLength(0)
   async eth_accounts() {
