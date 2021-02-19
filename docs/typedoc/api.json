@@ -1198,7 +1198,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1890,
+									"line": 1907,
 									"character": 30
 								}
 							]
@@ -1356,12 +1356,11 @@
 									},
 									"comment": {
 										"shortText": "Executes a new message call immediately without creating a transaction on the block chain.",
-										"text": "Transaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
-										"returns": "The return value of executed contract.",
+										"returns": "the return value of executed contract.",
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst txObj = { from, gas: \"0x5b8d80\", gasPrice: \"0x1dfd14000\", value:\"0x0\", data: simpleSol };\nconst result = await provider.request({ method: \"eth_call\", params: [txObj, \"latest\"] });\nconsole.log(result);\n```\n"
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst result = await provider.request({ method: \"eth_call\", params: [{ from, gas: \"0x5b8d80\", gasPrice: \"0x1dfd14000\", value:\"0x0\", data: simpleSol }, \"latest\"] });\nconsole.log(result);\n```\n"
 											}
 										]
 									},
@@ -1424,7 +1423,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1790,
+									"line": 1807,
 									"character": 16
 								}
 							]
@@ -7662,7 +7661,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1946,
+									"line": 1963,
 									"character": 29
 								}
 							]
@@ -7724,7 +7723,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1906,
+									"line": 1923,
 									"character": 29
 								}
 							]
@@ -7801,7 +7800,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1970,
+									"line": 1987,
 									"character": 28
 								}
 							]
@@ -7878,7 +7877,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1917,
+									"line": 1934,
 									"character": 27
 								}
 							]
@@ -7969,7 +7968,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2015,
+									"line": 2032,
 									"character": 32
 								}
 							]
@@ -8172,7 +8171,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1990,
+									"line": 2007,
 									"character": 30
 								}
 							]
@@ -8381,7 +8380,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2048,
+									"line": 2065,
 									"character": 19
 								}
 							]
@@ -8458,7 +8457,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2093,
+									"line": 2110,
 									"character": 22
 								}
 							]
@@ -8538,7 +8537,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2130,
+									"line": 2147,
 									"character": 28
 								}
 							]
@@ -8615,7 +8614,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2141,
+									"line": 2158,
 									"character": 23
 								}
 							]
@@ -8692,7 +8691,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2072,
+									"line": 2089,
 									"character": 23
 								}
 							]
@@ -8788,7 +8787,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2107,
+									"line": 2124,
 									"character": 21
 								}
 							]
@@ -8841,7 +8840,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2082,
+									"line": 2099,
 									"character": 20
 								}
 							]
@@ -8900,7 +8899,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2061,
+									"line": 2078,
 									"character": 23
 								}
 							]
@@ -8975,7 +8974,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2152,
+									"line": 2169,
 									"character": 16
 								}
 							]
@@ -9052,7 +9051,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2119,
+									"line": 2136,
 									"character": 27
 								}
 							]
@@ -9111,7 +9110,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2162,
+									"line": 2179,
 									"character": 19
 								}
 							]

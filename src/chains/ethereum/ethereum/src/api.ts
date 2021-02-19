@@ -2392,8 +2392,7 @@ export default class EthereumApi implements types.Api {
    * //  }
    * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
-   * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
-   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest"] });
+   * const result = await provider.request({ method: "eth_call", params: [{ from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol }, "latest"] });
    * console.log(result);
    * ```
    */
