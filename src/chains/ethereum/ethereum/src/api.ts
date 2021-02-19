@@ -715,6 +715,11 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns the client coinbase address.
    * @returns 20 bytes - the current coinbase address.
+   * @example
+   * ```javascript
+   * const coinbaseAddress = await provider.request({ method: "eth_coinbase" });
+   * console.log(coinbaseAddress);
+   * ```
    */
   @assertArgLength(0)
   async eth_coinbase() {
