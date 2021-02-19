@@ -81,8 +81,14 @@ export default class WebsocketServer {
           response = connector.format(result, payload);
 
           // if the result is an emitter listen to its `"message"` event
-          if (resultEmitter instanceof PromiEvent) {
-            resultEmitter.on("message", (result: any) => {
+          // We check if `on` is a function rather than check if
+          // `resultEmitter instanceof PromiEvent` because `@ganache/filecoin`
+          // and `ganache` webpack `@ganache/utils` separately. This causes
+          // instanceof to fail here. Since we know `resultEmitter` is MergePromiseT
+          // we can safely assume that if `on` is a function, then we have a PromiEvent
+          if (typeof resultEmitter["on"] === "function") {
+            const resultEmitterPromiEvent = resultEmitter as PromiEvent<any>;
+            resultEmitterPromiEvent.on("message", (result: any) => {
               // note: we _don't_ need to check if `ws.closed` here because when
               // `ws.closed` is set we remove this event handler anyway.
               const message = JSON.stringify({
@@ -94,7 +100,7 @@ export default class WebsocketServer {
             });
 
             // keep track of listeners to dispose off when the ws disconnects
-            connections.get(ws).add(resultEmitter.dispose);
+            connections.get(ws).add(resultEmitterPromiEvent.dispose);
           }
         } catch (err) {
           // ensure the connector's `handle` fn doesn't throw outside of a Promise
