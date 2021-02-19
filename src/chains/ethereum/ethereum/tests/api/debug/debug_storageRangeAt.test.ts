@@ -262,7 +262,7 @@ describe("api", () => {
         assert.strictEqual(result.nextKey, null);
       });
 
-      it("should return correct storage given different transaction indexes", async () => {
+      it.only("should return correct storage given different transaction indexes", async () => {
         /* 
           Strategy for this test:
             1. Call miner.stop() so we can send a few transactions
@@ -364,6 +364,10 @@ describe("api", () => {
           }
         });
       });
+
+      // TODO: create a test that checks what kind of error, if any, we get back
+      // for calling a txIndex that doesn't exist
+      // Fix to replicate what geth does
     });
 
     describe("DebugComplexStorage", () => {
