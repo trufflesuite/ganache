@@ -94,4 +94,8 @@ export default class FilecoinApi implements types.Api {
     ref: SerializedFileRef
   ): Promise<object>;
   "Ganache.MineTipset"(): Promise<SerializedTipset>;
+  "Ganache.EnableMiner"(): Promise<void>;
+  "Ganache.DisableMiner"(): Promise<void>;
+  "Ganache.MinerEnabled"(): Promise<boolean>;
+  "Ganache.MinerEnabledNotify"(rpcId?: string): PromiEvent<Subscription>;
 }
