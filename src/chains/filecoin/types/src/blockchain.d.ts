@@ -22,6 +22,7 @@ import PrivateKeyManager from "./data-managers/private-key-manager";
 export declare type BlockchainEvents = {
   ready(): void;
   tipset: Tipset;
+  minerEnabled: boolean;
 };
 export default class Blockchain extends Emittery.Typed<
   BlockchainEvents,
@@ -35,6 +36,7 @@ export default class Blockchain extends Emittery.Typed<
   signedMessagesManager: SignedMessageManager | null;
   blockMessagesManager: BlockMessagesManager | null;
   readonly miner: Address;
+  get minerEnabled(): boolean;
   messagePool: Array<SignedMessage>;
   readonly deals: Array<DealInfo>;
   readonly dealsByCid: Record<string, DealInfo>;
@@ -51,6 +53,8 @@ export default class Blockchain extends Emittery.Typed<
    */
   stop(): Promise<void>;
   get ipfs(): IPFS | null;
+  enableMiner(): void;
+  disableMiner(): void;
   genesisTipset(): Tipset;
   latestTipset(): Tipset;
   push(message: Message, spec: MessageSendSpec): Promise<SignedMessage>;
