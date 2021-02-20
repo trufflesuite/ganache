@@ -170,7 +170,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           miner: {
-            blockTime: -1
+            mine: false
           },
           logging: {
             logger: {

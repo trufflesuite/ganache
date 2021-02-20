@@ -4,10 +4,9 @@ import { Definitions } from "@ganache/options";
 export type MinerConfig = {
   options: {
     /**
-     * Sets the `blockTime` in seconds for automatic mining. A blockTime of `0`
-     * (default) enables "instamine mode", where new executable transactions
-     * will be mined instantly. A negative blockTime will require mining by
-     * manually calling Ganache.MineTipset.
+     * Sets the `blockTime` in seconds for automatic mining. A `blockTime` of `0`
+     * (default) or a negative number enables "instamine mode", where new executable transactions
+     * will be mined instantly.
      *
      * Using the `blockTime` option is discouraged unless you have tests which
      * require a specific mining interval.
@@ -18,15 +17,35 @@ export type MinerConfig = {
       type: number;
       hasDefault: true;
     };
+
+    /**
+     * Enable mining. Set to `false` to pause the miner. If set to `false`,
+     * calling `Ganache.MineTipset` method will still mine a tipset/block.
+     *
+     * Call `Ganache.EnableMiner` or `Ganache.DisableMiner` to enable/disable
+     * during runtime.
+     *
+     * @default true
+     */
+    mine: {
+      type: boolean;
+      hasDefault: true;
+    };
   };
 };
 
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
-    normalize,
+    normalize: value => Math.max(0, value),
     cliDescription:
-      'Sets the `blockTime` in seconds for automatic mining. A blockTime of `0`  enables "instamine mode", where new executable transactions will be mined instantly.',
+      'Sets the `blockTime` in seconds for automatic mining. A `blockTime` of `0` or a negative number enables "instamine mode", where new executable transactions will be mined instantly.',
     default: () => 0,
     cliType: "number"
+  },
+  mine: {
+    normalize,
+    cliDescription: "Enable mining. Set to `false` to pause the miner.",
+    default: () => true,
+    cliType: "boolean"
   }
 };

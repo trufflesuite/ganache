@@ -1563,7 +1563,7 @@ describe("api", () => {
             ipfsPort: 5003
           },
           miner: {
-            blockTime: 120 // effectively disable mining
+            mine: false
           }
         });
         client2 = new LotusRPC(provider2, { schema: FilecoinProvider.Schema });
