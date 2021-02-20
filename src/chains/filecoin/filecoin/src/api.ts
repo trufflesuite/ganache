@@ -55,7 +55,11 @@ export default class FilecoinApi implements types.Api {
 
   async "Filecoin.Version"(): Promise<SerializedVersion> {
     return new Version({
-      blockDelay: BigInt(this.#blockchain.options.miner.blockTime)
+      blockDelay: BigInt(
+        this.#blockchain.minerEnabled
+          ? this.#blockchain.options.miner.blockTime
+          : 0
+      )
     }).serialize();
   }
 
@@ -603,5 +607,65 @@ export default class FilecoinApi implements types.Api {
     await this.#blockchain.mineTipset();
     const tipset = this.#blockchain.latestTipset();
     return tipset.serialize();
+  }
+
+  async "Ganache.EnableMiner"(): Promise<void> {
+    this.#blockchain.enableMiner();
+  }
+
+  async "Ganache.DisableMiner"(): Promise<void> {
+    this.#blockchain.disableMiner();
+  }
+
+  async "Ganache.MinerEnabled"(): Promise<boolean> {
+    return this.#blockchain.minerEnabled;
+  }
+
+  "Ganache.MinerEnabledNotify"(rpcId?: string): PromiEvent<Subscription> {
+    const subscriptionId = this.#getId();
+    let promiEvent: PromiEvent<Subscription>;
+
+    const unsubscribeFromEmittery = this.#blockchain.on(
+      "minerEnabled",
+      (minerEnabled: boolean) => {
+        if (promiEvent) {
+          promiEvent.emit("message", {
+            type: SubscriptionMethod.ChannelUpdated,
+            data: [subscriptionId.toString(), minerEnabled]
+          });
+        }
+      }
+    );
+
+    const unsubscribe = (): void => {
+      unsubscribeFromEmittery();
+      // Per https://git.io/JtOc1 and https://git.io/JtO3H
+      // implementations, we're should cancel the subscription
+      // since the protocol technically supports multiple channels
+      // per subscription, but implementation seems to show that there's
+      // only one channel per subscription
+      if (rpcId) {
+        promiEvent.emit("message", {
+          type: SubscriptionMethod.SubscriptionCanceled,
+          data: [rpcId]
+        });
+      }
+    };
+
+    promiEvent = PromiEvent.resolve({
+      unsubscribe,
+      id: subscriptionId
+    });
+
+    // There currently isn't an unsubscribe method,
+    // but it would go here
+    this.#subscriptions.set(subscriptionId.toString()!, unsubscribe);
+
+    promiEvent.emit("message", {
+      type: SubscriptionMethod.ChannelUpdated,
+      data: [subscriptionId.toString(), this.#blockchain.minerEnabled]
+    });
+
+    return promiEvent;
   }
 }
