@@ -39,6 +39,7 @@ import { checkMessage } from "./message";
 export type BlockchainEvents = {
   ready(): void;
   tipset: Tipset;
+  minerEnabled: boolean;
 };
 
 // Reference implementation: https://git.io/JtEVW
@@ -57,6 +58,10 @@ export default class Blockchain extends Emittery.Typed<
 
   readonly miner: Address;
   readonly #miningLock: Sema;
+  #minerEnabled: boolean;
+  get minerEnabled() {
+    return this.#minerEnabled;
+  }
 
   public messagePool: Array<SignedMessage>;
   readonly #messagePoolLock: Sema;
@@ -95,6 +100,7 @@ export default class Blockchain extends Emittery.Typed<
     // to prevent us from stopping while mining or mining
     // multiple times simultaneously
     this.#miningLock = new Sema(1);
+    this.#minerEnabled = this.options.miner.mine;
 
     // We set these to null since they get initialized in
     // an async callback below. We could ignore the TS error,
@@ -182,17 +188,8 @@ export default class Blockchain extends Emittery.Typed<
       await this.ipfsServer.start();
 
       // Fire up the miner if necessary
-      if (this.options.miner.blockTime > 0) {
-        const intervalMine = () => {
-          this.mineTipset();
-        };
-
-        this.miningTimeout = setInterval(
-          intervalMine,
-          this.options.miner.blockTime * 1000
-        );
-
-        utils.unref(this.miningTimeout);
+      if (this.minerEnabled && this.options.miner.blockTime > 0) {
+        this.enableMiner();
       }
 
       // Get this party started!
@@ -236,6 +233,32 @@ export default class Blockchain extends Emittery.Typed<
 
   get ipfs(): IPFS | null {
     return this.ipfsServer.node;
+  }
+
+  enableMiner() {
+    this.#minerEnabled = true;
+    this.emit("minerEnabled", true);
+
+    const intervalMine = () => {
+      this.mineTipset();
+    };
+
+    this.miningTimeout = setInterval(
+      intervalMine,
+      this.options.miner.blockTime * 1000
+    );
+
+    utils.unref(this.miningTimeout);
+  }
+
+  disableMiner() {
+    this.#minerEnabled = false;
+    this.emit("minerEnabled", false);
+
+    if (this.miningTimeout) {
+      clearInterval(this.miningTimeout);
+      this.miningTimeout = null;
+    }
   }
 
   genesisTipset(): Tipset {
@@ -383,7 +406,7 @@ export default class Blockchain extends Emittery.Typed<
         this.#messagePoolLock.release();
       }
 
-      if (this.options.miner.blockTime === 0) {
+      if (this.minerEnabled && this.options.miner.blockTime === 0) {
         // we should instamine this message
         // purposely not awaiting on this as we'll
         // deadlock for Filecoin.MpoolPushMessage calls
@@ -754,7 +777,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // If we're automining, mine a new block. Note that this will
     // automatically advance the deal to the active state.
-    if (this.options.miner.blockTime === 0) {
+    if (this.minerEnabled && this.options.miner.blockTime === 0) {
       while (deal.state !== StorageDealStatus.Active) {
         await this.mineTipset();
       }
