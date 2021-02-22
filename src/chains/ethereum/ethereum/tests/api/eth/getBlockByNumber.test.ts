@@ -45,7 +45,7 @@ describe("api", () => {
             const numberOfBlocksToMine = Math.floor(Math.random() * 10 + 1);
             await provider.send("evm_mine", [{ blocks: numberOfBlocksToMine }]);
             const block = await provider.send("eth_getBlockByNumber", [
-              `0x${numberOfBlocksToMine}`
+              `0x${numberOfBlocksToMine.toString(16)}`
             ]);
             assert.strictEqual(
               block.totalDifficulty,
