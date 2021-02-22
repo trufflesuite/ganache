@@ -3,12 +3,11 @@
 import Ganache from "../index";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
-import {
-  DefaultFlavor,
-  FlavorName,
-  EthereumFlavorName
-} from "@ganache/flavors";
+import { EthereumFlavorName, TezosFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
+import initializeTezos from "./initialize/tezos";
+import TezosProvider from "@ganache/tezos/src/provider";
+import EthereumProvider from "@ganache/ethereum/src/provider";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -99,9 +98,15 @@ async function startGanache(err: Error) {
   started = true;
 
   switch (flavor) {
+    case TezosFlavorName: {
+      server.provider.on("connect", () => {
+        initializeTezos(server.provider as TezosProvider, cliSettings);
+      });
+      break;
+    }
     case EthereumFlavorName:
     default: {
-      initializeEthereum(server.provider, cliSettings);
+      initializeEthereum(server.provider as EthereumProvider, cliSettings);
       break;
     }
   }

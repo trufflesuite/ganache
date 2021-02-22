@@ -23,8 +23,16 @@
       "path": "../../chains/ethereum/options"
     },
     {
+      "name": "@ganache/tezos-options",
+      "path": "../../chains/tezos/options"
+    },
+    {
       "name": "@ganache/options",
       "path": "../options"
+    },
+    {
+      "name": "@ganache/tezos-options",
+      "path": "../../chains/tezos/options"
     }
   ]
 }

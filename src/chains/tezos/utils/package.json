@@ -1,16 +1,16 @@
 {
-  "name": "@ganache/tezos-options",
+  "name": "@ganache/tezos-utils",
   "version": "0.1.0",
   "description": "",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/tezos/options#readme",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/tezos/utils#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "source": "index.ts",
   "directories": {
     "lib": "lib",
-    "test": "tests"
+    "test": "test"
   },
   "files": [
     "lib"
@@ -18,7 +18,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache-core.git",
-    "directory": "src/chains/tezos/options"
+    "directory": "src/chains/tezos/utils"
   },
   "scripts": {
     "tsc": "ttsc"
@@ -28,7 +28,7 @@
   },
   "keywords": [
     "ganache",
-    "ganache-tezos-options",
+    "ganache-utils",
     "ethereum",
     "evm",
     "blockchain",
@@ -42,7 +42,6 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/options": "0.1.0",
-    "seedrandom": "3.0.5"
+    "@ganache/utils": "0.1.0"
   }
 }

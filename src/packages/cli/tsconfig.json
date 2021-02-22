@@ -27,12 +27,20 @@
       "path": "../../chains/ethereum/ethereum"
     },
     {
+      "name": "@ganache/tezos",
+      "path": "../../chains/tezos/tezos"
+    },
+    {
       "name": "@ganache/utils",
       "path": "../utils"
     },
     {
       "name": "@ganache/colors",
       "path": "../colors"
+    },
+    {
+      "name": "@ganache/tezos-options",
+      "path": "../../chains/tezos/options"
     }
   ]
 }

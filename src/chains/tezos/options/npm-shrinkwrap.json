@@ -1,1 +1,13 @@
-{"name":"@ganache/tezos-options","version":"0.1.0","lockfileVersion":1}
+{
+  "name": "@ganache/tezos-options",
+  "version": "0.1.0",
+  "lockfileVersion": 1,
+  "requires": true,
+  "dependencies": {
+    "seedrandom": {
+      "version": "3.0.5",
+      "resolved": "https://registry.npmjs.org/seedrandom/-/seedrandom-3.0.5.tgz",
+      "integrity": "sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg=="
+    }
+  }
+}

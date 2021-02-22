@@ -26,7 +26,7 @@ export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
   constructor(
     app: TemplatedApp,
-    connector: WebSocketCapableFlavor,
+    connector: any, // TODO : earlier it was WebSocketCapableFlavor. Make it more generic.
     options: WebsocketServerOptions
   ) {
     const connections = this.#connections;
@@ -49,7 +49,7 @@ export default class WebsocketServer {
         message: ArrayBuffer,
         isBinary: boolean
       ) => {
-        let payload: ReturnType<typeof connector.parse>;
+        let payload: any;
         const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
         try {
           payload = connector.parse(Buffer.from(message));

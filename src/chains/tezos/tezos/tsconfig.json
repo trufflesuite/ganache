@@ -4,7 +4,7 @@
     "outDir": "lib",
     "composite": true
   },
-  "include": ["index.ts", "src/**/*"],
+  "include": ["index.ts", "src/**/*", "tests/helpers/getProvider.ts"],
   "references": [
     {
       "name": "@ganache/options",
@@ -13,6 +13,14 @@
     {
       "name": "@ganache/utils",
       "path": "../../../packages/utils"
+    },
+    {
+      "name": "@ganache/tezos-options",
+      "path": "../options"
+    },
+    {
+      "name": "@ganache/tezos-utils",
+      "path": "../utils"
     }
   ]
 }

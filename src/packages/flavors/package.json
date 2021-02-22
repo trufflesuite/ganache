@@ -45,6 +45,7 @@
     "@ganache/ethereum-options": "0.1.0",
     "@ganache/options": "0.1.0",
     "@ganache/tezos": "^0.1.0",
+    "@ganache/tezos-options": "0.1.0",
     "@ganache/utils": "^0.1.0"
   }
 }

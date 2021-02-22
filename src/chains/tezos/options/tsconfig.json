@@ -4,5 +4,11 @@
     "outDir": "lib",
     "composite": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [
+    {
+      "name": "@ganache/options",
+      "path": "../../../packages/options"
+    }
+  ]
 }

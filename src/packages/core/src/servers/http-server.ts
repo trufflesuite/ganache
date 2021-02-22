@@ -139,7 +139,7 @@ export default class HttpServer {
     response.onData((message: ArrayBuffer, isLast: boolean) => {
       const chunk = Buffer.from(message);
       if (isLast) {
-        const connector = this.#connector;
+        const connector = this.#connector as any; // TODO : Make it more generic. any is not good.
         let payload: ReturnType<typeof connector.parse>;
         try {
           const message = buffer ? Buffer.concat([buffer, chunk]) : chunk;
