@@ -197,7 +197,7 @@ export default class Wallet {
     const seed = (this.#seedCounter += 1n);
     const rand = rng(seed.toString());
     for (let i = 0; i < length; i++) {
-      buf[i] = (rand() * 255) | 0;
+      buf[i] = (rand() * 256) | 0; // generates a random number from 0 to 255
     }
     return buf;
   };

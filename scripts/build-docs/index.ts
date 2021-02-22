@@ -1,7 +1,7 @@
 import { join } from "path";
 import { readFileSync, writeFileSync } from "fs";
-import marked from "marked";
-import hljs from "highlight.js";
+const marked = require("marked");
+const hljs = require("highlight.js");
 
 const highlight = () => {
   const raw = {} as any;
@@ -250,6 +250,10 @@ function getTypeAsString(type: any) {
       return `[${
         type.elements ? type.elements.map(getTypeAsString).join(", ") : ""
       }]`;
+    case "stringLiteral":
+      // outputs a string literal like `He said, "hello, world"!` as
+      // the string `"He said, \"hello, world\"!"`
+      return `"${type.value.replace(/"/g, '\\"')}"`;
     default:
       console.error(type);
       throw new Error(`Unhandled type: ${type.type}`);

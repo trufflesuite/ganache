@@ -267,18 +267,56 @@ export default class EthereumApi implements types.Api {
    * Will mine an empty block if there are no available transactions to mine.
    *
    * @param timestamp the timestamp the block should be mined with.
+   * EXPERIEMENTAL: Optionally, specify an `options` object with `timestamp`
+   * and/or `blocks` fields. If `blocks` is given, it will mine exactly `blocks`
+   *  number of blocks, regardless of any other blocks mined or reverted during it's
+   * operation. This behavior is subject to change!
+   *
    * @returns The string `"0x0"`. May return additional meta-data in the future.
    *
    * @example
    * ```javascript
-   * await provider.evm_mine(Date.now());
+   * await provider.send("evm_mine", Date.now());
+   * ```
+   *
+   * @example
+   * ```javascript
+   * console.log("start", await provider.send("eth_blockNumber"));
+   * await provider.send("evm_mine", [{blocks: 5}]); // mines 5 blocks
+   * console.log("end", await provider.send("eth_blockNumber"));
    * ```
    */
+  async evm_mine(timestamp?: number): Promise<"0x0">;
+  async evm_mine(options?: {
+    timestamp?: number;
+    blocks?: number;
+  }): Promise<"0x0">;
   @assertArgLength(0, 1)
-  async evm_mine(timestamp?: number) {
-    const transactions = await this.#blockchain.mine(-1, timestamp, true);
-    if (this.#options.chain.vmErrorsOnRPCResponse) {
-      assertExceptionalTransactions(transactions);
+  async evm_mine(
+    arg?: number | { timestamp?: number; blocks?: number }
+  ): Promise<"0x0"> {
+    const blockchain = this.#blockchain;
+    const vmErrorsOnRPCResponse = this.#options.chain.vmErrorsOnRPCResponse;
+    if (typeof arg === "object") {
+      let { blocks, timestamp } = arg;
+      if (blocks == null) {
+        blocks = 1;
+      }
+      // TODO(perf): add an option to mine a bunch of blocks in a batch so
+      // we can save them all to the database in one go.
+      // Devs like to move the blockchain forward by thousands of blocks at a
+      // time and doing this would make it way faster
+      for (let i = 0; i < blocks; i++) {
+        const transactions = await blockchain.mine(-1, timestamp, true);
+        if (vmErrorsOnRPCResponse) {
+          assertExceptionalTransactions(transactions);
+        }
+      }
+    } else {
+      const transactions = await blockchain.mine(-1, arg, true);
+      if (vmErrorsOnRPCResponse) {
+        assertExceptionalTransactions(transactions);
+      }
     }
 
     return "0x0";
@@ -1201,9 +1239,26 @@ export default class EthereumApi implements types.Api {
     ]);
     if (transaction) {
       return receipt.toJSON(block, transaction);
-    } else {
-      return null;
     }
+
+    // if we are performing non-legacy instamining, then check to see if the
+    // transaction is pending so as to warn about the v7 breaking change
+    const options = this.#options;
+    if (
+      options.miner.blockTime <= 0 &&
+      options.miner.legacyInstamine !== true &&
+      this.#blockchain.isStarted()
+    ) {
+      const tx = this.#blockchain.transactions.transactionPool.find(txHash);
+      if (tx != null) {
+        options.logging.logger.log(
+          " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
+            ` > \`${txHash.toString()}\` has not\n` +
+            " > yet been mined. See https://trfl.co/v7-instamine for additional information."
+        );
+      }
+    }
+    return null;
   }
 
   /**

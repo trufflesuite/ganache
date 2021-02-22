@@ -266,6 +266,8 @@ export default class EthereumProvider
             : JSON.stringify(params, null, 2).split("\n").join("\n   > ")
         }`
       );
+    } else {
+      options.logging.logger.log(method);
     }
   };
 
