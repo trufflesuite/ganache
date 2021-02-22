@@ -1927,9 +1927,7 @@ export default class EthereumApi implements types.Api {
     }
 
     const wallet = this.#wallet;
-    const newAccount = wallet.createRandomAccount(
-      this.#options.wallet.mnemonic
-    );
+    const newAccount = wallet.createRandomAccount();
     const address = newAccount.address;
     const strAddress = address.toString();
     const encryptedKeyFile = await wallet.encrypt(
