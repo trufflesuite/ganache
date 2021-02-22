@@ -258,9 +258,6 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   async startDeal(proposal: StartDealParams): Promise<RootCID> {
-    // Get size of IPFS object represented by the proposal
-    let size = await this.getIPFSObjectSize(proposal.data.root.root.value);
-
     let signature = await this.address.signProposal(proposal);
 
     // TODO: I'm not sure if should pass in a hex string or the Buffer alone.
@@ -277,7 +274,9 @@ export default class Blockchain extends Emittery.Typed<
       message: "",
       provider: this.miner,
       pieceCid: proposal.data.pieceCid,
-      size: proposal.data.pieceSize || size,
+      size:
+        proposal.data.pieceSize ||
+        (await this.getIPFSObjectSize(proposal.data.root.root.value)),
       pricePerEpoch: proposal.epochPrice,
       duration: proposal.minBlocksDuration,
       dealId: this.deals.length + 1
