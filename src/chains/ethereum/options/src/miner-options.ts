@@ -44,6 +44,17 @@ export type MinerConfig = {
     };
 
     /**
+     * Sets the block difficulty
+     *
+     * @default 1
+     */
+    difficulty: {
+      type: Quantity;
+      rawType: number;
+      hasDefault: true;
+    };
+
+    /**
      * Sets the block gas limit in WEI.
      *
      * @default 12_000_000
@@ -172,6 +183,12 @@ export const MinerOptions: Definitions<MinerConfig> = {
       'Sets the default transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
     default: () => Quantity.from(90_000),
     cliType: "string"
+  },
+  difficulty: {
+    normalize: Quantity.from,
+    cliDescription: "Sets the block difficulty.",
+    default: () => utils.RPCQUANTITY_ONE,
+    cliType: "number"
   },
   callGasLimit: {
     normalize: Quantity.from,
