@@ -3,6 +3,7 @@ declare module "@filecoin-shipyard/lotus-client-schema" {
     methods: {
       [propertyName: string]: {
         subscription?: boolean;
+        namespace?: string;
       };
     };
   };

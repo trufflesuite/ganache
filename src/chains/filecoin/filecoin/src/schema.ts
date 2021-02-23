@@ -15,14 +15,24 @@ const combinedMethods = {
 
 // Use the FilecoinAPI to create a schema object representing the functions supported.
 for (const methodName of Object.getOwnPropertyNames(FilecoinApi.prototype)) {
-  if (!methodName.startsWith("Filecoin.")) {
-    continue;
-  }
+  if (methodName.startsWith("Filecoin.")) {
+    const schemaName = methodName.replace("Filecoin.", "");
 
-  let schemaName = methodName.replace("Filecoin.", "");
-  GanacheSchema.methods[schemaName] = {
-    subscription: combinedMethods[schemaName].subscription === true
-  };
+    GanacheSchema.methods[schemaName] = {
+      subscription: combinedMethods[schemaName].subscription === true
+    };
+  } else {
+    const namespaceMatch = /^(.+)\./.exec(methodName);
+    if (namespaceMatch) {
+      const namespace = namespaceMatch[1];
+      const schemaName = methodName.replace(".", "");
+
+      GanacheSchema.methods[schemaName] = {
+        subscription: /Notify$/i.exec(methodName) !== null,
+        namespace
+      };
+    }
+  }
 }
 
 export default GanacheSchema;
