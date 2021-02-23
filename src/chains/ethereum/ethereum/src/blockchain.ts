@@ -32,7 +32,6 @@ import BlockLogManager from "./data-managers/blocklog-manager";
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { keccak } from "@ganache/utils/src/utils/keccak";
 
 const {
   BUFFER_EMPTY,
