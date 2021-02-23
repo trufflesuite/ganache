@@ -1558,21 +1558,17 @@ export default class Blockchain extends Emittery.Typed<
     const transactionHash = Data.from(transactionHashBuffer).toString();
 
     // use the txHash to find storage at that point in time
-    try {
-      const { storage } = await this.erinTraceTransaction(
-        transactionHash,
-        contractAddress,
-        keys as Buffer[],
-        {
-          disableMemory: true,
-          disableStack: false,
-          disableStorage: false
-        }
-      );
-      result.storage = storage;
-    } catch (e) {
-      throw new Error(e);
-    }
+    const { storage } = await this.erinTraceTransaction(
+      transactionHash,
+      contractAddress,
+      keys as Buffer[],
+      {
+        disableMemory: true,
+        disableStack: false,
+        disableStorage: false
+      }
+    );
+    result.storage = storage;
 
     return result;
   }
