@@ -302,14 +302,10 @@ describe("api", () => {
         await provider.send("miner_start");
         await provider.once("message");
 
-        const txReceipt1 = await provider.send("eth_getTransactionReceipt", [
-          tx1
-        ]);
-        const txReceipt2 = await provider.send("eth_getTransactionReceipt", [
-          tx2
-        ]);
-        const txReceipt3 = await provider.send("eth_getTransactionReceipt", [
-          tx3
+        const [txReceipt1, txReceipt2, txReceipt3] = await Promise.all([
+          provider.send("eth_getTransactionReceipt", [tx1]),
+          provider.send("eth_getTransactionReceipt", [tx2]),
+          provider.send("eth_getTransactionReceipt", [tx3])
         ]);
 
         // all 3 txs should now be in the same block
