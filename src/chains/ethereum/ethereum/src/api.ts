@@ -1911,11 +1911,11 @@ export default class EthereumApi implements types.Api {
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
    *
-   * @param blockHash
-   * @param txIndex
-   * @param contractAddress
-   * @param startKey
-   * @param maxResult
+   * @param blockHash DATA, 32 Bytes - hash of a block
+   * @param txIndex QUANTITY - integer of the transaction index position
+   * @param contractAddress DATA, 20 Bytes - address of the contract
+   * @param startKey DATA - hash of the start key for grabbing storage entries
+   * @param maxResult integer of maximum number of storage entries to return
    * @returns returns a storage object with the keys being keccak-256 hashes of the storage keys,
    * and the values being the raw, unhashed key and value for that specific storage slot. Also
    * retuns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.
