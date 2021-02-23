@@ -71,6 +71,11 @@ export default class Blockchain extends Emittery.Typed<
   startDeal(proposal: StartDealParams): Promise<RootCID>;
   createQueryOffer(rootCid: RootCID): Promise<QueryOffer>;
   retrieve(retrievalOrder: RetrievalOrder, ref: FileRef): Promise<void>;
+  getTipsetFromKey(tipsetKey?: Array<RootCID>): Promise<Tipset>;
+  getTipsetByHeight(
+    height: number,
+    tipsetKey?: Array<RootCID>
+  ): Promise<Tipset>;
   createAccount(protocol: AddressProtocol): Promise<Account>;
   private logLatestTipset;
 }
