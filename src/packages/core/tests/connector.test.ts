@@ -31,27 +31,6 @@ describe("connector", () => {
     });
   });
 
-  it("errors when conflicting options are passed to the provider", async () => {
-    let error: Error;
-
-    try {
-      const p = Ganache.provider({
-        wallet: {
-          deterministic: true,
-          seed: "123"
-        } as Object // "as Object" lets us get around ts typechecking during compilation
-      });
-    } catch (e) {
-      error = e;
-    }
-
-    assert.ok(error, "Did not receive an error!");
-    assert.strictEqual(
-      error.message,
-      "Options wallet.deterministic and wallet.seed are mutually exclusive"
-    );
-  });
-
   it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
     const p = Ganache.provider();
     const accounts = await p.send("eth_accounts");
