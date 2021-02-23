@@ -126,5 +126,62 @@ describe("api", () => {
         assert.strictEqual(head.Blocks[0].Height, head.Height);
       });
     });
+
+    describe("Filecoin.ChainGetTipSet", () => {
+      it("should return a serialized tipset with blocks", async () => {
+        const head = await client.chainHead();
+        const tipset = await client.chainGetTipSet(head.Cids);
+        assert.strictEqual(tipset.Height, head.Height);
+        assert(tipset.Blocks.length === head.Blocks.length);
+        assert.strictEqual(tipset.Blocks[0].Height, tipset.Height);
+      });
+    });
+
+    describe("Filecoin.ChainGetTipSetByHeight", () => {
+      it("should return a tipset with blocks using only the height", async () => {
+        const tipset = await client.chainGetTipSetByHeight(0);
+        assert.strictEqual(tipset.Height, 0);
+        assert(tipset.Blocks.length > 0);
+        assert.strictEqual(tipset.Blocks[0].Height, tipset.Height);
+      });
+
+      it("should return a tipset with blocks using both height and tipset key", async () => {
+        const head = await client.chainHead();
+        const tipset = await client.chainGetTipSetByHeight(0, head.Cids);
+        assert.strictEqual(tipset.Height, 0);
+        assert(tipset.Blocks.length > 0);
+        assert.strictEqual(tipset.Blocks[0].Height, tipset.Height);
+      });
+
+      it("should fail to retrieve a tipset if the height is larger than the tipset key's height", async () => {
+        await provider.send({
+          jsonrpc: "2.0",
+          id: "0",
+          method: "Ganache.MineTipset"
+        });
+
+        const genesisTipset = await client.chainGetGenesis();
+        const head = await client.chainHead();
+
+        assert(head.Height > genesisTipset.Height);
+
+        try {
+          await client.chainGetTipSetByHeight(head.Height, genesisTipset.Cids);
+          assert.fail(
+            "Successfully received tipset with incorrect tipset key/height"
+          );
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes(
+              "looking for tipset with height greater than start point"
+            ),
+            e.message
+          );
+        }
+      });
+    });
   });
 });
