@@ -369,7 +369,7 @@ export default class Blockchain extends Emittery.Typed<
         );
       });
 
-      // save storage keys to the database one at a time
+      // save storage keys to the database
       storageKeys.forEach((value, key) => {
         this.storageKeys.put(key, value);
       });
