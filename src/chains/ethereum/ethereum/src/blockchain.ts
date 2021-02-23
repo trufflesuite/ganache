@@ -1516,8 +1516,8 @@ export default class Blockchain extends Emittery.Typed<
     ])[2];
 
     // use the addresses storage trie to get relevant hashed keys
-    let keys: Buffer[] = [];
     const getStorageKeys = () => {
+      let keys: Buffer[] = [];
       return new Promise((resolve, reject) => {
         trie
           .createReadStream()
@@ -1548,7 +1548,7 @@ export default class Blockchain extends Emittery.Typed<
           });
       });
     };
-    await getStorageKeys();
+    const keys = await getStorageKeys();
 
     // get txHash using txIndex
     const transactions = targetBlock.getTransactions();
@@ -1562,7 +1562,7 @@ export default class Blockchain extends Emittery.Typed<
       const { storage } = await this.erinTraceTransaction(
         transactionHash,
         contractAddress,
-        keys,
+        keys as Buffer[],
         {
           disableMemory: true,
           disableStack: false,
