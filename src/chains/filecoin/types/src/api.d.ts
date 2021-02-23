@@ -30,6 +30,13 @@ export default class FilecoinApi implements types.Api {
   [SubscriptionMethod.ChannelClosed](
     subscriptionId: SubscriptionId
   ): Promise<boolean>;
+  "Filecoin.ChainGetTipSet"(
+    serializedTipsetKey: Array<SerializedRootCID>
+  ): Promise<SerializedTipset>;
+  "Filecoin.ChainGetTipSetByHeight"(
+    height: number,
+    serializedTipsetKey?: Array<SerializedRootCID>
+  ): Promise<SerializedTipset>;
   "Filecoin.MpoolGetNonce"(address: string): Promise<number>;
   "Filecoin.MpoolPush"(
     signedMessage: SerializedSignedMessage
