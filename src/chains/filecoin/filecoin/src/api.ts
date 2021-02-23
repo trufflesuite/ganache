@@ -64,7 +64,7 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset> {
-    const tipset = this.#blockchain.latestTipset();
+    const tipset = this.#blockchain.genesisTipset();
     return tipset.serialize();
   }
 
@@ -155,6 +155,36 @@ export default class FilecoinApi implements types.Api {
     } else {
       return Promise.resolve(false);
     }
+  }
+
+  async "Filecoin.ChainGetTipSet"(
+    serializedTipsetKey: Array<SerializedRootCID>
+  ): Promise<SerializedTipset> {
+    await this.#blockchain.waitForReady();
+
+    const tipset = await this.#blockchain.getTipsetFromKey(
+      serializedTipsetKey.map(serializedCid => new RootCID(serializedCid))
+    );
+    return tipset.serialize();
+  }
+
+  async "Filecoin.ChainGetTipSetByHeight"(
+    height: number,
+    serializedTipsetKey?: Array<SerializedRootCID>
+  ): Promise<SerializedTipset> {
+    await this.#blockchain.waitForReady();
+
+    let tipset: Tipset;
+    if (serializedTipsetKey) {
+      tipset = await this.#blockchain.getTipsetByHeight(
+        height,
+        serializedTipsetKey.map(serializedCid => new RootCID(serializedCid))
+      );
+    } else {
+      tipset = await this.#blockchain.getTipsetByHeight(height);
+    }
+
+    return tipset.serialize();
   }
 
   async "Filecoin.MpoolGetNonce"(address: string): Promise<number> {

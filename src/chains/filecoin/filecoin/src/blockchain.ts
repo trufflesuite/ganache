@@ -848,6 +848,69 @@ export default class Blockchain extends Emittery.Typed<
     );
   }
 
+  // Reference implementation: https://git.io/Jt7eQ
+  async getTipsetFromKey(tipsetKey?: Array<RootCID>): Promise<Tipset> {
+    await this.waitForReady();
+
+    if (!tipsetKey || tipsetKey.length === 0) {
+      return this.tipsetManager!.latest!;
+    }
+
+    // Instead of using the `LoadTipSet` implementation
+    // found in the reference implementation, we can greatly
+    // simplify the process due to our current "a block can
+    // only be part of one tipset". This is a special condition
+    // of Ganache due to not dealing with a real network.
+    for (const cid of tipsetKey) {
+      const cidString = cid.root.value;
+      const blockHeader = await this.blockHeaderManager!.get(
+        Buffer.from(cidString)
+      );
+      if (blockHeader) {
+        const tipset = await this.tipsetManager!.getTipsetWithBlocks(
+          blockHeader.height
+        );
+        if (tipset) {
+          return tipset;
+        }
+      }
+    }
+
+    throw new Error("Could not retrieve tipset from tipset key");
+  }
+
+  // Reference implementation: https://git.io/Jt7vk
+  async getTipsetByHeight(
+    height: number,
+    tipsetKey?: Array<RootCID>
+  ): Promise<Tipset> {
+    await this.waitForReady();
+
+    let tipset: Tipset | null = await this.getTipsetFromKey(tipsetKey);
+
+    // Reference implementation: https://git.io/Jt7vI
+    if (height > tipset.height) {
+      throw new Error(
+        "looking for tipset with height greater than start point"
+      );
+    }
+
+    if (height === tipset.height) {
+      return tipset;
+    }
+
+    // The reference implementation then calls `cs.cindex.GetTipsetByHeight`
+    // which is specific to their blockchain implementation of needing to
+    // walk back different caches. The way ganache stores these currently
+    // is much simpler, and we can fetch the tipset directly from the height
+    tipset = await this.tipsetManager!.getTipsetWithBlocks(height);
+    if (tipset) {
+      return tipset;
+    } else {
+      throw new Error("Could not find tipset with the provided height");
+    }
+  }
+
   async createAccount(protocol: AddressProtocol): Promise<Account> {
     await this.waitForReady();
 
