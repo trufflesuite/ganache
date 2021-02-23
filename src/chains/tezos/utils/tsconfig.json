@@ -4,5 +4,11 @@
     "outDir": "lib",
     "composite": true
   },
-  "include": ["src", "index.ts"]
+  "include": ["src", "index.ts"],
+  "references": [
+    {
+      "name": "@ganache/utils",
+      "path": "../../../packages/utils"
+    }
+  ]
 }
