@@ -1521,10 +1521,10 @@ export default class Blockchain extends Emittery.Typed<
       return new Promise((resolve, reject) => {
         trie
           .createReadStream()
-          .on("data", async data => {
+          .on("data", data => {
             keys.push(data.key);
           })
-          .on("end", async () => {
+          .on("end", () => {
             // sort keys
             const sortedKeys = keys.sort((a, b) => Buffer.compare(a, b));
 
