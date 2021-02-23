@@ -46,10 +46,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
 
   const suppliedOptions = new Map<
     string,
-    {
-      inputName: string;
-      normalized: unknown;
-    }
+    { inputName: string; normalized: unknown }
   >();
   const keys = Object.keys(def);
   if (hasOwn(options, namespace)) {
