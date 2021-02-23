@@ -239,16 +239,18 @@ export default class Blockchain extends Emittery.Typed<
     this.#minerEnabled = true;
     this.emit("minerEnabled", true);
 
-    const intervalMine = () => {
-      this.mineTipset();
-    };
+    if (this.options.miner.blockTime > 0) {
+      const intervalMine = () => {
+        this.mineTipset();
+      };
 
-    this.miningTimeout = setInterval(
-      intervalMine,
-      this.options.miner.blockTime * 1000
-    );
+      this.miningTimeout = setInterval(
+        intervalMine,
+        this.options.miner.blockTime * 1000
+      );
 
-    utils.unref(this.miningTimeout);
+      utils.unref(this.miningTimeout);
+    }
   }
 
   disableMiner() {
