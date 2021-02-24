@@ -44,7 +44,7 @@
     "tooling"
   ],
   "dependencies": {
-    "emittery": "0.7.2",
+    "emittery": "0.8.1",
     "keccak": "3.0.1"
   },
   "devDependencies": {

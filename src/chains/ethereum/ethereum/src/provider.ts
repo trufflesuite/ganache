@@ -35,7 +35,7 @@ type RequestParams<Method extends RequestMethods> = {
 const hasOwn = utils.hasOwn;
 
 export default class EthereumProvider
-  extends Emittery.Typed<{ message: any }, "connect" | "disconnect">
+  extends Emittery<{ message: any; connect: undefined; disconnect: undefined }>
   implements types.Provider<EthereumApi> {
   #options: EthereumInternalOptions;
   #api: EthereumApi;
@@ -88,7 +88,7 @@ export default class EthereumProvider
   /**
    * Remove an event subscription
    */
-  public removeListener = this.off;
+  public removeListener: Emittery["off"] = this.off;
 
   /**
    * @param payload

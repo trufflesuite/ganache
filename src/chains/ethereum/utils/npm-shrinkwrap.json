@@ -513,9 +513,9 @@
 			}
 		},
 		"ethereumjs-util": {
-			"version": "7.0.7",
-			"resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-7.0.7.tgz",
-			"integrity": "sha512-vU5rtZBlZsgkTw3o6PDKyB8li2EgLavnAbsKcfsH2YhHH1Le+PP8vEiMnAnvgc1B6uMoaM5GDCrVztBw0Q5K9g==",
+			"version": "7.0.8",
+			"resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-7.0.8.tgz",
+			"integrity": "sha512-JJt7tDpCAmDPw/sGoFYeq0guOVqT3pTE9xlEbBmc/nlCij3JRCoS2c96SQ6kXVHOT3xWUNLDm5QCJLQaUnVAtQ==",
 			"requires": {
 				"@types/bn.js": "^4.11.3",
 				"bn.js": "^5.1.2",

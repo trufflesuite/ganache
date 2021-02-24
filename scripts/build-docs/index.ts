@@ -24,9 +24,7 @@ const api = JSON.parse(
   readFileSync(join(__dirname, "../../docs/typedoc/api.json"), "utf8")
 );
 
-const ethereum = api.children[0].children.filter(
-  a => a.name === "EthereumApi"
-)[0];
+const ethereum = api.children[0];
 
 function x(unsafe: string) {
   return unsafe
@@ -43,9 +41,7 @@ function e(s: string) {
 
 const methods = ethereum.children.filter(
   (method: Method) =>
-    method.name !== "constructor" &&
-    method.kindString === "Method" &&
-    method.flags.isExported
+    method.name !== "constructor" && method.kindString === "Method"
 ) as Method[];
 
 type Tag = {
@@ -250,7 +246,7 @@ function getTypeAsString(type: any) {
       return `[${
         type.elements ? type.elements.map(getTypeAsString).join(", ") : ""
       }]`;
-    case "stringLiteral":
+    case "literal":
       // outputs a string literal like `He said, "hello, world"!` as
       // the string `"He said, \"hello, world\"!"`
       return `"${type.value.replace(/"/g, '\\"')}"`;

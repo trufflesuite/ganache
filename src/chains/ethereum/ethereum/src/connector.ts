@@ -20,7 +20,7 @@ function isHttp(
 }
 
 export class Connector
-  extends Emittery.Typed<undefined, "ready" | "close">
+  extends Emittery<{ ready: undefined; close: undefined }>
   implements
     types.Connector<
       EthereumApi,

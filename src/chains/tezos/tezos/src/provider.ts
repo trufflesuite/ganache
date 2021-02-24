@@ -3,10 +3,11 @@ import TezosApi from "./api";
 import Emittery from "emittery";
 
 export default class TezosProvider
-  extends Emittery.Typed<
-    { request: types.RequestType<TezosApi> },
-    "ready" | "close"
-  >
+  extends Emittery<{
+    request: types.RequestType<TezosApi>;
+    ready: undefined;
+    close: undefined;
+  }>
   implements types.Provider<TezosApi> {
   constructor(providerOptions?: any) {
     super();

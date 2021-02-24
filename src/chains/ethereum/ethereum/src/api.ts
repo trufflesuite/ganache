@@ -169,7 +169,11 @@ export default class EthereumApi implements types.Api {
   constructor(
     options: EthereumInternalOptions,
     wallet: Wallet,
-    emitter: Emittery.Typed<{ message: any }, "connect" | "disconnect">
+    emitter: Emittery<{
+      message: any;
+      connect: undefined;
+      disconnect: undefined;
+    }>
   ) {
     this.#options = options;
 

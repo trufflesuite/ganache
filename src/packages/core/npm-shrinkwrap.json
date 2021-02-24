@@ -210,9 +210,9 @@
 			"dev": true
 		},
 		"ws": {
-			"version": "7.3.1",
-			"resolved": "https://registry.npmjs.org/ws/-/ws-7.3.1.tgz",
-			"integrity": "sha512-D3RuNkynyHmEJIpD2qrgVkc9DQ23OrN/moAwZX4L8DfvszsJxpjQuUq3LMx6HoYji9fbIOBY18XWBsAux1ZZUA==",
+			"version": "7.4.3",
+			"resolved": "https://registry.npmjs.org/ws/-/ws-7.4.3.tgz",
+			"integrity": "sha512-hr6vCR76GsossIRsr8OLR9acVVm1jyfEWvhbNjtgPOrfvAlKzvyeg/P6r8RuDjRyrcQoPQT7K0DGEPc7Ae6jzA==",
 			"dev": true
 		},
 		"yallist": {

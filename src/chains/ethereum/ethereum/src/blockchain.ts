@@ -84,8 +84,9 @@ type BlockchainTypedEvents = {
   block: Block;
   blockLogs: BlockLogs;
   pendingTransaction: Transaction;
+  start: undefined;
+  stop: undefined;
 };
-type BlockchainEvents = "start" | "stop";
 
 export type TransactionTraceOptions = {
   disableStorage?: boolean;
@@ -142,10 +143,7 @@ function setStateRootSync(stateManager: VM["stateManager"], stateRoot: Buffer) {
   stateManager._storageTries = {};
 }
 
-export default class Blockchain extends Emittery.Typed<
-  BlockchainTypedEvents,
-  BlockchainEvents
-> {
+export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   #state: Status = Status.starting;
   #miner: Miner;
   #blockBeingSavedPromise: Promise<{ block: Block; blockLogs: BlockLogs }>;
@@ -443,7 +441,7 @@ export default class Blockchain extends Emittery.Typed<
       .then(() => this.#saveNewBlock(blockData))
       .then(this.#emitNewBlock);
 
-    return this.#blockBeingSavedPromise;
+    await this.#blockBeingSavedPromise;
   };
 
   coinbase: Address;

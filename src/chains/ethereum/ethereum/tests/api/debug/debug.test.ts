@@ -124,7 +124,7 @@ describe("api", () => {
 
       assert.strictEqual(lastop.op, "STOP");
       assert.strictEqual(lastop.gasCost, 0);
-      assert.strictEqual(lastop.pc, 202); // This will change if you edit Debug.sol
+      assert.strictEqual(lastop.pc, 202); // This will change if you edit Debug.sol or change compiler versions
 
       // This makes sure we get the initial value back (the first transaction to setValue())
       // and not the value of the second setValue() transaction

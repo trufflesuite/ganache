@@ -37,7 +37,9 @@ const emitteryMethods = [
   "onAny"
 ] as const;
 
-@Emittery.mixin(Symbol.for("emittery"), emitteryMethods)
+// TODO: remove as any once we can update to latest emittery
+// https://github.com/sindresorhus/emittery/issues/79
+@((Emittery.mixin as any)(Symbol.for("emittery"), emitteryMethods))
 class PromiEvent<T> extends Promise<T> {
   constructor(
     executor: (

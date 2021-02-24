@@ -32,10 +32,10 @@ const putInTrie = (trie: Trie, key: Buffer, val: Buffer) =>
 const sortByPrice = (values: Transaction[], a: number, b: number) =>
   Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 
-export default class Miner extends Emittery.Typed<
-  { block: { block: Block; serialized: Buffer } },
-  "idle"
-> {
+export default class Miner extends Emittery<{
+  block: { block: Block; serialized: Buffer };
+  idle: undefined;
+}> {
   #currentlyExecutingPrice = 0n;
   #origins = new Set<string>();
   #pending: boolean;

@@ -11,7 +11,7 @@ export interface Connector<
   ApiImplementation extends Api,
   RequestFormat,
   ResponseFormat
-> extends Emittery.Typed<undefined, "ready" | "close"> {
+> extends Emittery<{ ready: undefined; close: undefined }> {
   provider: Provider<ApiImplementation>;
 
   /**

@@ -20,7 +20,7 @@ function byNonce(values: Transaction[], a: number, b: number) {
   );
 }
 
-export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
+export default class TransactionPool extends Emittery<{ drain: undefined }> {
   #options: EthereumInternalOptions["miner"];
 
   /**
