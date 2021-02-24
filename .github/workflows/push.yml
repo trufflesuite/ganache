@@ -26,10 +26,6 @@ jobs:
       - run: npm test
         env:
           FORCE_COLOR: 1
-      - run: npm run test.filecoin
-        if: ${{ !startsWith(matrix.node, '10.') && !startsWith(matrix.node, '11.') }}
-        env:
-          FORCE_COLOR: 1
 
   build-all:
     strategy:
@@ -73,9 +69,5 @@ jobs:
       - run: npm ci
       - run: npm run tsc
       - run: npm test
-        env:
-          FORCE_COLOR: 1
-      - run: npm run test.filecoin
-        if: ${{ !startsWith(matrix.node, '10.') && !startsWith(matrix.node, '11.') }}
         env:
           FORCE_COLOR: 1
