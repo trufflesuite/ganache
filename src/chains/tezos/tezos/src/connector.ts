@@ -76,16 +76,6 @@ export class Connector
   ) => {
     const method = payload.method;
     // TODO: Add tezos specific error codes
-    // if (method === "eth_subscribe") {
-    //   if (isHttp(connection)) {
-    //     return Promise.reject(
-    //       new CodedError(
-    //         "notifications not supported",
-    //         ErrorCodes.METHOD_NOT_SUPPORTED
-    //       )
-    //     );
-    //   }
-    // }
     const params = payload.params as Parameters<TezosApi[typeof method]>;
     return this.#provider._requestRaw({ method, params });
   };

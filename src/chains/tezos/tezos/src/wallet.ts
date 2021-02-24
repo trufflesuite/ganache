@@ -22,10 +22,10 @@ export default class Wallet extends Emittery.Typed<
     const n = new Uint8Array(prefix.length + payload.length);
     n.set(prefix);
     n.set(payload, prefix.length);
-    return bs58check.encode(Buffer.from(n)); //,  "hex")); // TODO : check if hex is required or not
+    return bs58check.encode(Buffer.from(n));
   }
 
-  readonly initialAccounts: Account[]; // TODO : verify Account model
+  readonly initialAccounts: Account[];
 
   constructor(opts: TezosInternalOptions["wallet"]) {
     super();
@@ -66,7 +66,7 @@ export default class Wallet extends Emittery.Typed<
     return accounts;
   };
 
-  public createAccount(seed, name, balance): Account {
+  public createAccount(seed: Buffer, name: string, balance: number): Account {
     try {
       const kp = sodium.crypto_sign_seed_keypair(seed);
       return {
