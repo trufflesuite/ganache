@@ -2,16 +2,10 @@ import { alea as rng } from "seedrandom";
 import { TezosInternalOptions } from "@ganache/tezos-options";
 import sodium from "libsodium-wrappers";
 import bs58check from "bs58check";
-import { join } from "path";
 
-import fs from "fs";
 import Emittery from "emittery";
 import { Account } from "@ganache/tezos-utils";
-
-const names = fs
-  .readFileSync(join(__dirname, "names.txt"), "utf8")
-  .toLowerCase()
-  .split(/\n/g);
+import { NAMES } from "./names";
 
 export default class Wallet extends Emittery.Typed<
   undefined,
@@ -38,21 +32,20 @@ export default class Wallet extends Emittery.Typed<
     const initialAccounts = (this.initialAccounts = this.#initializeAccounts(
       opts
     ));
-    const l = initialAccounts.length;
   }
 
   #initializeAccounts = (
     options: TezosInternalOptions["wallet"]
   ): Account[] => {
     const accounts: any[] = [];
-    let name = names[0];
+    let name = NAMES[0];
     const rand = rng(name);
     const usedNames = new Set();
     const getName = () => {
       let name;
-      const l = names.length;
+      const l = NAMES.length;
       do {
-        name = names[Math.floor(rand() * l) + 0];
+        name = NAMES[Math.floor(rand() * l) + 0];
         if (usedNames.size > l / 2) {
           name += "_" + getName();
           break;
