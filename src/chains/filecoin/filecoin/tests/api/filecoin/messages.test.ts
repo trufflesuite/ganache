@@ -1643,5 +1643,27 @@ describe("api", () => {
         assert.strictEqual(head.Height, 0);
       });
     });
+
+    describe("Filecoin.ChainGetBlockMessages", () => {
+      it("should get the block messages for a block cid", async () => {
+        const tipset = await client.chainHead();
+        const blockMessages = await client.chainGetBlockMessages(
+          tipset.Cids[0]
+        );
+        assert.strictEqual(blockMessages.Cids.length, 1);
+        assert.strictEqual(blockMessages.BlsMessages.length, 1);
+      });
+    });
+
+    describe("Filecoin.ChainGetMessage", () => {
+      it("should get a message directly from a message cid", async () => {
+        const tipset = await client.chainHead();
+        const blockMessages = await client.chainGetBlockMessages(
+          tipset.Cids[0]
+        );
+        const message = await client.chainGetMessage(blockMessages.Cids[0]);
+        assert.deepStrictEqual(message, blockMessages.BlsMessages[0]);
+      });
+    });
   });
 });
