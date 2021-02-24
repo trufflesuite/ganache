@@ -229,51 +229,56 @@ export default class Blockchain extends Emittery.Typed<
     const dirname = path.dirname(ref.path);
     let fileStream: fs.WriteStream;
     try {
-      if (!fs.existsSync(dirname)) {
-        await fs.promises.mkdir(dirname, { recursive: true });
-      }
-      fileStream = fs.createWriteStream(`${ref.path}.partial`, {
-        encoding: "binary"
-      });
-    } catch (e) {
-      throw new Error(
-        `Could not create file.\n  CID: ${cid}\n  Path: ${
-          ref.path
-        }\n  Error: ${e.toString()}`
-      );
-    }
-
-    const chunks = this.ipfsServer.node.files.read(new IPFS_CID(cid), {
-      timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
-    });
-
-    for await (const chunk of chunks) {
       try {
-        await new Promise<void>((resolve, reject) => {
-          const shouldContinue = fileStream.write(chunk, error => {
-            if (error) {
-              reject(error);
-            } else {
-              if (shouldContinue) {
-                resolve();
-              } else {
-                fileStream.once("drain", resolve);
-              }
-            }
-          });
+        if (!fs.existsSync(dirname)) {
+          await fs.promises.mkdir(dirname, { recursive: true });
+        }
+        fileStream = fs.createWriteStream(`${ref.path}.partial`, {
+          encoding: "binary"
         });
       } catch (e) {
         throw new Error(
-          `Could not save file.\n  CID: ${cid}\n  Path: ${
+          `Could not create file.\n  CID: ${cid}\n  Path: ${
             ref.path
           }\n  Error: ${e.toString()}`
         );
       }
+
+      const chunks = this.ipfsServer.node.files.read(new IPFS_CID(cid), {
+        timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
+      });
+
+      for await (const chunk of chunks) {
+        try {
+          await new Promise<void>((resolve, reject) => {
+            const shouldContinue = fileStream.write(chunk, error => {
+              if (error) {
+                reject(error);
+              } else {
+                if (shouldContinue) {
+                  resolve();
+                } else {
+                  fileStream.once("drain", resolve);
+                }
+              }
+            });
+          });
+        } catch (e) {
+          throw new Error(
+            `Could not save file.\n  CID: ${cid}\n  Path: ${
+              ref.path
+            }\n  Error: ${e.toString()}`
+          );
+        }
+      }
+
+      await fs.promises.rename(`${ref.path}.partial`, ref.path);
+    } finally {
+      // @ts-ignore
+      if (fileStream) {
+        fileStream.close();
+      }
     }
-
-    fileStream.close();
-
-    await fs.promises.rename(`${ref.path}.partial`, ref.path);
   }
 
   async startDeal(proposal: StartDealParams): Promise<RootCID> {
