@@ -3,7 +3,7 @@ import makeKeccak, { Keccak } from "keccak";
 const RATE = 1088;
 const CAPACITY = 512;
 
-const instance = makeKeccak("keccak256") as {
+const instance = (makeKeccak("keccak256") as unknown) as {
   _state: {
     absorb: (buffer: Buffer) => void;
     squeeze: (length: number) => Buffer;
