@@ -1,4 +1,4 @@
-// To use this script, run `ts-node path/to/skip-if-not-node-12.ts || <command>`
+// To use this script, run `ts-node path/to/skip-if-less-than-node-12.ts || <command>`
 // This script will "succeed" if less than node@12, causing <command> to not execute
 // but also make look like the overall command was successful
 
