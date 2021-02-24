@@ -37,6 +37,8 @@ import { KeyInfo, SerializedKeyInfo } from "./things/key-info";
 import { SerializedSignature, Signature } from "./things/signature";
 import { SigType } from "./things/sig-type";
 import base32 from "base32-encoding";
+import { SerializedBlockHeader } from "./things/block-header";
+import { SerializedBlockMessages } from "./things/block-messages";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -175,7 +177,9 @@ export default class FilecoinApi implements types.Api {
     await this.#blockchain.waitForReady();
 
     let tipset: Tipset;
-    if (serializedTipsetKey) {
+    // we check if serializedTipsetKey is an array as well because
+    // of our voodoo json rpc ID gets appended to the args
+    if (serializedTipsetKey && Array.isArray(serializedTipsetKey)) {
       tipset = await this.#blockchain.getTipsetByHeight(
         height,
         serializedTipsetKey.map(serializedCid => new RootCID(serializedCid))
@@ -185,6 +189,57 @@ export default class FilecoinApi implements types.Api {
     }
 
     return tipset.serialize();
+  }
+
+  async "Filecoin.ChainGetBlock"(
+    serializedBlockCid: SerializedRootCID
+  ): Promise<SerializedBlockHeader> {
+    await this.#blockchain.waitForReady();
+
+    const blockCid = new RootCID(serializedBlockCid);
+    const blockHeader = await this.#blockchain.blockHeaderManager!.get(
+      blockCid.root.value
+    );
+
+    if (!blockHeader) {
+      throw new Error("Could not find a block for the provided CID");
+    }
+
+    return blockHeader.serialize();
+  }
+
+  async "Filecoin.ChainGetBlockMessages"(
+    serializedBlockCid: SerializedRootCID
+  ): Promise<SerializedBlockMessages> {
+    await this.#blockchain.waitForReady();
+
+    const blockCid = new RootCID(serializedBlockCid);
+    const blockMessages = await this.#blockchain.blockMessagesManager!.getBlockMessages(
+      blockCid.root
+    );
+
+    if (!blockMessages) {
+      throw new Error("Could not find a block for the provided CID");
+    }
+
+    return blockMessages.serialize();
+  }
+
+  async "Filecoin.ChainGetMessage"(
+    serializedMessageCid: SerializedRootCID
+  ): Promise<SerializedMessage> {
+    await this.#blockchain.waitForReady();
+
+    const blockMessageCid = new RootCID(serializedMessageCid);
+    const signedMessage = await this.#blockchain.signedMessagesManager!.get(
+      blockMessageCid.root.value
+    );
+
+    if (!signedMessage) {
+      throw new Error("Could not find a message for the provided CID");
+    }
+
+    return signedMessage.message.serialize();
   }
 
   async "Filecoin.MpoolGetNonce"(address: string): Promise<number> {

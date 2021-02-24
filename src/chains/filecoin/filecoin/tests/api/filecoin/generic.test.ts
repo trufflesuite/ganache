@@ -183,5 +183,14 @@ describe("api", () => {
         }
       });
     });
+
+    describe("Filecoin.ChainGetBlock", () => {
+      it("should retrieve a block directly by CID", async () => {
+        const tipset = await client.chainHead();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const block = await client.chainGetBlock(tipset.Cids[0]);
+        assert.deepStrictEqual(block, tipset.Blocks[0]);
+      });
+    });
   });
 });
