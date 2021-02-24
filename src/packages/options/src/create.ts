@@ -34,7 +34,7 @@ const checkForConflicts = (
       throw new Error(
         `Values for both "${inputOptionName}" and ` +
           `"${suppliedOptions.get(conflict).inputName}" cannot ` +
-          `be specified. They are mutually exclusive.`
+          `be specified; they are mutually exclusive.`
       );
     }
   }
