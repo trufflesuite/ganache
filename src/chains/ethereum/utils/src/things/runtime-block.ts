@@ -76,11 +76,15 @@ export class Block {
       const deserialized = (rlpDecode(serialized) as any) as [
         Buffer[],
         Buffer[][],
+        Buffer[],
         Buffer
       ];
       this._raw = deserialized[0];
       this._rawTransactions = deserialized[1];
-      const totalDifficulty = deserialized[2];
+      // TODO: support actual uncle data (needed for forking!)
+      // Issue: https://github.com/trufflesuite/ganache-core/issues/786
+      // const uncles = deserialized[1];
+      const totalDifficulty = deserialized[3];
       this.header = makeHeader(this._raw, totalDifficulty);
       this._size = getBlockSize(serialized, totalDifficulty);
     }
@@ -220,9 +224,12 @@ export class RuntimeBlock {
       Buffer.allocUnsafe(32).fill(0), // mixHash
       Buffer.allocUnsafe(8).fill(0) // nonce
     ];
+    // TODO: support actual uncle data (needed for forking!)
+    // Issue: https://github.com/trufflesuite/ganache-core/issues/786
+    const uncles = [];
     const { totalDifficulty } = header;
     const rawTransactions = transactions.map(tx => tx.raw);
-    const raw = [rawHeader, rawTransactions, totalDifficulty];
+    const raw = [rawHeader, rawTransactions, uncles, totalDifficulty];
 
     const serialized = rlpEncode(raw);
 
