@@ -277,29 +277,31 @@ describe("api", () => {
           await provider.send("eth_subscribe", ["newHeads"]);
           await provider.send("miner_stop");
 
-          const tx1 = await provider.send("eth_sendTransaction", [
-            {
-              from: accounts[0],
-              to: contractAddress,
-              gas: 3141592,
-              data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000001`
-            }
-          ]);
-          const tx2 = await provider.send("eth_sendTransaction", [
-            {
-              from: accounts[0],
-              to: contractAddress,
-              gas: 3141592,
-              data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000002`
-            }
-          ]);
-          const tx3 = await provider.send("eth_sendTransaction", [
-            {
-              from: accounts[0],
-              to: contractAddress,
-              gas: 3141592,
-              data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000003`
-            }
+          const [tx1, tx2, tx3] = await Promise.all([
+            provider.send("eth_sendTransaction", [
+              {
+                from: accounts[0],
+                to: contractAddress,
+                gas: 3141592,
+                data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000001`
+              }
+            ]),
+            provider.send("eth_sendTransaction", [
+              {
+                from: accounts[0],
+                to: contractAddress,
+                gas: 3141592,
+                data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000002`
+              }
+            ]),
+            provider.send("eth_sendTransaction", [
+              {
+                from: accounts[0],
+                to: contractAddress,
+                gas: 3141592,
+                data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000003`
+              }
+            ])
           ]);
 
           await provider.send("miner_start");
