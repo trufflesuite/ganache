@@ -369,9 +369,19 @@ describe("api", () => {
         }
       });
 
-      // TODO: create a test that checks what kind of error, if any, we get back
-      // for calling a txIndex that doesn't exist
-      // Fix to replicate what geth does
+      it("should throw an error for transaction indexes out of range", async () => {
+        const message = `transaction index 3 is out of range for block ${blockHash}`;
+        await assert.rejects(
+          provider.send("debug_storageRangeAt", [
+            blockHash,
+            3, // txIndex out of range
+            contractAddress,
+            "0x00",
+            2
+          ]),
+          { message }
+        );
+      });
     });
 
     describe("DebugComplexStorage", () => {
