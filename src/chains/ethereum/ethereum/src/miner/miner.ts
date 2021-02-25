@@ -6,7 +6,6 @@ import {
   RuntimeError,
   RETURN_TYPES,
   Executables,
-  ITraceData,
   TraceDataFactory,
   StepEvent
 } from "@ganache/ethereum-utils";
@@ -230,13 +229,10 @@ export default class Miner extends Emittery.Typed<
         event: StepEvent,
         next: (error?: any, cb?: any) => void
       ) => {
-        const stack: ITraceData[] = [];
-        for (const stackItem of event.stack) {
-          stack.push(TraceData.from(stackItem.toArrayLike(Buffer)));
-        }
-
         if (event.opcode.name === "SSTORE") {
-          const key = stack[stack.length - 1];
+          const key = TraceData.from(
+            event.stack[event.stack.length - 1].toArrayLike(Buffer)
+          );
           const hashedKey = Data.from(keccak(key.toBuffer())).toString();
           storageKeys.set(hashedKey, key.toBuffer());
         }
