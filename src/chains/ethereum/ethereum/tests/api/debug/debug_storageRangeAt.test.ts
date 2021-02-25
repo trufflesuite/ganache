@@ -262,7 +262,7 @@ describe("api", () => {
         assert.strictEqual(result.nextKey, null);
       });
 
-      it.only("should return correct storage given different transaction indexes", async () => {
+      it("should return correct storage given different transaction indexes", async () => {
         /* 
           Strategy for this test:
             1. Call miner.stop() so we can send a few transactions
