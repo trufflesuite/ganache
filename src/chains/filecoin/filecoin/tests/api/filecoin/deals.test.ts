@@ -40,7 +40,7 @@ describe("api", () => {
       }
     });
 
-    describe("Filecoin.ClientStartDeal and Filecoin.ClientListDeals", () => {
+    describe("Filecoin.ClientStartDeal, Filecoin.ClientListDeals, and Ganache.GetDealById", () => {
       let ipfs: IPFSClient;
 
       before(async () => {
@@ -88,6 +88,20 @@ describe("api", () => {
         let endingBalance = await client.walletBalance(address.value);
 
         assert(new BN(endingBalance).lt(new BN(beginningBalance)));
+      });
+
+      it("retrieves deal using ID", async () => {
+        const deals = await client.clientListDeals();
+        assert.strictEqual(deals.length, 1);
+
+        const deal = await provider.send({
+          jsonrpc: "2.0",
+          id: "0",
+          method: "Ganache.GetDealById",
+          params: [deals[0].DealID]
+        });
+
+        assert.deepStrictEqual(deal, deals[0]);
       });
     });
 
