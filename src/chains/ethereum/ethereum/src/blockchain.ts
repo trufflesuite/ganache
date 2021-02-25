@@ -858,315 +858,14 @@ export default class Blockchain extends Emittery.Typed<
     }
   }
 
-  /**
-   * traceTransaction
-   *
-   * Run a previously-run transaction in the same state in which it occurred at the time it was run.
-   * This will return the vm-level trace output for debugging purposes.
-   *
-   * Strategy:
-   *
-   *  1. Find block where transaction occurred
-   *  2. Set state root of that block
-   *  3. Rerun every transaction in that block prior to and including the requested transaction
-   *  4. Send trace results back.
-   *
-   * @param transactionHash
-   * @param options
-   */
-  public async traceTransaction(
-    transactionHash: string,
-    options: TransactionTraceOptions
-  ) {
-    let currentDepth = -1;
-    const storageStack: TraceStorageMap[] = [];
-
-    // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
-    // (Ganache v2 didn't handle this possibility either, so it hasn't been
-    // updated yet)
-    let gas = 0;
-    // TODO: returnValue isn't used... it wasn't used in v2 either. What's this
-    // supposed to be?
-    let returnValue = "";
-    const structLogs: Array<StructLog> = [];
-
-    const transactionHashBuffer = Data.from(transactionHash).toBuffer();
-    // #1 - get block via transaction object
-    const transaction = await this.transactions.get(transactionHashBuffer);
-
-    if (!transaction) {
-      throw new Error("Unknown transaction " + transactionHash);
-    }
-
-    const targetBlock = await this.blocks.get(transaction._blockNum);
-    const parentBlock = await this.blocks.getByHash(
-      targetBlock.header.parentHash.toBuffer()
-    );
-
-    // #2 - Set state root of original block
-    //
-    // TODO: Forking needs the forked block number passed during this step:
-    // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
-    const trie = new SecureTrie(
-      this.#database.trie,
-      parentBlock.header.stateRoot.toBuffer()
-    );
-
-    // Prepare the "next" block with necessary transactions
-    const newBlock = new RuntimeBlock(
-      Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
-      parentBlock.hash(),
-      parentBlock.header.miner,
-      parentBlock.header.gasLimit.toBuffer(),
-      // make sure we use the same timestamp as the target block
-      targetBlock.header.timestamp,
-      this.#options.miner.difficulty,
-      parentBlock.header.totalDifficulty
-    ) as RuntimeBlock & { uncleHeaders: []; transactions: Transaction[] };
-    newBlock.transactions = [];
-    newBlock.uncleHeaders = [];
-
-    const transactions = targetBlock.getTransactions();
-    for (const tx of transactions) {
-      newBlock.transactions.push(tx);
-
-      // After including the target transaction, that's all we need to do.
-      if (tx.hash().equals(transactionHashBuffer)) {
-        break;
-      }
-    }
-
-    type StepEvent = {
-      gasLeft: BN;
-      memory: Array<number>; // Not officially sure the type. Not a buffer or uint8array
-      stack: Array<BN>;
-      depth: number;
-      opcode: {
-        name: string;
-      };
-      pc: number;
-      address: Buffer;
-    };
-
-    const TraceData = TraceDataFactory();
-
-    const stepListener = (
-      event: StepEvent,
-      next: (error?: any, cb?: any) => void
-    ) => {
-      // See these docs:
-      // https://github.com/ethereum/go-ethereum/wiki/Management-APIs
-
-      const gasLeft = event.gasLeft.toNumber();
-      const totalGasUsedAfterThisStep =
-        Quantity.from(transaction.gasLimit).toNumber() - gasLeft;
-      const gasUsedPreviousStep = totalGasUsedAfterThisStep - gas;
-      gas += gasUsedPreviousStep;
-
-      const memory: ITraceData[] = [];
-      if (options.disableMemory !== true) {
-        // We get the memory as one large array.
-        // Let's cut it up into 32 byte chunks as required by the spec.
-        let index = 0;
-        while (index < event.memory.length) {
-          const slice = event.memory.slice(index, index + 32);
-          memory.push(TraceData.from(Buffer.from(slice)));
-          index += 32;
-        }
-      }
-
-      const stack: ITraceData[] = [];
-      if (options.disableStack !== true) {
-        for (const stackItem of event.stack) {
-          stack.push(TraceData.from(stackItem.toArrayLike(Buffer)));
-        }
-      }
-
-      const structLog: StructLog = {
-        depth: event.depth,
-        error: "",
-        gas: gasLeft,
-        gasCost: 0,
-        memory,
-        op: event.opcode.name,
-        pc: event.pc,
-        stack,
-        storage: null
-      };
-
-      // The gas difference calculated for each step is indicative of gas consumed in
-      // the previous step. Gas consumption in the final step will always be zero.
-      if (structLogs.length) {
-        structLogs[structLogs.length - 1].gasCost = gasUsedPreviousStep;
-      }
-
-      if (options.disableStorage === true) {
-        // Add the struct log as is - nothing more to do.
-        structLogs.push(structLog);
-        next();
-      } else {
-        const { depth: eventDepth } = event;
-        if (currentDepth > eventDepth) {
-          storageStack.pop();
-        } else if (currentDepth < eventDepth) {
-          storageStack.push(new TraceStorageMap());
-        }
-
-        currentDepth = eventDepth;
-
-        switch (event.opcode.name) {
-          case "SSTORE": {
-            const key = stack[stack.length - 1];
-            const value = stack[stack.length - 2];
-
-            // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
-            structLog.storage = new TraceStorageMap(storageStack[eventDepth]);
-
-            // Tell vm to move on to the next instruction. See below.
-            structLogs.push(structLog);
-            next();
-
-            // assign after callback because this storage change actually takes
-            // effect _after_ this opcode executes
-            storageStack[eventDepth].set(key, value);
-            break;
-          }
-          case "SLOAD": {
-            const key = stack[stack.length - 1];
-            vm.stateManager.getContractStorage(
-              event.address,
-              key.toBuffer(),
-              (err: Error, result: Buffer) => {
-                if (err) {
-                  return next(err);
-                }
-
-                const value = TraceData.from(result);
-                storageStack[eventDepth].set(key, value);
-
-                // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
-                structLog.storage = new TraceStorageMap(
-                  storageStack[eventDepth]
-                );
-                structLogs.push(structLog);
-                next();
-              }
-            );
-            break;
-          }
-          default:
-            // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
-            structLog.storage = new TraceStorageMap(storageStack[eventDepth]);
-            structLogs.push(structLog);
-            next();
-        }
-      }
-    };
-
-    let txHashCurrentlyProcessing: string = null;
-
-    const beforeTxListener = (tx: Transaction) => {
-      txHashCurrentlyProcessing = Data.from(tx.hash()).toString();
-      if (txHashCurrentlyProcessing == transactionHash) {
-        vm.on("step", stepListener);
-      }
-    };
-
-    const afterTxListener = () => {
-      if (txHashCurrentlyProcessing == transactionHash) {
-        removeListeners();
-      }
-    };
-
-    const removeListeners = () => {
-      vm.removeListener("step", stepListener);
-      vm.removeListener("beforeTx", beforeTxListener);
-      vm.removeListener("afterTx", afterTxListener);
-    };
-
-    const blocks = this.blocks;
-
-    // ethereumjs vm doesn't use the callback style anymore
-    const getBlock = class T {
-      static async [promisify.custom](number: BN) {
-        const block = await blocks.get(number.toBuffer()).catch(_ => null);
-        return block ? block.value : null;
-      }
-    };
-
-    const vm = new VM({
-      state: trie,
-      activatePrecompiles: true,
-      common: this.#common,
-      allowUnlimitedContractSize: this.#options.chain
-        .allowUnlimitedContractSize,
-      blockchain: {
-        getBlock
-      } as any
-    });
-
-    // Listen to beforeTx and afterTx so we know when our target transaction
-    // is processing. These events will add the event listener for getting the trace data.
-    vm.on("beforeTx", beforeTxListener);
-    vm.on("afterTx", afterTxListener);
-
-    // Don't even let the vm try to flush the block's _cache to the stateTrie.
-    // When forking some of the data that the traced function may request will
-    // exist only on the main chain. Because we pretty much lie to the VM by
-    // telling it we DO have data in our Trie, when we really don't, it gets
-    // lost during the commit phase when it traverses the "borrowed" data's
-    // trie (as it may not have a valid root). Because this is a trace, and we
-    // don't need to commit the data, duck punching the `flush` method (the
-    // simplest method I could find) is fine.
-    // Remove this and you may see the infamous
-    // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    vm.stateManager._cache.flush = cb => cb();
-
-    // #3 - Process the block without committing the data.
-
-    // The vmerr key on the result appears to be removed.
-    // The previous implementation had specific error handling.
-    // It's possible we've removed handling specific cases in this implementation.
-    // e.g., the previous incatation of RuntimeError
-    await vm.runBlock({
-      block: newBlock, // .value is the object the vm expects
-      generate: true,
-      skipBlockValidation: true
-    });
-
-    // Just to be safe
-    removeListeners();
-
-    // #4 - send state results back
-    return {
-      gas,
-      structLogs,
-      returnValue
-    };
-  }
-
-  /**
-   * traceTransaction
-   *
-   * Run a previously-run transaction in the same state in which it occurred at the time it was run.
-   * This will return the vm-level trace output for debugging purposes.
-   *
-   * Strategy:
-   *
-   *  1. Find block where transaction occurred
-   *  2. Set state root of that block
-   *  3. Rerun every transaction in that block prior to and including the requested transaction
-   *  4. Send trace results back.
-   *
-   * @param transactionHash
-   * @param options
-   */
-  public async erinTraceTransaction(
-    transactionHash: string,
-    contractAddress: string,
-    keys: Buffer[],
-    options: TransactionTraceOptions
-  ) {
+  #traceTransaction = async (
+    trie: SecureTrie,
+    newBlock: RuntimeBlock,
+    transaction: Transaction,
+    options: TransactionTraceOptions,
+    keys?: Buffer[],
+    contractAddress?: string
+  ) => {
     let currentDepth = -1;
     const storageStack: TraceStorageMap[] = [];
     const storage = {};
@@ -1179,50 +878,7 @@ export default class Blockchain extends Emittery.Typed<
     // supposed to be?
     let returnValue = "";
     const structLogs: Array<StructLog> = [];
-
-    const transactionHashBuffer = Data.from(transactionHash).toBuffer();
-    // #1 - get block via transaction object
-    const transaction = await this.transactions.get(transactionHashBuffer);
-
-    if (!transaction) {
-      throw new Error("Unknown transaction " + transactionHash);
-    }
-
-    const targetBlock = await this.blocks.get(transaction._blockNum);
-    const parentBlock = await this.blocks.getByHash(
-      targetBlock.header.parentHash.toBuffer()
-    );
-
-    // #2 - Set state root of original block
-    //
-    // TODO: Forking needs the forked block number passed during this step:
-    // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
-    const trie = new SecureTrie(
-      this.#database.trie,
-      parentBlock.header.stateRoot.toBuffer()
-    );
-
-    // Prepare the "next" block with necessary transactions
-    const newBlock = new RuntimeBlock(
-      Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
-      parentBlock.hash(),
-      parentBlock.header.miner,
-      parentBlock.header.gasLimit.toBuffer(),
-      // make sure we use the same timestamp as the target block
-      targetBlock.header.timestamp
-    ) as RuntimeBlock & { uncleHeaders: []; transactions: Transaction[] };
-    newBlock.transactions = [];
-    newBlock.uncleHeaders = [];
-
-    const transactions = targetBlock.getTransactions();
-    for (const tx of transactions) {
-      newBlock.transactions.push(tx);
-
-      // After including the target transaction, that's all we need to do.
-      if (tx.hash().equals(transactionHashBuffer)) {
-        break;
-      }
-    }
+    const TraceData = TraceDataFactory();
 
     type StepEvent = {
       gasLeft: BN;
@@ -1235,8 +891,6 @@ export default class Blockchain extends Emittery.Typed<
       pc: number;
       address: Buffer;
     };
-
-    const TraceData = TraceDataFactory();
 
     const stepListener = (
       event: StepEvent,
@@ -1352,30 +1006,33 @@ export default class Blockchain extends Emittery.Typed<
     };
 
     let txHashCurrentlyProcessing: string = null;
+    const transactionHash = Data.from(transaction.hash()).toString();
 
     const beforeTxListener = async (tx: Transaction) => {
       txHashCurrentlyProcessing = Data.from(tx.hash()).toString();
       if (txHashCurrentlyProcessing == transactionHash) {
-        keys.forEach(async key => {
-          // get the raw key;
-          let rawKey = await this.#database.storageKeys.get(key);
+        if (keys && contractAddress) {
+          keys.forEach(async key => {
+            // get the raw key using the hashed key
+            let rawKey = await this.#database.storageKeys.get(key);
 
-          vm.stateManager.getContractStorage(
-            Address.from(contractAddress).toBuffer(),
-            rawKey,
-            (err: Error, result: Buffer) => {
-              if (err) {
-                console.log(err);
+            vm.stateManager.getContractStorage(
+              Address.from(contractAddress).toBuffer(),
+              rawKey,
+              (err: Error, result: Buffer) => {
+                if (err) {
+                  console.log(err);
+                }
+
+                const keccakHashedKey = Data.from(key).toJSON();
+                storage[keccakHashedKey] = {
+                  key: Data.from(rawKey).toJSON(),
+                  value: Data.from(result, 32).toJSON()
+                };
               }
-
-              const keccakHashedKey = Data.from(key).toJSON();
-              storage[keccakHashedKey] = {
-                key: Data.from(rawKey).toJSON(),
-                value: Data.from(result, 32).toJSON()
-              };
-            }
-          );
-        });
+            );
+          });
+        }
         vm.on("step", stepListener);
       }
     };
@@ -1430,8 +1087,7 @@ export default class Blockchain extends Emittery.Typed<
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
     vm.stateManager._cache.flush = cb => cb();
 
-    // #3 - Process the block without committing the data.
-
+    // Process the block without committing the data.
     // The vmerr key on the result appears to be removed.
     // The previous implementation had specific error handling.
     // It's possible we've removed handling specific cases in this implementation.
@@ -1445,10 +1101,105 @@ export default class Blockchain extends Emittery.Typed<
     // Just to be safe
     removeListeners();
 
-    // #4 - send state results back
+    // send state results back
     return {
+      gas,
+      structLogs,
+      returnValue,
       storage
     };
+  };
+
+  #prepareNextBlock = (
+    targetBlock: Block,
+    parentBlock: Block,
+    transactionHash: Buffer
+  ): RuntimeBlock => {
+    // Prepare the "next" block with necessary transactions
+    const newBlock = new RuntimeBlock(
+      Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
+      parentBlock.hash(),
+      parentBlock.header.miner,
+      parentBlock.header.gasLimit.toBuffer(),
+      // make sure we use the same timestamp as the target block
+      targetBlock.header.timestamp,
+      this.#options.miner.difficulty,
+      parentBlock.header.totalDifficulty
+    ) as RuntimeBlock & { uncleHeaders: []; transactions: Transaction[] };
+    newBlock.transactions = [];
+    newBlock.uncleHeaders = [];
+
+    const transactions = targetBlock.getTransactions();
+    for (const tx of transactions) {
+      newBlock.transactions.push(tx);
+
+      // After including the target transaction, that's all we need to do.
+      if (tx.hash().equals(transactionHash)) {
+        break;
+      }
+    }
+
+    return newBlock;
+  };
+
+  /**
+   * traceTransaction
+   *
+   * Run a previously-run transaction in the same state in which it occurred at the time it was run.
+   * This will return the vm-level trace output for debugging purposes.
+   *
+   * Strategy:
+   *
+   *  1. Find block where transaction occurred
+   *  2. Set state root of that block
+   *  3. Rerun every transaction in that block prior to and including the requested transaction
+   *  4. Send trace results back.
+   *
+   * @param transactionHash
+   * @param options
+   */
+  public async traceTransaction(
+    transactionHash: string,
+    options: TransactionTraceOptions
+  ) {
+    const transactionHashBuffer = Data.from(transactionHash).toBuffer();
+    // #1 - get block via transaction object
+    const transaction = await this.transactions.get(transactionHashBuffer);
+
+    if (!transaction) {
+      throw new Error("Unknown transaction " + transactionHash);
+    }
+
+    const targetBlock = await this.blocks.get(transaction._blockNum);
+    const parentBlock = await this.blocks.getByHash(
+      targetBlock.header.parentHash.toBuffer()
+    );
+
+    const newBlock = this.#prepareNextBlock(
+      targetBlock,
+      parentBlock,
+      transactionHashBuffer
+    );
+
+    // #2 - Set state root of original block
+    //
+    // TODO: Forking needs the forked block number passed during this step:
+    // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
+    const trie = new SecureTrie(
+      this.#database.trie,
+      parentBlock.header.stateRoot.toBuffer()
+    );
+
+    // #3 - Rerun every transaction in block prior to and including the requested transaction
+    const { gas, structLogs, returnValue } = await this.#traceTransaction(
+      trie,
+      newBlock,
+      transaction,
+      options
+    );
+
+    // #4 - Send results back
+    return { gas, structLogs, returnValue };
   }
 
   /**
@@ -1491,6 +1242,13 @@ export default class Blockchain extends Emittery.Typed<
     // get block information
     const targetBlock = await this.blocks.getByHash(blockHash);
 
+    // get transaction using txIndex
+    const transactions = targetBlock.getTransactions();
+    const transaction = transactions[Quantity.from(txIndex).toNumber()];
+    if (!transaction) {
+      throw new Error("Unknown transaction at index " + txIndex);
+    }
+
     // get parent block and use it create the state trie
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
@@ -1500,29 +1258,30 @@ export default class Blockchain extends Emittery.Typed<
       parentBlock.header.stateRoot.toBuffer()
     );
 
+    // get the contractAddress account storage trie
     const addressDataPromise = this.getFromTrie(
       trie,
       Address.from(contractAddress).toBuffer()
     );
-
     const addressData = await addressDataPromise;
     if (!addressData) {
       throw new Error(`account ${contractAddress} doesn't exist`);
     }
 
-    // An address's stateRoot is stored in the 3rd rlp entry
-    trie.root = ((rlpDecode(addressData) as any) as [
-      Buffer /*nonce*/,
-      Buffer /*amount*/,
-      Buffer /*stateRoot*/,
-      Buffer /*codeHash*/
-    ])[2];
-
-    // use the addresses storage trie to get relevant hashed keys
+    // use the contractAddress storage trie to get relevant hashed keys
     const getStorageKeys = () => {
+      const storageTrie = trie.copy();
+      // An address's stateRoot is stored in the 3rd rlp entry
+      storageTrie.root = ((rlpDecode(addressData) as any) as [
+        Buffer /*nonce*/,
+        Buffer /*amount*/,
+        Buffer /*stateRoot*/,
+        Buffer /*codeHash*/
+      ])[2];
+
       let keys: Buffer[] = [];
       return new Promise((resolve, reject) => {
-        trie
+        storageTrie
           .createReadStream()
           .on("data", data => {
             keys.push(data.key);
@@ -1553,23 +1312,27 @@ export default class Blockchain extends Emittery.Typed<
     };
     const keys = await getStorageKeys();
 
-    // get txHash using txIndex
-    const transactions = targetBlock.getTransactions();
-    const transactionHashBuffer = transactions[
-      Quantity.from(txIndex).toNumber()
-    ].hash();
-    const transactionHash = Data.from(transactionHashBuffer).toString();
+    // prepare block to be run in traceTransaction
+    const transactionHashBuffer = Data.from(transaction.hash()).toBuffer();
+    const newBlock = this.#prepareNextBlock(
+      targetBlock,
+      parentBlock,
+      transactionHashBuffer
+    );
 
-    // use the txHash to find storage at that point in time
-    const { storage } = await this.erinTraceTransaction(
-      transactionHash,
-      contractAddress,
+    // get storage data given a set of keys
+    const options = {
+      disableMemory: true,
+      disableStack: false,
+      disableStorage: false
+    };
+    const { storage } = await this.#traceTransaction(
+      trie,
+      newBlock,
+      transaction,
+      options,
       keys as Buffer[],
-      {
-        disableMemory: true,
-        disableStack: false,
-        disableStorage: false
-      }
+      contractAddress
     );
     result.storage = storage;
 
