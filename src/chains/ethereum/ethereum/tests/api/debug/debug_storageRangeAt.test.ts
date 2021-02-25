@@ -317,13 +317,30 @@ describe("api", () => {
           assert.strictEqual(txReceipt1.blockHash, txReceipt2.blockHash);
           assert.strictEqual(txReceipt1.blockHash, txReceipt3.blockHash);
 
-          const resultForTx1 = await provider.send("debug_storageRangeAt", [
-            txReceipt1.blockHash,
-            txReceipt1.transactionIndex, // 0
-            contractAddress,
-            "0x00",
-            1
+          const [resultForTx1, resultForTx2, resultForTx3] = await Promise.all([
+            provider.send("debug_storageRangeAt", [
+              txReceipt1.blockHash,
+              txReceipt1.transactionIndex, // 0
+              contractAddress,
+              "0x00",
+              1
+            ]),
+            await provider.send("debug_storageRangeAt", [
+              txReceipt2.blockHash,
+              txReceipt2.transactionIndex, // 1
+              contractAddress,
+              "0x00",
+              1
+            ]),
+            provider.send("debug_storageRangeAt", [
+              txReceipt3.blockHash,
+              txReceipt3.transactionIndex, // 2
+              contractAddress,
+              "0x00",
+              1
+            ])
           ]);
+
           assert.deepStrictEqual(resultForTx1.storage, {
             "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
               key:
@@ -332,14 +349,6 @@ describe("api", () => {
                 "0x0000000000000000000000000000000000000000000000000000000000000019"
             }
           });
-
-          const resultForTx2 = await provider.send("debug_storageRangeAt", [
-            txReceipt2.blockHash,
-            txReceipt2.transactionIndex, // 1
-            contractAddress,
-            "0x00",
-            1
-          ]);
           assert.deepStrictEqual(resultForTx2.storage, {
             "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
               key:
@@ -348,14 +357,6 @@ describe("api", () => {
                 "0x0000000000000000000000000000000000000000000000000000000000000001"
             }
           });
-
-          const resultForTx3 = await provider.send("debug_storageRangeAt", [
-            txReceipt3.blockHash,
-            txReceipt3.transactionIndex, // 2
-            contractAddress,
-            "0x00",
-            1
-          ]);
           assert.deepStrictEqual(resultForTx3.storage, {
             "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
               key:
