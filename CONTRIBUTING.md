@@ -29,7 +29,7 @@ If installation fails due to a `node-gyp` issue you may need to perform some add
 - Install [https://www.npmjs.com/package/windows-build-tools](Windows-Build-Tools)
   - `npm install --global windows-build-tools`
 
-### On macOS
+### on macOS
 
 - I have no idea.
 

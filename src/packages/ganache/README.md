@@ -134,7 +134,9 @@ You can use Ganache programmatically from Node.js. Install Ganache into your npm
 $ npm install ganache
 ```
 
-then start ganache as an EIP-1193 provider only:
+then you can use ganache as an [EIP-1193 provider only](#as-an-eip-1193-provider-only), an [EIP-1193 provider and JSON-RPC web server](#as-an-eip-1193-provider-and-json-rpc-web-server), as a [Web3 provider](#as-a-web3js-provider), or an [ethers provider](#as-an-ethersjs-provider).
+
+#### As an EIP-1193 provider only:
 
 ```javascript
 const ganache = require("ganache");
@@ -144,7 +146,7 @@ const provider = ganache.provider(options);
 const accounts = await provider.request({ method: "eth_accounts", params: [] });
 ```
 
-or as an EIP-1193 provider _and_ JSON-RPC web server:
+#### As an EIP-1193 provider and JSON-RPC web server:
 
 ```javascript
 const ganache = require("ganache");
