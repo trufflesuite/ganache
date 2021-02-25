@@ -1013,7 +1013,7 @@ export default class Blockchain extends Emittery.Typed<
               rawKey,
               (err: Error, result: Buffer) => {
                 if (err) {
-                  console.log(err);
+                  throw err;
                 }
 
                 const keccakHashedKey = Data.from(key).toJSON();
