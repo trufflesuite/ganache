@@ -7,7 +7,8 @@ import {
   RETURN_TYPES,
   Executables,
   ITraceData,
-  TraceDataFactory
+  TraceDataFactory,
+  StepEvent
 } from "@ganache/ethereum-utils";
 import { utils, Quantity, Data } from "@ganache/utils";
 import { promisify } from "util";
@@ -17,7 +18,6 @@ import VM from "ethereumjs-vm";
 import { encode as rlpEncode } from "rlp";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
-import { BN } from "ethereumjs-util";
 import { keccak } from "@ganache/utils/src/utils/keccak";
 const { BUFFER_EMPTY, BUFFER_256_ZERO } = utils;
 
@@ -220,18 +220,6 @@ export default class Miner extends Emittery.Typed<
       // Set a block-level checkpoint so our unsaved trie doesn't update the
       // vm's "live" trie.
       await this.#checkpoint();
-
-      type StepEvent = {
-        gasLeft: BN;
-        memory: Array<number>; // Not officially sure the type. Not a buffer or uint8array
-        stack: Array<BN>;
-        depth: number;
-        opcode: {
-          name: string;
-        };
-        pc: number;
-        address: Buffer;
-      };
 
       const TraceData = TraceDataFactory();
       // We need to listen for any SSTORE opcodes so we can grab the raw, unhashed version

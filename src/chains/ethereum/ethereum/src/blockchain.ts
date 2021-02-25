@@ -16,7 +16,8 @@ import {
   TraceStorageMap,
   RuntimeError,
   RETURN_TYPES,
-  Snapshots
+  Snapshots,
+  StepEvent
 } from "@ganache/ethereum-utils";
 import TransactionManager from "./data-managers/transaction-manager";
 import SecureTrie from "merkle-patricia-tree/secure";
@@ -880,18 +881,6 @@ export default class Blockchain extends Emittery.Typed<
     let returnValue = "";
     const structLogs: Array<StructLog> = [];
     const TraceData = TraceDataFactory();
-
-    type StepEvent = {
-      gasLeft: BN;
-      memory: Array<number>; // Not officially sure the type. Not a buffer or uint8array
-      stack: Array<BN>;
-      depth: number;
-      opcode: {
-        name: string;
-      };
-      pc: number;
-      address: Buffer;
-    };
 
     const stepListener = (
       event: StepEvent,
