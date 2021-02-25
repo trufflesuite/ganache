@@ -23,17 +23,17 @@ export type Defaults<O extends Options> = {
 };
 
 const checkForConflicts = (
-  inputOptionName: string,
-  inputValue: unknown,
-  suppliedOptions: Map<string, { inputName: string; normalized: unknown }>,
+  name: string,
+  namespace: string,
+  suppliedOptions: Set<string>,
   conflicts?: string[]
 ) => {
   if (!conflicts) return;
   for (const conflict of conflicts) {
-    if (suppliedOptions.has(conflict)) {
+    if (suppliedOptions.has(`${namespace}.${conflict}`)) {
       throw new Error(
-        `Values for both "${inputOptionName}" and ` +
-          `"${suppliedOptions.get(conflict).inputName}" cannot ` +
+        `Values for both "--${namespace}.${name}" and ` +
+          `"--${namespace}.${conflict}" cannot ` +
           `be specified; they are mutually exclusive.`
       );
     }
@@ -44,10 +44,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
   const def = defaults[namespace];
   const config = (target[namespace] = target[namespace] || {});
 
-  const suppliedOptions = new Map<
-    string,
-    { inputName: string; normalized: unknown }
-  >();
+  const suppliedOptions = new Set<string>();
   const keys = Object.keys(def);
   if (hasOwn(options, namespace)) {
     const namespaceOptions = options[namespace];
@@ -59,26 +56,26 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       if (value !== undefined) {
         checkForConflicts(
           key,
-          value,
+          namespace,
           suppliedOptions,
           propDefinition.conflicts
         );
         const normalized = propDefinition.normalize(namespaceOptions[key]);
         config[key] = normalized;
-        suppliedOptions.set(key, { inputName: key, normalized });
+        suppliedOptions.add(`${namespace}.${key}`);
       } else {
         const legacyName = propDefinition.legacyName || key;
         value = options[legacyName];
         if (value !== undefined) {
           checkForConflicts(
-            legacyName,
-            value,
+            key,
+            namespace,
             suppliedOptions,
             propDefinition.conflicts
           );
           const normalized = propDefinition.normalize(value);
           config[key] = normalized;
-          suppliedOptions.set(key, { inputName: legacyName, normalized });
+          suppliedOptions.add(`${namespace}.${key}`);
         } else if (hasOwn(propDefinition, "default")) {
           config[key] = propDefinition.default(config);
         }
@@ -94,13 +91,13 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       if (value !== undefined) {
         checkForConflicts(
           key,
-          value,
+          namespace,
           suppliedOptions,
           propDefinition.conflicts
         );
         const normalized = propDefinition.normalize(value);
         config[key] = normalized;
-        suppliedOptions.set(key, { inputName: legacyName, normalized });
+        suppliedOptions.add(`${namespace}.${key}`);
       } else if (hasOwn(propDefinition, "default")) {
         config[key] = propDefinition.default(config);
       }
