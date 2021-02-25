@@ -39,7 +39,8 @@ export default class Blockchain extends Emittery.Typed<
   get minerEnabled(): boolean;
   messagePool: Array<SignedMessage>;
   readonly deals: Array<DealInfo>;
-  readonly dealsByCid: Record<string, DealInfo>;
+  readonly dealsByCid: Map<string, DealInfo>;
+  readonly dealsById: Map<number, DealInfo>;
   readonly inProcessDeals: Array<DealInfo>;
   readonly options: FilecoinInternalOptions;
   private ipfsServer;
