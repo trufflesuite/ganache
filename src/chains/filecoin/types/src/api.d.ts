@@ -116,4 +116,5 @@ export default class FilecoinApi implements types.Api {
   "Ganache.DisableMiner"(): Promise<void>;
   "Ganache.MinerEnabled"(): Promise<boolean>;
   "Ganache.MinerEnabledNotify"(rpcId?: string): PromiEvent<Subscription>;
+  "Ganache.GetDealById"(dealId: number): Promise<SerializedDealInfo>;
 }
