@@ -332,13 +332,6 @@ export default class EthereumApi implements types.Api {
     const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
 
     const trie = this.#blockchain.trie.copy();
-    const getFromTrie = (address: Buffer): Promise<Buffer> =>
-      new Promise((resolve, reject) => {
-        trie.get(address, (err, data) => {
-          if (err) return void reject(err);
-          resolve(data);
-        });
-      });
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
@@ -351,7 +344,10 @@ export default class EthereumApi implements types.Api {
     const blockStateRoot = headerData[3];
     trie.root = blockStateRoot;
 
-    const addressDataPromise = getFromTrie(Address.from(address).toBuffer());
+    const addressDataPromise = this.#blockchain.getFromTrie(
+      trie,
+      Address.from(address).toBuffer()
+    );
 
     const posBuff = Quantity.from(position).toBuffer();
     const length = posBuff.length;
@@ -1087,13 +1083,6 @@ export default class EthereumApi implements types.Api {
     const blockProm = blockchain.blocks.getRaw(blockNumber);
 
     const trie = blockchain.trie.copy();
-    const getFromTrie = (address: Buffer): Promise<Buffer> =>
-      new Promise((resolve, reject) => {
-        trie.get(address, (err: Error, data: Buffer) => {
-          if (err) return void reject(err);
-          resolve(data);
-        });
-      });
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
@@ -1106,7 +1095,10 @@ export default class EthereumApi implements types.Api {
     const blockStateRoot = headerData[3];
     trie.root = blockStateRoot;
 
-    const addressDataPromise = getFromTrie(Address.from(address).toBuffer());
+    const addressDataPromise = this.#blockchain.getFromTrie(
+      trie,
+      Address.from(address).toBuffer()
+    );
 
     const addressData = await addressDataPromise;
     // An address's codeHash is stored in the 4th rlp entry
@@ -1144,13 +1136,6 @@ export default class EthereumApi implements types.Api {
     const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
 
     const trie = this.#blockchain.trie.copy();
-    const getFromTrie = (address: Buffer): Promise<Buffer> =>
-      new Promise((resolve, reject) => {
-        trie.get(address, (err, data) => {
-          if (err) return void reject(err);
-          resolve(data);
-        });
-      });
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
@@ -1163,7 +1148,10 @@ export default class EthereumApi implements types.Api {
     const blockStateRoot = headerData[3];
     trie.root = blockStateRoot;
 
-    const addressDataPromise = getFromTrie(Address.from(address).toBuffer());
+    const addressDataPromise = this.#blockchain.getFromTrie(
+      trie,
+      Address.from(address).toBuffer()
+    );
 
     const posBuff = Quantity.from(position).toBuffer();
     const length = posBuff.length;
@@ -1189,7 +1177,7 @@ export default class EthereumApi implements types.Api {
       Buffer /*stateRoot*/,
       Buffer /*codeHash*/
     ])[2];
-    const value = await getFromTrie(paddedPosBuff);
+    const value = await this.#blockchain.getFromTrie(trie, paddedPosBuff);
     return Data.from(rlpDecode(value));
   }
 

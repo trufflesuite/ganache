@@ -533,6 +533,14 @@ export default class Blockchain extends Emittery.Typed<
     });
   };
 
+  getFromTrie = (trie: SecureTrie, address: Buffer): Promise<Buffer> =>
+    new Promise((resolve, reject) => {
+      trie.get(address, (err, data) => {
+        if (err) return void reject(err);
+        resolve(data);
+      });
+    });
+
   #commitAccounts = (accounts: Account[]) => {
     return new Promise<void>((resolve, reject) => {
       let length = accounts.length;
@@ -1492,16 +1500,11 @@ export default class Blockchain extends Emittery.Typed<
       parentBlock.header.stateRoot.toBuffer()
     );
 
-    const getFromTrie = (address: Buffer): Promise<Buffer> =>
-      new Promise((resolve, reject) => {
-        trie.get(address, (err, data) => {
-          if (err) return void reject(err);
-          resolve(data);
-        });
-      });
-    const addressDataPromise = getFromTrie(
+    const addressDataPromise = this.getFromTrie(
+      trie,
       Address.from(contractAddress).toBuffer()
     );
+
     const addressData = await addressDataPromise;
     if (!addressData) {
       throw new Error(`account ${contractAddress} doesn't exist`);
