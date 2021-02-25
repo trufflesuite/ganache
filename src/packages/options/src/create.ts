@@ -30,10 +30,10 @@ const checkForConflicts = (
 ) => {
   if (!conflicts) return;
   for (const conflict of conflicts) {
-    if (suppliedOptions.has(`${namespace}.${conflict}`)) {
+    if (suppliedOptions.has(conflict)) {
       throw new Error(
-        `Values for both "--${namespace}.${name}" and ` +
-          `"--${namespace}.${conflict}" cannot ` +
+        `Values for both "${namespace}.${name}" and ` +
+          `"${namespace}.${conflict}" cannot ` +
           `be specified; they are mutually exclusive.`
       );
     }
@@ -62,7 +62,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
         );
         const normalized = propDefinition.normalize(namespaceOptions[key]);
         config[key] = normalized;
-        suppliedOptions.add(`${namespace}.${key}`);
+        suppliedOptions.add(key);
       } else {
         const legacyName = propDefinition.legacyName || key;
         value = options[legacyName];
@@ -75,7 +75,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
           );
           const normalized = propDefinition.normalize(value);
           config[key] = normalized;
-          suppliedOptions.add(`${namespace}.${key}`);
+          suppliedOptions.add(key);
         } else if (hasOwn(propDefinition, "default")) {
           config[key] = propDefinition.default(config);
         }
@@ -97,7 +97,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
         );
         const normalized = propDefinition.normalize(value);
         config[key] = normalized;
-        suppliedOptions.add(`${namespace}.${key}`);
+        suppliedOptions.add(key);
       } else if (hasOwn(propDefinition, "default")) {
         config[key] = propDefinition.default(config);
       }
