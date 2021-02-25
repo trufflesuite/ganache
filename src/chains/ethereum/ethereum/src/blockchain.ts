@@ -865,7 +865,7 @@ export default class Blockchain extends Emittery.Typed<
     newBlock: RuntimeBlock,
     transaction: Transaction,
     options: TransactionTraceOptions,
-    keys?: string[],
+    keys?: Buffer[],
     contractAddress?: string
   ) => {
     let currentDepth = -1;
@@ -1274,7 +1274,7 @@ export default class Blockchain extends Emittery.Typed<
         Buffer /*codeHash*/
       ])[2];
 
-      let keys = [];
+      let keys: Buffer[] = [];
       return new Promise((resolve, reject) => {
         storageTrie
           .createReadStream()
@@ -1327,7 +1327,7 @@ export default class Blockchain extends Emittery.Typed<
       newBlock,
       transaction,
       options,
-      keys as string[],
+      keys as Buffer[],
       contractAddress
     );
     result.storage = storage;
