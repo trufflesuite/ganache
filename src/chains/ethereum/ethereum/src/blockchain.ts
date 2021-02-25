@@ -1238,7 +1238,9 @@ export default class Blockchain extends Emittery.Typed<
     const transactions = targetBlock.getTransactions();
     const transaction = transactions[Quantity.from(txIndex).toNumber()];
     if (!transaction) {
-      throw new Error("Unknown transaction at index " + txIndex);
+      throw new Error(
+        `transaction index ${txIndex} is out of range for block ${blockHash}`
+      );
     }
 
     // get parent block and use it create the state trie
