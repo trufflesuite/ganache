@@ -67,7 +67,8 @@ export default class Blockchain extends Emittery.Typed<
   readonly #messagePoolLock: Sema;
 
   readonly deals: Array<DealInfo> = [];
-  readonly dealsByCid: Record<string, DealInfo> = {};
+  readonly dealsByCid: Map<string, DealInfo> = new Map<string, DealInfo>();
+  readonly dealsById: Map<number, DealInfo> = new Map<number, DealInfo>();
   readonly inProcessDeals: Array<DealInfo> = [];
 
   readonly options: FilecoinInternalOptions;
@@ -772,7 +773,10 @@ export default class Blockchain extends Emittery.Typed<
 
     // Because we're not cryptographically valid, let's
     // register the deal with the newly created CID
-    this.dealsByCid[proposalCid.value] = deal;
+    this.dealsByCid.set(proposalCid.value, deal);
+
+    // Lets keep deals by id for easy paginated lookup from Ganache UI
+    this.dealsById.set(deal.dealId, deal);
 
     this.deals.push(deal);
     this.inProcessDeals.push(deal);

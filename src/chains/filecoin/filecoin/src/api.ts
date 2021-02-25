@@ -753,4 +753,15 @@ export default class FilecoinApi implements types.Api {
 
     return promiEvent;
   }
+
+  async "Ganache.GetDealById"(dealId: number): Promise<SerializedDealInfo> {
+    await this.#blockchain.waitForReady();
+
+    if (this.#blockchain.dealsById.has(dealId)) {
+      const deal = this.#blockchain.dealsById.get(dealId);
+      return deal!.serialize();
+    } else {
+      throw new Error("Could not find a deal for the provided ID");
+    }
+  }
 }
