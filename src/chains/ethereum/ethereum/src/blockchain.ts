@@ -1029,7 +1029,7 @@ export default class Blockchain extends Emittery.Typed<
       }
     };
 
-    const afterTxListener = async () => {
+    const afterTxListener = () => {
       if (txHashCurrentlyProcessing == transactionHash) {
         removeListeners();
       }
