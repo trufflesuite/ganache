@@ -588,7 +588,8 @@ export default class Blockchain extends Emittery.Typed<
       this.trie.root,
       BUFFER_EMPTY,
       this.#options.miner.extraData,
-      []
+      [],
+      new Map()
     );
     // README: set the block number to an actual 0 now.
     block.header.number = RPCQUANTITY_ZERO;

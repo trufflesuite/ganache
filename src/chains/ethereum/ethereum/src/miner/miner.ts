@@ -195,19 +195,16 @@ export default class Miner extends Emittery.Typed<
       if (maxTransactions === 0) {
         await this.#checkpoint();
         await this.#commit();
-        const serializedBlockData = runtimeBlock.finalize(
+        const finalizedBlockData = runtimeBlock.finalize(
           transactionsTrie.root,
           receiptTrie.root,
           BUFFER_256_ZERO,
           this.#vm.stateManager._trie.root,
           BUFFER_EMPTY, // gas used
           options.extraData,
-          []
-        );
-        const finalizedBlockData = {
-          ...serializedBlockData,
+          [],
           storageKeys
-        };
+        );
         this.emit("block", finalizedBlockData);
         this.#reset();
         return { block: finalizedBlockData.block, transactions: [] };
@@ -382,7 +379,7 @@ export default class Miner extends Emittery.Typed<
 
       this.#vm.removeListener("step", stepListener);
 
-      const serializedBlockData = runtimeBlock.finalize(
+      const finalizedBlockData = runtimeBlock.finalize(
         transactionsTrie.root,
         receiptTrie.root,
         blockBloom,
@@ -391,13 +388,10 @@ export default class Miner extends Emittery.Typed<
           ? BUFFER_EMPTY
           : Quantity.from(blockGasUsed).toBuffer(),
         options.extraData,
-        blockTransactions
-      );
-      block = serializedBlockData.block;
-      const finalizedBlockData = {
-        ...serializedBlockData,
+        blockTransactions,
         storageKeys
-      };
+      );
+      block = finalizedBlockData.block;
       const emitBlockProm = this.emit("block", finalizedBlockData);
       if (legacyInstamine === true) {
         // we need to wait for each block to be done mining when in legacy
