@@ -133,19 +133,17 @@ describe("api", () => {
       });
 
       it("should return account doesn't exist error when debugging a deployment transaction", async () => {
-        try {
-          await provider.send("debug_storageRangeAt", [
+        const message = `account ${contractAddress} doesn't exist`;
+        await assert.rejects(
+          provider.send("debug_storageRangeAt", [
             deploymentBlockHash,
             0,
             contractAddress,
             "0x00",
             2
-          ]);
-        } catch (e) {
-          // we should receive an error that the account doesn't exist
-          const message = `account ${contractAddress} doesn't exist`;
-          assert.strictEqual(e.message, message);
-        }
+          ]),
+          { message }
+        );
       });
 
       it("should accept a nextKey as the startKey for the given range", async () => {
