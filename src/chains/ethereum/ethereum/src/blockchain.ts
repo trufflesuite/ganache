@@ -325,7 +325,7 @@ export default class Blockchain extends Emittery.Typed<
   }: {
     block: Block;
     serialized: Buffer;
-    storageKeys: Map<Buffer, Buffer>;
+    storageKeys: Map<string, Buffer>;
   }) => {
     const { blocks } = this;
     blocks.latest = block;
@@ -448,7 +448,7 @@ export default class Blockchain extends Emittery.Typed<
   #handleNewBlockData = async (blockData: {
     block: Block;
     serialized: Buffer;
-    storageKeys: Map<Buffer, Buffer>;
+    storageKeys: Map<string, Buffer>;
   }) => {
     this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
       .then(() => this.#saveNewBlock(blockData))
@@ -865,7 +865,7 @@ export default class Blockchain extends Emittery.Typed<
     newBlock: RuntimeBlock,
     transaction: Transaction,
     options: TransactionTraceOptions,
-    keys?: Buffer[],
+    keys?: string[],
     contractAddress?: string
   ) => {
     let currentDepth = -1;
@@ -1004,7 +1004,9 @@ export default class Blockchain extends Emittery.Typed<
         if (keys && contractAddress) {
           keys.forEach(async key => {
             // get the raw key using the hashed key
-            let rawKey = await this.#database.storageKeys.get(key);
+            let rawKey = await this.#database.storageKeys.get(
+              Data.from(key).toString()
+            );
 
             vm.stateManager.getContractStorage(
               Address.from(contractAddress).toBuffer(),
@@ -1269,7 +1271,7 @@ export default class Blockchain extends Emittery.Typed<
         Buffer /*codeHash*/
       ])[2];
 
-      let keys: Buffer[] = [];
+      let keys = [];
       return new Promise((resolve, reject) => {
         storageTrie
           .createReadStream()
@@ -1321,7 +1323,7 @@ export default class Blockchain extends Emittery.Typed<
       newBlock,
       transaction,
       options,
-      keys as Buffer[],
+      keys as string[],
       contractAddress
     );
     result.storage = storage;

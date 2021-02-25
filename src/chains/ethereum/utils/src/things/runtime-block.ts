@@ -206,7 +206,7 @@ export class RuntimeBlock {
     gasUsed: Buffer,
     extraData: Data,
     transactions: Transaction[],
-    storageKeys: Map<Buffer, Buffer>
+    storageKeys: Map<string, Buffer>
   ) {
     const { header } = this;
     const rawHeader = [

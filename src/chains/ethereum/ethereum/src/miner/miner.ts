@@ -41,7 +41,7 @@ export default class Miner extends Emittery.Typed<
     block: {
       block: Block;
       serialized: Buffer;
-      storageKeys: Map<Buffer, Buffer>;
+      storageKeys: Map<string, Buffer>;
     };
   },
   "idle"
@@ -181,7 +181,7 @@ export default class Miner extends Emittery.Typed<
     let keepMining = true;
     const priced = this.#priced;
     const legacyInstamine = this.#options.legacyInstamine;
-    const storageKeys = new Map<Buffer, Buffer>();
+    const storageKeys = new Map<string, Buffer>();
     let blockTransactions: Transaction[];
     do {
       keepMining = false;
@@ -237,7 +237,7 @@ export default class Miner extends Emittery.Typed<
 
         if (event.opcode.name === "SSTORE") {
           const key = stack[stack.length - 1];
-          const hashedKey = keccak(key.toBuffer());
+          const hashedKey = Data.from(keccak(key.toBuffer())).toString();
           storageKeys.set(hashedKey, key.toBuffer());
         }
         next();
