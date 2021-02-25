@@ -40,7 +40,7 @@ Ganache is an Ethereum simulator that makes developing Ethereum applications fas
 
 ## Getting Started
 
-Ganache can be used from the command line or programmatically via Node.js.
+Ganache can be used from the [command line](#command-line-use) or [programmatically](#programmatic-use) via Node.js.
 
 ### Command line use
 
