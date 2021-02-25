@@ -5,7 +5,7 @@ import compile from "../../helpers/compile";
 import path from "path";
 
 describe("api", () => {
-  describe.only("storageRangeAt", () => {
+  describe("storageRangeAt", () => {
     describe("DebugStorage", () => {
       let provider: EthereumProvider;
       let accounts: string[];
