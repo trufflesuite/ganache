@@ -1202,11 +1202,12 @@ export default class Blockchain extends Emittery.Typed<
    *
    * Strategy:
    *
-   *  1. Get transaction hash
-   *  2. Replay transaction
-   *  3. Create read stream to get the storage keys from the transaction
-   *  4. Sort storage keys
-   *  5. Filter, assemble, and send storage data for the given range back
+   *  1. Find block where transaction occurred
+   *  2. Set state root of that block
+   *  3. Use contract address storage trie to get the storage keys from the transaction
+   *  4. Sort and filter storage keys using the startKey and maxResult
+   *  5. Rerun every transaction in that block prior to and including the requested transaction
+   *  6. Send storage results back
    *
    * @param blockHash
    * @param txIndex
@@ -1231,7 +1232,7 @@ export default class Blockchain extends Emittery.Typed<
       storage: {}
     };
 
-    // get block information
+    // #1 - get block information
     const targetBlock = await this.blocks.getByHash(blockHash);
 
     // get transaction using txIndex
@@ -1243,7 +1244,7 @@ export default class Blockchain extends Emittery.Typed<
       );
     }
 
-    // get parent block and use it create the state trie
+    // #2 - set state root of block
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
@@ -1262,7 +1263,7 @@ export default class Blockchain extends Emittery.Typed<
       throw new Error(`account ${contractAddress} doesn't exist`);
     }
 
-    // use the contractAddress storage trie to get relevant hashed keys
+    // #3 - use the contractAddress storage trie to get relevant hashed keys
     const getStorageKeys = () => {
       const storageTrie = trie.copy();
       // An address's stateRoot is stored in the 3rd rlp entry
@@ -1281,7 +1282,7 @@ export default class Blockchain extends Emittery.Typed<
             keys.push(data.key);
           })
           .on("end", () => {
-            // sort keys
+            // #4 - sort and filter keys
             const sortedKeys = keys.sort((a, b) => Buffer.compare(a, b));
 
             // find starting point in array of sorted keys
@@ -1292,7 +1293,7 @@ export default class Blockchain extends Emittery.Typed<
               }
             });
 
-            // only take the keys that we care about
+            // only take the maximum number of entries requested
             keys = keys.slice(0, maxResult + 1);
             if (keys.length > maxResult) {
               // assign nextKey and remove it from array of keys
@@ -1306,6 +1307,7 @@ export default class Blockchain extends Emittery.Typed<
     };
     const keys = await getStorageKeys();
 
+    // #5 -  rerun every transaction in that block prior to and including the requested transaction
     // prepare block to be run in traceTransaction
     const transactionHashBuffer = Data.from(transaction.hash()).toBuffer();
     const newBlock = this.#prepareNextBlock(
@@ -1313,13 +1315,13 @@ export default class Blockchain extends Emittery.Typed<
       parentBlock,
       transactionHashBuffer
     );
-
     // get storage data given a set of keys
     const options = {
       disableMemory: true,
       disableStack: false,
       disableStorage: false
     };
+
     const { storage } = await this.#traceTransaction(
       trie,
       newBlock,
@@ -1330,6 +1332,7 @@ export default class Blockchain extends Emittery.Typed<
     );
     result.storage = storage;
 
+    // #6 - send back results
     return result;
   }
 
