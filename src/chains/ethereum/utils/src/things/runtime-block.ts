@@ -138,6 +138,32 @@ export class Block {
     };
   }
 
+  static fromJSON(json: any, common: Common, asSerialized: boolean = true) {
+    const rawHeader = [
+      Data.from(json.parentHash, 32).toBuffer(),
+      Data.from(json.sha3Uncles, 32).toBuffer(),
+      Data.from(json.miner, 20).toBuffer(),
+      Data.from(json.stateRoot, 32).toBuffer(),
+      Data.from(json.transactionsRoot, 32).toBuffer(), // ???
+      Data.from(json.receiptsRoot, 32).toBuffer(),
+      Data.from(json.logsBloom, 256).toBuffer(),
+      Quantity.from(json.difficulty, false).toBuffer(),
+      Quantity.from(json.totalDifficulty, false).toBuffer(),
+      Quantity.from(json.number, false).toBuffer(),
+      Quantity.from(json.gasLimit, false).toBuffer(),
+      Quantity.from(json.gasUsed, false).toBuffer(),
+      Quantity.from(json.timestamp, false).toBuffer(),
+      Data.from(json.extraData).toBuffer(),
+      Data.from(json.mixHash, 32).toBuffer(), // mixHash
+      Data.from(json.nonce, 8).toBuffer() // nonce
+    ];
+    const transactions = json.transactions.map(
+      t => Transaction.fromJSON(t, common, Transaction.types.signed).raw
+    );
+    const serialized = rlpEncode([rawHeader, transactions]);
+    return asSerialized ? serialized : new Block(serialized, common);
+  }
+
   getTxFn(
     include = false
   ): (tx: Transaction) => { [key: string]: string | Data | Quantity } | Data {
