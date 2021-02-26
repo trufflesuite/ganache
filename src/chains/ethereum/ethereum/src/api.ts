@@ -1597,6 +1597,12 @@ export default class EthereumApi implements types.Api {
    * position (and anything after)”
    *
    * @param filter The filter options
+   * @returns A filter id.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newFilter", params: [] });
+   * console.log(filterId);
+   * ```
    */
   @assertArgLength(0, 1)
   async eth_newFilter(filter: RangeFilterArgs = {}) {
