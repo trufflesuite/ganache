@@ -1527,6 +1527,11 @@ export default class EthereumApi implements types.Api {
    * if the state has changed, call `eth_getFilterChanges`.
    *
    * @returns A filter id.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newBlockFilter", params: [] });
+   * console.log(filterId);
+   * ```
    */
   @assertArgLength(0)
   async eth_newBlockFilter() {
