@@ -1125,10 +1125,11 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the value from a storage position at a given address.
-   * @param data 20 Bytes - address of the storage.
-   * @param quantity integer of the position in the storage.
+   * @param address DATA, 20 Bytes - address of the storage.
+   * @param position QUANTITY - integer of the position in the storage.
    * @param blockNumber integer block number, or the string "latest", "earliest"
    *  or "pending", see the default block parameter
+   * @returns the value in storage at the requested position
    */
   @assertArgLength(2, 3)
   async eth_getStorageAt(
