@@ -1724,6 +1724,11 @@ export default class EthereumApi implements types.Api {
    *
    * @param filter The filter options
    * @returns Array of log objects, or an empty array.
+   * @example
+   * ```javascript
+   * const logs = await provider.request({ method: "eth_getLogs", params: [{}] });
+   * console.log(logs);
+   * ```
    */
   @assertArgLength(1)
   async eth_getLogs(filter: FilterArgs) {
