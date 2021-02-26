@@ -973,8 +973,8 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
-   * Returns a list of available compilers.
-   * @returns List of available compilers.
+   * Returns a list of available compilers
+   * @returns list of available compilers
    * @example
    * ```javascript
    * const compilers = await provider.send("eth_getCompilers");
