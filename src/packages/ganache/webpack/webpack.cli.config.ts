@@ -16,13 +16,7 @@ const config: webpack.Configuration = merge({}, base, {
     "secp256k1",
     "keccak",
     {
-      "@ganache/core": path.resolve(
-        __dirname,
-        "../",
-        "dist",
-        "node",
-        "ganache.min.js"
-      )
+      "@ganache/core": path.join("../", "node", "ganache.min.js")
     }
   ],
   plugins: [
