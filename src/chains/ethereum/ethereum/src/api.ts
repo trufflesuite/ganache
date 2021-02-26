@@ -899,7 +899,7 @@ export default class EthereumApi implements types.Api {
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
-   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash]})
    * const block = await provider.request({ method: "eth_getBlockByHash", params: [txReceipt.blockHash, true] });
    * console.log(block);
    * ```
