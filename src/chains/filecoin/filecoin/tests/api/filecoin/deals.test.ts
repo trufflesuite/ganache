@@ -7,7 +7,7 @@ import { CID } from "../../../src/things/cid";
 import { StartDealParams } from "../../../src/things/start-deal-params";
 import { RootCID } from "../../../src/things/root-cid";
 import { StorageMarketDataRef } from "../../../src/things/storage-market-data-ref";
-import { SerializedDealInfo } from "../../../src/things/deal-info";
+import { DealInfo, SerializedDealInfo } from "../../../src/things/deal-info";
 import { SerializedRetrievalOrder } from "../../../src/things/retrieval-order";
 import BN from "bn.js";
 import { SerializedQueryOffer } from "../../../src/things/query-offer";
@@ -16,6 +16,7 @@ import tmp from "tmp-promise";
 import path from "path";
 import fs from "fs";
 import { Address } from "../../../src/things/address";
+import { StorageDealStatus } from "../../../src/types/storage-deal-status";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
@@ -40,11 +41,23 @@ describe("api", () => {
       }
     });
 
-    describe("Filecoin.ClientStartDeal, Filecoin.ClientListDeals, and Ganache.GetDealById", () => {
+    describe("Filecoin.ClientStartDeal, Filecoin.ClientListDeals, Ganache.GetDealById, and Filecoin.ClientGetDealUpdates", () => {
       let ipfs: IPFSClient;
+      let currentDeal: DealInfo = new DealInfo({
+        dealId: -1
+      });
+      const dealStatuses: StorageDealStatus[] = [];
 
       before(async () => {
         ipfs = getIpfsClient();
+      });
+
+      it("should start listening for deal updates", async () => {
+        await client.clientGetDealUpdates(update => {
+          const deal = update.data[1];
+          currentDeal = new DealInfo(deal);
+          dealStatuses.push(currentDeal.state);
+        });
       });
 
       it("should accept a new deal", async () => {
@@ -76,6 +89,24 @@ describe("api", () => {
 
         assert.ok(proposalCid["/"]);
         assert(CID.isValid(proposalCid["/"]));
+
+        // Test subscription
+        assert.strictEqual(currentDeal.dealId, 1);
+        assert.strictEqual(currentDeal.state, StorageDealStatus.Active);
+        assert.deepStrictEqual(dealStatuses, [
+          StorageDealStatus.Validating,
+          StorageDealStatus.Staged,
+          StorageDealStatus.ReserveProviderFunds,
+          StorageDealStatus.ReserveClientFunds,
+          StorageDealStatus.FundsReserved,
+          StorageDealStatus.ProviderFunding,
+          StorageDealStatus.ClientFunding,
+          StorageDealStatus.Publish,
+          StorageDealStatus.Publishing,
+          StorageDealStatus.Transferring,
+          StorageDealStatus.Sealing,
+          StorageDealStatus.Active
+        ]);
 
         let deals = await client.clientListDeals();
 
