@@ -1,10 +1,9 @@
 import { normalize } from "./helpers";
-import seedrandom from "seedrandom";
+import Seedrandom, { alea as Alea } from "seedrandom";
 import { entropyToMnemonic } from "bip39";
-
 import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
-const { alea } = seedrandom;
+const unseededRng = new Seedrandom();
 
 /**
  * WARNING: to maintain compatibility with ganache v2 this RNG only generates
@@ -244,7 +243,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     default: config =>
       config.deterministic
         ? DeterministicSeedPhrase
-        : randomAlphaNumericString(10, alea()),
+        : randomAlphaNumericString(10, new Alea(unseededRng)),
     defaultDescription:
       "Random value, unless wallet.deterministic is specified",
     legacyName: "seed",
@@ -260,7 +259,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     // needs to be prior to `wallet.mnemonic` for `config.seed`
     // below to be set correctly
     default: config =>
-      entropyToMnemonic(notVeryRandomBytes(16, seedrandom(config.seed))),
+      entropyToMnemonic(notVeryRandomBytes(16, new Seedrandom(config.seed))),
     defaultDescription: "Generated from wallet.seed",
     legacyName: "mnemonic",
     cliAliases: ["m", "mnemonic"],
