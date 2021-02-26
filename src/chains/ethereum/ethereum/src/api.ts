@@ -689,7 +689,7 @@ export default class EthereumApi implements types.Api {
 
   //#region eth
 
-  // TODO: example doesn't return correct value
+  // TODO: fix transaction object formatting, also why is the example not working?
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
@@ -697,24 +697,22 @@ export default class EthereumApi implements types.Api {
    * amount of gas actually used by the transaction, for a variety of reasons
    * including EVM mechanics and node performance.
    *
-   * Transaction call object:
-   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
-   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
-   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
-   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
-   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
-   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   * @param transaction - the transaction call object
+   *  (from - DATA, 20 bytes (optional) - the address the transaction is sent from
+   *  to - DATA, 20 bytes - the address the transaction is sent to
+   *  gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction
+   *  gasPrice - QUANTITY (optional) - integer of the price of gas in wei
+   *  value - QUANTITY (optional) - integer of the value in wei
+   *  data - DATA (optional) - hash of the method signature and the ABI encoded parameters)
+   * @param blockNumber integer block number, or the string "latest", "earliest"
+   *  or "pending", see the default block parameter
    *
-   * @param transaction The transaction call object as seen in source.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
-   *  or "pending".
-   *
-   * @returns The amount of gas used.
+   * @returns the amount of gas used.
    *
    * @example
    * ```javascript
-   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
-   * const gasEstimate = await provider.request({ method: "eth_estimateGas", params: [{ from, to }, "latest" ] });
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * const gasEstimate = await provider.request({ method: "eth_estimateGas", params: [{ from: accounts[0], to: accounts[1] }, "latest" ] });
    * console.log(gasEstimate);
    * ```
    */
@@ -2362,7 +2360,7 @@ export default class EthereumApi implements types.Api {
     );
   }
 
-  // TODO: fix transaction object formattiing
+  // TODO: fix transaction object formatting
   /**
    * Executes a new message call immediately without creating a transaction on the block chain.
    *
