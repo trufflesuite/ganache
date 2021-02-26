@@ -797,6 +797,12 @@ export default class EthereumApi implements types.Api {
    * Returns the number of transactions in a block from a block matching the given block number.
    * @param number QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the
    * default block parameter.
+   * @returns integer of the number of transactions in the block
+   * @example
+   * ```javascript
+   * const txCount = await provider.request({ method: "eth_getBlockTransactionCountByNumber", params: ["0x0"] });
+   * console.log(txCount);
+   * ```
    */
   @assertArgLength(1)
   async eth_getBlockTransactionCountByNumber(blockNumber: string | Tag) {
@@ -831,8 +837,8 @@ export default class EthereumApi implements types.Api {
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash]})
-   * const block = await provider.request({ method: "eth_getBlockTransactionCountByHash", params: [txReceipt.blockHash] });
-   * console.log(block);
+   * const txCount = await provider.request({ method: "eth_getBlockTransactionCountByHash", params: [txReceipt.blockHash] });
+   * console.log(txCount);
    * ```
    */
   @assertArgLength(1)
