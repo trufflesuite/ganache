@@ -627,12 +627,23 @@ export default class EthereumApi implements types.Api {
 
   //#region eth
 
+  // TODO: fix transaction object formatting, also why is the example not working?
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
    * blockchain. Note that the estimate may be significantly more than the
    * amount of gas actually used by the transaction, for a variety of reasons
    * including EVM mechanics and node performance.
+   *
+   * @param transaction - the transaction call object
+   *  (from - DATA, 20 bytes (optional) - the address the transaction is sent from
+   *  to - DATA, 20 bytes - the address the transaction is sent to
+   *  gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction
+   *  gasPrice - QUANTITY (optional) - integer of the price of gas in wei
+   *  value - QUANTITY (optional) - integer of the value in wei
+   *  data - DATA (optional) - hash of the method signature and the ABI encoded parameters)
+   * @param blockNumber integer block number, or the string "latest", "earliest"
+   *  or "pending", see the default block parameter
    *
    * @returns the amount of gas used.
    *
@@ -1587,7 +1598,7 @@ export default class EthereumApi implements types.Api {
     );
   }
 
-  // TODO: fix transaction object formattiing
+  // TODO: fix transaction object formatting
   /**
    * Executes a new message call immediately without creating a transaction on the block chain.
    *
