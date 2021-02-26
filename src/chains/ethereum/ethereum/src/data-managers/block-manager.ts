@@ -3,6 +3,7 @@ import { Tag, Block } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
 import Common from "ethereumjs-common";
+import Blockchain from "../blockchain";
 
 const NOTFOUND = 404;
 
@@ -24,25 +25,42 @@ export default class BlockManager extends Manager<Block> {
    */
   public pending: Block;
 
+  #blockchain: Blockchain;
   #common: Common;
   #blockIndexes: LevelUp;
 
   static async initialize(
+    blockchain: Blockchain,
     common: Common,
     blockIndexes: LevelUp,
     base: LevelUp
   ) {
-    const bm = new BlockManager(common, blockIndexes, base);
+    const bm = new BlockManager(blockchain, common, blockIndexes, base);
     await bm.updateTaggedBlocks();
     return bm;
   }
 
-  constructor(common: Common, blockIndexes: LevelUp, base: LevelUp) {
+  constructor(
+    blockchain: Blockchain,
+    common: Common,
+    blockIndexes: LevelUp,
+    base: LevelUp
+  ) {
     super(base, Block, common);
 
+    this.#blockchain = blockchain;
     this.#common = common;
     this.#blockIndexes = blockIndexes;
   }
+
+  #fromFallback = async (tagOrBlockNumber: string | Buffer | Tag) => {
+    const fallback = this.#blockchain.fallback;
+    const b = await fallback.request("eth_getBlockByNumber", [
+      tagOrBlockNumber,
+      true
+    ]);
+    return Block.fromJSON(b, this.#common, true);
+  };
 
   getBlockByTag(tag: Tag) {
     switch (Tag.normalize(tag as Tag)) {
@@ -90,7 +108,13 @@ export default class BlockManager extends Manager<Block> {
   async getRaw(tagOrBlockNumber: string | Buffer | Tag) {
     // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
     // we don't have to fetch them from the db each time a block tag is used.
-    return super.getRaw(this.getEffectiveNumber(tagOrBlockNumber).toBuffer());
+    const number = this.getEffectiveNumber(tagOrBlockNumber).toBuffer();
+    return super.getRaw(number).then((block: any) => {
+      if (block == null && this.#blockchain.fallback) {
+        return this.#fromFallback(tagOrBlockNumber);
+      }
+      return block;
+    });
   }
 
   async get(tagOrBlockNumber: string | Buffer | Tag) {

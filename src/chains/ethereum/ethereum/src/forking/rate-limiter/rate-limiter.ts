@@ -81,18 +81,15 @@ function isExceededLimitError(
  * thought of like this:
  *
  * ```ascii
- * 60                               120       135
  *         ╔══════════════════════════════════╗
  *         ║   sampling period: 60 seconds    ║
- * ┌───────╫────────────────────────┰─────────╫──────────────────────┐
- * │       ║previous minute         ┃         current minute         │
- * │       ║  42 requests           ┃         ║18 requests           │
- * └───────╫────────────────────────┸─────────╫──────────────────────┘
- *         ║         45 secs        ┃ 15 secs ║
- *         ╚══════════════════════════════════╝
+ * ╭───────╫────────────────────────┬─────────╫──────────────────────╮
+ * │       ║previous minute         │         current minute         │
+ * │       ║  42 requests           │         ║18 requests           │
+ * ╰───────╫────────────────────────┼─────────╫──────────────────────╯
+ *         ║         45 secs        │ 15 secs ║
+ *         ╚════════════════════════╧═════════╝
  * ```
- *              [         ]
- * [1,1,  2,  3,4,4,  5,6  ,7  ,  8,  9]  10
  *
  * In this situation, we did 18 requests during the current minute, which
  * started 15 seconds ago, and 42 requests during the entire previous minute.

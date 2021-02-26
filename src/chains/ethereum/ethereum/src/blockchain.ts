@@ -218,6 +218,7 @@ export default class Blockchain extends Emittery.Typed<
     const database = (this.#database = new Database(options.database, this));
     database.once("ready").then(async () => {
       const blocks = (this.blocks = await BlockManager.initialize(
+        this,
         common,
         database.blockIndexes,
         database.blocks
