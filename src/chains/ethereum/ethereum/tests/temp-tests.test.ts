@@ -50,13 +50,13 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("shouldn't allow initialization without accounts", async () => {
-    const options = { wallet: { totalAccounts: 0 } } as any;
+    let options = { wallet: { totalAccounts: 0 } } as any;
     await assert.rejects(getProvider(options), {
       message:
         "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
     });
 
-    options.wallet.accounts = [];
+    options = { wallet: { accounts: [] } };
     await assert.rejects(getProvider(options), {
       message:
         "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"

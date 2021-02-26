@@ -200,15 +200,6 @@ export type WalletConfig = {
 };
 
 export const WalletOptions: Definitions<WalletConfig> = {
-  totalAccounts: {
-    normalize,
-    cliDescription: "Number of accounts to generate at startup.",
-    default: () => 10,
-    legacyName: "total_accounts",
-    cliAliases: ["a", "accounts"],
-    cliType: "number",
-    conflicts: ["accounts"]
-  },
   accounts: {
     normalize,
     cliDescription: `Account data in the form \`<private_key>,<initial_balance>\`, can be specified multiple times. Note that private keys are 64 characters long and must be entered as an 0x-prefixed hex string. Balance can either be input as an integer, or as a 0x-prefixed hex string with either form specifying the initial balance in wei.`,
@@ -226,6 +217,15 @@ export const WalletOptions: Definitions<WalletConfig> = {
       });
     },
     conflicts: ["totalAccounts"]
+  },
+  totalAccounts: {
+    normalize,
+    cliDescription: "Number of accounts to generate at startup.",
+    default: config => (config.accounts == null ? 10 : 0),
+    legacyName: "total_accounts",
+    cliAliases: ["a", "accounts"],
+    cliType: "number",
+    conflicts: ["accounts"]
   },
   deterministic: {
     normalize,
