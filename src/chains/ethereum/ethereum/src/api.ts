@@ -1587,11 +1587,19 @@ export default class EthereumApi implements types.Api {
     );
   }
 
+  // TODO: fix transaction object formattiing
   /**
    * Executes a new message call immediately without creating a transaction on the block chain.
    *
-   * @param transaction
-   * @param blockNumber
+   * @param transaction - the transaction call object
+   *  (from - DATA, 20 bytes (optional) - the address the transaction is sent from
+   *  to - DATA, 20 bytes - the address the transaction is sent to
+   *  gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction
+   *  gasPrice - QUANTITY (optional) - integer of the price of gas in wei
+   *  value - QUANTITY (optional) - integer of the value in wei
+   *  data - DATA (optional) - hash of the method signature and the ABI encoded parameters)
+   *  @param blockNumber integer block number, or the string "latest", "earliest"
+   *  or "pending", see the default block parameter
    *
    * @returns the return value of executed contract.
    * @example
@@ -1608,7 +1616,8 @@ export default class EthereumApi implements types.Api {
    * //  }
    * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
-   * const result = await provider.request({ method: "eth_call", params: [{ from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol }, "latest"] });
+   * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
+   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest"]});
    * console.log(result);
    * ```
    */
