@@ -2105,17 +2105,7 @@ export default class EthereumApi implements types.Api {
    *  * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second
    * position (and anything after)”
    *
-   * Filter options:
-   * * `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
-   * or "pending".
-   * * `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
-   * or "pending".
-   * * `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.
-   * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also
-   * be an array of `DATA` with "or" options.
-   *
-   * @param filter The filter options as seen in source.
-   *
+   * @param filter The filter options
    * @returns A filter id.
    * @example
    * ```javascript
