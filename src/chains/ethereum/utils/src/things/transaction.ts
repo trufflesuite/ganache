@@ -20,6 +20,10 @@ import { Block } from "./runtime-block";
 const { KNOWN_CHAINIDS, BUFFER_ZERO, RPCQUANTITY_ONE } = utils;
 const MAX_UINT64 = (1n << 64n) - 1n;
 const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
+/**
+ * secp256k1n/2
+ */
+const N_DIV_2 = 57896044618658097711785492504343953926418782139537452191302581570759080747168n;
 
 //#region helpers
 const sign = EthereumJsTransaction.prototype.sign;
@@ -236,6 +240,38 @@ export class Transaction extends (EthereumJsTransaction as any) {
   ) {
     super(void 0, { common });
 
+    this._validateV = () => {};
+    this.verifySignature = () => {
+      var msgHash = this.hash(false);
+      // All transaction signatures whose s-value is greater than secp256k1n/2 are considered invalid.
+      if (
+        common.gteHardfork("homestead") &&
+        Quantity.from(this.s).toBigInt() > N_DIV_2
+      ) {
+        return false;
+      }
+      try {
+        const v = Quantity.from(this.v).toNumber();
+        let chainId = Math.floor((v - 35) / 2);
+        if (chainId < 0) {
+          chainId = 0;
+        }
+
+        var useChainIdWhileRecoveringPubKey =
+          v >= chainId * 2 + 35 && common.gteHardfork("spuriousDragon");
+        this._senderPubKey = ecrecover(
+          msgHash,
+          v,
+          this.r,
+          this.s,
+          useChainIdWhileRecoveringPubKey ? chainId : undefined
+        );
+      } catch (e) {
+        return false;
+      }
+      return !!this._senderPubKey;
+    };
+
     // EthereumJS-TX Transaction overwrites our `toJSON`, so we overwrite it back here:
     this.toJSON = Transaction.prototype.toJSON.bind(this);
 
@@ -403,6 +439,28 @@ export class Transaction extends (EthereumJsTransaction as any) {
       r: Data.from(json.r).toBuffer(),
       s: Data.from(json.s).toBuffer()
     };
+
+    const sigV = ethUtil.bufferToInt(json.v);
+    let chainId = Math.floor((sigV - 35) / 2);
+    if (chainId < 0) {
+      chainId = 0;
+    }
+
+    // if our chain's chainId doesn't match the JSON's chain id we need to
+    // create our own "common" for this specific chain id, otherwise it won't
+    // validate
+    if (common.chainId() !== chainId) {
+      common = Common.forCustomChain(
+        KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
+        {
+          name: "ganache-fork",
+          networkId: common.networkId(),
+          chainId: chainId,
+          comment: "Local test network fork"
+        },
+        common.hardfork()
+      );
+    }
 
     const tx = new Transaction(options, common, type);
     tx._hash = json.hash ? Data.from(json.hash).toBuffer() : null;
