@@ -1674,10 +1674,18 @@ export default class EthereumApi implements types.Api {
     return this.#filters.delete(filterId);
   }
 
+  // TODO: create an example that actually returns logs
   /**
    * Returns an array of all logs matching filter with given id.
    *
+   * @param filterId the filter id.
    * @returns Array of log objects, or an empty array.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newFilter", params: [] });
+   * const logs = await provider.request({ method: "eth_getFilterLogs", params: [filterId] });
+   * console.log(logs);
+   * ```
    */
   @assertArgLength(1)
   async eth_getFilterLogs(filterId: string) {
