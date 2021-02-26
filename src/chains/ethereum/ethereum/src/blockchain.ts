@@ -45,7 +45,7 @@ const {
   RPCQUANTITY_ZERO,
   findInsertPosition
 } = utils;
-type T = { keys: Buffer[]; nextKey: Data };
+
 type SimulationTransaction = {
   /**
    * The address the transaction is sent from.
@@ -1266,7 +1266,8 @@ export default class Blockchain extends Emittery.Typed<
         Buffer /*codeHash*/
       ])[2];
 
-      return new Promise<T>((resolve, reject) => {
+      type RangedStorageKeys = { keys: Buffer[]; nextKey: Data };
+      return new Promise<RangedStorageKeys>((resolve, reject) => {
         const startKeyBuffer = Data.from(startKey).toBuffer();
         const compare = (a: Buffer, b: Buffer) => a.compare(b) < 0;
 
