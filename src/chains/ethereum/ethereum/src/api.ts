@@ -1332,11 +1332,11 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the balance of the account of given address.
-   * @param address Address to check for balance.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
-   *  or "pending".
+   * @param address DATA, 20 Bytes - address to check for balance.
+   * @param blockNumber integer block number, or the string "latest", "earliest"
+   *  or "pending", see the default block parameter
    *
-   * @returns Integer of the account balance in wei.
+   * @returns integer of the account balance in wei
    *
    * @example
    * ```javascript
