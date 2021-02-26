@@ -1554,6 +1554,11 @@ export default class EthereumApi implements types.Api {
    * arrive. To check if the state has changed, call `eth_getFilterChanges`.
    *
    * @returns A filter id.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newPendingTransactionFilter", params: [] });
+   * console.log(filterId);
+   * ```
    */
   @assertArgLength(0)
   async eth_newPendingTransactionFilter() {
