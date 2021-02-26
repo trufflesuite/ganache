@@ -29,7 +29,7 @@ export function findInsertPosition<T>(
   array: T[],
   val: T,
   comp: (a: T, b: T) => boolean
-) {
+): number {
   let count = array.length;
 
   let first = 0;
