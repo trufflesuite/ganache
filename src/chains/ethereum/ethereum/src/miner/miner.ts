@@ -17,8 +17,7 @@ import VM from "ethereumjs-vm";
 import { encode as rlpEncode } from "rlp";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
-import { keccak } from "@ganache/utils/src/utils/keccak";
-const { BUFFER_EMPTY, BUFFER_256_ZERO } = utils;
+const { BUFFER_EMPTY, BUFFER_256_ZERO, keccak } = utils;
 
 export type BlockData = {
   blockTransactions: Transaction[];
