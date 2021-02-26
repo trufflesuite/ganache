@@ -1630,6 +1630,7 @@ export default class EthereumApi implements types.Api {
     return filterId;
   }
 
+  // TODO: create an example that actually returns changes
   /**
    * Polling method for a filter, which returns an array of logs, block hashes,
    * or transaction hashes, depending on the filter type, which occurred since
@@ -1638,6 +1639,12 @@ export default class EthereumApi implements types.Api {
    * @param filterId the filter id.
    * @returns an array of logs, block hashes, or transaction hashes, depending
    * on the filter type, which occurred since last poll.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newFilter", params: [] });
+   * const changes = await provider.request({ method: "eth_getFilterChanges", params: [filterId] });
+   * console.log(changes);
+   * ```
    */
   @assertArgLength(1)
   async eth_getFilterChanges(filterId: string) {
