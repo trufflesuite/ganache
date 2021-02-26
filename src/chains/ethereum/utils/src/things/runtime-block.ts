@@ -186,8 +186,8 @@ export class RuntimeBlock {
   }
 
   /**
-   * Returns the serialization of all block data and returns the hash of the
-   * block header.
+   * Returns the serialization of all block data, the hash of the block header,
+   * and a map of the hashed and raw storage keys
    *
    * @param transactionsTrie
    * @param receiptTrie
@@ -196,6 +196,7 @@ export class RuntimeBlock {
    * @param gasUsed
    * @param extraData
    * @param transactions
+   * @param storageKeys
    */
   finalize(
     transactionsTrie: Buffer,
@@ -204,7 +205,8 @@ export class RuntimeBlock {
     stateRoot: Buffer,
     gasUsed: Buffer,
     extraData: Data,
-    transactions: Transaction[]
+    transactions: Transaction[],
+    storageKeys: Map<string, Buffer>
   ) {
     const { header } = this;
     const rawHeader = [
@@ -246,7 +248,8 @@ export class RuntimeBlock {
 
     return {
       block,
-      serialized
+      serialized,
+      storageKeys
     };
   }
 }

@@ -16,7 +16,8 @@ import {
   TraceStorageMap,
   RuntimeError,
   RETURN_TYPES,
-  Snapshots
+  Snapshots,
+  StepEvent
 } from "@ganache/ethereum-utils";
 import TransactionManager from "./data-managers/transaction-manager";
 import SecureTrie from "merkle-patricia-tree/secure";
@@ -25,7 +26,7 @@ import { promisify } from "util";
 import { Quantity, Data, utils } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import Manager from "./data-managers/manager";
-import { encode as rlpEncode } from "rlp";
+import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import Common from "ethereumjs-common";
 import VM from "ethereumjs-vm";
 import BlockLogManager from "./data-managers/blocklog-manager";
@@ -153,6 +154,7 @@ export default class Blockchain extends Emittery.Typed<
   public blockLogs: BlockLogManager;
   public transactions: TransactionManager;
   public transactionReceipts: Manager<TransactionReceipt>;
+  public storageKeys: Database["storageKeys"];
   public accounts: AccountManager;
   public vm: VM;
   public trie: SecureTrie;
@@ -242,6 +244,7 @@ export default class Blockchain extends Emittery.Typed<
         TransactionReceipt
       );
       this.accounts = new AccountManager(this, database.trie);
+      this.storageKeys = database.storageKeys;
 
       this.coinbase = coinbaseAddress;
 
@@ -317,10 +320,12 @@ export default class Blockchain extends Emittery.Typed<
 
   #saveNewBlock = ({
     block,
-    serialized
+    serialized,
+    storageKeys
   }: {
     block: Block;
     serialized: Buffer;
+    storageKeys: Map<string, Buffer>;
   }) => {
     const { blocks } = this;
     blocks.latest = block;
@@ -363,6 +368,11 @@ export default class Blockchain extends Emittery.Typed<
             tx.execException
           )
         );
+      });
+
+      // save storage keys to the database
+      storageKeys.forEach((value, key) => {
+        this.storageKeys.put(key, value);
       });
 
       blockLogs.blockNumber = blockNumberQ;
@@ -438,6 +448,7 @@ export default class Blockchain extends Emittery.Typed<
   #handleNewBlockData = async (blockData: {
     block: Block;
     serialized: Buffer;
+    storageKeys: Map<string, Buffer>;
   }) => {
     this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
       .then(() => this.#saveNewBlock(blockData))
@@ -523,6 +534,14 @@ export default class Blockchain extends Emittery.Typed<
     });
   };
 
+  getFromTrie = (trie: SecureTrie, address: Buffer): Promise<Buffer> =>
+    new Promise((resolve, reject) => {
+      trie.get(address, (err, data) => {
+        if (err) return void reject(err);
+        resolve(data);
+      });
+    });
+
   #commitAccounts = (accounts: Account[]) => {
     return new Promise<void>((resolve, reject) => {
       let length = accounts.length;
@@ -570,7 +589,8 @@ export default class Blockchain extends Emittery.Typed<
       this.trie.root,
       BUFFER_EMPTY,
       this.#options.miner.extraData,
-      []
+      [],
+      new Map()
     );
     // README: set the block number to an actual 0 now.
     block.header.number = RPCQUANTITY_ZERO;
@@ -840,28 +860,17 @@ export default class Blockchain extends Emittery.Typed<
     }
   }
 
-  /**
-   * traceTransaction
-   *
-   * Run a previously-run transaction in the same state in which it occurred at the time it was run.
-   * This will return the vm-level trace output for debugging purposes.
-   *
-   * Strategy:
-   *
-   *  1. Find block where transaction occurred
-   *  2. Set state root of that block
-   *  3. Rerun every transaction in that block prior to and including the requested transaction
-   *  4. Send trace results back.
-   *
-   * @param transactionHash
-   * @param options
-   */
-  public async traceTransaction(
-    transactionHash: string,
-    options: TransactionTraceOptions
-  ) {
+  #traceTransaction = async (
+    trie: SecureTrie,
+    newBlock: RuntimeBlock,
+    transaction: Transaction,
+    options: TransactionTraceOptions,
+    keys?: Buffer[],
+    contractAddress?: string
+  ) => {
     let currentDepth = -1;
     const storageStack: TraceStorageMap[] = [];
+    const storage = {};
 
     // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
     // (Ganache v2 didn't handle this possibility either, so it hasn't been
@@ -871,65 +880,6 @@ export default class Blockchain extends Emittery.Typed<
     // supposed to be?
     let returnValue = "";
     const structLogs: Array<StructLog> = [];
-
-    const transactionHashBuffer = Data.from(transactionHash).toBuffer();
-    // #1 - get block via transaction object
-    const transaction = await this.transactions.get(transactionHashBuffer);
-
-    if (!transaction) {
-      throw new Error("Unknown transaction " + transactionHash);
-    }
-
-    const targetBlock = await this.blocks.get(transaction._blockNum);
-    const parentBlock = await this.blocks.getByHash(
-      targetBlock.header.parentHash.toBuffer()
-    );
-
-    // #2 - Set state root of original block
-    //
-    // TODO: Forking needs the forked block number passed during this step:
-    // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
-    const trie = new SecureTrie(
-      this.#database.trie,
-      parentBlock.header.stateRoot.toBuffer()
-    );
-
-    // Prepare the "next" block with necessary transactions
-    const newBlock = new RuntimeBlock(
-      Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
-      parentBlock.hash(),
-      parentBlock.header.miner,
-      parentBlock.header.gasLimit.toBuffer(),
-      // make sure we use the same timestamp as the target block
-      targetBlock.header.timestamp,
-      this.#options.miner.difficulty,
-      parentBlock.header.totalDifficulty
-    ) as RuntimeBlock & { uncleHeaders: []; transactions: Transaction[] };
-    newBlock.transactions = [];
-    newBlock.uncleHeaders = [];
-
-    const transactions = targetBlock.getTransactions();
-    for (const tx of transactions) {
-      newBlock.transactions.push(tx);
-
-      // After including the target transaction, that's all we need to do.
-      if (tx.hash().equals(transactionHashBuffer)) {
-        break;
-      }
-    }
-
-    type StepEvent = {
-      gasLeft: BN;
-      memory: Array<number>; // Not officially sure the type. Not a buffer or uint8array
-      stack: Array<BN>;
-      depth: number;
-      opcode: {
-        name: string;
-      };
-      pc: number;
-      address: Buffer;
-    };
-
     const TraceData = TraceDataFactory();
 
     const stepListener = (
@@ -1046,10 +996,35 @@ export default class Blockchain extends Emittery.Typed<
     };
 
     let txHashCurrentlyProcessing: string = null;
+    const transactionHash = Data.from(transaction.hash()).toString();
 
-    const beforeTxListener = (tx: Transaction) => {
+    const beforeTxListener = async (tx: Transaction) => {
       txHashCurrentlyProcessing = Data.from(tx.hash()).toString();
       if (txHashCurrentlyProcessing == transactionHash) {
+        if (keys && contractAddress) {
+          keys.forEach(async key => {
+            // get the raw key using the hashed key
+            let rawKey = await this.#database.storageKeys.get(
+              Data.from(key).toString()
+            );
+
+            vm.stateManager.getContractStorage(
+              Address.from(contractAddress).toBuffer(),
+              rawKey,
+              (err: Error, result: Buffer) => {
+                if (err) {
+                  throw err;
+                }
+
+                const keccakHashedKey = Data.from(key).toJSON();
+                storage[keccakHashedKey] = {
+                  key: Data.from(rawKey).toJSON(),
+                  value: Data.from(result, 32).toJSON()
+                };
+              }
+            );
+          });
+        }
         vm.on("step", stepListener);
       }
     };
@@ -1104,8 +1079,7 @@ export default class Blockchain extends Emittery.Typed<
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
     vm.stateManager._cache.flush = cb => cb();
 
-    // #3 - Process the block without committing the data.
-
+    // Process the block without committing the data.
     // The vmerr key on the result appears to be removed.
     // The previous implementation had specific error handling.
     // It's possible we've removed handling specific cases in this implementation.
@@ -1119,12 +1093,247 @@ export default class Blockchain extends Emittery.Typed<
     // Just to be safe
     removeListeners();
 
-    // #4 - send state results back
+    // send state results back
     return {
       gas,
       structLogs,
-      returnValue
+      returnValue,
+      storage
     };
+  };
+
+  #prepareNextBlock = (
+    targetBlock: Block,
+    parentBlock: Block,
+    transactionHash: Buffer
+  ): RuntimeBlock => {
+    // Prepare the "next" block with necessary transactions
+    const newBlock = new RuntimeBlock(
+      Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
+      parentBlock.hash(),
+      parentBlock.header.miner,
+      parentBlock.header.gasLimit.toBuffer(),
+      // make sure we use the same timestamp as the target block
+      targetBlock.header.timestamp,
+      this.#options.miner.difficulty,
+      parentBlock.header.totalDifficulty
+    ) as RuntimeBlock & { uncleHeaders: []; transactions: Transaction[] };
+    newBlock.transactions = [];
+    newBlock.uncleHeaders = [];
+
+    const transactions = targetBlock.getTransactions();
+    for (const tx of transactions) {
+      newBlock.transactions.push(tx);
+
+      // After including the target transaction, that's all we need to do.
+      if (tx.hash().equals(transactionHash)) {
+        break;
+      }
+    }
+
+    return newBlock;
+  };
+
+  /**
+   * traceTransaction
+   *
+   * Run a previously-run transaction in the same state in which it occurred at the time it was run.
+   * This will return the vm-level trace output for debugging purposes.
+   *
+   * Strategy:
+   *
+   *  1. Find block where transaction occurred
+   *  2. Set state root of that block
+   *  3. Rerun every transaction in that block prior to and including the requested transaction
+   *  4. Send trace results back.
+   *
+   * @param transactionHash
+   * @param options
+   */
+  public async traceTransaction(
+    transactionHash: string,
+    options: TransactionTraceOptions
+  ) {
+    const transactionHashBuffer = Data.from(transactionHash).toBuffer();
+    // #1 - get block via transaction object
+    const transaction = await this.transactions.get(transactionHashBuffer);
+
+    if (!transaction) {
+      throw new Error("Unknown transaction " + transactionHash);
+    }
+
+    const targetBlock = await this.blocks.get(transaction._blockNum);
+    const parentBlock = await this.blocks.getByHash(
+      targetBlock.header.parentHash.toBuffer()
+    );
+
+    const newBlock = this.#prepareNextBlock(
+      targetBlock,
+      parentBlock,
+      transactionHashBuffer
+    );
+
+    // #2 - Set state root of original block
+    //
+    // TODO: Forking needs the forked block number passed during this step:
+    // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
+    const trie = new SecureTrie(
+      this.#database.trie,
+      parentBlock.header.stateRoot.toBuffer()
+    );
+
+    // #3 - Rerun every transaction in block prior to and including the requested transaction
+    const { gas, structLogs, returnValue } = await this.#traceTransaction(
+      trie,
+      newBlock,
+      transaction,
+      options
+    );
+
+    // #4 - Send results back
+    return { gas, structLogs, returnValue };
+  }
+
+  /**
+   * storageRangeAt
+   *
+   * Returns a contract's storage given a starting key and max number of
+   * entries to return.
+   *
+   * Strategy:
+   *
+   *  1. Find block where transaction occurred
+   *  2. Set state root of that block
+   *  3. Use contract address storage trie to get the storage keys from the transaction
+   *  4. Sort and filter storage keys using the startKey and maxResult
+   *  5. Rerun every transaction in that block prior to and including the requested transaction
+   *  6. Send storage results back
+   *
+   * @param blockHash
+   * @param txIndex
+   * @param contractAddress
+   * @param startKey
+   * @param maxResult
+   */
+  public async storageRangeAt(
+    blockHash: string | Buffer,
+    txIndex: number,
+    contractAddress: string,
+    startKey: string | Buffer,
+    maxResult: number
+  ) {
+    type StorageRangeResult = {
+      nextKey: null | string;
+      storage: any;
+    };
+
+    const result: StorageRangeResult = {
+      nextKey: null,
+      storage: {}
+    };
+
+    // #1 - get block information
+    const targetBlock = await this.blocks.getByHash(blockHash);
+
+    // get transaction using txIndex
+    const transactions = targetBlock.getTransactions();
+    const transaction = transactions[Quantity.from(txIndex).toNumber()];
+    if (!transaction) {
+      throw new Error(
+        `transaction index ${txIndex} is out of range for block ${blockHash}`
+      );
+    }
+
+    // #2 - set state root of block
+    const parentBlock = await this.blocks.getByHash(
+      targetBlock.header.parentHash.toBuffer()
+    );
+    const trie = new SecureTrie(
+      this.#database.trie,
+      parentBlock.header.stateRoot.toBuffer()
+    );
+
+    // get the contractAddress account storage trie
+    const addressDataPromise = this.getFromTrie(
+      trie,
+      Address.from(contractAddress).toBuffer()
+    );
+    const addressData = await addressDataPromise;
+    if (!addressData) {
+      throw new Error(`account ${contractAddress} doesn't exist`);
+    }
+
+    // #3 - use the contractAddress storage trie to get relevant hashed keys
+    const getStorageKeys = () => {
+      const storageTrie = trie.copy();
+      // An address's stateRoot is stored in the 3rd rlp entry
+      storageTrie.root = ((rlpDecode(addressData) as any) as [
+        Buffer /*nonce*/,
+        Buffer /*amount*/,
+        Buffer /*stateRoot*/,
+        Buffer /*codeHash*/
+      ])[2];
+
+      let keys: Buffer[] = [];
+      return new Promise((resolve, reject) => {
+        storageTrie
+          .createReadStream()
+          .on("data", data => {
+            keys.push(data.key);
+          })
+          .on("end", () => {
+            // #4 - sort and filter keys
+            const sortedKeys = keys.sort((a, b) => Buffer.compare(a, b));
+
+            // find starting point in array of sorted keys
+            const startKeyBuffer = Data.from(startKey).toBuffer();
+            keys = sortedKeys.filter(key => {
+              if (Buffer.compare(startKeyBuffer, key) <= 0) {
+                return key;
+              }
+            });
+
+            // only take the maximum number of entries requested
+            keys = keys.slice(0, maxResult + 1);
+            if (keys.length > maxResult) {
+              // assign nextKey and remove it from array of keys
+              const nextKey = keys.pop();
+              result.nextKey = Data.from(nextKey).toJSON();
+            }
+
+            resolve(keys);
+          });
+      });
+    };
+    const keys = await getStorageKeys();
+
+    // #5 -  rerun every transaction in that block prior to and including the requested transaction
+    // prepare block to be run in traceTransaction
+    const transactionHashBuffer = Data.from(transaction.hash()).toBuffer();
+    const newBlock = this.#prepareNextBlock(
+      targetBlock,
+      parentBlock,
+      transactionHashBuffer
+    );
+    // get storage data given a set of keys
+    const options = {
+      disableMemory: true,
+      disableStack: false,
+      disableStorage: false
+    };
+
+    const { storage } = await this.#traceTransaction(
+      trie,
+      newBlock,
+      transaction,
+      options,
+      keys as Buffer[],
+      contractAddress
+    );
+    result.storage = storage;
+
+    // #6 - send back results
+    return result;
   }
 
   /**
