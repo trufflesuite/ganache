@@ -1359,9 +1359,10 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns code at a given address.
    *
-   * @param address Address.
-   * @param blockNumber Integer block number, or the string "latest", "earliest" or "pending".
-   * @returns The code from the given address.
+   * @param address 20 Bytes - address
+   * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block
+   * parameter
+   * @returns the code from the given address.
    * @example
    * ```javascript
    * // Simple.sol
@@ -1379,7 +1380,7 @@ export default class EthereumApi implements types.Api {
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
-   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash]})
    * const code = await provider.request({ method: "eth_getCode", params: [txReceipt.contractAddress, "latest"] });
    * console.log(code);
    * ```
