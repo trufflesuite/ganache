@@ -6,7 +6,7 @@ import {
   SerializedStartDealParams
 } from "./things/start-deal-params";
 import { SerializedRootCID, RootCID } from "./things/root-cid";
-import { SerializedDealInfo } from "./things/deal-info";
+import { DealInfo, SerializedDealInfo } from "./things/deal-info";
 import { SerializedTipset, Tipset } from "./things/tipset";
 import { Address, AddressProtocol, SerializedAddress } from "./things/address";
 import {
@@ -653,6 +653,49 @@ export default class FilecoinApi implements types.Api {
 
   async "Filecoin.ClientListDeals"(): Promise<Array<SerializedDealInfo>> {
     return this.#blockchain.deals.map(deal => deal.serialize());
+  }
+
+  "Filecoin.ClientGetDealUpdates"(rpcId?: string): PromiEvent<Subscription> {
+    const subscriptionId = this.#getId();
+    let promiEvent: PromiEvent<Subscription>;
+
+    const unsubscribeFromEmittery = this.#blockchain.on(
+      "dealUpdate",
+      (deal: DealInfo) => {
+        if (promiEvent) {
+          promiEvent.emit("message", {
+            type: SubscriptionMethod.ChannelUpdated,
+            data: [subscriptionId.toString(), deal.serialize()]
+          });
+        }
+      }
+    );
+
+    const unsubscribe = (): void => {
+      unsubscribeFromEmittery();
+      // Per https://git.io/JtOc1 and https://git.io/JtO3H
+      // implementations, we're should cancel the subscription
+      // since the protocol technically supports multiple channels
+      // per subscription, but implementation seems to show that there's
+      // only one channel per subscription
+      if (rpcId) {
+        promiEvent.emit("message", {
+          type: SubscriptionMethod.SubscriptionCanceled,
+          data: [rpcId]
+        });
+      }
+    };
+
+    promiEvent = PromiEvent.resolve({
+      unsubscribe,
+      id: subscriptionId
+    });
+
+    // There currently isn't an unsubscribe method,
+    // but it would go here
+    this.#subscriptions.set(subscriptionId.toString()!, unsubscribe);
+
+    return promiEvent;
   }
 
   async "Filecoin.ClientFindData"(

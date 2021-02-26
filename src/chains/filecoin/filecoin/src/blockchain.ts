@@ -40,6 +40,7 @@ export type BlockchainEvents = {
   ready(): void;
   tipset: Tipset;
   minerEnabled: boolean;
+  dealUpdate: DealInfo;
 };
 
 // Reference implementation: https://git.io/JtEVW
@@ -619,6 +620,7 @@ export default class Blockchain extends Emittery.Typed<
       // Advance the state of all deals in process.
       for (const deal of this.inProcessDeals) {
         deal.advanceState();
+        this.emit("dealUpdate", deal);
 
         if (deal.state == StorageDealStatus.Active) {
           // Remove the deal from the in-process array
@@ -780,6 +782,7 @@ export default class Blockchain extends Emittery.Typed<
 
     this.deals.push(deal);
     this.inProcessDeals.push(deal);
+    this.emit("dealUpdate", deal);
 
     // If we're automining, mine a new block. Note that this will
     // automatically advance the deal to the active state.
