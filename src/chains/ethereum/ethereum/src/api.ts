@@ -854,6 +854,15 @@ export default class EthereumApi implements types.Api {
     return Quantity.from(rawTransactions.length);
   }
 
+  /**
+   * Returns a list of available compilers
+   * @returns list of available compilers
+   * @example
+   * ```javascript
+   * const compilers = await provider.send("eth_getCompilers");
+   * console.log(compilers);
+   * ```
+   */
   @assertArgLength(0)
   async eth_getCompilers() {
     return [] as string[];
