@@ -743,7 +743,12 @@ export default class EthereumApi implements types.Api {
    * default block parameter.
    * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the
    * transactions.
-   * @returns the block, `null` if the block doesn't exist.
+   * @returns the block, `null` if the block doesn't exist
+   * @example
+   * ```javascript
+   * const block = await provider.request({ method: "eth_getBlockByNumber", params: ["0x0", false] });
+   * console.log(block);
+   * ```
    */
   @assertArgLength(1, 2)
   async eth_getBlockByNumber(number: string | Tag, transactions = false) {
@@ -756,7 +761,7 @@ export default class EthereumApi implements types.Api {
    * @param hash DATA, 32 Bytes - hash of a block
    * @param transactions Boolean - If true it returns the full transaction objects, if false only the hashes of the
    * transactions.
-   * @returns Block
+   * @returns the block, `null` if the block doesn't exist.
    *
    * @example
    * ```javascript
