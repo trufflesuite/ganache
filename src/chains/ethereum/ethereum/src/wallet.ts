@@ -267,10 +267,6 @@ export default class Wallet {
             address
           );
         }
-      } else {
-        throw new Error(
-          "Cannot initialize chain: either wallet.accounts or wallet.totalAccounts must be specified"
-        );
       }
     }
     return accounts;

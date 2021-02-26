@@ -49,20 +49,6 @@ describe("Random tests that are temporary!", () => {
     assert.deepStrictEqual(typeof options.wallet.mnemonic, "string");
   });
 
-  it("shouldn't allow initialization without accounts", async () => {
-    let options = { wallet: { totalAccounts: 0 } } as any;
-    await assert.rejects(getProvider(options), {
-      message:
-        "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
-    });
-
-    options = { wallet: { accounts: [] } };
-    await assert.rejects(getProvider(options), {
-      message:
-        "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
-    });
-  });
-
   it("sets up accounts", async () => {
     const privateKey = Buffer.from(
       "4646464646464646464646464646464646464646464646464646464646464646",
