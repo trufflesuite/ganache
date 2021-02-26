@@ -1238,7 +1238,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2073,
+									"line": 2079,
 									"character": 28
 								}
 							]
@@ -1620,7 +1620,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2053,
+									"line": 2059,
 									"character": 30
 								}
 							]
@@ -1849,7 +1849,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1951,
+									"line": 1957,
 									"character": 16
 								}
 							]
@@ -2862,7 +2862,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1800,
+									"line": 1806,
 									"character": 28
 								}
 							]
@@ -3164,7 +3164,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1833,
+									"line": 1839,
 									"character": 25
 								}
 							]
@@ -3469,7 +3469,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1849,
+									"line": 1855,
 									"character": 19
 								}
 							]
@@ -4257,7 +4257,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1906,
+									"line": 1912,
 									"character": 31
 								}
 							]
@@ -5470,7 +5470,14 @@
 									},
 									"comment": {
 										"shortText": "Creates a filter object, based on filter options, to notify when the state\nchanges (logs). To check if the state has changed, call\n`eth_getFilterChanges`.",
-										"text": "If the from `fromBlock` or `toBlock` option are equal to \"latest\" the\nfilter continually append logs for whatever block is seen as latest at the\ntime the block was mined, not just for the block that was \"latest\" when the\nfilter was created.\n\n### A note on specifying topic filters:\nTopics are order-dependent. A transaction with a log with topics [A, B]\nwill be matched by the following topic filters:\n * `[]` “anything”\n * `[A]` “A in first position (and anything after)”\n * `[null, B]` “anything in first position AND B in second position (and\nanything after)”\n * `[A, B]` “A in first position AND B in second position (and anything\nafter)”\n * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second\nposition (and anything after)”\n"
+										"text": "If the from `fromBlock` or `toBlock` option are equal to \"latest\" the\nfilter continually append logs for whatever block is seen as latest at the\ntime the block was mined, not just for the block that was \"latest\" when the\nfilter was created.\n\n### A note on specifying topic filters:\nTopics are order-dependent. A transaction with a log with topics [A, B]\nwill be matched by the following topic filters:\n * `[]` “anything”\n * `[A]` “A in first position (and anything after)”\n * `[null, B]` “anything in first position AND B in second position (and\nanything after)”\n * `[A, B]` “A in first position AND B in second position (and anything\nafter)”\n * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second\nposition (and anything after)”\n",
+										"returns": "A filter id.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst filterId = await provider.request({ method: \"eth_newFilter\", params: [] });\nconsole.log(filterId);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -5482,7 +5489,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The filter options\n"
+												"text": "The filter options"
 											},
 											"type": {
 												"type": "reference",
@@ -5506,7 +5513,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1770,
+									"line": 1776,
 									"character": 21
 								}
 							]
@@ -6401,7 +6408,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1820,
+									"line": 1826,
 									"character": 27
 								}
 							]
@@ -7893,7 +7900,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2136,
+									"line": 2142,
 									"character": 29
 								}
 							]
@@ -7949,7 +7956,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2098,
+									"line": 2104,
 									"character": 29
 								}
 							]
@@ -8019,7 +8026,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2160,
+									"line": 2166,
 									"character": 28
 								}
 							]
@@ -8088,7 +8095,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2109,
+									"line": 2115,
 									"character": 27
 								}
 							]
@@ -8172,7 +8179,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2205,
+									"line": 2211,
 									"character": 32
 								}
 							]
@@ -8278,7 +8285,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2180,
+									"line": 2186,
 									"character": 30
 								}
 							]
@@ -8477,7 +8484,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2238,
+									"line": 2244,
 									"character": 19
 								}
 							]
@@ -8545,7 +8552,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2283,
+									"line": 2289,
 									"character": 22
 								}
 							]
@@ -8619,7 +8626,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2320,
+									"line": 2326,
 									"character": 28
 								}
 							]
@@ -8690,7 +8697,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2331,
+									"line": 2337,
 									"character": 23
 								}
 							]
@@ -8761,7 +8768,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2262,
+									"line": 2268,
 									"character": 23
 								}
 							]
@@ -8851,7 +8858,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2297,
+									"line": 2303,
 									"character": 21
 								}
 							]
@@ -8904,7 +8911,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2272,
+									"line": 2278,
 									"character": 20
 								}
 							]
@@ -8957,7 +8964,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2251,
+									"line": 2257,
 									"character": 23
 								}
 							]
@@ -9026,7 +9033,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2342,
+									"line": 2348,
 									"character": 16
 								}
 							]
@@ -9097,7 +9104,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2309,
+									"line": 2315,
 									"character": 27
 								}
 							]
@@ -9150,7 +9157,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2352,
+									"line": 2358,
 									"character": 19
 								}
 							]
