@@ -936,8 +936,8 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the number of transactions in a block from a block matching the given block hash.
-   * @param hash Hash of a block.
-   * @returns Number of transactions in the block.
+   * @param hash DATA, 32 Bytes - hash of a block.
+   * @returns integer of the number of transactions in the block
    * @example
    * ```javascript
    * // Simple.sol
