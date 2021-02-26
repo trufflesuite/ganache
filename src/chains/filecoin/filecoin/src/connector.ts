@@ -8,6 +8,7 @@ import {
   WebSocket
 } from "@seesemichaelj/uwebsockets.js";
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
+export { StorageDealStatus } from "./types/storage-deal-status";
 
 export type Provider = FilecoinProvider;
 export const Provider = FilecoinProvider;
