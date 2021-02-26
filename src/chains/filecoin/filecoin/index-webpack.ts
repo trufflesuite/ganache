@@ -6,9 +6,10 @@
  * @license MIT
  */
 
-import { Connector, Provider } from "./src/connector";
+import { Connector, Provider, StorageDealStatus } from "./src/connector";
 
 export default {
   Connector,
-  Provider
+  Provider,
+  StorageDealStatus
 };
