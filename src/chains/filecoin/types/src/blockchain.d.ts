@@ -23,6 +23,7 @@ export declare type BlockchainEvents = {
   ready(): void;
   tipset: Tipset;
   minerEnabled: boolean;
+  dealUpdate: DealInfo;
 };
 export default class Blockchain extends Emittery.Typed<
   BlockchainEvents,
