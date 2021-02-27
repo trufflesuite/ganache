@@ -1328,10 +1328,19 @@ export default class EthereumApi implements types.Api {
     return null;
   }
 
+  // TODO: fix transaction object formatting (for param)
   /**
    * Creates new message call transaction or a contract creation, if the data field contains code.
-   * @param transaction
+   * @param transaction - the transaction call object
    * @returns The transaction hash
+   * @example
+   * ```javascript
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * console.log(txHash);
+   * ```
    */
   @assertArgLength(1)
   async eth_sendTransaction(transaction: RpcTransaction) {
