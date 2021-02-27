@@ -5705,7 +5705,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The signed transaction data."
+												"text": "DATA, the signed transaction data"
 											},
 											"type": {
 												"type": "intrinsic",

@@ -1674,15 +1674,8 @@ export default class EthereumApi implements types.Api {
   }
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
-   * @param transaction The signed transaction data.
-   * @returns The transaction hash.
-   * @example
-   * ```javascript
-   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
-   * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
-   * const txHash = await provider.send("eth_sendRawTransaction", [signedTx] );
-   * console.log(txHash);
-   * ```
+   * @param transaction DATA, the signed transaction data
+   * @returns The transaction hash
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: DATA) {
