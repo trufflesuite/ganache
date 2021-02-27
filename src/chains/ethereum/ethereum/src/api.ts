@@ -868,10 +868,12 @@ export default class EthereumApi implements types.Api {
     return [] as string[];
   }
 
+  // TODO: how to format the transaction object for @returns
   /**
    * Returns information about a transaction by block hash and transaction index position.
    * @param hash DATA, 32 Bytes - hash of a block.
    * @param index QUANTITY - integer of the transaction index position.
+   *  @returns the transaction object or null if no transaction was found
    * @example
    * ```javascript
    * const accounts = await provider.request({ method: "eth_accounts", params: [] });
