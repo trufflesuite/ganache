@@ -1514,9 +1514,9 @@ export default class EthereumApi implements types.Api {
    * @returns Returns the receipt of a transaction by transaction hash.
    * @example
    * ```javascript
-   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [ txHash ] });
