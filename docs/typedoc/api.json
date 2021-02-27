@@ -5665,7 +5665,9 @@
 											"flags": {
 												"isExported": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "DATA, the signed transaction data"
+											},
 											"type": {
 												"type": "intrinsic",
 												"name": "string"

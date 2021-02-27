@@ -1377,7 +1377,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
-   * @param transaction
+   * @param transaction DATA, the signed transaction data
    * @returns The transaction hash
    */
   @assertArgLength(1)
