@@ -1152,7 +1152,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2126,
+									"line": 2137,
 									"character": 28
 								}
 							]
@@ -1534,7 +1534,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2106,
+									"line": 2117,
 									"character": 30
 								}
 							]
@@ -1596,7 +1596,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1121,
+									"line": 1132,
 									"character": 20
 								}
 							]
@@ -1655,7 +1655,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1135,
+									"line": 1146,
 									"character": 23
 								}
 							]
@@ -1763,7 +1763,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2004,
+									"line": 2015,
 									"character": 16
 								}
 							]
@@ -1826,7 +1826,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1152,
+									"line": 1163,
 									"character": 19
 								}
 							]
@@ -2048,7 +2048,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1107,
+									"line": 1118,
 									"character": 20
 								}
 							]
@@ -2152,7 +2152,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1172,
+									"line": 1183,
 									"character": 22
 								}
 							]
@@ -2636,7 +2636,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1212,
+									"line": 1223,
 									"character": 19
 								}
 							]
@@ -2778,7 +2778,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1840,
+									"line": 1851,
 									"character": 28
 								}
 							]
@@ -3089,7 +3089,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1881,
+									"line": 1892,
 									"character": 25
 								}
 							]
@@ -3400,7 +3400,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1902,
+									"line": 1913,
 									"character": 19
 								}
 							]
@@ -3529,7 +3529,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1284,
+									"line": 1295,
 									"character": 24
 								}
 							]
@@ -3564,7 +3564,13 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns information about a transaction by block hash and transaction index position."
+										"shortText": "Returns information about a transaction by block hash and transaction index position.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from: accounts[0], to: accounts[1], gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst { blockHash, transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockHashAndIndex\", params: [ blockHash, transactionIndex ] });\nconsole.log(tx);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -3601,7 +3607,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY - integer of the transaction index position.\n"
+												"text": "QUANTITY - integer of the transaction index position."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -3624,7 +3630,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 968,
+									"line": 979,
 									"character": 45
 								}
 							]
@@ -3719,7 +3725,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 987,
+									"line": 998,
 									"character": 47
 								}
 							]
@@ -4101,7 +4107,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1343,
+									"line": 1354,
 									"character": 32
 								}
 							]
@@ -4197,7 +4203,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1959,
+									"line": 1970,
 									"character": 31
 								}
 							]
@@ -4780,7 +4786,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1370,
+									"line": 1381,
 									"character": 33
 								}
 							]
@@ -4866,7 +4872,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1020,
+									"line": 1031,
 									"character": 39
 								}
 							]
@@ -4961,7 +4967,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1032,
+									"line": 1043,
 									"character": 41
 								}
 							]
@@ -5040,7 +5046,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1000,
+									"line": 1011,
 									"character": 36
 								}
 							]
@@ -5116,7 +5122,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1009,
+									"line": 1020,
 									"character": 38
 								}
 							]
@@ -5208,7 +5214,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1049,
+									"line": 1060,
 									"character": 19
 								}
 							]
@@ -5261,7 +5267,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1093,
+									"line": 1104,
 									"character": 20
 								}
 							]
@@ -5314,7 +5320,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1083,
+									"line": 1094,
 									"character": 18
 								}
 							]
@@ -5373,7 +5379,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1727,
+									"line": 1738,
 									"character": 26
 								}
 							]
@@ -5453,7 +5459,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1803,
+									"line": 1814,
 									"character": 21
 								}
 							]
@@ -5512,7 +5518,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1754,
+									"line": 1765,
 									"character": 39
 								}
 							]
@@ -5634,7 +5640,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1488,
+									"line": 1499,
 									"character": 30
 								}
 							]
@@ -5703,7 +5709,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1414,
+									"line": 1425,
 									"character": 27
 								}
 							]
@@ -5803,7 +5809,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1512,
+									"line": 1523,
 									"character": 16
 								}
 							]
@@ -5905,7 +5911,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1539,
+									"line": 1550,
 									"character": 25
 								}
 							]
@@ -5992,7 +5998,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1074,
+									"line": 1085,
 									"character": 26
 								}
 							]
@@ -6095,7 +6101,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1062,
+									"line": 1073,
 									"character": 22
 								}
 							]
@@ -6220,17 +6226,17 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1578,
+									"line": 1589,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1591,
+									"line": 1602,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1596,
+									"line": 1607,
 									"character": 15
 								}
 							]
@@ -6354,7 +6360,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1860,
+									"line": 1871,
 									"character": 27
 								}
 							]
@@ -6418,7 +6424,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1703,
+									"line": 1714,
 									"character": 23
 								}
 							]
@@ -7842,7 +7848,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2189,
+									"line": 2200,
 									"character": 29
 								}
 							]
@@ -7898,7 +7904,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2151,
+									"line": 2162,
 									"character": 29
 								}
 							]
@@ -7968,7 +7974,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2213,
+									"line": 2224,
 									"character": 28
 								}
 							]
@@ -8037,7 +8043,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2162,
+									"line": 2173,
 									"character": 27
 								}
 							]
@@ -8121,7 +8127,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2258,
+									"line": 2269,
 									"character": 32
 								}
 							]
@@ -8227,7 +8233,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2233,
+									"line": 2244,
 									"character": 30
 								}
 							]
@@ -8426,7 +8432,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2291,
+									"line": 2302,
 									"character": 19
 								}
 							]
@@ -8494,7 +8500,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2336,
+									"line": 2347,
 									"character": 22
 								}
 							]
@@ -8568,7 +8574,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2373,
+									"line": 2384,
 									"character": 28
 								}
 							]
@@ -8639,7 +8645,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2384,
+									"line": 2395,
 									"character": 23
 								}
 							]
@@ -8710,7 +8716,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2315,
+									"line": 2326,
 									"character": 23
 								}
 							]
@@ -8800,7 +8806,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2350,
+									"line": 2361,
 									"character": 21
 								}
 							]
@@ -8853,7 +8859,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2325,
+									"line": 2336,
 									"character": 20
 								}
 							]
@@ -8906,7 +8912,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2304,
+									"line": 2315,
 									"character": 23
 								}
 							]
@@ -8975,7 +8981,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2395,
+									"line": 2406,
 									"character": 16
 								}
 							]
@@ -9046,7 +9052,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2362,
+									"line": 2373,
 									"character": 27
 								}
 							]
@@ -9099,7 +9105,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2405,
+									"line": 2416,
 									"character": 19
 								}
 							]
