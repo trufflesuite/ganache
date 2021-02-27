@@ -74,7 +74,7 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     console.log(liveOptions.miner.callGasLimit.toBigInt());
   }
 
-  if (liveOptions.fork) {
+  if (liveOptions.fork.url) {
     console.log("");
     console.log("Forked Chain");
     console.log("==================");
