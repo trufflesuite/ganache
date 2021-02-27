@@ -873,7 +873,7 @@ export default class EthereumApi implements types.Api {
    * Returns information about a transaction by block hash and transaction index position.
    * @param hash DATA, 32 Bytes - hash of a block.
    * @param index QUANTITY - integer of the transaction index position.
-   *  @returns the transaction object or null if no transaction was found
+   * @returns the transaction object or null if no transaction was found
    * @example
    * ```javascript
    * const accounts = await provider.request({ method: "eth_accounts", params: [] });
@@ -1219,10 +1219,22 @@ export default class EthereumApi implements types.Api {
     return Data.from(decode(value));
   }
 
+  // TODO: how to format the transaction object for @returns
   /**
    * Returns the information about a transaction requested by transaction hash.
    *
    * @param transactionHash 32 Bytes - hash of a transaction
+   * @returns the transaction object or null if no transaction was found
+   * @example
+   * ```javascript
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   *
+   * const tx = await provider.request({ method: "eth_getTransactionByHash", params: [ txHash ] });
+   * console.log(tx);
+   * ```
    */
   @assertArgLength(1)
   async eth_getTransactionByHash(transactionHash: string) {
