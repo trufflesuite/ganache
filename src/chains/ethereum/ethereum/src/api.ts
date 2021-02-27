@@ -704,6 +704,11 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns the current ethereum protocol version.
    * @returns The current ethereum protocol version.
+   * @example
+   * ```javascript
+   * const version = await provider.request({ method: "eth_protocolVersion", params: [] });
+   * console.log(version);
+   * ```
    */
   @assertArgLength(0)
   async eth_protocolVersion() {
