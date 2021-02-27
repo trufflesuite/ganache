@@ -20,7 +20,8 @@ import {
   StepEvent,
   StorageKeys,
   StorageRangeResult,
-  StorageRecords
+  StorageRecords,
+  RangedStorageKeys
 } from "@ganache/ethereum-utils";
 import TransactionManager from "./data-managers/transaction-manager";
 import SecureTrie from "merkle-patricia-tree/secure";
@@ -1266,7 +1267,6 @@ export default class Blockchain extends Emittery.Typed<
         Buffer /*codeHash*/
       ])[2];
 
-      type RangedStorageKeys = { keys: Buffer[]; nextKey: Data };
       return new Promise<RangedStorageKeys>((resolve, reject) => {
         const startKeyBuffer = Data.from(startKey).toBuffer();
         const compare = (a: Buffer, b: Buffer) => a.compare(b) < 0;

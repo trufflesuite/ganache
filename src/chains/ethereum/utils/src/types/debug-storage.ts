@@ -14,3 +14,5 @@ export type StorageRangeResult = {
 };
 
 export type StorageKeys = Map<string, { key: Buffer; hashedKey: Buffer }>;
+
+export type RangedStorageKeys = { keys: Buffer[]; nextKey: Data };
