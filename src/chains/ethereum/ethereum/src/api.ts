@@ -897,11 +897,24 @@ export default class EthereumApi implements types.Api {
     return null;
   }
 
+  // TODO: how to format the transaction object for @returns
   /**
    * Returns information about a transaction by block number and transaction index position.
    * @param number QUANTITY|TAG - a block number, or the string "earliest", "latest" or "pending", as in the default
    * block parameter.
    * @param index QUANTITY - integer of the transaction index position.
+   * @returns the transaction object or null if no transaction was found
+   * @example
+   * ```javascript
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const { transactionIndex } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   *
+   * const tx = await provider.request({ method: "eth_getTransactionByBlockNumberAndIndex", params: [ "latest", transactionIndex ] });
+   * console.log(tx);
+   * ```
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockNumberAndIndex(
