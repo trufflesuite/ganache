@@ -1023,6 +1023,11 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns the number of hashes per second that the node is mining with.
    * @returns number of hashes per second.
+   * @example
+   * ```javascript
+   * const hashrate = await provider.request({ method: "eth_hashrate", params: [] });
+   * console.log(hashrate);
+   * ```
    */
   @assertArgLength(0)
   async eth_hashrate() {
