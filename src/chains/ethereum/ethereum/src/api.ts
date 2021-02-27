@@ -1776,10 +1776,20 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns the number of transactions sent from an address.
    *
-   * @param address
+   * @param address DATA, 20 bytes - the address to get number of transactions sent from
    * @param blockNumber integer block number, or the string "latest", "earliest"
    * or "pending", see the default block parameter
    * @returns integer of the number of transactions sent from this address.
+   * @example
+   * ```javascript
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   *
+   * const txCount = await provider.request({ method: "eth_getTransactionCount", params: [ accounts[0], "latest" ] });
+   * console.log(txCount);
+   * ```
    */
   @assertArgLength(1, 2)
   async eth_getTransactionCount(
