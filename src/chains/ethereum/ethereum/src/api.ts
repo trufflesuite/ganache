@@ -1563,24 +1563,16 @@ export default class EthereumApi implements types.Api {
     return null;
   }
 
+  // TODO: fix transaction object formatting (for param)
   /**
    * Creates new message call transaction or a contract creation, if the data field contains code.
-   *
-   * Transaction call object:
-   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
-   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
-   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
-   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
-   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
-   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
-   *
-   * @param transaction - The transaction call object as seen in source.
-   * @returns The transaction hash.
+   * @param transaction - the transaction call object
+   * @returns The transaction hash
    * @example
    * ```javascript
-   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    * console.log(txHash);
    * ```
