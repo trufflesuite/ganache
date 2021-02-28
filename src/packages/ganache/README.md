@@ -120,7 +120,7 @@ You can then add ganache to your package.json scripts:
 
 _See [Documentation](#documentation) for additional command line options._
 
-then start it:
+Then start it:
 
 ```console
 $ npm run ganache
@@ -134,7 +134,7 @@ You can use Ganache programmatically from Node.js. Install Ganache into your npm
 $ npm install ganache
 ```
 
-then you can use ganache as an [EIP-1193 provider only](#as-an-eip-1193-provider-only), an [EIP-1193 provider and JSON-RPC web server](#as-an-eip-1193-provider-and-json-rpc-web-server), as a [Web3 provider](#as-a-web3js-provider), or an [ethers provider](#as-an-ethersjs-provider).
+Then you can use ganache as an [EIP-1193 provider only](#as-an-eip-1193-provider-only), an [EIP-1193 provider and JSON-RPC web server](#as-an-eip-1193-provider-and-json-rpc-web-server), as a [Web3 provider](#as-a-web3js-provider), or an [ethers provider](#as-an-ethersjs-provider).
 
 #### As an EIP-1193 provider only:
 
@@ -163,7 +163,7 @@ server.listen(PORT, err => {
 });
 ```
 
-#### As a [web3.js](https://www.npmjs.com/package/web3) Provider
+#### As a [web3.js](https://www.npmjs.com/package/web3) provider:
 
 To use ganache as a Web3 provider:
 
