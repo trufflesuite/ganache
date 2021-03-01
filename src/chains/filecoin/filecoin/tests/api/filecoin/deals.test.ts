@@ -41,7 +41,7 @@ describe("api", () => {
       }
     });
 
-    describe("Filecoin.ClientStartDeal, Filecoin.ClientListDeals, Ganache.GetDealById, and Filecoin.ClientGetDealUpdates", () => {
+    describe("Filecoin.ClientStartDeal, Filecoin.ClientListDeals, Ganache.GetDealById, Filecoin.ClientGetDealInfo, and Filecoin.ClientGetDealUpdates", () => {
       let ipfs: IPFSClient;
       let currentDeal: DealInfo = new DealInfo({
         dealId: -1
@@ -152,6 +152,15 @@ describe("api", () => {
             e.message.includes("Could not find a deal for the provided ID")
           );
         }
+      });
+
+      it("retrieves deal using CID", async () => {
+        const deals = await client.clientListDeals();
+        assert.strictEqual(deals.length, 1);
+
+        const deal = await client.clientGetDealInfo(deals[0].ProposalCid);
+
+        assert.deepStrictEqual(deal, deals[0]);
       });
     });
 
