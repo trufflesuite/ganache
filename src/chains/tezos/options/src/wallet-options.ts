@@ -41,12 +41,6 @@ export type WalletConfig = {
     seed: {
       type: string;
       hasDefault: true;
-      legacy: {
-        /**
-         * @deprecated Use wallet.seed instead
-         */
-        seed: string;
-      };
     };
 
     /**
