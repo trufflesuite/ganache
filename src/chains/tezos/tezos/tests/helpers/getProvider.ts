@@ -10,7 +10,7 @@ const getProvider = async (
     wallet: { totalAccounts: 3, defaultBalance: 100 }
   }
 ) => {
-  const requestCoordinator = new RequestCoordinator(1);
+  const requestCoordinator = new RequestCoordinator(0);
   const executor = new Executor(requestCoordinator);
   const provider = new TezosProvider(options, executor);
   await new Promise(resolve => {
