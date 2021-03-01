@@ -57,13 +57,6 @@ export type WalletConfig = {
     defaultBalance: {
       type: number;
       hasDefault: true;
-      legacy: {
-        /**
-         * @deprecated Use wallet.defaultBalance instead
-         */
-        default_balance_tezos: number;
-      };
-    };
   };
   exclusiveGroups: [["totalAccounts"], ["seed"]];
 };
