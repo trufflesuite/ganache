@@ -33,12 +33,6 @@ export type WalletConfig = {
     totalAccounts: {
       type: number;
       hasDefault: true;
-      legacy: {
-        /**
-         * @deprecated Use wallet.totalAccounts instead
-         */
-        total_accounts: number;
-      };
     };
 
     /**
