@@ -1,6 +1,6 @@
 {
   "name": "ganache",
-  "version": "7.0.0-filecoin.2",
+  "version": "7.0.0-filecoin.3",
   "description": "A library and cli to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
@@ -81,6 +81,6 @@
     "secp256k1": "4.0.2"
   },
   "peerDependencies": {
-    "@ganache/filecoin": "0.1.0"
+    "@ganache/filecoin": "^0.1.0"
   }
 }
