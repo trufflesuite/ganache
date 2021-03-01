@@ -787,6 +787,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // Because we're not cryptographically valid, let's
     // register the deal with the newly created CID
+    // Reference implementation that ProposalCid is used: https://git.io/Jthv7
     this.dealsByCid.set(proposalCid.value, deal);
 
     // Lets keep deals by id for easy paginated lookup from Ganache UI

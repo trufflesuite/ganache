@@ -655,6 +655,22 @@ export default class FilecoinApi implements types.Api {
     return this.#blockchain.deals.map(deal => deal.serialize());
   }
 
+  // Reference implementation: https://git.io/JthfU
+  async "Filecoin.ClientGetDealInfo"(
+    serializedCid: SerializedRootCID
+  ): Promise<SerializedDealInfo> {
+    if (this.#blockchain.dealsByCid.has(serializedCid["/"])) {
+      // Verified that this is the correct lookup since dealsByCid
+      // uses the ProposalCid (ref impl: https://git.io/Jthv7) and the
+      // reference implementation of the lookup follows suit: https://git.io/Jthvp
+      //
+      const dealInfo = this.#blockchain.dealsByCid.get(serializedCid["/"])!;
+      return dealInfo.serialize();
+    } else {
+      throw new Error("Could not find a deal for the provided CID");
+    }
+  }
+
   "Filecoin.ClientGetDealUpdates"(rpcId?: string): PromiEvent<Subscription> {
     const subscriptionId = this.#getId();
     let promiEvent: PromiEvent<Subscription>;
