@@ -617,6 +617,10 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns the current client version.
    * @returns The current client version.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("web3_clientVersion"));
+   * ```
    */
   @assertArgLength(0)
   async web3_clientVersion() {
