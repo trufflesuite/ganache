@@ -733,7 +733,7 @@ export default class EthereumApi implements types.Api {
    * @returns `true` when listening, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("net_listening"));
+   * console.log(await provider.send("net_listening"))
    * ```
    */
   @assertArgLength(0)
