@@ -384,8 +384,8 @@ export default class EthereumApi implements types.Api {
    * will delete snapshots with ids 0x1, 0x2, etc... If no snapshot id is
    * passed it will revert to the latest snapshot.
    *
-   * @param snapshotId The snapshot id to revert.
-   * @returns `true` if a snapshot was reverted, otherwise `false`.
+   * @param snapshotId the snapshot id to revert
+   * @returns `true` if a snapshot was reverted, otherwise `false`
    *
    * @example
    * ```javascript
@@ -407,7 +407,7 @@ export default class EthereumApi implements types.Api {
    * // revert the snapshot
    * const isReverted = await provider.send("evm_revert", [snapshotId] );
    * assert(isReverted);
-   * console.log({isReverted: isReverted});
+   * console.log(isReverted);
    *
    * // ensure balance has reverted
    * const endingBalance = await provider.send("eth_getBalance", [from] );
