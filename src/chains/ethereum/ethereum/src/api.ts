@@ -329,7 +329,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const seconds = 10;
-   * const timeAdjustment = await provider.send("evm_increaseTime", [seconds] );
+   * const timeAdjustment = await provider.send("evm_increaseTime", [seconds]);
    * console.log(timeAdjustment);
    * ```
    */
