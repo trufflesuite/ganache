@@ -191,7 +191,7 @@ export default class Blockchain extends Emittery.Typed<
         this.tipsetManager.latest = latestTipset!; // initialize latest
       }
 
-      await this.ipfsServer.start();
+      await this.ipfsServer.start(this.#database.directory!);
 
       // Fire up the miner if necessary
       if (this.minerEnabled && this.options.miner.blockTime > 0) {

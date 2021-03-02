@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-import os from "os";
 
 import { IPFS, create as createIPFS } from "ipfs";
 import IPFSHttpServer from "ipfs-http-server";
@@ -29,16 +28,11 @@ class IPFSServer {
     this.httpServer = null;
   }
 
-  async start() {
-    // Uses a temp folder for now.
-    const folder: string = await new Promise((resolve, reject) => {
-      fs.mkdtemp(path.join(os.tmpdir(), "ganache-ipfs-"), (err, folder) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(folder);
-      });
-    });
+  async start(parentDirectory: string) {
+    const folder = path.join(parentDirectory, "ganache-ipfs");
+    if (!fs.existsSync(folder)) {
+      await fs.promises.mkdir(folder);
+    }
 
     this.node = await createIPFS({
       repo: folder,
