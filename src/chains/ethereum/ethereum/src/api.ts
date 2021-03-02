@@ -254,6 +254,24 @@ export default class EthereumApi implements types.Api {
     return "0x0";
   }
 
+  // TODO: get example to work and clean this up
+  /**
+   * Sets the given account's storage to the specified value at the specified position.
+   *
+   * @param address - address to update storage for
+   * @param position - position to store the value in
+   * @param storage - value to store
+   * @param blockNumber - integer block number, or the string "latest", "earliest"
+   *  or "pending", see the default block parameter
+   * @returns `true` if it worked
+   * @example
+   * ```javascript
+   * const storage = "0x3e8";
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_setStorageAt", [address, 0, storage, "latest"]);
+   * console.log(result);
+   * ```
+   */
   @assertArgLength(3, 4)
   async evm_setStorageAt(
     address: string,
