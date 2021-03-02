@@ -290,14 +290,14 @@ export default class EthereumApi implements types.Api {
    *
    * Warning: this will result in an invalid state tree.
    *
-   * @param address The account address to update.
-   * @param nonce The nonce value to be set.
-   * @returns `true` if it worked, otherwise `false`.
+   * @param address
+   * @param nonce
+   * @returns `true` if it worked
    * @example
    * ```javascript
    * const nonce = "0x3e8";
    * const [address] = await provider.request({ method: "eth_accounts", params: [] });
-   * const result = await provider.send("evm_setAccountNonce", [address, nonce] );
+   * const result = await provider.send("evm_setAccountNonce", [address, nonce]);
    * console.log(result);
    * ```
    */
