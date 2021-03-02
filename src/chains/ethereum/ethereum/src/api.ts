@@ -997,6 +997,14 @@ export default class EthereumApi implements types.Api {
    * @param {DATA, 32 Bytes} powHash - The header's pow-hash (256 bits)
    * @param {DATA, 32 Bytes} digest - The mix digest (256 bits)
    * @returns `true` if the provided solution is valid, otherwise `false`.
+   * @example
+   * ```javascript
+   * const nonce = "0xe0df4bd14ab39a71";
+   * const powHash = "0x0000000000000000000000000000000000000000000000000000000000000001";
+   * const digest = "0xb2222a74119abd18dbcb7d1f661c6578b7bbeb4984c50e66ed538347f606b971";
+   * const result = await provider.request({ method: "eth_submitWork", params: [nonce, powHash, digest] });
+   * console.log(result);
+   * ```
    */
   @assertArgLength(3)
   async eth_submitWork(nonce: Data, powHash: Data, digest: Data) {
