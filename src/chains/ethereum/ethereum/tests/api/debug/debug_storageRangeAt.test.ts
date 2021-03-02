@@ -43,6 +43,8 @@ describe("api", () => {
         const initialValue =
           "0000000000000000000000000000000000000000000000000000000000000019";
 
+        console.log(`0x${methods["setValue(uint256)"]}${initialValue}`);
+
         const transactionHash = await provider.send("eth_sendTransaction", [
           {
             from: accounts[0],
