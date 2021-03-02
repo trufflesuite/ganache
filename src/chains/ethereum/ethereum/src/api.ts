@@ -1408,9 +1408,16 @@ export default class EthereumApi implements types.Api {
    *
    * Note the address to sign with must be unlocked.
    *
-   * @param account address
-   * @param data message to sign
+   * @param account DATA, 20 bytes - address to sign with
+   * @param data DATA, N bytes - message to sign
    * @returns Signature
+   * @example
+   * ```javascript
+   * const [account] = await provider.request({ method: "eth_accounts", params: [] });
+   * const msg = "0x307866666666666666666666";
+   * const signature = await provider.request({ method: "eth_sign", params: [account, msg] });
+   * console.log(signature);
+   * ```
    */
   @assertArgLength(2)
   async eth_sign(address: string | Buffer, message: string | Buffer) {
