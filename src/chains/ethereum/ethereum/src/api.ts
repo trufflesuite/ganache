@@ -713,7 +713,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const data = "hello trufflers";
-   * const sha3 = await provider.send("web3_sha3", [data] );
+   * const sha3 = await provider.send("web3_sha3", [data]);
    * console.log(sha3);
    * ```
    */
