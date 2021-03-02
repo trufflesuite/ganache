@@ -1441,7 +1441,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    *
-   * @param address Address of the account that will sign the messages.
+   * @param address DATA, 20 bytes - Address of the account that will sign the messages.
    * @param typedData Typed structured data to be signed.
    * @returns Signature. As in `eth_sign`, it is a hex encoded 129 byte array
    * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
@@ -1450,6 +1450,49 @@ export default class EthereumApi implements types.Api {
    * 64...128 the `s` parameter, and the last byte the `v` parameter. Note
    * that the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
    * @EIP [712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)
+   * @example
+   * ```javascript
+   * const [account] = await provider.request({ method: "eth_accounts", params: [] });
+   * const typedData = {
+   *  types: {
+   *    EIP712Domain: [
+   *      { name: 'name', type: 'string' },
+   *      { name: 'version', type: 'string' },
+   *      { name: 'chainId', type: 'uint256' },
+   *      { name: 'verifyingContract', type: 'address' },
+   *    ],
+   *    Person: [
+   *      { name: 'name', type: 'string' },
+   *      { name: 'wallet', type: 'address' }
+   *    ],
+   *    Mail: [
+   *      { name: 'from', type: 'Person' },
+   *      { name: 'to', type: 'Person' },
+   *      { name: 'contents', type: 'string' }
+   *    ],
+   *  },
+   *  primaryType: 'Mail',
+   *  domain: {
+   *    name: 'Ether Mail',
+   *    version: '1',
+   *    chainId: 1,
+   *    verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+   *  },
+   *  message: {
+   *    from: {
+   *      name: 'Cow',
+   *      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+   *    },
+   *    to: {
+   *      name: 'Bob',
+   *      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+   *    },
+   *    contents: 'Hello, Bob!',
+   *  },
+   * };
+   * const signature = await provider.request({ method: "eth_signTypedData", params: [account, typedData] });
+   * console.log(signature);
+   * ```
    */
   @assertArgLength(2)
   async eth_signTypedData(address: string | Buffer, typedData: TypedData) {
