@@ -2736,11 +2736,10 @@ export default class EthereumApi implements types.Api {
 
   //#region rpc
   /**
-   * Returns object of RPC modules.
-   * @returns RPC modules.
+   * Returns oject of RPC modules
    * @example
    * ```javascript
-   * console.log(await provider.send("rpc_modules"));
+   * console.log(await provider.send("rpc_modules"))
    * ```
    */
   @assertArgLength(0)

@@ -8602,12 +8602,11 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns object of RPC modules.",
-										"returns": "RPC modules.",
+										"shortText": "Returns oject of RPC modules",
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"rpc_modules\"));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"rpc_modules\"))\n```\n"
 											}
 										]
 									},
@@ -8776,7 +8775,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2603,
+									"line": 2610,
 									"character": 19
 								}
 							]
@@ -8853,7 +8852,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2648,
+									"line": 2655,
 									"character": 22
 								}
 							]
@@ -8933,7 +8932,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2685,
+									"line": 2692,
 									"character": 28
 								}
 							]
@@ -9010,7 +9009,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2696,
+									"line": 2703,
 									"character": 23
 								}
 							]
@@ -9087,7 +9086,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2627,
+									"line": 2634,
 									"character": 23
 								}
 							]
@@ -9183,7 +9182,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2662,
+									"line": 2669,
 									"character": 21
 								}
 							]
@@ -9236,7 +9235,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2637,
+									"line": 2644,
 									"character": 20
 								}
 							]
@@ -9295,7 +9294,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2616,
+									"line": 2623,
 									"character": 23
 								}
 							]
@@ -9370,7 +9369,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2707,
+									"line": 2714,
 									"character": 16
 								}
 							]
@@ -9447,7 +9446,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2674,
+									"line": 2681,
 									"character": 27
 								}
 							]
@@ -9506,7 +9505,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2717,
+									"line": 2724,
 									"character": 19
 								}
 							]
