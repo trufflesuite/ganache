@@ -859,7 +859,7 @@ describe("api", () => {
         const signature2 = await secpAddress.signMessage(message2);
 
         const signedMessage2 = new SignedMessage({
-          message,
+          message: message2,
           signature: new Signature({
             type: SigType.SigTypeSecp256k1,
             data: signature2
