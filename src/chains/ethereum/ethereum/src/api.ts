@@ -583,6 +583,15 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Stop the CPU mining operation.
+   * @returns true
+   * @example
+   * ```javascript
+   * // check that eth_mining returns true
+   * console.log(await provider.send("eth_mining"));
+   * await provider.send("miner_stop")
+   * // check that eth_mining returns false
+   * console.log(await provider.send("eth_mining"));
+   * ```
    */
   @assertArgLength(0)
   async miner_stop() {
