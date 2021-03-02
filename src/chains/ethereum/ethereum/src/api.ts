@@ -595,7 +595,13 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Sets the etherbase, where mining rewards will go.
-   * @param address
+   * @param address the address where the mining rewards will go
+   * @returns true
+   * @example
+   * ```javascript
+   * const [account] = await provider.request({ method: "eth_accounts", params: [] });
+   * console.log(await provider.send("miner_setEtherbase", [account]));
+   * ```
    */
   @assertArgLength(1)
   async miner_setEtherbase(address: string) {
