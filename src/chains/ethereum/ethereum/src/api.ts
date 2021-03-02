@@ -393,13 +393,6 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const snapshotId = await provider.send("evm_snapshot");
-   * const isReverted = await provider.send("evm_revert", [snapshotId]);
-   * ```
-   *
-   * @example
-   * ```javascript
-   * const provider = ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
    * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
    *
@@ -418,6 +411,7 @@ export default class EthereumApi implements types.Api {
    * // revert the snapshot
    * const isReverted = await provider.send("evm_revert", [snapshotId]);
    * assert(isReverted);
+   * console.log(isReverted);
    *
    * const endingBalance = await provider.send("eth_getBalance", [from]);
    * assert.strictEqual(BigInt(endingBalance), startingBalance);
