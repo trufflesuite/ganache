@@ -778,16 +778,14 @@ export default class EthereumApi implements types.Api {
     return PROTOCOL_VERSION;
   }
 
+  // TODO: figure out object formatting for returns
   /**
-   * Returns an object containing data about the sync status or `false` when not syncing.
-   *
-   * @returns An object with sync status data or `false`, when not syncing.
-   *
-   * * `startingBlock`: {bigint} The block at which the import started (will
-   *     only be reset, after the sync reached his head).
-   * * `currentBlock`: {bigint} The current block, same as `eth_blockNumber`.
-   * * `highestBlock`: {bigint} The estimated highest block.
-   *
+   * Returns an object with data about the sync status or false.
+   * @returns An object with sync status data or false, when not syncing:
+   *   startingBlock: {bigint} - The block at which the import started (will
+   *    only be reset, after the sync reached his head)
+   *   currentBlock: {bigint} - The current block, same as eth_blockNumber
+   *   highestBlock: {bigint} - The estimated highest block
    * @example
    * ```javascript
    * const result = await provider.request({ method: "eth_syncing", params: [] });
