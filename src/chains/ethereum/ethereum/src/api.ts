@@ -711,6 +711,10 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns number of peers currently connected to the client.
    * @returns integer of the number of connected peers.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("net_peerCount"))
+   * ```
    */
   @assertArgLength(0)
   async net_peerCount() {
