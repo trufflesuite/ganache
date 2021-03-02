@@ -2428,7 +2428,7 @@ export default class EthereumApi implements types.Api {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
-  // TODO: example doesn't return correct value
+  // TODO: fix example it's not returning anything for storageRangeAt
   /**
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
