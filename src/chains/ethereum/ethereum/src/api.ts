@@ -1719,7 +1719,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    *
-   * @param address Address of the account that will sign the messages.
+   * @param address DATA, 20 bytes - Address of the account that will sign the messages.
    * @param typedData Typed structured data to be signed.
    * @returns Signature. As in `eth_sign`, it is a hex encoded 129 byte array
    * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
