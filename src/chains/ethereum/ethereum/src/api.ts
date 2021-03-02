@@ -1684,6 +1684,18 @@ export default class EthereumApi implements types.Api {
     }
   }
 
+  /**
+   * Cancel a subscription to a particular event. Returns a boolean indicating
+   * if the subscription was successfully cancelled.
+   *
+   * @param {String} subscriptionName
+   * @returns {QUANTITY} A subscription id.
+   * @example
+   * ```javascript
+   * const result = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * console.log(result);
+   * ```
+   */
   @assertArgLength(1)
   async eth_unsubscribe(subscriptionId: SubscriptionId) {
     const subscriptions = this.#subscriptions;
@@ -1840,6 +1852,12 @@ export default class EthereumApi implements types.Api {
    * @param filterId the filter id.
    * @returns `true` if the filter was successfully uninstalled, otherwise
    * `false`.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newFilter", params: [] });
+   * const result = await provider.request({ method: "eth_uninstallFilter", params: [filterId] });
+   * console.log(result);
+   * ```
    */
   @assertArgLength(1)
   async eth_uninstallFilter(filterId: string) {
