@@ -631,6 +631,12 @@ export default class EthereumApi implements types.Api {
    * Returns Keccak-256 (not the standardized SHA3-256) of the given data.
    * @param {data} the data to convert into a SHA3 hash.
    * @returns The SHA3 result of the given string.
+   * @example
+   * ```javascript
+   * const data = "hello trufflers";
+   * const sha3 = await provider.send("web3_sha3", [data]);
+   * console.log(sha3);
+   * ```
    */
   @assertArgLength(1)
   async web3_sha3(data: string) {
