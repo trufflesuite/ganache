@@ -1008,7 +1008,14 @@ export default class EthereumApi implements types.Api {
    *
    * @param {String} hashRate - a hexadecimal string representation (32 bytes) of the hash rate
    * @param {String} clientID - A random hexadecimal(32 bytes) ID identifying the client
-   * @returns `true` if submitting went through successfully and `false` otherwise.
+   * @returns `true` if submitting went through succesfully and `false` otherwise.
+   * @example
+   * ```javascript
+   * const hashRate = "0x0000000000000000000000000000000000000000000000000000000000000001";
+   * const clientId = "0xb2222a74119abd18dbcb7d1f661c6578b7bbeb4984c50e66ed538347f606b971";
+   * const result = await provider.request({ method: "eth_submitHashrate", params: [hashRate, clientId] });
+   * console.log(result);
+   * ```
    */
   @assertArgLength(2)
   async eth_submitHashrate(hashRate: string, clientID: string) {
