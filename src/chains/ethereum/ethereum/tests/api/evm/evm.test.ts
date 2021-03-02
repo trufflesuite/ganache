@@ -141,7 +141,6 @@ describe("api", () => {
         const initialCount = parseInt(
           await provider.send("eth_getTransactionCount", [account])
         );
-        console.log(newCount.toString());
         assert.strictEqual(initialCount, 0);
         const status = await provider.send("evm_setAccountNonce", [
           account,
