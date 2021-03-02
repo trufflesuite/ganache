@@ -585,14 +585,14 @@ export default class EthereumApi implements types.Api {
    * Resume the CPU mining process with the given number of threads.
    *
    * Note: `threads` is ignored.
-   * @param threads Number of threads to resume the CPU mining process with.
-   * @returns `true`.
+   * @param threads number of threads to resume the CPU mining process with
+   * @returns true
    * @example
    * ```javascript
-   * await provider.send("miner_stop");
+   * await provider.send("miner_stop")
    * // check that eth_mining returns false
    * console.log(await provider.send("eth_mining"));
-   * await provider.send("miner_start");
+   * await provider.send("miner_start")
    * // check that eth_mining returns true
    * console.log(await provider.send("eth_mining"));
    * ```
