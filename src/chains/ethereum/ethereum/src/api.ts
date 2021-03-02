@@ -715,6 +715,7 @@ export default class EthereumApi implements types.Api {
     return PROTOCOL_VERSION;
   }
 
+  // TODO: figure out object formatting for returns
   /**
    * Returns an object with data about the sync status or false.
    * @returns An object with sync status data or false, when not syncing:
@@ -722,6 +723,11 @@ export default class EthereumApi implements types.Api {
    *    only be reset, after the sync reached his head)
    *   currentBlock: {bigint} - The current block, same as eth_blockNumber
    *   highestBlock: {bigint} - The estimated highest block
+   * @example
+   * ```javascript
+   * const result = await provider.request({ method: "eth_syncing", params: [] });
+   * console.log(result);
+   * ```
    */
   @assertArgLength(0)
   async eth_syncing() {
