@@ -2246,6 +2246,10 @@ export default class EthereumApi implements types.Api {
    * Returns all the Ethereum account addresses of all keys that have been
    * added.
    * @returns the Ethereum account addresses of all keys that have been added.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("personal_listAccounts"));
+   * ```
    */
   @assertArgLength(0)
   async personal_listAccounts() {
