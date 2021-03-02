@@ -479,12 +479,22 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Unlocks any unknown account.
+   *
+   * Note: accounts known to the `personal` namespace and accounts returned by
+   * `eth_accounts` cannot be unlocked using this method.
+   *
    * @param address address the address of the account to unlock
    * @param duration (default: disabled) Duration in seconds how long the account
    * should remain unlocked for. Set to 0 to disable automatic locking.
    * @returns `true` if the account was unlocked successfully, `false` if the
    * account was already unlocked. Throws an error if the account could not be
    * unlocked.
+   * @example
+   * ```javascript
+   * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+   * const result = await provider.send("evm_unlockUnknownAccount", [address]);
+   * console.log(result)
+   * ```
    */
   async evm_unlockUnknownAccount(address: string, duration: number = 0) {
     return this.#wallet.unlockUnknownAccount(address.toLowerCase(), duration);
