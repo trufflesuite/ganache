@@ -1688,7 +1688,12 @@ export default class EthereumApi implements types.Api {
    *
    * @param account DATA, 20 bytes - address to sign with
    * @param data DATA, N bytes - message to sign
-   * @returns Signature
+   * @returns Signature - a hex encoded 129 byte array
+   * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
+   * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
+   *  in big-endian format. Bytes 0...64 contain the `r` parameter, bytes
+   * 64...128 the `s` parameter, and the last byte the `v` parameter. Note
+   * that the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
    * @example
    * ```javascript
    * const [account] = await provider.request({ method: "eth_accounts", params: [] });
