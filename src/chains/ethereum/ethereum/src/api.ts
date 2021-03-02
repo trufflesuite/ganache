@@ -505,7 +505,7 @@ export default class EthereumApi implements types.Api {
    * id cannot be used again. Consider creating a new snapshot after each
    * `evm_revert` if you need to revert to the same point multiple times.
    *
-   * @returns The hex-encoded identifier for this snapshot.
+   * @returns The hex-encoded identifier for this snapshot
    *
    * @example
    * ```javascript
