@@ -343,6 +343,12 @@ export default class EthereumApi implements types.Api {
    * Jump forward in time by the given amount of time, in seconds.
    * @param seconds Must be greater than or equal to `0`
    * @returns Returns the total time adjustment, in seconds.
+   * @example
+   * ```javascript
+   * const seconds = 10;
+   * const timeAdjustment = await provider.send("evm_increaseTime", [seconds]);
+   * console.log(timeAdjustment);
+   * ```
    */
   @assertArgLength(1)
   async evm_increaseTime(seconds: number | string) {
