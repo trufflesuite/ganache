@@ -1546,8 +1546,13 @@ export default class EthereumApi implements types.Api {
    * the subscription a JSON-RPC notification with event details and
    * subscription ID will be sent to a client.
    *
-   * @param subscriptionName
-   * @returns A subscription id.
+   * @param {String} subscriptionName
+   * @returns {QUANTITY} A subscription id.
+   * @example
+   * ```javascript
+   * const subscriptionId = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * console.log(subscriptionId);
+   * ```
    */
   eth_subscribe(subscriptionName: SubscriptionName): PromiEvent<Quantity>;
   /**
