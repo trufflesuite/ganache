@@ -1943,12 +1943,11 @@ export default class EthereumApi implements types.Api {
    * Cancel a subscription to a particular event. Returns a boolean indicating
    * if the subscription was successfully cancelled.
    *
-   * @param subscriptionId The ID of the subscription to unsubscribe to.
-   * @returns `true` if subscription was cancelled successfully, otherwise `false`.
+   * @param {String} subscriptionName
+   * @returns {QUANTITY} A subscription id.
    * @example
    * ```javascript
-   * const subscriptionId = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const result = await provider.request({ method: "eth_unsubscribe", params: [subscriptionId] });
+   * const result = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * console.log(result);
    * ```
    */
