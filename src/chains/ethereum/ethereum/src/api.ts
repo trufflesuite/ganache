@@ -720,7 +720,7 @@ export default class EthereumApi implements types.Api {
    * Quantity/Data encoded.
    * @example
    * ```javascript
-   * console.log(await provider.send("net_version"));
+   * console.log(await provider.send("net_version"))
    * ```
    */
   @assertArgLength(0)
