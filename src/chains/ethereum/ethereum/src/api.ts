@@ -2504,16 +2504,16 @@ export default class EthereumApi implements types.Api {
     return this.#wallet.addresses;
   }
 
-  // TODO: example doesn't return correct value
+  // TODO: example is not returning acct address
   /**
    * Generates a new account with private key. Returns the address of the new
    * account.
-   * @param passphrase The passphrase to encrypt the private key with.
-   * @returns The new account's address.
+   * @param passphrase
+   * @returns The new account's address
    * @example
    * ```javascript
-   * const passphrase = "passphrase";
-   * const address = await provider.send("personal_newAccount", [passphrase] );
+   * const passphrase = "passphrase"
+   * const address = await provider.send("personal_newAccount", passphrase])
    * console.log(address);
    * ```
    */
