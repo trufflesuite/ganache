@@ -433,9 +433,9 @@ export default class EthereumApi implements types.Api {
    * ```javascript
    * const currentDate = Date.now();
    * setTimeout(async () => {
-   *   const time = await provider.send("evm_setTime", [currentDate] );
+   *   const time = await provider.send("evm_setTime", [currentDate]);
    *   console.log(time); // should be about two seconds ago
-   * }, 1000);
+   * }, 1000)
    * ```
    */
   @assertArgLength(0, 1)
