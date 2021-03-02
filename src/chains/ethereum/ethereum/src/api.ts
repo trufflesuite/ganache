@@ -200,11 +200,6 @@ export default class EthereumApi implements types.Api {
   //#region bzz
   /**
    * Returns the kademlia table in a readable table format.
-   * @returns Returns the kademlia table in a readable table format.
-   * @example
-   * ```javascript
-   * console.log(await provider.send("bzz_hive"));
-   * ```
    */
   @assertArgLength(0)
   async bzz_hive() {
@@ -213,11 +208,6 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns details about the swarm node.
-   * @returns Returns details about the swarm node.
-   * @example
-   * ```javascript
-   * console.log(await provider.send("bzz_info"));
-   * ```
    */
   @assertArgLength(0)
   async bzz_info() {
