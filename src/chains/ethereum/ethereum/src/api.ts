@@ -466,11 +466,6 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const snapshotId = await provider.send("evm_snapshot");
-   * ```
-   *
-   * @example
-   * ```javascript
    * const provider = ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
    * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
