@@ -698,6 +698,10 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns `true` if client is actively listening for network connections.
    * @returns `true` when listening, otherwise `false`.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("net_listening"))
+   * ```
    */
   @assertArgLength(0)
   async net_listening() {
