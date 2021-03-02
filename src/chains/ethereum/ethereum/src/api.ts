@@ -632,11 +632,11 @@ export default class EthereumApi implements types.Api {
    * Sets the minimal accepted gas price when mining transactions.
    * Any transactions that are below this limit are excluded from the mining
    * process.
-   * @param number Minimal accepted gas price.
-   * @returns `true`.
+   * @param number minimal accepted gas price
+   * @returns true
    * @example
    * ```javascript
-   * console.log(await provider.send("miner_setGasPrice", [300000] ));
+   * console.log(await provider.send("miner_setGasPrice", [300000]));
    * ```
    */
   @assertArgLength(1)
