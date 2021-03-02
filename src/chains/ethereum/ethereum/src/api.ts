@@ -611,7 +611,12 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Set the extraData block header field a miner can include.
-   * @param extra
+   * @param extra the extraData to include
+   * @returns if successfully set returns true, otherwise returns an error
+   * @example
+   * ```javascript
+   * console.log(await provider.send("miner_setExtra", ["0x0"]));
+   * ```
    */
   @assertArgLength(1)
   async miner_setExtra(extra: string) {
