@@ -689,6 +689,10 @@ export default class EthereumApi implements types.Api {
    * Returns the current network id.
    * @returns The current network id. This value should NOT be JSON-RPC
    * Quantity/Data encoded.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("net_version"))
+   * ```
    */
   @assertArgLength(0)
   async net_version() {
