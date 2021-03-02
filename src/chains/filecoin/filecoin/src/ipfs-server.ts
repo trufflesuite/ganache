@@ -71,6 +71,11 @@ class IPFSServer {
       silent: true
     });
 
+    // remove all initial pins that IPFS pins automatically
+    for await (const pin of this.node.pin.ls({ type: "recursive" })) {
+      await this.node.pin.rm(pin.cid);
+    }
+
     this.httpServer = new IPFSHttpServer(this.node) as IPFSHttpServer;
 
     await this.httpServer.start();
