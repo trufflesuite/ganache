@@ -284,6 +284,84 @@ export default class EthereumApi implements types.Api {
     return "0x0";
   }
 
+  // TODO: get example to work and clean this up
+  /**
+   * Sets the given account's storage to the specified value at the specified position.
+   *
+   * @param address - address to update storage for
+   * @param position - position to store the value in
+   * @param storage - value to store
+   * @param blockNumber - integer block number, or the string "latest", "earliest"
+   *  or "pending", see the default block parameter
+   * @returns `true` if it worked
+   * @example
+   * ```javascript
+   * const storage = "0x3e8";
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_setStorageAt", [address, 0, storage, "latest"]);
+   * console.log(result);
+   * ```
+   */
+  @assertArgLength(3, 4)
+  async evm_setStorageAt(
+    address: string,
+    position: bigint | number,
+    storage: string,
+    blockNumber: string | Buffer | Tag = Tag.LATEST
+  ) {
+    const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
+
+    const trie = this.#blockchain.trie.copy();
+    const block = await blockProm;
+    if (!block) throw new Error("header not found");
+
+    const blockData = (rlpDecode(block) as unknown) as [
+      [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
+      Buffer[],
+      Buffer[]
+    ];
+    const headerData = blockData[0];
+    const blockStateRoot = headerData[3];
+    trie.root = blockStateRoot;
+
+    const addressDataPromise = this.#blockchain.getFromTrie(
+      trie,
+      Address.from(address).toBuffer()
+    );
+
+    const posBuff = Quantity.from(position).toBuffer();
+    const length = posBuff.length;
+    let paddedPosBuff: Buffer;
+    if (length < 32) {
+      // storage locations are 32 bytes wide, so we need to expand any value
+      // given to 32 bytes.
+      paddedPosBuff = Buffer.allocUnsafe(32).fill(0);
+      posBuff.copy(paddedPosBuff, 32 - length);
+    } else if (length === 32) {
+      paddedPosBuff = posBuff;
+    } else {
+      // if the position value we're passed is > 32 bytes, truncate it. This is
+      // what geth does.
+      paddedPosBuff = posBuff.slice(-32);
+    }
+
+    const addressData = await addressDataPromise;
+    // An address's stateRoot is stored in the 3rd rlp entry
+    this.#blockchain.trie.root = ((rlpDecode(addressData) as any) as [
+      Buffer /*nonce*/,
+      Buffer /*amount*/,
+      Buffer /*stateRoot*/,
+      Buffer /*codeHash*/
+    ])[2];
+
+    return new Promise((resolve, reject) => {
+      this.#blockchain.trie.put(paddedPosBuff, storage, err => {
+        if (err) return reject(err);
+        resolve(void 0);
+      });
+    });
+  }
+
   /**
    * Sets the given account's nonce to the specified value. Mines a new block
    * before returning.
