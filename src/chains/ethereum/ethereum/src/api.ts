@@ -212,11 +212,6 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * await provider.send("evm_mine", Date.now());
-   * ```
-   *
-   * @example
-   * ```javascript
    * console.log("start", await provider.send("eth_blockNumber"));
    * await provider.send("evm_mine", [{blocks: 5}]); // mines 5 blocks
    * console.log("end", await provider.send("eth_blockNumber"));
