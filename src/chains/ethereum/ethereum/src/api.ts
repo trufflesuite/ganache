@@ -184,11 +184,17 @@ export default class EthereumApi implements types.Api {
   //#endregion
 
   //#region bzz
+  /**
+   * Returns the kademlia table in a readable table format.
+   */
   @assertArgLength(0)
   async bzz_hive() {
     return [];
   }
 
+  /**
+   * Returns details about the swarm node.
+   */
   @assertArgLength(0)
   async bzz_info() {
     return [];
