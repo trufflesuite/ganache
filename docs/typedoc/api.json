@@ -8892,7 +8892,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getFilterChanges\", [\"0x0\"] ));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getFilterChanges\", [\"0x0\"]));\n```\n"
 											}
 										]
 									},
@@ -8932,7 +8932,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2768,
+									"line": 2772,
 									"character": 28
 								}
 							]
@@ -9009,7 +9009,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2779,
+									"line": 2783,
 									"character": 23
 								}
 							]
@@ -9369,7 +9369,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2790,
+									"line": 2794,
 									"character": 16
 								}
 							]
@@ -9505,7 +9505,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2800,
+									"line": 2804,
 									"character": 19
 								}
 							]
