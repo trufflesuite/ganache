@@ -194,7 +194,7 @@
     </div>
     <div class="content">
       
-    <p>Returns string from the local database</p>
+    <p>Returns string from the local database.</p>
 
     
   
@@ -284,7 +284,7 @@
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: True if the value was stored, otherwise false.</p>
+</code><p>: <code>true</code> if the value was stored, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -371,7 +371,7 @@
       <span class="hljs-function"> <span class="hljs-title">debug_storageRangeAt</span>(<span class="hljs-params">blockHash: <span class="hljs-built_in">string</span> | Buffer, transactionIndex: <span class="hljs-built_in">number</span>, contractAddress: <span class="hljs-built_in">string</span>, keyStart: <span class="hljs-built_in">string</span> | Buffer, maxResult: <span class="hljs-built_in">number</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2502" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2498" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -390,15 +390,15 @@ return storage data given a starting key and max number of entries to return.</p
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockHash: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: DATA, 32 Bytes - hash of a block</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionIndex: <span class="hljs-built_in">number</span></span></span>
+: Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionIndex: <span class="hljs-built_in">number</span></span></span>
 </code>
 </li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">contractAddress: <span class="hljs-built_in">string</span></span></span>
 </code>
-: DATA, 20 Bytes - address of the contract</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">keyStart: <span class="hljs-built_in">string</span> | Buffer</span></span>
+: Address of the contract.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">keyStart: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
 </li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">maxResult: <span class="hljs-built_in">number</span></span></span>
 </code>
-: integer of maximum number of storage entries to return</li>
+: Integer of maximum number of storage entries to return.</li>
         </ul>
       </div>
     
@@ -411,7 +411,7 @@ return storage data given a starting key and max number of entries to return.</p
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
-</code><p>: returns a storage object with the keys being keccak-256 hashes of the storage keys,
+</code><p>: Returns a storage object with the keys being keccak-256 hashes of the storage keys,
 and the values being the raw, unhashed key and value for that specific storage slot. Also
 returns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.</p>
 
@@ -464,7 +464,7 @@ returns a next key which is the keccak-256 hash of the next key in storage for c
       <span class="hljs-function"> <span class="hljs-title">debug_traceTransaction</span>(<span class="hljs-params">transactionHash: <span class="hljs-built_in">string</span>, options?: TransactionTraceOptions</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2452" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2448" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -493,9 +493,9 @@ The possible options are:</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionHash: <span class="hljs-built_in">string</span></span></span>
 </code>
-</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">options?: TransactionTraceOptions</span></span>
+: Hash of the transaction to trace.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">options?: TransactionTraceOptions</span></span>
 </code>
-</li>
+: See options in <code>source</code>.</li>
         </ul>
       </div>
     
@@ -508,7 +508,7 @@ The possible options are:</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
-</code><p>: returns comment</p>
+</code><p>: Returns the <code>gas</code>, <code>structLogs</code>, and <code>returnValue</code> for the traced transaction.</p>
 
         </div>
       </div>
@@ -550,7 +550,7 @@ The possible options are:</p>
       <span class="hljs-function"> <span class="hljs-title">eth_accounts</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>[]&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1341" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1338" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -597,7 +597,7 @@ The possible options are:</p>
       <span class="hljs-function"> <span class="hljs-title">eth_blockNumber</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1355" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1352" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -617,7 +617,7 @@ The possible options are:</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: integer of the current block number the client is on.</p>
+</code><p>: The current block number the client is on.</p>
 
         </div>
       </div>
@@ -644,7 +644,7 @@ The possible options are:</p>
       <span class="hljs-function"> <span class="hljs-title">eth_call</span>(<span class="hljs-params">transaction: <span class="hljs-built_in">any</span>, blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2350" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2346" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -662,16 +662,16 @@ The possible options are:</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transaction: <span class="hljs-built_in">any</span></span></span>
 </code>
-: the transaction call object
+: The transaction call object
  (from - DATA, 20 bytes (optional) - the address the transaction is sent from
  to - DATA, 20 bytes - the address the transaction is sent to
  gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction
  gasPrice - QUANTITY (optional) - integer of the price of gas in wei
  value - QUANTITY (optional) - integer of the value in wei
- data - DATA (optional) - hash of the method signature and the ABI encoded parameters)</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span></span>
+ data - DATA (optional) - hash of the method signature and the ABI encoded parameters).</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span></span>
 </code>
-: integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
- or &quot;pending&quot;, see the default block parameter
+: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+ or &quot;pending&quot;.
 </li>
         </ul>
       </div>
@@ -685,7 +685,7 @@ The possible options are:</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>&gt;</span>
-</code><p>: the return value of executed contract.</p>
+</code><p>: The return value of executed contract.</p>
 
         </div>
       </div>
@@ -725,7 +725,7 @@ The possible options are:</p>
       <span class="hljs-function"> <span class="hljs-title">eth_chainId</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1372" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1369" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -804,7 +804,7 @@ replay-protected transaction signing as introduced by EIP-155.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Address</span>&gt;</span>
-</code><p>: 20 bytes - the current coinbase address.</p>
+</code><p>: The current coinbase address.</p>
 
         </div>
       </div>
@@ -853,16 +853,16 @@ including EVM mechanics and node performance.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transaction: <span class="hljs-built_in">any</span></span></span>
 </code>
-: the transaction call object
+: The transaction call object
  (from - DATA, 20 bytes (optional) - the address the transaction is sent from
  to - DATA, 20 bytes - the address the transaction is sent to
  gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction
  gasPrice - QUANTITY (optional) - integer of the price of gas in wei
  value - QUANTITY (optional) - integer of the value in wei
- data - DATA (optional) - hash of the method signature and the ABI encoded parameters)</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag | <span class="hljs-built_in">string</span></span></span>
+ data - DATA (optional) - hash of the method signature and the ABI encoded parameters).</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag | <span class="hljs-built_in">string</span></span></span>
 </code>
-: integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
- or &quot;pending&quot;, see the default block parameter
+: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+ or &quot;pending&quot;.
 </li>
         </ul>
       </div>
@@ -876,7 +876,7 @@ including EVM mechanics and node performance.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: the amount of gas used.</p>
+</code><p>: The amount of gas used.</p>
 
         </div>
       </div>
@@ -904,7 +904,7 @@ including EVM mechanics and node performance.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_gasPrice</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1327" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1324" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -924,7 +924,7 @@ including EVM mechanics and node performance.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: integer of the current gas price in wei.</p>
+</code><p>: Integer of the current gas price in wei.</p>
 
         </div>
       </div>
@@ -951,7 +951,7 @@ including EVM mechanics and node performance.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_getBalance</span>(<span class="hljs-params">address: <span class="hljs-built_in">string</span>, blockNumber: Buffer | Tag</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1392" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1389" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -969,10 +969,10 @@ including EVM mechanics and node performance.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: DATA, 20 Bytes - address to check for balance.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
+: Address to check for balance.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
 </code>
-: integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
- or &quot;pending&quot;, see the default block parameter
+: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+ or &quot;pending&quot;.
 </li>
         </ul>
       </div>
@@ -986,7 +986,7 @@ including EVM mechanics and node performance.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: integer of the account balance in wei</p>
+</code><p>: Integer of the account balance in wei.</p>
 
         </div>
       </div>
@@ -1032,9 +1032,9 @@ including EVM mechanics and node performance.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hash: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: DATA, 32 Bytes - hash of a block</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactions: <span class="hljs-built_in">boolean</span></span></span>
+: Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactions: <span class="hljs-built_in">boolean</span></span></span>
 </code>
-: Boolean - If true it returns the full transaction objects, if false only the hashes of the
+: If <code>true</code> it returns the full transaction objects, if <code>false</code> only the hashes of the
 transactions.</li>
         </ul>
       </div>
@@ -1048,7 +1048,7 @@ transactions.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
-</code><p>: the block, <code>null</code> if the block doesn&#39;t exist.</p>
+</code><p>: The block, <code>null</code> if the block doesn&#39;t exist.</p>
 
         </div>
       </div>
@@ -1109,10 +1109,10 @@ transactions.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params"><span class="hljs-built_in">number</span>: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: QUANTITY|TAG - integer of a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the
+: Integer of a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the
 default block parameter.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactions: <span class="hljs-built_in">boolean</span></span></span>
 </code>
-: Boolean - If true it returns the full transaction objects, if false only the hashes of the
+: If <code>true</code> it returns the full transaction objects, if <code>false</code> only the hashes of the
 transactions.</li>
         </ul>
       </div>
@@ -1126,7 +1126,7 @@ transactions.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
-</code><p>: the block, <code>null</code> if the block doesn&#39;t exist</p>
+</code><p>: The block, <code>null</code> if the block doesn&#39;t exist.</p>
 
         </div>
       </div>
@@ -1171,7 +1171,7 @@ transactions.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hash: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: DATA, 32 Bytes - hash of a block.</li>
+: Hash of a block.</li>
         </ul>
       </div>
     
@@ -1184,7 +1184,7 @@ transactions.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: integer of the number of transactions in the block</p>
+</code><p>: Number of transactions in the block.</p>
 
         </div>
       </div>
@@ -1245,7 +1245,7 @@ transactions.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params"><span class="hljs-built_in">number</span>: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: QUANTITY|TAG - integer of a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the
+: Integer of a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the
 default block parameter.</li>
         </ul>
       </div>
@@ -1259,7 +1259,7 @@ default block parameter.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: integer of the number of transactions in the block</p>
+</code><p>: Integer of the number of transactions in the block.</p>
 
         </div>
       </div>
@@ -1286,7 +1286,7 @@ default block parameter.</li>
       <span class="hljs-function"> <span class="hljs-title">eth_getCode</span>(<span class="hljs-params">address: Buffer, blockNumber: <span class="hljs-built_in">string</span> | Tag</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1432" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1428" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -1304,10 +1304,9 @@ default block parameter.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: Buffer</span></span>
 </code>
-: 20 Bytes - address</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
+: Address.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
 </code>
-: integer block number, or the string &quot;latest&quot;, &quot;earliest&quot; or &quot;pending&quot;, see the default block
-parameter</li>
+: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot; or &quot;pending&quot;.</li>
         </ul>
       </div>
     
@@ -1320,7 +1319,7 @@ parameter</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">unknown</span>&gt;</span>
-</code><p>: the code from the given address.</p>
+</code><p>: The code from the given address.</p>
 
         </div>
       </div>
@@ -1367,7 +1366,7 @@ parameter</li>
     </div>
     <div class="content">
       
-    <p>Returns a list of available compilers</p>
+    <p>Returns a list of available compilers.</p>
 
     
   
@@ -1383,7 +1382,7 @@ parameter</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>[]&gt;</span>
-</code><p>: list of available compilers</p>
+</code><p>: List of available compilers.</p>
 
         </div>
       </div>
@@ -1410,7 +1409,7 @@ parameter</li>
       <span class="hljs-function"> <span class="hljs-title">eth_getFilterChanges</span>(<span class="hljs-params">filterId: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>[]&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2170" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2166" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -1430,7 +1429,7 @@ last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">filterId: <span class="hljs-built_in">string</span></span></span>
 </code>
-: the filter id.</li>
+: The filter id.</li>
         </ul>
       </div>
     
@@ -1443,7 +1442,7 @@ last poll.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>[]&gt;</span>
-</code><p>: an array of logs, block hashes, or transaction hashes, depending
+</code><p>: An array of logs, block hashes, or transaction hashes, depending
 on the filter type, which occurred since last poll.</p>
 
         </div>
@@ -1472,7 +1471,7 @@ on the filter type, which occurred since last poll.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_getFilterLogs</span>(<span class="hljs-params">filterId: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>[]&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2217" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2213" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -1490,7 +1489,7 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">filterId: <span class="hljs-built_in">string</span></span></span>
 </code>
-: the filter id.</li>
+: The filter id.</li>
         </ul>
       </div>
     
@@ -1531,7 +1530,7 @@ on the filter type, which occurred since last poll.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_getLogs</span>(<span class="hljs-params">filter: FilterArgs</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>[]&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2238" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2234" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -1549,7 +1548,7 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">filter: FilterArgs</span></span>
 </code>
-: The filter options</li>
+: The filter options.</li>
         </ul>
       </div>
     
@@ -1589,7 +1588,7 @@ on the filter type, which occurred since last poll.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_getStorageAt</span>(<span class="hljs-params">address: <span class="hljs-built_in">string</span>, position: bigint | <span class="hljs-built_in">number</span>, blockNumber: <span class="hljs-built_in">string</span> | Tag</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1504" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1500" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -1607,12 +1606,12 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: DATA, 20 Bytes - address of the storage.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">position: bigint | <span class="hljs-built_in">number</span></span></span>
+: Address of the storage.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">position: bigint | <span class="hljs-built_in">number</span></span></span>
 </code>
-: QUANTITY - integer of the position in the storage.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span></span>
+: Integer of the position in the storage.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span></span>
 </code>
-: integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
- or &quot;pending&quot;, see the default block parameter</li>
+: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+ or &quot;pending&quot;.</li>
         </ul>
       </div>
     
@@ -1625,7 +1624,7 @@ on the filter type, which occurred since last poll.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>&gt;</span>
-</code><p>: the value in storage at the requested position</p>
+</code><p>: The value in storage at the requested position.</p>
 
         </div>
       </div>
@@ -1686,9 +1685,9 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hash: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: DATA, 32 Bytes - hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: <span class="hljs-built_in">string</span></span></span>
+: Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: <span class="hljs-built_in">string</span></span></span>
 </code>
-: QUANTITY - integer of the transaction index position.</li>
+: Integer of the transaction index position.</li>
         </ul>
       </div>
     
@@ -1701,7 +1700,7 @@ on the filter type, which occurred since last poll.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
-</code><p>: the transaction object or null if no transaction was found</p>
+</code><p>: The transaction object or null if no transaction was found.</p>
 
         </div>
       </div>
@@ -1734,7 +1733,7 @@ on the filter type, which occurred since last poll.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_getTransactionByBlockNumberAndIndex</span>(<span class="hljs-params"><span class="hljs-built_in">number</span>: <span class="hljs-built_in">string</span> | Tag, index: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1151" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1150" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -1752,10 +1751,9 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params"><span class="hljs-built_in">number</span>: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: QUANTITY|TAG - a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the default
-block parameter.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: <span class="hljs-built_in">string</span></span></span>
+: A block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: <span class="hljs-built_in">string</span></span></span>
 </code>
-: QUANTITY - integer of the transaction index position.</li>
+: Integer of the transaction index position.</li>
         </ul>
       </div>
     
@@ -1768,7 +1766,7 @@ block parameter.</li><li><code class="language-typescript"><span class="hljs-fun
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
-</code><p>: the transaction object or null if no transaction was found</p>
+</code><p>: The transaction object or <code>null</code> if no transaction was found.</p>
 
         </div>
       </div>
@@ -1801,7 +1799,7 @@ block parameter.</li><li><code class="language-typescript"><span class="hljs-fun
       <span class="hljs-function"> <span class="hljs-title">eth_getTransactionByHash</span>(<span class="hljs-params">transactionHash: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1575" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1571" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -1819,7 +1817,7 @@ block parameter.</li><li><code class="language-typescript"><span class="hljs-fun
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionHash: <span class="hljs-built_in">string</span></span></span>
 </code>
-: 32 Bytes - hash of a transaction</li>
+: Hash of a transaction.</li>
         </ul>
       </div>
     
@@ -1832,7 +1830,7 @@ block parameter.</li><li><code class="language-typescript"><span class="hljs-fun
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
-</code><p>: the transaction object or null if no transaction was found</p>
+</code><p>: The transaction object or <code>null</code> if no transaction was found.</p>
 
         </div>
       </div>
@@ -1864,7 +1862,7 @@ block parameter.</li><li><code class="language-typescript"><span class="hljs-fun
       <span class="hljs-function"> <span class="hljs-title">eth_getTransactionCount</span>(<span class="hljs-params">address: <span class="hljs-built_in">string</span>, blockNumber: Buffer | Tag</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2305" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2301" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -1882,10 +1880,10 @@ block parameter.</li><li><code class="language-typescript"><span class="hljs-fun
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: DATA, 20 bytes - the address to get number of transactions sent from</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
+: The address to get number of transactions sent from</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
 </code>
-: integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
-or &quot;pending&quot;, see the default block parameter</li>
+: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+or &quot;pending&quot;.</li>
         </ul>
       </div>
     
@@ -1898,7 +1896,7 @@ or &quot;pending&quot;, see the default block parameter</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: integer of the number of transactions sent from this address.</p>
+</code><p>: Number of transactions sent from this address.</p>
 
         </div>
       </div>
@@ -1930,13 +1928,13 @@ or &quot;pending&quot;, see the default block parameter</li>
       <span class="hljs-function"> <span class="hljs-title">eth_getTransactionReceipt</span>(<span class="hljs-params">transactionHash: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1612" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1608" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
     <p>Returns the receipt of a transaction by transaction hash.</p>
 
-    <p>Note That the receipt is not available for pending transactions.</p>
+    <p>Note: The receipt is not available for pending transactions.</p>
 
   
     </div>
@@ -1949,7 +1947,7 @@ or &quot;pending&quot;, see the default block parameter</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionHash: <span class="hljs-built_in">string</span></span></span>
 </code>
-: 32 Bytes - hash of a transaction</li>
+: Hash of a transaction.</li>
         </ul>
       </div>
     
@@ -1994,7 +1992,7 @@ or &quot;pending&quot;, see the default block parameter</li>
       <span class="hljs-function"> <span class="hljs-title">eth_getUncleByBlockHashAndIndex</span>(<span class="hljs-params">hash: Data, index: Quantity</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1205" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1203" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2027,7 +2025,7 @@ or &quot;pending&quot;, see the default block parameter</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
-</code><p>: A block object or null when no block is found.</p>
+</code><p>: A block object or <code>null</code> when no block is found.</p>
 
         </div>
       </div>
@@ -2055,7 +2053,7 @@ or &quot;pending&quot;, see the default block parameter</li>
       <span class="hljs-function"> <span class="hljs-title">eth_getUncleByBlockNumberAndIndex</span>(<span class="hljs-params">blockNumber: Buffer | Tag, uncleIndex: Quantity</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1223" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1220" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2073,8 +2071,7 @@ or &quot;pending&quot;, see the default block parameter</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
 </code>
-: A block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the default block
-parameter.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">uncleIndex: Quantity</span></span>
+: A block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">uncleIndex: Quantity</span></span>
 </code>
 : The uncle&#39;s index position.</li>
         </ul>
@@ -2089,7 +2086,7 @@ parameter.</li><li><code class="language-typescript"><span class="hljs-function"
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
-</code><p>: A block object or null when no block is found.</p>
+</code><p>: A block object or <code>null</code> when no block is found.</p>
 
         </div>
       </div>
@@ -2116,7 +2113,7 @@ parameter.</li><li><code class="language-typescript"><span class="hljs-function"
       <span class="hljs-function"> <span class="hljs-title">eth_getUncleCountByBlockHash</span>(<span class="hljs-params">hash: <span class="hljs-built_in">string</span> | Buffer</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1171" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1170" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2175,7 +2172,7 @@ parameter.</li><li><code class="language-typescript"><span class="hljs-function"
       <span class="hljs-function"> <span class="hljs-title">eth_getUncleCountByBlockNumber</span>(<span class="hljs-params"><span class="hljs-built_in">number</span>: <span class="hljs-built_in">string</span> | Buffer</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1187" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1185" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2233,7 +2230,7 @@ parameter.</li><li><code class="language-typescript"><span class="hljs-function"
       <span class="hljs-function"> <span class="hljs-title">eth_getWork</span>(<span class="hljs-params">filterId: Quantity</span>): <span class="hljs-title">Promise</span>&lt;[] | [<span class="hljs-title">string</span>, <span class="hljs-title">string</span>, <span class="hljs-title">string</span>]&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1244" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1241" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2293,7 +2290,7 @@ parameter.</li><li><code class="language-typescript"><span class="hljs-function"
       <span class="hljs-function"> <span class="hljs-title">eth_hashrate</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1313" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1310" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2313,7 +2310,7 @@ parameter.</li><li><code class="language-typescript"><span class="hljs-function"
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: number of hashes per second.</p>
+</code><p>: Number of hashes per second.</p>
 
         </div>
       </div>
@@ -2340,7 +2337,7 @@ parameter.</li><li><code class="language-typescript"><span class="hljs-function"
       <span class="hljs-function"> <span class="hljs-title">eth_mining</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1298" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1295" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2387,7 +2384,7 @@ parameter.</li><li><code class="language-typescript"><span class="hljs-function"
       <span class="hljs-function"> <span class="hljs-title">eth_newBlockFilter</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2057" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2053" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2435,7 +2432,7 @@ if the state has changed, call <code>eth_getFilterChanges</code>.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_newFilter</span>(<span class="hljs-params">filter: RangeFilterArgs</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2133" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2129" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2472,7 +2469,7 @@ position (and anything after)”</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">filter: RangeFilterArgs</span></span>
 </code>
-: The filter options</li>
+: The filter options.</li>
         </ul>
       </div>
     
@@ -2512,7 +2509,7 @@ position (and anything after)”</li>
       <span class="hljs-function"> <span class="hljs-title">eth_newPendingTransactionFilter</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2084" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2080" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2607,7 +2604,7 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
       <span class="hljs-function"> <span class="hljs-title">eth_sendRawTransaction</span>(<span class="hljs-params">transaction: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1746" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1742" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2666,7 +2663,7 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
       <span class="hljs-function"> <span class="hljs-title">eth_sendTransaction</span>(<span class="hljs-params">transaction: RpcTransaction</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1665" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1661" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2684,7 +2681,7 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transaction: <span class="hljs-built_in">any</span></span></span>
 </code>
-: the transaction call object</li>
+: The transaction call object.</li>
         </ul>
       </div>
     
@@ -2697,7 +2694,7 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>&gt;</span>
-</code><p>: The transaction hash</p>
+</code><p>: The transaction hash.</p>
 
         </div>
       </div>
@@ -2727,7 +2724,7 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
       <span class="hljs-function"> <span class="hljs-title">eth_sign</span>(<span class="hljs-params">address: <span class="hljs-built_in">string</span> | Buffer, message: <span class="hljs-built_in">string</span> | Buffer</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1782" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1778" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2799,7 +2796,7 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
       <span class="hljs-function"> <span class="hljs-title">eth_signTypedData</span>(<span class="hljs-params">address: <span class="hljs-built_in">string</span> | Buffer, typedData: TypedData</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1852" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1848" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2816,7 +2813,7 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: DATA, 20 bytes - Address of the account that will sign the messages.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">typedData: TypedData</span></span>
+: Address of the account that will sign the messages.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">typedData: TypedData</span></span>
 </code>
 : Typed structured data to be signed.</li>
         </ul>
@@ -2912,7 +2909,7 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
       <span class="hljs-function"> <span class="hljs-title">eth_submitHashrate</span>(<span class="hljs-params">hashRate: <span class="hljs-built_in">string</span>, clientID: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1284" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1281" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -2930,9 +2927,9 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hashRate: <span class="hljs-built_in">string</span></span></span>
 </code>
-: a hexadecimal string representation (32 bytes) of the hash rate</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">clientID: <span class="hljs-built_in">string</span></span></span>
+: A hexadecimal string representation (32 bytes) of the hash rate.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">clientID: <span class="hljs-built_in">string</span></span></span>
 </code>
-: A random hexadecimal(32 bytes) ID identifying the client</li>
+: A random hexadecimal(32 bytes) ID identifying the client.</li>
         </ul>
       </div>
     
@@ -2974,11 +2971,11 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
       <span class="hljs-function"> <span class="hljs-title">eth_submitWork</span>(<span class="hljs-params">nonce: Data, powHash: Data, digest: Data</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1265" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1262" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
-    <p>Used for submitting a proof-of-work solution</p>
+    <p>Used for submitting a proof-of-work solution.</p>
 
     
   
@@ -2992,11 +2989,11 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">nonce: Data</span></span>
 </code>
-: The nonce found (64 bits)</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">powHash: Data</span></span>
+: The nonce found (64 bits).</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">powHash: Data</span></span>
 </code>
-: The header&#39;s pow-hash (256 bits)</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">digest: Data</span></span>
+: The header&#39;s pow-hash (256 bits).</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">digest: Data</span></span>
 </code>
-: The mix digest (256 bits)</li>
+: The mix digest (256 bits).</li>
         </ul>
       </div>
     
@@ -3039,7 +3036,7 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
       <span class="hljs-function"> <span class="hljs-title">eth_subscribe</span>(<span class="hljs-params">subscriptionName: SubscriptionName</span>): <span class="hljs-title">PromiEvent</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1896" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L1892" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -3059,7 +3056,7 @@ subscription ID will be sent to a client.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">subscriptionName: SubscriptionName</span></span>
 </code>
-</li>
+: Name for the subscription.</li>
         </ul>
       </div>
     
@@ -3103,7 +3100,7 @@ subscription ID will be sent to a client.</p>
     </div>
     <div class="content">
       
-    <p>Returns an object with data about the sync status or false.</p>
+    <p>Returns an object with data about the sync status or <code>false</code>.</p>
 
     
   
@@ -3119,7 +3116,7 @@ subscription ID will be sent to a client.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: An object with sync status data or false, when not syncing:
+</code><p>: An object with sync status data or <code>false</code>, when not syncing:
   startingBlock: {bigint} - The block at which the import started (will
    only be reset, after the sync reached his head)
   currentBlock: {bigint} - The current block, same as eth_blockNumber
@@ -3150,7 +3147,7 @@ subscription ID will be sent to a client.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_uninstallFilter</span>(<span class="hljs-params">filterId: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2196" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2192" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -3169,7 +3166,7 @@ no longer needed.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">filterId: <span class="hljs-built_in">string</span></span></span>
 </code>
-: the filter id.</li>
+: The filter id.</li>
         </ul>
       </div>
     
@@ -3211,7 +3208,7 @@ no longer needed.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_unsubscribe</span>(<span class="hljs-params">subscriptionId: SubscriptionId</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2033" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2029" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -3288,7 +3285,7 @@ if the subscription was successfully cancelled.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">seconds: <span class="hljs-built_in">number</span> | <span class="hljs-built_in">string</span></span></span>
 </code>
-: Must be greater than or equal to <code>0</code></li>
+: Number of seconds to jump forward in time by. Must be greater than or equal to <code>0</code>.</li>
         </ul>
       </div>
     
@@ -3349,7 +3346,7 @@ if the subscription was successfully cancelled.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: address the address of the account to lock</li>
+: The address of the account to lock.</li>
         </ul>
       </div>
     
@@ -3412,8 +3409,8 @@ Will mine an empty block if there are no available transactions to mine.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">timestamp?: <span class="hljs-built_in">number</span></span></span>
 </code>
-: the timestamp the block should be mined with.
-EXPERIMENTAL: Optionally, specify an <code>options</code> object with <code>timestamp</code>
+: The timestamp the block should be mined with.
+EXPERIEMENTAL: Optionally, specify an <code>options</code> object with <code>timestamp</code>
 and/or <code>blocks</code> fields. If <code>blocks</code> is given, it will mine exactly <code>blocks</code>
  number of blocks, regardless of any other blocks mined or reverted during it&#39;s
 operation. This behavior is subject to change!
@@ -3480,7 +3477,7 @@ passed it will revert to the latest snapshot.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">snapshotId: <span class="hljs-built_in">string</span> | <span class="hljs-built_in">number</span></span></span>
 </code>
-: the snapshot id to revert</li>
+: The snapshot id to revert.</li>
         </ul>
       </div>
     
@@ -3493,7 +3490,7 @@ passed it will revert to the latest snapshot.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: <code>true</code> if a snapshot was reverted, otherwise <code>false</code></p>
+</code><p>: <code>true</code> if a snapshot was reverted, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -3560,9 +3557,9 @@ before returning.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">nonce: <span class="hljs-built_in">string</span></span></span>
+: The account address to update.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">nonce: <span class="hljs-built_in">string</span></span></span>
 </code>
-</li>
+: The nonce value to be set.</li>
         </ul>
       </div>
     
@@ -3575,7 +3572,7 @@ before returning.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: <code>true</code> if it worked</p>
+</code><p>: <code>true</code> if it worked, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -3622,14 +3619,14 @@ before returning.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: address to update storage for</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">position: bigint | <span class="hljs-built_in">number</span></span></span>
+: Address to update storage for.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">position: bigint | <span class="hljs-built_in">number</span></span></span>
 </code>
-: position to store the value in</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">storage: <span class="hljs-built_in">string</span></span></span>
+: Position to store the value in.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">storage: <span class="hljs-built_in">string</span></span></span>
 </code>
-: value to store</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span></span>
+: Value to be stored.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span></span>
 </code>
-: integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
- or &quot;pending&quot;, see the default block parameter</li>
+: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+ or &quot;pending&quot;.</li>
         </ul>
       </div>
     
@@ -3642,7 +3639,7 @@ before returning.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">unknown</span>&gt;</span>
-</code><p>: <code>true</code> if it worked</p>
+</code><p>: <code>true</code> if the value was stored successfully, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -3759,7 +3756,7 @@ id cannot be used again. Consider creating a new snapshot after each
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: The hex-encoded identifier for this snapshot</p>
+</code><p>: The hex-encoded identifier for this snapshot.</p>
 
         </div>
       </div>
@@ -3826,9 +3823,9 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: address the address of the account to unlock</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">duration: <span class="hljs-built_in">number</span></span></span>
+: The address of the account to unlock.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">duration: <span class="hljs-built_in">number</span></span></span>
 </code>
-: (default: disabled) Duration in seconds how long the account
+: (Default: disabled) Duration in seconds how long the account
 should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </ul>
       </div>
@@ -3890,7 +3887,7 @@ unlocked.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: the address where the mining rewards will go</li>
+: The address where the mining rewards will go.</li>
         </ul>
       </div>
     
@@ -3903,7 +3900,7 @@ unlocked.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: true</p>
+</code><p>: <code>true</code>.</p>
 
         </div>
       </div>
@@ -3948,7 +3945,7 @@ unlocked.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">extra: <span class="hljs-built_in">string</span></span></span>
 </code>
-: the extraData to include</li>
+: The <code>extraData</code> to include.</li>
         </ul>
       </div>
     
@@ -3961,7 +3958,7 @@ unlocked.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: if successfully set returns true, otherwise returns an error</p>
+</code><p>: If successfully set returns <code>true</code>, otherwise returns an error.</p>
 
         </div>
       </div>
@@ -4007,7 +4004,7 @@ process.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params"><span class="hljs-built_in">number</span>: <span class="hljs-built_in">string</span></span></span>
 </code>
-: minimal accepted gas price</li>
+: Minimal accepted gas price.</li>
         </ul>
       </div>
     
@@ -4020,7 +4017,7 @@ process.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: true</p>
+</code><p>: <code>true</code>.</p>
 
         </div>
       </div>
@@ -4065,7 +4062,7 @@ process.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">threads: <span class="hljs-built_in">number</span></span></span>
 </code>
-: number of threads to resume the CPU mining process with</li>
+: Number of threads to resume the CPU mining process with.</li>
         </ul>
       </div>
     
@@ -4078,7 +4075,7 @@ process.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: true</p>
+</code><p>: <code>true</code>.</p>
 
         </div>
       </div>
@@ -4129,7 +4126,7 @@ process.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: true</p>
+</code><p>: <code>true</code>.</p>
 
         </div>
       </div>
@@ -4225,7 +4222,7 @@ process.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: integer of the number of connected peers.</p>
+</code><p>: Number of connected peers.</p>
 
         </div>
       </div>
@@ -4298,7 +4295,7 @@ Quantity/Data encoded.</p>
       <span class="hljs-function"> <span class="hljs-title">personal_importRawKey</span>(<span class="hljs-params">rawKey: <span class="hljs-built_in">string</span>, passphrase: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Address</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2584" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2580" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4361,7 +4358,7 @@ Quantity/Data encoded.</p>
       <span class="hljs-function"> <span class="hljs-title">personal_listAccounts</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>[]&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2531" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2527" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4382,7 +4379,7 @@ added.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>[]&gt;</span>
-</code><p>: the Ethereum account addresses of all keys that have been added.</p>
+</code><p>: The Ethereum account addresses of all keys that have been added.</p>
 
         </div>
       </div>
@@ -4408,7 +4405,7 @@ added.</p>
       <span class="hljs-function"> <span class="hljs-title">personal_lockAccount</span>(<span class="hljs-params">address: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2615" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2611" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4439,7 +4436,7 @@ added.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: Returns true if the account was locked, otherwise false.</p>
+</code><p>: Returns <code>true</code> if the account was locked, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -4467,7 +4464,7 @@ added.</p>
       <span class="hljs-function"> <span class="hljs-title">personal_newAccount</span>(<span class="hljs-params">passphrase: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Address</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2549" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2545" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4527,13 +4524,13 @@ account.</p>
       <span class="hljs-function"> <span class="hljs-title">personal_sendTransaction</span>(<span class="hljs-params">transaction: <span class="hljs-built_in">any</span>, passphrase: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">Data</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2682" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2678" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
     <p>Validate the given passphrase and submit transaction.</p>
 
-    <p>The transaction is the same argument as for eth_sendTransaction and
+    <p>The transaction is the same argument as for <code>eth_sendTransaction</code> and
 contains the from address. If the passphrase can be used to decrypt the
 private key belonging to tx.from the transaction is verified, signed and
 send onto the network. The account is not unlocked globally in the node
@@ -4597,7 +4594,7 @@ and cannot be used in other RPC calls.</p>
       <span class="hljs-function"> <span class="hljs-title">personal_unlockAccount</span>(<span class="hljs-params">address: <span class="hljs-built_in">string</span>, passphrase: <span class="hljs-built_in">string</span>, duration: <span class="hljs-built_in">number</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2645" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2641" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4606,7 +4603,7 @@ and cannot be used in other RPC calls.</p>
     <p>The unencrypted key will be held in memory until the unlock duration
 expires. The unlock duration defaults to 300 seconds. An explicit duration
 of zero seconds unlocks the key until geth exits.</p>
-<p>The account can be used with eth_sign and eth_sendTransaction while it is
+<p>The account can be used with <code>eth_sign</code> and <code>eth_sendTransaction</code> while it is
 unlocked.</p>
 
   
@@ -4620,7 +4617,7 @@ unlocked.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: 20 Bytes - The address of the account to unlock.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">passphrase: <span class="hljs-built_in">string</span></span></span>
+: The address of the account to unlock.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">passphrase: <span class="hljs-built_in">string</span></span></span>
 </code>
 : Passphrase to unlock the account.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">duration: <span class="hljs-built_in">number</span></span></span>
 </code>
@@ -4638,7 +4635,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: True if it worked. Throws an error or returns false if it did not.</p>
+</code><p>: <code>true</code> if it worked. Throws an error or returns <code>false</code> if it did not.</p>
 
         </div>
       </div>
@@ -4668,11 +4665,11 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">rpc_modules</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2722" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2719" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
-    <p>Returns oject of RPC modules</p>
+    <p>Returns object of RPC modules.</p>
 
     
   
@@ -4688,7 +4685,8 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
-</code>
+</code><p>: RPC modules.</p>
+
         </div>
       </div>
     
@@ -4713,7 +4711,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_addToGroup</span>(<span class="hljs-params">address: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2779" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2776" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4744,7 +4742,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: True if the identity was successfully added to the group, otherwise false.</p>
+</code><p>: <code>true</code> if the identity was successfully added to the group, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -4770,7 +4768,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_getFilterChanges</span>(<span class="hljs-params">id: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>[]&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2828" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2825" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4827,7 +4825,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_getMessages</span>(<span class="hljs-params">id: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2843" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2840" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4858,7 +4856,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: See: shh_getFilterChanges</p>
+</code><p>: See: <code>shh_getFilterChanges</code>.</p>
 
         </div>
       </div>
@@ -4884,7 +4882,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_hasIdentity</span>(<span class="hljs-params">address: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2754" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2751" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4915,7 +4913,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: Returns true if the client holds the privatekey for that identity, otherwise false.</p>
+</code><p>: Returns <code>true</code> if the client holds the private key for that identity, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -4941,7 +4939,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_newFilter</span>(<span class="hljs-params">to: <span class="hljs-built_in">string</span>, topics: <span class="hljs-built_in">any</span>[]</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2797" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2794" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4976,7 +4974,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: Returns true if the identity was successfully added to the group, otherwise false.</p>
+</code><p>: Returns <code>true</code> if the identity was successfully added to the group, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -5002,7 +5000,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_newGroup</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2764" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2761" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -5022,7 +5020,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>&gt;</span>
-</code><p>: the address of the new group.</p>
+</code><p>: The address of the new group.</p>
 
         </div>
       </div>
@@ -5037,7 +5035,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_newIdentity</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2739" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2736" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -5057,7 +5055,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>&gt;</span>
-</code><p>: The address of the new identiy.</p>
+</code><p>: The address of the new identity.</p>
 
         </div>
       </div>
@@ -5083,7 +5081,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_post</span>(<span class="hljs-params">postData: WhisperPostObject</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2858" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2855" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -5114,7 +5112,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: Returns true if the message was sent, otherwise false.</p>
+</code><p>: Returns <code>true</code> if the message was sent, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -5140,12 +5138,12 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_uninstallFilter</span>(<span class="hljs-params">id: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2813" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2810" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
     <p>Uninstalls a filter with given id. Should always be called when watch is no longer needed.
-Additionally Filters timeout when they aren&#39;t requested with shh_getFilterChanges for a period of time.</p>
+Additonally filters timeout when they aren&#39;t requested with <code>shh_getFilterChanges</code> for a period of time.</p>
 
     
   
@@ -5172,7 +5170,7 @@ Additionally Filters timeout when they aren&#39;t requested with shh_getFilterCh
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: True if the filter was successfully uninstalled, otherwise false.</p>
+</code><p>: <code>true</code> if the filter was successfully uninstalled, otherwise <code>false</code>.</p>
 
         </div>
       </div>
@@ -5198,7 +5196,7 @@ Additionally Filters timeout when they aren&#39;t requested with shh_getFilterCh
       <span class="hljs-function"> <span class="hljs-title">shh_version</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2872" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2869" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -5308,7 +5306,7 @@ Additionally Filters timeout when they aren&#39;t requested with shh_getFilterCh
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">data: <span class="hljs-built_in">string</span></span></span>
 </code>
-</li>
+: The data to convert into a SHA3 hash.</li>
         </ul>
       </div>
     

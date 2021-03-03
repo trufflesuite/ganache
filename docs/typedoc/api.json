@@ -716,7 +716,7 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns string from the local database",
+										"shortText": "Returns string from the local database.",
 										"returns": "The previously stored string.",
 										"tags": [
 											{
@@ -810,7 +810,7 @@
 									},
 									"comment": {
 										"shortText": "Stores binary data in the local database.",
-										"returns": "True if the value was stored, otherwise false.",
+										"returns": "`true` if the value was stored, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -1016,7 +1016,7 @@
 									},
 									"comment": {
 										"shortText": "Attempts to replay the transaction as it was executed on the network and\nreturn storage data given a starting key and max number of entries to return.",
-										"returns": "returns a storage object with the keys being keccak-256 hashes of the storage keys,\nand the values being the raw, unhashed key and value for that specific storage slot. Also\nreturns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.",
+										"returns": "Returns a storage object with the keys being keccak-256 hashes of the storage keys,\nand the values being the raw, unhashed key and value for that specific storage slot. Also\nreturns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.",
 										"tags": [
 											{
 												"tag": "example",
@@ -1034,7 +1034,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 32 Bytes - hash of a block"
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "union",
@@ -1072,7 +1072,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 20 Bytes - address of the contract"
+												"text": "Address of the contract."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -1110,7 +1110,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer of maximum number of storage entries to return"
+												"text": "Integer of maximum number of storage entries to return."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -1202,7 +1202,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2502,
+									"line": 2498,
 									"character": 28
 								}
 							]
@@ -1227,7 +1227,7 @@
 									"comment": {
 										"shortText": "Attempt to run the transaction in the exact same manner as it was executed\non the network. It will replay any transaction that may have been executed\nprior to this one before it will finally attempt to execute the transaction\nthat corresponds to the given hash.",
 										"text": "In addition to the hash of the transaction you may give it a secondary\noptional argument, which specifies the options for this specific call.\nThe possible options are:\n\n* `disableStorage`: {boolean} Setting this to `true` will disable storage capture (default = `false`).\n* `disableMemory`: {boolean} Setting this to `true` will disable memory capture (default = `false`).\n* `disableStack`: {boolean} Setting this to `true` will disable stack capture (default = `false`).\n",
-										"returns": "returns comment",
+										"returns": "Returns the `gas`, `structLogs`, and `returnValue` for the traced transaction.",
 										"tags": [
 											{
 												"tag": "example",
@@ -1244,7 +1244,9 @@
 											"flags": {
 												"isExported": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "Hash of the transaction to trace."
+											},
 											"type": {
 												"type": "intrinsic",
 												"name": "string"
@@ -1259,7 +1261,9 @@
 												"isExported": true,
 												"isOptional": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "See options in `source`."
+											},
 											"type": {
 												"type": "reference",
 												"name": "TransactionTraceOptions"
@@ -1584,7 +1588,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2452,
+									"line": 2448,
 									"character": 30
 								}
 							]
@@ -1646,7 +1650,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1341,
+									"line": 1338,
 									"character": 20
 								}
 							]
@@ -1682,7 +1686,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the number of the most recent block.",
-										"returns": "integer of the current block number the client is on.",
+										"returns": "The current block number the client is on.",
 										"tags": [
 											{
 												"tag": "example",
@@ -1705,7 +1709,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1355,
+									"line": 1352,
 									"character": 23
 								}
 							]
@@ -1742,7 +1746,7 @@
 									},
 									"comment": {
 										"shortText": "Executes a new message call immediately without creating a transaction on the block chain.",
-										"returns": "the return value of executed contract.",
+										"returns": "The return value of executed contract.",
 										"tags": [
 											{
 												"tag": "example",
@@ -1760,7 +1764,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the transaction call object\n (from - DATA, 20 bytes (optional) - the address the transaction is sent from\n to - DATA, 20 bytes - the address the transaction is sent to\n gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction\n gasPrice - QUANTITY (optional) - integer of the price of gas in wei\n value - QUANTITY (optional) - integer of the value in wei\n data - DATA (optional) - hash of the method signature and the ABI encoded parameters)"
+												"text": "The transaction call object\n (from - DATA, 20 bytes (optional) - the address the transaction is sent from\n to - DATA, 20 bytes - the address the transaction is sent to\n gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction\n gasPrice - QUANTITY (optional) - integer of the price of gas in wei\n value - QUANTITY (optional) - integer of the value in wei\n data - DATA (optional) - hash of the method signature and the ABI encoded parameters)."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -1776,7 +1780,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\"\n or \"pending\", see the default block parameter\n"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
 											},
 											"type": {
 												"type": "union",
@@ -1813,7 +1817,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2350,
+									"line": 2346,
 									"character": 16
 								}
 							]
@@ -1876,7 +1880,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1372,
+									"line": 1369,
 									"character": 19
 								}
 							]
@@ -1912,7 +1916,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the client coinbase address.",
-										"returns": "20 bytes - the current coinbase address.",
+										"returns": "The current coinbase address.",
 										"tags": [
 											{
 												"tag": "example",
@@ -1972,7 +1976,7 @@
 									},
 									"comment": {
 										"shortText": "Generates and returns an estimate of how much gas is necessary to allow the\ntransaction to complete. The transaction will not be added to the\nblockchain. Note that the estimate may be significantly more than the\namount of gas actually used by the transaction, for a variety of reasons\nincluding EVM mechanics and node performance.",
-										"returns": "the amount of gas used.\n",
+										"returns": "The amount of gas used.\n",
 										"tags": [
 											{
 												"tag": "example",
@@ -1990,7 +1994,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the transaction call object\n (from - DATA, 20 bytes (optional) - the address the transaction is sent from\n to - DATA, 20 bytes - the address the transaction is sent to\n gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction\n gasPrice - QUANTITY (optional) - integer of the price of gas in wei\n value - QUANTITY (optional) - integer of the value in wei\n data - DATA (optional) - hash of the method signature and the ABI encoded parameters)"
+												"text": "The transaction call object\n (from - DATA, 20 bytes (optional) - the address the transaction is sent from\n to - DATA, 20 bytes - the address the transaction is sent to\n gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction\n gasPrice - QUANTITY (optional) - integer of the price of gas in wei\n value - QUANTITY (optional) - integer of the value in wei\n data - DATA (optional) - hash of the method signature and the ABI encoded parameters)."
 											},
 											"type": {
 												"type": "reference",
@@ -2006,7 +2010,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\"\n or \"pending\", see the default block parameter\n"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
 											},
 											"type": {
 												"type": "union",
@@ -2075,7 +2079,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the current price per gas in wei.",
-										"returns": "integer of the current gas price in wei.",
+										"returns": "Integer of the current gas price in wei.",
 										"tags": [
 											{
 												"tag": "example",
@@ -2098,7 +2102,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1327,
+									"line": 1324,
 									"character": 20
 								}
 							]
@@ -2135,7 +2139,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the balance of the account of given address.",
-										"returns": "integer of the account balance in wei\n",
+										"returns": "Integer of the account balance in wei.\n",
 										"tags": [
 											{
 												"tag": "example",
@@ -2153,7 +2157,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 20 Bytes - address to check for balance."
+												"text": "Address to check for balance."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -2169,7 +2173,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\"\n or \"pending\", see the default block parameter\n"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
 											},
 											"type": {
 												"type": "union",
@@ -2202,7 +2206,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1392,
+									"line": 1389,
 									"character": 22
 								}
 							]
@@ -2239,7 +2243,7 @@
 									},
 									"comment": {
 										"shortText": "Returns information about a block by block hash.",
-										"returns": "the block, `null` if the block doesn't exist.\n",
+										"returns": "The block, `null` if the block doesn't exist.\n",
 										"tags": [
 											{
 												"tag": "example",
@@ -2257,7 +2261,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 32 Bytes - hash of a block"
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "union",
@@ -2282,7 +2286,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "Boolean - If true it returns the full transaction objects, if false only the hashes of the\ntransactions."
+												"text": "If `true` it returns the full transaction objects, if `false` only the hashes of the\ntransactions."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -2343,7 +2347,7 @@
 									},
 									"comment": {
 										"shortText": "Returns information about a block by block number.",
-										"returns": "the block, `null` if the block doesn't exist",
+										"returns": "The block, `null` if the block doesn't exist.",
 										"tags": [
 											{
 												"tag": "example",
@@ -2361,7 +2365,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY|TAG - integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
+												"text": "Integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
 											},
 											"type": {
 												"type": "union",
@@ -2386,7 +2390,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "Boolean - If true it returns the full transaction objects, if false only the hashes of the\ntransactions."
+												"text": "If `true` it returns the full transaction objects, if `false` only the hashes of the\ntransactions."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -2446,7 +2450,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the number of transactions in a block from a block matching the given block hash.",
-										"returns": "integer of the number of transactions in the block",
+										"returns": "Number of transactions in the block.",
 										"tags": [
 											{
 												"tag": "example",
@@ -2464,7 +2468,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 32 Bytes - hash of a block."
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "union",
@@ -2532,7 +2536,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the number of transactions in a block from a block matching the given block number.",
-										"returns": "integer of the number of transactions in the block",
+										"returns": "Integer of the number of transactions in the block.",
 										"tags": [
 											{
 												"tag": "example",
@@ -2550,7 +2554,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY|TAG - integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
+												"text": "Integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
 											},
 											"type": {
 												"type": "union",
@@ -2619,7 +2623,7 @@
 									},
 									"comment": {
 										"shortText": "Returns code at a given address.",
-										"returns": "the code from the given address.",
+										"returns": "The code from the given address.",
 										"tags": [
 											{
 												"tag": "example",
@@ -2637,7 +2641,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "20 Bytes - address"
+												"text": "Address."
 											},
 											"type": {
 												"type": "reference",
@@ -2653,7 +2657,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\" or \"pending\", see the default block\nparameter"
+												"text": "Integer block number, or the string \"latest\", \"earliest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -2686,7 +2690,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1432,
+									"line": 1428,
 									"character": 19
 								}
 							]
@@ -2721,8 +2725,8 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns a list of available compilers",
-										"returns": "list of available compilers",
+										"shortText": "Returns a list of available compilers.",
+										"returns": "List of available compilers.",
 										"tags": [
 											{
 												"tag": "example",
@@ -2784,7 +2788,7 @@
 									},
 									"comment": {
 										"shortText": "Polling method for a filter, which returns an array of logs, block hashes,\nor transaction hashes, depending on the filter type, which occurred since\nlast poll.",
-										"returns": "an array of logs, block hashes, or transaction hashes, depending\non the filter type, which occurred since last poll.",
+										"returns": "An array of logs, block hashes, or transaction hashes, depending\non the filter type, which occurred since last poll.",
 										"tags": [
 											{
 												"tag": "example",
@@ -2802,7 +2806,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the filter id."
+												"text": "The filter id."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -2828,7 +2832,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2170,
+									"line": 2166,
 									"character": 28
 								}
 							]
@@ -2882,7 +2886,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the filter id."
+												"text": "The filter id."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -3139,7 +3143,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2217,
+									"line": 2213,
 									"character": 25
 								}
 							]
@@ -3193,7 +3197,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The filter options"
+												"text": "The filter options."
 											},
 											"type": {
 												"type": "reference",
@@ -3450,7 +3454,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2238,
+									"line": 2234,
 									"character": 19
 								}
 							]
@@ -3487,7 +3491,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the value from a storage position at a given address.",
-										"returns": "the value in storage at the requested position",
+										"returns": "The value in storage at the requested position.",
 										"tags": [
 											{
 												"tag": "example",
@@ -3505,7 +3509,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 20 Bytes - address of the storage."
+												"text": "Address of the storage."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -3521,7 +3525,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY - integer of the position in the storage."
+												"text": "Integer of the position in the storage."
 											},
 											"type": {
 												"type": "union",
@@ -3546,7 +3550,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\"\n or \"pending\", see the default block parameter"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -3579,7 +3583,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1504,
+									"line": 1500,
 									"character": 24
 								}
 							]
@@ -3615,7 +3619,7 @@
 									},
 									"comment": {
 										"shortText": "Returns information about a transaction by block hash and transaction index position.",
-										"returns": "the transaction object or null if no transaction was found",
+										"returns": "The transaction object or null if no transaction was found.",
 										"tags": [
 											{
 												"tag": "example",
@@ -3633,7 +3637,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 32 Bytes - hash of a block."
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "union",
@@ -3658,7 +3662,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY - integer of the transaction index position."
+												"text": "Integer of the transaction index position."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -3717,7 +3721,7 @@
 									},
 									"comment": {
 										"shortText": "Returns information about a transaction by block number and transaction index position.",
-										"returns": "the transaction object or null if no transaction was found",
+										"returns": "The transaction object or `null` if no transaction was found.",
 										"tags": [
 											{
 												"tag": "example",
@@ -3735,7 +3739,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY|TAG - a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the default\nblock parameter."
+												"text": "A block number, or the string \"earliest\", \"latest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -3760,7 +3764,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY - integer of the transaction index position."
+												"text": "Integer of the transaction index position."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -3783,7 +3787,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1151,
+									"line": 1150,
 									"character": 47
 								}
 							]
@@ -3819,7 +3823,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the information about a transaction requested by transaction hash.",
-										"returns": "the transaction object or null if no transaction was found",
+										"returns": "The transaction object or `null` if no transaction was found.",
 										"tags": [
 											{
 												"tag": "example",
@@ -3837,7 +3841,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "32 Bytes - hash of a transaction"
+												"text": "Hash of a transaction."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -4172,7 +4176,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1575,
+									"line": 1571,
 									"character": 32
 								}
 							]
@@ -4209,7 +4213,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the number of transactions sent from an address.",
-										"returns": "integer of the number of transactions sent from this address.",
+										"returns": "Number of transactions sent from this address.",
 										"tags": [
 											{
 												"tag": "example",
@@ -4227,7 +4231,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 20 bytes - the address to get number of transactions sent from"
+												"text": "The address to get number of transactions sent from"
 											},
 											"type": {
 												"type": "intrinsic",
@@ -4243,7 +4247,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\"\nor \"pending\", see the default block parameter"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -4276,7 +4280,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2305,
+									"line": 2301,
 									"character": 31
 								}
 							]
@@ -4312,7 +4316,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the receipt of a transaction by transaction hash.",
-										"text": "Note That the receipt is not available for pending transactions.\n",
+										"text": "Note: The receipt is not available for pending transactions.\n",
 										"returns": "Returns the receipt of a transaction by transaction hash.",
 										"tags": [
 											{
@@ -4331,7 +4335,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "32 Bytes - hash of a transaction"
+												"text": "Hash of a transaction."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -4865,7 +4869,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1612,
+									"line": 1608,
 									"character": 33
 								}
 							]
@@ -4901,7 +4905,7 @@
 									},
 									"comment": {
 										"shortText": "Returns information about a uncle of a block by hash and uncle index position.",
-										"returns": "A block object or null when no block is found.",
+										"returns": "A block object or `null` when no block is found.",
 										"tags": [
 											{
 												"tag": "example",
@@ -4958,7 +4962,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1205,
+									"line": 1203,
 									"character": 39
 								}
 							]
@@ -4994,7 +4998,7 @@
 									},
 									"comment": {
 										"shortText": "Returns information about a uncle of a block by hash and uncle index position.",
-										"returns": "A block object or null when no block is found.",
+										"returns": "A block object or `null` when no block is found.",
 										"tags": [
 											{
 												"tag": "example",
@@ -5012,7 +5016,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "A block number, or the string \"earliest\", \"latest\" or \"pending\", as in the default block\nparameter."
+												"text": "A block number, or the string \"earliest\", \"latest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -5060,7 +5064,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1223,
+									"line": 1220,
 									"character": 41
 								}
 							]
@@ -5146,7 +5150,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1171,
+									"line": 1170,
 									"character": 36
 								}
 							]
@@ -5229,7 +5233,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1187,
+									"line": 1185,
 									"character": 38
 								}
 							]
@@ -5327,7 +5331,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1244,
+									"line": 1241,
 									"character": 19
 								}
 							]
@@ -5363,7 +5367,7 @@
 									},
 									"comment": {
 										"shortText": "Returns the number of hashes per second that the node is mining with.",
-										"returns": "number of hashes per second.",
+										"returns": "Number of hashes per second.",
 										"tags": [
 											{
 												"tag": "example",
@@ -5386,7 +5390,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1313,
+									"line": 1310,
 									"character": 20
 								}
 							]
@@ -5445,7 +5449,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1298,
+									"line": 1295,
 									"character": 18
 								}
 							]
@@ -5504,7 +5508,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2057,
+									"line": 2053,
 									"character": 26
 								}
 							]
@@ -5560,7 +5564,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The filter options"
+												"text": "The filter options."
 											},
 											"type": {
 												"type": "reference",
@@ -5584,7 +5588,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2133,
+									"line": 2129,
 									"character": 21
 								}
 							]
@@ -5643,7 +5647,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2084,
+									"line": 2080,
 									"character": 39
 								}
 							]
@@ -5779,7 +5783,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1746,
+									"line": 1742,
 									"character": 30
 								}
 							]
@@ -5815,7 +5819,7 @@
 									},
 									"comment": {
 										"shortText": "Creates new message call transaction or a contract creation, if the data field contains code.",
-										"returns": "The transaction hash",
+										"returns": "The transaction hash.",
 										"tags": [
 											{
 												"tag": "example",
@@ -5833,7 +5837,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the transaction call object"
+												"text": "The transaction call object."
 											},
 											"type": {
 												"type": "reference",
@@ -5856,7 +5860,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1665,
+									"line": 1661,
 									"character": 27
 								}
 							]
@@ -5962,7 +5966,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1782,
+									"line": 1778,
 									"character": 16
 								}
 							]
@@ -6019,7 +6023,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 20 bytes - Address of the account that will sign the messages."
+												"text": "Address of the account that will sign the messages."
 											},
 											"type": {
 												"type": "union",
@@ -6068,7 +6072,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1852,
+									"line": 1848,
 									"character": 25
 								}
 							]
@@ -6122,7 +6126,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "a hexadecimal string representation (32 bytes) of the hash rate"
+												"text": "A hexadecimal string representation (32 bytes) of the hash rate."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -6138,7 +6142,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "A random hexadecimal(32 bytes) ID identifying the client"
+												"text": "A random hexadecimal(32 bytes) ID identifying the client."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -6161,7 +6165,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1284,
+									"line": 1281,
 									"character": 26
 								}
 							]
@@ -6196,7 +6200,7 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Used for submitting a proof-of-work solution",
+										"shortText": "Used for submitting a proof-of-work solution.",
 										"returns": "`true` if the provided solution is valid, otherwise `false`.",
 										"tags": [
 											{
@@ -6215,7 +6219,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The nonce found (64 bits)"
+												"text": "The nonce found (64 bits)."
 											},
 											"type": {
 												"type": "reference",
@@ -6231,7 +6235,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The header's pow-hash (256 bits)"
+												"text": "The header's pow-hash (256 bits)."
 											},
 											"type": {
 												"type": "reference",
@@ -6247,7 +6251,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The mix digest (256 bits)"
+												"text": "The mix digest (256 bits)."
 											},
 											"type": {
 												"type": "reference",
@@ -6270,7 +6274,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1265,
+									"line": 1262,
 									"character": 22
 								}
 							]
@@ -6318,7 +6322,9 @@
 											"flags": {
 												"isExported": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "Name for the subscription."
+											},
 											"type": {
 												"type": "reference",
 												"name": "SubscriptionName"
@@ -6401,17 +6407,17 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1896,
+									"line": 1892,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1909,
+									"line": 1905,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1914,
+									"line": 1910,
 									"character": 15
 								}
 							]
@@ -6446,8 +6452,8 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns an object with data about the sync status or false.",
-										"returns": "An object with sync status data or false, when not syncing:\n  startingBlock: {bigint} - The block at which the import started (will\n   only be reset, after the sync reached his head)\n  currentBlock: {bigint} - The current block, same as eth_blockNumber\n  highestBlock: {bigint} - The estimated highest block",
+										"shortText": "Returns an object with data about the sync status or `false`.",
+										"returns": "An object with sync status data or `false`, when not syncing:\n  startingBlock: {bigint} - The block at which the import started (will\n   only be reset, after the sync reached his head)\n  currentBlock: {bigint} - The current block, same as eth_blockNumber\n  highestBlock: {bigint} - The estimated highest block",
 										"tags": [
 											{
 												"tag": "example",
@@ -6524,7 +6530,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the filter id."
+												"text": "The filter id."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -6547,7 +6553,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2196,
+									"line": 2192,
 									"character": 27
 								}
 							]
@@ -6621,7 +6627,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2033,
+									"line": 2029,
 									"character": 23
 								}
 							]
@@ -6675,7 +6681,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "Must be greater than or equal to `0`"
+												"text": "Number of seconds to jump forward in time by. Must be greater than or equal to `0`."
 											},
 											"type": {
 												"type": "union",
@@ -6750,7 +6756,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "address the address of the account to lock"
+												"text": "The address of the account to lock."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -6830,7 +6836,7 @@
 												"isOptional": true
 											},
 											"comment": {
-												"text": "the timestamp the block should be mined with.\nEXPERIMENTAL: Optionally, specify an `options` object with `timestamp`\nand/or `blocks` fields. If `blocks` is given, it will mine exactly `blocks`\n number of blocks, regardless of any other blocks mined or reverted during it's\noperation. This behavior is subject to change!\n"
+												"text": "The timestamp the block should be mined with.\nEXPERIEMENTAL: Optionally, specify an `options` object with `timestamp`\nand/or `blocks` fields. If `blocks` is given, it will mine exactly `blocks`\n number of blocks, regardless of any other blocks mined or reverted during it's\noperation. This behavior is subject to change!\n"
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7003,7 +7009,7 @@
 									},
 									"comment": {
 										"shortText": "Revert the state of the blockchain to a previous snapshot. Takes a single\nparameter, which is the snapshot id to revert to. This deletes the given\nsnapshot, as well as any snapshots taken after (Ex: reverting to id 0x1\nwill delete snapshots with ids 0x1, 0x2, etc... If no snapshot id is\npassed it will revert to the latest snapshot.",
-										"returns": "`true` if a snapshot was reverted, otherwise `false`\n",
+										"returns": "`true` if a snapshot was reverted, otherwise `false`.\n",
 										"tags": [
 											{
 												"tag": "example",
@@ -7021,7 +7027,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the snapshot id to revert"
+												"text": "The snapshot id to revert."
 											},
 											"type": {
 												"type": "union",
@@ -7090,7 +7096,7 @@
 									"comment": {
 										"shortText": "Sets the given account's nonce to the specified value. Mines a new block\nbefore returning.",
 										"text": "Warning: this will result in an invalid state tree.\n",
-										"returns": "`true` if it worked",
+										"returns": "`true` if it worked, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -7107,7 +7113,9 @@
 											"flags": {
 												"isExported": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "The account address to update."
+											},
 											"type": {
 												"type": "intrinsic",
 												"name": "string"
@@ -7121,7 +7129,9 @@
 											"flags": {
 												"isExported": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "The nonce value to be set."
+											},
 											"type": {
 												"type": "intrinsic",
 												"name": "string"
@@ -7180,7 +7190,7 @@
 									},
 									"comment": {
 										"shortText": "Sets the given account's storage to the specified value at the specified position.",
-										"returns": "`true` if it worked",
+										"returns": "`true` if the value was stored successfully, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -7198,7 +7208,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "address to update storage for"
+												"text": "Address to update storage for."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7214,7 +7224,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "position to store the value in"
+												"text": "Position to store the value in."
 											},
 											"type": {
 												"type": "union",
@@ -7239,7 +7249,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "value to store"
+												"text": "Value to be stored."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7255,7 +7265,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\"\n or \"pending\", see the default block parameter"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -7401,7 +7411,7 @@
 									},
 									"comment": {
 										"shortText": "Snapshot the state of the blockchain at the current block. Takes no\nparameters. Returns the id of the snapshot that was created. A snapshot can\nonly be reverted once. After a successful `evm_revert`, the same snapshot\nid cannot be used again. Consider creating a new snapshot after each\n`evm_revert` if you need to revert to the same point multiple times.",
-										"returns": "The hex-encoded identifier for this snapshot\n",
+										"returns": "The hex-encoded identifier for this snapshot.\n",
 										"tags": [
 											{
 												"tag": "example",
@@ -7467,7 +7477,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "address the address of the account to unlock"
+												"text": "The address of the account to unlock."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7483,7 +7493,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "(default: disabled) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
+												"text": "(Default: disabled) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7543,7 +7553,7 @@
 									},
 									"comment": {
 										"shortText": "Sets the etherbase, where mining rewards will go.",
-										"returns": "true",
+										"returns": "`true`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -7561,7 +7571,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the address where the mining rewards will go"
+												"text": "The address where the mining rewards will go."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7620,7 +7630,7 @@
 									},
 									"comment": {
 										"shortText": "Set the extraData block header field a miner can include.",
-										"returns": "if successfully set returns true, otherwise returns an error",
+										"returns": "If successfully set returns `true`, otherwise returns an error.",
 										"tags": [
 											{
 												"tag": "example",
@@ -7638,7 +7648,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the extraData to include"
+												"text": "The `extraData` to include."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7697,7 +7707,7 @@
 									},
 									"comment": {
 										"shortText": "Sets the minimal accepted gas price when mining transactions.\nAny transactions that are below this limit are excluded from the mining\nprocess.",
-										"returns": "true",
+										"returns": "`true`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -7715,7 +7725,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "minimal accepted gas price"
+												"text": "Minimal accepted gas price."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7776,7 +7786,7 @@
 									"comment": {
 										"shortText": "Resume the CPU mining process with the given number of threads.",
 										"text": "Note: `threads` is ignored.",
-										"returns": "true",
+										"returns": "`true`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -7794,7 +7804,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "number of threads to resume the CPU mining process with"
+												"text": "Number of threads to resume the CPU mining process with."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7854,7 +7864,7 @@
 									},
 									"comment": {
 										"shortText": "Stop the CPU mining operation.",
-										"returns": "true",
+										"returns": "`true`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -7972,7 +7982,7 @@
 									},
 									"comment": {
 										"shortText": "Returns number of peers currently connected to the client.",
-										"returns": "integer of the number of connected peers.",
+										"returns": "Number of connected peers.",
 										"tags": [
 											{
 												"tag": "example",
@@ -8147,7 +8157,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2584,
+									"line": 2580,
 									"character": 29
 								}
 							]
@@ -8183,7 +8193,7 @@
 									},
 									"comment": {
 										"shortText": "Returns all the Ethereum account addresses of all keys that have been\nadded.",
-										"returns": "the Ethereum account addresses of all keys that have been added.",
+										"returns": "The Ethereum account addresses of all keys that have been added.",
 										"tags": [
 											{
 												"tag": "example",
@@ -8209,7 +8219,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2531,
+									"line": 2527,
 									"character": 29
 								}
 							]
@@ -8245,7 +8255,7 @@
 									},
 									"comment": {
 										"shortText": "Locks the account. The account can no longer be used to send transactions.",
-										"returns": "Returns true if the account was locked, otherwise false.",
+										"returns": "Returns `true` if the account was locked, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -8286,7 +8296,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2615,
+									"line": 2611,
 									"character": 28
 								}
 							]
@@ -8363,7 +8373,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2549,
+									"line": 2545,
 									"character": 27
 								}
 							]
@@ -8399,7 +8409,7 @@
 									},
 									"comment": {
 										"shortText": "Validate the given passphrase and submit transaction.",
-										"text": "The transaction is the same argument as for eth_sendTransaction and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belogging to tx.from the transaction is verified, signed and\nsend onto the network. The account is not unlocked globally in the node\nand cannot be used in other RPC calls.\n",
+										"text": "The transaction is the same argument as for `eth_sendTransaction` and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belogging to tx.from the transaction is verified, signed and\nsend onto the network. The account is not unlocked globally in the node\nand cannot be used in other RPC calls.\n",
 										"returns": "The transaction hash or if unsuccessful an error.",
 										"tags": [
 											{
@@ -8454,7 +8464,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2682,
+									"line": 2678,
 									"character": 32
 								}
 							]
@@ -8491,8 +8501,8 @@
 									},
 									"comment": {
 										"shortText": "Unlocks the account for use.",
-										"text": "The unencrypted key will be held in memory until the unlock duration\nexpires. The unlock duration defaults to 300 seconds. An explicit duration\nof zero seconds unlocks the key until geth exits.\n\nThe account can be used with eth_sign and eth_sendTransaction while it is\nunlocked.",
-										"returns": "True if it worked. Throws an error or returns false if it did not.",
+										"text": "The unencrypted key will be held in memory until the unlock duration\nexpires. The unlock duration defaults to 300 seconds. An explicit duration\nof zero seconds unlocks the key until geth exits.\n\nThe account can be used with `eth_sign` and `eth_sendTransaction` while it is\nunlocked.",
+										"returns": "`true` if it worked. Throws an error or returns `false` if it did not.",
 										"tags": [
 											{
 												"tag": "example",
@@ -8510,7 +8520,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "20 Bytes - The address of the account to unlock."
+												"text": "The address of the account to unlock."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -8566,7 +8576,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2645,
+									"line": 2641,
 									"character": 30
 								}
 							]
@@ -8601,7 +8611,8 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns oject of RPC modules",
+										"shortText": "Returns object of RPC modules.",
+										"returns": "RPC modules.",
 										"tags": [
 											{
 												"tag": "example",
@@ -8774,7 +8785,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2722,
+									"line": 2719,
 									"character": 19
 								}
 							]
@@ -8810,7 +8821,7 @@
 									},
 									"comment": {
 										"shortText": "Adds a whisper identity to the group.",
-										"returns": "True if the identity was successfully added to the group, otherwise false.",
+										"returns": "`true` if the identity was successfully added to the group, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -8848,7 +8859,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2779,
+									"line": 2776,
 									"character": 22
 								}
 							]
@@ -8928,7 +8939,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2828,
+									"line": 2825,
 									"character": 28
 								}
 							]
@@ -8964,7 +8975,7 @@
 									},
 									"comment": {
 										"shortText": "Get all messages matching a filter. Unlike shh_getFilterChanges this returns all messages.",
-										"returns": "See: shh_getFilterChanges",
+										"returns": "See: `shh_getFilterChanges`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -9005,7 +9016,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2843,
+									"line": 2840,
 									"character": 23
 								}
 							]
@@ -9041,7 +9052,7 @@
 									},
 									"comment": {
 										"shortText": "Checks if the client hold the private keys for a given identity.",
-										"returns": "Returns true if the client holds the privatekey for that identity, otherwise false.",
+										"returns": "Returns `true` if the client holds the private key for that identity, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -9082,7 +9093,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2754,
+									"line": 2751,
 									"character": 23
 								}
 							]
@@ -9118,7 +9129,7 @@
 									},
 									"comment": {
 										"shortText": "Creates filter to notify, when client receives whisper message matching the filter options.",
-										"returns": "Returns true if the identity was successfully added to the group, otherwise false.",
+										"returns": "Returns `true` if the identity was successfully added to the group, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -9178,7 +9189,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2797,
+									"line": 2794,
 									"character": 21
 								}
 							]
@@ -9214,7 +9225,7 @@
 									},
 									"comment": {
 										"shortText": "Creates a new group.",
-										"returns": "the address of the new group.\n"
+										"returns": "The address of the new group.\n"
 									},
 									"type": {
 										"type": "reference",
@@ -9231,7 +9242,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2764,
+									"line": 2761,
 									"character": 20
 								}
 							]
@@ -9267,7 +9278,7 @@
 									},
 									"comment": {
 										"shortText": "Creates new whisper identity in the client.",
-										"returns": "The address of the new identiy.",
+										"returns": "The address of the new identity.",
 										"tags": [
 											{
 												"tag": "example",
@@ -9290,7 +9301,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2739,
+									"line": 2736,
 									"character": 23
 								}
 							]
@@ -9326,7 +9337,7 @@
 									},
 									"comment": {
 										"shortText": "Creates a whisper message and injects it into the network for distribution.",
-										"returns": "Returns true if the message was sent, otherwise false.",
+										"returns": "Returns `true` if the message was sent, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -9365,7 +9376,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2858,
+									"line": 2855,
 									"character": 16
 								}
 							]
@@ -9400,8 +9411,8 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Uninstalls a filter with given id. Should always be called when watch is no longer needed.\nAdditonally Filters timeout when they aren't requested with shh_getFilterChanges for a period of time.",
-										"returns": "True if the filter was successfully uninstalled, otherwise false.",
+										"shortText": "Uninstalls a filter with given id. Should always be called when watch is no longer needed.\nAdditonally filters timeout when they aren't requested with `shh_getFilterChanges` for a period of time.",
+										"returns": "`true` if the filter was successfully uninstalled, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -9442,7 +9453,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2813,
+									"line": 2810,
 									"character": 27
 								}
 							]
@@ -9501,7 +9512,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2872,
+									"line": 2869,
 									"character": 19
 								}
 							]
@@ -9612,6 +9623,9 @@
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
+											},
+											"comment": {
+												"text": "The data to convert into a SHA3 hash."
 											},
 											"type": {
 												"type": "intrinsic",
