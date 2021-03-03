@@ -288,10 +288,10 @@ export default class EthereumApi implements types.Api {
   /**
    * Sets the given account's storage to the specified value at the specified position.
    *
-   * @param address - Address to update storage for.
-   * @param position - Position to store the value in.
-   * @param storage - Value to be stored.
-   * @param blockNumber - Integer block number, or the string "latest", "earliest"
+   * @param address Address to update storage for.
+   * @param position Position to store the value in.
+   * @param storage Value to be stored.
+   * @param blockNumber Integer block number, or the string "latest", "earliest"
    *  or "pending".
    * @returns `true` if the value was stored successfully, otherwise `false`.
    * @example
@@ -427,7 +427,7 @@ export default class EthereumApi implements types.Api {
    * new blocks to appear to be mined before old blocks. This is will result in
    * an invalid state.
    *
-   * @param timestamp JavaScript timestamp (millisecond precision).
+   * @param timestamp `QUANTITY | Date | number` - JavaScript timestamp (millisecond precision).
    * @returns The amount of *seconds* between the given timestamp and now.
    * @example
    * ```javascript
@@ -784,7 +784,7 @@ export default class EthereumApi implements types.Api {
    * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
    * @param transaction - The transaction call object as seen in source.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param blockNumber `QUANTITY | TAG` - Integer block number, or the string "latest", "earliest"
    *  or "pending".
    *
    * @returns The amount of gas used.
@@ -895,7 +895,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns information about a block by block number.
-   * @param number Integer of a block number, or the string "earliest", "latest" or "pending", as in the
+   * @param number `QUANTITY | TAG` - Integer of a block number, or the string "earliest", "latest" or "pending", as in the
    * default block parameter.
    * @param transactions If `true` it returns the full transaction objects, if `false` only the hashes of the
    * transactions.
@@ -936,7 +936,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns information about a block by block hash.
-   * @param hash Hash of a block.
+   * @param hash `DATA`, 32 Bytes - Hash of a block.
    * @param transactions If `true` it returns the full transaction objects, if `false` only the hashes of the
    * transactions.
    * @returns The block, `null` if the block doesn't exist.
@@ -994,7 +994,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the number of transactions in a block from a block matching the given block number.
-   * @param number Integer of a block number, or the string "earliest", "latest" or "pending", as in the
+   * @param number `QUANTITY | TAG` - Integer of a block number, or the string "earliest", "latest" or "pending", as in the
    * default block parameter.
    * @returns Integer of the number of transactions in the block.
    * @example
@@ -1016,7 +1016,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the number of transactions in a block from a block matching the given block hash.
-   * @param hash Hash of a block.
+   * @param hash `DATA`, 32 Bytes - Hash of a block.
    * @returns Number of transactions in the block.
    * @example
    * ```javascript
@@ -1068,8 +1068,8 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns information about a transaction by block hash and transaction index position.
-   * @param hash Hash of a block.
-   * @param index Integer of the transaction index position.
+   * @param hash `DATA`, 32 Bytes - Hash of a block.
+   * @param index `QUANTITY` - Integer of the transaction index position.
    * @returns The transaction object or `null` if no transaction was found.
    *
    * * `hash`: `DATA`, 32 Bytes - The transaction hash.
@@ -1111,8 +1111,8 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns information about a transaction by block number and transaction index position.
-   * @param number A block number, or the string "earliest", "latest" or "pending".
-   * @param index Integer of the transaction index position.
+   * @param number `QUANTITY | TAG` - A block number, or the string "earliest", "latest" or "pending".
+   * @param index `QUANTITY` - Integer of the transaction index position.
    * @returns The transaction object or `null` if no transaction was found.
    *
    * * `hash`: `DATA`, 32 Bytes - The transaction hash.
@@ -1153,7 +1153,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the number of uncles in a block from a block matching the given block hash.
-   * @param {DATA, 32 Bytes} hash Hash of a block.
+   * @param hash `DATA`, 32 Bytes - Hash of a block.
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
@@ -1169,7 +1169,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the number of uncles in a block from a block matching the given block hash.
-   * @param blockNumber A block number, or the string "earliest", "latest" or "pending".
+   * @param blockNumber `QUANTITY | TAG` - A block number, or the string "earliest", "latest" or "pending".
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
@@ -1185,8 +1185,8 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns information about a uncle of a block by hash and uncle index position.
    *
-   * @param hash Hash of a block.
-   * @param index The uncle's index position.
+   * @param hash `DATA`, 32 Bytes - Hash of a block.
+   * @param index `QUANTITY` - The uncle's index position.
    * @returns A block object or `null` when no block is found.
    * @example
    * ```javascript
@@ -1203,8 +1203,8 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns information about a uncle of a block by hash and uncle index position.
    *
-   * @param blockNumber A block number, or the string "earliest", "latest" or "pending".
-   * @param uncleIndex The uncle's index position.
+   * @param blockNumber `QUANTITY | TAG` - A block number, or the string "earliest", "latest" or "pending".
+   * @param uncleIndex `QUANTITY` - The uncle's index position.
    * @returns A block object or `null` when no block is found.
    * @example
    * ```javascript
@@ -1226,7 +1226,7 @@ export default class EthereumApi implements types.Api {
    * 2: `DATA`, 32 Bytes - the seed hash used for the DAG.
    * 3: `DATA`, 32 Bytes - the boundary condition ("target"), 2^256 / difficulty.
    *
-   * @param {QUANTITY} filterId A filter id.
+   * @param filterId `QUANTITY` - A filter id.
    * @returns The hash of the current block, the seedHash, and the boundary condition to be met ("target").
    * @example
    * ```javascript
@@ -1241,9 +1241,9 @@ export default class EthereumApi implements types.Api {
   /**
    * Used for submitting a proof-of-work solution.
    *
-   * @param {DATA, 8 Bytes} nonce - The nonce found (64 bits).
-   * @param {DATA, 32 Bytes} powHash - The header's pow-hash (256 bits).
-   * @param {DATA, 32 Bytes} digest - The mix digest (256 bits).
+   * @param nonce `DATA`, 8 Bytes - The nonce found (64 bits).
+   * @param powHash `DATA`, 32 Bytes - The header's pow-hash (256 bits).
+   * @param digest `DATA`, 32 Bytes - The mix digest (256 bits).
    * @returns `true` if the provided solution is valid, otherwise `false`.
    * @example
    * ```javascript
@@ -1262,8 +1262,8 @@ export default class EthereumApi implements types.Api {
   /**
    * Used for submitting mining hashrate.
    *
-   * @param {String} hashRate - A hexadecimal string representation (32 bytes) of the hash rate.
-   * @param {String} clientID - A random hexadecimal(32 bytes) ID identifying the client.
+   * @param hashRate `DATA`, 32 Bytes - A hexadecimal string representation (32 bytes) of the hash rate.
+   * @param clientID `DATA`, 32 Bytes - A random hexadecimal(32 bytes) ID identifying the client.
    * @returns `true` if submitting went through succesfully and `false` otherwise.
    * @example
    * ```javascript
@@ -1368,8 +1368,8 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the balance of the account of given address.
-   * @param {DATA, 20 Bytes} address Address to check for balance.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param address `DATA`, 20 Bytes - Address to check for balance.
+   * @param blockNumber `QUANTITY | TAG` - Integer block number, or the string "latest", "earliest"
    *  or "pending".
    *
    * @returns Integer of the account balance in wei.
@@ -1395,8 +1395,8 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns code at a given address.
    *
-   * @param address Address.
-   * @param blockNumber Integer block number, or the string "latest", "earliest" or "pending".
+   * @param address `DATA`, 20 Bytes - Address.
+   * @param blockNumber `QUANTITY | TAG` - Integer block number, or the string "latest", "earliest" or "pending".
    * @returns The code from the given address.
    * @example
    * ```javascript
@@ -1465,9 +1465,9 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the value from a storage position at a given address.
-   * @param address Address of the storage.
-   * @param position Integer of the position in the storage.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param address `DATA`, 20 Bytes - Address of the storage.
+   * @param position `QUANTITY` - Integer of the position in the storage.
+   * @param blockNumber `QUANTITY | TAG` - Integer block number, or the string "latest", "earliest"
    *  or "pending".
    * @returns The value in storage at the requested position.
    * @example
@@ -1536,7 +1536,7 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns the information about a transaction requested by transaction hash.
    *
-   * @param transactionHash Hash of a transaction.
+   * @param transactionHash `DATA`, 32 Bytes - Hash of a transaction.
    * @returns The transaction object or `null` if no transaction was found.
    *
    * * `hash`: `DATA`, 32 Bytes - The transaction hash.
@@ -1589,7 +1589,7 @@ export default class EthereumApi implements types.Api {
    *
    * Note: The receipt is not available for pending transactions.
    *
-   * @param transactionHash Hash of a transaction.
+   * @param transactionHash `DATA`, 32 Bytes - Hash of a transaction.
    * @returns Returns the receipt of a transaction by transaction hash.
    * @example
    * ```javascript
@@ -1750,7 +1750,7 @@ export default class EthereumApi implements types.Api {
   // TODO this example doens't return anything, not sure how to handle the signed tx situation
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
-   * @param {DATA} transaction The signed transaction data.
+   * @param transaction `DATA` - The signed transaction data.
    * @returns The transaction hash.
    * @example
    * ```javascript
@@ -1776,8 +1776,8 @@ export default class EthereumApi implements types.Api {
    *
    * Note the address to sign with must be unlocked.
    *
-   * @param account Address to sign with.
-   * @param data Message to sign.
+   * @param account `DATA`, 20 Bytes - Address to sign with.
+   * @param data `DATA` - Message to sign.
    * @returns Signature - a hex encoded 129 byte array
    * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
    * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
@@ -1809,7 +1809,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    *
-   * @param address Address of the account that will sign the messages.
+   * @param address `DATA`, 20 Bytes - Address of the account that will sign the messages.
    * @param typedData Typed structured data to be signed.
    * @returns Signature. As in `eth_sign`, it is a hex encoded 129 byte array
    * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
@@ -1899,8 +1899,8 @@ export default class EthereumApi implements types.Api {
    * the subscription a JSON-RPC notification with event details and
    * subscription ID will be sent to a client.
    *
-   * @param {String} subscriptionName - Name for the subscription.
-   * @returns {QUANTITY} A subscription id.
+   * @param {String} subscriptionName `String` - Name for the subscription.
+   * @returns {QUANTITY} -A subscription id.
    * @example
    * ```javascript
    * const subscriptionId = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
@@ -2035,7 +2035,7 @@ export default class EthereumApi implements types.Api {
    * Cancel a subscription to a particular event. Returns a boolean indicating
    * if the subscription was successfully cancelled.
    *
-   * @param {String} subscriptionName - A name for the subscription.
+   * @param {String} subscriptionName `String` - A name for the subscription.
    * @returns {QUANTITY} A subscription id.
    * @example
    * ```javascript
@@ -2170,7 +2170,7 @@ export default class EthereumApi implements types.Api {
    * or transaction hashes, depending on the filter type, which occurred since
    * last poll.
    *
-   * @param filterId The filter id.
+   * @param filterId `QUANTITY` - The filter id.
    * @returns An array of logs, block hashes, or transaction hashes, depending
    * on the filter type, which occurred since last poll.
    * @example
@@ -2196,7 +2196,7 @@ export default class EthereumApi implements types.Api {
    * Uninstalls a filter with given id. Should always be called when watch is
    * no longer needed.
    *
-   * @param filterId The filter id.
+   * @param filterId `QUANTITY` - The filter id.
    * @returns `true` if the filter was successfully uninstalled, otherwise
    * `false`.
    * @example
@@ -2219,7 +2219,7 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns an array of all logs matching filter with given id.
    *
-   * @param filterId The filter id.
+   * @param filterId `QUANTITY` - The filter id.
    * @returns Array of log objects, or an empty array.
    * @example
    * ```javascript
@@ -2257,8 +2257,8 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns the number of transactions sent from an address.
    *
-   * @param address The address to get number of transactions sent from
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param address `DATA`, 20 Bytes - The address to get number of transactions sent from
+   * @param blockNumber `QUANTITY | TAG` - Integer block number, or the string "latest", "earliest"
    * or "pending".
    * @returns Number of transactions sent from this address.
    * @example
@@ -2295,7 +2295,7 @@ export default class EthereumApi implements types.Api {
    * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
    * @param transaction - The transaction call object as seen in source.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param blockNumber `QUANTITY | TAG` - Integer block number, or the string "latest", "earliest"
    *  or "pending".
    *
    * @returns The return value of executed contract.
@@ -2395,7 +2395,7 @@ export default class EthereumApi implements types.Api {
    * * `disableMemory`: {boolean} Setting this to `true` will disable memory capture (default = `false`).
    * * `disableStack`: {boolean} Setting this to `true` will disable stack capture (default = `false`).
    *
-   * @param transactionHash - Hash of the transaction to trace.
+   * @param transactionHash `DATA`, 32 Bytes - Hash of the transaction to trace.
    * @param options - See options in source.
    * @returns Returns the `gas`, `structLogs`, and `returnValue` for the traced transaction.
    *
@@ -2443,11 +2443,11 @@ export default class EthereumApi implements types.Api {
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
    *
-   * @param blockHash Hash of a block.
-   * @param txIndex Integer of the transaction index position.
-   * @param contractAddress Address of the contract.
-   * @param startKey Hash of the start key for grabbing storage entries.
-   * @param maxResult Integer of maximum number of storage entries to return.
+   * @param blockHash `DATA`, 32 Bytes - Hash of a block.
+   * @param txIndex `QUANTITY` - Integer of the transaction index position.
+   * @param contractAddress `DATA`, 20 Bytes - Address of the contract.
+   * @param startKey `DATA` - Hash of the start key for grabbing storage entries.
+   * @param maxResult `QUANTITY` - Integer of maximum number of storage entries to return.
    * @returns Returns a storage object with the keys being keccak-256 hashes of the storage keys,
    * and the values being the raw, unhashed key and value for that specific storage slot. Also
    * returns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.
