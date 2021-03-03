@@ -2545,6 +2545,10 @@ export default class EthereumApi implements types.Api {
    *
    * @param {QUANTITY} id - The filter id. Ex: "0x7"
    * @returns More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_getFilterChanges", ["0x0"]));
+   * ```
    */
   @assertArgLength(1)
   async shh_getFilterChanges(id: string) {

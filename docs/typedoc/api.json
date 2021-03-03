@@ -8830,7 +8830,13 @@
 									},
 									"comment": {
 										"shortText": "Polling method for whisper filters. Returns new messages since the last call of this method.",
-										"returns": "More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges\n"
+										"returns": "More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getFilterChanges\", [\"0x0\"]));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8868,7 +8874,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2768,
+									"line": 2772,
 									"character": 28
 								}
 							]
@@ -8939,7 +8945,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2779,
+									"line": 2783,
 									"character": 23
 								}
 							]
@@ -9287,7 +9293,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2790,
+									"line": 2794,
 									"character": 16
 								}
 							]
@@ -9411,7 +9417,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2800,
+									"line": 2804,
 									"character": 19
 								}
 							]
