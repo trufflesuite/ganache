@@ -390,15 +390,15 @@ return storage data given a starting key and max number of entries to return.</p
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockHash: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionIndex: <span class="hljs-built_in">number</span></span></span>
+: <code>DATA</code>, 32 Bytes - Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionIndex: <span class="hljs-built_in">number</span></span></span>
 </code>
 </li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">contractAddress: <span class="hljs-built_in">string</span></span></span>
 </code>
-: Address of the contract.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">keyStart: <span class="hljs-built_in">string</span> | Buffer</span></span>
+: <code>DATA</code>, 20 Bytes - Address of the contract.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">keyStart: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
 </li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">maxResult: <span class="hljs-built_in">number</span></span></span>
 </code>
-: Integer of maximum number of storage entries to return.</li>
+: <code>QUANTITY</code> - Integer of maximum number of storage entries to return.</li>
         </ul>
       </div>
     
@@ -493,7 +493,7 @@ The possible options are:</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionHash: <span class="hljs-built_in">string</span></span></span>
 </code>
-: Hash of the transaction to trace.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">options?: TransactionTraceOptions</span></span>
+: <code>DATA</code>, 32 Bytes - Hash of the transaction to trace.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">options?: TransactionTraceOptions</span></span>
 </code>
 : See options in source.</li>
         </ul>
@@ -685,7 +685,7 @@ The possible options are:</p>
 </code>
 : The transaction call object as seen in source.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span></span>
 </code>
-: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+: <code>QUANTITY | TAG</code> - Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
  or &quot;pending&quot;.
 </li>
         </ul>
@@ -879,7 +879,7 @@ including EVM mechanics and node performance.</p>
 </code>
 : The transaction call object as seen in source.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag | <span class="hljs-built_in">string</span></span></span>
 </code>
-: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+: <code>QUANTITY | TAG</code> - Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
  or &quot;pending&quot;.
 </li>
         </ul>
@@ -987,9 +987,9 @@ including EVM mechanics and node performance.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: Address to check for balance.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
+: <code>DATA</code>, 20 Bytes - Address to check for balance.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
 </code>
-: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+: <code>QUANTITY | TAG</code> - Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
  or &quot;pending&quot;.
 </li>
         </ul>
@@ -1050,7 +1050,7 @@ including EVM mechanics and node performance.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hash: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactions: <span class="hljs-built_in">boolean</span></span></span>
+: <code>DATA</code>, 32 Bytes - Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactions: <span class="hljs-built_in">boolean</span></span></span>
 </code>
 : If <code>true</code> it returns the full transaction objects, if <code>false</code> only the hashes of the
 transactions.</li>
@@ -1149,7 +1149,7 @@ transactions.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params"><span class="hljs-built_in">number</span>: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: Integer of a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the
+: <code>QUANTITY | TAG</code> - Integer of a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the
 default block parameter.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactions: <span class="hljs-built_in">boolean</span></span></span>
 </code>
 : If <code>true</code> it returns the full transaction objects, if <code>false</code> only the hashes of the
@@ -1233,7 +1233,7 @@ transactions.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hash: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: Hash of a block.</li>
+: <code>DATA</code>, 32 Bytes - Hash of a block.</li>
         </ul>
       </div>
     
@@ -1307,7 +1307,7 @@ transactions.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params"><span class="hljs-built_in">number</span>: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: Integer of a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the
+: <code>QUANTITY | TAG</code> - Integer of a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the
 default block parameter.</li>
         </ul>
       </div>
@@ -1366,9 +1366,9 @@ default block parameter.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: Buffer</span></span>
 </code>
-: Address.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
+: <code>DATA</code>, 20 Bytes - Address.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
 </code>
-: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot; or &quot;pending&quot;.</li>
+: <code>QUANTITY | TAG</code> - Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot; or &quot;pending&quot;.</li>
         </ul>
       </div>
     
@@ -1491,7 +1491,7 @@ last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">filterId: <span class="hljs-built_in">string</span></span></span>
 </code>
-: The filter id.</li>
+: <code>QUANTITY</code> - The filter id.</li>
         </ul>
       </div>
     
@@ -1551,7 +1551,7 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">filterId: <span class="hljs-built_in">string</span></span></span>
 </code>
-: The filter id.</li>
+: <code>QUANTITY</code> - The filter id.</li>
         </ul>
       </div>
     
@@ -1668,11 +1668,11 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: Address of the storage.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">position: bigint | <span class="hljs-built_in">number</span></span></span>
+: <code>DATA</code>, 20 Bytes - Address of the storage.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">position: bigint | <span class="hljs-built_in">number</span></span></span>
 </code>
-: Integer of the position in the storage.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span></span>
+: <code>QUANTITY</code> - Integer of the position in the storage.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: <span class="hljs-built_in">string</span> | Buffer | Tag</span></span>
 </code>
-: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+: <code>QUANTITY | TAG</code> - Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
  or &quot;pending&quot;.</li>
         </ul>
       </div>
@@ -1747,9 +1747,9 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hash: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: <span class="hljs-built_in">string</span></span></span>
+: <code>DATA</code>, 32 Bytes - Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: <span class="hljs-built_in">string</span></span></span>
 </code>
-: Integer of the transaction index position.</li>
+: <code>QUANTITY</code> - Integer of the transaction index position.</li>
         </ul>
       </div>
     
@@ -1829,9 +1829,9 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params"><span class="hljs-built_in">number</span>: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: A block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: <span class="hljs-built_in">string</span></span></span>
+: <code>QUANTITY | TAG</code> - A block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: <span class="hljs-built_in">string</span></span></span>
 </code>
-: Integer of the transaction index position.</li>
+: <code>QUANTITY</code> - Integer of the transaction index position.</li>
         </ul>
       </div>
     
@@ -1911,7 +1911,7 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionHash: <span class="hljs-built_in">string</span></span></span>
 </code>
-: Hash of a transaction.</li>
+: <code>DATA</code>, 32 Bytes - Hash of a transaction.</li>
         </ul>
       </div>
     
@@ -1990,9 +1990,9 @@ on the filter type, which occurred since last poll.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span></span></span>
 </code>
-: The address to get number of transactions sent from</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
+: <code>DATA</code>, 20 Bytes - The address to get number of transactions sent from</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
 </code>
-: Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
+: <code>QUANTITY | TAG</code> - Integer block number, or the string &quot;latest&quot;, &quot;earliest&quot;
 or &quot;pending&quot;.</li>
         </ul>
       </div>
@@ -2057,7 +2057,7 @@ or &quot;pending&quot;.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transactionHash: <span class="hljs-built_in">string</span></span></span>
 </code>
-: Hash of a transaction.</li>
+: <code>DATA</code>, 32 Bytes - Hash of a transaction.</li>
         </ul>
       </div>
     
@@ -2120,9 +2120,9 @@ or &quot;pending&quot;.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hash: Data</span></span>
 </code>
-: Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: Quantity</span></span>
+: <code>DATA</code>, 32 Bytes - Hash of a block.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">index: Quantity</span></span>
 </code>
-: The uncle&#39;s index position.</li>
+: <code>QUANTITY</code> - The uncle&#39;s index position.</li>
         </ul>
       </div>
     
@@ -2181,9 +2181,9 @@ or &quot;pending&quot;.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">blockNumber: Buffer | Tag</span></span>
 </code>
-: A block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">uncleIndex: Quantity</span></span>
+: <code>QUANTITY | TAG</code> - A block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">uncleIndex: Quantity</span></span>
 </code>
-: The uncle&#39;s index position.</li>
+: <code>QUANTITY</code> - The uncle&#39;s index position.</li>
         </ul>
       </div>
     
@@ -2241,7 +2241,7 @@ or &quot;pending&quot;.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hash: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: Hash of a block.</li>
+: <code>DATA</code>, 32 Bytes - Hash of a block.</li>
         </ul>
       </div>
     
@@ -2361,7 +2361,7 @@ or &quot;pending&quot;.</li>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">filterId: Quantity</span></span>
 </code>
-: A filter id.</li>
+: <code>QUANTITY</code> - A filter id.</li>
         </ul>
       </div>
     
@@ -2732,7 +2732,7 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">transaction: <span class="hljs-built_in">string</span></span></span>
 </code>
-: The signed transaction data.</li>
+: <code>DATA</code> - The signed transaction data.</li>
         </ul>
       </div>
     
@@ -2932,7 +2932,7 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">address: <span class="hljs-built_in">string</span> | Buffer</span></span>
 </code>
-: Address of the account that will sign the messages.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">typedData: TypedData</span></span>
+: <code>DATA</code>, 20 Bytes - Address of the account that will sign the messages.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">typedData: TypedData</span></span>
 </code>
 : Typed structured data to be signed.</li>
         </ul>
@@ -3046,9 +3046,9 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">hashRate: <span class="hljs-built_in">string</span></span></span>
 </code>
-: A hexadecimal string representation (32 bytes) of the hash rate.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">clientID: <span class="hljs-built_in">string</span></span></span>
+: <code>DATA</code>, 32 Bytes - A hexadecimal string representation (32 bytes) of the hash rate.</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">clientID: <span class="hljs-built_in">string</span></span></span>
 </code>
-: A random hexadecimal(32 bytes) ID identifying the client.</li>
+: <code>DATA</code>, 32 Bytes - A random hexadecimal(32 bytes) ID identifying the client.</li>
         </ul>
       </div>
     
@@ -3108,11 +3108,11 @@ that the <code>v</code> parameter includes the chain id as specified in <a href=
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">nonce: Data</span></span>
 </code>
-: The nonce found (64 bits).</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">powHash: Data</span></span>
+: <code>DATA</code>, 8 Bytes - The nonce found (64 bits).</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">powHash: Data</span></span>
 </code>
-: The header&#39;s pow-hash (256 bits).</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">digest: Data</span></span>
+: <code>DATA</code>, 32 Bytes - The header&#39;s pow-hash (256 bits).</li><li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">digest: Data</span></span>
 </code>
-: The mix digest (256 bits).</li>
+: <code>DATA</code>, 32 Bytes - The mix digest (256 bits).</li>
         </ul>
       </div>
     
@@ -3175,7 +3175,7 @@ subscription ID will be sent to a client.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">subscriptionName: SubscriptionName</span></span>
 </code>
-: Name for the subscription.</li>
+: <code>String</code> - Name for the subscription.</li>
         </ul>
       </div>
     
@@ -3188,7 +3188,7 @@ subscription ID will be sent to a client.</p>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">PromiEvent</span>&lt;<span class="hljs-title">Quantity</span>&gt;</span>
-</code><p>: A subscription id.</p>
+</code><p>: -A subscription id.</p>
 
         </div>
       </div>
@@ -3287,7 +3287,7 @@ no longer needed.</p>
         <ul>
           <li><code class="language-typescript"><span class="hljs-function"><span class="hljs-params">filterId: <span class="hljs-built_in">string</span></span></span>
 </code>
-: The filter id.</li>
+: <code>QUANTITY</code> - The filter id.</li>
         </ul>
       </div>
     
