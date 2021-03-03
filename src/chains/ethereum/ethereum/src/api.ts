@@ -1023,12 +1023,27 @@ export default class EthereumApi implements types.Api {
     return [] as string[];
   }
 
-  // TODO: how to format the transaction object for @returns
   /**
    * Returns information about a transaction by block hash and transaction index position.
    * @param hash Hash of a block.
    * @param index Integer of the transaction index position.
    * @returns The transaction object or `null` if no transaction was found.
+   *
+   * * `hash`: `DATA`, 32 Bytes - The transaction hash.
+   * * `nonce`: `QUANTITY` - The number of transactions made by the sender prior to this one.
+   * * `blockHash`: `DATA`, 32 Bytes - The hash of the block the transaction is in. `null` when pending.
+   * * `blockNumber`: `QUANTITY` - The number of the block the transaction is in. `null` when pending.
+   * * `transactionIndex`: `QUANTITY` - The index position of the transaction in the block.
+   * * `from`: `DATA`, 20 Bytes - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 Bytes - The address the transaction is sent to.
+   * * `value`: `QUANTITY` - The value transferred in wei.
+   * * `gas`: `QUANTITY` - The gas provided by the sender.
+   * * `gasPrice`: `QUANTITY` - The price of gas in wei.
+   * * `input`: `DATA` - The data sent along with the transaction.
+   * * `v`: `QUANTITY` - ECDSA recovery id.
+   * * `r`: `DATA`, 32 Bytes - ECDSA signature r.
+   * * `s`: `DATA`, 32 Bytes - ECDSA signature s.
+   *
    * @example
    * ```javascript
    * const accounts = await provider.request({ method: "eth_accounts", params: [] });
@@ -1051,12 +1066,27 @@ export default class EthereumApi implements types.Api {
     return null;
   }
 
-  // TODO: how to format the transaction object for @returns
   /**
    * Returns information about a transaction by block number and transaction index position.
    * @param number A block number, or the string "earliest", "latest" or "pending".
    * @param index Integer of the transaction index position.
    * @returns The transaction object or `null` if no transaction was found.
+   *
+   * * `hash`: `DATA`, 32 Bytes - The transaction hash.
+   * * `nonce`: `QUANTITY` - The number of transactions made by the sender prior to this one.
+   * * `blockHash`: `DATA`, 32 Bytes - The hash of the block the transaction is in. `null` when pending.
+   * * `blockNumber`: `QUANTITY` - The number of the block the transaction is in. `null` when pending.
+   * * `transactionIndex`: `QUANTITY` - The index position of the transaction in the block.
+   * * `from`: `DATA`, 20 Bytes - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 Bytes - The address the transaction is sent to.
+   * * `value`: `QUANTITY` - The value transferred in wei.
+   * * `gas`: `QUANTITY` - The gas provided by the sender.
+   * * `gasPrice`: `QUANTITY` - The price of gas in wei.
+   * * `input`: `DATA` - The data sent along with the transaction.
+   * * `v`: `QUANTITY` - ECDSA recovery id.
+   * * `r`: `DATA`, 32 Bytes - ECDSA signature r.
+   * * `s`: `DATA`, 32 Bytes - ECDSA signature s.
+   *
    * @example
    * ```javascript
    * const accounts = await provider.request({ method: "eth_accounts", params: [] });
@@ -1460,12 +1490,27 @@ export default class EthereumApi implements types.Api {
     return Data.from(decode(value));
   }
 
-  // TODO: how to format the transaction object for @returns
   /**
    * Returns the information about a transaction requested by transaction hash.
    *
    * @param transactionHash Hash of a transaction.
    * @returns The transaction object or `null` if no transaction was found.
+   *
+   * * `hash`: `DATA`, 32 Bytes - The transaction hash.
+   * * `nonce`: `QUANTITY` - The number of transactions made by the sender prior to this one.
+   * * `blockHash`: `DATA`, 32 Bytes - The hash of the block the transaction is in. `null` when pending.
+   * * `blockNumber`: `QUANTITY` - The number of the block the transaction is in. `null` when pending.
+   * * `transactionIndex`: `QUANTITY` - The index position of the transaction in the block.
+   * * `from`: `DATA`, 20 Bytes - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 Bytes - The address the transaction is sent to.
+   * * `value`: `QUANTITY` - The value transferred in wei.
+   * * `gas`: `QUANTITY` - The gas provided by the sender.
+   * * `gasPrice`: `QUANTITY` - The price of gas in wei.
+   * * `input`: `DATA` - The data sent along with the transaction.
+   * * `v`: `QUANTITY` - ECDSA recovery id.
+   * * `r`: `DATA`, 32 Bytes - ECDSA signature r.
+   * * `s`: `DATA`, 32 Bytes - ECDSA signature s.
+   *
    * @example
    * ```javascript
    * const accounts = await provider.request({ method: "eth_accounts", params: [] });
