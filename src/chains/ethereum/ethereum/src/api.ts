@@ -2533,7 +2533,11 @@ export default class EthereumApi implements types.Api {
    * Additionally Filters timeout when they aren't requested with shh_getFilterChanges for a period of time.
    *
    * @param {QUANTITY} id - The filter id. Ex: "0x7"
-   * @returns true if the filter was successfully uninstalled, otherwise false.
+   * @returns True if the filter was successfully uninstalled, otherwise false.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_uninstallFilter", ["0x0"]));
+   * ```
    */
   @assertArgLength(1)
   async shh_uninstallFilter(id: string) {
