@@ -9272,7 +9272,13 @@
 									},
 									"comment": {
 										"shortText": "Creates a whisper message and injects it into the network for distribution.",
-										"returns": "returns true if the message was sent, otherwise false.\n"
+										"returns": "returns true if the message was sent, otherwise false.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_post\", [{}]));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -9305,7 +9311,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2806,
+									"line": 2810,
 									"character": 16
 								}
 							]
@@ -9435,7 +9441,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2816,
+									"line": 2820,
 									"character": 19
 								}
 							]
