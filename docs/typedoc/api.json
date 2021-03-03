@@ -1746,7 +1746,7 @@
 									},
 									"comment": {
 										"shortText": "Executes a new message call immediately without creating a transaction on the block chain.",
-										"text": "Transaction call object:\n* `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to` - `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value` - `QUANTITY` (optional) - Integer of the value in wei.\n* `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"text": "Transaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
 										"returns": "The return value of executed contract.",
 										"tags": [
 											{
@@ -1973,7 +1973,7 @@
 									},
 									"comment": {
 										"shortText": "Generates and returns an estimate of how much gas is necessary to allow the\ntransaction to complete. The transaction will not be added to the\nblockchain. Note that the estimate may be significantly more than the\namount of gas actually used by the transaction, for a variety of reasons\nincluding EVM mechanics and node performance.",
-										"text": "Transaction call object:\n* `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to` - `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value` - `QUANTITY` (optional) - Integer of the value in wei.\n* `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"text": "Transaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
 										"returns": "The amount of gas used.\n",
 										"tags": [
 											{
@@ -3590,7 +3590,7 @@
 									},
 									"comment": {
 										"shortText": "Returns information about a transaction by block hash and transaction index position.",
-										"returns": "The transaction object or null if no transaction was found.",
+										"returns": "The transaction object or `null` if no transaction was found.",
 										"tags": [
 											{
 												"tag": "example",
@@ -5772,7 +5772,7 @@
 									},
 									"comment": {
 										"shortText": "Creates new message call transaction or a contract creation, if the data field contains code.",
-										"text": "Transaction call object:\n* `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to` - `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value` - `QUANTITY` (optional) - Integer of the value in wei.\n* `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"text": "Transaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
 										"returns": "The transaction hash.",
 										"tags": [
 											{
@@ -6474,7 +6474,7 @@
 									},
 									"comment": {
 										"shortText": "Returns an object containing data about the sync status or `false` when not syncing.",
-										"returns": "An object with sync status data or `false`, when not syncing.\n\n* startingBlock: {bigint} The block at which the import started (will\n    only be reset, after the sync reached his head).\n* currentBlock: {bigint} The current block, same as `eth_blockNumber`.\n* highestBlock: {bigint} The estimated highest block.\n",
+										"returns": "An object with sync status data or `false`, when not syncing.\n\n* `startingBlock`: {bigint} The block at which the import started (will\n    only be reset, after the sync reached his head).\n* `currentBlock`: {bigint} The current block, same as `eth_blockNumber`.\n* `highestBlock`: {bigint} The estimated highest block.\n",
 										"tags": [
 											{
 												"tag": "example",
@@ -8421,7 +8421,7 @@
 									},
 									"comment": {
 										"shortText": "Validate the given passphrase and submit transaction.",
-										"text": "The transaction is the same argument as for `eth_sendTransaction` and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belogging to `tx.from` the transaction is verified, signed and\nsend onto the network. The account is not unlocked globally in the node\nand cannot be used in other RPC calls.\n\nTransaction call object:\n* `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to` - `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value` - `QUANTITY` (optional) - Integer of the value in wei.\n* `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"text": "The transaction is the same argument as for `eth_sendTransaction` and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belogging to `tx.from` the transaction is verified, signed and\nsend onto the network. The account is not unlocked globally in the node\nand cannot be used in other RPC calls.\n\nTransaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
 										"returns": "The transaction hash or if unsuccessful an error.",
 										"tags": [
 											{

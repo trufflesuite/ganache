@@ -776,12 +776,12 @@ export default class EthereumApi implements types.Api {
    * including EVM mechanics and node performance.
    *
    * Transaction call object:
-   * * `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.
-   * * `to` - `DATA`, 20 bytes - The address the transaction is sent to.
-   * * `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
-   * * `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.
-   * * `value` - `QUANTITY` (optional) - Integer of the value in wei.
-   * * `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
    * @param transaction - The transaction call object as seen in source.
    * @param blockNumber Integer block number, or the string "latest", "earliest"
@@ -863,10 +863,10 @@ export default class EthereumApi implements types.Api {
    *
    * @returns An object with sync status data or `false`, when not syncing.
    *
-   * * startingBlock: {bigint} The block at which the import started (will
+   * * `startingBlock`: {bigint} The block at which the import started (will
    *     only be reset, after the sync reached his head).
-   * * currentBlock: {bigint} The current block, same as `eth_blockNumber`.
-   * * highestBlock: {bigint} The estimated highest block.
+   * * `currentBlock`: {bigint} The current block, same as `eth_blockNumber`.
+   * * `highestBlock`: {bigint} The estimated highest block.
    *
    * @example
    * ```javascript
@@ -1028,7 +1028,7 @@ export default class EthereumApi implements types.Api {
    * Returns information about a transaction by block hash and transaction index position.
    * @param hash Hash of a block.
    * @param index Integer of the transaction index position.
-   * @returns The transaction object or null if no transaction was found.
+   * @returns The transaction object or `null` if no transaction was found.
    * @example
    * ```javascript
    * const accounts = await provider.request({ method: "eth_accounts", params: [] });
@@ -1558,12 +1558,12 @@ export default class EthereumApi implements types.Api {
    * Creates new message call transaction or a contract creation, if the data field contains code.
    *
    * Transaction call object:
-   * * `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.
-   * * `to` - `DATA`, 20 bytes - The address the transaction is sent to.
-   * * `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
-   * * `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.
-   * * `value` - `QUANTITY` (optional) - Integer of the value in wei.
-   * * `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
    * @param transaction - The transaction call object as seen in source.
    * @returns The transaction hash.
@@ -2199,12 +2199,12 @@ export default class EthereumApi implements types.Api {
    * Executes a new message call immediately without creating a transaction on the block chain.
    *
    * Transaction call object:
-   * * `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.
-   * * `to` - `DATA`, 20 bytes - The address the transaction is sent to.
-   * * `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
-   * * `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.
-   * * `value` - `QUANTITY` (optional) - Integer of the value in wei.
-   * * `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
    * @param transaction - The transaction call object as seen in source.
    * @param blockNumber Integer block number, or the string "latest", "earliest"
@@ -2559,12 +2559,12 @@ export default class EthereumApi implements types.Api {
    * and cannot be used in other RPC calls.
    *
    * Transaction call object:
-   * * `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.
-   * * `to` - `DATA`, 20 bytes - The address the transaction is sent to.
-   * * `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
-   * * `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.
-   * * `value` - `QUANTITY` (optional) - Integer of the value in wei.
-   * * `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
    * @param txData - The transaction call object as seen in source.
    * @param {String} passphrase - The passphrase to decrpyt the private key belonging to `tx.from`.

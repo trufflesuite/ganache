@@ -667,12 +667,12 @@ The possible options are:</p>
 
     <p>Transaction call object:</p>
 <ul>
-<li><code>from</code> - <code>DATA</code>, 20 bytes (optional) - The address the transaction is sent from.</li>
-<li><code>to</code> - <code>DATA</code>, 20 bytes - The address the transaction is sent to.</li>
-<li><code>gas</code> - <code>QUANTITY</code> (optional) - Integer of the maximum gas allowance for the transaction.</li>
-<li><code>gasPrice</code> - <code>QUANTITY</code> (optional) - Integer of the price of gas in wei.</li>
-<li><code>value</code> - <code>QUANTITY</code> (optional) - Integer of the value in wei.</li>
-<li><code>data</code> - <code>DATA</code> (optional) - Hash of the method signature and the ABI encoded parameters.</li>
+<li><code>from</code>: <code>DATA</code>, 20 bytes (optional) - The address the transaction is sent from.</li>
+<li><code>to</code>: <code>DATA</code>, 20 bytes - The address the transaction is sent to.</li>
+<li><code>gas</code>: <code>QUANTITY</code> (optional) - Integer of the maximum gas allowance for the transaction.</li>
+<li><code>gasPrice</code>: <code>QUANTITY</code> (optional) - Integer of the price of gas in wei.</li>
+<li><code>value</code>: <code>QUANTITY</code> (optional) - Integer of the value in wei.</li>
+<li><code>data</code>: <code>DATA</code> (optional) - Hash of the method signature and the ABI encoded parameters.</li>
 </ul>
 
   
@@ -861,12 +861,12 @@ including EVM mechanics and node performance.</p>
 
     <p>Transaction call object:</p>
 <ul>
-<li><code>from</code> - <code>DATA</code>, 20 bytes (optional) - The address the transaction is sent from.</li>
-<li><code>to</code> - <code>DATA</code>, 20 bytes - The address the transaction is sent to.</li>
-<li><code>gas</code> - <code>QUANTITY</code> (optional) - Integer of the maximum gas allowance for the transaction.</li>
-<li><code>gasPrice</code> - <code>QUANTITY</code> (optional) - Integer of the price of gas in wei.</li>
-<li><code>value</code> - <code>QUANTITY</code> (optional) - Integer of the value in wei.</li>
-<li><code>data</code> - <code>DATA</code> (optional) - Hash of the method signature and the ABI encoded parameters.</li>
+<li><code>from</code>: <code>DATA</code>, 20 bytes (optional) - The address the transaction is sent from.</li>
+<li><code>to</code>: <code>DATA</code>, 20 bytes - The address the transaction is sent to.</li>
+<li><code>gas</code>: <code>QUANTITY</code> (optional) - Integer of the maximum gas allowance for the transaction.</li>
+<li><code>gasPrice</code>: <code>QUANTITY</code> (optional) - Integer of the price of gas in wei.</li>
+<li><code>value</code>: <code>QUANTITY</code> (optional) - Integer of the value in wei.</li>
+<li><code>data</code>: <code>DATA</code> (optional) - Hash of the method signature and the ABI encoded parameters.</li>
 </ul>
 
   
@@ -1747,7 +1747,7 @@ then neither <code>fromBlock</code> or <code>toBlock</code> are allowed.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
-</code><p>: The transaction object or null if no transaction was found.</p>
+</code><p>: The transaction object or <code>null</code> if no transaction was found.</p>
 
         </div>
       </div>
@@ -2728,12 +2728,12 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
 
     <p>Transaction call object:</p>
 <ul>
-<li><code>from</code> - <code>DATA</code>, 20 bytes (optional) - The address the transaction is sent from.</li>
-<li><code>to</code> - <code>DATA</code>, 20 bytes - The address the transaction is sent to.</li>
-<li><code>gas</code> - <code>QUANTITY</code> (optional) - Integer of the maximum gas allowance for the transaction.</li>
-<li><code>gasPrice</code> - <code>QUANTITY</code> (optional) - Integer of the price of gas in wei.</li>
-<li><code>value</code> - <code>QUANTITY</code> (optional) - Integer of the value in wei.</li>
-<li><code>data</code> - <code>DATA</code> (optional) - Hash of the method signature and the ABI encoded parameters.</li>
+<li><code>from</code>: <code>DATA</code>, 20 bytes (optional) - The address the transaction is sent from.</li>
+<li><code>to</code>: <code>DATA</code>, 20 bytes - The address the transaction is sent to.</li>
+<li><code>gas</code>: <code>QUANTITY</code> (optional) - Integer of the maximum gas allowance for the transaction.</li>
+<li><code>gasPrice</code>: <code>QUANTITY</code> (optional) - Integer of the price of gas in wei.</li>
+<li><code>value</code>: <code>QUANTITY</code> (optional) - Integer of the value in wei.</li>
+<li><code>data</code>: <code>DATA</code> (optional) - Hash of the method signature and the ABI encoded parameters.</li>
 </ul>
 
   
@@ -3184,10 +3184,10 @@ subscription ID will be sent to a client.</p>
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
 </code><p>: An object with sync status data or <code>false</code>, when not syncing.</p>
 <ul>
-<li>startingBlock: {bigint} The block at which the import started (will
+<li><code>startingBlock</code>: {bigint} The block at which the import started (will
   only be reset, after the sync reached his head).</li>
-<li>currentBlock: {bigint} The current block, same as <code>eth_blockNumber</code>.</li>
-<li>highestBlock: {bigint} The estimated highest block.</li>
+<li><code>currentBlock</code>: {bigint} The current block, same as <code>eth_blockNumber</code>.</li>
+<li><code>highestBlock</code>: {bigint} The estimated highest block.</li>
 </ul>
 
         </div>
@@ -4605,12 +4605,12 @@ send onto the network. The account is not unlocked globally in the node
 and cannot be used in other RPC calls.</p>
 <p>Transaction call object:</p>
 <ul>
-<li><code>from</code> - <code>DATA</code>, 20 bytes (optional) - The address the transaction is sent from.</li>
-<li><code>to</code> - <code>DATA</code>, 20 bytes - The address the transaction is sent to.</li>
-<li><code>gas</code> - <code>QUANTITY</code> (optional) - Integer of the maximum gas allowance for the transaction.</li>
-<li><code>gasPrice</code> - <code>QUANTITY</code> (optional) - Integer of the price of gas in wei.</li>
-<li><code>value</code> - <code>QUANTITY</code> (optional) - Integer of the value in wei.</li>
-<li><code>data</code> - <code>DATA</code> (optional) - Hash of the method signature and the ABI encoded parameters.</li>
+<li><code>from</code>: <code>DATA</code>, 20 bytes (optional) - The address the transaction is sent from.</li>
+<li><code>to</code>: <code>DATA</code>, 20 bytes - The address the transaction is sent to.</li>
+<li><code>gas</code>: <code>QUANTITY</code> (optional) - Integer of the maximum gas allowance for the transaction.</li>
+<li><code>gasPrice</code>: <code>QUANTITY</code> (optional) - Integer of the price of gas in wei.</li>
+<li><code>value</code>: <code>QUANTITY</code> (optional) - Integer of the value in wei.</li>
+<li><code>data</code>: <code>DATA</code> (optional) - Hash of the method signature and the ABI encoded parameters.</li>
 </ul>
 
   
