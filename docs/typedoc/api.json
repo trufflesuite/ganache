@@ -8400,12 +8400,12 @@
 									},
 									"comment": {
 										"shortText": "Validate the given passphrase and submit transaction.",
-										"text": "The transaction is the same argument as for `eth_sendTransaction` and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belonging to `tx.from` the transaction is verified, signed and\nsend onto the network. The account is not unlocked globally in the node\nand cannot be used in other RPC calls.\n\nTransaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"text": "The transaction is the same argument as for eth_sendTransaction and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belogging to tx.from the transaction is verified, signed and\nsend onto the network. The account is not unlocked globally in the node\nand cannot be used in other RPC calls.\n",
 										"returns": "The transaction hash or if unsuccessful an error.",
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase] );\nconst [to] = await provider.send(\"personal_listAccounts\");\n\n// use account and passphrase to send the transaction\nconst txHash = await provider.send(\"personal_sendTransaction\", [{ from: newAccount, to, gasLimit: \"0x5b8d80\" }, passphrase] );\nconsole.log(txHash);\n```\n"
+												"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase]);\nconst [to] = await provider.send(\"personal_listAccounts\")\n\n// use account and passphrase to send the transaction\nconst txHash = await provider.send(\"personal_sendTransaction\", [{ from: newAccount, to }, passphrase]);\nconsole.log(txHash);\n```\n"
 											}
 										]
 									},
@@ -8455,7 +8455,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2622,
+									"line": 2634,
 									"character": 32
 								}
 							]
@@ -8775,7 +8775,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2662,
+									"line": 2674,
 									"character": 19
 								}
 							]
@@ -8852,7 +8852,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2707,
+									"line": 2719,
 									"character": 22
 								}
 							]
@@ -8932,7 +8932,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2744,
+									"line": 2756,
 									"character": 28
 								}
 							]
@@ -9009,7 +9009,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2755,
+									"line": 2767,
 									"character": 23
 								}
 							]
@@ -9086,7 +9086,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2686,
+									"line": 2698,
 									"character": 23
 								}
 							]
@@ -9182,7 +9182,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2721,
+									"line": 2733,
 									"character": 21
 								}
 							]
@@ -9235,7 +9235,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2696,
+									"line": 2708,
 									"character": 20
 								}
 							]
@@ -9294,7 +9294,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2675,
+									"line": 2687,
 									"character": 23
 								}
 							]
@@ -9369,7 +9369,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2766,
+									"line": 2778,
 									"character": 16
 								}
 							]
@@ -9446,7 +9446,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2733,
+									"line": 2745,
 									"character": 27
 								}
 							]
@@ -9505,7 +9505,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2776,
+									"line": 2788,
 									"character": 19
 								}
 							]
