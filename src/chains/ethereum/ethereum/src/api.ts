@@ -2141,6 +2141,21 @@ export default class EthereumApi implements types.Api {
    * @param filterId `QUANTITY` - The filter id.
    * @returns An array of logs, block hashes, or transaction hashes, depending
    * on the filter type, which occurred since last poll.
+   *
+   * For filters created with `eth_newBlockFilter` the return are block hashes (`DATA`, 32 Bytes).
+   *
+   * For filters created with `eth_newPendingTransactionFilter` the return are transaction hashes (`DATA`, 32 Bytes).
+   *
+   * For filters created with `eth_newFilter` the return are log objects with the following parameters:
+   * * `removed`: `TAG` - `true` when the log was removed, `false` if its a valid log.
+   * * `logIndex`: `QUANTITY` - Integer of the log index position in the block. `null` when pending.
+   * * `transactionIndex`: `QUANTITY` - Integer of the transactions index position. `null` when pending.
+   * * `blockHash`: `DATA`, 32 Bytes - Hash of the block where the log was. `null` when pending.
+   * * `blockNumber`: `QUANTITY` - The block number where the log was in. `null` when pending.
+   * * `address`: `DATA`, 20 Bytes - The address from which the log originated.
+   * * `data`: `DATA` - Contains one or more 32 Bytes non-indexed arguments of the log.
+   * * `topics`: `Array of DATA` - Array of 0 to 4 32 Bytes `DATA` of indexed log arguments.
+   *
    * @example
    * ```javascript
    * const filterId = await provider.request({ method: "eth_newFilter", params: [] });
