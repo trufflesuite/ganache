@@ -1141,7 +1141,7 @@ export default class EthereumApi implements types.Api {
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
-   * const uncleCount = await provider.send("eth_getUncleCountByBlockHash", ["latest"]);
+   * const uncleCount = await provider.send("eth_getUncleCountByBlockNumber", ["latest"]);
    * console.log(uncleCount);
    * ```
    */
@@ -1155,34 +1155,12 @@ export default class EthereumApi implements types.Api {
    *
    * @param hash Hash of a block.
    * @param index The uncle's index position.
-   * @returns A block object or `null` when no block is found.
-   *
-   * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
-   * * `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.
-   * * `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.
-   * * `miner`: `DATA`, 20 Bytes -  Address of the miner.
-   * * `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.
-   * * `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.
-   * * `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.
-   * * `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.
-   * * `difficulty`: `QUANTITY` - Integer of the difficulty of this block.
-   * * `number`: `QUANTITY` - The block number. `null` when pending.
-   * * `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.
-   * * `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.
-   * * `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.
-   * * `extraData`: `DATA` - Extra data for the block.
-   * * `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.
-   * * `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.
-   * * `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.
-   * * `size`: `QUANTITY` - Integer the size of the block in bytes.
-   * * `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.
-   * * `uncles`: `Array` - Array of uncle hashes.
-   *
+   * @returns A block object or null when no block is found.
    * @example
    * ```javascript
-   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"] );
-   * const block = await provider.send("eth_getUncleByBlockHashAndIndex", [blockHash, "0x0"] );
-   * console.log(block);
+   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"]);
+   * const uncleCount = await provider.send("eth_getUncleByBlockHashAndIndex", [blockHash, "0x0"]);
+   * console.log(uncleCount);
    * ```
    */
   @assertArgLength(2)
