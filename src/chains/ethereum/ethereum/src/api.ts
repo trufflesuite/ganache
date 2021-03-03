@@ -2496,10 +2496,14 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
-   * Adds a whisper identity to the group
+   * Adds a whisper identity to the group.
    *
    * @param {DATA, 60 Bytes} - The identity address to add to a group.
-   * @returns true if the identity was successfully added to the group, otherwise false.
+   * @returns True if the identity was successfully added to the group, otherwise false.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_addToGroup", ["0x0"]));
+   * ```
    */
   @assertArgLength(1)
   async shh_addToGroup(address: string) {
