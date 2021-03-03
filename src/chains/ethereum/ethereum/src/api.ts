@@ -2596,7 +2596,11 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns the current whisper protocol version.
    *
-   * @returns The current whisper protocol version
+   * @returns The current whisper protocol version.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_version"));
+   * ```
    */
   @assertArgLength(0)
   async shh_version() {
