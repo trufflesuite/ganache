@@ -286,7 +286,7 @@ export default class EthereumApi implements types.Api {
     return "0x0";
   }
 
-  // TODO: get example to work and clean this up
+  // TODO-ERIN: get example to work and clean this up
   /**
    * Sets the given account's storage to the specified value at the specified position.
    *
@@ -754,7 +754,7 @@ export default class EthereumApi implements types.Api {
 
   //#region eth
 
-  // TODO: why is the example not working?
+  // TODO-ERIN: why is the example not working?
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
@@ -1703,7 +1703,7 @@ export default class EthereumApi implements types.Api {
     }
   }
 
-  // TODO this example doens't return anything, not sure how to handle the signed tx situation
+  // TODO-ERIN this example doens't return anything, not sure how to handle the signed tx situation
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
    * @param transaction `DATA` - The signed transaction data.
@@ -2093,7 +2093,17 @@ export default class EthereumApi implements types.Api {
    *  * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second
    * position (and anything after)”
    *
-   * @param filter The filter options.
+   * Filter options:
+   * * `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
+   * or "pending".
+   * * `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
+   * or "pending".
+   * * `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.
+   * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also
+   * be an array of `DATA` with "or" options.
+   *
+   * @param filter The filter options as seen in source.
+   *
    * @returns A filter id.
    * @example
    * ```javascript
@@ -2122,7 +2132,7 @@ export default class EthereumApi implements types.Api {
     return filterId;
   }
 
-  // TODO: create an example that actually returns changes
+  // TODO-ERIN: create an example that actually returns changes
   /**
    * Polling method for a filter, which returns an array of logs, block hashes,
    * or transaction hashes, depending on the filter type, which occurred since
@@ -2172,7 +2182,7 @@ export default class EthereumApi implements types.Api {
     return this.#filters.delete(filterId);
   }
 
-  // TODO: create an example that actually returns logs
+  // TODO-ERIN: create an example that actually returns logs
   /**
    * Returns an array of all logs matching filter with given id.
    *
@@ -2198,7 +2208,18 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns an array of all logs matching a given filter object.
    *
-   * @param filter The filter options.
+   * Filter options:
+   * * `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
+   * or "pending".
+   * * `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
+   * or "pending".
+   * * `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.
+   * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also
+   * be an array of `DATA` with "or" options.
+   * * `blockHash`: `DATA`, 32 Bytes (optional) - Hash of the block to restrict logs from. If `blockHash` is present,
+   * then neither `fromBlock` or `toBlock` are allowed.
+   *
+   * @param filter The filter options as seen in source.
    * @returns Array of log objects, or an empty array.
    * @example
    * ```javascript
@@ -2397,7 +2418,7 @@ export default class EthereumApi implements types.Api {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
-  // TODO: fix example it's not returning anything for storageRangeAt
+  // TODO-ERIN: fix example it's not returning anything for storageRangeAt
   /**
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
@@ -2473,7 +2494,7 @@ export default class EthereumApi implements types.Api {
     return this.#wallet.addresses;
   }
 
-  // TODO: example is not returning acct address
+  // TODO-ERIN: example is not returning acct address
   /**
    * Generates a new account with private key. Returns the address of the new
    * account.
@@ -2557,7 +2578,7 @@ export default class EthereumApi implements types.Api {
     return this.#wallet.lockAccount(address.toLowerCase());
   }
 
-  // TODO: personal_newAccount in example is not working
+  // TODO-ERIN: personal_newAccount in example is not working
 
   /**
    * Unlocks the account for use.
@@ -2595,7 +2616,7 @@ export default class EthereumApi implements types.Api {
     );
   }
 
-  // TODO: use of personal_newAccount doesn't work
+  // TODO-ERIN: use of personal_newAccount doesn't work
   /**
    * Validate the given passphrase and submit transaction.
    *
