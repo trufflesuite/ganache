@@ -109,14 +109,17 @@ export enum StorageDealStatus {
   AwaitingPreCommit
 }
 
-export let terminalStates: Array<StorageDealStatus> = [
+export const terminalStates: Array<StorageDealStatus> = [
   StorageDealStatus.ProposalNotFound,
   StorageDealStatus.ProposalRejected,
   StorageDealStatus.Error,
   StorageDealStatus.Expired
 ];
 
-export let nextSuccessfulState: Record<StorageDealStatus, StorageDealStatus> = [
+export const nextSuccessfulState: Record<
+  StorageDealStatus,
+  StorageDealStatus
+> = [
   StorageDealStatus.Validating,
   StorageDealStatus.Staged,
   StorageDealStatus.ReserveProviderFunds,
