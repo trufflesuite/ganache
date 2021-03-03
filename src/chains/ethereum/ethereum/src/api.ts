@@ -2865,10 +2865,10 @@ export default class EthereumApi implements types.Api {
    * Creates a whisper message and injects it into the network for distribution.
    *
    * @param postData
-   * @returns Returns `true` if the message was sent, otherwise `false`.
+   * @returns Returns true if the message was sent, otherwise false.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_post", [{}] ));
+   * console.log(await provider.send("shh_post", [{}]));
    * ```
    */
   @assertArgLength(1)
