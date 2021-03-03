@@ -8366,11 +8366,11 @@
 									},
 									"comment": {
 										"shortText": "Generates a new account with private key. Returns the address of the new\naccount.",
-										"returns": "The new account's address",
+										"returns": "The new account's address.",
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst passphrase = \"passphrase\"\nconst address = await provider.send(\"personal_newAccount\", passphrase])\nconsole.log(address);\n```\n"
+												"text": "\n```javascript\nconst passphrase = \"passphrase\"\nconst address = await provider.send(\"personal_newAccount\", [passphrase])\nconsole.log(address);\n```\n"
 											}
 										]
 									},
@@ -8383,7 +8383,9 @@
 											"flags": {
 												"isExported": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "The passphrase to encrypt the private key with."
+											},
 											"type": {
 												"type": "intrinsic",
 												"name": "string"
@@ -8489,7 +8491,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2620,
+									"line": 2622,
 									"character": 32
 								}
 							]
@@ -8527,7 +8529,7 @@
 									"comment": {
 										"shortText": "Unlocks the account for use.",
 										"text": "The unencrypted key will be held in memory until the unlock duration\nexpires. The unlock duration defaults to 300 seconds. An explicit duration\nof zero seconds unlocks the key until geth exits.\n\nThe account can be used with eth_sign and eth_sendTransaction while it is\nunlocked.",
-										"returns": "true if it worked. Throws an error if it did not.",
+										"returns": "True if it worked. Throws an error or returns false if it did not.",
 										"tags": [
 											{
 												"tag": "example",
@@ -8577,7 +8579,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "(default: 300) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
+												"text": "(Default: 300) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -8601,7 +8603,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2595,
+									"line": 2597,
 									"character": 30
 								}
 							]
@@ -8809,7 +8811,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2660,
+									"line": 2662,
 									"character": 19
 								}
 							]
@@ -8877,7 +8879,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2705,
+									"line": 2707,
 									"character": 22
 								}
 							]
@@ -8951,7 +8953,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2742,
+									"line": 2744,
 									"character": 28
 								}
 							]
@@ -9022,7 +9024,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2753,
+									"line": 2755,
 									"character": 23
 								}
 							]
@@ -9093,7 +9095,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2684,
+									"line": 2686,
 									"character": 23
 								}
 							]
@@ -9183,7 +9185,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2719,
+									"line": 2721,
 									"character": 21
 								}
 							]
@@ -9236,7 +9238,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2694,
+									"line": 2696,
 									"character": 20
 								}
 							]
@@ -9289,7 +9291,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2673,
+									"line": 2675,
 									"character": 23
 								}
 							]
@@ -9358,7 +9360,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2764,
+									"line": 2766,
 									"character": 16
 								}
 							]
@@ -9429,7 +9431,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2731,
+									"line": 2733,
 									"character": 27
 								}
 							]
@@ -9482,7 +9484,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2774,
+									"line": 2776,
 									"character": 19
 								}
 							]
