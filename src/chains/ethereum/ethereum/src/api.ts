@@ -1142,8 +1142,12 @@ export default class EthereumApi implements types.Api {
    * 2: DATA, 32 Bytes - the seed hash used for the DAG.
    * 3: DATA, 32 Bytes - the boundary condition ("target"), 2^256 / difficulty.
    *
-   * @param {QUANTITY} filterId - A filter id
-   * @returns the hash of the current block, the seedHash, and the boundary condition to be met ("target").
+   * @param {QUANTITY} filterId A filter id.
+   * @returns The hash of the current block, the seedHash, and the boundary condition to be met ("target").
+   * @example
+   * ```javascript
+   * console.log(await provider.send("eth_getWork", ["0x0"]));
+   *  ```
    */
   @assertArgLength(1)
   async eth_getWork(filterId: Quantity) {
