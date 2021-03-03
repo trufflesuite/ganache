@@ -183,11 +183,15 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
-   * Returns binary data from the local database
+   * Returns binary data from the local database.
    *
    * @param {String} dbName - Database name.
    * @param {String} key - Key name.
    * @returns The previously stored data.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("db_getHex", ["testDb", "testKey"]));
+   * ```
    */
   @assertArgLength(2)
   async db_getHex(dbName: string, key: string) {
