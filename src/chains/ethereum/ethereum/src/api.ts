@@ -2295,8 +2295,20 @@ export default class EthereumApi implements types.Api {
    * * `disableStack`: {boolean} Setting this to `true` will disable stack capture (default = `false`).
    *
    * @param transactionHash - Hash of the transaction to trace.
-   * @param options - See options in `source`.
+   * @param options - See options in source.
    * @returns Returns the `gas`, `structLogs`, and `returnValue` for the traced transaction.
+   *
+   * The `structLogs` are an array of logs, which contains the following fields:
+   * * `depth`: The execution depth.
+   * * `error`: Information about an error, if one occurred.
+   * * `gas`: The number of gas remaining.
+   * * `gasCost`: The cost of gas in wei.
+   * * `memory`: An array containing the contract's memory data.
+   * * `op`: The current opcode.
+   * * `pc`: The current program counter.
+   * * `stack`: The EVM execution stack.
+   * * `storage`: An object containing the contract's storage data.
+   *
    * @example
    * ```javascript
    * // Simple.sol
