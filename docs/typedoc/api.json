@@ -8188,7 +8188,14 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Locks the account. The account can no longer be used to send transactions."
+										"shortText": "Locks the account. The account can no longer be used to send transactions.",
+										"returns": "Returns true if the account was locked, otherwise false.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [account] = await provider.send(\"personal_listAccounts\");\nconst isLocked = await provider.send(\"personal_lockAccount\", [account]);\nconsole.log(isLocked);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8223,7 +8230,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2560,
+									"line": 2567,
 									"character": 28
 								}
 							]
@@ -8361,7 +8368,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "\n"
+												"text": "The account address to be locked."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -8384,7 +8391,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2605,
+									"line": 2612,
 									"character": 32
 								}
 							]
@@ -8490,7 +8497,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2580,
+									"line": 2587,
 									"character": 30
 								}
 							]
@@ -8698,7 +8705,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2645,
+									"line": 2652,
 									"character": 19
 								}
 							]
@@ -8766,7 +8773,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2690,
+									"line": 2697,
 									"character": 22
 								}
 							]
@@ -8840,7 +8847,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2727,
+									"line": 2734,
 									"character": 28
 								}
 							]
@@ -8911,7 +8918,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2738,
+									"line": 2745,
 									"character": 23
 								}
 							]
@@ -8982,7 +8989,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2669,
+									"line": 2676,
 									"character": 23
 								}
 							]
@@ -9072,7 +9079,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2704,
+									"line": 2711,
 									"character": 21
 								}
 							]
@@ -9125,7 +9132,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2679,
+									"line": 2686,
 									"character": 20
 								}
 							]
@@ -9178,7 +9185,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2658,
+									"line": 2665,
 									"character": 23
 								}
 							]
@@ -9247,7 +9254,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2749,
+									"line": 2756,
 									"character": 16
 								}
 							]
@@ -9318,7 +9325,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2716,
+									"line": 2723,
 									"character": 27
 								}
 							]
@@ -9371,7 +9378,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2759,
+									"line": 2766,
 									"character": 19
 								}
 							]
