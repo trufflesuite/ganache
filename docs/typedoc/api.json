@@ -8966,7 +8966,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2764,
+									"line": 2768,
 									"character": 28
 								}
 							]
@@ -9037,7 +9037,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2775,
+									"line": 2779,
 									"character": 23
 								}
 							]
@@ -9144,7 +9144,13 @@
 									},
 									"comment": {
 										"shortText": "Creates filter to notify, when client receives whisper message matching the filter options.",
-										"returns": "returns true if the identity was successfully added to the group, otherwise false.\n"
+										"returns": "Returns true if the identity was successfully added to the group, otherwise false.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_newFilter\", [\"0x0\", []]));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -9198,7 +9204,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2741,
+									"line": 2745,
 									"character": 21
 								}
 							]
@@ -9379,7 +9385,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2786,
+									"line": 2790,
 									"character": 16
 								}
 							]
@@ -9450,7 +9456,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2753,
+									"line": 2757,
 									"character": 27
 								}
 							]
@@ -9503,7 +9509,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2796,
+									"line": 2800,
 									"character": 19
 								}
 							]
