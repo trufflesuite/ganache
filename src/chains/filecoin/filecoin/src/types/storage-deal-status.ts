@@ -143,3 +143,10 @@ export let nextSuccessfulState: Record<StorageDealStatus, StorageDealStatus> = [
 
   return obj;
 }, {} as Record<StorageDealStatus, StorageDealStatus>);
+
+export function dealIsInProcess(state: StorageDealStatus) {
+  return (
+    state !== StorageDealStatus.Active &&
+    typeof nextSuccessfulState[state] !== "undefined"
+  );
+}

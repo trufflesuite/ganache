@@ -652,19 +652,27 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Filecoin.ClientListDeals"(): Promise<Array<SerializedDealInfo>> {
-    return this.#blockchain.deals.map(deal => deal.serialize());
+    await this.#blockchain.waitForReady();
+
+    const deals = await this.#blockchain.dealInfoManager!.getDeals();
+
+    return deals.map(deal => deal.serialize());
   }
 
   // Reference implementation: https://git.io/JthfU
   async "Filecoin.ClientGetDealInfo"(
     serializedCid: SerializedRootCID
   ): Promise<SerializedDealInfo> {
-    if (this.#blockchain.dealsByCid.has(serializedCid["/"])) {
+    await this.#blockchain.waitForReady();
+
+    const dealInfo = await this.#blockchain.dealInfoManager!.get(
+      serializedCid["/"]
+    );
+    if (dealInfo) {
       // Verified that this is the correct lookup since dealsByCid
       // uses the ProposalCid (ref impl: https://git.io/Jthv7) and the
       // reference implementation of the lookup follows suit: https://git.io/Jthvp
       //
-      const dealInfo = this.#blockchain.dealsByCid.get(serializedCid["/"])!;
       return dealInfo.serialize();
     } else {
       throw new Error("Could not find a deal for the provided CID");
@@ -816,9 +824,9 @@ export default class FilecoinApi implements types.Api {
   async "Ganache.GetDealById"(dealId: number): Promise<SerializedDealInfo> {
     await this.#blockchain.waitForReady();
 
-    if (this.#blockchain.dealsById.has(dealId)) {
-      const deal = this.#blockchain.dealsById.get(dealId);
-      return deal!.serialize();
+    const deal = await this.#blockchain.dealInfoManager!.getDealById(dealId);
+    if (deal) {
+      return deal.serialize();
     } else {
       throw new Error("Could not find a deal for the provided ID");
     }

@@ -233,4 +233,4 @@ class DealInfo
 
 type SerializedDealInfo = SerializedObject<DealInfoConfig>;
 
-export { DealInfo, SerializedDealInfo };
+export { DealInfo, DealInfoConfig, SerializedDealInfo };
