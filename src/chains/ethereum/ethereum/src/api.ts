@@ -2394,6 +2394,7 @@ export default class EthereumApi implements types.Api {
     );
   }
 
+  // TODO: formatting for transaction call object and use of personal_newAccount doesn't work
   /**
    * Validate the given passphrase and submit transaction.
    *
@@ -2403,8 +2404,19 @@ export default class EthereumApi implements types.Api {
    * send onto the network. The account is not unlocked globally in the node
    * and cannot be used in other RPC calls.
    *
-   * @param txData
-   * @param passphrase
+   * @param txData - The transaction call object.
+   * @param {String} passphrase - The passphrase to decrpyt the private key belonging to `tx.from`.
+   * @returns The transaction hash or if unsuccessful an error.
+   * @example
+   * ```javascript
+   * const passphrase = "passphrase";
+   * const newAccount = await provider.send("personal_newAccount", [passphrase]);
+   * const [to] = await provider.send("personal_listAccounts")
+   *
+   * // use account and passphrase to send the transaction
+   * const txHash = await provider.send("personal_sendTransaction", [{ from: newAccount, to }, passphrase]);
+   * console.log(txHash);
+   * ```
    */
   @assertArgLength(2)
   async personal_sendTransaction(transaction: any, passphrase: string) {
