@@ -138,7 +138,11 @@ export default class EthereumApi implements types.Api {
    * @param {String} dbName - Database name.
    * @param {String} key - Key name.
    * @param {String} value - String to store.
-   * @returns returns true if the value was stored, otherwise false.
+   * @returns Returns true if the value was stored, otherwise false.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("db_putString", ["testDb", "testKey", "testValue"]));
+   * ```
    */
   @assertArgLength(3)
   async db_putString(dbName: string, key: string, value: string) {
