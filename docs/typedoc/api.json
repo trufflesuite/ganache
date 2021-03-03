@@ -5221,7 +5221,7 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns: An Array with the following elements\n1: DATA, 32 Bytes - current block header pow-hash\n2: DATA, 32 Bytes - the seed hash used for the DAG.\n3: DATA, 32 Bytes - the boundary condition (\"target\"), 2^256 / difficulty.",
+										"shortText": "Returns: An Array with the following elements\n1: `DATA`, 32 Bytes - current block header pow-hash\n2: `DATA`, 32 Bytes - the seed hash used for the DAG.\n3: `DATA`, 32 Bytes - the boundary condition (\"target\"), 2^256 / difficulty.",
 										"returns": "The hash of the current block, the seedHash, and the boundary condition to be met (\"target\").",
 										"tags": [
 											{
