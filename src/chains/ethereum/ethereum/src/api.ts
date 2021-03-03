@@ -1088,7 +1088,7 @@ export default class EthereumApi implements types.Api {
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
-   * const uncleCount = await provider.send("eth_getUncleCountByBlockHash", ["latest"]);
+   * const uncleCount = await provider.send("eth_getUncleCountByBlockNumber", ["latest"]);
    * console.log(uncleCount);
    * ```
    */
@@ -1100,8 +1100,15 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns information about a uncle of a block by hash and uncle index position.
    *
-   * @param hash - hash of a block
-   * @param index - the uncle's index position.
+   * @param hash Hash of a block.
+   * @param index The uncle's index position.
+   * @returns A block object or null when no block is found.
+   * @example
+   * ```javascript
+   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"]);
+   * const uncleCount = await provider.send("eth_getUncleByBlockHashAndIndex", [blockHash, "0x0"]);
+   * console.log(uncleCount);
+   * ```
    */
   @assertArgLength(2)
   async eth_getUncleByBlockHashAndIndex(hash: Data, index: Quantity) {
