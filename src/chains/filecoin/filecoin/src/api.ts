@@ -22,7 +22,6 @@ import { MinerPower, SerializedMinerPower } from "./things/miner-power";
 import { PowerClaim } from "./things/power-claim";
 import { MinerInfo, SerializedMinerInfo } from "./things/miner-info";
 import { SerializedVersion, Version } from "./things/version";
-import { Account } from "./things/account";
 import { Message, SerializedMessage } from "./things/message";
 import {
   MessageSendSpec,
@@ -36,7 +35,6 @@ import { KeyType } from "./things/key-type";
 import { KeyInfo, SerializedKeyInfo } from "./things/key-info";
 import { SerializedSignature, Signature } from "./things/signature";
 import { SigType } from "./things/sig-type";
-import base32 from "base32-encoding";
 import { SerializedBlockHeader } from "./things/block-header";
 import { SerializedBlockMessages } from "./things/block-messages";
 
@@ -645,8 +643,8 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.ClientStartDeal"(
     serializedProposal: SerializedStartDealParams
   ): Promise<SerializedRootCID> {
-    let proposal = new StartDealParams(serializedProposal);
-    let proposalRootCid = await this.#blockchain.startDeal(proposal);
+    const proposal = new StartDealParams(serializedProposal);
+    const proposalRootCid = await this.#blockchain.startDeal(proposal);
 
     return proposalRootCid.serialize();
   }
@@ -725,7 +723,7 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.ClientFindData"(
     rootCid: SerializedRootCID
   ): Promise<Array<SerializedQueryOffer>> {
-    let remoteOffer = await this.#blockchain.createQueryOffer(
+    const remoteOffer = await this.#blockchain.createQueryOffer(
       new RootCID(rootCid)
     );
     return [remoteOffer.serialize()];

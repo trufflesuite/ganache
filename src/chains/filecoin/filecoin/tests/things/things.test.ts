@@ -13,13 +13,13 @@ describe("things", () => {
       // We'll use RootCID here because it's a simple example
       // with no recursive members during deserialization
 
-      let rootCidFromSerializedData = new RootCID({
+      const rootCidFromSerializedData = new RootCID({
         "/": "badvu4qhg4y390tu5i4ongi9t2vdf429cl7kp7tcsnbas1f5d66zeb4q30mbsl"
       });
 
       // Note that the CID is defined as an object, which makes the type of data
       // passed into the constructor a deserialized object
-      let rootCidFromDeserializedData = new RootCID({
+      const rootCidFromDeserializedData = new RootCID({
         root: new CID(
           "badvu4qhg4y390tu5i4ongi9t2vdf429cl7kp7tcsnbas1f5d66zeb4q30mbsl"
         )
@@ -31,7 +31,7 @@ describe("things", () => {
       );
 
       // Now let's try a more complex one that has different keys and includes arrays
-      let tipsetFromSerializedData = new Tipset({
+      const tipsetFromSerializedData = new Tipset({
         Cids: [
           {
             "/":
@@ -42,7 +42,7 @@ describe("things", () => {
         Height: 0
       });
 
-      let tipsetFromDeserializedData = new Tipset({
+      const tipsetFromDeserializedData = new Tipset({
         cids: [
           new RootCID({
             root: new CID(
@@ -63,9 +63,9 @@ describe("things", () => {
 
   describe("CID", () => {
     it("should serialize to a string", async () => {
-      let cidStr =
+      const cidStr =
         "bafy2bzacebxe5fag7knys7s56eou6557lom3mmgvta27bc3jzn6ypaqw34s5y";
-      let cid = new CID(cidStr);
+      const cid = new CID(cidStr);
 
       assert(typeof cid.serialize() == "string");
       assert.strictEqual(cid.serialize(), cidStr);
@@ -91,9 +91,9 @@ describe("things", () => {
 
   describe("Block", () => {
     it("has default values", async () => {
-      let timestamp = new Date().getTime() / 1000;
+      const timestamp = new Date().getTime() / 1000;
 
-      let block = new BlockHeader();
+      const block = new BlockHeader();
 
       assert.strictEqual(
         block.miner.value,

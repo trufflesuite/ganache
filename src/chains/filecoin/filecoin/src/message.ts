@@ -3,10 +3,7 @@ import { Balance } from "./things/balance";
 import { Message } from "./things/message";
 import { SigType } from "./things/sig-type";
 import { SignedMessage } from "./things/signed-message";
-import * as bls from "noble-bls12-381";
-import { ecdsaVerify } from "secp256k1";
 import cbor from "borc";
-import blake from "blakejs";
 
 const ZeroAddress =
   "t3yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaby2smx7a";

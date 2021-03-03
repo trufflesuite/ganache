@@ -61,17 +61,17 @@ describe("api", () => {
       });
 
       it("should accept a new deal", async () => {
-        let miners = await client.stateListMiners();
+        const miners = await client.stateListMiners();
         const accounts = await provider.blockchain.accountManager.getControllableAccounts();
         const address = accounts[0].address;
-        let beginningBalance = await client.walletBalance(address.value);
+        const beginningBalance = await client.walletBalance(address.value);
 
-        let result = await ipfs.add({
+        const result = await ipfs.add({
           content: data
         });
-        let cid = result.path;
+        const cid = result.path;
 
-        let proposal = new StartDealParams({
+        const proposal = new StartDealParams({
           data: new StorageMarketDataRef({
             transferType: "graphsync",
             root: new RootCID({
@@ -85,7 +85,7 @@ describe("api", () => {
           minBlocksDuration: 300
         });
 
-        let proposalCid = await client.clientStartDeal(proposal.serialize());
+        const proposalCid = await client.clientStartDeal(proposal.serialize());
 
         assert.ok(proposalCid["/"]);
         assert(CID.isValid(proposalCid["/"]));
@@ -108,15 +108,15 @@ describe("api", () => {
           StorageDealStatus.Active
         ]);
 
-        let deals = await client.clientListDeals();
+        const deals = await client.clientListDeals();
 
         assert.strictEqual(deals.length, 1);
 
-        let deal: SerializedDealInfo = deals[0];
+        const deal: SerializedDealInfo = deals[0];
         assert.strictEqual(deal.ProposalCid["/"], proposalCid["/"]);
         assert.strictEqual(deal.Size, expectedSize);
 
-        let endingBalance = await client.walletBalance(address.value);
+        const endingBalance = await client.walletBalance(address.value);
 
         assert(new BN(endingBalance).lt(new BN(beginningBalance)));
       });
@@ -196,11 +196,11 @@ describe("api", () => {
       it("should provide a remote offer", async () => {
         const expectedMinPrice = `${expectedSize * 2}`;
 
-        let result = await ipfs.add({
+        const result = await ipfs.add({
           content: data
         });
 
-        let offers = await client.clientFindData({ "/": result.path });
+        const offers = await client.clientFindData({ "/": result.path });
 
         assert.strictEqual(offers.length, 1);
 
@@ -211,7 +211,7 @@ describe("api", () => {
         assert.strictEqual(offer.Size, expectedSize);
         assert.strictEqual(offer.MinPrice, expectedMinPrice);
 
-        let hasLocal = await client.clientHasLocal({ "/": result.path });
+        const hasLocal = await client.clientHasLocal({ "/": result.path });
 
         assert(hasLocal);
       });
@@ -245,14 +245,14 @@ describe("api", () => {
 
         // No error? Great, let's make sure it subtracted the retrieval cost.
 
-        let endingBalance = await client.walletBalance(address);
+        const endingBalance = await client.walletBalance(address);
         assert(new BN(endingBalance).lt(new BN(beginningBalance)));
       });
 
       it("errors if we try to retrieve a file our IPFS server doesn't know about", async () => {
-        let cidIMadeUp = "QmY7Yh4UquoXdL9Fo2XbhXkhBvFoLwmQUfa92pxnxjQuPU";
+        const cidIMadeUp = "QmY7Yh4UquoXdL9Fo2XbhXkhBvFoLwmQUfa92pxnxjQuPU";
 
-        let madeUpOrder: SerializedRetrievalOrder = {
+        const madeUpOrder: SerializedRetrievalOrder = {
           Root: {
             "/": cidIMadeUp
           },
@@ -298,7 +298,7 @@ describe("api", () => {
         );
         assert(error!.message.indexOf("Object not found") >= 0);
 
-        let hasLocal = await client.clientHasLocal({ "/": cidIMadeUp });
+        const hasLocal = await client.clientHasLocal({ "/": cidIMadeUp });
 
         assert(!hasLocal);
       });
