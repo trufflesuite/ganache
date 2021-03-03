@@ -2367,9 +2367,17 @@ export default class EthereumApi implements types.Api {
    * unlocked.
    * @param address 20 Bytes - The address of the account to unlock.
    * @param passphrase Passphrase to unlock the account.
-   * @param duration (default: 300) Duration in seconds how long the account
+   * @param duration (Default: 300) Duration in seconds how long the account
    * should remain unlocked for. Set to 0 to disable automatic locking.
-   * @returns true if it worked. Throws an error if it did not.
+   * @returns True if it worked. Throws an error or returns false if it did not.
+   * @example
+   * ```javascript
+   * // generate an account
+   * const passphrase = "passphrase";
+   * const newAccount = await provider.send("personal_newAccount", [passphrase]);
+   * const isLocked = await provider.send("personal_unlockAccount", [newAccount, passphrase]);
+   * console.log(isLocked);
+   * ```
    */
   @assertArgLength(2, 3)
   async personal_unlockAccount(
