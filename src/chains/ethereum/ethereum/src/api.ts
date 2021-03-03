@@ -133,13 +133,13 @@ export default class EthereumApi implements types.Api {
   /**
    * Stores a string in the local database.
    *
-   * @param dbName Database name.
-   * @param key Key name.
-   * @param value String to store.
+   * @param {String} dbName - Database name.
+   * @param {String} key - Key name.
+   * @param {String} value - String to store.
    * @returns Returns true if the value was stored, otherwise false.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_putString", ["testDb", "testKey", "testValue"] ));
+   * console.log(await provider.send("db_putString", ["testDb", "testKey", "testValue"]));
    * ```
    */
   @assertArgLength(3)
