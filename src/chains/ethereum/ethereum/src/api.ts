@@ -2803,11 +2803,11 @@ export default class EthereumApi implements types.Api {
    *
    * @param to (optional) Identity of the receiver. When present it will try to decrypt any incoming message
    *  if the client holds the private key to this identity.
-   * @param topics Array of topics which the incoming message's topics should match.
-   * @returns Returns `true` if the identity was successfully added to the group, otherwise `false`.
+   * @param {Array of DATA} topics - Array of DATA topics which the incoming message's topics should match.
+   * @returns Returns true if the identity was successfully added to the group, otherwise false.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_newFilter", ["0x0", []] ));
+   * console.log(await provider.send("shh_newFilter", ["0x0", []]));
    * ```
    */
   @assertArgLength(2)
