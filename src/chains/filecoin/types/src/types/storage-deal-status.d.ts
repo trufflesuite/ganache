@@ -35,3 +35,4 @@ export declare let nextSuccessfulState: Record<
   StorageDealStatus,
   StorageDealStatus
 >;
+export declare function dealIsInProcess(state: StorageDealStatus): boolean;

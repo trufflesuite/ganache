@@ -19,6 +19,7 @@ import SignedMessageManager from "./data-managers/message-manager";
 import BlockMessagesManager from "./data-managers/block-messages-manager";
 import AccountManager from "./data-managers/account-manager";
 import PrivateKeyManager from "./data-managers/private-key-manager";
+import DealInfoManager from "./data-managers/deal-info-manager";
 export declare type BlockchainEvents = {
   ready(): void;
   tipset: Tipset;
@@ -36,13 +37,10 @@ export default class Blockchain extends Emittery.Typed<
   privateKeyManager: PrivateKeyManager | null;
   signedMessagesManager: SignedMessageManager | null;
   blockMessagesManager: BlockMessagesManager | null;
+  dealInfoManager: DealInfoManager | null;
   readonly miner: Address;
   get minerEnabled(): boolean;
   messagePool: Array<SignedMessage>;
-  readonly deals: Array<DealInfo>;
-  readonly dealsByCid: Map<string, DealInfo>;
-  readonly dealsById: Map<number, DealInfo>;
-  readonly inProcessDeals: Array<DealInfo>;
   readonly options: FilecoinInternalOptions;
   private ipfsServer;
   private miningTimeout;
