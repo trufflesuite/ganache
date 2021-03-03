@@ -8932,7 +8932,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2772,
+									"line": 2776,
 									"character": 28
 								}
 							]
@@ -9009,7 +9009,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2783,
+									"line": 2787,
 									"character": 23
 								}
 							]
@@ -9369,7 +9369,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2794,
+									"line": 2798,
 									"character": 16
 								}
 							]
@@ -9404,12 +9404,12 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Uninstalls a filter with given id. Should always be called when watch is no longer needed.\nAdditionally filters timeout when they aren't requested with `shh_getFilterChanges` for a period of time.",
-										"returns": "`true` if the filter was successfully uninstalled, otherwise `false`.",
+										"shortText": "Uninstalls a filter with given id. Should always be called when watch is no longer needed.\nAdditonally Filters timeout when they aren't requested with shh_getFilterChanges for a period of time.",
+										"returns": "True if the filter was successfully uninstalled, otherwise false.",
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_uninstallFilter\", [\"0x0\"] ));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_uninstallFilter\", [\"0x0\"]));\n```\n"
 											}
 										]
 									},
@@ -9446,7 +9446,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2757,
+									"line": 2761,
 									"character": 27
 								}
 							]
@@ -9505,7 +9505,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2804,
+									"line": 2808,
 									"character": 19
 								}
 							]
