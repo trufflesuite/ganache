@@ -4671,7 +4671,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_getFilterChanges</span>(<span class="hljs-params">id: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>[]&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2764" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2768" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4717,7 +4717,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_getMessages</span>(<span class="hljs-params">id: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2775" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2779" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4809,7 +4809,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_newFilter</span>(<span class="hljs-params">to: <span class="hljs-built_in">string</span>, topics: <span class="hljs-built_in">any</span>[]</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2741" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2745" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4844,7 +4844,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
         </div>
         <div class="return_type">
           <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
-</code><p>: returns true if the identity was successfully added to the group, otherwise false.</p>
+</code><p>: Returns true if the identity was successfully added to the group, otherwise false.</p>
 
         </div>
       </div>
@@ -4852,6 +4852,17 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
     </div>
 
     
+          <div class="content wide-content example_container" style="position: relative">
+            <div class="tag content tag_example">
+              example
+            </div>
+            <div class="monaco" data-method="shh_newFilter_0" data-language="javascript">
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_newFilter&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>, []]));
+</code></pre>
+
+            </div>
+          </div>
+        
   </div>
   <div>
     <a name="shh_newGroup"></a>
@@ -4940,7 +4951,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_post</span>(<span class="hljs-params">postData: WhisperPostObject</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2786" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2790" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -4986,7 +4997,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
       <span class="hljs-function"> <span class="hljs-title">shh_uninstallFilter</span>(<span class="hljs-params">id: <span class="hljs-built_in">string</span></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2753" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2757" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -5033,7 +5044,7 @@ Additionally Filters timeout when they aren&#39;t requested with shh_getFilterCh
       <span class="hljs-function"> <span class="hljs-title">shh_version</span>(<span class="hljs-params"></span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">string</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2796" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2800" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
