@@ -8892,7 +8892,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2727,
+									"line": 2731,
 									"character": 22
 								}
 							]
@@ -8972,7 +8972,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2776,
+									"line": 2780,
 									"character": 28
 								}
 							]
@@ -9049,7 +9049,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2791,
+									"line": 2795,
 									"character": 23
 								}
 							]
@@ -9085,7 +9085,13 @@
 									},
 									"comment": {
 										"shortText": "Checks if the client hold the private keys for a given identity.",
-										"returns": "returns true if the client holds the privatekey for that identity, otherwise false.\n"
+										"returns": "Returns true if the client holds the privatekey for that identity, otherwise false.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_hasIdentity\", [\"0x0\"]));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -9120,7 +9126,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2702,
+									"line": 2706,
 									"character": 23
 								}
 							]
@@ -9216,7 +9222,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2745,
+									"line": 2749,
 									"character": 21
 								}
 							]
@@ -9269,7 +9275,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2712,
+									"line": 2716,
 									"character": 20
 								}
 							]
@@ -9397,7 +9403,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2802,
+									"line": 2806,
 									"character": 16
 								}
 							]
@@ -9474,7 +9480,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2761,
+									"line": 2765,
 									"character": 27
 								}
 							]
@@ -9527,7 +9533,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2812,
+									"line": 2816,
 									"character": 19
 								}
 							]
