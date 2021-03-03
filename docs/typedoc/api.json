@@ -9330,7 +9330,7 @@
 									},
 									"comment": {
 										"shortText": "Creates a whisper message and injects it into the network for distribution.",
-										"returns": "returns true if the message was sent, otherwise false.",
+										"returns": "Returns true if the message was sent, otherwise false.",
 										"tags": [
 											{
 												"tag": "example",
@@ -9505,7 +9505,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2820,
+									"line": 2824,
 									"character": 19
 								}
 							]
