@@ -8910,7 +8910,13 @@
 									},
 									"comment": {
 										"shortText": "Get all messages matching a filter. Unlike shh_getFilterChanges this returns all messages.",
-										"returns": "See: shh_getFilterChanges\n"
+										"returns": "See: shh_getFilterChanges",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getMessages\", [\"0x0\"]));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8945,7 +8951,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2787,
+									"line": 2791,
 									"character": 23
 								}
 							]
@@ -9293,7 +9299,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2798,
+									"line": 2802,
 									"character": 16
 								}
 							]
@@ -9423,7 +9429,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2808,
+									"line": 2812,
 									"character": 19
 								}
 							]
