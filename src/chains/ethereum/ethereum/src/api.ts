@@ -2276,12 +2276,12 @@ export default class EthereumApi implements types.Api {
   /**
    * Generates a new account with private key. Returns the address of the new
    * account.
-   * @param passphrase
-   * @returns The new account's address
+   * @param {String} passphrase - The passphrase to encrypt the private key with.
+   * @returns The new account's address.
    * @example
    * ```javascript
    * const passphrase = "passphrase"
-   * const address = await provider.send("personal_newAccount", passphrase])
+   * const address = await provider.send("personal_newAccount", [passphrase])
    * console.log(address);
    * ```
    */
@@ -2355,6 +2355,8 @@ export default class EthereumApi implements types.Api {
   async personal_lockAccount(address: string) {
     return this.#wallet.lockAccount(address.toLowerCase());
   }
+
+  // TODO: personal_newAccount in example is not working
 
   /**
    * Unlocks the account for use.
