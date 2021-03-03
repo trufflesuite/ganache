@@ -116,4 +116,4 @@ declare class DealInfo
   advanceState(): void;
 }
 declare type SerializedDealInfo = SerializedObject<DealInfoConfig>;
-export { DealInfo, SerializedDealInfo };
+export { DealInfo, DealInfoConfig, SerializedDealInfo };
