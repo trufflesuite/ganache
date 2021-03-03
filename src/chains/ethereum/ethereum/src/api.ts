@@ -2574,12 +2574,12 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Locks the account. The account can no longer be used to send transactions.
-   * @param address The account address to be locked.
-   * @returns Returns `true` if the account was locked, otherwise `false`.
+   * @param {String} address - The account address to be locked.
+   * @returns Returns true if the account was locked, otherwise false.
    * @example
    * ```javascript
    * const [account] = await provider.send("personal_listAccounts");
-   * const isLocked = await provider.send("personal_lockAccount", [account] );
+   * const isLocked = await provider.send("personal_lockAccount", [account]);
    * console.log(isLocked);
    * ```
    */
