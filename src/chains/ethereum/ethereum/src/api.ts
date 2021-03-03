@@ -767,7 +767,7 @@ export default class EthereumApi implements types.Api {
 
   //#region eth
 
-  // TODO: fix transaction object formatting, also why is the example not working?
+  // TODO: why is the example not working?
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
@@ -775,13 +775,15 @@ export default class EthereumApi implements types.Api {
    * amount of gas actually used by the transaction, for a variety of reasons
    * including EVM mechanics and node performance.
    *
-   * @param transaction - The transaction call object
-   *  (from - DATA, 20 bytes (optional) - the address the transaction is sent from
-   *  to - DATA, 20 bytes - the address the transaction is sent to
-   *  gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction
-   *  gasPrice - QUANTITY (optional) - integer of the price of gas in wei
-   *  value - QUANTITY (optional) - integer of the value in wei
-   *  data - DATA (optional) - hash of the method signature and the ABI encoded parameters).
+   * Transaction call object:
+   * * `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to` - `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value` - `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction - The transaction call object as seen in source.
    * @param blockNumber Integer block number, or the string "latest", "earliest"
    *  or "pending".
    *
@@ -1550,10 +1552,18 @@ export default class EthereumApi implements types.Api {
     return null;
   }
 
-  // TODO: fix transaction object formatting (for param)
   /**
    * Creates new message call transaction or a contract creation, if the data field contains code.
-   * @param transaction - The transaction call object.
+   *
+   * Transaction call object:
+   * * `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to` - `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value` - `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction - The transaction call object as seen in source.
    * @returns The transaction hash.
    * @example
    * ```javascript
@@ -2183,18 +2193,19 @@ export default class EthereumApi implements types.Api {
     );
   }
 
-  // TODO: fix transaction object formatting
   /**
    * Executes a new message call immediately without creating a transaction on the block chain.
    *
-   * @param transaction - The transaction call object
-   *  (from - DATA, 20 bytes (optional) - the address the transaction is sent from
-   *  to - DATA, 20 bytes - the address the transaction is sent to
-   *  gas - QUANTITY (optional) - integer of the maximum gas allowance for the transaction
-   *  gasPrice - QUANTITY (optional) - integer of the price of gas in wei
-   *  value - QUANTITY (optional) - integer of the value in wei
-   *  data - DATA (optional) - hash of the method signature and the ABI encoded parameters).
-   *  @param blockNumber Integer block number, or the string "latest", "earliest"
+   * Transaction call object:
+   * * `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to` - `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value` - `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction - The transaction call object as seen in source.
+   * @param blockNumber Integer block number, or the string "latest", "earliest"
    *  or "pending".
    *
    * @returns The return value of executed contract.
@@ -2541,11 +2552,19 @@ export default class EthereumApi implements types.Api {
    *
    * The transaction is the same argument as for `eth_sendTransaction` and
    * contains the from address. If the passphrase can be used to decrypt the
-   * private key belonging to `tx.from` the transaction is verified, signed and
+   * private key belogging to `tx.from` the transaction is verified, signed and
    * send onto the network. The account is not unlocked globally in the node
    * and cannot be used in other RPC calls.
    *
-   * @param txData - The transaction call object.
+   * Transaction call object:
+   * * `from` - `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to` - `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas` - `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice` - `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value` - `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data` - `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param txData - The transaction call object as seen in source.
    * @param {String} passphrase - The passphrase to decrpyt the private key belonging to `tx.from`.
    * @returns The transaction hash or if unsuccessful an error.
    * @example
