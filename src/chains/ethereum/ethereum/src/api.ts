@@ -2681,7 +2681,11 @@ export default class EthereumApi implements types.Api {
   /**
    * Creates new whisper identity in the client.
    *
-   * @returns {DATA, 60 Bytes} result - the address of the new identiy.
+   * @returns {DATA, 60 Bytes} The address of the new identiy.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_newIdentity"));
+   * ```
    */
   @assertArgLength(0)
   async shh_newIdentity() {

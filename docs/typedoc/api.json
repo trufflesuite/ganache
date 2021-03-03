@@ -8886,7 +8886,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2719,
+									"line": 2723,
 									"character": 22
 								}
 							]
@@ -8960,7 +8960,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2756,
+									"line": 2760,
 									"character": 28
 								}
 							]
@@ -9031,7 +9031,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2767,
+									"line": 2771,
 									"character": 23
 								}
 							]
@@ -9102,7 +9102,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2698,
+									"line": 2702,
 									"character": 23
 								}
 							]
@@ -9192,7 +9192,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2733,
+									"line": 2737,
 									"character": 21
 								}
 							]
@@ -9245,7 +9245,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2708,
+									"line": 2712,
 									"character": 20
 								}
 							]
@@ -9281,7 +9281,13 @@
 									},
 									"comment": {
 										"shortText": "Creates new whisper identity in the client.",
-										"returns": "result - the address of the new identiy.\n"
+										"returns": "The address of the new identiy.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_newIdentity\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -9298,7 +9304,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2687,
+									"line": 2691,
 									"character": 23
 								}
 							]
@@ -9367,7 +9373,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2778,
+									"line": 2782,
 									"character": 16
 								}
 							]
@@ -9438,7 +9444,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2745,
+									"line": 2749,
 									"character": 27
 								}
 							]
@@ -9491,7 +9497,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2788,
+									"line": 2792,
 									"character": 19
 								}
 							]
