@@ -30,8 +30,8 @@ export declare enum StorageDealStatus {
   ClientTransferRestart = 28,
   AwaitingPreCommit = 29
 }
-export declare let terminalStates: Array<StorageDealStatus>;
-export declare let nextSuccessfulState: Record<
+export declare const terminalStates: Array<StorageDealStatus>;
+export declare const nextSuccessfulState: Record<
   StorageDealStatus,
   StorageDealStatus
 >;
