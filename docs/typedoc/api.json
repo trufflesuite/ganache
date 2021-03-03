@@ -8755,8 +8755,14 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Adds a whisper identity to the group",
-										"returns": "true if the identity was successfully added to the group, otherwise false.\n"
+										"shortText": "Adds a whisper identity to the group.",
+										"returns": "True if the identity was successfully added to the group, otherwise false.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_addToGroup\", [\"0x0\"]));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8788,7 +8794,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2723,
+									"line": 2727,
 									"character": 22
 								}
 							]
@@ -8862,7 +8868,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2760,
+									"line": 2764,
 									"character": 28
 								}
 							]
@@ -8933,7 +8939,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2771,
+									"line": 2775,
 									"character": 23
 								}
 							]
@@ -9094,7 +9100,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2737,
+									"line": 2741,
 									"character": 21
 								}
 							]
@@ -9275,7 +9281,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2782,
+									"line": 2786,
 									"character": 16
 								}
 							]
@@ -9346,7 +9352,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2749,
+									"line": 2753,
 									"character": 27
 								}
 							]
@@ -9399,7 +9405,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2792,
+									"line": 2796,
 									"character": 19
 								}
 							]
