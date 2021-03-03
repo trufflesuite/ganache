@@ -6,6 +6,7 @@ import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Transaction } from "./transaction";
 import { Address } from "./address";
 import { KECCAK256_RLP_ARRAY } from "ethereumjs-util";
+import { StorageKeys } from "../types/debug-storage";
 
 const { BUFFER_EMPTY } = utils;
 
@@ -206,7 +207,7 @@ export class RuntimeBlock {
     gasUsed: Buffer,
     extraData: Data,
     transactions: Transaction[],
-    storageKeys: Map<string, Buffer>
+    storageKeys: StorageKeys
   ) {
     const { header } = this;
     const rawHeader = [

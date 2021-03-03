@@ -17,7 +17,11 @@ import {
   RuntimeError,
   RETURN_TYPES,
   Snapshots,
-  StepEvent
+  StepEvent,
+  StorageKeys,
+  StorageRangeResult,
+  StorageRecords,
+  RangedStorageKeys
 } from "@ganache/ethereum-utils";
 import TransactionManager from "./data-managers/transaction-manager";
 import SecureTrie from "merkle-patricia-tree/secure";
@@ -39,7 +43,8 @@ const {
   RPCQUANTITY_EMPTY,
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
-  RPCQUANTITY_ZERO
+  RPCQUANTITY_ZERO,
+  findInsertPosition
 } = utils;
 
 type SimulationTransaction = {
@@ -325,7 +330,7 @@ export default class Blockchain extends Emittery.Typed<
   }: {
     block: Block;
     serialized: Buffer;
-    storageKeys: Map<string, Buffer>;
+    storageKeys: StorageKeys;
   }) => {
     const { blocks } = this;
     blocks.latest = block;
@@ -371,8 +376,8 @@ export default class Blockchain extends Emittery.Typed<
       });
 
       // save storage keys to the database
-      storageKeys.forEach((value, key) => {
-        this.storageKeys.put(key, value);
+      storageKeys.forEach(value => {
+        this.storageKeys.put(value.hashedKey, value.key);
       });
 
       blockLogs.blockNumber = blockNumberQ;
@@ -448,7 +453,7 @@ export default class Blockchain extends Emittery.Typed<
   #handleNewBlockData = async (blockData: {
     block: Block;
     serialized: Buffer;
-    storageKeys: Map<string, Buffer>;
+    storageKeys: StorageKeys;
   }) => {
     this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
       .then(() => this.#saveNewBlock(blockData))
@@ -866,11 +871,11 @@ export default class Blockchain extends Emittery.Typed<
     transaction: Transaction,
     options: TransactionTraceOptions,
     keys?: Buffer[],
-    contractAddress?: string
+    contractAddress?: Buffer
   ) => {
     let currentDepth = -1;
     const storageStack: TraceStorageMap[] = [];
-    const storage = {};
+    const storage: StorageRecords = {};
 
     // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
     // (Ganache v2 didn't handle this possibility either, so it hasn't been
@@ -995,42 +1000,42 @@ export default class Blockchain extends Emittery.Typed<
       }
     };
 
-    let txHashCurrentlyProcessing: string = null;
-    const transactionHash = Data.from(transaction.hash()).toString();
+    const transactionHash = transaction.hash();
+    let txHashCurrentlyProcessing: Buffer = null;
 
-    const beforeTxListener = async (tx: Transaction) => {
-      txHashCurrentlyProcessing = Data.from(tx.hash()).toString();
-      if (txHashCurrentlyProcessing == transactionHash) {
+    const beforeTxListener = (tx: Transaction) => {
+      txHashCurrentlyProcessing = tx.hash();
+      if (txHashCurrentlyProcessing.equals(transactionHash)) {
         if (keys && contractAddress) {
-          keys.forEach(async key => {
-            // get the raw key using the hashed key
-            let rawKey = await this.#database.storageKeys.get(
-              Data.from(key).toString()
-            );
+          const database = this.#database;
+          return Promise.all(
+            keys.map(async key => {
+              // get the raw key using the hashed key
+              const rawKey: Buffer = await database.storageKeys.get(key);
 
-            vm.stateManager.getContractStorage(
-              Address.from(contractAddress).toBuffer(),
-              rawKey,
-              (err: Error, result: Buffer) => {
-                if (err) {
-                  throw err;
+              vm.stateManager.getContractStorage(
+                contractAddress,
+                rawKey,
+                (err: Error, result: Buffer) => {
+                  if (err) {
+                    throw err;
+                  }
+
+                  storage[Data.from(key, key.length).toString()] = {
+                    key: Data.from(rawKey, rawKey.length),
+                    value: Data.from(result, 32)
+                  };
                 }
-
-                const keccakHashedKey = Data.from(key).toJSON();
-                storage[keccakHashedKey] = {
-                  key: Data.from(rawKey).toJSON(),
-                  value: Data.from(result, 32).toJSON()
-                };
-              }
-            );
-          });
+              );
+            })
+          );
         }
         vm.on("step", stepListener);
       }
     };
 
     const afterTxListener = () => {
-      if (txHashCurrentlyProcessing == transactionHash) {
+      if (txHashCurrentlyProcessing.equals(transactionHash)) {
         removeListeners();
       }
     };
@@ -1221,17 +1226,7 @@ export default class Blockchain extends Emittery.Typed<
     contractAddress: string,
     startKey: string | Buffer,
     maxResult: number
-  ) {
-    type StorageRangeResult = {
-      nextKey: null | string;
-      storage: any;
-    };
-
-    const result: StorageRangeResult = {
-      nextKey: null,
-      storage: {}
-    };
-
+  ): Promise<StorageRangeResult> {
     // #1 - get block information
     const targetBlock = await this.blocks.getByHash(blockHash);
 
@@ -1254,10 +1249,8 @@ export default class Blockchain extends Emittery.Typed<
     );
 
     // get the contractAddress account storage trie
-    const addressDataPromise = this.getFromTrie(
-      trie,
-      Address.from(contractAddress).toBuffer()
-    );
+    const contractAddressBuffer = Address.from(contractAddress).toBuffer();
+    const addressDataPromise = this.getFromTrie(trie, contractAddressBuffer);
     const addressData = await addressDataPromise;
     if (!addressData) {
       throw new Error(`account ${contractAddress} doesn't exist`);
@@ -1274,42 +1267,49 @@ export default class Blockchain extends Emittery.Typed<
         Buffer /*codeHash*/
       ])[2];
 
-      let keys: Buffer[] = [];
-      return new Promise((resolve, reject) => {
-        storageTrie
-          .createReadStream()
-          .on("data", data => {
-            keys.push(data.key);
-          })
-          .on("end", () => {
-            // #4 - sort and filter keys
-            const sortedKeys = keys.sort((a, b) => Buffer.compare(a, b));
+      return new Promise<RangedStorageKeys>((resolve, reject) => {
+        const startKeyBuffer = Data.from(startKey).toBuffer();
+        const compare = (a: Buffer, b: Buffer) => a.compare(b) < 0;
 
-            // find starting point in array of sorted keys
-            const startKeyBuffer = Data.from(startKey).toBuffer();
-            keys = sortedKeys.filter(key => {
-              if (Buffer.compare(startKeyBuffer, key) <= 0) {
-                return key;
-              }
+        const keys: Buffer[] = [];
+        const handleData = ({ key }) => {
+          // ignore anything that comes before our starting point
+          if (startKeyBuffer.compare(key) > 0) return;
+
+          // #4 - sort and filter keys
+          // insert the key exactly where it needs to go in the array
+          const position = findInsertPosition(keys, key, compare);
+          // ignore if the value couldn't possibly be relevant
+          if (position > maxResult) return;
+          keys.splice(position, 0, key);
+        };
+
+        const handleEnd = () => {
+          if (keys.length > maxResult) {
+            // we collected too much data, so we've got to trim it a bit
+            resolve({
+              // only take the maximum number of entries requested
+              keys: keys.slice(0, maxResult),
+              // assign nextKey
+              nextKey: Data.from(keys[maxResult])
             });
+          } else {
+            resolve({
+              keys,
+              nextKey: null
+            });
+          }
+        };
 
-            // only take the maximum number of entries requested
-            keys = keys.slice(0, maxResult + 1);
-            if (keys.length > maxResult) {
-              // assign nextKey and remove it from array of keys
-              const nextKey = keys.pop();
-              result.nextKey = Data.from(nextKey).toJSON();
-            }
-
-            resolve(keys);
-          });
+        const rs = storageTrie.createReadStream();
+        rs.on("data", handleData).on("error", reject).on("end", handleEnd);
       });
     };
-    const keys = await getStorageKeys();
+    const { keys, nextKey } = await getStorageKeys();
 
     // #5 -  rerun every transaction in that block prior to and including the requested transaction
     // prepare block to be run in traceTransaction
-    const transactionHashBuffer = Data.from(transaction.hash()).toBuffer();
+    const transactionHashBuffer = transaction.hash();
     const newBlock = this.#prepareNextBlock(
       targetBlock,
       parentBlock,
@@ -1318,7 +1318,7 @@ export default class Blockchain extends Emittery.Typed<
     // get storage data given a set of keys
     const options = {
       disableMemory: true,
-      disableStack: false,
+      disableStack: true,
       disableStorage: false
     };
 
@@ -1327,13 +1327,15 @@ export default class Blockchain extends Emittery.Typed<
       newBlock,
       transaction,
       options,
-      keys as Buffer[],
-      contractAddress
+      keys,
+      contractAddressBuffer
     );
-    result.storage = storage;
 
     // #6 - send back results
-    return result;
+    return {
+      storage,
+      nextKey
+    };
   }
 
   /**
