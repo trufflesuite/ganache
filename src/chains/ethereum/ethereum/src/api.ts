@@ -2478,7 +2478,11 @@ export default class EthereumApi implements types.Api {
    * Checks if the client hold the private keys for a given identity.
    *
    * @param {DATA, 60 Bytes} address - The identity address to check.
-   * @returns returns true if the client holds the privatekey for that identity, otherwise false.
+   * @returns Returns true if the client holds the privatekey for that identity, otherwise false.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_hasIdentity", ["0x0"]));
+   * ```
    */
   @assertArgLength(1)
   async shh_hasIdentity(address: string) {
