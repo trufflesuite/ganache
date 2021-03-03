@@ -155,7 +155,7 @@ export default class EthereumApi implements types.Api {
    * @returns The previously stored string.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_getString", ["testDb", "testKey"] ));
+   * console.log(await provider.send("db_getString", ["testDb", "testKey"]));
    * ```
    */
   @assertArgLength(2)
