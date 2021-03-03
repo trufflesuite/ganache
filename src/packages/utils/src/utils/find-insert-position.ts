@@ -8,8 +8,8 @@
  * The function optimizes the number of comparisons performed by comparing
  * non-consecutive elements of the sorted range.
  *
- * The index into the `array` returned by this function cannot be equivalent to
- * `val`, only greater.
+ * The index into the `array` returned by this function will always be greater than
+ * the index of the last-occurrence of `val`.
  *
  * On average, logarithmic in the distance of the length of the array: Performs
  * approximately `log2(N)+1` element comparisons (where `N` is this length).
