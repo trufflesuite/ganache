@@ -1067,7 +1067,14 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns the number of uncles in a block from a block matching the given block hash.
-   * @param hash DATA, 32 Bytes - hash of a block.
+   * @param {DATA, 32 Bytes} hash Hash of a block.
+   * @returns The number of uncles in a block.
+   * @example
+   * ```javascript
+   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"]);
+   * const uncleCount = await provider.send("eth_getUncleCountByBlockHash", [blockHash]);
+   * console.log(uncleCount);
+   * ```
    */
   @assertArgLength(1)
   async eth_getUncleCountByBlockHash(hash: string | Buffer) {
