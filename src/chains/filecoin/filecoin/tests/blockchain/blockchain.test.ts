@@ -5,7 +5,10 @@ import IpfsHttpClient from "ipfs-http-client";
 import { StartDealParams } from "../../src/things/start-deal-params";
 import { StorageMarketDataRef } from "../../src/things/storage-market-data-ref";
 import { RootCID } from "../../src/things/root-cid";
-import { StorageDealStatus } from "../../src/types/storage-deal-status";
+import {
+  dealIsInProcess,
+  StorageDealStatus
+} from "../../src/types/storage-deal-status";
 import { FilecoinOptionsConfig } from "@ganache/filecoin-options";
 
 describe("Blockchain", () => {
@@ -203,42 +206,44 @@ describe("Blockchain", () => {
 
       let { root: proposalCid } = await blockchain.startDeal(proposal);
 
-      // First state should be validating
-      assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
-        StorageDealStatus.Validating
+      let currentDeal = await blockchain.dealInfoManager!.get(
+        proposalCid.value
       );
 
+      // First state should be validating
+      assert.strictEqual(currentDeal.state, StorageDealStatus.Validating);
+
       await blockchain.mineTipset();
+
+      currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
 
       // Next state should be Staged
-      assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
-        StorageDealStatus.Staged
-      );
+      assert.strictEqual(currentDeal.state, StorageDealStatus.Staged);
 
       await blockchain.mineTipset();
+
+      currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
 
       // Next state should be ReserveProviderFunds
       assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
+        currentDeal.state,
         StorageDealStatus.ReserveProviderFunds
       );
 
       // ... and on and on
 
       // Let's mine all the way to the Sealing state
-      while (
-        blockchain.dealsByCid.get(proposalCid.value)!.state !=
-        StorageDealStatus.Sealing
-      ) {
+      while (currentDeal.state != StorageDealStatus.Sealing) {
         await blockchain.mineTipset();
+        currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
       }
 
       // The deal should still be considered in process, since it's still sealing
-      assert.strictEqual(blockchain.inProcessDeals.length, 1);
+      let deals = await blockchain.dealInfoManager.getDeals();
+      let inProcessDeals = deals.filter(deal => dealIsInProcess(deal.state));
+      assert.strictEqual(inProcessDeals.length, 1);
       assert.strictEqual(
-        blockchain.inProcessDeals[0].proposalCid.root.value,
+        inProcessDeals[0].proposalCid.root.value,
         proposalCid.value
       );
 
@@ -246,11 +251,13 @@ describe("Blockchain", () => {
       // the deal was pulled out of the in process array.
       await blockchain.mineTipset();
 
-      assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
-        StorageDealStatus.Active
-      );
-      assert.strictEqual(blockchain.inProcessDeals.length, 0);
+      currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
+
+      assert.strictEqual(currentDeal.state, StorageDealStatus.Active);
+
+      deals = await blockchain.dealInfoManager.getDeals();
+      inProcessDeals = deals.filter(deal => dealIsInProcess(deal.state));
+      assert.strictEqual(inProcessDeals.length, 0);
     });
 
     it("fully advances the state of in process deals when automining", async () => {
@@ -290,12 +297,11 @@ describe("Blockchain", () => {
 
       let { root: proposalCid } = await blockchain.startDeal(proposal);
 
+      const deal = await blockchain.dealInfoManager!.get(proposalCid.value);
+
       // Since we're automining, starting the deal will trigger
       // the state to be state to be set to active.
-      assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
-        StorageDealStatus.Active
-      );
+      assert.strictEqual(deal.state, StorageDealStatus.Active);
 
       // We create 1 tipset per state change. Let's make sure that occurred.
       assert.strictEqual(blockchain.tipsetManager.latest.height, 11);
