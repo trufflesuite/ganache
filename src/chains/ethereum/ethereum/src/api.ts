@@ -2849,11 +2849,11 @@ export default class EthereumApi implements types.Api {
   /**
    * Get all messages matching a filter. Unlike shh_getFilterChanges this returns all messages.
    *
-   * @param id The filter id. Ex: "0x7"
-   * @returns See: `shh_getFilterChanges`.
+   * @param {QUANTITY} id - The filter id. Ex: "0x7"
+   * @returns See: shh_getFilterChanges
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_getMessages", ["0x0"] ));
+   * console.log(await provider.send("shh_getMessages", ["0x0"]));
    * ```
    */
   @assertArgLength(1)
