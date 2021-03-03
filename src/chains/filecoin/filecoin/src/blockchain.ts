@@ -528,10 +528,10 @@ export default class Blockchain extends Emittery.Typed<
         throw e;
       }
 
-      let previousTipset: Tipset = this.latestTipset();
+      const previousTipset: Tipset = this.latestTipset();
       const newTipsetHeight = previousTipset.height + 1;
 
-      let newBlocks: Array<BlockHeader> = [];
+      const newBlocks: Array<BlockHeader> = [];
 
       for (let i = 0; i < numNewBlocks; i++) {
         newBlocks.push(
@@ -679,7 +679,7 @@ export default class Blockchain extends Emittery.Typed<
       return 0;
     }
 
-    let stat = await this.ipfsServer.node.object.stat(cid, {
+    const stat = await this.ipfsServer.node.object.stat(cid, {
       timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
     });
 
@@ -755,9 +755,6 @@ export default class Blockchain extends Emittery.Typed<
       );
     }
 
-    // Get size of IPFS object represented by the proposal
-    let size = await this.getIPFSObjectSize(proposal.data.root.root.value);
-
     // have to specify type since node types are not correct
     const account = await this.accountManager!.getAccount(
       proposal.wallet.value
@@ -768,13 +765,13 @@ export default class Blockchain extends Emittery.Typed<
       );
     }
 
-    let signature = await account.address.signProposal(proposal);
+    const signature = await account.address.signProposal(proposal);
 
     // TODO: I'm not sure if should pass in a hex string or the Buffer alone.
     // I *think* it's the string, as that matches my understanding of the Go code.
     // That said, node that Buffer vs. hex string returns a different CID...
-    let proposalRawCid = await dagCBOR.util.cid(signature.toString("hex"));
-    let proposalCid = new CID(proposalRawCid.toString());
+    const proposalRawCid = await dagCBOR.util.cid(signature.toString("hex"));
+    const proposalCid = new CID(proposalRawCid.toString());
 
     const currentDeals = await this.dealInfoManager!.getDeals();
     let deal = new DealInfo({
@@ -806,7 +803,7 @@ export default class Blockchain extends Emittery.Typed<
     }
 
     // Subtract the cost from our current balance
-    let totalPrice = BigInt(deal.pricePerEpoch) * BigInt(deal.duration);
+    const totalPrice = BigInt(deal.pricePerEpoch) * BigInt(deal.duration);
     await this.accountManager!.transferFunds(
       proposal.wallet.value,
       proposal.miner.value,
@@ -819,7 +816,7 @@ export default class Blockchain extends Emittery.Typed<
   async createQueryOffer(rootCid: RootCID): Promise<QueryOffer> {
     await this.waitForReady();
 
-    let size = await this.getIPFSObjectSize(rootCid.root.value);
+    const size = await this.getIPFSObjectSize(rootCid.root.value);
 
     return new QueryOffer({
       root: rootCid,
@@ -832,7 +829,9 @@ export default class Blockchain extends Emittery.Typed<
   async retrieve(retrievalOrder: RetrievalOrder, ref: FileRef): Promise<void> {
     await this.waitForReady();
 
-    let hasLocal: boolean = await this.hasLocal(retrievalOrder.root.root.value);
+    const hasLocal: boolean = await this.hasLocal(
+      retrievalOrder.root.root.value
+    );
 
     const account = await this.accountManager!.getAccount(
       retrievalOrder.client.value
@@ -928,8 +927,8 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   private logLatestTipset() {
-    let date = new Date().toISOString();
-    let tipset = this.latestTipset();
+    const date = new Date().toISOString();
+    const tipset = this.latestTipset();
 
     this.options.logging.logger.log(
       `${date} INFO New heaviest tipset! [${tipset.cids[0].root.value}] (height=${tipset.height})`
