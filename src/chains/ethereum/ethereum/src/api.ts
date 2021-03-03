@@ -2308,9 +2308,17 @@ export default class EthereumApi implements types.Api {
   /**
    * Imports the given unencrypted private key (hex string) into the key store, encrypting it with the passphrase.
    *
-   * @param rawKey
-   * @param passphrase
-   * @returnsReturns the address of the new account.
+   * @param {String} rawKey - The raw, unencrypted private key to import.
+   * @param {String} passphrase - The passphrase to encrypt with.
+   * @returns Returns the address of the new account.
+   * @example
+   * ```javascript
+   * const rawKey = "0x0123456789012345678901234567890123456789012345678901234567890123";
+   * const passphrase = "passphrase";
+   *
+   * const address = await provider.send("personal_importRawKey",[rawKey, passphrase]);
+   * console.log(address);
+   * ```
    */
   @assertArgLength(2)
   async personal_importRawKey(rawKey: string, passphrase: string) {
