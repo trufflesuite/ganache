@@ -1563,10 +1563,17 @@ export default class EthereumApi implements types.Api {
     }
   }
 
+  // TODO this example doens't return anything, not sure how to handle the signed tx situation
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
-   * @param transaction DATA, the signed transaction data
-   * @returns The transaction hash
+   * @param {DATA} transaction The signed transaction data.
+   * @returns The transaction hash.
+   * @example
+   * ```javascript
+   * const signedTx = "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675";
+   * const txHash = await provider.send("eth_sendRawTransaction", [signedTx]);
+   * console.log(txHash);
+   * ```
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
