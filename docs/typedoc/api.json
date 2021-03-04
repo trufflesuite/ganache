@@ -1211,21 +1211,21 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																	"line": 1226,
-																	"character": 13
+																	"fileName": "chains/ethereum/utils/lib/src/types/debug-storage.d.ts",
+																	"line": 8,
+																	"character": 11
 																}
 															],
 															"type": {
 																"type": "union",
 																"types": [
 																	{
-																		"type": "intrinsic",
-																		"name": "null"
+																		"type": "reference",
+																		"name": "Data"
 																	},
 																	{
 																		"type": "intrinsic",
-																		"name": "string"
+																		"name": "null"
 																	}
 																]
 															}
@@ -1240,14 +1240,14 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																	"line": 1227,
-																	"character": 13
+																	"fileName": "chains/ethereum/utils/lib/src/types/debug-storage.d.ts",
+																	"line": 9,
+																	"character": 11
 																}
 															],
 															"type": {
-																"type": "intrinsic",
-																"name": "any"
+																"type": "reference",
+																"name": "StorageRecords"
 															}
 														}
 													],
