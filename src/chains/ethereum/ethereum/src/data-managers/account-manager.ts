@@ -1,8 +1,5 @@
-import { KECCAK256_NULL } from "ethereumjs-util";
-import { Account, EthereumRawAccount, Tag } from "@ganache/ethereum-utils";
-import { utils, Quantity, Data } from "@ganache/utils";
-import { Address } from "@ganache/ethereum-address";
-import { decode } from "@ganache/rlp";
+import { Account, Address, QUANTITY, Tag } from "@ganache/ethereum-utils";
+import Trie from "merkle-patricia-tree/baseTrie";
 import Blockchain from "../blockchain";
 
 const { RPCQUANTITY_ZERO, BUFFER_EMPTY } = utils;
@@ -25,38 +22,22 @@ export default class AccountManager {
 
   public async getRaw(
     address: Address,
-    blockNumber: string | Buffer | Tag = Tag.LATEST
-  ): Promise<Buffer | null> {
-    const { trie, blocks } = this.#blockchain;
-
-    // get the block, its state root, and the trie at that state root
-    const { stateRoot, number } = (await blocks.get(blockNumber)).header;
-    const trieCopy = trie.copy(false);
-    trieCopy.setContext(stateRoot.toBuffer(), null, number);
-
-    // get the account from the trie
-    return await trieCopy.get(address.toBuffer());
-  }
-
-  public async getStorageAt(
-    address: Address,
-    key: Buffer,
-    blockNumber: Buffer | Tag = Tag.LATEST
-  ) {
-    const { trie, blocks } = this.#blockchain;
-
-    // get the block, its state root, and the trie at that state root
-    const { stateRoot, number } = (await blocks.get(blockNumber)).header;
-    const trieCopy = trie.copy(false);
-    trieCopy.setContext(stateRoot.toBuffer(), address.toBuffer(), number);
-
-    // get the account from the trie
-    return await trieCopy.get(key);
+    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+  ): Promise<Buffer> {
+    const blockchain = this.#blockchain;
+    const block = await blockchain.blocks.get(blockNumber);
+    const trieCopy = new Trie(this.#trie, block.header.stateRoot.toBuffer());
+    return new Promise((resolve, reject) => {
+      trieCopy.get(keccak(address.toBuffer()), (err: Error, data: Buffer) => {
+        if (err) return reject(err);
+        resolve(data);
+      });
+    });
   }
 
   public async getNonce(
     address: Address,
-    blockNumber: Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
   ): Promise<Quantity> {
     const data = await this.getRaw(address, blockNumber);
 
@@ -68,7 +49,7 @@ export default class AccountManager {
 
   public async getBalance(
     address: Address,
-    blockNumber: Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
   ): Promise<Quantity> {
     const data = await this.getRaw(address, blockNumber);
 
