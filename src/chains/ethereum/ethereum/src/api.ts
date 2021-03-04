@@ -16,8 +16,8 @@ import {
   StorageRangeResult,
   SubscriptionId,
   SubscriptionName,
-  TraceTransactionResult,
-  TransactionTraceOptions
+  DATA,
+  QUANTITY
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
@@ -304,10 +304,10 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(3, 4)
   async evm_setStorageAt(
-    address: string,
-    position: bigint | number,
-    storage: string,
-    blockNumber: string | Buffer | Tag = Tag.LATEST
+    address: DATA,
+    position: QUANTITY,
+    storage: DATA,
+    blockNumber: QUANTITY | Tag = Tag.LATEST
   ) {
     const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
 
@@ -427,7 +427,7 @@ export default class EthereumApi implements types.Api {
    * new blocks to appear to be mined before old blocks. This is will result in
    * an invalid state.
    *
-   * @param timestamp `QUANTITY | Date | number` - JavaScript timestamp (millisecond precision).
+   * @param timestamp `QUANTITY | Date` - JavaScript timestamp (millisecond precision).
    * @returns The amount of *seconds* between the given timestamp and now.
    * @example
    * ```javascript
@@ -1805,9 +1805,12 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: DATA) {
-    const blockchain = this.#blockchain;
-    const tx = TransactionFactory.fromString(transaction, blockchain.common);
-    return blockchain.queueTransaction(tx);
+    const tx = new Transaction(
+      transaction,
+      this.#common,
+      Transaction.types.signed
+    );
+    return this.#blockchain.queueTransaction(tx);
   }
 
   /**
@@ -1821,7 +1824,7 @@ export default class EthereumApi implements types.Api {
    * Note the address to sign with must be unlocked.
    *
    * @param account `DATA`, 20 Bytes - Address to sign with.
-   * @param data `DATA` - Message to sign.
+   * @param message `DATA` - Message to sign.
    * @returns Signature - a hex encoded 129 byte array
    * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
    * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
@@ -2079,8 +2082,8 @@ export default class EthereumApi implements types.Api {
    * Cancel a subscription to a particular event. Returns a boolean indicating
    * if the subscription was successfully cancelled.
    *
-   * @param {String} subscriptionName `String` - A name for the subscription.
-   * @returns {QUANTITY} A subscription id.
+   * @param subscriptionId `String` - The ID of the subscription to unsubscribe to.
+   * @returns `true` if subscription was cancelled successfully, otherwise `false`.
    * @example
    * ```javascript
    * const result = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
@@ -2567,7 +2570,7 @@ export default class EthereumApi implements types.Api {
     contractAddress: DATA,
     keyStart: DATA,
     maxResult: QUANTITY
-  ): Promise<StorageRangeResult> {
+  ) {
     return this.#blockchain.storageRangeAt(
       blockHash,
       Quantity.from(transactionIndex).toNumber(),
