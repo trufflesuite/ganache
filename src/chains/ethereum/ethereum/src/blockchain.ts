@@ -77,9 +77,9 @@ export enum Status {
 type BlockchainTypedEvents = {
   block: Block;
   blockLogs: BlockLogs;
-  pendingTransaction: TypedTransaction;
+  pendingTransaction: Transaction;
 };
-type BlockchainEvents = "ready" | "stop";
+type BlockchainEvents = "start" | "stop";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;

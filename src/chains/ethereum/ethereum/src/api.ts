@@ -16,7 +16,9 @@ import {
   RangeFilterArgs,
   StorageRangeResult,
   SubscriptionId,
-  SubscriptionName
+  SubscriptionName,
+  TraceTransactionResult,
+  TransactionTraceOptions
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
