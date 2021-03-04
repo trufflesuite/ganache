@@ -2650,7 +2650,7 @@ export default class EthereumApi implements types.Api {
    * return storage data given a starting key and max number of entries to return.
    *
    * @param blockHash Hash of a block.
-   * @param txIndex Integer of the transaction index position.
+   * @param transactionIndex Integer of the transaction index position.
    * @param contractAddress Address of the contract.
    * @param startKey Hash of the start key for grabbing storage entries.
    * @param maxResult Integer of maximum number of storage entries to return.
@@ -2691,14 +2691,14 @@ export default class EthereumApi implements types.Api {
     blockHash: DATA,
     transactionIndex: QUANTITY,
     contractAddress: DATA,
-    keyStart: DATA,
+    startKey: DATA,
     maxResult: QUANTITY
   ) {
     return this.#blockchain.storageRangeAt(
       blockHash,
       Quantity.from(transactionIndex).toNumber(),
       contractAddress,
-      keyStart,
+      startKey,
       Quantity.from(maxResult).toNumber()
     );
   }

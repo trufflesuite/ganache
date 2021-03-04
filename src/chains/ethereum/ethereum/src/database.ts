@@ -49,7 +49,10 @@ export default class Database extends Emittery {
   }
 
   #initialize = async () => {
-    const levelupOptions: any = { valueEncoding: "binary" };
+    const levelupOptions: any = {
+      keyEncoding: "binary",
+      valueEncoding: "binary"
+    };
     const store = this.#options.db;
     let db: levelup.LevelUp;
     if (store) {

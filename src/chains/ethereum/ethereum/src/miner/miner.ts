@@ -7,7 +7,8 @@ import {
   RETURN_TYPES,
   Executables,
   TraceDataFactory,
-  StepEvent
+  StepEvent,
+  StorageKeys
 } from "@ganache/ethereum-utils";
 import { utils, Quantity, Data } from "@ganache/utils";
 import { promisify } from "util";
@@ -39,7 +40,7 @@ export default class Miner extends Emittery.Typed<
     block: {
       block: Block;
       serialized: Buffer;
-      storageKeys: Map<string, Buffer>;
+      storageKeys: StorageKeys;
     };
   },
   "idle"
@@ -179,7 +180,7 @@ export default class Miner extends Emittery.Typed<
     let keepMining = true;
     const priced = this.#priced;
     const legacyInstamine = this.#options.legacyInstamine;
-    const storageKeys = new Map<string, Buffer>();
+    const storageKeys: StorageKeys = new Map();
     let blockTransactions: Transaction[];
     do {
       keepMining = false;
@@ -231,9 +232,9 @@ export default class Miner extends Emittery.Typed<
         if (event.opcode.name === "SSTORE") {
           const key = TraceData.from(
             event.stack[event.stack.length - 1].toArrayLike(Buffer)
-          );
-          const hashedKey = Data.from(keccak(key.toBuffer())).toString();
-          storageKeys.set(hashedKey, key.toBuffer());
+          ).toBuffer();
+          const hashedKey = keccak(key);
+          storageKeys.set(hashedKey.toString(), { key, hashedKey });
         }
         next();
       };
