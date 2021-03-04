@@ -15,7 +15,8 @@ import {
   StorageRangeResult,
   StorageRecords,
   RangedStorageKeys,
-  EthereumRawAccount
+  StructLog,
+  TransactionTraceOptions
 } from "@ganache/ethereum-utils";
 import { decode } from "@ganache/rlp";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
@@ -78,24 +79,6 @@ type BlockchainTypedEvents = {
   pendingTransaction: RuntimeTransaction;
 };
 type BlockchainEvents = "ready" | "stop";
-
-export type TransactionTraceOptions = {
-  disableStorage?: boolean;
-  disableMemory?: boolean;
-  disableStack?: boolean;
-};
-
-export type StructLog = {
-  depth: number;
-  error: string;
-  gas: number;
-  gasCost: number;
-  memory: Array<ITraceData>;
-  op: string;
-  pc: number;
-  stack: Array<ITraceData>;
-  storage: TraceStorageMap;
-};
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
