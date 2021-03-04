@@ -1,5 +1,5 @@
 import Manager from "./manager";
-import { Tag, Block } from "@ganache/ethereum-utils";
+import { Tag, Block, QUANTITY } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
 import Common from "ethereumjs-common";
@@ -65,7 +65,7 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST) {
+  getEffectiveNumber(tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST) {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {
@@ -87,19 +87,19 @@ export default class BlockManager extends Manager<Block> {
     return number ? super.get(number) : null;
   }
 
-  async getRaw(tagOrBlockNumber: string | Buffer | Tag) {
+  async getRaw(tagOrBlockNumber: QUANTITY | Buffer | Tag) {
     // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
     // we don't have to fetch them from the db each time a block tag is used.
     return super.getRaw(this.getEffectiveNumber(tagOrBlockNumber).toBuffer());
   }
 
-  async get(tagOrBlockNumber: string | Buffer | Tag) {
+  async get(tagOrBlockNumber: QUANTITY | Buffer | Tag) {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) return block;
     }
 
-    const block = await super.get(tagOrBlockNumber);
+    const block = await super.get(Quantity.from(tagOrBlockNumber).toBuffer());
     if (block) return block;
 
     throw new Error("header not found");

@@ -1216,10 +1216,10 @@ export default class Blockchain extends Emittery.Typed<
    * @param maxResult
    */
   public async storageRangeAt(
-    blockHash: string | Buffer,
+    blockHash: string,
     txIndex: number,
     contractAddress: string,
-    startKey: string | Buffer,
+    startKey: string,
     maxResult: number
   ) {
     type StorageRangeResult = {
@@ -1237,7 +1237,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // get transaction using txIndex
     const transactions = targetBlock.getTransactions();
-    const transaction = transactions[Quantity.from(txIndex).toNumber()];
+    const transaction = transactions[txIndex];
     if (!transaction) {
       throw new Error(
         `transaction index ${txIndex} is out of range for block ${blockHash}`

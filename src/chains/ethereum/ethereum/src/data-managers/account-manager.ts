@@ -1,4 +1,4 @@
-import { Account, Address, Tag } from "@ganache/ethereum-utils";
+import { Account, Address, QUANTITY, Tag } from "@ganache/ethereum-utils";
 import Trie from "merkle-patricia-tree/baseTrie";
 import Blockchain from "../blockchain";
 import { LevelUp } from "levelup";
@@ -17,7 +17,7 @@ export default class AccountManager {
 
   public async getRaw(
     address: Address,
-    blockNumber: Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
   ): Promise<Buffer> {
     const blockchain = this.#blockchain;
     const block = await blockchain.blocks.get(blockNumber);
@@ -32,7 +32,7 @@ export default class AccountManager {
 
   public async getNonce(
     address: Address,
-    blockNumber: Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
   ): Promise<Quantity> {
     return this.getRaw(address, blockNumber).then(data => {
       if (data) {
@@ -46,7 +46,7 @@ export default class AccountManager {
 
   public async getBalance(
     address: Address,
-    blockNumber: Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
   ): Promise<Quantity> {
     return this.getRaw(address, blockNumber).then(data => {
       if (data) {
