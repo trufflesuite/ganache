@@ -1121,7 +1121,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - Hash of a block."
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "reference",
@@ -1150,7 +1150,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 20 Bytes - Address of the contract."
+												"text": "Address of the contract."
 											},
 											"type": {
 												"type": "reference",
@@ -1179,7 +1179,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - Integer of maximum number of storage entries to return."
+												"text": "Integer of maximum number of storage entries to return."
 											},
 											"type": {
 												"type": "reference",
@@ -1314,7 +1314,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - Hash of the transaction to trace."
+												"text": "Hash of the transaction to trace."
 											},
 											"type": {
 												"type": "reference",
@@ -1850,7 +1850,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
 											},
 											"type": {
 												"type": "union",
@@ -2077,7 +2077,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
 											},
 											"type": {
 												"type": "union",
@@ -2224,7 +2224,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 20 Bytes - Address to check for balance."
+												"text": "Address to check for balance."
 											},
 											"type": {
 												"type": "reference",
@@ -2240,7 +2240,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
 											},
 											"type": {
 												"type": "union",
@@ -2328,7 +2328,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - Hash of a block."
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "reference",
@@ -2423,7 +2423,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - Integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
+												"text": "Integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
 											},
 											"type": {
 												"type": "union",
@@ -2526,7 +2526,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - Hash of a block."
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "reference",
@@ -2603,7 +2603,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - Integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
+												"text": "Integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
 											},
 											"type": {
 												"type": "union",
@@ -2690,7 +2690,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 20 Bytes - Address."
+												"text": "Address."
 											},
 											"type": {
 												"type": "reference",
@@ -2706,7 +2706,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - Integer block number, or the string \"latest\", \"earliest\" or \"pending\"."
+												"text": "Integer block number, or the string \"latest\", \"earliest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -2855,7 +2855,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - The filter id."
+												"text": "The filter id."
 											},
 											"type": {
 												"type": "reference",
@@ -2935,7 +2935,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - The filter id."
+												"text": "The filter id."
 											},
 											"type": {
 												"type": "reference",
@@ -3559,7 +3559,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 20 Bytes - Address of the storage."
+												"text": "Address of the storage."
 											},
 											"type": {
 												"type": "reference",
@@ -3575,7 +3575,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - Integer of the position in the storage."
+												"text": "Integer of the position in the storage."
 											},
 											"type": {
 												"type": "reference",
@@ -3591,7 +3591,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\"."
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -3678,7 +3678,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - Hash of a block."
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "reference",
@@ -3694,7 +3694,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - Integer of the transaction index position."
+												"text": "Integer of the transaction index position."
 											},
 											"type": {
 												"type": "reference",
@@ -3771,7 +3771,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - A block number, or the string \"earliest\", \"latest\" or \"pending\"."
+												"text": "A block number, or the string \"earliest\", \"latest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -3796,7 +3796,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - Integer of the transaction index position."
+												"text": "Integer of the transaction index position."
 											},
 											"type": {
 												"type": "reference",
@@ -3873,7 +3873,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - Hash of a transaction."
+												"text": "Hash of a transaction."
 											},
 											"type": {
 												"type": "reference",
@@ -4279,7 +4279,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\"."
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -4367,7 +4367,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - Hash of a transaction."
+												"text": "Hash of a transaction."
 											},
 											"type": {
 												"type": "reference",
@@ -4955,7 +4955,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - Hash of a block."
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "reference",
@@ -4971,7 +4971,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - The uncle's index position."
+												"text": "The uncle's index position."
 											},
 											"type": {
 												"type": "reference",
@@ -5048,7 +5048,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY | TAG` - A block number, or the string \"earliest\", \"latest\" or \"pending\"."
+												"text": "A block number, or the string \"earliest\", \"latest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -5073,7 +5073,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - The uncle's index position."
+												"text": "The uncle's index position."
 											},
 											"type": {
 												"type": "reference",
@@ -5150,7 +5150,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - Hash of a block."
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "reference",
@@ -5310,7 +5310,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - A filter id."
+												"text": "A filter id."
 											},
 											"type": {
 												"type": "reference",
@@ -5783,7 +5783,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA` - The signed transaction data."
+												"text": "The signed transaction data."
 											},
 											"type": {
 												"type": "reference",
@@ -5938,6 +5938,9 @@
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "Address to sign with."
+											},
 											"type": {
 												"type": "reference",
 												"name": "DATA"
@@ -5952,7 +5955,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA` - Message to sign."
+												"text": "Message to sign."
 											},
 											"type": {
 												"type": "reference",
@@ -6032,7 +6035,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 20 Bytes - Address of the account that will sign the messages."
+												"text": "Address of the account that will sign the messages."
 											},
 											"type": {
 												"type": "reference",
@@ -6126,7 +6129,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - A hexadecimal string representation (32 bytes) of the hash rate."
+												"text": "A hexadecimal string representation (32 bytes) of the hash rate."
 											},
 											"type": {
 												"type": "reference",
@@ -6142,7 +6145,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - A random hexadecimal(32 bytes) ID identifying the client."
+												"text": "A random hexadecimal(32 bytes) ID identifying the client."
 											},
 											"type": {
 												"type": "reference",
@@ -6219,7 +6222,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 8 Bytes - The nonce found (64 bits)."
+												"text": "The nonce found (64 bits)."
 											},
 											"type": {
 												"type": "reference",
@@ -6235,7 +6238,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - The header's pow-hash (256 bits)."
+												"text": "The header's pow-hash (256 bits)."
 											},
 											"type": {
 												"type": "reference",
@@ -6251,7 +6254,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`DATA`, 32 Bytes - The mix digest (256 bits)."
+												"text": "The mix digest (256 bits)."
 											},
 											"type": {
 												"type": "reference",
@@ -6311,7 +6314,7 @@
 									},
 									"comment": {
 										"shortText": "Starts a subscription to a particular event. For every event that matches\nthe subscription a JSON-RPC notification with event details and\nsubscription ID will be sent to a client.",
-										"returns": "-A subscription id.",
+										"returns": "A subscription id.",
 										"tags": [
 											{
 												"tag": "example",
@@ -6329,7 +6332,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`String` - Name for the subscription."
+												"text": "Name for the subscription."
 											},
 											"type": {
 												"type": "reference",
@@ -6536,7 +6539,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`QUANTITY` - The filter id."
+												"text": "The filter id."
 											},
 											"type": {
 												"type": "reference",
@@ -6613,7 +6616,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "`String` - The ID of the subscription to unsubscribe to."
+												"text": "The ID of the subscription to unsubscribe to."
 											},
 											"type": {
 												"type": "reference",
@@ -7334,6 +7337,9 @@
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
+											},
+											"comment": {
+												"text": "JavaScript timestamp (millisecond precision)."
 											},
 											"type": {
 												"type": "union",
@@ -8816,6 +8822,9 @@
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "The identity address to add to a group."
+											},
 											"type": {
 												"type": "reference",
 												"name": "DATA"
@@ -8917,7 +8926,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3025,
+									"line": 3024,
 									"character": 28
 								}
 							]
@@ -8994,7 +9003,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3040,
+									"line": 3039,
 									"character": 23
 								}
 							]
@@ -9125,7 +9134,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "-\n^(optional) Identity of the receiver. When present it will try to decrypt any incoming message\n if the client holds the private key to this identity."
+												"text": "(optional) Identity of the receiver. When present it will try to decrypt any incoming message\n if the client holds the private key to this identity."
 											},
 											"type": {
 												"type": "reference",
@@ -9141,7 +9150,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "Array of DATA topics which the incoming message's topics should match."
+												"text": "Array of topics which the incoming message's topics should match."
 											},
 											"type": {
 												"type": "array",
@@ -9167,7 +9176,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2994,
+									"line": 2993,
 									"character": 21
 								}
 							]
@@ -9354,7 +9363,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3055,
+									"line": 3054,
 									"character": 16
 								}
 							]
@@ -9431,7 +9440,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3010,
+									"line": 3009,
 									"character": 27
 								}
 							]
@@ -9490,7 +9499,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3069,
+									"line": 3068,
 									"character": 19
 								}
 							]
