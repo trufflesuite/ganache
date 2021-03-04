@@ -21,7 +21,9 @@ import {
   StorageKeys,
   StorageRangeResult,
   StorageRecords,
-  RangedStorageKeys
+  RangedStorageKeys,
+  StructLog,
+  TransactionTraceOptions
 } from "@ganache/ethereum-utils";
 import TransactionManager from "./data-managers/transaction-manager";
 import SecureTrie from "merkle-patricia-tree/secure";
@@ -92,24 +94,6 @@ type BlockchainTypedEvents = {
   pendingTransaction: Transaction;
 };
 type BlockchainEvents = "start" | "stop";
-
-export type TransactionTraceOptions = {
-  disableStorage?: boolean;
-  disableMemory?: boolean;
-  disableStack?: boolean;
-};
-
-export type StructLog = {
-  depth: number;
-  error: string;
-  gas: number;
-  gasCost: number;
-  memory: Array<ITraceData>;
-  op: string;
-  pc: number;
-  stack: Array<ITraceData>;
-  storage: TraceStorageMap;
-};
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;

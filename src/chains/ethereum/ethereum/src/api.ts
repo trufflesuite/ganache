@@ -21,7 +21,9 @@ import {
   RangeFilterArgs,
   StorageRangeResult,
   SubscriptionId,
-  SubscriptionName
+  SubscriptionName,
+  TraceTransactionResult,
+  TransactionTraceOptions
 } from "@ganache/ethereum-utils";
 import {
   toRpcSig,
@@ -32,7 +34,7 @@ import {
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { types, Data, Quantity, PromiEvent, utils } from "@ganache/utils";
-import Blockchain, { TransactionTraceOptions } from "./blockchain";
+import Blockchain from "./blockchain";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
@@ -2641,7 +2643,7 @@ export default class EthereumApi implements types.Api {
   async debug_traceTransaction(
     transactionHash: DATA,
     options?: TransactionTraceOptions
-  ) {
+  ): Promise<TraceTransactionResult> {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
