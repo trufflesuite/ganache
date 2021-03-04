@@ -24,7 +24,8 @@
     "directory": "src/chains/tezos/tezos"
   },
   "scripts": {
-    "tsc": "ttsc --build",
+    "tsc": "ttsc --build && npm run copyassets",
+    "copyassets": "shx cp -r src/assets/ lib/src/assets/",
     "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
@@ -57,6 +58,7 @@
     "@trufflesuite/typedoc-default-themes": "0.6.1",
     "cheerio": "1.0.0-rc.3",
     "local-web-server": "4.2.1",
+    "shx": "0.3.3",
     "typedoc": "0.17.8",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
   }

@@ -1792,6 +1792,16 @@
 				"rechoir": "^0.6.2"
 			}
 		},
+		"shx": {
+			"version": "0.3.3",
+			"resolved": "https://registry.npmjs.org/shx/-/shx-0.3.3.tgz",
+			"integrity": "sha512-nZJ3HFWVoTSyyB+evEKjJ1STiixGztlqwKLTUNV5KqMWtGey9fTd4KU1gdZ1X9BV6215pswQ/Jew9NsuS/fNDA==",
+			"dev": true,
+			"requires": {
+				"minimist": "^1.2.3",
+				"shelljs": "^0.8.4"
+			}
+		},
 		"source-map": {
 			"version": "0.6.1",
 			"resolved": "https://registry.npmjs.org/source-map/-/source-map-0.6.1.tgz",

@@ -51,6 +51,7 @@ export type WalletConfig = {
     defaultBalance: {
       type: number;
       hasDefault: true;
+    };
   };
   exclusiveGroups: [["totalAccounts"], ["seed"]];
 };
@@ -60,7 +61,6 @@ export const WalletOptions: Definitions<WalletConfig> = {
     normalize,
     cliDescription: "Number of accounts to generate at startup.",
     default: () => 10,
-    legacyName: "total_accounts",
     cliAliases: ["a", "accounts"],
     cliType: "number"
   },
@@ -73,7 +73,6 @@ export const WalletOptions: Definitions<WalletConfig> = {
     default: () => randomAlphaNumericString(10, alea()),
     defaultDescription:
       "Random value, unless wallet.deterministic is specified",
-    legacyName: "seed",
     cliAliases: ["s", "seed"],
     cliType: "string"
   },
@@ -81,7 +80,6 @@ export const WalletOptions: Definitions<WalletConfig> = {
     normalize,
     cliDescription: "The default account balance, specified in tezos.",
     default: () => 100,
-    legacyName: "default_balance_tezos",
     cliAliases: ["e", "defaultBalanceTezos"],
     cliType: "number"
   }
