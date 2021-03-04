@@ -96,7 +96,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 152,
+											"line": 154,
 											"character": 27
 										}
 									]
@@ -189,7 +189,7 @@
 																	"sources": [
 																		{
 																			"fileName": "chains/ethereum/ethereum/src/api.ts",
-																			"line": 172,
+																			"line": 174,
 																			"character": 37
 																		}
 																	],
@@ -211,7 +211,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 172,
+																	"line": 174,
 																	"character": 28
 																}
 															]
@@ -245,7 +245,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 160,
+									"line": 162,
 									"character": 27
 								}
 							]
@@ -263,7 +263,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 158,
+									"line": 160,
 									"character": 22
 								}
 							],
@@ -285,7 +285,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 155,
+									"line": 157,
 									"character": 18
 								}
 							],
@@ -307,7 +307,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 156,
+									"line": 158,
 									"character": 19
 								}
 							],
@@ -445,7 +445,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 154,
+									"line": 156,
 									"character": 17
 								}
 							],
@@ -468,7 +468,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 159,
+									"line": 161,
 									"character": 19
 								}
 							],
@@ -490,7 +490,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 157,
+									"line": 159,
 									"character": 25
 								}
 							],
@@ -546,7 +546,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 160,
+									"line": 162,
 									"character": 18
 								}
 							],
@@ -612,7 +612,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 276,
+									"line": 278,
 									"character": 16
 								}
 							]
@@ -674,7 +674,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 289,
+									"line": 291,
 									"character": 16
 								}
 							]
@@ -767,7 +767,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 261,
+									"line": 263,
 									"character": 17
 								}
 							]
@@ -860,7 +860,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 228,
+									"line": 230,
 									"character": 20
 								}
 							]
@@ -949,8 +949,8 @@
 												"text": "Data to store."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -969,7 +969,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 245,
+									"line": 247,
 									"character": 17
 								}
 							]
@@ -1078,7 +1078,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 212,
+									"line": 214,
 									"character": 20
 								}
 							]
@@ -1123,17 +1123,8 @@
 												"text": "`DATA`, 32 Bytes - Hash of a block."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -1145,8 +1136,8 @@
 												"isExported": true
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "number"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										},
 										{
@@ -1161,8 +1152,8 @@
 												"text": "`DATA`, 20 Bytes - Address of the contract."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -1174,17 +1165,8 @@
 												"isExported": true
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -1199,8 +1181,8 @@
 												"text": "`QUANTITY` - Integer of maximum number of storage entries to return."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "number"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -1288,7 +1270,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2691,
+									"line": 2690,
 									"character": 28
 								}
 							]
@@ -1334,8 +1316,8 @@
 												"text": "`DATA`, 32 Bytes - Hash of the transaction to trace."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -1674,7 +1656,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2641,
+									"line": 2640,
 									"character": 30
 								}
 							]
@@ -1736,7 +1718,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1459,
+									"line": 1460,
 									"character": 20
 								}
 							]
@@ -1795,7 +1777,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1473,
+									"line": 1474,
 									"character": 23
 								}
 							]
@@ -1873,12 +1855,8 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -1904,7 +1882,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2527,
+									"line": 2529,
 									"character": 16
 								}
 							]
@@ -1967,7 +1945,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1490,
+									"line": 1491,
 									"character": 19
 								}
 							]
@@ -2026,7 +2004,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 972,
+									"line": 974,
 									"character": 20
 								}
 							]
@@ -2105,15 +2083,11 @@
 												"types": [
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
 														"name": "Tag"
-													},
-													{
-														"type": "intrinsic",
-														"name": "string"
 													}
 												]
 											},
@@ -2135,7 +2109,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 871,
+									"line": 873,
 									"character": 23
 								}
 							]
@@ -2194,7 +2168,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1445,
+									"line": 1446,
 									"character": 20
 								}
 							]
@@ -2252,8 +2226,8 @@
 												"text": "`DATA`, 20 Bytes - Address to check for balance."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -2272,7 +2246,7 @@
 												"types": [
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -2298,7 +2272,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1510,
+									"line": 1511,
 									"character": 22
 								}
 							]
@@ -2356,17 +2330,8 @@
 												"text": "`DATA`, 32 Bytes - Hash of a block."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -2402,7 +2367,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1068,
+									"line": 1070,
 									"character": 26
 								}
 							]
@@ -2463,12 +2428,12 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "Tag"
 													}
 												]
 											}
@@ -2506,7 +2471,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1012,
+									"line": 1014,
 									"character": 28
 								}
 							]
@@ -2563,17 +2528,8 @@
 												"text": "`DATA`, 32 Bytes - Hash of a block."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -2592,7 +2548,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1124,
+									"line": 1126,
 									"character": 42
 								}
 							]
@@ -2652,12 +2608,12 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "Tag"
 													}
 												]
 											}
@@ -2678,7 +2634,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1087,
+									"line": 1089,
 									"character": 44
 								}
 							]
@@ -2737,7 +2693,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"name": "Buffer"
+												"name": "DATA"
 											}
 										},
 										{
@@ -2756,7 +2712,7 @@
 												"types": [
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -2782,7 +2738,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1549,
+									"line": 1550,
 									"character": 19
 								}
 							]
@@ -2844,7 +2800,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1143,
+									"line": 1147,
 									"character": 24
 								}
 							]
@@ -2901,8 +2857,8 @@
 												"text": "`QUANTITY` - The filter id."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -2924,7 +2880,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2335,
+									"line": 2336,
 									"character": 28
 								}
 							]
@@ -2981,8 +2937,8 @@
 												"text": "`QUANTITY` - The filter id."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -3235,7 +3191,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2382,
+									"line": 2384,
 									"character": 25
 								}
 							]
@@ -3547,7 +3503,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2414,
+									"line": 2416,
 									"character": 19
 								}
 							]
@@ -3605,8 +3561,8 @@
 												"text": "`DATA`, 20 Bytes - Address of the storage."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -3621,17 +3577,8 @@
 												"text": "`QUANTITY` - Integer of the position in the storage."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "bigint"
-													},
-													{
-														"type": "intrinsic",
-														"name": "number"
-													}
-												]
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										},
 										{
@@ -3649,12 +3596,8 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -3680,7 +3623,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1621,
+									"line": 1622,
 									"character": 24
 								}
 							]
@@ -3737,17 +3680,8 @@
 												"text": "`DATA`, 32 Bytes - Hash of a block."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -3762,8 +3696,8 @@
 												"text": "`QUANTITY` - Integer of the transaction index position."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -3782,7 +3716,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1181,
+									"line": 1185,
 									"character": 45
 								}
 							]
@@ -3842,12 +3776,12 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "Tag"
 													}
 												]
 											}
@@ -3864,8 +3798,8 @@
 												"text": "`QUANTITY` - Integer of the transaction index position."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -3884,7 +3818,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1227,
+									"line": 1228,
 									"character": 47
 								}
 							]
@@ -3941,8 +3875,8 @@
 												"text": "`DATA`, 32 Bytes - Hash of a transaction."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -4273,7 +4207,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1707,
+									"line": 1708,
 									"character": 32
 								}
 							]
@@ -4331,8 +4265,8 @@
 												"text": "`DATA`, 20 Bytes - The address to get number of transactions sent from"
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -4351,7 +4285,7 @@
 												"types": [
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -4377,7 +4311,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2481,
+									"line": 2483,
 									"character": 31
 								}
 							]
@@ -4435,8 +4369,8 @@
 												"text": "`DATA`, 32 Bytes - Hash of a transaction."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -4966,7 +4900,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1744,
+									"line": 1745,
 									"character": 33
 								}
 							]
@@ -5024,7 +4958,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"name": "Data"
+												"name": "DATA"
 											}
 										},
 										{
@@ -5040,7 +4974,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"name": "Quantity"
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -5059,7 +4993,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1302,
+									"line": 1303,
 									"character": 39
 								}
 							]
@@ -5120,7 +5054,7 @@
 												"types": [
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -5142,7 +5076,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"name": "Quantity"
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -5161,7 +5095,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1341,
+									"line": 1342,
 									"character": 41
 								}
 							]
@@ -5218,17 +5152,8 @@
 												"text": "`DATA`, 32 Bytes - Hash of a block."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -5247,7 +5172,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1247,
+									"line": 1248,
 									"character": 36
 								}
 							]
@@ -5304,12 +5229,12 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "Tag"
 													}
 												]
 											}
@@ -5330,7 +5255,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1262,
+									"line": 1263,
 									"character": 38
 								}
 							]
@@ -5388,7 +5313,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"name": "Quantity"
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -5428,7 +5353,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1362,
+									"line": 1363,
 									"character": 19
 								}
 							]
@@ -5487,7 +5412,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1431,
+									"line": 1432,
 									"character": 20
 								}
 							]
@@ -5546,7 +5471,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1416,
+									"line": 1417,
 									"character": 18
 								}
 							]
@@ -5605,7 +5530,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2197,
+									"line": 2198,
 									"character": 26
 								}
 							]
@@ -5685,7 +5610,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2283,
+									"line": 2284,
 									"character": 21
 								}
 							]
@@ -5744,7 +5669,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2224,
+									"line": 2225,
 									"character": 39
 								}
 							]
@@ -5803,7 +5728,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 937,
+									"line": 939,
 									"character": 27
 								}
 							]
@@ -5860,8 +5785,8 @@
 												"text": "`DATA` - The signed transaction data."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -5880,7 +5805,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1886,
+									"line": 1887,
 									"character": 30
 								}
 							]
@@ -5958,7 +5883,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1805,
+									"line": 1806,
 									"character": 27
 								}
 							]
@@ -6013,17 +5938,8 @@
 												"isExported": true
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -6034,18 +5950,12 @@
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "`DATA` - Message to sign."
+											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -6064,7 +5974,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1922,
+									"line": 1923,
 									"character": 16
 								}
 							]
@@ -6124,17 +6034,8 @@
 												"text": "`DATA`, 20 Bytes - Address of the account that will sign the messages."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -6170,7 +6071,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1992,
+									"line": 1993,
 									"character": 25
 								}
 							]
@@ -6227,8 +6128,8 @@
 												"text": "`DATA`, 32 Bytes - A hexadecimal string representation (32 bytes) of the hash rate."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -6243,8 +6144,8 @@
 												"text": "`DATA`, 32 Bytes - A random hexadecimal(32 bytes) ID identifying the client."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -6263,7 +6164,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1402,
+									"line": 1403,
 									"character": 26
 								}
 							]
@@ -6321,7 +6222,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"name": "Data"
+												"name": "DATA"
 											}
 										},
 										{
@@ -6337,7 +6238,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"name": "Data"
+												"name": "DATA"
 											}
 										},
 										{
@@ -6353,7 +6254,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"name": "Data"
+												"name": "DATA"
 											}
 										}
 									],
@@ -6372,7 +6273,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1383,
+									"line": 1384,
 									"character": 22
 								}
 							]
@@ -6505,17 +6406,17 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2036,
+									"line": 2037,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2049,
+									"line": 2050,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2054,
+									"line": 2055,
 									"character": 15
 								}
 							]
@@ -6574,7 +6475,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 958,
+									"line": 960,
 									"character": 19
 								}
 							]
@@ -6631,8 +6532,8 @@
 												"text": "`QUANTITY` - The filter id."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -6651,7 +6552,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2361,
+									"line": 2362,
 									"character": 27
 								}
 							]
@@ -6687,7 +6588,7 @@
 									},
 									"comment": {
 										"shortText": "Cancel a subscription to a particular event. Returns a boolean indicating\nif the subscription was successfully cancelled.",
-										"returns": "A subscription id.",
+										"returns": "`true` if subscription was cancelled successfully, otherwise `false`.",
 										"tags": [
 											{
 												"tag": "example",
@@ -6703,6 +6604,9 @@
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
+											},
+											"comment": {
+												"text": "`String` - The ID of the subscription to unsubscribe to."
 											},
 											"type": {
 												"type": "reference",
@@ -6725,7 +6629,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2173,
+									"line": 2174,
 									"character": 23
 								}
 							]
@@ -6782,17 +6686,8 @@
 												"text": "Number of seconds to jump forward in time by. Must be greater than or equal to `0`."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "number"
-													},
-													{
-														"type": "intrinsic",
-														"name": "string"
-													}
-												]
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -6811,7 +6706,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 490,
+									"line": 492,
 									"character": 24
 								}
 							]
@@ -6857,8 +6752,8 @@
 												"text": "The address of the account to lock."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -6877,7 +6772,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 653,
+									"line": 655,
 									"character": 30
 								}
 							]
@@ -6994,7 +6889,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 319,
+																	"line": 321,
 																	"character": 10
 																}
 															],
@@ -7015,7 +6910,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 318,
+																	"line": 320,
 																	"character": 13
 																}
 															],
@@ -7038,7 +6933,7 @@
 													"sources": [
 														{
 															"fileName": "chains/ethereum/ethereum/src/api.ts",
-															"line": 317,
+															"line": 319,
 															"character": 26
 														}
 													]
@@ -7061,17 +6956,17 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 316,
+									"line": 318,
 									"character": 16
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 317,
+									"line": 319,
 									"character": 16
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 322,
+									"line": 324,
 									"character": 16
 								}
 							]
@@ -7128,17 +7023,8 @@
 												"text": "The snapshot id to revert."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "intrinsic",
-														"name": "number"
-													}
-												]
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -7157,7 +7043,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 570,
+									"line": 572,
 									"character": 18
 								}
 							]
@@ -7215,8 +7101,8 @@
 												"text": "The account address to update."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -7231,8 +7117,8 @@
 												"text": "The nonce value to be set."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -7251,7 +7137,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 448,
+									"line": 450,
 									"character": 27
 								}
 							]
@@ -7309,8 +7195,8 @@
 												"text": "Address to update storage for."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -7325,17 +7211,8 @@
 												"text": "Position to store the value in."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "bigint"
-													},
-													{
-														"type": "intrinsic",
-														"name": "number"
-													}
-												]
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										},
 										{
@@ -7350,8 +7227,8 @@
 												"text": "Value to be stored."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -7369,12 +7246,8 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -7400,7 +7273,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 371,
+									"line": 373,
 									"character": 24
 								}
 							]
@@ -7459,16 +7332,12 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
 														"name": "Date"
-													},
-													{
-														"type": "intrinsic",
-														"name": "number"
 													}
 												]
 											}
@@ -7489,7 +7358,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 517,
+									"line": 519,
 									"character": 19
 								}
 							]
@@ -7536,7 +7405,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 609,
+									"line": 611,
 									"character": 20
 								}
 							]
@@ -7582,8 +7451,8 @@
 												"text": "The address of the account to unlock."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -7619,7 +7488,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 632,
+									"line": 634,
 									"character": 32
 								}
 							]
@@ -7676,8 +7545,8 @@
 												"text": "The address where the mining rewards will go."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -7696,7 +7565,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 740,
+									"line": 742,
 									"character": 26
 								}
 							]
@@ -7753,8 +7622,8 @@
 												"text": "The `extraData` to include."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -7773,7 +7642,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 755,
+									"line": 757,
 									"character": 22
 								}
 							]
@@ -7830,8 +7699,8 @@
 												"text": "Minimal accepted gas price."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -7850,7 +7719,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 724,
+									"line": 726,
 									"character": 25
 								}
 							]
@@ -7930,7 +7799,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 682,
+									"line": 684,
 									"character": 19
 								}
 							]
@@ -7989,7 +7858,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 707,
+									"line": 709,
 									"character": 18
 								}
 							]
@@ -8048,7 +7917,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 821,
+									"line": 823,
 									"character": 21
 								}
 							]
@@ -8107,7 +7976,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 834,
+									"line": 836,
 									"character": 21
 								}
 							]
@@ -8166,7 +8035,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 808,
+									"line": 810,
 									"character": 19
 								}
 							]
@@ -8223,8 +8092,8 @@
 												"text": "The raw, unencrypted private key to import."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -8259,7 +8128,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2773,
+									"line": 2772,
 									"character": 29
 								}
 							]
@@ -8321,7 +8190,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2720,
+									"line": 2719,
 									"character": 29
 								}
 							]
@@ -8378,8 +8247,8 @@
 												"text": "The account address to be locked."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -8398,7 +8267,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2804,
+									"line": 2803,
 									"character": 28
 								}
 							]
@@ -8475,7 +8344,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2738,
+									"line": 2737,
 									"character": 27
 								}
 							]
@@ -8566,7 +8435,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2879,
+									"line": 2878,
 									"character": 32
 								}
 							]
@@ -8625,8 +8494,8 @@
 												"text": "The address of the account to unlock."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -8678,7 +8547,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2834,
+									"line": 2833,
 									"character": 30
 								}
 							]
@@ -8747,7 +8616,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 59,
+																	"line": 61,
 																	"character": 5
 																}
 															],
@@ -8768,7 +8637,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 63,
+																	"line": 65,
 																	"character": 5
 																}
 															],
@@ -8789,7 +8658,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 60,
+																	"line": 62,
 																	"character": 5
 																}
 															],
@@ -8810,7 +8679,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 64,
+																	"line": 66,
 																	"character": 10
 																}
 															],
@@ -8831,7 +8700,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 61,
+																	"line": 63,
 																	"character": 5
 																}
 															],
@@ -8852,7 +8721,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 62,
+																	"line": 64,
 																	"character": 6
 																}
 															],
@@ -8887,7 +8756,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2920,
+									"line": 2919,
 									"character": 19
 								}
 							]
@@ -8941,8 +8810,8 @@
 												"isExported": true
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -8961,7 +8830,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2977,
+									"line": 2976,
 									"character": 22
 								}
 							]
@@ -9018,8 +8887,8 @@
 												"text": "The filter id. Ex: \"0x7\""
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -9041,7 +8910,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3026,
+									"line": 3025,
 									"character": 28
 								}
 							]
@@ -9098,8 +8967,8 @@
 												"text": "The filter id. Ex: \"0x7\""
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -9118,7 +8987,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3041,
+									"line": 3040,
 									"character": 23
 								}
 							]
@@ -9175,8 +9044,8 @@
 												"text": "The identity address to check."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -9195,7 +9064,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2952,
+									"line": 2951,
 									"character": 23
 								}
 							]
@@ -9252,8 +9121,8 @@
 												"text": "-\n^(optional) Identity of the receiver. When present it will try to decrypt any incoming message\n if the client holds the private key to this identity."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -9270,8 +9139,8 @@
 											"type": {
 												"type": "array",
 												"elementType": {
-													"type": "intrinsic",
-													"name": "any"
+													"type": "reference",
+													"name": "DATA"
 												}
 											}
 										}
@@ -9291,7 +9160,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2995,
+									"line": 2994,
 									"character": 21
 								}
 							]
@@ -9344,7 +9213,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2962,
+									"line": 2961,
 									"character": 20
 								}
 							]
@@ -9403,7 +9272,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2937,
+									"line": 2936,
 									"character": 23
 								}
 							]
@@ -9478,7 +9347,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3056,
+									"line": 3055,
 									"character": 16
 								}
 							]
@@ -9535,8 +9404,8 @@
 												"text": "The filter id. Ex: \"0x7\""
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -9555,7 +9424,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3011,
+									"line": 3010,
 									"character": 27
 								}
 							]
@@ -9614,7 +9483,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3070,
+									"line": 3069,
 									"character": 19
 								}
 							]
@@ -9673,7 +9542,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 776,
+									"line": 778,
 									"character": 26
 								}
 							]
@@ -9730,8 +9599,8 @@
 												"text": "The data to convert into a SHA3 hash."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -9750,7 +9619,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 792,
+									"line": 794,
 									"character": 17
 								}
 							]
@@ -9875,7 +9744,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 151,
+							"line": 153,
 							"character": 32
 						}
 					],
@@ -9895,7 +9764,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 70,
+							"line": 72,
 							"character": 14
 						}
 					],
@@ -9948,7 +9817,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 56,
+							"line": 58,
 							"character": 20
 						}
 					],
@@ -9969,7 +9838,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 66,
+							"line": 68,
 							"character": 20
 						}
 					],
@@ -9996,7 +9865,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 57,
+							"line": 59,
 							"character": 22
 						}
 					],
@@ -10015,7 +9884,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 55,
+							"line": 57,
 							"character": 24
 						}
 					],
@@ -10035,7 +9904,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 58,
+							"line": 60,
 							"character": 17
 						}
 					],
@@ -10057,7 +9926,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 59,
+											"line": 61,
 											"character": 5
 										}
 									],
@@ -10076,7 +9945,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 63,
+											"line": 65,
 											"character": 5
 										}
 									],
@@ -10095,7 +9964,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 60,
+											"line": 62,
 											"character": 5
 										}
 									],
@@ -10114,7 +9983,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 64,
+											"line": 66,
 											"character": 10
 										}
 									],
@@ -10133,7 +10002,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 61,
+											"line": 63,
 											"character": 5
 										}
 									],
@@ -10152,7 +10021,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 62,
+											"line": 64,
 											"character": 6
 										}
 									],
@@ -10190,7 +10059,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 51,
+							"line": 53,
 							"character": 14
 						}
 					],
@@ -10208,7 +10077,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 50,
+							"line": 52,
 							"character": 15
 						}
 					],
@@ -10255,7 +10124,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 77,
+							"line": 79,
 							"character": 38
 						}
 					]
@@ -10317,7 +10186,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 133,
+							"line": 135,
 							"character": 21
 						}
 					]
@@ -10384,7 +10253,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 109,
+							"line": 111,
 							"character": 29
 						}
 					]
