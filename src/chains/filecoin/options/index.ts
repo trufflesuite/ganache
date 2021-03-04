@@ -6,8 +6,19 @@
  * @license MIT
  */
 
+// export types
+export {
+  FilecoinLegacyProviderOptions,
+  FilecoinProviderOptions,
+  FilecoinInternalOptions
+} from "./src";
+
+// export objects
+let e: any;
 try {
-  module.exports = require("./src");
+  e = require("./src");
 } catch (e) {
-  module.exports = require("../dist/node/ganache-filecoin-options.min.js");
+  e = require("../dist/node/ganache-filecoin-options.min.js");
 }
+
+export default e;
