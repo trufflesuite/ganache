@@ -1196,8 +1196,77 @@
 										"type": "reference",
 										"typeArguments": [
 											{
-												"type": "intrinsic",
-												"name": "any"
+												"type": "reflection",
+												"declaration": {
+													"id": 336,
+													"name": "__type",
+													"kind": 65536,
+													"kindString": "Type literal",
+													"flags": {
+														"isExported": true
+													},
+													"children": [
+														{
+															"id": 337,
+															"name": "nextKey",
+															"kind": 32,
+															"kindString": "Variable",
+															"flags": {
+																"isExported": true
+															},
+															"sources": [
+																{
+																	"fileName": "chains/ethereum/utils/lib/src/types/debug-storage.d.ts",
+																	"line": 8,
+																	"character": 11
+																}
+															],
+															"type": {
+																"type": "union",
+																"types": [
+																	{
+																		"type": "reference",
+																		"name": "Data"
+																	},
+																	{
+																		"type": "intrinsic",
+																		"name": "null"
+																	}
+																]
+															}
+														},
+														{
+															"id": 338,
+															"name": "storage",
+															"kind": 32,
+															"kindString": "Variable",
+															"flags": {
+																"isExported": true
+															},
+															"sources": [
+																{
+																	"fileName": "chains/ethereum/utils/lib/src/types/debug-storage.d.ts",
+																	"line": 9,
+																	"character": 11
+																}
+															],
+															"type": {
+																"type": "reference",
+																"name": "StorageRecords"
+															}
+														}
+													],
+													"groups": [
+														{
+															"title": "Variables",
+															"kind": 32,
+															"children": [
+																337,
+																338
+															]
+														}
+													]
+												}
 											}
 										],
 										"name": "Promise"
@@ -5991,7 +6060,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"id": 408,
+												"id": 411,
 												"name": "TypedData"
 											}
 										}
@@ -7984,7 +8053,7 @@
 							]
 						},
 						{
-							"id": 341,
+							"id": 344,
 							"name": "personal_importRawKey",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8005,7 +8074,7 @@
 							],
 							"signatures": [
 								{
-									"id": 342,
+									"id": 345,
 									"name": "personal_importRawKey",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8024,7 +8093,7 @@
 									},
 									"parameters": [
 										{
-											"id": 343,
+											"id": 346,
 											"name": "rawKey",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8040,7 +8109,7 @@
 											}
 										},
 										{
-											"id": 344,
+											"id": 347,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8077,7 +8146,7 @@
 							]
 						},
 						{
-							"id": 336,
+							"id": 339,
 							"name": "personal_listAccounts",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8098,7 +8167,7 @@
 							],
 							"signatures": [
 								{
-									"id": 337,
+									"id": 340,
 									"name": "personal_listAccounts",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8139,7 +8208,7 @@
 							]
 						},
 						{
-							"id": 345,
+							"id": 348,
 							"name": "personal_lockAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8160,7 +8229,7 @@
 							],
 							"signatures": [
 								{
-									"id": 346,
+									"id": 349,
 									"name": "personal_lockAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8179,7 +8248,7 @@
 									},
 									"parameters": [
 										{
-											"id": 347,
+											"id": 350,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8216,7 +8285,7 @@
 							]
 						},
 						{
-							"id": 338,
+							"id": 341,
 							"name": "personal_newAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8237,7 +8306,7 @@
 							],
 							"signatures": [
 								{
-									"id": 339,
+									"id": 342,
 									"name": "personal_newAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8256,7 +8325,7 @@
 									},
 									"parameters": [
 										{
-											"id": 340,
+											"id": 343,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8293,7 +8362,7 @@
 							]
 						},
 						{
-							"id": 353,
+							"id": 356,
 							"name": "personal_sendTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8314,7 +8383,7 @@
 							],
 							"signatures": [
 								{
-									"id": 354,
+									"id": 357,
 									"name": "personal_sendTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8334,7 +8403,7 @@
 									},
 									"parameters": [
 										{
-											"id": 355,
+											"id": 358,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8347,7 +8416,7 @@
 											}
 										},
 										{
-											"id": 356,
+											"id": 359,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8384,7 +8453,7 @@
 							]
 						},
 						{
-							"id": 348,
+							"id": 351,
 							"name": "personal_unlockAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8406,7 +8475,7 @@
 							],
 							"signatures": [
 								{
-									"id": 349,
+									"id": 352,
 									"name": "personal_unlockAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8426,7 +8495,7 @@
 									},
 									"parameters": [
 										{
-											"id": 350,
+											"id": 353,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8442,7 +8511,7 @@
 											}
 										},
 										{
-											"id": 351,
+											"id": 354,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8458,7 +8527,7 @@
 											}
 										},
 										{
-											"id": 352,
+											"id": 355,
 											"name": "duration",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8496,7 +8565,7 @@
 							]
 						},
 						{
-							"id": 357,
+							"id": 360,
 							"name": "rpc_modules",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8517,7 +8586,7 @@
 							],
 							"signatures": [
 								{
-									"id": 358,
+									"id": 361,
 									"name": "rpc_modules",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8540,7 +8609,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-													"id": 359,
+													"id": 362,
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -8549,7 +8618,7 @@
 													},
 													"children": [
 														{
-															"id": 360,
+															"id": 363,
 															"name": "eth",
 															"kind": 32,
 															"kindString": "Variable",
@@ -8570,7 +8639,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 364,
+															"id": 367,
 															"name": "evm",
 															"kind": 32,
 															"kindString": "Variable",
@@ -8591,7 +8660,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 361,
+															"id": 364,
 															"name": "net",
 															"kind": 32,
 															"kindString": "Variable",
@@ -8612,7 +8681,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 365,
+															"id": 368,
 															"name": "personal",
 															"kind": 32,
 															"kindString": "Variable",
@@ -8633,7 +8702,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 362,
+															"id": 365,
 															"name": "rpc",
 															"kind": 32,
 															"kindString": "Variable",
@@ -8654,7 +8723,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 363,
+															"id": 366,
 															"name": "web3",
 															"kind": 32,
 															"kindString": "Variable",
@@ -8680,12 +8749,12 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-																360,
+																363,
+																367,
 																364,
-																361,
+																368,
 																365,
-																362,
-																363
+																366
 															]
 														}
 													]
@@ -8705,7 +8774,7 @@
 							]
 						},
 						{
-							"id": 373,
+							"id": 376,
 							"name": "shh_addToGroup",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8726,7 +8795,7 @@
 							],
 							"signatures": [
 								{
-									"id": 374,
+									"id": 377,
 									"name": "shh_addToGroup",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8745,7 +8814,7 @@
 									},
 									"parameters": [
 										{
-											"id": 375,
+											"id": 378,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8782,7 +8851,7 @@
 							]
 						},
 						{
-							"id": 383,
+							"id": 386,
 							"name": "shh_getFilterChanges",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8803,7 +8872,7 @@
 							],
 							"signatures": [
 								{
-									"id": 384,
+									"id": 387,
 									"name": "shh_getFilterChanges",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8822,7 +8891,7 @@
 									},
 									"parameters": [
 										{
-											"id": 385,
+											"id": 388,
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8862,7 +8931,7 @@
 							]
 						},
 						{
-							"id": 386,
+							"id": 389,
 							"name": "shh_getMessages",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8883,7 +8952,7 @@
 							],
 							"signatures": [
 								{
-									"id": 387,
+									"id": 390,
 									"name": "shh_getMessages",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8902,7 +8971,7 @@
 									},
 									"parameters": [
 										{
-											"id": 388,
+											"id": 391,
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8939,7 +9008,7 @@
 							]
 						},
 						{
-							"id": 368,
+							"id": 371,
 							"name": "shh_hasIdentity",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8960,7 +9029,7 @@
 							],
 							"signatures": [
 								{
-									"id": 369,
+									"id": 372,
 									"name": "shh_hasIdentity",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8979,7 +9048,7 @@
 									},
 									"parameters": [
 										{
-											"id": 370,
+											"id": 373,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9016,7 +9085,7 @@
 							]
 						},
 						{
-							"id": 376,
+							"id": 379,
 							"name": "shh_newFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9037,7 +9106,7 @@
 							],
 							"signatures": [
 								{
-									"id": 377,
+									"id": 380,
 									"name": "shh_newFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9056,7 +9125,7 @@
 									},
 									"parameters": [
 										{
-											"id": 378,
+											"id": 381,
 											"name": "to",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9072,7 +9141,7 @@
 											}
 										},
 										{
-											"id": 379,
+											"id": 382,
 											"name": "topics",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9112,7 +9181,7 @@
 							]
 						},
 						{
-							"id": 371,
+							"id": 374,
 							"name": "shh_newGroup",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9133,7 +9202,7 @@
 							],
 							"signatures": [
 								{
-									"id": 372,
+									"id": 375,
 									"name": "shh_newGroup",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9165,7 +9234,7 @@
 							]
 						},
 						{
-							"id": 366,
+							"id": 369,
 							"name": "shh_newIdentity",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9186,7 +9255,7 @@
 							],
 							"signatures": [
 								{
-									"id": 367,
+									"id": 370,
 									"name": "shh_newIdentity",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9224,7 +9293,7 @@
 							]
 						},
 						{
-							"id": 389,
+							"id": 392,
 							"name": "shh_post",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9245,7 +9314,7 @@
 							],
 							"signatures": [
 								{
-									"id": 390,
+									"id": 393,
 									"name": "shh_post",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9264,7 +9333,7 @@
 									},
 									"parameters": [
 										{
-											"id": 391,
+											"id": 394,
 											"name": "postData",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9299,7 +9368,7 @@
 							]
 						},
 						{
-							"id": 380,
+							"id": 383,
 							"name": "shh_uninstallFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9320,7 +9389,7 @@
 							],
 							"signatures": [
 								{
-									"id": 381,
+									"id": 384,
 									"name": "shh_uninstallFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9339,7 +9408,7 @@
 									},
 									"parameters": [
 										{
-											"id": 382,
+											"id": 385,
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9376,7 +9445,7 @@
 							]
 						},
 						{
-							"id": 392,
+							"id": 395,
 							"name": "shh_version",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9397,7 +9466,7 @@
 							],
 							"signatures": [
 								{
-									"id": 393,
+									"id": 396,
 									"name": "shh_version",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9665,23 +9734,23 @@
 								108,
 								110,
 								106,
-								341,
-								336,
-								345,
-								338,
-								353,
+								344,
+								339,
 								348,
-								357,
-								373,
-								383,
-								386,
-								368,
+								341,
+								356,
+								351,
+								360,
 								376,
-								371,
-								366,
+								386,
 								389,
-								380,
+								371,
+								379,
+								374,
+								369,
 								392,
+								383,
+								395,
 								101,
 								103
 							]
@@ -9702,7 +9771,7 @@
 					]
 				},
 				{
-					"id": 408,
+					"id": 411,
 					"name": "TypedData",
 					"kind": 4194304,
 					"kindString": "Type alias",
@@ -9753,7 +9822,7 @@
 					}
 				},
 				{
-					"id": 397,
+					"id": 400,
 					"name": "CLIENT_VERSION",
 					"kind": 32,
 					"kindString": "Variable",
@@ -9774,7 +9843,7 @@
 					"defaultValue": "`Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`"
 				},
 				{
-					"id": 407,
+					"id": 410,
 					"name": "KNOWN_CHAINIDS",
 					"kind": 32,
 					"kindString": "Variable",
@@ -9801,7 +9870,7 @@
 					"defaultValue": "new Set([1, 3, 4, 5, 42])"
 				},
 				{
-					"id": 398,
+					"id": 401,
 					"name": "PROTOCOL_VERSION",
 					"kind": 32,
 					"kindString": "Variable",
@@ -9822,7 +9891,7 @@
 					"defaultValue": "Data.from(\"0x3f\")"
 				},
 				{
-					"id": 396,
+					"id": 399,
 					"name": "RPCQUANTITY_ZERO",
 					"kind": 32,
 					"kindString": "Variable",
@@ -9840,7 +9909,7 @@
 					}
 				},
 				{
-					"id": 399,
+					"id": 402,
 					"name": "RPC_MODULES",
 					"kind": 32,
 					"kindString": "Variable",
@@ -9857,14 +9926,14 @@
 					"type": {
 						"type": "reflection",
 						"declaration": {
-							"id": 400,
+							"id": 403,
 							"name": "__type",
 							"kind": 65536,
 							"kindString": "Type literal",
 							"flags": {},
 							"children": [
 								{
-									"id": 401,
+									"id": 404,
 									"name": "eth",
 									"kind": 32,
 									"kindString": "Variable",
@@ -9883,7 +9952,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 405,
+									"id": 408,
 									"name": "evm",
 									"kind": 32,
 									"kindString": "Variable",
@@ -9902,7 +9971,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 402,
+									"id": 405,
 									"name": "net",
 									"kind": 32,
 									"kindString": "Variable",
@@ -9921,7 +9990,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 406,
+									"id": 409,
 									"name": "personal",
 									"kind": 32,
 									"kindString": "Variable",
@@ -9940,7 +10009,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 403,
+									"id": 406,
 									"name": "rpc",
 									"kind": 32,
 									"kindString": "Variable",
@@ -9959,7 +10028,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 404,
+									"id": 407,
 									"name": "web3",
 									"kind": 32,
 									"kindString": "Variable",
@@ -9983,12 +10052,12 @@
 									"title": "Variables",
 									"kind": 32,
 									"children": [
-										401,
+										404,
+										408,
 										405,
-										402,
+										409,
 										406,
-										403,
-										404
+										407
 									]
 								}
 							]
@@ -9997,7 +10066,7 @@
 					"defaultValue": "{\n  eth: \"1.0\",\n  net: \"1.0\",\n  rpc: \"1.0\",\n  web3: \"1.0\",\n  evm: \"1.0\",\n  personal: \"1.0\"\n} as const"
 				},
 				{
-					"id": 395,
+					"id": 398,
 					"name": "keccak",
 					"kind": 32,
 					"kindString": "Variable",
@@ -10015,7 +10084,7 @@
 					}
 				},
 				{
-					"id": 394,
+					"id": 397,
 					"name": "version",
 					"kind": 32,
 					"kindString": "Variable",
@@ -10033,21 +10102,21 @@
 					}
 				},
 				{
-					"id": 409,
+					"id": 412,
 					"name": "assertExceptionalTransactions",
 					"kind": 64,
 					"kindString": "Function",
 					"flags": {},
 					"signatures": [
 						{
-							"id": 410,
+							"id": 413,
 							"name": "assertExceptionalTransactions",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 411,
+									"id": 414,
 									"name": "transactions",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -10076,21 +10145,21 @@
 					]
 				},
 				{
-					"id": 416,
+					"id": 419,
 					"name": "createCommon",
 					"kind": 64,
 					"kindString": "Function",
 					"flags": {},
 					"signatures": [
 						{
-							"id": 417,
+							"id": 420,
 							"name": "createCommon",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 418,
+									"id": 421,
 									"name": "chainId",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -10101,7 +10170,7 @@
 									}
 								},
 								{
-									"id": 419,
+									"id": 422,
 									"name": "networkId",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -10112,7 +10181,7 @@
 									}
 								},
 								{
-									"id": 420,
+									"id": 423,
 									"name": "hardfork",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -10138,21 +10207,21 @@
 					]
 				},
 				{
-					"id": 412,
+					"id": 415,
 					"name": "parseCoinbaseAddress",
 					"kind": 64,
 					"kindString": "Function",
 					"flags": {},
 					"signatures": [
 						{
-							"id": 413,
+							"id": 416,
 							"name": "parseCoinbaseAddress",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 414,
+									"id": 417,
 									"name": "coinbase",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -10176,7 +10245,7 @@
 									}
 								},
 								{
-									"id": 415,
+									"id": 418,
 									"name": "initialAccounts",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -10217,29 +10286,29 @@
 					"title": "Type aliases",
 					"kind": 4194304,
 					"children": [
-						408
+						411
 					]
 				},
 				{
 					"title": "Variables",
 					"kind": 32,
 					"children": [
-						397,
-						407,
-						398,
-						396,
+						400,
+						410,
+						401,
 						399,
-						395,
-						394
+						402,
+						398,
+						397
 					]
 				},
 				{
 					"title": "Functions",
 					"kind": 64,
 					"children": [
-						409,
-						416,
-						412
+						412,
+						419,
+						415
 					]
 				}
 			],

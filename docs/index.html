@@ -368,7 +368,7 @@
   <div>
     <a name="debug_storageRangeAt"></a>
     <h3 class="signature">
-      <span class="hljs-function"> <span class="hljs-title">debug_storageRangeAt</span>(<span class="hljs-params">blockHash: DATA, transactionIndex: QUANTITY, contractAddress: DATA, startKey: DATA, maxResult: QUANTITY</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
+      <span class="hljs-function"> <span class="hljs-title">debug_storageRangeAt</span>(<span class="hljs-params">blockHash: DATA, transactionIndex: QUANTITY, contractAddress: DATA, startKey: DATA, maxResult: QUANTITY</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
     </h3>
     <div class="content small">
       <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2690" target="_blank" rel="noopener">source</a>
@@ -410,7 +410,7 @@ return storage data given a starting key and max number of entries to return.</p
           returns
         </div>
         <div class="return_type">
-          <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">any</span>&gt;</span>
+          <code class="language-typescript"><span class="hljs-function"><span class="hljs-title">Promise</span>&lt;<span class="hljs-title">object</span>&gt;</span>
 </code><p>: Returns a storage object with the keys being keccak-256 hashes of the storage keys,
 and the values being the raw, unhashed key and value for that specific storage slot. Also
 returns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.</p>
