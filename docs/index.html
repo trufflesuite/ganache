@@ -180,7 +180,7 @@
               example
             </div>
             <div class="monaco" data-method="db_getHex_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;db_getHex&quot;</span>, [<span class="hljs-string">&quot;testDb&quot;</span>, <span class="hljs-string">&quot;testKey&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;db_getHex&quot;</span>, [<span class="hljs-string">&quot;testDb&quot;</span>, <span class="hljs-string">&quot;testKey&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -239,7 +239,7 @@
               example
             </div>
             <div class="monaco" data-method="db_getString_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;db_getString&quot;</span>, [<span class="hljs-string">&quot;testDb&quot;</span>, <span class="hljs-string">&quot;testKey&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;db_getString&quot;</span>, [<span class="hljs-string">&quot;testDb&quot;</span>, <span class="hljs-string">&quot;testKey&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -300,7 +300,7 @@
               example
             </div>
             <div class="monaco" data-method="db_putHex_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;db_putHex&quot;</span>, [<span class="hljs-string">&quot;testDb&quot;</span>, <span class="hljs-string">&quot;testKey&quot;</span>, <span class="hljs-string">&quot;0x0&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;db_putHex&quot;</span>, [<span class="hljs-string">&quot;testDb&quot;</span>, <span class="hljs-string">&quot;testKey&quot;</span>, <span class="hljs-string">&quot;0x0&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -361,7 +361,7 @@
               example
             </div>
             <div class="monaco" data-method="db_putString_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;db_putString&quot;</span>, [<span class="hljs-string">&quot;testDb&quot;</span>, <span class="hljs-string">&quot;testKey&quot;</span>, <span class="hljs-string">&quot;testValue&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;db_putString&quot;</span>, [<span class="hljs-string">&quot;testDb&quot;</span>, <span class="hljs-string">&quot;testKey&quot;</span>, <span class="hljs-string">&quot;testValue&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -729,7 +729,7 @@ The possible options are:</p>
 <span class="hljs-keyword">const</span> simpleSol = <span class="hljs-string">&quot;0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033&quot;</span>;
 <span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
 <span class="hljs-keyword">const</span> txObj = { <span class="hljs-keyword">from</span>, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span>, <span class="hljs-attr">gasPrice</span>: <span class="hljs-string">&quot;0x1dfd14000&quot;</span>, <span class="hljs-attr">value</span>:<span class="hljs-string">&quot;0x0&quot;</span>, <span class="hljs-attr">data</span>: simpleSol };
-<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_call&quot;</span>, <span class="hljs-attr">params</span>: [txObj, <span class="hljs-string">&quot;latest&quot;</span>]});
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_call&quot;</span>, <span class="hljs-attr">params</span>: [txObj, <span class="hljs-string">&quot;latest&quot;</span>] });
 <span class="hljs-built_in">console</span>.log(result);
 </code></pre>
 
@@ -910,8 +910,8 @@ including EVM mechanics and node performance.</p>
               example
             </div>
             <div class="monaco" data-method="eth_estimateGas_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> accounts = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
-<span class="hljs-keyword">const</span> gasEstimate = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_estimateGas&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-attr">from</span>: accounts[<span class="hljs-number">0</span>], <span class="hljs-attr">to</span>: accounts[<span class="hljs-number">1</span>] }, <span class="hljs-string">&quot;latest&quot;</span> ] });
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
+<span class="hljs-keyword">const</span> gasEstimate = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_estimateGas&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to }, <span class="hljs-string">&quot;latest&quot;</span> ] });
 <span class="hljs-built_in">console</span>.log(gasEstimate);
 </code></pre>
 
@@ -1119,7 +1119,7 @@ transactions.</li>
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
 <span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span>, <span class="hljs-attr">data</span>: simpleSol }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
-<span class="hljs-keyword">const</span> txReceipt = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash]})
+<span class="hljs-keyword">const</span> txReceipt = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash] });
 <span class="hljs-keyword">const</span> block = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getBlockByHash&quot;</span>, <span class="hljs-attr">params</span>: [txReceipt.blockHash, <span class="hljs-literal">true</span>] });
 <span class="hljs-built_in">console</span>.log(block);
 </code></pre>
@@ -1277,7 +1277,7 @@ transactions.</li>
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
 <span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span>, <span class="hljs-attr">data</span>: simpleSol }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
-<span class="hljs-keyword">const</span> txReceipt = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash]})
+<span class="hljs-keyword">const</span> txReceipt = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash] });
 <span class="hljs-keyword">const</span> txCount = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getBlockTransactionCountByHash&quot;</span>, <span class="hljs-attr">params</span>: [txReceipt.blockHash] });
 <span class="hljs-built_in">console</span>.log(txCount);
 </code></pre>
@@ -1412,7 +1412,7 @@ default block parameter.</li>
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
 <span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span>, <span class="hljs-attr">data</span>: simpleSol }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
-<span class="hljs-keyword">const</span> txReceipt = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash]})
+<span class="hljs-keyword">const</span> txReceipt = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash] });
 <span class="hljs-keyword">const</span> code = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getCode&quot;</span>, <span class="hljs-attr">params</span>: [txReceipt.contractAddress, <span class="hljs-string">&quot;latest&quot;</span>] });
 <span class="hljs-built_in">console</span>.log(code);
 </code></pre>
@@ -1742,7 +1742,7 @@ then neither <code>fromBlock</code> or <code>toBlock</code> are allowed.</li>
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
 <span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span>, <span class="hljs-attr">data</span>: simpleSol }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
-<span class="hljs-keyword">const</span> txReceipt = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash]})
+<span class="hljs-keyword">const</span> txReceipt = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash] });
 <span class="hljs-keyword">const</span> storageValue = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getStorageAt&quot;</span>, <span class="hljs-attr">params</span>: [txReceipt.contractAddress, <span class="hljs-string">&quot;0x0&quot;</span>, <span class="hljs-string">&quot;latest&quot;</span>] });
 <span class="hljs-built_in">console</span>.log(storageValue);
 </code></pre>
@@ -1819,9 +1819,9 @@ then neither <code>fromBlock</code> or <code>toBlock</code> are allowed.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getTransactionByBlockHashAndIndex_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> accounts = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
-<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-attr">from</span>: accounts[<span class="hljs-number">0</span>], <span class="hljs-attr">to</span>: accounts[<span class="hljs-number">1</span>], <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
+<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
 <span class="hljs-keyword">const</span> { blockHash, transactionIndex } = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash] });
 
@@ -1901,9 +1901,9 @@ then neither <code>fromBlock</code> or <code>toBlock</code> are allowed.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getTransactionByBlockNumberAndIndex_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> accounts = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
-<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-attr">from</span>: accounts[<span class="hljs-number">0</span>], <span class="hljs-attr">to</span>: accounts[<span class="hljs-number">1</span>], <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
+<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
 <span class="hljs-keyword">const</span> { transactionIndex } = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [txHash] });
 
@@ -1981,9 +1981,9 @@ then neither <code>fromBlock</code> or <code>toBlock</code> are allowed.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getTransactionByHash_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> accounts = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
-<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-attr">from</span>: accounts[<span class="hljs-number">0</span>], <span class="hljs-attr">to</span>: accounts[<span class="hljs-number">1</span>], <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
+<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
 
 <span class="hljs-keyword">const</span> tx = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionByHash&quot;</span>, <span class="hljs-attr">params</span>: [ txHash ] });
@@ -2047,12 +2047,12 @@ or &quot;pending&quot;.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getTransactionCount_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> accounts = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
-<span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-attr">from</span>: accounts[<span class="hljs-number">0</span>], <span class="hljs-attr">to</span>: accounts[<span class="hljs-number">1</span>], <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
+<span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
 
-<span class="hljs-keyword">const</span> txCount = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionCount&quot;</span>, <span class="hljs-attr">params</span>: [ accounts[<span class="hljs-number">0</span>], <span class="hljs-string">&quot;latest&quot;</span> ] });
+<span class="hljs-keyword">const</span> txCount = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionCount&quot;</span>, <span class="hljs-attr">params</span>: [ <span class="hljs-keyword">from</span>, <span class="hljs-string">&quot;latest&quot;</span> ] });
 <span class="hljs-built_in">console</span>.log(txCount);
 </code></pre>
 
@@ -2111,9 +2111,9 @@ or &quot;pending&quot;.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getTransactionReceipt_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> accounts = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
-<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-attr">from</span>: accounts[<span class="hljs-number">0</span>], <span class="hljs-attr">to</span>: accounts[<span class="hljs-number">1</span>], <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
+<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
 
 <span class="hljs-keyword">const</span> txReceipt = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_getTransactionReceipt&quot;</span>, <span class="hljs-attr">params</span>: [ txHash ] });
@@ -2198,8 +2198,8 @@ or &quot;pending&quot;.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getUncleByBlockHashAndIndex_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> blockHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBlockByNumber&quot;</span>, [<span class="hljs-string">&quot;latest&quot;</span>]);
-<span class="hljs-keyword">const</span> block = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getUncleByBlockHashAndIndex&quot;</span>, [blockHash, <span class="hljs-string">&quot;0x0&quot;</span>]);
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> blockHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBlockByNumber&quot;</span>, [<span class="hljs-string">&quot;latest&quot;</span>] );
+<span class="hljs-keyword">const</span> block = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getUncleByBlockHashAndIndex&quot;</span>, [blockHash, <span class="hljs-string">&quot;0x0&quot;</span>] );
 <span class="hljs-built_in">console</span>.log(block);
 </code></pre>
 
@@ -2281,7 +2281,7 @@ or &quot;pending&quot;.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getUncleByBlockNumberAndIndex_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> block = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getUncleByBlockNumberAndIndex&quot;</span>, [<span class="hljs-string">&quot;latest&quot;</span>, <span class="hljs-string">&quot;0x0&quot;</span>]);
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> block = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getUncleByBlockNumberAndIndex&quot;</span>, [<span class="hljs-string">&quot;latest&quot;</span>, <span class="hljs-string">&quot;0x0&quot;</span>] );
 <span class="hljs-built_in">console</span>.log(block);
 </code></pre>
 
@@ -2339,8 +2339,8 @@ or &quot;pending&quot;.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getUncleCountByBlockHash_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> blockHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBlockByNumber&quot;</span>, [<span class="hljs-string">&quot;latest&quot;</span>]);
-<span class="hljs-keyword">const</span> uncleCount = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getUncleCountByBlockHash&quot;</span>, [blockHash]);
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> blockHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBlockByNumber&quot;</span>, [<span class="hljs-string">&quot;latest&quot;</span>] );
+<span class="hljs-keyword">const</span> uncleCount = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getUncleCountByBlockHash&quot;</span>, [blockHash] );
 <span class="hljs-built_in">console</span>.log(uncleCount);
 </code></pre>
 
@@ -2398,7 +2398,7 @@ or &quot;pending&quot;.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getUncleCountByBlockNumber_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> uncleCount = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getUncleCountByBlockNumber&quot;</span>, [<span class="hljs-string">&quot;latest&quot;</span>]);
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> uncleCount = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getUncleCountByBlockNumber&quot;</span>, [<span class="hljs-string">&quot;latest&quot;</span>] );
 <span class="hljs-built_in">console</span>.log(uncleCount);
 </code></pre>
 
@@ -2459,7 +2459,7 @@ or &quot;pending&quot;.</li>
               example
             </div>
             <div class="monaco" data-method="eth_getWork_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getWork&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getWork&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -2842,7 +2842,7 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
             </div>
             <div class="monaco" data-method="eth_sendRawTransaction_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> signedTx = <span class="hljs-string">&quot;0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675&quot;</span>;
-<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_sendRawTransaction&quot;</span>, [signedTx]);
+<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_sendRawTransaction&quot;</span>, [signedTx] );
 <span class="hljs-built_in">console</span>.log(txHash);
 </code></pre>
 
@@ -2909,9 +2909,9 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
               example
             </div>
             <div class="monaco" data-method="eth_sendTransaction_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> accounts = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
-<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-attr">from</span>: accounts[<span class="hljs-number">0</span>], <span class="hljs-attr">to</span>: accounts[<span class="hljs-number">1</span>], <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
+<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
 <span class="hljs-built_in">console</span>.log(txHash);
 </code></pre>
@@ -3516,7 +3516,7 @@ if the subscription was successfully cancelled.</p>
             </div>
             <div class="monaco" data-method="evm_increaseTime_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> seconds = <span class="hljs-number">10</span>;
-<span class="hljs-keyword">const</span> timeAdjustment = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_increaseTime&quot;</span>, [seconds]);
+<span class="hljs-keyword">const</span> timeAdjustment = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_increaseTime&quot;</span>, [seconds] );
 <span class="hljs-built_in">console</span>.log(timeAdjustment);
 </code></pre>
 
@@ -3579,8 +3579,8 @@ locked.</p>
             </div>
             <div class="monaco" data-method="evm_lockUnknownAccount_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> address = <span class="hljs-string">&quot;0x742d35Cc6634C0532925a3b844Bc454e4438f44e&quot;</span>;
-<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_lockUnknownAccount&quot;</span>, [address]);
-<span class="hljs-built_in">console</span>.log(result)
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_lockUnknownAccount&quot;</span>, [address] );
+<span class="hljs-built_in">console</span>.log(result);
 </code></pre>
 
             </div>
@@ -3645,7 +3645,7 @@ operation. This behavior is subject to change!
             </div>
             <div class="monaco" data-method="evm_mine_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;start&quot;</span>, <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_blockNumber&quot;</span>));
-<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_mine&quot;</span>, [{<span class="hljs-attr">blocks</span>: <span class="hljs-number">5</span>}]); <span class="hljs-comment">// mines 5 blocks</span>
+<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_mine&quot;</span>, [{<span class="hljs-attr">blocks</span>: <span class="hljs-number">5</span>}] ); <span class="hljs-comment">// mines 5 blocks</span>
 <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;end&quot;</span>, <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_blockNumber&quot;</span>));
 </code></pre>
 
@@ -3708,26 +3708,26 @@ passed it will revert to the latest snapshot.</p>
             </div>
             <div class="monaco" data-method="evm_revert_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_accounts&quot;</span>);
-<span class="hljs-keyword">const</span> startingBalance = BigInt(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>]));
+<span class="hljs-keyword">const</span> startingBalance = BigInt(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>] ));
 
 <span class="hljs-comment">// take a snapshot</span>
 <span class="hljs-keyword">const</span> snapshotId = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_snapshot&quot;</span>);
 
 <span class="hljs-comment">// send value to another account (over-simplified example)</span>
-<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_subscribe&quot;</span>, [<span class="hljs-string">&quot;newHeads&quot;</span>]);
-<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, [{<span class="hljs-keyword">from</span>, to, <span class="hljs-attr">value</span>: <span class="hljs-string">&quot;0xffff&quot;</span>}]);
+<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_subscribe&quot;</span>, [<span class="hljs-string">&quot;newHeads&quot;</span>] );
+<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, [{<span class="hljs-keyword">from</span>, to, <span class="hljs-attr">value</span>: <span class="hljs-string">&quot;0xffff&quot;</span>}] );
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
 
 <span class="hljs-comment">// ensure balance has updated</span>
-<span class="hljs-keyword">const</span> newBalance = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>]);
+<span class="hljs-keyword">const</span> newBalance = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>] );
 assert(BigInt(newBalance) &lt; startingBalance);
 
 <span class="hljs-comment">// revert the snapshot</span>
-<span class="hljs-keyword">const</span> isReverted = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_revert&quot;</span>, [snapshotId]);
+<span class="hljs-keyword">const</span> isReverted = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_revert&quot;</span>, [snapshotId] );
 assert(isReverted);
 <span class="hljs-built_in">console</span>.log(isReverted);
 
-<span class="hljs-keyword">const</span> endingBalance = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>]);
+<span class="hljs-keyword">const</span> endingBalance = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>] );
 assert.strictEqual(BigInt(endingBalance), startingBalance);
 </code></pre>
 
@@ -3791,7 +3791,7 @@ before returning.</p>
             <div class="monaco" data-method="evm_setAccountNonce_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> nonce = <span class="hljs-string">&quot;0x3e8&quot;</span>;
 <span class="hljs-keyword">const</span> [address] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
-<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_setAccountNonce&quot;</span>, [address, nonce]);
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_setAccountNonce&quot;</span>, [address, nonce] );
 <span class="hljs-built_in">console</span>.log(result);
 </code></pre>
 
@@ -3858,7 +3858,7 @@ before returning.</p>
             <div class="monaco" data-method="evm_setStorageAt_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> storage = <span class="hljs-string">&quot;0x3e8&quot;</span>;
 <span class="hljs-keyword">const</span> [address] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
-<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_setStorageAt&quot;</span>, [address, <span class="hljs-number">0</span>, storage, <span class="hljs-string">&quot;latest&quot;</span>]);
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_setStorageAt&quot;</span>, [address, <span class="hljs-number">0</span>, storage, <span class="hljs-string">&quot;latest&quot;</span>] );
 <span class="hljs-built_in">console</span>.log(result);
 </code></pre>
 
@@ -3921,9 +3921,9 @@ an invalid state.</p>
             <div class="monaco" data-method="evm_setTime_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> currentDate = <span class="hljs-built_in">Date</span>.now();
 <span class="hljs-built_in">setTimeout</span>(<span class="hljs-keyword">async</span> () =&gt; {
-  <span class="hljs-keyword">const</span> time = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_setTime&quot;</span>, [currentDate]);
+  <span class="hljs-keyword">const</span> time = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_setTime&quot;</span>, [currentDate] );
   <span class="hljs-built_in">console</span>.log(time); <span class="hljs-comment">// should be about two seconds ago</span>
-}, <span class="hljs-number">1000</span>)
+}, <span class="hljs-number">1000</span>);
 </code></pre>
 
             </div>
@@ -3975,25 +3975,25 @@ id cannot be used again. Consider creating a new snapshot after each
             <div class="monaco" data-method="evm_snapshot_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> provider = ganache.provider();
 <span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_accounts&quot;</span>);
-<span class="hljs-keyword">const</span> startingBalance = BigInt(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>]));
+<span class="hljs-keyword">const</span> startingBalance = BigInt(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>] ));
 
 <span class="hljs-comment">// take a snapshot</span>
 <span class="hljs-keyword">const</span> snapshotId = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_snapshot&quot;</span>);
 
 <span class="hljs-comment">// send value to another account (over-simplified example)</span>
-<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_subscribe&quot;</span>, [<span class="hljs-string">&quot;newHeads&quot;</span>]);
-<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, [{<span class="hljs-keyword">from</span>, to, <span class="hljs-attr">value</span>: <span class="hljs-string">&quot;0xffff&quot;</span>}]);
+<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_subscribe&quot;</span>, [<span class="hljs-string">&quot;newHeads&quot;</span>] );
+<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_sendTransaction&quot;</span>, [{<span class="hljs-keyword">from</span>, to, <span class="hljs-attr">value</span>: <span class="hljs-string">&quot;0xffff&quot;</span>}] );
 <span class="hljs-keyword">await</span> provider.once(<span class="hljs-string">&quot;message&quot;</span>); <span class="hljs-comment">// Note: `await provider.once` is non-standard</span>
 
 <span class="hljs-comment">// ensure balance has updated</span>
-<span class="hljs-keyword">const</span> newBalance = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>]);
+<span class="hljs-keyword">const</span> newBalance = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>] );
 assert(BigInt(newBalance) &lt; startingBalance);
 
 <span class="hljs-comment">// revert the snapshot</span>
-<span class="hljs-keyword">const</span> isReverted = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_revert&quot;</span>, [snapshotId]);
+<span class="hljs-keyword">const</span> isReverted = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_revert&quot;</span>, [snapshotId] );
 assert(isReverted);
 
-<span class="hljs-keyword">const</span> endingBalance = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>]);
+<span class="hljs-keyword">const</span> endingBalance = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_getBalance&quot;</span>, [<span class="hljs-keyword">from</span>] );
 assert.strictEqual(BigInt(endingBalance), startingBalance);
 </code></pre>
 
@@ -4059,8 +4059,8 @@ unlocked.</p>
             </div>
             <div class="monaco" data-method="evm_unlockUnknownAccount_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> address = <span class="hljs-string">&quot;0x742d35Cc6634C0532925a3b844Bc454e4438f44e&quot;</span>;
-<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_unlockUnknownAccount&quot;</span>, [address]);
-<span class="hljs-built_in">console</span>.log(result)
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;evm_unlockUnknownAccount&quot;</span>, [address] );
+<span class="hljs-built_in">console</span>.log(result);
 </code></pre>
 
             </div>
@@ -4118,7 +4118,7 @@ unlocked.</p>
             </div>
             <div class="monaco" data-method="miner_setEtherbase_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [account] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
-<span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_setEtherbase&quot;</span>, [account]));
+<span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_setEtherbase&quot;</span>, [account] ));
 </code></pre>
 
             </div>
@@ -4175,7 +4175,7 @@ unlocked.</p>
               example
             </div>
             <div class="monaco" data-method="miner_setExtra_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_setExtra&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_setExtra&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -4234,7 +4234,7 @@ process.</p>
               example
             </div>
             <div class="monaco" data-method="miner_setGasPrice_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_setGasPrice&quot;</span>, [<span class="hljs-number">300000</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_setGasPrice&quot;</span>, [<span class="hljs-number">300000</span>] ));
 </code></pre>
 
             </div>
@@ -4292,10 +4292,10 @@ process.</p>
               example
             </div>
             <div class="monaco" data-method="miner_start_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_stop&quot;</span>)
+              <pre><code class="language-javascript"><span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_stop&quot;</span>);
 <span class="hljs-comment">// check that eth_mining returns false</span>
 <span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_mining&quot;</span>));
-<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_start&quot;</span>)
+<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_start&quot;</span>);
 <span class="hljs-comment">// check that eth_mining returns true</span>
 <span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_mining&quot;</span>));
 </code></pre>
@@ -4345,7 +4345,7 @@ process.</p>
             <div class="monaco" data-method="miner_stop_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-comment">// check that eth_mining returns true</span>
 <span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_mining&quot;</span>));
-<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_stop&quot;</span>)
+<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;miner_stop&quot;</span>);
 <span class="hljs-comment">// check that eth_mining returns false</span>
 <span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_mining&quot;</span>));
 </code></pre>
@@ -4393,7 +4393,7 @@ process.</p>
               example
             </div>
             <div class="monaco" data-method="net_listening_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;net_listening&quot;</span>))
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;net_listening&quot;</span>));
 </code></pre>
 
             </div>
@@ -4439,7 +4439,7 @@ process.</p>
               example
             </div>
             <div class="monaco" data-method="net_peerCount_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;net_peerCount&quot;</span>))
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;net_peerCount&quot;</span>));
 </code></pre>
 
             </div>
@@ -4486,7 +4486,7 @@ Quantity/Data encoded.</p>
               example
             </div>
             <div class="monaco" data-method="net_version_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;net_version&quot;</span>))
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;net_version&quot;</span>));
 </code></pre>
 
             </div>
@@ -4548,7 +4548,7 @@ Quantity/Data encoded.</p>
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> rawKey = <span class="hljs-string">&quot;0x0123456789012345678901234567890123456789012345678901234567890123&quot;</span>;
 <span class="hljs-keyword">const</span> passphrase = <span class="hljs-string">&quot;passphrase&quot;</span>;
 
-<span class="hljs-keyword">const</span> address = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_importRawKey&quot;</span>,[rawKey, passphrase]);
+<span class="hljs-keyword">const</span> address = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_importRawKey&quot;</span>,[rawKey, passphrase] );
 <span class="hljs-built_in">console</span>.log(address);
 </code></pre>
 
@@ -4654,7 +4654,7 @@ added.</p>
             </div>
             <div class="monaco" data-method="personal_lockAccount_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [account] = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_listAccounts&quot;</span>);
-<span class="hljs-keyword">const</span> isLocked = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_lockAccount&quot;</span>, [account]);
+<span class="hljs-keyword">const</span> isLocked = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_lockAccount&quot;</span>, [account] );
 <span class="hljs-built_in">console</span>.log(isLocked);
 </code></pre>
 
@@ -4713,8 +4713,8 @@ account.</p>
               example
             </div>
             <div class="monaco" data-method="personal_newAccount_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> passphrase = <span class="hljs-string">&quot;passphrase&quot;</span>
-<span class="hljs-keyword">const</span> address = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_newAccount&quot;</span>, [passphrase])
+              <pre><code class="language-javascript"><span class="hljs-keyword">const</span> passphrase = <span class="hljs-string">&quot;passphrase&quot;</span>;
+<span class="hljs-keyword">const</span> address = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_newAccount&quot;</span>, [passphrase] );
 <span class="hljs-built_in">console</span>.log(address);
 </code></pre>
 
@@ -4789,11 +4789,11 @@ and cannot be used in other RPC calls.</p>
             </div>
             <div class="monaco" data-method="personal_sendTransaction_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> passphrase = <span class="hljs-string">&quot;passphrase&quot;</span>;
-<span class="hljs-keyword">const</span> newAccount = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_newAccount&quot;</span>, [passphrase]);
-<span class="hljs-keyword">const</span> [to] = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_listAccounts&quot;</span>)
+<span class="hljs-keyword">const</span> newAccount = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_newAccount&quot;</span>, [passphrase] );
+<span class="hljs-keyword">const</span> [to] = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_listAccounts&quot;</span>);
 
 <span class="hljs-comment">// use account and passphrase to send the transaction</span>
-<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_sendTransaction&quot;</span>, [{ <span class="hljs-attr">from</span>: newAccount, to }, passphrase]);
+<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_sendTransaction&quot;</span>, [{ <span class="hljs-attr">from</span>: newAccount, to }, passphrase] );
 <span class="hljs-built_in">console</span>.log(txHash);
 </code></pre>
 
@@ -4863,8 +4863,8 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
             <div class="monaco" data-method="personal_unlockAccount_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-comment">// generate an account</span>
 <span class="hljs-keyword">const</span> passphrase = <span class="hljs-string">&quot;passphrase&quot;</span>;
-<span class="hljs-keyword">const</span> newAccount = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_newAccount&quot;</span>, [passphrase]);
-<span class="hljs-keyword">const</span> isLocked = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_unlockAccount&quot;</span>, [newAccount, passphrase]);
+<span class="hljs-keyword">const</span> newAccount = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_newAccount&quot;</span>, [passphrase] );
+<span class="hljs-keyword">const</span> isLocked = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_unlockAccount&quot;</span>, [newAccount, passphrase] );
 <span class="hljs-built_in">console</span>.log(isLocked);
 </code></pre>
 
@@ -4911,7 +4911,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
               example
             </div>
             <div class="monaco" data-method="rpc_modules_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;rpc_modules&quot;</span>))
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;rpc_modules&quot;</span>));
 </code></pre>
 
             </div>
@@ -4968,7 +4968,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
               example
             </div>
             <div class="monaco" data-method="shh_addToGroup_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_addToGroup&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_addToGroup&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -5025,7 +5025,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
               example
             </div>
             <div class="monaco" data-method="shh_getFilterChanges_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_getFilterChanges&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_getFilterChanges&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -5082,7 +5082,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
               example
             </div>
             <div class="monaco" data-method="shh_getMessages_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_getMessages&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_getMessages&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -5139,7 +5139,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
               example
             </div>
             <div class="monaco" data-method="shh_hasIdentity_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_hasIdentity&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_hasIdentity&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -5199,7 +5199,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
               example
             </div>
             <div class="monaco" data-method="shh_newFilter_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_newFilter&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>, []]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_newFilter&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>, []] ));
 </code></pre>
 
             </div>
@@ -5337,7 +5337,7 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
               example
             </div>
             <div class="monaco" data-method="shh_post_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_post&quot;</span>, [{}]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_post&quot;</span>, [{}] ));
 </code></pre>
 
             </div>
@@ -5395,7 +5395,7 @@ Additonally filters timeout when they aren&#39;t requested with <code>shh_getFil
               example
             </div>
             <div class="monaco" data-method="shh_uninstallFilter_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_uninstallFilter&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_uninstallFilter&quot;</span>, [<span class="hljs-string">&quot;0x0&quot;</span>] ));
 </code></pre>
 
             </div>
@@ -5441,7 +5441,7 @@ Additonally filters timeout when they aren&#39;t requested with <code>shh_getFil
               example
             </div>
             <div class="monaco" data-method="shh_version_0" data-language="javascript">
-              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_version&quot;</span>, [{}]));
+              <pre><code class="language-javascript"><span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;shh_version&quot;</span>, [{}] ));
 </code></pre>
 
             </div>
@@ -5545,7 +5545,7 @@ Additonally filters timeout when they aren&#39;t requested with <code>shh_getFil
             </div>
             <div class="monaco" data-method="web3_sha3_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> data = <span class="hljs-string">&quot;hello trufflers&quot;</span>;
-<span class="hljs-keyword">const</span> sha3 = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;web3_sha3&quot;</span>, [data]);
+<span class="hljs-keyword">const</span> sha3 = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;web3_sha3&quot;</span>, [data] );
 <span class="hljs-built_in">console</span>.log(sha3);
 </code></pre>
 

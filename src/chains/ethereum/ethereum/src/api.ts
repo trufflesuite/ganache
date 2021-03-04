@@ -140,7 +140,7 @@ export default class EthereumApi implements types.Api {
    * @returns Returns true if the value was stored, otherwise false.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_putString", ["testDb", "testKey", "testValue"]));
+   * console.log(await provider.send("db_putString", ["testDb", "testKey", "testValue"] ));
    * ```
    */
   @assertArgLength(3)
@@ -156,7 +156,7 @@ export default class EthereumApi implements types.Api {
    * @returns The previously stored string.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_getString", ["testDb", "testKey"]));
+   * console.log(await provider.send("db_getString", ["testDb", "testKey"] ));
    * ```
    */
   @assertArgLength(2)
@@ -173,7 +173,7 @@ export default class EthereumApi implements types.Api {
    * @returns `true` if the value was stored, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_putHex", ["testDb", "testKey", "0x0"]));
+   * console.log(await provider.send("db_putHex", ["testDb", "testKey", "0x0"] ));
    * ```
    */
   @assertArgLength(3)
@@ -189,7 +189,7 @@ export default class EthereumApi implements types.Api {
    * @returns The previously stored data.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_getHex", ["testDb", "testKey"]));
+   * console.log(await provider.send("db_getHex", ["testDb", "testKey"] ));
    * ```
    */
   @assertArgLength(2)
@@ -299,7 +299,7 @@ export default class EthereumApi implements types.Api {
    * ```javascript
    * const storage = "0x3e8";
    * const [address] = await provider.request({ method: "eth_accounts", params: [] });
-   * const result = await provider.send("evm_setStorageAt", [address, 0, storage, "latest"]);
+   * const result = await provider.send("evm_setStorageAt", [address, 0, storage, "latest"] );
    * console.log(result);
    * ```
    */
@@ -376,7 +376,7 @@ export default class EthereumApi implements types.Api {
    * ```javascript
    * const nonce = "0x3e8";
    * const [address] = await provider.request({ method: "eth_accounts", params: [] });
-   * const result = await provider.send("evm_setAccountNonce", [address, nonce]);
+   * const result = await provider.send("evm_setAccountNonce", [address, nonce] );
    * console.log(result);
    * ```
    */
@@ -408,7 +408,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const seconds = 10;
-   * const timeAdjustment = await provider.send("evm_increaseTime", [seconds]);
+   * const timeAdjustment = await provider.send("evm_increaseTime", [seconds] );
    * console.log(timeAdjustment);
    * ```
    */
@@ -434,9 +434,9 @@ export default class EthereumApi implements types.Api {
    * ```javascript
    * const currentDate = Date.now();
    * setTimeout(async () => {
-   *   const time = await provider.send("evm_setTime", [currentDate]);
+   *   const time = await provider.send("evm_setTime", [currentDate] );
    *   console.log(time); // should be about two seconds ago
-   * }, 1000)
+   * }, 1000);
    * ```
    */
   @assertArgLength(0, 1)
@@ -488,10 +488,8 @@ export default class EthereumApi implements types.Api {
    * assert(isReverted);
    * console.log(isReverted);
    *
-   * // ensure balance has reverted
    * const endingBalance = await provider.send("eth_getBalance", [from] );
-   * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
-   * console.log({isBalanceReverted: isBalanceReverted});
+   * assert.strictEqual(BigInt(endingBalance), startingBalance);
    * ```
    */
   @assertArgLength(1)
@@ -530,10 +528,8 @@ export default class EthereumApi implements types.Api {
    * const isReverted = await provider.send("evm_revert", [snapshotId] );
    * assert(isReverted);
    *
-   * // ensure balance has reverted
    * const endingBalance = await provider.send("eth_getBalance", [from] );
-   * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
-   * console.log({isBalanceReverted: isBalanceReverted});
+   * assert.strictEqual(BigInt(endingBalance), startingBalance);
    * ```
    */
   async evm_snapshot() {
@@ -555,8 +551,8 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-   * const result = await provider.send("evm_unlockUnknownAccount", [address]);
-   * console.log(result)
+   * const result = await provider.send("evm_unlockUnknownAccount", [address] );
+   * console.log(result);
    * ```
    */
   async evm_unlockUnknownAccount(address: DATA, duration: number = 0) {
@@ -576,8 +572,8 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-   * const result = await provider.send("evm_lockUnknownAccount", [address]);
-   * console.log(result)
+   * const result = await provider.send("evm_lockUnknownAccount", [address] );
+   * console.log(result);
    * ```
    */
   async evm_lockUnknownAccount(address: DATA) {
@@ -600,10 +596,10 @@ export default class EthereumApi implements types.Api {
    * @returns `true`.
    * @example
    * ```javascript
-   * await provider.send("miner_stop")
+   * await provider.send("miner_stop");
    * // check that eth_mining returns false
    * console.log(await provider.send("eth_mining"));
-   * await provider.send("miner_start")
+   * await provider.send("miner_start");
    * // check that eth_mining returns true
    * console.log(await provider.send("eth_mining"));
    * ```
@@ -628,7 +624,7 @@ export default class EthereumApi implements types.Api {
    * ```javascript
    * // check that eth_mining returns true
    * console.log(await provider.send("eth_mining"));
-   * await provider.send("miner_stop")
+   * await provider.send("miner_stop");
    * // check that eth_mining returns false
    * console.log(await provider.send("eth_mining"));
    * ```
@@ -647,7 +643,7 @@ export default class EthereumApi implements types.Api {
    * @returns `true`.
    * @example
    * ```javascript
-   * console.log(await provider.send("miner_setGasPrice", [300000]));
+   * console.log(await provider.send("miner_setGasPrice", [300000] ));
    * ```
    */
   @assertArgLength(1)
@@ -663,7 +659,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const [account] = await provider.request({ method: "eth_accounts", params: [] });
-   * console.log(await provider.send("miner_setEtherbase", [account]));
+   * console.log(await provider.send("miner_setEtherbase", [account] ));
    * ```
    */
   @assertArgLength(1)
@@ -678,7 +674,7 @@ export default class EthereumApi implements types.Api {
    * @returns If successfully set returns `true`, otherwise returns an error.
    * @example
    * ```javascript
-   * console.log(await provider.send("miner_setExtra", ["0x0"]));
+   * console.log(await provider.send("miner_setExtra", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -714,7 +710,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const data = "hello trufflers";
-   * const sha3 = await provider.send("web3_sha3", [data]);
+   * const sha3 = await provider.send("web3_sha3", [data] );
    * console.log(sha3);
    * ```
    */
@@ -731,7 +727,7 @@ export default class EthereumApi implements types.Api {
    * Quantity/Data encoded.
    * @example
    * ```javascript
-   * console.log(await provider.send("net_version"))
+   * console.log(await provider.send("net_version"));
    * ```
    */
   @assertArgLength(0)
@@ -744,7 +740,7 @@ export default class EthereumApi implements types.Api {
    * @returns `true` when listening, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("net_listening"))
+   * console.log(await provider.send("net_listening"));
    * ```
    */
   @assertArgLength(0)
@@ -757,7 +753,7 @@ export default class EthereumApi implements types.Api {
    * @returns Number of connected peers.
    * @example
    * ```javascript
-   * console.log(await provider.send("net_peerCount"))
+   * console.log(await provider.send("net_peerCount"));
    * ```
    */
   @assertArgLength(0)
@@ -792,8 +788,8 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
-   * const gasEstimate = await provider.request({ method: "eth_estimateGas", params: [{ from: accounts[0], to: accounts[1] }, "latest" ] });
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const gasEstimate = await provider.request({ method: "eth_estimateGas", params: [{ from, to }, "latest" ] });
    * console.log(gasEstimate);
    * ```
    */
@@ -980,7 +976,7 @@ export default class EthereumApi implements types.Api {
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
-   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash]})
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    * const block = await provider.request({ method: "eth_getBlockByHash", params: [txReceipt.blockHash, true] });
    * console.log(block);
    * ```
@@ -1090,9 +1086,9 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const { blockHash, transactionIndex } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    *
@@ -1133,9 +1129,9 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const { transactionIndex } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    *
@@ -1158,8 +1154,8 @@ export default class EthereumApi implements types.Api {
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
-   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"]);
-   * const uncleCount = await provider.send("eth_getUncleCountByBlockHash", [blockHash]);
+   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"] );
+   * const uncleCount = await provider.send("eth_getUncleCountByBlockHash", [blockHash] );
    * console.log(uncleCount);
    * ```
    */
@@ -1174,7 +1170,7 @@ export default class EthereumApi implements types.Api {
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
-   * const uncleCount = await provider.send("eth_getUncleCountByBlockNumber", ["latest"]);
+   * const uncleCount = await provider.send("eth_getUncleCountByBlockNumber", ["latest"] );
    * console.log(uncleCount);
    * ```
    */
@@ -1213,8 +1209,8 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"]);
-   * const block = await provider.send("eth_getUncleByBlockHashAndIndex", [blockHash, "0x0"]);
+   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"] );
+   * const block = await provider.send("eth_getUncleByBlockHashAndIndex", [blockHash, "0x0"] );
    * console.log(block);
    * ```
    */
@@ -1253,7 +1249,7 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const block = await provider.send("eth_getUncleByBlockNumberAndIndex", ["latest", "0x0"]);
+   * const block = await provider.send("eth_getUncleByBlockNumberAndIndex", ["latest", "0x0"] );
    * console.log(block);
    * ```
    */
@@ -1275,7 +1271,7 @@ export default class EthereumApi implements types.Api {
    * @returns The hash of the current block, the seedHash, and the boundary condition to be met ("target").
    * @example
    * ```javascript
-   * console.log(await provider.send("eth_getWork", ["0x0"]));
+   * console.log(await provider.send("eth_getWork", ["0x0"] ));
    *  ```
    */
   @assertArgLength(1)
@@ -1460,7 +1456,7 @@ export default class EthereumApi implements types.Api {
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
-   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash]})
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    * const code = await provider.request({ method: "eth_getCode", params: [txReceipt.contractAddress, "latest"] });
    * console.log(code);
    * ```
@@ -1532,7 +1528,7 @@ export default class EthereumApi implements types.Api {
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
-   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash]})
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    * const storageValue = await provider.request({ method: "eth_getStorageAt", params: [txReceipt.contractAddress, "0x0", "latest"] });
    * console.log(storageValue);
    * ```
@@ -1601,9 +1597,9 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * const tx = await provider.request({ method: "eth_getTransactionByHash", params: [ txHash ] });
@@ -1638,9 +1634,9 @@ export default class EthereumApi implements types.Api {
    * @returns Returns the receipt of a transaction by transaction hash.
    * @example
    * ```javascript
-   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [ txHash ] });
@@ -1702,9 +1698,9 @@ export default class EthereumApi implements types.Api {
    * @returns The transaction hash.
    * @example
    * ```javascript
-   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    * console.log(txHash);
    * ```
@@ -1800,7 +1796,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const signedTx = "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675";
-   * const txHash = await provider.send("eth_sendRawTransaction", [signedTx]);
+   * const txHash = await provider.send("eth_sendRawTransaction", [signedTx] );
    * console.log(txHash);
    * ```
    */
@@ -2347,12 +2343,12 @@ export default class EthereumApi implements types.Api {
    * @returns Number of transactions sent from this address.
    * @example
    * ```javascript
-   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * await provider.request({ method: "eth_sendTransaction", params: [{ from: accounts[0], to: accounts[1], gas: "0x5b8d80" }] });
+   * await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
-   * const txCount = await provider.request({ method: "eth_getTransactionCount", params: [ accounts[0], "latest" ] });
+   * const txCount = await provider.request({ method: "eth_getTransactionCount", params: [ from, "latest" ] });
    * console.log(txCount);
    * ```
    */
@@ -2398,7 +2394,7 @@ export default class EthereumApi implements types.Api {
    * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
-   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest"]});
+   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest"] });
    * console.log(result);
    * ```
    */
@@ -2606,8 +2602,8 @@ export default class EthereumApi implements types.Api {
    * @returns The new account's address.
    * @example
    * ```javascript
-   * const passphrase = "passphrase"
-   * const address = await provider.send("personal_newAccount", [passphrase])
+   * const passphrase = "passphrase";
+   * const address = await provider.send("personal_newAccount", [passphrase] );
    * console.log(address);
    * ```
    */
@@ -2642,7 +2638,7 @@ export default class EthereumApi implements types.Api {
    * const rawKey = "0x0123456789012345678901234567890123456789012345678901234567890123";
    * const passphrase = "passphrase";
    *
-   * const address = await provider.send("personal_importRawKey",[rawKey, passphrase]);
+   * const address = await provider.send("personal_importRawKey",[rawKey, passphrase] );
    * console.log(address);
    * ```
    */
@@ -2673,7 +2669,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const [account] = await provider.send("personal_listAccounts");
-   * const isLocked = await provider.send("personal_lockAccount", [account]);
+   * const isLocked = await provider.send("personal_lockAccount", [account] );
    * console.log(isLocked);
    * ```
    */
@@ -2702,8 +2698,8 @@ export default class EthereumApi implements types.Api {
    * ```javascript
    * // generate an account
    * const passphrase = "passphrase";
-   * const newAccount = await provider.send("personal_newAccount", [passphrase]);
-   * const isLocked = await provider.send("personal_unlockAccount", [newAccount, passphrase]);
+   * const newAccount = await provider.send("personal_newAccount", [passphrase] );
+   * const isLocked = await provider.send("personal_unlockAccount", [newAccount, passphrase] );
    * console.log(isLocked);
    * ```
    */
@@ -2744,11 +2740,11 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const passphrase = "passphrase";
-   * const newAccount = await provider.send("personal_newAccount", [passphrase]);
-   * const [to] = await provider.send("personal_listAccounts")
+   * const newAccount = await provider.send("personal_newAccount", [passphrase] );
+   * const [to] = await provider.send("personal_listAccounts");
    *
    * // use account and passphrase to send the transaction
-   * const txHash = await provider.send("personal_sendTransaction", [{ from: newAccount, to }, passphrase]);
+   * const txHash = await provider.send("personal_sendTransaction", [{ from: newAccount, to }, passphrase] );
    * console.log(txHash);
    * ```
    */
@@ -2836,7 +2832,7 @@ export default class EthereumApi implements types.Api {
    * @returns RPC modules.
    * @example
    * ```javascript
-   * console.log(await provider.send("rpc_modules"))
+   * console.log(await provider.send("rpc_modules"));
    * ```
    */
   @assertArgLength(0)
@@ -2868,7 +2864,7 @@ export default class EthereumApi implements types.Api {
    * @returns Returns `true` if the client holds the private key for that identity, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_hasIdentity", ["0x0"]));
+   * console.log(await provider.send("shh_hasIdentity", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -2893,7 +2889,7 @@ export default class EthereumApi implements types.Api {
    * @returns `true` if the identity was successfully added to the group, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_addToGroup", ["0x0"]));
+   * console.log(await provider.send("shh_addToGroup", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -2910,7 +2906,7 @@ export default class EthereumApi implements types.Api {
    * @returns Returns `true` if the identity was successfully added to the group, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_newFilter", ["0x0", []]));
+   * console.log(await provider.send("shh_newFilter", ["0x0", []] ));
    * ```
    */
   @assertArgLength(2)
@@ -2926,7 +2922,7 @@ export default class EthereumApi implements types.Api {
    * @returns `true` if the filter was successfully uninstalled, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_uninstallFilter", ["0x0"]));
+   * console.log(await provider.send("shh_uninstallFilter", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -2941,7 +2937,7 @@ export default class EthereumApi implements types.Api {
    * @returns More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_getFilterChanges", ["0x0"]));
+   * console.log(await provider.send("shh_getFilterChanges", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -2956,7 +2952,7 @@ export default class EthereumApi implements types.Api {
    * @returns See: `shh_getFilterChanges`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_getMessages", ["0x0"]));
+   * console.log(await provider.send("shh_getMessages", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -2971,7 +2967,7 @@ export default class EthereumApi implements types.Api {
    * @returns Returns `true` if the message was sent, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_post", [{}]));
+   * console.log(await provider.send("shh_post", [{}] ));
    * ```
    */
   @assertArgLength(1)
@@ -2985,7 +2981,7 @@ export default class EthereumApi implements types.Api {
    * @returns The current whisper protocol version.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_version", [{}]));
+   * console.log(await provider.send("shh_version", [{}] ));
    * ```
    */
   @assertArgLength(0)
