@@ -5,16 +5,17 @@ import {
   VM_EXCEPTION,
   VM_EXCEPTIONS,
   CodedError,
+  DATA,
   WhisperPostObject,
   BaseFilterArgs,
   Filter,
   FilterArgs,
   FilterTypes,
+  QUANTITY,
   RangeFilterArgs,
+  StorageRangeResult,
   SubscriptionId,
-  SubscriptionName,
-  DATA,
-  QUANTITY
+  SubscriptionName
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
@@ -2515,7 +2516,7 @@ export default class EthereumApi implements types.Api {
     contractAddress: DATA,
     keyStart: DATA,
     maxResult: QUANTITY
-  ) {
+  ): Promise<StorageRangeResult> {
     return this.#blockchain.storageRangeAt(
       blockHash,
       Quantity.from(transactionIndex).toNumber(),
