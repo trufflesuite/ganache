@@ -85,7 +85,7 @@
     "webpack-cli": "4.5.0",
     "ws": "7.4.2",
     "@filecoin-shipyard/lotus-client-schema": "2.0.0",
-    "@ganache/filecoin-options": "0.1.0",
+    "@ganache/filecoin-options": "0.1.1",
     "@ganache/options": "0.1.0",
     "@ganache/utils": "0.1.0",
     "abstract-leveldown": "6.3.0",
