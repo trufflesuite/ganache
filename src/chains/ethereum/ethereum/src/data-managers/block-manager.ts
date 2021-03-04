@@ -1,10 +1,9 @@
 import Manager from "./manager";
-import { Tag } from "@ganache/ethereum-utils";
+import { Tag, Block, QUANTITY } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
 import Blockchain from "../blockchain";
-import { Block } from "@ganache/ethereum-block";
 
 const NOTFOUND = 404;
 
@@ -88,9 +87,7 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(
-    tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST
-  ): Quantity {
+  getEffectiveNumber(tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST) {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {
@@ -129,7 +126,7 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  async getRawByBlockNumber(blockNumber: Quantity): Promise<Buffer> {
+  async getRaw(tagOrBlockNumber: QUANTITY | Buffer | Tag) {
     // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
     // we don't have to fetch them from the db each time a block tag is used.
     const fallback = this.#blockchain.fallback;
@@ -144,16 +141,14 @@ export default class BlockManager extends Manager<Block> {
     });
   }
 
-  async get(tagOrBlockNumber: string | Buffer | Tag) {
+  async get(tagOrBlockNumber: QUANTITY | Buffer | Tag) {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) return block;
     }
 
-    const block = await this.getRawByBlockNumber(
-      Quantity.from(tagOrBlockNumber)
-    );
-    if (block) return new Block(block, this.#common);
+    const block = await super.get(Quantity.from(tagOrBlockNumber).toBuffer());
+    if (block) return block;
 
     throw new Error("header not found");
   }
