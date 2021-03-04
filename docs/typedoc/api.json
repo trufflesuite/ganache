@@ -715,7 +715,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"db_getHex\", [\"testDb\", \"testKey\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"db_getHex\", [\"testDb\", \"testKey\"] ));\n```\n"
 											}
 										]
 									},
@@ -808,7 +808,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"db_getString\", [\"testDb\", \"testKey\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"db_getString\", [\"testDb\", \"testKey\"] ));\n```\n"
 											}
 										]
 									},
@@ -901,7 +901,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"db_putHex\", [\"testDb\", \"testKey\", \"0x0\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"db_putHex\", [\"testDb\", \"testKey\", \"0x0\"] ));\n```\n"
 											}
 										]
 									},
@@ -1010,7 +1010,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"db_putString\", [\"testDb\", \"testKey\", \"testValue\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"db_putString\", [\"testDb\", \"testKey\", \"testValue\"] ));\n```\n"
 											}
 										]
 									},
@@ -1448,7 +1448,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst txObj = { from, gas: \"0x5b8d80\", gasPrice: \"0x1dfd14000\", value:\"0x0\", data: simpleSol };\nconst result = await provider.request({ method: \"eth_call\", params: [txObj, \"latest\"]});\nconsole.log(result);\n```\n"
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst txObj = { from, gas: \"0x5b8d80\", gasPrice: \"0x1dfd14000\", value:\"0x0\", data: simpleSol };\nconst result = await provider.request({ method: \"eth_call\", params: [txObj, \"latest\"] });\nconsole.log(result);\n```\n"
 											}
 										]
 									},
@@ -1675,7 +1675,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nconst gasEstimate = await provider.request({ method: \"eth_estimateGas\", params: [{ from: accounts[0], to: accounts[1] }, \"latest\" ] });\nconsole.log(gasEstimate);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst gasEstimate = await provider.request({ method: \"eth_estimateGas\", params: [{ from, to }, \"latest\" ] });\nconsole.log(gasEstimate);\n```\n"
 											}
 										]
 									},
@@ -1942,7 +1942,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash]})\nconst block = await provider.request({ method: \"eth_getBlockByHash\", params: [txReceipt.blockHash, true] });\nconsole.log(block);\n```\n"
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst block = await provider.request({ method: \"eth_getBlockByHash\", params: [txReceipt.blockHash, true] });\nconsole.log(block);\n```\n"
 											}
 										]
 									},
@@ -2140,7 +2140,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash]})\nconst txCount = await provider.request({ method: \"eth_getBlockTransactionCountByHash\", params: [txReceipt.blockHash] });\nconsole.log(txCount);\n```\n"
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst txCount = await provider.request({ method: \"eth_getBlockTransactionCountByHash\", params: [txReceipt.blockHash] });\nconsole.log(txCount);\n```\n"
 											}
 										]
 									},
@@ -2304,7 +2304,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash]})\nconst code = await provider.request({ method: \"eth_getCode\", params: [txReceipt.contractAddress, \"latest\"] });\nconsole.log(code);\n```\n"
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst code = await provider.request({ method: \"eth_getCode\", params: [txReceipt.contractAddress, \"latest\"] });\nconsole.log(code);\n```\n"
 											}
 										]
 									},
@@ -3173,7 +3173,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash]})\nconst storageValue = await provider.request({ method: \"eth_getStorageAt\", params: [txReceipt.contractAddress, \"0x0\", \"latest\"] });\nconsole.log(storageValue);\n```\n"
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst storageValue = await provider.request({ method: \"eth_getStorageAt\", params: [txReceipt.contractAddress, \"0x0\", \"latest\"] });\nconsole.log(storageValue);\n```\n"
 											}
 										]
 									},
@@ -3292,7 +3292,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from: accounts[0], to: accounts[1], gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst { blockHash, transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockHashAndIndex\", params: [ blockHash, transactionIndex ] });\nconsole.log(tx);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst { blockHash, transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockHashAndIndex\", params: [ blockHash, transactionIndex ] });\nconsole.log(tx);\n```\n"
 											}
 										]
 									},
@@ -3385,7 +3385,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from: accounts[0], to: accounts[1], gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst { transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockNumberAndIndex\", params: [ \"latest\", transactionIndex ] });\nconsole.log(tx);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst { transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockNumberAndIndex\", params: [ \"latest\", transactionIndex ] });\nconsole.log(tx);\n```\n"
 											}
 										]
 									},
@@ -3487,7 +3487,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from: accounts[0], to: accounts[1], gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst tx = await provider.request({ method: \"eth_getTransactionByHash\", params: [ txHash ] });\nconsole.log(tx);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst tx = await provider.request({ method: \"eth_getTransactionByHash\", params: [ txHash ] });\nconsole.log(tx);\n```\n"
 											}
 										]
 									},
@@ -3877,7 +3877,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nawait provider.request({ method: \"eth_sendTransaction\", params: [{ from: accounts[0], to: accounts[1], gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst txCount = await provider.request({ method: \"eth_getTransactionCount\", params: [ accounts[0], \"latest\" ] });\nconsole.log(txCount);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nawait provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst txCount = await provider.request({ method: \"eth_getTransactionCount\", params: [ from, \"latest\" ] });\nconsole.log(txCount);\n```\n"
 											}
 										]
 									},
@@ -3981,7 +3981,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from: accounts[0], to: accounts[1], gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [ txHash ] });\nconsole.log(txReceipt);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [ txHash ] });\nconsole.log(txReceipt);\n```\n"
 											}
 										]
 									},
@@ -4569,7 +4569,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst blockHash = await provider.send(\"eth_getBlockByNumber\", [\"latest\"]);\nconst block = await provider.send(\"eth_getUncleByBlockHashAndIndex\", [blockHash, \"0x0\"]);\nconsole.log(block);\n```\n"
+												"text": "\n```javascript\nconst blockHash = await provider.send(\"eth_getBlockByNumber\", [\"latest\"] );\nconst block = await provider.send(\"eth_getUncleByBlockHashAndIndex\", [blockHash, \"0x0\"] );\nconsole.log(block);\n```\n"
 											}
 										]
 									},
@@ -4662,7 +4662,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst block = await provider.send(\"eth_getUncleByBlockNumberAndIndex\", [\"latest\", \"0x0\"]);\nconsole.log(block);\n```\n"
+												"text": "\n```javascript\nconst block = await provider.send(\"eth_getUncleByBlockNumberAndIndex\", [\"latest\", \"0x0\"] );\nconsole.log(block);\n```\n"
 											}
 										]
 									},
@@ -4764,7 +4764,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst blockHash = await provider.send(\"eth_getBlockByNumber\", [\"latest\"]);\nconst uncleCount = await provider.send(\"eth_getUncleCountByBlockHash\", [blockHash]);\nconsole.log(uncleCount);\n```\n"
+												"text": "\n```javascript\nconst blockHash = await provider.send(\"eth_getBlockByNumber\", [\"latest\"] );\nconst uncleCount = await provider.send(\"eth_getUncleCountByBlockHash\", [blockHash] );\nconsole.log(uncleCount);\n```\n"
 											}
 										]
 									},
@@ -4841,7 +4841,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst uncleCount = await provider.send(\"eth_getUncleCountByBlockNumber\", [\"latest\"]);\nconsole.log(uncleCount);\n```\n"
+												"text": "\n```javascript\nconst uncleCount = await provider.send(\"eth_getUncleCountByBlockNumber\", [\"latest\"] );\nconsole.log(uncleCount);\n```\n"
 											}
 										]
 									},
@@ -4924,7 +4924,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"eth_getWork\", [\"0x0\"]));\n ```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"eth_getWork\", [\"0x0\"] ));\n ```\n"
 											}
 										]
 									},
@@ -5397,7 +5397,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst signedTx = \"0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675\";\nconst txHash = await provider.send(\"eth_sendRawTransaction\", [signedTx]);\nconsole.log(txHash);\n```\n"
+												"text": "\n```javascript\nconst signedTx = \"0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675\";\nconst txHash = await provider.send(\"eth_sendRawTransaction\", [signedTx] );\nconsole.log(txHash);\n```\n"
 											}
 										]
 									},
@@ -5475,7 +5475,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from: accounts[0], to: accounts[1], gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconsole.log(txHash);\n```\n"
+												"text": "\n```javascript\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconsole.log(txHash);\n```\n"
 											}
 										]
 									},
@@ -6307,7 +6307,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst seconds = 10;\nconst timeAdjustment = await provider.send(\"evm_increaseTime\", [seconds]);\nconsole.log(timeAdjustment);\n```\n"
+												"text": "\n```javascript\nconst seconds = 10;\nconst timeAdjustment = await provider.send(\"evm_increaseTime\", [seconds] );\nconsole.log(timeAdjustment);\n```\n"
 											}
 										]
 									},
@@ -6373,7 +6373,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst address = \"0x742d35Cc6634C0532925a3b844Bc454e4438f44e\";\nconst result = await provider.send(\"evm_lockUnknownAccount\", [address]);\nconsole.log(result)\n```\n"
+												"text": "\n```javascript\nconst address = \"0x742d35Cc6634C0532925a3b844Bc454e4438f44e\";\nconst result = await provider.send(\"evm_lockUnknownAccount\", [address] );\nconsole.log(result);\n```\n"
 											}
 										]
 									},
@@ -6452,7 +6452,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(\"start\", await provider.send(\"eth_blockNumber\"));\nawait provider.send(\"evm_mine\", [{blocks: 5}]); // mines 5 blocks\nconsole.log(\"end\", await provider.send(\"eth_blockNumber\"));\n```\n"
+												"text": "\n```javascript\nconsole.log(\"start\", await provider.send(\"eth_blockNumber\"));\nawait provider.send(\"evm_mine\", [{blocks: 5}] ); // mines 5 blocks\nconsole.log(\"end\", await provider.send(\"eth_blockNumber\"));\n```\n"
 											}
 										]
 									},
@@ -6644,7 +6644,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from]));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}]);\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from]);\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId]);\nassert(isReverted);\nconsole.log(isReverted);\n\nconst endingBalance = await provider.send(\"eth_getBalance\", [from]);\nassert.strictEqual(BigInt(endingBalance), startingBalance);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from] ));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"] );\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}] );\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from] );\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId] );\nassert(isReverted);\nconsole.log(isReverted);\n\nconst endingBalance = await provider.send(\"eth_getBalance\", [from] );\nassert.strictEqual(BigInt(endingBalance), startingBalance);\n```\n"
 											}
 										]
 									},
@@ -6722,7 +6722,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst nonce = \"0x3e8\";\nconst [address] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst result = await provider.send(\"evm_setAccountNonce\", [address, nonce]);\nconsole.log(result);\n```\n"
+												"text": "\n```javascript\nconst nonce = \"0x3e8\";\nconst [address] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst result = await provider.send(\"evm_setAccountNonce\", [address, nonce] );\nconsole.log(result);\n```\n"
 											}
 										]
 									},
@@ -6816,7 +6816,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst storage = \"0x3e8\";\nconst [address] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst result = await provider.send(\"evm_setStorageAt\", [address, 0, storage, \"latest\"]);\nconsole.log(result);\n```\n"
+												"text": "\n```javascript\nconst storage = \"0x3e8\";\nconst [address] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst result = await provider.send(\"evm_setStorageAt\", [address, 0, storage, \"latest\"] );\nconsole.log(result);\n```\n"
 											}
 										]
 									},
@@ -6953,7 +6953,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst currentDate = Date.now();\nsetTimeout(async () => {\n  const time = await provider.send(\"evm_setTime\", [currentDate]);\n  console.log(time); // should be about two seconds ago\n}, 1000)\n```\n"
+												"text": "\n```javascript\nconst currentDate = Date.now();\nsetTimeout(async () => {\n  const time = await provider.send(\"evm_setTime\", [currentDate] );\n  console.log(time); // should be about two seconds ago\n}, 1000);\n```\n"
 											}
 										]
 									},
@@ -7027,7 +7027,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst provider = ganache.provider();\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from]));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}]);\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from]);\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId]);\nassert(isReverted);\n\nconst endingBalance = await provider.send(\"eth_getBalance\", [from]);\nassert.strictEqual(BigInt(endingBalance), startingBalance);\n```\n"
+												"text": "\n```javascript\nconst provider = ganache.provider();\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from] ));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"] );\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}] );\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from] );\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId] );\nassert(isReverted);\n\nconst endingBalance = await provider.send(\"eth_getBalance\", [from] );\nassert.strictEqual(BigInt(endingBalance), startingBalance);\n```\n"
 											}
 										]
 									},
@@ -7075,7 +7075,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst address = \"0x742d35Cc6634C0532925a3b844Bc454e4438f44e\";\nconst result = await provider.send(\"evm_unlockUnknownAccount\", [address]);\nconsole.log(result)\n```\n"
+												"text": "\n```javascript\nconst address = \"0x742d35Cc6634C0532925a3b844Bc454e4438f44e\";\nconst result = await provider.send(\"evm_unlockUnknownAccount\", [address] );\nconsole.log(result);\n```\n"
 											}
 										]
 									},
@@ -7169,7 +7169,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst [account] = await provider.request({ method: \"eth_accounts\", params: [] });\nconsole.log(await provider.send(\"miner_setEtherbase\", [account]));\n```\n"
+												"text": "\n```javascript\nconst [account] = await provider.request({ method: \"eth_accounts\", params: [] });\nconsole.log(await provider.send(\"miner_setEtherbase\", [account] ));\n```\n"
 											}
 										]
 									},
@@ -7246,7 +7246,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setExtra\", [\"0x0\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setExtra\", [\"0x0\"] ));\n```\n"
 											}
 										]
 									},
@@ -7323,7 +7323,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setGasPrice\", [300000]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setGasPrice\", [300000] ));\n```\n"
 											}
 										]
 									},
@@ -7402,7 +7402,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nawait provider.send(\"miner_stop\")\n// check that eth_mining returns false\nconsole.log(await provider.send(\"eth_mining\"));\nawait provider.send(\"miner_start\")\n// check that eth_mining returns true\nconsole.log(await provider.send(\"eth_mining\"));\n```\n"
+												"text": "\n```javascript\nawait provider.send(\"miner_stop\");\n// check that eth_mining returns false\nconsole.log(await provider.send(\"eth_mining\"));\nawait provider.send(\"miner_start\");\n// check that eth_mining returns true\nconsole.log(await provider.send(\"eth_mining\"));\n```\n"
 											}
 										]
 									},
@@ -7480,7 +7480,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\n// check that eth_mining returns true\nconsole.log(await provider.send(\"eth_mining\"));\nawait provider.send(\"miner_stop\")\n// check that eth_mining returns false\nconsole.log(await provider.send(\"eth_mining\"));\n```\n"
+												"text": "\n```javascript\n// check that eth_mining returns true\nconsole.log(await provider.send(\"eth_mining\"));\nawait provider.send(\"miner_stop\");\n// check that eth_mining returns false\nconsole.log(await provider.send(\"eth_mining\"));\n```\n"
 											}
 										]
 									},
@@ -7539,7 +7539,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"net_listening\"))\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"net_listening\"));\n```\n"
 											}
 										]
 									},
@@ -7598,7 +7598,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"net_peerCount\"))\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"net_peerCount\"));\n```\n"
 											}
 										]
 									},
@@ -7657,7 +7657,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"net_version\"))\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"net_version\"));\n```\n"
 											}
 										]
 									},
@@ -7716,7 +7716,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst rawKey = \"0x0123456789012345678901234567890123456789012345678901234567890123\";\nconst passphrase = \"passphrase\";\n\nconst address = await provider.send(\"personal_importRawKey\",[rawKey, passphrase]);\nconsole.log(address);\n```\n"
+												"text": "\n```javascript\nconst rawKey = \"0x0123456789012345678901234567890123456789012345678901234567890123\";\nconst passphrase = \"passphrase\";\n\nconst address = await provider.send(\"personal_importRawKey\",[rawKey, passphrase] );\nconsole.log(address);\n```\n"
 											}
 										]
 									},
@@ -7871,7 +7871,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst [account] = await provider.send(\"personal_listAccounts\");\nconst isLocked = await provider.send(\"personal_lockAccount\", [account]);\nconsole.log(isLocked);\n```\n"
+												"text": "\n```javascript\nconst [account] = await provider.send(\"personal_listAccounts\");\nconst isLocked = await provider.send(\"personal_lockAccount\", [account] );\nconsole.log(isLocked);\n```\n"
 											}
 										]
 									},
@@ -7948,7 +7948,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst passphrase = \"passphrase\"\nconst address = await provider.send(\"personal_newAccount\", [passphrase])\nconsole.log(address);\n```\n"
+												"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst address = await provider.send(\"personal_newAccount\", [passphrase] );\nconsole.log(address);\n```\n"
 											}
 										]
 									},
@@ -8026,7 +8026,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase]);\nconst [to] = await provider.send(\"personal_listAccounts\")\n\n// use account and passphrase to send the transaction\nconst txHash = await provider.send(\"personal_sendTransaction\", [{ from: newAccount, to }, passphrase]);\nconsole.log(txHash);\n```\n"
+												"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase] );\nconst [to] = await provider.send(\"personal_listAccounts\");\n\n// use account and passphrase to send the transaction\nconst txHash = await provider.send(\"personal_sendTransaction\", [{ from: newAccount, to }, passphrase] );\nconsole.log(txHash);\n```\n"
 											}
 										]
 									},
@@ -8118,7 +8118,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\n// generate an account\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase]);\nconst isLocked = await provider.send(\"personal_unlockAccount\", [newAccount, passphrase]);\nconsole.log(isLocked);\n```\n"
+												"text": "\n```javascript\n// generate an account\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase] );\nconst isLocked = await provider.send(\"personal_unlockAccount\", [newAccount, passphrase] );\nconsole.log(isLocked);\n```\n"
 											}
 										]
 									},
@@ -8228,7 +8228,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"rpc_modules\"))\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"rpc_modules\"));\n```\n"
 											}
 										]
 									},
@@ -8437,7 +8437,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_addToGroup\", [\"0x0\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_addToGroup\", [\"0x0\"] ));\n```\n"
 											}
 										]
 									},
@@ -8514,7 +8514,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getFilterChanges\", [\"0x0\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getFilterChanges\", [\"0x0\"] ));\n```\n"
 											}
 										]
 									},
@@ -8594,7 +8594,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getMessages\", [\"0x0\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getMessages\", [\"0x0\"] ));\n```\n"
 											}
 										]
 									},
@@ -8671,7 +8671,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_hasIdentity\", [\"0x0\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_hasIdentity\", [\"0x0\"] ));\n```\n"
 											}
 										]
 									},
@@ -8748,7 +8748,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_newFilter\", [\"0x0\", []]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_newFilter\", [\"0x0\", []] ));\n```\n"
 											}
 										]
 									},
@@ -8956,7 +8956,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_post\", [{}]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_post\", [{}] ));\n```\n"
 											}
 										]
 									},
@@ -9031,7 +9031,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_uninstallFilter\", [\"0x0\"]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_uninstallFilter\", [\"0x0\"] ));\n```\n"
 											}
 										]
 									},
@@ -9108,7 +9108,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_version\", [{}]));\n```\n"
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_version\", [{}] ));\n```\n"
 											}
 										]
 									},
@@ -9226,7 +9226,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst data = \"hello trufflers\";\nconst sha3 = await provider.send(\"web3_sha3\", [data]);\nconsole.log(sha3);\n```\n"
+												"text": "\n```javascript\nconst data = \"hello trufflers\";\nconst sha3 = await provider.send(\"web3_sha3\", [data] );\nconsole.log(sha3);\n```\n"
 											}
 										]
 									},
