@@ -43,9 +43,15 @@ const flavor = argv.flavor;
 
 const cliSettings = argv.server;
 
-const server = Ganache.server(argv);
-
 console.log(detailedVersion);
+
+let server;
+try {
+  server = Ganache.server(argv);
+} catch (error) {
+  console.log(error.message);
+  process.exit(1);
+}
 
 let started = false;
 process.on("uncaughtException", function (e) {
