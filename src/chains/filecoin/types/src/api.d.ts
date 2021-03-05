@@ -26,6 +26,7 @@ export default class FilecoinApi implements types.Api {
   constructor(blockchain: Blockchain);
   stop(): Promise<void>;
   "Filecoin.Version"(): Promise<SerializedVersion>;
+  "Filecoin.ID"(): Promise<string>;
   "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset>;
   "Filecoin.ChainHead"(): Promise<SerializedTipset>;
   "Filecoin.ChainNotify"(rpcId?: string): PromiEvent<Subscription>;
