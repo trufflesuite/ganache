@@ -37,6 +37,7 @@ import { SerializedSignature, Signature } from "./things/signature";
 import { SigType } from "./things/sig-type";
 import { SerializedBlockHeader } from "./things/block-header";
 import { SerializedBlockMessages } from "./things/block-messages";
+import { StorageDealStatus } from "./types/storage-deal-status";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -685,6 +686,15 @@ export default class FilecoinApi implements types.Api {
     } else {
       throw new Error("Could not find a deal for the provided CID");
     }
+  }
+
+  // Reference implementation: https://git.io/JqUXg
+  async "Filecoin.ClientGetDealStatus"(statusCode: number): Promise<string> {
+    const status = StorageDealStatus[statusCode];
+    if (!status) {
+      throw new Error(`no such deal state ${statusCode}`);
+    }
+    return `StorageDeal${status}`;
   }
 
   "Filecoin.ClientGetDealUpdates"(rpcId?: string): PromiEvent<Subscription> {
