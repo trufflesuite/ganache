@@ -207,9 +207,7 @@ class Address extends SerializableLiteral<AddressConfig> {
 
     return new Address(address, privateKey);
   }
-  // bafy2bzacebf6iacrgturdmhdhnlb3sy2aerstv3zahn7pckbzbbghksiq3bfg
-  // bafy2bzacebuunkmqu6toz54dgicjjbckh7qcchc3xfeqwcuoz4gj4qkmji4wy
-  // bafyreieclpob2quklfdbardaojv4ylxjasrihgt5kqoki267xarbldqgmi
+
   static random(
     rng: utils.RandomNumberGenerator = new utils.RandomNumberGenerator(),
     protocol: AddressProtocol = AddressProtocol.BLS,
