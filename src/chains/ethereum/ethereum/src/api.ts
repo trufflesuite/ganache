@@ -2041,7 +2041,8 @@ export default class EthereumApi implements types.Api {
    * @returns `true` if subscription was cancelled successfully, otherwise `false`.
    * @example
    * ```javascript
-   * const result = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const subscriptionId = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const result = await provider.request({ method: "eth_unsubscribe", params: [subscriptionId] });
    * console.log(result);
    * ```
    */
