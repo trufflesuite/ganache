@@ -41,6 +41,21 @@ describe("api", () => {
       }
     });
 
+    describe("Filecoin.ClientGetDealStatus", () => {
+      it("retrieves a string for a status code", async () => {
+        let status = await client.clientGetDealStatus(5);
+        assert.strictEqual(status, "StorageDealSealing");
+        try {
+          status = await client.clientGetDealStatus(500);
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert.strictEqual(e.message, "no such deal state 500");
+        }
+      });
+    });
+
     describe("Filecoin.ClientStartDeal, Filecoin.ClientListDeals, Ganache.GetDealById, Filecoin.ClientGetDealInfo, and Filecoin.ClientGetDealUpdates", () => {
       let ipfs: IPFSClient;
       let currentDeal: DealInfo = new DealInfo({
