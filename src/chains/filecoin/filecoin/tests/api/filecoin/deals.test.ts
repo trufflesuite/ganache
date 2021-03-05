@@ -103,6 +103,25 @@ describe("api", () => {
 
         assert.deepStrictEqual(deal, deals[0]);
       });
+
+      it("fails to retrieve invalid deal using ID", async () => {
+        try {
+          await provider.send({
+            jsonrpc: "2.0",
+            id: "0",
+            method: "Ganache.GetDealById",
+            params: [1337]
+          });
+          assert.fail("Successfully retrieved a deal for an invalid ID");
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("Could not find a deal for the provided ID")
+          );
+        }
+      });
     });
 
     describe("Filecoin.ClientFindData, Filecoin.ClientRetrieve, and Filecoin.ClientHasLocal", () => {
