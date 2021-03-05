@@ -162,6 +162,22 @@ describe("api", () => {
 
         assert.deepStrictEqual(deal, deals[0]);
       });
+
+      it("fails to retrieve invalid deal using CID", async () => {
+        try {
+          const invalidCid =
+            "bafyreifi6tnqdabvaid7o4qezjpcavkwtibctpfzuarr4erfxjqds52bba";
+          await client.clientGetDealInfo({ "/": invalidCid });
+          assert.fail("Successfully retrieved a deal for an invalid CID");
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("Could not find a deal for the provided CID")
+          );
+        }
+      });
     });
 
     describe("Filecoin.ClientFindData, Filecoin.ClientRetrieve, and Filecoin.ClientHasLocal", () => {
