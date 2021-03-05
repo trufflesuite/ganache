@@ -111,6 +111,17 @@ describe("api", () => {
       });
     });
 
+    describe("Filecoin.ID", () => {
+      it("should return a value", async () => {
+        const id = await client.ID();
+
+        assert.strictEqual(
+          id,
+          "bafzkbzaced47iu7qygeshb3jamzkh2cqcmlxzcpxrnqsj6yoipuidor523jyg"
+        );
+      });
+    });
+
     describe("Filecoin.ChainGetGenesis", () => {
       it("should return a value", async () => {
         const genesis = await client.chainGetGenesis();

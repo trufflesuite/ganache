@@ -63,6 +63,16 @@ export default class FilecoinApi implements types.Api {
     }).serialize();
   }
 
+  async "Filecoin.ID"(): Promise<string> {
+    // This is calculated with the below code
+    // Hardcoded as there's no reason to recalculate each time
+    // mh = require("multihashing")(Buffer.from("ganache"), "blake2b-256");
+    // (new require("peer-id")(mh)).toString()
+    // Not sure what else to put here since we don't implement
+    // the Filecoin P2P network
+    return "bafzkbzaced47iu7qygeshb3jamzkh2cqcmlxzcpxrnqsj6yoipuidor523jyg";
+  }
+
   async "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset> {
     const tipset = this.#blockchain.genesisTipset();
     return tipset.serialize();
