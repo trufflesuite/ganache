@@ -285,7 +285,6 @@ export default class EthereumApi implements types.Api {
     return "0x0";
   }
 
-  // TODO-ERIN: get example to work and clean this up
   /**
    * Sets the given account's storage to the specified value at the specified position.
    *
@@ -297,9 +296,23 @@ export default class EthereumApi implements types.Api {
    * @returns `true` if the value was stored successfully, otherwise `false`.
    * @example
    * ```javascript
-   * const storage = "0x3e8";
-   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
-   * const result = await provider.send("evm_setStorageAt", [address, 0, storage, "latest"] );
+   * // Simple.sol
+   * // // SPDX-License-Identifier: MIT
+   * //  pragma solidity ^0.7.4;
+   * //
+   * //  contract Simple {
+   * //      uint256 public value;
+   * //      constructor() payable {
+   * //          value = 5;
+   * //      }
+   * //  }
+   * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const { contractAddress } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const result = await provider.send("evm_setStorageAt", [contractAddress, 0, "0x3e8", "latest"] );
    * console.log(result);
    * ```
    */
