@@ -777,7 +777,7 @@ export default class EthereumApi implements types.Api {
 
   //#region eth
 
-  // TODO-ERIN: why is the example not working?
+  // TODO: example doesn't return correct value
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
@@ -1801,7 +1801,7 @@ export default class EthereumApi implements types.Api {
       throw new Error(msg);
     }
 
-  // TODO-ERIN this example doens't return anything, not sure how to handle the signed tx situation
+  // TODO: example doesn't work, not sure how to handle the signed transaction situation
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
    * @param transaction The signed transaction data.
@@ -2604,7 +2604,7 @@ export default class EthereumApi implements types.Api {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
-  // TODO-ERIN: fix example it's not returning anything for storageRangeAt
+  // TODO: example doesn't return correct value
   /**
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
@@ -2680,7 +2680,7 @@ export default class EthereumApi implements types.Api {
     return this.#wallet.addresses;
   }
 
-  // TODO-ERIN: example is not returning acct address
+  // TODO: example doesn't return correct value
   /**
    * Generates a new account with private key. Returns the address of the new
    * account.
@@ -2764,8 +2764,7 @@ export default class EthereumApi implements types.Api {
     return this.#wallet.lockAccount(address.toLowerCase());
   }
 
-  // TODO-ERIN: personal_newAccount in example is not working
-
+  // TODO: example doesn't return correct value
   /**
    * Unlocks the account for use.
    *
@@ -2802,7 +2801,7 @@ export default class EthereumApi implements types.Api {
     );
   }
 
-  // TODO-ERIN: use of personal_newAccount doesn't work
+  // TODO: example doesn't return correct value
   /**
    * Validate the given passphrase and submit transaction.
    *
