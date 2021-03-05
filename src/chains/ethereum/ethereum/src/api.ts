@@ -2257,7 +2257,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * // Logs.sol
-   * // SPDX-License-Identifier: MIT
+   * // // SPDX-License-Identifier: MIT
    * // pragma solidity ^0.7.4;
    * // contract Logs {
    * //   event Event(uint256 indexed first, uint256 indexed second);
@@ -2272,16 +2272,18 @@ export default class EthereumApi implements types.Api {
    * //   }
    * // }
    *
-   * const logs = "0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033";
+   * const logsContract = "0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033";
    * const [from] = await provider.send("eth_accounts");
    * const filterId = await provider.send("eth_newFilter");
    *
-   * await provider.send("eth_subscribe", ["newHeads"]);
-   * await provider.send("eth_sendTransaction", [{ from, data: logs, gas: "0x5b8d80" }] );
+   * const subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+   * await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
    * await provider.once("message");
    *
    * const changes = await provider.request({ method: "eth_getFilterChanges", params: [filterId] });
    * console.log(changes);
+   *
+   * await provider.send("eth_unsubscribe", [subscriptionId]);
    * ```
    */
   @assertArgLength(1)
@@ -2319,7 +2321,6 @@ export default class EthereumApi implements types.Api {
     return this.#filters.delete(id);
   }
 
-  // TODO-ERIN: create an example that actually returns logs
   /**
    * Returns an array of all logs matching filter with given id.
    *
@@ -2327,7 +2328,30 @@ export default class EthereumApi implements types.Api {
    * @returns Array of log objects, or an empty array.
    * @example
    * ```javascript
-   * const filterId = await provider.request({ method: "eth_newFilter", params: [] });
+   * // Logs.sol
+   * // // SPDX-License-Identifier: MIT
+   * // pragma solidity ^0.7.4;
+   * // contract Logs {
+   * //   event Event(uint256 indexed first, uint256 indexed second);
+   * //   constructor() {
+   * //     emit Event(1, 2);
+   * //   }
+   * //
+   * //   function logNTimes(uint8 n) public {
+   * //     for (uint8 i = 0; i < n; i++) {
+   * //       emit Event(i, i);
+   * //     }
+   * //   }
+   * // }
+   *
+   * const logsContract = "0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033";
+   * const [from] = await provider.send("eth_accounts");
+   * const filterId = await provider.send("eth_newFilter");
+   *
+   * await provider.send("eth_subscribe", ["newHeads"]);
+   * await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
+   * await provider.once("message");
+   *
    * const logs = await provider.request({ method: "eth_getFilterLogs", params: [filterId] });
    * console.log(logs);
    * ```
@@ -2360,7 +2384,32 @@ export default class EthereumApi implements types.Api {
    * @returns Array of log objects, or an empty array.
    * @example
    * ```javascript
-   * const logs = await provider.request({ method: "eth_getLogs", params: [{}] });
+   * // Logs.sol
+   * // // SPDX-License-Identifier: MIT
+   * // pragma solidity ^0.7.4;
+   * // contract Logs {
+   * //   event Event(uint256 indexed first, uint256 indexed second);
+   * //   constructor() {
+   * //     emit Event(1, 2);
+   * //   }
+   * //
+   * //   function logNTimes(uint8 n) public {
+   * //     for (uint8 i = 0; i < n; i++) {
+   * //       emit Event(i, i);
+   * //     }
+   * //   }
+   * // }
+   *
+   * const logsContract = "0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033";
+   * const [from] = await provider.send("eth_accounts");
+   *
+   * await provider.send("eth_subscribe", ["newHeads"]);
+   * const txHash = await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
+   * await provider.once("message");
+   *
+   * const { contractAddress } = await provider.send("eth_getTransactionReceipt", [txHash] );
+   *
+   * const logs = await provider.request({ method: "eth_getLogs", params: [{ address: contractAddress }] });
    * console.log(logs);
    * ```
    */
