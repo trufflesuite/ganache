@@ -1,5 +1,7 @@
 import assert from "assert";
 import FilecoinProvider from "../../../src/provider";
+import { SerializedMessage } from "../../../src/things/message";
+import { SerializedMessageSendSpec } from "../../../src/things/message-send-spec";
 import { SubscriptionMethod } from "../../../src/types/subscriptions";
 import getProvider from "../../helpers/getProvider";
 
@@ -7,23 +9,23 @@ const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
 type LotusClient = any;
 
-describe("api", () => {
+describe.only("api", () => {
   describe("ganache", () => {
-    let provider: FilecoinProvider;
-    let client: LotusClient;
-
-    before(async () => {
-      provider = await getProvider();
-      client = new LotusRPC(provider, { schema: FilecoinProvider.Schema });
-    });
-
-    after(async () => {
-      if (provider) {
-        await provider.stop();
-      }
-    });
-
     describe("Ganache.MineTipset", () => {
+      let provider: FilecoinProvider;
+      let client: LotusClient;
+
+      before(async () => {
+        provider = await getProvider();
+        client = new LotusRPC(provider, { schema: FilecoinProvider.Schema });
+      });
+
+      after(async () => {
+        if (provider) {
+          await provider.stop();
+        }
+      });
+
       it("should return a serialized tipset with blocks", async () => {
         const { Height: priorHeight } = await client.chainHead();
 
@@ -42,7 +44,20 @@ describe("api", () => {
     });
 
     describe("Enabling/Disabling the Miner", () => {
+      let provider: FilecoinProvider;
+      let client: LotusClient;
       const enabledChanges: boolean[] = [];
+
+      before(async () => {
+        provider = await getProvider({ miner: { blockTime: 0.5 } });
+        client = new LotusRPC(provider, { schema: FilecoinProvider.Schema });
+      });
+
+      after(async () => {
+        if (provider) {
+          await provider.stop();
+        }
+      });
 
       it("subscribes to miner enabled changes", async () => {
         await provider.sendSubscription(
@@ -86,6 +101,36 @@ describe("api", () => {
 
         assert.strictEqual(isEnabled, false);
         assert.strictEqual(provider.blockchain.minerEnabled, false);
+
+        const head1 = await client.chainHead();
+        await new Promise(resolve => setInterval(resolve, 1500));
+        const head2 = await client.chainHead();
+        assert.strictEqual(head2.Height, head1.Height);
+
+        const accounts = await provider.blockchain.accountManager.getControllableAccounts();
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+        await client.mpoolPushMessage(message, messageSendSpec);
+
+        await new Promise(resolve => setInterval(resolve, 100));
+        const head3 = await client.chainHead();
+        assert.strictEqual(head3.Height, head2.Height);
       });
 
       it("Ganache.EnableMiner", async () => {
@@ -103,6 +148,35 @@ describe("api", () => {
 
         assert.strictEqual(isEnabled, true);
         assert.strictEqual(provider.blockchain.minerEnabled, true);
+        const head1 = await client.chainHead();
+        await new Promise(resolve => setInterval(resolve, 1500));
+        const head2 = await client.chainHead();
+        assert(head2.Height > head1.Height);
+
+        const accounts = await provider.blockchain.accountManager.getControllableAccounts();
+        const From = accounts[0].address.value;
+        const To = accounts[1].address.value;
+        const message: SerializedMessage = {
+          Version: 0,
+          From,
+          To,
+          Nonce: 0,
+          Value: "1",
+          GasLimit: 0,
+          GasFeeCap: "0",
+          GasPremium: "0",
+          Method: 0,
+          Params: ""
+        };
+
+        const messageSendSpec: SerializedMessageSendSpec = {
+          MaxFee: "0"
+        };
+        await client.mpoolPushMessage(message, messageSendSpec);
+
+        await new Promise(resolve => setInterval(resolve, 100));
+        const head3 = await client.chainHead();
+        assert(head3.Height > head2.Height);
       });
 
       it("Ganache.MinerEnabledNotify", async () => {
