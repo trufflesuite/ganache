@@ -205,7 +205,7 @@ describe("Blockchain", () => {
 
       // First state should be validating
       assert.strictEqual(
-        blockchain.dealsByCid[proposalCid.value].state,
+        blockchain.dealsByCid.get(proposalCid.value)!.state,
         StorageDealStatus.Validating
       );
 
@@ -213,7 +213,7 @@ describe("Blockchain", () => {
 
       // Next state should be Staged
       assert.strictEqual(
-        blockchain.dealsByCid[proposalCid.value].state,
+        blockchain.dealsByCid.get(proposalCid.value)!.state,
         StorageDealStatus.Staged
       );
 
@@ -221,7 +221,7 @@ describe("Blockchain", () => {
 
       // Next state should be ReserveProviderFunds
       assert.strictEqual(
-        blockchain.dealsByCid[proposalCid.value].state,
+        blockchain.dealsByCid.get(proposalCid.value)!.state,
         StorageDealStatus.ReserveProviderFunds
       );
 
@@ -229,7 +229,7 @@ describe("Blockchain", () => {
 
       // Let's mine all the way to the Sealing state
       while (
-        blockchain.dealsByCid[proposalCid.value].state !=
+        blockchain.dealsByCid.get(proposalCid.value)!.state !=
         StorageDealStatus.Sealing
       ) {
         await blockchain.mineTipset();
@@ -247,7 +247,7 @@ describe("Blockchain", () => {
       await blockchain.mineTipset();
 
       assert.strictEqual(
-        blockchain.dealsByCid[proposalCid.value].state,
+        blockchain.dealsByCid.get(proposalCid.value)!.state,
         StorageDealStatus.Active
       );
       assert.strictEqual(blockchain.inProcessDeals.length, 0);
@@ -293,7 +293,7 @@ describe("Blockchain", () => {
       // Since we're automining, starting the deal will trigger
       // the state to be state to be set to active.
       assert.strictEqual(
-        blockchain.dealsByCid[proposalCid.value].state,
+        blockchain.dealsByCid.get(proposalCid.value)!.state,
         StorageDealStatus.Active
       );
 
