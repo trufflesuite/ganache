@@ -1,5 +1,6 @@
 import { join } from "path";
 import { readFileSync, writeFileSync } from "fs";
+import { type } from "os";
 const marked = require("marked");
 const hljs = require("highlight.js");
 
@@ -77,7 +78,13 @@ function renderReturns(method: Method) {
     method.signatures[0].comment && method.signatures[0].comment.returns
       ? method.signatures[0].comment.returns
       : null;
-  const returnType = renderReturnType(method);
+  let returnType = renderReturnType(method);
+  if (returnType.includes("Quantity")) {
+    returnType = "QUANTITY";
+  }
+  if (returnType.includes("Data")) {
+    returnType = "DATA";
+  }
   const returnTypeHtml = marked(
     `\`\`\`typescript
 function g(): ${returnType}
@@ -264,7 +271,16 @@ function renderReturnType(method: Method) {
   const signature = method.signatures[0];
   let returnType = signature.type.name;
   if (signature.type.typeArguments.length) {
-    const typeArgs = signature.type.typeArguments.map(getTypeAsString);
+    let typeArgs = signature.type.typeArguments.map(getTypeAsString);
+    typeArgs = typeArgs.map(arg => {
+      if (arg.includes("Quantity")) {
+        return arg.replace("Quantity", "QUANTITY");
+      } else if (arg.includes("Data")) {
+        return arg.replace("Data", "DATA");
+      } else {
+        return arg;
+      }
+    });
     returnType = `${returnType}<${typeArgs.join(", ")}>`;
   }
   return returnType;
