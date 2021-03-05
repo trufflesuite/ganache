@@ -2193,6 +2193,7 @@ export default class EthereumApi implements types.Api {
    * * `removed`: `TAG` - `true` when the log was removed, `false` if its a valid log.
    * * `logIndex`: `QUANTITY` - Integer of the log index position in the block. `null` when pending.
    * * `transactionIndex`: `QUANTITY` - Integer of the transactions index position. `null` when pending.
+   * * `transactionHash`: `DATA`, 32 Bytes - Hash of the transaction where the log was. `null` when pending.
    * * `blockHash`: `DATA`, 32 Bytes - Hash of the block where the log was. `null` when pending.
    * * `blockNumber`: `QUANTITY` - The block number where the log was in. `null` when pending.
    * * `address`: `DATA`, 20 Bytes - The address from which the log originated.

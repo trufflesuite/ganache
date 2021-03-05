@@ -2465,7 +2465,7 @@
 									},
 									"comment": {
 										"shortText": "Polling method for a filter, which returns an array of logs, block hashes,\nor transaction hashes, depending on the filter type, which occurred since\nlast poll.",
-										"returns": "An array of logs, block hashes, or transaction hashes, depending\non the filter type, which occurred since last poll.\n\nFor filters created with `eth_newBlockFilter` the return are block hashes (`DATA`, 32 Bytes).\n\nFor filters created with `eth_newPendingTransactionFilter` the return are transaction hashes (`DATA`, 32 Bytes).\n\nFor filters created with `eth_newFilter` the return are log objects with the following parameters:\n* `removed`: `TAG` - `true` when the log was removed, `false` if its a valid log.\n* `logIndex`: `QUANTITY` - Integer of the log index position in the block. `null` when pending.\n* `transactionIndex`: `QUANTITY` - Integer of the transactions index position. `null` when pending.\n* `blockHash`: `DATA`, 32 Bytes - Hash of the block where the log was. `null` when pending.\n* `blockNumber`: `QUANTITY` - The block number where the log was in. `null` when pending.\n* `address`: `DATA`, 20 Bytes - The address from which the log originated.\n* `data`: `DATA` - Contains one or more 32 Bytes non-indexed arguments of the log.\n* `topics`: `Array of DATA` - Array of 0 to 4 32 Bytes `DATA` of indexed log arguments.\n",
+										"returns": "An array of logs, block hashes, or transaction hashes, depending\non the filter type, which occurred since last poll.\n\nFor filters created with `eth_newBlockFilter` the return are block hashes (`DATA`, 32 Bytes).\n\nFor filters created with `eth_newPendingTransactionFilter` the return are transaction hashes (`DATA`, 32 Bytes).\n\nFor filters created with `eth_newFilter` the return are log objects with the following parameters:\n* `removed`: `TAG` - `true` when the log was removed, `false` if its a valid log.\n* `logIndex`: `QUANTITY` - Integer of the log index position in the block. `null` when pending.\n* `transactionIndex`: `QUANTITY` - Integer of the transactions index position. `null` when pending.\n* `transactionHash`: `DATA`, 32 Bytes - Hash of the transaction where the log was. `null` when pending.\n* `blockHash`: `DATA`, 32 Bytes - Hash of the block where the log was. `null` when pending.\n* `blockNumber`: `QUANTITY` - The block number where the log was in. `null` when pending.\n* `address`: `DATA`, 20 Bytes - The address from which the log originated.\n* `data`: `DATA` - Contains one or more 32 Bytes non-indexed arguments of the log.\n* `topics`: `Array of DATA` - Array of 0 to 4 32 Bytes `DATA` of indexed log arguments.\n",
 										"tags": [
 											{
 												"tag": "example",
@@ -2509,7 +2509,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2376,
+									"line": 2377,
 									"character": 28
 								}
 							]
@@ -6190,7 +6190,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2402,
+									"line": 2403,
 									"character": 27
 								}
 							]

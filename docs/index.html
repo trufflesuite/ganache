@@ -1471,7 +1471,7 @@ default block parameter.</li>
       <span class="hljs-function"> <span class="hljs-title">eth_getFilterChanges</span>(<span class="hljs-params">filterId: QUANTITY</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">DATA</span>[]&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2376" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2377" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
@@ -1513,6 +1513,7 @@ on the filter type, which occurred since last poll.</p>
 <li><code>removed</code>: <code>TAG</code> - <code>true</code> when the log was removed, <code>false</code> if its a valid log.</li>
 <li><code>logIndex</code>: <code>QUANTITY</code> - Integer of the log index position in the block. <code>null</code> when pending.</li>
 <li><code>transactionIndex</code>: <code>QUANTITY</code> - Integer of the transactions index position. <code>null</code> when pending.</li>
+<li><code>transactionHash</code>: <code>DATA</code>, 32 Bytes - Hash of the transaction where the log was. <code>null</code> when pending.</li>
 <li><code>blockHash</code>: <code>DATA</code>, 32 Bytes - Hash of the block where the log was. <code>null</code> when pending.</li>
 <li><code>blockNumber</code>: <code>QUANTITY</code> - The block number where the log was in. <code>null</code> when pending.</li>
 <li><code>address</code>: <code>DATA</code>, 20 Bytes - The address from which the log originated.</li>
@@ -3421,7 +3422,7 @@ subscription ID will be sent to a client.</p>
       <span class="hljs-function"> <span class="hljs-title">eth_uninstallFilter</span>(<span class="hljs-params">filterId: QUANTITY</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">boolean</span>&gt;</span>
     </h3>
     <div class="content small">
-      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2402" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/trufflesuite/ganache-core/blob/next/src/chains/ethereum/ethereum/src/api.ts#L2403" target="_blank" rel="noopener">source</a>
     </div>
     <div class="content">
       
