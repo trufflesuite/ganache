@@ -1202,7 +1202,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2729,
+									"line": 2778,
 									"character": 28
 								}
 							]
@@ -1285,7 +1285,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2679,
+									"line": 2728,
 									"character": 30
 								}
 							]
@@ -1511,7 +1511,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2568,
+									"line": 2617,
 									"character": 16
 								}
 							]
@@ -2469,7 +2469,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\n// Logs.sol\n// SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logs = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\nconst filterId = await provider.send(\"eth_newFilter\");\n\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{ from, data: logs, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst changes = await provider.request({ method: \"eth_getFilterChanges\", params: [filterId] });\nconsole.log(changes);\n```\n"
+												"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\nconst filterId = await provider.send(\"eth_newFilter\");\n\nconst subscriptionId = await provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst changes = await provider.request({ method: \"eth_getFilterChanges\", params: [filterId] });\nconsole.log(changes);\n\nawait provider.send(\"eth_unsubscribe\", [subscriptionId]);\n```\n"
 											}
 										]
 									},
@@ -2509,7 +2509,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2375,
+									"line": 2376,
 									"character": 28
 								}
 							]
@@ -2549,7 +2549,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst filterId = await provider.request({ method: \"eth_newFilter\", params: [] });\nconst logs = await provider.request({ method: \"eth_getFilterLogs\", params: [filterId] });\nconsole.log(logs);\n```\n"
+												"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\nconst filterId = await provider.send(\"eth_newFilter\");\n\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst logs = await provider.request({ method: \"eth_getFilterLogs\", params: [filterId] });\nconsole.log(logs);\n```\n"
 											}
 										]
 									},
@@ -2820,7 +2820,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2423,
+									"line": 2447,
 									"character": 25
 								}
 							]
@@ -2861,7 +2861,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst logs = await provider.request({ method: \"eth_getLogs\", params: [{}] });\nconsole.log(logs);\n```\n"
+												"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\n\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nconst txHash = await provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst { contractAddress } = await provider.send(\"eth_getTransactionReceipt\", [txHash] );\n\nconst logs = await provider.request({ method: \"eth_getLogs\", params: [{ address: contractAddress }] });\nconsole.log(logs);\n```\n"
 											}
 										]
 									},
@@ -3132,7 +3132,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2455,
+									"line": 2504,
 									"character": 19
 								}
 							]
@@ -3940,7 +3940,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2522,
+									"line": 2571,
 									"character": 31
 								}
 							]
@@ -6190,7 +6190,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2401,
+									"line": 2402,
 									"character": 27
 								}
 							]
@@ -7769,7 +7769,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2811,
+									"line": 2860,
 									"character": 29
 								}
 							]
@@ -7831,7 +7831,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2758,
+									"line": 2807,
 									"character": 29
 								}
 							]
@@ -7908,7 +7908,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2842,
+									"line": 2891,
 									"character": 28
 								}
 							]
@@ -7985,7 +7985,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2776,
+									"line": 2825,
 									"character": 27
 								}
 							]
@@ -8076,7 +8076,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2917,
+									"line": 2966,
 									"character": 32
 								}
 							]
@@ -8188,7 +8188,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2872,
+									"line": 2921,
 									"character": 30
 								}
 							]
@@ -8397,7 +8397,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2958,
+									"line": 3007,
 									"character": 19
 								}
 							]
@@ -8474,7 +8474,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3015,
+									"line": 3064,
 									"character": 22
 								}
 							]
@@ -8554,7 +8554,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3063,
+									"line": 3112,
 									"character": 28
 								}
 							]
@@ -8631,7 +8631,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3078,
+									"line": 3127,
 									"character": 23
 								}
 							]
@@ -8708,7 +8708,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2990,
+									"line": 3039,
 									"character": 23
 								}
 							]
@@ -8804,7 +8804,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3032,
+									"line": 3081,
 									"character": 21
 								}
 							]
@@ -8857,7 +8857,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3000,
+									"line": 3049,
 									"character": 20
 								}
 							]
@@ -8916,7 +8916,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2975,
+									"line": 3024,
 									"character": 23
 								}
 							]
@@ -8991,7 +8991,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3093,
+									"line": 3142,
 									"character": 16
 								}
 							]
@@ -9068,7 +9068,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3048,
+									"line": 3097,
 									"character": 27
 								}
 							]
@@ -9127,7 +9127,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3107,
+									"line": 3156,
 									"character": 19
 								}
 							]
