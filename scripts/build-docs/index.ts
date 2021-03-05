@@ -117,7 +117,10 @@ function renderArgs(method: Method) {
   if (signature.parameters) {
     params = signature.parameters.map(param => {
       const name = param.name + (param.flags.isOptional ? "?" : "");
-      const type = getTypeAsString(param.type);
+      let type = getTypeAsString(param.type);
+      if (type.includes("Tag")) {
+        type = type.replace("Tag", "TAG");
+      }
       const md = `\`\`\`typescript
 function (${name}: ${type})
 \`\`\``;
@@ -291,6 +294,9 @@ function renderSignature(method: Method) {
   if (signature.parameters) {
     params = signature.parameters.map(param => {
       let type = getTypeAsString(param.type);
+      if (type.includes("Tag")) {
+        type = type.replace("Tag", "TAG");
+      }
       return `${x(param.name)}${param.flags.isOptional ? "?" : ""}: ${type}`;
     });
   }
