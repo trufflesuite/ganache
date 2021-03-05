@@ -5475,7 +5475,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconsole.log(txHash);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconsole.log(txHash);\n```\n"
 											}
 										]
 									},
