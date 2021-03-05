@@ -107,6 +107,7 @@ export default class FilecoinApi implements types.Api {
   "Filecoin.ClientGetDealInfo"(
     serializedCid: SerializedRootCID
   ): Promise<SerializedDealInfo>;
+  "Filecoin.ClientGetDealStatus"(statusCode: number): Promise<string>;
   "Filecoin.ClientGetDealUpdates"(rpcId?: string): PromiEvent<Subscription>;
   "Filecoin.ClientFindData"(
     rootCid: SerializedRootCID
