@@ -1,5 +1,6 @@
 import { join } from "path";
 import { readFileSync, writeFileSync } from "fs";
+import { type } from "os";
 const marked = require("marked");
 const hljs = require("highlight.js");
 
