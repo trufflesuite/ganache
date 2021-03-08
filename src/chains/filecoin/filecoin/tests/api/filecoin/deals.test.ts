@@ -47,6 +47,9 @@ describe("api", () => {
         assert.strictEqual(status, "StorageDealSealing");
         try {
           status = await client.clientGetDealStatus(500);
+          assert.fail(
+            "Successfully retrieved status string for invalid status code"
+          );
         } catch (e) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
