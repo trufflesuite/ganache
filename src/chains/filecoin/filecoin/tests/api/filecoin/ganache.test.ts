@@ -9,7 +9,7 @@ const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
 type LotusClient = any;
 
-describe.only("api", () => {
+describe("api", () => {
   describe("ganache", () => {
     describe("Ganache.MineTipset", () => {
       let provider: FilecoinProvider;
