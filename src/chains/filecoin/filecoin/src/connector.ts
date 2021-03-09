@@ -74,7 +74,7 @@ export class Connector
     return JSON.stringify(json);
   }
 
-  close() {
-    return this.#provider.stop();
+  async close() {
+    return await this.#provider.stop();
   }
 }
