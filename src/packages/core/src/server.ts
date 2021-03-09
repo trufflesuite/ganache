@@ -156,6 +156,13 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
   }
 
   public async close() {
+    // the connector gets initialized in the constructor
+    // rather than in the initialize function, so we need
+    // to make sure that we close it before throwing for
+    // the below conditions (i.e. connector tried to load
+    // but failed before initialize was called)
+    await this.#connector.close();
+
     if (this.#status === Status.opening) {
       // if opening
       throw new Error(`Cannot close server while it is opening.`);
@@ -177,7 +184,6 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
 
     // and do all http cleanup, if any
     this.#httpServer.close();
-    await this.#connector.close();
     this.#status = Status.closed;
     this.#app = void 0;
 
