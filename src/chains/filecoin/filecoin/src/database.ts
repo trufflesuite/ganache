@@ -164,12 +164,7 @@ export default class Database extends Emittery {
   #cleanup = async () => {
     const db = this.db;
     if (db) {
-      await new Promise((resolve, reject) =>
-        db.close(err => {
-          if (err) return void reject(err);
-          resolve(void 0);
-        })
-      );
+      await db.close();
 
       if (this.tipsets) {
         await this.tipsets.close();
@@ -193,6 +188,6 @@ export default class Database extends Emittery {
         await this.deals.close();
       }
     }
-    return this.#cleanupDirectory();
+    return await this.#cleanupDirectory();
   };
 }
