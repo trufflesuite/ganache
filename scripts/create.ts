@@ -140,11 +140,13 @@ process.stdout.write(`${COLORS.Reset}`);
     let packageAuthor = userName();
     const version = "0.1.0";
 
+    const rootPackageJson = require("../package.json");
+
     const pkg = {
       name: packageName,
       version,
       description: "",
-      author: packageAuthor || require("../package.json").author,
+      author: packageAuthor || rootPackageJson.author,
       homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${folderName}#readme`,
       license: "MIT",
       main: "lib/index.js",
@@ -183,7 +185,16 @@ process.stdout.write(`${COLORS.Reset}`);
         "web3",
         "tooling",
         "truffle"
-      ]
+      ],
+      devDependencies: {
+        "@types/mocha": rootPackageJson.devDependencies["@types/mocha"],
+        "cross-env": rootPackageJson.devDependencies["cross-env"],
+        mocha: rootPackageJson.devDependencies["mocha"],
+        nyc: rootPackageJson.devDependencies["nyc"],
+        "ts-node": rootPackageJson.devDependencies["ts-node"],
+        ttypescript: rootPackageJson.devDependencies["ttypescript"],
+        typescript: rootPackageJson.devDependencies["typescript"]
+      }
     };
 
     const tsConfig = {
