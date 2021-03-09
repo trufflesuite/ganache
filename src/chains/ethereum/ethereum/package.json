@@ -29,7 +29,7 @@
     "docs.preview": "ws --open --port 3010 --directory ../../../../docs",
     "tsc": "ttsc --build",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha -s 0 -t 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -49,10 +49,14 @@
     "tooling"
   ],
   "dependencies": {
+    "@ganache/ethereum-address": "0.1.0",
+    "@ganache/ethereum-block": "0.1.0",
     "@ganache/ethereum-options": "0.1.0",
+    "@ganache/ethereum-transaction": "0.1.0",
     "@ganache/ethereum-utils": "0.1.0",
     "@ganache/options": "0.1.0",
     "@ganache/promise-queue": "0.1.0",
+    "@ganache/rlp": "0.1.0",
     "@ganache/utils": "0.1.0",
     "@types/keccak": "3.0.1",
     "abort-controller": "3.0.0",
@@ -85,6 +89,7 @@
     "@types/lodash.clonedeep": "4.5.6",
     "@types/secp256k1": "4.0.1",
     "@types/seedrandom": "3.0.0",
+    "@types/superagent": "4.1.10",
     "@types/ws": "7.2.7",
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",
@@ -93,6 +98,7 @@
     "mocha": "8.2.0",
     "nyc": "15.1.0",
     "solc": "0.7.4",
+    "superagent": "6.1.0",
     "ts-transformer-inline-file": "0.1.1",
     "typedoc": "0.17.8",
     "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3"

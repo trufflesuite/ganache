@@ -83,9 +83,10 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
     return this.#status;
   }
 
-  constructor(providerAndServerOptions: ServerOptions = { flavor: DefaultFlavor }) {
+  constructor(
+    providerAndServerOptions: ServerOptions = { flavor: DefaultFlavor }
+  ) {
     super();
-
     this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
     this.#providerOptions = providerAndServerOptions;
     this.#status = Status.ready;
@@ -134,7 +135,9 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
         : Promise.reject(err);
     } else if ((status & Status.openingOrOpen) !== 0) {
       // if opening or open
-      const err = new Error(`Server is already open, or is opening, on port: ${port}.`);
+      const err = new Error(
+        `Server is already open, or is opening, on port: ${port}.`
+      );
       return callbackIsFunction
         ? process.nextTick(callback!, err)
         : Promise.reject(err);
@@ -166,7 +169,11 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
                 LIBUS_LISTEN_EXCLUSIVE_PORT,
                 resolve
               )
-            : this.#app.listen(port as any, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+            : this.#app.listen(
+                port as any,
+                LIBUS_LISTEN_EXCLUSIVE_PORT,
+                resolve
+              );
         }
       ).then(listenSocket => {
         if (listenSocket) {
@@ -184,7 +191,7 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
           else throw err;
         }
       })
-    ]).then(async (promiseResults) => {
+    ]).then(async promiseResults => {
       const errors: Error[] = [];
 
       if (promiseResults[0].status === "rejected") {

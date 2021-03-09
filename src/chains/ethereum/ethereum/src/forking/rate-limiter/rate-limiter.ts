@@ -202,9 +202,9 @@ export default class RateLimiter {
       const currentWindow = timeTruncate(now, this.windowSizeMs);
       const { rate, next } = this.status(now, currentWindow);
 
-      process.stdout.write(
-        `rate: ${rate}, wait: ${next - now}              \r`
-      );
+      // process.stdout.write(
+      //   `rate: ${rate}, wait: ${next - now}              \r`
+      // );
 
       // if this request would be over the rate limit and the amount of time
       // we'd need to back off is > 1ms we need to schedule this in the future

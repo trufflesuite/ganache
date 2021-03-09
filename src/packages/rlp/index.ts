@@ -1,6 +1,7 @@
 import { getLength, decode as _decode } from "rlp";
 import type { Decoded } from "rlp";
 import { utils } from "@ganache/utils";
+import type { RangeOf, Remainders } from "./types";
 
 export { getLength, Decoded };
 
@@ -8,32 +9,42 @@ export declare type Input = Buffer | Buffer[] | List;
 export interface List extends Array<Input> {}
 
 export declare type EncodingInput = Buffer[] | EncodingList;
-export interface EncodingList extends Array<EncodingInput> {}
+export interface EncodingList extends Array<EncodingInput | Buffer> {}
+
+export type EncodedPart = {
+  length: number;
+  output: Buffer[];
+};
 
 /**
- * Begin RLP encoding of `items`, from `start` to `end`. Call `digest` to finish
- * encoding.
+ * Begin RLP encoding of `items`, from `start` until `length`. Call `RLP.digest` to
+ * finish encoding.
  *
  * @param input
  **/
-export function encodePartial(
-  items: EncodingInput,
-  start: number,
-  end: number
-) {
-  let length = 0;
+export function encodeRange<
+  T extends EncodingInput | Readonly<EncodingInput>,
+  Start extends RangeOf<T["length"]>
+>(
+  items: T,
+  start: Start,
+  length: Exclude<Remainders<T["length"], Start>, 0>
+): EncodedPart {
+  let count = 0;
+
+  const end = start + length;
   const output: Buffer[] = [];
   for (var i = start; i < end; i++) {
     const item = items[i];
     const encoded = encode(item);
-    length += encoded.length;
+    count += encoded.length;
     output.push(encoded);
   }
-  return { length, output };
+  return { length: count, output };
 }
 
 /**
- * Finishes encoding started by `encodePartial`.
+ * Finishes encoding started by `encodeRange`.
  *
  * @param ranges
  * @returns returns a Buffer of encoded data
@@ -61,7 +72,7 @@ export function digest(ranges: Readonly<Buffer[]>[], length: number) {
  * @param input
  * @returns returns a Buffer of encoded data
  **/
-export function encode(input: Input): Buffer {
+export function encode(input: Input | Readonly<Input>): Buffer {
   if (Array.isArray(input)) {
     let length = 0;
     const output: Buffer[] = [];
@@ -81,16 +92,19 @@ export function encode(input: Input): Buffer {
     } else {
       const length = input.length;
       if (length === 1 && input[0] < 128) {
-        return input;
+        return input as Buffer;
       } else {
         const encLength = encodeLength(length, 128);
-        return Buffer.concat([encLength, input], encLength.length + length);
+        return Buffer.concat(
+          [encLength, input as Buffer],
+          encLength.length + length
+        );
       }
     }
   }
 }
 
-function encodeLength(len: number, offset: number): Buffer {
+export function encodeLength(len: number, offset: number): Buffer {
   if (len < 56) {
     const buf = Buffer.allocUnsafe(1);
     buf[0] = len + offset;

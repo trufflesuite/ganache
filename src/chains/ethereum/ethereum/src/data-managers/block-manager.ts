@@ -1,9 +1,10 @@
 import Manager from "./manager";
-import { Tag, Block } from "@ganache/ethereum-utils";
+import { Tag } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
 import Common from "ethereumjs-common";
 import Blockchain from "../blockchain";
+import { Block } from "@ganache/ethereum-block";
 
 const NOTFOUND = 404;
 
@@ -53,14 +54,15 @@ export default class BlockManager extends Manager<Block> {
     this.#blockIndexes = blockIndexes;
   }
 
-  #fromFallback = async (tagOrBlockNumber: string | Buffer | Tag) => {
+  fromFallback = async (
+    tagOrBlockNumber: string | Buffer | Tag
+  ): Promise<Buffer> => {
     const fallback = this.#blockchain.fallback;
-    const b = await fallback.request("eth_getBlockByNumber", [
+    const json = await fallback.request("eth_getBlockByNumber", [
       tagOrBlockNumber,
       true
     ]);
-    return null;
-    // return Block.fromJSON(b, this.#common, true);
+    return json == null ? null : Block.rawFromJSON(json);
   };
 
   getBlockByTag(tag: Tag) {
@@ -106,13 +108,13 @@ export default class BlockManager extends Manager<Block> {
     return number ? super.get(number) : null;
   }
 
-  async getRaw(tagOrBlockNumber: string | Buffer | Tag) {
+  async getRaw(tagOrBlockNumber: string | Buffer | Tag): Promise<Buffer> {
     // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
     // we don't have to fetch them from the db each time a block tag is used.
     const number = this.getEffectiveNumber(tagOrBlockNumber).toBuffer();
-    return super.getRaw(number).then((block: any) => {
+    return super.getRaw(number).then(block => {
       if (block == null && this.#blockchain.fallback) {
-        return this.#fromFallback(tagOrBlockNumber);
+        return this.fromFallback(tagOrBlockNumber);
       }
       return block;
     });
@@ -134,13 +136,13 @@ export default class BlockManager extends Manager<Block> {
    * Writes the block object to the underlying database.
    * @param block
    */
-  async putBlock(number: Buffer, hash: Buffer, serialized: Buffer) {
+  async putBlock(number: Buffer, hash: Data, serialized: Buffer) {
     let key = number;
     // ensure we can store Block #0 as key "00", not ""
     if (EMPTY_BUFFER.equals(key)) {
       key = Buffer.from([0]);
     }
-    const secondaryKey = hash;
+    const secondaryKey = hash.toBuffer();
     await Promise.all([
       this.#blockIndexes.put(secondaryKey, key),
       super.set(key, serialized)

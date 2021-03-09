@@ -1,5 +1,9 @@
 import Common from "ethereumjs-common";
-import { BlockRawTx, EthereumRawTx, GanacheRawExtraTx } from "./raw";
+import {
+  EthereumRawTx,
+  GanacheRawBlockTransactionMetaData,
+  GanacheRawExtraTx
+} from "./raw";
 import { FrozenTransaction } from "./frozen-transaction";
 
 /**
@@ -8,7 +12,8 @@ import { FrozenTransaction } from "./frozen-transaction";
 
 export class BlockTransaction extends FrozenTransaction {
   constructor(
-    data: BlockRawTx,
+    data: EthereumRawTx,
+    [from, hash]: GanacheRawBlockTransactionMetaData,
     blockHash: Buffer,
     blockNumber: Buffer,
     index: Buffer,
@@ -16,10 +21,13 @@ export class BlockTransaction extends FrozenTransaction {
   ) {
     // Build a GanacheRawExtraTx from the data given to use by BlockRawTx and
     // the constructor args
-    const extraRaw: GanacheRawExtraTx = data.slice(9) as any;
-    extraRaw.push(blockHash);
-    extraRaw.push(blockNumber);
-    extraRaw.push(index);
-    super([(data as any) as EthereumRawTx, extraRaw], common);
+    const extraRaw: GanacheRawExtraTx = [
+      from,
+      hash,
+      blockHash,
+      blockNumber,
+      index
+    ];
+    super([data, extraRaw], common);
   }
 }

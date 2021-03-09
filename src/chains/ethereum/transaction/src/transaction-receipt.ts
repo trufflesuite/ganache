@@ -1,36 +1,34 @@
 import { BlockLogs, TransactionLog } from "@ganache/ethereum-utils";
-import { decode, digest, encodePartial, EncodingInput } from "@ganache/rlp";
+import { decode, digest, encodeRange } from "@ganache/rlp";
 import { Data, Quantity } from "@ganache/utils";
 import { utils } from "@ganache/utils";
 import { FrozenTransaction } from "./frozen-transaction";
 
 const STATUSES = [utils.RPCQUANTITY_ZERO, utils.RPCQUANTITY_ONE];
 
-type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [
-  ...infer A,
-  infer _L
-]
-  ? A
-  : never;
-type FullRawReceipt = [
+type EthereumRawReceipt = [
   status: Buffer,
   cumulativeGasUsed: Buffer,
   logsBloom: Buffer,
-  logs: Buffer[],
+  logs: TransactionLog[]
+];
+
+type GanacheExtrasRawReceipt = [
   gasUsed: Buffer,
   contractAddress: Buffer | null
 ];
-type RawReceipt = OmitLastType<OmitLastType<FullRawReceipt>>;
+
+type GanacheRawReceipt = [...EthereumRawReceipt, ...GanacheExtrasRawReceipt];
 
 export class TransactionReceipt {
   public contractAddress: Buffer;
   #gasUsed: Buffer;
-  raw: RawReceipt;
+  raw: EthereumRawReceipt;
   encoded: { length: number; output: Buffer[] };
 
   constructor(data?: Buffer) {
     if (data) {
-      const decoded = (decode(data) as unknown) as FullRawReceipt;
+      const decoded = decode<GanacheRawReceipt>(data);
       this.#init(
         decoded[0],
         decoded[1],
@@ -45,7 +43,7 @@ export class TransactionReceipt {
     status: Buffer,
     cumulativeGasUsed: Buffer,
     logsBloom: Buffer,
-    logs: Buffer[],
+    logs: TransactionLog[],
     gasUsed: Buffer,
     contractAddress: Buffer = null
   ) => {
@@ -58,7 +56,7 @@ export class TransactionReceipt {
     status: Buffer,
     cumulativeGasUsed: Buffer,
     logsBloom: Buffer,
-    logs: Buffer[],
+    logs: TransactionLog[],
     gasUsed: Buffer,
     contractAddress: Buffer
   ) {
@@ -76,12 +74,15 @@ export class TransactionReceipt {
 
   public serialize(all: boolean): Buffer {
     if (this.encoded == null) {
-      this.encoded = encodePartial(this.raw as EncodingInput, 0, 4);
+      this.encoded = encodeRange(this.raw, 0, 4);
     }
     if (all) {
       // the database format includes gasUsed and the contractAddress:
-      const extras = [this.#gasUsed, this.contractAddress];
-      const epilogue = encodePartial(extras, 0, 2);
+      const extras: GanacheExtrasRawReceipt = [
+        this.#gasUsed,
+        this.contractAddress
+      ];
+      const epilogue = encodeRange(extras, 0, 2);
       return digest(
         [this.encoded.output, epilogue.output],
         this.encoded.length + epilogue.length
@@ -103,18 +104,16 @@ export class TransactionReceipt {
         : Data.from(this.contractAddress);
     const blockHash = block.hash();
     const blockNumber = block.header.number;
-    const blockLog = BlockLogs.create(blockHash.toBuffer());
+    const blockLog = BlockLogs.create(blockHash);
     const transactionHash = transaction.hash;
-    const transactionHashBuffer = transactionHash.toBuffer();
-    const transactionIndexBuffer = transaction.index.toBuffer();
+    const transactionIndex = transaction.index;
     blockLog.blockNumber = blockNumber;
-    ((raw[3] as any) as TransactionLog[]).forEach(log => {
-      blockLog.append(transactionIndexBuffer, transactionHashBuffer, log);
-    });
+    raw[3].forEach(l => blockLog.append(transactionIndex, transactionHash, l));
     const logs = [...blockLog.toJSON()];
+
     return {
       transactionHash,
-      transactionIndex: transaction.index,
+      transactionIndex,
       blockNumber,
       blockHash,
       from: transaction.from,
