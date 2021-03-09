@@ -5,7 +5,7 @@ const pify = require("pify");
 const Ganache = require("../index.js");
 const StateManager = require("../lib/statemanager.js");
 
-describe("server", () => {
+describe.skip("server", () => {
   it("should return instance of StateManager on start", async() => {
     const server = Ganache.server({ legacyInstamine: true });
     try {
