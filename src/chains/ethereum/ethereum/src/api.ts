@@ -1216,7 +1216,8 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(1)
   async eth_getTransactionReceipt(transactionHash: string) {
     const { transactions, transactionReceipts, blocks } = this.#blockchain;
-    const txHash = Data.from(transactionHash).toBuffer();
+    const dataHash = Data.from(transactionHash);
+    const txHash = dataHash.toBuffer();
 
     const transactionPromise = transactions.get(txHash);
     const receiptPromise = transactionReceipts.get(txHash);
@@ -1244,7 +1245,7 @@ export default class EthereumApi implements types.Api {
       if (tx != null) {
         options.logging.logger.log(
           " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
-            ` > \`${txHash.toString()}\` has not\n` +
+            ` > \`${dataHash.toString()}\` has not\n` +
             " > yet been mined. See https://trfl.co/v7-instamine for additional information."
         );
       }
