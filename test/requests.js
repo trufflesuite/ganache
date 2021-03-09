@@ -169,7 +169,7 @@ const tests = function(web3) {
         difficulty: "1",
         totalDifficulty: "1",
         extraData: "0x",
-        size: 507,
+        size: 508,
         gasLimit: 6721975,
         gasUsed: 0,
         timestamp: block.timestamp, // Don't test this one.
