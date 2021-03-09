@@ -47,6 +47,7 @@ export default class Blockchain extends Emittery.Typed<
   private rng;
   get dbDirectory(): string | null;
   private ready;
+  private stopped;
   constructor(options: FilecoinInternalOptions);
   waitForReady(): Promise<unknown>;
   /**
