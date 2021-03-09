@@ -1,5 +1,5 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { Account, Address } from "@ganache/ethereum-utils";
+import { Address } from "@ganache/ethereum-address";
 import Common from "ethereumjs-common";
 import Blockchain from "../blockchain";
 

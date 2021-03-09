@@ -1,13 +1,14 @@
-import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
-import { Address } from "./address";
 import { utils } from "@ganache/utils";
+import { decode, encode } from "@ganache/rlp";
+import { Address } from "@ganache/ethereum-address";
 
 export type TransactionLog = [
   address: Buffer,
   topics: Buffer[],
   data: Buffer | Buffer[]
 ];
+
 export type BlockLog = [
   removed: Buffer,
   transactionIndex: Buffer,
@@ -53,7 +54,7 @@ export class BlockLogs {
 
   constructor(data: Buffer) {
     if (data) {
-      const decoded = (rlpDecode(data) as unknown) as [Buffer, BlockLog[]];
+      const decoded = (decode(data) as unknown) as [Buffer, BlockLog[]];
       this[_raw] = decoded;
     }
   }
@@ -63,9 +64,9 @@ export class BlockLogs {
    * @param blockHash Creates an BlogLogs entity with an empty internal logs
    * array.
    */
-  static create(blockHash: Buffer) {
+  static create(blockHash: Data) {
     const blockLog = Object.create(BlockLogs.prototype) as BlockLogs;
-    blockLog[_raw] = [blockHash, []];
+    blockLog[_raw] = [blockHash.toBuffer(), []];
     return blockLog;
   }
 
@@ -73,7 +74,7 @@ export class BlockLogs {
    * rlpEncode's the blockHash and logs array for db storage
    */
   public serialize() {
-    return rlpEncode(this[_raw]);
+    return encode(this[_raw]);
   }
 
   /**
@@ -83,14 +84,14 @@ export class BlockLogs {
    * @param log
    */
   public append(
-    /*removed: boolean, */ transactionIndex: Buffer,
-    transactionHash: Buffer,
+    /*removed: boolean, */ transactionIndex: Quantity,
+    transactionHash: Data,
     log: TransactionLog
   ) {
     this[_raw][1].push([
       utils.BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
-      transactionIndex, // transactionIndex
-      transactionHash, // transactionHash
+      transactionIndex.toBuffer(), // transactionIndex
+      transactionHash.toBuffer(), // transactionHash
       log[0], // `address`
       log[1], // `topics`
       log[2] // `data`

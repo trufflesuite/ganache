@@ -1,4 +1,3 @@
-import { RuntimeTransaction, FrozenTransaction } from "@ganache/ethereum-utils";
 import Manager from "./manager";
 import TransactionPool from "../transaction-pool";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -6,7 +5,12 @@ import { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import PromiseQueue from "@ganache/promise-queue";
 import Common from "ethereumjs-common";
-import { Data } from "@ganache/utils";
+import { Data, Quantity } from "@ganache/utils";
+import {
+  FrozenTransaction,
+  RpcTransaction,
+  RuntimeTransaction
+} from "@ganache/ethereum-transaction";
 
 export default class TransactionManager extends Manager<FrozenTransaction> {
   public readonly transactionPool: TransactionPool;
@@ -16,6 +20,8 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
   #resumer: Promise<void>;
   #resolver: (value: void) => void;
 
+  #blockchain: Blockchain;
+
   constructor(
     options: EthereumInternalOptions["miner"],
     common: Common,
@@ -23,8 +29,34 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
     base: LevelUp
   ) {
     super(base, FrozenTransaction, common);
+    this.#blockchain = blockchain;
 
     this.transactionPool = new TransactionPool(options, blockchain);
+  }
+
+  fromFallback = async (transactionHash: string | Buffer) => {
+    const { fallback } = this.#blockchain;
+    const tx = (await fallback.request("eth_getTransactionByHash", [
+      typeof transactionHash === "string"
+        ? transactionHash
+        : Data.from(transactionHash).toString()
+    ])) as RpcTransaction;
+    if (tx == null) return null;
+    const runTx = new RuntimeTransaction(tx, await fallback.getCommon());
+    return runTx.serializeForDb(
+      Data.from((tx as any).blockHash, 32),
+      Quantity.from((tx as any).blockNumber),
+      Quantity.from((tx as any).transactionIndex)
+    );
+  };
+
+  public async getRaw(transactionHash: string | Buffer): Promise<Buffer> {
+    return super.getRaw(transactionHash).then(block => {
+      if (block == null && this.#blockchain.fallback) {
+        return this.fromFallback(transactionHash);
+      }
+      return block;
+    });
   }
 
   /**

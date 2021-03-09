@@ -26,6 +26,6 @@ export type GanacheRawExtraTx = [
 ];
 
 /**
- * Extra data Ganache stores as part of a transaction *in a block*
+ * Meta data Ganache stores as part of a transaction *in a block*
  */
-export type BlockRawTx = [...EthereumRawTx, ...[from: Buffer, hash: Buffer]];
+export type GanacheRawBlockTransactionMetaData = [from: Buffer, hash: Buffer];

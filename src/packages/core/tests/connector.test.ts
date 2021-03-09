@@ -76,7 +76,11 @@ describe("connector", () => {
   });
 
   it("rejects invalid rpc methods", async () => {
+<<<<<<< HEAD
     const p = Ganache.provider() as EthereumProvider;
+=======
+    const p = Ganache.provider({ logger: { log: () => {} } });
+>>>>>>> chore: clean up unneeded logging during test
 
     const illegalMethodNames = [
       "toString",

@@ -1,25 +1,23 @@
 import {
-  params,
-  Block,
-  RuntimeBlock,
   RuntimeError,
   RETURN_TYPES,
-  Executables,
   TraceDataFactory,
   StepEvent,
-  StorageKeys,
-  RuntimeTransaction
+  StorageKeys
 } from "@ganache/ethereum-utils";
 import { utils, Quantity, Data } from "@ganache/utils";
+import { encode } from "@ganache/rlp";
 import { promisify } from "util";
 import Trie from "merkle-patricia-tree";
 import Emittery from "emittery";
 import VM from "ethereumjs-vm";
-import { encode as rlpEncode } from "rlp";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
 import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
-const { BUFFER_EMPTY, BUFFER_256_ZERO, keccak } = utils;
+import { Params, RuntimeTransaction } from "@ganache/ethereum-transaction";
+import { Executables } from "./executables";
+import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+const { BUFFER_EMPTY, BUFFER_256_ZERO, keccak, uintToBuffer } = utils;
 
 export type BlockData = {
   blockTransactions: RuntimeTransaction[];
@@ -289,8 +287,12 @@ export default class Miner extends Emittery.Typed<
             blockGasUsed += gasUsed;
 
             // calculate receipt and tx tries
-            const txKey = rlpEncode(numTransactions);
-            promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
+            const txKey = encode(
+              numTransactions === 0
+                ? BUFFER_EMPTY
+                : uintToBuffer(numTransactions)
+            );
+            promises.push(putInTrie(transactionsTrie, txKey, best.serialized));
             const receipt = best.fillFromResult(result, blockGasUsed);
             promises.push(putInTrie(receiptTrie, txKey, receipt));
 
@@ -317,7 +319,7 @@ export default class Miner extends Emittery.Typed<
             // notice: when `maxTransactions` is `-1` (AKA infinite), `numTransactions === maxTransactions`
             // will always return false, so this comparison works out fine.
             if (
-              blockGasLeft <= params.TRANSACTION_GAS ||
+              blockGasLeft <= Params.TRANSACTION_GAS ||
               numTransactions === maxTransactions
             ) {
               if (keepMining) {

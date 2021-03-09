@@ -2,9 +2,26 @@ import assert from "assert";
 import getProvider from "../helpers/getProvider";
 import EthereumProvider from "../../src/provider";
 
-describe.skip("forking", () => {
+describe("forking", () => {
   describe("auth", () => {
-    describe("Basic Authentication", () => {
+    describe("Handle invalid url", () => {
+      it("returns the correct error response", async () => {
+        await assert.rejects(
+          getProvider({
+            fork: {
+              url: "https://mainnet.infura.io/v3/INVALID_URL" // invalid infura URL
+            }
+          }),
+          {
+            message:
+              `Invalid JSON response from fork provider:\n\n invalid project id\n` +
+              `\n\nThe provided fork url, https://mainnet.infura.io/v3/INVALID_URL, may be an invalid or incorrect Infura endpoint.` +
+              `\nVisit https://infura.io/docs/ethereum for Infura documentation.`
+          }
+        );
+      });
+    });
+    describe.skip("Basic Authentication", () => {
       let provider: EthereumProvider;
       before(async function () {
         provider = await getProvider({
