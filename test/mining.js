@@ -389,6 +389,10 @@ describe("Mining", function() {
       let closing = false;
       let timer;
 
+      // we must start a `timer` to prevent node from shutting down do to it
+      // thinking it has no work to do.
+      const keepAliveTimer = setTimeout(() => {}, 10000);
+
       await provider.send("eth_subscribe", ["newHeads"]);
       provider.on("message", (b) => {
         if (closed) {
@@ -400,7 +404,10 @@ describe("Mining", function() {
             closed = true;
 
             // give the miner a chance to mine a block before calling done:
-            timer = setTimeout(done, blockTime * 2 * 1000);
+            timer = setTimeout(() => {
+              clearTimeout(keepAliveTimer);
+              done();
+            }, blockTime * 2 * 1000);
           });
         }
       });
