@@ -1,13 +1,14 @@
-import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
-import { Address } from "./address";
 import { utils } from "@ganache/utils";
+import { decode, encode } from "@ganache/rlp";
+import { Address } from "@ganache/ethereum-address";
 
 export type TransactionLog = [
   address: Buffer,
   topics: Buffer[],
   data: Buffer | Buffer[]
 ];
+
 export type BlockLog = [
   removed: Buffer,
   transactionIndex: Buffer,
@@ -53,7 +54,7 @@ export class BlockLogs {
 
   constructor(data: Buffer) {
     if (data) {
-      const decoded = (rlpDecode(data) as unknown) as [Buffer, BlockLog[]];
+      const decoded = (decode(data) as unknown) as [Buffer, BlockLog[]];
       this[_raw] = decoded;
     }
   }
@@ -73,7 +74,7 @@ export class BlockLogs {
    * rlpEncode's the blockHash and logs array for db storage
    */
   public serialize() {
-    return rlpEncode(this[_raw]);
+    return encode(this[_raw]);
   }
 
   /**

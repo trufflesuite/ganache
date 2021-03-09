@@ -4,6 +4,7 @@ import { encode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import { BlockRawTx, RuntimeTransaction } from "@ganache/ethereum-transaction";
+import { StorageKeys } from "../../transaction/node_modules/@ganache/ethereum-utils";
 
 const { BUFFER_EMPTY, BUFFER_32_ZERO, BUFFER_8_ZERO } = utils;
 
@@ -117,7 +118,7 @@ export class RuntimeBlock {
     gasUsed: bigint,
     extraData: Data,
     transactions: RuntimeTransaction[],
-    storageKeys: Map<string, Buffer>
+    storageKeys: StorageKeys
   ) {
     const { header } = this;
     const rawHeader = [

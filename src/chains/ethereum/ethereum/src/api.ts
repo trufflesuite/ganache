@@ -1,10 +1,6 @@
 //#region Imports
 import {
-  RuntimeBlock,
-  Block,
   Tag,
-  Address,
-  RuntimeTransaction,
   BlockLogs,
   Account,
   VM_EXCEPTION,
@@ -17,10 +13,14 @@ import {
   FilterTypes,
   RangeFilterArgs,
   SubscriptionId,
-  SubscriptionName,
-  RpcTransaction,
-  EthereumRawTx
+  SubscriptionName
 } from "@ganache/ethereum-utils";
+import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import {
+  EthereumRawTx,
+  RpcTransaction,
+  RuntimeTransaction
+} from "@ganache/ethereum-transaction";
 import {
   toRpcSig,
   KECCAK256_NULL,
@@ -39,7 +39,6 @@ import {
 } from "@ganache/utils";
 import Blockchain, { TransactionTraceOptions } from "./blockchain";
 import Wallet from "./wallet";
-import { decode as rlpDecode } from "rlp";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 
 import Emittery from "emittery";
@@ -53,10 +52,12 @@ import {
   parseFilterRange
 } from "./helpers/filter-parsing";
 import { Hardfork } from "@ganache/ethereum-options";
+import { decode } from "@ganache/rlp";
+import { Address } from "@ganache/ethereum-address";
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
-const { keccak, RPCQUANTITY_EMPTY } = utils;
+const { keccak } = utils;
 //#endregion
 
 //#region Constants
@@ -343,7 +344,7 @@ export default class EthereumApi implements types.Api {
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
-    const blockData = (rlpDecode(block) as unknown) as [
+    const blockData = (decode(block) as unknown) as [
       [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
       Buffer[],
       Buffer[]
@@ -375,7 +376,7 @@ export default class EthereumApi implements types.Api {
 
     const addressData = await addressDataPromise;
     // An address's stateRoot is stored in the 3rd rlp entry
-    this.#blockchain.trie.root = ((rlpDecode(addressData) as any) as [
+    this.#blockchain.trie.root = ((decode(addressData) as any) as [
       Buffer /*nonce*/,
       Buffer /*amount*/,
       Buffer /*stateRoot*/,
@@ -845,7 +846,7 @@ export default class EthereumApi implements types.Api {
   async eth_getBlockTransactionCountByNumber(number: string | Buffer) {
     const rawBlock = await this.#blockchain.blocks.getRaw(number);
     if (rawBlock) {
-      const data = rlpDecode(rawBlock);
+      const data = decode(rawBlock);
       return Quantity.from((data[1] as any).length);
     } else {
       return null;
@@ -1084,7 +1085,7 @@ export default class EthereumApi implements types.Api {
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
-    const blockData = (rlpDecode(block) as unknown) as [
+    const blockData = (decode(block) as unknown) as [
       [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
       Buffer[],
       Buffer[]
@@ -1100,7 +1101,7 @@ export default class EthereumApi implements types.Api {
 
     const addressData = await addressDataPromise;
     // An address's codeHash is stored in the 4th rlp entry
-    const codeHash = ((rlpDecode(addressData) as any) as [
+    const codeHash = ((decode(addressData) as any) as [
       Buffer /*nonce*/,
       Buffer /*amount*/,
       Buffer /*stateRoot*/,
@@ -1137,7 +1138,7 @@ export default class EthereumApi implements types.Api {
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
-    const blockData = (rlpDecode(block) as unknown) as [
+    const blockData = (decode(block) as unknown) as [
       [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
       Buffer[],
       Buffer[]
@@ -1169,14 +1170,11 @@ export default class EthereumApi implements types.Api {
 
     const addressData = await addressDataPromise;
     // An address's stateRoot is stored in the 3rd rlp entry
-    trie.root = ((rlpDecode(addressData) as any) as [
-      Buffer /*nonce*/,
-      Buffer /*amount*/,
-      Buffer /*stateRoot*/,
-      Buffer /*codeHash*/
-    ])[2];
+    trie.root = decode<
+      [nonce: Buffer, amount: Buffer, stateRoot: Buffer, codeHash: Buffer]
+    >(addressData)[2];
     const value = await this.#blockchain.getFromTrie(trie, paddedPosBuff);
-    return Data.from(rlpDecode(value));
+    return Data.from(decode(value));
   }
 
   /**
@@ -1305,7 +1303,7 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
     const data = Data.from(transaction).toBuffer();
-    const raw = (rlpDecode(data) as unknown) as EthereumRawTx;
+    const raw = decode<EthereumRawTx>(data);
     const tx = new RuntimeTransaction(raw, this.#common);
     return this.#blockchain.queueTransaction(tx);
   }

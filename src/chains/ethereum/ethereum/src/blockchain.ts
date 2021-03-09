@@ -5,32 +5,22 @@ import Emittery from "emittery";
 import {
   BlockLogs,
   Account,
-  TransactionReceipt,
-  Address,
-  RuntimeBlock,
-  Block,
   ITraceData,
   TraceDataFactory,
   TraceStorageMap,
   RuntimeError,
   RETURN_TYPES,
-  Snapshots,
   StepEvent,
   StorageKeys,
   StorageRangeResult,
   StorageRecords,
-  RangedStorageKeys,
-  RuntimeTransaction,
-  calculateIntrinsicGas,
-  VmTransaction,
-  EthereumRawTx,
-  GanacheRawExtraTx
+  RangedStorageKeys
 } from "@ganache/ethereum-utils";
+import { decode, encode } from "@ganache/rlp";
 import SecureTrie from "merkle-patricia-tree/secure";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import { promisify } from "util";
 import { Quantity, Data, utils } from "@ganache/utils";
-import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 
 import Common from "ethereumjs-common";
 import VM from "ethereumjs-vm";
@@ -43,6 +33,16 @@ import BlockLogManager from "./data-managers/blocklog-manager";
 import Manager from "./data-managers/manager";
 import TransactionManager from "./data-managers/transaction-manager";
 import { Fork } from "./forking/fork";
+import { Address } from "@ganache/ethereum-address";
+import {
+  calculateIntrinsicGas,
+  EthereumRawTx,
+  GanacheRawExtraTx,
+  RuntimeTransaction,
+  TransactionReceipt,
+  VmTransaction
+} from "@ganache/ethereum-transaction";
+import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 
 const {
   BUFFER_EMPTY,
@@ -377,7 +377,7 @@ export default class Blockchain extends Emittery.Typed<
           tx.raw,
           [tx.from.toBuffer(), hash, blockHash, blockNumber, index]
         ];
-        const encodedTx = rlpEncode(txAndExtraData);
+        const encodedTx = encode(txAndExtraData);
         this.transactions.set(hash, encodedTx);
 
         const receipt = tx.getReceipt();
@@ -1296,7 +1296,7 @@ export default class Blockchain extends Emittery.Typed<
     const getStorageKeys = () => {
       const storageTrie = trie.copy();
       // An address's stateRoot is stored in the 3rd rlp entry
-      storageTrie.root = ((rlpDecode(addressData) as any) as [
+      storageTrie.root = ((decode(addressData) as any) as [
         Buffer /*nonce*/,
         Buffer /*amount*/,
         Buffer /*stateRoot*/,

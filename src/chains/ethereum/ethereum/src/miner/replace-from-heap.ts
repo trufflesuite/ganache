@@ -1,5 +1,5 @@
+import { RuntimeTransaction } from "@ganache/ethereum-transaction";
 import { utils } from "@ganache/utils";
-import { RuntimeTransaction } from "@ganache/ethereum-utils";
 
 export default function replaceFromHeap(
   priced: utils.Heap<RuntimeTransaction>,
