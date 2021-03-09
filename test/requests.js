@@ -675,7 +675,7 @@ const tests = function(web3) {
       try {
         const tx = transaction.serialize();
 
-        await web3.eth.sendSignedTransaction(tx);
+        await web3.eth.sendSignedTransaction("0x" + tx.toString("hex"));
         assert.fail("sendSignedTransaction promiEvent should reject");
       } catch (err) {
         const msg = "the tx doesn't have the correct nonce. account has nonce of: 2 tx has nonce of: 0";
@@ -696,7 +696,7 @@ const tests = function(web3) {
       transaction.sign(secretKeyBuffer);
 
       try {
-        await web3.eth.sendSignedTransaction(transaction.serialize());
+        await web3.eth.sendSignedTransaction("0x" + transaction.serialize().toString("hex"));
         assert.fail("sendSignedTransaction promiEvent should reject");
       } catch (err) {
         assert(
@@ -720,7 +720,7 @@ const tests = function(web3) {
       const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
-      const receipt = await web3.eth.sendSignedTransaction(transaction.serialize());
+      const receipt = await web3.eth.sendSignedTransaction("0x" + transaction.serialize().toString("hex"));
       assert.strictEqual(receipt.status, true);
     });
 
@@ -739,7 +739,7 @@ const tests = function(web3) {
       transaction.sign(secretKeyBuffer);
 
       try {
-        await web3.eth.sendSignedTransaction(transaction.serialize());
+        await web3.eth.sendSignedTransaction("0x" + transaction.serialize().toString("hex"));
         assert.fail("sendSignedTransaction promiEvent should reject");
       } catch (err) {
         assert.notDeepStrictEqual(err, null, "Incorrect nonce, tx should fail.");
@@ -758,7 +758,7 @@ const tests = function(web3) {
       const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
-      const result = await web3.eth.sendSignedTransaction(transaction.serialize());
+      const result = await web3.eth.sendSignedTransaction("0x" + transaction.serialize().toString("hex"));
       assert.strictEqual(result.transactionHash, to.hex(transaction.hash()));
     });
 
@@ -774,7 +774,7 @@ const tests = function(web3) {
       const secretKeyBuffer = Buffer.from(secretKeys[6].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
-      const receipt = await web3.eth.sendSignedTransaction(transaction.serialize());
+      const receipt = await web3.eth.sendSignedTransaction("0x" + transaction.serialize().toString("hex"));
       assert.strictEqual(receipt.status, true, "Tx should be successful.");
     });
 
@@ -794,7 +794,7 @@ const tests = function(web3) {
       // the account balance should be 1 wei less then when the test started
       // gas should have been free
       const balanceStart = new BN(await web3.eth.getBalance(accounts[5]));
-      await web3.eth.sendSignedTransaction(transaction.serialize());
+      await web3.eth.sendSignedTransaction("0x" + transaction.serialize().toString("hex"));
       const balanceEnd = new BN(await web3.eth.getBalance(accounts[5]));
       assert(balanceStart.sub(new BN(1)).eq(balanceEnd));
     });
@@ -812,7 +812,7 @@ const tests = function(web3) {
       const secretKeyBuffer = Buffer.from(secretKeys[0].substr(2), "hex");
       transaction.sign(secretKeyBuffer);
 
-      await assert.doesNotReject(web3.eth.sendSignedTransaction(transaction.serialize()));
+      await assert.doesNotReject(web3.eth.sendSignedTransaction("0x" + transaction.serialize().toString("hex")));
 
       assert(require("../package.json").version.startsWith("2."), "Version 3 should change this so the test fails!");
     });
