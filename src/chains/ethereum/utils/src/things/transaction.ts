@@ -1,323 +1,413 @@
-import { ecrecover } from "ethereumjs-util";
-import { RuntimeError, RETURN_TYPES } from "../errors/runtime-error";
-import { utils, Data, Quantity } from "@ganache/utils";
+import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { params } from "./params";
-import {
-  Transaction as EthereumJsTransaction,
-  FakeTransaction as EthereumJsFakeTransaction
-} from "ethereumjs-tx";
-import * as ethUtil from "ethereumjs-util";
-import assert from "assert";
-import { decode as rlpDecode } from "rlp";
-import { RunTxResult } from "ethereumjs-vm/dist/runTx";
-import { TransactionReceipt } from "./transaction-receipt";
-import Common from "ethereumjs-common";
-import { TransactionLog } from "./blocklogs";
+import { Data, Quantity } from "@ganache/utils";
+import { utils } from "@ganache/utils";
 import { Address } from "./address";
-import { ExtractValuesFromType } from "../types/extract-values-from-types";
-import { Block } from "./runtime-block";
-
-const { KNOWN_CHAINIDS, BUFFER_ZERO, RPCQUANTITY_ONE } = utils;
-const MAX_UINT64 = (1n << 64n) - 1n;
-const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
-/**
- * secp256k1n/2
- */
-const N_DIV_2 = 57896044618658097711785492504343953926418782139537452191302581570759080747168n;
-
-//#region helpers
-const sign = EthereumJsTransaction.prototype.sign;
-const fakeHash = function (this: Transaction) {
-  // this isn't memoization of the hash. previous versions of ganache-core
-  // created hashes in a different/incorrect way and are recorded this way
-  // in snapshot dbs. We are preserving the chain's immutability by using the
-  // stored hash instead of calculating it.
-  if (this._hash != null) {
-    return this._hash;
-  }
-  return EthereumJsFakeTransaction.prototype.hash.apply(
-    this,
-    (arguments as unknown) as [(boolean | undefined)?]
-  );
-};
-
-function configZeroableField(tx: any, fieldName: string, fieldLength = 32) {
-  const index = tx._fields.indexOf(fieldName);
-  const descriptor = Object.getOwnPropertyDescriptor(tx, fieldName);
-  // eslint-disable-next-line accessor-pairs
-  Object.defineProperty(tx, fieldName, {
-    set: v => {
-      descriptor.set.call(tx, v);
-      v = ethUtil.toBuffer(v);
-      assert(
-        fieldLength >= v.length,
-        `The field ${fieldName} must not have more ${fieldLength} bytes`
-      );
-      tx._originals[index] = v;
-    },
-    get: () => {
-      return tx._originals[index];
-    }
-  });
-}
-
-/**
- * etheruemjs-tx's Transactions don't behave quite like we need them to, so
- * we're monkey-patching them to do what we want here.
- * @param {Transaction} tx The Transaction to fix
- * @param {Object} [data] The data object
- */
-function fixProps(tx: any, data: any) {
-  // ethereumjs-tx doesn't allow for a `0` value in fields, but we want it to
-  // in order to differentiate between a value that isn't set and a value
-  // that is set to 0 in a fake transaction.
-  // Once https://github.com/ethereumjs/ethereumjs-tx/issues/112 is figured
-  // out we can probably remove this fix/hack.
-  // We keep track of the original value and return that value when
-  // referenced by its property name. This lets us properly encode a `0` as
-  // an empty buffer while still being able to differentiate between a `0`
-  // and `null`/`undefined`.
-  tx._originals = [];
-  const fieldNames = ["nonce", "gasPrice", "gasLimit", "value"] as const;
-  fieldNames.forEach(fieldName => configZeroableField(tx, fieldName, 32));
-
-  // Ethereumjs-tx doesn't set the _chainId value whenever the v value is set,
-  // which causes transaction signing to fail on transactions that include a
-  // chain id in the v value (like ethers.js does).
-  // Whenever the v value changes we need to make sure the chainId is also set.
-  const vDescriptors = Object.getOwnPropertyDescriptor(tx, "v");
-  // eslint-disable-next-line accessor-pairs
-  Object.defineProperty(tx, "v", {
-    set: v => {
-      vDescriptors.set.call(tx, v);
-      // calculate chainId from signature
-      const sigV = ethUtil.bufferToInt(tx.v);
-      let chainId = Math.floor((sigV - 35) / 2);
-      if (chainId < 0) {
-        chainId = 0;
-      }
-      tx._chainId = chainId || 0;
-    }
-  });
-}
-
-function makeFake(tx: any, data: any) {
-  if (tx.isFake()) {
-    /**
-     * @prop {Buffer} from (read/write) Set from address to bypass transaction
-     * signing on fake transactions.
-     */
-    Object.defineProperty(tx, "from", {
-      enumerable: true,
-      configurable: true,
-      get: tx.getSenderAddress.bind(tx),
-      set: val => {
-        if (val) {
-          tx._from = ethUtil.toBuffer(val);
-        } else {
-          tx._from = null;
-        }
-      }
-    });
-
-    if (data && data.from) {
-      tx.from = data.from;
-    }
-
-    tx.hash = fakeHash;
-  }
-}
-
-/**
- * Parses the given data object and adds its properties to the given tx.
- * @param {Transaction} tx
- * @param {Object} [data]
- */
-function initData(tx: Transaction, data: any) {
-  if (data) {
-    let parts: Buffer[];
-    if (typeof data === "string") {
-      //hex
-      parts = (rlpDecode(Data.from(data).toBuffer()) as any) as Buffer[];
-    } else if (Buffer.isBuffer(data)) {
-      // Buffer
-      parts = (rlpDecode(data) as any) as Buffer[];
-    } else if (data.type === "Buffer") {
-      // wire Buffer
-      // handle case where a Buffer is sent as `{data: "Buffer", data: number[]}`
-      // like if someone does `web3.eth.sendRawTransaction(tx.serialize())`
-      const obj = data.data;
-      const length = obj.length;
-      const buf = Buffer.allocUnsafe(length);
-      for (let i = 0; i < length; i++) {
-        buf[i] = obj[i];
-      }
-      parts = (rlpDecode(buf) as any) as Buffer[];
-    } else if (Array.isArray(data)) {
-      // rlpdecoded data
-      parts = data;
-    } else if (typeof data === "object") {
-      // JSON
-      const keys = Object.keys(data);
-      tx._fields.forEach((field: any) => {
-        if (keys.indexOf(field) !== -1) {
-          tx[field] = data[field];
-        }
-        if (field === "gasLimit") {
-          if (keys.indexOf("gas") !== -1) {
-            tx["gas"] = data["gas"];
-          }
-        } else if (field === "data") {
-          if (keys.indexOf("input") !== -1) {
-            tx["input"] = data["input"];
-          }
-        }
-      });
-
-      // Set chainId value from the data, if it's there and the data didn't
-      // contain a `v` value with chainId in it already. If we do have a
-      // data.chainId value let's set the interval v value to it.
-      if (!tx._chainId && data && data.chainId != null) {
-        tx.raw[tx._fields.indexOf("v")] = tx._chainId = data.chainId || 0;
-      }
-      return;
-    } else {
-      throw new Error("invalid data");
-    }
-
-    // add in our hacked-in properties
-    // which is the index in the block the transaciton
-    // was mined in
-    if (parts.length === tx._fields.length + 5) {
-      tx._from = parts.pop();
-      tx.type = parts.pop()[0];
-      tx._index = parts.pop();
-      tx._blockNum = parts.pop();
-      tx._blockHash = parts.pop();
-    }
-    if (parts.length > tx._fields.length) {
-      throw new Error("wrong number of fields in data");
-    }
-
-    // make sure all the items are buffers
-    parts.forEach((d, i) => {
-      tx[tx._fields[i]] = ethUtil.toBuffer(d);
-    });
-  }
-}
-
-//#endregion
+import { RpcTransaction } from "./transaction/rpc-transaction";
+import { BN, ecsign } from "ethereumjs-util";
+import { Hardfork } from "../types/hardfork";
+import Common from "ethereumjs-common";
+import {
+  BlockRawTx,
+  EthereumRawTx,
+  GanacheRawExtraTx
+} from "./transaction/raw";
+import { RunTxResult } from "ethereumjs-vm/dist/runTx";
+import { RETURN_TYPES, RuntimeError } from "../errors/runtime-error";
+import { TransactionReceipt } from "./transaction-receipt";
+import { TransactionLog } from "./blocklogs";
+import { computeHash, computeInstrinsics } from "./transaction/signing";
 
 type TransactionFinalization =
   | { status: "confirmed"; error?: Error }
   | { status: "rejected"; error: Error };
 
-export interface Transaction extends Omit<EthereumJsTransaction, "toJSON"> {}
-// TODO fix the EthereumJsTransaction as any via some "fake" multi-inheritance:
-export class Transaction extends (EthereumJsTransaction as any) {
-  public locked: boolean = false;
-  type: number;
-  v: Buffer;
-  r: Buffer;
-  s: Buffer;
-  raw: any;
-  _chainId: any;
-  _hash: Buffer;
-  readonly from: Buffer;
-  #receipt: TransactionReceipt;
-  #logs: TransactionLog[];
-  #finalizer: (eventData: TransactionFinalization) => void;
-  #finalized: Promise<TransactionFinalization>;
-  /**
-   * @param {Object} [data] The data for this Transaction.
-   * @param {Number} type The `Transaction.types` bit flag for this transaction
-   *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
-   */
-  constructor(
-    data: any,
-    common: Common,
-    type: number = Transaction.types.none
-  ) {
-    super(void 0, { common });
+export * from "./transaction/raw";
+export * from "./transaction/vm-transaction";
 
-    this._validateV = () => {};
-    this.verifySignature = () => {
-      var msgHash = this.hash(false);
-      // All transaction signatures whose s-value is greater than secp256k1n/2 are considered invalid.
-      if (
-        common.gteHardfork("homestead") &&
-        Quantity.from(this.s).toBigInt() > N_DIV_2
-      ) {
-        return false;
-      }
-      try {
-        const v = Quantity.from(this.v).toNumber();
-        let chainId = Math.floor((v - 35) / 2);
-        if (chainId < 0) {
-          chainId = 0;
+const {
+  keccak,
+  BUFFER_ZERO,
+  RPCQUANTITY_ONE,
+  BUFFER_EMPTY,
+  RPCQUANTITY_EMPTY
+} = utils;
+const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
+const MAX_UINT64 = 1n << (64n - 1n);
+
+/**
+ * Compute the 'intrinsic gas' for a message with the given data.
+ * @param data The transaction's data
+ * @param hardfork The hardfork use to determine gas costs
+ * @returns The absolute minimum amount of gas this transaction will consume,
+ * or `-1` if the data in invalid (gas consumption would exceed `MAX_UINT64`
+ * (`(2n ** 64n) - 1n`).
+ */
+export const calculateIntrinsicGas = (data: Data, common: Common) => {
+  const hardfork = common.hardfork() as Hardfork;
+  // Set the starting gas for the raw transaction
+  let gas = params.TRANSACTION_GAS;
+  if (data) {
+    const input = data.toBuffer();
+    // Bump the required gas by the amount of transactional data
+    const dataLength = input.byteLength;
+    if (dataLength > 0) {
+      const TRANSACTION_DATA_NON_ZERO_GAS = params.TRANSACTION_DATA_NON_ZERO_GAS.get(
+        hardfork
+      );
+      const TRANSACTION_DATA_ZERO_GAS = params.TRANSACTION_DATA_ZERO_GAS;
+
+      // Zero and non-zero bytes are priced differently
+      let nonZeroBytes: bigint = 0n;
+      for (const b of input) {
+        if (b !== 0) {
+          nonZeroBytes++;
         }
-
-        var useChainIdWhileRecoveringPubKey =
-          v >= chainId * 2 + 35 && common.gteHardfork("spuriousDragon");
-        this._senderPubKey = ecrecover(
-          msgHash,
-          v,
-          this.r,
-          this.s,
-          useChainIdWhileRecoveringPubKey ? chainId : undefined
-        );
-      } catch (e) {
-        return false;
       }
-      return !!this._senderPubKey;
-    };
 
-    // EthereumJS-TX Transaction overwrites our `toJSON`, so we overwrite it back here:
-    this.toJSON = Transaction.prototype.toJSON.bind(this);
+      // Make sure we don't exceed uint64 for all data combinations.
+      // TODO: make sure these upper-bound checks are safe to remove, then
+      // remove if so.
+      // NOTE: This is an upper-bounds limit ported from geth that doesn't
+      // make sense for Ethereum, as exceeding the upper bound would require
+      // something like 200+ Petabytes of data.
+      // https://github.com/ethereum/go-ethereum/blob/cf856ea1ad96ac39ea477087822479b63417036a/core/state_transition.go#L106-L141
+      //
+      // explanation:
+      // `(MAX_UINT64 - gas) / TRANSACTION_DATA_NON_ZERO_GAS` is the maximum
+      // number of "non-zero bytes" geth can handle.
+      if ((MAX_UINT64 - gas) / TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
+        return -1n;
+      }
+      gas += nonZeroBytes * TRANSACTION_DATA_NON_ZERO_GAS;
 
-    this.type = type;
-
-    fixProps(this, data);
-    initData(this, data);
-
-    if (this.isFake()) {
-      makeFake(this, data);
+      const zeroBytes = BigInt(dataLength) - nonZeroBytes;
+      // explanation:
+      // `(MAX_UINT64 - gas) / TRANSACTION_DATA_ZERO_GAS` is the maximum number
+      // of "zero bytes" geth can handle after subtracting out the cost of
+      // the "non-zero bytes"
+      if ((MAX_UINT64 - gas) / TRANSACTION_DATA_ZERO_GAS < zeroBytes) {
+        return -1n;
+      }
+      gas += zeroBytes * TRANSACTION_DATA_ZERO_GAS;
     }
-
-    let finalizer: (value: TransactionFinalization) => void;
-    this.#finalized = new Promise<TransactionFinalization>(resolve => {
-      finalizer = (...args: any[]) => process.nextTick(resolve, ...args);
-    });
-    this.#finalizer = finalizer;
   }
+  return gas;
+};
 
-  static get types() {
-    // values must be powers of 2
-    return {
-      none: 0 as const,
-      signed: 1 as const,
-      fake: 2 as const
-    };
-  }
-
-  cost(): bigint {
-    return (
-      Quantity.from(this.gasPrice).toBigInt() *
-        Quantity.from(this.gasLimit).toBigInt() +
-      Quantity.from(this.value).toBigInt()
+const toValidLengthAddress = (address: string, fieldName: string) => {
+  const buffer = Data.from(address).toBuffer();
+  if (buffer.byteLength !== Address.ByteLength) {
+    throw new Error(
+      `The field ${fieldName} must have byte length of ${Address.ByteLength}`
     );
   }
+  return Address.from(buffer);
+};
+
+const hasPartialSignature = (
+  data: RpcTransaction
+): data is RpcTransaction & {
+  from?: string;
+  v?: string;
+  r?: string;
+  s?: string;
+} => {
+  return data["v"] != null || data["r"] != null || data["s"] != null;
+};
+export class BaseTransaction {
+  public nonce: Quantity;
+  public gasPrice: Quantity;
+  public gas: Quantity;
+  public to: Address | null;
+  public value: Quantity;
+  public data: Data;
+  public v: Quantity | null;
+  public r: Quantity | null;
+  public s: Quantity | null;
+
+  public from: Data | null;
+
+  public common: Common;
+
+  constructor(common: Common) {
+    this.common = common;
+  }
+
+  public toVmTransaction() {
+    const sender = this.from.toBuffer();
+    const to = this.to.toBuffer();
+    const data = this.data.toBuffer();
+    return {
+      nonce: new BN(this.nonce.toBuffer()),
+      gasPrice: new BN(this.gasPrice.toBuffer()),
+      gasLimit: new BN(this.gas.toBuffer()),
+      to,
+      value: new BN(this.value.toBuffer()),
+      data,
+      getSenderAddress: () => sender,
+      /**
+       * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
+       */
+      getBaseFee: () => {
+        let fee = this.calculateIntrinsicGas();
+        if (to.equals(BUFFER_EMPTY)) {
+          fee += params.TRANSACTION_CREATION;
+        }
+        return new BN(Quantity.from(fee).toBuffer());
+      },
+      getUpfrontCost: () => {
+        const { gas, gasPrice, value } = this;
+        try {
+          const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
+          return new BN(Quantity.from(c).toBuffer());
+        } catch (e) {
+          throw e;
+        }
+      }
+    };
+  }
+  public calculateIntrinsicGas() {
+    return calculateIntrinsicGas(this.data, this.common);
+  }
+  public toJSON: () => any;
+}
+
+/**
+ * A RuntimeTransaction can be changed; its hash is not finalized and it is not
+ * yet part of a block.
+ */
+export class RuntimeTransaction extends BaseTransaction {
+  public hash: Data | null;
+  /**
+   * used by the miner to mark if this transaction is eligible for reordering or
+   * removal
+   */
+  public locked: boolean = false;
+
+  public logs: TransactionLog[];
+  public receipt: TransactionReceipt;
+  public execException: RuntimeError;
+
+  public raw: EthereumRawTx | null;
+  private finalizer: (eventData: TransactionFinalization) => void;
+  private finalized: Promise<TransactionFinalization>;
+
+  constructor(data: EthereumRawTx | RpcTransaction, common: Common) {
+    super(common);
+    let finalizer: (value: TransactionFinalization) => void;
+    this.finalized = new Promise<TransactionFinalization>(resolve => {
+      finalizer = (...args: any[]) => process.nextTick(resolve, ...args);
+    });
+    this.finalizer = finalizer;
+
+    if (Array.isArray(data)) {
+      // handle raw data (sendRawTranasction)
+      this.nonce = Quantity.from(data[0], true);
+      this.gasPrice = Quantity.from(data[1]);
+      this.gas = Quantity.from(data[2]);
+      this.to = data[3].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[3]);
+      this.value = Quantity.from(data[4]);
+      this.data = Data.from(data[5]);
+      this.v = Quantity.from(data[6]);
+      this.r = Quantity.from(data[7]);
+      this.s = Quantity.from(data[8]);
+
+      const { from, hash } = computeInstrinsics(
+        this.v,
+        data,
+        this.common.chainId()
+      );
+      this.from = from;
+      this.hash = hash;
+      this.raw = data;
+    } else {
+      // handle JSON
+      this.nonce = Quantity.from(data.nonce, true);
+      this.gasPrice = Quantity.from(data.gasPrice);
+      this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
+      this.to =
+        data.to == null
+          ? RPCQUANTITY_EMPTY
+          : toValidLengthAddress(data.to, "to");
+      this.value = Quantity.from(data.value);
+      this.data = Data.from(data.data == null ? data.input : data.data);
+
+      // If we have v, r, or s validate and use them
+      if (hasPartialSignature(data)) {
+        if (data.v == null || data.r == null || data.s == null) {
+          throw new Error(
+            "Transaction signature is incomplete; v, r, and s are required."
+          );
+        }
+
+        // if we have a signature the `nonce` field is required
+        if (data.nonce == null) {
+          throw new Error(
+            "Signed transaction is incomplete; nonce is required."
+          );
+        }
+
+        this.v = Quantity.from(data.v, true);
+        this.r = Quantity.from(data.r, true);
+        this.s = Quantity.from(data.s, true);
+
+        // compute the `hash` and the `from` address
+        const raw: EthereumRawTx = [
+          this.nonce.toBuffer(),
+          this.gasPrice.toBuffer(),
+          this.gas.toBuffer(),
+          this.to.toBuffer(),
+          this.value.toBuffer(),
+          this.data.toBuffer(),
+          this.v.toBuffer(),
+          this.r.toBuffer(),
+          this.s.toBuffer()
+        ];
+        const { hash, from } = computeInstrinsics(
+          this.v,
+          raw,
+          this.common.chainId()
+        );
+
+        // if the user specified a `from` address in addition to the  `v`, `r`,
+        //  and `s` values, make sure the `from` address matches
+        if (data.from !== null) {
+          const userFrom = toValidLengthAddress(data.from, "from");
+          if (!from.toBuffer().equals(userFrom.toBuffer())) {
+            throw new Error(
+              "Transaction is signed and contains a `from` field, but the signature doesn't match."
+            );
+          }
+        }
+        this.from = from;
+        this.hash = hash;
+        this.raw = raw;
+      } else if (data.from != null) {
+        // we don't have a signature yet, so we just need to record the `from`
+        // address for now. The TransactionPool will fill in the `hash` and
+        // `raw` fields during signing
+        this.from = toValidLengthAddress(data.from, "from");
+      }
+    }
+  }
 
   /**
-   * Returns a Promise that is resolve with the confirmation status and, if
+   * sign a transaction with a given private key, then compute and set the `hash`.
+   *
+   * @param privateKey - Must be 32 bytes in length
+   */
+  public signAndHash(privateKey: Buffer) {
+    if (this.v != null) {
+      throw new Error(
+        "Internal Error: RuntimeTransaction `sign` called but transaction has already been signed"
+      );
+    }
+
+    const chainId = this.common.chainId();
+    const raw: EthereumRawTx = [
+      this.nonce.toBuffer(),
+      this.gasPrice.toBuffer(),
+      this.gas.toBuffer(),
+      this.to.toBuffer(),
+      this.value.toBuffer(),
+      this.data.toBuffer(),
+      Quantity.from(chainId).toBuffer(),
+      BUFFER_EMPTY,
+      BUFFER_EMPTY
+    ];
+    const msgHash = keccak(rlpEncode(raw));
+    const sig = ecsign(msgHash, privateKey, chainId);
+    this.v = Quantity.from(sig.v);
+    this.r = Quantity.from(sig.r);
+    this.s = Quantity.from(sig.s);
+
+    raw[6] = this.v.toBuffer();
+    raw[7] = this.r.toBuffer();
+    raw[8] = this.s.toBuffer();
+
+    this.hash = computeHash(raw);
+    this.raw = raw;
+  }
+
+  public serialize(): Buffer {
+    if (this.raw == null) {
+      throw new Error(
+        "Internal Error: `serialize` called on `RuntimeTransaction` but transaction hasn't been signed"
+      );
+    }
+    return rlpEncode(this.raw);
+  }
+
+  public toJSON = () => {
+    return {
+      hash: this.hash,
+      nonce: this.nonce,
+      blockHash: null,
+      blockNumber: null,
+      transactionIndex: null,
+      from: this.from,
+      to: this.to.isNull() ? null : this.to,
+      value: this.value,
+      gas: this.gas,
+      gasPrice: this.gasPrice,
+      input: this.data,
+      v: this.v,
+      r: this.r,
+      s: this.s
+    };
+  };
+
+  /**
+   * Initializes the receipt and logs
+   * @param result
+   * @returns RLP encoded data for use in a transaction trie
+   */
+  public fillFromResult(result: RunTxResult, cumulativeGasUsed: bigint) {
+    const vmResult = result.execResult;
+    const execException = vmResult.exceptionError;
+    let status: Buffer;
+    if (execException) {
+      status = BUFFER_ZERO;
+      this.execException = new RuntimeError(
+        this.hash,
+        result,
+        RETURN_TYPES.TRANSACTION_HASH
+      );
+    } else {
+      status = ONE_BUFFER;
+    }
+
+    const receipt = (this.receipt = TransactionReceipt.fromValues(
+      status,
+      Quantity.from(cumulativeGasUsed).toBuffer(),
+      result.bloom.bitvector,
+      (this.logs = vmResult.logs || ([] as TransactionLog[])),
+      result.createdAddress,
+      result.gasUsed.toArrayLike(Buffer)
+    ));
+
+    return receipt.serialize(false);
+  }
+
+  public getReceipt(): TransactionReceipt {
+    return this.receipt;
+  }
+
+  public getLogs(): TransactionLog[] {
+    return this.logs;
+  }
+
+  /**
+   * Returns a Promise that is resolved with the confirmation status and, if
    * appropriate, an error property.
    *
-   * Note: it is possible to be confirmed AND
+   * Note: it is possible to be confirmed AND have an error
    *
    * @param event "finalized"
    */
-  once(event: "finalized") {
-    return this.#finalized;
+  public once(_event: "finalized") {
+    return this.finalized;
   }
 
   /**
@@ -329,275 +419,165 @@ export class Transaction extends (EthereumJsTransaction as any) {
    * @param status
    * @param error
    */
-  finalize(status: "confirmed" | "rejected", error: Error = null) {
+  public finalize(status: "confirmed" | "rejected", error: Error = null): void {
     // resolves the `#finalized` promise
-    this.#finalizer({ status, error });
+    this.finalizer({ status, error });
   }
-
-  /**
-   * Compute the 'intrinsic gas' for a message with the given data.
-   * @param data The transaction's data
-   * @param hardfork The hardfork use to determine gas costs
-   * @returns The absolute minimum amount of gas this transaction will consume,
-   * or `-1` if the data in invalid (gas consumption would exceed `MAX_UINT64`
-   * (`(2n ** 64n) - 1n`).
-   */
-  public static calculateIntrinsicGas(
-    data: Buffer | null,
-    hardfork:
-      | "constantinople"
-      | "byzantium"
-      | "petersburg"
-      | "istanbul"
-      | "muirGlacier"
-  ) {
-    // Set the starting gas for the raw transaction
-    let gas = params.TRANSACTION_GAS;
-    if (data) {
-      // Bump the required gas by the amount of transactional data
-      const dataLength = data.byteLength;
-      if (dataLength > 0) {
-        const TRANSACTION_DATA_NON_ZERO_GAS = params.TRANSACTION_DATA_NON_ZERO_GAS.get(
-          hardfork
-        );
-        const TRANSACTION_DATA_ZERO_GAS = params.TRANSACTION_DATA_ZERO_GAS;
-
-        // Zero and non-zero bytes are priced differently
-        let nonZeroBytes: bigint = 0n;
-        for (const b of data) {
-          if (b !== 0) {
-            nonZeroBytes++;
-          }
-        }
-
-        // Make sure we don't exceed uint64 for all data combinations.
-        // TODO: make sure these upper-bound checks are safe to remove, then
-        // remove if so.
-        // NOTE: This is an upper-bounds limit ported from geth that doesn't
-        // make sense for Ethereum, as exceeding the upper bound would require
-        // something like 200+ Petabytes of data.
-        // https://github.com/ethereum/go-ethereum/blob/cf856ea1ad96ac39ea477087822479b63417036a/core/state_transition.go#L106-L141
-        //
-        // explanation:
-        // `(MAX_UINT64 - gas) / TRANSACTION_DATA_NON_ZERO_GAS` is the maximum
-        // number of "non-zero bytes" geth can handle.
-        if ((MAX_UINT64 - gas) / TRANSACTION_DATA_NON_ZERO_GAS < nonZeroBytes) {
-          return -1n;
-        }
-        gas += nonZeroBytes * TRANSACTION_DATA_NON_ZERO_GAS;
-
-        const zeroBytes = BigInt(dataLength) - nonZeroBytes;
-        // explanation:
-        // `(MAX_UINT64 - gas) / TRANSACTION_DATA_ZERO_GAS` is the maximum number
-        // of "zero bytes" geth can handle after subtracting out the cost of
-        // the "non-zero bytes"
-        if ((MAX_UINT64 - gas) / TRANSACTION_DATA_ZERO_GAS < zeroBytes) {
-          return -1n;
-        }
-        gas += zeroBytes * TRANSACTION_DATA_ZERO_GAS;
-      }
-    }
-    return gas;
-  }
-  public calculateIntrinsicGas(): bigint {
-    return Transaction.calculateIntrinsicGas(this.data, this._common._hardfork);
-  }
-
-  /**
-   * Prepares arbitrary JSON data for use in a Transaction.
-   * @param {Object} json JSON object representing the Transaction
-   * @param {Number} type The `Transaction.types` bit flag for this transaction
-   *  Can be a combination of `Transaction.types.none`, `Transaction.types.signed`, and `Transaction.types.fake`.
-   */
-  static fromJSON(
-    json: any,
-    common: Common,
-    type: ExtractValuesFromType<typeof Transaction.types>
-  ) {
-    let toAccount: Buffer;
-    if (json.to) {
-      // Remove all padding and make it easily comparible.
-      const buf = Data.from(json.to).toBuffer();
-
-      if (buf.equals(utils.BUFFER_ZERO)) {
-        // if the address is 0x0 make it 0x0{20}
-        toAccount = utils.ACCOUNT_ZERO;
-      } else {
-        toAccount = buf;
-      }
-    }
-    const data = json.data || json.input;
-    const options = {
-      nonce: Data.from(json.nonce).toBuffer(),
-      from: Data.from(json.from).toBuffer(),
-      value: Quantity.from(json.value).toBuffer(),
-      gasLimit: Quantity.from(json.gas || json.gasLimit).toBuffer(),
-      gasPrice: Quantity.from(json.gasPrice).toBuffer(),
-      data: data ? Data.from(data).toBuffer() : null,
-      to: toAccount,
-      v: Data.from(json.v).toBuffer(),
-      r: Data.from(json.r).toBuffer(),
-      s: Data.from(json.s).toBuffer()
-    };
-
-    const sigV = ethUtil.bufferToInt(json.v);
-    let chainId = Math.floor((sigV - 35) / 2);
-    if (chainId < 0) {
-      chainId = 0;
-    }
-
-    // if our chain's chainId doesn't match the JSON's chain id we need to
-    // create our own "common" for this specific chain id, otherwise it won't
-    // validate
-    if (common.chainId() !== chainId) {
-      common = Common.forCustomChain(
-        KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
-        {
-          name: "ganache-fork",
-          networkId: common.networkId(),
-          chainId: chainId,
-          comment: "Local test network fork"
-        },
-        common.hardfork()
-      );
-    }
-
-    const tx = new Transaction(options, common, type);
-    tx._hash = json.hash ? Data.from(json.hash).toBuffer() : null;
-    tx._from = json.from ? Data.from(json.from).toBuffer() : null;
-    return tx;
-  }
-
-  /**
-   * Encodes the Transaction in order to be used in a database. Can be decoded
-   * into an identical Transaction via `Transaction.decode(encodedTx)`.
-   */
-  encode() {
-    const resultJSON = {
-      hash: Data.from(this.hash()).toString(),
-      nonce: Quantity.from(this.nonce).toString() || "0x",
-      from: Data.from(this.from).toString(),
-      to: Data.from(this.to).toString(),
-      value: Quantity.from(this.value).toString(),
-      gas: Quantity.from(this.gasLimit).toString(),
-      gasPrice: Quantity.from(this.gasPrice).toString(),
-      data: this.data ? this.data.toString("hex") : null,
-      v: Quantity.from(this.v).toString(),
-      r: Quantity.from(this.r).toString(),
-      s: Quantity.from(this.s).toString(),
-      _type: this.type
-    };
-    return resultJSON;
-  }
-
-  isFake() {
-    return (this.type & Transaction.types.fake) === Transaction.types.fake;
-  }
-
-  isSigned() {
-    return (this.type & Transaction.types.signed) === Transaction.types.signed;
-  }
-
-  /**
-   * Compares the transaction's nonce value to the given expectedNonce taking in
-   * to account the type of transaction and comparison rules for each type.
-   *
-   * In a signed transaction a nonce of Buffer([]) is the same as Buffer([0]),
-   * but in a fake transaction Buffer([]) is null and Buffer([0]) is 0.
-   *
-   * @param {Buffer} expectedNonce The value of the from account's next nonce.
-   */
-  validateNonce(expectedNonce: any) {
-    let nonce;
-    if (this.isSigned() && this.nonce.length === 0) {
-      nonce = utils.BUFFER_ZERO;
-    } else {
-      nonce = this.nonce;
-    }
-    return nonce.equals(expectedNonce);
-  }
-
-  /**
-   * Signs the transaction and sets the `type` bit for `signed` to 1,
-   * i.e., `isSigned() === true`
-   */
-  sign(secretKey: Buffer) {
-    this.type |= Transaction.types.signed;
-    return sign.call(this, secretKey);
-  }
-
-  /**
-   * Returns a JSON-RPC spec compliant representation of this Transaction.
-   *
-   * @param {Object} block The block this Transaction appears in.
-   */
-  toJSON(block?: Block) {
-    let blockHash: Data;
-    let blockNum: Quantity;
-    if (block) {
-      blockHash = block.hash();
-      blockNum = block.header.number;
-    } else {
-      blockHash = this._blockHash ? Data.from(this._blockHash, 32) : null;
-      blockNum = this._blockNum ? Quantity.from(this._blockNum) : null;
-    }
-    return {
-      hash: Data.from(this.hash(), 32),
-      nonce: Quantity.from(this.nonce),
-      blockHash: blockHash ? blockHash : null,
-      blockNumber: blockNum ? blockNum : null,
-      transactionIndex: this._index ? Quantity.from(this._index) : null,
-      from: Address.from(this.from),
-      to: this.to.length === 0 ? null : Address.from(this.to),
-      value: Quantity.from(this.value),
-      gas: Quantity.from(this.gasLimit),
-      gasPrice: Quantity.from(this.gasPrice),
-      input: Data.from(this.data),
-      v: Quantity.from(this.v),
-      r: Quantity.from(this.r),
-      s: Quantity.from(this.s)
-    };
-  }
-
-  /**
-   * Initializes the receipt and logs
-   * @param result
-   * @returns RLP encoded data for use in a transaction trie
-   */
-  fillFromResult(result: RunTxResult, cumulativeGasUsed: bigint) {
-    const vmResult = result.execResult;
-    const execException = vmResult.exceptionError;
-    let status: Buffer;
-    if (execException) {
-      status = BUFFER_ZERO;
-      this.execException = new RuntimeError(
-        this.hash(),
-        result,
-        RETURN_TYPES.TRANSACTION_HASH
-      );
-    } else {
-      status = ONE_BUFFER;
-    }
-
-    const receipt = (this.#receipt = TransactionReceipt.fromValues(
-      status,
-      Quantity.from(cumulativeGasUsed).toBuffer(),
-      result.bloom.bitvector,
-      (this.#logs = vmResult.logs || ([] as TransactionLog[])),
-      result.createdAddress,
-      result.gasUsed.toArrayLike(Buffer)
-    ));
-
-    return receipt.serialize(false);
-  }
-
-  getReceipt() {
-    return this.#receipt;
-  }
-
-  getLogs() {
-    return this.#logs;
-  }
-
-  public execException: RuntimeError = null;
 }
+
+/**
+ * A FakeTransaction spoofs the from address and signature.
+ */
+export class FakeTransaction extends RuntimeTransaction {
+  constructor(data: RpcTransaction, common: Common) {
+    super(data, common);
+
+    if (this.from == null) {
+      throw new Error(
+        "Internal Error: FakeTransaction initialized without a `from` field."
+      );
+    }
+  }
+}
+
+/**
+ * A frozen tranasction is a transaction that is part of a block.
+ */
+export class FrozenTransaction extends BaseTransaction {
+  public nonce: Quantity;
+  public gasPrice: Quantity;
+  public gas: Quantity;
+  public to: Address | null;
+  public value: Quantity;
+  public data: Data;
+  public v: Quantity;
+  public r: Quantity;
+  public s: Quantity;
+
+  // from, index, hash, blockNumber, and blockHash are extra data we store to
+  // support account mascarading, quick receipts:
+  // public from: Address;
+  public index: Quantity;
+  public hash: Data;
+  public blockNumber: Quantity;
+  public blockHash: Data;
+
+  public common: Common;
+
+  constructor(
+    data: Buffer | [EthereumRawTx, GanacheRawExtraTx],
+    common: Common
+  ) {
+    super(common);
+
+    if (Buffer.isBuffer(data)) {
+      const decoded = (rlpDecode(data) as any) as [
+        EthereumRawTx,
+        GanacheRawExtraTx
+      ];
+
+      this.setRaw(decoded[0]);
+      this.setExtra(decoded[1]);
+    } else {
+      this.setRaw(data[0]);
+      this.setExtra(data[1]);
+    }
+    Object.freeze(this);
+  }
+
+  public setRaw(raw: EthereumRawTx) {
+    const [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = raw;
+
+    this.nonce = Quantity.from(nonce);
+    this.gasPrice = Quantity.from(gasPrice);
+    this.gas = Quantity.from(gasLimit);
+    this.to = to.length === 0 ? RPCQUANTITY_EMPTY : Address.from(to);
+    this.value = Quantity.from(value);
+    this.data = Data.from(data);
+    this.v = Quantity.from(v, true);
+    this.r = Quantity.from(r, true);
+    this.s = Quantity.from(s, true);
+  }
+
+  public setExtra(raw: GanacheRawExtraTx) {
+    const [from, hash, blockHash, blockNumber, index] = raw;
+
+    this.from = Address.from(from);
+    this.hash = Data.from(hash, 32);
+    this.blockHash = Data.from(blockHash, 32);
+    this.blockNumber = Quantity.from(blockNumber);
+    this.index = Quantity.from(index);
+  }
+
+  public toJSON = () => {
+    return {
+      hash: this.hash,
+      nonce: this.nonce,
+      blockHash: this.blockHash,
+      blockNumber: this.blockNumber,
+      transactionIndex: this.index,
+      from: this.from,
+      to: this.to.isNull() ? null : this.to,
+      value: this.value,
+      gas: this.gas,
+      gasPrice: this.gasPrice,
+      input: this.data,
+      v: this.v,
+      r: this.r,
+      s: this.s
+    };
+  };
+}
+
+/**
+ * A FrozenTransaction, whose _source_ is an existing Block
+ */
+export class BlockTransaction extends FrozenTransaction {
+  constructor(
+    data: BlockRawTx,
+    blockHash: Buffer,
+    blockNumber: Buffer,
+    index: Buffer,
+    common: Common
+  ) {
+    // Build a GanacheRawExtraTx from the data given to use by BlockRawTx and
+    // the constructor args
+    const extraRaw: GanacheRawExtraTx = data.slice(9) as any;
+    extraRaw.push(blockHash);
+    extraRaw.push(blockNumber);
+    extraRaw.push(index);
+    super([(data as any) as EthereumRawTx, extraRaw], common);
+  }
+}
+
+// export class Transaction extends BaseTransaction {
+//   // from, index, hash, blockNumber, and blockHash are extra data we store to
+//   // support account mascarading and quick receipts:
+//   public from: Address;
+//   public index: Quantity;
+//   public hash: () => Data;
+//   public blockNumber: Quantity;
+//   public blockHash: Data;
+
+//   constructor(transaction: Buffer) {}
+
+//   public asVmTransaction() {
+//     return Transaction.asVmTransaction(this, this.hardfork);
+//   }
+
+//   public static fromJSON(transaction: RpcTransaction) {}
+//   public static fromBlock(
+//     transaction: RpcTransaction,
+//     index: Quantity,
+//     blockNumber: Quantity,
+//     blockHash: Data
+//   ) {}
+//   public static fromRaw(transaction: string) {
+//     const raw = Data.from(transaction).toBuffer();
+//     const decoded = rlpDecode(raw);
+//     return Transaction.fromDecodedRaw(fromDecodedRaw);
+//   }
+//   public static fromDecodedRaw(transaction: Buffer) {
+//     return Transaction.fromDb(decoded, raw);
+//   }
+// }

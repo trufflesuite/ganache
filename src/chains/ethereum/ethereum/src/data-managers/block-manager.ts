@@ -59,7 +59,8 @@ export default class BlockManager extends Manager<Block> {
       tagOrBlockNumber,
       true
     ]);
-    return Block.fromJSON(b, this.#common, true);
+    return null;
+    // return Block.fromJSON(b, this.#common, true);
   };
 
   getBlockByTag(tag: Tag) {
