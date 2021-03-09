@@ -4,7 +4,7 @@ import {
   Block,
   Tag,
   Address,
-  Transaction,
+  RuntimeTransaction,
   BlockLogs,
   Account,
   VM_EXCEPTION,
@@ -17,7 +17,9 @@ import {
   FilterTypes,
   RangeFilterArgs,
   SubscriptionId,
-  SubscriptionName
+  SubscriptionName,
+  RpcTransaction,
+  EthereumRawTx
 } from "@ganache/ethereum-utils";
 import {
   toRpcSig,
@@ -54,7 +56,7 @@ import { Hardfork } from "@ganache/ethereum-options";
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
-const { keccak } = utils;
+const { keccak, RPCQUANTITY_EMPTY } = utils;
 //#endregion
 
 //#region Constants
@@ -79,7 +81,7 @@ type TypedData = Exclude<
 //#endregion
 
 //#region helpers
-function assertExceptionalTransactions(transactions: Transaction[]) {
+function assertExceptionalTransactions(transactions: RuntimeTransaction[]) {
   let baseError: string = null;
   let errors: string[];
   const data = {};
@@ -89,9 +91,7 @@ function assertExceptionalTransactions(transactions: Transaction[]) {
       if (baseError) {
         baseError = VM_EXCEPTIONS;
         errors.push(
-          `${Data.from(transaction.hash(), 32).toString()}: ${
-            transaction.execException
-          }\n`
+          `${transaction.hash.toString()}: ${transaction.execException}\n`
         );
         data[transaction.execException.data.hash] =
           transaction.execException.data;
@@ -304,7 +304,8 @@ export default class EthereumApi implements types.Api {
   ): Promise<"0x0"> {
     const blockchain = this.#blockchain;
     const vmErrorsOnRPCResponse = this.#options.chain.vmErrorsOnRPCResponse;
-    if (typeof arg === "object") {
+    // Since `typeof null === "object"` we have to guard against that
+    if (arg !== null && typeof arg === "object") {
       let { blocks, timestamp } = arg;
       if (blocks == null) {
         blocks = 1;
@@ -320,7 +321,7 @@ export default class EthereumApi implements types.Api {
         }
       }
     } else {
-      const transactions = await blockchain.mine(-1, arg, true);
+      const transactions = await blockchain.mine(-1, arg as number, true);
       if (vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
       }
@@ -729,7 +730,7 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1, 2)
   async eth_estimateGas(
-    transaction: any,
+    transaction: RpcTransaction,
     blockNumber: Buffer | Tag | string = Tag.LATEST
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
@@ -743,43 +744,33 @@ export default class EthereumApi implements types.Api {
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
-      const tx = Transaction.fromJSON(
-        transaction,
-        this.#common,
-        Transaction.types.fake
-      );
-      if (tx._from == null) {
-        tx._from = coinbase.toBuffer();
+      const tx = new RuntimeTransaction(transaction, this.#common);
+      if (tx.from == null) {
+        tx.from = coinbase;
       }
-      if (tx.gasLimit.length !== 0) {
-        tx.gas = tx.gasLimit;
-      } else {
-        if (tx.gas.length !== 0) {
-          tx.gasLimit = tx.gas;
-        } else {
-          // eth_estimateGas isn't subject to regular transaction gas limits
-          tx.gas = tx.gasLimit = options.miner.callGasLimit.toBuffer();
-        }
+      if (tx.gas.isNull()) {
+        // eth_estimateGas isn't subject to regular transaction gas limits
+        tx.gas = options.miner.callGasLimit;
       }
 
-      const newBlock = new RuntimeBlock(
+      const block = new RuntimeBlock(
         Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
         parentHeader.parentHash,
         parentHeader.miner,
-        tx.gas,
+        tx.gas.toBuffer(),
         parentHeader.timestamp,
         options.miner.difficulty,
         parentHeader.totalDifficulty
       );
       const runArgs = {
-        tx: tx,
-        block: newBlock,
+        tx: tx.toVmTransaction(),
+        block,
         skipBalance: true,
         skipNonce: true
       };
       estimateGas(generateVM, runArgs, (err: Error, result: any) => {
         if (err) return reject(err);
-        resolve(Quantity.from(result.gasEstimate.toBuffer()));
+        resolve(Quantity.from(result.gasEstimate.toArrayLike(Buffer)));
       });
     });
   }
@@ -1206,7 +1197,7 @@ export default class EthereumApi implements types.Api {
     if (transaction === null) {
       // if we can't find it in the list of pending transactions, check the db!
       const tx = transactions.transactionPool.find(hashBuffer);
-      return tx ? tx.toJSON(null) : null;
+      return tx ? tx.toJSON() : null;
     } else {
       return transaction.toJSON();
     }
@@ -1229,7 +1220,7 @@ export default class EthereumApi implements types.Api {
     const transactionPromise = transactions.get(txHash);
     const receiptPromise = transactionReceipts.get(txHash);
     const blockPromise = transactionPromise.then(t =>
-      t ? blocks.get(t._blockNum) : null
+      t ? blocks.get(t.blockNumber.toBuffer()) : null
     );
     const [transaction, receipt, block] = await Promise.all([
       transactionPromise,
@@ -1266,24 +1257,12 @@ export default class EthereumApi implements types.Api {
    * @returns The transaction hash
    */
   @assertArgLength(1)
-  async eth_sendTransaction(transaction: any) {
-    let fromString = transaction.from;
-    let from: Address;
-    if (fromString) {
-      from = Address.from(transaction.from);
-      fromString = from.toString().toLowerCase();
-    }
-
-    if (fromString == null) {
+  async eth_sendTransaction(transaction: RpcTransaction) {
+    const tx = new RuntimeTransaction(transaction, this.#common);
+    if (tx.from == null) {
       throw new Error("from not found; is required");
     }
-
-    // Error checks. It's possible to JSON.stringify a Buffer to JSON.
-    // we actually now handle this "properly" (not sure about spec), but for
-    // legacy reasons we don't allow it.
-    if (transaction.to && typeof transaction.to !== "string") {
-      throw new Error("invalid to address");
-    }
+    const fromString = tx.from.toString();
 
     const wallet = this.#wallet;
     const isKnownAccount = wallet.knownAccounts.has(fromString);
@@ -1296,34 +1275,18 @@ export default class EthereumApi implements types.Api {
       throw new Error(msg);
     }
 
-    const type = isKnownAccount
-      ? Transaction.types.none
-      : Transaction.types.fake;
-
-    const tx = Transaction.fromJSON(transaction, this.#common, type);
-
-    if (tx.gasLimit.length === 0) {
+    if (tx.gas.isNull()) {
       const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
       if (defaultLimit === utils.RPCQUANTITY_EMPTY) {
         // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
-        tx.gasLimit = (
-          await this.eth_estimateGas(transaction, "latest")
-        ).toBuffer();
+        tx.gas = await this.eth_estimateGas(transaction, "latest");
       } else {
-        tx.gasLimit = defaultLimit.toBuffer();
+        tx.gas = defaultLimit;
       }
     }
 
-    if (tx.gasPrice.length === 0) {
-      tx.gasPrice = this.#options.miner.gasPrice.toBuffer();
-    }
-
-    if (tx.value.length === 0) {
-      tx.value = Buffer.from([0]);
-    }
-
-    if (tx.to.equals(utils.BUFFER_ZERO)) {
-      tx.to = utils.BUFFER_EMPTY;
+    if (tx.gasPrice.isNull()) {
+      tx.gasPrice = this.#options.miner.gasPrice;
     }
 
     if (isUnlockedAccount) {
@@ -1341,11 +1304,9 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
-    const tx = new Transaction(
-      transaction,
-      this.#common,
-      Transaction.types.signed
-    );
+    const data = Data.from(transaction).toBuffer();
+    const raw = (rlpDecode(data) as unknown) as EthereumRawTx;
+    const tx = new RuntimeTransaction(raw, this.#common);
     return this.#blockchain.queueTransaction(tx);
   }
 
@@ -1524,8 +1485,8 @@ export default class EthereumApi implements types.Api {
 
         const unsubscribe = this.#blockchain.on(
           "pendingTransaction",
-          (transaction: Transaction) => {
-            const result = Data.from(transaction.hash(), 32).toString();
+          (transaction: RuntimeTransaction) => {
+            const result = transaction.hash.toString();
             promiEvent.emit("message", {
               type: "eth_subscription",
               data: {
@@ -1599,8 +1560,8 @@ export default class EthereumApi implements types.Api {
   async eth_newPendingTransactionFilter() {
     const unsubscribe = this.#blockchain.on(
       "pendingTransaction",
-      (transaction: Transaction) => {
-        value.updates.push(Data.from(transaction.hash(), 32));
+      (transaction: RuntimeTransaction) => {
+        value.updates.push(transaction.hash);
       }
     );
     const value = {
@@ -2049,30 +2010,23 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(2)
   async personal_sendTransaction(transaction: any, passphrase: string) {
-    let fromString = transaction.from;
-    let from: Address;
-    if (fromString) {
-      from = Address.from(transaction.from);
-      fromString = from.toString().toLowerCase();
-    }
-
-    if (fromString == null) {
+    const tx = new RuntimeTransaction(transaction, this.#common);
+    const from = tx.from;
+    if (from == null) {
       throw new Error("from not found; is required");
     }
+
+    const fromString = tx.from.toString();
 
     const wallet = this.#wallet;
     const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
     if (encryptedKeyFile === undefined) {
       throw new Error("no key for given address or file");
     }
-    let tx: Transaction;
+
     if (encryptedKeyFile !== null) {
       const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
-
-      tx = new Transaction(transaction, this.#common);
-      tx.sign(secretKey);
-    } else {
-      tx = new Transaction(transaction, this.#common, Transaction.types.fake);
+      tx.signAndHash(secretKey);
     }
 
     return this.#blockchain.queueTransaction(tx);

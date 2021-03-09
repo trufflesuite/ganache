@@ -4,15 +4,16 @@ import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import path from "path";
 import { Quantity, Data } from "@ganache/utils";
-import Blockchain from "../../../src/blockchain";
+
 import {
   Account,
   Address,
-  Transaction,
-  TraceStorageMap
+  TraceStorageMap,
+  RuntimeTransaction
 } from "@ganache/ethereum-utils";
 import Common from "ethereumjs-common";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
+import Blockchain from "../../../src/blockchain";
 
 describe("api", () => {
   describe("debug", () => {
@@ -206,16 +207,15 @@ describe("api", () => {
       await blockchain.initialize(initialAccounts);
 
       // Deployment transaction
-      const deploymentTransaction = new Transaction(
+      const deploymentTransaction = new RuntimeTransaction(
         {
           data: contract.code,
-          from,
-          gasLimit: 6721975,
-          nonce: "0x0"
+          from: from.toString(),
+          gasLimit: Quantity.from(6721975).toString(),
+          nonce: Quantity.from(0).toString()
         },
         common
       );
-      deploymentTransaction._from = address.toBuffer();
 
       const deploymentTransactionHash = await blockchain.queueTransaction(
         deploymentTransaction,
@@ -229,20 +229,23 @@ describe("api", () => {
       );
 
       // Transaction to call the loop function
-      const loopTransaction = new Transaction(
+      const loopTransaction = new RuntimeTransaction(
         {
-          data: Buffer.from(
-            methods["loop(uint256)"] + timesToRunLoopArgument,
-            "hex"
-          ),
-          to: contractAddress,
+          data: Data.from(
+            Buffer.from(
+              methods["loop(uint256)"] + timesToRunLoopArgument,
+              "hex"
+            )
+          ).toString(),
+          to: Address.from(contractAddress).toString(),
           from,
-          gasLimit: 6721975,
-          nonce: "0x1"
+          gasLimit: Quantity.from(6721975).toString(),
+          nonce: "0x1",
+          gasPrice: Quantity.from(0).toString()
         },
         common
       );
-      loopTransaction._from = address.toBuffer();
+      loopTransaction.from = address;
       const loopTransactionHash = await blockchain.queueTransaction(
         loopTransaction,
         privateKey

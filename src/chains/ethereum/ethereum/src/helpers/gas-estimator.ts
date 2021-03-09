@@ -1,6 +1,9 @@
 import { Quantity } from "@ganache/utils";
 import { BN } from "ethereumjs-util";
 import { RuntimeError, RETURN_TYPES } from "@ganache/ethereum-utils";
+import { utils } from "@ganache/utils";
+
+const { RPCQUANTITY_EMPTY } = utils;
 
 const bn = (val = 0) => new (BN as any)(val);
 const STIPEND = bn(2300);
@@ -252,7 +255,8 @@ const exactimate = async (vm, runArgs, callback) => {
     return callback(vmerr);
   } else if (result.execResult.exceptionError) {
     const error = new RuntimeError(
-      runArgs.tx.hash(),
+      // erroneous gas estimations don't have meaningful hashes
+      RPCQUANTITY_EMPTY,
       result,
       RETURN_TYPES.RETURN_VALUE
     );
