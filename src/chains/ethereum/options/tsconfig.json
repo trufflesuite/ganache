@@ -4,7 +4,10 @@
     "outDir": "lib",
     "composite": true
   },
-  "include": ["index.ts", "src"],
+  "include": [
+    "index.ts",
+    "src"
+  ],
   "references": [
     {
       "name": "@ganache/ethereum-utils",
@@ -17,6 +20,10 @@
     {
       "name": "@ganache/utils",
       "path": "../../../packages/utils"
+    },
+    {
+      "name": "@ganache/ethereum-address",
+      "path": "../address"
     }
   ]
 }

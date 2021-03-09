@@ -1,4 +1,3 @@
-import { RuntimeTransaction, FrozenTransaction } from "@ganache/ethereum-utils";
 import Manager from "./manager";
 import TransactionPool from "../transaction-pool";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -7,6 +6,10 @@ import Blockchain from "../blockchain";
 import PromiseQueue from "@ganache/promise-queue";
 import Common from "ethereumjs-common";
 import { Data } from "@ganache/utils";
+import {
+  FrozenTransaction,
+  RuntimeTransaction
+} from "@ganache/ethereum-transaction";
 
 export default class TransactionManager extends Manager<FrozenTransaction> {
   public readonly transactionPool: TransactionPool;

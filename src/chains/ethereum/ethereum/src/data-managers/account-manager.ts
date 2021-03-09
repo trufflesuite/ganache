@@ -1,9 +1,10 @@
-import { Account, Address, Tag } from "@ganache/ethereum-utils";
+import { Account, Tag } from "@ganache/ethereum-utils";
 import Trie from "merkle-patricia-tree/baseTrie";
 import Blockchain from "../blockchain";
 import { LevelUp } from "levelup";
-import { rlp } from "ethereumjs-util";
 import { utils, Quantity, Data } from "@ganache/utils";
+import { decode } from "@ganache/rlp";
+import { Address } from "@ganache/ethereum-address";
 
 const { keccak, RPCQUANTITY_ZERO } = utils;
 
@@ -64,7 +65,7 @@ export default class AccountManager {
   ): Promise<Quantity> {
     return this.getRaw(address, blockNumber).then(data => {
       if (data) {
-        const [nonce] = (rlp.decode(data) as any) as Buffer[];
+        const [nonce] = (decode(data) as any) as Buffer[];
         return nonce.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(nonce);
       } else {
         return RPCQUANTITY_ZERO;
@@ -78,7 +79,7 @@ export default class AccountManager {
   ): Promise<Quantity> {
     return this.getRaw(address, blockNumber).then(data => {
       if (data) {
-        const [, balance] = (rlp.decode(data) as any) as Buffer[];
+        const [, balance] = (decode(data) as any) as Buffer[];
         return balance.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(balance);
       } else {
         return RPCQUANTITY_ZERO;

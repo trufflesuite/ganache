@@ -1,5 +1,5 @@
+import { RuntimeTransaction } from "@ganache/ethereum-transaction";
 import { utils } from "@ganache/utils";
-import { RuntimeTransaction } from "../things/transaction";
 
 export type Executables = {
   inProgress: Set<RuntimeTransaction>;

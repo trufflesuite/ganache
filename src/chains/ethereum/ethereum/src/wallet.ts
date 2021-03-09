@@ -1,4 +1,4 @@
-import { Address, Account } from "@ganache/ethereum-utils";
+import { Account } from "@ganache/ethereum-utils";
 import { Data, Quantity, utils } from "@ganache/utils";
 import { privateToAddress } from "ethereumjs-util";
 import secp256k1 from "secp256k1";
@@ -9,6 +9,7 @@ import crypto from "crypto";
 import createKeccakHash from "keccak";
 import { writeFileSync } from "fs";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { Address } from "@ganache/ethereum-address";
 
 //#region Constants
 const SCRYPT_PARAMS = {

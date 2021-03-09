@@ -6,11 +6,11 @@ import {
   GAS_LIMIT,
   INTRINSIC_GAS_TOO_LOW,
   NONCE_TOO_LOW,
-  CodedError,
-  Executables,
-  RuntimeTransaction
+  CodedError
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { RuntimeTransaction } from "@ganache/ethereum-transaction";
+import { Executables } from "./miner/executables";
 
 function byNonce(values: RuntimeTransaction[], a: number, b: number) {
   return (
