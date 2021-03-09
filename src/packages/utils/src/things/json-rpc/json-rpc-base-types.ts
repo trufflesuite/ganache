@@ -38,11 +38,15 @@ export class BaseJsonRpcType<
             throw new Error("`Cannot wrap a decimal value as a json-rpc type`");
           }
           toStrings.set(this, () => (value as number).toString(16));
-          toBuffers.set(this, () => uintToBuffer(value as number));
+          toBuffers.set(this, () =>
+            value === 0 ? BUFFER_EMPTY : uintToBuffer(value as number)
+          );
           break;
         case "bigint":
           toStrings.set(this, () => (value as bigint).toString(16));
-          toBuffers.set(this, () => bigIntToBuffer(value as bigint));
+          toBuffers.set(this, () =>
+            value === 0n ? BUFFER_EMPTY : bigIntToBuffer(value as bigint)
+          );
           break;
         case "string": {
           // handle hex-encoded string
@@ -100,6 +104,9 @@ export class BaseJsonRpcType<
   }
   toJSON(): string | null {
     return this.toString();
+  }
+  isNull() {
+    return this.value == null;
   }
 }
 

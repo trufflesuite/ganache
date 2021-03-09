@@ -1,12 +1,6 @@
 import { utils } from "@ganache/utils";
-import {
-  ConnectorsByName,
-  DefaultFlavor,
-  DefaultOptionsByName
-} from "@ganache/flavors";
+import { ConnectorsByName, DefaultFlavor } from "@ganache/flavors";
 import { Options as ProviderOptions } from "@ganache/flavors";
-import { hasOwn } from "@ganache/utils/src/utils";
-import { Base, Definitions } from "@ganache/options";
 
 /**
  * Loads the connector specified by the given `flavor`

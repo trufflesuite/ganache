@@ -1,4 +1,4 @@
-import { Transaction } from "./transaction";
+import { FrozenTransaction } from "./transaction";
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
 import { BlockLogs, TransactionLog } from "./blocklogs";
@@ -88,7 +88,7 @@ export class TransactionReceipt {
     }
   }
 
-  public toJSON(block: Block, transaction: Transaction) {
+  public toJSON(block: Block, transaction: FrozenTransaction) {
     const raw = this.raw;
     const contractAddress =
       this.contractAddress.length === 0
@@ -97,18 +97,21 @@ export class TransactionReceipt {
     const blockHash = block.hash();
     const blockNumber = block.header.number;
     const blockLog = BlockLogs.create(blockHash.toBuffer());
+    const transactionHash = transaction.hash;
+    const transactionHashBuffer = transactionHash.toBuffer();
+    const transactionIndexBuffer = transaction.index.toBuffer();
     blockLog.blockNumber = blockNumber;
     ((raw[3] as any) as TransactionLog[]).forEach(log => {
-      blockLog.append(transaction._index, transaction.hash(), log);
+      blockLog.append(transactionIndexBuffer, transactionHashBuffer, log);
     });
     const logs = [...blockLog.toJSON()];
     return {
-      transactionHash: Data.from(transaction.hash()),
-      transactionIndex: Quantity.from((transaction as any)._index),
+      transactionHash,
+      transactionIndex: transaction.index,
       blockNumber,
       blockHash,
-      from: Data.from(transaction.from),
-      to: contractAddress ? null : Data.from(transaction.to),
+      from: transaction.from,
+      to: contractAddress ? null : transaction.to,
       cumulativeGasUsed: Quantity.from(raw[1]),
       gasUsed: Quantity.from(this.#gasUsed),
       contractAddress,

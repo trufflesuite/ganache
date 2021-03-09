@@ -22,7 +22,7 @@ export class RuntimeError extends CodedError {
     message: string;
   };
   constructor(
-    transactionHash: Buffer,
+    transactionHash: Data,
     result: EVMResult,
     returnType: RETURN_TYPES
   ) {
@@ -36,7 +36,7 @@ export class RuntimeError extends CodedError {
     this.name = this.constructor.name;
 
     const returnValue = execResult.returnValue;
-    const hash = `0x${transactionHash.toString("hex")}`;
+    const hash = transactionHash.toString();
     let reason: string | null;
     if (
       returnValue.length > 4 &&

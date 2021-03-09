@@ -5,7 +5,6 @@ import Emittery from "emittery";
 import {
   BlockLogs,
   Account,
-  Transaction,
   TransactionReceipt,
   Address,
   RuntimeBlock,
@@ -16,7 +15,12 @@ import {
   RuntimeError,
   RETURN_TYPES,
   Snapshots,
-  StepEvent
+  StepEvent,
+  RuntimeTransaction,
+  calculateIntrinsicGas,
+  VmTransaction,
+  EthereumRawTx,
+  GanacheRawExtraTx
 } from "@ganache/ethereum-utils";
 import SecureTrie from "merkle-patricia-tree/secure";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
@@ -86,7 +90,7 @@ export enum Status {
 type BlockchainTypedEvents = {
   block: Block;
   blockLogs: BlockLogs;
-  pendingTransaction: Transaction;
+  pendingTransaction: RuntimeTransaction;
 };
 type BlockchainEvents = "start" | "stop";
 
@@ -152,6 +156,10 @@ export default class Blockchain extends Emittery.Typed<
   #state: Status = Status.starting;
   #miner: Miner;
   #blockBeingSavedPromise: Promise<{ block: Block; blockLogs: BlockLogs }>;
+  /**
+   * When not instamining (blockTime > 0) this value holds the timeout timer.
+   */
+  #timer: NodeJS.Timer | null = null;
   public blocks: BlockManager;
   public blockLogs: BlockLogManager;
   public transactions: TransactionManager;
@@ -309,7 +317,9 @@ export default class Blockchain extends Emittery.Typed<
           txPool.on("drain", mineAll.bind(null, 1));
         } else {
           // interval mining
-          const wait = () => unref(setTimeout(next, minerOpts.blockTime * 1e3));
+          const wait = () =>
+            // unref, so we don't hold the chain open if nothing can interact with it
+            unref((this.#timer = setTimeout(next, minerOpts.blockTime * 1e3)));
           const next = () => mineAll(-1).then(wait);
           wait();
         }
@@ -328,11 +338,13 @@ export default class Blockchain extends Emittery.Typed<
   #saveNewBlock = ({
     block,
     serialized,
-    storageKeys
+    storageKeys,
+    transactions
   }: {
     block: Block;
     serialized: Buffer;
     storageKeys: Map<string, Buffer>;
+    transactions: RuntimeTransaction[];
   }) => {
     const { blocks } = this;
     blocks.latest = block;
@@ -346,16 +358,12 @@ export default class Blockchain extends Emittery.Typed<
         blockHeader.timestamp.toNumber() * 1000
       ).toString();
       const logOutput: string[] = [];
-      block.getTransactions().forEach((tx: Transaction, i: number) => {
-        const hash = tx.hash();
+      transactions.forEach((tx: RuntimeTransaction, i: number) => {
+        const hash = tx.hash.toBuffer();
         const index = Quantity.from(i).toBuffer();
-        const txAndExtraData = [
-          ...tx.raw,
-          blockHash,
-          blockNumber,
-          index,
-          Buffer.from([tx.type]),
-          tx.from
+        const txAndExtraData: [EthereumRawTx, GanacheRawExtraTx] = [
+          tx.raw,
+          [tx.from.toBuffer(), hash, blockHash, blockNumber, index]
         ];
         const encodedTx = rlpEncode(txAndExtraData);
         this.transactions.set(hash, encodedTx);
@@ -385,17 +393,23 @@ export default class Blockchain extends Emittery.Typed<
       blockLogs.blockNumber = blockNumberQ;
       this.blockLogs.set(blockNumber, blockLogs.serialize());
       blocks.putBlock(blockNumber, blockHash, serialized);
-      this.#options.logging.logger.log(logOutput.join(EOL));
-      return { block, blockLogs };
+      if (logOutput.length > 0) {
+        this.#options.logging.logger.log(logOutput.join(EOL));
+      }
+      return { block, blockLogs, transactions };
     });
   };
 
-  #emitNewBlock = async (blockInfo: { block: Block; blockLogs: BlockLogs }) => {
+  #emitNewBlock = async (blockInfo: {
+    block: Block;
+    blockLogs: BlockLogs;
+    transactions: RuntimeTransaction[];
+  }) => {
     const options = this.#options;
-    const { block, blockLogs } = blockInfo;
+    const { block, blockLogs, transactions } = blockInfo;
 
     // emit the block once everything has been fully saved to the database
-    block.getTransactions().forEach(transaction => {
+    transactions.forEach(transaction => {
       transaction.finalize("confirmed", transaction.execException);
     });
 
@@ -456,6 +470,7 @@ export default class Blockchain extends Emittery.Typed<
     block: Block;
     serialized: Buffer;
     storageKeys: Map<string, Buffer>;
+    transactions: RuntimeTransaction[];
   }) => {
     this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
       .then(() => this.#saveNewBlock(blockData))
@@ -523,21 +538,21 @@ export default class Blockchain extends Emittery.Typed<
   ) => {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
-    const getBlock = class T {
-      static async [promisify.custom](number: BN) {
-        const block = await blocks.get(number.toBuffer()).catch(_ => null);
-        return block ? { hash: () => block.hash().toBuffer() } : null;
+    const blockchain = {
+      getBlock: class GetBlock {
+        static async [Symbol.for("nodejs.util.promisify.custom")](number: BN) {
+          const block = await blocks.get(number.toBuffer()).catch(_ => null);
+          return block ? { hash: () => block.hash().toBuffer() } : null;
+        }
       }
-    };
+    } as any;
 
     return new VM({
       state: stateTrie,
       activatePrecompiles: true,
       common: this.#common,
       allowUnlimitedContractSize,
-      blockchain: {
-        getBlock
-      } as any
+      blockchain
     });
   };
 
@@ -594,7 +609,7 @@ export default class Blockchain extends Emittery.Typed<
       KECCAK256_RLP,
       BUFFER_256_ZERO,
       this.trie.root,
-      BUFFER_EMPTY,
+      0n,
       this.#options.miner.extraData,
       [],
       new Map()
@@ -641,15 +656,15 @@ export default class Blockchain extends Emittery.Typed<
   #deleteBlockData = (blocksToDelete: Block[]) => {
     return this.#database.batch(() => {
       const { blocks, transactions, transactionReceipts, blockLogs } = this;
-      blocksToDelete.forEach(value => {
-        value.getTransactions().forEach(tx => {
-          const txHash = tx.hash();
+      blocksToDelete.forEach(block => {
+        block.getTransactions().forEach(tx => {
+          const txHash = tx.hash.toBuffer();
           transactions.del(txHash);
           transactionReceipts.del(txHash);
         });
-        const blockNum = value.header.number.toBuffer();
+        const blockNum = block.header.number.toBuffer();
         blocks.del(blockNum);
-        blocks.del(value.hash().toBuffer());
+        blocks.del(block.hash().toBuffer());
         blockLogs.del(blockNum);
       });
     });
@@ -778,7 +793,10 @@ export default class Blockchain extends Emittery.Typed<
     return true;
   }
 
-  public async queueTransaction(transaction: Transaction, secretKey?: Data) {
+  public async queueTransaction(
+    transaction: RuntimeTransaction,
+    secretKey?: Data
+  ) {
     // NOTE: this.transactions.add *must* be awaited before returning the
     // `transaction.hash()`, as the transactionPool may change the transaction
     // (and thus its hash!)
@@ -789,7 +807,7 @@ export default class Blockchain extends Emittery.Typed<
       process.nextTick(this.emit.bind(this), "pendingTransaction", transaction);
     }
 
-    const hash = Data.from(transaction.hash(), 32);
+    const hash = transaction.hash;
     if (this.#isPaused() || !this.#instamine) {
       return hash;
     } else {
@@ -815,26 +833,36 @@ export default class Blockchain extends Emittery.Typed<
     parentBlock: Block
   ) {
     let result: EVMResult;
-    const options = this.#options;
 
     const data = transaction.data;
     let gasLeft = transaction.gas.toBigInt();
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
-    gasLeft -= Transaction.calculateIntrinsicGas(
-      data ? data.toBuffer() : null,
-      options.chain.hardfork
-    );
+    gasLeft -= calculateIntrinsicGas(data, this.#common);
 
     if (gasLeft >= 0) {
       const stateTrie = new SecureTrie(
         this.#database.trie,
         parentBlock.header.stateRoot.toBuffer()
       );
+
+      // take a checkpoint so the `runCall` never writes to the trie. We don't
+      // commit/revert later because this stateTrie is ephemeral anyway.
+      stateTrie.checkpoint();
+
+      // TODO: remove this checkpoint/commit after upgrading to @ethereumjs/vm@5
+      // We checkpoint/commit here because ethereumjs-vm@4 performs async
+      // initialization work without await. This can cause a crash if it is
+      // still initializing after we shutdown.
+      stateTrie.checkpoint();
+
       const vm = this.createVmFromStateTrie(
         stateTrie,
         this.vm.allowUnlimitedContractSize
       );
+
+      // TODO: remove checkpoint/revert after upgrading to ethereumjs-vm@5
+      await new Promise(resolve => stateTrie.commit(resolve));
 
       result = await vm.runCall({
         caller: transaction.from.toBuffer(),
@@ -857,7 +885,7 @@ export default class Blockchain extends Emittery.Typed<
     if (result.execResult.exceptionError) {
       if (this.#options.chain.vmErrorsOnRPCResponse) {
         // eth_call transactions don't really have a transaction hash
-        const hash = BUFFER_EMPTY;
+        const hash = RPCQUANTITY_EMPTY;
         throw new RuntimeError(hash, result, RETURN_TYPES.RETURN_VALUE);
       } else {
         return Data.from(result.execResult.returnValue || "0x");
@@ -870,7 +898,6 @@ export default class Blockchain extends Emittery.Typed<
   #traceTransaction = async (
     trie: SecureTrie,
     newBlock: RuntimeBlock,
-    transaction: Transaction,
     options: TransactionTraceOptions,
     keys?: Buffer[],
     contractAddress?: string
@@ -878,6 +905,9 @@ export default class Blockchain extends Emittery.Typed<
     let currentDepth = -1;
     const storageStack: TraceStorageMap[] = [];
     const storage = {};
+    const transaction: VmTransaction = (newBlock as any).transactions[
+      (newBlock as any).transactions.length - 1
+    ];
 
     // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
     // (Ganache v2 didn't handle this possibility either, so it hasn't been
@@ -898,7 +928,7 @@ export default class Blockchain extends Emittery.Typed<
 
       const gasLeft = event.gasLeft.toNumber();
       const totalGasUsedAfterThisStep =
-        Quantity.from(transaction.gasLimit).toNumber() - gasLeft;
+        transaction.gasLimit.toNumber() - gasLeft;
       const gasUsedPreviousStep = totalGasUsedAfterThisStep - gas;
       gas += gasUsedPreviousStep;
 
@@ -1002,12 +1032,8 @@ export default class Blockchain extends Emittery.Typed<
       }
     };
 
-    let txHashCurrentlyProcessing: string = null;
-    const transactionHash = Data.from(transaction.hash()).toString();
-
-    const beforeTxListener = async (tx: Transaction) => {
-      txHashCurrentlyProcessing = Data.from(tx.hash()).toString();
-      if (txHashCurrentlyProcessing == transactionHash) {
+    const beforeTxListener = async (tx: VmTransaction) => {
+      if (tx === transaction) {
         if (keys && contractAddress) {
           keys.forEach(async key => {
             // get the raw key using the hashed key
@@ -1036,21 +1062,14 @@ export default class Blockchain extends Emittery.Typed<
       }
     };
 
-    const afterTxListener = () => {
-      if (txHashCurrentlyProcessing == transactionHash) {
-        removeListeners();
-      }
-    };
-
     const removeListeners = () => {
       vm.removeListener("step", stepListener);
       vm.removeListener("beforeTx", beforeTxListener);
-      vm.removeListener("afterTx", afterTxListener);
     };
 
     const blocks = this.blocks;
 
-    // ethereumjs vm doesn't use the callback style anymore
+    // ethereumjs-vm doesn't use the callback style anymore
     const getBlock = class T {
       static async [promisify.custom](number: BN) {
         const block = await blocks.get(number.toBuffer()).catch(_ => null);
@@ -1069,10 +1088,9 @@ export default class Blockchain extends Emittery.Typed<
       } as any
     });
 
-    // Listen to beforeTx and afterTx so we know when our target transaction
-    // is processing. These events will add the event listener for getting the trace data.
+    // Listen to beforeTx so we know when our target transaction
+    // is processing. This event will add the event listener for getting the trace data.
     vm.on("beforeTx", beforeTxListener);
-    vm.on("afterTx", afterTxListener);
 
     // Don't even let the vm try to flush the block's _cache to the stateTrie.
     // When forking some of the data that the traced function may request will
@@ -1092,7 +1110,7 @@ export default class Blockchain extends Emittery.Typed<
     // It's possible we've removed handling specific cases in this implementation.
     // e.g., the previous incatation of RuntimeError
     await vm.runBlock({
-      block: newBlock, // .value is the object the vm expects
+      block: newBlock,
       generate: true,
       skipBlockValidation: true
     });
@@ -1124,16 +1142,19 @@ export default class Blockchain extends Emittery.Typed<
       targetBlock.header.timestamp,
       this.#options.miner.difficulty,
       parentBlock.header.totalDifficulty
-    ) as RuntimeBlock & { uncleHeaders: []; transactions: Transaction[] };
+    ) as RuntimeBlock & {
+      uncleHeaders: [];
+      transactions: VmTransaction[];
+    };
     newBlock.transactions = [];
     newBlock.uncleHeaders = [];
 
     const transactions = targetBlock.getTransactions();
     for (const tx of transactions) {
-      newBlock.transactions.push(tx);
+      newBlock.transactions.push(tx.toVmTransaction());
 
       // After including the target transaction, that's all we need to do.
-      if (tx.hash().equals(transactionHash)) {
+      if (tx.hash.toBuffer().equals(transactionHash)) {
         break;
       }
     }
@@ -1169,7 +1190,9 @@ export default class Blockchain extends Emittery.Typed<
       throw new Error("Unknown transaction " + transactionHash);
     }
 
-    const targetBlock = await this.blocks.get(transaction._blockNum);
+    const targetBlock = await this.blocks.get(
+      transaction.blockNumber.toBuffer()
+    );
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
@@ -1193,7 +1216,6 @@ export default class Blockchain extends Emittery.Typed<
     const { gas, structLogs, returnValue } = await this.#traceTransaction(
       trie,
       newBlock,
-      transaction,
       options
     );
 
@@ -1316,7 +1338,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // #5 -  rerun every transaction in that block prior to and including the requested transaction
     // prepare block to be run in traceTransaction
-    const transactionHashBuffer = Data.from(transaction.hash()).toBuffer();
+    const transactionHashBuffer = transaction.hash.toBuffer();
     const newBlock = this.#prepareNextBlock(
       targetBlock,
       parentBlock,
@@ -1332,7 +1354,6 @@ export default class Blockchain extends Emittery.Typed<
     const { storage } = await this.#traceTransaction(
       trie,
       newBlock,
-      transaction,
       options,
       keys as Buffer[],
       contractAddress
@@ -1354,6 +1375,9 @@ export default class Blockchain extends Emittery.Typed<
     if (this.#state === Status.starting) {
       await this.once("start");
     }
+
+    // stop the polling miner, if necessary
+    clearTimeout(this.#timer);
 
     // clean up listeners
     this.vm.removeAllListeners();

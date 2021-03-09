@@ -1,4 +1,4 @@
-import { Transaction } from "@ganache/ethereum-utils";
+import { RuntimeTransaction, FrozenTransaction } from "@ganache/ethereum-utils";
 import Manager from "./manager";
 import TransactionPool from "../transaction-pool";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -8,7 +8,7 @@ import PromiseQueue from "@ganache/promise-queue";
 import Common from "ethereumjs-common";
 import { Data } from "@ganache/utils";
 
-export default class TransactionManager extends Manager<Transaction> {
+export default class TransactionManager extends Manager<FrozenTransaction> {
   public readonly transactionPool: TransactionPool;
 
   readonly #queue = new PromiseQueue<boolean>();
@@ -22,7 +22,7 @@ export default class TransactionManager extends Manager<Transaction> {
     blockchain: Blockchain,
     base: LevelUp
   ) {
-    super(base, Transaction, common);
+    super(base, FrozenTransaction, common);
 
     this.transactionPool = new TransactionPool(options, blockchain);
   }
@@ -37,7 +37,7 @@ export default class TransactionManager extends Manager<Transaction> {
    * @returns `true` if the `transaction` is immediately executable, `false` if
    * it may be valid in the future. Throws if the transaction is invalid.
    */
-  public async add(transaction: Transaction, secretKey?: Data) {
+  public async add(transaction: RuntimeTransaction, secretKey?: Data) {
     if (this.#paused) {
       await this.#resumer;
     }
