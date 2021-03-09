@@ -2,7 +2,7 @@ import assert from "assert";
 import getProvider from "../helpers/getProvider";
 import EthereumProvider from "../../src/provider";
 
-describe.only("forking", () => {
+describe.skip("forking", () => {
   describe("auth", () => {
     describe("Basic Authentication", () => {
       let provider: EthereumProvider;
