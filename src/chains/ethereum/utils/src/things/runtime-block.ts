@@ -3,7 +3,9 @@ import { utils } from "@ganache/utils";
 import Common from "ethereumjs-common";
 import keccak from "keccak";
 import { encode as rlpEncode, decode as rlpDecode } from "rlp";
-import { Transaction } from "./transaction";
+import { BlockRawTx, EthereumRawTx } from "./transaction/raw";
+import { BlockTransaction } from "./transaction";
+import { RuntimeTransaction } from "./transaction";
 import { Address } from "./address";
 import { KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 import { StorageKeys } from "../types/debug-storage";
@@ -66,17 +68,17 @@ export class Block {
   private readonly _size: number;
   private readonly _raw: Buffer[];
   private readonly _common: Common;
-  private _transactions: Transaction[] = null;
-  private readonly _rawTransactions: Buffer[][] = null;
+  private _transactions: BlockTransaction[] = null;
+  private readonly _rawTransactions: BlockRawTx[] = null;
 
   public readonly header: BlockHeader;
 
   constructor(serialized: Buffer, common: Common) {
+    this._common = common;
     if (serialized) {
-      this._common = common;
       const deserialized = (rlpDecode(serialized) as any) as [
         Buffer[],
-        Buffer[][],
+        BlockRawTx[],
         Buffer[],
         Buffer
       ];
@@ -108,11 +110,19 @@ export class Block {
     }
     const common = this._common;
     return (this._transactions = this._rawTransactions.map(
-      raw => new Transaction(raw, common)
+      (raw, index) =>
+        new BlockTransaction(
+          raw,
+          this.hash().toBuffer(),
+          this.header.number.toBuffer(),
+          Quantity.from(index).toBuffer(),
+          common
+        )
     ));
   }
 
   toJSON(includeFullTransactions = false) {
+    const hash = this.hash();
     const txFn = this.getTxFn(includeFullTransactions);
     let jsonTxs: Data[] | {}[];
 
@@ -120,17 +130,24 @@ export class Block {
     if (transactions) {
       jsonTxs = transactions.map(txFn);
     } else {
+      const number = this.header.number;
       const common = this._common;
       transactions = this._transactions = [];
-      jsonTxs = this._rawTransactions.map(raw => {
-        const tx = new Transaction(raw, common);
+      jsonTxs = this._rawTransactions.map((raw, index) => {
+        const tx = new BlockTransaction(
+          raw,
+          hash.toBuffer(),
+          number.toBuffer(),
+          Quantity.from(index).toBuffer(),
+          common
+        );
         transactions.push(tx);
         return txFn(tx);
       });
     }
 
     return {
-      hash: this.hash(),
+      hash,
       ...this.header,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
@@ -138,39 +155,41 @@ export class Block {
     };
   }
 
-  static fromJSON(json: any, common: Common, asSerialized: boolean = true) {
-    const rawHeader = [
-      Data.from(json.parentHash, 32).toBuffer(),
-      Data.from(json.sha3Uncles, 32).toBuffer(),
-      Data.from(json.miner, 20).toBuffer(),
-      Data.from(json.stateRoot, 32).toBuffer(),
-      Data.from(json.transactionsRoot, 32).toBuffer(), // ???
-      Data.from(json.receiptsRoot, 32).toBuffer(),
-      Data.from(json.logsBloom, 256).toBuffer(),
-      Quantity.from(json.difficulty, false).toBuffer(),
-      Quantity.from(json.totalDifficulty, false).toBuffer(),
-      Quantity.from(json.number, false).toBuffer(),
-      Quantity.from(json.gasLimit, false).toBuffer(),
-      Quantity.from(json.gasUsed, false).toBuffer(),
-      Quantity.from(json.timestamp, false).toBuffer(),
-      Data.from(json.extraData).toBuffer(),
-      Data.from(json.mixHash, 32).toBuffer(), // mixHash
-      Data.from(json.nonce, 8).toBuffer() // nonce
-    ];
-    const transactions = json.transactions.map(
-      t => Transaction.fromJSON(t, common, Transaction.types.signed).raw
-    );
-    const serialized = rlpEncode([rawHeader, transactions]);
-    return asSerialized ? serialized : new Block(serialized, common);
-  }
+  // static fromJSON(json: any, common: Common, asSerialized: boolean = true) {
+  //   const rawHeader = [
+  //     Data.from(json.parentHash, 32).toBuffer(),
+  //     Data.from(json.sha3Uncles, 32).toBuffer(),
+  //     Data.from(json.miner, 20).toBuffer(),
+  //     Data.from(json.stateRoot, 32).toBuffer(),
+  //     Data.from(json.transactionsRoot, 32).toBuffer(), // ???
+  //     Data.from(json.receiptsRoot, 32).toBuffer(),
+  //     Data.from(json.logsBloom, 256).toBuffer(),
+  //     Quantity.from(json.difficulty, false).toBuffer(),
+  //     Quantity.from(json.totalDifficulty, false).toBuffer(),
+  //     Quantity.from(json.number, false).toBuffer(),
+  //     Quantity.from(json.gasLimit, false).toBuffer(),
+  //     Quantity.from(json.gasUsed, false).toBuffer(),
+  //     Quantity.from(json.timestamp, false).toBuffer(),
+  //     Data.from(json.extraData).toBuffer(),
+  //     Data.from(json.mixHash, 32).toBuffer(), // mixHash
+  //     Data.from(json.nonce, 8).toBuffer() // nonce
+  //   ];
+  //   const transactions = json.transactions.map(
+  //     jsonTx => Transaction.jsonToRaw(jsonTx)
+  //   );
+  //   const serialized = rlpEncode([rawHeader, transactions]);
+  //   return asSerialized ? serialized : new Block(serialized, common);
+  // }
 
   getTxFn(
     include = false
-  ): (tx: Transaction) => { [key: string]: string | Data | Quantity } | Data {
+  ): (
+    tx: BlockTransaction
+  ) => { [key: string]: string | Data | Quantity } | Data {
     if (include) {
-      return (tx: Transaction) => tx.toJSON(this as any);
+      return (tx: BlockTransaction) => tx.toJSON();
     } else {
-      return (tx: Transaction) => Data.from(tx.hash());
+      return (tx: BlockTransaction) => tx.hash;
     }
   }
 }
@@ -230,9 +249,9 @@ export class RuntimeBlock {
     receiptTrie: Buffer,
     bloom: Buffer,
     stateRoot: Buffer,
-    gasUsed: Buffer,
+    gasUsed: bigint,
     extraData: Data,
-    transactions: Transaction[],
+    transactions: RuntimeTransaction[],
     storageKeys: StorageKeys
   ) {
     const { header } = this;
@@ -247,7 +266,7 @@ export class RuntimeBlock {
       header.difficulty,
       header.number,
       header.gasLimit,
-      gasUsed,
+      gasUsed === 0n ? BUFFER_EMPTY : Quantity.from(gasUsed).toBuffer(),
       header.timestamp,
       extraData.toBuffer(),
       BUFFER_32_ZERO, // mixHash
@@ -257,7 +276,11 @@ export class RuntimeBlock {
     // Issue: https://github.com/trufflesuite/ganache-core/issues/786
     const uncles = [];
     const { totalDifficulty } = header;
-    const rawTransactions = transactions.map(tx => tx.raw);
+    const rawTransactions: BlockRawTx[] = transactions.map(tx => [
+      ...tx.raw,
+      tx.from.toBuffer(),
+      tx.hash.toBuffer()
+    ]);
     const raw = [rawHeader, rawTransactions, uncles, totalDifficulty];
 
     const serialized = rlpEncode(raw);
@@ -270,13 +293,13 @@ export class RuntimeBlock {
     (block as any)._size = getBlockSize(serialized, totalDifficulty);
     (block as any)._raw = rawHeader;
     (block as any)._rawTransactions = rawTransactions;
-    (block as any)._transactions = transactions;
     (block as any).header = makeHeader(rawHeader, totalDifficulty);
 
     return {
       block,
       serialized,
-      storageKeys
+      storageKeys,
+      transactions
     };
   }
 }

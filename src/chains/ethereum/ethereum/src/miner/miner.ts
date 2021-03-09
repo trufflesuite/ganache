@@ -1,6 +1,5 @@
 import {
   params,
-  Transaction,
   Block,
   RuntimeBlock,
   RuntimeError,
@@ -8,7 +7,8 @@ import {
   Executables,
   TraceDataFactory,
   StepEvent,
-  StorageKeys
+  StorageKeys,
+  RuntimeTransaction
 } from "@ganache/ethereum-utils";
 import { utils, Quantity, Data } from "@ganache/utils";
 import { promisify } from "util";
@@ -18,10 +18,11 @@ import VM from "ethereumjs-vm";
 import { encode as rlpEncode } from "rlp";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
+import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
 const { BUFFER_EMPTY, BUFFER_256_ZERO, keccak } = utils;
 
 export type BlockData = {
-  blockTransactions: Transaction[];
+  blockTransactions: RuntimeTransaction[];
   transactionsTrie: Trie;
   receiptTrie: Trie;
   gasUsed: bigint;
@@ -29,11 +30,16 @@ export type BlockData = {
   extraData: string;
 };
 
+const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
+  let i = 256;
+  while (--i) blockBloom[i] |= bloom[i];
+};
+
 const putInTrie = (trie: Trie, key: Buffer, val: Buffer) =>
   promisify(trie.put.bind(trie))(key, val);
 
-const sortByPrice = (values: Transaction[], a: number, b: number) =>
-  Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
+const sortByPrice = (values: RuntimeTransaction[], a: number, b: number) =>
+  values[a].gasPrice > values[b].gasPrice;
 
 export default class Miner extends Emittery.Typed<
   {
@@ -41,6 +47,7 @@ export default class Miner extends Emittery.Typed<
       block: Block;
       serialized: Buffer;
       storageKeys: StorageKeys;
+      transactions: RuntimeTransaction[];
     };
   },
   "idle"
@@ -82,7 +89,7 @@ export default class Miner extends Emittery.Typed<
   }
 
   // create a Heap that sorts by gasPrice
-  readonly #priced = new utils.Heap<Transaction>(sortByPrice);
+  readonly #priced = new utils.Heap<RuntimeTransaction>(sortByPrice);
   /*
    * @param executables A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -173,6 +180,7 @@ export default class Miner extends Emittery.Typed<
     onlyOneBlock: boolean
   ) => {
     let block: Block;
+    const vm = this.#vm;
 
     const { pending, inProgress } = this.#executables;
     const options = this.#options;
@@ -181,7 +189,7 @@ export default class Miner extends Emittery.Typed<
     const priced = this.#priced;
     const legacyInstamine = this.#options.legacyInstamine;
     const storageKeys: StorageKeys = new Map();
-    let blockTransactions: Transaction[];
+    let blockTransactions: RuntimeTransaction[];
     do {
       keepMining = false;
       this.#isBusy = true;
@@ -198,8 +206,8 @@ export default class Miner extends Emittery.Typed<
           transactionsTrie.root,
           receiptTrie.root,
           BUFFER_256_ZERO,
-          this.#vm.stateManager._trie.root,
-          BUFFER_EMPTY, // gas used
+          vm.stateManager._trie.root,
+          0n, // gas used
           options.extraData,
           [],
           storageKeys
@@ -239,14 +247,14 @@ export default class Miner extends Emittery.Typed<
         next();
       };
 
-      this.#vm.on("step", stepListener);
+      vm.on("step", stepListener);
       // Run until we run out of items, or until the inner loop stops us.
       // we don't call `shift()` here because we will may need to `replace`
       // this `best` transaction with the next best transaction from the same
       // origin later.
-      let best: Transaction;
+      let best: RuntimeTransaction;
       while ((best = priced.peek())) {
-        const origin = Data.from(best.from).toString();
+        const origin = best.from.toString();
 
         if (best.calculateIntrinsicGas() > blockGasLeft) {
           // if the current best transaction can't possibly fit in this block
@@ -261,7 +269,7 @@ export default class Miner extends Emittery.Typed<
           continue;
         }
 
-        this.#currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
+        this.#currentlyExecutingPrice = best.gasPrice.toBigInt();
 
         // Set a transaction-level checkpoint so we can undo state changes in
         // the case where the transaction is rejected by the VM.
@@ -287,10 +295,7 @@ export default class Miner extends Emittery.Typed<
             promises.push(putInTrie(receiptTrie, txKey, receipt));
 
             // update the block's bloom
-            const bloom = result.bloom.bitvector;
-            for (let i = 0; i < 256; i++) {
-              blockBloom[i] |= bloom[i];
-            }
+            updateBloom(blockBloom, result.bloom.bitvector);
 
             numTransactions++;
 
@@ -361,16 +366,14 @@ export default class Miner extends Emittery.Typed<
       await Promise.all(promises);
       await this.#commit();
 
-      this.#vm.removeListener("step", stepListener);
+      vm.removeListener("step", stepListener);
 
       const finalizedBlockData = runtimeBlock.finalize(
         transactionsTrie.root,
         receiptTrie.root,
         blockBloom,
-        this.#vm.stateManager._trie.root,
-        blockGasUsed === 0n
-          ? BUFFER_EMPTY
-          : Quantity.from(blockGasUsed).toBuffer(),
+        vm.stateManager._trie.root,
+        blockGasUsed,
         options.extraData,
         blockTransactions,
         storageKeys
@@ -406,13 +409,13 @@ export default class Miner extends Emittery.Typed<
   };
 
   #runTx = async (
-    tx: Transaction,
+    tx: RuntimeTransaction,
     block: RuntimeBlock,
     origin: string,
-    pending: Map<string, utils.Heap<Transaction>>
+    pending: Map<string, utils.Heap<RuntimeTransaction>>
   ) => {
     try {
-      return await this.#vm.runTx({ tx, block } as any);
+      return await this.#vm.runTx({ tx: tx.toVmTransaction() as any, block });
     } catch (err) {
       const errorMessage = err.message;
       // We do NOT want to re-run this transaction.
@@ -434,11 +437,9 @@ export default class Miner extends Emittery.Typed<
           exceptionError: { error: errorMessage },
           returnValue: BUFFER_EMPTY
         }
-      };
-      tx.finalize(
-        "rejected",
-        new RuntimeError(tx.hash(), e as any, RETURN_TYPES.TRANSACTION_HASH)
-      );
+      } as EVMResult;
+      const error = new RuntimeError(tx.hash, e, RETURN_TYPES.TRANSACTION_HASH);
+      tx.finalize("rejected", error);
       return null;
     }
   };
@@ -467,7 +468,7 @@ export default class Miner extends Emittery.Typed<
       const heap = mapping[1];
       const next = heap.peek();
       if (next && !next.locked) {
-        const origin = Data.from(next.from).toString();
+        const origin = next.from.toString();
         origins.add(origin);
         priced.push(next);
         next.locked = true;
@@ -492,14 +493,14 @@ export default class Miner extends Emittery.Typed<
       const heap = mapping[1];
       const next = heap.peek();
       if (next && !next.locked) {
-        const price = Quantity.from(next.gasPrice).toBigInt();
+        const price = next.gasPrice.toBigInt();
 
         if (this.#currentlyExecutingPrice > price) {
           // don't insert a transaction into the miner's `priced` heap
           // if it will be better than its last
           continue;
         }
-        const origin = Data.from(next.from).toString();
+        const origin = next.from.toString();
         if (origins.has(origin)) {
           // don't insert a transaction into the miner's `priced` heap if it
           // has already queued up transactions for that origin
