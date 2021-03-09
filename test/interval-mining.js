@@ -182,6 +182,7 @@ describe("Interval Mining", function() {
   describe("Logging errors", function() {
     let context;
     let logData = "";
+    let firstAddress;
 
     before("Setting up provider and web3 instance", async function() {
       const logger = {
@@ -195,6 +196,7 @@ describe("Interval Mining", function() {
         seed,
         logger
       });
+      firstAddress = context.accounts[0];
     });
 
     before("Compile contract", async function() {
