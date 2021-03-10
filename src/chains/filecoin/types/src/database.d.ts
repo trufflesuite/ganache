@@ -12,6 +12,7 @@ export default class Database extends Emittery {
   signedMessages: LevelUp | null;
   blockMessages: LevelUp | null;
   deals: LevelUp | null;
+  dealExpirations: LevelUp | null;
   get initialized(): boolean;
   /**
    * The Database handles the creation of the database, and all access to it.
