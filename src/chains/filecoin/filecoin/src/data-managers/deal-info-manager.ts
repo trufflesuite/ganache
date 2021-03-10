@@ -1,7 +1,7 @@
 import Manager from "./manager";
 import { LevelUp } from "levelup";
 import { DealInfo, DealInfoConfig } from "../things/deal-info";
-import { SerializedRootCID } from "../things/root-cid";
+import { RootCID, SerializedRootCID } from "../things/root-cid";
 
 const NOTFOUND = 404;
 
@@ -19,24 +19,32 @@ const NOTFOUND = 404;
 export default class DealInfoManager extends Manager<DealInfo, DealInfoConfig> {
   static Deals = Buffer.from("deals");
 
-  static async initialize(base: LevelUp) {
-    const manager = new DealInfoManager(base);
+  #dealExpirations: LevelUp;
+
+  static async initialize(base: LevelUp, dealExpirations: LevelUp) {
+    const manager = new DealInfoManager(base, dealExpirations);
     return manager;
   }
 
-  constructor(base: LevelUp) {
+  constructor(base: LevelUp, dealExpirations: LevelUp) {
     super(base, DealInfo);
+    this.#dealExpirations = dealExpirations;
   }
 
   async updateDealInfo(deal: DealInfo) {
     await super.set(deal.proposalCid.root.value, deal);
   }
 
-  async addDealInfo(deal: DealInfo) {
+  async addDealInfo(deal: DealInfo, expirationTipsetHeight: number) {
     await this.updateDealInfo(deal);
     const cids = await this.getDealCids();
     cids.push(deal.proposalCid.serialize());
     await this.putDealCids(cids);
+
+    this.#dealExpirations.put(
+      Buffer.from(deal.proposalCid.root.value),
+      Buffer.from(`${expirationTipsetHeight}`)
+    );
   }
 
   async getDealCids(): Promise<Array<SerializedRootCID>> {
@@ -83,6 +91,20 @@ export default class DealInfoManager extends Manager<DealInfo, DealInfoConfig> {
       return await this.get(dealCid["/"]);
     } else {
       return null;
+    }
+  }
+
+  async getDealExpiration(proposalId: RootCID): Promise<number | null> {
+    try {
+      const result = await this.#dealExpirations.get(
+        Buffer.from(proposalId.root.value)
+      );
+      return parseInt(result.toString(), 10);
+    } catch (e) {
+      if (e.status === NOTFOUND) {
+        return null;
+      }
+      throw e;
     }
   }
 

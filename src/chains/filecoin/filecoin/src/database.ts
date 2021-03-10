@@ -26,6 +26,7 @@ export default class Database extends Emittery {
   public signedMessages: LevelUp | null = null;
   public blockMessages: LevelUp | null = null;
   public deals: LevelUp | null = null;
+  public dealExpirations: LevelUp | null = null;
 
   #initialized: boolean = false;
   get initialized() {
@@ -96,6 +97,7 @@ export default class Database extends Emittery {
     this.signedMessages = sub(db, "m", levelupOptions);
     this.blockMessages = sub(db, "bm", levelupOptions);
     this.deals = sub(db, "d", levelupOptions);
+    this.dealExpirations = sub(db, "de", levelupOptions);
 
     this.#initialized = true;
     return this.emit("ready");
@@ -186,6 +188,9 @@ export default class Database extends Emittery {
       }
       if (this.deals) {
         await this.deals.close();
+      }
+      if (this.dealExpirations) {
+        await this.dealExpirations.close();
       }
     }
     return await this.#cleanupDirectory();
