@@ -65,6 +65,7 @@ describe("api", () => {
         dealId: -1
       });
       const dealStatuses: StorageDealStatus[] = [];
+      const dealDuration = 5;
 
       before(async () => {
         ipfs = getIpfsClient();
@@ -100,7 +101,7 @@ describe("api", () => {
           wallet: address,
           miner: miners[0],
           epochPrice: 2500n,
-          minBlocksDuration: 300
+          minBlocksDuration: dealDuration
         });
 
         const proposalCid = await client.clientStartDeal(proposal.serialize());
@@ -195,6 +196,36 @@ describe("api", () => {
             e.message.includes("Could not find a deal for the provided CID")
           );
         }
+      });
+
+      it("expires a deal at the given duration", async () => {
+        let deals = await client.clientListDeals();
+        assert.strictEqual(deals.length, 1);
+        let deal: SerializedDealInfo = deals[0];
+        assert.strictEqual(deal.State, StorageDealStatus.Active);
+
+        const priorHead = await client.chainHead();
+        let currentHead = await client.chainHead();
+
+        while (
+          deal.State === StorageDealStatus.Active &&
+          currentHead.Height - priorHead.Height <= dealDuration
+        ) {
+          await provider.send({
+            jsonrpc: "2.0",
+            id: "0",
+            method: "Ganache.MineTipset"
+          });
+
+          deal = (await client.clientListDeals())[0];
+          currentHead = await client.chainHead();
+        }
+
+        assert.strictEqual(deal.State, StorageDealStatus.Expired);
+        assert.strictEqual(
+          currentHead.Height,
+          priorHead.Height + dealDuration + 1
+        ); // the duration is inclusive, thus the +1
       });
     });
 
