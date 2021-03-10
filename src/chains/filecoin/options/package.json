@@ -48,7 +48,7 @@
   ],
   "devDependencies": {
     "@ganache/options": "0.1.0",
-    "@types/seedrandom": "2.4.28",
+    "@types/seedrandom": "3.0.0",
     "@types/terser-webpack-plugin": "5.0.2",
     "node-loader": "1.0.2",
     "seedrandom": "3.0.5",

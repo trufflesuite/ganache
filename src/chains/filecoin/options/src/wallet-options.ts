@@ -1,9 +1,9 @@
 import { normalize } from "./helpers";
-import seedrandom from "seedrandom";
+import Seedrandom from "seedrandom";
 
 import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
-const { alea } = seedrandom;
+const unseededRng = Seedrandom();
 
 const randomAlphaNumericString = (() => {
   const alphabet =
@@ -87,9 +87,9 @@ export const WalletOptions: Definitions<WalletConfig> = {
     // needs to be prior to `wallet.seed` for `config.deterministic`
     // below to be set correctly
     default: config =>
-      config.deterministic
+      config.deterministic === true
         ? DeterministicSeedPhrase
-        : randomAlphaNumericString(10, alea()),
+        : randomAlphaNumericString(10, unseededRng),
     cliAliases: ["s"],
     cliType: "string",
     conflicts: ["deterministic"]
