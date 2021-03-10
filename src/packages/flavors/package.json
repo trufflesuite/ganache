@@ -49,10 +49,10 @@
     "@ganache/utils": "0.1.0"
   },
   "devDependencies": {
-    "@ganache/filecoin": "0.1.0",
-    "@ganache/filecoin-types": "0.1.0"
+    "@ganache/filecoin": "0.1.1",
+    "@ganache/filecoin-types": "0.1.1"
   },
   "peerDependencies": {
-    "@ganache/filecoin": "0.1.0"
+    "@ganache/filecoin": "^0.1.0"
   }
 }
