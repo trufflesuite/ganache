@@ -16,39 +16,57 @@ type Callback = (err: Error | null) => void;
  * Server ready state constants.
  *
  * These are bit flags. This means that you can check if the status is:
- *  * open: `status === Status.open`
- *  * opening: `status === Status.opening`
- *  * open || opening: `status & Status.open !== 0` or `status & Status.opening !== 0`
- *  * closed: `status === Status.closed`
- *  * closing: `status === Status.closing`
- *  * open || closing: `status & Status.closed !== 0` or `status & Status.closing !== 0`
+ *  * ready: `status === Status.ready` or `status & Status.ready !== 0`
+ *  * opening: `status === Status.opening` or `status & Status.opening !== 0`
+ *  * open: `status === Status.open` or `status & Status.open !== 0`
+ *  * opening || open: `status & Status.openingOrOpen !== 0` or `status & (Status.opening | Status.open) !== 0`
+ *  * closing: `status === Status.closing` or `status & Status.closing !== 0`
+ *  * closed: `status === Status.closed` or `status & Status.closed !== 0`
+ *  * closing || closed: `status & Status.closingOrClosed !== 0` or `status & (Status.closing | Status.closed) !== 0`
  */
 export enum Status {
   /**
-   * The connection is open and ready to communicate.
+   * The server is in an unknown state; perhaps construction didn't succeed
    */
-  open = 1,
+  unknown = 0,
   /**
-   * The connection is not yet open.
+   * The server has been constructed and is ready to be opened is open and ready to communicate.
    */
-  opening = 3,
+  ready = 1 << 0,
   /**
-   * The connection is closed.
+   * The server has started to open, but has not yet finished initialization.
    */
-  closed = 4,
+  opening = 1 << 1,
   /**
-   * The connection is in the process of closing.
+   * The server is open and ready for connection.
    */
-  closing = 12
+  open = 1 << 2,
+  /**
+   * The server is either opening or is already open
+   */
+  openingOrOpen = (1 << 1) | (1 << 2),
+  /**
+   * The server is in the process of closing.
+   */
+  closing = 1 << 3,
+  /**
+   * The server is closed and not accepting new connections.
+   */
+  closed = 1 << 4,
+  /**
+   * The server is either opening or is already open
+   */
+  closingOrClosed = (1 << 3) | (1 << 4)
 }
 
 export default class Server {
-  #app: TemplatedApp;
-  #httpServer: HttpServer;
-  #listenSocket?: us_listen_socket;
   #options: InternalOptions;
-  #connector: Connector;
-  #status = Status.closed;
+  #providerOptions: any;
+  #status: number = Status.unknown;
+  #app: TemplatedApp | null = null;
+  #httpServer: HttpServer | null = null;
+  #listenSocket: us_listen_socket | null = null;
+  #connector: Connector | null = null;
   #websocketServer: WebsocketServer | null = null;
 
   public get provider(): Provider {
@@ -59,10 +77,15 @@ export default class Server {
     return this.#status;
   }
 
-  constructor(serverOptions: ServerOptions = { flavor: DefaultFlavor }) {
-    const opts = (this.#options = serverOptionsConfig.normalize(serverOptions));
+  constructor(providerAndServerOptions: any = { flavor: DefaultFlavor }) {
+    this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
+    this.#providerOptions = providerAndServerOptions;
+    this.#status = Status.ready;
+  }
+
+  async initialize() {
     const connector = (this.#connector = ConnectorLoader.initialize(
-      serverOptions
+      this.#providerOptions
     ));
 
     const _app = (this.#app = uWS.App());
@@ -71,16 +94,16 @@ export default class Server {
       this.#websocketServer = new WebsocketServer(
         _app,
         connector as WebSocketCapableFlavor,
-        opts.server
+        this.#options.server
       );
     }
     this.#httpServer = new HttpServer(_app, connector);
   }
 
-  listen(port: number): Promise<void>;
-  listen(port: number, host: string): Promise<void>;
   listen(port: number, callback: Callback): void;
   listen(port: number, host: string, callback: Callback): void;
+  listen(port: number): Promise<void>;
+  listen(port: number, host: string): Promise<void>;
   listen(
     port: number,
     host?: string | Callback,
@@ -99,9 +122,9 @@ export default class Server {
       return callbackIsFunction
         ? process.nextTick(callback!, err)
         : Promise.reject(err);
-    } else if (status & Status.open) {
-      // if open or opening
-      const err = new Error(`Server is already open on port: ${port}.`);
+    } else if ((status & Status.openingOrOpen) !== 0) {
+      // if opening or open
+      const err = new Error(`Server is already open, or is opening, on port: ${port}.`);
       return callbackIsFunction
         ? process.nextTick(callback!, err)
         : Promise.reject(err);
@@ -109,35 +132,43 @@ export default class Server {
 
     this.#status = Status.opening;
 
-    const promise = new Promise(
-      (resolve: (listenSocket: false | uWS.us_listen_socket) => void) => {
-        // Make sure we have *exclusive* use of this port.
-        // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
-        const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
-        hostname
-          ? this.#app.listen(
-              hostname,
-              port,
-              LIBUS_LISTEN_EXCLUSIVE_PORT,
-              resolve
-            )
-          : this.#app.listen(port as any, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
-      }
-    ).then(listenSocket => {
-      if (listenSocket) {
-        this.#status = Status.open;
-        this.#listenSocket = listenSocket;
-        if (callbackIsFunction) callback!(null);
-      } else {
-        this.#status = Status.closed;
-        const err = new Error(
-          `listen EADDRINUSE: address already in use ${
-            hostname || DEFAULT_HOST
-          }:${port}.`
-        );
-        if (callbackIsFunction) callback!(err);
-        else throw err;
-      }
+    const initializePromise = this.initialize();
+
+    const promise = initializePromise.then(() => {
+      return new Promise(
+        (resolve: (listenSocket: false | uWS.us_listen_socket) => void) => {
+          // Make sure we have *exclusive* use of this port.
+          // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
+          const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
+          hostname
+            ? this.#app.listen(
+                hostname,
+                port,
+                LIBUS_LISTEN_EXCLUSIVE_PORT,
+                resolve
+              )
+            : this.#app.listen(port as any, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+        }
+      ).then(listenSocket => {
+        if (listenSocket) {
+          this.#status = Status.open;
+          this.#listenSocket = listenSocket;
+          if (callbackIsFunction) callback!(null);
+        } else {
+          this.#status = Status.closed;
+          const err = new Error(
+            `listen EADDRINUSE: address already in use ${
+              hostname || DEFAULT_HOST
+            }:${port}.`
+          );
+          if (callbackIsFunction) callback!(err);
+          else throw err;
+        }
+      });
+    }).catch(async error => {
+      this.#status = Status.unknown;
+      await this.close();
+      throw error;
     });
 
     if (!callbackIsFunction) {
@@ -149,25 +180,36 @@ export default class Server {
     if (this.#status === Status.opening) {
       // if opening
       throw new Error(`Cannot close server while it is opening.`);
-    } else if (this.#status & Status.closed) {
-      // if closed or closing
-      throw new Error(`Server is already closed or closing.`);
+    } else if ((this.#status & Status.closingOrClosed) !== 0) {
+      // if closing or closed
+      throw new Error(`Server is already closing or closed.`);
     }
 
-    const _listenSocket = this.#listenSocket;
     this.#status = Status.closing;
+
+    // clean up the websocket objects
+    const _listenSocket = this.#listenSocket;
     this.#listenSocket = void 0;
     // close the socket to prevent any more connections
-    uWS.us_listen_socket_close(_listenSocket);
+    if (_listenSocket !== null) {
+      uWS.us_listen_socket_close(_listenSocket);
+    }
     // close all the connected websockets:
-    const ws = this.#websocketServer;
-    if (ws) {
-      ws.close();
+    if (this.#websocketServer !== null) {
+      this.#websocketServer.close();
     }
 
     // and do all http cleanup, if any
-    this.#httpServer.close();
-    await this.#connector.close();
+    if (this.#httpServer !== null) {
+      this.#httpServer.close();
+    }
+
+    // cleanup the connector, provider, etc.
+    if (this.#connector !== null) {
+      await this.#connector.close();
+    }
+
+
     this.#status = Status.closed;
     this.#app = void 0;
   }
