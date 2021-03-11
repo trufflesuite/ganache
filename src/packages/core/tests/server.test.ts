@@ -36,6 +36,7 @@ describe("server", () => {
       }
     }
   ) {
+    // @ts-expect-error
     s = Ganache.server(options);
     return s.listen(port);
   }
@@ -106,6 +107,7 @@ describe("server", () => {
     });
 
     it("returns the net_version over a legacy-style connection listener", done => {
+      // @ts-expect-error
       s = Ganache.server({
         chain: { networkId }
       });

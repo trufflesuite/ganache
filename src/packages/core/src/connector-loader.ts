@@ -12,7 +12,7 @@ import { Base, Definitions } from "@ganache/options";
  * Loads the connector specified by the given `flavor`
  */
 export default {
-  initialize: (
+  initialize: async (
     providerOptions: ProviderOptions = {
       flavor: DefaultFlavor,
       chain: { asyncRequestProcessing: true }
@@ -41,9 +41,11 @@ export default {
       executor
     );
 
+    await connector.initialize();
+
     // The request coordinator is initialized in a "paused" state; when the provider is ready we unpause.
     // This lets us accept queue requests before we've even fully initialized.
-    connector.on("ready", requestCoordinator.resume);
+    requestCoordinator.resume();
 
     return connector;
   }

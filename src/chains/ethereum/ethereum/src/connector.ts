@@ -20,7 +20,7 @@ function isHttp(
 }
 
 export class Connector
-  extends Emittery.Typed<undefined, "ready" | "close">
+  extends Emittery.Typed<undefined, "close">
   implements
     types.Connector<
       EthereumApi,
@@ -39,14 +39,14 @@ export class Connector
   ) {
     super();
 
-    const provider = (this.#provider = new EthereumProvider(
+    this.#provider = new EthereumProvider(
       providerOptions,
       executor
-    ));
-    provider.on("connect", () => {
-      // tell the consumer (like a `ganache-core` server/connector) everything is ready
-      this.emit("ready");
-    });
+    );
+  }
+
+  async initialize() {
+    await this.#provider.initialize();
   }
 
   parse(message: Buffer) {

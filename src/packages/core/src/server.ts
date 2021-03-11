@@ -84,7 +84,7 @@ export default class Server {
   }
 
   async initialize() {
-    const connector = (this.#connector = ConnectorLoader.initialize(
+    const connector = (this.#connector = await ConnectorLoader.initialize(
       this.#providerOptions
     ));
 

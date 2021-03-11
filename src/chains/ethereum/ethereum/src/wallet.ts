@@ -185,6 +185,11 @@ export default class Wallet {
         fileData.addresses[address] = address;
         fileData.private_keys[address] = privateKey;
       });
+
+      // WARNING: Do not turn this to an async method without
+      // making a Wallet.initialize() function and calling it via
+      // Provider.initialize(). No async methods in constructors.
+      // writeFileSync here is acceptable.
       writeFileSync(opts.accountKeysPath, JSON.stringify(fileData));
     }
     //#endregion

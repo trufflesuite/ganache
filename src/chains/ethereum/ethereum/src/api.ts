@@ -169,7 +169,7 @@ export default class EthereumApi implements types.Api {
   constructor(
     options: EthereumInternalOptions,
     wallet: Wallet,
-    emitter: Emittery.Typed<{ message: any }, "connect" | "disconnect">
+    emitter: Emittery.Typed<{ message: any }, "disconnect">
   ) {
     this.#options = options;
 
@@ -188,11 +188,13 @@ export default class EthereumApi implements types.Api {
     const blockchain = (this.#blockchain = new Blockchain(
       options,
       common,
-      initialAccounts,
       coinbaseAddress
     ));
-    blockchain.on("start", () => emitter.emit("connect"));
     emitter.on("disconnect", blockchain.stop.bind(blockchain));
+  }
+
+  async initialize() {
+    await this.#blockchain.initialize(this.#wallet.initialAccounts);
   }
 
   //#region db
@@ -482,7 +484,7 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const provider = ganache.provider();
+   * const provider = await ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
    * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
    *
@@ -527,7 +529,7 @@ export default class EthereumApi implements types.Api {
    *
    * @example
    * ```javascript
-   * const provider = ganache.provider();
+   * const provider = await ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
    * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
    *

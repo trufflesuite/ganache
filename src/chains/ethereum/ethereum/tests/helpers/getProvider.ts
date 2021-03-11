@@ -29,12 +29,8 @@ const getProvider = async (
   const requestCoordinator = new RequestCoordinator(doAsync ? 0 : 1);
   const executor = new Executor(requestCoordinator);
   const provider = new EthereumProvider(options, executor);
-  await new Promise(resolve => {
-    provider.on("connect", () => {
-      requestCoordinator.resume();
-      resolve(void 0);
-    });
-  });
+  await provider.initialize();
+  requestCoordinator.resume();
   return provider;
 };
 
