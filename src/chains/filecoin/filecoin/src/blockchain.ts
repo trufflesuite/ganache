@@ -40,6 +40,7 @@ import PrivateKeyManager from "./data-managers/private-key-manager";
 import { fillGasInformation, getBaseFee, getMinerFee } from "./gas";
 import { checkMessage } from "./message";
 import DealInfoManager from "./data-managers/deal-info-manager";
+import * as bls from "noble-bls12-381";
 
 export type BlockchainEvents = {
   ready(): void;
@@ -561,6 +562,7 @@ export default class Blockchain extends Emittery.Typed<
 
       if (nextMessagePool.length > 0) {
         const successfulMessages: SignedMessage[] = [];
+        const blsSignatures: Buffer[] = [];
         for (const signedMessage of nextMessagePool) {
           const { from, to, value } = signedMessage.message;
 
@@ -622,13 +624,20 @@ export default class Blockchain extends Emittery.Typed<
             continue;
           }
 
-          // TODO: figure out nonce/error logic
           this.accountManager!.incrementNonce(from);
 
           successfulMessages.push(signedMessage);
+
+          if (signedMessage.signature.type === SigType.SigTypeBLS) {
+            blsSignatures.push(signedMessage.signature.data);
+          }
         }
 
-        // TODO: fill newBlocks[0].blsAggregate?
+        newBlocks[0].blsAggregate = new Signature({
+          type: SigType.SigTypeBLS,
+          data: Buffer.from(bls.aggregateSignatures(blsSignatures).buffer)
+        });
+
         await this.blockMessagesManager!.putBlockMessages(
           newBlocks[0].cid,
           BlockMessages.fromSignedMessages(successfulMessages)
@@ -792,9 +801,6 @@ export default class Blockchain extends Emittery.Typed<
 
     const signature = await account.address.signProposal(proposal);
 
-    // TODO: I'm not sure if should pass in a hex string or the Buffer alone.
-    // I *think* it's the string, as that matches my understanding of the Go code.
-    // That said, node that Buffer vs. hex string returns a different CID...
     const proposalRawCid = await dagCBOR.util.cid(signature.toString("hex"));
     const proposalCid = new CID(proposalRawCid.toString());
 
