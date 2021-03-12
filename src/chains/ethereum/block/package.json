@@ -55,6 +55,7 @@
   "dependencies": {
     "@ganache/ethereum-address": "0.1.0",
     "@ganache/ethereum-transaction": "0.1.0",
+    "@ganache/ethereum-utils": "0.1.0",
     "@ganache/rlp": "0.1.0",
     "@ganache/utils": "0.1.0",
     "emittery": "0.8.1",

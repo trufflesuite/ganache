@@ -1,10 +1,14 @@
 import { utils, Data, Quantity } from "@ganache/utils";
 import { KECCAK256_RLP_ARRAY } from "ethereumjs-util";
-import { encode } from "@ganache/rlp";
+import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
-import { BlockRawTx, RuntimeTransaction } from "@ganache/ethereum-transaction";
-import { StorageKeys } from "../../transaction/node_modules/@ganache/ethereum-utils";
+import {
+  EthereumRawTx,
+  GanacheRawBlockTransactionMetaData,
+  RuntimeTransaction
+} from "@ganache/ethereum-transaction";
+import { StorageKeys } from "@ganache/ethereum-utils";
 
 const { BUFFER_EMPTY, BUFFER_32_ZERO, BUFFER_8_ZERO } = utils;
 
@@ -121,7 +125,7 @@ export class RuntimeBlock {
     storageKeys: StorageKeys
   ) {
     const { header } = this;
-    const rawHeader = [
+    const rawHeader: EthereumRawBlockHeader = [
       header.parentHash,
       KECCAK256_RLP_ARRAY, // uncleHash
       header.coinbase,
@@ -138,28 +142,31 @@ export class RuntimeBlock {
       BUFFER_32_ZERO, // mixHash
       BUFFER_8_ZERO // nonce
     ];
-    // TODO: support actual uncle data (needed for forking!)
-    // Issue: https://github.com/trufflesuite/ganache-core/issues/786
-    const uncles = [];
     const { totalDifficulty } = header;
-    const rawTransactions: BlockRawTx[] = transactions.map(tx => [
-      ...tx.raw,
-      tx.from.toBuffer(),
-      tx.hash.toBuffer()
+    const txs: EthereumRawTx[] = [];
+    const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
+    transactions.forEach(tx => {
+      txs.push(tx.raw);
+      extraTxs.push([tx.from.toBuffer(), tx.hash.toBuffer()]);
+    });
+    const { serialized, size } = serialize([
+      rawHeader,
+      txs,
+      [],
+      totalDifficulty,
+      extraTxs
     ]);
-    const raw = [rawHeader, rawTransactions, uncles, totalDifficulty];
-
-    const serialized = encode(raw);
 
     // make a new block, but pass `null` so it doesn't do the extra
     // deserialization work since we already have everything in a deserialized
     // state here. We'll just set it ourselves by reaching into the "_private"
     // fields.
     const block = new Block(null, null);
-    (block as any)._size = getBlockSize(serialized, totalDifficulty);
     (block as any)._raw = rawHeader;
-    (block as any)._rawTransactions = rawTransactions;
+    (block as any)._rawTransactions = txs;
     (block as any).header = makeHeader(rawHeader, totalDifficulty);
+    (block as any)._extraTransactionData = extraTxs;
+    (block as any)._size = size;
 
     return {
       block,

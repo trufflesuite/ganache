@@ -1,37 +1,43 @@
 import { Data, Quantity } from "@ganache/utils";
-import { BlockTransaction, BlockRawTx } from "@ganache/ethereum-transaction";
+import {
+  BlockTransaction,
+  EthereumRawTx,
+  GanacheRawBlockTransactionMetaData
+} from "@ganache/ethereum-transaction";
 import Common from "ethereumjs-common";
 import { encode, decode } from "@ganache/rlp";
-import { BlockHeader, makeHeader, getBlockSize } from "./runtime-block";
+import { BlockHeader, makeHeader } from "./runtime-block";
 import { utils } from "@ganache/utils";
+import { BUFFER_EMPTY } from "@ganache/utils/src/utils";
+import {
+  EthereumRawBlockHeader,
+  GanacheRawBlock,
+  serialize
+} from "./serialize";
 const { keccak } = utils;
 
 export class Block {
   private readonly _size: number;
   private readonly _raw: Buffer[];
   private readonly _common: Common;
-  private _transactions: BlockTransaction[] = null;
-  private readonly _rawTransactions: BlockRawTx[] = null;
+  private readonly _rawTransactions: EthereumRawTx[] = null;
+  private readonly _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[] = null;
 
   public readonly header: BlockHeader;
 
   constructor(serialized: Buffer, common: Common) {
     this._common = common;
     if (serialized) {
-      const deserialized = (decode(serialized) as any) as [
-        Buffer[],
-        BlockRawTx[],
-        Buffer[],
-        Buffer
-      ];
+      const deserialized = decode<GanacheRawBlock>(serialized);
       this._raw = deserialized[0];
       this._rawTransactions = deserialized[1];
       // TODO: support actual uncle data (needed for forking!)
       // Issue: https://github.com/trufflesuite/ganache-core/issues/786
-      // const uncles = deserialized[1];
+      // const uncles = deserialized[2];
       const totalDifficulty = deserialized[3];
       this.header = makeHeader(this._raw, totalDifficulty);
-      this._size = getBlockSize(serialized, totalDifficulty);
+      this._rawTransactionMetaData = deserialized[4];
+      this._size = Quantity.from(deserialized[5]).toNumber();
     }
   }
 
@@ -43,46 +49,37 @@ export class Block {
   }
 
   getTransactions() {
-    if (this._transactions) {
-      return this._transactions;
-    }
     const common = this._common;
-    return (this._transactions = this._rawTransactions.map(
+    return this._rawTransactions.map(
       (raw, index) =>
         new BlockTransaction(
           raw,
+          this._rawTransactionMetaData[index],
           this.hash().toBuffer(),
           this.header.number.toBuffer(),
           Quantity.from(index).toBuffer(),
           common
         )
-    ));
+    );
   }
 
   toJSON(includeFullTransactions = false) {
     const hash = this.hash();
     const txFn = this.getTxFn(includeFullTransactions);
-    let jsonTxs: Data[] | {}[];
-
-    let transactions = this._transactions;
-    if (transactions) {
-      jsonTxs = transactions.map(txFn);
-    } else {
-      const number = this.header.number;
-      const common = this._common;
-      transactions = this._transactions = [];
-      jsonTxs = this._rawTransactions.map((raw, index) => {
-        const tx = new BlockTransaction(
-          raw,
-          hash.toBuffer(),
-          number.toBuffer(),
-          Quantity.from(index).toBuffer(),
-          common
-        );
-        transactions.push(tx);
-        return txFn(tx);
-      });
-    }
+    const hashBuffer = hash.toBuffer();
+    const number = this.header.number.toBuffer();
+    const common = this._common;
+    const jsonTxs = this._rawTransactions.map((raw, index) => {
+      const tx = new BlockTransaction(
+        raw,
+        this._rawTransactionMetaData[index],
+        hashBuffer,
+        number,
+        Quantity.from(index).toBuffer(),
+        common
+      );
+      return txFn(tx);
+    });
 
     return {
       hash,
@@ -93,36 +90,54 @@ export class Block {
     };
   }
 
-  // static fromJSON(json: any, common: Common, asSerialized: boolean = true) {
-  //   const rawHeader = [
-  //     Data.from(json.parentHash, 32).toBuffer(),
-  //     Data.from(json.sha3Uncles, 32).toBuffer(),
-  //     Data.from(json.miner, 20).toBuffer(),
-  //     Data.from(json.stateRoot, 32).toBuffer(),
-  //     Data.from(json.transactionsRoot, 32).toBuffer(), // ???
-  //     Data.from(json.receiptsRoot, 32).toBuffer(),
-  //     Data.from(json.logsBloom, 256).toBuffer(),
-  //     Quantity.from(json.difficulty, false).toBuffer(),
-  //     Quantity.from(json.totalDifficulty, false).toBuffer(),
-  //     Quantity.from(json.number, false).toBuffer(),
-  //     Quantity.from(json.gasLimit, false).toBuffer(),
-  //     Quantity.from(json.gasUsed, false).toBuffer(),
-  //     Quantity.from(json.timestamp, false).toBuffer(),
-  //     Data.from(json.extraData).toBuffer(),
-  //     Data.from(json.mixHash, 32).toBuffer(), // mixHash
-  //     Data.from(json.nonce, 8).toBuffer() // nonce
-  //   ];
-  //   const transactions = json.transactions.map(
-  //     jsonTx => Transaction.jsonToRaw(jsonTx)
-  //   );
-  //   const serialized = rlpEncode([rawHeader, transactions]);
-  //   return asSerialized ? serialized : new Block(serialized, common);
-  // }
+  static rawFromJSON(json: any) {
+    // note: we convert almost everything via Quantity because we must represent
+    // the data in its compressed form in the database in order to calculate the
+    // `size` correctly
+    const header: EthereumRawBlockHeader = [
+      Quantity.from(json.parentHash).toBuffer(),
+      Quantity.from(json.sha3Uncles).toBuffer(),
+      Quantity.from(json.miner).toBuffer(),
+      Quantity.from(json.stateRoot).toBuffer(),
+      Quantity.from(json.transactionsRoot).toBuffer(),
+      Quantity.from(json.receiptsRoot).toBuffer(),
+      Quantity.from(json.logsBloom).toBuffer(),
+      Quantity.from(json.difficulty).toBuffer(),
+      Quantity.from(json.number).toBuffer(),
+      Quantity.from(json.gasLimit).toBuffer(),
+      Quantity.from(json.gasUsed).toBuffer(),
+      Quantity.from(json.timestamp).toBuffer(),
+      Data.from(json.extraData).toBuffer(),
+      Quantity.from(json.mixHash).toBuffer(),
+      Quantity.from(json.nonce).toBuffer()
+    ];
+    const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
+    const txs: EthereumRawTx[] = [];
+    const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
+    json.transactions.forEach(tx => {
+      txs.push([
+        Quantity.from(tx.nonce).toBuffer(),
+        Quantity.from(tx.gasPrice).toBuffer(),
+        Quantity.from(tx.gas).toBuffer(),
+        tx.to == null ? BUFFER_EMPTY : Quantity.from(tx.to).toBuffer(),
+        Quantity.from(tx.value).toBuffer(),
+        Data.from(tx.input).toBuffer(),
+        Quantity.from(tx.v).toBuffer(),
+        Quantity.from(tx.r).toBuffer(),
+        Quantity.from(tx.s).toBuffer()
+      ]);
+      extraTxs.push([
+        Quantity.from(tx.from).toBuffer(),
+        Quantity.from(tx.hash).toBuffer()
+      ]);
+    });
+
+    return serialize([header, txs, [], totalDifficulty, extraTxs]).serialized;
+  }
+
   getTxFn(
     include = false
-  ): (
-    tx: BlockTransaction
-  ) => { [key: string]: string | Data | Quantity } | Data {
+  ): (tx: BlockTransaction) => ReturnType<BlockTransaction["toJSON"]> | Data {
     if (include) {
       return (tx: BlockTransaction) => tx.toJSON();
     } else {
