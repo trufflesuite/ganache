@@ -5,7 +5,8 @@
     "composite": true
   },
   "include": [
-    "index.ts"
+    "index.ts",
+    "types.ts"
   ],
   "references": [
     {

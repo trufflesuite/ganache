@@ -1,6 +1,6 @@
 import { Data, Quantity, utils } from "@ganache/utils";
 import { EthereumRawTx } from "./raw";
-import { digest, encode, encodePartial } from "@ganache/rlp";
+import { digest, encode, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
 let secp256k1;
@@ -17,7 +17,7 @@ const intToBuffer = (value: number) =>
 
 /**
  * Copies `length` bytes from `source` to the `target`, filling remaining
- * bytes beyond `length - source.length` with `0`. Fills to left left.
+ * bytes beyond `length - source.length` with `0`. Fills to the left.
  *
  * ```typescript
  * const source = Buffer.from([1, 2, 3]);
@@ -83,10 +83,11 @@ export const ecdaRecover = (
 
   if (isEip155) {
     const chainBuf = intToBuffer(chainId);
-    const epiloge = encodePartial([chainBuf, BUFFER_EMPTY, BUFFER_EMPTY], 0, 3);
+    const extras = [chainBuf, BUFFER_EMPTY, BUFFER_EMPTY] as const;
+    const epilogue = encodeRange(extras, 0, 3);
     data = digest(
-      [partialRlp.output, epiloge.output],
-      partialRlp.length + epiloge.length
+      [partialRlp.output, epilogue.output],
+      partialRlp.length + epilogue.length
     );
     recid = v - eip155V;
   } else {
@@ -152,14 +153,14 @@ export const computeInstrinsics = (
   raw: EthereumRawTx,
   chainId: number
 ) => {
-  const partialRlp = encodePartial(raw, 0, 6);
-  const epiloge = encodePartial(raw, 6, 9);
+  const data = encodeRange(raw, 0, 6);
+  const signature = encodeRange(raw, 6, 3);
   const serialized = digest(
-    [partialRlp.output, epiloge.output],
-    partialRlp.length + epiloge.length
+    [data.output, signature.output],
+    data.length + signature.length
   );
   return {
-    from: computeFromAddress(partialRlp, v.toNumber(), raw, chainId),
+    from: computeFromAddress(data, v.toNumber(), raw, chainId),
     hash: Data.from(keccak(serialized), 32),
     serialized
   };

@@ -4,11 +4,7 @@ import Readline from "readline";
 import Ganache, { Status } from "@ganache/core";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
-import {
-  DefaultFlavor,
-  FlavorName,
-  EthereumFlavorName
-} from "@ganache/flavors";
+import { EthereumFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {

@@ -10,7 +10,7 @@ import Common from "ethereumjs-common";
 import { EthereumRawTx } from "./raw";
 import type { RunTxResult } from "ethereumjs-vm/dist/runTx";
 import { computeInstrinsics } from "./signing";
-import { encodePartial, digest } from "@ganache/rlp";
+import { encodeRange, digest } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { TransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
@@ -196,9 +196,10 @@ export class RuntimeTransaction extends BaseTransaction {
       BUFFER_EMPTY,
       BUFFER_EMPTY
     ];
-    const partial = encodePartial(raw, 0, 6);
+    const partial = encodeRange(raw, 0, 6);
     const partialLength = partial.length;
-    const ending = encodePartial(raw, 6, 9);
+
+    const ending = encodeRange(raw, 6, 3);
     const msgHash = keccak(
       digest([partial.output, ending.output], partialLength + ending.length)
     );
@@ -212,7 +213,7 @@ export class RuntimeTransaction extends BaseTransaction {
     raw[8] = this.s.toBuffer();
 
     this.raw = raw;
-    const epilogue = encodePartial(raw, 6, 9);
+    const epilogue = encodeRange(raw, 6, 3);
     this.serialized = digest(
       [partial.output, epilogue.output],
       partialLength + epilogue.length

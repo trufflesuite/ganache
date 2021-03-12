@@ -54,14 +54,15 @@ export default class BlockManager extends Manager<Block> {
     this.#blockIndexes = blockIndexes;
   }
 
-  #fromFallback = async (tagOrBlockNumber: string | Buffer | Tag) => {
+  #fromFallback = async (
+    tagOrBlockNumber: string | Buffer | Tag
+  ): Promise<Buffer> => {
     const fallback = this.#blockchain.fallback;
-    const b = await fallback.request("eth_getBlockByNumber", [
+    const json = await fallback.request("eth_getBlockByNumber", [
       tagOrBlockNumber,
       true
     ]);
-    return null;
-    // return Block.fromJSON(b, this.#common, true);
+    return json == null ? null : Block.rawFromJSON(json);
   };
 
   getBlockByTag(tag: Tag) {
@@ -107,11 +108,11 @@ export default class BlockManager extends Manager<Block> {
     return number ? super.get(number) : null;
   }
 
-  async getRaw(tagOrBlockNumber: string | Buffer | Tag) {
+  async getRaw(tagOrBlockNumber: string | Buffer | Tag): Promise<Buffer> {
     // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
     // we don't have to fetch them from the db each time a block tag is used.
     const number = this.getEffectiveNumber(tagOrBlockNumber).toBuffer();
-    return super.getRaw(number).then((block: any) => {
+    return super.getRaw(number).then(block => {
       if (block == null && this.#blockchain.fallback) {
         return this.#fromFallback(tagOrBlockNumber);
       }

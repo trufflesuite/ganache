@@ -49,7 +49,8 @@
     "@ganache/rlp": "0.1.0",
     "@ganache/utils": "0.1.0",
     "ethereumjs-common": "1.5.2",
-    "ethereumjs-util": "7.0.9"
+    "ethereumjs-util": "7.0.9",
+    "node-gyp-build": "4.2.3"
   },
   "devDependencies": {
     "@types/mocha": "8.0.3",

@@ -1774,7 +1774,7 @@ export default class EthereumApi implements types.Api {
 
     let data: Data;
     if (typeof transaction.data === "undefined") {
-      if (typeof transaction.input === "undefined") {
+      if (typeof transaction.input !== "undefined") {
         data = Data.from(transaction.input);
       }
     } else {
