@@ -1077,46 +1077,9 @@ export default class EthereumApi implements types.Api {
    * @returns the code from the given address.
    */
   @assertArgLength(1, 2)
-  async eth_getCode(address: Buffer, blockNumber: Buffer | Tag = Tag.LATEST) {
-    const blockchain = this.#blockchain;
-    const blockProm = blockchain.blocks.getRaw(blockNumber);
-
-    const trie = blockchain.trie.copy();
-    const block = await blockProm;
-    if (!block) throw new Error("header not found");
-
-    const blockData = (decode(block) as unknown) as [
-      [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
-      Buffer[],
-      Buffer[]
-    ];
-    const headerData = blockData[0];
-    const blockStateRoot = headerData[3];
-    trie.root = blockStateRoot;
-
-    const addressDataPromise = this.#blockchain.getFromTrie(
-      trie,
-      Address.from(address).toBuffer()
-    );
-
-    const addressData = await addressDataPromise;
-    // An address's codeHash is stored in the 4th rlp entry
-    const codeHash = ((decode(addressData) as any) as [
-      Buffer /*nonce*/,
-      Buffer /*amount*/,
-      Buffer /*stateRoot*/,
-      Buffer /*codeHash*/
-    ])[3];
-    // if this address isn't a contract, return 0x
-    if (!codeHash || KECCAK256_NULL.equals(codeHash)) {
-      return Data.from("0x");
-    }
-    return new Promise((resolve, reject) => {
-      trie.getRaw(codeHash, (err: Error, data: Buffer) => {
-        if (err) return void reject(err);
-        resolve(Data.from(data));
-      });
-    });
+  async eth_getCode(address: Buffer, blockNumber: string | Tag = Tag.LATEST) {
+    const addy = Address.from(address);
+    return await this.#blockchain.accounts.getCode(addy, blockNumber);
   }
 
   /**

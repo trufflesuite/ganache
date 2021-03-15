@@ -292,7 +292,7 @@ export default class Miner extends Emittery.Typed<
                 ? BUFFER_EMPTY
                 : uintToBuffer(numTransactions)
             );
-            promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
+            promises.push(putInTrie(transactionsTrie, txKey, best.serialized));
             const receipt = best.fillFromResult(result, blockGasUsed);
             promises.push(putInTrie(receiptTrie, txKey, receipt));
 

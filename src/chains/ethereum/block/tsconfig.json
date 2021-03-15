@@ -24,6 +24,10 @@
     {
       "name": "@ganache/utils",
       "path": "../../../packages/utils"
+    },
+    {
+      "name": "@ganache/ethereum-utils",
+      "path": "../utils"
     }
   ]
 }

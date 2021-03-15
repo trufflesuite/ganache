@@ -136,7 +136,28 @@ export class HttpHandler extends BaseHandler implements Handler {
 
         // TODO: handle invalid JSON (throws on parse)?
         buffer.then(buffer => {
-          deferred.resolve(JSON.parse(buffer));
+          try {
+            deferred.resolve(JSON.parse(buffer));
+          } catch {
+            const resStr = buffer.toString();
+            let shortStr: string;
+            if (resStr.length > 340) {
+              // truncate long errors so we don't blow up the user's logs
+              shortStr = resStr.slice(0, 320) + "…";
+            } else {
+              shortStr = resStr;
+            }
+            let msg = `Invalid JSON response from fork provider:\n\n ${shortStr}`;
+            if (
+              (resStr.startsWith("invalid project id") ||
+                resStr.startsWith("project id required in the url")) &&
+              this.url.host.endsWith("infura.io")
+            ) {
+              msg += `\n\nThe provided fork url, ${this.url}, may be an invalid or incorrect Infura endpoint.`;
+              msg += `\nVisit https://infura.io/docs/ethereum for Infura documentation.`;
+            }
+            deferred.reject(new Error(msg));
+          }
         });
       });
 

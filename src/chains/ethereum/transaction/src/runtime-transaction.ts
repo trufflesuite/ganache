@@ -7,10 +7,10 @@ import { Data, Quantity, utils } from "@ganache/utils";
 import { RpcTransaction } from "./rpc-transaction";
 import { ecsign } from "ethereumjs-util";
 import Common from "ethereumjs-common";
-import { EthereumRawTx } from "./raw";
+import { EthereumRawTx, GanacheRawExtraTx } from "./raw";
 import type { RunTxResult } from "ethereumjs-vm/dist/runTx";
 import { computeInstrinsics } from "./signing";
-import { encodeRange, digest } from "@ganache/rlp";
+import { encodeRange, digest, EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { TransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
@@ -68,6 +68,8 @@ export class RuntimeTransaction extends BaseTransaction {
 
   public raw: EthereumRawTx | null;
   public serialized: Buffer;
+  public encodedData: EncodedPart;
+  public encodedSignature: EncodedPart;
   private finalizer: (eventData: TransactionFinalization) => void;
   private finalized: Promise<TransactionFinalization>;
 
@@ -91,15 +93,20 @@ export class RuntimeTransaction extends BaseTransaction {
       this.r = Quantity.from(data[7]);
       this.s = Quantity.from(data[8]);
 
-      const { from, serialized, hash } = computeInstrinsics(
-        this.v,
-        data,
-        this.common.chainId()
-      );
+      const {
+        from,
+        serialized,
+        hash,
+        encodedData,
+        encodedSignature
+      } = computeInstrinsics(this.v, data, this.common.chainId());
+
       this.from = from;
+      this.raw = data;
       this.serialized = serialized;
       this.hash = hash;
-      this.raw = data;
+      this.encodedData = encodedData;
+      this.encodedSignature = encodedSignature;
     } else {
       // handle JSON
       this.nonce = Quantity.from(data.nonce, true);
@@ -143,11 +150,13 @@ export class RuntimeTransaction extends BaseTransaction {
           this.r.toBuffer(),
           this.s.toBuffer()
         ];
-        const { from, serialized, hash } = computeInstrinsics(
-          this.v,
-          raw,
-          this.common.chainId()
-        );
+        const {
+          from,
+          serialized,
+          hash,
+          encodedData,
+          encodedSignature
+        } = computeInstrinsics(this.v, raw, this.common.chainId());
 
         // if the user specified a `from` address in addition to the  `v`, `r`,
         //  and `s` values, make sure the `from` address matches
@@ -160,9 +169,11 @@ export class RuntimeTransaction extends BaseTransaction {
           }
         }
         this.from = from;
+        this.raw = raw;
         this.serialized = serialized;
         this.hash = hash;
-        this.raw = raw;
+        this.encodedData = encodedData;
+        this.encodedSignature = encodedSignature;
       } else if (data.from != null) {
         // we don't have a signature yet, so we just need to record the `from`
         // address for now. The TransactionPool will fill in the `hash` and
@@ -196,12 +207,12 @@ export class RuntimeTransaction extends BaseTransaction {
       BUFFER_EMPTY,
       BUFFER_EMPTY
     ];
-    const partial = encodeRange(raw, 0, 6);
-    const partialLength = partial.length;
+    const data = encodeRange(raw, 0, 6);
+    const dataLength = data.length;
 
     const ending = encodeRange(raw, 6, 3);
     const msgHash = keccak(
-      digest([partial.output, ending.output], partialLength + ending.length)
+      digest([data.output, ending.output], dataLength + ending.length)
     );
     const sig = ecsign(msgHash, privateKey, chainId);
     this.v = Quantity.from(sig.v);
@@ -213,21 +224,33 @@ export class RuntimeTransaction extends BaseTransaction {
     raw[8] = this.s.toBuffer();
 
     this.raw = raw;
-    const epilogue = encodeRange(raw, 6, 3);
+    const encodedSignature = encodeRange(raw, 6, 3);
     this.serialized = digest(
-      [partial.output, epilogue.output],
-      partialLength + epilogue.length
+      [data.output, encodedSignature.output],
+      dataLength + encodedSignature.length
     );
     this.hash = Data.from(keccak(this.serialized));
+    this.encodedData = data;
+    this.encodedSignature = encodedSignature;
   }
 
-  public serialize(): Buffer {
-    if (this.raw == null) {
-      throw new Error(
-        "Internal Error: `serialize` called on `RuntimeTransaction` but transaction hasn't been signed"
-      );
-    }
-    return this.serialized;
+  public serializeForDb(
+    blockHash: Data,
+    blockNumber: Quantity,
+    transactionIndex: Quantity
+  ): Buffer {
+    // todo(perf):make this work with encodeRange and digest
+    const txAndExtraData: [EthereumRawTx, GanacheRawExtraTx] = [
+      this.raw,
+      [
+        this.from.toBuffer(),
+        this.hash.toBuffer(),
+        blockHash.toBuffer(),
+        blockNumber.toBuffer(),
+        transactionIndex.toBuffer()
+      ]
+    ];
+    return encode(txAndExtraData);
   }
 
   public toJSON = () => {

@@ -16,7 +16,7 @@ import {
   StorageRecords,
   RangedStorageKeys
 } from "@ganache/ethereum-utils";
-import { decode, encode } from "@ganache/rlp";
+import { decode } from "@ganache/rlp";
 import SecureTrie from "merkle-patricia-tree/secure";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import { promisify } from "util";
@@ -179,7 +179,7 @@ export default class Blockchain extends Emittery.Typed<
   readonly #options: EthereumInternalOptions;
   readonly #instamine: boolean;
 
-  public fallback: any;
+  public fallback: Fork;
 
   /**
    * Initializes the underlying Database and handles synchronization between
@@ -361,37 +361,37 @@ export default class Blockchain extends Emittery.Typed<
     const { blocks } = this;
     blocks.latest = block;
     return this.#database.batch(() => {
-      const blockHash = block.hash().toBuffer();
+      const blockHash = block.hash();
       const blockHeader = block.header;
       const blockNumberQ = blockHeader.number;
-      const blockNumber = blockHeader.number.toBuffer();
+      const blockNumber = blockNumberQ.toBuffer();
       const blockLogs = BlockLogs.create(blockHash);
-      const timestamp = new Date(
-        blockHeader.timestamp.toNumber() * 1000
-      ).toString();
+      const timestamp = blockHeader.timestamp;
+      const timestampStr = new Date(timestamp.toNumber() * 1000).toString();
       const logOutput: string[] = [];
       transactions.forEach((tx: RuntimeTransaction, i: number) => {
         const hash = tx.hash.toBuffer();
-        const index = Quantity.from(i).toBuffer();
-        const txAndExtraData: [EthereumRawTx, GanacheRawExtraTx] = [
-          tx.raw,
-          [tx.from.toBuffer(), hash, blockHash, blockNumber, index]
-        ];
-        const encodedTx = encode(txAndExtraData);
-        this.transactions.set(hash, encodedTx);
+        const index = Quantity.from(i);
 
+        // save transaction to the database
+        const serialized = tx.serializeForDb(blockHash, blockNumberQ, index);
+        this.transactions.set(hash, serialized);
+
+        // save receipt to the database
         const receipt = tx.getReceipt();
         const encodedReceipt = receipt.serialize(true);
         this.transactionReceipts.set(hash, encodedReceipt);
 
-        tx.getLogs().forEach(blockLogs.append.bind(blockLogs, index, hash));
+        // collect block logs
+        tx.getLogs().forEach(blockLogs.append.bind(blockLogs, index, tx.hash));
 
+        // prepare log output
         logOutput.push(
           this.#getTransactionLogOutput(
             hash,
             receipt,
-            blockNumberQ,
-            timestamp,
+            blockHeader.number,
+            timestampStr,
             tx.execException
           )
         );
@@ -402,12 +402,18 @@ export default class Blockchain extends Emittery.Typed<
         this.storageKeys.put(value.hashedKey, value.key);
       });
 
-      blockLogs.blockNumber = blockNumberQ;
+      blockLogs.blockNumber = blockHeader.number;
+
+      // save block logs to the database
       this.blockLogs.set(blockNumber, blockLogs.serialize());
+
+      // save block to the database
       blocks.putBlock(blockNumber, blockHash, serialized);
-      if (logOutput.length > 0) {
+
+      // output to the log, if we have data to output
+      if (logOutput.length > 0)
         this.#options.logging.logger.log(logOutput.join(EOL));
-      }
+
       return { block, blockLogs, transactions };
     });
   };
@@ -596,6 +602,54 @@ export default class Blockchain extends Emittery.Typed<
     timestamp: number,
     blockGasLimit: Quantity
   ) => {
+    if (this.fallback != null) {
+      let num: string;
+      if (typeof this.#options.fork.blockNumber == "string") {
+        num = this.#options.fork.blockNumber;
+      } else {
+        num = `0x${this.#options.fork.blockNumber.toString(16)}`;
+      }
+      const forkBlock = new Block(
+        await this.blocks.fromFallback(num),
+        this.#common
+      );
+
+      setStateRootSync(
+        this.vm.stateManager,
+        forkBlock.header.stateRoot.toBuffer()
+      );
+
+      // create the genesis block
+      const genesis = new RuntimeBlock(
+        Quantity.from(forkBlock.header.number.toBigInt() + 1n),
+        forkBlock.hash(),
+        this.coinbase,
+        blockGasLimit.toBuffer(),
+        Quantity.from(timestamp),
+        this.#options.miner.difficulty,
+        forkBlock.header.totalDifficulty
+      );
+
+      // store the genesis block in the database
+      const { block, serialized } = genesis.finalize(
+        forkBlock.header.transactionsRoot.toBuffer(),
+        KECCAK256_RLP,
+        BUFFER_256_ZERO,
+        this.trie.root,
+        0n,
+        this.#options.miner.extraData,
+        [],
+        new Map()
+      );
+      const hash = block.hash();
+      return this.blocks
+        .putBlock(block.header.number.toBuffer(), hash, serialized)
+        .then(_ => ({
+          block,
+          blockLogs: BlockLogs.create(hash)
+        }));
+    }
+
     // README: block `0` is weird in that a `0` _should_ be hashed as `[]`,
     // instead of `[0]`, so we set it to `RPCQUANTITY_EMPTY` instead of
     // `RPCQUANTITY_ZERO` here. A few lines down in this function we swap
@@ -628,7 +682,7 @@ export default class Blockchain extends Emittery.Typed<
     );
     // README: set the block number to an actual 0 now.
     block.header.number = RPCQUANTITY_ZERO;
-    const hash = block.hash().toBuffer();
+    const hash = block.hash();
     return this.blocks
       .putBlock(block.header.number.toBuffer(), hash, serialized)
       .then(_ => ({

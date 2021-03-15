@@ -78,7 +78,9 @@ export default class Server {
     return this.#status;
   }
 
-  constructor(providerAndServerOptions: ServerOptions = { flavor: DefaultFlavor }) {
+  constructor(
+    providerAndServerOptions: ServerOptions = { flavor: DefaultFlavor }
+  ) {
     this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
     this.#providerOptions = providerAndServerOptions;
     this.#status = Status.ready;
@@ -127,7 +129,9 @@ export default class Server {
         : Promise.reject(err);
     } else if ((status & Status.openingOrOpen) !== 0) {
       // if opening or open
-      const err = new Error(`Server is already open, or is opening, on port: ${port}.`);
+      const err = new Error(
+        `Server is already open, or is opening, on port: ${port}.`
+      );
       return callbackIsFunction
         ? process.nextTick(callback!, err)
         : Promise.reject(err);
@@ -159,7 +163,11 @@ export default class Server {
                 LIBUS_LISTEN_EXCLUSIVE_PORT,
                 resolve
               )
-            : this.#app.listen(port as any, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+            : this.#app.listen(
+                port as any,
+                LIBUS_LISTEN_EXCLUSIVE_PORT,
+                resolve
+              );
         }
       ).then(listenSocket => {
         if (listenSocket) {
@@ -188,12 +196,21 @@ export default class Server {
       return new Promise<void>(async (resolve, reject) => {
         const promiseResults = await promise;
 
-        if (promiseResults[0].status === "fulfilled" && promiseResults[1].status === "fulfilled") {
+        if (
+          promiseResults[0].status === "fulfilled" &&
+          promiseResults[1].status === "fulfilled"
+        ) {
           resolve();
         } else {
           let reason = "";
-          reason += promiseResults[0].status === "rejected" ? `${promiseResults[0].reason}\n\n` : "";
-          reason += promiseResults[1].status === "rejected" ? promiseResults[1].reason : "";
+          reason +=
+            promiseResults[0].status === "rejected"
+              ? `${promiseResults[0].reason}\n\n`
+              : "";
+          reason +=
+            promiseResults[1].status === "rejected"
+              ? promiseResults[1].reason
+              : "";
           reject(reason);
         }
       });
@@ -232,7 +249,6 @@ export default class Server {
     if (this.#connector !== null) {
       await this.#connector.close();
     }
-
 
     this.#status = Status.closed;
     this.#app = null;

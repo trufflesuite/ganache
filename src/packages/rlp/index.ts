@@ -11,6 +11,11 @@ export interface List extends Array<Input> {}
 export declare type EncodingInput = Buffer[] | EncodingList;
 export interface EncodingList extends Array<EncodingInput | Buffer> {}
 
+export type EncodedPart = {
+  length: number;
+  output: Buffer[];
+};
+
 /**
  * Begin RLP encoding of `items`, from `start` until `length`. Call `RLP.digest` to
  * finish encoding.
@@ -24,7 +29,7 @@ export function encodeRange<
   items: T,
   start: Start,
   length: Exclude<Remainders<T["length"], Start>, 0>
-): { length: number; output: Buffer[] } {
+): EncodedPart {
   let count = 0;
 
   const end = start + length;

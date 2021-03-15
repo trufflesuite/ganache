@@ -104,19 +104,16 @@ export class TransactionReceipt {
         : Data.from(this.contractAddress);
     const blockHash = block.hash();
     const blockNumber = block.header.number;
-    const blockLog = BlockLogs.create(blockHash.toBuffer());
+    const blockLog = BlockLogs.create(blockHash);
     const transactionHash = transaction.hash;
-    const transactionHashBuffer = transactionHash.toBuffer();
-    const transactionIndexBuffer = transaction.index.toBuffer();
+    const transactionIndex = transaction.index;
     blockLog.blockNumber = blockNumber;
-    raw[3].forEach(log => {
-      blockLog.append(transactionIndexBuffer, transactionHashBuffer, log);
-    });
+    raw[3].forEach(l => blockLog.append(transactionIndex, transactionHash, l));
     const logs = [...blockLog.toJSON()];
 
     return {
       transactionHash,
-      transactionIndex: transaction.index,
+      transactionIndex,
       blockNumber,
       blockHash,
       from: transaction.from,

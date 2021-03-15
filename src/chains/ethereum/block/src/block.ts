@@ -14,6 +14,7 @@ import {
   GanacheRawBlock,
   serialize
 } from "./serialize";
+import { Address } from "@ganache/ethereum-address";
 const { keccak } = utils;
 
 export class Block {
@@ -91,25 +92,22 @@ export class Block {
   }
 
   static rawFromJSON(json: any) {
-    // note: we convert almost everything via Quantity because we must represent
-    // the data in its compressed form in the database in order to calculate the
-    // `size` correctly
     const header: EthereumRawBlockHeader = [
-      Quantity.from(json.parentHash).toBuffer(),
-      Quantity.from(json.sha3Uncles).toBuffer(),
-      Quantity.from(json.miner).toBuffer(),
-      Quantity.from(json.stateRoot).toBuffer(),
-      Quantity.from(json.transactionsRoot).toBuffer(),
-      Quantity.from(json.receiptsRoot).toBuffer(),
-      Quantity.from(json.logsBloom).toBuffer(),
+      Data.from(json.parentHash).toBuffer(),
+      Data.from(json.sha3Uncles).toBuffer(),
+      Address.from(json.miner).toBuffer(),
+      Data.from(json.stateRoot).toBuffer(),
+      Data.from(json.transactionsRoot).toBuffer(),
+      Data.from(json.receiptsRoot).toBuffer(),
+      Data.from(json.logsBloom).toBuffer(),
       Quantity.from(json.difficulty).toBuffer(),
       Quantity.from(json.number).toBuffer(),
       Quantity.from(json.gasLimit).toBuffer(),
       Quantity.from(json.gasUsed).toBuffer(),
       Quantity.from(json.timestamp).toBuffer(),
       Data.from(json.extraData).toBuffer(),
-      Quantity.from(json.mixHash).toBuffer(),
-      Quantity.from(json.nonce).toBuffer()
+      Data.from(json.mixHash).toBuffer(),
+      Data.from(json.nonce).toBuffer()
     ];
     const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
     const txs: EthereumRawTx[] = [];
@@ -119,7 +117,7 @@ export class Block {
         Quantity.from(tx.nonce).toBuffer(),
         Quantity.from(tx.gasPrice).toBuffer(),
         Quantity.from(tx.gas).toBuffer(),
-        tx.to == null ? BUFFER_EMPTY : Quantity.from(tx.to).toBuffer(),
+        tx.to == null ? BUFFER_EMPTY : Address.from(tx.to).toBuffer(),
         Quantity.from(tx.value).toBuffer(),
         Data.from(tx.input).toBuffer(),
         Quantity.from(tx.v).toBuffer(),
