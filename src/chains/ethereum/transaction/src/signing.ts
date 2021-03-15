@@ -153,15 +153,17 @@ export const computeInstrinsics = (
   raw: EthereumRawTx,
   chainId: number
 ) => {
-  const data = encodeRange(raw, 0, 6);
-  const signature = encodeRange(raw, 6, 3);
+  const encodedData = encodeRange(raw, 0, 6);
+  const encodedSignature = encodeRange(raw, 6, 3);
   const serialized = digest(
-    [data.output, signature.output],
-    data.length + signature.length
+    [encodedData.output, encodedSignature.output],
+    encodedData.length + encodedSignature.length
   );
   return {
-    from: computeFromAddress(data, v.toNumber(), raw, chainId),
+    from: computeFromAddress(encodedData, v.toNumber(), raw, chainId),
     hash: Data.from(keccak(serialized), 32),
-    serialized
+    serialized,
+    encodedData,
+    encodedSignature
   };
 };

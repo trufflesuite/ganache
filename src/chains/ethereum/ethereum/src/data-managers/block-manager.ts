@@ -54,7 +54,7 @@ export default class BlockManager extends Manager<Block> {
     this.#blockIndexes = blockIndexes;
   }
 
-  #fromFallback = async (
+  fromFallback = async (
     tagOrBlockNumber: string | Buffer | Tag
   ): Promise<Buffer> => {
     const fallback = this.#blockchain.fallback;
@@ -114,7 +114,7 @@ export default class BlockManager extends Manager<Block> {
     const number = this.getEffectiveNumber(tagOrBlockNumber).toBuffer();
     return super.getRaw(number).then(block => {
       if (block == null && this.#blockchain.fallback) {
-        return this.#fromFallback(tagOrBlockNumber);
+        return this.fromFallback(tagOrBlockNumber);
       }
       return block;
     });
@@ -136,13 +136,13 @@ export default class BlockManager extends Manager<Block> {
    * Writes the block object to the underlying database.
    * @param block
    */
-  async putBlock(number: Buffer, hash: Buffer, serialized: Buffer) {
+  async putBlock(number: Buffer, hash: Data, serialized: Buffer) {
     let key = number;
     // ensure we can store Block #0 as key "00", not ""
     if (EMPTY_BUFFER.equals(key)) {
       key = Buffer.from([0]);
     }
-    const secondaryKey = hash;
+    const secondaryKey = hash.toBuffer();
     await Promise.all([
       this.#blockIndexes.put(secondaryKey, key),
       super.set(key, serialized)

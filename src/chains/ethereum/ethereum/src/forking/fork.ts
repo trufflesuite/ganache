@@ -1,11 +1,25 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { utils } from "@ganache/utils";
 import AbortController from "abort-controller";
+import Common from "ethereumjs-common";
 import { HttpHandler } from "./handlers/http-handler";
 import { WsHandler } from "./handlers/ws-handler";
 import { Handler } from "./types";
+
+const { KNOWN_CHAINIDS } = utils;
+
+function fetchChainId(fork: Fork) {
+  return fork.request<string>("eth_chainId", []);
+}
+function fetchNetworkId(fork: Fork) {
+  return fork.request<string>("net_version", []);
+}
+
 export class Fork {
   private abortController = new AbortController();
   private handler: Handler;
+  private _common: Common;
+  private _commonProm: Promise<[string, string]>;
 
   constructor(options: EthereumInternalOptions) {
     const forkingOptions = options.fork;
@@ -19,15 +33,35 @@ export class Fork {
       case "http:":
       case "https:":
         this.handler = new HttpHandler(options, this.abortController.signal);
-        return;
+        break;
       default: {
         throw new Error(`Unsupported protocol: ${url.protocol}`);
       }
     }
+
+    this._commonProm = Promise.all([fetchChainId(this), fetchNetworkId(this)]);
   }
 
-  public request(method: string, params: unknown[]) {
-    return this.handler.request(method, params);
+  public async getCommon() {
+    if (this._common) return this._common;
+    const [chainIdHex, networkIdStr] = await this._commonProm;
+    this._commonProm = null;
+    const chainId = parseInt(chainIdHex);
+    const networkId = parseInt(networkIdStr);
+    this._common = Common.forCustomChain(
+      KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
+      {
+        name: "ganache-fork",
+        networkId,
+        chainId,
+        comment: "Local test network fork"
+      }
+    );
+    return this._common;
+  }
+
+  public request<T = unknown>(method: string, params: unknown[]): Promise<T> {
+    return this.handler.request(method, params) as Promise<T>;
   }
 
   public abort() {

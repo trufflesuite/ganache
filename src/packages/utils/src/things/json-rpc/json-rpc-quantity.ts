@@ -31,18 +31,16 @@ export class Quantity extends BaseJsonRpcType {
       return super.toString();
     }
   }
-  public toBuffer(): Buffer {
+  public toBuffer(byteLength: number | null = null): Buffer {
     // 0x0, 0x00, 0x000, etc should return BUFFER_EMPTY
     if (Buffer.isBuffer(this.value)) {
       return this.value;
-    } else if (typeof this.value === "string") {
-      const val = this.value.replace(/^(?:0+(.+?))?$/, "$1");
-      if (val === "") {
+    } else if (typeof this.value === "string" && byteLength == null) {
+      let val = this.value.slice(2).replace(/^(?:0+(.+?))?$/, "$1");
+      if (val === "" || val === "0") {
         return BUFFER_EMPTY;
       }
-    } else if (this.value === 0) {
-      return BUFFER_EMPTY;
-    } else if (this.value === 0n) {
+    } else if (this.value === 0 || this.value === 0n) {
       return BUFFER_EMPTY;
     }
 

@@ -64,9 +64,9 @@ export class BlockLogs {
    * @param blockHash Creates an BlogLogs entity with an empty internal logs
    * array.
    */
-  static create(blockHash: Buffer) {
+  static create(blockHash: Data) {
     const blockLog = Object.create(BlockLogs.prototype) as BlockLogs;
-    blockLog[_raw] = [blockHash, []];
+    blockLog[_raw] = [blockHash.toBuffer(), []];
     return blockLog;
   }
 
@@ -84,14 +84,14 @@ export class BlockLogs {
    * @param log
    */
   public append(
-    /*removed: boolean, */ transactionIndex: Buffer,
-    transactionHash: Buffer,
+    /*removed: boolean, */ transactionIndex: Quantity,
+    transactionHash: Data,
     log: TransactionLog
   ) {
     this[_raw][1].push([
       utils.BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
-      transactionIndex, // transactionIndex
-      transactionHash, // transactionHash
+      transactionIndex.toBuffer(), // transactionIndex
+      transactionHash.toBuffer(), // transactionHash
       log[0], // `address`
       log[1], // `topics`
       log[2] // `data`
