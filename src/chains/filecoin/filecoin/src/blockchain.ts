@@ -175,10 +175,7 @@ export default class Blockchain extends Emittery.Typed<
 
         this.tipsetManager.earliest = genesisTipset; // initialize earliest
         await this.tipsetManager.putTipset(genesisTipset); // sets latest
-        await this.#database.db!.put(
-          "latest-tipset",
-          Quantity.from(0).toBuffer()
-        );
+        await this.#database.db!.put("latest-tipset", utils.uintToBuffer(0));
       } else {
         this.tipsetManager.earliest = recordedGenesisTipset; // initialize earliest
         const data: Buffer = await this.#database.db!.get("latest-tipset");
@@ -626,7 +623,7 @@ export default class Blockchain extends Emittery.Typed<
       await this.tipsetManager!.putTipset(newTipset);
       await this.#database.db!.put(
         "latest-tipset",
-        Quantity.from(newTipsetHeight).toBuffer()
+        utils.uintToBuffer(newTipsetHeight)
       );
 
       // Advance the state of all deals in process.
