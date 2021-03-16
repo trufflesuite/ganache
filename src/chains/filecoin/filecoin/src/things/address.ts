@@ -45,6 +45,7 @@ class Address extends SerializableLiteral<AddressConfig> {
   static readonly FirstNonSingletonActorId = 100; // Ref impl: https://git.io/JtgqT
   static readonly FirstMinerId = 1000; // Ref impl: https://git.io/Jt2WE
   static readonly CHECKSUM_BYTES = 4;
+  static readonly CustomBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
 
   #privateKey?: string;
   get privateKey(): string | undefined {
@@ -161,8 +162,10 @@ class Address extends SerializableLiteral<AddressConfig> {
 
   static recoverBLSPublicKey(address: string): Buffer {
     const protocol = Address.parseProtocol(address);
-    const customBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
-    const decoded = base32.parse(address.slice(2), customBase32Alphabet);
+    const decoded = base32.parse(
+      address.slice(2),
+      Address.CustomBase32Alphabet
+    );
     const payload = decoded.slice(0, decoded.length - 4);
 
     if (protocol === AddressProtocol.BLS) {
@@ -221,10 +224,9 @@ class Address extends SerializableLiteral<AddressConfig> {
 
     // Use a custom alphabet to base32 encode the checksummed public key,
     // and prepend the network and protocol identifiers.
-    const customBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
     const address = `${network}${protocol}${base32.stringify(
       payloadAndChecksum,
-      customBase32Alphabet
+      Address.CustomBase32Alphabet
     )}`;
 
     return new Address(address, privateKey);
@@ -362,8 +364,7 @@ class Address extends SerializableLiteral<AddressConfig> {
       return address;
     }
 
-    const customBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
-    const payloadWithChecksum = base32.parse(raw, customBase32Alphabet);
+    const payloadWithChecksum = base32.parse(raw, Address.CustomBase32Alphabet);
 
     if (payloadWithChecksum.length < Address.CHECKSUM_BYTES) {
       throw new Error("invalid address checksum");
