@@ -85,6 +85,7 @@ describe("api", () => {
             logging: { logger },
             miner: { blockTime: 1 }
           });
+          const [from] = await nonInstamineProvider.send("eth_accounts")
 
           const hash = await nonInstamineProvider.send("eth_sendTransaction", [
             { from, to: from }
@@ -126,6 +127,8 @@ describe("api", () => {
             logging: { logger },
             miner: { legacyInstamine: true }
           });
+
+          const [from] = await legacyInstamineProvider.send("eth_accounts")
 
           const hash = await legacyInstamineProvider.send(
             "eth_sendTransaction",

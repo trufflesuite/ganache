@@ -1,9 +1,9 @@
 import { normalize } from "./helpers";
-import Seedrandom from "seedrandom";
+import seedrandom from "seedrandom";
 import { entropyToMnemonic } from "bip39";
 import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
-const unseededRng = Seedrandom();
+const unseededRng = seedrandom();
 
 /**
  * WARNING: to maintain compatibility with ganache v2 this RNG only generates
@@ -259,7 +259,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     // needs to be prior to `wallet.mnemonic` for `config.seed`
     // below to be set correctly
     default: config =>
-      entropyToMnemonic(notVeryRandomBytes(16, new Seedrandom(config.seed))),
+      entropyToMnemonic(notVeryRandomBytes(16, seedrandom(config.seed))),
     defaultDescription: "Generated from wallet.seed",
     legacyName: "mnemonic",
     cliAliases: ["m", "mnemonic"],

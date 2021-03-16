@@ -9,6 +9,12 @@
 			"resolved": "https://registry.npmjs.org/@types/node/-/node-11.11.6.tgz",
 			"integrity": "sha512-Exw4yUWMBXM3X+8oqzJNRqZSwUAaS4+7NdvHqQuFi/d+synz++xmX3QIf+BFqneW8N31R8Ky+sikfZUXq07ggQ=="
 		},
+		"@types/seedrandom": {
+			"version": "3.0.0",
+			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-3.0.0.tgz",
+			"integrity": "sha512-Jr03BtXs7v6M/wtTum2VOMLBq7R8zpjdZLynhA/IOJq83czXrnVo8iSUI05gcq8Ecq0Swt+nuoK3y2ji/TWyMA==",
+			"dev": true
+		},
 		"bip39": {
 			"version": "3.0.3",
 			"resolved": "https://registry.npmjs.org/bip39/-/bip39-3.0.3.tgz",

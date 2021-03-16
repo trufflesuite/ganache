@@ -92,6 +92,12 @@
 				"@types/node": "*"
 			}
 		},
+		"@types/seedrandom": {
+			"version": "3.0.0",
+			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-3.0.0.tgz",
+			"integrity": "sha512-Jr03BtXs7v6M/wtTum2VOMLBq7R8zpjdZLynhA/IOJq83czXrnVo8iSUI05gcq8Ecq0Swt+nuoK3y2ji/TWyMA==",
+			"dev": true
+		},
 		"@types/ws": {
 			"version": "7.2.7",
 			"resolved": "https://registry.npmjs.org/@types/ws/-/ws-7.2.7.tgz",
