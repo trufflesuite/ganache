@@ -87,7 +87,7 @@ describe("things", () => {
       );
     });
 
-    // This test fails and I can't figure out why, but it's not worth the time now.
+    // TODO: This test fails and I can't figure out why, but it's not worth the time now.
     // Read more at Address.signMessage implementation
     it.skip("properly signs a Message with a BLS address", async () => {
       const address = Address.fromPrivateKey(
@@ -116,6 +116,8 @@ describe("things", () => {
       );
     });
 
+    // TODO: This test fails and I can't figure out why, but it's not worth the time now.
+    // Read more at Address.signMessage implementation
     it.skip("properly signs a Message with a SECP256K1 address", async () => {
       const address = Address.fromPrivateKey(
         secpAddress.testInfo.privateKey,

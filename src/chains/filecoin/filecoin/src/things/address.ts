@@ -80,9 +80,9 @@ class Address extends SerializableLiteral<AddressConfig> {
 
   async signMessage(message: Message): Promise<Buffer> {
     if (this.#privateKey) {
-      // From the code at https://git.io/Jtud2, it appears that messages
-      // are signed using the CID. However there are two issues here that
-      // I spent too much time trying to figure out:
+      // TODO (Issue ganache-core#867): From the code at https://git.io/Jtud2,
+      // it appears that messages are signed using the CID. However there are
+      // two issues here that I spent too much time trying to figure out:
       //   1. We don't generate an identical CID
       //   2. Even if we did, this signature doesn't match what lotus provides
       // But here's the catch, I know for certain `signBuffer` mimics lotus's
