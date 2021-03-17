@@ -5,14 +5,40 @@ const NOTFOUND = 404;
 export default class PrivateKeyManager {
   static AccountsWithPrivateKeysKey = Buffer.from("accounts-with-private-keys");
   private base: LevelUp;
+  #addressesWithPrivateKeys: string[];
+
+  get addressesWithPrivateKeys() {
+    return this.#addressesWithPrivateKeys;
+  }
 
   static async initialize(base: LevelUp) {
-    const manager = new PrivateKeyManager(base);
+    let addressesWithPrivateKeys: string[];
+    try {
+      const result: Buffer = await base.get(
+        PrivateKeyManager.AccountsWithPrivateKeysKey
+      );
+      addressesWithPrivateKeys = JSON.parse(result.toString());
+    } catch (e) {
+      if (e.status === NOTFOUND) {
+        // if the array doesn't exist yet, initialize it
+        addressesWithPrivateKeys = [];
+        await base.put(
+          PrivateKeyManager.AccountsWithPrivateKeysKey,
+          Buffer.from(JSON.stringify(addressesWithPrivateKeys))
+        );
+      } else {
+        throw e;
+      }
+    }
+
+    const manager = new PrivateKeyManager(base, addressesWithPrivateKeys);
+
     return manager;
   }
 
-  constructor(base: LevelUp) {
+  constructor(base: LevelUp, addressesWithPrivateKeys: string[]) {
     this.base = base;
+    this.#addressesWithPrivateKeys = addressesWithPrivateKeys;
   }
 
   async getPrivateKey(address: string): Promise<string | null> {
@@ -28,52 +54,47 @@ export default class PrivateKeyManager {
     }
   }
 
+  /**
+   * NOTE: This function should only be called from
+   * `AccountManager.putAccount` to ensure fields are written
+   * atomically. Only call this function if you know what you're doing.
+   */
   async putPrivateKey(address: string, privateKey: string) {
     address = address.toLowerCase();
     await this.base.put(Buffer.from(address), Buffer.from(privateKey, "hex"));
-    const addresses = await this.getAddressesWithPrivateKeys();
-    if (!addresses.includes(address)) {
-      addresses.push(address);
-      await this.base.put(
-        PrivateKeyManager.AccountsWithPrivateKeysKey,
-        Buffer.from(JSON.stringify(addresses))
-      );
-    }
-  }
 
-  async getAddressesWithPrivateKeys(): Promise<Array<string>> {
-    try {
-      const result: Buffer = await this.base.get(
-        PrivateKeyManager.AccountsWithPrivateKeysKey
+    if (!this.#addressesWithPrivateKeys.includes(address)) {
+      this.#addressesWithPrivateKeys.push(address);
+
+      // TODO(perf): (Issue ganache-core#875) If the number of private
+      // keys becomes very large (a highly unlikely event), this would
+      // kill performance whenever accounts were created
+      this.base.put(
+        PrivateKeyManager.AccountsWithPrivateKeysKey,
+        Buffer.from(JSON.stringify(this.#addressesWithPrivateKeys))
       );
-      return JSON.parse(result.toString());
-    } catch (e) {
-      if (e.status === NOTFOUND) {
-        await this.base.put(
-          PrivateKeyManager.AccountsWithPrivateKeysKey,
-          Buffer.from(JSON.stringify([]))
-        );
-        return [];
-      }
-      throw e;
     }
   }
 
   async hasPrivateKey(address: string) {
     address = address.toLowerCase();
-    const addresses = await this.getAddressesWithPrivateKeys();
-    return addresses.includes(address);
+    return this.#addressesWithPrivateKeys.includes(address);
   }
 
   async deletePrivateKey(address: string) {
     address = address.toLowerCase();
-    let addresses = await this.getAddressesWithPrivateKeys();
-    if (addresses.includes(address)) {
-      addresses = addresses.filter(a => a !== address);
+    if (this.#addressesWithPrivateKeys.includes(address)) {
+      this.#addressesWithPrivateKeys = this.#addressesWithPrivateKeys.filter(
+        a => a !== address
+      );
       this.base.del(Buffer.from(address));
+
+      // TODO(perf): (Issue ganache-core#875) If the number of private
+      // keys becomes very large (a highly unlikely event), this would
+      // kill performance whenever accounts were created
       await this.base.put(
         PrivateKeyManager.AccountsWithPrivateKeysKey,
-        Buffer.from(JSON.stringify(addresses))
+        Buffer.from(JSON.stringify(this.#addressesWithPrivateKeys))
       );
     }
   }
@@ -81,12 +102,17 @@ export default class PrivateKeyManager {
   async setDefault(address: string) {
     address = address.toLowerCase();
     if (this.hasPrivateKey(address)) {
-      let addresses = await this.getAddressesWithPrivateKeys();
-      addresses = addresses.filter(a => a !== address);
-      addresses.unshift(address);
+      this.#addressesWithPrivateKeys = this.#addressesWithPrivateKeys.filter(
+        a => a !== address
+      );
+      this.#addressesWithPrivateKeys.unshift(address);
+
+      // TODO(perf): (Issue ganache-core#875) If the number of private
+      // keys becomes very large (a highly unlikely event), this would
+      // kill performance whenever accounts were created
       await this.base.put(
         PrivateKeyManager.AccountsWithPrivateKeysKey,
-        Buffer.from(JSON.stringify(addresses))
+        Buffer.from(JSON.stringify(this.#addressesWithPrivateKeys))
       );
     } else {
       throw new Error(
