@@ -239,7 +239,7 @@ export default class FilecoinApi implements types.Api {
    * of the Block RootCIDs that are part of the tipset. Must be
    * an exact match and must include exactly the same number of
    * blocks that are actually in the tipset.
-   * @returns Tthe matched tipset.
+   * @returns The matched tipset.
    */
   async "Filecoin.ChainGetTipSetByHeight"(
     height: number,
@@ -538,7 +538,9 @@ export default class FilecoinApi implements types.Api {
    * parameter is not used.
    * @returns An array of SignedMessage objects that are in the message pool.
    */
-  async "Filecoin.MpoolPending"(): Promise<Array<SerializedSignedMessage>> {
+  async "Filecoin.MpoolPending"(
+    tipsetKey: Array<RootCID>
+  ): Promise<Array<SerializedSignedMessage>> {
     const signedMessages = await this.#blockchain.mpoolPending();
 
     return signedMessages.map(signedMessage => signedMessage.serialize());
@@ -563,7 +565,10 @@ export default class FilecoinApi implements types.Api {
    *
    * @returns
    */
-  async "Filecoin.MpoolSelect"(): Promise<Array<SerializedSignedMessage>> {
+  async "Filecoin.MpoolSelect"(
+    tipsetKey: Array<RootCID>,
+    ticketQuality: number
+  ): Promise<Array<SerializedSignedMessage>> {
     const signedMessages = await this.#blockchain.mpoolPending();
 
     return signedMessages.map(signedMessage => signedMessage.serialize());
@@ -658,7 +663,8 @@ export default class FilecoinApi implements types.Api {
    * @returns The MinerInfo object.
    */
   async "Filecoin.StateMinerInfo"(
-    minerAddress: string
+    minerAddress: string,
+    tipsetKey: Array<RootCID>
   ): Promise<SerializedMinerInfo> {
     if (minerAddress === this.#blockchain.miner.value) {
       // The defaults are set up to correspond to the current
@@ -717,7 +723,7 @@ export default class FilecoinApi implements types.Api {
    * a persisted database with `database.db` or `database.dbPath` options.
    *
    * @param keyType The key type (`bls` or `secp256k1`) to use
-   * to generate the address. KeyType of `scep256k1-ledger` is
+   * to generate the address. KeyType of `secp256k1-ledger` is
    * not supported in Filecoin-flavored Ganache.
    * @returns The public address as a `string`.
    */
