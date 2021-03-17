@@ -172,7 +172,9 @@ class BlockHeader
         deserializedName: "timestamp",
         serializedName: "Timestamp",
         defaultValue: literal => {
-          return literal || new Date().getTime() / 1000;
+          return typeof literal !== "undefined"
+            ? literal
+            : new Date().getTime() / 1000;
         }
       },
       blockSignature: {
