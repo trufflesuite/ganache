@@ -131,10 +131,7 @@ async function startGanache(err: Error) {
     }
     case EthereumFlavorName:
     default: {
-      await initializeEthereum(
-        server.provider as EthereumProvider,
-        cliSettings
-      );
+      initializeEthereum(server.provider as EthereumProvider, cliSettings);
       break;
     }
   }
