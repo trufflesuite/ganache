@@ -41,7 +41,7 @@ describe("api", () => {
       }
     });
 
-    describe("Filecoin.ClientStartDeal, Filecoin.ClientListDeals, Ganache.GetDealById, and Filecoin.ClientGetDealUpdates", () => {
+    describe("Filecoin.ClientStartDeal, Filecoin.ClientListDeals, Ganache.GetDealById, Filecoin.ClientGetDealInfo, and Filecoin.ClientGetDealUpdates", () => {
       let ipfs: IPFSClient;
       let currentDeal: DealInfo = new DealInfo({
         dealId: -1
@@ -150,6 +150,31 @@ describe("api", () => {
           }
           assert(
             e.message.includes("Could not find a deal for the provided ID")
+          );
+        }
+      });
+
+      it("retrieves deal using CID", async () => {
+        const deals = await client.clientListDeals();
+        assert.strictEqual(deals.length, 1);
+
+        const deal = await client.clientGetDealInfo(deals[0].ProposalCid);
+
+        assert.deepStrictEqual(deal, deals[0]);
+      });
+
+      it("fails to retrieve invalid deal using CID", async () => {
+        try {
+          const invalidCid =
+            "bafyreifi6tnqdabvaid7o4qezjpcavkwtibctpfzuarr4erfxjqds52bba";
+          await client.clientGetDealInfo({ "/": invalidCid });
+          assert.fail("Successfully retrieved a deal for an invalid CID");
+        } catch (e) {
+          if (e.code === "ERR_ASSERTION") {
+            throw e;
+          }
+          assert(
+            e.message.includes("Could not find a deal for the provided CID")
           );
         }
       });
