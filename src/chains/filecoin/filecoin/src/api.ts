@@ -610,11 +610,11 @@ export default class FilecoinApi implements types.Api {
   }
 
   async "Ganache.EnableMiner"(): Promise<void> {
-    this.#blockchain.enableMiner();
+    await this.#blockchain.enableMiner();
   }
 
   async "Ganache.DisableMiner"(): Promise<void> {
-    this.#blockchain.disableMiner();
+    await this.#blockchain.disableMiner();
   }
 
   async "Ganache.MinerEnabled"(): Promise<boolean> {
