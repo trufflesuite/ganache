@@ -15,6 +15,9 @@ import { SerializedVersion } from "./things/version";
 import { SerializedMessage } from "./things/message";
 import { SerializedMessageSendSpec } from "./things/message-send-spec";
 import { SerializedSignedMessage } from "./things/signed-message";
+import { KeyType } from "./things/key-type";
+import { SerializedKeyInfo } from "./things/key-info";
+import { SerializedSignature } from "./things/signature";
 export default class FilecoinApi implements types.Api {
   #private;
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -52,7 +55,32 @@ export default class FilecoinApi implements types.Api {
   ): Promise<SerializedMinerPower>;
   "Filecoin.StateMinerInfo"(minerAddress: string): Promise<SerializedMinerInfo>;
   "Filecoin.WalletDefaultAddress"(): Promise<SerializedAddress>;
+  "Filecoin.WalletSetDefault"(address: string): Promise<void>;
   "Filecoin.WalletBalance"(address: string): Promise<string>;
+  "Filecoin.WalletNew"(keyType: KeyType): Promise<SerializedAddress>;
+  "Filecoin.WalletList"(): Promise<Array<SerializedAddress>>;
+  "Filecoin.WalletHas"(address: string): Promise<boolean>;
+  "Filecoin.WalletDelete"(address: string): Promise<void>;
+  "Filecoin.WalletExport"(address: string): Promise<SerializedKeyInfo>;
+  "Filecoin.WalletImport"(
+    serializedKeyInfo: SerializedKeyInfo
+  ): Promise<SerializedAddress>;
+  "Filecoin.WalletSign"(
+    address: string,
+    data: string
+  ): Promise<SerializedSignature>;
+  "Filecoin.WalletSignMessage"(
+    address: string,
+    serializedMessage: SerializedMessage
+  ): Promise<SerializedSignedMessage>;
+  "Filecoin.WalletVerify"(
+    inputAddress: string,
+    data: string,
+    serializedSignature: SerializedSignature
+  ): Promise<boolean>;
+  "Filecoin.WalletValidateAddress"(
+    inputAddress: string
+  ): Promise<SerializedAddress>;
   "Filecoin.ClientStartDeal"(
     serializedProposal: SerializedStartDealParams
   ): Promise<SerializedRootCID>;

@@ -8,4 +8,7 @@ export default class PrivateKeyManager {
   getPrivateKey(address: string): Promise<string | null>;
   putPrivateKey(address: string, privateKey: string): Promise<void>;
   getAddressesWithPrivateKeys(): Promise<Array<string>>;
+  hasPrivateKey(address: string): Promise<boolean>;
+  deletePrivateKey(address: string): Promise<void>;
+  setDefault(address: string): Promise<void>;
 }

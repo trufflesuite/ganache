@@ -58,7 +58,7 @@ describe("things", () => {
     it("should create a random address when calling Address.random()", async () => {
       const address = Address.random();
 
-      assert(Address.isValid(address.value));
+      assert.ok(Address.validate(address.value));
     });
 
     it("properly signs a buffer with a BLS address", async () => {

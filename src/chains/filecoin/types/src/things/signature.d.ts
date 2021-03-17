@@ -5,11 +5,12 @@ import {
   Definitions,
   SerializedObject
 } from "./serializable-object";
+import { SigType } from "./sig-type";
 interface SignatureConfig {
   properties: {
     type: {
-      type: number;
-      serializedType: number;
+      type: SigType;
+      serializedType: SigType;
       serializedName: "Type";
     };
     data: {

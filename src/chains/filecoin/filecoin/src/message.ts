@@ -130,24 +130,23 @@ export async function verifyMessageSignature(
     );
   }
 
-  const serialized = signedMessage.message.serialize();
-  const encoded = cbor.encode(serialized);
+  const address = new Address(signedMessage.message.from);
+
   switch (signedMessage.signature.type) {
     case SigType.SigTypeBLS: {
-      const verified = await bls.verify(
-        signedMessage.signature.data,
+      const verified = await address.verifySignature(
         Buffer.from(signedMessage.message.cid.value),
-        Address.recoverBLSPublicKey(signedMessage.message.from)
+        signedMessage.signature
       );
 
       return verified ? null : new Error("bls signature failed to verify");
     }
     case SigType.SigTypeSecp256k1: {
-      const hash = blake.blake2b(encoded, null, 32);
-      const verified = ecdsaVerify(
-        signedMessage.signature.data.slice(0, 64), // remove the recid suffix (should be the last/65th byte)
-        hash,
-        Address.recoverSECP256K1PublicKey(signedMessage.signature, hash)
+      const serialized = signedMessage.message.serialize();
+      const encoded = cbor.encode(serialized);
+      const verified = address.verifySignature(
+        encoded,
+        signedMessage.signature
       );
 
       return verified ? null : new Error("signature did not match");
