@@ -29,7 +29,7 @@
     "directory": "src/chains/filecoin"
   },
   "scripts": {
-    "build": "npx --node-arg=--max-old-space-size=10000 webpack",
+    "build": "webpack",
     "docs.build": "rm -rf ./lib/docs ./lib/api.json && npm run docs.typedoc",
     "docs.typedoc": "typedoc --options ./typedoc.json --readme ./README.md --out ../../../docs/typedoc --json ../../../docs/typedoc/api.json src/api.ts",
     "docs.preview": "ws --open --port 3012 --directory ../../../",
@@ -60,8 +60,6 @@
     "secp256k1": "4.0.2"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-class-properties": "7.12.13",
-    "@babel/plugin-proposal-private-methods": "7.12.13",
     "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",
     "@filecoin-shipyard/lotus-client-rpc": "0.0.11",
     "@seesemichaelj/uwebsockets.js": "18.15.3",
@@ -73,7 +71,6 @@
     "@types/seedrandom": "2.4.28",
     "@types/terser-webpack-plugin": "5.0.2",
     "@types/ws": "7.4.0",
-    "babel-loader": "8.2.2",
     "cross-env": "7.0.2",
     "node-loader": "1.0.2",
     "nyc": "15.1.0",
