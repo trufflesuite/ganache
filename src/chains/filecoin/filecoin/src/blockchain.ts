@@ -74,6 +74,7 @@ export default class Blockchain extends Emittery.Typed<
 
   private ipfsServer: IPFSServer;
   private miningTimeout: NodeJS.Timeout | null;
+  readonly #miningTimeoutLock: Sema;
   private rng: utils.RandomNumberGenerator;
 
   readonly #database: Database;
@@ -97,6 +98,7 @@ export default class Blockchain extends Emittery.Typed<
     this.ipfsServer = new IPFSServer(this.options.chain);
 
     this.miningTimeout = null;
+    this.#miningTimeoutLock = new Sema(1);
     // to prevent us from stopping while mining or mining
     // multiple times simultaneously
     this.#miningLock = new Sema(1);
@@ -189,7 +191,7 @@ export default class Blockchain extends Emittery.Typed<
 
       // Fire up the miner if necessary
       if (this.minerEnabled && this.options.miner.blockTime > 0) {
-        this.enableMiner();
+        await this.enableMiner();
       }
 
       // Get this party started!
@@ -219,9 +221,10 @@ export default class Blockchain extends Emittery.Typed<
     // prevent it from starting up again by not releasing
     await this.#miningLock.acquire();
     await this.#messagePoolLock.acquire();
+    await this.#miningTimeoutLock.acquire();
 
     if (this.miningTimeout) {
-      clearInterval(this.miningTimeout);
+      clearTimeout(this.miningTimeout);
     }
     if (this.ipfsServer) {
       await this.ipfsServer.stop();
@@ -235,32 +238,41 @@ export default class Blockchain extends Emittery.Typed<
     return this.ipfsServer.node;
   }
 
-  enableMiner() {
+  private async intervalMine(mine: boolean = true) {
+    await this.#miningTimeoutLock.acquire();
+
+    if (mine) {
+      await this.mineTipset();
+    }
+
+    this.miningTimeout = setTimeout(
+      this.intervalMine.bind(this),
+      this.options.miner.blockTime * 1000
+    );
+    utils.unref(this.miningTimeout);
+
+    this.#miningTimeoutLock.release();
+  }
+
+  async enableMiner() {
     this.#minerEnabled = true;
     this.emit("minerEnabled", true);
 
     if (this.options.miner.blockTime > 0) {
-      const intervalMine = () => {
-        this.mineTipset();
-      };
-
-      this.miningTimeout = setInterval(
-        intervalMine,
-        this.options.miner.blockTime * 1000
-      );
-
-      utils.unref(this.miningTimeout);
+      await this.intervalMine(false);
     }
   }
 
-  disableMiner() {
+  async disableMiner() {
     this.#minerEnabled = false;
     this.emit("minerEnabled", false);
 
+    await this.#miningTimeoutLock.acquire();
     if (this.miningTimeout) {
-      clearInterval(this.miningTimeout);
+      clearTimeout(this.miningTimeout);
       this.miningTimeout = null;
     }
+    this.#miningTimeoutLock.release();
   }
 
   genesisTipset(): Tipset {
