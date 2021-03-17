@@ -12,7 +12,7 @@ See the [web documentation](#todo) for more details on the available NodeJS opti
 
 These options are provided alongside the `flavor` options. For example:
 
-```json
+```json5
 {
   "flavor": "filecoin",
   "chain": {

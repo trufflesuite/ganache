@@ -100,7 +100,7 @@ See available startup options [in `@ganache/filecoin-options`](../options/README
 - `Ganache.DisableMiner`: Disables the miner. No parameters.
 - `Ganache.MinerEnabled`: The current status on whether or not the miner is enabled. The initial value is determined by the option `miner.mine`. If true, then auto-mining (`miner.blockTime = 0`) and interval mining (`miner.blockTime > 0`) will be processed. If false, tipsets/blocks will only be mined with `Ganache.MineTipset`. No parameters.
 - `Ganache.MinerEnabledNotify`: A subscription method that provides an update whenever the miner is enabled or disabled. No parameters.
-- `Ganache.GetDealById`: Retrieves an internal `DealInfo` by it's `DealID`. Takes a single parameter, `DealID` of type `number`.
+- `Ganache.GetDealById`: Retrieves an internal `DealInfo` by its `DealID`. Takes a single parameter, `DealID`, of type `number`.
 
 ### Supported Lotus RPC methods
 

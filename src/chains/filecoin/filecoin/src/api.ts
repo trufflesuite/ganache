@@ -214,8 +214,9 @@ export default class FilecoinApi implements types.Api {
    * Returns the tipset for the provided tipset key.
    *
    * @param serializedTipsetKey an array of the Block RootCIDs
-   * that are part of the tipset. Must be an exact match (can't
-   * include more or less blocks than are actually in the tipset).
+   * that are part of the tipset. Must be an exact match and
+   * must include exactly the same number of blocks that are
+   * actually in the tipset.
    * @returns The matched tipset.
    */
   async "Filecoin.ChainGetTipSet"(
@@ -236,8 +237,8 @@ export default class FilecoinApi implements types.Api {
    * that you would like to retrieve.
    * @param serializedTipsetKey An optional tipset key, an array
    * of the Block RootCIDs that are part of the tipset. Must be
-   * an exact match (can't include more or less blocks than are
-   * actually in the tipset).
+   * an exact match and must include exactly the same number of
+   * blocks that are actually in the tipset.
    * @returns Tthe matched tipset.
    */
   async "Filecoin.ChainGetTipSetByHeight"(
@@ -981,7 +982,7 @@ export default class FilecoinApi implements types.Api {
    * the Ganache IPFS node. Deals are automatically accepted
    * as long as the public address in `Wallet` is in Ganache's
    * wallet (see `Filecoin.WalletList` or `Filecoin.WalletHas`
-   * to check). Storage deals in Ganache are automatically progressed
+   * to check). Storage deals in Ganache automatically progress
    * each tipset from one state to the next towards the
    * StorageDealStatusActive state.
    *
@@ -1258,7 +1259,7 @@ export default class FilecoinApi implements types.Api {
   }
 
   /**
-   * Retrieves an internal `DealInfo` by it's `DealID`.
+   * Retrieves an internal `DealInfo` by its `DealID`.
    *
    * @param dealId A `number` corresponding to the `DealInfo.DealID`
    * for the deal to retrieve.
