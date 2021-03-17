@@ -49,7 +49,7 @@ describe("api", () => {
       const enabledChanges: boolean[] = [];
 
       before(async () => {
-        provider = await getProvider({ miner: { blockTime: 0.5 } });
+        provider = await getProvider({ miner: { blockTime: 0.1 } });
         client = new LotusRPC(provider, { schema: FilecoinProvider.Schema });
       });
 
@@ -103,7 +103,7 @@ describe("api", () => {
         assert.strictEqual(provider.blockchain.minerEnabled, false);
 
         const head1 = await client.chainHead();
-        await new Promise(resolve => setInterval(resolve, 1500));
+        await new Promise(resolve => setInterval(resolve, 300));
         const head2 = await client.chainHead();
         assert.strictEqual(head2.Height, head1.Height);
 
@@ -128,7 +128,7 @@ describe("api", () => {
         };
         await client.mpoolPushMessage(message, messageSendSpec);
 
-        await new Promise(resolve => setInterval(resolve, 100));
+        await new Promise(resolve => setInterval(resolve, 300));
         const head3 = await client.chainHead();
         assert.strictEqual(head3.Height, head2.Height);
       });
@@ -149,7 +149,7 @@ describe("api", () => {
         assert.strictEqual(isEnabled, true);
         assert.strictEqual(provider.blockchain.minerEnabled, true);
         const head1 = await client.chainHead();
-        await new Promise(resolve => setInterval(resolve, 1500));
+        await new Promise(resolve => setInterval(resolve, 300));
         const head2 = await client.chainHead();
         assert(head2.Height > head1.Height);
 
@@ -174,7 +174,7 @@ describe("api", () => {
         };
         await client.mpoolPushMessage(message, messageSendSpec);
 
-        await new Promise(resolve => setInterval(resolve, 100));
+        await new Promise(resolve => setInterval(resolve, 300));
         const head3 = await client.chainHead();
         assert(head3.Height > head2.Height);
       });
