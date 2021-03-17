@@ -37,6 +37,10 @@
     {
       "name": "@ganache/filecoin-types",
       "path": "../../chains/filecoin/types"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../colors"
     }
   ]
 }

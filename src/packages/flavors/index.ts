@@ -12,8 +12,14 @@ import {
   FilecoinLegacyProviderOptions
 } from "@ganache/filecoin-options";
 
+import { TruffleColors } from "@ganache/colors";
+import chalk from "chalk";
+
 // we need "@ganache/options" in order for TS to properly infer types for `DefaultOptionsByName`
 import "@ganache/options";
+
+const NEED_HELP = "Need help? Reach out to the Truffle community at";
+const COMMUNITY_LINK = "https://gitter.im/ConsenSys/truffle";
 
 export const EthereumFlavorName = "ethereum";
 export const FilecoinFlavorName = "filecoin";
@@ -59,9 +65,14 @@ export function GetConnector(
           const blue = "\x1b[34m";
           const reset = "\x1b[0m";
           console.warn(
-            `\n\n${bold}${red}ERROR:${reset} Could not find module ${bold}@ganache/filecoin${reset} peer dependency; ` +
-              `please run "${bold}${blue}npm install @ganache/filecoin${reset}" if you're using as a library ` +
-              `or "${bold}${blue}npm install --global @ganache/filecoin${reset}" if you're using in the Ganache CLI.\n\n`
+            chalk`\n\n{red.bold ERROR:} Could not find Ganache flavor "{bold filecoin}" (@ganache/filecoin); ` +
+              `it probably\nneeds to be installed.\n` +
+              ` ▸ if you're using Ganache as a library run: \n` +
+              chalk`   {blue.bold $ npm install @ganache/filecoin}\n` +
+              ` ▸ if you're using Ganache as a CLI run: \n` +
+              chalk`   {blue.bold $ npm install --global @ganache/filecoin}\n\n` +
+              chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
+              chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
           );
           process.exit(1);
         } else {
