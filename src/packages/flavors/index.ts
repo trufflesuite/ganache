@@ -60,10 +60,6 @@ export function GetConnector(
         if (e.message.includes("Cannot find module '@ganache/filecoin'")) {
           // we print and exit rather than throw to prevent webpack output from being
           // spat out for the line number
-          const bold = "\x1b[1m";
-          const red = "\x1b[31m";
-          const blue = "\x1b[34m";
-          const reset = "\x1b[0m";
           console.warn(
             chalk`\n\n{red.bold ERROR:} Could not find Ganache flavor "{bold filecoin}" (@ganache/filecoin); ` +
               `it probably\nneeds to be installed.\n` +
