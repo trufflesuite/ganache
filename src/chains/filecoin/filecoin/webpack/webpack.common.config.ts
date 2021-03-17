@@ -26,14 +26,6 @@ const base: webpack.Configuration = {
             }
           }
         ]
-      },
-      {
-        test: /\.jsx?$/,
-        use: [
-          {
-            loader: "babel-loader"
-          }
-        ]
       }
     ]
   },
