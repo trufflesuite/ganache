@@ -6,6 +6,7 @@ import {
   Definitions
 } from "./serializable-object";
 import { RetrievalPeer, SerializedRetrievalPeer } from "./retrieval-peer";
+import { Address, SerializedAddress } from "./address";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#RetrievalOrder
 
@@ -47,13 +48,13 @@ type RetrievalOrderConfig = {
       serializedName: "PaymentIntervalIncrease";
     };
     client: {
-      type: string; // using string until we can support more address types in Address
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Client";
     };
     miner: {
-      type: string; // using string until we can support more address types in Address
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Miner";
     };
     minerPeer: {
@@ -107,12 +108,14 @@ class RetrievalOrder
       client: {
         deserializedName: "client",
         serializedName: "Client",
-        defaultValue: "t02000"
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0)
       },
       miner: {
         deserializedName: "miner",
         serializedName: "Miner",
-        defaultValue: "t01000"
+        defaultValue: literal =>
+          literal ? new Address(literal) : Address.fromId(0, false, true)
       },
       minerPeer: {
         deserializedName: "minerPeer",
@@ -154,8 +157,8 @@ class RetrievalOrder
   unsealPrice: bigint;
   paymentInterval: number;
   paymentIntervalIncrease: number;
-  client: string;
-  miner: string;
+  client: Address;
+  miner: Address;
   minerPeer: RetrievalPeer;
 }
 

@@ -22,6 +22,8 @@ declare enum AddressNetwork {
 declare class Address extends SerializableLiteral<AddressConfig> {
   #private;
   get config(): {};
+  static readonly FirstNonSingletonActorId = 100;
+  static readonly FirstMinerId = 1000;
   static readonly CHECKSUM_BYTES = 4;
   get privateKey(): string | undefined;
   get network(): AddressNetwork;
@@ -49,6 +51,19 @@ declare class Address extends SerializableLiteral<AddressConfig> {
   static isValid(value: string): boolean;
   static parseNetwork(publicAddress: string): AddressNetwork;
   static parseProtocol(publicAddress: string): AddressProtocol;
+  /**
+   * Creates an AddressProtocol.ID address
+   * @param id A positive integer for the id.
+   * @param isSingletonSystemActor If false, it adds Address.FirstNonSingletonActorId to the id.
+   * Almost always `false`. See https://git.io/JtgqL for examples of singleton system actors.
+   * @param network The AddressNetwork prefix for the address; usually AddressNetwork.Testnet for Ganache.
+   */
+  static fromId(
+    id: number,
+    isSingletonSystemActor?: boolean,
+    isMiner?: boolean,
+    network?: AddressNetwork
+  ): Address;
 }
 declare type SerializedAddress = string;
 export { Address, SerializedAddress, AddressProtocol };

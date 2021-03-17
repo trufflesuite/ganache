@@ -42,6 +42,8 @@ class Address extends SerializableLiteral<AddressConfig> {
     return {};
   }
 
+  static readonly FirstNonSingletonActorId = 100; // Ref impl: https://git.io/JtgqT
+  static readonly FirstMinerId = 1000; // Ref impl: https://git.io/Jt2WE
   static readonly CHECKSUM_BYTES = 4;
 
   #privateKey?: string;
@@ -265,6 +267,34 @@ class Address extends SerializableLiteral<AddressConfig> {
         return AddressProtocol.Unknown;
       }
     }
+  }
+
+  /**
+   * Creates an AddressProtocol.ID address
+   * @param id A positive integer for the id.
+   * @param isSingletonSystemActor If false, it adds Address.FirstNonSingletonActorId to the id.
+   * Almost always `false`. See https://git.io/JtgqL for examples of singleton system actors.
+   * @param network The AddressNetwork prefix for the address; usually AddressNetwork.Testnet for Ganache.
+   */
+  static fromId(
+    id: number,
+    isSingletonSystemActor: boolean = false,
+    isMiner: boolean = false,
+    network: AddressNetwork = AddressNetwork.Testnet
+  ): Address {
+    if (Math.round(id) !== id || id < 0) {
+      throw new Error("id must be a positive integer");
+    }
+
+    return new Address(
+      `${network}${AddressProtocol.ID}${
+        isSingletonSystemActor
+          ? id
+          : isMiner
+          ? Address.FirstMinerId + id
+          : Address.FirstNonSingletonActorId + id
+      }`
+    );
   }
 }
 

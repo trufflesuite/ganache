@@ -5,11 +5,12 @@ import {
   Definitions
 } from "./serializable-object";
 import { RootCID, SerializedRootCID } from "./root-cid";
+import { Address, SerializedAddress } from "./address";
 declare type RetrievalPeerConfig = {
   properties: {
     address: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Address";
     };
     id: {
@@ -33,7 +34,7 @@ declare class RetrievalPeer
       | Partial<SerializedObject<RetrievalPeerConfig>>
       | Partial<DeserializedObject<RetrievalPeerConfig>>
   );
-  address: string;
+  address: Address;
   id: string;
   pieceCID: RootCID;
 }

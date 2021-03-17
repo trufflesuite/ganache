@@ -42,7 +42,7 @@ export type BlockchainEvents = {
 };
 
 // Reference implementation: https://git.io/JtEVW
-const BurntFundsAddress = "t099";
+const BurntFundsAddress = Address.fromId(99, true);
 
 export default class Blockchain extends Emittery.Typed<
   BlockchainEvents,
@@ -55,7 +55,7 @@ export default class Blockchain extends Emittery.Typed<
   public signedMessagesManager: SignedMessageManager | null;
   public blockMessagesManager: BlockMessagesManager | null;
 
-  readonly miner: string; // using string until we can support more address types in Address
+  readonly miner: Address;
   readonly #miningLock: Sema;
 
   public messagePool: Array<SignedMessage>;
@@ -81,7 +81,7 @@ export default class Blockchain extends Emittery.Typed<
 
     this.rng = new utils.RandomNumberGenerator(this.options.wallet.seed);
 
-    this.miner = "t01000";
+    this.miner = Address.fromId(0, false, true);
 
     this.messagePool = [];
     this.#messagePoolLock = new Sema(1);
@@ -452,7 +452,7 @@ export default class Blockchain extends Emittery.Typed<
           if (baseFee !== 0) {
             const successful = await this.accountManager!.transferFunds(
               from,
-              BurntFundsAddress,
+              BurntFundsAddress.value,
               getMinerFee(signedMessage.message)
             );
 
@@ -470,7 +470,7 @@ export default class Blockchain extends Emittery.Typed<
           // send mining funds
           let successful = await this.accountManager!.transferFunds(
             from,
-            this.miner,
+            this.miner.value,
             getMinerFee(signedMessage.message)
           );
 
@@ -704,7 +704,7 @@ export default class Blockchain extends Emittery.Typed<
     let totalPrice = BigInt(deal.pricePerEpoch) * BigInt(deal.duration);
     await this.accountManager!.transferFunds(
       proposal.wallet.value,
-      proposal.miner,
+      proposal.miner.value,
       totalPrice
     );
 
@@ -730,7 +730,7 @@ export default class Blockchain extends Emittery.Typed<
     let hasLocal: boolean = await this.hasLocal(retrievalOrder.root.root.value);
 
     const account = await this.accountManager!.getAccount(
-      retrievalOrder.client
+      retrievalOrder.client.value
     );
     if (!account.address.privateKey) {
       throw new Error(
@@ -745,8 +745,8 @@ export default class Blockchain extends Emittery.Typed<
     await this.downloadFile(retrievalOrder.root.root.value, ref);
 
     await this.accountManager!.transferFunds(
-      retrievalOrder.client,
-      retrievalOrder.miner,
+      retrievalOrder.client.value,
+      retrievalOrder.miner.value,
       retrievalOrder.total
     );
   }

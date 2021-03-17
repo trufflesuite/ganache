@@ -6,6 +6,7 @@ import {
   Definitions
 } from "./serializable-object";
 import { RetrievalPeer, SerializedRetrievalPeer } from "./retrieval-peer";
+import { Address, SerializedAddress } from "./address";
 declare type QueryOfferConfig = {
   properties: {
     err: {
@@ -49,8 +50,8 @@ declare type QueryOfferConfig = {
       serializedName: "PaymentIntervalIncrease";
     };
     miner: {
-      type: string;
-      serializedType: string;
+      type: Address;
+      serializedType: SerializedAddress;
       serializedName: "Miner";
     };
     minerPeer: {
@@ -77,7 +78,7 @@ declare class QueryOffer
   unsealPrice: bigint;
   paymentInterval: number;
   paymentIntervalIncrease: number;
-  miner: string;
+  miner: Address;
   minerPeer: RetrievalPeer;
 }
 declare type SerializedQueryOffer = SerializedObject<QueryOfferConfig>;
