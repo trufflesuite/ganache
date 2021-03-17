@@ -39,6 +39,7 @@ import { checkMessage } from "./message";
 export type BlockchainEvents = {
   ready(): void;
   tipset: Tipset;
+  minerEnabled: boolean;
 };
 
 // Reference implementation: https://git.io/JtEVW
@@ -57,6 +58,10 @@ export default class Blockchain extends Emittery.Typed<
 
   readonly miner: Address;
   readonly #miningLock: Sema;
+  #minerEnabled: boolean;
+  get minerEnabled() {
+    return this.#minerEnabled;
+  }
 
   public messagePool: Array<SignedMessage>;
   readonly #messagePoolLock: Sema;
@@ -69,6 +74,7 @@ export default class Blockchain extends Emittery.Typed<
 
   private ipfsServer: IPFSServer;
   private miningTimeout: NodeJS.Timeout | null;
+  readonly #miningTimeoutLock: Sema;
   private rng: utils.RandomNumberGenerator;
 
   readonly #database: Database;
@@ -92,9 +98,11 @@ export default class Blockchain extends Emittery.Typed<
     this.ipfsServer = new IPFSServer(this.options.chain);
 
     this.miningTimeout = null;
+    this.#miningTimeoutLock = new Sema(1);
     // to prevent us from stopping while mining or mining
     // multiple times simultaneously
     this.#miningLock = new Sema(1);
+    this.#minerEnabled = this.options.miner.mine;
 
     // We set these to null since they get initialized in
     // an async callback below. We could ignore the TS error,
@@ -182,17 +190,8 @@ export default class Blockchain extends Emittery.Typed<
       await this.ipfsServer.start();
 
       // Fire up the miner if necessary
-      if (this.options.miner.blockTime > 0) {
-        const intervalMine = () => {
-          this.mineTipset();
-        };
-
-        this.miningTimeout = setInterval(
-          intervalMine,
-          this.options.miner.blockTime * 1000
-        );
-
-        utils.unref(this.miningTimeout);
+      if (this.minerEnabled && this.options.miner.blockTime > 0) {
+        await this.enableMiner();
       }
 
       // Get this party started!
@@ -222,9 +221,10 @@ export default class Blockchain extends Emittery.Typed<
     // prevent it from starting up again by not releasing
     await this.#miningLock.acquire();
     await this.#messagePoolLock.acquire();
+    await this.#miningTimeoutLock.acquire();
 
     if (this.miningTimeout) {
-      clearInterval(this.miningTimeout);
+      clearTimeout(this.miningTimeout);
     }
     if (this.ipfsServer) {
       await this.ipfsServer.stop();
@@ -236,6 +236,43 @@ export default class Blockchain extends Emittery.Typed<
 
   get ipfs(): IPFS | null {
     return this.ipfsServer.node;
+  }
+
+  private async intervalMine(mine: boolean = true) {
+    await this.#miningTimeoutLock.acquire();
+
+    if (mine) {
+      await this.mineTipset();
+    }
+
+    this.miningTimeout = setTimeout(
+      this.intervalMine.bind(this),
+      this.options.miner.blockTime * 1000
+    );
+    utils.unref(this.miningTimeout);
+
+    this.#miningTimeoutLock.release();
+  }
+
+  async enableMiner() {
+    this.#minerEnabled = true;
+    this.emit("minerEnabled", true);
+
+    if (this.options.miner.blockTime > 0) {
+      await this.intervalMine(false);
+    }
+  }
+
+  async disableMiner() {
+    this.#minerEnabled = false;
+    this.emit("minerEnabled", false);
+
+    await this.#miningTimeoutLock.acquire();
+    if (this.miningTimeout) {
+      clearTimeout(this.miningTimeout);
+      this.miningTimeout = null;
+    }
+    this.#miningTimeoutLock.release();
   }
 
   genesisTipset(): Tipset {
@@ -383,7 +420,7 @@ export default class Blockchain extends Emittery.Typed<
         this.#messagePoolLock.release();
       }
 
-      if (this.options.miner.blockTime === 0) {
+      if (this.minerEnabled && this.options.miner.blockTime === 0) {
         // we should instamine this message
         // purposely not awaiting on this as we'll
         // deadlock for Filecoin.MpoolPushMessage calls
@@ -754,7 +791,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // If we're automining, mine a new block. Note that this will
     // automatically advance the deal to the active state.
-    if (this.options.miner.blockTime === 0) {
+    if (this.minerEnabled && this.options.miner.blockTime === 0) {
       while (deal.state !== StorageDealStatus.Active) {
         await this.mineTipset();
       }

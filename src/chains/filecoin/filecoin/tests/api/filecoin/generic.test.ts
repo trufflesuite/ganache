@@ -126,23 +126,5 @@ describe("api", () => {
         assert.strictEqual(head.Blocks[0].Height, head.Height);
       });
     });
-
-    describe("Ganache.MineTipset", () => {
-      it("should return a serialized tipset with blocks", async () => {
-        const { Height: priorHeight } = await client.chainHead();
-
-        for (let i = 0; i < 5; i++) {
-          await provider.send({
-            jsonrpc: "2.0",
-            id: "0",
-            method: "Ganache.MineTipset"
-          });
-        }
-
-        const { Height: currentHeight } = await client.chainHead();
-
-        assert.strictEqual(currentHeight, priorHeight + 5);
-      });
-    });
   });
 });
