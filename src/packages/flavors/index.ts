@@ -19,7 +19,7 @@ import chalk from "chalk";
 import "@ganache/options";
 
 const NEED_HELP = "Need help? Reach out to the Truffle community at";
-const COMMUNITY_LINK = "https://gitter.im/ConsenSys/truffle";
+const COMMUNITY_LINK = "https://trfl.co/support";
 
 export const EthereumFlavorName = "ethereum";
 export const FilecoinFlavorName = "filecoin";
