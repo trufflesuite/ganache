@@ -91,7 +91,8 @@ export default class Blockchain extends Emittery.Typed<
       );
       this.accountManager = await AccountManager.initialize(
         this.#database.accounts!,
-        this.privateKeyManager
+        this.privateKeyManager,
+        this.#database
       );
 
       const controllableAccounts = await this.accountManager.getControllableAccounts();

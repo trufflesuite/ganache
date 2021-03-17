@@ -3,32 +3,50 @@ import { LevelUp } from "levelup";
 import { Account, AccountConfig } from "../things/account";
 import PrivateKeyManager from "./private-key-manager";
 import { Address } from "../things/address";
+import Database from "../database";
 
 export default class AccountManager extends Manager<Account, AccountConfig> {
   #privateKeyManager: PrivateKeyManager;
+  #database: Database;
 
-  static async initialize(base: LevelUp, privateKeyManager: PrivateKeyManager) {
-    const manager = new AccountManager(base, privateKeyManager);
+  static async initialize(
+    base: LevelUp,
+    privateKeyManager: PrivateKeyManager,
+    database: Database
+  ) {
+    const manager = new AccountManager(base, privateKeyManager, database);
     return manager;
   }
 
-  constructor(base: LevelUp, privateKeyManager: PrivateKeyManager) {
+  constructor(
+    base: LevelUp,
+    privateKeyManager: PrivateKeyManager,
+    database: Database
+  ) {
     super(base, Account);
 
     // the account manager doesn't handle private keys directly
     // we need to use the private key manager for that
     this.#privateKeyManager = privateKeyManager;
+
+    this.#database = database;
   }
 
+  // TODO(perf): (Issue ganache-core#876) There's probably a bit of
+  // performance optimizations that could be done here. putAccount
+  // is called whenever the account changes (balance, nonce,
+  // private key)
   async putAccount(account: Account) {
-    await super.set(account.address.value, account);
+    await this.#database.batch(() => {
+      super.set(account.address.value, account);
 
-    if (account.address.privateKey) {
-      await this.#privateKeyManager.putPrivateKey(
-        account.address.value,
-        account.address.privateKey
-      );
-    }
+      if (account.address.privateKey) {
+        this.#privateKeyManager.putPrivateKey(
+          account.address.value,
+          account.address.privateKey
+        );
+      }
+    });
   }
 
   async getAccount(address: string): Promise<Account> {
@@ -57,7 +75,7 @@ export default class AccountManager extends Manager<Account, AccountConfig> {
    * where `account.address.privateKey` is set.
    */
   async getControllableAccounts(): Promise<Array<Account>> {
-    const addresses = await this.#privateKeyManager.getAddressesWithPrivateKeys();
+    const addresses = this.#privateKeyManager.addressesWithPrivateKeys;
     const accounts = await Promise.all(
       addresses.map(async address => await this.getAccount(address))
     );
