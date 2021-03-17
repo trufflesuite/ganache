@@ -18,6 +18,8 @@ import { SerializedSignedMessage } from "./things/signed-message";
 import { KeyType } from "./things/key-type";
 import { SerializedKeyInfo } from "./things/key-info";
 import { SerializedSignature } from "./things/signature";
+import { SerializedBlockHeader } from "./things/block-header";
+import { SerializedBlockMessages } from "./things/block-messages";
 export default class FilecoinApi implements types.Api {
   #private;
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -30,6 +32,22 @@ export default class FilecoinApi implements types.Api {
   [SubscriptionMethod.ChannelClosed](
     subscriptionId: SubscriptionId
   ): Promise<boolean>;
+  "Filecoin.ChainGetTipSet"(
+    serializedTipsetKey: Array<SerializedRootCID>
+  ): Promise<SerializedTipset>;
+  "Filecoin.ChainGetTipSetByHeight"(
+    height: number,
+    serializedTipsetKey?: Array<SerializedRootCID>
+  ): Promise<SerializedTipset>;
+  "Filecoin.ChainGetBlock"(
+    serializedBlockCid: SerializedRootCID
+  ): Promise<SerializedBlockHeader>;
+  "Filecoin.ChainGetBlockMessages"(
+    serializedBlockCid: SerializedRootCID
+  ): Promise<SerializedBlockMessages>;
+  "Filecoin.ChainGetMessage"(
+    serializedMessageCid: SerializedRootCID
+  ): Promise<SerializedMessage>;
   "Filecoin.MpoolGetNonce"(address: string): Promise<number>;
   "Filecoin.MpoolPush"(
     signedMessage: SerializedSignedMessage

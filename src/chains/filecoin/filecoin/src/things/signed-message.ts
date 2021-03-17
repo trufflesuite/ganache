@@ -6,6 +6,8 @@ import {
 } from "./serializable-object";
 import { Message, SerializedMessage } from "./message";
 import { SerializedSignature, Signature } from "./signature";
+import { CID } from "./cid";
+import { SigType } from "./sig-type";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/chain/types#SignedMessage
 
@@ -55,6 +57,15 @@ class SignedMessage
 
   message: Message;
   signature: Signature;
+
+  // Reference implementation: https://git.io/Jt53i
+  get cid(): CID {
+    if (this.signature.type === SigType.SigTypeBLS) {
+      return this.message.cid;
+    } else {
+      return super.cid;
+    }
+  }
 }
 
 type SerializedSignedMessage = SerializedObject<SignedMessageConfig>;
