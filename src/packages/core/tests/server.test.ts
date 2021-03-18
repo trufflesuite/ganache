@@ -1,4 +1,10 @@
-import Ganache from "../";
+// Using `../index` instead of `../` is
+// necessary as `..` will point to the `package.json`
+// and point to `main` which uses `lib/index.js`
+// instead of `index.ts` causing TS errors during
+// construction due to missing private fields
+import Ganache from "../index";
+
 import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
@@ -36,7 +42,6 @@ describe("server", () => {
       }
     }
   ) {
-    // @ts-expect-error
     s = Ganache.server(options);
     return s.listen(port);
   }
@@ -107,7 +112,6 @@ describe("server", () => {
     });
 
     it("returns the net_version over a legacy-style connection listener", done => {
-      // @ts-expect-error
       s = Ganache.server({
         chain: { networkId }
       });
