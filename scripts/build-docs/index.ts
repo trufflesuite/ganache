@@ -149,7 +149,9 @@ function (${name}: ${type})
 }
 
 function renderMethodLink(method: Method) {
-  return `<a href="#${e(x(method.name))}">${x(method.name)}</a>`;
+  return `<a href="#${e(x(method.name))}" onclick="toggleSidebar()">${x(
+    method.name
+  )}</a>`;
 }
 
 function renderMethodDocs(method: Method) {
@@ -328,18 +330,21 @@ const html = `
     <link rel="shortcut icon" href="./assets/img/favicon.png" />
 
     <link href="https://fonts.googleapis.com/css?family=Grand+Hotel|Open+Sans:300i,300,400|Oswald:200,400,700|Share+Tech+Mono|Varela+Round&display=swap" rel="stylesheet" />
-
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.12.0/css/all.css" integrity="sha384-ekOryaXPbeCpWQNxMwSWVvQ0+1VrStoPJq54shlYhR8HzQgig1v5fas6YgOqLoKz" crossorigin="anonymous" />
     <link rel="stylesheet" href="./assets/css/main.css" />
     <link rel="stylesheet" href="./assets/css/highlight-truffle.css" />
   </head>
   <body>
     <div class="container">
       <header>
+        <span onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+        </span>
         <h1>Ganache</h1>
       </header>
       <main>
         <aside>
-          <nav>
+          <nav class="sidebar hide">
             <ul>
               <li>
               ${methodList.join("</li><li>")}
@@ -351,12 +356,20 @@ const html = `
           <div class="content">
             <p>Ganache Ethereum JSON-RPC documentation.</p>
           </div>
-          ${methodDocs.join("")}
+            ${methodDocs.join("")}
         </article>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js" integrity="sha256-0SGl1PJNDyJwcV5T+weg2zpEMrh7xvlwO4oXgvZCeZk=" crossorigin="anonymous"></script>
     <script src="./assets/js/inject-editor.js"></script>
+    <script>
+      function toggleSidebar() {
+        const toggleSidebarBtn = document.querySelector(".sidebar");
+        const main = document.querySelector("article");
+        toggleSidebarBtn.classList.toggle("hide");
+        main.classList.toggle("sidebar-open");
+      }
+    </script>
   </body>
 </html>
 `;
