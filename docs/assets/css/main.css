@@ -69,6 +69,24 @@ a:focus {
   color: var(--turquoise);
   text-decoration: underline;
 }
+i {
+  font-size: 1.25em;
+  cursor: pointer;
+}
+.sidebar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  z-index: 2;
+  background: var(--main-bg-color);
+  overflow-x: scroll;
+  padding-left: 1em;
+  transition: 0.3s ease-in-out;
+}
+.hide {
+  display: none;
+}
 .small {
   font-size: 0.9em;
 }
@@ -107,7 +125,7 @@ a:focus {
   padding: 0.25em 0.5em;
   cursor: pointer;
   border-radius: 0 0 3px 3px;
-  z-index: 1000;
+  z-index: 1;
   text-transform: uppercase;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
   position: absolute;
@@ -118,7 +136,7 @@ a:focus {
 }
 .editor-container {
   position: relative;
-  z-index: 999;
+  z-index: 0;
 }
 .editor-container::before {
   content: " ";
@@ -186,6 +204,12 @@ header {
   box-shadow: 0 6px 6px rgba(0, 0, 0, 0.25);
   z-index: 999;
 }
+header h1 {
+  display: inline-block;
+}
+header span {
+  padding-left: 1em;
+}
 main {
   display: flex;
   overflow: auto;
@@ -196,7 +220,7 @@ aside {
 }
 aside ul {
   list-style: none;
-  padding-left: 1.5rem;
+  padding: 0 0 2rem 0;
   margin: 1rem 0;
 }
 aside ul li {
@@ -211,4 +235,32 @@ article div.content {
 }
 article div.wide-content {
   padding: 0 0;
+}
+article.sidebar-open {
+  transition: 0.3s ease-in-out;
+}
+/* medium devices (tablets) */
+@media (min-width: 768px) {
+  .sidebar {
+    width: 33.3%;
+  }
+  article.sidebar-open {
+    margin-left: 33.3%;
+  }
+}
+/* large devices (desktops) */
+@media (min-width: 992px) {
+  header span {
+    display: none;
+  }
+  .sidebar {
+    width: 25%;
+    display: block;
+  }
+  article {
+    margin-left: 25%;
+  }
+  article.sidebar-open {
+    margin-left: 25%;
+  }
 }
