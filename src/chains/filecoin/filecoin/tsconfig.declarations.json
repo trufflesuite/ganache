@@ -7,7 +7,7 @@
     "emitDeclarationOnly": true,
     "declarationDir": "../types"
   },
-  "include": ["index.ts", "src/**/*"],
+  "include": ["src/**/*"],
   "typeRoots": ["./node_modules/@types", "./src/@types"],
   "references": [
     {

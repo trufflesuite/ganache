@@ -1,5 +1,9 @@
 import { Provider } from "./provider";
-import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
+import {
+  RecognizedString,
+  WebSocket,
+  HttpRequest
+} from "@seesemichaelj/uwebsockets.js";
 import { Api } from "./api";
 import { KnownKeys } from "../types";
 import Emittery from "emittery";

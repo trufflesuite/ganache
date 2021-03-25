@@ -1,10 +1,14 @@
 import { InternalOptions, ServerOptions, serverOptionsConfig } from "./options";
 
-import uWS, { TemplatedApp, us_listen_socket } from "uWebSockets.js";
+import uWS, {
+  TemplatedApp,
+  us_listen_socket
+} from "@seesemichaelj/uwebsockets.js";
 import { Connector, DefaultFlavor } from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
+import Emittery from "emittery";
 
 type Provider = Connector["provider"];
 
@@ -42,7 +46,7 @@ export enum Status {
   closing = 12
 }
 
-export default class Server {
+export class Server extends Emittery<{ open: undefined; close: undefined }> {
   #app: TemplatedApp;
   #httpServer: HttpServer;
   #listenSocket?: us_listen_socket;
@@ -60,6 +64,8 @@ export default class Server {
   }
 
   constructor(serverOptions: ServerOptions = { flavor: DefaultFlavor }) {
+    super();
+
     const opts = (this.#options = serverOptionsConfig.normalize(serverOptions));
     const connector = (this.#connector = ConnectorLoader.initialize(
       serverOptions
@@ -123,22 +129,26 @@ export default class Server {
             )
           : this.#app.listen(port as any, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
       }
-    ).then(listenSocket => {
-      if (listenSocket) {
-        this.#status = Status.open;
-        this.#listenSocket = listenSocket;
-        if (callbackIsFunction) callback!(null);
-      } else {
-        this.#status = Status.closed;
-        const err = new Error(
-          `listen EADDRINUSE: address already in use ${
-            hostname || DEFAULT_HOST
-          }:${port}.`
-        );
-        if (callbackIsFunction) callback!(err);
-        else throw err;
-      }
-    });
+    )
+      .then(listenSocket => {
+        if (listenSocket) {
+          this.#status = Status.open;
+          this.#listenSocket = listenSocket;
+          if (callbackIsFunction) callback!(null);
+        } else {
+          this.#status = Status.closed;
+          const err = new Error(
+            `listen EADDRINUSE: address already in use ${
+              hostname || DEFAULT_HOST
+            }:${port}.`
+          );
+          if (callbackIsFunction) callback!(err);
+          else throw err;
+        }
+      })
+      .then(() => {
+        return this.emit("open");
+      });
 
     if (!callbackIsFunction) {
       return promise;
@@ -170,5 +180,9 @@ export default class Server {
     await this.#connector.close();
     this.#status = Status.closed;
     this.#app = void 0;
+
+    await this.emit("close");
   }
 }
+
+export default Server;

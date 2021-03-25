@@ -1,8 +1,8 @@
-import Ganache from "../";
+import Ganache, { Server } from "../";
 import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
-import Server, { Status } from "../src/server";
+import { Status } from "../src/server";
 import http from "http";
 // https://github.com/sindresorhus/into-stream/releases/tag/v6.0.0
 import intoStream = require("into-stream");
@@ -890,5 +890,37 @@ describe("server", () => {
         logger.log = oldLog;
       }
     }).timeout(10000);
+  });
+
+  describe("emitter", () => {
+    let server: Server;
+    let didEmitOpen = false;
+    let didEmitClose = false;
+
+    before(async () => {
+      server = Ganache.server();
+      server.on("open", () => {
+        didEmitOpen = true;
+      });
+      server.on("close", () => {
+        didEmitClose = true;
+      });
+    });
+
+    it("emits the open event", async () => {
+      assert.strictEqual(didEmitOpen, false);
+      assert.strictEqual(didEmitClose, false);
+      await server.listen(port);
+      assert.strictEqual(didEmitOpen, true);
+      assert.strictEqual(didEmitClose, false);
+    });
+
+    it("emits the close event", async () => {
+      assert.strictEqual(didEmitOpen, true);
+      assert.strictEqual(didEmitClose, false);
+      await server.close();
+      assert.strictEqual(didEmitOpen, true);
+      assert.strictEqual(didEmitClose, true);
+    });
   });
 });
