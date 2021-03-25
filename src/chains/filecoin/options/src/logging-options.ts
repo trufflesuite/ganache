@@ -24,12 +24,6 @@ export type LoggingConfig = {
     readonly logger: {
       type: Logger;
       hasDefault: true;
-      legacy: {
-        /**
-         * @deprecated Use logging.logger instead
-         */
-        logger: Logger;
-      };
     };
   };
 };
@@ -42,7 +36,6 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliDescription:
       "An object, like `console`, that implements a `log` function.",
     disableInCLI: true,
-    default: () => logger,
-    legacyName: "logger"
+    default: () => logger
   }
 };

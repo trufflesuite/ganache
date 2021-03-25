@@ -1,19 +1,21 @@
 {
   "name": "@ganache/filecoin-options",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "author": "Tim Coulter",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/filecoin/options#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "types": "lib/src/index.d.ts",
   "source": "index.ts",
   "directories": {
     "lib": "lib",
     "test": "test"
   },
   "files": [
-    "lib"
+    "lib/index.*",
+    "lib/src/index.d.ts",
+    "dist"
   ],
   "repository": {
     "type": "git",
@@ -21,6 +23,7 @@
     "directory": "src/chains/filecoin/options"
   },
   "scripts": {
+    "build": "webpack",
     "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
@@ -43,11 +46,18 @@
     "tooling",
     "truffle"
   ],
-  "dependencies": {
-    "@ganache/options": "0.1.0",
-    "seedrandom": "3.0.5"
-  },
   "devDependencies": {
-    "@types/seedrandom": "2.4.28"
+    "@ganache/options": "0.1.0",
+    "@types/seedrandom": "2.4.28",
+    "@types/terser-webpack-plugin": "5.0.2",
+    "node-loader": "1.0.2",
+    "seedrandom": "3.0.5",
+    "terser-webpack-plugin": "5.0.3",
+    "ts-loader": "8.0.7",
+    "webpack": "5.21.2",
+    "webpack-cli": "4.5.0"
+  },
+  "dependencies": {
+    "keccak": "3.0.1"
   }
 }

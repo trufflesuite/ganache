@@ -169,12 +169,12 @@ abstract class SerializableObject<C extends BaseConfig>
   }
 
   serialize(): SerializedObject<C> {
-    let returnVal: SerializedObject<C> = {} as SerializedObject<C>;
+    const returnVal: SerializedObject<C> = {} as SerializedObject<C>;
 
     for (const [deserializedName, { serializedName }] of Object.entries(
       this.config
     )) {
-      let value = (this as any)[deserializedName];
+      const value = (this as any)[deserializedName];
       (returnVal as any)[serializedName] = this.serializeValue(value);
     }
 
@@ -182,8 +182,8 @@ abstract class SerializableObject<C extends BaseConfig>
   }
 
   equals(obj: Serializable<SerializedObject<C>>): boolean {
-    let a: SerializedObject<C> = this.serialize();
-    let b: SerializedObject<C> = obj.serialize();
+    const a: SerializedObject<C> = this.serialize();
+    const b: SerializedObject<C> = obj.serialize();
 
     return deepEqual(a, b);
   }

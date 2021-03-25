@@ -5,7 +5,10 @@ import IpfsHttpClient from "ipfs-http-client";
 import { StartDealParams } from "../../src/things/start-deal-params";
 import { StorageMarketDataRef } from "../../src/things/storage-market-data-ref";
 import { RootCID } from "../../src/things/root-cid";
-import { StorageDealStatus } from "../../src/types/storage-deal-status";
+import {
+  dealIsInProcess,
+  StorageDealStatus
+} from "../../src/types/storage-deal-status";
 import { FilecoinOptionsConfig } from "@ganache/filecoin-options";
 
 describe("Blockchain", () => {
@@ -63,7 +66,7 @@ describe("Blockchain", () => {
     });
 
     it("creates new tipset with one block on creation", async () => {
-      let genesis: Tipset = blockchain.genesisTipset();
+      const genesis: Tipset = blockchain.genesisTipset();
 
       assert.strictEqual(genesis.height, 0);
       assert.strictEqual(genesis.blocks.length, 1);
@@ -72,8 +75,8 @@ describe("Blockchain", () => {
     it("mines a new tipset and creates parent/child relationship between blocks", async () => {
       await blockchain.mineTipset();
 
-      let genesis: Tipset = blockchain.genesisTipset();
-      let latest: Tipset = blockchain.latestTipset();
+      const genesis: Tipset = blockchain.genesisTipset();
+      const latest: Tipset = blockchain.latestTipset();
 
       assert.strictEqual(latest.height, 1, "Incorrect height!");
       assert(
@@ -87,7 +90,7 @@ describe("Blockchain", () => {
     it("will mine blocks on an interval", async function () {
       this.timeout(10000);
 
-      let blockchain = new Blockchain(
+      const blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           miner: {
             blockTime: 0.1
@@ -107,7 +110,7 @@ describe("Blockchain", () => {
         // Github CI is so unpredictable with their burstable cpus
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        let latest: Tipset = blockchain.latestTipset();
+        const latest: Tipset = blockchain.latestTipset();
 
         assert(
           latest.height >= 3 || latest.height <= 10,
@@ -121,7 +124,7 @@ describe("Blockchain", () => {
 
   describe("ipfs server", () => {
     it("creates an ipfs server", async () => {
-      let blockchain = new Blockchain(
+      const blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           logging: {
             logger: {
@@ -134,7 +137,7 @@ describe("Blockchain", () => {
       try {
         await blockchain.waitForReady();
 
-        let ipfs = IpfsHttpClient({
+        const ipfs = IpfsHttpClient({
           host: "localhost",
           port: blockchain.options.chain.ipfsPort,
           protocol: "http",
@@ -143,10 +146,10 @@ describe("Blockchain", () => {
 
         const testData = "this is some data!";
 
-        let result = await ipfs.add({
+        const result = await ipfs.add({
           content: testData
         });
-        let cid = result.path;
+        const cid = result.path;
 
         // This is the exact CID expected from the test data.
         assert.strictEqual(
@@ -182,12 +185,12 @@ describe("Blockchain", () => {
 
       await blockchain.waitForReady();
 
-      let result = await blockchain.ipfs!.add({
+      const result = await blockchain.ipfs!.add({
         content: "some data"
       });
 
       const accounts = await blockchain.accountManager.getControllableAccounts();
-      let proposal = new StartDealParams({
+      const proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
           root: new RootCID({
@@ -201,44 +204,46 @@ describe("Blockchain", () => {
         minBlocksDuration: 300
       });
 
-      let { root: proposalCid } = await blockchain.startDeal(proposal);
+      const { root: proposalCid } = await blockchain.startDeal(proposal);
+
+      let currentDeal = await blockchain.dealInfoManager!.get(
+        proposalCid.value
+      );
 
       // First state should be validating
-      assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
-        StorageDealStatus.Validating
-      );
+      assert.strictEqual(currentDeal.state, StorageDealStatus.Validating);
 
       await blockchain.mineTipset();
+
+      currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
 
       // Next state should be Staged
-      assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
-        StorageDealStatus.Staged
-      );
+      assert.strictEqual(currentDeal.state, StorageDealStatus.Staged);
 
       await blockchain.mineTipset();
+
+      currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
 
       // Next state should be ReserveProviderFunds
       assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
+        currentDeal.state,
         StorageDealStatus.ReserveProviderFunds
       );
 
       // ... and on and on
 
       // Let's mine all the way to the Sealing state
-      while (
-        blockchain.dealsByCid.get(proposalCid.value)!.state !=
-        StorageDealStatus.Sealing
-      ) {
+      while (currentDeal.state != StorageDealStatus.Sealing) {
         await blockchain.mineTipset();
+        currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
       }
 
       // The deal should still be considered in process, since it's still sealing
-      assert.strictEqual(blockchain.inProcessDeals.length, 1);
+      let deals = await blockchain.dealInfoManager.getDeals();
+      let inProcessDeals = deals.filter(deal => dealIsInProcess(deal.state));
+      assert.strictEqual(inProcessDeals.length, 1);
       assert.strictEqual(
-        blockchain.inProcessDeals[0].proposalCid.root.value,
+        inProcessDeals[0].proposalCid.root.value,
         proposalCid.value
       );
 
@@ -246,11 +251,13 @@ describe("Blockchain", () => {
       // the deal was pulled out of the in process array.
       await blockchain.mineTipset();
 
-      assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
-        StorageDealStatus.Active
-      );
-      assert.strictEqual(blockchain.inProcessDeals.length, 0);
+      currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
+
+      assert.strictEqual(currentDeal.state, StorageDealStatus.Active);
+
+      deals = await blockchain.dealInfoManager.getDeals();
+      inProcessDeals = deals.filter(deal => dealIsInProcess(deal.state));
+      assert.strictEqual(inProcessDeals.length, 0);
     });
 
     it("fully advances the state of in process deals when automining", async () => {
@@ -269,12 +276,12 @@ describe("Blockchain", () => {
 
       await blockchain.waitForReady();
 
-      let result = await blockchain.ipfs!.add({
+      const result = await blockchain.ipfs!.add({
         content: "some data"
       });
 
       const accounts = await blockchain.accountManager.getControllableAccounts();
-      let proposal = new StartDealParams({
+      const proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
           root: new RootCID({
@@ -288,14 +295,13 @@ describe("Blockchain", () => {
         minBlocksDuration: 300
       });
 
-      let { root: proposalCid } = await blockchain.startDeal(proposal);
+      const { root: proposalCid } = await blockchain.startDeal(proposal);
+
+      const deal = await blockchain.dealInfoManager!.get(proposalCid.value);
 
       // Since we're automining, starting the deal will trigger
       // the state to be state to be set to active.
-      assert.strictEqual(
-        blockchain.dealsByCid.get(proposalCid.value)!.state,
-        StorageDealStatus.Active
-      );
+      assert.strictEqual(deal.state, StorageDealStatus.Active);
 
       // We create 1 tipset per state change. Let's make sure that occurred.
       assert.strictEqual(blockchain.tipsetManager.latest.height, 11);

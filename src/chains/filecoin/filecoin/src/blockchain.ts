@@ -6,7 +6,10 @@ import { Quantity, utils } from "@ganache/utils";
 import Emittery from "emittery";
 import { DealInfo } from "./things/deal-info";
 import { StartDealParams } from "./things/start-deal-params";
-import { StorageDealStatus } from "./types/storage-deal-status";
+import {
+  dealIsInProcess,
+  StorageDealStatus
+} from "./types/storage-deal-status";
 import IPFSServer from "./ipfs-server";
 import dagCBOR from "ipld-dag-cbor";
 import { RetrievalOrder } from "./things/retrieval-order";
@@ -35,6 +38,7 @@ import AccountManager from "./data-managers/account-manager";
 import PrivateKeyManager from "./data-managers/private-key-manager";
 import { fillGasInformation, getBaseFee, getMinerFee } from "./gas";
 import { checkMessage } from "./message";
+import DealInfoManager from "./data-managers/deal-info-manager";
 
 export type BlockchainEvents = {
   ready(): void;
@@ -56,6 +60,7 @@ export default class Blockchain extends Emittery.Typed<
   public privateKeyManager: PrivateKeyManager | null;
   public signedMessagesManager: SignedMessageManager | null;
   public blockMessagesManager: BlockMessagesManager | null;
+  public dealInfoManager: DealInfoManager | null;
 
   readonly miner: Address;
   readonly #miningLock: Sema;
@@ -66,11 +71,6 @@ export default class Blockchain extends Emittery.Typed<
 
   public messagePool: Array<SignedMessage>;
   readonly #messagePoolLock: Sema;
-
-  readonly deals: Array<DealInfo> = [];
-  readonly dealsByCid: Map<string, DealInfo> = new Map<string, DealInfo>();
-  readonly dealsById: Map<number, DealInfo> = new Map<number, DealInfo>();
-  readonly inProcessDeals: Array<DealInfo> = [];
 
   readonly options: FilecoinInternalOptions;
 
@@ -120,6 +120,7 @@ export default class Blockchain extends Emittery.Typed<
     this.privateKeyManager = null;
     this.signedMessagesManager = null;
     this.blockMessagesManager = null;
+    this.dealInfoManager = null;
 
     this.#database = new Database(options.database);
     this.#database.once("ready").then(async () => {
@@ -144,6 +145,9 @@ export default class Blockchain extends Emittery.Typed<
       this.blockMessagesManager = await BlockMessagesManager.initialize(
         this.#database.blockMessages!,
         this.signedMessagesManager
+      );
+      this.dealInfoManager = await DealInfoManager.initialize(
+        this.#database.deals!
       );
 
       const controllableAccounts = await this.accountManager.getControllableAccounts();
@@ -192,7 +196,7 @@ export default class Blockchain extends Emittery.Typed<
         this.tipsetManager.latest = latestTipset!; // initialize latest
       }
 
-      await this.ipfsServer.start();
+      await this.ipfsServer.start(this.#database.directory!);
 
       // Fire up the miner if necessary
       if (this.minerEnabled && this.options.miner.blockTime > 0) {
@@ -524,10 +528,10 @@ export default class Blockchain extends Emittery.Typed<
         throw e;
       }
 
-      let previousTipset: Tipset = this.latestTipset();
+      const previousTipset: Tipset = this.latestTipset();
       const newTipsetHeight = previousTipset.height + 1;
 
-      let newBlocks: Array<BlockHeader> = [];
+      const newBlocks: Array<BlockHeader> = [];
 
       for (let i = 0; i < numNewBlocks; i++) {
         newBlocks.push(
@@ -633,14 +637,14 @@ export default class Blockchain extends Emittery.Typed<
       );
 
       // Advance the state of all deals in process.
-      for (const deal of this.inProcessDeals) {
+      const currentDeals = await this.dealInfoManager!.getDeals();
+      const inProcessDeals = currentDeals.filter(deal =>
+        dealIsInProcess(deal.state)
+      );
+      for (const deal of inProcessDeals) {
         deal.advanceState();
+        await this.dealInfoManager!.updateDealInfo(deal);
         this.emit("dealUpdate", deal);
-
-        if (deal.state == StorageDealStatus.Active) {
-          // Remove the deal from the in-process array
-          this.inProcessDeals.splice(this.inProcessDeals.indexOf(deal), 1);
-        }
       }
 
       this.logLatestTipset();
@@ -675,7 +679,7 @@ export default class Blockchain extends Emittery.Typed<
       return 0;
     }
 
-    let stat = await this.ipfsServer.node.object.stat(cid, {
+    const stat = await this.ipfsServer.node.object.stat(cid, {
       timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
     });
 
@@ -751,9 +755,6 @@ export default class Blockchain extends Emittery.Typed<
       );
     }
 
-    // Get size of IPFS object represented by the proposal
-    let size = await this.getIPFSObjectSize(proposal.data.root.root.value);
-
     // have to specify type since node types are not correct
     const account = await this.accountManager!.getAccount(
       proposal.wallet.value
@@ -764,14 +765,15 @@ export default class Blockchain extends Emittery.Typed<
       );
     }
 
-    let signature = await account.address.signProposal(proposal);
+    const signature = await account.address.signProposal(proposal);
 
     // TODO: I'm not sure if should pass in a hex string or the Buffer alone.
     // I *think* it's the string, as that matches my understanding of the Go code.
     // That said, node that Buffer vs. hex string returns a different CID...
-    let proposalRawCid = await dagCBOR.util.cid(signature.toString("hex"));
-    let proposalCid = new CID(proposalRawCid.toString());
+    const proposalRawCid = await dagCBOR.util.cid(signature.toString("hex"));
+    const proposalCid = new CID(proposalRawCid.toString());
 
+    const currentDeals = await this.dealInfoManager!.getDeals();
     let deal = new DealInfo({
       proposalCid: new RootCID({
         root: proposalCid
@@ -785,19 +787,10 @@ export default class Blockchain extends Emittery.Typed<
         (await this.getIPFSObjectSize(proposal.data.root.root.value)),
       pricePerEpoch: proposal.epochPrice,
       duration: proposal.minBlocksDuration,
-      dealId: this.deals.length + 1
+      dealId: currentDeals.length + 1
     });
 
-    // Because we're not cryptographically valid, let's
-    // register the deal with the newly created CID
-    // Reference implementation that ProposalCid is used: https://git.io/Jthv7
-    this.dealsByCid.set(proposalCid.value, deal);
-
-    // Lets keep deals by id for easy paginated lookup from Ganache UI
-    this.dealsById.set(deal.dealId, deal);
-
-    this.deals.push(deal);
-    this.inProcessDeals.push(deal);
+    await this.dealInfoManager!.addDealInfo(deal);
     this.emit("dealUpdate", deal);
 
     // If we're automining, mine a new block. Note that this will
@@ -805,11 +798,12 @@ export default class Blockchain extends Emittery.Typed<
     if (this.minerEnabled && this.options.miner.blockTime === 0) {
       while (deal.state !== StorageDealStatus.Active) {
         await this.mineTipset();
+        deal = (await this.dealInfoManager!.get(deal.proposalCid.root.value))!;
       }
     }
 
     // Subtract the cost from our current balance
-    let totalPrice = BigInt(deal.pricePerEpoch) * BigInt(deal.duration);
+    const totalPrice = BigInt(deal.pricePerEpoch) * BigInt(deal.duration);
     await this.accountManager!.transferFunds(
       proposal.wallet.value,
       proposal.miner.value,
@@ -822,7 +816,7 @@ export default class Blockchain extends Emittery.Typed<
   async createQueryOffer(rootCid: RootCID): Promise<QueryOffer> {
     await this.waitForReady();
 
-    let size = await this.getIPFSObjectSize(rootCid.root.value);
+    const size = await this.getIPFSObjectSize(rootCid.root.value);
 
     return new QueryOffer({
       root: rootCid,
@@ -835,7 +829,9 @@ export default class Blockchain extends Emittery.Typed<
   async retrieve(retrievalOrder: RetrievalOrder, ref: FileRef): Promise<void> {
     await this.waitForReady();
 
-    let hasLocal: boolean = await this.hasLocal(retrievalOrder.root.root.value);
+    const hasLocal: boolean = await this.hasLocal(
+      retrievalOrder.root.root.value
+    );
 
     const account = await this.accountManager!.getAccount(
       retrievalOrder.client.value
@@ -931,8 +927,8 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   private logLatestTipset() {
-    let date = new Date().toISOString();
-    let tipset = this.latestTipset();
+    const date = new Date().toISOString();
+    const tipset = this.latestTipset();
 
     this.options.logging.logger.log(
       `${date} INFO New heaviest tipset! [${tipset.cids[0].root.value}] (height=${tipset.height})`

@@ -109,14 +109,17 @@ export enum StorageDealStatus {
   AwaitingPreCommit
 }
 
-export let terminalStates: Array<StorageDealStatus> = [
+export const terminalStates: Array<StorageDealStatus> = [
   StorageDealStatus.ProposalNotFound,
   StorageDealStatus.ProposalRejected,
   StorageDealStatus.Error,
   StorageDealStatus.Expired
 ];
 
-export let nextSuccessfulState: Record<StorageDealStatus, StorageDealStatus> = [
+export const nextSuccessfulState: Record<
+  StorageDealStatus,
+  StorageDealStatus
+> = [
   StorageDealStatus.Validating,
   StorageDealStatus.Staged,
   StorageDealStatus.ReserveProviderFunds,
@@ -143,3 +146,10 @@ export let nextSuccessfulState: Record<StorageDealStatus, StorageDealStatus> = [
 
   return obj;
 }, {} as Record<StorageDealStatus, StorageDealStatus>);
+
+export function dealIsInProcess(state: StorageDealStatus) {
+  return (
+    state !== StorageDealStatus.Active &&
+    typeof nextSuccessfulState[state] !== "undefined"
+  );
+}

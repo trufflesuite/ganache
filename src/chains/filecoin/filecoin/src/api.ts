@@ -22,7 +22,6 @@ import { MinerPower, SerializedMinerPower } from "./things/miner-power";
 import { PowerClaim } from "./things/power-claim";
 import { MinerInfo, SerializedMinerInfo } from "./things/miner-info";
 import { SerializedVersion, Version } from "./things/version";
-import { Account } from "./things/account";
 import { Message, SerializedMessage } from "./things/message";
 import {
   MessageSendSpec,
@@ -36,9 +35,9 @@ import { KeyType } from "./things/key-type";
 import { KeyInfo, SerializedKeyInfo } from "./things/key-info";
 import { SerializedSignature, Signature } from "./things/signature";
 import { SigType } from "./things/sig-type";
-import base32 from "base32-encoding";
 import { SerializedBlockHeader } from "./things/block-header";
 import { SerializedBlockMessages } from "./things/block-messages";
+import { StorageDealStatus } from "./types/storage-deal-status";
 
 export default class FilecoinApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -63,6 +62,16 @@ export default class FilecoinApi implements types.Api {
           : 0
       )
     }).serialize();
+  }
+
+  async "Filecoin.ID"(): Promise<string> {
+    // This is calculated with the below code
+    // Hardcoded as there's no reason to recalculate each time
+    // mh = require("multihashing")(Buffer.from("ganache"), "blake2b-256");
+    // (new require("peer-id")(mh)).toString()
+    // Not sure what else to put here since we don't implement
+    // the Filecoin P2P network
+    return "bafzkbzaced47iu7qygeshb3jamzkh2cqcmlxzcpxrnqsj6yoipuidor523jyg";
   }
 
   async "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset> {
@@ -645,30 +654,47 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.ClientStartDeal"(
     serializedProposal: SerializedStartDealParams
   ): Promise<SerializedRootCID> {
-    let proposal = new StartDealParams(serializedProposal);
-    let proposalRootCid = await this.#blockchain.startDeal(proposal);
+    const proposal = new StartDealParams(serializedProposal);
+    const proposalRootCid = await this.#blockchain.startDeal(proposal);
 
     return proposalRootCid.serialize();
   }
 
   async "Filecoin.ClientListDeals"(): Promise<Array<SerializedDealInfo>> {
-    return this.#blockchain.deals.map(deal => deal.serialize());
+    await this.#blockchain.waitForReady();
+
+    const deals = await this.#blockchain.dealInfoManager!.getDeals();
+
+    return deals.map(deal => deal.serialize());
   }
 
   // Reference implementation: https://git.io/JthfU
   async "Filecoin.ClientGetDealInfo"(
     serializedCid: SerializedRootCID
   ): Promise<SerializedDealInfo> {
-    if (this.#blockchain.dealsByCid.has(serializedCid["/"])) {
+    await this.#blockchain.waitForReady();
+
+    const dealInfo = await this.#blockchain.dealInfoManager!.get(
+      serializedCid["/"]
+    );
+    if (dealInfo) {
       // Verified that this is the correct lookup since dealsByCid
       // uses the ProposalCid (ref impl: https://git.io/Jthv7) and the
       // reference implementation of the lookup follows suit: https://git.io/Jthvp
       //
-      const dealInfo = this.#blockchain.dealsByCid.get(serializedCid["/"])!;
       return dealInfo.serialize();
     } else {
       throw new Error("Could not find a deal for the provided CID");
     }
+  }
+
+  // Reference implementation: https://git.io/JqUXg
+  async "Filecoin.ClientGetDealStatus"(statusCode: number): Promise<string> {
+    const status = StorageDealStatus[statusCode];
+    if (!status) {
+      throw new Error(`no such deal state ${statusCode}`);
+    }
+    return `StorageDeal${status}`;
   }
 
   "Filecoin.ClientGetDealUpdates"(rpcId?: string): PromiEvent<Subscription> {
@@ -717,7 +743,7 @@ export default class FilecoinApi implements types.Api {
   async "Filecoin.ClientFindData"(
     rootCid: SerializedRootCID
   ): Promise<Array<SerializedQueryOffer>> {
-    let remoteOffer = await this.#blockchain.createQueryOffer(
+    const remoteOffer = await this.#blockchain.createQueryOffer(
       new RootCID(rootCid)
     );
     return [remoteOffer.serialize()];
@@ -816,9 +842,9 @@ export default class FilecoinApi implements types.Api {
   async "Ganache.GetDealById"(dealId: number): Promise<SerializedDealInfo> {
     await this.#blockchain.waitForReady();
 
-    if (this.#blockchain.dealsById.has(dealId)) {
-      const deal = this.#blockchain.dealsById.get(dealId);
-      return deal!.serialize();
+    const deal = await this.#blockchain.dealInfoManager!.getDealById(dealId);
+    if (deal) {
+      return deal.serialize();
     } else {
       throw new Error("Could not find a deal for the provided ID");
     }

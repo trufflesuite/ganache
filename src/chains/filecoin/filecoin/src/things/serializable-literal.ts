@@ -49,8 +49,8 @@ abstract class SerializableLiteral<C extends BaseConfig>
   }
 
   equals(obj: Serializable<Literal<C>>): boolean {
-    let a: Literal<C> = this.serialize();
-    let b: Literal<C> = obj.serialize();
+    const a: Literal<C> = this.serialize();
+    const b: Literal<C> = obj.serialize();
 
     return a === b;
   }

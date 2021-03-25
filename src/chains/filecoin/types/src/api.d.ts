@@ -26,6 +26,7 @@ export default class FilecoinApi implements types.Api {
   constructor(blockchain: Blockchain);
   stop(): Promise<void>;
   "Filecoin.Version"(): Promise<SerializedVersion>;
+  "Filecoin.ID"(): Promise<string>;
   "Filecoin.ChainGetGenesis"(): Promise<SerializedTipset>;
   "Filecoin.ChainHead"(): Promise<SerializedTipset>;
   "Filecoin.ChainNotify"(rpcId?: string): PromiEvent<Subscription>;
@@ -106,6 +107,7 @@ export default class FilecoinApi implements types.Api {
   "Filecoin.ClientGetDealInfo"(
     serializedCid: SerializedRootCID
   ): Promise<SerializedDealInfo>;
+  "Filecoin.ClientGetDealStatus"(statusCode: number): Promise<string>;
   "Filecoin.ClientGetDealUpdates"(rpcId?: string): PromiEvent<Subscription>;
   "Filecoin.ClientFindData"(
     rootCid: SerializedRootCID

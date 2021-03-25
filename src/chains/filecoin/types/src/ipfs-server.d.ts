@@ -9,7 +9,7 @@ declare class IPFSServer {
   node: IPFS | null;
   private httpServer;
   constructor(chainOptions: IPFSChainOptions);
-  start(): Promise<void>;
+  start(parentDirectory: string): Promise<void>;
   stop(): Promise<void>;
 }
 export default IPFSServer;
