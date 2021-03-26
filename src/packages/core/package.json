@@ -51,7 +51,7 @@
     "@ganache/options": "^0.1.0",
     "@ganache/tezos": "^0.1.0",
     "@ganache/utils": "^0.1.0",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.0",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.1",
     "emittery": "0.8.1"
   },
   "devDependencies": {
