@@ -87,6 +87,7 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   private ready: boolean;
+  private stopped: boolean;
 
   constructor(options: FilecoinInternalOptions) {
     super();
@@ -100,6 +101,7 @@ export default class Blockchain extends Emittery.Typed<
     this.#messagePoolLock = new Sema(1);
 
     this.ready = false;
+    this.stopped = false;
 
     // Create the IPFS server
     this.ipfsServer = new IPFSServer(this.options.chain);
@@ -226,6 +228,12 @@ export default class Blockchain extends Emittery.Typed<
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
   async stop() {
+    // Don't try to stop if we're already stopped
+    if (this.stopped) {
+      return;
+    }
+    this.stopped = true;
+
     // make sure we wait until other stuff is finished,
     // prevent it from starting up again by not releasing
     await this.#miningLock.acquire();
