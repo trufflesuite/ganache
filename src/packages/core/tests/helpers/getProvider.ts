@@ -7,7 +7,9 @@ const mnemonic =
 const getProvider = async (
   options: ProviderOptions = { flavor: "ethereum", mnemonic }
 ) => {
-  return await Ganache.provider(options) as EthereumProvider;
+  const provider = Ganache.provider(options) as EthereumProvider;
+  await provider.once("connect");
+  return provider;
 };
 
 export default getProvider;

@@ -142,7 +142,7 @@ Then you can use ganache as an [EIP-1193 provider only](#as-an-eip-1193-provider
 const ganache = require("ganache");
 
 const options = {};
-const provider = await ganache.provider(options);
+const provider = ganache.provider(options);
 const accounts = await provider.request({ method: "eth_accounts", params: [] });
 ```
 
@@ -171,13 +171,13 @@ To use ganache as a Web3 provider:
 const Web3 = require("web3");
 const ganache = require("ganache");
 
-const web3 = new Web3(await ganache.provider());
+const web3 = new Web3(ganache.provider());
 ```
 
 NOTE: depending on your web3 version, you may need to set a number of confirmation blocks
 
 ```
-const web3 = new Web3(await ganache.provider(), null, { transactionConfirmationBlocks: 1 });
+const web3 = new Web3(ganache.provider(), null, { transactionConfirmationBlocks: 1 });
 ```
 
 #### As an [ethers.js]() provider:
@@ -185,7 +185,7 @@ const web3 = new Web3(await ganache.provider(), null, { transactionConfirmationB
 ```javascript
 const ganache = require("ganache");
 
-const provider = new ethers.providers.Web3Provider(await ganache.provider());
+const provider = new ethers.providers.Web3Provider(ganache.provider());
 ```
 
 ## Documentation

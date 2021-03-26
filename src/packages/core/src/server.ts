@@ -83,10 +83,12 @@ export default class Server {
     this.#status = Status.ready;
   }
 
-  async initialize() {
-    const connector = (this.#connector = await ConnectorLoader.initialize(
+  private async initialize() {
+    const connector = (this.#connector = ConnectorLoader.initialize(
       this.#providerOptions
     ));
+
+    await connector.once("ready");
 
     const _app = (this.#app = uWS.App());
 

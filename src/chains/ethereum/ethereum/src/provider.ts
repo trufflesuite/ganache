@@ -35,7 +35,7 @@ type RequestParams<Method extends RequestMethods> = {
 const hasOwn = utils.hasOwn;
 
 export default class EthereumProvider
-  extends Emittery.Typed<{ message: any }, "disconnect">
+  extends Emittery.Typed<{ message: any }, "connect" | "disconnect">
   implements types.Provider<EthereumApi> {
   #options: EthereumInternalOptions;
   #api: EthereumApi;
@@ -59,6 +59,7 @@ export default class EthereumProvider
 
   async initialize() {
     await this.#api.initialize();
+    await this.emit("connect");
   }
 
   /**

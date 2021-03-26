@@ -20,7 +20,7 @@ function isHttp(
 }
 
 export class Connector
-  extends Emittery.Typed<undefined, "close">
+  extends Emittery.Typed<undefined, "ready" | "close">
   implements
     types.Connector<
       EthereumApi,
@@ -47,6 +47,9 @@ export class Connector
 
   async initialize() {
     await this.#provider.initialize();
+    // no need to wait for #provider.once("connect") as the initialize()
+    // promise has already accounted for that after the promise is resolved
+    await this.emit("ready");
   }
 
   parse(message: Buffer) {
