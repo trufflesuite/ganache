@@ -8,7 +8,8 @@ import { DealInfo } from "./things/deal-info";
 import { StartDealParams } from "./things/start-deal-params";
 import {
   dealIsInProcess,
-  StorageDealStatus
+  StorageDealStatus,
+  nextSuccessfulState
 } from "./types/storage-deal-status";
 import IPFSServer from "./ipfs-server";
 import dagCBOR from "ipld-dag-cbor";
@@ -149,7 +150,8 @@ export default class Blockchain extends Emittery.Typed<
         this.signedMessagesManager
       );
       this.dealInfoManager = await DealInfoManager.initialize(
-        this.#database.deals!
+        this.#database.deals!,
+        this.#database.dealExpirations!
       );
 
       const controllableAccounts = await this.accountManager.getControllableAccounts();
@@ -655,6 +657,21 @@ export default class Blockchain extends Emittery.Typed<
         this.emit("dealUpdate", deal);
       }
 
+      // Process deal expirations
+      const activeDeals = currentDeals.filter(
+        deal => deal.state === StorageDealStatus.Active
+      );
+      for (const deal of activeDeals) {
+        const expirationTipset = await this.dealInfoManager!.getDealExpiration(
+          deal.proposalCid
+        );
+        if (expirationTipset !== null && newTipset.height > expirationTipset) {
+          deal.state = StorageDealStatus.Expired;
+          await this.dealInfoManager!.updateDealInfo(deal);
+          this.emit("dealUpdate", deal);
+        }
+      }
+
       this.logLatestTipset();
 
       this.emit("tipset", newTipset);
@@ -798,7 +815,12 @@ export default class Blockchain extends Emittery.Typed<
       dealId: currentDeals.length + 1
     });
 
-    await this.dealInfoManager!.addDealInfo(deal);
+    // prepare future deal expiration
+    const activeTipsetHeight =
+      this.latestTipset().height + Object.keys(nextSuccessfulState).length - 1;
+    const expirationTipsetHeight = activeTipsetHeight + deal.duration;
+
+    await this.dealInfoManager!.addDealInfo(deal, expirationTipsetHeight);
     this.emit("dealUpdate", deal);
 
     // If we're automining, mine a new block. Note that this will
