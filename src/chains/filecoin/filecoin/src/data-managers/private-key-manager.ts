@@ -59,9 +59,9 @@ export default class PrivateKeyManager {
    * `AccountManager.putAccount` to ensure fields are written
    * atomically. Only call this function if you know what you're doing.
    */
-  async putPrivateKey(address: string, privateKey: string) {
+  putPrivateKey(address: string, privateKey: string) {
     address = address.toLowerCase();
-    await this.base.put(Buffer.from(address), Buffer.from(privateKey, "hex"));
+    this.base.put(Buffer.from(address), Buffer.from(privateKey, "hex"));
 
     if (!this.#addressesWithPrivateKeys.includes(address)) {
       this.#addressesWithPrivateKeys.push(address);
