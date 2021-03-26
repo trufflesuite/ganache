@@ -38,7 +38,7 @@ describe("api", () => {
 
     const waitForExpectedHeight = async () => {
       // give some time for it to finish mining any/all blocks
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 300));
       const newHead: SerializedBlockHeader = await client.chainHead();
       assert.strictEqual(newHead.Height, expectedHeight);
     };
