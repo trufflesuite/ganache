@@ -633,10 +633,17 @@ export default class Blockchain extends Emittery.Typed<
           }
         }
 
-        newBlocks[0].blsAggregate = new Signature({
-          type: SigType.SigTypeBLS,
-          data: Buffer.from(bls.aggregateSignatures(blsSignatures).buffer)
-        });
+        if (blsSignatures.length > 0) {
+          newBlocks[0].blsAggregate = new Signature({
+            type: SigType.SigTypeBLS,
+            data: Buffer.from(bls.aggregateSignatures(blsSignatures).buffer)
+          });
+        } else {
+          newBlocks[0].blsAggregate = new Signature({
+            type: SigType.SigTypeBLS,
+            data: Buffer.from([])
+          });
+        }
 
         await this.blockMessagesManager!.putBlockMessages(
           newBlocks[0].cid,
