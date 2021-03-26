@@ -49,9 +49,9 @@
 			"dev": true
 		},
 		"@types/seedrandom": {
-			"version": "2.4.28",
-			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-2.4.28.tgz",
-			"integrity": "sha512-SMA+fUwULwK7sd/ZJicUztiPs8F1yCPwF3O23Z9uQ32ME5Ha0NmDK9+QTsYE4O2tHXChzXomSWWeIhCnoN1LqA==",
+			"version": "3.0.0",
+			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-3.0.0.tgz",
+			"integrity": "sha512-Jr03BtXs7v6M/wtTum2VOMLBq7R8zpjdZLynhA/IOJq83czXrnVo8iSUI05gcq8Ecq0Swt+nuoK3y2ji/TWyMA==",
 			"dev": true
 		},
 		"@types/terser-webpack-plugin": {
