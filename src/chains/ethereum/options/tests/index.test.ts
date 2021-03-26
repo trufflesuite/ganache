@@ -1,11 +1,11 @@
 import assert from "assert";
-import { ethereumDefaults, EthereumOptionsConfig } from "../src";
+import { EthereumDefaults, EthereumOptionsConfig } from "../src";
 
 describe("EthereumOptionsConfig", () => {
   describe(".normalize", () => {
     it("returns an options object with all default namespaces", () => {
       const options = EthereumOptionsConfig.normalize({});
-      for (const namespace in ethereumDefaults) {
+      for (const namespace in EthereumDefaults) {
         assert(options[namespace]);
       }
     });
