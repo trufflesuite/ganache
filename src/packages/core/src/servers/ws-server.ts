@@ -1,4 +1,4 @@
-import uWS, { TemplatedApp, WebSocket } from "@seesemichaelj/uwebsockets.js";
+import uWS, { TemplatedApp, WebSocket } from "@trufflesuite/uws-js-unofficial";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";

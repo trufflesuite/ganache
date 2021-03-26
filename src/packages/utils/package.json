@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@types/seedrandom": "2.4.28",
-    "@seesemichaelj/uwebsockets.js": "18.15.3"
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.0"
   },
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"

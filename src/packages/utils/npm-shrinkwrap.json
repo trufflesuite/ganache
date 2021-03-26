@@ -4,10 +4,10 @@
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
-		"@seesemichaelj/uwebsockets.js": {
-			"version": "18.15.3",
-			"resolved": "https://registry.npmjs.org/@seesemichaelj/uwebsockets.js/-/uwebsockets.js-18.15.3.tgz",
-			"integrity": "sha512-WbhILD/EwxJFPcRThLE2JdYw7WN3h9qWyZhtKMZUUokajxZZI4i6KT0M/Vg6MBdr2AaBpIT3tDQW8CxVHHaCTA==",
+		"@trufflesuite/uws-js-unofficial": {
+			"version": "18.14.0-unofficial.0",
+			"resolved": "https://registry.npmjs.org/@trufflesuite/uws-js-unofficial/-/uws-js-unofficial-18.14.0-unofficial.0.tgz",
+			"integrity": "sha512-g2MN2ENDUfsaB2GK0OH7thruJgMrDIGfAzZXqRa+Z4EWYpHtxChjBGTaLfnKHd+rAS3NBVp8O7qhPXN1VJZGtA==",
 			"dev": true
 		},
 		"@types/seedrandom": {
