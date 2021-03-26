@@ -3,7 +3,7 @@ import {
   RecognizedString,
   WebSocket,
   HttpRequest
-} from "@seesemichaelj/uwebsockets.js";
+} from "@trufflesuite/uws-js-unofficial";
 import { Api } from "./api";
 import { KnownKeys } from "../types";
 import Emittery from "emittery";

@@ -3,7 +3,7 @@ import {
   HttpResponse,
   HttpRequest,
   RecognizedString
-} from "@seesemichaelj/uwebsockets.js";
+} from "@trufflesuite/uws-js-unofficial";
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
 import { Connector } from "@ganache/flavors";
