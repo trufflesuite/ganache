@@ -102,10 +102,10 @@ export default class Server {
     this.#httpServer = new HttpServer(_app, connector);
   }
 
-  listen(port: number, callback: Callback): void;
-  listen(port: number, host: string, callback: Callback): void;
   listen(port: number): Promise<void>;
   listen(port: number, host: string): Promise<void>;
+  listen(port: number, callback: Callback): void;
+  listen(port: number, host: string, callback: Callback): void;
   listen(
     port: number,
     host?: string | Callback,
