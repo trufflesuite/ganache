@@ -191,7 +191,7 @@ export default class Server {
 
     // clean up the websocket objects
     const _listenSocket = this.#listenSocket;
-    this.#listenSocket = void 0;
+    this.#listenSocket = null;
     // close the socket to prevent any more connections
     if (_listenSocket !== null) {
       uWS.us_listen_socket_close(_listenSocket);
@@ -213,6 +213,6 @@ export default class Server {
 
 
     this.#status = Status.closed;
-    this.#app = void 0;
+    this.#app = null;
   }
 }
