@@ -61,7 +61,7 @@ export enum Status {
 
 export default class Server {
   #options: InternalOptions;
-  #providerOptions: any;
+  #providerOptions: ServerOptions;
   #status: number = Status.unknown;
   #app: TemplatedApp | null = null;
   #httpServer: HttpServer | null = null;
@@ -77,7 +77,7 @@ export default class Server {
     return this.#status;
   }
 
-  constructor(providerAndServerOptions: any = { flavor: DefaultFlavor }) {
+  constructor(providerAndServerOptions: ServerOptions = { flavor: DefaultFlavor }) {
     this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
     this.#providerOptions = providerAndServerOptions;
     this.#status = Status.ready;
