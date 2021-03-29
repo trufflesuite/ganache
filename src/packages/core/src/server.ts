@@ -88,8 +88,6 @@ export default class Server {
       this.#providerOptions
     ));
 
-    await connector.once("ready");
-
     const _app = (this.#app = uWS.App());
 
     if (this.#options.server.ws) {
@@ -100,6 +98,8 @@ export default class Server {
       );
     }
     this.#httpServer = new HttpServer(_app, connector);
+
+    await connector.once("ready");
   }
 
   listen(port: number): Promise<void>;
