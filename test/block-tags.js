@@ -114,7 +114,7 @@ describe("Block Tags", function() {
     );
     assert.strictEqual(
       block.receiptsRoot,
-      "0x9b620919250d3ae8b3096dcda9152491c92f98ca0e7a8cfc756a46a88e49156a",
+      "0xc0652daf02b81ded3999a6d40511b29767a42b48ca253192f3441dc4d80ceb6e",
       "Should produce correct receiptsRoot"
     );
   });
