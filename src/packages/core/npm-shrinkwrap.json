@@ -465,8 +465,8 @@
 			}
 		},
 		"uWebSockets.js": {
-			"version": "github:uNetworking/uWebSockets.js#3dbec7b56d627193e20705844b6bd10e49848b8c",
-			"from": "github:uNetworking/uWebSockets.js#v18.4.0"
+			"version": "git+ssh://git@github.com/uNetworking/uWebSockets.js.git#3dbec7b56d627193e20705844b6bd10e49848b8c",
+			"from": "uWebSockets.js@github:uNetworking/uWebSockets.js#v18.4.0"
 		},
 		"unbox-primitive": {
 			"version": "1.0.1",

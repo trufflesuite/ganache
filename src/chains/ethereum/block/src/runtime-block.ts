@@ -1,5 +1,5 @@
 import { utils, Data, Quantity } from "@ganache/utils";
-import { KECCAK256_RLP_ARRAY } from "ethereumjs-util";
+import { BN, KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
@@ -9,6 +9,18 @@ import {
   RuntimeTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
+
+/**
+ * BN, but with an extra `buf` property that caches the original Buffer value
+ * we pass in.
+ */
+class BnExtra extends BN {
+  public buf: Buffer;
+  constructor(number: Buffer) {
+    super(number, 10, "be");
+    this.buf = number;
+  }
+}
 
 const { BUFFER_EMPTY, BUFFER_32_ZERO, BUFFER_8_ZERO } = utils;
 
@@ -43,7 +55,10 @@ export function getBlockSize(serialized: Buffer, totalDifficulty: Buffer) {
   return serialized.length - totalDifficulty.length;
 }
 
-export function makeHeader(raw: Buffer[], totalDifficulty: Buffer) {
+export function makeHeader(
+  raw: EthereumRawBlockHeader,
+  totalDifficulty: Buffer
+): BlockHeader {
   return {
     parentHash: Data.from(raw[0], 32),
     sha3Uncles: Data.from(raw[1], 32),
@@ -70,12 +85,12 @@ export function makeHeader(raw: Buffer[], totalDifficulty: Buffer) {
 export class RuntimeBlock {
   public readonly header: {
     parentHash: Buffer;
-    difficulty: Buffer;
+    difficulty: BnExtra;
     totalDifficulty: Buffer;
-    coinbase: Buffer;
-    number: Buffer;
-    gasLimit: Buffer;
-    timestamp: Buffer;
+    coinbase: { buf: Buffer };
+    number: BnExtra;
+    gasLimit: BnExtra;
+    timestamp: BnExtra;
   };
 
   constructor(
@@ -90,14 +105,14 @@ export class RuntimeBlock {
     const ts = timestamp.toBuffer();
     this.header = {
       parentHash: parentHash.toBuffer(),
-      coinbase: coinbase.toBuffer(),
-      number: number.toBuffer(),
-      difficulty: difficulty.toBuffer(),
+      coinbase: { buf: coinbase.toBuffer() },
+      number: new BnExtra(number.toBuffer()),
+      difficulty: new BnExtra(difficulty.toBuffer()),
       totalDifficulty: Quantity.from(
         previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
       ).toBuffer(),
-      gasLimit: gasLimit.length === 0 ? BUFFER_EMPTY : gasLimit,
-      timestamp: ts.length === 0 ? BUFFER_EMPTY : ts
+      gasLimit: new BnExtra(gasLimit),
+      timestamp: new BnExtra(ts)
     };
   }
 
@@ -128,16 +143,16 @@ export class RuntimeBlock {
     const rawHeader: EthereumRawBlockHeader = [
       header.parentHash,
       KECCAK256_RLP_ARRAY, // uncleHash
-      header.coinbase,
+      header.coinbase.buf,
       stateRoot,
       transactionsTrie,
       receiptTrie,
       bloom,
-      header.difficulty,
-      header.number,
-      header.gasLimit,
+      header.difficulty.buf,
+      header.number.buf,
+      header.gasLimit.buf,
       gasUsed === 0n ? BUFFER_EMPTY : Quantity.from(gasUsed).toBuffer(),
-      header.timestamp,
+      header.timestamp.buf,
       extraData.toBuffer(),
       BUFFER_32_ZERO, // mixHash
       BUFFER_8_ZERO // nonce
@@ -165,7 +180,7 @@ export class RuntimeBlock {
     (block as any)._raw = rawHeader;
     (block as any)._rawTransactions = txs;
     (block as any).header = makeHeader(rawHeader, totalDifficulty);
-    (block as any)._extraTransactionData = extraTxs;
+    (block as any)._rawTransactionMetaData = extraTxs;
     (block as any)._size = size;
 
     return {

@@ -53,8 +53,8 @@
 			"integrity": "sha512-MN6ZpzmfNCRM+3t57PTJHgHyw/h4OWnZ6mR8P5j/uZtqQr46RRuDE/P+g3n0YR/AiYXeWixZZzaip77gdICfRg=="
 		},
 		"uWebSockets.js": {
-			"version": "github:uNetworking/uWebSockets.js#3dbec7b56d627193e20705844b6bd10e49848b8c",
-			"from": "github:uNetworking/uWebSockets.js#v18.4.0",
+			"version": "git+ssh://git@github.com/uNetworking/uWebSockets.js.git#3dbec7b56d627193e20705844b6bd10e49848b8c",
+			"from": "uWebSockets.js@github:uNetworking/uWebSockets.js#v18.4.0",
 			"dev": true
 		}
 	}

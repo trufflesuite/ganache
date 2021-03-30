@@ -42,8 +42,7 @@ import Wallet from "./wallet";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 
 import Emittery from "emittery";
-import Common from "ethereumjs-common";
-import EthereumAccount from "ethereumjs-account";
+import Common from "@ethereumjs/common";
 import estimateGas from "./helpers/gas-estimator";
 import { assertArgLength } from "./helpers/assert-arg-length";
 import {
@@ -340,7 +339,7 @@ export default class EthereumApi implements types.Api {
   ) {
     const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
 
-    const trie = this.#blockchain.trie.copy();
+    const trie = this.#blockchain.trie.copy(false);
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
@@ -353,10 +352,7 @@ export default class EthereumApi implements types.Api {
     const blockStateRoot = headerData[3];
     trie.root = blockStateRoot;
 
-    const addressDataPromise = this.#blockchain.getFromTrie(
-      trie,
-      Address.from(address).toBuffer()
-    );
+    const addressDataPromise = trie.get(Address.from(address).toBuffer());
 
     const posBuff = Quantity.from(position).toBuffer();
     const length = posBuff.length;
@@ -383,12 +379,10 @@ export default class EthereumApi implements types.Api {
       Buffer /*codeHash*/
     ])[2];
 
-    return new Promise((resolve, reject) => {
-      this.#blockchain.trie.put(paddedPosBuff, storage, err => {
-        if (err) return reject(err);
-        resolve(void 0);
-      });
-    });
+    return this.#blockchain.trie.put(
+      paddedPosBuff,
+      Data.from(storage).toBuffer()
+    );
   }
 
   /**
@@ -405,31 +399,21 @@ export default class EthereumApi implements types.Api {
   async evm_setAccountNonce(address: string, nonce: string) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
-    return new Promise<boolean>((resolve, reject) => {
-      const buffer = Address.from(address).toBuffer();
-      const blockchain = this.#blockchain;
-      const stateManager = blockchain.vm.stateManager;
-      stateManager.getAccount(
-        buffer,
-        (err: Error, account: EthereumAccount) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          account.nonce = Quantity.from(nonce).toBuffer();
-          stateManager.putAccount(buffer, account, (err: Error) => {
-            if (err) {
-              reject(err);
-              return;
-            }
+    const buffer = Address.from(address).toBuffer();
+    const blockchain = this.#blockchain;
+    const stateManager = blockchain.vm.stateManager;
+    const account = await stateManager.getAccount({ buf: buffer } as any);
 
-            // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
-            // and produce an invalid trie going forward.
-            blockchain.mine(0).then(() => resolve(true), reject);
-          });
-        }
-      );
-    });
+    account.nonce = {
+      toArrayLike: () => Quantity.from(nonce).toBuffer()
+    } as any;
+
+    await stateManager.putAccount({ buf: buffer } as any, account);
+
+    // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
+    // and produce an invalid trie going forward.
+    await blockchain.mine(0);
+    return true;
   }
 
   /**
@@ -1097,7 +1081,7 @@ export default class EthereumApi implements types.Api {
   ) {
     const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
 
-    const trie = this.#blockchain.trie.copy();
+    const trie = this.#blockchain.trie.copy(false);
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
@@ -1110,8 +1094,7 @@ export default class EthereumApi implements types.Api {
     const blockStateRoot = headerData[3];
     trie.root = blockStateRoot;
 
-    const addressDataPromise = this.#blockchain.getFromTrie(
-      trie,
+    const addressDataPromise = this.#blockchain.trie.get(
       Address.from(address).toBuffer()
     );
 
@@ -1136,7 +1119,7 @@ export default class EthereumApi implements types.Api {
     trie.root = decode<
       [nonce: Buffer, amount: Buffer, stateRoot: Buffer, codeHash: Buffer]
     >(addressData)[2];
-    const value = await this.#blockchain.getFromTrie(trie, paddedPosBuff);
+    const value = await trie.get(paddedPosBuff);
     return Data.from(decode(value));
   }
 

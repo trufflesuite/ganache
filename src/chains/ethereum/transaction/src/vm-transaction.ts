@@ -4,10 +4,10 @@ export interface VmTransaction {
   nonce: BN;
   gasPrice: BN;
   gasLimit: BN;
-  to: Buffer;
+  to: { buf: Buffer };
   value: BN;
   data: Buffer;
-  getSenderAddress: () => Buffer;
+  getSenderAddress: () => { buf: Buffer };
   getBaseFee: () => BN;
   getUpfrontCost: () => BN;
 }

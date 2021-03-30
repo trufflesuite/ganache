@@ -26,8 +26,18 @@ describe("forking", () => {
       before(async function () {
         provider = await getProvider({
           fork: {
-            url: "todo",
-            jwt: "todo"
+            //url: "http://localhost:3000"
+            //url: "https://mainnet.infura.io/v3/5c6624a8c03c413f90c091baa879dc98"
+            url:
+              "wss://mainnet.infura.io/ws/v3/aba2a3c1f59f4e2a952b01310fd552b2"
+            // password: "3029b7acc7c64b03a71a834b1417d5f5"
+            // jwt: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjI3YTAxZjViZjVhYzRjZTFiNzQ0MGRiZTgxYjNiYTViIn0.eyJleHAiOjE2NDMyMTY5MTksImF1ZCI6ImluZnVyYS5pbyJ9.DZRQZKcbuLKPZRCK5kamg3XQ_0NizdnzC1085n4b9Em_9UWBx0DScBBHSYL_2Q5tw-tG9ndLFsUh_bjjUeORdGbs2RpBYcvjkI5xMIHiWEM_r5fqXf8O35YgenaggIiyz_48DeBSeNfjz8HAsXhnm0Sb2ZJmrgfOTYxj0-dQycX4SPDudjCk4ee_XuAgNC_PYFqPA7VZLalETu032_AuFgWTDZbbDiFRHH1nBPFC2Jh-YKL524y922gKeaN1NA1RxMqhObH8PF36iJfvMrCM5ZaEM6n8M0s62M61bXKI_MYQtwaE3KCM5jVuJnleeSviedOxQ32mg9YT9h7A2npKaA",
+            // headers: [
+            //   {
+            //     name: "authorization",
+            //     value: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjExNzBmMzMzNDBlNjRlYjI4NWY1YTc3ZjQ4NWRhYjY5In0.eyJleHAiOjE2NDMyMTY5MTksImF1ZCI6ImluZnVyYS5pbyJ9.MS7OgYcBd5bTZbYVZKyfXhgh6tf0eIuucyGX8DRYSo08XzGROD9ir6Qz4bWq_A7Uk7hdU_K5GaULx_je-LXC25ax84dJ8n9W5SeGnajwodvXGtiNlNws0il3ZXE9DOJiBFeJXgRpTdY2iKQf-tNVdUr9nY9AGUYiBsxHsF3XXTFoN4oPHJSkKQqnpdDS4JU730HODuKWMIClhb0Z7rplC-XvHGrZz-oGoSQVCW7zwN40zyfc0bHttlNa9EufdJZ74GHnM3IMB8-bVzCL2CdELdIS0r6EuftXhcUimlcm0Zk4UN4CWHV-uj_Iv8ebj63os0b55tJFtt4R-Xlp6gO50w"
+            //   }
+            // ]
           }
         });
       });
@@ -335,6 +345,16 @@ describe("forking", () => {
           // "0xc3ecba28af450e2ed469164766751130d93ecc36",
           // "0x6220d7a458a68d6a554e5904792049fd2ef6bbcc"
         ];
+
+        const aa = await provider.send("eth_getBlockByNumber", [
+          "0xb3c207",
+          true
+        ]);
+        const aa1 = await provider.send("eth_getBlockByNumber", ["0xb3c207"]);
+        const aa2 = await provider.send("eth_getBlockByNumber", ["0xb3c207"]);
+        const aa3 = await provider.send("eth_getBlockByNumber", ["0xb3c207"]);
+        return;
+
         let p = addresses.map(address => {
           return provider.send("eth_getBalance", [address]).then(balance => {
             console.log(address, BigInt(balance));

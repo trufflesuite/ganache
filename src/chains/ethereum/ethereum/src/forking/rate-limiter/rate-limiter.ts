@@ -1,4 +1,3 @@
-import JsonRpc from "@ganache/utils/src/things/jsonrpc";
 import { AbortError } from "@ganache/ethereum-utils";
 import { JsonRpcTypes } from "@ganache/utils";
 import { AbortSignal } from "abort-controller";
@@ -7,9 +6,9 @@ import { LimitCounter } from "./limit-counter";
 
 type PromiseFn = (
   ...args: unknown[]
-) => Promise<JsonRpc.Response | JsonRpc.Error>;
+) => Promise<JsonRpcTypes.Response | JsonRpcTypes.Error>;
 
-type RateLimitError = JsonRpc.Error & {
+type RateLimitError = JsonRpcTypes.Error & {
   readonly error: {
     readonly data: {
       readonly rate: {
@@ -63,7 +62,7 @@ function timeTruncate(timestamp: number, duration: number) {
  * @returns true if the result is a JSON-RPC LIMIT_EXCEEDED error
  */
 function isExceededLimitError(
-  result: JsonRpc.Response | JsonRpc.Error
+  result: JsonRpcTypes.Response | JsonRpcTypes.Error
 ): result is RateLimitError {
   return (
     "error" in result &&
