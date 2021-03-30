@@ -11,14 +11,20 @@ export const Params = {
    * Per byte of data attached to a transaction that is not equal to zero. NOTE: Not payable on data of calls between transactions.
    */
   TRANSACTION_DATA_NON_ZERO_GAS: new Map<
-    "constantinople" | "byzantium" | "petersburg" | "istanbul" | "muirGlacier",
+    | "constantinople"
+    | "byzantium"
+    | "petersburg"
+    | "istanbul"
+    | "muirGlacier"
+    | "berlin",
     bigint
   >([
     ["constantinople", 68n],
     ["byzantium", 68n],
     ["petersburg", 68n],
-    ["istanbul", 68n],
-    ["muirGlacier", 16n]
+    ["istanbul", 16n],
+    ["muirGlacier", 16n],
+    ["berlin", 16n]
   ]),
 
   /**

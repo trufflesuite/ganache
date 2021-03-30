@@ -7,13 +7,12 @@ import {
 } from "@ganache/ethereum-utils";
 import { utils, Quantity, Data } from "@ganache/utils";
 import { encode } from "@ganache/rlp";
-import { promisify } from "util";
-import Trie from "merkle-patricia-tree";
+import { BaseTrie as Trie } from "merkle-patricia-tree";
 import Emittery from "emittery";
-import VM from "ethereumjs-vm";
+import VM from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
-import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
+import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { Params, RuntimeTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
@@ -32,9 +31,6 @@ const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
   let i = 256;
   while (--i) blockBloom[i] |= bloom[i];
 };
-
-const putInTrie = (trie: Trie, key: Buffer, val: Buffer) =>
-  promisify(trie.put.bind(trie))(key, val);
 
 const sortByPrice = (values: RuntimeTransaction[], a: number, b: number) =>
   values[a].gasPrice > values[b].gasPrice;
@@ -61,9 +57,6 @@ export default class Miner extends Emittery.Typed<
   readonly #options: EthereumInternalOptions["miner"];
   readonly #instamine: boolean;
   readonly #vm: VM;
-  readonly #checkpoint: () => Promise<any>;
-  readonly #commit: () => Promise<any>;
-  readonly #revert: () => Promise<any>;
   readonly #createBlock: (previousBlock: Block) => RuntimeBlock;
 
   public async pause() {
@@ -101,15 +94,11 @@ export default class Miner extends Emittery.Typed<
     createBlock: (previousBlock: Block) => RuntimeBlock
   ) {
     super();
-    const stateManager = vm.stateManager;
 
     this.#vm = vm;
     this.#options = options;
     this.#executables = executables;
     this.#instamine = instamine;
-    this.#checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
-    this.#commit = promisify(stateManager.commit.bind(stateManager));
-    this.#revert = promisify(stateManager.revert.bind(stateManager));
     this.#createBlock = createBlock;
 
     // initialize the heap with an empty array
@@ -198,13 +187,13 @@ export default class Miner extends Emittery.Typed<
 
       // don't mine anything at all if maxTransactions is `0`
       if (maxTransactions === 0) {
-        await this.#checkpoint();
-        await this.#commit();
+        await vm.stateManager.checkpoint();
+        await vm.stateManager.commit();
         const finalizedBlockData = runtimeBlock.finalize(
           transactionsTrie.root,
           receiptTrie.root,
           BUFFER_256_ZERO,
-          vm.stateManager._trie.root,
+          (vm.stateManager as any)._trie.root,
           0n, // gas used
           options.extraData,
           [],
@@ -220,11 +209,11 @@ export default class Miner extends Emittery.Typed<
       let blockGasUsed = 0n;
 
       const blockBloom = Buffer.allocUnsafe(256).fill(0);
-      const promises: Promise<never>[] = [];
+      const promises: Promise<void>[] = [];
 
       // Set a block-level checkpoint so our unsaved trie doesn't update the
       // vm's "live" trie.
-      await this.#checkpoint();
+      await vm.stateManager.checkpoint();
 
       const TraceData = TraceDataFactory();
       // We need to listen for any SSTORE opcodes so we can grab the raw, unhashed version
@@ -271,7 +260,7 @@ export default class Miner extends Emittery.Typed<
 
         // Set a transaction-level checkpoint so we can undo state changes in
         // the case where the transaction is rejected by the VM.
-        await this.#checkpoint();
+        await vm.stateManager.checkpoint();
 
         const result = await this.#runTx(best, runtimeBlock, origin, pending);
         if (result !== null) {
@@ -280,7 +269,7 @@ export default class Miner extends Emittery.Typed<
           ).toBigInt();
           if (blockGasLeft >= gasUsed) {
             // if the transaction will fit in the block, commit it!
-            await this.#commit();
+            await vm.stateManager.commit();
             blockTransactions[numTransactions] = best;
 
             blockGasLeft -= gasUsed;
@@ -292,9 +281,9 @@ export default class Miner extends Emittery.Typed<
                 ? BUFFER_EMPTY
                 : uintToBuffer(numTransactions)
             );
-            promises.push(putInTrie(transactionsTrie, txKey, best.serialized));
+            promises.push(transactionsTrie.put(txKey, best.serialized));
             const receipt = best.fillFromResult(result, blockGasUsed);
-            promises.push(putInTrie(receiptTrie, txKey, receipt));
+            promises.push(receiptTrie.put(txKey, receipt));
 
             // update the block's bloom
             updateBloom(blockBloom, result.bloom.bitvector);
@@ -345,7 +334,7 @@ export default class Miner extends Emittery.Typed<
             }
           } else {
             // didn't fit in the current block
-            await this.#revert();
+            await vm.stateManager.revert();
 
             // unlock the transaction so the transaction pool can reconsider this
             // transaction
@@ -361,12 +350,12 @@ export default class Miner extends Emittery.Typed<
           // revert its changes here.
           // Note: we don't clean up (`removeBest`, etc) because `runTx`'s
           // error handler does the clean up itself.
-          await this.#revert();
+          await vm.stateManager.revert();
         }
       }
 
       await Promise.all(promises);
-      await this.#commit();
+      await vm.stateManager.commit();
 
       vm.removeListener("step", stepListener);
 
@@ -374,7 +363,7 @@ export default class Miner extends Emittery.Typed<
         transactionsTrie.root,
         receiptTrie.root,
         blockBloom,
-        vm.stateManager._trie.root,
+        (vm.stateManager as any)._trie.root,
         blockGasUsed,
         options.extraData,
         blockTransactions,
@@ -417,7 +406,14 @@ export default class Miner extends Emittery.Typed<
     pending: Map<string, utils.Heap<RuntimeTransaction>>
   ) => {
     try {
-      return await this.#vm.runTx({ tx: tx.toVmTransaction() as any, block });
+      const vm = this.#vm;
+      const o = {
+        tx: tx.toVmTransaction() as any,
+        block: block as any
+      };
+      const r = vm.runTx(o);
+      const p = await r;
+      return p;
     } catch (err) {
       const errorMessage = err.message;
       // We do NOT want to re-run this transaction.

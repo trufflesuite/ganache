@@ -1,5 +1,5 @@
 import { Data, Quantity, utils } from "@ganache/utils";
-import Common from "ethereumjs-common";
+import type Common from "@ethereumjs/common";
 import { EthereumRawTx, GanacheRawExtraTx } from "./raw";
 import { decode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
