@@ -41,6 +41,10 @@ export default {
       executor
     );
 
+    // Purposely not awaiting on this to prevent a breaking change
+    // to the `Ganache.provider()` method
+    connector.initialize();
+
     // The request coordinator is initialized in a "paused" state; when the provider is ready we unpause.
     // This lets us accept queue requests before we've even fully initialized.
     connector.on("ready", requestCoordinator.resume);

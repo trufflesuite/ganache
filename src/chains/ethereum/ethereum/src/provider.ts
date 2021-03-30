@@ -57,6 +57,11 @@ export default class EthereumProvider
     this.#api = new EthereumApi(providerOptions, wallet, this);
   }
 
+  async initialize() {
+    await this.#api.initialize();
+    await this.emit("connect");
+  }
+
   /**
    * Returns the options, including defaults and generated, used to start Ganache.
    */

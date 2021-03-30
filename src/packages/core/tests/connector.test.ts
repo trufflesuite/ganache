@@ -4,7 +4,9 @@ import { Provider as EthereumProvider } from "@ganache/ethereum";
 
 describe("connector", () => {
   it("works without passing options", async () => {
-    assert.doesNotThrow(() => Ganache.provider());
+    assert.doesNotThrow(async () => {
+      const provider = Ganache.provider();
+    });
   });
 
   it("it logs when `options.verbose` is `true`", async () => {

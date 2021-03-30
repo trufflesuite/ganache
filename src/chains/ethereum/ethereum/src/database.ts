@@ -45,10 +45,9 @@ export default class Database extends Emittery {
 
     this.#options = options;
     this.blockchain = blockchain;
-    this.#initialize();
   }
 
-  #initialize = async () => {
+  initialize = async () => {
     const levelupOptions: any = {
       keyEncoding: "binary",
       valueEncoding: "binary"

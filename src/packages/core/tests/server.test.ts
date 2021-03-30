@@ -1,4 +1,10 @@
-import Ganache from "../";
+// Using `../index` instead of `../` is
+// necessary as `..` will point to the `package.json`
+// and point to `main` which uses `lib/index.js`
+// instead of `index.ts` causing TS errors during
+// construction due to missing private fields
+import Ganache from "../index";
+
 import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
@@ -41,8 +47,8 @@ describe("server", () => {
   }
 
   async function teardown() {
-    // if the server is open or opening, try to close it.
-    if (s && s.status & Status.open) {
+    // if the server is opening or open, try to close it.
+    if (s && (s.status & Status.openingOrOpen) !== 0) {
       await s.close();
     }
   }
@@ -62,30 +68,30 @@ describe("server", () => {
     it("returns its status", async () => {
       const s = Ganache.server();
       try {
-        assert.strictEqual(s.status, Status.closed);
+        assert.strictEqual(s.status, Status.ready);
         const pendingListen = s.listen(port);
         assert.strictEqual(s.status, Status.opening);
         assert.ok(
           s.status & Status.opening,
-          "Bitmask broken: can't be used to determine `open || closed` state"
+          "Bitmask broken: can't be used to determine `opening` state"
         );
         await pendingListen;
         assert.strictEqual(s.status, Status.open);
         assert.ok(
           s.status & Status.open,
-          "Bitmask broken: can't be used to determine `open || closed` state"
+          "Bitmask broken: can't be used to determine `open` state"
         );
         const pendingClose = s.close();
         assert.strictEqual(s.status, Status.closing);
         assert.ok(
           s.status & Status.closing,
-          "Bitmask broken: can't be used to determine `closed || closing` state"
+          "Bitmask broken: can't be used to determine `closing` state"
         );
         await pendingClose;
         assert.strictEqual(s.status, Status.closed);
         assert.ok(
           s.status & Status.closed,
-          "Bitmask broken: can't be used to determine `closed || closing` state"
+          "Bitmask broken: can't be used to determine `closed` state"
         );
       } catch (e) {
         // in case of failure, make sure we properly shut things down
@@ -125,7 +131,7 @@ describe("server", () => {
         // the call to `setup()` above calls `listen()` already. if we call it
         // again it should fail.
         await assert.rejects(s.listen(port), {
-          message: `Server is already open on port: ${port}.`
+          message: `Server is already open, or is opening, on port: ${port}.`
         });
       } finally {
         await teardown();
@@ -139,7 +145,7 @@ describe("server", () => {
         // again it should fail.
         const listen = promisify(s.listen.bind(s));
         await assert.rejects(listen(port), {
-          message: `Server is already open on port: ${port}.`
+          message: `Server is already open, or is opening, on port: ${port}.`
         });
       } finally {
         await teardown();
@@ -151,7 +157,7 @@ describe("server", () => {
       try {
         await s.close();
         assert.rejects(s.close(), {
-          message: "Server is already closed or closing."
+          message: "Server is already closing or closed."
         });
       } finally {
         await teardown();
@@ -163,7 +169,7 @@ describe("server", () => {
       try {
         s.close();
         assert.rejects(s.close(), {
-          message: "Server is already closed or closing."
+          message: "Server is already closing or closed."
         });
       } finally {
         await teardown();
@@ -175,9 +181,7 @@ describe("server", () => {
       server.listen(port);
 
       try {
-        await assert.rejects(setup, {
-          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
-        });
+        await assert.rejects(setup, `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`);
       } finally {
         await teardown();
         server.close();
@@ -208,9 +212,7 @@ describe("server", () => {
         const s2 = Ganache.server();
 
         try {
-          await assert.rejects(s2.listen(port), {
-            message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
-          });
+          await assert.rejects(s2.listen(port), `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`);
         } catch (e) {
           // in case of failure, make sure we properly shut things down
           if (s2.status & Status.open) {

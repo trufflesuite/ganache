@@ -180,7 +180,6 @@ export default class Blockchain extends Emittery.Typed<
   constructor(
     options: EthereumInternalOptions,
     common: Common,
-    initialAccounts: Account[],
     coinbaseAddress: Address
   ) {
     super();
@@ -214,113 +213,120 @@ export default class Blockchain extends Emittery.Typed<
       }
     }
 
-    const database = (this.#database = new Database(options.database, this));
-    database.once("ready").then(async () => {
-      const blocks = (this.blocks = await BlockManager.initialize(
-        common,
-        database.blockIndexes,
-        database.blocks
+    this.coinbase = coinbaseAddress;
+
+    this.#database = new Database(options.database, this);
+  }
+
+  async initialize(initialAccounts: Account[]) {
+    const database = this.#database;
+    const options = this.#options;
+    const common = this.#common;
+
+    await database.initialize();
+
+    const blocks = (this.blocks = await BlockManager.initialize(
+      common,
+      database.blockIndexes,
+      database.blocks
+    ));
+
+    // if we have a latest block, use it to set up the trie.
+    const latest = blocks.latest;
+    if (latest) {
+      this.#blockBeingSavedPromise = Promise.resolve({
+        block: latest,
+        blockLogs: null
+      });
+      this.trie = new SecureTrie(
+        database.trie,
+        latest.header.stateRoot.toBuffer()
+      );
+    } else {
+      this.trie = new SecureTrie(database.trie, null);
+    }
+
+    this.blockLogs = new BlockLogManager(database.blockLogs);
+    this.transactions = new TransactionManager(
+      options.miner,
+      common,
+      this,
+      database.transactions
+    );
+    this.transactionReceipts = new Manager(
+      database.transactionReceipts,
+      TransactionReceipt
+    );
+    this.accounts = new AccountManager(this, database.trie);
+    this.storageKeys = database.storageKeys;
+
+    // create VM and listen to step events
+    this.vm = this.createVmFromStateTrie(
+      this.trie,
+      options.chain.allowUnlimitedContractSize
+    );
+
+    {
+      // create first block
+      let firstBlockTime: number;
+      if (options.chain.time != null) {
+        // If we were given a timestamp, use it instead of the `_currentTime`
+        const t = options.chain.time.getTime();
+        firstBlockTime = Math.floor(t / 1000);
+        this.setTime(t);
+      } else {
+        firstBlockTime = this.#currentTime();
+      }
+
+      // if we don't already have a latest block, create a genesis block!
+      if (!latest) {
+        await this.#commitAccounts(initialAccounts);
+
+        this.#blockBeingSavedPromise = this.#initializeGenesisBlock(
+          firstBlockTime,
+          options.miner.blockGasLimit
+        );
+        blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(
+          ({ block }) => block
+        );
+      }
+    }
+
+    {
+      // configure and start miner
+      const txPool = this.transactions.transactionPool;
+      const minerOpts = options.miner;
+      const miner = (this.#miner = new Miner(
+        minerOpts,
+        txPool.executables,
+        this.#instamine,
+        this.vm,
+        this.#readyNextBlock
       ));
 
-      // if we have a latest block, use it to set up the trie.
-      const latest = blocks.latest;
-      if (latest) {
-        this.#blockBeingSavedPromise = Promise.resolve({
-          block: latest,
-          blockLogs: null
-        });
-        this.trie = new SecureTrie(
-          database.trie,
-          latest.header.stateRoot.toBuffer()
-        );
+      //#region automatic mining
+      const nullResolved = Promise.resolve(null);
+      const mineAll = (maxTransactions: number) =>
+        this.#isPaused() ? nullResolved : this.mine(maxTransactions);
+      if (this.#instamine) {
+        // insta mining
+        // whenever the transaction pool is drained mine the txs into blocks
+        txPool.on("drain", mineAll.bind(null, 1));
       } else {
-        this.trie = new SecureTrie(database.trie, null);
+        // interval mining
+        const wait = () => unref(setTimeout(next, minerOpts.blockTime * 1e3));
+        const next = () => mineAll(-1).then(wait);
+        wait();
       }
+      //#endregion
 
-      this.blockLogs = new BlockLogManager(database.blockLogs);
-      this.transactions = new TransactionManager(
-        options.miner,
-        common,
-        this,
-        database.transactions
-      );
-      this.transactionReceipts = new Manager(
-        database.transactionReceipts,
-        TransactionReceipt
-      );
-      this.accounts = new AccountManager(this, database.trie);
-      this.storageKeys = database.storageKeys;
+      miner.on("block", this.#handleNewBlockData);
 
-      this.coinbase = coinbaseAddress;
+      this.once("stop").then(() => miner.clearListeners());
+    }
 
-      // create VM and listen to step events
-      this.vm = this.createVmFromStateTrie(
-        this.trie,
-        options.chain.allowUnlimitedContractSize
-      );
-
-      {
-        // create first block
-        let firstBlockTime: number;
-        if (options.chain.time != null) {
-          // If we were given a timestamp, use it instead of the `_currentTime`
-          const t = options.chain.time.getTime();
-          firstBlockTime = Math.floor(t / 1000);
-          this.setTime(t);
-        } else {
-          firstBlockTime = this.#currentTime();
-        }
-
-        // if we don't already have a latest block, create a genesis block!
-        if (!latest) {
-          await this.#commitAccounts(initialAccounts);
-
-          this.#blockBeingSavedPromise = this.#initializeGenesisBlock(
-            firstBlockTime,
-            options.miner.blockGasLimit
-          );
-          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(
-            ({ block }) => block
-          );
-        }
-      }
-
-      {
-        // configure and start miner
-        const txPool = this.transactions.transactionPool;
-        const minerOpts = options.miner;
-        const miner = (this.#miner = new Miner(
-          minerOpts,
-          txPool.executables,
-          instamine,
-          this.vm,
-          this.#readyNextBlock
-        ));
-
-        //#region automatic mining
-        const nullResolved = Promise.resolve(null);
-        const mineAll = (maxTransactions: number) =>
-          this.#isPaused() ? nullResolved : this.mine(maxTransactions);
-        if (instamine) {
-          // insta mining
-          // whenever the transaction pool is drained mine the txs into blocks
-          txPool.on("drain", mineAll.bind(null, 1));
-        } else {
-          // interval mining
-          const wait = () => unref(setTimeout(next, minerOpts.blockTime * 1e3));
-          const next = () => mineAll(-1).then(wait);
-          wait();
-        }
-        //#endregion
-
-        miner.on("block", this.#handleNewBlockData);
-
-        this.once("stop").then(() => miner.clearListeners());
-      }
-
-      this.#state = Status.started;
-      this.emit("start");
-    });
+    this.#state = Status.started;
+    this.emit("start");
   }
 
   #saveNewBlock = ({

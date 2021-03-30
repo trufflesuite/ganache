@@ -188,11 +188,13 @@ export default class EthereumApi implements types.Api {
     const blockchain = (this.#blockchain = new Blockchain(
       options,
       common,
-      initialAccounts,
       coinbaseAddress
     ));
-    blockchain.on("start", () => emitter.emit("connect"));
     emitter.on("disconnect", blockchain.stop.bind(blockchain));
+  }
+
+  async initialize() {
+    await this.#blockchain.initialize(this.#wallet.initialAccounts);
   }
 
   //#region db

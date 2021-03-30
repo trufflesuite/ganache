@@ -39,14 +39,17 @@ export class Connector
   ) {
     super();
 
-    const provider = (this.#provider = new EthereumProvider(
+    this.#provider = new EthereumProvider(
       providerOptions,
       executor
-    ));
-    provider.on("connect", () => {
-      // tell the consumer (like a `ganache-core` server/connector) everything is ready
-      this.emit("ready");
-    });
+    );
+  }
+
+  async initialize() {
+    await this.#provider.initialize();
+    // no need to wait for #provider.once("connect") as the initialize()
+    // promise has already accounted for that after the promise is resolved
+    await this.emit("ready");
   }
 
   parse(message: Buffer) {
