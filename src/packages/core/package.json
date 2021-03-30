@@ -51,11 +51,11 @@
     "@ganache/options": "^0.1.0",
     "@ganache/tezos": "^0.1.0",
     "@ganache/utils": "^0.1.0",
-    "promise.allsettled": "^1.0.4",
+    "promise.allsettled": "1.0.4",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
   },
   "devDependencies": {
-    "@types/promise.allsettled": "^1.0.3",
+    "@types/promise.allsettled": "1.0.3",
     "@types/superagent": "4.1.10",
     "superagent": "6.1.0",
     "ws": "7.3.1"
