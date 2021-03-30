@@ -258,9 +258,9 @@
 			"dev": true
 		},
 		"@filecoin-shipyard/lotus-client-rpc": {
-			"version": "0.0.11",
-			"resolved": "https://registry.npmjs.org/@filecoin-shipyard/lotus-client-rpc/-/lotus-client-rpc-0.0.11.tgz",
-			"integrity": "sha512-7ZgT7tyB+5fp5mC9yC4Da9vj3M8PiVPNuxFkFAaDRu8blDuKg/tNh4OMZr5pqs/uuwjRZuXslGl8dOb2Iz+rZg==",
+			"version": "0.2.0",
+			"resolved": "https://registry.npmjs.org/@filecoin-shipyard/lotus-client-rpc/-/lotus-client-rpc-0.2.0.tgz",
+			"integrity": "sha512-z3Avmj6/j+vZ+dPC7LFIkMhjZGJYN1/XT/A11vMY+vh5IyZ1Z75JWbga3gJp8nRQkoa8nYi5GI4e0OIb+GkCPQ==",
 			"dev": true
 		},
 		"@filecoin-shipyard/lotus-client-schema": {
