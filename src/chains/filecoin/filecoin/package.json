@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",
-    "@filecoin-shipyard/lotus-client-rpc": "0.0.11",
+    "@filecoin-shipyard/lotus-client-rpc": "0.2.0",
     "@filecoin-shipyard/lotus-client-schema": "2.0.0",
     "@ganache/filecoin-options": "0.1.2",
     "@ganache/options": "0.1.0",
