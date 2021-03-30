@@ -1,4 +1,4 @@
-import uWS, { TemplatedApp, WebSocket } from "@seesemichaelj/uwebsockets.js";
+import uWS, { TemplatedApp, WebSocket } from "@trufflesuite/uws-js-unofficial";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
@@ -37,9 +37,12 @@ export default class WebsocketServer {
     const autoBinary = wsBinary === "auto";
     app.ws(options.rpcEndpoint, {
       /* WS Options */
-      compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
       maxPayloadLength: 16 * 1024, // 128 Kibibits
       idleTimeout: 120, // in seconds
+
+      // Note that compression is disabled (the default option)
+      // due to not being able to link against electron@12
+      // with compression included
 
       /* Handlers */
       open: (ws: GanacheWebSocket) => {
@@ -61,7 +64,7 @@ export default class WebsocketServer {
           payload = connector.parse(Buffer.from(message));
         } catch (err) {
           const response = connector.formatError(err, payload);
-          ws.send(response, useBinary, true);
+          ws.send(response, useBinary);
           return;
         }
 
@@ -96,7 +99,7 @@ export default class WebsocketServer {
                 method: result.type,
                 params: result.data
               });
-              ws.send(message, isBinary, true);
+              ws.send(message, isBinary);
             });
 
             // keep track of listeners to dispose off when the ws disconnects
@@ -109,7 +112,7 @@ export default class WebsocketServer {
           response = connector.formatError(err, payload);
         }
 
-        ws.send(response, useBinary, true);
+        ws.send(response, useBinary);
       },
 
       drain: (ws: WebSocket) => {

@@ -13,12 +13,6 @@
 				"vary": "^1.1.2"
 			}
 		},
-		"@seesemichaelj/uwebsockets.js": {
-			"version": "18.15.3",
-			"resolved": "https://registry.npmjs.org/@seesemichaelj/uwebsockets.js/-/uwebsockets.js-18.15.3.tgz",
-			"integrity": "sha512-WbhILD/EwxJFPcRThLE2JdYw7WN3h9qWyZhtKMZUUokajxZZI4i6KT0M/Vg6MBdr2AaBpIT3tDQW8CxVHHaCTA==",
-			"dev": true
-		},
 		"@tootallnate/once": {
 			"version": "1.1.2",
 			"resolved": "https://registry.npmjs.org/@tootallnate/once/-/once-1.1.2.tgz",
@@ -36,6 +30,12 @@
 				"lunr": "^2.3.6",
 				"underscore": "^1.9.1"
 			}
+		},
+		"@trufflesuite/uws-js-unofficial": {
+			"version": "18.14.0-unofficial.1",
+			"resolved": "https://registry.npmjs.org/@trufflesuite/uws-js-unofficial/-/uws-js-unofficial-18.14.0-unofficial.1.tgz",
+			"integrity": "sha512-gkzWrw/3APSnJHjeq9NPYB9/Kw5hkVWD4c31EuE3yb79BbMefiewJjFMcMQNT66p1LeBKE9rJDrQD9HnHsNPvg==",
+			"dev": true
 		},
 		"@types/node": {
 			"version": "14.14.20",

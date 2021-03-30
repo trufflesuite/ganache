@@ -6,7 +6,7 @@ import {
   RecognizedString,
   WebSocket,
   HttpRequest
-} from "@seesemichaelj/uwebsockets.js";
+} from "@trufflesuite/uws-js-unofficial";
 import { CodedError, ErrorCodes } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,

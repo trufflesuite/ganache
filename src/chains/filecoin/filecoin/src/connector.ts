@@ -6,7 +6,7 @@ import {
   RecognizedString,
   HttpRequest,
   WebSocket
-} from "@seesemichaelj/uwebsockets.js";
+} from "@trufflesuite/uws-js-unofficial";
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 export { StorageDealStatus } from "./types/storage-deal-status";
 
