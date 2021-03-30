@@ -1,6 +1,7 @@
 import { InternalOptions, ServerOptions, serverOptionsConfig } from "./options";
 
 import uWS, { TemplatedApp, us_listen_socket } from "uWebSockets.js";
+import allSettled from "promise.allsettled";
 import { Connector, DefaultFlavor } from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
@@ -135,6 +136,10 @@ export default class Server {
     this.#status = Status.opening;
 
     const initializePromise = this.initialize();
+
+    // necessary for `Promise.allSettled` to be shimmed
+    // in `node@10`
+    allSettled.shim();
 
     const promise = Promise.allSettled([
       initializePromise,
