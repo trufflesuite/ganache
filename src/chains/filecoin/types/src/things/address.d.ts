@@ -25,6 +25,7 @@ declare class Address extends SerializableLiteral<AddressConfig> {
   static readonly FirstNonSingletonActorId = 100;
   static readonly FirstMinerId = 1000;
   static readonly CHECKSUM_BYTES = 4;
+  static readonly CustomBase32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
   get privateKey(): string | undefined;
   get network(): AddressNetwork;
   get protocol(): AddressProtocol;

@@ -7,7 +7,7 @@ import {
   RecognizedString,
   HttpRequest,
   WebSocket
-} from "@seesemichaelj/uwebsockets.js";
+} from "@trufflesuite/uws-js-unofficial";
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 export { StorageDealStatus } from "./types/storage-deal-status";
 export declare type Provider = FilecoinProvider;
@@ -26,6 +26,7 @@ export declare class Connector
     providerOptions: FilecoinProviderOptions,
     executor: utils.Executor
   );
+  initialize(): Promise<void>;
   parse(message: Buffer): JsonRpcTypes.Request<FilecoinApi>;
   handle(
     payload: JsonRpcTypes.Request<FilecoinApi>,

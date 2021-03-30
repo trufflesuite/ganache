@@ -2,13 +2,19 @@ import Manager from "./manager";
 import { LevelUp } from "levelup";
 import { Account, AccountConfig } from "../things/account";
 import PrivateKeyManager from "./private-key-manager";
+import Database from "../database";
 export default class AccountManager extends Manager<Account, AccountConfig> {
   #private;
   static initialize(
     base: LevelUp,
-    privateKeyManager: PrivateKeyManager
+    privateKeyManager: PrivateKeyManager,
+    database: Database
   ): Promise<AccountManager>;
-  constructor(base: LevelUp, privateKeyManager: PrivateKeyManager);
+  constructor(
+    base: LevelUp,
+    privateKeyManager: PrivateKeyManager,
+    database: Database
+  );
   putAccount(account: Account): Promise<void>;
   getAccount(address: string): Promise<Account>;
   /**
