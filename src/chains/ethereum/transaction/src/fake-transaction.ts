@@ -1,5 +1,5 @@
 import { RpcTransaction } from "./rpc-transaction";
-import Common from "ethereumjs-common";
+import type Common from "@ethereumjs/common";
 import { RuntimeTransaction } from "./runtime-transaction";
 
 /**

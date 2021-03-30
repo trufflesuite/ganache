@@ -6,7 +6,7 @@ import path from "path";
 import { Quantity, Data } from "@ganache/utils";
 
 import { Account, TraceStorageMap } from "@ganache/ethereum-utils";
-import Common from "ethereumjs-common";
+import Common from "@ethereumjs/common";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { Address } from "@ganache/ethereum-address";
 import { RuntimeTransaction } from "@ganache/ethereum-transaction";
@@ -193,7 +193,7 @@ describe("api", () => {
 
       // The following will set up a vm, deploy the debugging contract,
       // then run the transaction against that contract that we want to trace.
-      const common = new Common("mainnet", "muirGlacier");
+      const common = new Common({ chain: "mainnet", hardfork: "berlin" });
 
       const blockchain = new Blockchain(
         EthereumOptionsConfig.normalize({}),

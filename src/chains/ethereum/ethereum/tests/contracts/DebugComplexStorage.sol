@@ -6,6 +6,7 @@ contract DebugComplexStorage {
     uint public constant constuint = 16;
     uint128 public investmentsLimit = 17055;
     uint32 public investmentsDeadlineTimeStamp = uint32(block.timestamp);
+    uint32 public investmentsDeadlineTimeStampa = uint32(block.difficulty);
 
     bytes16 public string1 = "test1";
     bytes32 public string2 = "test1236";

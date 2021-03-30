@@ -6,7 +6,7 @@ import request from "superagent";
 describe("forking", () => {
   describe("transactions", () => {
     const blockNumber = 0xb77935;
-    const URL = "https://mainnet.infura.io/v3/TODO";
+    const URL = "https://mainnet.infura.io/v3/0e96090b2eb34ea293a23feec9594e20";
     let provider: EthereumProvider;
     before(async function () {
       provider = await getProvider({
@@ -32,6 +32,8 @@ describe("forking", () => {
           .then(req => JSON.parse(req.text).result),
         provider.send("eth_getTransactionByHash", [txHash])
       ]);
+
+      delete originalTx.type;
 
       assert.deepStrictEqual(tx, originalTx);
     });

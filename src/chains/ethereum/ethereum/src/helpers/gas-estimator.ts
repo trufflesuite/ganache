@@ -76,7 +76,7 @@ const estimateGas = (generateVM, runArgs, callback) => {
 };
 
 const binSearch = async (generateVM, runArgs, result, callback) => {
-  const MAX = Quantity.from(runArgs.block.header.gasLimit).toBigInt();
+  const MAX = runArgs.block.header.gasLimit;
   const gasRefund = result.execResult.gasRefund;
   const startingGas = gasRefund
     ? result.gasEstimate.add(gasRefund)
@@ -84,7 +84,7 @@ const binSearch = async (generateVM, runArgs, result, callback) => {
   const range = { lo: startingGas, hi: startingGas };
   const isEnoughGas = async gas => {
     const vm = generateVM(); // Generate fresh VM
-    runArgs.tx.gasLimit = gas.toBuffer();
+    runArgs.tx.gasLimit = new BN(gas.toBuffer());
     const result = await vm.runTx(runArgs).catch(vmerr => ({ vmerr }));
     return !result.vmerr && !result.execResult.exceptionError;
   };

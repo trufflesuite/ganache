@@ -1,8 +1,8 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
-import Transaction from "ethereumjs-tx/dist/transaction";
-import Common from "ethereumjs-common";
+import Transaction from "@ethereumjs/tx/dist/legacyTransaction";
+import Common from "@ethereumjs/common";
 
 describe("api", () => {
   describe("eth", () => {
@@ -33,7 +33,7 @@ describe("api", () => {
       });
 
       it("processes a signed transaction", async () => {
-        const transaction = new Transaction(
+        const transaction = Transaction.fromTxData(
           {
             value: "0xff",
             gasLimit: "0x33450",
@@ -43,11 +43,11 @@ describe("api", () => {
         );
 
         const secretKeyBuffer = Buffer.from(secretKey.substr(2), "hex");
-        transaction.sign(secretKeyBuffer);
+        const signed = transaction.sign(secretKeyBuffer);
 
         await provider.send("eth_subscribe", ["newHeads"]);
         const txHash = await provider.send("eth_sendRawTransaction", [
-          transaction.serialize()
+          signed.serialize()
         ]);
         await provider.once("message");
 

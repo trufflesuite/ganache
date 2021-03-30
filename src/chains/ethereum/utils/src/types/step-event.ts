@@ -9,5 +9,5 @@ export type StepEvent = {
     name: string;
   };
   pc: number;
-  address: Buffer;
+  address: { buf: Buffer };
 };

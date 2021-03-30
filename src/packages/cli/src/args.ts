@@ -23,7 +23,7 @@ marked.setOptions({
 
 const wrapWidth = Math.min(120, yargs.terminalWidth());
 const NEED_HELP = "Need more help? Reach out to the Truffle community at";
-const COMMUNITY_LINK = "https://gitter.im/ConsenSys/truffle";
+const COMMUNITY_LINK = "https://trfl.co/support";
 
 function unescapeEntities(html: string) {
   return html

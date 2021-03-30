@@ -5,9 +5,9 @@
 	"requires": true,
 	"dependencies": {
 		"@types/bn.js": {
-			"version": "4.11.6",
-			"resolved": "https://registry.npmjs.org/@types/bn.js/-/bn.js-4.11.6.tgz",
-			"integrity": "sha512-pqr857jrp2kPuO9uRjZ3PwnJTjoQy+fcdxvBTvHm6dkmEL9q+hDD/2j/0ELOBPtPnS8LjCX0gI9nbl8lVkadpg==",
+			"version": "5.1.0",
+			"resolved": "https://registry.npmjs.org/@types/bn.js/-/bn.js-5.1.0.tgz",
+			"integrity": "sha512-QSSVYj7pYFN49kW77o2s9xTCwZ8F2xLbjLLSEVh8D2F4JUhZtPAGOFLTD+ffqksBx/u4cE/KImFjyhqCjn/LIA==",
 			"requires": {
 				"@types/node": "*"
 			}
@@ -73,9 +73,9 @@
 			"integrity": "sha1-ad+S75U6qIylGjLfarHFShVfx6U="
 		},
 		"bn.js": {
-			"version": "5.1.3",
-			"resolved": "https://registry.npmjs.org/bn.js/-/bn.js-5.1.3.tgz",
-			"integrity": "sha512-GkTiFpjFtUzU9CbMeJ5iazkCzGL3jrhzerzZIuqLABjbwRaFt33I9tUdSNryIptM+RxDet6OKm2WnLXzW51KsQ=="
+			"version": "5.2.0",
+			"resolved": "https://registry.npmjs.org/bn.js/-/bn.js-5.2.0.tgz",
+			"integrity": "sha512-D7iWRBvnZE8ecXiLj/9wbxH7Tk79fAh8IHaTNq1RWRixsS02W+5qS+iE9yq6RYl0asXx5tw0bLhmT5pIfbSquw=="
 		},
 		"brorand": {
 			"version": "1.1.0",
@@ -239,23 +239,23 @@
 			}
 		},
 		"elliptic": {
-			"version": "6.5.3",
-			"resolved": "https://registry.npmjs.org/elliptic/-/elliptic-6.5.3.tgz",
-			"integrity": "sha512-IMqzv5wNQf+E6aHeIqATs0tOLeOTwj1QKbRcS3jBbYkl5oLAserA8yJTT7/VyHUYG91PRmPyeQDObKLPpeS4dw==",
+			"version": "6.5.4",
+			"resolved": "https://registry.npmjs.org/elliptic/-/elliptic-6.5.4.tgz",
+			"integrity": "sha512-iLhC6ULemrljPZb+QutR5TQGB+pdW6KGD5RSegS+8sorOZT+rdQFbsQFJgvN3eRqNALqJer4oQ16YvJHlU8hzQ==",
 			"requires": {
-				"bn.js": "^4.4.0",
-				"brorand": "^1.0.1",
+				"bn.js": "^4.11.9",
+				"brorand": "^1.1.0",
 				"hash.js": "^1.0.0",
-				"hmac-drbg": "^1.0.0",
-				"inherits": "^2.0.1",
-				"minimalistic-assert": "^1.0.0",
-				"minimalistic-crypto-utils": "^1.0.0"
+				"hmac-drbg": "^1.0.1",
+				"inherits": "^2.0.4",
+				"minimalistic-assert": "^1.0.1",
+				"minimalistic-crypto-utils": "^1.0.1"
 			},
 			"dependencies": {
 				"bn.js": {
-					"version": "4.11.9",
-					"resolved": "https://registry.npmjs.org/bn.js/-/bn.js-4.11.9.tgz",
-					"integrity": "sha512-E6QoYqCKZfgatHTdHzs1RRKP7ip4vvm+EyRUeE2RF0NblwVvb0p6jSVeNTOFxPn26QXN2o6SMfNxKp6kU8zQaw=="
+					"version": "4.12.0",
+					"resolved": "https://registry.npmjs.org/bn.js/-/bn.js-4.12.0.tgz",
+					"integrity": "sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA=="
 				}
 			}
 		},
@@ -297,11 +297,11 @@
 			}
 		},
 		"ethereumjs-util": {
-			"version": "7.0.7",
-			"resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-7.0.7.tgz",
-			"integrity": "sha512-vU5rtZBlZsgkTw3o6PDKyB8li2EgLavnAbsKcfsH2YhHH1Le+PP8vEiMnAnvgc1B6uMoaM5GDCrVztBw0Q5K9g==",
+			"version": "7.0.9",
+			"resolved": "https://registry.npmjs.org/ethereumjs-util/-/ethereumjs-util-7.0.9.tgz",
+			"integrity": "sha512-cRqvYYKJoitq6vMKMf8pXeVwvTrX+dRD0JwHaYqm8jvogK14tqIoCWH/KUHcRwnVxVXEYF/o6pup5jRG4V0xzg==",
 			"requires": {
-				"@types/bn.js": "^4.11.3",
+				"@types/bn.js": "^5.1.0",
 				"bn.js": "^5.1.2",
 				"create-hash": "^1.1.2",
 				"ethereum-cryptography": "^0.1.3",
@@ -497,9 +497,9 @@
 			},
 			"dependencies": {
 				"bn.js": {
-					"version": "4.11.9",
-					"resolved": "https://registry.npmjs.org/bn.js/-/bn.js-4.11.9.tgz",
-					"integrity": "sha512-E6QoYqCKZfgatHTdHzs1RRKP7ip4vvm+EyRUeE2RF0NblwVvb0p6jSVeNTOFxPn26QXN2o6SMfNxKp6kU8zQaw=="
+					"version": "4.12.0",
+					"resolved": "https://registry.npmjs.org/bn.js/-/bn.js-4.12.0.tgz",
+					"integrity": "sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA=="
 				}
 			}
 		},

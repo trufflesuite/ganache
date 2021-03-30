@@ -6,9 +6,9 @@ import {
 import { Data, Quantity, utils } from "@ganache/utils";
 import { RpcTransaction } from "./rpc-transaction";
 import { ecsign } from "ethereumjs-util";
-import Common from "ethereumjs-common";
+import type Common from "@ethereumjs/common";
 import { EthereumRawTx, GanacheRawExtraTx } from "./raw";
-import type { RunTxResult } from "ethereumjs-vm/dist/runTx";
+import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
 import { computeInstrinsics } from "./signing";
 import { encodeRange, digest, EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
@@ -292,16 +292,21 @@ export class RuntimeTransaction extends BaseTransaction {
       status = ONE_BUFFER;
     }
 
-    const receipt = (this.receipt = TransactionReceipt.fromValues(
-      status,
-      Quantity.from(cumulativeGasUsed).toBuffer(),
-      result.bloom.bitvector,
-      (this.logs = vmResult.logs || ([] as TransactionLog[])),
-      result.createdAddress,
-      result.gasUsed.toArrayLike(Buffer)
-    ));
+    try {
+      const receipt = (this.receipt = TransactionReceipt.fromValues(
+        status,
+        Quantity.from(cumulativeGasUsed).toBuffer(),
+        result.bloom.bitvector,
+        (this.logs = vmResult.logs || ([] as TransactionLog[])),
+        result.createdAddress ? result.createdAddress.buf : null,
+        result.gasUsed.toArrayLike(Buffer)
+      ));
 
-    return receipt.serialize(false);
+      return receipt.serialize(false);
+    } catch (e) {
+      console.error(e);
+      return Buffer.from([]);
+    }
   }
 
   public getReceipt(): TransactionReceipt {

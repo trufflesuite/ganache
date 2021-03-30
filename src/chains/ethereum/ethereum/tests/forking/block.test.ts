@@ -7,7 +7,7 @@ describe("forking", () => {
   describe("blocks", () => {
     const blockNumber = 0xb77935;
     const blockNumHex = `0x${blockNumber.toString(16)}`;
-    const URL = "https://mainnet.infura.io/v3/TODO";
+    const URL = "https://mainnet.infura.io/v3/0e96090b2eb34ea293a23feec9594e20";
     let provider: EthereumProvider;
     before(async function () {
       provider = await getProvider({

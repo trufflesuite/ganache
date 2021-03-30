@@ -17,7 +17,9 @@ const config: webpack.Configuration = merge({}, base, {
       process: require.resolve("process/browser"),
       events: require.resolve("events/"),
       buffer: require.resolve("buffer/"),
-      fs: false
+      fs: false,
+      http: false,
+      https: false
       //#endregion node polyfills
     },
     alias: {

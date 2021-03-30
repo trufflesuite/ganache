@@ -1,11 +1,11 @@
 import { utils, Data, Quantity } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import Common from "ethereumjs-common";
+import type Common from "@ethereumjs/common";
 import { BN } from "ethereumjs-util";
 import { Hardfork } from "./hardfork";
 import { Params } from "./params";
 
-const { BUFFER_EMPTY } = utils;
+const { BUFFER_EMPTY, BUFFER_32_ZERO } = utils;
 
 const MAX_UINT64 = 1n << (64n - 1n);
 
@@ -93,13 +93,20 @@ export class BaseTransaction {
     const to = this.to.toBuffer();
     const data = this.data.toBuffer();
     return {
+      hash: () => BUFFER_32_ZERO,
       nonce: new BN(this.nonce.toBuffer()),
       gasPrice: new BN(this.gasPrice.toBuffer()),
       gasLimit: new BN(this.gas.toBuffer()),
-      to,
+      to:
+        to.length === 0
+          ? null
+          : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
       value: new BN(this.value.toBuffer()),
       data,
-      getSenderAddress: () => sender,
+      getSenderAddress: () => ({
+        buf: sender,
+        equals: (a: { buf: Buffer }) => sender.equals(a.buf)
+      }),
       /**
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */

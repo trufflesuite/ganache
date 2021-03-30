@@ -38,9 +38,11 @@ try {
     } else {
       let length = bigIntByteLength(value);
       const buf = allocUnsafe(length);
+      // process 1 byte at a time
       do {
-        // process 1 byte at a time
+        // truncate to right-most 32 bits and assign to buffer position `length`
         buf[--length] = Number(value & 0xffffffffn);
+        // shift right-most byte off since we've used it
         value >>= 8n;
       } while (length);
       return buf;

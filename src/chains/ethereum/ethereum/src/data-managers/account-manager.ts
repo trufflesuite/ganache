@@ -1,4 +1,4 @@
-import Trie from "merkle-patricia-tree/baseTrie";
+import { BaseTrie as Trie } from "merkle-patricia-tree";
 import { KECCAK256_NULL } from "ethereumjs-util";
 import { LevelUp } from "levelup";
 import { Account, EthereumRawAccount, Tag } from "@ganache/ethereum-utils";
@@ -6,7 +6,6 @@ import { utils, Quantity, Data } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { decode } from "@ganache/rlp";
 import Blockchain from "../blockchain";
-import { promisify } from "util";
 
 const { keccak, RPCQUANTITY_ZERO, BUFFER_EMPTY } = utils;
 
@@ -41,8 +40,9 @@ export default class AccountManager {
     const codeProm = fallback.request<string>(GET_CODE, [address, blockNumber]);
     const promises = [
       fallback.request<string>(GET_NONCE, [address, blockNumber]),
-      fallback.request<string>(GET_BALANCE, [address, blockNumber])
-    ] as [nonce: Promise<string>, balance: Promise<string>];
+      fallback.request<string>(GET_BALANCE, [address, blockNumber]),
+      null
+    ] as [nonce: Promise<string>, balance: Promise<string>, put: Promise<void>];
 
     // create an account so we can serialize everything later
     const account = new Account(address);
@@ -56,7 +56,7 @@ export default class AccountManager {
       // the codeHash is just the keccak hash of the code itself
       account.codeHash = keccak(code);
       // insert the code into the database with a key of `codeHash`
-      promises.push(this.#trie.put(account.codeHash, code));
+      promises[2] = this.#trie.put(account.codeHash, code);
     }
 
     // finally, set the `nonce` and `balance` on the account before returning
@@ -88,7 +88,7 @@ export default class AccountManager {
     const trie = new Trie(this.#trie, stateRoot.toBuffer());
 
     // get the account from the trie
-    let data = await promisify(trie.get.bind(trie))(keccak(address.toBuffer()));
+    let data = await trie.get(keccak(address.toBuffer()));
     if (data == null) {
       // if we don't have data, check the fallback
       if (blockchain.fallback)

@@ -4,40 +4,39 @@ import {
   EthereumRawTx,
   GanacheRawBlockTransactionMetaData
 } from "@ganache/ethereum-transaction";
-import Common from "ethereumjs-common";
+import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
 import { utils } from "@ganache/utils";
-import { BUFFER_EMPTY } from "@ganache/utils/src/utils";
 import {
   EthereumRawBlockHeader,
   GanacheRawBlock,
   serialize
 } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
-const { keccak } = utils;
+const { keccak, BUFFER_EMPTY } = utils;
 
 export class Block {
-  private readonly _size: number;
-  private readonly _raw: Buffer[];
-  private readonly _common: Common;
-  private readonly _rawTransactions: EthereumRawTx[] = null;
-  private readonly _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[] = null;
+  protected _size: number;
+  protected _raw: EthereumRawBlockHeader;
+  protected _common: Common;
+  protected _rawTransactions: EthereumRawTx[];
+  protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
-  public readonly header: BlockHeader;
+  public header: BlockHeader;
 
   constructor(serialized: Buffer, common: Common) {
     this._common = common;
     if (serialized) {
       const deserialized = decode<GanacheRawBlock>(serialized);
       this._raw = deserialized[0];
-      this._rawTransactions = deserialized[1];
+      this._rawTransactions = deserialized[1] || [];
       // TODO: support actual uncle data (needed for forking!)
       // Issue: https://github.com/trufflesuite/ganache-core/issues/786
       // const uncles = deserialized[2];
       const totalDifficulty = deserialized[3];
       this.header = makeHeader(this._raw, totalDifficulty);
-      this._rawTransactionMetaData = deserialized[4];
+      this._rawTransactionMetaData = deserialized[4] || [];
       this._size = Quantity.from(deserialized[5]).toNumber();
     }
   }
@@ -141,5 +140,22 @@ export class Block {
     } else {
       return (tx: BlockTransaction) => tx.hash;
     }
+  }
+
+  static fromParts(
+    rawHeader: EthereumRawBlockHeader,
+    txs: EthereumRawTx[],
+    totalDifficulty: Buffer,
+    extraTxs: GanacheRawBlockTransactionMetaData[],
+    size: number,
+    common: Common
+  ): Block {
+    const block = new Block(null, common);
+    block._raw = rawHeader;
+    block._rawTransactions = txs;
+    block.header = makeHeader(rawHeader, totalDifficulty);
+    block._rawTransactionMetaData = extraTxs;
+    block._size = size;
+    return block;
   }
 }

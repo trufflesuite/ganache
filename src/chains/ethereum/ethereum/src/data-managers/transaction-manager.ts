@@ -4,7 +4,7 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import PromiseQueue from "@ganache/promise-queue";
-import Common from "ethereumjs-common";
+import type Common from "@ethereumjs/common";
 import { Data, Quantity } from "@ganache/utils";
 import {
   FrozenTransaction,

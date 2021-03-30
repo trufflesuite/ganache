@@ -1,5 +1,5 @@
 import { JsonRpcTypes } from "@ganache/utils";
-import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
+import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { VM_EXCEPTION } from "./errors";
 import { Data } from "@ganache/utils";
 import { rawDecode } from "ethereumjs-abi";
