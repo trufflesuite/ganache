@@ -183,7 +183,16 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
           else throw err;
         }
       })
-    ]).catch(async error => {
+    ]).then((promiseResults) => {
+      if (promiseResults[0].status === "fulfilled" && promiseResults[1].status === "fulfilled") {
+        this.emit("open");
+      } else {
+        let reason = "";
+        reason += promiseResults[0].status === "rejected" ? `${promiseResults[0].reason}\n\n` : "";
+        reason += promiseResults[1].status === "rejected" ? promiseResults[1].reason : "";
+        throw reason;
+      }
+    }).catch(async error => {
       this.#status = Status.unknown;
       if (callbackIsFunction) callback!(error);
       await this.close();
@@ -191,19 +200,7 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
     });
 
     if (!callbackIsFunction) {
-      return new Promise<void>(async (resolve, reject) => {
-        const promiseResults = await promise;
-
-        if (promiseResults[0].status === "fulfilled" && promiseResults[1].status === "fulfilled") {
-          this.emit("open");
-          resolve();
-        } else {
-          let reason = "";
-          reason += promiseResults[0].status === "rejected" ? `${promiseResults[0].reason}\n\n` : "";
-          reason += promiseResults[1].status === "rejected" ? promiseResults[1].reason : "";
-          reject(reason);
-        }
-      });
+      return promise;
     }
   }
 
