@@ -26,35 +26,35 @@ type Callback = (err: Error | null) => void;
  */
 export enum Status {
   /**
-   * The server is in an unknown state; perhaps construction didn't succeed
+   * The Server is in an unknown state; perhaps construction didn't succeed
    */
   unknown = 0,
   /**
-   * The server has been constructed and is ready to be opened is open and ready to communicate.
+   * The Server has been constructed and is ready to be opened.
    */
   ready = 1 << 0,
   /**
-   * The server has started to open, but has not yet finished initialization.
+   * The Server has started to open, but has not yet finished initialization.
    */
   opening = 1 << 1,
   /**
-   * The server is open and ready for connection.
+   * The Server is open and ready for connection.
    */
   open = 1 << 2,
   /**
-   * The server is either opening or is already open
+   * The Server is either opening or is already open
    */
   openingOrOpen = (1 << 1) | (1 << 2),
   /**
-   * The server is in the process of closing.
+   * The Server is in the process of closing.
    */
   closing = 1 << 3,
   /**
-   * The server is closed and not accepting new connections.
+   * The Server is closed and not accepting new connections.
    */
   closed = 1 << 4,
   /**
-   * The server is either opening or is already open
+   * The Server is either opening or is already open
    */
   closingOrClosed = (1 << 3) | (1 << 4)
 }
@@ -136,8 +136,9 @@ export default class Server {
 
     const initializePromise = this.initialize();
 
-    const promise = initializePromise.then(() => {
-      return new Promise(
+    const promise = Promise.allSettled([
+      initializePromise,
+      new Promise(
         (resolve: (listenSocket: false | uWS.us_listen_socket) => void) => {
           // Make sure we have *exclusive* use of this port.
           // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
@@ -166,15 +167,27 @@ export default class Server {
           if (callbackIsFunction) callback!(err);
           else throw err;
         }
-      });
-    }).catch(async error => {
+      })
+    ]).catch(async error => {
       this.#status = Status.unknown;
+      if (callbackIsFunction) callback!(error);
       await this.close();
       throw error;
     });
 
     if (!callbackIsFunction) {
-      return promise;
+      return new Promise<void>(async (resolve, reject) => {
+        const promiseResults = await promise;
+
+        if (promiseResults[0].status === "fulfilled" && promiseResults[1].status === "fulfilled") {
+          resolve();
+        } else {
+          let reason = "";
+          reason += promiseResults[0].status === "rejected" ? `${promiseResults[0].reason}\n\n` : "";
+          reason += promiseResults[1].status === "rejected" ? promiseResults[1].reason : "";
+          reject(reason);
+        }
+      });
     }
   }
 
