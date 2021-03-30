@@ -127,94 +127,97 @@ export default class Blockchain extends Emittery.Typed<
     this.dealInfoManager = null;
 
     this.#database = new Database(options.database);
-    this.#database.once("ready").then(async () => {
-      this.blockHeaderManager = await BlockHeaderManager.initialize(
-        this.#database.blocks!
-      );
-      this.tipsetManager = await TipsetManager.initialize(
-        this.#database.tipsets!,
-        this.blockHeaderManager
-      );
-      this.privateKeyManager = await PrivateKeyManager.initialize(
-        this.#database.privateKeys!
-      );
-      this.accountManager = await AccountManager.initialize(
-        this.#database.accounts!,
-        this.privateKeyManager,
-        this.#database
-      );
-      this.signedMessagesManager = await SignedMessageManager.initialize(
-        this.#database.signedMessages!
-      );
-      this.blockMessagesManager = await BlockMessagesManager.initialize(
-        this.#database.blockMessages!,
-        this.signedMessagesManager
-      );
-      this.dealInfoManager = await DealInfoManager.initialize(
-        this.#database.deals!,
-        this.#database.dealExpirations!
-      );
+  }
 
-      const controllableAccounts = await this.accountManager.getControllableAccounts();
-      if (controllableAccounts.length === 0) {
-        for (let i = 0; i < this.options.wallet.totalAccounts; i++) {
-          await this.accountManager.putAccount(
-            Account.random(this.options.wallet.defaultBalance, this.rng)
-          );
-        }
-      }
+  async initialize() {
+    await this.#database.initialize();
 
-      const recordedGenesisTipset = await this.tipsetManager.getTipsetWithBlocks(
-        0
-      );
-      if (recordedGenesisTipset === null) {
-        // Create genesis tipset
-        const genesisBlock = new BlockHeader({
-          ticket: new Ticket({
-            // Reference implementation https://git.io/Jt31s
-            vrfProof: this.rng.getBuffer(32)
-          }),
-          parents: [
-            // Both lotus and lotus-devnet always have the Filecoin genesis CID
-            // hardcoded here. Reference implementation: https://git.io/Jt3oK
-            new RootCID({
-              "/": "bafyreiaqpwbbyjo4a42saasj36kkrpv4tsherf2e7bvezkert2a7dhonoi"
-            })
-          ]
-        });
+    this.blockHeaderManager = await BlockHeaderManager.initialize(
+      this.#database.blocks!
+    );
+    this.tipsetManager = await TipsetManager.initialize(
+      this.#database.tipsets!,
+      this.blockHeaderManager
+    );
+    this.privateKeyManager = await PrivateKeyManager.initialize(
+      this.#database.privateKeys!
+    );
+    this.accountManager = await AccountManager.initialize(
+      this.#database.accounts!,
+      this.privateKeyManager,
+      this.#database
+    );
+    this.signedMessagesManager = await SignedMessageManager.initialize(
+      this.#database.signedMessages!
+    );
+    this.blockMessagesManager = await BlockMessagesManager.initialize(
+      this.#database.blockMessages!,
+      this.signedMessagesManager
+    );
+    this.dealInfoManager = await DealInfoManager.initialize(
+      this.#database.deals!,
+      this.#database.dealExpirations!
+    );
 
-        const genesisTipset = new Tipset({
-          blocks: [genesisBlock],
-          height: 0
-        });
-
-        this.tipsetManager.earliest = genesisTipset; // initialize earliest
-        await this.tipsetManager.putTipset(genesisTipset); // sets latest
-        await this.#database.db!.put("latest-tipset", utils.uintToBuffer(0));
-      } else {
-        this.tipsetManager.earliest = recordedGenesisTipset; // initialize earliest
-        const data: Buffer = await this.#database.db!.get("latest-tipset");
-        const height = Quantity.from(data).toNumber();
-        const latestTipset = await this.tipsetManager.getTipsetWithBlocks(
-          height
+    const controllableAccounts = await this.accountManager.getControllableAccounts();
+    if (controllableAccounts.length === 0) {
+      for (let i = 0; i < this.options.wallet.totalAccounts; i++) {
+        await this.accountManager.putAccount(
+          Account.random(this.options.wallet.defaultBalance, this.rng)
         );
-        this.tipsetManager.latest = latestTipset!; // initialize latest
       }
+    }
 
-      await this.ipfsServer.start(this.#database.directory!);
+    const recordedGenesisTipset = await this.tipsetManager.getTipsetWithBlocks(
+      0
+    );
+    if (recordedGenesisTipset === null) {
+      // Create genesis tipset
+      const genesisBlock = new BlockHeader({
+        ticket: new Ticket({
+          // Reference implementation https://git.io/Jt31s
+          vrfProof: this.rng.getBuffer(32)
+        }),
+        parents: [
+          // Both lotus and lotus-devnet always have the Filecoin genesis CID
+          // hardcoded here. Reference implementation: https://git.io/Jt3oK
+          new RootCID({
+            "/": "bafyreiaqpwbbyjo4a42saasj36kkrpv4tsherf2e7bvezkert2a7dhonoi"
+          })
+        ]
+      });
 
-      // Fire up the miner if necessary
-      if (this.minerEnabled && this.options.miner.blockTime > 0) {
-        await this.enableMiner();
-      }
+      const genesisTipset = new Tipset({
+        blocks: [genesisBlock],
+        height: 0
+      });
 
-      // Get this party started!
-      this.ready = true;
-      this.emit("ready");
+      this.tipsetManager.earliest = genesisTipset; // initialize earliest
+      await this.tipsetManager.putTipset(genesisTipset); // sets latest
+      await this.#database.db!.put("latest-tipset", utils.uintToBuffer(0));
+    } else {
+      this.tipsetManager.earliest = recordedGenesisTipset; // initialize earliest
+      const data: Buffer = await this.#database.db!.get("latest-tipset");
+      const height = Quantity.from(data).toNumber();
+      const latestTipset = await this.tipsetManager.getTipsetWithBlocks(
+        height
+      );
+      this.tipsetManager.latest = latestTipset!; // initialize latest
+    }
 
-      // Don't log until things are all ready
-      this.logLatestTipset();
-    });
+    await this.ipfsServer.start(this.#database.directory!);
+
+    // Fire up the miner if necessary
+    if (this.minerEnabled && this.options.miner.blockTime > 0) {
+      await this.enableMiner();
+    }
+
+    // Get this party started!
+    this.ready = true;
+    this.emit("ready");
+
+    // Don't log until things are all ready
+    this.logLatestTipset();
   }
 
   async waitForReady() {

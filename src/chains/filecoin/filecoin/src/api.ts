@@ -50,6 +50,10 @@ export default class FilecoinApi implements types.Api {
     this.#blockchain = blockchain;
   }
 
+  async initialize() {
+    await this.#blockchain.initialize();
+  }
+
   async stop(): Promise<void> {
     return await this.#blockchain.stop();
   }

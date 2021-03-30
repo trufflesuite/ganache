@@ -41,8 +41,8 @@ describe("Blockchain", () => {
           }
         })
       );
-      await blockchain.waitForReady();
-      await blockchain2.waitForReady();
+      await blockchain.initialize();
+      await blockchain2.initialize();
     });
 
     after(async () => {
@@ -104,7 +104,7 @@ describe("Blockchain", () => {
       );
 
       try {
-        await blockchain.waitForReady();
+        await blockchain.initialize();
 
         // After 0.5 seconds, we should have at least 3 blocks and no more than 10 blocks
         // Github CI is so unpredictable with their burstable cpus
@@ -135,7 +135,7 @@ describe("Blockchain", () => {
       );
 
       try {
-        await blockchain.waitForReady();
+        await blockchain.initialize();
 
         const ipfs = IpfsHttpClient({
           host: "localhost",
@@ -183,7 +183,7 @@ describe("Blockchain", () => {
         })
       );
 
-      await blockchain.waitForReady();
+      await blockchain.initialize();
 
       const result = await blockchain.ipfs!.add({
         content: "some data"
@@ -274,7 +274,7 @@ describe("Blockchain", () => {
         })
       );
 
-      await blockchain.waitForReady();
+      await blockchain.initialize();
 
       const result = await blockchain.ipfs!.add({
         content: "some data"
@@ -333,7 +333,7 @@ describe("Blockchain", () => {
           }
         })
       );
-      await blockchain.waitForReady();
+      await blockchain.initialize();
       const accounts = await blockchain.accountManager.getControllableAccounts();
 
       assert.strictEqual(accounts[0].address.value, expectedAddress);
@@ -352,7 +352,7 @@ describe("Blockchain", () => {
           }
         })
       );
-      await blockchain.waitForReady();
+      await blockchain.initialize();
       const accounts = await blockchain.accountManager.getControllableAccounts();
 
       assert.notStrictEqual(accounts[0].address.value, expectedAddress);

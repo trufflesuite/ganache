@@ -19,12 +19,8 @@ const getProvider = async (options?: Partial<FilecoinProviderOptions>) => {
     },
     executor
   );
-  await new Promise(resolve => {
-    provider.on("ready", () => {
-      requestCoordinator.resume();
-      resolve(void 0);
-    });
-  });
+  await provider.initialize();
+  requestCoordinator.resume();
   return provider;
 };
 

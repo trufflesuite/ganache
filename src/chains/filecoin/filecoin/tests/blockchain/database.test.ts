@@ -35,7 +35,7 @@ describe("Blockchain", () => {
         })
       );
 
-      await blockchain.waitForReady();
+      await blockchain.initialize();
       await blockchain.mineTipset();
       const dir = await readdir(dbPath);
       assert(dir.length > 0);
@@ -78,7 +78,7 @@ describe("Blockchain", () => {
         })
       );
 
-      await blockchain.waitForReady();
+      await blockchain.initialize();
       const latestTipset = blockchain.latestTipset();
       assert.strictEqual(latestTipset.height, 1);
       assert(
@@ -101,7 +101,7 @@ describe("Blockchain", () => {
         })
       );
 
-      await blockchain.waitForReady();
+      await blockchain.initialize();
 
       let gotFile = false;
       for await (const file of blockchain.ipfs.get(ipfsCid)) {

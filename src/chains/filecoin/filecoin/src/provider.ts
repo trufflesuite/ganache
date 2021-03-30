@@ -15,7 +15,7 @@ import cloneDeep from "lodash.clonedeep";
 // Meant to mimic this provider:
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
 export default class FilecoinProvider
-  extends Emittery.Typed<{}, "ready">
+  extends Emittery.Typed<{}, "connect" | "disconnect">
   // Do I actually need this? `types.Provider` doesn't actually define anything behavior
   implements types.Provider<FilecoinApi> {
   #options: FilecoinInternalOptions;
@@ -35,11 +35,13 @@ export default class FilecoinProvider
     this.#executor = executor;
 
     this.blockchain = new Blockchain(providerOptions);
-    this.blockchain.on("ready", () => {
-      this.emit("ready");
-    });
 
     this.#api = new FilecoinApi(this.blockchain);
+  }
+
+  async initialize() {
+    await this.#api.initialize();
+    await this.emit("connect");
   }
 
   /**
