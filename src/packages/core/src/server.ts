@@ -137,8 +137,12 @@ export default class Server {
 
     const initializePromise = this.initialize();
 
-    // necessary for `Promise.allSettled` to be shimmed
-    // in `node@10`
+    // This `shim()` is necessary for `Promise.allSettled` to be shimmed
+    // in `node@10`. We cannot use `allSettled([...])` directly due to
+    // https://github.com/es-shims/Promise.allSettled/issues/5 without
+    // upgrading Typescript. TODO: if Typescript is upgraded to 4.2.3+
+    // then this line could be removed and `Promise.allSettled` below
+    // could replaced with `allSettled`.
     allSettled.shim();
 
     const promise = Promise.allSettled([
