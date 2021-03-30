@@ -219,11 +219,11 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   async initialize(initialAccounts: Account[]) {
-    await this.#database.initialize();
-
     const database = this.#database;
     const options = this.#options;
     const common = this.#common;
+
+    await database.initialize();
 
     const blocks = (this.blocks = await BlockManager.initialize(
       common,
