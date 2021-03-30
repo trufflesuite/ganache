@@ -183,9 +183,7 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
           else throw err;
         }
       })
-    ]).then(() => {
-      return this.emit("open");
-    }).catch(async error => {
+    ]).catch(async error => {
       this.#status = Status.unknown;
       if (callbackIsFunction) callback!(error);
       await this.close();
@@ -197,6 +195,7 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
         const promiseResults = await promise;
 
         if (promiseResults[0].status === "fulfilled" && promiseResults[1].status === "fulfilled") {
+          this.emit("open");
           resolve();
         } else {
           let reason = "";

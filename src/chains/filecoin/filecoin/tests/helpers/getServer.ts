@@ -16,7 +16,7 @@ const getServer = async (port: number) => {
       }
     }
   });
-  await new Promise(resolve => server.listen(port, resolve));
+  await server.listen(port);
   return server;
 };
 
