@@ -42,7 +42,7 @@ describe("forking", () => {
         params: [blockNumHex, true]
       });
       const remoteBlock = JSON.parse(res.text).result;
-      
+
       remoteBlock.transactions.forEach(tx => {
         delete tx.type;
       });

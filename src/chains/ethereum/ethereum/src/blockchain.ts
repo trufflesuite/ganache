@@ -17,15 +17,15 @@ import {
   RangedStorageKeys
 } from "@ganache/ethereum-utils";
 import { decode } from "@ganache/rlp";
-import SecureTrie from "merkle-patricia-tree/secure";
+import { SecureTrie } from "merkle-patricia-tree";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import { promisify } from "util";
 import { Quantity, Data, utils } from "@ganache/utils";
 
-import Common from "ethereumjs-common";
-import VM from "ethereumjs-vm";
-import { EVMResult } from "ethereumjs-vm/dist/evm/evm";
-import { VmError, ERROR } from "ethereumjs-vm/dist/exceptions";
+import Common from "@ethereumjs/common";
+import VM from "@ethereumjs/vm";
+import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
+import { VmError, ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
@@ -36,13 +36,13 @@ import { Fork } from "./forking/fork";
 import { Address } from "@ganache/ethereum-address";
 import {
   calculateIntrinsicGas,
-  EthereumRawTx,
-  GanacheRawExtraTx,
   RuntimeTransaction,
   TransactionReceipt,
   VmTransaction
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
+import { runTransactions } from "./helpers/run-transactions";
+import { SimulationTransaction } from "./helpers/run-call";
 
 const {
   BUFFER_EMPTY,
@@ -52,34 +52,6 @@ const {
   RPCQUANTITY_ZERO,
   findInsertPosition
 } = utils;
-
-type SimulationTransaction = {
-  /**
-   * The address the transaction is sent from.
-   */
-  from: Address;
-  /**
-   * The address the transaction is directed to.
-   */
-  to?: Address;
-  /**
-   * Integer of the gas provided for the transaction execution. eth_call consumes zero gas, but this parameter may be needed by some executions.
-   */
-  gas: Quantity;
-  /**
-   * Integer of the gasPrice used for each paid gas
-   */
-  gasPrice: Quantity;
-  /**
-   * Integer of the value sent with this transaction
-   */
-  value?: Quantity;
-  /**
-   * Hash of the method signature and encoded parameters. For details see Ethereum Contract ABI in the Solidity documentation
-   */
-  data?: Data;
-  block: RuntimeBlock;
-};
 
 const unref = utils.unref;
 
@@ -149,9 +121,9 @@ export type BlockchainOptions = {
  * @param stateRoot
  */
 function setStateRootSync(stateManager: VM["stateManager"], stateRoot: Buffer) {
-  stateManager._trie.root = stateRoot;
-  stateManager._cache.clear();
-  stateManager._storageTries = {};
+  (stateManager as any)._trie.root = stateRoot;
+  (stateManager as any)._cache.clear();
+  (stateManager as any)._storageTries = {};
 }
 
 export default class Blockchain extends Emittery.Typed<
@@ -277,7 +249,7 @@ export default class Blockchain extends Emittery.Typed<
     this.storageKeys = database.storageKeys;
 
     // create VM and listen to step events
-    this.vm = this.createVmFromStateTrie(
+    this.vm = await this.createVmFromStateTrie(
       this.trie,
       options.chain.allowUnlimitedContractSize
     );
@@ -550,52 +522,36 @@ export default class Blockchain extends Emittery.Typed<
     }
   }
 
-  createVmFromStateTrie = (
+  createVmFromStateTrie = async (
     stateTrie: SecureTrie,
     allowUnlimitedContractSize: boolean
   ) => {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
     const blockchain = {
-      getBlock: class GetBlock {
-        static async [Symbol.for("nodejs.util.promisify.custom")](number: BN) {
-          const block = await blocks.get(number.toBuffer()).catch(_ => null);
-          return block ? { hash: () => block.hash().toBuffer() } : null;
-        }
+      getBlock: async (number: BN) => {
+        const block = await blocks.get(number.toBuffer()).catch(_ => null);
+        return block ? { hash: () => block.hash().toBuffer() } : null;
       }
     } as any;
 
-    return new VM({
+    const vm = new VM({
       state: stateTrie,
       activatePrecompiles: true,
       common: this.#common,
       allowUnlimitedContractSize,
       blockchain
     });
+    await vm.init();
+    return vm;
   };
 
-  getFromTrie = (trie: SecureTrie, address: Buffer): Promise<Buffer> =>
-    new Promise((resolve, reject) => {
-      trie.get(address, (err, data) => {
-        if (err) return void reject(err);
-        resolve(data);
-      });
-    });
-
   #commitAccounts = (accounts: Account[]) => {
-    return new Promise<void>((resolve, reject) => {
-      let length = accounts.length;
-      const cb = (err: Error) => {
-        if (err) reject(err);
-        else {
-          if (--length === 0) resolve(void 0);
-        }
-      };
-      for (let i = 0; i < length; i++) {
-        const account = accounts[i];
-        this.trie.put(account.address.toBuffer(), account.serialize(), cb);
-      }
-    });
+    return Promise.all<void>(
+      accounts.map(account =>
+        this.trie.put(account.address.toBuffer(), account.serialize())
+      )
+    );
   };
 
   #initializeGenesisBlock = async (
@@ -916,28 +872,25 @@ export default class Blockchain extends Emittery.Typed<
       // commit/revert later because this stateTrie is ephemeral anyway.
       stateTrie.checkpoint();
 
-      // TODO: remove this checkpoint/commit after upgrading to @ethereumjs/vm@5
-      // We checkpoint/commit here because ethereumjs-vm@4 performs async
-      // initialization work without await. This can cause a crash if it is
-      // still initializing after we shutdown.
-      stateTrie.checkpoint();
-
-      const vm = this.createVmFromStateTrie(
+      const vm = await this.createVmFromStateTrie(
         stateTrie,
         this.vm.allowUnlimitedContractSize
       );
 
-      // TODO: remove checkpoint/revert after upgrading to ethereumjs-vm@5
-      await new Promise(resolve => stateTrie.commit(resolve));
-
       result = await vm.runCall({
-        caller: transaction.from.toBuffer(),
+        caller: { buf: transaction.from.toBuffer() } as any,
         data: transaction.data && transaction.data.toBuffer(),
-        gasPrice: transaction.gasPrice.toBuffer(),
-        gasLimit: Quantity.from(gasLeft).toBuffer(),
-        to: transaction.to && transaction.to.toBuffer(),
-        value: transaction.value && transaction.value.toBuffer(),
-        block: transaction.block
+        gasPrice: { toArrayLike: () => transaction.gasPrice.toBuffer() } as any,
+        gasLimit: new BN(Quantity.from(gasLeft).toBuffer()),
+        to:
+          transaction.to == null
+            ? null
+            : ({ buf: transaction.to.toBuffer() } as any),
+        value:
+          transaction.value == null
+            ? new BN(0)
+            : new BN(transaction.value.toBuffer()),
+        block: transaction.block as any
       });
     } else {
       result = {
@@ -963,29 +916,46 @@ export default class Blockchain extends Emittery.Typed<
 
   #traceTransaction = async (
     trie: SecureTrie,
-    newBlock: RuntimeBlock,
+    newBlock: RuntimeBlock & { transactions: VmTransaction[] },
     options: TransactionTraceOptions,
     keys?: Buffer[],
     contractAddress?: Buffer
   ) => {
     let currentDepth = -1;
     const storageStack: TraceStorageMap[] = [];
+
+    const blocks = this.blocks;
+
+    // ethereumjs-vm doesn't use the callback style anymore
+    const getBlock = class T {
+      static async [promisify.custom](number: BN) {
+        const block = await blocks.get(number.toBuffer()).catch(_ => null);
+        return block ? block.value : null;
+      }
+    };
+
+    const vm = new VM({
+      state: trie,
+      activatePrecompiles: true,
+      common: this.#common,
+      allowUnlimitedContractSize: this.#options.chain
+        .allowUnlimitedContractSize,
+      blockchain: {
+        getBlock
+      } as any
+    });
+
     const storage: StorageRecords = {};
-    const transaction: VmTransaction = (newBlock as any).transactions[
-      (newBlock as any).transactions.length - 1
-    ];
+    const transaction = newBlock.transactions[newBlock.transactions.length - 1];
 
     // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
     // (Ganache v2 didn't handle this possibility either, so it hasn't been
     // updated yet)
     let gas = 0;
-    // TODO: returnValue isn't used... it wasn't used in v2 either. What's this
-    // supposed to be?
-    let returnValue = "";
     const structLogs: Array<StructLog> = [];
     const TraceData = TraceDataFactory();
 
-    const stepListener = (
+    const stepListener = async (
       event: StepEvent,
       next: (error?: any, cb?: any) => void
     ) => {
@@ -1068,25 +1038,17 @@ export default class Blockchain extends Emittery.Typed<
           }
           case "SLOAD": {
             const key = stack[stack.length - 1];
-            vm.stateManager.getContractStorage(
-              event.address,
-              key.toBuffer(),
-              (err: Error, result: Buffer) => {
-                if (err) {
-                  return next(err);
-                }
-
-                const value = TraceData.from(result);
-                storageStack[eventDepth].set(key, value);
-
-                // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
-                structLog.storage = new TraceStorageMap(
-                  storageStack[eventDepth]
-                );
-                structLogs.push(structLog);
-                next();
-              }
+            const result = await vm.stateManager.getContractStorage(
+              event.address as any,
+              key.toBuffer()
             );
+            const value = TraceData.from(result);
+            storageStack[eventDepth].set(key, value);
+
+            // new TraceStorageMap() here creates a shallow clone, to prevent other steps from overwriting
+            structLog.storage = new TraceStorageMap(storageStack[eventDepth]);
+            structLogs.push(structLog);
+            next();
             break;
           }
           default:
@@ -1105,22 +1067,17 @@ export default class Blockchain extends Emittery.Typed<
           return Promise.all(
             keys.map(async key => {
               // get the raw key using the hashed key
-              const rawKey: Buffer = await database.storageKeys.get(key);
+              let rawKey = await database.storageKeys.get(key);
 
-              vm.stateManager.getContractStorage(
-                contractAddress,
-                rawKey,
-                (err: Error, result: Buffer) => {
-                  if (err) {
-                    throw err;
-                  }
-
-                  storage[Data.from(key, key.length).toString()] = {
-                    key: Data.from(rawKey, rawKey.length),
-                    value: Data.from(result, 32)
-                  };
-                }
+              const result = await vm.stateManager.getContractStorage(
+                { buf: Address.from(contractAddress).toBuffer() } as any,
+                rawKey
               );
+
+              storage[Data.from(key, key.length).toString()] = {
+                key: Data.from(rawKey, rawKey.length),
+                value: Data.from(result, 32)
+              };
             })
           );
         }
@@ -1132,27 +1089,6 @@ export default class Blockchain extends Emittery.Typed<
       vm.removeListener("step", stepListener);
       vm.removeListener("beforeTx", beforeTxListener);
     };
-
-    const blocks = this.blocks;
-
-    // ethereumjs-vm doesn't use the callback style anymore
-    const getBlock = class T {
-      static async [promisify.custom](number: BN) {
-        const block = await blocks.get(number.toBuffer()).catch(_ => null);
-        return block ? block.value : null;
-      }
-    };
-
-    const vm = new VM({
-      state: trie,
-      activatePrecompiles: true,
-      common: this.#common,
-      allowUnlimitedContractSize: this.#options.chain
-        .allowUnlimitedContractSize,
-      blockchain: {
-        getBlock
-      } as any
-    });
 
     // Listen to beforeTx so we know when our target transaction
     // is processing. This event will add the event listener for getting the trace data.
@@ -1168,18 +1104,14 @@ export default class Blockchain extends Emittery.Typed<
     // simplest method I could find) is fine.
     // Remove this and you may see the infamous
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    vm.stateManager._cache.flush = cb => cb();
+    (vm.stateManager as any)._cache.flush = () => {};
 
     // Process the block without committing the data.
     // The vmerr key on the result appears to be removed.
     // The previous implementation had specific error handling.
     // It's possible we've removed handling specific cases in this implementation.
     // e.g., the previous incatation of RuntimeError
-    await vm.runBlock({
-      block: newBlock,
-      generate: true,
-      skipBlockValidation: true
-    });
+    await runTransactions(vm, newBlock.transactions, newBlock);
 
     // Just to be safe
     removeListeners();
@@ -1188,7 +1120,7 @@ export default class Blockchain extends Emittery.Typed<
     return {
       gas,
       structLogs,
-      returnValue,
+      returnValue: "",
       storage
     };
   };
@@ -1197,7 +1129,10 @@ export default class Blockchain extends Emittery.Typed<
     targetBlock: Block,
     parentBlock: Block,
     transactionHash: Buffer
-  ): RuntimeBlock => {
+  ): RuntimeBlock & {
+    uncleHeaders: [];
+    transactions: VmTransaction[];
+  } => {
     // Prepare the "next" block with necessary transactions
     const newBlock = new RuntimeBlock(
       Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
@@ -1340,15 +1275,14 @@ export default class Blockchain extends Emittery.Typed<
 
     // get the contractAddress account storage trie
     const contractAddressBuffer = Address.from(contractAddress).toBuffer();
-    const addressDataPromise = this.getFromTrie(trie, contractAddressBuffer);
-    const addressData = await addressDataPromise;
+    const addressData = await trie.get(contractAddressBuffer);
     if (!addressData) {
       throw new Error(`account ${contractAddress} doesn't exist`);
     }
 
     // #3 - use the contractAddress storage trie to get relevant hashed keys
     const getStorageKeys = () => {
-      const storageTrie = trie.copy();
+      const storageTrie = trie.copy(false);
       // An address's stateRoot is stored in the 3rd rlp entry
       storageTrie.root = ((decode(addressData) as any) as [
         Buffer /*nonce*/,

@@ -75,20 +75,20 @@ describe("api", () => {
                 gasLimit: gasLimit,
                 gasUsed: "0x0",
                 hash:
-                  "0x29ba0a09b00a67f86f6b3a82c77170c03f849eee3cd2188f21376099d65efa8f",
+                  "0xcfc44a769ff4a675b2f79826e716eb857d87ad886ec1cc621129328ee982c444",
                 logsBloom: `0x${"0".repeat(512)}`,
                 miner: `0x${"0".repeat(40)}`,
                 mixHash: `0x${"0".repeat(64)}`,
                 nonce: "0x0000000000000000",
                 number: Quantity.from(startingBlockNumber + 1).toString(),
                 parentHash:
-                  "0x112ca33fb66d027956f21da2d1acededbc94b89b878ff886f7985df7d991012a",
+                  "0x649c2336ecb743b188b0cc17a43b6fda89ab4ef3f49ab6f0fa37749cf3f6ab14",
                 receiptsRoot:
                   "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
                 sha3Uncles:
                   "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
                 stateRoot:
-                  "0xf0d9daf6f1dd86ae11b32005e9717845db40b6ddd926a37973922a957c400071",
+                  "0xb62bbb112a15c8353763def52183ca66d20534e5bf4596ed348c9b049fbf45fd",
                 timestamp: Quantity.from(timestamp).toString(),
                 transactionsRoot:
                   "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"

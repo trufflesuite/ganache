@@ -1,5 +1,6 @@
 import assert from "assert";
 import Ganache from "../";
+import { Provider as EthereumProvider } from "@ganache/ethereum";
 
 describe("connector", () => {
   it("works without passing options", async () => {
@@ -66,7 +67,7 @@ describe("connector", () => {
   // in the foot on accident
   it.skip("TODO: allow 'injecting' our own engine or API into a provider!", async () => {
     const p = Ganache.provider() as EthereumProvider;
-    // this won't work becase ganache uses _real_ private properties that can't
+    // this won't work because ganache uses _real_ private properties that can't
     // be duck punched. This test is supposed to ensure that _real_ non-function
     // own properties (and __proto__ properties) can't be executed.
     (p as any)._engine._api.__proto__.illegalProperty = true;
@@ -76,11 +77,7 @@ describe("connector", () => {
   });
 
   it("rejects invalid rpc methods", async () => {
-<<<<<<< HEAD
-    const p = Ganache.provider() as EthereumProvider;
-=======
     const p = Ganache.provider({ logger: { log: () => {} } });
->>>>>>> chore: clean up unneeded logging during test
 
     const illegalMethodNames = [
       "toString",

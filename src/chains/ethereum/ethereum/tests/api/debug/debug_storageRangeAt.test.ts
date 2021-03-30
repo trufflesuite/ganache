@@ -94,7 +94,7 @@ describe("api", () => {
           result.nextKey,
           "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6"
         );
-      });
+      }).timeout(0);
 
       it("should return only the filled storage slots", async () => {
         const result = await provider.send("debug_storageRangeAt", [

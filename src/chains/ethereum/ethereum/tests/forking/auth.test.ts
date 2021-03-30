@@ -335,6 +335,16 @@ describe("forking", () => {
           // "0xc3ecba28af450e2ed469164766751130d93ecc36",
           // "0x6220d7a458a68d6a554e5904792049fd2ef6bbcc"
         ];
+
+        const aa = await provider.send("eth_getBlockByNumber", [
+          "0xb3c207",
+          true
+        ]);
+        const aa1 = await provider.send("eth_getBlockByNumber", ["0xb3c207"]);
+        const aa2 = await provider.send("eth_getBlockByNumber", ["0xb3c207"]);
+        const aa3 = await provider.send("eth_getBlockByNumber", ["0xb3c207"]);
+        return;
+
         let p = addresses.map(address => {
           return provider.send("eth_getBalance", [address]).then(balance => {
             console.log(address, BigInt(balance));

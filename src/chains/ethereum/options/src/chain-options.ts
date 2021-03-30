@@ -7,7 +7,8 @@ const HARDFORKS = [
   "byzantium",
   "petersburg",
   "istanbul",
-  "muirGlacier"
+  "muirGlacier",
+  "berlin"
 ] as const;
 
 export type Hardfork = Writeable<ArrayToTuple<typeof HARDFORKS>>;
@@ -105,7 +106,7 @@ export type ChainConfig = {
 
     /**
      * Set the hardfork rules for the EVM.
-     * @default "muirGlacier"
+     * @default "berlin"
      */
     readonly hardfork: {
       type: Hardfork;
@@ -187,7 +188,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
   hardfork: {
     normalize,
     cliDescription: "Set the hardfork rules for the EVM.",
-    default: () => "muirGlacier",
+    default: () => "berlin",
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
     cliType: "string",
