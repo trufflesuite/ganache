@@ -51,9 +51,10 @@
     "@ganache/options": "^0.1.0",
     "@ganache/tezos": "^0.1.0",
     "@ganache/utils": "^0.1.0",
-    "promise.allsettled": "1.0.4",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.1",
-    "emittery": "0.8.1"
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.2",
+    "aggregate-error": "3.1.0",
+    "emittery": "0.8.1",
+    "promise.allsettled": "1.0.4"
   },
   "devDependencies": {
     "@types/promise.allsettled": "1.0.3",

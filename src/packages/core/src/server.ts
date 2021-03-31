@@ -1,6 +1,7 @@
 import { InternalOptions, ServerOptions, serverOptionsConfig } from "./options";
 
 import allSettled from "promise.allsettled";
+import AggregateError from "aggregate-error";
 import uWS, {
   TemplatedApp,
   us_listen_socket
@@ -183,27 +184,36 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
           else throw err;
         }
       })
-    ]).catch(async error => {
-      this.#status = Status.unknown;
-      if (callbackIsFunction) callback!(error);
-      await this.close();
-      throw error;
+    ]).then(async (promiseResults) => {
+      const errors: Error[] = [];
+
+      if (promiseResults[0].status === "rejected") {
+        errors.push(promiseResults[0].reason);
+      }
+      if (promiseResults[1].status === "rejected") {
+        errors.push(promiseResults[1].reason);
+      }
+
+      if (errors.length === 0) {
+        this.emit("open");
+      } else {
+        this.#status = Status.unknown;
+        try {
+          await this.close();
+        } catch (e) {
+          errors.push(e);
+        }
+        const aggregateError = new AggregateError(errors);
+        if (callbackIsFunction) {
+          callback!(aggregateError);
+        } else {
+          throw aggregateError;
+        }
+      }
     });
 
     if (!callbackIsFunction) {
-      return new Promise<void>(async (resolve, reject) => {
-        const promiseResults = await promise;
-
-        if (promiseResults[0].status === "fulfilled" && promiseResults[1].status === "fulfilled") {
-          this.emit("open");
-          resolve();
-        } else {
-          let reason = "";
-          reason += promiseResults[0].status === "rejected" ? `${promiseResults[0].reason}\n\n` : "";
-          reason += promiseResults[1].status === "rejected" ? promiseResults[1].reason : "";
-          reject(reason);
-        }
-      });
+      return promise;
     }
   }
 

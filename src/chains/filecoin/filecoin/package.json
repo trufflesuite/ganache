@@ -36,7 +36,7 @@
     "tsc": "ttsc --build",
     "tsc.declarations": "ttsc --build tsconfig.declarations.json",
     "test": "ts-node ../../../../scripts/skip-if-less-than-node-12.ts || nyc --reporter lcov npm run mocha",
-    "mocha": "ts-node ../../../../scripts/skip-if-less-than-node-12.ts || cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true TS_NODE_PROJECT=tsconfig.test.json mocha --timeout 10000 --no-parallel --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "ts-node ../../../../scripts/skip-if-less-than-node-12.ts || cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true TS_NODE_PROJECT=tsconfig.test.json mocha --timeout 60000 --no-parallel --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -65,7 +65,7 @@
     "@ganache/filecoin-options": "0.1.2",
     "@ganache/options": "0.1.0",
     "@ganache/utils": "0.1.0",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.1",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.2",
     "@types/bn.js": "5.1.0",
     "@types/deep-equal": "1.0.1",
     "@types/levelup": "4.3.0",
