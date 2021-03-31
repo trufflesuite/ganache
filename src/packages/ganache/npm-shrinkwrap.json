@@ -1,6 +1,6 @@
 {
 	"name": "ganache",
-	"version": "7.0.0-filecoin.4",
+	"version": "7.0.0-filecoin.5",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {

@@ -49,14 +49,16 @@ export default class Blockchain extends Emittery.Typed<
   private ready;
   private stopped;
   constructor(options: FilecoinInternalOptions);
+  initialize(): Promise<void>;
   waitForReady(): Promise<unknown>;
   /**
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
   stop(): Promise<void>;
   get ipfs(): IPFS | null;
-  enableMiner(): void;
-  disableMiner(): void;
+  private intervalMine;
+  enableMiner(): Promise<void>;
+  disableMiner(): Promise<void>;
   genesisTipset(): Tipset;
   latestTipset(): Tipset;
   push(message: Message, spec: MessageSendSpec): Promise<SignedMessage>;

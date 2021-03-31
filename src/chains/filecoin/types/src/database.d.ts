@@ -23,6 +23,7 @@ export default class Database extends Emittery {
    * @param blockchain
    */
   constructor(options: FilecoinInternalOptions["database"]);
+  initialize: () => Promise<void>;
   /**
    * Call `batch` to batch `put` and `del` operations within the same
    * event loop tick of the provided function. All db operations within the

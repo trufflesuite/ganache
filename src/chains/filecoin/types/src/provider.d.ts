@@ -9,12 +9,13 @@ import {
   FilecoinInternalOptions
 } from "@ganache/filecoin-options";
 export default class FilecoinProvider
-  extends Emittery.Typed<{}, "ready">
+  extends Emittery.Typed<{}, "connect" | "disconnect">
   implements types.Provider<FilecoinApi> {
   #private;
   readonly blockchain: Blockchain;
   static readonly Schema: Schema;
   constructor(options: FilecoinProviderOptions, executor: utils.Executor);
+  initialize(): Promise<void>;
   /**
    * Returns the options, including defaults and generated, used to start Ganache.
    */
