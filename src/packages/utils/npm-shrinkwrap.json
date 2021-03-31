@@ -4,6 +4,18 @@
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
+		"@trufflesuite/uws-js-unofficial": {
+			"version": "18.14.0-unofficial.2",
+			"resolved": "https://registry.npmjs.org/@trufflesuite/uws-js-unofficial/-/uws-js-unofficial-18.14.0-unofficial.2.tgz",
+			"integrity": "sha512-KwO4TOsDBUvBiEwKMpMzFoDfogpgJRpJRiAU9txkk5Fz8dKe9fplrXAd2DjarnbTU86Hxn/VLukgTBUgD6Lo4w==",
+			"dev": true
+		},
+		"@types/seedrandom": {
+			"version": "2.4.28",
+			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-2.4.28.tgz",
+			"integrity": "sha512-SMA+fUwULwK7sd/ZJicUztiPs8F1yCPwF3O23Z9uQ32ME5Ha0NmDK9+QTsYE4O2tHXChzXomSWWeIhCnoN1LqA==",
+			"dev": true
+		},
 		"bigint-buffer": {
 			"version": "1.1.5",
 			"resolved": "https://registry.npmjs.org/bigint-buffer/-/bigint-buffer-1.1.5.tgz",
@@ -52,10 +64,10 @@
 			"resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.2.3.tgz",
 			"integrity": "sha512-MN6ZpzmfNCRM+3t57PTJHgHyw/h4OWnZ6mR8P5j/uZtqQr46RRuDE/P+g3n0YR/AiYXeWixZZzaip77gdICfRg=="
 		},
-		"uWebSockets.js": {
-			"version": "github:uNetworking/uWebSockets.js#3dbec7b56d627193e20705844b6bd10e49848b8c",
-			"from": "github:uNetworking/uWebSockets.js#v18.4.0",
-			"dev": true
+		"seedrandom": {
+			"version": "3.0.5",
+			"resolved": "https://registry.npmjs.org/seedrandom/-/seedrandom-3.0.5.tgz",
+			"integrity": "sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg=="
 		}
 	}
 }

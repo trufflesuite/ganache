@@ -7,7 +7,7 @@
     "npm": ">=6.4.1"
   },
   "scripts": {
-    "build": "lerna run build && shx cp -r src/packages/ganache/dist/web/* docs/assets/js/ganache",
+    "build": "npm run tsc && lerna run build && shx cp -r src/packages/ganache/dist/web/* docs/assets/js/ganache",
     "clean": "npm run tsc.clean && npx lerna clean -y && npx shx rm -rf node_modules",
     "create": "ts-node scripts/create",
     "docs.build": "lerna run docs.build && ts-node scripts/build-docs/",
@@ -17,7 +17,8 @@
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec -- npm run test",
     "tsc": "ttsc --build src",
-    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist"
+    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist",
+    "tsc.filecoin.declarations": "lerna run tsc.declarations --scope @ganache/filecoin && pretty-quick src/chains/filecoin/types"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.1",

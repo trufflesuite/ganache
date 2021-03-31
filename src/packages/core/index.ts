@@ -5,6 +5,7 @@ import Server from "./src/server";
 
 export { Status } from "./src/server";
 export { ProviderOptions, ServerOptions, serverDefaults } from "./src/options";
+export { Server } from "./src/server";
 
 export default {
   /**

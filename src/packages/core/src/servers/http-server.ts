@@ -3,10 +3,11 @@ import {
   HttpResponse,
   HttpRequest,
   RecognizedString
-} from "uWebSockets.js";
+} from "@trufflesuite/uws-js-unofficial";
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
 import { Connector } from "@ganache/flavors";
+import { InternalOptions } from "../options";
 
 type HttpMethods = "GET" | "OPTIONS" | "POST";
 
@@ -84,13 +85,21 @@ function sendResponse(
   });
 }
 
+export type HttpServerOptions = Pick<InternalOptions["server"], "rpcEndpoint">;
+
 export default class HttpServer {
   #connector: Connector;
-  constructor(app: TemplatedApp, connector: Connector) {
+  constructor(
+    app: TemplatedApp,
+    connector: Connector,
+    options: HttpServerOptions
+  ) {
     this.#connector = connector;
 
     // JSON-RPC routes...
-    app.post("/", this.#handlePost).options("/", this.#handleOptions);
+    app
+      .post(options.rpcEndpoint, this.#handlePost)
+      .options(options.rpcEndpoint, this.#handleOptions);
 
     // because Easter Eggs are fun...
     app.get("/418", response => {
@@ -139,8 +148,12 @@ export default class HttpServer {
     response.onData((message: ArrayBuffer, isLast: boolean) => {
       const chunk = Buffer.from(message);
       if (isLast) {
-        const connector = this.#connector;
-        let payload: ReturnType<typeof connector.parse>;
+        // we have to use any here because typescript isn't smart enough
+        // to understand the ambiguity of RequestFormat and ReturnType
+        // on the Connector interface must match up appropriately
+        const connector = this.#connector as any;
+
+        let payload: ReturnType<Connector["parse"]>;
         try {
           const message = buffer ? Buffer.concat([buffer, chunk]) : chunk;
           payload = connector.parse(message);

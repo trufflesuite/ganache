@@ -1,6 +1,6 @@
 {
   "name": "ganache",
-  "version": "7.0.0-internal.0",
+  "version": "7.0.0-filecoin.5",
   "description": "A library and cli to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
@@ -10,8 +10,7 @@
   "types": "lib/index.d.ts",
   "source": "index.ts",
   "bin": {
-    "ganache": "dist/cli/ganache.min.js",
-    "ganache-cli": "dist/cli/ganache.min.js"
+    "ganache": "dist/cli/ganache.min.js"
   },
   "directories": {
     "lib": "lib",
@@ -71,13 +70,16 @@
     "ttypescript": "1.5.12",
     "typescript": "4.1.3",
     "util": "0.12.3",
-    "webpack": "5.4.0",
-    "webpack-cli": "4.2.0"
+    "webpack": "5.21.2",
+    "webpack-cli": "4.5.0"
   },
   "dependencies": {
     "bigint-buffer": "1.1.5",
     "keccak": "3.0.1",
     "leveldown": "5.6.0",
     "secp256k1": "4.0.2"
+  },
+  "peerDependencies": {
+    "@ganache/filecoin": "^0.1.0"
   }
 }

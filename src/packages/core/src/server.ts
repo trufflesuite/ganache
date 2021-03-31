@@ -1,11 +1,16 @@
 import { InternalOptions, ServerOptions, serverOptionsConfig } from "./options";
 
-import uWS, { TemplatedApp, us_listen_socket } from "uWebSockets.js";
 import allSettled from "promise.allsettled";
+import AggregateError from "aggregate-error";
+import uWS, {
+  TemplatedApp,
+  us_listen_socket
+} from "@trufflesuite/uws-js-unofficial";
 import { Connector, DefaultFlavor } from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
+import Emittery from "emittery";
 
 type Provider = Connector["provider"];
 
@@ -60,7 +65,7 @@ export enum Status {
   closingOrClosed = (1 << 3) | (1 << 4)
 }
 
-export default class Server {
+export class Server extends Emittery<{ open: undefined; close: undefined }> {
   #options: InternalOptions;
   #providerOptions: ServerOptions;
   #status: number = Status.unknown;
@@ -79,6 +84,8 @@ export default class Server {
   }
 
   constructor(providerAndServerOptions: ServerOptions = { flavor: DefaultFlavor }) {
+    super();
+
     this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
     this.#providerOptions = providerAndServerOptions;
     this.#status = Status.ready;
@@ -98,7 +105,7 @@ export default class Server {
         this.#options.server
       );
     }
-    this.#httpServer = new HttpServer(_app, connector);
+    this.#httpServer = new HttpServer(_app, connector, this.#options.server);
 
     await connector.once("ready");
   }
@@ -177,26 +184,36 @@ export default class Server {
           else throw err;
         }
       })
-    ]).catch(async error => {
-      this.#status = Status.unknown;
-      if (callbackIsFunction) callback!(error);
-      await this.close();
-      throw error;
+    ]).then(async (promiseResults) => {
+      const errors: Error[] = [];
+
+      if (promiseResults[0].status === "rejected") {
+        errors.push(promiseResults[0].reason);
+      }
+      if (promiseResults[1].status === "rejected") {
+        errors.push(promiseResults[1].reason);
+      }
+
+      if (errors.length === 0) {
+        this.emit("open");
+      } else {
+        this.#status = Status.unknown;
+        try {
+          await this.close();
+        } catch (e) {
+          errors.push(e);
+        }
+        const aggregateError = new AggregateError(errors);
+        if (callbackIsFunction) {
+          callback!(aggregateError);
+        } else {
+          throw aggregateError;
+        }
+      }
     });
 
     if (!callbackIsFunction) {
-      return new Promise<void>(async (resolve, reject) => {
-        const promiseResults = await promise;
-
-        if (promiseResults[0].status === "fulfilled" && promiseResults[1].status === "fulfilled") {
-          resolve();
-        } else {
-          let reason = "";
-          reason += promiseResults[0].status === "rejected" ? `${promiseResults[0].reason}\n\n` : "";
-          reason += promiseResults[1].status === "rejected" ? promiseResults[1].reason : "";
-          reject(reason);
-        }
-      });
+      return promise;
     }
   }
 
@@ -233,8 +250,11 @@ export default class Server {
       await this.#connector.close();
     }
 
-
     this.#status = Status.closed;
     this.#app = null;
+
+    await this.emit("close");
   }
 }
+
+export default Server;

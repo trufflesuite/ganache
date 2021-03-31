@@ -4,12 +4,11 @@ import Readline from "readline";
 import Ganache, { Status } from "@ganache/core";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
-import {
-  DefaultFlavor,
-  FlavorName,
-  EthereumFlavorName
-} from "@ganache/flavors";
+import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
+import initializeFilecoin from "./initialize/filecoin";
+import { Provider as FilecoinProvider } from "@ganache/filecoin-types";
+import { Provider as EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -123,9 +122,16 @@ async function startGanache(err: Error) {
   started = true;
 
   switch (flavor) {
+    case FilecoinFlavorName: {
+      await initializeFilecoin(
+        server.provider as FilecoinProvider,
+        cliSettings
+      );
+      break;
+    }
     case EthereumFlavorName:
     default: {
-      initializeEthereum(server.provider, cliSettings);
+      initializeEthereum(server.provider as EthereumProvider, cliSettings);
       break;
     }
   }

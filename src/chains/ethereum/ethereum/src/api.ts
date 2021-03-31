@@ -27,7 +27,7 @@ import {
   hashPersonalMessage
 } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
-import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import { types, Data, Quantity, PromiEvent, utils } from "@ganache/utils";
 import Blockchain, { TransactionTraceOptions } from "./blockchain";
 import Wallet from "./wallet";
@@ -44,7 +44,6 @@ import {
   parseFilterDetails,
   parseFilterRange
 } from "./helpers/filter-parsing";
-import { Hardfork } from "@ganache/ethereum-options";
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");

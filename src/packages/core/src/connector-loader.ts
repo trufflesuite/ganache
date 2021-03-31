@@ -1,9 +1,5 @@
 import { utils } from "@ganache/utils";
-import {
-  ConnectorsByName,
-  DefaultFlavor,
-  DefaultOptionsByName
-} from "@ganache/flavors";
+import { DefaultFlavor, GetConnector } from "@ganache/flavors";
 import { Options as ProviderOptions } from "@ganache/flavors";
 import { hasOwn } from "@ganache/utils/src/utils";
 import { Base, Definitions } from "@ganache/options";
@@ -25,7 +21,7 @@ export default {
     //   for that (yet), instead of "all" (0) or just 1 as we are doing here:
     const asyncRequestProcessing =
       "chain" in providerOptions
-        ? providerOptions.chain.asyncRequestProcessing
+        ? providerOptions.chain!.asyncRequestProcessing
         : (providerOptions as any).asyncRequestProcessing;
     const requestCoordinator = new utils.RequestCoordinator(
       asyncRequestProcessing ? 0 : 1
@@ -36,10 +32,11 @@ export default {
     // to a RequestCoordinator.
     const executor = new utils.Executor(requestCoordinator);
 
-    const connector = new ConnectorsByName[flavor](
+    const connector = GetConnector(
+      flavor,
       providerOptions as any,
       executor
-    );
+    ) as any;
 
     // Purposely not awaiting on this to prevent a breaking change
     // to the `Ganache.provider()` method

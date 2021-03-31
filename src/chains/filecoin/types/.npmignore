@@ -1,0 +1,6 @@
+tests
+.nyc_output
+coverage
+scripts
+tsconfig.json
+typedoc.json

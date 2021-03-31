@@ -31,6 +31,12 @@
 				"underscore": "^1.9.1"
 			}
 		},
+		"@trufflesuite/uws-js-unofficial": {
+			"version": "18.14.0-unofficial.2",
+			"resolved": "https://registry.npmjs.org/@trufflesuite/uws-js-unofficial/-/uws-js-unofficial-18.14.0-unofficial.2.tgz",
+			"integrity": "sha512-KwO4TOsDBUvBiEwKMpMzFoDfogpgJRpJRiAU9txkk5Fz8dKe9fplrXAd2DjarnbTU86Hxn/VLukgTBUgD6Lo4w==",
+			"dev": true
+		},
 		"@types/bn.js": {
 			"version": "4.11.6",
 			"resolved": "https://registry.npmjs.org/@types/bn.js/-/bn.js-4.11.6.tgz",
@@ -3797,11 +3803,6 @@
 			"version": "6.0.1",
 			"resolved": "https://registry.npmjs.org/typical/-/typical-6.0.1.tgz",
 			"integrity": "sha512-+g3NEp7fJLe9DPa1TArHm9QAA7YciZmWnfAqEaFrBihQ7epOv9i99rjtgb6Iz0wh3WuQDjsCTDfgRoGnmHN81A==",
-			"dev": true
-		},
-		"uWebSockets.js": {
-			"version": "github:uNetworking/uWebSockets.js#3dbec7b56d627193e20705844b6bd10e49848b8c",
-			"from": "github:uNetworking/uWebSockets.js#v18.4.0",
 			"dev": true
 		},
 		"uglify-js": {

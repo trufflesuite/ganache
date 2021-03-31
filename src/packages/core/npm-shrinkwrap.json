@@ -4,6 +4,11 @@
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
+		"@trufflesuite/uws-js-unofficial": {
+			"version": "18.14.0-unofficial.2",
+			"resolved": "https://registry.npmjs.org/@trufflesuite/uws-js-unofficial/-/uws-js-unofficial-18.14.0-unofficial.2.tgz",
+			"integrity": "sha512-KwO4TOsDBUvBiEwKMpMzFoDfogpgJRpJRiAU9txkk5Fz8dKe9fplrXAd2DjarnbTU86Hxn/VLukgTBUgD6Lo4w=="
+		},
 		"@types/cookiejar": {
 			"version": "2.1.2",
 			"resolved": "https://registry.npmjs.org/@types/cookiejar/-/cookiejar-2.1.2.tgz",
@@ -32,6 +37,15 @@
 				"@types/node": "*"
 			}
 		},
+		"aggregate-error": {
+			"version": "3.1.0",
+			"resolved": "https://registry.npmjs.org/aggregate-error/-/aggregate-error-3.1.0.tgz",
+			"integrity": "sha512-4I7Td01quW/RpocfNayFdFVk1qSuoh0E7JrbRJ16nH01HhKFQ88INq9Sd+nd72zqRySlr9BmDA8xlEJ6vJMrYA==",
+			"requires": {
+				"clean-stack": "^2.0.0",
+				"indent-string": "^4.0.0"
+			}
+		},
 		"array.prototype.map": {
 			"version": "1.0.3",
 			"resolved": "https://registry.npmjs.org/array.prototype.map/-/array.prototype.map-1.0.3.tgz",
@@ -58,6 +72,11 @@
 				"function-bind": "^1.1.1",
 				"get-intrinsic": "^1.0.2"
 			}
+		},
+		"clean-stack": {
+			"version": "2.2.0",
+			"resolved": "https://registry.npmjs.org/clean-stack/-/clean-stack-2.2.0.tgz",
+			"integrity": "sha512-4diC9HaTE+KRAMWhDhrGOECgWZxoevMc5TlkObMqNSsVU62PYzXZ/SMTjzyGAFF1YusgxGcSWTEXBhp0CPwQ1A=="
 		},
 		"combined-stream": {
 			"version": "1.0.8",
@@ -102,6 +121,11 @@
 			"resolved": "https://registry.npmjs.org/delayed-stream/-/delayed-stream-1.0.0.tgz",
 			"integrity": "sha1-3zrhmayt+31ECqrgsp4icrJOxhk=",
 			"dev": true
+		},
+		"emittery": {
+			"version": "0.8.1",
+			"resolved": "https://registry.npmjs.org/emittery/-/emittery-0.8.1.tgz",
+			"integrity": "sha512-uDfvUjVrfGJJhymx/kz6prltenw1u7WrCg1oa94zYY8xxVpLLUu045LAT0dhDZdXG58/EpPL/5kA180fQ/qudg=="
 		},
 		"es-abstract": {
 			"version": "1.18.0",
@@ -211,6 +235,11 @@
 			"version": "1.0.2",
 			"resolved": "https://registry.npmjs.org/has-symbols/-/has-symbols-1.0.2.tgz",
 			"integrity": "sha512-chXa79rL/UC2KlX17jo3vRGz0azaWEx5tGqZg5pO3NUyEJVB17dMruQlzCCOfUvElghKcm5194+BCRvi2Rv/Gw=="
+		},
+		"indent-string": {
+			"version": "4.0.0",
+			"resolved": "https://registry.npmjs.org/indent-string/-/indent-string-4.0.0.tgz",
+			"integrity": "sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg=="
 		},
 		"inherits": {
 			"version": "2.0.4",
@@ -463,10 +492,6 @@
 				"readable-stream": "^3.6.0",
 				"semver": "^7.3.2"
 			}
-		},
-		"uWebSockets.js": {
-			"version": "github:uNetworking/uWebSockets.js#3dbec7b56d627193e20705844b6bd10e49848b8c",
-			"from": "github:uNetworking/uWebSockets.js#v18.4.0"
 		},
 		"unbox-primitive": {
 			"version": "1.0.1",
