@@ -1,6 +1,6 @@
 {
   "name": "@ganache/filecoin-types",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "",
   "author": "Tim Coulter",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/filecoin/types#readme",
