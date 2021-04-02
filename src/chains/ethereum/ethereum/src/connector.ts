@@ -20,7 +20,10 @@ export const Provider = EthereumProvider;
 function isHttp(
   connection: HttpRequest | WebSocket
 ): connection is HttpRequest {
-  return connection.constructor.name === "uWS.HttpRequest";
+  return (
+    connection.constructor.name === "uWS.HttpRequest" ||
+    connection.constructor.name === "RequestWrapper"
+  );
 }
 
 export class Connector
@@ -43,10 +46,7 @@ export class Connector
   ) {
     super();
 
-    this.#provider = new EthereumProvider(
-      providerOptions,
-      executor
-    );
+    this.#provider = new EthereumProvider(providerOptions, executor);
   }
 
   async initialize() {
