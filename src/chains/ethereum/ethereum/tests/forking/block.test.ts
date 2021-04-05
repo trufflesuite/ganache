@@ -7,9 +7,12 @@ describe("forking", () => {
   describe("blocks", () => {
     const blockNumber = 0xb77935;
     const blockNumHex = `0x${blockNumber.toString(16)}`;
-    const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_ID;
+    const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
     let provider: EthereumProvider;
     before(async function () {
+      if (!process.env.INFURA_KEY) {
+        this.skip();
+      }
       provider = await getProvider({
         fork: {
           url: URL,
