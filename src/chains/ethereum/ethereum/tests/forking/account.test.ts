@@ -4,13 +4,16 @@ import EthereumProvider from "../../src/provider";
 import request from "superagent";
 
 describe("forking", () => {
-  describe("accounts", () => {
+  describe("accounts", function () {
     const accountAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
     const blockNumber = 0xb77935;
     const blockNumberHex = `0x${blockNumber.toString(16)}`;
-    const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_ID;
+    const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
     let provider: EthereumProvider;
     before(async function () {
+      if (!process.env.INFURA_KEY) {
+        this.skip();
+      }
       provider = await getProvider({
         fork: {
           url: URL,
