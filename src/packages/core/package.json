@@ -59,6 +59,7 @@
   "devDependencies": {
     "@types/promise.allsettled": "1.0.3",
     "@types/superagent": "4.1.10",
+    "@types/ws": "^7.4.1",
     "superagent": "6.1.0",
     "ws": "7.3.1"
   }

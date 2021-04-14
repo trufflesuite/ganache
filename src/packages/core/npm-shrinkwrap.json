@@ -50,6 +50,15 @@
 				"@types/node": "*"
 			}
 		},
+		"@types/ws": {
+			"version": "7.4.1",
+			"resolved": "https://registry.npmjs.org/@types/ws/-/ws-7.4.1.tgz",
+			"integrity": "sha512-ISCK1iFnR+jYv7+jLNX0wDqesZ/5RAeY3wUx6QaphmocphU61h+b+PHjS18TF4WIPTu/MMzxIq2PHr32o2TS5Q==",
+			"dev": true,
+			"requires": {
+				"@types/node": "*"
+			}
+		},
 		"accepts": {
 			"version": "1.3.7",
 			"resolved": "https://registry.npmjs.org/accepts/-/accepts-1.3.7.tgz",

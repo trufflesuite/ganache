@@ -1,4 +1,4 @@
-import uWS, { TemplatedApp, WebSocket } from "@trufflesuite/uws-js-unofficial";
+import { RecognizedString, TemplatedApp, WebSocket } from "@trufflesuite/uws-js-unofficial";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
@@ -68,7 +68,7 @@ export default class WebsocketServer {
           return;
         }
 
-        let response: uWS.RecognizedString;
+        let response: RecognizedString;
 
         try {
           const { value } = await connector.handle(payload, ws);

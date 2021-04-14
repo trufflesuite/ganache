@@ -1,4 +1,4 @@
-import { us_listen_socket } from "uWebSockets.js";
+import { us_listen_socket } from "@trufflesuite/uws-js-unofficial";
 import { HttpRequest } from "./http-request";
 import { HttpResponse } from "./http-response";
 import { HttpRouter } from "./http-router";

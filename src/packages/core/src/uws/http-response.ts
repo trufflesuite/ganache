@@ -3,7 +3,7 @@ import {
   RecognizedString,
   HttpResponse as uWsHttpResponse,
   us_socket_context_t
-} from "uWebSockets.js";
+} from "@trufflesuite/uws-js-unofficial";
 
 export class HttpResponse implements uWsHttpResponse {
   response: ServerResponse;

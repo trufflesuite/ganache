@@ -1,8 +1,8 @@
-import { RecognizedString } from "uWebSockets.js";
+import { RecognizedString } from "@trufflesuite/uws-js-unofficial";
 import HttpResponseCodes from "../servers/utils/http-response-codes";
 import { HttpResponse } from "./http-response";
-import uWSa from "./uws";
-import uWSb from "uWebSockets.js";
+import uWSa from "./index";
+import uWSb from "@trufflesuite/uws-js-unofficial";
 
 function app(uWS: any, p: number) {
   const app = uWS.App();
