@@ -1,15 +1,18 @@
 import http, { IncomingMessage, ServerResponse } from "http";
 import { Socket } from "net";
-import { RecognizedString } from "uWebSockets.js";
+import { RecognizedString } from "@trufflesuite/uws-js-unofficial";
 import { HttpRouter } from "./http-router";
 import { HttpHandler, ListenCallback, Method } from "./types";
 
 export class HttpContext {
-  router: HttpRouter = new HttpRouter();
+  router: HttpRouter;
   http: http.Server;
-  closed: boolean = false;
+  closed: boolean;
 
-  constructor() {}
+  constructor() {
+    this.router = new HttpRouter();
+    this.closed = false;
+  }
 
   public onHttp(
     method: Method | "*",
@@ -77,7 +80,7 @@ export class HttpContext {
     });
   }
 
-  close(cb: any) {
+  close(cb?: Function) {
     this.closed = true;
     for (const socket of this.sockets) {
       socket.destroy();
@@ -86,7 +89,9 @@ export class HttpContext {
 
     this.http.close(() => {
       this.http = null;
-      cb();
+      if (cb) {
+        cb();
+      }
     });
   }
 }

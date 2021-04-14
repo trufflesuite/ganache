@@ -61,6 +61,7 @@
     "@types/mocha": "8.2.2",
     "@types/promise.allsettled": "1.0.3",
     "@types/superagent": "4.1.10",
+    "@types/ws": "^7.4.1",
     "cross-env": "7.0.3",
     "mocha": "8.4.0",
     "nyc": "15.1.0",

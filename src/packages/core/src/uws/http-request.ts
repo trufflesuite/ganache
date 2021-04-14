@@ -1,4 +1,4 @@
-import { HttpRequest as uWsHttpRequest } from "uWebSockets.js";
+import { HttpRequest as uWsHttpRequest } from "@trufflesuite/uws-js-unofficial";
 import { IncomingMessage } from "http";
 import { URL } from "url";
 import { parse } from "querystring";

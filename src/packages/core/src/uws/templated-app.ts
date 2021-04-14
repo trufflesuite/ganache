@@ -1,39 +1,41 @@
+import { URL } from "url";
+import { IncomingMessage } from "http";
+import { Socket } from "net";
+
 import {
   RecognizedString,
   WebSocketBehavior,
-  TemplatedApp
-} from "uWebSockets.js";
+  TemplatedApp as uWsTemplatedApp
+} from "@trufflesuite/uws-js-unofficial";
+import InternalWebSocket from "ws";
 
-import WebSocket from "ws";
 import { HttpHandler, ListenCallback } from "./types";
 import { HttpContext } from "./http-context";
 import { HttpResponse } from "./http-response";
 import { HttpRequest } from "./http-request";
-import { URL } from "url";
+import { WebSocket } from "./websocket";
 
-export const us_listen_socket_close = (listenSocket: any) => {
-  return listenSocket.close();
-};
-/**
- * Maximum delay allowed until an HTTP connection is terminated due to
- * outstanding request or rejected data (slow loris protection)
- */
-const HTTP_IDLE_TIMEOUT_S = 10 as const;
-
-class App implements TemplatedApp {
+export default class TemplatedApp implements uWsTemplatedApp {
   httpContext: HttpContext = new HttpContext();
+  wsServer: InternalWebSocket.Server | null = null;
+  wsBehaviors: Map<RecognizedString, WebSocketBehavior> = new Map<
+    RecognizedString,
+    WebSocketBehavior
+  >();
+
   constructor() {}
 
   ws(pattern: RecognizedString, behavior: WebSocketBehavior) {
-    const ws = new WebSocket.Server({ server: this.httpContext.http });
-    this.httpContext.http.on("upgrade", (request, socket, head) => {
-      const pathname = new URL(request.url).pathname;
-      if (pathname === pattern) {
-        ws.handleUpgrade(request, socket, head, function done(ws) {
-          ws.emit("connection", ws, request);
-        });
-      }
-    });
+    // We only need to create the WebSocket Server once, but we shouldn't
+    // create it if the user never calls `TemplatedApp.ws(...)`
+    if (!this.wsServer) {
+      // `noServer: true` is necessary for us to be able to call `handleUpgrade`
+      // called in `TemplatedApp.upgradeHandler`
+      this.wsServer = new InternalWebSocket.Server({ noServer: true });
+    }
+
+    this.wsBehaviors.set(pattern, behavior);
+
     this.httpContext.onHttp(
       "get",
       pattern,
@@ -131,6 +133,7 @@ class App implements TemplatedApp {
       }
     }
     this.httpContext.listen(host, port, callback);
+    this.httpContext.http.on("upgrade", this.handleHttpUpgrade.bind(this));
     return this;
   }
 
@@ -143,10 +146,35 @@ class App implements TemplatedApp {
     throw new Error("Not implemented");
     return this;
   }
-}
 
-export default {
-  App: () => {
-    return new App();
+  private handleHttpUpgrade(
+    request: IncomingMessage,
+    socket: Socket,
+    head: Buffer
+  ) {
+    const pathname = new URL(request.url).pathname;
+    if (this.wsServer !== null) {
+      const patterns = this.wsBehaviors.keys();
+
+      for (const pattern of patterns) {
+        if (pathname === pattern) {
+          const behavior = this.wsBehaviors.get(pattern)!;
+
+          if (typeof behavior.upgrade === "function") {
+            // TODO: custom upgrade handler functionality isn't required
+            // yet in Ganache, so this isn't implemented currently
+            throw new Error("not implemented");
+          } else {
+            this.wsServer.handleUpgrade(request, socket, head, internalWs => {
+              const ws = new WebSocket(internalWs);
+              ws.initialize(behavior);
+              this.wsServer.emit("connection", internalWs, request);
+            });
+          }
+
+          break;
+        }
+      }
+    }
   }
-};
+}
