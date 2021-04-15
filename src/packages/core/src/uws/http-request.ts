@@ -5,7 +5,6 @@ import { parse } from "querystring";
 
 export class HttpRequest implements uWsHttpRequest {
   static MAX_HEADERS: 50;
-  private headers = new Map<string, string>();
   private ancientHttp: boolean;
   private didYield: boolean;
   private currentParameters: [number, string[]];
@@ -33,12 +32,7 @@ export class HttpRequest implements uWsHttpRequest {
   }
 
   public getHeader(lowerCasedHeader: string) {
-    for (let [key, value] of this.headers) {
-      if (key.toLowerCase() === lowerCasedHeader) {
-        return value;
-      }
-    }
-    return null;
+    return this.request.headers[lowerCasedHeader] as string || "";
   }
 
   public getUrl() {

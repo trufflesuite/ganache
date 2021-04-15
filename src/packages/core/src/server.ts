@@ -8,11 +8,12 @@ import {
 import allSettled from "promise.allsettled";
 import AggregateError from "aggregate-error";
 import {
-  App,
+  // App
   TemplatedApp,
-  us_listen_socket_close,
   us_listen_socket
-} from "./uws/index";
+  // us_listen_socket_close,
+} from "@trufflesuite/uws-js-unofficial";
+import { App, us_listen_socket_close } from "./uws/index";
 import {
   Connector,
   ConnectorsByName,
@@ -135,7 +136,7 @@ export class Server<
   private async initialize(connector: Connector) {
     const _app = (this.#app = App());
 
-    if (false && this.#options.server.ws) {
+    if (this.#options.server.ws) {
       this.#websocketServer = new WebsocketServer(
         _app,
         connector as WebSocketCapableFlavor,
