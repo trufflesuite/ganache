@@ -26,7 +26,8 @@
   },
   "scripts": {
     "tsc": "ttsc --build",
-    "test": "nyc npm run mocha",
+    "test": "nyc npm run mocha && npm run mocha:fallback",
+    "mocha:fallback": "cross-env UWS_USE_FALLBACK=true npm run mocha",
     "mocha": "cross-env TS_NODE_PROJECT=tsconfig.json TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --throw-deprecation --trace-warnings --check-leaks --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
@@ -52,7 +53,7 @@
     "@ganache/options": "0.1.1-canary.1335",
     "@ganache/tezos": "0.1.1-canary.1335",
     "@ganache/utils": "0.1.1-canary.1335",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.4",
     "aggregate-error": "3.1.0",
     "emittery": "0.8.1",
     "promise.allsettled": "1.0.4"

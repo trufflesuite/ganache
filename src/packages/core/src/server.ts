@@ -8,12 +8,11 @@ import {
 import allSettled from "promise.allsettled";
 import AggregateError from "aggregate-error";
 import {
-  // App
+  App
   TemplatedApp,
-  us_listen_socket
-  // us_listen_socket_close,
+  us_listen_socket,
+  us_listen_socket_close
 } from "@trufflesuite/uws-js-unofficial";
-import { App, us_listen_socket_close } from "./uws/index";
 import {
   Connector,
   ConnectorsByName,
@@ -21,7 +20,6 @@ import {
   FlavorName,
   Options
 } from "@ganache/flavors";
-
 import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
