@@ -65,7 +65,7 @@
     "@ganache/filecoin-options": "0.1.3",
     "@ganache/options": "0.1.0",
     "@ganache/utils": "0.1.0",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.4",
     "@types/bn.js": "5.1.0",
     "@types/deep-equal": "1.0.1",
     "@types/levelup": "4.3.0",

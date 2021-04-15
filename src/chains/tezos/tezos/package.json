@@ -49,6 +49,6 @@
     "cheerio": "1.0.0-rc.3",
     "local-web-server": "4.2.1",
     "typedoc": "0.17.8",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3"
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.4"
   }
 }

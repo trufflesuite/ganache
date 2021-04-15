@@ -5,9 +5,9 @@
 	"requires": true,
 	"dependencies": {
 		"@trufflesuite/uws-js-unofficial": {
-			"version": "18.14.0-unofficial.3",
-			"resolved": "https://registry.npmjs.org/@trufflesuite/uws-js-unofficial/-/uws-js-unofficial-18.14.0-unofficial.3.tgz",
-			"integrity": "sha512-mkKXVhtGnUPqaFDXMJ/6yJ06orHrAdT2oFPICgDOWX3iyV15vLXjAsFs5IF7ZGg2/mK3DLwrHNUEhchuPePtrw==",
+			"version": "18.14.0-unofficial.4",
+			"resolved": "https://registry.npmjs.org/@trufflesuite/uws-js-unofficial/-/uws-js-unofficial-18.14.0-unofficial.4.tgz",
+			"integrity": "sha512-kTRx9AZELMrTrLH0zSJ3+D02CE0fqbVQwFszavmBRnM9c3KYU48gAmqbe74XCSDZZDfUSFnmAfaqf1BX5KmOwA==",
 			"requires": {
 				"body-parser": "^1.19.0",
 				"esm": "^3.2.25",
