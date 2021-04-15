@@ -93,6 +93,7 @@ export class HttpResponse implements uWsHttpResponse {
     return this;
   }
   end(data: RecognizedString = "", closeConnection: boolean = false) {
+    this.response.setHeader("Content-Length", data.toString().length);
     this.response.end(data);
     return this;
   }

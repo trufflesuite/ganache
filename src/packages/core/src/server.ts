@@ -3,14 +3,14 @@ import { InternalOptions, ServerOptions, serverOptionsConfig } from "./options";
 import allSettled from "promise.allsettled";
 import AggregateError from "aggregate-error";
 import {
-  App,
+  // App,
   TemplatedApp,
   us_listen_socket,
-  us_listen_socket_close
+  // us_listen_socket_close
 } from "@trufflesuite/uws-js-unofficial";
 import {
-  // App,
-  // us_listen_socket_close
+  App,
+  us_listen_socket_close
 } from "./uws/index";
 import { Connector, DefaultFlavor } from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
@@ -104,7 +104,7 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
 
     const _app = (this.#app = App());
 
-    if (false && this.#options.server.ws) {
+    if (this.#options.server.ws) {
       this.#websocketServer = new WebsocketServer(
         _app,
         connector as WebSocketCapableFlavor,

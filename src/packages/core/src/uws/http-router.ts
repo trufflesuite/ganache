@@ -124,158 +124,10 @@ enum Priority {
   LOW_PRIORITY = 0xf0000000
 }
 
-let userData: USERDATA;
-
 /**
  * Handler ids are 32-bit
  */
 const HANDLER_MASK = 0x0fffffff as const;
-
-/**
- * Methods and their respective priority
- */
-const priority = new Map<string, number>();
-
-/**
- * List of handlers
- */
-const handlers: RouteHandler[] = [];
-
-/**Current URL cache */
-let currentUrl: string = null;
-let urlSegmentVector: string[] = [];
-let urlSegmentTop = 0;
-
-/**
- * The matching tree
- */
-const root: Node = new Node("rootNode");
-
-const routeParameters: RouteParameters = new RouteParameters();
-
-/**
- * Advance from parent to child, adding child if necessary
- * @param parent
- * @param child
- * @param isHighPriority
- */
-function getNode(parent: Node, child: string, isHighPriority: boolean) {
-  for (let node of parent.children) {
-    if (node.name === child && node.isHighPriority === isHighPriority) {
-      return node;
-    }
-  }
-
-  /* Insert sorted, but keep order if parent is root (we sort methods by priority elsewhere) */
-  const newNode = new Node(child);
-  newNode.isHighPriority = isHighPriority;
-  const index = upperBound(parent.children, newNode, (a: Node, b: Node) => {
-    if (a.isHighPriority !== b.isHighPriority) {
-      return a.isHighPriority;
-    }
-    return b.name.length && parent !== root && b.name < a.name;
-  });
-  parent.children.splice(index, 0, newNode);
-
-  return newNode;
-}
-
-/**
- * Set URL for router. Will reset any URL cache
- * @param url
- */
-function setUrl(url: string) {
-  /* We expect to stand on a slash */
-
-  currentUrl = url;
-  urlSegmentTop = -1;
-}
-
-/**
- * Lazily parse or read from cache
- * @param urlSegment
- */
-function getUrlSegment(urlSegment: number) {
-  if (urlSegment > urlSegmentTop) {
-    // Signal as STOP when we have no more URL or stack space
-    if (!currentUrl.length || urlSegment > 99) {
-      return [null, true] as [string, boolean];
-    }
-
-    // We always stand on a slash here, so step over it
-    currentUrl = currentUrl.slice(1);
-
-    let segmentLength = currentUrl.indexOf("/");
-    if (segmentLength === -1) {
-      segmentLength = currentUrl.length;
-
-      // Push to url segment vector
-      urlSegmentVector[urlSegment] = currentUrl.substr(0, segmentLength);
-      urlSegmentTop++;
-
-      // Update currentUrl
-      currentUrl = currentUrl.substr(segmentLength);
-    } else {
-      // Push to url segment vector
-      urlSegmentVector[urlSegment] = currentUrl.substr(0, segmentLength);
-      urlSegmentTop++;
-
-      // Update currentUrl
-      currentUrl = currentUrl.substr(segmentLength);
-    }
-  }
-  /* In any case we return it */
-  return [urlSegmentVector[urlSegment], false] as [string, boolean];
-}
-
-/**
- * Executes as many handlers it can
- */
-function executeHandlers(
-  this: HttpRouter,
-  parent: Node,
-  urlSegment: number,
-  _userData: USERDATA
-) {
-  userData = _userData;
-  const [segment, isStop] = getUrlSegment(urlSegment);
-
-  // If we are on STOP, return where we may stand
-  if (isStop) {
-    // We have reached accross the entire URL with no stoppage, execute
-    for (let handler of parent.handlers) {
-      if (handlers[AND(handler, HANDLER_MASK)](this)) {
-        return true;
-      }
-    }
-    // We reached the end, so go back
-    return false;
-  }
-
-  for (let p of parent.children) {
-    if (p.name.length && p.name[0] === "*") {
-      // Wildcard match (can be seen as a shortcut)
-      for (let handler of p.handlers) {
-        if (handlers[handler & HANDLER_MASK](this)) {
-          return true;
-        }
-      }
-    } else if (p.name.length && p.name[0] === ":" && segment.length) {
-      // Parameter match
-      routeParameters.push(segment);
-      if (executeHandlers.call(this, p, urlSegment + 1, userData)) {
-        return true;
-      }
-      routeParameters.pop();
-    } else if (p.name == segment) {
-      // Static match
-      if (executeHandlers.call(this, p, urlSegment + 1, userData)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 export class HttpRouter {
   public methods = [
@@ -293,29 +145,53 @@ export class HttpRouter {
   public MEDIUM_PRIORITY = Priority.MEDIUM_PRIORITY as const;
   public LOW_PRIORITY = Priority.LOW_PRIORITY as const;
 
+  /**
+   * Methods and their respective priority
+   */
+  public priority = new Map<string, number>();
+
+  /**
+   * List of handlers
+   */
+  public handlers: RouteHandler[] = [];
+
+  /**Current URL cache */
+  public currentUrl: string = null;
+  public urlSegmentVector: string[] = [];
+  public urlSegmentTop = 0;
+
+  /**
+   * The matching tree
+   */
+  public root: Node = new Node("rootNode");
+
+  public routeParameters: RouteParameters = new RouteParameters();
+
+  public userData: USERDATA;
+
   constructor() {
     let p = 0;
     for (let method of this.methods) {
-      priority[method] = p++;
+      this.priority[method] = p++;
     }
   }
 
   getParameters() {
-    return [routeParameters.paramsTop, routeParameters.params] as [
+    return [this.routeParameters.paramsTop, this.routeParameters.params] as [
       number,
       string[]
     ];
   }
 
   setUserData(req: IncomingMessage, res: ServerResponse) {
-    userData = {
+    this.userData = {
       httpRequest: new HttpRequest(req),
       httpResponse: new HttpResponse(res, req)
     };
   }
 
   getUserData() {
-    return userData;
+    return this.userData;
   }
 
   /**
@@ -323,14 +199,14 @@ export class HttpRouter {
    */
   route(method: string, url: string) {
     // Reset url parsing cache
-    setUrl(url);
-    routeParameters.reset();
+    this.setUrl(url);
+    this.routeParameters.reset();
 
     // Begin by finding the method node
-    for (let p of root.children) {
+    for (let p of this.root.children) {
       if (p.name === method) {
         /* Then route the url */
-        return executeHandlers.call(this, p, 0, userData);
+        return this.executeHandlers(p, 0, this.userData);
       }
     }
 
@@ -346,18 +222,18 @@ export class HttpRouter {
   ) {
     for (let method of methods) {
       // Lookup method
-      let node = getNode(root, method, false);
+      let node = this.getNode(this.root, method, false);
       // Iterate over all segments
-      setUrl(pattern);
-      for (let i = 0; !getUrlSegment(i)[1]; i++) {
-        node = getNode(
+      this.setUrl(pattern);
+      for (let i = 0; !this.getUrlSegment(i)[1]; i++) {
+        node = this.getNode(
           node,
-          getUrlSegment(i)[0],
+          this.getUrlSegment(i)[0],
           priority === Priority.HIGH_PRIORITY
         );
       }
       // Insert handler in order sorted by priority (most significant 1 byte)
-      const size = handlers.length;
+      const size = this.handlers.length;
       const bit = OR(priority, size);
       const position = upperBound(node.handlers, bit, (a, b) => {
         return a < b;
@@ -366,6 +242,130 @@ export class HttpRouter {
     }
 
     // Store this handler
-    handlers.push(handler);
+    this.handlers.push(handler);
+  }
+
+  /**
+   * Executes as many handlers it can
+   */
+  executeHandlers(
+    this: HttpRouter,
+    parent: Node,
+    urlSegment: number,
+    _userData: USERDATA
+  ) {
+    this.userData = _userData;
+    const [segment, isStop] = this.getUrlSegment(urlSegment);
+
+    // If we are on STOP, return where we may stand
+    if (isStop) {
+      // We have reached accross the entire URL with no stoppage, execute
+      for (let handler of parent.handlers) {
+        if (this.handlers[AND(handler, HANDLER_MASK)](this)) {
+          return true;
+        }
+      }
+      // We reached the end, so go back
+      return false;
+    }
+
+    for (let p of parent.children) {
+      if (p.name.length && p.name[0] === "*") {
+        // Wildcard match (can be seen as a shortcut)
+        for (let handler of p.handlers) {
+          if (this.handlers[handler & HANDLER_MASK](this)) {
+            return true;
+          }
+        }
+      } else if (p.name.length && p.name[0] === ":" && segment.length) {
+        // Parameter match
+        this.routeParameters.push(segment);
+        if (this.executeHandlers(p, urlSegment + 1, this.userData)) {
+          return true;
+        }
+        this.routeParameters.pop();
+      } else if (p.name == segment) {
+        // Static match
+        if (this.executeHandlers(p, urlSegment + 1, this.userData)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Set URL for router. Will reset any URL cache
+   * @param url
+   */
+  setUrl(url: string) {
+    /* We expect to stand on a slash */
+
+    this.currentUrl = url;
+    this.urlSegmentTop = -1;
+  }
+
+  /**
+   * Advance from parent to child, adding child if necessary
+   * @param parent
+   * @param child
+   * @param isHighPriority
+   */
+  getNode(parent: Node, child: string, isHighPriority: boolean) {
+    for (let node of parent.children) {
+      if (node.name === child && node.isHighPriority === isHighPriority) {
+        return node;
+      }
+    }
+
+    /* Insert sorted, but keep order if parent is root (we sort methods by priority elsewhere) */
+    const newNode = new Node(child);
+    newNode.isHighPriority = isHighPriority;
+    const index = upperBound(parent.children, newNode, (a: Node, b: Node) => {
+      if (a.isHighPriority !== b.isHighPriority) {
+        return a.isHighPriority;
+      }
+      return b.name.length && parent !== this.root && b.name < a.name;
+    });
+    parent.children.splice(index, 0, newNode);
+
+    return newNode;
+  }
+
+  /**
+   * Lazily parse or read from cache
+   * @param urlSegment
+   */
+  getUrlSegment(urlSegment: number) {
+    if (urlSegment > this.urlSegmentTop) {
+      // Signal as STOP when we have no more URL or stack space
+      if (!this.currentUrl.length || urlSegment > 99) {
+        return [null, true] as [string, boolean];
+      }
+
+      // We always stand on a slash here, so step over it
+      this.currentUrl = this.currentUrl.slice(1);
+
+      let segmentLength = this.currentUrl.indexOf("/");
+      if (segmentLength === -1) {
+        segmentLength = this.currentUrl.length;
+
+        // Push to url segment vector
+        this.urlSegmentVector[urlSegment] = this.currentUrl.substr(0, segmentLength);
+        this.urlSegmentTop++;
+
+        // Update currentUrl
+        this.currentUrl = this.currentUrl.substr(segmentLength);
+      } else {
+        // Push to url segment vector
+        this.urlSegmentVector[urlSegment] = this.currentUrl.substr(0, segmentLength);
+        this.urlSegmentTop++;
+
+        // Update currentUrl
+        this.currentUrl = this.currentUrl.substr(segmentLength);
+      }
+    }
+    /* In any case we return it */
+    return [this.urlSegmentVector[urlSegment], false] as [string, boolean];
   }
 }

@@ -22,7 +22,8 @@ function isHttp(
 ): connection is HttpRequest {
   return (
     connection.constructor.name === "uWS.HttpRequest" ||
-    connection.constructor.name === "RequestWrapper"
+    connection.constructor.name === "RequestWrapper" ||
+    connection.constructor.name === "HttpRequest"
   );
 }
 
