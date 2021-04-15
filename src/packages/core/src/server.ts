@@ -8,7 +8,7 @@ import {
 import allSettled from "promise.allsettled";
 import AggregateError from "aggregate-error";
 import {
-  App
+  App,
   TemplatedApp,
   us_listen_socket,
   us_listen_socket_close
