@@ -206,7 +206,9 @@ describe("server", () => {
           server.close();
         };
 
+        let uncaughtExceptionOccurred = false;
         const handleUncaughtException = async err => {
+          uncaughtExceptionOccurred = true;
           await localTearDown();
           assert.notStrictEqual(
             expectedErrorRegex.exec(err.message),
@@ -221,9 +223,11 @@ describe("server", () => {
 
         try {
           await setup();
-          assert.fail(
-            "Successfully listened twice on the same port instead of erroring"
-          );
+          if (!uncaughtExceptionOccurred) {
+            assert.fail(
+              "Successfully listened twice on the same port instead of erroring"
+            );
+          }
         } catch (e) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
@@ -263,7 +267,9 @@ describe("server", () => {
           server.close();
         };
 
+        let uncaughtExceptionOccurred = false;
         const handleUncaughtException = async err => {
+          uncaughtExceptionOccurred = true;
           await localTearDown();
           assert.notStrictEqual(
             expectedErrorRegex.exec(err.message),
@@ -283,9 +289,11 @@ describe("server", () => {
           const s = Ganache.server();
           const listen = promisify(s.listen.bind(s));
           await listen(port);
-          assert.fail(
-            "Successfully listened twice on the same port instead of erroring"
-          );
+          if (!uncaughtExceptionOccurred) {
+            assert.fail(
+              "Successfully listened twice on the same port instead of erroring"
+            );
+          }
         } catch (e) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
@@ -335,7 +343,9 @@ describe("server", () => {
             await teardown();
           };
 
+          let uncaughtExceptionOccurred = false;
           const handleUncaughtException = async err => {
+            uncaughtExceptionOccurred = true;
             await localTearDown();
             assert.notStrictEqual(
               expectedErrorRegex.exec(err.message),
@@ -350,9 +360,11 @@ describe("server", () => {
 
           try {
             await s2.listen(port);
-            assert.fail(
-              "Successfully listened twice on the same port instead of erroring"
-            );
+            if (!uncaughtExceptionOccurred) {
+              assert.fail(
+                "Successfully listened twice on the same port instead of erroring"
+              );
+            }
           } catch (e) {
             if (e.code === "ERR_ASSERTION") {
               throw e;
