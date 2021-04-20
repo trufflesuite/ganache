@@ -53,7 +53,7 @@
     "@ganache/options": "0.1.1-canary.1335",
     "@ganache/tezos": "0.1.1-canary.1335",
     "@ganache/utils": "0.1.1-canary.1335",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.6",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.7",
     "aggregate-error": "3.1.0",
     "emittery": "0.8.1",
     "promise.allsettled": "1.0.4"
