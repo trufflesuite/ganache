@@ -4,7 +4,7 @@ import { KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
 import { encode, decode } from "@ganache/rlp";
 import { utils } from "@ganache/utils";
 
-const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
+const { RPCQUANTITY_EMPTY } = utils;
 
 export type EthereumRawAccount = [
   nonce: Buffer,
@@ -23,8 +23,8 @@ export class Account {
 
   constructor(address: Address) {
     this.address = address;
-    this.balance = RPCQUANTITY_ZERO;
-    this.nonce = RPCQUANTITY_ZERO;
+    this.balance = RPCQUANTITY_EMPTY;
+    this.nonce = RPCQUANTITY_EMPTY;
   }
 
   public static fromBuffer(buffer: Buffer) {

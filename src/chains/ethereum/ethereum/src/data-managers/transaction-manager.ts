@@ -34,15 +34,14 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
     this.transactionPool = new TransactionPool(options, blockchain);
   }
 
-  fromFallback = async (transactionHash: string | Buffer) => {
+  fromFallback = async (transactionHash: Buffer) => {
     const { fallback } = this.#blockchain;
-    const tx = (await fallback.request("eth_getTransactionByHash", [
-      typeof transactionHash === "string"
-        ? transactionHash
-        : Data.from(transactionHash).toString()
-    ])) as RpcTransaction;
+    const tx = await fallback.request<RpcTransaction>(
+      "eth_getTransactionByHash",
+      [Data.from(transactionHash).toString()]
+    );
     if (tx == null) return null;
-    const runTx = new RuntimeTransaction(tx, await fallback.getCommon());
+    const runTx = new RuntimeTransaction(tx, fallback.common);
     return runTx.serializeForDb(
       Data.from((tx as any).blockHash, 32),
       Quantity.from((tx as any).blockNumber),
@@ -50,7 +49,7 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
     );
   };
 
-  public async getRaw(transactionHash: string | Buffer): Promise<Buffer> {
+  public async getRaw(transactionHash: Buffer): Promise<Buffer> {
     return super.getRaw(transactionHash).then(block => {
       if (block == null && this.#blockchain.fallback) {
         return this.fromFallback(transactionHash);

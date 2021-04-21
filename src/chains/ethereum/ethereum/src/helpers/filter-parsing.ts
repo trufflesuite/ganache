@@ -1,5 +1,5 @@
 import Blockchain from "../blockchain";
-import { FilterArgs, RangeFilterArgs } from "@ganache/ethereum-utils";
+import { FilterArgs, RangeFilterArgs, Tag } from "@ganache/ethereum-utils";
 import { Address } from "@ganache/ethereum-address";
 
 export function parseFilterDetails(
@@ -22,11 +22,11 @@ export function parseFilterRange(
 ) {
   const latestBlock = blockchain.blocks.latest.header.number;
   const fromBlock = blockchain.blocks.getEffectiveNumber(
-    filter.fromBlock || "latest"
+    filter.fromBlock || Tag.LATEST
   );
   const latestBlockNumber = latestBlock.toNumber();
   const toBlock = blockchain.blocks.getEffectiveNumber(
-    filter.toBlock || "latest"
+    filter.toBlock || Tag.LATEST
   );
   let toBlockNumber: number;
   // don't search after the "latest" block, unless it's "pending", of course.

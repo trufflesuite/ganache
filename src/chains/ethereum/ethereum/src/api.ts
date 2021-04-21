@@ -13,20 +13,17 @@ import {
   FilterTypes,
   RangeFilterArgs,
   SubscriptionId,
-  SubscriptionName
+  SubscriptionName,
+  EthereumRawAccount
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   EthereumRawTx,
+  GanacheRawExtraTx,
   RpcTransaction,
   RuntimeTransaction
 } from "@ganache/ethereum-transaction";
-import {
-  toRpcSig,
-  KECCAK256_NULL,
-  ecsign,
-  hashPersonalMessage
-} from "ethereumjs-util";
+import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import {
@@ -52,6 +49,7 @@ import {
 } from "./helpers/filter-parsing";
 import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
+import { GanacheRawBlock } from "@ganache/ethereum-block/src/serialize";
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
@@ -336,22 +334,17 @@ export default class EthereumApi implements types.Api {
     storage: string,
     blockNumber: string | Buffer | Tag = Tag.LATEST
   ) {
-    const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
+    const blockchain = this.#blockchain;
+    const blockProm = blockchain.blocks.getRaw(blockNumber);
 
-    const trie = this.#blockchain.trie.copy(false);
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
-    const blockData = (decode(block) as unknown) as [
-      [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
-      Buffer[],
-      Buffer[]
-    ];
+    const blockData = decode<GanacheRawBlock>(block);
     const headerData = blockData[0];
     const blockStateRoot = headerData[3];
+    const trie = blockchain.trie.copy(false);
     trie.root = blockStateRoot;
-
-    const addressDataPromise = trie.get(Address.from(address).toBuffer());
 
     const posBuff = Quantity.from(position).toBuffer();
     const length = posBuff.length;
@@ -369,19 +362,16 @@ export default class EthereumApi implements types.Api {
       paddedPosBuff = posBuff.slice(-32);
     }
 
-    const addressData = await addressDataPromise;
+    const addressData = await trie.get(Address.from(address).toBuffer());
     // An address's stateRoot is stored in the 3rd rlp entry
-    this.#blockchain.trie.root = ((decode(addressData) as any) as [
+    blockchain.trie.root = ((decode(addressData) as any) as [
       Buffer /*nonce*/,
       Buffer /*amount*/,
       Buffer /*stateRoot*/,
       Buffer /*codeHash*/
     ])[2];
 
-    return this.#blockchain.trie.put(
-      paddedPosBuff,
-      Data.from(storage).toBuffer()
-    );
+    return blockchain.trie.put(paddedPosBuff, Data.from(storage).toBuffer());
   }
 
   /**
@@ -715,7 +705,7 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(1, 2)
   async eth_estimateGas(
     transaction: RpcTransaction,
-    blockNumber: Buffer | Tag | string = Tag.LATEST
+    blockNumber: string | Tag = Tag.LATEST
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
@@ -799,7 +789,7 @@ export default class EthereumApi implements types.Api {
    * @returns the block, `null` if the block doesn't exist.
    */
   @assertArgLength(1, 2)
-  async eth_getBlockByNumber(number: string | Buffer, transactions = false) {
+  async eth_getBlockByNumber(number: string | Tag, transactions = false) {
     const block = await this.#blockchain.blocks.get(number).catch(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
@@ -881,7 +871,7 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockNumberAndIndex(
-    number: string | Buffer,
+    number: string | Tag,
     index: string
   ) {
     const block = await this.eth_getBlockByNumber(number, true);
@@ -1061,8 +1051,8 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1, 2)
   async eth_getCode(address: Buffer, blockNumber: string | Tag = Tag.LATEST) {
-    const addy = Address.from(address);
-    return await this.#blockchain.accounts.getCode(addy, blockNumber);
+    const { accounts } = this.#blockchain;
+    return accounts.getCode(Address.from(address), blockNumber);
   }
 
   /**
@@ -1076,26 +1066,17 @@ export default class EthereumApi implements types.Api {
   async eth_getStorageAt(
     address: string,
     position: bigint | number,
-    blockNumber: string | Buffer | Tag = Tag.LATEST
+    blockNumber: string | Tag = Tag.LATEST
   ) {
-    const blockProm = this.#blockchain.blocks.getRaw(blockNumber);
+    const blockchain = this.#blockchain;
+    const blockProm = blockchain.blocks.getRaw(blockNumber);
+    const trie = blockchain.trie.copy(false);
 
-    const trie = this.#blockchain.trie.copy(false);
     const block = await blockProm;
     if (!block) throw new Error("header not found");
 
-    const blockData = (decode(block) as unknown) as [
-      [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
-      Buffer[],
-      Buffer[]
-    ];
-    const headerData = blockData[0];
-    const blockStateRoot = headerData[3];
+    const [[, , , blockStateRoot]] = decode<GanacheRawBlock>(block);
     trie.root = blockStateRoot;
-
-    const addressDataPromise = this.#blockchain.trie.get(
-      Address.from(address).toBuffer()
-    );
 
     const posBuff = Quantity.from(position).toBuffer();
     const length = posBuff.length;
@@ -1113,11 +1094,9 @@ export default class EthereumApi implements types.Api {
       paddedPosBuff = posBuff.slice(-32);
     }
 
-    const addressData = await addressDataPromise;
+    const addressData = await trie.get(Address.from(address).toBuffer());
     // An address's stateRoot is stored in the 3rd rlp entry
-    trie.root = decode<
-      [nonce: Buffer, amount: Buffer, stateRoot: Buffer, codeHash: Buffer]
-    >(addressData)[2];
+    trie.root = decode<EthereumRawAccount>(addressData)[2];
     const value = await trie.get(paddedPosBuff);
     return Data.from(decode(value));
   }
@@ -1222,7 +1201,7 @@ export default class EthereumApi implements types.Api {
       const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
       if (defaultLimit === utils.RPCQUANTITY_EMPTY) {
         // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
-        tx.gas = await this.eth_estimateGas(transaction, "latest");
+        tx.gas = await this.eth_estimateGas(transaction, Tag.LATEST);
       } else {
         tx.gas = defaultLimit;
       }
