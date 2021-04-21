@@ -68,7 +68,7 @@ const serialized = digest(
   partialRlp.length + signature.length
 );
 return {
-  // computing the `from` addreses requires entries 0-6
+  // computing the `from` address requires entries 0-6
   from: computeFromAddress(partialRlp, v.toNumber(), raw, chainId),
   // hash requires entries 0-9
   hash: Data.from(keccak(serialized), 32),

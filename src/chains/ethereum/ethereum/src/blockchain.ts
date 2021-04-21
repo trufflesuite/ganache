@@ -14,10 +14,10 @@ import {
   StorageKeys,
   StorageRangeResult,
   StorageRecords,
-  RangedStorageKeys
+  RangedStorageKeys,
+  EthereumRawAccount
 } from "@ganache/ethereum-utils";
 import { decode } from "@ganache/rlp";
-import { SecureTrie } from "merkle-patricia-tree";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import { promisify } from "util";
 import { Quantity, Data, utils } from "@ganache/utils";
@@ -43,6 +43,15 @@ import {
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 import { runTransactions } from "./helpers/run-transactions";
 import { SimulationTransaction } from "./helpers/run-call";
+import { ForkStateManager } from "./forking/state-manager";
+import {
+  DefaultStateManager,
+  StateManager
+} from "@ethereumjs/vm/dist/state/index";
+import { GanacheTrie } from "./helpers/trie";
+import { ForkTrie } from "./forking/trie";
+import { LevelUp } from "levelup";
+import { activatePrecompiles } from "./helpers/precompiles";
 
 const {
   BUFFER_EMPTY,
@@ -120,10 +129,18 @@ export type BlockchainOptions = {
  * @param stateManager
  * @param stateRoot
  */
-function setStateRootSync(stateManager: VM["stateManager"], stateRoot: Buffer) {
+function setStateRootSync(stateManager: StateManager, stateRoot: Buffer) {
   (stateManager as any)._trie.root = stateRoot;
   (stateManager as any)._cache.clear();
   (stateManager as any)._storageTries = {};
+}
+
+function makeTrie(blockchain: Blockchain, db: LevelUp | null, root: Data) {
+  if (blockchain.fallback) {
+    return new ForkTrie(db, root ? root.toBuffer() : null, blockchain);
+  } else {
+    return new GanacheTrie(db, root ? root.toBuffer() : null, blockchain);
+  }
 }
 
 export default class Blockchain extends Emittery.Typed<
@@ -144,7 +161,7 @@ export default class Blockchain extends Emittery.Typed<
   public storageKeys: Database["storageKeys"];
   public accounts: AccountManager;
   public vm: VM;
-  public trie: SecureTrie;
+  public trie: GanacheTrie;
 
   readonly #database: Database;
   readonly #common: Common;
@@ -211,6 +228,11 @@ export default class Blockchain extends Emittery.Typed<
     const instamine = this.#instamine;
 
     await database.initialize();
+    if (this.fallback) {
+      await Promise.all([database.initialize(), this.fallback.initialize()]);
+    } else {
+      await database.initialize();
+    }
 
     const blocks = (this.blocks = await BlockManager.initialize(
       this,
@@ -218,21 +240,6 @@ export default class Blockchain extends Emittery.Typed<
       database.blockIndexes,
       database.blocks
     ));
-
-    // if we have a latest block, use it to set up the trie.
-    const latest = blocks.latest;
-    if (latest) {
-      this.#blockBeingSavedPromise = Promise.resolve({
-        block: latest,
-        blockLogs: null
-      });
-      this.trie = new SecureTrie(
-        database.trie,
-        latest.header.stateRoot.toBuffer()
-      );
-    } else {
-      this.trie = new SecureTrie(database.trie, null);
-    }
 
     this.blockLogs = new BlockLogManager(database.blockLogs);
     this.transactions = new TransactionManager(
@@ -247,6 +254,22 @@ export default class Blockchain extends Emittery.Typed<
     );
     this.accounts = new AccountManager(this, database.trie);
     this.storageKeys = database.storageKeys;
+
+    // if we have a latest block, use it to set up the trie.
+    const latest = blocks.latest;
+    if (latest) {
+      this.#blockBeingSavedPromise = Promise.resolve({
+        block: latest,
+        blockLogs: null
+      });
+      this.trie = makeTrie(this, database.trie, latest.header.stateRoot);
+    } else {
+      this.trie = makeTrie(
+        this,
+        database.trie,
+        null //this.fallback ? this.fallback.stateRoot : null
+      );
+    }
 
     // create VM and listen to step events
     this.vm = await this.createVmFromStateTrie(
@@ -268,11 +291,10 @@ export default class Blockchain extends Emittery.Typed<
 
       // if we don't already have a latest block, create a genesis block!
       if (!latest) {
-        await this.#commitAccounts(initialAccounts);
-
         this.#blockBeingSavedPromise = this.#initializeGenesisBlock(
           firstBlockTime,
-          options.miner.blockGasLimit
+          options.miner.blockGasLimit,
+          initialAccounts
         );
         blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(
           ({ block }) => block
@@ -523,7 +545,7 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   createVmFromStateTrie = async (
-    stateTrie: SecureTrie,
+    stateTrie: GanacheTrie | ForkTrie,
     allowUnlimitedContractSize: boolean
   ) => {
     const blocks = this.blocks;
@@ -535,14 +557,22 @@ export default class Blockchain extends Emittery.Typed<
       }
     } as any;
 
-    const vm = new VM({
+    const common = this.#common;
+
+    const vm = await VM.create({
       state: stateTrie,
-      activatePrecompiles: true,
-      common: this.#common,
+      activatePrecompiles: false,
+      common,
       allowUnlimitedContractSize,
-      blockchain
+      blockchain,
+      stateManager: this.fallback
+        ? new ForkStateManager(
+            { common, trie: stateTrie as ForkTrie },
+            this.accounts
+          )
+        : new DefaultStateManager({ common, trie: stateTrie })
     });
-    await vm.init();
+    await activatePrecompiles(vm.stateManager);
     return vm;
   };
 
@@ -556,39 +586,34 @@ export default class Blockchain extends Emittery.Typed<
 
   #initializeGenesisBlock = async (
     timestamp: number,
-    blockGasLimit: Quantity
+    blockGasLimit: Quantity,
+    initialAccounts: Account[]
   ) => {
     if (this.fallback != null) {
-      let num: string;
-      if (typeof this.#options.fork.blockNumber == "string") {
-        num = this.#options.fork.blockNumber;
-      } else {
-        num = `0x${this.#options.fork.blockNumber.toString(16)}`;
-      }
-      const forkBlock = new Block(
-        await this.blocks.fromFallback(num),
-        this.#common
-      );
-
-      setStateRootSync(
-        this.vm.stateManager,
-        forkBlock.header.stateRoot.toBuffer()
-      );
+      // commit accounts, but for forking.
+      const sm = this.vm.stateManager as any;
+      this.vm.stateManager.checkpoint();
+      initialAccounts.forEach(acc => {
+        const a = { buf: acc.address.toBuffer() };
+        sm._cache.put(a, acc as any);
+        sm.touchAccount(a);
+      });
+      await this.vm.stateManager.commit();
 
       // create the genesis block
       const genesis = new RuntimeBlock(
-        Quantity.from(forkBlock.header.number.toBigInt() + 1n),
-        forkBlock.hash(),
+        Quantity.from(this.fallback.block.header.number.toBigInt() + 1n),
+        this.fallback.block.hash(),
         this.coinbase,
         blockGasLimit.toBuffer(),
         Quantity.from(timestamp),
         this.#options.miner.difficulty,
-        forkBlock.header.totalDifficulty
+        this.fallback.block.header.totalDifficulty
       );
 
       // store the genesis block in the database
       const { block, serialized } = genesis.finalize(
-        forkBlock.header.transactionsRoot.toBuffer(),
+        KECCAK256_RLP,
         KECCAK256_RLP,
         BUFFER_256_ZERO,
         this.trie.root,
@@ -606,12 +631,14 @@ export default class Blockchain extends Emittery.Typed<
         }));
     }
 
+    await this.#commitAccounts(initialAccounts);
+
     // README: block `0` is weird in that a `0` _should_ be hashed as `[]`,
     // instead of `[0]`, so we set it to `RPCQUANTITY_EMPTY` instead of
     // `RPCQUANTITY_ZERO` here. A few lines down in this function we swap
     // this `RPCQUANTITY_EMPTY` for `RPCQUANTITY_ZERO`. This is all so we don't
     // have to have a "treat empty as 0` check in every function that uses the
-    // "latest" block (which this genesis block will be for breif moment).
+    // "latest" block (which this genesis block will be for brief moment).
     const rawBlockNumber = RPCQUANTITY_EMPTY;
 
     // create the genesis block
@@ -650,7 +677,7 @@ export default class Blockchain extends Emittery.Typed<
   #timeAdjustment: number = 0;
 
   /**
-   * Returns the timestamp, adjusted by the timeAdjustent offset, in seconds.
+   * Returns the timestamp, adjusted by the timeAdjustment offset, in seconds.
    */
   #currentTime = () => {
     return Math.floor((Date.now() + this.#timeAdjustment) / 1000);
@@ -838,7 +865,7 @@ export default class Blockchain extends Emittery.Typed<
         // before we can return the hash
         const { status, error } = await transaction.once("finalized");
         // in legacyInstamine mode we must throw on all rejected transaction
-        // errors. We must also throw on `confirmed` tranactions when
+        // errors. We must also throw on `confirmed` transactions when
         // vmErrorsOnRPCResponse is enabled.
         if (
           error &&
@@ -863,9 +890,10 @@ export default class Blockchain extends Emittery.Typed<
     gasLeft -= calculateIntrinsicGas(data, this.#common);
 
     if (gasLeft >= 0) {
-      const stateTrie = new SecureTrie(
+      const stateTrie = makeTrie(
+        this,
         this.#database.trie,
-        parentBlock.header.stateRoot.toBuffer()
+        parentBlock.header.stateRoot
       );
 
       // take a checkpoint so the `runCall` never writes to the trie. We don't
@@ -915,7 +943,7 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   #traceTransaction = async (
-    trie: SecureTrie,
+    trie: GanacheTrie,
     newBlock: RuntimeBlock & { transactions: VmTransaction[] },
     options: TransactionTraceOptions,
     keys?: Buffer[],
@@ -1098,7 +1126,7 @@ export default class Blockchain extends Emittery.Typed<
     // When forking some of the data that the traced function may request will
     // exist only on the main chain. Because we pretty much lie to the VM by
     // telling it we DO have data in our Trie, when we really don't, it gets
-    // lost during the commit phase when it traverses the "borrowed" data's
+    // lost during the commit phase when it traverses the "borrowed" datum's
     // trie (as it may not have a valid root). Because this is a trace, and we
     // don't need to commit the data, duck punching the `flush` method (the
     // simplest method I could find) is fine.
@@ -1110,7 +1138,7 @@ export default class Blockchain extends Emittery.Typed<
     // The vmerr key on the result appears to be removed.
     // The previous implementation had specific error handling.
     // It's possible we've removed handling specific cases in this implementation.
-    // e.g., the previous incatation of RuntimeError
+    // e.g., the previous incantation of RuntimeError
     await runTransactions(vm, newBlock.transactions, newBlock);
 
     // Just to be safe
@@ -1208,9 +1236,10 @@ export default class Blockchain extends Emittery.Typed<
     //
     // TODO: Forking needs the forked block number passed during this step:
     // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
-    const trie = new SecureTrie(
+    const trie = makeTrie(
+      this,
       this.#database.trie,
-      parentBlock.header.stateRoot.toBuffer()
+      parentBlock.header.stateRoot
     );
 
     // #3 - Rerun every transaction in block prior to and including the requested transaction
@@ -1268,9 +1297,10 @@ export default class Blockchain extends Emittery.Typed<
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
-    const trie = new SecureTrie(
+    const trie = makeTrie(
+      this,
       this.#database.trie,
-      parentBlock.header.stateRoot.toBuffer()
+      parentBlock.header.stateRoot
     );
 
     // get the contractAddress account storage trie
@@ -1284,12 +1314,10 @@ export default class Blockchain extends Emittery.Typed<
     const getStorageKeys = () => {
       const storageTrie = trie.copy(false);
       // An address's stateRoot is stored in the 3rd rlp entry
-      storageTrie.root = ((decode(addressData) as any) as [
-        Buffer /*nonce*/,
-        Buffer /*amount*/,
-        Buffer /*stateRoot*/,
-        Buffer /*codeHash*/
-      ])[2];
+      storageTrie.setContext(
+        decode<EthereumRawAccount>(addressData)[2],
+        contractAddressBuffer
+      );
 
       return new Promise<RangedStorageKeys>((resolve, reject) => {
         const startKeyBuffer = Data.from(startKey).toBuffer();

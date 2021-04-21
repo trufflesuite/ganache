@@ -2,6 +2,7 @@ import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import { types } from "@ganache/utils";
+import { Tag } from "@ganache/ethereum-utils";
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
 
 declare var URL: {
@@ -16,7 +17,7 @@ declare var URL: {
 const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 
 type HeaderRecord = { name: string; value: string };
-type ForkUrl = types.URL & { _blockNumber?: number | "latest" };
+type ForkUrl = types.URL & { _blockNumber?: number | Tag.LATEST };
 
 export type ForkConfig = {
   options: {
@@ -46,13 +47,13 @@ export type ForkConfig = {
      * Block number the provider should fork from.
      */
     blockNumber: {
-      type: number | "latest";
+      type: number | Tag.LATEST;
       hasDefault: true;
       legacy: {
         /**
          * @deprecated Use fork.blockNumber instead
          */
-        fork_block_number: number | "latest";
+        fork_block_number: number | Tag.LATEST;
       };
     };
 
@@ -187,7 +188,7 @@ export const ForkOptions: Definitions<ForkConfig> = {
         // remove everything after the last @
         url = new URL(path.substr(0, lastIndex), url);
         const blockNumber = path.substr(lastIndex);
-        if (blockNumber && blockNumber !== "latest") {
+        if (blockNumber && blockNumber !== Tag.LATEST) {
           // don't use parseInt because strings like `"123abc"` parse
           // to `123`, and there is probably an error on the user's side we'd
           // want to uncover.
@@ -236,13 +237,13 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         if (url._blockNumber) {
           //return url._blockNumber;
         } else {
-          return "latest";
+          return Tag.LATEST;
         }
       } else {
         return;
       }
     },
-    defaultDescription: '"latest"`'
+    defaultDescription: `"${Tag.LATEST}"`
     //implies: ["url"]
   },
   username: {

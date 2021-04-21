@@ -58,8 +58,10 @@ export default class BlockManager extends Manager<Block> {
     tagOrBlockNumber: string | Buffer | Tag
   ): Promise<Buffer> => {
     const fallback = this.#blockchain.fallback;
-    const json = await fallback.request("eth_getBlockByNumber", [
-      tagOrBlockNumber,
+    const json = await fallback.request<any>("eth_getBlockByNumber", [
+      typeof tagOrBlockNumber === "string"
+        ? tagOrBlockNumber
+        : `0x${tagOrBlockNumber.toString("hex") || "0"}`,
       true
     ]);
     return json == null ? null : Block.rawFromJSON(json);
@@ -86,7 +88,9 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST) {
+  getEffectiveNumber(
+    tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST
+  ): Quantity {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {
@@ -114,7 +118,7 @@ export default class BlockManager extends Manager<Block> {
     const number = this.getEffectiveNumber(tagOrBlockNumber).toBuffer();
     return super.getRaw(number).then(block => {
       if (block == null && this.#blockchain.fallback) {
-        return this.fromFallback(tagOrBlockNumber);
+        return this.fromFallback(number);
       }
       return block;
     });
