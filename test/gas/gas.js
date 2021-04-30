@@ -68,8 +68,7 @@ describe("Gas", function() {
           };
 
           ContractFactory = await bootstrap(factory, ganacheProviderOptions, hardfork);
-          // memdown makes the test that uses TestDepth about 20% faster, so we use it here because CI makes us sad.
-          TestDepth = await bootstrap(testDepth, Object.assign({ db: memdown() }, ganacheProviderOptions), hardfork);
+          TestDepth = await bootstrap(testDepth, ganacheProviderOptions, hardfork);
           Donation = await bootstrap(donation, ganacheProviderOptions, hardfork);
           Fib = await bootstrap(fib, ganacheProviderOptions, hardfork);
           NonZero = await bootstrap(nonZero, ganacheProviderOptions, hardfork);
