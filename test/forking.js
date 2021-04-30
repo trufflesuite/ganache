@@ -705,7 +705,7 @@ describe("Forking", function() {
       const accounts = await mainWeb3.eth.getAccounts();
       const ibc = await contract
         .deploy({
-          data: result.contracts["IntraBlockCache.sol"].IntraBlockCache.evm.bytecode.object
+          data: `0x${result.contracts["IntraBlockCache.sol"].IntraBlockCache.evm.bytecode.object}`
         })
         .send({
           from: accounts[0],
