@@ -263,11 +263,11 @@ describe("Forking", function() {
       vmErrorsOnRPCResponse: true,
       legacyInstamine: true,
       fork: forkedTargetUrl,
-      seed: forkedServer.ganacheProvider.options.seed
+      seed: forkedServer.provider.getOptions().wallet.seed
     });
 
     const send = generateSend(provider);
-    const originalSend = generateSend(forkedServer.ganacheProvider);
+    const originalSend = generateSend(forkedServer.provider);
 
     const accounts = await send("eth_accounts");
     assert.deepStrictEqual(
