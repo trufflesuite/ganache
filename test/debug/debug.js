@@ -1,6 +1,5 @@
 const assert = require("assert");
 const bootstrap = require("../helpers/contract/bootstrap");
-const { promisify } = require("util");
 var Ganache = require("../../../ganache-core/src/packages/core/lib/index.js").default;
 
 // Thanks solc. At least this works!
@@ -48,7 +47,7 @@ function test(forked) {
       };
 
       const forkedServer = Ganache.server({ legacyInstamine: true, mnemonic });
-      await promisify(forkedServer.listen)(targetPort);
+      await forkedServer.listen(targetPort);
       mainContext = await bootstrap(contractRef, {
         provider: forkedServer.provider,
         mnemonic,
@@ -64,8 +63,7 @@ function test(forked) {
 
       forkedTransactionHash = result.transactionHash;
     });
-    after("shutdown forkedServer", async() => {
-      await mainContext.server.close();
+      mainContext && mainContext.server && (await mainContext.server.close());
     });
   }
 
