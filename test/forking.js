@@ -721,20 +721,11 @@ describe("Forking", function() {
 
   after("Shutdown server", async(done) => {
     forkedWeb3._provider.connection.close();
-    const serverCloseErr = await forkedServer.close();
+    await forkedServer.close();
 
     forkedWeb3.setProvider();
     const mainProvider = mainWeb3.currentProvider;
     mainWeb3.setProvider();
-    mainProvider &&
-      mainProvider.close(function(providerCloseErr) {
-        if (serverCloseErr) {
-          return done(serverCloseErr);
-        }
-        if (providerCloseErr) {
-          return done(providerCloseErr);
-        }
-        done();
-      });
+    mainProvider && (await mainProvider.disconnect());
   });
 });
