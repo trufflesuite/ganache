@@ -194,6 +194,7 @@ describe("Forking", function() {
     assert.strictEqual(id, forkedWeb3NetworkId);
   });
 
+  // skip because V7 doesn't have this kind of cache (yet?)
   describe.skip("cache", () => {
     function testCache(forkCacheSize, expectedCalls) {
       return async() => {
