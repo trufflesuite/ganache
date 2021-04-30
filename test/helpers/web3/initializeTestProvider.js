@@ -10,7 +10,7 @@ const generateSend = require("../utils/rpc");
  */
 const initializeTestProvider = async(options = {}, provider = null) => {
   if (provider || options.provider) {
-    throw new Error("THIS SHOULD ONLY TEST TS GANACHE!!!");
+    // throw new Error("THIS SHOULD ONLY TEST TS GANACHE!!!");
   }
   options.gasLimit = options.gasLimit || 6721975;
   options.legacyInstamine = true;
