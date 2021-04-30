@@ -124,19 +124,11 @@ describe("Contract Deployed on Main Chain After Fork", function() {
 
   after("Shutdown server", async(done) => {
     forkedWeb3._provider.connection.close();
-    const serverCloseErr = await forkedServer.close();
+    await forkedServer.close();
 
     forkedWeb3.setProvider();
     const mainProvider = mainWeb3._provider;
     mainWeb3.setProvider();
-    mainProvider.close(function(providerCloseErr) {
-      if (serverCloseErr) {
-        return done(serverCloseErr);
-      }
-      if (providerCloseErr) {
-        return done(providerCloseErr);
-      }
-      done();
-    });
+    await mainProvider.disconnect();
   });
 });
