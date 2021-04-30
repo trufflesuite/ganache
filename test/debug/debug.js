@@ -282,7 +282,7 @@ describe("Debug", function() {
     test();
   });
 
-  describe.skip("Forked", function() {
+  describe("Forked", function() {
     test(true);
   });
 });

@@ -10,7 +10,7 @@ const intializeTestProvider = require("./helpers/web3/initializeTestProvider");
  * network) and the fork chaing being "the fork".
  */
 
-describe.skip("Forking using a Provider", () => {
+describe("Forking using a Provider", () => {
   let forkedContext;
   let mainContext;
   const logger = {

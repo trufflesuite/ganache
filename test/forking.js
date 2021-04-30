@@ -22,7 +22,7 @@ var logger = {
  * network) and the fork chaing being "the fork".
  */
 
-describe.skip("Forking", function() {
+describe("Forking", function() {
   var contract;
   var contractAddress;
   var secondContractAddress; // used sparingly
