@@ -636,11 +636,12 @@ describe("Forking", function() {
       gasLimit: "0x33450",
       from: mainAccounts[8],
       to: mainAccounts[7],
-      nonce: "0x0"
+      nonce: "0x0",
+      chainId: 1337
     });
 
-    const secretKey = mainWeb3.currentProvider.manager.state.accounts[mainAccounts[8].toLowerCase()].secretKey;
-    transaction.sign(secretKey);
+    const { secretKey } = mainWeb3.currentProvider.getInitialAccounts()[mainAccounts[8].toLowerCase()];
+    transaction.sign(Buffer.from(secretKey.slice(2), "hex"));
 
     const result = await mainWeb3.eth.sendSignedTransaction(transaction.serialize());
     assert.strictEqual(result.status, true);
