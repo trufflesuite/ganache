@@ -450,7 +450,7 @@ describe("Forking", function() {
       const oracleOutput = solcResult.contracts["Oracle.sol"].Oracle;
 
       const contract = new mainWeb3.eth.Contract(oracleOutput.abi);
-      const deployTxn = contract.deploy({ data: oracleOutput.evm.bytecode.object });
+      const deployTxn = contract.deploy({ data: `0x${oracleOutput.evm.bytecode.object}` });
       const oracle = await deployTxn.send({ from: mainAccounts[0], gas: 3141592 });
 
       const block = await mainWeb3.eth.getBlock(0);
