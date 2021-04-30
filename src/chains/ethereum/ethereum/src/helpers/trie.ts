@@ -1,3 +1,4 @@
+import { Quantity } from "@ganache/utils";
 import { LevelUp } from "levelup";
 import { SecureTrie } from "merkle-patricia-tree";
 import Blockchain from "../blockchain";
@@ -10,7 +11,7 @@ export class GanacheTrie extends SecureTrie {
     this.blockchain = blockchain;
   }
 
-  setContext(stateRoot: Buffer, address: Buffer) {
+  setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
     this.root = stateRoot;
   }
 

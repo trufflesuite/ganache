@@ -44,6 +44,18 @@ export type ForkConfig = {
     };
 
     /**
+     * Specify an EIP-1193 provider to use instead of a url.
+     */
+    provider: {
+      type: {
+        request: (args: {
+          readonly method: string;
+          readonly params?: readonly unknown[] | object;
+        }) => Promise<unknown>;
+      };
+    };
+
+    /**
      * Block number the provider should fork from.
      */
     blockNumber: {
@@ -176,10 +188,11 @@ const arrayToOxfordList = (
   }
 };
 export const ForkOptions: Definitions<ForkConfig> = {
-  // url/s definition _must_ come before blockNumber, username, and password
+  // url's definition _must_ come before blockNumber, username, and password
   // as the defaults are processed in order, and they rely on the `fork.url`
   url: {
     normalize: rawInput => {
+      if (typeof rawInput !== "string") return;
       let url = new URL(rawInput) as ForkUrl;
       const path = url.pathname + url.search;
       const lastIndex = path.lastIndexOf("@");
@@ -193,7 +206,7 @@ export const ForkOptions: Definitions<ForkConfig> = {
           // to `123`, and there is probably an error on the user's side we'd
           // want to uncover.
           const asNum = ((blockNumber as unknown) as number) - 0;
-          // dont' allow invalid, negative, or decimals
+          // don't allow invalid, negative, or decimals
           if (
             isNaN(asNum) ||
             asNum < 0 ||
@@ -227,11 +240,16 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
     legacyName: "fork",
     cliAliases: ["f", "fork"]
   },
+  provider: {
+    normalize: rawInput => rawInput,
+    cliDescription: "Specify an EIP-1193 provider to use instead of a url.",
+    disableInCLI: true
+  },
   blockNumber: {
     normalize,
     cliDescription: "Block number the provider should fork from.",
     legacyName: "fork_block_number",
-    default: ({ url }) => {
+    default: ({ url, provider }) => {
       if (url) {
         // use the url's _blockNumber, if present, otherwise use "latest"
         if (url._blockNumber) {
@@ -239,6 +257,8 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         } else {
           return Tag.LATEST;
         }
+      } else if (provider) {
+        return Tag.LATEST;
       } else {
         return;
       }

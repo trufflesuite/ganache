@@ -292,21 +292,16 @@ export class RuntimeTransaction extends BaseTransaction {
       status = ONE_BUFFER;
     }
 
-    try {
-      const receipt = (this.receipt = TransactionReceipt.fromValues(
-        status,
-        Quantity.from(cumulativeGasUsed).toBuffer(),
-        result.bloom.bitvector,
-        (this.logs = vmResult.logs || ([] as TransactionLog[])),
-        result.createdAddress ? result.createdAddress.buf : null,
-        result.gasUsed.toArrayLike(Buffer)
-      ));
+    const receipt = (this.receipt = TransactionReceipt.fromValues(
+      status,
+      Quantity.from(cumulativeGasUsed).toBuffer(),
+      result.bloom.bitvector,
+      (this.logs = vmResult.logs || ([] as TransactionLog[])),
+      result.gasUsed.toArrayLike(Buffer),
+      result.createdAddress ? result.createdAddress.buf : null
+    ));
 
-      return receipt.serialize(false);
-    } catch (e) {
-      console.error(e);
-      return Buffer.from([]);
-    }
+    return receipt.serialize(false);
   }
 
   public getReceipt(): TransactionReceipt {
