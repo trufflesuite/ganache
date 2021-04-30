@@ -194,7 +194,7 @@ describe("Forking", function() {
     assert.strictEqual(id, forkedWeb3NetworkId);
   });
 
-  describe("cache", () => {
+  describe.skip("cache", () => {
     function testCache(forkCacheSize, expectedCalls) {
       return async() => {
         async function checkIt(baseLine) {
