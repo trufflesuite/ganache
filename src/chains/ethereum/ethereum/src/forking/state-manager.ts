@@ -32,11 +32,10 @@ export class ForkStateManager extends StateManager {
   /**
    * Instantiate the StateManager interface.
    */
-  constructor(opts: DefaultStateManagerOpts, accounts: AccountManager) {
+  constructor(opts: DefaultStateManagerOpts) {
     super(opts);
 
-    this.accounts = accounts;
-    this._cache = new ForkCache(opts.trie, accounts);
+    this._cache = new ForkCache(opts.trie);
   }
 
   /**
@@ -45,13 +44,10 @@ export class ForkStateManager extends StateManager {
    * checkpoints were reverted.
    */
   copy(): StateManager {
-    return new ForkStateManager(
-      {
-        trie: this._trie.copy(false) as ForkTrie,
-        common: this._common
-      },
-      this.accounts
-    );
+    return new ForkStateManager({
+      trie: this._trie.copy(false) as ForkTrie,
+      common: this._common
+    });
   }
 
   /**
@@ -63,7 +59,11 @@ export class ForkStateManager extends StateManager {
     // from state trie
     const account = await this.getAccount(address);
     const storageTrie = this._trie.copy(false) as ForkTrie;
-    storageTrie.setContext(account.stateRoot, address.buf);
+    storageTrie.setContext(
+      account.stateRoot,
+      address.buf,
+      storageTrie.blockNumber
+    );
     storageTrie.db.checkpoints = [];
     return storageTrie;
   }
@@ -78,43 +78,8 @@ export class ForkStateManager extends StateManager {
    * If this does not exist an empty `Buffer` is returned.
    */
   async getContractStorage(address: EJS_Address, key: Buffer): Promise<Buffer> {
-    if (key.length !== 32) {
-      throw new Error("Storage key must be 32 bytes long");
-    }
-
     const trie = (await this._getStorageTrie(address)) as ForkTrie;
-    (trie as any).address = address.buf;
     const value = await trie.get(key);
-
-    const decoded = decode(value);
-    return decoded as Buffer;
+    return decode(value);
   }
-
-  /**
-   * Modifies the storage trie of an account.
-   * @private
-   * @param address -  Address of the account whose storage is to be modified
-   * @param modifyTrie - Function to modify the storage trie of the account
-   */
-  // async _modifyContractStorage(
-  //   address: EJS_Address,
-  //   modifyTrie: (storageTrie: Trie, done: Function) => void
-  // ) {
-  //   // eslint-disable-next-line no-async-promise-executor
-  //   return new Promise<void>(async resolve => {
-  //     const storageTrie = await this._getStorageTrie(address);
-  //     modifyTrie(storageTrie, async () => {
-  //       // update storage cache
-  //       const addressHex = address.buf.toString("hex");
-  //       (storageTrie as any).address = address.buf;
-  //       this._storageTries[addressHex] = storageTrie;
-  //       // update contract stateRoot
-  //       const contract = this._cache.get(address);
-  //       contract.stateRoot = storageTrie.root;
-  //       await this.putAccount(address, contract);
-  //       this.touchAccount(address);
-  //       resolve();
-  //     });
-  //   });
-  // }
 }

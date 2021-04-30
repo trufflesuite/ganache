@@ -66,8 +66,8 @@ export class TransactionReceipt {
       cumulativeGasUsed,
       logsBloom,
       logs,
-      contractAddress,
-      gasUsed
+      gasUsed,
+      contractAddress
     );
     return receipt;
   }

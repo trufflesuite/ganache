@@ -220,7 +220,7 @@ export default class RateLimiter {
 
             // TODO: I need to make all in-flight requests that will soon return
             // a LIMIT_EXCEEDED error behave, otherwise we'll just send ALL
-            // requests back to Infura simultenously after their initial 30
+            // requests back to Infura simultaneously after their initial 30
             // backoff_seconds have elapsed.
             //
             // When we are *not* self-rate limited (meaning fork.rps isn't set)

@@ -215,8 +215,9 @@ export default class EthereumProvider
   }
 
   /**
-   * INTERNAL. Used when the caller wants to access the orignal `PromiEvent`, which would
-   * otherwise be flattened into a regular Promise through the Promise chain.
+   * INTERNAL. Used when the caller wants to access the original `PromiEvent`,
+   * which would otherwise be flattened into a regular Promise through the
+   * Promise chain.
    * @param request
    */
   public async _requestRaw<Method extends RequestMethods>({

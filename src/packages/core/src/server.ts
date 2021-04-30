@@ -70,6 +70,8 @@ export default class Server {
   #connector: Connector | null = null;
   #websocketServer: WebsocketServer | null = null;
 
+  #initializer: Promise<void>;
+
   public get provider(): Provider {
     return this.#connector.provider;
   }
@@ -84,6 +86,13 @@ export default class Server {
     this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
     this.#providerOptions = providerAndServerOptions;
     this.#status = Status.ready;
+
+    // we need to start initializing now because `initialize` sets the
+    // `provider` property... and someone might want to do:
+    //   const server = Ganache.server();
+    //   const provider = server.provider;
+    //   await server.listen(8545)
+    this.#initializer = this.initialize();
   }
 
   private async initialize() {
@@ -139,7 +148,7 @@ export default class Server {
 
     this.#status = Status.opening;
 
-    const initializePromise = this.initialize();
+    const initializePromise = this.#initializer;
 
     // This `shim()` is necessary for `Promise.allSettled` to be shimmed
     // in `node@10`. We cannot use `allSettled([...])` directly due to

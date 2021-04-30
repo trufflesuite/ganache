@@ -107,6 +107,40 @@ export class BlockLogs {
 
   public blockNumber: Quantity;
 
+  static fromJSON(json: any[] | null) {
+    if (!json || json.length === 0) {
+      return null;
+    }
+
+    const blockHash: string = json[0].blockHash;
+    const blockNumber: string = json[0].blockNumber;
+    const blockLogs = BlockLogs.create(Data.from(blockHash, 32));
+    blockLogs.blockNumber = Quantity.from(blockNumber);
+    json.forEach(log => {
+      const address = Address.from(log.address);
+      const blockNumber = log.blockNumber;
+      const data = Array.isArray(log.data)
+        ? log.data.map(d => Data.from(d).toBuffer())
+        : Data.from(log.data).toBuffer();
+      const logIndex = log.logIndex;
+      const removed =
+        log.removed === false
+          ? utils.BUFFER_ZERO
+          : utils.RPCQUANTITY_ONE.toBuffer();
+      const topics = Array.isArray(log.topics)
+        ? log.topics.map(t => Data.from(t, 32).toBuffer())
+        : Data.from(log.topics, 32).toBuffer();
+      const transactionHash = Data.from(log.transactionHash, 32);
+      const transactionIndex = Quantity.from(log.transactionIndex);
+      blockLogs.append(transactionIndex, transactionHash, [
+        address.toBuffer(), // `address`
+        topics,
+        data
+      ]);
+    });
+    return blockLogs;
+  }
+
   toJSON() {
     return this[_logs]().toJSON();
   }

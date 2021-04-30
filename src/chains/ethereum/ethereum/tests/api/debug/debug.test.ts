@@ -197,7 +197,6 @@ describe("api", () => {
 
       const blockchain = new Blockchain(
         EthereumOptionsConfig.normalize({}),
-        common,
         address
       );
 

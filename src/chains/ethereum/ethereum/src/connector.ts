@@ -39,10 +39,7 @@ export class Connector
   ) {
     super();
 
-    this.#provider = new EthereumProvider(
-      providerOptions,
-      executor
-    );
+    this.#provider = new EthereumProvider(providerOptions, executor);
   }
 
   async initialize() {

@@ -61,7 +61,7 @@ export default class BlockManager extends Manager<Block> {
     const json = await fallback.request<any>("eth_getBlockByNumber", [
       typeof tagOrBlockNumber === "string"
         ? tagOrBlockNumber
-        : `0x${tagOrBlockNumber.toString("hex") || "0"}`,
+        : Quantity.from(tagOrBlockNumber).toString(),
       true
     ]);
     return json == null ? null : Block.rawFromJSON(json);
@@ -109,16 +109,36 @@ export default class BlockManager extends Manager<Block> {
 
   async getByHash(hash: string | Buffer | Tag) {
     const number = await this.getNumberFromHash(hash);
-    return number ? super.get(number) : null;
+    if (number === null) {
+      if (this.#blockchain.fallback) {
+        const fallback = this.#blockchain.fallback;
+        const json = await fallback.request<any>("eth_getBlockByHash", [
+          Data.from(hash),
+          true
+        ]);
+        if (json && BigInt(json.number) <= fallback.blockNumber.toBigInt()) {
+          return new Block(Block.rawFromJSON(json), this.#common);
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    } else {
+      return this.get(number);
+    }
   }
 
-  async getRaw(tagOrBlockNumber: string | Buffer | Tag): Promise<Buffer> {
+  async getRawByBlockNumber(blockNumber: Quantity): Promise<Buffer> {
     // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
     // we don't have to fetch them from the db each time a block tag is used.
-    const number = this.getEffectiveNumber(tagOrBlockNumber).toBuffer();
-    return super.getRaw(number).then(block => {
-      if (block == null && this.#blockchain.fallback) {
-        return this.fromFallback(number);
+    const fallback = this.#blockchain.fallback;
+    const numBuf = blockNumber.toBuffer();
+    return this.getRaw(numBuf).then(block => {
+      if (block == null && fallback) {
+        return this.fromFallback(
+          fallback.selectValidForkBlockNumber(blockNumber).toBuffer()
+        );
       }
       return block;
     });
@@ -130,8 +150,10 @@ export default class BlockManager extends Manager<Block> {
       if (block) return block;
     }
 
-    const block = await super.get(tagOrBlockNumber);
-    if (block) return block;
+    const block = await this.getRawByBlockNumber(
+      Quantity.from(tagOrBlockNumber)
+    );
+    if (block) return new Block(block, this.#common);
 
     throw new Error("header not found");
   }

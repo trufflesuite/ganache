@@ -19,18 +19,15 @@ import {
 } from "@ganache/ethereum-utils";
 import { decode } from "@ganache/rlp";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
-import { promisify } from "util";
 import { Quantity, Data, utils } from "@ganache/utils";
-
 import Common from "@ethereumjs/common";
 import VM from "@ethereumjs/vm";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { VmError, ERROR } from "@ethereumjs/vm/dist/exceptions";
-import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
 import BlockLogManager from "./data-managers/blocklog-manager";
-import Manager from "./data-managers/manager";
 import TransactionManager from "./data-managers/transaction-manager";
 import { Fork } from "./forking/fork";
 import { Address } from "@ganache/ethereum-address";
@@ -52,6 +49,7 @@ import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
 import { LevelUp } from "levelup";
 import { activatePrecompiles } from "./helpers/precompiles";
+import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 
 const {
   BUFFER_EMPTY,
@@ -59,7 +57,8 @@ const {
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   RPCQUANTITY_ZERO,
-  findInsertPosition
+  findInsertPosition,
+  KNOWN_CHAINIDS
 } = utils;
 
 const unref = utils.unref;
@@ -143,6 +142,23 @@ function makeTrie(blockchain: Blockchain, db: LevelUp | null, root: Data) {
   }
 }
 
+function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
+  return Common.forCustomChain(
+    // if we were given a chain id that matches a real chain, use it
+    // NOTE: I don't think Common serves a purpose other than instructing the
+    // VM what hardfork is in use. But just incase things change in the future
+    // its configured "more correctly" here.
+    KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
+    {
+      name: "ganache",
+      networkId: networkId,
+      chainId: chainId,
+      comment: "Local test network"
+    },
+    hardfork
+  );
+}
+
 export default class Blockchain extends Emittery.Typed<
   BlockchainTypedEvents,
   BlockchainEvents
@@ -157,16 +173,16 @@ export default class Blockchain extends Emittery.Typed<
   public blocks: BlockManager;
   public blockLogs: BlockLogManager;
   public transactions: TransactionManager;
-  public transactionReceipts: Manager<TransactionReceipt>;
+  public transactionReceipts: TransactionReceiptManager;
   public storageKeys: Database["storageKeys"];
   public accounts: AccountManager;
   public vm: VM;
   public trie: GanacheTrie;
 
   readonly #database: Database;
-  readonly #common: Common;
   readonly #options: EthereumInternalOptions;
   readonly #instamine: boolean;
+  public common: Common;
 
   public fallback: Fork;
 
@@ -178,16 +194,9 @@ export default class Blockchain extends Emittery.Typed<
    * initialized.
    * @param options
    */
-  constructor(
-    options: EthereumInternalOptions,
-    common: Common,
-    coinbaseAddress: Address
-  ) {
+  constructor(options: EthereumInternalOptions, coinbaseAddress: Address) {
     super();
     this.#options = options;
-    this.#common = common;
-
-    this.fallback = options.fork.url ? new Fork(options) : null;
 
     const instamine = (this.#instamine =
       !options.miner.blockTime || options.miner.blockTime <= 0);
@@ -224,14 +233,26 @@ export default class Blockchain extends Emittery.Typed<
   async initialize(initialAccounts: Account[]) {
     const database = this.#database;
     const options = this.#options;
-    const common = this.#common;
     const instamine = this.#instamine;
+    this.fallback =
+      options.fork.url || options.fork.provider
+        ? new Fork(options, initialAccounts)
+        : null;
 
     await database.initialize();
+    let common: Common;
     if (this.fallback) {
       await Promise.all([database.initialize(), this.fallback.initialize()]);
+      common = this.common = this.fallback.common;
+      options.chain.networkId = common.networkId();
+      options.chain.chainId = common.chainId();
     } else {
       await database.initialize();
+      common = this.common = createCommon(
+        options.chain.chainId,
+        options.chain.networkId,
+        options.chain.hardfork
+      );
     }
 
     const blocks = (this.blocks = await BlockManager.initialize(
@@ -241,18 +262,18 @@ export default class Blockchain extends Emittery.Typed<
       database.blocks
     ));
 
-    this.blockLogs = new BlockLogManager(database.blockLogs);
+    this.blockLogs = new BlockLogManager(database.blockLogs, this);
     this.transactions = new TransactionManager(
       options.miner,
       common,
       this,
       database.transactions
     );
-    this.transactionReceipts = new Manager(
+    this.transactionReceipts = new TransactionReceiptManager(
       database.transactionReceipts,
-      TransactionReceipt
+      this
     );
-    this.accounts = new AccountManager(this, database.trie);
+    this.accounts = new AccountManager(this);
     this.storageKeys = database.storageKeys;
 
     // if we have a latest block, use it to set up the trie.
@@ -557,7 +578,7 @@ export default class Blockchain extends Emittery.Typed<
       }
     } as any;
 
-    const common = this.#common;
+    const common = this.common;
 
     const vm = await VM.create({
       state: stateTrie,
@@ -566,10 +587,7 @@ export default class Blockchain extends Emittery.Typed<
       allowUnlimitedContractSize,
       blockchain,
       stateManager: this.fallback
-        ? new ForkStateManager(
-            { common, trie: stateTrie as ForkTrie },
-            this.accounts
-          )
+        ? new ForkStateManager({ common, trie: stateTrie as ForkTrie })
         : new DefaultStateManager({ common, trie: stateTrie })
     });
     await activatePrecompiles(vm.stateManager);
@@ -887,7 +905,7 @@ export default class Blockchain extends Emittery.Typed<
     let gasLeft = transaction.gas.toBigInt();
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
-    gasLeft -= calculateIntrinsicGas(data, this.#common);
+    gasLeft -= calculateIntrinsicGas(data, this.common);
 
     if (gasLeft >= 0) {
       const stateTrie = makeTrie(
@@ -953,24 +971,25 @@ export default class Blockchain extends Emittery.Typed<
     const storageStack: TraceStorageMap[] = [];
 
     const blocks = this.blocks;
-
-    // ethereumjs-vm doesn't use the callback style anymore
-    const getBlock = class T {
-      static async [promisify.custom](number: BN) {
+    // ethereumjs vm doesn't use the callback style anymore
+    const blockchain = {
+      getBlock: async (number: BN) => {
         const block = await blocks.get(number.toBuffer()).catch(_ => null);
-        return block ? block.value : null;
+        return block ? { hash: () => block.hash().toBuffer() } : null;
       }
-    };
+    } as any;
 
-    const vm = new VM({
+    const common = this.common;
+
+    const vm = await VM.create({
       state: trie,
-      activatePrecompiles: true,
-      common: this.#common,
-      allowUnlimitedContractSize: this.#options.chain
-        .allowUnlimitedContractSize,
-      blockchain: {
-        getBlock
-      } as any
+      activatePrecompiles: false,
+      common,
+      allowUnlimitedContractSize: this.vm.allowUnlimitedContractSize,
+      blockchain,
+      stateManager: this.fallback
+        ? new ForkStateManager({ common, trie: trie as ForkTrie })
+        : new DefaultStateManager({ common, trie: trie })
     });
 
     const storage: StorageRecords = {};
@@ -1236,10 +1255,11 @@ export default class Blockchain extends Emittery.Typed<
     //
     // TODO: Forking needs the forked block number passed during this step:
     // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
-    const trie = makeTrie(
-      this,
-      this.#database.trie,
-      parentBlock.header.stateRoot
+    const trie = this.trie.copy();
+    trie.setContext(
+      parentBlock.header.stateRoot.toBuffer(),
+      null,
+      parentBlock.header.number
     );
 
     // #3 - Rerun every transaction in block prior to and including the requested transaction
@@ -1316,7 +1336,8 @@ export default class Blockchain extends Emittery.Typed<
       // An address's stateRoot is stored in the 3rd rlp entry
       storageTrie.setContext(
         decode<EthereumRawAccount>(addressData)[2],
-        contractAddressBuffer
+        contractAddressBuffer,
+        parentBlock.header.number
       );
 
       return new Promise<RangedStorageKeys>((resolve, reject) => {
