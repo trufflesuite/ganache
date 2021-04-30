@@ -722,7 +722,7 @@ describe("Forking", function() {
     });
   });
 
-  after("Shutdown server", async(done) => {
+  after("Shutdown server", async () => {
     forkedWeb3._provider.connection.close();
     await forkedServer.close();
 
