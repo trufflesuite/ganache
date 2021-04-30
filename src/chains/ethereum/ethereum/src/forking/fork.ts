@@ -7,14 +7,20 @@ import { WsHandler } from "./handlers/ws-handler";
 import { Handler } from "./types";
 import { Tag } from "@ganache/ethereum-utils";
 import { Block } from "@ganache/ethereum-block";
+import { Address } from "@ganache/ethereum-address";
+import { Account } from "@ganache/ethereum-utils";
 
 const { KNOWN_CHAINIDS } = utils;
 
 function fetchChainId(fork: Fork) {
-  return fork.request<string>("eth_chainId", []);
+  return fork
+    .request<string>("eth_chainId", [])
+    .then(chainIdHex => parseInt(chainIdHex, 16));
 }
 function fetchNetworkId(fork: Fork) {
-  return fork.request<string>("net_version", []);
+  return fork
+    .request<string>("net_version", [])
+    .then(networkIdStr => parseInt(networkIdStr, 10));
 }
 function fetchBlockNumber(fork: Fork) {
   return fork.request<string>("eth_blockNumber", []);
@@ -22,45 +28,72 @@ function fetchBlockNumber(fork: Fork) {
 function fetchBlock(fork: Fork, blockNumber: Quantity | Tag.LATEST) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
 }
+function fetchNonce(
+  fork: Fork,
+  address: Address,
+  blockNumber: Quantity | Tag.LATEST
+) {
+  return fork
+    .request<string>("eth_getTransactionCount", [address, blockNumber])
+    .then(nonce => Quantity.from(nonce));
+}
 
 export class Fork {
   public common: Common;
   #abortController = new AbortController();
   #handler: Handler;
   #options: EthereumInternalOptions["fork"];
+  #accounts: Account[];
 
   public blockNumber: Quantity;
   public stateRoot: Data;
   public block: Block;
 
-  constructor(options: EthereumInternalOptions) {
+  constructor(options: EthereumInternalOptions, accounts: Account[]) {
     const forkingOptions = (this.#options = options.fork);
+    this.#accounts = accounts;
 
-    const { protocol } = forkingOptions.url;
+    const { url } = forkingOptions;
+    if (url) {
+      const { protocol } = url;
 
-    switch (protocol) {
-      case "ws:":
-      case "wss:":
-        this.#handler = new WsHandler(options, this.#abortController.signal);
-        break;
-      case "http:":
-      case "https:":
-        this.#handler = new HttpHandler(options, this.#abortController.signal);
-        break;
-      default: {
-        throw new Error(`Unsupported protocol: ${protocol}`);
+      switch (protocol) {
+        case "ws:":
+        case "wss:":
+          this.#handler = new WsHandler(options, this.#abortController.signal);
+          break;
+        case "http:":
+        case "https:":
+          this.#handler = new HttpHandler(
+            options,
+            this.#abortController.signal
+          );
+          break;
+        default: {
+          throw new Error(`Unsupported protocol: ${protocol}`);
+        }
       }
+    } else if (forkingOptions.provider) {
+      this.#handler = {
+        request: <T>(method: string, params: any[]) => {
+          return forkingOptions.provider.request({
+            method,
+            // format params via JSON stringification because the params might
+            // be Quantity or Data, which aren't valid as `params` themselves,
+            // but when JSON stringified they are
+            params: JSON.parse(JSON.stringify(params))
+          }) as Promise<T>;
+        }
+      };
     }
   }
 
   #setCommonFromChain = async () => {
-    const [chainIdHex, networkIdStr] = await Promise.all([
+    const [chainId, networkId] = await Promise.all([
       fetchChainId(this),
       fetchNetworkId(this)
     ]);
 
-    const chainId = parseInt(chainIdHex);
-    const networkId = parseInt(networkIdStr);
     this.common = Common.forCustomChain(
       KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
       {
@@ -74,14 +107,23 @@ export class Fork {
 
   #setBlockDataFromChainAndOptions = async () => {
     const options = this.#options;
-    if (typeof options.blockNumber === "number") {
+    if (options.blockNumber === Tag.LATEST) {
+      // if our block number option is "latest" override it with the original
+      // chain's current blockNumber
+      const block = await fetchBlock(this, Tag.LATEST);
+      options.blockNumber = parseInt(block.number, 16);
+      this.blockNumber = Quantity.from(options.blockNumber);
+      this.stateRoot = Data.from(block.stateRoot);
+      await this.#syncAccounts(this.blockNumber);
+      return block;
+    } else if (typeof options.blockNumber === "number") {
       const blockNumber = Quantity.from(options.blockNumber);
-      const fetchBlockProm = fetchBlock(this, blockNumber).then(block => {
-        this.stateRoot = block.stateRoot;
-        return block;
-      });
-      await Promise.all([
-        fetchBlockProm,
+      const [block] = await Promise.all([
+        fetchBlock(this, blockNumber).then(async block => {
+          this.stateRoot = block.stateRoot;
+          await this.#syncAccounts(blockNumber);
+          return block;
+        }),
         fetchBlockNumber(this).then((latestBlockNumberHex: string) => {
           const latestBlockNumberInt = parseInt(latestBlockNumberHex, 16);
           // if our block number option is _after_ the current block number
@@ -95,24 +137,21 @@ export class Fork {
           }
         })
       ]);
-      return fetchBlockProm;
+      return block;
     } else {
-      // if our block number option is "latest" override it with the original
-      // chain's current blockNumber
-      if (options.blockNumber === Tag.LATEST) {
-        const block = await fetchBlock(this, Tag.LATEST);
-        options.blockNumber = parseInt(block.number, 16);
-        this.blockNumber = Quantity.from(options.blockNumber);
-        this.stateRoot = Data.from(block.stateRoot);
-        // if our block number option is _after_ the current block number throw,
-        // as it likely wasn't intentional and doesn't make sense.
-        return block;
-      } else {
-        throw new Error(
-          `Invalid value for \`fork.blockNumber\` option: "${options.blockNumber}". Must be a positive integer or the string "latest".`
-        );
-      }
+      throw new Error(
+        `Invalid value for \`fork.blockNumber\` option: "${options.blockNumber}". Must be a positive integer or the string "latest".`
+      );
     }
+  };
+
+  #syncAccounts = (blockNumber: Quantity) => {
+    return Promise.all(
+      this.#accounts.map(async account => {
+        const nonce = await fetchNonce(this, account.address, blockNumber);
+        account.nonce = nonce;
+      })
+    );
   };
 
   public async initialize() {
@@ -129,5 +168,11 @@ export class Fork {
 
   public abort() {
     return this.#abortController.abort();
+  }
+
+  public selectValidForkBlockNumber(blockNumber: Quantity) {
+    return blockNumber.toBigInt() < this.blockNumber.toBigInt()
+      ? blockNumber
+      : this.blockNumber;
   }
 }
