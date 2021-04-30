@@ -36,9 +36,11 @@ describe("Forking using a Provider", () => {
   before("Set up main provider and web3 instance", async function() {
     const { provider: forkedProvider } = forkedContext;
     mainContext = await intializeTestProvider({
-      fork: forkedProvider,
-      logger,
-      seed: "forked provider"
+      fork: { provider: forkedProvider },
+      logging: { logger },
+      wallet: {
+        seed: "forked provider"
+      }
     });
   });
 
