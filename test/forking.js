@@ -301,7 +301,8 @@ describe("Forking", function() {
     assert.strictEqual(mainCode, forkedCode);
   });
 
-  it("internal `fork.send` should handle batched transactions", (done) => {
+  // v7: not a useful test, since we still don't support it in v7
+  it.skip("internal `fork.send` should handle batched transactions", (done) => {
     // this is a weird test because we dont' actually use batched transactions in forking
     // but just in case we start doing so later, for whatever reason, I'm making sure it works now
     const tx1 = { id: 1, method: "eth_accounts", jsonrpc: "2.0", params: [] };
