@@ -63,6 +63,7 @@ function test(forked) {
 
       forkedTransactionHash = result.transactionHash;
     });
+    after(async() => {
       mainContext && mainContext.server && (await mainContext.server.close());
     });
   }
