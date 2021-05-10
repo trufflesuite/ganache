@@ -103,6 +103,7 @@ export class Fork {
         comment: "Local test network fork"
       }
     );
+    (this.common as any).on = () => {};
   };
 
   #setBlockDataFromChainAndOptions = async () => {

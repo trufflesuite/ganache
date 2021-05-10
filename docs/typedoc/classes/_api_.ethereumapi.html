@@ -117,7 +117,6 @@
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_blockchain" class="tsd-kind-icon">#blockchain</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_common" class="tsd-kind-icon">#common</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_filters" class="tsd-kind-icon">#filters</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_getid" class="tsd-kind-icon">#get<wbr>Id</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_options" class="tsd-kind-icon">#options</a></li>
@@ -189,7 +188,6 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_.ethereumapi.html#evm_settime" class="tsd-kind-icon">evm_<wbr>set<wbr>Time</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_.ethereumapi.html#evm_snapshot" class="tsd-kind-icon">evm_<wbr>snapshot</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_.ethereumapi.html#evm_unlockunknownaccount" class="tsd-kind-icon">evm_<wbr>unlock<wbr>Unknown<wbr>Account</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_.ethereumapi.html#initialize" class="tsd-kind-icon">initialize</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_.ethereumapi.html#miner_setetherbase" class="tsd-kind-icon">miner_<wbr>set<wbr>Etherbase</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_.ethereumapi.html#miner_setextra" class="tsd-kind-icon">miner_<wbr>set<wbr>Extra</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_.ethereumapi.html#miner_setgasprice" class="tsd-kind-icon">miner_<wbr>set<wbr>Gas<wbr>Price</a></li>
@@ -228,13 +226,13 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Ethereum<wbr>Api<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">EthereumInternalOptions</span>, wallet<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Wallet</span>, emitter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Typed</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">"connect"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"disconnect"</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_api_.ethereumapi.html" class="tsd-signature-type">EthereumApi</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Ethereum<wbr>Api<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">EthereumInternalOptions</span>, wallet<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Wallet</span>, emitter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Typed</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">"ready"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"connect"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"disconnect"</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_api_.ethereumapi.html" class="tsd-signature-type">EthereumApi</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L163">chains/ethereum/ethereum/src/api.ts:163</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L139">chains/ethereum/ethereum/src/api.ts:139</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -253,7 +251,11 @@
 									<h5>wallet: <span class="tsd-signature-type">Wallet</span></h5>
 								</li>
 								<li>
-									<h5>emitter: <span class="tsd-signature-type">Typed</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">"connect"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"disconnect"</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<h5>emitter: <span class="tsd-signature-type">Typed</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">"ready"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"connect"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"disconnect"</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<div class="lead">
+										</div>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_api_.ethereumapi.html" class="tsd-signature-type">EthereumApi</a></h4>
@@ -269,17 +271,7 @@
 					<div class="tsd-signature tsd-kind-icon">#blockchain<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Blockchain</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L161">chains/ethereum/ethereum/src/api.ts:161</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private">
-					<a name="_common" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> <span class="tsd-flag ts-flagPrivate">Private</span> #common</h3>
-					<div class="tsd-signature tsd-kind-icon">#common<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Common</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L158">chains/ethereum/ethereum/src/api.ts:158</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L137">chains/ethereum/ethereum/src/api.ts:137</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -289,7 +281,7 @@
 					<div class="tsd-signature tsd-kind-icon">#filters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = new Map&lt;string, Filter&gt;()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L159">chains/ethereum/ethereum/src/api.ts:159</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L135">chains/ethereum/ethereum/src/api.ts:135</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -299,7 +291,7 @@
 					<div class="tsd-signature tsd-kind-icon">#get<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">(Anonymous function)</span><span class="tsd-signature-symbol"> = (id &#x3D;&gt; () &#x3D;&gt; Quantity.from(++id))(0)</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L157">chains/ethereum/ethereum/src/api.ts:157</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L134">chains/ethereum/ethereum/src/api.ts:134</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -309,7 +301,7 @@
 					<div class="tsd-signature tsd-kind-icon">#options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">EthereumInternalOptions</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L162">chains/ethereum/ethereum/src/api.ts:162</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L138">chains/ethereum/ethereum/src/api.ts:138</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -319,7 +311,7 @@
 					<div class="tsd-signature tsd-kind-icon">#subscriptions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = new Map&lt;string, Emittery.UnsubscribeFn&gt;()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L160">chains/ethereum/ethereum/src/api.ts:160</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L136">chains/ethereum/ethereum/src/api.ts:136</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -329,7 +321,7 @@
 					<div class="tsd-signature tsd-kind-icon">#wallet<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Wallet</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L163">chains/ethereum/ethereum/src/api.ts:163</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L139">chains/ethereum/ethereum/src/api.ts:139</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -346,7 +338,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L257">chains/ethereum/ethereum/src/api.ts:257</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L229">chains/ethereum/ethereum/src/api.ts:229</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -363,7 +355,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L262">chains/ethereum/ethereum/src/api.ts:262</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L234">chains/ethereum/ethereum/src/api.ts:234</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -380,7 +372,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L250">chains/ethereum/ethereum/src/api.ts:250</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L222">chains/ethereum/ethereum/src/api.ts:222</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -418,7 +410,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L225">chains/ethereum/ethereum/src/api.ts:225</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L197">chains/ethereum/ethereum/src/api.ts:197</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -456,7 +448,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L238">chains/ethereum/ethereum/src/api.ts:238</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L210">chains/ethereum/ethereum/src/api.ts:210</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -500,7 +492,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L213">chains/ethereum/ethereum/src/api.ts:213</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L185">chains/ethereum/ethereum/src/api.ts:185</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -544,7 +536,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1803">chains/ethereum/ethereum/src/api.ts:1803</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1740">chains/ethereum/ethereum/src/api.ts:1740</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -603,7 +595,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1783">chains/ethereum/ethereum/src/api.ts:1783</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1720">chains/ethereum/ethereum/src/api.ts:1720</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -667,7 +659,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L998">chains/ethereum/ethereum/src/api.ts:998</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L975">chains/ethereum/ethereum/src/api.ts:975</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -690,7 +682,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1007">chains/ethereum/ethereum/src/api.ts:1007</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L984">chains/ethereum/ethereum/src/api.ts:984</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -713,7 +705,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1681">chains/ethereum/ethereum/src/api.ts:1681</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1618">chains/ethereum/ethereum/src/api.ts:1618</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -747,7 +739,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1024">chains/ethereum/ethereum/src/api.ts:1024</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1001">chains/ethereum/ethereum/src/api.ts:1001</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -780,7 +772,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L780">chains/ethereum/ethereum/src/api.ts:780</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L754">chains/ethereum/ethereum/src/api.ts:754</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -803,7 +795,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L707">chains/ethereum/ethereum/src/api.ts:707</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L681">chains/ethereum/ethereum/src/api.ts:681</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -839,7 +831,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L989">chains/ethereum/ethereum/src/api.ts:989</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L966">chains/ethereum/ethereum/src/api.ts:966</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -862,7 +854,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1035">chains/ethereum/ethereum/src/api.ts:1035</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1012">chains/ethereum/ethereum/src/api.ts:1012</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -900,7 +892,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L807">chains/ethereum/ethereum/src/api.ts:807</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L781">chains/ethereum/ethereum/src/api.ts:781</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -936,7 +928,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L793">chains/ethereum/ethereum/src/api.ts:793</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L767">chains/ethereum/ethereum/src/api.ts:767</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -976,7 +968,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L835">chains/ethereum/ethereum/src/api.ts:835</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L809">chains/ethereum/ethereum/src/api.ts:809</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1001,13 +993,13 @@
 					<a name="eth_getblocktransactioncountbynumber" class="tsd-anchor"></a>
 					<h3>eth_<wbr>get<wbr>Block<wbr>Transaction<wbr>Count<wbr>ByNumber</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">eth_<wbr>get<wbr>Block<wbr>Transaction<wbr>Count<wbr>ByNumber<span class="tsd-signature-symbol">(</span>number<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Buffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Quantity</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">eth_<wbr>get<wbr>Block<wbr>Transaction<wbr>Count<wbr>ByNumber<span class="tsd-signature-symbol">(</span>blockNumber<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Tag</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Quantity</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L820">chains/ethereum/ethereum/src/api.ts:820</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L794">chains/ethereum/ethereum/src/api.ts:794</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1018,11 +1010,7 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>number: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Buffer</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>QUANTITY|TAG - integer of a block number, or the string &quot;earliest&quot;, &quot;latest&quot; or &quot;pending&quot;, as in the
-										default block parameter.</p>
-									</div>
+									<h5>blockNumber: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Tag</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Quantity</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1039,7 +1027,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1054">chains/ethereum/ethereum/src/api.ts:1054</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1031">chains/ethereum/ethereum/src/api.ts:1031</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1078,7 +1066,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L845">chains/ethereum/ethereum/src/api.ts:845</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L822">chains/ethereum/ethereum/src/api.ts:822</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1095,7 +1083,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1556">chains/ethereum/ethereum/src/api.ts:1556</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1537">chains/ethereum/ethereum/src/api.ts:1537</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1130,7 +1118,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1589">chains/ethereum/ethereum/src/api.ts:1589</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1570">chains/ethereum/ethereum/src/api.ts:1570</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1159,7 +1147,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1605">chains/ethereum/ethereum/src/api.ts:1605</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1586">chains/ethereum/ethereum/src/api.ts:1586</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1191,7 +1179,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1067">chains/ethereum/ethereum/src/api.ts:1067</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1044">chains/ethereum/ethereum/src/api.ts:1044</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1229,7 +1217,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L855">chains/ethereum/ethereum/src/api.ts:855</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L832">chains/ethereum/ethereum/src/api.ts:832</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1266,7 +1254,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L874">chains/ethereum/ethereum/src/api.ts:874</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L851">chains/ethereum/ethereum/src/api.ts:851</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1304,7 +1292,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1111">chains/ethereum/ethereum/src/api.ts:1111</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1090">chains/ethereum/ethereum/src/api.ts:1090</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1335,7 +1323,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1662">chains/ethereum/ethereum/src/api.ts:1662</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1599">chains/ethereum/ethereum/src/api.ts:1599</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1371,7 +1359,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1138">chains/ethereum/ethereum/src/api.ts:1138</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1117">chains/ethereum/ethereum/src/api.ts:1117</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1404,7 +1392,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L907">chains/ethereum/ethereum/src/api.ts:907</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L884">chains/ethereum/ethereum/src/api.ts:884</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1441,7 +1429,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L919">chains/ethereum/ethereum/src/api.ts:919</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L896">chains/ethereum/ethereum/src/api.ts:896</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1479,7 +1467,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L887">chains/ethereum/ethereum/src/api.ts:887</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L864">chains/ethereum/ethereum/src/api.ts:864</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1510,7 +1498,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L896">chains/ethereum/ethereum/src/api.ts:896</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L873">chains/ethereum/ethereum/src/api.ts:873</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1538,7 +1526,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L936">chains/ethereum/ethereum/src/api.ts:936</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L913">chains/ethereum/ethereum/src/api.ts:913</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1573,7 +1561,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L980">chains/ethereum/ethereum/src/api.ts:980</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L957">chains/ethereum/ethereum/src/api.ts:957</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1596,7 +1584,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L970">chains/ethereum/ethereum/src/api.ts:970</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L947">chains/ethereum/ethereum/src/api.ts:947</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1619,7 +1607,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1461">chains/ethereum/ethereum/src/api.ts:1461</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1442">chains/ethereum/ethereum/src/api.ts:1442</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1643,7 +1631,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1526">chains/ethereum/ethereum/src/api.ts:1526</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1507">chains/ethereum/ethereum/src/api.ts:1507</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1695,7 +1683,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1483">chains/ethereum/ethereum/src/api.ts:1483</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1464">chains/ethereum/ethereum/src/api.ts:1464</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1719,7 +1707,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L758">chains/ethereum/ethereum/src/api.ts:758</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L732">chains/ethereum/ethereum/src/api.ts:732</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1742,7 +1730,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1229">chains/ethereum/ethereum/src/api.ts:1229</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1209">chains/ethereum/ethereum/src/api.ts:1209</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1771,7 +1759,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1183">chains/ethereum/ethereum/src/api.ts:1183</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1162">chains/ethereum/ethereum/src/api.ts:1162</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1800,7 +1788,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1251">chains/ethereum/ethereum/src/api.ts:1251</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1232">chains/ethereum/ethereum/src/api.ts:1232</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1837,7 +1825,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1278">chains/ethereum/ethereum/src/api.ts:1278</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1259">chains/ethereum/ethereum/src/api.ts:1259</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1882,7 +1870,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L961">chains/ethereum/ethereum/src/api.ts:961</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L938">chains/ethereum/ethereum/src/api.ts:938</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1906,7 +1894,7 @@
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p><code>true</code> if submitting went through succesfully and <code>false</code> otherwise.</p>
+							<p><code>true</code> if submitting went through successfully and <code>false</code> otherwise.</p>
 						</li>
 					</ul>
 				</section>
@@ -1920,7 +1908,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L949">chains/ethereum/ethereum/src/api.ts:949</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L926">chains/ethereum/ethereum/src/api.ts:926</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1965,7 +1953,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1317">chains/ethereum/ethereum/src/api.ts:1317</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1298">chains/ethereum/ethereum/src/api.ts:1298</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1987,7 +1975,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1330">chains/ethereum/ethereum/src/api.ts:1330</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1311">chains/ethereum/ethereum/src/api.ts:1311</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2029,7 +2017,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L771">chains/ethereum/ethereum/src/api.ts:771</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L745">chains/ethereum/ethereum/src/api.ts:745</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2056,7 +2044,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1576">chains/ethereum/ethereum/src/api.ts:1576</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1557">chains/ethereum/ethereum/src/api.ts:1557</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2090,7 +2078,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1442">chains/ethereum/ethereum/src/api.ts:1442</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1423">chains/ethereum/ethereum/src/api.ts:1423</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2113,7 +2101,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L415">chains/ethereum/ethereum/src/api.ts:415</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L389">chains/ethereum/ethereum/src/api.ts:389</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2145,7 +2133,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L565">chains/ethereum/ethereum/src/api.ts:565</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L539">chains/ethereum/ethereum/src/api.ts:539</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2182,7 +2170,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L294">chains/ethereum/ethereum/src/api.ts:294</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L266">chains/ethereum/ethereum/src/api.ts:266</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2208,7 +2196,7 @@
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> timestamp: <span class="tsd-signature-type">number</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>the timestamp the block should be mined with.
-											EXPERIEMENTAL: Optionally, specify an <code>options</code> object with <code>timestamp</code>
+											EXPERIMENTAL: Optionally, specify an <code>options</code> object with <code>timestamp</code>
 											and/or <code>blocks</code> fields. If <code>blocks</code> is given, it will mine exactly <code>blocks</code>
 											number of blocks, regardless of any other blocks mined or reverted during it&#39;s
 										operation. This behavior is subject to change!</p>
@@ -2221,7 +2209,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L295">chains/ethereum/ethereum/src/api.ts:295</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L267">chains/ethereum/ethereum/src/api.ts:267</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2252,7 +2240,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L493">chains/ethereum/ethereum/src/api.ts:493</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L467">chains/ethereum/ethereum/src/api.ts:467</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2318,7 +2306,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L389">chains/ethereum/ethereum/src/api.ts:389</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L363">chains/ethereum/ethereum/src/api.ts:363</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2346,13 +2334,13 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 					<a name="evm_setstorageat" class="tsd-anchor"></a>
 					<h3>evm_<wbr>set<wbr>Storage<wbr>At</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">evm_<wbr>set<wbr>Storage<wbr>At<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, position<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, storage<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, blockNumber<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Buffer</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Tag</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">evm_<wbr>set<wbr>Storage<wbr>At<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, position<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, storage<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, blockNumber<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Tag</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L332">chains/ethereum/ethereum/src/api.ts:332</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L304">chains/ethereum/ethereum/src/api.ts:304</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2367,7 +2355,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 									<h5>storage: <span class="tsd-signature-type">string</span></h5>
 								</li>
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> blockNumber: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Buffer</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Tag</span><span class="tsd-signature-symbol"> = Tag.LATEST</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> blockNumber: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Tag</span><span class="tsd-signature-symbol"> = Tag.LATEST</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -2384,7 +2372,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L434">chains/ethereum/ethereum/src/api.ts:434</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L408">chains/ethereum/ethereum/src/api.ts:408</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2416,7 +2404,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L537">chains/ethereum/ethereum/src/api.ts:537</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L511">chains/ethereum/ethereum/src/api.ts:511</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2472,7 +2460,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L550">chains/ethereum/ethereum/src/api.ts:550</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L524">chains/ethereum/ethereum/src/api.ts:524</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2504,23 +2492,6 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="initialize" class="tsd-anchor"></a>
-					<h3>initialize</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">initialize<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L199">chains/ethereum/ethereum/src/api.ts:199</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="miner_setetherbase" class="tsd-anchor"></a>
 					<h3>miner_<wbr>set<wbr>Etherbase</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -2530,7 +2501,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L623">chains/ethereum/ethereum/src/api.ts:623</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L597">chains/ethereum/ethereum/src/api.ts:597</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2560,7 +2531,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L633">chains/ethereum/ethereum/src/api.ts:633</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L607">chains/ethereum/ethereum/src/api.ts:607</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2590,7 +2561,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L613">chains/ethereum/ethereum/src/api.ts:613</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L587">chains/ethereum/ethereum/src/api.ts:587</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2620,7 +2591,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L585">chains/ethereum/ethereum/src/api.ts:585</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L559">chains/ethereum/ethereum/src/api.ts:559</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2650,7 +2621,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L601">chains/ethereum/ethereum/src/api.ts:601</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L575">chains/ethereum/ethereum/src/api.ts:575</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2672,7 +2643,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L681">chains/ethereum/ethereum/src/api.ts:681</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L655">chains/ethereum/ethereum/src/api.ts:655</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2695,7 +2666,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L690">chains/ethereum/ethereum/src/api.ts:690</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L664">chains/ethereum/ethereum/src/api.ts:664</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2718,7 +2689,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L672">chains/ethereum/ethereum/src/api.ts:672</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L646">chains/ethereum/ethereum/src/api.ts:646</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2742,7 +2713,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1866">chains/ethereum/ethereum/src/api.ts:1866</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1803">chains/ethereum/ethereum/src/api.ts:1803</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2778,7 +2749,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1828">chains/ethereum/ethereum/src/api.ts:1828</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1765">chains/ethereum/ethereum/src/api.ts:1765</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2802,7 +2773,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1890">chains/ethereum/ethereum/src/api.ts:1890</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1827">chains/ethereum/ethereum/src/api.ts:1827</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2832,7 +2803,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1839">chains/ethereum/ethereum/src/api.ts:1839</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1776">chains/ethereum/ethereum/src/api.ts:1776</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2862,7 +2833,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1935">chains/ethereum/ethereum/src/api.ts:1935</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1872">chains/ethereum/ethereum/src/api.ts:1872</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2871,7 +2842,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 								</div>
 								<p>The transaction is the same argument as for eth_sendTransaction and
 									contains the from address. If the passphrase can be used to decrypt the
-									private key belogging to tx.from the transaction is verified, signed and
+									private key belonging to tx.from the transaction is verified, signed and
 									send onto the network. The account is not unlocked globally in the node
 								and cannot be used in other RPC calls.</p>
 							</div>
@@ -2900,7 +2871,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1910">chains/ethereum/ethereum/src/api.ts:1910</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1847">chains/ethereum/ethereum/src/api.ts:1847</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2950,7 +2921,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1961">chains/ethereum/ethereum/src/api.ts:1961</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1899">chains/ethereum/ethereum/src/api.ts:1899</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -2967,7 +2938,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L2006">chains/ethereum/ethereum/src/api.ts:2006</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1944">chains/ethereum/ethereum/src/api.ts:1944</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2996,7 +2967,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L2043">chains/ethereum/ethereum/src/api.ts:2043</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1981">chains/ethereum/ethereum/src/api.ts:1981</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3028,7 +2999,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L2054">chains/ethereum/ethereum/src/api.ts:2054</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1992">chains/ethereum/ethereum/src/api.ts:1992</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3060,7 +3031,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1985">chains/ethereum/ethereum/src/api.ts:1985</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1923">chains/ethereum/ethereum/src/api.ts:1923</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3092,7 +3063,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L2020">chains/ethereum/ethereum/src/api.ts:2020</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1958">chains/ethereum/ethereum/src/api.ts:1958</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3132,7 +3103,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1995">chains/ethereum/ethereum/src/api.ts:1995</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1933">chains/ethereum/ethereum/src/api.ts:1933</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3155,7 +3126,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L1974">chains/ethereum/ethereum/src/api.ts:1974</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1912">chains/ethereum/ethereum/src/api.ts:1912</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3164,7 +3135,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>result - the address of the new identiy.</p>
+							<p>result - the address of the new identity.</p>
 						</li>
 					</ul>
 				</section>
@@ -3178,7 +3149,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L2065">chains/ethereum/ethereum/src/api.ts:2065</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L2003">chains/ethereum/ethereum/src/api.ts:2003</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3207,13 +3178,13 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L2032">chains/ethereum/ethereum/src/api.ts:2032</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L1970">chains/ethereum/ethereum/src/api.ts:1970</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Uninstalls a filter with given id. Should always be called when watch is no longer needed.
-									Additonally Filters timeout when they aren&#39;t requested with shh_getFilterChanges for a period of time.</p>
+									Additionally Filters timeout when they aren&#39;t requested with shh_getFilterChanges for a period of time.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3240,7 +3211,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L2075">chains/ethereum/ethereum/src/api.ts:2075</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L2013">chains/ethereum/ethereum/src/api.ts:2013</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3263,7 +3234,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L650">chains/ethereum/ethereum/src/api.ts:650</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L624">chains/ethereum/ethereum/src/api.ts:624</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3286,7 +3257,7 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/958610e9/src/chains/ethereum/ethereum/src/api.ts#L660">chains/ethereum/ethereum/src/api.ts:660</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/8725a49e/src/chains/ethereum/ethereum/src/api.ts#L634">chains/ethereum/ethereum/src/api.ts:634</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -3330,9 +3301,6 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
 								<a href="_api_.ethereumapi.html#_blockchain" class="tsd-kind-icon">#blockchain</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
-								<a href="_api_.ethereumapi.html#_common" class="tsd-kind-icon">#common</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
 								<a href="_api_.ethereumapi.html#_filters" class="tsd-kind-icon">#filters</a>
@@ -3533,9 +3501,6 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 								<a href="_api_.ethereumapi.html#evm_unlockunknownaccount" class="tsd-kind-icon">evm_<wbr>unlock<wbr>Unknown<wbr>Account</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_api_.ethereumapi.html#initialize" class="tsd-kind-icon">initialize</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="_api_.ethereumapi.html#miner_setetherbase" class="tsd-kind-icon">miner_<wbr>set<wbr>Etherbase</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -3627,9 +3592,6 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<a href="../modules/_api_.html#client_version" class="tsd-kind-icon">CLIENT_<wbr>VERSION</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
-						<a href="../modules/_api_.html#known_chainids" class="tsd-kind-icon">KNOWN_<wbr>CHAINIDS</a>
-					</li>
-					<li class=" tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
 						<a href="../modules/_api_.html#protocol_version" class="tsd-kind-icon">PROTOCOL_<wbr>VERSION</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
@@ -3646,9 +3608,6 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
 						<a href="../modules/_api_.html#assertexceptionaltransactions" class="tsd-kind-icon">assert<wbr>Exceptional<wbr>Transactions</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
-						<a href="../modules/_api_.html#createcommon" class="tsd-kind-icon">create<wbr>Common</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
 						<a href="../modules/_api_.html#parsecoinbaseaddress" class="tsd-kind-icon">parse<wbr>Coinbase<wbr>Address</a>

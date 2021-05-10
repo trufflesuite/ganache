@@ -67,7 +67,7 @@ export default class Server {
   #app: TemplatedApp | null = null;
   #httpServer: HttpServer | null = null;
   #listenSocket: us_listen_socket | null = null;
-  #connector: Connector | null = null;
+  #connector: Connector;
   #websocketServer: WebsocketServer | null = null;
 
   #initializer: Promise<void>;
@@ -92,14 +92,13 @@ export default class Server {
     //   const server = Ganache.server();
     //   const provider = server.provider;
     //   await server.listen(8545)
-    this.#initializer = this.initialize();
-  }
-
-  private async initialize() {
     const connector = (this.#connector = ConnectorLoader.initialize(
       this.#providerOptions
     ));
+    this.#initializer = this.initialize(connector);
+  }
 
+  private async initialize(connector: Connector) {
     const _app = (this.#app = uWS.App());
 
     if (this.#options.server.ws) {
