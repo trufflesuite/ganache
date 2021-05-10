@@ -28,3 +28,4 @@ export default class AccountManager extends Manager<Account, AccountConfig> {
   transferFunds(from: string, to: string, amount: bigint): Promise<boolean>;
   incrementNonce(address: string): Promise<void>;
 }
+//# sourceMappingURL=account-manager.d.ts.map

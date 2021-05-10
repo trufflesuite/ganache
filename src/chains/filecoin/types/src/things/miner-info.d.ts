@@ -99,3 +99,4 @@ declare class MinerInfo
 }
 declare type SerializedMinerInfo = SerializedObject<MinerInfoConfig>;
 export { MinerInfo, SerializedMinerInfo };
+//# sourceMappingURL=miner-info.d.ts.map

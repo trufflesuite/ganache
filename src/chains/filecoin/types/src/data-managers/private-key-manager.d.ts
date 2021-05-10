@@ -18,3 +18,4 @@ export default class PrivateKeyManager {
   deletePrivateKey(address: string): Promise<void>;
   setDefault(address: string): Promise<void>;
 }
+//# sourceMappingURL=private-key-manager.d.ts.map

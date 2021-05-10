@@ -33,3 +33,4 @@ declare class ElectionProof
 }
 declare type SerializedElectionProof = SerializedObject<ElectionProofConfig>;
 export { ElectionProof, SerializedElectionProof };
+//# sourceMappingURL=election-proof.d.ts.map

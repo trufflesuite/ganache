@@ -9,3 +9,4 @@ declare class CID extends SerializableLiteral<CIDConfig> {
 }
 declare type SerializedCID = string;
 export { CID, SerializedCID };
+//# sourceMappingURL=cid.d.ts.map

@@ -6,7 +6,8 @@ import AccountManager from "../data-managers/account-manager";
 import { GanacheTrie } from "../helpers/trie";
 import sub from "subleveldown";
 import { CheckpointDB } from "merkle-patricia-tree/dist/checkpointDb";
-import { decode, encode } from "@ganache/rlp";
+import * as lexico from "./lexicographic-key-codec";
+import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "ethereumjs-util";
 
@@ -96,7 +97,7 @@ export class ForkTrie extends GanacheTrie {
 
   private createDelKey(key: Buffer) {
     const blockNum = this.blockNumber.toBuffer();
-    return encode([blockNum, this.address, key]);
+    return lexico.encode([blockNum, this.address, key]);
   }
 
   private async keyWasDeleted(key: Buffer) {
@@ -109,7 +110,7 @@ export class ForkTrie extends GanacheTrie {
           reverse: true
         })
         .on("data", data => {
-          const delKey = decode(data);
+          const delKey = lexico.decode(data);
           // const blockNumber = delKey[0];
           const address = delKey[1];
           const deletedKey = delKey[2];

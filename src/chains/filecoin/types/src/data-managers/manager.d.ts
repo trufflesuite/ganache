@@ -21,3 +21,4 @@ export default class Manager<
   set(key: number | string | Buffer, value: T): Promise<void>;
   del(key: Buffer): Promise<void>;
 }
+//# sourceMappingURL=manager.d.ts.map

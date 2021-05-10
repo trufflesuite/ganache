@@ -26,3 +26,4 @@ declare class MessageSendSpec
 }
 declare type SerializedMessageSendSpec = SerializedObject<MessageSendSpecConfig>;
 export { MessageSendSpec, SerializedMessageSendSpec };
+//# sourceMappingURL=message-send-spec.d.ts.map

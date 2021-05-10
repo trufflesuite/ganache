@@ -36,3 +36,4 @@ declare class SignedMessage
 }
 declare type SerializedSignedMessage = SerializedObject<SignedMessageConfig>;
 export { SignedMessage, SignedMessageConfig, SerializedSignedMessage };
+//# sourceMappingURL=signed-message.d.ts.map

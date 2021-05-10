@@ -79,3 +79,4 @@ declare class StartDealParams
 }
 declare type SerializedStartDealParams = SerializedObject<StartDealParamsConfig>;
 export { StartDealParams, SerializedStartDealParams };
+//# sourceMappingURL=start-deal-params.d.ts.map

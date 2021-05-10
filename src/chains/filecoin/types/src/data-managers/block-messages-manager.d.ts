@@ -16,3 +16,4 @@ export default class BlockMessagesManager extends Manager<
   putBlockMessages(blockCID: CID, messages: BlockMessages): Promise<void>;
   getBlockMessages(blockCID: CID): Promise<BlockMessages>;
 }
+//# sourceMappingURL=block-messages-manager.d.ts.map

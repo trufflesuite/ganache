@@ -32,3 +32,4 @@ declare class FileRef
 }
 declare type SerializedFileRef = SerializedObject<FileRefConfig>;
 export { FileRef, SerializedFileRef };
+//# sourceMappingURL=file-ref.d.ts.map

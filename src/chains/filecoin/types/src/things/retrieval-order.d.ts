@@ -83,3 +83,4 @@ declare class RetrievalOrder
 }
 declare type SerializedRetrievalOrder = SerializedObject<RetrievalOrderConfig>;
 export { RetrievalOrder, SerializedRetrievalOrder };
+//# sourceMappingURL=retrieval-order.d.ts.map

@@ -85,3 +85,4 @@ export {
   DeserializedObject,
   Definitions
 };
+//# sourceMappingURL=serializable-object.d.ts.map

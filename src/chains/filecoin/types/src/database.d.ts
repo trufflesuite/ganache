@@ -43,3 +43,4 @@ export default class Database extends Emittery {
    */
   close(): Promise<void>;
 }
+//# sourceMappingURL=database.d.ts.map

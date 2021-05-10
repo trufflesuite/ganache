@@ -81,3 +81,4 @@ declare class Message
 }
 declare type SerializedMessage = SerializedObject<MessageConfig>;
 export { Message, SerializedMessage };
+//# sourceMappingURL=message.d.ts.map

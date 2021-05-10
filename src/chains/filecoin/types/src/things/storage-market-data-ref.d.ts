@@ -45,3 +45,4 @@ declare class StorageMarketDataRef
 }
 declare type SerializedStorageMarketDataRef = SerializedObject<StorageMarketDataRefConfig>;
 export { StorageMarketDataRef, SerializedStorageMarketDataRef };
+//# sourceMappingURL=storage-market-data-ref.d.ts.map

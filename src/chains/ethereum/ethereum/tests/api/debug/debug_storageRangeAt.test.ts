@@ -394,7 +394,7 @@ describe("api", () => {
 
       before(async () => {
         provider = await getProvider();
-        accounts = await provider.send("eth_accounts");
+        accounts = await provider.send("eth_accounts", []);
         const contract = compile(
           path.join(
             __dirname,
@@ -410,13 +410,17 @@ describe("api", () => {
         ]);
 
         const deploymentHash = await provider.send("eth_sendTransaction", [
-          { from: accounts[0], data: contract.code, gas: 3141592 }
+          {
+            from: accounts[0],
+            data: contract.code,
+            gas: `0x${(3141592).toString(16)}`
+          }
         ]);
         await provider.once("message");
 
         const deploymentTxReceipt = await provider.send(
           "eth_getTransactionReceipt",
-          [deploymentHash]
+          [deploymentHash.toString()]
         );
         contractAddress = deploymentTxReceipt.contractAddress;
         deploymentBlockHash = deploymentTxReceipt.blockHash;

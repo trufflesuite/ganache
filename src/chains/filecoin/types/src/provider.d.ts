@@ -59,3 +59,4 @@ export default class FilecoinProvider
   destroy(): Promise<void>;
   stop(): Promise<void>;
 }
+//# sourceMappingURL=provider.d.ts.map

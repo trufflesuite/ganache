@@ -4,3 +4,4 @@ export declare enum SubscriptionMethod {
   SubscriptionCanceled = "xrpc.cancel"
 }
 export declare type SubscriptionId = string;
+//# sourceMappingURL=subscriptions.d.ts.map
