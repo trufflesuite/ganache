@@ -193,13 +193,8 @@
 																	"sources": [
 																		{
 																			"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-																			"line": 151,
-																			"character": 37
-=======
 																			"line": 153,
 																			"character": 15
->>>>>>> forking updates
 																		}
 																	],
 																	"type": {
@@ -220,11 +215,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-																	"line": 151,
-=======
 																	"line": 152,
->>>>>>> forking updates
 																	"character": 28
 																}
 															]
@@ -551,11 +542,7 @@
 							}
 						},
 						{
-<<<<<<< HEAD
-							"id": 48,
-=======
 							"id": 46,
->>>>>>> forking updates
 							"name": "bzz_hive",
 							"kind": 2048,
 							"kindString": "Method",
@@ -576,11 +563,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 49,
-=======
 									"id": 47,
->>>>>>> forking updates
 									"name": "bzz_hive",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -605,21 +588,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 226,
-=======
 									"line": 229,
->>>>>>> forking updates
 									"character": 16
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 50,
-=======
 							"id": 48,
->>>>>>> forking updates
 							"name": "bzz_info",
 							"kind": 2048,
 							"kindString": "Method",
@@ -640,11 +615,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 51,
-=======
 									"id": 49,
->>>>>>> forking updates
 									"name": "bzz_info",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -669,21 +640,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 231,
-=======
 									"line": 234,
->>>>>>> forking updates
 									"character": 16
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 44,
-=======
 							"id": 42,
->>>>>>> forking updates
 							"name": "db_getHex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -704,11 +667,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 45,
-=======
 									"id": 43,
->>>>>>> forking updates
 									"name": "db_getHex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -721,11 +680,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 46,
-=======
 											"id": 44,
->>>>>>> forking updates
 											"name": "dbName",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -741,11 +696,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 47,
-=======
 											"id": 45,
->>>>>>> forking updates
 											"name": "key",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -776,21 +727,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 219,
-=======
 									"line": 222,
->>>>>>> forking updates
 									"character": 17
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 35,
-=======
 							"id": 33,
->>>>>>> forking updates
 							"name": "db_getString",
 							"kind": 2048,
 							"kindString": "Method",
@@ -811,11 +754,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 36,
-=======
 									"id": 34,
->>>>>>> forking updates
 									"name": "db_getString",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -828,11 +767,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 37,
-=======
 											"id": 35,
->>>>>>> forking updates
 											"name": "dbName",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -848,11 +783,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 38,
-=======
 											"id": 36,
->>>>>>> forking updates
 											"name": "key",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -883,21 +814,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 194,
-=======
 									"line": 197,
->>>>>>> forking updates
 									"character": 20
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 39,
-=======
 							"id": 37,
->>>>>>> forking updates
 							"name": "db_putHex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -918,11 +841,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 40,
-=======
 									"id": 38,
->>>>>>> forking updates
 									"name": "db_putHex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -935,11 +854,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 41,
-=======
 											"id": 39,
->>>>>>> forking updates
 											"name": "dbName",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -955,11 +870,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 42,
-=======
 											"id": 40,
->>>>>>> forking updates
 											"name": "key",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -975,11 +886,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 43,
-=======
 											"id": 41,
->>>>>>> forking updates
 											"name": "data",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1010,21 +917,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 207,
-=======
 									"line": 210,
->>>>>>> forking updates
 									"character": 17
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 30,
-=======
 							"id": 28,
->>>>>>> forking updates
 							"name": "db_putString",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1045,11 +944,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 31,
-=======
 									"id": 29,
->>>>>>> forking updates
 									"name": "db_putString",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1062,11 +957,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 32,
-=======
 											"id": 30,
->>>>>>> forking updates
 											"name": "dbName",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1082,11 +973,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 33,
-=======
 											"id": 31,
->>>>>>> forking updates
 											"name": "key",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1102,11 +989,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 34,
-=======
 											"id": 32,
->>>>>>> forking updates
 											"name": "value",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1137,21 +1020,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 182,
-=======
 									"line": 185,
->>>>>>> forking updates
 									"character": 20
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 330,
-=======
 							"id": 328,
->>>>>>> forking updates
 							"name": "debug_storageRangeAt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1160,11 +1035,7 @@
 							},
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 331,
-=======
 									"id": 329,
->>>>>>> forking updates
 									"name": "debug_storageRangeAt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1177,11 +1048,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 332,
-=======
 											"id": 330,
->>>>>>> forking updates
 											"name": "blockHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1206,11 +1073,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 333,
-=======
 											"id": 331,
->>>>>>> forking updates
 											"name": "transactionIndex",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1226,11 +1089,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 334,
-=======
 											"id": 332,
->>>>>>> forking updates
 											"name": "contractAddress",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1246,11 +1105,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 335,
-=======
 											"id": 333,
->>>>>>> forking updates
 											"name": "startKey",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1275,11 +1130,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 336,
-=======
 											"id": 334,
->>>>>>> forking updates
 											"name": "maxResult",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1301,11 +1152,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-<<<<<<< HEAD
-													"id": 337,
-=======
 													"id": 335,
->>>>>>> forking updates
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -1314,11 +1161,7 @@
 													},
 													"children": [
 														{
-<<<<<<< HEAD
-															"id": 338,
-=======
 															"id": 336,
->>>>>>> forking updates
 															"name": "nextKey",
 															"kind": 32,
 															"kindString": "Variable",
@@ -1347,11 +1190,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 339,
-=======
 															"id": 337,
->>>>>>> forking updates
 															"name": "storage",
 															"kind": 32,
 															"kindString": "Variable",
@@ -1376,13 +1215,8 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-<<<<<<< HEAD
-																338,
-																339
-=======
 																336,
 																337
->>>>>>> forking updates
 															]
 														}
 													]
@@ -1396,21 +1230,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1737,
-=======
 									"line": 1740,
->>>>>>> forking updates
 									"character": 28
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 312,
-=======
 							"id": 310,
->>>>>>> forking updates
 							"name": "debug_traceTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1419,11 +1245,7 @@
 							},
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 313,
-=======
 									"id": 311,
->>>>>>> forking updates
 									"name": "debug_traceTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1443,11 +1265,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 314,
-=======
 											"id": 312,
->>>>>>> forking updates
 											"name": "transactionHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1461,11 +1279,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 315,
-=======
 											"id": 313,
->>>>>>> forking updates
 											"name": "options",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1486,11 +1300,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-<<<<<<< HEAD
-													"id": 316,
-=======
 													"id": 314,
->>>>>>> forking updates
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -1499,11 +1309,7 @@
 													},
 													"children": [
 														{
-<<<<<<< HEAD
-															"id": 317,
-=======
 															"id": 315,
->>>>>>> forking updates
 															"name": "gas",
 															"kind": 32,
 															"kindString": "Variable",
@@ -1513,11 +1319,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-<<<<<<< HEAD
-																	"line": 1273,
-=======
 																	"line": 1285,
->>>>>>> forking updates
 																	"character": 16
 																}
 															],
@@ -1527,11 +1329,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 329,
-=======
 															"id": 327,
->>>>>>> forking updates
 															"name": "returnValue",
 															"kind": 32,
 															"kindString": "Variable",
@@ -1541,11 +1339,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-<<<<<<< HEAD
-																	"line": 1273,
-=======
 																	"line": 1285,
->>>>>>> forking updates
 																	"character": 41
 																}
 															],
@@ -1555,11 +1349,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 318,
-=======
 															"id": 316,
->>>>>>> forking updates
 															"name": "structLogs",
 															"kind": 32,
 															"kindString": "Variable",
@@ -1569,11 +1359,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-<<<<<<< HEAD
-																	"line": 1273,
-=======
 																	"line": 1285,
->>>>>>> forking updates
 																	"character": 28
 																}
 															],
@@ -1582,11 +1368,7 @@
 																"elementType": {
 																	"type": "reflection",
 																	"declaration": {
-<<<<<<< HEAD
-																		"id": 319,
-=======
 																		"id": 317,
->>>>>>> forking updates
 																		"name": "__type",
 																		"kind": 65536,
 																		"kindString": "Type literal",
@@ -1595,11 +1377,7 @@
 																		},
 																		"children": [
 																			{
-<<<<<<< HEAD
-																				"id": 320,
-=======
 																				"id": 318,
->>>>>>> forking updates
 																				"name": "depth",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -1619,11 +1397,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 321,
-=======
 																				"id": 319,
->>>>>>> forking updates
 																				"name": "error",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -1643,11 +1417,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 322,
-=======
 																				"id": 320,
->>>>>>> forking updates
 																				"name": "gas",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -1667,11 +1437,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 323,
-=======
 																				"id": 321,
->>>>>>> forking updates
 																				"name": "gasCost",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -1691,11 +1457,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 324,
-=======
 																				"id": 322,
->>>>>>> forking updates
 																				"name": "memory",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -1721,11 +1483,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 325,
-=======
 																				"id": 323,
->>>>>>> forking updates
 																				"name": "op",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -1745,11 +1503,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 326,
-=======
 																				"id": 324,
->>>>>>> forking updates
 																				"name": "pc",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -1769,11 +1523,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 327,
-=======
 																				"id": 325,
->>>>>>> forking updates
 																				"name": "stack",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -1799,11 +1549,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 328,
-=======
 																				"id": 326,
->>>>>>> forking updates
 																				"name": "storage",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -1828,24 +1574,15 @@
 																				"title": "Variables",
 																				"kind": 32,
 																				"children": [
-<<<<<<< HEAD
-=======
 																					318,
 																					319,
->>>>>>> forking updates
 																					320,
 																					321,
 																					322,
 																					323,
 																					324,
 																					325,
-<<<<<<< HEAD
-																					326,
-																					327,
-																					328
-=======
 																					326
->>>>>>> forking updates
 																				]
 																			}
 																		]
@@ -1859,15 +1596,9 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-<<<<<<< HEAD
-																317,
-																329,
-																318
-=======
 																315,
 																327,
 																316
->>>>>>> forking updates
 															]
 														}
 													]
@@ -1881,21 +1612,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1717,
-=======
 									"line": 1720,
->>>>>>> forking updates
 									"character": 30
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 179,
-=======
 							"id": 177,
->>>>>>> forking updates
 							"name": "eth_accounts",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1916,11 +1639,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 180,
-=======
 									"id": 178,
->>>>>>> forking updates
 									"name": "eth_accounts",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1949,21 +1668,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 972,
-=======
 									"line": 975,
->>>>>>> forking updates
 									"character": 20
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 181,
-=======
 							"id": 179,
->>>>>>> forking updates
 							"name": "eth_blockNumber",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1984,11 +1695,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 182,
-=======
 									"id": 180,
->>>>>>> forking updates
 									"name": "eth_blockNumber",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2014,21 +1721,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 981,
-=======
 									"line": 984,
->>>>>>> forking updates
 									"character": 23
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 308,
-=======
 							"id": 306,
->>>>>>> forking updates
 							"name": "eth_call",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2050,11 +1749,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 309,
-=======
 									"id": 307,
->>>>>>> forking updates
 									"name": "eth_call",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2067,11 +1762,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 310,
-=======
 											"id": 308,
->>>>>>> forking updates
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2085,11 +1776,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 311,
-=======
 											"id": 309,
->>>>>>> forking updates
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2134,21 +1821,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1615,
-=======
 									"line": 1618,
->>>>>>> forking updates
 									"character": 16
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 183,
-=======
 							"id": 181,
->>>>>>> forking updates
 							"name": "eth_chainId",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2169,11 +1848,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 184,
-=======
 									"id": 182,
->>>>>>> forking updates
 									"name": "eth_chainId",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2209,21 +1884,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 998,
-=======
 									"line": 1001,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 121,
-=======
 							"id": 119,
->>>>>>> forking updates
 							"name": "eth_coinbase",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2244,11 +1911,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 122,
-=======
 									"id": 120,
->>>>>>> forking updates
 									"name": "eth_coinbase",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2274,21 +1937,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 751,
-=======
 									"line": 754,
->>>>>>> forking updates
 									"character": 20
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 113,
-=======
 							"id": 111,
->>>>>>> forking updates
 							"name": "eth_estimateGas",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2310,11 +1965,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 114,
-=======
 									"id": 112,
->>>>>>> forking updates
 									"name": "eth_estimateGas",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2327,11 +1978,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 115,
-=======
 											"id": 113,
->>>>>>> forking updates
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2344,11 +1991,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 116,
-=======
 											"id": 114,
->>>>>>> forking updates
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2386,21 +2029,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 678,
-=======
 									"line": 681,
->>>>>>> forking updates
 									"character": 23
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 177,
-=======
 							"id": 175,
->>>>>>> forking updates
 							"name": "eth_gasPrice",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2421,11 +2056,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 178,
-=======
 									"id": 176,
->>>>>>> forking updates
 									"name": "eth_gasPrice",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2451,21 +2082,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 963,
-=======
 									"line": 966,
->>>>>>> forking updates
 									"character": 20
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 185,
-=======
 							"id": 183,
->>>>>>> forking updates
 							"name": "eth_getBalance",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2487,11 +2110,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 186,
-=======
 									"id": 184,
->>>>>>> forking updates
 									"name": "eth_getBalance",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2503,11 +2122,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 187,
-=======
 											"id": 185,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2523,11 +2138,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 188,
-=======
 											"id": 186,
->>>>>>> forking updates
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2568,21 +2179,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1009,
-=======
 									"line": 1012,
->>>>>>> forking updates
 									"character": 22
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 127,
-=======
 							"id": 125,
->>>>>>> forking updates
 							"name": "eth_getBlockByHash",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2604,11 +2207,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 128,
-=======
 									"id": 126,
->>>>>>> forking updates
 									"name": "eth_getBlockByHash",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2621,11 +2220,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 129,
-=======
 											"id": 127,
->>>>>>> forking updates
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2647,11 +2242,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 130,
-=======
 											"id": 128,
->>>>>>> forking updates
 											"name": "transactions",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2683,21 +2274,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 778,
-=======
 									"line": 781,
->>>>>>> forking updates
 									"character": 26
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 123,
-=======
 							"id": 121,
->>>>>>> forking updates
 							"name": "eth_getBlockByNumber",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2719,11 +2302,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 124,
-=======
 									"id": 122,
->>>>>>> forking updates
 									"name": "eth_getBlockByNumber",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2736,11 +2315,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 125,
-=======
 											"id": 123,
->>>>>>> forking updates
 											"name": "number",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2765,11 +2340,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 126,
-=======
 											"id": 124,
->>>>>>> forking updates
 											"name": "transactions",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2801,21 +2372,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 764,
-=======
 									"line": 767,
->>>>>>> forking updates
 									"character": 28
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 134,
-=======
 							"id": 132,
->>>>>>> forking updates
 							"name": "eth_getBlockTransactionCountByHash",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2836,11 +2399,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 135,
-=======
 									"id": 133,
->>>>>>> forking updates
 									"name": "eth_getBlockTransactionCountByHash",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2852,11 +2411,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 136,
-=======
 											"id": 134,
->>>>>>> forking updates
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2896,21 +2451,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 806,
-=======
 									"line": 809,
->>>>>>> forking updates
 									"character": 42
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 131,
-=======
 							"id": 129,
->>>>>>> forking updates
 							"name": "eth_getBlockTransactionCountByNumber",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2931,11 +2478,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 132,
-=======
 									"id": 130,
->>>>>>> forking updates
 									"name": "eth_getBlockTransactionCountByNumber",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2947,11 +2490,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 133,
-=======
 											"id": 131,
->>>>>>> forking updates
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2988,21 +2527,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 791,
-=======
 									"line": 794,
->>>>>>> forking updates
 									"character": 44
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 189,
-=======
 							"id": 187,
->>>>>>> forking updates
 							"name": "eth_getCode",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3024,11 +2555,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 190,
-=======
 									"id": 188,
->>>>>>> forking updates
 									"name": "eth_getCode",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3041,11 +2568,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 191,
-=======
 											"id": 189,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3061,11 +2584,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 192,
-=======
 											"id": 190,
->>>>>>> forking updates
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3106,21 +2625,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1028,
-=======
 									"line": 1031,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 137,
-=======
 							"id": 135,
->>>>>>> forking updates
 							"name": "eth_getCompilers",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3141,11 +2652,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 138,
-=======
 									"id": 136,
->>>>>>> forking updates
 									"name": "eth_getCompilers",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3170,21 +2677,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 819,
-=======
 									"line": 822,
->>>>>>> forking updates
 									"character": 24
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 272,
-=======
 							"id": 270,
->>>>>>> forking updates
 							"name": "eth_getFilterChanges",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3205,11 +2704,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 273,
-=======
 									"id": 271,
->>>>>>> forking updates
 									"name": "eth_getFilterChanges",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3222,11 +2717,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 274,
-=======
 											"id": 272,
->>>>>>> forking updates
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3260,21 +2751,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1534,
-=======
 									"line": 1537,
->>>>>>> forking updates
 									"character": 28
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 278,
-=======
 							"id": 276,
->>>>>>> forking updates
 							"name": "eth_getFilterLogs",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3295,11 +2778,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 279,
-=======
 									"id": 277,
->>>>>>> forking updates
 									"name": "eth_getFilterLogs",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3312,11 +2791,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 280,
-=======
 											"id": 278,
->>>>>>> forking updates
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3337,11 +2812,7 @@
 												"elementType": {
 													"type": "reflection",
 													"declaration": {
-<<<<<<< HEAD
-														"id": 281,
-=======
 														"id": 279,
->>>>>>> forking updates
 														"name": "__type",
 														"kind": 65536,
 														"kindString": "Type literal",
@@ -3350,11 +2821,7 @@
 														},
 														"children": [
 															{
-<<<<<<< HEAD
-																"id": 282,
-=======
 																"id": 280,
->>>>>>> forking updates
 																"name": "address",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3374,11 +2841,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 283,
-=======
 																"id": 281,
->>>>>>> forking updates
 																"name": "blockHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3398,11 +2861,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 284,
-=======
 																"id": 282,
->>>>>>> forking updates
 																"name": "blockNumber",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3422,11 +2881,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 285,
-=======
 																"id": 283,
->>>>>>> forking updates
 																"name": "data",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3458,11 +2913,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 286,
-=======
 																"id": 284,
->>>>>>> forking updates
 																"name": "logIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3482,11 +2933,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 287,
-=======
 																"id": 285,
->>>>>>> forking updates
 																"name": "removed",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3506,11 +2953,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 288,
-=======
 																"id": 286,
->>>>>>> forking updates
 																"name": "topics",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3542,11 +2985,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 289,
-=======
 																"id": 287,
->>>>>>> forking updates
 																"name": "transactionHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3566,11 +3005,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 290,
-=======
 																"id": 288,
->>>>>>> forking updates
 																"name": "transactionIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3595,24 +3030,15 @@
 																"title": "Variables",
 																"kind": 32,
 																"children": [
-<<<<<<< HEAD
-=======
 																	280,
 																	281,
->>>>>>> forking updates
 																	282,
 																	283,
 																	284,
 																	285,
 																	286,
 																	287,
-<<<<<<< HEAD
-																	288,
-																	289,
-																	290
-=======
 																	288
->>>>>>> forking updates
 																]
 															}
 														]
@@ -3627,21 +3053,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1567,
-=======
 									"line": 1570,
->>>>>>> forking updates
 									"character": 25
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 291,
-=======
 							"id": 289,
->>>>>>> forking updates
 							"name": "eth_getLogs",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3662,11 +3080,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 292,
-=======
 									"id": 290,
->>>>>>> forking updates
 									"name": "eth_getLogs",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3679,11 +3093,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 293,
-=======
 											"id": 291,
->>>>>>> forking updates
 											"name": "filter",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3707,11 +3117,7 @@
 												"elementType": {
 													"type": "reflection",
 													"declaration": {
-<<<<<<< HEAD
-														"id": 294,
-=======
 														"id": 292,
->>>>>>> forking updates
 														"name": "__type",
 														"kind": 65536,
 														"kindString": "Type literal",
@@ -3720,11 +3126,7 @@
 														},
 														"children": [
 															{
-<<<<<<< HEAD
-																"id": 295,
-=======
 																"id": 293,
->>>>>>> forking updates
 																"name": "address",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3744,11 +3146,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 296,
-=======
 																"id": 294,
->>>>>>> forking updates
 																"name": "blockHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3768,11 +3166,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 297,
-=======
 																"id": 295,
->>>>>>> forking updates
 																"name": "blockNumber",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3792,11 +3186,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 298,
-=======
 																"id": 296,
->>>>>>> forking updates
 																"name": "data",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3828,11 +3218,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 299,
-=======
 																"id": 297,
->>>>>>> forking updates
 																"name": "logIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3852,11 +3238,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 300,
-=======
 																"id": 298,
->>>>>>> forking updates
 																"name": "removed",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3876,11 +3258,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 301,
-=======
 																"id": 299,
->>>>>>> forking updates
 																"name": "topics",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3912,11 +3290,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 302,
-=======
 																"id": 300,
->>>>>>> forking updates
 																"name": "transactionHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3936,11 +3310,7 @@
 																}
 															},
 															{
-<<<<<<< HEAD
-																"id": 303,
-=======
 																"id": 301,
->>>>>>> forking updates
 																"name": "transactionIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3965,24 +3335,15 @@
 																"title": "Variables",
 																"kind": 32,
 																"children": [
-<<<<<<< HEAD
-=======
 																	293,
 																	294,
->>>>>>> forking updates
 																	295,
 																	296,
 																	297,
 																	298,
 																	299,
 																	300,
-<<<<<<< HEAD
-																	301,
-																	302,
-																	303
-=======
 																	301
->>>>>>> forking updates
 																]
 															}
 														]
@@ -3997,21 +3358,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1583,
-=======
 									"line": 1586,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 193,
-=======
 							"id": 191,
->>>>>>> forking updates
 							"name": "eth_getStorageAt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4033,11 +3386,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 194,
-=======
 									"id": 192,
->>>>>>> forking updates
 									"name": "eth_getStorageAt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4049,11 +3398,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 195,
-=======
 											"id": 193,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4066,11 +3411,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 196,
-=======
 											"id": 194,
->>>>>>> forking updates
 											"name": "position",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4092,11 +3433,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 197,
-=======
 											"id": 195,
->>>>>>> forking updates
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4137,21 +3474,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1041,
-=======
 									"line": 1044,
->>>>>>> forking updates
 									"character": 24
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 139,
-=======
 							"id": 137,
->>>>>>> forking updates
 							"name": "eth_getTransactionByBlockHashAndIndex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4172,11 +3501,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 140,
-=======
 									"id": 138,
->>>>>>> forking updates
 									"name": "eth_getTransactionByBlockHashAndIndex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4188,11 +3513,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 141,
-=======
 											"id": 139,
->>>>>>> forking updates
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4217,11 +3538,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 142,
-=======
 											"id": 140,
->>>>>>> forking updates
 											"name": "index",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4252,21 +3569,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 829,
-=======
 									"line": 832,
->>>>>>> forking updates
 									"character": 45
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 143,
-=======
 							"id": 141,
->>>>>>> forking updates
 							"name": "eth_getTransactionByBlockNumberAndIndex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4287,11 +3596,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 144,
-=======
 									"id": 142,
->>>>>>> forking updates
 									"name": "eth_getTransactionByBlockNumberAndIndex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4303,11 +3608,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 145,
-=======
 											"id": 143,
->>>>>>> forking updates
 											"name": "number",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4332,11 +3633,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 146,
-=======
 											"id": 144,
->>>>>>> forking updates
 											"name": "index",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4367,21 +3664,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 848,
-=======
 									"line": 851,
->>>>>>> forking updates
 									"character": 47
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 198,
-=======
 							"id": 196,
->>>>>>> forking updates
 							"name": "eth_getTransactionByHash",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4402,11 +3691,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 199,
-=======
 									"id": 197,
->>>>>>> forking updates
 									"name": "eth_getTransactionByHash",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4418,11 +3703,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 200,
-=======
 											"id": 198,
->>>>>>> forking updates
 											"name": "transactionHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4444,11 +3725,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-<<<<<<< HEAD
-													"id": 201,
-=======
 													"id": 199,
->>>>>>> forking updates
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -4457,11 +3734,7 @@
 													},
 													"children": [
 														{
-<<<<<<< HEAD
-															"id": 204,
-=======
 															"id": 202,
->>>>>>> forking updates
 															"name": "blockHash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4481,11 +3754,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 205,
-=======
 															"id": 203,
->>>>>>> forking updates
 															"name": "blockNumber",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4505,11 +3774,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 207,
-=======
 															"id": 205,
->>>>>>> forking updates
 															"name": "from",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4529,11 +3794,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 210,
-=======
 															"id": 208,
->>>>>>> forking updates
 															"name": "gas",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4553,11 +3814,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 211,
-=======
 															"id": 209,
->>>>>>> forking updates
 															"name": "gasPrice",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4577,11 +3834,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 202,
-=======
 															"id": 200,
->>>>>>> forking updates
 															"name": "hash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4601,11 +3854,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 212,
-=======
 															"id": 210,
->>>>>>> forking updates
 															"name": "input",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4625,11 +3874,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 203,
-=======
 															"id": 201,
->>>>>>> forking updates
 															"name": "nonce",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4649,11 +3894,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 214,
-=======
 															"id": 212,
->>>>>>> forking updates
 															"name": "r",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4673,11 +3914,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 215,
-=======
 															"id": 213,
->>>>>>> forking updates
 															"name": "s",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4697,11 +3934,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 208,
-=======
 															"id": 206,
->>>>>>> forking updates
 															"name": "to",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4721,11 +3954,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 206,
-=======
 															"id": 204,
->>>>>>> forking updates
 															"name": "transactionIndex",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4745,11 +3974,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 213,
-=======
 															"id": 211,
->>>>>>> forking updates
 															"name": "v",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4769,11 +3994,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 209,
-=======
 															"id": 207,
->>>>>>> forking updates
 															"name": "value",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4798,22 +4019,6 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-<<<<<<< HEAD
-																204,
-																205,
-																207,
-																210,
-																211,
-																202,
-																212,
-																203,
-																214,
-																215,
-																208,
-																206,
-																213,
-																209
-=======
 																202,
 																203,
 																205,
@@ -4828,7 +4033,6 @@
 																204,
 																211,
 																207
->>>>>>> forking updates
 															]
 														}
 													]
@@ -4842,21 +4046,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1087,
-=======
 									"line": 1090,
->>>>>>> forking updates
 									"character": 32
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 304,
-=======
 							"id": 302,
->>>>>>> forking updates
 							"name": "eth_getTransactionCount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4878,11 +4074,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 305,
-=======
 									"id": 303,
->>>>>>> forking updates
 									"name": "eth_getTransactionCount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4895,11 +4087,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 306,
-=======
 											"id": 304,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4913,11 +4101,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 307,
-=======
 											"id": 305,
->>>>>>> forking updates
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4958,21 +4142,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1596,
-=======
 									"line": 1599,
->>>>>>> forking updates
 									"character": 31
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 216,
-=======
 							"id": 214,
->>>>>>> forking updates
 							"name": "eth_getTransactionReceipt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4993,11 +4169,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 217,
-=======
 									"id": 215,
->>>>>>> forking updates
 									"name": "eth_getTransactionReceipt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5011,11 +4183,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 218,
-=======
 											"id": 216,
->>>>>>> forking updates
 											"name": "transactionHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5037,11 +4205,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-<<<<<<< HEAD
-													"id": 219,
-=======
 													"id": 217,
->>>>>>> forking updates
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -5050,11 +4214,7 @@
 													},
 													"children": [
 														{
-<<<<<<< HEAD
-															"id": 223,
-=======
 															"id": 221,
->>>>>>> forking updates
 															"name": "blockHash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5074,11 +4234,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 222,
-=======
 															"id": 220,
->>>>>>> forking updates
 															"name": "blockNumber",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5098,11 +4254,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 228,
-=======
 															"id": 226,
->>>>>>> forking updates
 															"name": "contractAddress",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5122,11 +4274,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 226,
-=======
 															"id": 224,
->>>>>>> forking updates
 															"name": "cumulativeGasUsed",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5146,11 +4294,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 224,
-=======
 															"id": 222,
->>>>>>> forking updates
 															"name": "from",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5170,11 +4314,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 227,
-=======
 															"id": 225,
->>>>>>> forking updates
 															"name": "gasUsed",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5194,11 +4334,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 229,
-=======
 															"id": 227,
->>>>>>> forking updates
 															"name": "logs",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5217,11 +4353,7 @@
 																"elementType": {
 																	"type": "reflection",
 																	"declaration": {
-<<<<<<< HEAD
-																		"id": 230,
-=======
 																		"id": 228,
->>>>>>> forking updates
 																		"name": "__type",
 																		"kind": 65536,
 																		"kindString": "Type literal",
@@ -5230,11 +4362,7 @@
 																		},
 																		"children": [
 																			{
-<<<<<<< HEAD
-																				"id": 231,
-=======
 																				"id": 229,
->>>>>>> forking updates
 																				"name": "address",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -5254,11 +4382,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 232,
-=======
 																				"id": 230,
->>>>>>> forking updates
 																				"name": "blockHash",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -5278,11 +4402,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 233,
-=======
 																				"id": 231,
->>>>>>> forking updates
 																				"name": "blockNumber",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -5302,11 +4422,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 234,
-=======
 																				"id": 232,
->>>>>>> forking updates
 																				"name": "data",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -5338,11 +4454,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 235,
-=======
 																				"id": 233,
->>>>>>> forking updates
 																				"name": "logIndex",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -5362,11 +4474,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 236,
-=======
 																				"id": 234,
->>>>>>> forking updates
 																				"name": "removed",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -5386,11 +4494,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 237,
-=======
 																				"id": 235,
->>>>>>> forking updates
 																				"name": "topics",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -5422,11 +4526,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 238,
-=======
 																				"id": 236,
->>>>>>> forking updates
 																				"name": "transactionHash",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -5446,11 +4546,7 @@
 																				}
 																			},
 																			{
-<<<<<<< HEAD
-																				"id": 239,
-=======
 																				"id": 237,
->>>>>>> forking updates
 																				"name": "transactionIndex",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -5475,24 +4571,15 @@
 																				"title": "Variables",
 																				"kind": 32,
 																				"children": [
-<<<<<<< HEAD
-=======
 																					229,
 																					230,
->>>>>>> forking updates
 																					231,
 																					232,
 																					233,
 																					234,
 																					235,
 																					236,
-<<<<<<< HEAD
-																					237,
-																					238,
-																					239
-=======
 																					237
->>>>>>> forking updates
 																				]
 																			}
 																		],
@@ -5508,11 +4595,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 240,
-=======
 															"id": 238,
->>>>>>> forking updates
 															"name": "logsBloom",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5532,11 +4615,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 241,
-=======
 															"id": 239,
->>>>>>> forking updates
 															"name": "status",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5556,11 +4635,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 225,
-=======
 															"id": 223,
->>>>>>> forking updates
 															"name": "to",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5580,11 +4655,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 220,
-=======
 															"id": 218,
->>>>>>> forking updates
 															"name": "transactionHash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5604,11 +4675,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 221,
-=======
 															"id": 219,
->>>>>>> forking updates
 															"name": "transactionIndex",
 															"kind": 32,
 															"kindString": "Variable",
@@ -5633,20 +4700,6 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-<<<<<<< HEAD
-																223,
-																222,
-																228,
-																226,
-																224,
-																227,
-																229,
-																240,
-																241,
-																225,
-																220,
-																221
-=======
 																221,
 																220,
 																226,
@@ -5659,7 +4712,6 @@
 																223,
 																218,
 																219
->>>>>>> forking updates
 															]
 														}
 													]
@@ -5673,21 +4725,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1114,
-=======
 									"line": 1117,
->>>>>>> forking updates
 									"character": 33
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 153,
-=======
 							"id": 151,
->>>>>>> forking updates
 							"name": "eth_getUncleByBlockHashAndIndex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5708,11 +4752,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 154,
-=======
 									"id": 152,
->>>>>>> forking updates
 									"name": "eth_getUncleByBlockHashAndIndex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5724,11 +4764,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 155,
-=======
 											"id": 153,
->>>>>>> forking updates
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5744,11 +4780,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 156,
-=======
 											"id": 154,
->>>>>>> forking updates
 											"name": "index",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5779,21 +4811,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 881,
-=======
 									"line": 884,
->>>>>>> forking updates
 									"character": 39
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 157,
-=======
 							"id": 155,
->>>>>>> forking updates
 							"name": "eth_getUncleByBlockNumberAndIndex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5814,11 +4838,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 158,
-=======
 									"id": 156,
->>>>>>> forking updates
 									"name": "eth_getUncleByBlockNumberAndIndex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5830,11 +4850,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 159,
-=======
 											"id": 157,
->>>>>>> forking updates
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5859,11 +4875,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 160,
-=======
 											"id": 158,
->>>>>>> forking updates
 											"name": "uncleIndex",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5894,21 +4906,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 893,
-=======
 									"line": 896,
->>>>>>> forking updates
 									"character": 41
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 147,
-=======
 							"id": 145,
->>>>>>> forking updates
 							"name": "eth_getUncleCountByBlockHash",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5929,11 +4933,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 148,
-=======
 									"id": 146,
->>>>>>> forking updates
 									"name": "eth_getUncleCountByBlockHash",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5945,11 +4945,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 149,
-=======
 											"id": 147,
->>>>>>> forking updates
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5989,21 +4985,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 861,
-=======
 									"line": 864,
->>>>>>> forking updates
 									"character": 36
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 150,
-=======
 							"id": 148,
->>>>>>> forking updates
 							"name": "eth_getUncleCountByBlockNumber",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6024,11 +5012,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 151,
-=======
 									"id": 149,
->>>>>>> forking updates
 									"name": "eth_getUncleCountByBlockNumber",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6040,11 +5024,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 152,
-=======
 											"id": 150,
->>>>>>> forking updates
 											"name": "number",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6081,21 +5061,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 870,
-=======
 									"line": 873,
->>>>>>> forking updates
 									"character": 38
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 161,
-=======
 							"id": 159,
->>>>>>> forking updates
 							"name": "eth_getWork",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6116,11 +5088,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 162,
-=======
 									"id": 160,
->>>>>>> forking updates
 									"name": "eth_getWork",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6133,11 +5101,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 163,
-=======
 											"id": 161,
->>>>>>> forking updates
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6189,21 +5153,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 910,
-=======
 									"line": 913,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 175,
-=======
 							"id": 173,
->>>>>>> forking updates
 							"name": "eth_hashrate",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6224,11 +5180,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 176,
-=======
 									"id": 174,
->>>>>>> forking updates
 									"name": "eth_hashrate",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6254,21 +5206,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 954,
-=======
 									"line": 957,
->>>>>>> forking updates
 									"character": 20
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 173,
-=======
 							"id": 171,
->>>>>>> forking updates
 							"name": "eth_mining",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6289,11 +5233,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 174,
-=======
 									"id": 172,
->>>>>>> forking updates
 									"name": "eth_mining",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6319,21 +5259,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 944,
-=======
 									"line": 947,
->>>>>>> forking updates
 									"character": 18
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 265,
-=======
 							"id": 263,
->>>>>>> forking updates
 							"name": "eth_newBlockFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6354,11 +5286,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 266,
-=======
 									"id": 264,
->>>>>>> forking updates
 									"name": "eth_newBlockFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6384,21 +5312,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1439,
-=======
 									"line": 1442,
->>>>>>> forking updates
 									"character": 26
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 269,
-=======
 							"id": 267,
->>>>>>> forking updates
 							"name": "eth_newFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6420,11 +5340,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 270,
-=======
 									"id": 268,
->>>>>>> forking updates
 									"name": "eth_newFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6437,11 +5353,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 271,
-=======
 											"id": 269,
->>>>>>> forking updates
 											"name": "filter",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6473,21 +5385,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1504,
-=======
 									"line": 1507,
->>>>>>> forking updates
 									"character": 21
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 267,
-=======
 							"id": 265,
->>>>>>> forking updates
 							"name": "eth_newPendingTransactionFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6508,11 +5412,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 268,
-=======
 									"id": 266,
->>>>>>> forking updates
 									"name": "eth_newPendingTransactionFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6538,21 +5438,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1461,
-=======
 									"line": 1464,
->>>>>>> forking updates
 									"character": 39
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 117,
-=======
 							"id": 115,
->>>>>>> forking updates
 							"name": "eth_protocolVersion",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6573,11 +5465,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 118,
-=======
 									"id": 116,
->>>>>>> forking updates
 									"name": "eth_protocolVersion",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6603,21 +5491,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 729,
-=======
 									"line": 732,
->>>>>>> forking updates
 									"character": 27
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 245,
-=======
 							"id": 243,
->>>>>>> forking updates
 							"name": "eth_sendRawTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6638,11 +5518,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 246,
-=======
 									"id": 244,
->>>>>>> forking updates
 									"name": "eth_sendRawTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6655,11 +5531,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 247,
-=======
 											"id": 245,
->>>>>>> forking updates
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6688,21 +5560,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1206,
-=======
 									"line": 1209,
->>>>>>> forking updates
 									"character": 30
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 242,
-=======
 							"id": 240,
->>>>>>> forking updates
 							"name": "eth_sendTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6723,11 +5587,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 243,
-=======
 									"id": 241,
->>>>>>> forking updates
 									"name": "eth_sendTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6740,11 +5600,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 244,
-=======
 											"id": 242,
->>>>>>> forking updates
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6773,21 +5629,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1159,
-=======
 									"line": 1162,
->>>>>>> forking updates
 									"character": 27
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 248,
-=======
 							"id": 246,
->>>>>>> forking updates
 							"name": "eth_sign",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6808,11 +5656,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 249,
-=======
 									"id": 247,
->>>>>>> forking updates
 									"name": "eth_sign",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6826,11 +5670,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 250,
-=======
 											"id": 248,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6852,11 +5692,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 251,
-=======
 											"id": 249,
->>>>>>> forking updates
 											"name": "message",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6893,21 +5729,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1229,
-=======
 									"line": 1232,
->>>>>>> forking updates
 									"character": 16
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 252,
-=======
 							"id": 250,
->>>>>>> forking updates
 							"name": "eth_signTypedData",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6928,11 +5756,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 253,
-=======
 									"id": 251,
->>>>>>> forking updates
 									"name": "eth_signTypedData",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6950,11 +5774,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 254,
-=======
 											"id": 252,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6979,11 +5799,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 255,
-=======
 											"id": 253,
->>>>>>> forking updates
 											"name": "typedData",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6995,11 +5811,7 @@
 											},
 											"type": {
 												"type": "reference",
-<<<<<<< HEAD
-												"id": 411,
-=======
 												"id": 409,
->>>>>>> forking updates
 												"name": "TypedData"
 											}
 										}
@@ -7019,21 +5831,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1256,
-=======
 									"line": 1259,
->>>>>>> forking updates
 									"character": 25
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 169,
-=======
 							"id": 167,
->>>>>>> forking updates
 							"name": "eth_submitHashrate",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7054,11 +5858,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 170,
-=======
 									"id": 168,
->>>>>>> forking updates
 									"name": "eth_submitHashrate",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7071,11 +5871,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 171,
-=======
 											"id": 169,
->>>>>>> forking updates
 											"name": "hashRate",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7091,11 +5887,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 172,
-=======
 											"id": 170,
->>>>>>> forking updates
 											"name": "clientID",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7126,21 +5918,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 935,
-=======
 									"line": 938,
->>>>>>> forking updates
 									"character": 26
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 164,
-=======
 							"id": 162,
->>>>>>> forking updates
 							"name": "eth_submitWork",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7161,11 +5945,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 165,
-=======
 									"id": 163,
->>>>>>> forking updates
 									"name": "eth_submitWork",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7178,11 +5958,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 166,
-=======
 											"id": 164,
->>>>>>> forking updates
 											"name": "nonce",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7198,11 +5974,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 167,
-=======
 											"id": 165,
->>>>>>> forking updates
 											"name": "powHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7218,11 +5990,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 168,
-=======
 											"id": 166,
->>>>>>> forking updates
 											"name": "digest",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7253,21 +6021,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 923,
-=======
 									"line": 926,
->>>>>>> forking updates
 									"character": 22
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 256,
-=======
 							"id": 254,
->>>>>>> forking updates
 							"name": "eth_subscribe",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7289,11 +6049,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 257,
-=======
 									"id": 255,
->>>>>>> forking updates
 									"name": "eth_subscribe",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7306,11 +6062,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 258,
-=======
 											"id": 256,
->>>>>>> forking updates
 											"name": "subscriptionName",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7336,11 +6088,7 @@
 									}
 								},
 								{
-<<<<<<< HEAD
-									"id": 259,
-=======
 									"id": 257,
->>>>>>> forking updates
 									"name": "eth_subscribe",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7353,11 +6101,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 260,
-=======
 											"id": 258,
->>>>>>> forking updates
 											"name": "subscriptionName",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7371,11 +6115,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 261,
-=======
 											"id": 259,
->>>>>>> forking updates
 											"name": "options",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7406,39 +6146,23 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1295,
-=======
 									"line": 1298,
->>>>>>> forking updates
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1308,
-=======
 									"line": 1311,
->>>>>>> forking updates
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1313,
-=======
 									"line": 1316,
->>>>>>> forking updates
 									"character": 15
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 119,
-=======
 							"id": 117,
->>>>>>> forking updates
 							"name": "eth_syncing",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7459,11 +6183,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 120,
-=======
 									"id": 118,
->>>>>>> forking updates
 									"name": "eth_syncing",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7489,21 +6209,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 742,
-=======
 									"line": 745,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 275,
-=======
 							"id": 273,
->>>>>>> forking updates
 							"name": "eth_uninstallFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7524,11 +6236,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 276,
-=======
 									"id": 274,
->>>>>>> forking updates
 									"name": "eth_uninstallFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7541,11 +6249,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 277,
-=======
 											"id": 275,
->>>>>>> forking updates
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7576,21 +6280,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1554,
-=======
 									"line": 1557,
->>>>>>> forking updates
 									"character": 27
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 262,
-=======
 							"id": 260,
->>>>>>> forking updates
 							"name": "eth_unsubscribe",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7611,11 +6307,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 263,
-=======
 									"id": 261,
->>>>>>> forking updates
 									"name": "eth_unsubscribe",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7624,11 +6316,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 264,
-=======
 											"id": 262,
->>>>>>> forking updates
 											"name": "subscriptionId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7656,21 +6344,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1420,
-=======
 									"line": 1423,
->>>>>>> forking updates
 									"character": 23
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 70,
-=======
 							"id": 68,
->>>>>>> forking updates
 							"name": "evm_increaseTime",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7691,11 +6371,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 71,
-=======
 									"id": 69,
->>>>>>> forking updates
 									"name": "evm_increaseTime",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7708,11 +6384,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 72,
-=======
 											"id": 70,
->>>>>>> forking updates
 											"name": "seconds",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7752,21 +6424,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 386,
-=======
 									"line": 389,
->>>>>>> forking updates
 									"character": 24
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 85,
-=======
 							"id": 83,
->>>>>>> forking updates
 							"name": "evm_lockUnknownAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7775,11 +6439,7 @@
 							},
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 86,
-=======
 									"id": 84,
->>>>>>> forking updates
 									"name": "evm_lockUnknownAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7793,11 +6453,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 87,
-=======
 											"id": 85,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7828,21 +6484,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 536,
-=======
 									"line": 539,
->>>>>>> forking updates
 									"character": 30
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 52,
-=======
 							"id": 50,
->>>>>>> forking updates
 							"name": "evm_mine",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7864,11 +6512,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 53,
-=======
 									"id": 51,
->>>>>>> forking updates
 									"name": "evm_mine",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7892,11 +6536,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 54,
-=======
 											"id": 52,
->>>>>>> forking updates
 											"name": "timestamp",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7925,11 +6565,7 @@
 									}
 								},
 								{
-<<<<<<< HEAD
-									"id": 55,
-=======
 									"id": 53,
->>>>>>> forking updates
 									"name": "evm_mine",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7938,11 +6574,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 56,
-=======
 											"id": 54,
->>>>>>> forking updates
 											"name": "options",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7953,11 +6585,7 @@
 											"type": {
 												"type": "reflection",
 												"declaration": {
-<<<<<<< HEAD
-													"id": 57,
-=======
 													"id": 55,
->>>>>>> forking updates
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -7966,11 +6594,7 @@
 													},
 													"children": [
 														{
-<<<<<<< HEAD
-															"id": 59,
-=======
 															"id": 57,
->>>>>>> forking updates
 															"name": "blocks",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7981,11 +6605,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-																	"line": 266,
-=======
 																	"line": 269,
->>>>>>> forking updates
 																	"character": 10
 																}
 															],
@@ -7995,11 +6615,7 @@
 															}
 														},
 														{
-<<<<<<< HEAD
-															"id": 58,
-=======
 															"id": 56,
->>>>>>> forking updates
 															"name": "timestamp",
 															"kind": 32,
 															"kindString": "Variable",
@@ -8010,11 +6626,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-																	"line": 265,
-=======
 																	"line": 268,
->>>>>>> forking updates
 																	"character": 13
 																}
 															],
@@ -8029,24 +6641,15 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-<<<<<<< HEAD
-																59,
-																58
-=======
 																57,
 																56
->>>>>>> forking updates
 															]
 														}
 													],
 													"sources": [
 														{
 															"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-															"line": 264,
-=======
 															"line": 267,
->>>>>>> forking updates
 															"character": 26
 														}
 													]
@@ -8069,39 +6672,23 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 263,
-=======
 									"line": 266,
->>>>>>> forking updates
 									"character": 16
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 264,
-=======
 									"line": 267,
->>>>>>> forking updates
 									"character": 16
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 269,
-=======
 									"line": 272,
->>>>>>> forking updates
 									"character": 16
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 76,
-=======
 							"id": 74,
->>>>>>> forking updates
 							"name": "evm_revert",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8122,11 +6709,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 77,
-=======
 									"id": 75,
->>>>>>> forking updates
 									"name": "evm_revert",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8149,11 +6732,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 78,
-=======
 											"id": 76,
->>>>>>> forking updates
 											"name": "snapshotId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8193,21 +6772,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 464,
-=======
 									"line": 467,
->>>>>>> forking updates
 									"character": 18
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 66,
-=======
 							"id": 64,
->>>>>>> forking updates
 							"name": "evm_setAccountNonce",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8228,11 +6799,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 67,
-=======
 									"id": 65,
->>>>>>> forking updates
 									"name": "evm_setAccountNonce",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8246,11 +6813,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 68,
-=======
 											"id": 66,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8264,11 +6827,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 69,
-=======
 											"id": 67,
->>>>>>> forking updates
 											"name": "nonce",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8297,21 +6856,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 360,
-=======
 									"line": 363,
->>>>>>> forking updates
 									"character": 27
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 60,
-=======
 							"id": 58,
->>>>>>> forking updates
 							"name": "evm_setStorageAt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8333,11 +6884,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 61,
-=======
 									"id": 59,
->>>>>>> forking updates
 									"name": "evm_setStorageAt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8346,11 +6893,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 62,
-=======
 											"id": 60,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8363,11 +6906,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 63,
-=======
 											"id": 61,
->>>>>>> forking updates
 											"name": "position",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8389,11 +6928,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 64,
-=======
 											"id": 62,
->>>>>>> forking updates
 											"name": "storage",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8406,11 +6941,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 65,
-=======
 											"id": 63,
->>>>>>> forking updates
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8448,21 +6979,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 301,
-=======
 									"line": 304,
->>>>>>> forking updates
 									"character": 24
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 73,
-=======
 							"id": 71,
->>>>>>> forking updates
 							"name": "evm_setTime",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8484,11 +7007,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 74,
-=======
 									"id": 72,
->>>>>>> forking updates
 									"name": "evm_setTime",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8502,11 +7021,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 75,
-=======
 											"id": 73,
->>>>>>> forking updates
 											"name": "time",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8547,21 +7062,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 405,
-=======
 									"line": 408,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 79,
-=======
 							"id": 77,
->>>>>>> forking updates
 							"name": "evm_snapshot",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8570,11 +7077,7 @@
 							},
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 80,
-=======
 									"id": 78,
->>>>>>> forking updates
 									"name": "evm_snapshot",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8610,21 +7113,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 508,
-=======
 									"line": 511,
->>>>>>> forking updates
 									"character": 20
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 81,
-=======
 							"id": 79,
->>>>>>> forking updates
 							"name": "evm_unlockUnknownAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8633,11 +7128,7 @@
 							},
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 82,
-=======
 									"id": 80,
->>>>>>> forking updates
 									"name": "evm_unlockUnknownAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8650,11 +7141,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 83,
-=======
 											"id": 81,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8670,11 +7157,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 84,
-=======
 											"id": 82,
->>>>>>> forking updates
 											"name": "duration",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8706,58 +7189,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 521,
-=======
 									"line": 524,
->>>>>>> forking updates
 									"character": 32
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 28,
-							"name": "initialize",
-							"kind": 2048,
-							"kindString": "Method",
-							"flags": {
-								"isExported": true
-							},
-							"signatures": [
-								{
-									"id": 29,
-									"name": "initialize",
-									"kind": 4096,
-									"kindString": "Call signature",
-									"flags": {
-										"isExported": true
-									},
-									"type": {
-										"type": "reference",
-										"typeArguments": [
-											{
-												"type": "intrinsic",
-												"name": "void"
-											}
-										],
-										"name": "Promise"
-									}
-								}
-							],
-							"sources": [
-								{
-									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 168,
-									"character": 18
-								}
-							]
-						},
-						{
-							"id": 96,
-=======
 							"id": 94,
->>>>>>> forking updates
 							"name": "miner_setEtherbase",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8778,11 +7216,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 97,
-=======
 									"id": 95,
->>>>>>> forking updates
 									"name": "miner_setEtherbase",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8794,11 +7228,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 98,
-=======
 											"id": 96,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8829,21 +7259,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 594,
-=======
 									"line": 597,
->>>>>>> forking updates
 									"character": 26
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 99,
-=======
 							"id": 97,
->>>>>>> forking updates
 							"name": "miner_setExtra",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8864,11 +7286,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 100,
-=======
 									"id": 98,
->>>>>>> forking updates
 									"name": "miner_setExtra",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8880,11 +7298,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 101,
-=======
 											"id": 99,
->>>>>>> forking updates
 											"name": "extra",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8915,21 +7329,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 604,
-=======
 									"line": 607,
->>>>>>> forking updates
 									"character": 22
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 93,
-=======
 							"id": 91,
->>>>>>> forking updates
 							"name": "miner_setGasPrice",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8950,11 +7356,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 94,
-=======
 									"id": 92,
->>>>>>> forking updates
 									"name": "miner_setGasPrice",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8964,11 +7366,7 @@
 									"comment": {},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 95,
-=======
 											"id": 93,
->>>>>>> forking updates
 											"name": "number",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8999,21 +7397,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 584,
-=======
 									"line": 587,
->>>>>>> forking updates
 									"character": 25
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 88,
-=======
 							"id": 86,
->>>>>>> forking updates
 							"name": "miner_start",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9035,11 +7425,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 89,
-=======
 									"id": 87,
->>>>>>> forking updates
 									"name": "miner_start",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9053,11 +7439,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 90,
-=======
 											"id": 88,
->>>>>>> forking updates
 											"name": "threads",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9087,21 +7469,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 556,
-=======
 									"line": 559,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 91,
-=======
 							"id": 89,
->>>>>>> forking updates
 							"name": "miner_stop",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9122,11 +7496,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 92,
-=======
 									"id": 90,
->>>>>>> forking updates
 									"name": "miner_stop",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9151,21 +7521,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 572,
-=======
 									"line": 575,
->>>>>>> forking updates
 									"character": 18
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 109,
-=======
 							"id": 107,
->>>>>>> forking updates
 							"name": "net_listening",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9186,11 +7548,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 110,
-=======
 									"id": 108,
->>>>>>> forking updates
 									"name": "net_listening",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9216,21 +7574,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 652,
-=======
 									"line": 655,
->>>>>>> forking updates
 									"character": 21
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 111,
-=======
 							"id": 109,
->>>>>>> forking updates
 							"name": "net_peerCount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9251,11 +7601,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 112,
-=======
 									"id": 110,
->>>>>>> forking updates
 									"name": "net_peerCount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9281,21 +7627,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 661,
-=======
 									"line": 664,
->>>>>>> forking updates
 									"character": 21
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 107,
-=======
 							"id": 105,
->>>>>>> forking updates
 							"name": "net_version",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9316,11 +7654,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 108,
-=======
 									"id": 106,
->>>>>>> forking updates
 									"name": "net_version",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9346,21 +7680,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 643,
-=======
 									"line": 646,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 345,
-=======
 							"id": 343,
->>>>>>> forking updates
 							"name": "personal_importRawKey",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9381,11 +7707,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 346,
-=======
 									"id": 344,
->>>>>>> forking updates
 									"name": "personal_importRawKey",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9403,11 +7725,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 347,
-=======
 											"id": 345,
->>>>>>> forking updates
 											"name": "rawKey",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9421,11 +7739,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 348,
-=======
 											"id": 346,
->>>>>>> forking updates
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9454,21 +7768,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1800,
-=======
 									"line": 1803,
->>>>>>> forking updates
 									"character": 29
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 340,
-=======
 							"id": 338,
->>>>>>> forking updates
 							"name": "personal_listAccounts",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9489,11 +7795,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 341,
-=======
 									"id": 339,
->>>>>>> forking updates
 									"name": "personal_listAccounts",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9522,21 +7824,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1762,
-=======
 									"line": 1765,
->>>>>>> forking updates
 									"character": 29
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 349,
-=======
 							"id": 347,
->>>>>>> forking updates
 							"name": "personal_lockAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9557,11 +7851,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 350,
-=======
 									"id": 348,
->>>>>>> forking updates
 									"name": "personal_lockAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9573,11 +7863,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 351,
-=======
 											"id": 349,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9608,21 +7894,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1824,
-=======
 									"line": 1827,
->>>>>>> forking updates
 									"character": 28
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 342,
-=======
 							"id": 340,
->>>>>>> forking updates
 							"name": "personal_newAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9643,11 +7921,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 343,
-=======
 									"id": 341,
->>>>>>> forking updates
 									"name": "personal_newAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9660,11 +7934,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 344,
-=======
 											"id": 342,
->>>>>>> forking updates
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9693,21 +7963,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1773,
-=======
 									"line": 1776,
->>>>>>> forking updates
 									"character": 27
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 357,
-=======
 							"id": 355,
->>>>>>> forking updates
 							"name": "personal_sendTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9728,11 +7990,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 358,
-=======
 									"id": 356,
->>>>>>> forking updates
 									"name": "personal_sendTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9745,11 +8003,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 359,
-=======
 											"id": 357,
->>>>>>> forking updates
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9762,11 +8016,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 360,
-=======
 											"id": 358,
->>>>>>> forking updates
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9797,21 +8047,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1869,
-=======
 									"line": 1872,
->>>>>>> forking updates
 									"character": 32
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 352,
-=======
 							"id": 350,
->>>>>>> forking updates
 							"name": "personal_unlockAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9833,11 +8075,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 353,
-=======
 									"id": 351,
->>>>>>> forking updates
 									"name": "personal_unlockAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9851,11 +8089,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 354,
-=======
 											"id": 352,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9871,11 +8105,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 355,
-=======
 											"id": 353,
->>>>>>> forking updates
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9891,11 +8121,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 356,
-=======
 											"id": 354,
->>>>>>> forking updates
 											"name": "duration",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9927,21 +8153,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1844,
-=======
 									"line": 1847,
->>>>>>> forking updates
 									"character": 30
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 361,
-=======
 							"id": 359,
->>>>>>> forking updates
 							"name": "rpc_modules",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9962,11 +8180,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 362,
-=======
 									"id": 360,
->>>>>>> forking updates
 									"name": "rpc_modules",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9979,11 +8193,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-<<<<<<< HEAD
-													"id": 363,
-=======
 													"id": 361,
->>>>>>> forking updates
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -9992,11 +8202,7 @@
 													},
 													"children": [
 														{
-<<<<<<< HEAD
-															"id": 364,
-=======
 															"id": 362,
->>>>>>> forking updates
 															"name": "eth",
 															"kind": 32,
 															"kindString": "Variable",
@@ -10017,11 +8223,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-<<<<<<< HEAD
-															"id": 368,
-=======
 															"id": 366,
->>>>>>> forking updates
 															"name": "evm",
 															"kind": 32,
 															"kindString": "Variable",
@@ -10042,11 +8244,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-<<<<<<< HEAD
-															"id": 365,
-=======
 															"id": 363,
->>>>>>> forking updates
 															"name": "net",
 															"kind": 32,
 															"kindString": "Variable",
@@ -10067,11 +8265,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-<<<<<<< HEAD
-															"id": 369,
-=======
 															"id": 367,
->>>>>>> forking updates
 															"name": "personal",
 															"kind": 32,
 															"kindString": "Variable",
@@ -10092,11 +8286,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-<<<<<<< HEAD
-															"id": 366,
-=======
 															"id": 364,
->>>>>>> forking updates
 															"name": "rpc",
 															"kind": 32,
 															"kindString": "Variable",
@@ -10117,11 +8307,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-<<<<<<< HEAD
-															"id": 367,
-=======
 															"id": 365,
->>>>>>> forking updates
 															"name": "web3",
 															"kind": 32,
 															"kindString": "Variable",
@@ -10147,21 +8333,12 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-<<<<<<< HEAD
-																364,
-																368,
-																365,
-																369,
-																366,
-																367
-=======
 																362,
 																366,
 																363,
 																367,
 																364,
 																365
->>>>>>> forking updates
 															]
 														}
 													]
@@ -10175,21 +8352,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1896,
-=======
 									"line": 1899,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 377,
-=======
 							"id": 375,
->>>>>>> forking updates
 							"name": "shh_addToGroup",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10210,11 +8379,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 378,
-=======
 									"id": 376,
->>>>>>> forking updates
 									"name": "shh_addToGroup",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -10227,11 +8392,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 379,
-=======
 											"id": 377,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -10259,21 +8420,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1941,
-=======
 									"line": 1944,
->>>>>>> forking updates
 									"character": 22
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 387,
-=======
 							"id": 385,
->>>>>>> forking updates
 							"name": "shh_getFilterChanges",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10294,11 +8447,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 388,
-=======
 									"id": 386,
->>>>>>> forking updates
 									"name": "shh_getFilterChanges",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -10311,11 +8460,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 389,
-=======
 											"id": 387,
->>>>>>> forking updates
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -10349,21 +8494,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1978,
-=======
 									"line": 1981,
->>>>>>> forking updates
 									"character": 28
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 390,
-=======
 							"id": 388,
->>>>>>> forking updates
 							"name": "shh_getMessages",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10384,11 +8521,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 391,
-=======
 									"id": 389,
->>>>>>> forking updates
 									"name": "shh_getMessages",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -10401,11 +8534,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 392,
-=======
 											"id": 390,
->>>>>>> forking updates
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -10436,21 +8565,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1989,
-=======
 									"line": 1992,
->>>>>>> forking updates
 									"character": 23
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 372,
-=======
 							"id": 370,
->>>>>>> forking updates
 							"name": "shh_hasIdentity",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10471,11 +8592,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 373,
-=======
 									"id": 371,
->>>>>>> forking updates
 									"name": "shh_hasIdentity",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -10488,11 +8605,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 374,
-=======
 											"id": 372,
->>>>>>> forking updates
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -10523,21 +8636,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1920,
-=======
 									"line": 1923,
->>>>>>> forking updates
 									"character": 23
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 380,
-=======
 							"id": 378,
->>>>>>> forking updates
 							"name": "shh_newFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10558,11 +8663,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 381,
-=======
 									"id": 379,
->>>>>>> forking updates
 									"name": "shh_newFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -10575,11 +8676,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 382,
-=======
 											"id": 380,
->>>>>>> forking updates
 											"name": "to",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -10595,11 +8692,7 @@
 											}
 										},
 										{
-<<<<<<< HEAD
-											"id": 383,
-=======
 											"id": 381,
->>>>>>> forking updates
 											"name": "topics",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -10633,21 +8726,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1955,
-=======
 									"line": 1958,
->>>>>>> forking updates
 									"character": 21
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 375,
-=======
 							"id": 373,
->>>>>>> forking updates
 							"name": "shh_newGroup",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10668,11 +8753,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 376,
-=======
 									"id": 374,
->>>>>>> forking updates
 									"name": "shh_newGroup",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -10698,21 +8779,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1930,
-=======
 									"line": 1933,
->>>>>>> forking updates
 									"character": 20
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 370,
-=======
 							"id": 368,
->>>>>>> forking updates
 							"name": "shh_newIdentity",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10733,11 +8806,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 371,
-=======
 									"id": 369,
->>>>>>> forking updates
 									"name": "shh_newIdentity",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -10763,21 +8832,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1909,
-=======
 									"line": 1912,
->>>>>>> forking updates
 									"character": 23
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 393,
-=======
 							"id": 391,
->>>>>>> forking updates
 							"name": "shh_post",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10798,11 +8859,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 394,
-=======
 									"id": 392,
->>>>>>> forking updates
 									"name": "shh_post",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -10815,11 +8872,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 395,
-=======
 											"id": 393,
->>>>>>> forking updates
 											"name": "postData",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -10848,21 +8901,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 2000,
-=======
 									"line": 2003,
->>>>>>> forking updates
 									"character": 16
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 384,
-=======
 							"id": 382,
->>>>>>> forking updates
 							"name": "shh_uninstallFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10883,11 +8928,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 385,
-=======
 									"id": 383,
->>>>>>> forking updates
 									"name": "shh_uninstallFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -10900,11 +8941,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 386,
-=======
 											"id": 384,
->>>>>>> forking updates
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -10935,21 +8972,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 1967,
-=======
 									"line": 1970,
->>>>>>> forking updates
 									"character": 27
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 396,
-=======
 							"id": 394,
->>>>>>> forking updates
 							"name": "shh_version",
 							"kind": 2048,
 							"kindString": "Method",
@@ -10970,11 +8999,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 397,
-=======
 									"id": 395,
->>>>>>> forking updates
 									"name": "shh_version",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -11000,21 +9025,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 2010,
-=======
 									"line": 2013,
->>>>>>> forking updates
 									"character": 19
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 102,
-=======
 							"id": 100,
->>>>>>> forking updates
 							"name": "web3_clientVersion",
 							"kind": 2048,
 							"kindString": "Method",
@@ -11035,11 +9052,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 103,
-=======
 									"id": 101,
->>>>>>> forking updates
 									"name": "web3_clientVersion",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -11065,21 +9078,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 621,
-=======
 									"line": 624,
->>>>>>> forking updates
 									"character": 26
 								}
 							]
 						},
 						{
-<<<<<<< HEAD
-							"id": 104,
-=======
 							"id": 102,
->>>>>>> forking updates
 							"name": "web3_sha3",
 							"kind": 2048,
 							"kindString": "Method",
@@ -11100,11 +9105,7 @@
 							],
 							"signatures": [
 								{
-<<<<<<< HEAD
-									"id": 105,
-=======
 									"id": 103,
->>>>>>> forking updates
 									"name": "web3_sha3",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -11117,11 +9118,7 @@
 									},
 									"parameters": [
 										{
-<<<<<<< HEAD
-											"id": 106,
-=======
 											"id": 104,
->>>>>>> forking updates
 											"name": "data",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -11149,11 +9146,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-<<<<<<< HEAD
-									"line": 631,
-=======
 									"line": 634,
->>>>>>> forking updates
 									"character": 17
 								}
 							]
@@ -11183,97 +9176,6 @@
 							"title": "Methods",
 							"kind": 2048,
 							"children": [
-<<<<<<< HEAD
-								48,
-								50,
-								44,
-								35,
-								39,
-								30,
-								330,
-								312,
-								179,
-								181,
-								308,
-								183,
-								121,
-								113,
-								177,
-								185,
-								127,
-								123,
-								134,
-								131,
-								189,
-								137,
-								272,
-								278,
-								291,
-								193,
-								139,
-								143,
-								198,
-								304,
-								216,
-								153,
-								157,
-								147,
-								150,
-								161,
-								175,
-								173,
-								265,
-								269,
-								267,
-								117,
-								245,
-								242,
-								248,
-								252,
-								169,
-								164,
-								256,
-								119,
-								275,
-								262,
-								70,
-								85,
-								52,
-								76,
-								66,
-								60,
-								73,
-								79,
-								81,
-								28,
-								96,
-								99,
-								93,
-								88,
-								91,
-								109,
-								111,
-								107,
-								345,
-								340,
-								349,
-								342,
-								357,
-								352,
-								361,
-								377,
-								387,
-								390,
-								372,
-								380,
-								375,
-								370,
-								393,
-								384,
-								396,
-								102,
-								104
-=======
 								46,
 								48,
 								42,
@@ -11362,7 +9264,6 @@
 								394,
 								100,
 								102
->>>>>>> forking updates
 							]
 						}
 					],
@@ -11381,11 +9282,7 @@
 					]
 				},
 				{
-<<<<<<< HEAD
-					"id": 411,
-=======
 					"id": 409,
->>>>>>> forking updates
 					"name": "TypedData",
 					"kind": 4194304,
 					"kindString": "Type alias",
@@ -11436,11 +9333,7 @@
 					}
 				},
 				{
-<<<<<<< HEAD
-					"id": 401,
-=======
 					"id": 399,
->>>>>>> forking updates
 					"name": "CLIENT_VERSION",
 					"kind": 32,
 					"kindString": "Variable",
@@ -11461,11 +9354,7 @@
 					"defaultValue": "`Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`"
 				},
 				{
-<<<<<<< HEAD
-					"id": 402,
-=======
 					"id": 400,
->>>>>>> forking updates
 					"name": "PROTOCOL_VERSION",
 					"kind": 32,
 					"kindString": "Variable",
@@ -11486,11 +9375,7 @@
 					"defaultValue": "Data.from(\"0x3f\")"
 				},
 				{
-<<<<<<< HEAD
-					"id": 400,
-=======
 					"id": 398,
->>>>>>> forking updates
 					"name": "RPCQUANTITY_ZERO",
 					"kind": 32,
 					"kindString": "Variable",
@@ -11508,11 +9393,7 @@
 					}
 				},
 				{
-<<<<<<< HEAD
-					"id": 403,
-=======
 					"id": 401,
->>>>>>> forking updates
 					"name": "RPC_MODULES",
 					"kind": 32,
 					"kindString": "Variable",
@@ -11529,22 +9410,14 @@
 					"type": {
 						"type": "reflection",
 						"declaration": {
-<<<<<<< HEAD
-							"id": 404,
-=======
 							"id": 402,
->>>>>>> forking updates
 							"name": "__type",
 							"kind": 65536,
 							"kindString": "Type literal",
 							"flags": {},
 							"children": [
 								{
-<<<<<<< HEAD
-									"id": 405,
-=======
 									"id": 403,
->>>>>>> forking updates
 									"name": "eth",
 									"kind": 32,
 									"kindString": "Variable",
@@ -11563,11 +9436,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-<<<<<<< HEAD
-									"id": 409,
-=======
 									"id": 407,
->>>>>>> forking updates
 									"name": "evm",
 									"kind": 32,
 									"kindString": "Variable",
@@ -11586,11 +9455,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-<<<<<<< HEAD
-									"id": 406,
-=======
 									"id": 404,
->>>>>>> forking updates
 									"name": "net",
 									"kind": 32,
 									"kindString": "Variable",
@@ -11609,11 +9474,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-<<<<<<< HEAD
-									"id": 410,
-=======
 									"id": 408,
->>>>>>> forking updates
 									"name": "personal",
 									"kind": 32,
 									"kindString": "Variable",
@@ -11632,11 +9493,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-<<<<<<< HEAD
-									"id": 407,
-=======
 									"id": 405,
->>>>>>> forking updates
 									"name": "rpc",
 									"kind": 32,
 									"kindString": "Variable",
@@ -11655,11 +9512,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-<<<<<<< HEAD
-									"id": 408,
-=======
 									"id": 406,
->>>>>>> forking updates
 									"name": "web3",
 									"kind": 32,
 									"kindString": "Variable",
@@ -11683,21 +9536,12 @@
 									"title": "Variables",
 									"kind": 32,
 									"children": [
-<<<<<<< HEAD
-										405,
-										409,
-										406,
-										410,
-										407,
-										408
-=======
 										403,
 										407,
 										404,
 										408,
 										405,
 										406
->>>>>>> forking updates
 									]
 								}
 							]
@@ -11706,11 +9550,7 @@
 					"defaultValue": "{\n  eth: \"1.0\",\n  net: \"1.0\",\n  rpc: \"1.0\",\n  web3: \"1.0\",\n  evm: \"1.0\",\n  personal: \"1.0\"\n} as const"
 				},
 				{
-<<<<<<< HEAD
-					"id": 399,
-=======
 					"id": 397,
->>>>>>> forking updates
 					"name": "keccak",
 					"kind": 32,
 					"kindString": "Variable",
@@ -11728,11 +9568,7 @@
 					}
 				},
 				{
-<<<<<<< HEAD
-					"id": 398,
-=======
 					"id": 396,
->>>>>>> forking updates
 					"name": "version",
 					"kind": 32,
 					"kindString": "Variable",
@@ -11750,33 +9586,21 @@
 					}
 				},
 				{
-<<<<<<< HEAD
-					"id": 412,
-=======
 					"id": 410,
->>>>>>> forking updates
 					"name": "assertExceptionalTransactions",
 					"kind": 64,
 					"kindString": "Function",
 					"flags": {},
 					"signatures": [
 						{
-<<<<<<< HEAD
-							"id": 413,
-=======
 							"id": 411,
->>>>>>> forking updates
 							"name": "assertExceptionalTransactions",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-<<<<<<< HEAD
-									"id": 414,
-=======
 									"id": 412,
->>>>>>> forking updates
 									"name": "transactions",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -11805,33 +9629,21 @@
 					]
 				},
 				{
-<<<<<<< HEAD
-					"id": 415,
-=======
 					"id": 413,
->>>>>>> forking updates
 					"name": "parseCoinbaseAddress",
 					"kind": 64,
 					"kindString": "Function",
 					"flags": {},
 					"signatures": [
 						{
-<<<<<<< HEAD
-							"id": 416,
-=======
 							"id": 414,
->>>>>>> forking updates
 							"name": "parseCoinbaseAddress",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-<<<<<<< HEAD
-									"id": 417,
-=======
 									"id": 415,
->>>>>>> forking updates
 									"name": "coinbase",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -11855,11 +9667,7 @@
 									}
 								},
 								{
-<<<<<<< HEAD
-									"id": 418,
-=======
 									"id": 416,
->>>>>>> forking updates
 									"name": "initialAccounts",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -11900,45 +9708,27 @@
 					"title": "Type aliases",
 					"kind": 4194304,
 					"children": [
-<<<<<<< HEAD
-						411
-=======
 						409
->>>>>>> forking updates
 					]
 				},
 				{
 					"title": "Variables",
 					"kind": 32,
 					"children": [
-<<<<<<< HEAD
-						401,
-						402,
-						400,
-						403,
-						399,
-						398
-=======
 						399,
 						400,
 						398,
 						401,
 						397,
 						396
->>>>>>> forking updates
 					]
 				},
 				{
 					"title": "Functions",
 					"kind": 64,
 					"children": [
-<<<<<<< HEAD
-						412,
-						415
-=======
 						410,
 						413
->>>>>>> forking updates
 					]
 				}
 			],
