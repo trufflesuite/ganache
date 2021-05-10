@@ -4,7 +4,7 @@ import { privateToAddress } from "ethereumjs-util";
 import secp256k1 from "secp256k1";
 import { mnemonicToSeedSync } from "bip39";
 import HDKey from "hdkey";
-import { alea as rng } from "seedrandom";
+import { alea } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
 import { writeFileSync } from "fs";
@@ -93,7 +93,7 @@ export default class Wallet {
   constructor(opts: EthereumInternalOptions["wallet"]) {
     this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
     // create a RNG from our initial starting conditions (opts.mnemonic)
-    this.#randomRng = rng("ganache " + opts.mnemonic);
+    this.#randomRng = alea("ganache " + opts.mnemonic);
 
     const initialAccounts = (this.initialAccounts = this.#initializeAccounts(
       opts
@@ -195,7 +195,7 @@ export default class Wallet {
     //#endregion
   }
 
-  #randomRng: seedrandom.prng;
+  #randomRng: () => number;
 
   #randomBytes = (length: number) => {
     // Since this is a mock RPC library, the rng doesn't need to be
