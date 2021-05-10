@@ -30,3 +30,4 @@ export default class DealInfoManager extends Manager<DealInfo, DealInfoConfig> {
   getDealExpiration(proposalId: RootCID): Promise<number | null>;
   private putDealCids;
 }
+//# sourceMappingURL=deal-info-manager.d.ts.map

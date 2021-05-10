@@ -32,3 +32,4 @@ declare class PowerClaim
 }
 declare type SerializedPowerClaim = SerializedObject<PowerClaimConfig>;
 export { PowerClaim, SerializedPowerClaim };
+//# sourceMappingURL=power-claim.d.ts.map

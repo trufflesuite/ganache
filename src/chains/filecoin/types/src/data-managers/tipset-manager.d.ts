@@ -25,3 +25,4 @@ export default class TipsetManager extends Manager<Tipset, TipsetConfig> {
   getTipsetWithBlocks(height: number): Promise<Tipset | null>;
   fillTipsetBlocks(tipset: Tipset): Promise<void>;
 }
+//# sourceMappingURL=tipset-manager.d.ts.map

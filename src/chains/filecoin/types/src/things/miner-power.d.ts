@@ -40,3 +40,4 @@ declare class MinerPower
 }
 declare type SerializedMinerPower = SerializedObject<MinerPowerConfig>;
 export { MinerPower, SerializedMinerPower };
+//# sourceMappingURL=miner-power.d.ts.map

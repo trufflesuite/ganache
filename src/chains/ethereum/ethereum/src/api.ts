@@ -143,12 +143,16 @@ export default class EthereumApi implements types.Api {
    * The only methods permitted on the prototype are the supported json-rpc
    * methods.
    * @param options
-   * @param ready Callback for when the API is fully initialized
+   * @param wallet
+   * @param emitter
    */
   constructor(
     options: EthereumInternalOptions,
     wallet: Wallet,
-    emitter: Emittery.Typed<{ message: any }, "connect" | "disconnect">
+    emitter: Emittery.Typed<
+      { message: any },
+      "ready" | "connect" | "disconnect"
+    >
   ) {
     this.#options = options;
 
@@ -163,10 +167,9 @@ export default class EthereumApi implements types.Api {
       coinbaseAddress
     ));
     emitter.on("disconnect", blockchain.stop.bind(blockchain));
-  }
-
-  async initialize() {
-    await this.#blockchain.initialize(this.#wallet.initialAccounts);
+    this.#blockchain.initialize(this.#wallet.initialAccounts).then(() => {
+      emitter.emit("ready");
+    });
   }
 
   //#region db

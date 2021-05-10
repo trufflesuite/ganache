@@ -40,3 +40,4 @@ declare class RetrievalPeer
 }
 declare type SerializedRetrievalPeer = SerializedObject<RetrievalPeerConfig>;
 export { RetrievalPeer, SerializedRetrievalPeer };
+//# sourceMappingURL=retrieval-peer.d.ts.map

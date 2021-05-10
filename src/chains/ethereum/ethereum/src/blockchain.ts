@@ -143,7 +143,7 @@ function makeTrie(blockchain: Blockchain, db: LevelUp | null, root: Data) {
 }
 
 function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
-  return Common.forCustomChain(
+  const common = Common.forCustomChain(
     // if we were given a chain id that matches a real chain, use it
     // NOTE: I don't think Common serves a purpose other than instructing the
     // VM what hardfork is in use. But just incase things change in the future
@@ -157,6 +157,13 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
     },
     hardfork
   );
+
+  // the VM likes to listen to "hardforkChanged" events from common, but:
+  //  a) we don't currently support changing hardforks
+  //  b) it can cause `MaxListenersExceededWarning`.
+  // Since we don't need it we overwrite .on to make it be quiet.
+  (common as any).on = () => {};
+  return common;
 }
 
 export default class Blockchain extends Emittery.Typed<
@@ -295,7 +302,8 @@ export default class Blockchain extends Emittery.Typed<
     // create VM and listen to step events
     this.vm = await this.createVmFromStateTrie(
       this.trie,
-      options.chain.allowUnlimitedContractSize
+      options.chain.allowUnlimitedContractSize,
+      true
     );
 
     {
@@ -567,7 +575,8 @@ export default class Blockchain extends Emittery.Typed<
 
   createVmFromStateTrie = async (
     stateTrie: GanacheTrie | ForkTrie,
-    allowUnlimitedContractSize: boolean
+    allowUnlimitedContractSize: boolean,
+    activatePrecompile: boolean
   ) => {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
@@ -590,7 +599,9 @@ export default class Blockchain extends Emittery.Typed<
         ? new ForkStateManager({ common, trie: stateTrie as ForkTrie })
         : new DefaultStateManager({ common, trie: stateTrie })
     });
-    await activatePrecompiles(vm.stateManager);
+    if (activatePrecompile) {
+      await activatePrecompiles(vm.stateManager);
+    }
     return vm;
   };
 
@@ -908,20 +919,21 @@ export default class Blockchain extends Emittery.Typed<
     gasLeft -= calculateIntrinsicGas(data, this.common);
 
     if (gasLeft >= 0) {
-      const stateTrie = makeTrie(
-        this,
-        this.#database.trie,
-        parentBlock.header.stateRoot
+      const stateTrie = this.trie.copy(false);
+      stateTrie.setContext(
+        parentBlock.header.stateRoot.toBuffer(),
+        null,
+        parentBlock.header.number
       );
-
-      // take a checkpoint so the `runCall` never writes to the trie. We don't
-      // commit/revert later because this stateTrie is ephemeral anyway.
-      stateTrie.checkpoint();
 
       const vm = await this.createVmFromStateTrie(
         stateTrie,
-        this.vm.allowUnlimitedContractSize
+        this.#options.chain.allowUnlimitedContractSize,
+        false
       );
+      // take a checkpoint so the `runCall` never writes to the trie. We don't
+      // commit/revert later because this stateTrie is ephemeral anyway.
+      vm.stateManager.checkpoint();
 
       result = await vm.runCall({
         caller: { buf: transaction.from.toBuffer() } as any,

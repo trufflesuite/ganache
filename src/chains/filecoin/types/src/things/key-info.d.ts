@@ -34,3 +34,4 @@ declare class KeyInfo
 }
 declare type SerializedKeyInfo = SerializedObject<KeyInfoConfig>;
 export { KeyInfo, SerializedKeyInfo };
+//# sourceMappingURL=key-info.d.ts.map

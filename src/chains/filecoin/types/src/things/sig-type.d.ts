@@ -3,3 +3,4 @@ export declare enum SigType {
   SigTypeSecp256k1 = 1,
   SigTypeBLS = 2
 }
+//# sourceMappingURL=sig-type.d.ts.map

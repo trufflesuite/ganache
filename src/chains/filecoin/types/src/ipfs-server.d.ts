@@ -13,3 +13,4 @@ declare class IPFSServer {
   stop(): Promise<void>;
 }
 export default IPFSServer;
+//# sourceMappingURL=ipfs-server.d.ts.map

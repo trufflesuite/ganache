@@ -83,3 +83,4 @@ declare class QueryOffer
 }
 declare type SerializedQueryOffer = SerializedObject<QueryOfferConfig>;
 export { QueryOffer, SerializedQueryOffer };
+//# sourceMappingURL=query-offer.d.ts.map

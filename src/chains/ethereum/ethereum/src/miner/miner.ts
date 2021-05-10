@@ -262,6 +262,11 @@ export default class Miner extends Emittery.Typed<
         // the case where the transaction is rejected by the VM.
         await vm.stateManager.checkpoint();
 
+        // Set the internal trie's block number (for forking)
+        (vm.stateManager as any)._trie.blockNumber = Quantity.from(
+          runtimeBlock.header.number.toArrayLike(Buffer)
+        );
+
         const result = await this.#runTx(best, runtimeBlock, origin, pending);
         if (result !== null) {
           const gasUsed = Quantity.from(

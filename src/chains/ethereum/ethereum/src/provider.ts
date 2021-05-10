@@ -35,12 +35,13 @@ type RequestParams<Method extends RequestMethods> = {
 const hasOwn = utils.hasOwn;
 
 export default class EthereumProvider
-  extends Emittery.Typed<{ message: any }, "connect" | "disconnect">
+  extends Emittery.Typed<{ message: any }, "ready" | "connect" | "disconnect">
   implements types.Provider<EthereumApi> {
   #options: EthereumInternalOptions;
   #api: EthereumApi;
   #executor: utils.Executor;
   #wallet: Wallet;
+  #ready: Promise<void>;
 
   constructor(
     options: EthereumProviderOptions | EthereumLegacyProviderOptions = {},
@@ -55,10 +56,11 @@ export default class EthereumProvider
     const wallet = (this.#wallet = new Wallet(providerOptions.wallet));
 
     this.#api = new EthereumApi(providerOptions, wallet, this);
+    this.#ready = this.once("ready");
   }
 
   async initialize() {
-    await this.#api.initialize();
+    await this.#ready;
     await this.emit("connect");
   }
 

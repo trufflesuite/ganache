@@ -23,3 +23,4 @@ declare abstract class SerializableLiteral<C extends BaseConfig>
   equals(obj: Serializable<Literal<C>>): boolean;
 }
 export { SerializableLiteral, LiteralDefinition, Literal };
+//# sourceMappingURL=serializable-literal.d.ts.map

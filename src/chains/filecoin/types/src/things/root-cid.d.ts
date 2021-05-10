@@ -28,3 +28,4 @@ declare class RootCID
 }
 declare type SerializedRootCID = SerializedObject<RootCIDConfig>;
 export { RootCID, SerializedRootCID };
+//# sourceMappingURL=root-cid.d.ts.map

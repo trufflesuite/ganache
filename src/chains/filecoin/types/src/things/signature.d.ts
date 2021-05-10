@@ -34,3 +34,4 @@ declare class Signature
 }
 declare type SerializedSignature = SerializedObject<SignatureConfig>;
 export { Signature, SerializedSignature };
+//# sourceMappingURL=signature.d.ts.map

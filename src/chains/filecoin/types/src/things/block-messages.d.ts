@@ -55,3 +55,4 @@ declare class BlockMessages
 }
 declare type SerializedBlockMessages = SerializedObject<BlockMessagesConfig>;
 export { BlockMessages, BlockMessagesConfig, SerializedBlockMessages };
+//# sourceMappingURL=block-messages.d.ts.map

@@ -38,3 +38,4 @@ export declare enum HeadChangeType {
   HCCurrent = "current"
 }
 export { HeadChange, SerializedHeadChange };
+//# sourceMappingURL=head-change.d.ts.map

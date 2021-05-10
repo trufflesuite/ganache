@@ -55,3 +55,4 @@ declare class Account
 }
 declare type SerializedAccount = SerializedObject<AccountConfig>;
 export { Account, AccountConfig, SerializedAccount };
+//# sourceMappingURL=account.d.ts.map

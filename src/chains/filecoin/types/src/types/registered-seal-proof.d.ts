@@ -10,3 +10,4 @@ export declare enum RegisteredSealProof {
   StackedDrg32GiBV1_1 = 8,
   StackedDrg64GiBV1_1 = 9
 }
+//# sourceMappingURL=registered-seal-proof.d.ts.map

@@ -27,3 +27,4 @@ declare class Ticket
 }
 declare type SerializedTicket = SerializedObject<TicketConfig>;
 export { Ticket, SerializedTicket };
+//# sourceMappingURL=ticket.d.ts.map

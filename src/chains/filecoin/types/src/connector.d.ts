@@ -44,3 +44,4 @@ export declare class Connector
   ): RecognizedString;
   close(): Promise<void>;
 }
+//# sourceMappingURL=connector.d.ts.map
