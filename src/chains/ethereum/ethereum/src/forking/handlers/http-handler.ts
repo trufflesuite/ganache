@@ -180,4 +180,9 @@ export class HttpHandler extends BaseHandler implements Handler {
     this.requestCache.set(data, promise);
     return promise;
   }
+
+  public close() {
+    // no op
+    return Promise.resolve();
+  }
 }
