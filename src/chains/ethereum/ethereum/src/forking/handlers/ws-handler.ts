@@ -104,4 +104,9 @@ export class WsHandler extends BaseHandler implements Handler {
     );
     return open;
   }
+
+  public close() {
+    this.connection.close();
+    return Promise.resolve();
+  }
 }

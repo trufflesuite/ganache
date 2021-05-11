@@ -83,7 +83,8 @@ export class Fork {
             // but when JSON stringified they are
             params: JSON.parse(JSON.stringify(params))
           }) as Promise<T>;
-        }
+        },
+        close: () => Promise.resolve()
       };
     }
   }
@@ -169,6 +170,10 @@ export class Fork {
 
   public abort() {
     return this.#abortController.abort();
+  }
+
+  public close() {
+    return this.#handler.close();
   }
 
   public selectValidForkBlockNumber(blockNumber: Quantity) {

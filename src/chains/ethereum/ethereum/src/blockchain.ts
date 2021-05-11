@@ -1449,6 +1449,8 @@ export default class Blockchain extends Emittery.Typed<
     // wait for anything in the process of being saved to finish up
     await this.#blockBeingSavedPromise;
 
+    this.fallback && (await this.fallback.close());
+
     await this.emit("stop");
 
     if (this.#state === Status.started) {
