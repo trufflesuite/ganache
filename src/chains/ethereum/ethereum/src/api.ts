@@ -150,7 +150,7 @@ export default class EthereumApi implements types.Api {
     options: EthereumInternalOptions,
     wallet: Wallet,
     emitter: Emittery.Typed<
-      { message: any },
+      { message: any; error: Error },
       "ready" | "connect" | "disconnect"
     >
   ) {
@@ -167,9 +167,14 @@ export default class EthereumApi implements types.Api {
       coinbaseAddress
     ));
     emitter.on("disconnect", blockchain.stop.bind(blockchain));
-    this.#blockchain.initialize(this.#wallet.initialAccounts).then(() => {
-      emitter.emit("ready");
-    });
+    this.#blockchain
+      .initialize(this.#wallet.initialAccounts)
+      .then(() => {
+        emitter.emit("ready");
+      })
+      .catch(e => {
+        emitter.emit("error", e);
+      });
   }
 
   //#region db

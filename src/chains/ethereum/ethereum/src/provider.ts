@@ -1,6 +1,6 @@
 import Emittery from "emittery";
 import EthereumApi from "./api";
-import { JsonRpcTypes } from "@ganache/utils";
+import { JsonRpcTypes, PromiEvent, types, utils } from "@ganache/utils";
 import {
   EthereumProviderOptions,
   EthereumInternalOptions,
@@ -8,7 +8,6 @@ import {
   EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
 import cloneDeep from "lodash.clonedeep";
-import { PromiEvent, types, utils } from "@ganache/utils";
 import Wallet from "./wallet";
 declare type RequestMethods = types.KnownKeys<EthereumApi>;
 
@@ -35,13 +34,16 @@ type RequestParams<Method extends RequestMethods> = {
 const hasOwn = utils.hasOwn;
 
 export default class EthereumProvider
-  extends Emittery.Typed<{ message: any }, "ready" | "connect" | "disconnect">
+  extends Emittery.Typed<
+    { message: any; error: Error },
+    "ready" | "connect" | "disconnect"
+  >
   implements types.Provider<EthereumApi> {
   #options: EthereumInternalOptions;
   #api: EthereumApi;
   #executor: utils.Executor;
   #wallet: Wallet;
-  #ready: Promise<void>;
+  #ready: Promise<void | Error>;
 
   constructor(
     options: EthereumProviderOptions | EthereumLegacyProviderOptions = {},
@@ -56,7 +58,18 @@ export default class EthereumProvider
     const wallet = (this.#wallet = new Wallet(providerOptions.wallet));
 
     this.#api = new EthereumApi(providerOptions, wallet, this);
-    this.#ready = this.once("ready");
+    this.#ready = new Promise((resolve, reject) => {
+      const errorOff = this.on("error", e => {
+        readyOff();
+        errorOff();
+        reject(e);
+      });
+      const readyOff = this.on("ready", () => {
+        readyOff();
+        errorOff();
+        resolve();
+      });
+    });
   }
 
   async initialize() {
