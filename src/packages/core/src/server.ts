@@ -6,13 +6,17 @@ import uWS, {
   TemplatedApp,
   us_listen_socket
 } from "@trufflesuite/uws-js-unofficial";
-import { Connector, DefaultFlavor } from "@ganache/flavors";
+import {
+  Connector,
+  ConnectorsByName,
+  DefaultFlavor,
+  FlavorName,
+  Options
+} from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
-
-type Provider = Connector["provider"];
 
 const DEFAULT_HOST = "127.0.0.1";
 
@@ -65,19 +69,21 @@ export enum Status {
   closingOrClosed = (1 << 3) | (1 << 4)
 }
 
-export class Server extends Emittery<{ open: undefined; close: undefined }> {
+export class Server<
+  T extends FlavorName = typeof DefaultFlavor
+> extends Emittery<{ open: undefined; close: undefined }> {
   #options: InternalOptions;
-  #providerOptions: ServerOptions;
+  #providerOptions: Options<T>;
   #status: number = Status.unknown;
   #app: TemplatedApp | null = null;
   #httpServer: HttpServer | null = null;
   #listenSocket: us_listen_socket | null = null;
-  #connector: Connector;
+  #connector: ConnectorsByName[T];
   #websocketServer: WebsocketServer | null = null;
 
   #initializer: Promise<void>;
 
-  public get provider(): Provider {
+  public get provider(): ConnectorsByName[T]["provider"] {
     return this.#connector.provider;
   }
 
@@ -86,7 +92,9 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
   }
 
   constructor(
-    providerAndServerOptions: ServerOptions = { flavor: DefaultFlavor }
+    providerAndServerOptions: ServerOptions<T> = {
+      flavor: DefaultFlavor
+    } as ServerOptions<T>
   ) {
     super();
     this.#options = serverOptionsConfig.normalize(providerAndServerOptions);

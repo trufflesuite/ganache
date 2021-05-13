@@ -2,7 +2,6 @@
 import {
   Tag,
   BlockLogs,
-  Account,
   VM_EXCEPTION,
   VM_EXCEPTIONS,
   CodedError,
@@ -24,7 +23,7 @@ import {
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
-import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import {
   types,
   Data,
@@ -102,30 +101,6 @@ function assertExceptionalTransactions(transactions: RuntimeTransaction[]) {
   }
 }
 
-function parseCoinbaseAddress(
-  coinbase: string | number | Address,
-  initialAccounts: Account[]
-) {
-  switch (typeof coinbase) {
-    case "object":
-      return coinbase;
-    case "number":
-      const account = initialAccounts[coinbase];
-      if (account) {
-        return account.address;
-      } else {
-        throw new Error(`invalid coinbase address index: ${coinbase}`);
-      }
-    case "string":
-      return Address.from(coinbase);
-    default: {
-      throw new Error(
-        `coinbase address must be string or number, received: ${coinbase}`
-      );
-    }
-  }
-}
-
 //#endregion helpers
 
 export default class EthereumApi implements types.Api {
@@ -134,8 +109,8 @@ export default class EthereumApi implements types.Api {
   readonly #getId = (id => () => Quantity.from(++id))(0);
   readonly #filters = new Map<string, Filter>();
   readonly #subscriptions = new Map<string, Emittery.UnsubscribeFn>();
-  readonly #blockchain: Blockchain;
   readonly #options: EthereumInternalOptions;
+  readonly #blockchain: Blockchain;
   readonly #wallet: Wallet;
 
   /**
@@ -149,32 +124,11 @@ export default class EthereumApi implements types.Api {
   constructor(
     options: EthereumInternalOptions,
     wallet: Wallet,
-    emitter: Emittery.Typed<
-      { message: any; error: Error },
-      "ready" | "connect" | "disconnect"
-    >
+    blockchain: Blockchain
   ) {
     this.#options = options;
-
-    const { initialAccounts } = (this.#wallet = wallet);
-    const coinbaseAddress = parseCoinbaseAddress(
-      options.miner.coinbase,
-      initialAccounts
-    );
-
-    const blockchain = (this.#blockchain = new Blockchain(
-      options,
-      coinbaseAddress
-    ));
-    emitter.on("disconnect", blockchain.stop.bind(blockchain));
-    this.#blockchain
-      .initialize(this.#wallet.initialAccounts)
-      .then(() => {
-        emitter.emit("ready");
-      })
-      .catch(e => {
-        emitter.emit("error", e);
-      });
+    this.#wallet = wallet;
+    this.#blockchain = blockchain;
   }
 
   //#region db

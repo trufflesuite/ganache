@@ -77,7 +77,7 @@ type BlockchainTypedEvents = {
   blockLogs: BlockLogs;
   pendingTransaction: RuntimeTransaction;
 };
-type BlockchainEvents = "start" | "stop";
+type BlockchainEvents = "ready" | "stop";
 
 export type TransactionTraceOptions = {
   disableStorage?: boolean;
@@ -201,9 +201,15 @@ export default class Blockchain extends Emittery.Typed<
    * initialized.
    * @param options
    */
-  constructor(options: EthereumInternalOptions, coinbaseAddress: Address) {
+  constructor(
+    options: EthereumInternalOptions,
+    coinbase: Address,
+    fallback?: Fork
+  ) {
     super();
+
     this.#options = options;
+    this.fallback = fallback;
 
     const instamine = (this.#instamine =
       !options.miner.blockTime || options.miner.blockTime <= 0);
@@ -232,7 +238,7 @@ export default class Blockchain extends Emittery.Typed<
       }
     }
 
-    this.coinbase = coinbaseAddress;
+    this.coinbase = coinbase;
 
     this.#database = new Database(options.database, this);
   }
@@ -241,12 +247,7 @@ export default class Blockchain extends Emittery.Typed<
     const database = this.#database;
     const options = this.#options;
     const instamine = this.#instamine;
-    this.fallback =
-      options.fork.url || options.fork.provider
-        ? new Fork(options, initialAccounts)
-        : null;
 
-    await database.initialize();
     let common: Common;
     if (this.fallback) {
       await Promise.all([database.initialize(), this.fallback.initialize()]);
@@ -284,19 +285,19 @@ export default class Blockchain extends Emittery.Typed<
     this.storageKeys = database.storageKeys;
 
     // if we have a latest block, use it to set up the trie.
-    const latest = blocks.latest;
-    if (latest) {
-      this.#blockBeingSavedPromise = Promise.resolve({
-        block: latest,
-        blockLogs: null
-      });
-      this.trie = makeTrie(this, database.trie, latest.header.stateRoot);
-    } else {
-      this.trie = makeTrie(
-        this,
-        database.trie,
-        null //this.fallback ? this.fallback.stateRoot : null
-      );
+    const { latest } = blocks;
+    {
+      let stateRoot: Data | null;
+      if (latest) {
+        this.#blockBeingSavedPromise = Promise.resolve({
+          block: latest,
+          blockLogs: null
+        });
+        ({ stateRoot } = latest.header);
+      } else {
+        stateRoot = null;
+      }
+      this.trie = makeTrie(this, database.trie, stateRoot);
     }
 
     // create VM and listen to step events
@@ -367,7 +368,7 @@ export default class Blockchain extends Emittery.Typed<
     }
 
     this.#state = Status.started;
-    this.emit("start");
+    this.emit("ready");
   }
 
   #saveNewBlock = ({
@@ -1431,7 +1432,7 @@ export default class Blockchain extends Emittery.Typed<
     // cause a segfault due to a race condition between a db write and the close
     // call.
     if (this.#state === Status.starting) {
-      await this.once("start");
+      await this.once("ready");
     }
 
     // stop the polling miner, if necessary

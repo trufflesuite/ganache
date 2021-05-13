@@ -19,6 +19,13 @@ export interface Connector<
   provider: Provider<ApiImplementation>;
 
   /**
+   * Instructs the connector to initialize its internal components. Must return
+   * a promise that resolves once it has fully started, or reject if it couldn't
+   * start.
+   */
+  connect: () => Promise<void>;
+
+  /**
    * Parses a raw message into something that can be handled by `handle`
    * @param message
    */

@@ -1,4 +1,4 @@
-import { Providers } from "@ganache/flavors";
+import { DefaultFlavor, FlavorName, Providers } from "@ganache/flavors";
 import ConnectorLoader from "./src/connector-loader";
 import { ProviderOptions, ServerOptions } from "./src/options";
 import Server from "./src/server";
@@ -20,7 +20,9 @@ export default {
    * @returns A provider instance for the flavor
    * `options.flavor` which defaults to `ethereum`.
    */
-  server: (options?: ServerOptions) => new Server(options),
+  server: <T extends FlavorName = typeof DefaultFlavor>(
+    options?: ServerOptions<T>
+  ) => new Server(options),
 
   /**
    * Initializes a Web3 provider for a Ganache instance.
@@ -36,8 +38,10 @@ export default {
    * @returns A provider instance for the flavor
    * `options.flavor` which defaults to `ethereum`.
    */
-  provider: (options?: ProviderOptions): Providers => {
-    const connector = ConnectorLoader.initialize(options);
+  provider: <T extends FlavorName = typeof DefaultFlavor>(
+    options?: ProviderOptions<T>
+  ): Providers => {
+    const connector = ConnectorLoader.initialize<T>(options);
     return connector.provider;
   }
 };
