@@ -17,6 +17,7 @@ import chalk from "chalk";
 
 // we need "@ganache/options" in order for TS to properly infer types for `DefaultOptionsByName`
 import "@ganache/options";
+import { utils } from "@ganache/utils";
 
 const NEED_HELP = "Need help? Reach out to the Truffle community at";
 const COMMUNITY_LINK = "https://trfl.co/support";
@@ -36,26 +37,33 @@ export type ConnectorsByName = {
   [FilecoinFlavorName]: Filecoin.Connector;
 };
 
+export type OptionsByName = {
+  [EthereumFlavorName]: EthereumProviderOptions;
+  [FilecoinFlavorName]: FilecoinProviderOptions;
+};
+
 export type FlavorName = keyof ConnectorsByName;
 
 export type Connector = {
   [K in keyof ConnectorsByName]: ConnectorsByName[K];
 }[keyof ConnectorsByName];
 
-export function GetConnector(
-  flavor: FlavorName,
-  providerOptions: any,
-  executor
-): Connector {
+export function GetConnector<T extends FlavorName>(
+  flavor: T,
+  providerOptions: Options<typeof flavor>,
+  executor: utils.Executor
+): ConnectorsByName[T] {
   switch (flavor) {
     case DefaultFlavor:
-      return new Ethereum.Connector(providerOptions, executor);
+      return new Ethereum.Connector(
+        providerOptions,
+        executor
+      ) as ConnectorsByName[T];
     case FilecoinFlavorName:
       try {
-        const connector: Filecoin.Connector = require("@ganache/filecoin")
-          .Connector;
+        const Connector: Filecoin.Connector = require("@ganache/filecoin");
         // @ts-ignore
-        return new connector(providerOptions, executor);
+        return new Connector(providerOptions, executor);
       } catch (e) {
         if (e.message.includes("Cannot find module '@ganache/filecoin'")) {
           // we print and exit rather than throw to prevent webpack output from being
@@ -80,12 +88,16 @@ export function GetConnector(
 
 export type Providers = Ethereum.Provider | Filecoin.Provider;
 
-type EthereumOptions = {
-  flavor?: typeof EthereumFlavorName;
+type EthereumOptions<T = "ethereum"> = {
+  flavor?: T;
 } & (EthereumProviderOptions | EthereumLegacyProviderOptions);
 
-type FilecoinOptions = {
-  flavor?: typeof FilecoinFlavorName;
+type FilecoinOptions<T = "filecoin"> = {
+  flavor: T;
 } & (FilecoinProviderOptions | FilecoinLegacyProviderOptions);
 
-export type Options = EthereumOptions | FilecoinOptions;
+export type Options<T extends "filecoin" | "ethereum"> = T extends "filecoin"
+  ? FilecoinOptions<T>
+  : T extends "ethereum"
+  ? EthereumOptions<T>
+  : never;

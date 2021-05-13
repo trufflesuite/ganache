@@ -49,7 +49,7 @@ export class Connector
     this.#provider = new EthereumProvider(providerOptions, executor);
   }
 
-  async initialize() {
+  async connect() {
     await this.#provider.initialize();
     // no need to wait for #provider.once("connect") as the initialize()
     // promise has already accounted for that after the promise is resolved

@@ -26,7 +26,7 @@ export declare class Connector
     providerOptions: FilecoinProviderOptions,
     executor: utils.Executor
   );
-  initialize(): Promise<void>;
+  connect(): Promise<void>;
   parse(message: Buffer): JsonRpcTypes.Request<FilecoinApi>;
   handle(
     payload: JsonRpcTypes.Request<FilecoinApi>,
