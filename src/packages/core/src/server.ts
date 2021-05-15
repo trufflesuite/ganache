@@ -195,7 +195,6 @@ export class Server<
         if (listenSocket) {
           this.#status = Status.open;
           this.#listenSocket = listenSocket;
-          if (callbackIsFunction) callback!(null);
         } else {
           this.#status = Status.closed;
           const err = new Error(
@@ -203,8 +202,7 @@ export class Server<
               hostname || DEFAULT_HOST
             }:${port}.`
           );
-          if (callbackIsFunction) callback!(err);
-          else throw err;
+          throw err;
         }
       })
     ]).then(async promiseResults => {
@@ -226,16 +224,17 @@ export class Server<
         } catch (e) {
           errors.push(e);
         }
-        const aggregateError = new AggregateError(errors);
-        if (callbackIsFunction) {
-          callback!(aggregateError);
+        if (errors.length > 1) {
+          throw new AggregateError(errors);
         } else {
-          throw aggregateError;
+          throw errors[0];
         }
       }
     });
 
-    if (!callbackIsFunction) {
+    if (callbackIsFunction) {
+      promise.then(() => callback(null)).catch(callback);
+    } else {
       return promise;
     }
   }

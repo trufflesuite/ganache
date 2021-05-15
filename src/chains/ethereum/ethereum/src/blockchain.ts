@@ -252,6 +252,7 @@ export default class Blockchain extends Emittery.Typed<
     if (this.fallback) {
       await Promise.all([database.initialize(), this.fallback.initialize()]);
       common = this.common = this.fallback.common;
+      options.fork.blockNumber = this.fallback.blockNumber.toNumber();
       options.chain.networkId = common.networkId();
       options.chain.chainId = common.chainId();
     } else {
