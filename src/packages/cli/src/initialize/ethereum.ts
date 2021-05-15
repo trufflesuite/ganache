@@ -81,6 +81,7 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     console.log(`Location:        ${liveOptions.fork.url.toString()}`);
     console.log(`Block:           ${liveOptions.fork.blockNumber}`);
     console.log(`Network ID:      ${liveOptions.chain.networkId}`);
+    console.log(`Time:            ${new Date().toString()}`);
     if (liveOptions.fork.requestsPerSecond !== 0) {
       console.log(`Requests/Second: ${liveOptions.fork.requestsPerSecond}`);
     }

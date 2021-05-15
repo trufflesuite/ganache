@@ -188,7 +188,9 @@ describe("server", () => {
       server.listen(port);
 
       try {
-        await assert.rejects(setup, `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`);
+        await assert.rejects(setup, {
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
+        });
       } finally {
         await teardown();
         server.close();
@@ -225,7 +227,9 @@ describe("server", () => {
         const s2 = Ganache.server();
 
         try {
-          await assert.rejects(s2.listen(port), `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`);
+          await assert.rejects(s2.listen(port), {
+            message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
+          });
         } catch (e) {
           // in case of failure, make sure we properly shut things down
           if (s2.status & Status.open) {
