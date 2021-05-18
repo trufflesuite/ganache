@@ -29,7 +29,10 @@ import {
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import { types, Data, Quantity, PromiEvent, utils } from "@ganache/utils";
-import Blockchain, { TransactionTraceOptions } from "./blockchain";
+import Blockchain, {
+  SimulationOverrides,
+  TransactionTraceOptions
+} from "./blockchain";
 import Wallet from "./wallet";
 import { decode as rlpDecode } from "rlp";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
@@ -1787,10 +1790,11 @@ export default class EthereumApi implements types.Api {
    *
    * @returns the return value of executed contract.
    */
-  @assertArgLength(1, 2)
+  @assertArgLength(1, 3)
   async eth_call(
     transaction: any,
-    blockNumber: string | Buffer | Tag = Tag.LATEST
+    blockNumber: string | Buffer | Tag = Tag.LATEST,
+    overrides: SimulationOverrides = {}
   ) {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
@@ -1846,7 +1850,11 @@ export default class EthereumApi implements types.Api {
       block
     };
 
-    return blockchain.simulateTransaction(simulatedTransaction, parentBlock);
+    return blockchain.simulateTransaction(
+      simulatedTransaction,
+      parentBlock,
+      overrides
+    );
   }
   //#endregion
 

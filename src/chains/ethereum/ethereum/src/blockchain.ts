@@ -132,6 +132,10 @@ export type BlockchainOptions = {
   logger: Logger;
 };
 
+export type SimulationOverrides = {
+  [address: string]: Partial<{ code: string; nonce: string; balance: string }>;
+};
+
 /**
  * Sets the provided VM state manager's state root *without* first
  * checking for checkpoints or flushing the existing cache.
@@ -545,6 +549,26 @@ export default class Blockchain extends Emittery.Typed<
     });
   };
 
+  applySimulationOverrides = async (vm: VM, overrides: SimulationOverrides) => {
+    for (const [address, override] of Object.entries(overrides)) {
+      const addressBuffer = Address.from(address).toBuffer();
+      if (override.code) {
+        await vm.pStateManager.putContractCode(
+          addressBuffer,
+          Data.from(override.code).toBuffer()
+        );
+      }
+      const account = await vm.pStateManager.getAccount(addressBuffer);
+      if (override.nonce) {
+        account.nonce = Quantity.from(override.nonce).toBuffer();
+      }
+      if (override.balance) {
+        account.balance = Quantity.from(override.balance).toBuffer();
+      }
+      await vm.pStateManager.putAccount(addressBuffer, account);
+    }
+  };
+
   getFromTrie = (trie: SecureTrie, address: Buffer): Promise<Buffer> =>
     new Promise((resolve, reject) => {
       trie.get(address, (err, data) => {
@@ -816,7 +840,8 @@ export default class Blockchain extends Emittery.Typed<
 
   public async simulateTransaction(
     transaction: SimulationTransaction,
-    parentBlock: Block
+    parentBlock: Block,
+    overrides: SimulationOverrides
   ) {
     let result: EVMResult;
     const options = this.#options;
@@ -839,6 +864,8 @@ export default class Blockchain extends Emittery.Typed<
         stateTrie,
         this.vm.allowUnlimitedContractSize
       );
+
+      await this.applySimulationOverrides(vm, overrides);
 
       result = await vm.runCall({
         caller: transaction.from.toBuffer(),
