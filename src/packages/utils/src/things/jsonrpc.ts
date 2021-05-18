@@ -41,7 +41,7 @@ namespace JsonRpc {
     };
   };
   export const Error = <T extends JSError & { code: number }>(
-    id: string,
+    id: string | undefined,
     error: T,
     result?: unknown
   ): Error => {

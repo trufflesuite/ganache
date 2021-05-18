@@ -1,6 +1,6 @@
-import uWS, { TemplatedApp, WebSocket } from "uWebSockets.js";
+import uWS, { TemplatedApp, WebSocket } from "@trufflesuite/uws-js-unofficial";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import { ServerOptions } from "../options";
+import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
 import { PromiEvent } from "@ganache/utils";
 
@@ -20,7 +20,10 @@ export type WebSocketCapableFlavor = {
 
 export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
-export type WebsocketServerOptions = Pick<ServerOptions["server"], "wsBinary">;
+export type WebsocketServerOptions = Pick<
+  InternalOptions["server"],
+  "wsBinary" | "rpcEndpoint"
+>;
 
 export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
@@ -32,11 +35,14 @@ export default class WebsocketServer {
     const connections = this.#connections;
     const wsBinary = options.wsBinary;
     const autoBinary = wsBinary === "auto";
-    app.ws("/", {
+    app.ws(options.rpcEndpoint, {
       /* WS Options */
-      compression: uWS.SHARED_COMPRESSOR, // Zero memory overhead compression
       maxPayloadLength: 16 * 1024, // 128 Kibibits
       idleTimeout: 120, // in seconds
+
+      // Note that compression is disabled (the default option)
+      // due to not being able to link against electron@12
+      // with compression included
 
       /* Handlers */
       open: (ws: GanacheWebSocket) => {
@@ -49,13 +55,16 @@ export default class WebsocketServer {
         message: ArrayBuffer,
         isBinary: boolean
       ) => {
-        let payload: ReturnType<typeof connector.parse>;
+        // We have to use type any instead of ReturnType<typeof connector.parse>
+        // on `payload` because Typescript isn't smart enough to understand the
+        // ambiguity doesn't actually exist
+        let payload: any;
         const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
         try {
           payload = connector.parse(Buffer.from(message));
         } catch (err) {
           const response = connector.formatError(err, payload);
-          ws.send(response, useBinary, true);
+          ws.send(response, useBinary);
           return;
         }
 
@@ -75,8 +84,14 @@ export default class WebsocketServer {
           response = connector.format(result, payload);
 
           // if the result is an emitter listen to its `"message"` event
-          if (resultEmitter instanceof PromiEvent) {
-            resultEmitter.on("message", (result: any) => {
+          // We check if `on` is a function rather than check if
+          // `resultEmitter instanceof PromiEvent` because `@ganache/filecoin`
+          // and `ganache` webpack `@ganache/utils` separately. This causes
+          // instanceof to fail here. Since we know `resultEmitter` is MergePromiseT
+          // we can safely assume that if `on` is a function, then we have a PromiEvent
+          if (typeof resultEmitter["on"] === "function") {
+            const resultEmitterPromiEvent = resultEmitter as PromiEvent<any>;
+            resultEmitterPromiEvent.on("message", (result: any) => {
               // note: we _don't_ need to check if `ws.closed` here because when
               // `ws.closed` is set we remove this event handler anyway.
               const message = JSON.stringify({
@@ -84,11 +99,11 @@ export default class WebsocketServer {
                 method: result.type,
                 params: result.data
               });
-              ws.send(message, isBinary, true);
+              ws.send(message, isBinary);
             });
 
             // keep track of listeners to dispose off when the ws disconnects
-            connections.get(ws).add(resultEmitter.dispose);
+            connections.get(ws).add(resultEmitterPromiEvent.dispose);
           }
         } catch (err) {
           // ensure the connector's `handle` fn doesn't throw outside of a Promise
@@ -97,7 +112,7 @@ export default class WebsocketServer {
           response = connector.formatError(err, payload);
         }
 
-        ws.send(response, useBinary, true);
+        ws.send(response, useBinary);
       },
 
       drain: (ws: WebSocket) => {

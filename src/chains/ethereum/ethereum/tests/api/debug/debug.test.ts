@@ -200,11 +200,10 @@ describe("api", () => {
       const blockchain = new Blockchain(
         EthereumOptionsConfig.normalize({}),
         common,
-        initialAccounts,
         address
       );
 
-      await blockchain.once("start");
+      await blockchain.initialize(initialAccounts);
 
       // Deployment transaction
       const deploymentTransaction = new Transaction(
@@ -311,6 +310,6 @@ describe("api", () => {
       }
 
       assert.strictEqual(countMap.size, expectedObjectsInFinalTrace);
-    });
+    }).timeout(5000);
   });
 });

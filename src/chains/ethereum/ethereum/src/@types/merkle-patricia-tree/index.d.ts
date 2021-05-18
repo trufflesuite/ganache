@@ -20,13 +20,17 @@ declare module "merkle-patricia-tree" {
     constructor(db: Database, root: Buffer);
     get(key: LargeNumber, cb: Callback<Buffer | null>): void;
     put(key: LargeNumber, value: LargeNumber, cb: Callback<never>): void;
-    copy(): Trie;
+    copy(): CheckpointTrie;
 
     checkpoint(): void;
     commit(cb: Callback<never>): void;
     revert(cb: Callback<never>): void;
     createScratchReadStream(scratch: Database): ScratchReadStream;
-    static prove(trie: Trie, key: LargeNumber, cb: Callback<MerkleProof>): void;
+    static prove(
+      trie: CheckpointTrie,
+      key: LargeNumber,
+      cb: Callback<MerkleProof>
+    ): void;
     static verifyProof(
       rootHash: LargeNumber,
       key: LargeNumber,

@@ -5,7 +5,7 @@ import {
   EthereumProviderOptions,
   EthereumInternalOptions,
   EthereumOptionsConfig,
-  EthereumLegacyOptions
+  EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
 import cloneDeep from "lodash.clonedeep";
 import { PromiEvent, types, utils } from "@ganache/utils";
@@ -43,7 +43,7 @@ export default class EthereumProvider
   #wallet: Wallet;
 
   constructor(
-    options: EthereumProviderOptions | EthereumLegacyOptions = {},
+    options: EthereumProviderOptions | EthereumLegacyProviderOptions = {},
     executor: utils.Executor
   ) {
     super();
@@ -55,6 +55,11 @@ export default class EthereumProvider
     const wallet = (this.#wallet = new Wallet(providerOptions.wallet));
 
     this.#api = new EthereumApi(providerOptions, wallet, this);
+  }
+
+  async initialize() {
+    await this.#api.initialize();
+    await this.emit("connect");
   }
 
   /**
@@ -266,6 +271,8 @@ export default class EthereumProvider
             : JSON.stringify(params, null, 2).split("\n").join("\n   > ")
         }`
       );
+    } else {
+      options.logging.logger.log(method);
     }
   };
 

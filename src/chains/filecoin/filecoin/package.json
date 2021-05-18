@@ -1,0 +1,106 @@
+{
+  "name": "@ganache/filecoin",
+  "version": "0.1.5",
+  "description": "Ganache's Filecoin client implementation",
+  "author": "Tim Coulter",
+  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/filecoin#readme",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.13.0 <=14.14.0",
+    "npm": ">=6.4.1"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "source": "index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib/index.*",
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trufflesuite/ganache-core.git",
+    "directory": "src/chains/filecoin"
+  },
+  "scripts": {
+    "build": "webpack",
+    "docs.build": "rm -rf ./lib/docs ./lib/api.json && npm run docs.typedoc",
+    "docs.typedoc": "typedoc --options ./typedoc.json --readme ./README.md --out ../../../docs/typedoc --json ../../../docs/typedoc/api.json src/api.ts",
+    "docs.preview": "ws --open --port 3012 --directory ../../../",
+    "tsc": "ttsc --build",
+    "tsc.declarations": "ttsc --build tsconfig.declarations.json",
+    "test": "ts-node ../../../../scripts/skip-if-less-than-node-12.ts || nyc --reporter lcov npm run mocha",
+    "mocha": "ts-node ../../../../scripts/skip-if-less-than-node-12.ts || cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true TS_NODE_PROJECT=tsconfig.test.json mocha --timeout 60000 --no-parallel --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache-core/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-filecion",
+    "filecion",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "web3",
+    "tooling"
+  ],
+  "dependencies": {
+    "ipfs": "0.52.3",
+    "ipfs-http-server": "0.1.4",
+    "ipld-dag-cbor": "0.17.0",
+    "leveldown": "5.6.0",
+    "secp256k1": "4.0.2"
+  },
+  "devDependencies": {
+    "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",
+    "@filecoin-shipyard/lotus-client-rpc": "0.2.0",
+    "@filecoin-shipyard/lotus-client-schema": "2.0.0",
+    "@ganache/filecoin-options": "0.1.3",
+    "@ganache/options": "0.1.0",
+    "@ganache/utils": "0.1.0",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
+    "@types/bn.js": "5.1.0",
+    "@types/deep-equal": "1.0.1",
+    "@types/levelup": "4.3.0",
+    "@types/lodash.clonedeep": "4.5.6",
+    "@types/secp256k1": "4.0.1",
+    "@types/seedrandom": "3.0.0",
+    "@types/terser-webpack-plugin": "5.0.2",
+    "@types/ws": "7.4.0",
+    "abstract-leveldown": "6.3.0",
+    "async-sema": "3.1.0",
+    "base32-encoding": "1.0.0",
+    "blakejs": "1.1.0",
+    "bn.js": "5.1.2",
+    "borc": "2.1.2",
+    "cross-env": "7.0.2",
+    "deep-equal": "2.0.3",
+    "emittery": "0.7.2",
+    "encoding-down": "6.3.0",
+    "ipfs-http-client": "48.1.3",
+    "levelup": "4.4.0",
+    "lodash.clonedeep": "4.5.0",
+    "mocha": "8.0.1",
+    "multicodec": "2.1.0",
+    "multihashing": "0.3.3",
+    "noble-bls12-381": "0.4.3",
+    "node-loader": "1.0.2",
+    "nyc": "15.1.0",
+    "seedrandom": "3.0.5",
+    "subleveldown": "5.0.1",
+    "terser-webpack-plugin": "5.0.3",
+    "tmp-promise": "3.0.2",
+    "ts-loader": "8.0.7",
+    "typedoc": "0.17.8",
+    "webpack": "5.21.2",
+    "webpack-cli": "4.5.0",
+    "ws": "7.4.2"
+  }
+}

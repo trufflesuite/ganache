@@ -6,7 +6,6 @@ import { WalletConfig, WalletOptions } from "./wallet-options";
 import {
   Base,
   Defaults,
-  Definitions,
   ExternalConfig,
   InternalConfig,
   Legacy,
@@ -18,12 +17,20 @@ import {
 } from "@ganache/options";
 import { UnionToIntersection } from "./helper-types";
 
-export type EthereumOptions = {
+type EthereumConfig = {
   chain: ChainConfig;
   database: DatabaseConfig;
   logging: LoggingConfig;
   miner: MinerConfig;
   wallet: WalletConfig;
+};
+
+export const EthereumDefaults: Defaults<EthereumConfig> = {
+  chain: ChainOptions,
+  database: DatabaseOptions,
+  logging: LoggingOptions,
+  miner: MinerOptions,
+  wallet: WalletOptions
 };
 
 type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
@@ -34,7 +41,7 @@ type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
   }[keyof Options<C>]
 >;
 
-export type EthereumLegacyOptions = Partial<
+export type EthereumLegacyProviderOptions = Partial<
   MakeLegacyOptions<ChainConfig> &
     MakeLegacyOptions<DatabaseConfig> &
     MakeLegacyOptions<LoggingConfig> &
@@ -44,27 +51,15 @@ export type EthereumLegacyOptions = Partial<
 
 export type EthereumProviderOptions = Partial<
   {
-    [K in keyof EthereumOptions]: ExternalConfig<EthereumOptions[K]>;
+    [K in keyof EthereumConfig]: ExternalConfig<EthereumConfig[K]>;
   }
 >;
 
 export type EthereumInternalOptions = {
-  [K in keyof EthereumOptions]: InternalConfig<EthereumOptions[K]>;
+  [K in keyof EthereumConfig]: InternalConfig<EthereumConfig[K]>;
 };
 
-export type EthereumDefaults = {
-  [K in keyof EthereumOptions]: Definitions<EthereumOptions[K]>;
-};
-
-export const ethereumDefaults: Defaults<EthereumOptions> = {
-  chain: ChainOptions,
-  database: DatabaseOptions,
-  logging: LoggingOptions,
-  miner: MinerOptions,
-  wallet: WalletOptions
-};
-
-export const EthereumOptionsConfig = new OptionsConfig(ethereumDefaults);
+export const EthereumOptionsConfig = new OptionsConfig(EthereumDefaults);
 
 export * from "./chain-options";
 export * from "./database-options";

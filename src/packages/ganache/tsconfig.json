@@ -1,5 +1,5 @@
 {
-  "extends": "../../../tsconfig.json",
+  "extends": "../../tsconfig-base.json",
   "compilerOptions": {
     "outDir": "lib"
   },
@@ -19,6 +19,10 @@
     {
       "name": "@ganache/core",
       "path": "../core"
+    },
+    {
+      "name": "@ganache/filecoin",
+      "path": "../../chains/filecoin/filecoin"
     }
   ]
 }

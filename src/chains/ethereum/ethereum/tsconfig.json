@@ -1,11 +1,10 @@
 {
-  "extends": "../../../../tsconfig.json",
+  "extends": "../../../tsconfig-base.json",
   "compilerOptions": {
     "outDir": "lib",
     "composite": true
   },
   "include": ["index.ts", "src/**/*"],
-  "typeRoots": ["./node_modules/@types", "./src/@types"],
   "references": [
     {
       "name": "@ganache/ethereum-utils",

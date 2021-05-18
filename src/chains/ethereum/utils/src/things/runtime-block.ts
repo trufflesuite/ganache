@@ -6,8 +6,9 @@ import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Transaction } from "./transaction";
 import { Address } from "./address";
 import { KECCAK256_RLP_ARRAY } from "ethereumjs-util";
+import { StorageKeys } from "../types/debug-storage";
 
-const { BUFFER_EMPTY, RPCQUANTITY_ZERO } = utils;
+const { BUFFER_EMPTY } = utils;
 
 type BlockHeader = {
   parentHash: Data;
@@ -18,6 +19,7 @@ type BlockHeader = {
   receiptsRoot: Data;
   logsBloom: Data;
   difficulty: Quantity;
+  totalDifficulty: Quantity;
   number: Quantity;
   gasLimit: Quantity;
   gasUsed: Quantity;
@@ -27,9 +29,19 @@ type BlockHeader = {
   nonce: Data;
 };
 
-function makeHeader(raw: Buffer[]) {
-  const number = raw[8];
+/**
+ * Returns the size of the serialized data as it would have been calculated had
+ * we stored things geth does, i.e., `totalDfficulty` is not usually stored in
+ * the block header.
+ *
+ * @param serialized
+ * @param totalDifficulty
+ */
+function getBlockSize(serialized: Buffer, totalDifficulty: Buffer) {
+  return serialized.length - totalDifficulty.length;
+}
 
+function makeHeader(raw: Buffer[], totalDifficulty: Buffer) {
   return {
     parentHash: Data.from(raw[0], 32),
     sha3Uncles: Data.from(raw[1], 32),
@@ -39,17 +51,14 @@ function makeHeader(raw: Buffer[]) {
     receiptsRoot: Data.from(raw[5], 32),
     logsBloom: Data.from(raw[6], 256),
     difficulty: Quantity.from(raw[7], false),
-    // HACK: because `number` here is used as a key for the db we need to ensure
-    // that the value here holds an actual `0` when the raw === Buffer([])
-    // the other empty buffer values aren't ever used as keys, so leaving them
-    // empty will probably be okay.
     number: Quantity.from(raw[8], false),
     gasLimit: Quantity.from(raw[9], false),
     gasUsed: Quantity.from(raw[10], false),
     timestamp: Quantity.from(raw[11], false),
     extraData: Data.from(raw[12]),
     mixHash: Data.from(raw[13], 32),
-    nonce: Data.from(raw[14], 8)
+    nonce: Data.from(raw[14], 8),
+    totalDifficulty: Quantity.from(totalDifficulty, false)
   };
 }
 
@@ -65,14 +74,20 @@ export class Block {
   constructor(serialized: Buffer, common: Common) {
     if (serialized) {
       this._common = common;
-      this._size = serialized.length;
       const deserialized = (rlpDecode(serialized) as any) as [
         Buffer[],
-        Buffer[][]
+        Buffer[][],
+        Buffer[],
+        Buffer
       ];
-      const raw = (this._raw = deserialized[0]);
+      this._raw = deserialized[0];
       this._rawTransactions = deserialized[1];
-      this.header = makeHeader(raw);
+      // TODO: support actual uncle data (needed for forking!)
+      // Issue: https://github.com/trufflesuite/ganache-core/issues/786
+      // const uncles = deserialized[1];
+      const totalDifficulty = deserialized[3];
+      this.header = makeHeader(this._raw, totalDifficulty);
+      this._size = getBlockSize(serialized, totalDifficulty);
     }
   }
 
@@ -117,10 +132,6 @@ export class Block {
     return {
       hash: this.hash(),
       ...this.header,
-
-      // TODO(forking): since ganache's difficulty is always 0, `totalDifficulty` for new blocks
-      // should just be the forked block's `difficulty`. See https://ethereum.stackexchange.com/a/7102/44640
-      totalDifficulty: RPCQUANTITY_ZERO,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
       uncles: [] as string[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
@@ -144,6 +155,8 @@ export class Block {
 export class RuntimeBlock {
   public readonly header: {
     parentHash: Buffer;
+    difficulty: Buffer;
+    totalDifficulty: Buffer;
     coinbase: Buffer;
     number: Buffer;
     gasLimit: Buffer;
@@ -155,21 +168,27 @@ export class RuntimeBlock {
     parentHash: Data,
     coinbase: Address,
     gasLimit: Buffer,
-    timestamp: Quantity
+    timestamp: Quantity,
+    difficulty: Quantity,
+    previousBlockTotalDifficulty: Quantity
   ) {
     const ts = timestamp.toBuffer();
     this.header = {
       parentHash: parentHash.toBuffer(),
       coinbase: coinbase.toBuffer(),
       number: number.toBuffer(),
+      difficulty: difficulty.toBuffer(),
+      totalDifficulty: Quantity.from(
+        previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
+      ).toBuffer(),
       gasLimit: gasLimit.length === 0 ? BUFFER_EMPTY : gasLimit,
       timestamp: ts.length === 0 ? BUFFER_EMPTY : ts
     };
   }
 
   /**
-   * Returns the serialization of all block data and returns the hash of the
-   * block header.
+   * Returns the serialization of all block data, the hash of the block header,
+   * and a map of the hashed and raw storage keys
    *
    * @param transactionsTrie
    * @param receiptTrie
@@ -178,6 +197,7 @@ export class RuntimeBlock {
    * @param gasUsed
    * @param extraData
    * @param transactions
+   * @param storageKeys
    */
   finalize(
     transactionsTrie: Buffer,
@@ -186,7 +206,8 @@ export class RuntimeBlock {
     stateRoot: Buffer,
     gasUsed: Buffer,
     extraData: Data,
-    transactions: Transaction[]
+    transactions: Transaction[],
+    storageKeys: StorageKeys
   ) {
     const { header } = this;
     const rawHeader = [
@@ -197,7 +218,7 @@ export class RuntimeBlock {
       transactionsTrie,
       receiptTrie,
       bloom,
-      BUFFER_EMPTY, // difficulty
+      header.difficulty,
       header.number,
       header.gasLimit,
       gasUsed,
@@ -206,8 +227,12 @@ export class RuntimeBlock {
       Buffer.allocUnsafe(32).fill(0), // mixHash
       Buffer.allocUnsafe(8).fill(0) // nonce
     ];
+    // TODO: support actual uncle data (needed for forking!)
+    // Issue: https://github.com/trufflesuite/ganache-core/issues/786
+    const uncles = [];
+    const { totalDifficulty } = header;
     const rawTransactions = transactions.map(tx => tx.raw);
-    const raw = [rawHeader, rawTransactions];
+    const raw = [rawHeader, rawTransactions, uncles, totalDifficulty];
 
     const serialized = rlpEncode(raw);
 
@@ -216,15 +241,16 @@ export class RuntimeBlock {
     // state here. We'll just set it ourselves by reaching into the "_private"
     // fields.
     const block = new Block(null, null);
-    (block as any)._size = serialized.length;
+    (block as any)._size = getBlockSize(serialized, totalDifficulty);
     (block as any)._raw = rawHeader;
     (block as any)._rawTransactions = rawTransactions;
     (block as any)._transactions = transactions;
-    (block as any).header = makeHeader(rawHeader);
+    (block as any).header = makeHeader(rawHeader, totalDifficulty);
 
     return {
       block,
-      serialized
+      serialized,
+      storageKeys
     };
   }
 }

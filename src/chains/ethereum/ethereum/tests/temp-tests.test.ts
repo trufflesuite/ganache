@@ -1,3 +1,4 @@
+import { utils } from "@ganache/utils";
 import os from "os";
 import fs from "fs";
 import assert from "assert";
@@ -49,13 +50,13 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("shouldn't allow initialization without accounts", async () => {
-    const options = { wallet: { totalAccounts: 0 } } as any;
+    let options = { wallet: { totalAccounts: 0 } } as any;
     await assert.rejects(getProvider(options), {
       message:
         "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
     });
 
-    options.wallet.accounts = [];
+    options = { wallet: { accounts: [] } };
     await assert.rejects(getProvider(options), {
       message:
         "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
@@ -232,7 +233,7 @@ describe("Random tests that are temporary!", () => {
   it("transfers value", async () => {
     const p = await getProvider({ miner: { gasPrice: 0 } });
     const accounts = await p.send("eth_accounts");
-    const ONE_ETHER = 1000000000000000000n;
+    const ONE_ETHER = utils.WEI;
     const startingBalance = 100n * ONE_ETHER;
     await p.send("eth_subscribe", ["newHeads"]);
     await p.send("eth_sendTransaction", [

@@ -14,6 +14,17 @@ describe("provider", () => {
         "0x59ef313e6ee26bab6bcb1b5694e59613debd88da"
       );
     });
+
+    it("errors when conflicting options are passed to the provider", async () => {
+      assert.rejects(async () => {
+        await getProvider({
+          wallet: {
+            deterministic: true,
+            seed: "123"
+          } as Object // "as Object" lets us get around ts typechecking during compilation
+        });
+      });
+    });
   });
 
   describe("interface", () => {

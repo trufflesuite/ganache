@@ -1,6 +1,10 @@
 import { TruffleColors } from "@ganache/colors";
 import yargs, { Options } from "yargs";
-import { DefaultFlavor, DefaultOptionsByName } from "@ganache/flavors";
+import {
+  DefaultFlavor,
+  FilecoinFlavorName,
+  DefaultOptionsByName
+} from "@ganache/flavors";
 import {
   Base,
   Definitions,
@@ -23,7 +27,7 @@ marked.setOptions({
 
 const wrapWidth = Math.min(120, yargs.terminalWidth());
 const NEED_HELP = "Need more help? Reach out to the Truffle community at";
-const COMMUNITY_LINK = "https://gitter.im/ConsenSys/truffle";
+const COMMUNITY_LINK = "https://trfl.co/support";
 
 function unescapeEntities(html: string) {
   return html
@@ -48,7 +52,8 @@ function processOption(
   group: string,
   option: string,
   optionObj: Definitions<Base.Config>[string | number],
-  argv: yargs.Argv
+  argv: yargs.Argv,
+  flavor: string
 ) {
   if (optionObj.disableInCLI !== true) {
     const shortHand = [];
@@ -68,7 +73,7 @@ function processOption(
     const generateDefaultDescription = () => {
       // default sometimes requires a config, so we supply one
       return (state[option] = optionObj.default
-        ? optionObj.default(state).toString()
+        ? optionObj.default(state, flavor).toString()
         : undefined);
     };
     const defaultDescription =
@@ -92,12 +97,6 @@ function processOption(
       choices: optionObj.cliChoices,
       coerce: optionObj.cliCoerce
     };
-
-    if ("conflicts" in optionObj) {
-      options.conflicts = (optionObj as {
-        conflicts: string[];
-      }).conflicts.map(c => `${category}.${c}`);
-    }
 
     const key = `${category}.${option}`;
 
@@ -132,6 +131,10 @@ export default function (version: string, isDocker: boolean) {
     let defaultPort: number;
     switch (flavor) {
       // since "ethereum" is the DefaultFlavor we don't need a `case` for it
+      case FilecoinFlavorName:
+        command = flavor;
+        defaultPort = 7777;
+        break;
       case DefaultFlavor:
         command = ["$0", flavor];
         defaultPort = 8545;
@@ -163,7 +166,8 @@ export default function (version: string, isDocker: boolean) {
               group,
               option,
               optionObj,
-              flavorArgs
+              flavorArgs,
+              flavor
             );
           }
         }
@@ -174,7 +178,15 @@ export default function (version: string, isDocker: boolean) {
         for (const option in categoryObj) {
           const optionObj = categoryObj[option];
 
-          processOption(state, "server", group, option, optionObj, flavorArgs);
+          processOption(
+            state,
+            "server",
+            group,
+            option,
+            optionObj,
+            flavorArgs,
+            flavor
+          );
         }
 
         flavorArgs = flavorArgs

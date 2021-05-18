@@ -1,0 +1,25 @@
+{
+  "extends": "../../../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "composite": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true
+  },
+  "include": ["index.ts", "src/**/*"],
+  "typeRoots": ["./node_modules/@types", "./src/@types"],
+  "references": [
+    {
+      "name": "@ganache/filecoin-options",
+      "path": "../options"
+    },
+    {
+      "name": "@ganache/options",
+      "path": "../../../packages/options"
+    },
+    {
+      "name": "@ganache/utils",
+      "path": "../../../packages/utils"
+    }
+  ]
+}

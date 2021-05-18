@@ -27,7 +27,7 @@
     "docs.build": "rm -rf ./lib/docs ./lib/api.json && npm run docs.typedoc",
     "docs.typedoc": "typedoc --options ./typedoc.json --readme ./README.md --out ../../../../docs/typedoc --json ../../../../docs/typedoc/api.json src/api.ts",
     "docs.preview": "ws --open --port 3010 --directory ../../../../docs",
-    "tsc": "ttsc",
+    "tsc": "ttsc --build",
     "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
@@ -81,7 +81,7 @@
     "@types/fs-extra": "9.0.2",
     "@types/lodash.clonedeep": "4.5.6",
     "@types/secp256k1": "4.0.1",
-    "@types/seedrandom": "2.4.28",
+    "@types/seedrandom": "3.0.0",
     "@types/ws": "7.2.7",
     "cheerio": "1.0.0-rc.3",
     "fs-extra": "9.0.1",
@@ -89,6 +89,6 @@
     "solc": "0.7.4",
     "ts-transformer-inline-file": "0.1.1",
     "typedoc": "0.17.8",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3"
   }
 }

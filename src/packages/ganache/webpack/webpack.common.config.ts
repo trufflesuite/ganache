@@ -2,6 +2,7 @@ import webpack from "webpack";
 import TerserPlugin from "terser-webpack-plugin";
 
 const base: webpack.Configuration = {
+  mode: "production",
   entry: "./index.ts",
   devtool: "source-map",
   module: {
@@ -31,6 +32,7 @@ const base: webpack.Configuration = {
   resolve: {
     extensions: [".tsx", ".ts", ".js"]
   },
+  externals: ["@ganache/filecoin"],
   output: {
     filename: "ganache.min.js",
     library: "Ganache",

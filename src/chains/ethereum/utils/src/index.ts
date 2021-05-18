@@ -18,5 +18,7 @@ export * from "./types/extract-values-from-types";
 export * from "./types/filters";
 export * from "./types/shh";
 export * from "./types/snapshots";
+export * from "./types/step-event";
 export * from "./types/subscriptions";
 export * from "./types/tuple-from-union";
+export * from "./types/debug-storage";

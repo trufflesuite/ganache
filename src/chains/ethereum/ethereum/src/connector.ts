@@ -2,21 +2,28 @@ import Emittery from "emittery";
 import EthereumApi from "./api";
 import { JsonRpcTypes, types, utils } from "@ganache/utils";
 import EthereumProvider from "./provider";
-import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
+import {
+  RecognizedString,
+  WebSocket,
+  HttpRequest
+} from "@trufflesuite/uws-js-unofficial";
 import { CodedError, ErrorCodes } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,
-  EthereumLegacyOptions
+  EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
 
-export type ProviderOptions = EthereumProviderOptions | EthereumLegacyOptions;
+type ProviderOptions = EthereumProviderOptions | EthereumLegacyProviderOptions;
 export type Provider = EthereumProvider;
 export const Provider = EthereumProvider;
 
 function isHttp(
   connection: HttpRequest | WebSocket
 ): connection is HttpRequest {
-  return connection.constructor.name === "uWS.HttpRequest";
+  return (
+    connection.constructor.name === "uWS.HttpRequest" ||
+    connection.constructor.name === "RequestWrapper"
+  );
 }
 
 export class Connector
@@ -39,14 +46,14 @@ export class Connector
   ) {
     super();
 
-    const provider = (this.#provider = new EthereumProvider(
-      providerOptions,
-      executor
-    ));
-    provider.on("connect", () => {
-      // tell the consumer (like a `ganache-core` server/connector) everything is ready
-      this.emit("ready");
-    });
+    this.#provider = new EthereumProvider(providerOptions, executor);
+  }
+
+  async initialize() {
+    await this.#provider.initialize();
+    // no need to wait for #provider.once("connect") as the initialize()
+    // promise has already accounted for that after the promise is resolved
+    await this.emit("ready");
   }
 
   parse(message: Buffer) {

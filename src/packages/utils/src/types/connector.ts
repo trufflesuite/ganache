@@ -1,5 +1,9 @@
 import { Provider } from "./provider";
-import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
+import {
+  RecognizedString,
+  WebSocket,
+  HttpRequest
+} from "@trufflesuite/uws-js-unofficial";
 import { Api } from "./api";
 import { KnownKeys } from "../types";
 import Emittery from "emittery";
@@ -48,6 +52,13 @@ export interface Connector<
    * @param payload
    */
   format(result: ResponseFormat, payload: RequestFormat): RecognizedString;
+
+  /**
+   * Formats the error response
+   * @param error
+   * @param payload
+   */
+  formatError(error: Error, payload: RequestFormat): RecognizedString;
 
   close(): void;
 }

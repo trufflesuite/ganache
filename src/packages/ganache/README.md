@@ -40,11 +40,11 @@ Ganache is an Ethereum simulator that makes developing Ethereum applications fas
 
 ## Getting Started
 
-Ganache can be used from the command line or programmatically via Node.js.
+Ganache can be used from the [command line](#command-line-use) or [programmatically](#programmatic-use) via Node.js.
 
 ### Command line use
 
-You must first install [Node.js](https://nodejs.org/) >= v10.7.0 and npm >= 6.1.0.
+You must first install [Node.js](https://nodejs.org/) >= v10.7.0 and npm >= 6.4.1.
 
 To install ganache globally, run:
 
@@ -120,7 +120,7 @@ You can then add ganache to your package.json scripts:
 
 _See [Documentation](#documentation) for additional command line options._
 
-then start it:
+Then start it:
 
 ```console
 $ npm run ganache
@@ -134,7 +134,9 @@ You can use Ganache programmatically from Node.js. Install Ganache into your npm
 $ npm install ganache
 ```
 
-then start ganache as an EIP-1193 provider only:
+Then you can use ganache as an [EIP-1193 provider only](#as-an-eip-1193-provider-only), an [EIP-1193 provider and JSON-RPC web server](#as-an-eip-1193-provider-and-json-rpc-web-server), as a [Web3 provider](#as-a-web3js-provider), or an [ethers provider](#as-an-ethersjs-provider).
+
+#### As an EIP-1193 provider only:
 
 ```javascript
 const ganache = require("ganache");
@@ -144,7 +146,7 @@ const provider = ganache.provider(options);
 const accounts = await provider.request({ method: "eth_accounts", params: [] });
 ```
 
-or as an EIP-1193 provider _and_ JSON-RPC web server:
+#### As an EIP-1193 provider and JSON-RPC web server:
 
 ```javascript
 const ganache = require("ganache");
@@ -161,7 +163,7 @@ server.listen(PORT, err => {
 });
 ```
 
-#### As a [web3.js](https://www.npmjs.com/package/web3) Provider
+#### As a [web3.js](https://www.npmjs.com/package/web3) provider:
 
 To use ganache as a Web3 provider:
 
@@ -192,13 +194,12 @@ New RPC documentation coming soon! See https://github.com/trufflesuite/ganache-c
 
 ## Community
 
-- [Gitter](https://gitter.im/ConsenSys/truffle)
-- [Spectrum](https://spectrum.chat/trufflesuite)
+- [Discord](https://trfl.co/truffle-community)
 - [Reddit](https://www.reddit.com/r/Truffle/)
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for our guide to contributing to Ganache.
+See [CONTRIBUTING.md](https://github.com/trufflesuite/ganache-core/blob/develop/CONTRIBUTING.md) for our guide to contributing to Ganache.
 
 ## Related
 

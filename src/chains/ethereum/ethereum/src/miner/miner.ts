@@ -5,7 +5,10 @@ import {
   RuntimeBlock,
   RuntimeError,
   RETURN_TYPES,
-  Executables
+  Executables,
+  TraceDataFactory,
+  StepEvent,
+  StorageKeys
 } from "@ganache/ethereum-utils";
 import { utils, Quantity, Data } from "@ganache/utils";
 import { promisify } from "util";
@@ -15,7 +18,7 @@ import VM from "ethereumjs-vm";
 import { encode as rlpEncode } from "rlp";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
-const { BUFFER_EMPTY, BUFFER_256_ZERO } = utils;
+const { BUFFER_EMPTY, BUFFER_256_ZERO, keccak } = utils;
 
 export type BlockData = {
   blockTransactions: Transaction[];
@@ -33,7 +36,13 @@ const sortByPrice = (values: Transaction[], a: number, b: number) =>
   Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
 
 export default class Miner extends Emittery.Typed<
-  { block: { block: Block; serialized: Buffer } },
+  {
+    block: {
+      block: Block;
+      serialized: Buffer;
+      storageKeys: StorageKeys;
+    };
+  },
   "idle"
 > {
   #currentlyExecutingPrice = 0n;
@@ -171,6 +180,7 @@ export default class Miner extends Emittery.Typed<
     let keepMining = true;
     const priced = this.#priced;
     const legacyInstamine = this.#options.legacyInstamine;
+    const storageKeys: StorageKeys = new Map();
     let blockTransactions: Transaction[];
     do {
       keepMining = false;
@@ -191,7 +201,8 @@ export default class Miner extends Emittery.Typed<
           this.#vm.stateManager._trie.root,
           BUFFER_EMPTY, // gas used
           options.extraData,
-          []
+          [],
+          storageKeys
         );
         this.emit("block", finalizedBlockData);
         this.#reset();
@@ -209,6 +220,26 @@ export default class Miner extends Emittery.Typed<
       // vm's "live" trie.
       await this.#checkpoint();
 
+      const TraceData = TraceDataFactory();
+      // We need to listen for any SSTORE opcodes so we can grab the raw, unhashed version
+      // of the storage key and save it to the db along with it's keccak hashed version of
+      // the storage key. Why you might ask? So we can reference the raw version in
+      // debug_storageRangeAt.
+      const stepListener = (
+        event: StepEvent,
+        next: (error?: any, cb?: any) => void
+      ) => {
+        if (event.opcode.name === "SSTORE") {
+          const key = TraceData.from(
+            event.stack[event.stack.length - 1].toArrayLike(Buffer)
+          ).toBuffer();
+          const hashedKey = keccak(key);
+          storageKeys.set(hashedKey.toString(), { key, hashedKey });
+        }
+        next();
+      };
+
+      this.#vm.on("step", stepListener);
       // Run until we run out of items, or until the inner loop stops us.
       // we don't call `shift()` here because we will may need to `replace`
       // this `best` transaction with the next best transaction from the same
@@ -330,6 +361,8 @@ export default class Miner extends Emittery.Typed<
       await Promise.all(promises);
       await this.#commit();
 
+      this.#vm.removeListener("step", stepListener);
+
       const finalizedBlockData = runtimeBlock.finalize(
         transactionsTrie.root,
         receiptTrie.root,
@@ -339,7 +372,8 @@ export default class Miner extends Emittery.Typed<
           ? BUFFER_EMPTY
           : Quantity.from(blockGasUsed).toBuffer(),
         options.extraData,
-        blockTransactions
+        blockTransactions,
+        storageKeys
       );
       block = finalizedBlockData.block;
       const emitBlockProm = this.emit("block", finalizedBlockData);
