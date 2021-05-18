@@ -112,7 +112,7 @@ describe("api", () => {
     describe("eth_getBalance", () => {
       it("should return initial balance", async () => {
         const balance = await provider.send("eth_getBalance", [accounts[0]]);
-        assert.strictEqual(balance, "0x56bc75e2d63100000");
+        assert.strictEqual(balance, "0x3635c9adc5dea00000");
       });
 
       it("should return 0 for non-existent account", async () => {

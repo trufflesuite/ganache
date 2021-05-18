@@ -59,7 +59,7 @@ describe("connector", () => {
     const calA = p.send("eth_getBalance", [accounts[0]]);
     const callB = p.send("eth_accounts");
     const result = await Promise.race([calA, callB]);
-    assert.strictEqual(result, "0x56bc75e2d63100000");
+    assert.strictEqual(result, "0x3635c9adc5dea00000");
   });
 
   // duck punch a property that shouldn't appear on the API. we test this

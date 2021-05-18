@@ -163,7 +163,7 @@ export type WalletConfig = {
     /**
      * The default account balance, specified in ether.
      *
-     * @default 100 // ether
+     * @default 1000 // ether
      */
     defaultBalance: {
       type: number;
@@ -294,7 +294,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
   defaultBalance: {
     normalize,
     cliDescription: "The default account balance, specified in ether.",
-    default: () => 100,
+    default: () => 1000,
     legacyName: "default_balance_ether",
     cliAliases: ["e", "defaultBalanceEther"],
     cliType: "number"
