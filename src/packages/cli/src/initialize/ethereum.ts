@@ -7,11 +7,10 @@ export default function (provider: Provider, cliSettings: CliSettings) {
   const accounts = provider.getInitialAccounts();
 
   const addresses = Object.keys(accounts);
+  console.log("");
+  console.log("Available Accounts");
+  console.log("==================");
   if (addresses.length > 0) {
-    console.log("");
-    console.log("Available Accounts");
-    console.log("==================");
-
     const ethInWei = 1000000000000000000n;
 
     addresses.forEach(function (address, index) {
@@ -43,6 +42,8 @@ export default function (provider: Provider, cliSettings: CliSettings) {
         `Accounts and keys saved to ${liveOptions.wallet.accountKeysPath}`
       );
     }
+  } else {
+    console.log("(no accounts unlocked)");
   }
 
   if (liveOptions.wallet.accounts == null) {
