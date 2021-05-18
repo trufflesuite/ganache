@@ -41,7 +41,7 @@ import {
   JsonRpcErrorCode,
   RPCQUANTITY_GWEI
 } from "@ganache/utils";
-import Blockchain from "./blockchain";
+import Blockchain, { SimulationOverrides } from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 
@@ -2616,6 +2616,7 @@ export default class EthereumApi implements Api {
    * @param transaction - The transaction call object as seen in source.
    * @param blockNumber - Integer block number, or the string "latest", "earliest"
    *  or "pending".
+   * @param overrides - State overrides to apply during the simulation.
    *
    * @returns The return value of executed contract.
    * @example
@@ -2637,8 +2638,8 @@ export default class EthereumApi implements Api {
    * console.log(result);
    * ```
    */
-  @assertArgLength(1, 2)
-  async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.latest) {
+  @assertArgLength(1, 3)
+  async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.latest, overrides: SimulationOverrides = {}) {
     const blockchain = this.#blockchain;
     const common = this.#blockchain.common;
     const blocks = blockchain.blocks;
@@ -2737,7 +2738,11 @@ export default class EthereumApi implements Api {
       block
     };
 
-    return blockchain.simulateTransaction(simulatedTransaction, parentBlock);
+    return blockchain.simulateTransaction(
+      simulatedTransaction,
+      parentBlock,
+      overrides
+    );
   }
   //#endregion
 

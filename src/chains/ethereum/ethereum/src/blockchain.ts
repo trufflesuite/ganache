@@ -120,6 +120,10 @@ export type BlockchainOptions = {
   logger: Logger;
 };
 
+export type SimulationOverrides = {
+  [address: string]: Partial<{ code: string; nonce: string; balance: string }>;
+};
+
 /**
  * Sets the provided VM state manager's state root *without* first
  * checking for checkpoints or flushing the existing cache.
@@ -647,6 +651,30 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return vm;
   };
 
+  applySimulationOverrides = async (vm: VM, overrides: SimulationOverrides) => {
+    for (const [address, override] of Object.entries(overrides)) {
+      const vmAddr = { buf: Address.from(address).toBuffer() } as any;
+      if (override.code) {
+        await vm.stateManager.putContractCode(
+          vmAddr,
+          Data.from(override.code).toBuffer()
+        );
+      }
+      const account = await vm.stateManager.getAccount(vmAddr);
+      if (override.nonce) {
+        account.nonce = {
+          toArrayLike: () => Quantity.from(override.nonce).toBuffer()
+        } as any;
+      }
+      if (override.balance) {
+        account.balance = {
+          toArrayLike: () => Quantity.from(override.balance).toBuffer()
+        } as any;
+      }
+      await vm.stateManager.putAccount(vmAddr, account);
+    }
+  };
+
   #commitAccounts = (accounts: Account[]) => {
     return Promise.all<void>(
       accounts.map(account =>
@@ -980,7 +1008,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   public async simulateTransaction(
     transaction: SimulationTransaction,
-    parentBlock: Block
+    parentBlock: Block,
+    overrides: SimulationOverrides
   ) {
     let result: EVMResult;
 
@@ -1049,6 +1078,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         stateManager.addWarmedAddress(caller);
         if (to) stateManager.addWarmedAddress(to.buf);
       }
+
+      // If there are any overrides requested for eth_call, apply
+      // them now before running the simulation.
+      await this.applySimulationOverrides(vm, overrides);
 
       // we need to update the balance and nonce of the sender _before_
       // we run this transaction so that things that rely on these values
