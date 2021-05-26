@@ -253,7 +253,9 @@ describe("forking", () => {
     }
 
     beforeEach("deploy contract", async () => {
-      const contract = compile(path.join(__dirname, "Forking.sol"));
+      const contract = compile(
+        path.join(__dirname, "contracts", "Forking.sol")
+      );
       const subscriptionId = await remoteProvider.send("eth_subscribe", [
         "newHeads"
       ]);
