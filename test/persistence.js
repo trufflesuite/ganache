@@ -186,7 +186,7 @@ const providerInitGen = function(opts = {}) {
   };
 };
 
-describe("Default DB", function() {
+describe.skip("Default DB", function() {
   const dbPath = temp.mkdirSync("testrpc-db-");
 
   // initialize a persistent provider
@@ -198,7 +198,7 @@ describe("Default DB", function() {
   runTests(providerInit);
 });
 
-describe("Custom DB", function() {
+describe.skip("Custom DB", function() {
   const db = memdown();
 
   // initialize a custom persistence provider
