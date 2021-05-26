@@ -54,9 +54,9 @@
   },
   "devDependencies": {
     "@ethereumjs/vm": "5.2.0",
-    "@types/mocha": "8.0.3",
+    "@types/mocha": "8.2.2",
     "cross-env": "7.0.2",
-    "mocha": "8.2.0",
+    "mocha": "8.4.0",
     "nyc": "15.1.0",
     "ts-node": "9.0.0",
     "ttypescript": "1.5.12",

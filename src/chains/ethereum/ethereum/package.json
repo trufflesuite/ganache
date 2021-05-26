@@ -29,7 +29,7 @@
     "docs.preview": "ws --open --port 3010 --directory ../../../../docs",
     "tsc": "ttsc --build",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha -s 0 -t 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha -s 0 -t 0 --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -84,6 +84,7 @@
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
     "@types/keccak": "3.0.1",
@@ -98,13 +99,12 @@
     "cross-env": "7.0.3",
     "fs-extra": "9.0.1",
     "local-web-server": "4.2.1",
-    "mocha": "8.2.0",
+    "mocha": "8.4.0",
     "nyc": "15.1.0",
     "solc": "0.7.4",
     "superagent": "6.1.0",
     "ts-transformer-inline-file": "0.1.1",
-    "typedoc": "0.17.8",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3"
+    "typedoc": "0.17.8"
   },
   "optionalDependencies": {
     "bufferutil": "4.0.3",

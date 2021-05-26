@@ -234,7 +234,8 @@ describe("Random tests that are temporary!", () => {
     const p = await getProvider({ miner: { gasPrice: 0 } });
     const accounts = await p.send("eth_accounts");
     const ONE_ETHER = utils.WEI;
-    const startingBalance = 100n * ONE_ETHER;
+    const options = p.getOptions();
+    const startingBalance = BigInt(options.wallet.defaultBalance) * ONE_ETHER;
     await p.send("eth_subscribe", ["newHeads"]);
     await p.send("eth_sendTransaction", [
       {
