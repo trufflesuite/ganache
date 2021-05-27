@@ -937,7 +937,7 @@ export default class EthereumApi implements types.Api {
       };
       estimateGas(generateVM, runArgs, (err: Error, result: any) => {
         if (err) return reject(err);
-        resolve(Quantity.from(result.gasEstimate.toBuffer()));
+        resolve(Quantity.from(result.gasEstimate.toArrayLike(Buffer)));
       });
     });
   }

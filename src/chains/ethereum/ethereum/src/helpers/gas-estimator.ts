@@ -81,7 +81,7 @@ const binSearch = async (generateVM, runArgs, result, callback) => {
   const range = { lo: startingGas, hi: startingGas };
   const isEnoughGas = async gas => {
     const vm = generateVM(); // Generate fresh VM
-    runArgs.tx.gasLimit = gas.toBuffer();
+    runArgs.tx.gasLimit = gas.toArrayLike(Buffer);
     const result = await vm.runTx(runArgs).catch(vmerr => ({ vmerr }));
     return !result.vmerr && !result.execResult.exceptionError;
   };
