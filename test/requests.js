@@ -134,7 +134,7 @@ const tests = function(web3) {
   describe("eth_getBalance", function() {
     it("should return initial balance", async function() {
       const result = await web3.eth.getBalance(accounts[0]);
-      assert.deepStrictEqual(result, "100000000000000000000");
+      assert.deepStrictEqual(result, "1000000000000000000000");
     });
 
     it("should return 0 for non-existent account", async function() {
@@ -163,7 +163,7 @@ const tests = function(web3) {
           "000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
           "0000000000000000000000000000",
         transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-        stateRoot: "0x95bdebe1ba455aeb4b328f9b7dcb9bb1ade59c04ca11616b5dff080a6aba7092",
+        stateRoot: "0x068c7a7eb51b9d83d34714501d95fd5a3adbac0195b0d9ef268ea367ba2ca00e",
         receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
         miner: "0x0000000000000000000000000000000000000000",
         difficulty: "1",

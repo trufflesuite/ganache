@@ -32,7 +32,8 @@ describe("Checkpointing / Reverting", function() {
     balance = parseFloat(web3.utils.fromWei(balance, "ether"));
 
     // Assert the starting balance is where we think it is, including tx costs.
-    assert(balance > 98.9 && balance < 99);
+    console.log(balance);
+    assert(balance > 998.9 && balance < 999);
     startingBalance = balance;
 
     // Now checkpoint.
@@ -54,7 +55,7 @@ describe("Checkpointing / Reverting", function() {
     balance = parseFloat(web3.utils.fromWei(balance, "ether"));
 
     // Assert the starting balance is where we think it is, including tx costs.
-    assert(balance > 97.9 && balance < 98);
+    assert(balance > 997.9 && balance < 998);
 
     const status = await send("evm_revert", snapshotId.result);
 
