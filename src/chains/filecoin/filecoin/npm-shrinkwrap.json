@@ -9794,12 +9794,6 @@
 				}
 			}
 		},
-		"ts-transformer-inline-file": {
-			"version": "0.1.1",
-			"resolved": "https://registry.npmjs.org/ts-transformer-inline-file/-/ts-transformer-inline-file-0.1.1.tgz",
-			"integrity": "sha512-2bPkAFjATsRG4ld8TFTUqn4TvEdXLQf/wwGsepFeRKSXLPqFRhdUHusAGPB1/Zif3CVjppD+bfne58gynd8RfQ==",
-			"dev": true
-		},
 		"tslib": {
 			"version": "1.14.1",
 			"resolved": "https://registry.npmjs.org/tslib/-/tslib-1.14.1.tgz",

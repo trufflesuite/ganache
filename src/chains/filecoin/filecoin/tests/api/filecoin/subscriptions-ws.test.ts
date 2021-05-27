@@ -6,7 +6,7 @@ import Server from "../../../../../../packages/core/src/server";
 
 describe("api", () => {
   describe("filecoin", () => {
-    let server: Server;
+    let server: Server<"filecoin">;
     let ws: WebSocket;
     const port = 7778; // Use a different port than the default, to test it works
 
