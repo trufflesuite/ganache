@@ -6,8 +6,15 @@
     "strictNullChecks": true,
     "noImplicitAny": true
   },
-  "include": ["index.ts", "src/**/*"],
-  "typeRoots": ["./node_modules/@types", "./src/@types"],
+  "include": [
+    "package.json",
+    "index.ts",
+    "src/**/*"
+  ],
+  "typeRoots": [
+    "./node_modules/@types",
+    "./src/@types"
+  ],
   "references": [
     {
       "name": "@ganache/filecoin-options",
