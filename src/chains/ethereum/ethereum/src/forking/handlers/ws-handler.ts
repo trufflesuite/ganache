@@ -7,7 +7,7 @@ import { BaseHandler } from "./base-handler";
 import Deferred, { DeferredPromise } from "../deferred";
 
 export class WsHandler extends BaseHandler implements Handler {
-  private open: Promise<any>;
+  private open: Promise<unknown>;
   private connection: WebSocket;
   private inFlightRequests = new Map<
     string | number,
