@@ -16,7 +16,6 @@ export class HttpHandler extends BaseHandler implements Handler {
   private url: types.URL;
 
   private _request: (
-    url: string | types.URL,
     options: RequestOptions,
     callback?: (res: http.IncomingMessage) => void
   ) => http.ClientRequest;
@@ -28,16 +27,14 @@ export class HttpHandler extends BaseHandler implements Handler {
     this.headers.accept = this.headers["content-type"] = "application/json";
 
     if (this.url.protocol === "http:") {
-      // as `any` because nodes types http.request with nodes Legacy URL API, but
-      // it actually uses the WHATWG URL API
-      this._request = http.request as any;
+      this._request = http.request;
 
       this.agent = new HttpAgent({
         keepAlive: true,
         scheduling: "fifo"
       });
     } else {
-      this._request = https.request as any;
+      this._request = https.request;
 
       this.agent = new HttpsAgent({
         keepAlive: true,
@@ -97,14 +94,11 @@ export class HttpHandler extends BaseHandler implements Handler {
 
     const requestOptions = {
       headers: this.headers,
-      // host: url.host,
-      // protocol: url.protocol,
       method: "POST",
-      // path: url.pathname + url.search,
-      // port: url.port,
       agent: this.agent,
-      // Node v15 support AbortSignals directly
-      signal: this.abortSignal
+      // Node v15 supports AbortSignals directly
+      signal: this.abortSignal,
+      url: this.url
     };
 
     const send = () => {
@@ -115,7 +109,7 @@ export class HttpHandler extends BaseHandler implements Handler {
       const postData = `${JSONRPC_PREFIX}${this.id++},${data.slice(1)}`;
       this.headers["content-length"] = postData.length;
 
-      const req = this._request(this.url, requestOptions);
+      const req = this._request(requestOptions);
       req.on("response", res => {
         const { headers } = res;
 
