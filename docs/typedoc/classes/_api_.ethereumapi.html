@@ -117,7 +117,6 @@
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_blockchain" class="tsd-kind-icon">#blockchain</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_common" class="tsd-kind-icon">#common</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_filters" class="tsd-kind-icon">#filters</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_getid" class="tsd-kind-icon">#get<wbr>Id</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_api_.ethereumapi.html#_options" class="tsd-kind-icon">#options</a></li>
@@ -227,7 +226,7 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Ethereum<wbr>Api<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">EthereumInternalOptions</span>, wallet<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Wallet</span>, emitter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Typed</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">"connect"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"disconnect"</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_api_.ethereumapi.html" class="tsd-signature-type">EthereumApi</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Ethereum<wbr>Api<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">EthereumInternalOptions</span>, wallet<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Wallet</span>, blockchain<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Blockchain</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_api_.ethereumapi.html" class="tsd-signature-type">EthereumApi</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -252,7 +251,7 @@
 									<h5>wallet: <span class="tsd-signature-type">Wallet</span></h5>
 								</li>
 								<li>
-									<h5>emitter: <span class="tsd-signature-type">Typed</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">"connect"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"disconnect"</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<h5>blockchain: <span class="tsd-signature-type">Blockchain</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_api_.ethereumapi.html" class="tsd-signature-type">EthereumApi</a></h4>
@@ -659,6 +658,65 @@
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">StorageRangeResult</span><span class="tsd-signature-symbol">&gt;</span></h4>
 							<p>Returns a storage object with the keys being keccak-256 hashes of the storage keys,
+								and the values being the raw, unhashed key and value for that specific storage slot. Also
+							returns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="debug_storagerangeat" class="tsd-anchor"></a>
+					<h3>debug_<wbr>storage<wbr>Range<wbr>At</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">debug_<wbr>storage<wbr>Range<wbr>At<span class="tsd-signature-symbol">(</span>blockHash<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Buffer</span>, transactionIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, contractAddress<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, startKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Buffer</span>, maxResult<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache-core/blob/d1b4067d/src/chains/ethereum/ethereum/src/api.ts#L1706">chains/ethereum/ethereum/src/api.ts:1706</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Attempts to replay the transaction as it was executed on the network and
+									return storage data given a starting key and max number of entries to return.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>blockHash: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Buffer</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>DATA, 32 Bytes - hash of a block</p>
+									</div>
+								</li>
+								<li>
+									<h5>transactionIndex: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>QUANTITY - the index of the transaction in the block</p>
+									</div>
+								</li>
+								<li>
+									<h5>contractAddress: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>DATA, 20 Bytes - address of the contract</p>
+									</div>
+								</li>
+								<li>
+									<h5>startKey: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Buffer</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>DATA - hash of the start key for grabbing storage entries</p>
+									</div>
+								</li>
+								<li>
+									<h5>maxResult: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>integer of maximum number of storage entries to return</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>returns a storage object with the keys being keccak-256 hashes of the storage keys,
 								and the values being the raw, unhashed key and value for that specific storage slot. Also
 							returns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.</p>
 						</li>
@@ -2476,7 +2534,7 @@
 					<a name="eth_sendtransaction" class="tsd-anchor"></a>
 					<h3>eth_<wbr>send<wbr>Transaction</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">eth_<wbr>send<wbr>Transaction<span class="tsd-signature-symbol">(</span>transaction<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Data</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">eth_<wbr>send<wbr>Transaction<span class="tsd-signature-symbol">(</span>transaction<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">RpcTransaction</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Data</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -2707,7 +2765,7 @@
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p><code>true</code> if submitting went through succesfully and <code>false</code> otherwise.</p>
+							<p><code>true</code> if submitting went through successfully and <code>false</code> otherwise.</p>
 						</li>
 					</ul>
 				</section>
@@ -4447,9 +4505,6 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 								<a href="_api_.ethereumapi.html#_blockchain" class="tsd-kind-icon">#blockchain</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
-								<a href="_api_.ethereumapi.html#_common" class="tsd-kind-icon">#common</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
 								<a href="_api_.ethereumapi.html#_filters" class="tsd-kind-icon">#filters</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
@@ -4739,9 +4794,6 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 						<a href="../modules/_api_.html#client_version" class="tsd-kind-icon">CLIENT_<wbr>VERSION</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
-						<a href="../modules/_api_.html#known_chainids" class="tsd-kind-icon">KNOWN_<wbr>CHAINIDS</a>
-					</li>
-					<li class=" tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
 						<a href="../modules/_api_.html#protocol_version" class="tsd-kind-icon">PROTOCOL_<wbr>VERSION</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
@@ -4758,12 +4810,6 @@ assert.strictEqual(BigInt(endingBalance), startingBalance);</code></pre>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
 						<a href="../modules/_api_.html#assertexceptionaltransactions" class="tsd-kind-icon">assert<wbr>Exceptional<wbr>Transactions</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
-						<a href="../modules/_api_.html#createcommon" class="tsd-kind-icon">create<wbr>Common</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
-						<a href="../modules/_api_.html#parsecoinbaseaddress" class="tsd-kind-icon">parse<wbr>Coinbase<wbr>Address</a>
 					</li>
 				</ul>
 			</nav>

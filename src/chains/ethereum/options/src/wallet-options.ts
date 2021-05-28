@@ -1,10 +1,9 @@
 import { normalize } from "./helpers";
 import seedrandom from "seedrandom";
 import { entropyToMnemonic } from "bip39";
-
 import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
-const { alea } = seedrandom;
+const unseededRng = seedrandom();
 
 /**
  * WARNING: to maintain compatibility with ganache v2 this RNG only generates
@@ -164,7 +163,7 @@ export type WalletConfig = {
     /**
      * The default account balance, specified in ether.
      *
-     * @default 100 // ether
+     * @default 1000 // ether
      */
     defaultBalance: {
       type: number;
@@ -242,9 +241,9 @@ export const WalletOptions: Definitions<WalletConfig> = {
     // needs to be prior to `wallet.seed` for `config.deterministic`
     // below to be set correctly
     default: config =>
-      config.deterministic
+      config.deterministic === true
         ? DeterministicSeedPhrase
-        : randomAlphaNumericString(10, alea()),
+        : randomAlphaNumericString(10, unseededRng),
     defaultDescription:
       "Random value, unless wallet.deterministic is specified",
     legacyName: "seed",
@@ -295,7 +294,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
   defaultBalance: {
     normalize,
     cliDescription: "The default account balance, specified in ether.",
-    default: () => 100,
+    default: () => 1000,
     legacyName: "default_balance_ether",
     cliAliases: ["e", "defaultBalanceEther"],
     cliType: "number"

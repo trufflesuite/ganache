@@ -2,6 +2,7 @@ import webpack from "webpack";
 import TerserPlugin from "terser-webpack-plugin";
 
 const base: webpack.Configuration = {
+  mode: "production",
   entry: "./index.ts",
   devtool: "source-map",
   module: {
@@ -13,15 +14,7 @@ const base: webpack.Configuration = {
             loader: "ts-loader",
             options: {
               // we need to use ttypescript because we use ts transformers
-              compiler: "ttypescript",
-              // Symlinked paths to our packages aren't resolving correctly...
-              // E.g., if PackageA and PackageB both import PackageC, the
-              // compiler assumes PackageA's PackageC is incompatible with
-              // PackageB's PackageC.
-              // Note: if all packages are precompiled before running webpack
-              // this issue doesn't occur, which makes me think this might be a
-              // ts-loader issue.
-              transpileOnly: true
+              compiler: "ttypescript"
             }
           }
         ]

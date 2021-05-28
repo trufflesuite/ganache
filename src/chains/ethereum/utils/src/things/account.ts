@@ -1,9 +1,17 @@
+import { Address } from "@ganache/ethereum-address";
 import { Data, Quantity } from "@ganache/utils";
-import { Address } from "./address";
-import { rlp, KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
+import { KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
+import { encode, decode } from "@ganache/rlp";
 import { utils } from "@ganache/utils";
 
-const RPCQUANTITY_ZERO = utils.RPCQUANTITY_ZERO;
+const { RPCQUANTITY_EMPTY } = utils;
+
+export type EthereumRawAccount = [
+  nonce: Buffer,
+  balance: Buffer,
+  stateRoot: Buffer,
+  codeHash: Buffer
+];
 
 export class Account {
   public address: Address;
@@ -15,22 +23,22 @@ export class Account {
 
   constructor(address: Address) {
     this.address = address;
-    this.balance = RPCQUANTITY_ZERO;
-    this.nonce = RPCQUANTITY_ZERO;
+    this.balance = RPCQUANTITY_EMPTY;
+    this.nonce = RPCQUANTITY_EMPTY;
   }
 
   public static fromBuffer(buffer: Buffer) {
     const account = Object.create(Account.prototype);
-    const arr = (rlp.decode(buffer) as any) as [Buffer, Buffer, Buffer, Buffer];
-    account.nonce = Quantity.from(arr[0]);
-    account.balance = Quantity.from(arr[1]);
-    account.stateRoot = arr[2];
-    account.codeHash = arr[3];
+    const raw = decode<EthereumRawAccount>(buffer);
+    account.nonce = Quantity.from(raw[0]);
+    account.balance = Quantity.from(raw[1]);
+    account.stateRoot = raw[2];
+    account.codeHash = raw[3];
     return account;
   }
 
   public serialize() {
-    return rlp.encode([
+    return encode([
       this.nonce.toBuffer(),
       this.balance.toBuffer(),
       this.stateRoot,

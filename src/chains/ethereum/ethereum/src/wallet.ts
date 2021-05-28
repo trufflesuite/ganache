@@ -1,14 +1,15 @@
-import { Address, Account } from "@ganache/ethereum-utils";
+import { Account } from "@ganache/ethereum-utils";
 import { Data, Quantity, utils } from "@ganache/utils";
 import { privateToAddress } from "ethereumjs-util";
 import secp256k1 from "secp256k1";
 import { mnemonicToSeedSync } from "bip39";
 import HDKey from "hdkey";
-import { alea as rng } from "seedrandom";
+import { alea } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
 import { writeFileSync } from "fs";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { Address } from "@ganache/ethereum-address";
 
 //#region Constants
 const SCRYPT_PARAMS = {
@@ -93,7 +94,7 @@ export default class Wallet {
   constructor(opts: EthereumInternalOptions["wallet"]) {
     this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
     // create a RNG from our initial starting conditions (opts.mnemonic)
-    this.#randomRng = rng("ganache " + opts.mnemonic);
+    this.#randomRng = alea("ganache " + opts.mnemonic);
 
     const initialAccounts = (this.initialAccounts = this.#initializeAccounts(
       opts
@@ -185,12 +186,17 @@ export default class Wallet {
         fileData.addresses[address] = address;
         fileData.private_keys[address] = privateKey;
       });
+
+      // WARNING: Do not turn this to an async method without
+      // making a Wallet.initialize() function and calling it via
+      // Provider.initialize(). No async methods in constructors.
+      // writeFileSync here is acceptable.
       writeFileSync(opts.accountKeysPath, JSON.stringify(fileData));
     }
     //#endregion
   }
 
-  #randomRng: seedrandom.prng;
+  #randomRng: () => number;
 
   #randomBytes = (length: number) => {
     // Since this is a mock RPC library, the rng doesn't need to be

@@ -3,26 +3,27 @@
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "private": true,
   "engines": {
-    "node": ">=10.7.0 <=14.14.0",
+    "node": ">=10.7.0 <=14.16.0",
     "npm": ">=6.4.1"
   },
   "scripts": {
-    "build": "lerna run build && shx cp -r src/packages/ganache/dist/web/* docs/assets/js/ganache",
+    "build": "npm run tsc && lerna run build && shx cp -r src/packages/ganache/dist/web/* docs/assets/js/ganache",
     "clean": "npm run tsc.clean && npx lerna clean -y && npx shx rm -rf node_modules",
     "create": "ts-node scripts/create",
     "docs.build": "lerna run docs.build && ts-node scripts/build-docs/",
     "docs.preview": "lerna run docs.preview",
-    "postinstall": "lerna bootstrap && npx patch-package && ts-node scripts/link-ts-references.ts && npm run tsc && ts-node scripts/postinstall",
+    "postinstall": "lerna bootstrap && ts-node scripts/link-ts-references.ts && npm run tsc && ts-node scripts/postinstall",
     "reinstall": "npm run clean && npm install",
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
-    "test": "lerna exec -- npm run test",
+    "test": "lerna exec --concurrency 1 -- npm run test",
     "tsc": "ttsc --build src",
-    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist"
+    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist",
+    "tsc.filecoin.declarations": "lerna run tsc.declarations --scope @ganache/filecoin && pretty-quick src/chains/filecoin/types"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.1",
     "@types/fs-extra": "9.0.7",
-    "@types/mocha": "8.0.3",
+    "@types/mocha": "8.2.2",
     "@types/node": "14.14.31",
     "@types/prettier": "2.2.1",
     "@types/yargs": "16.0.0",
@@ -39,7 +40,7 @@
     "into-stream": "6.0.0",
     "lerna": "3.22.1",
     "marked": "2.0.0",
-    "mocha": "8.2.0",
+    "mocha": "8.4.0",
     "monaco-editor": "0.22.3",
     "nyc": "15.1.0",
     "prettier": "2.2.1",

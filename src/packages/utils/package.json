@@ -45,10 +45,12 @@
   ],
   "dependencies": {
     "emittery": "0.7.2",
-    "keccak": "3.0.1"
+    "keccak": "3.0.1",
+    "seedrandom": "3.0.5"
   },
   "devDependencies": {
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+    "@types/seedrandom": "2.4.28",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3"
   },
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"

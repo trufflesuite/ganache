@@ -1,4 +1,5 @@
 export * from "./bigint-to-buffer";
+export * from "./buffer-to-bigint";
 export * from "./executor";
 export * from "./heap";
 export * from "./request-coordinator";
@@ -9,3 +10,4 @@ export * from "./constants";
 export * from "./buffer-to-key";
 export * from "./keccak";
 export * from "./find-insert-position";
+export * from "./random-number-generator";

@@ -5,7 +5,7 @@ type CliOptions = {
   host: string;
   port: number;
 };
-export type Argv = ServerOptions & {
+export type Argv = ServerOptions<FlavorName> & {
   _: [FlavorName];
   server: CliOptions;
 };

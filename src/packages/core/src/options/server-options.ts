@@ -1,3 +1,4 @@
+import { DefaultFlavor, FilecoinFlavorName } from "@ganache/flavors";
 import { Definitions } from "@ganache/options";
 
 export type ServerConfig = {
@@ -31,6 +32,16 @@ export type ServerConfig = {
       type: boolean | "auto";
       hasDefault: true;
     };
+
+    /**
+     * Defines the endpoint route the HTTP and WebSocket servers will listen on.
+     *
+     * @default "/"
+     */
+    readonly rpcEndpoint: {
+      type: string;
+      hasDefault: true;
+    };
   };
 };
 const normalize = <T>(rawInput: T) => rawInput;
@@ -49,5 +60,20 @@ export const ServerOptions: Definitions<ServerConfig> = {
       "Whether or not websockets should response with binary data (ArrayBuffers) or strings.",
     default: () => "auto",
     cliChoices: [true, false, "auto"] as any[]
+  },
+  rpcEndpoint: {
+    normalize,
+    cliDescription:
+      "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
+    default: (config, flavor) => {
+      switch (flavor) {
+        case FilecoinFlavorName:
+          return "/rpc/v0";
+        case DefaultFlavor:
+        default:
+          return "/";
+      }
+    },
+    defaultDescription: '"/" (Ethereum), "/rpc/v0" (Filecoin)'
   }
 };

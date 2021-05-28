@@ -43,6 +43,7 @@ const checkForConflicts = (
 function fill(defaults: any, options: any, target: any, namespace: any) {
   const def = defaults[namespace];
   const config = (target[namespace] = target[namespace] || {});
+  const flavor = options.flavor;
 
   const suppliedOptions = new Set<string>();
   const keys = Object.keys(def);
@@ -77,7 +78,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
           config[key] = normalized;
           suppliedOptions.add(key);
         } else if (hasOwn(propDefinition, "default")) {
-          config[key] = propDefinition.default(config);
+          config[key] = propDefinition.default(config, flavor);
         }
       }
     }
@@ -99,7 +100,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
         config[key] = normalized;
         suppliedOptions.add(key);
       } else if (hasOwn(propDefinition, "default")) {
-        config[key] = propDefinition.default(config);
+        config[key] = propDefinition.default(config, flavor);
       }
     }
   }

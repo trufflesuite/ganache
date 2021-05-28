@@ -49,6 +49,6 @@
     "cheerio": "1.0.0-rc.3",
     "local-web-server": "4.2.1",
     "typedoc": "0.17.8",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3"
   }
 }

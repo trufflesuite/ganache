@@ -51,9 +51,13 @@
     "@ganache/options": "^0.1.0",
     "@ganache/tezos": "^0.1.0",
     "@ganache/utils": "^0.1.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
+    "aggregate-error": "3.1.0",
+    "emittery": "0.8.1",
+    "promise.allsettled": "1.0.4"
   },
   "devDependencies": {
+    "@types/promise.allsettled": "1.0.3",
     "@types/superagent": "4.1.10",
     "superagent": "6.1.0",
     "ws": "7.3.1"

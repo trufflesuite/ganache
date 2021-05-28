@@ -23,8 +23,24 @@
       "path": "../../chains/ethereum/options"
     },
     {
+      "name": "@ganache/filecoin",
+      "path": "../../chains/filecoin/filecoin"
+    },
+    {
+      "name": "@ganache/filecoin-options",
+      "path": "../../chains/filecoin/options"
+    },
+    {
       "name": "@ganache/options",
       "path": "../options"
+    },
+    {
+      "name": "@ganache/filecoin-types",
+      "path": "../../chains/filecoin/types"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../colors"
     }
   ]
 }

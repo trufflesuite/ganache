@@ -2,7 +2,7 @@ import Emittery from "emittery";
 import { utils, types } from "@ganache/utils";
 import Provider from "./src/provider";
 import TezosApi from "./src/api";
-import { HttpRequest } from "uWebSockets.js";
+import { HttpRequest } from "@trufflesuite/uws-js-unofficial";
 
 export type TezosProvider = Provider;
 export const TezosProvider = Provider;
@@ -19,6 +19,8 @@ export class TezosConnector
     const api = (this.#api = new TezosApi());
     this.provider = new Provider(providerOptions);
   }
+
+  async connect() {}
 
   format(result: any) {
     return JSON.stringify(result);

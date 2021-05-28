@@ -1,9 +1,10 @@
+import { utils } from "@ganache/utils";
 import assert from "assert";
 import { join } from "path";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 
-const eth = "0x" + 1000000000000000000n.toString(16);
+const eth = "0x" + utils.WEI.toString(16);
 
 describe("api", () => {
   describe("evm", () => {
@@ -82,7 +83,7 @@ describe("api", () => {
 
         // Assert the starting balance is where we think it is, including tx costs.
         assert(
-          balance > 98900000000000000000 && balance < 99000000000000000000
+          balance > 990000000000000000000n && balance < 999000000000000000000n
         );
         startingBalance = balance;
 
@@ -110,7 +111,7 @@ describe("api", () => {
 
         // Assert the starting balance is where we think it is, including tx costs.
         assert(
-          balance > 97900000000000000000n && balance < 98000000000000000000n
+          balance > 980000000000000000000n && balance < 998000000000000000000n
         );
 
         const status = await send("evm_revert", [snapshotId]);
