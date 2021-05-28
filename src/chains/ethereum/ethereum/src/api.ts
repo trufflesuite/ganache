@@ -2959,7 +2959,7 @@ export default class EthereumApi implements types.Api {
    * const [to] = await provider.send("personal_listAccounts");
    *
    * // use account and passphrase to send the transaction
-   * const txHash = await provider.send("personal_sendTransaction", [{ from: newAccount, to }, passphrase] );
+   * const txHash = await provider.send("personal_sendTransaction", [{ from: newAccount, to, gasLimit: "0x5b8d80" }, passphrase] );
    * console.log(txHash);
    * ```
    */
