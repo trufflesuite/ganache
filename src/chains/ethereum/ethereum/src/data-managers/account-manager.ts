@@ -1,5 +1,13 @@
-import { Account, Address, QUANTITY, Tag } from "@ganache/ethereum-utils";
-import Trie from "merkle-patricia-tree/baseTrie";
+import {
+  Account,
+  EthereumRawAccount,
+  QUANTITY,
+  Tag
+} from "@ganache/ethereum-utils";
+import { KECCAK256_NULL } from "ethereumjs-util";
+import { utils, Quantity, Data } from "@ganache/utils";
+import { Address } from "@ganache/ethereum-address";
+import { decode } from "@ganache/rlp";
 import Blockchain from "../blockchain";
 
 const { RPCQUANTITY_ZERO, BUFFER_EMPTY } = utils;
@@ -22,17 +30,33 @@ export default class AccountManager {
 
   public async getRaw(
     address: Address,
-    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
-  ): Promise<Buffer> {
-    const blockchain = this.#blockchain;
-    const block = await blockchain.blocks.get(blockNumber);
-    const trieCopy = new Trie(this.#trie, block.header.stateRoot.toBuffer());
-    return new Promise((resolve, reject) => {
-      trieCopy.get(keccak(address.toBuffer()), (err: Error, data: Buffer) => {
-        if (err) return reject(err);
-        resolve(data);
-      });
-    });
+    blockNumber: string | Buffer | Tag = Tag.LATEST
+  ): Promise<Buffer | null> {
+    const { trie, blocks } = this.#blockchain;
+
+    // get the block, its state root, and the trie at that state root
+    const { stateRoot, number } = (await blocks.get(blockNumber)).header;
+    const trieCopy = trie.copy(false);
+    trieCopy.setContext(stateRoot.toBuffer(), null, number);
+
+    // get the account from the trie
+    return await trieCopy.get(address.toBuffer());
+  }
+
+  public async getStorageAt(
+    address: Address,
+    key: Buffer,
+    blockNumber: Buffer | Tag = Tag.LATEST
+  ) {
+    const { trie, blocks } = this.#blockchain;
+
+    // get the block, its state root, and the trie at that state root
+    const { stateRoot, number } = (await blocks.get(blockNumber)).header;
+    const trieCopy = trie.copy(false);
+    trieCopy.setContext(stateRoot.toBuffer(), address.toBuffer(), number);
+
+    // get the account from the trie
+    return await trieCopy.get(key);
   }
 
   public async getNonce(
@@ -61,7 +85,7 @@ export default class AccountManager {
 
   public async getCode(
     address: Address,
-    blockNumber: string | Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
   ): Promise<Data> {
     const data = await this.getRaw(address, blockNumber);
 
