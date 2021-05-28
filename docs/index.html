@@ -4882,7 +4882,7 @@ and cannot be used in other RPC calls.</p>
 <span class="hljs-keyword">const</span> [to] = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_listAccounts&quot;</span>);
 
 <span class="hljs-comment">// use account and passphrase to send the transaction</span>
-<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_sendTransaction&quot;</span>, [{ <span class="hljs-attr">from</span>: newAccount, to }, passphrase] );
+<span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_sendTransaction&quot;</span>, [{ <span class="hljs-attr">from</span>: newAccount, to, <span class="hljs-attr">gasLimit</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }, passphrase] );
 <span class="hljs-built_in">console</span>.log(txHash);
 </code></pre>
 

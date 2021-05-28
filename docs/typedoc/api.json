@@ -8029,7 +8029,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase] );\nconst [to] = await provider.send(\"personal_listAccounts\");\n\n// use account and passphrase to send the transaction\nconst txHash = await provider.send(\"personal_sendTransaction\", [{ from: newAccount, to }, passphrase] );\nconsole.log(txHash);\n```\n"
+												"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase] );\nconst [to] = await provider.send(\"personal_listAccounts\");\n\n// use account and passphrase to send the transaction\nconst txHash = await provider.send(\"personal_sendTransaction\", [{ from: newAccount, to, gasLimit: \"0x5b8d80\" }, passphrase] );\nconsole.log(txHash);\n```\n"
 											}
 										]
 									},
