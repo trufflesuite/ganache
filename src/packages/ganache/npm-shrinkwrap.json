@@ -1765,6 +1765,12 @@
 				"ajv-keywords": "^3.5.2"
 			}
 		},
+		"scrypt-js": {
+			"version": "3.0.1",
+			"resolved": "https://registry.npmjs.org/scrypt-js/-/scrypt-js-3.0.1.tgz",
+			"integrity": "sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==",
+			"dev": true
+		},
 		"secp256k1": {
 			"version": "4.0.2",
 			"resolved": "https://registry.npmjs.org/secp256k1/-/secp256k1-4.0.2.tgz",
