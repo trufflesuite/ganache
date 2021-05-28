@@ -1,2 +1,2 @@
-export type QUANTITY = number | bigint | string;
+export type QUANTITY = string;
 export type DATA = string;

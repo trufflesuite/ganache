@@ -1,5 +1,4 @@
 import { Account, EthereumRawAccount, QUANTITY, Tag } from "@ganache/ethereum-utils";
-import Trie from "merkle-patricia-tree/baseTrie";
 import { KECCAK256_NULL } from "ethereumjs-util";
 import { utils, Quantity, Data } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
@@ -26,7 +25,7 @@ export default class AccountManager {
 
   public async getRaw(
     address: Address,
-    blockNumber: QUANTITY | Tag = Tag.LATEST
+    blockNumber: string | Buffer | Tag = Tag.LATEST
   ): Promise<Buffer | null> {
     const { trie, blocks } = this.#blockchain;
 
@@ -81,7 +80,7 @@ export default class AccountManager {
 
   public async getCode(
     address: Address,
-    blockNumber: string | Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
   ): Promise<Data> {
     const data = await this.getRaw(address, blockNumber);
 
