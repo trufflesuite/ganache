@@ -7,7 +7,7 @@ import {
   WebSocket,
   HttpRequest
 } from "@trufflesuite/uws-js-unofficial";
-import { CodedError, ErrorCodes } from "@ganache/ethereum-utils";
+import { CodedError } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,
   EthereumLegacyProviderOptions
@@ -49,7 +49,7 @@ export class Connector
     this.#provider = new EthereumProvider(providerOptions, executor);
   }
 
-  async initialize() {
+  async connect() {
     await this.#provider.initialize();
     // no need to wait for #provider.once("connect") as the initialize()
     // promise has already accounted for that after the promise is resolved
@@ -60,7 +60,7 @@ export class Connector
     try {
       return JSON.parse(message) as JsonRpcTypes.Request<EthereumApi>;
     } catch (e) {
-      throw new CodedError(e.message, ErrorCodes.PARSE_ERROR);
+      throw new CodedError(e.message, JsonRpcTypes.ErrorCode.PARSE_ERROR);
     }
   }
 
@@ -92,7 +92,7 @@ export class Connector
         return Promise.reject(
           new CodedError(
             "notifications not supported",
-            ErrorCodes.METHOD_NOT_SUPPORTED
+            JsonRpcTypes.ErrorCode.METHOD_NOT_SUPPORTED
           )
         );
       }

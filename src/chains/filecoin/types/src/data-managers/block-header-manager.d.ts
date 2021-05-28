@@ -13,3 +13,4 @@ export default class BlockHeaderManager extends Manager<
    */
   putBlockHeader(blockHeader: BlockHeader): Promise<void>;
 }
+//# sourceMappingURL=block-header-manager.d.ts.map

@@ -33,13 +33,10 @@ export class Connector
   ) {
     super();
 
-    this.#provider = new FilecoinProvider(
-      providerOptions,
-      executor
-    );
+    this.#provider = new FilecoinProvider(providerOptions, executor);
   }
 
-  async initialize() {
+  async connect() {
     await this.#provider.initialize();
     // no need to wait for #provider.once("connect") as the initialize()
     // promise has already accounted for that after the promise is resolved
@@ -69,10 +66,7 @@ export class Connector
     error: Error & { code: number },
     payload: JsonRpcTypes.Request<FilecoinApi>
   ): RecognizedString {
-    const json = JsonRpcTypes.Error(
-      payload && payload.id ? payload.id : undefined,
-      error
-    );
+    const json = JsonRpcTypes.Error(payload.id, error);
     return JSON.stringify(json);
   }
 

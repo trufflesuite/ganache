@@ -36,6 +36,7 @@ export type Definitions<C extends Base.Config> = {
     readonly disableInCLI?: boolean;
     readonly cliAliases?: string[];
     readonly cliChoices?: string[] | number[];
+    readonly implies?: ReadonlyArray<Exclude<OptionName<C>, N>>;
     // exclusiveGroups (conflicts)
   } & (C[ExclusiveGroupsByName<C, N>] extends never
     ? {}

@@ -83,3 +83,4 @@ export default class Blockchain extends Emittery.Typed<
   createAccount(protocol: AddressProtocol): Promise<Account>;
   private logLatestTipset;
 }
+//# sourceMappingURL=blockchain.d.ts.map

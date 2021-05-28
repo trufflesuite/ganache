@@ -1,6 +1,7 @@
 export * from "./connector";
 export * from "./provider";
 export * from "./api";
+export * from "./url";
 
 import { Api } from "./api";
 

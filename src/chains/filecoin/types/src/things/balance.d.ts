@@ -12,3 +12,4 @@ declare class Balance extends SerializableLiteral<BalanceConfig> {
 }
 declare type SerializedBalance = string;
 export { Balance, SerializedBalance };
+//# sourceMappingURL=balance.d.ts.map

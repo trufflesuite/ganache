@@ -11,3 +11,4 @@ export declare function verifyMessageSignature(
 export declare function checkMessage(
   signedMessage: SignedMessage
 ): Promise<Error | null>;
+//# sourceMappingURL=message.d.ts.map

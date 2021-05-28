@@ -40,13 +40,13 @@ jobs:
         run: npm install --global --production windows-build-tools@4.0.0
       - name: install node-gyp
         if: startsWith(matrix.os, 'windows-')
-        run: npm install --global node-gyp@latest
+        run: npm install --global node-gyp@7.1.2
       - name: Set node config to use python2.7
         if: startsWith(matrix.os, 'windows-')
         run: npm config set python python2.7
       - name: Set node config to set msvs_version to 2015
         if: startsWith(matrix.os, 'windows-')
-        run: npm config set msvs_version 2015
+        run: npm config set msvs_version 2015 --global
       - run: npm ci
       - run: npm run tsc
       - run: npm test

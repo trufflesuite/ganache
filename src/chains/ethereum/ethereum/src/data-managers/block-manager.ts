@@ -1,8 +1,10 @@
 import Manager from "./manager";
-import { Tag, Block } from "@ganache/ethereum-utils";
+import { Tag } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
-import Common from "ethereumjs-common";
+import type Common from "@ethereumjs/common";
+import Blockchain from "../blockchain";
+import { Block } from "@ganache/ethereum-block";
 
 const NOTFOUND = 404;
 
@@ -24,25 +26,46 @@ export default class BlockManager extends Manager<Block> {
    */
   public pending: Block;
 
+  #blockchain: Blockchain;
   #common: Common;
   #blockIndexes: LevelUp;
 
   static async initialize(
+    blockchain: Blockchain,
     common: Common,
     blockIndexes: LevelUp,
     base: LevelUp
   ) {
-    const bm = new BlockManager(common, blockIndexes, base);
+    const bm = new BlockManager(blockchain, common, blockIndexes, base);
     await bm.updateTaggedBlocks();
     return bm;
   }
 
-  constructor(common: Common, blockIndexes: LevelUp, base: LevelUp) {
+  constructor(
+    blockchain: Blockchain,
+    common: Common,
+    blockIndexes: LevelUp,
+    base: LevelUp
+  ) {
     super(base, Block, common);
 
+    this.#blockchain = blockchain;
     this.#common = common;
     this.#blockIndexes = blockIndexes;
   }
+
+  fromFallback = async (
+    tagOrBlockNumber: string | Buffer | Tag
+  ): Promise<Buffer> => {
+    const fallback = this.#blockchain.fallback;
+    const json = await fallback.request<any>("eth_getBlockByNumber", [
+      typeof tagOrBlockNumber === "string"
+        ? tagOrBlockNumber
+        : Quantity.from(tagOrBlockNumber).toString(),
+      true
+    ]);
+    return json == null ? null : Block.rawFromJSON(json);
+  };
 
   getBlockByTag(tag: Tag) {
     switch (Tag.normalize(tag as Tag)) {
@@ -65,7 +88,9 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST) {
+  getEffectiveNumber(
+    tagOrBlockNumber: string | Buffer | Tag = Tag.LATEST
+  ): Quantity {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {
@@ -84,13 +109,39 @@ export default class BlockManager extends Manager<Block> {
 
   async getByHash(hash: string | Buffer | Tag) {
     const number = await this.getNumberFromHash(hash);
-    return number ? super.get(number) : null;
+    if (number === null) {
+      if (this.#blockchain.fallback) {
+        const fallback = this.#blockchain.fallback;
+        const json = await fallback.request<any>("eth_getBlockByHash", [
+          Data.from(hash),
+          true
+        ]);
+        if (json && BigInt(json.number) <= fallback.blockNumber.toBigInt()) {
+          return new Block(Block.rawFromJSON(json), this.#common);
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    } else {
+      return this.get(number);
+    }
   }
 
-  async getRaw(tagOrBlockNumber: string | Buffer | Tag) {
+  async getRawByBlockNumber(blockNumber: Quantity): Promise<Buffer> {
     // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
     // we don't have to fetch them from the db each time a block tag is used.
-    return super.getRaw(this.getEffectiveNumber(tagOrBlockNumber).toBuffer());
+    const fallback = this.#blockchain.fallback;
+    const numBuf = blockNumber.toBuffer();
+    return this.getRaw(numBuf).then(block => {
+      if (block == null && fallback) {
+        return this.fromFallback(
+          fallback.selectValidForkBlockNumber(blockNumber).toBuffer()
+        );
+      }
+      return block;
+    });
   }
 
   async get(tagOrBlockNumber: string | Buffer | Tag) {
@@ -99,8 +150,10 @@ export default class BlockManager extends Manager<Block> {
       if (block) return block;
     }
 
-    const block = await super.get(tagOrBlockNumber);
-    if (block) return block;
+    const block = await this.getRawByBlockNumber(
+      Quantity.from(tagOrBlockNumber)
+    );
+    if (block) return new Block(block, this.#common);
 
     throw new Error("header not found");
   }
@@ -109,13 +162,13 @@ export default class BlockManager extends Manager<Block> {
    * Writes the block object to the underlying database.
    * @param block
    */
-  async putBlock(number: Buffer, hash: Buffer, serialized: Buffer) {
+  async putBlock(number: Buffer, hash: Data, serialized: Buffer) {
     let key = number;
     // ensure we can store Block #0 as key "00", not ""
     if (EMPTY_BUFFER.equals(key)) {
       key = Buffer.from([0]);
     }
-    const secondaryKey = hash;
+    const secondaryKey = hash.toBuffer();
     await Promise.all([
       this.#blockIndexes.put(secondaryKey, key),
       super.set(key, serialized)

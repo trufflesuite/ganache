@@ -33,3 +33,4 @@ declare class PoStProof
 }
 declare type SerializedPoStProof = SerializedObject<PoStProofConfig>;
 export { PoStProof, SerializedPoStProof };
+//# sourceMappingURL=post-proof.d.ts.map

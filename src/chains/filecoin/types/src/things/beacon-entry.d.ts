@@ -33,3 +33,4 @@ declare class BeaconEntry
 }
 declare type SerializedBeaconEntry = SerializedObject<BeaconEntryConfig>;
 export { BeaconEntry, SerializedBeaconEntry };
+//# sourceMappingURL=beacon-entry.d.ts.map

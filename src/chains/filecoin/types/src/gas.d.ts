@@ -35,3 +35,4 @@ export declare function getBaseFee(): number;
  * Helper function to get the miner fee for a message
  */
 export declare function getMinerFee(message: Message): bigint;
+//# sourceMappingURL=gas.d.ts.map

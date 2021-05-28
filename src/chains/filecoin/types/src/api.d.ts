@@ -602,3 +602,4 @@ export default class FilecoinApi implements types.Api {
    */
   "Ganache.GetDealById"(dealId: number): Promise<SerializedDealInfo>;
 }
+//# sourceMappingURL=api.d.ts.map

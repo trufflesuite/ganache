@@ -6,8 +6,15 @@
  * @license MIT
  */
 
-try {
-  module.exports = require("./src");
-} catch (e) {
-  module.exports = require("../dist/node/ganache-filecoin-options.min.js");
-}
+import { FilecoinDefaults, FilecoinOptionsConfig } from "./src";
+export {
+  FilecoinInternalOptions,
+  FilecoinOptionsConfig,
+  FilecoinProviderOptions,
+  FilecoinDefaults,
+  FilecoinLegacyProviderOptions
+} from "./src";
+export default {
+  FilecoinDefaults,
+  FilecoinOptionsConfig
+};

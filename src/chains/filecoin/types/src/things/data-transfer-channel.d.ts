@@ -75,3 +75,4 @@ declare class DataTransferChannel
 }
 declare type SerializedDataTransferChannel = SerializedObject<DataTransferChannelConfig>;
 export { DataTransferChannel, SerializedDataTransferChannel };
+//# sourceMappingURL=data-transfer-channel.d.ts.map

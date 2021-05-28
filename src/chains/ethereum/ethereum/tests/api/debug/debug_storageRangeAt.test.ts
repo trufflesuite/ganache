@@ -94,7 +94,7 @@ describe("api", () => {
           result.nextKey,
           "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6"
         );
-      });
+      }).timeout(0);
 
       it("should return only the filled storage slots", async () => {
         const result = await provider.send("debug_storageRangeAt", [
@@ -394,7 +394,7 @@ describe("api", () => {
 
       before(async () => {
         provider = await getProvider();
-        accounts = await provider.send("eth_accounts");
+        accounts = await provider.send("eth_accounts", []);
         const contract = compile(
           path.join(
             __dirname,
@@ -410,13 +410,17 @@ describe("api", () => {
         ]);
 
         const deploymentHash = await provider.send("eth_sendTransaction", [
-          { from: accounts[0], data: contract.code, gas: 3141592 }
+          {
+            from: accounts[0],
+            data: contract.code,
+            gas: `0x${(3141592).toString(16)}`
+          }
         ]);
         await provider.once("message");
 
         const deploymentTxReceipt = await provider.send(
           "eth_getTransactionReceipt",
-          [deploymentHash]
+          [deploymentHash.toString()]
         );
         contractAddress = deploymentTxReceipt.contractAddress;
         deploymentBlockHash = deploymentTxReceipt.blockHash;

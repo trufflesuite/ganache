@@ -36,3 +36,4 @@ export declare const nextSuccessfulState: Record<
   StorageDealStatus
 >;
 export declare function dealIsInProcess(state: StorageDealStatus): boolean;
+//# sourceMappingURL=storage-deal-status.d.ts.map

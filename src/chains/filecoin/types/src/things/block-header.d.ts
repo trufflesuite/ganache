@@ -126,3 +126,4 @@ declare class BlockHeader
 }
 declare type SerializedBlockHeader = SerializedObject<BlockHeaderConfig>;
 export { BlockHeader, BlockHeaderConfig, SerializedBlockHeader };
+//# sourceMappingURL=block-header.d.ts.map

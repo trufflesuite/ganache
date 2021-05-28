@@ -38,3 +38,4 @@ declare class ChannelID
 }
 declare type SerializedChannelID = SerializedObject<ChannelIDConfig>;
 export { ChannelID, SerializedChannelID };
+//# sourceMappingURL=channel-id.d.ts.map

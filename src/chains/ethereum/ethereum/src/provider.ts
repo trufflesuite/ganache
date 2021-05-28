@@ -1,6 +1,6 @@
 import Emittery from "emittery";
 import EthereumApi from "./api";
-import { JsonRpcTypes } from "@ganache/utils";
+import { JsonRpcTypes, PromiEvent, types, utils } from "@ganache/utils";
 import {
   EthereumProviderOptions,
   EthereumInternalOptions,
@@ -8,8 +8,36 @@ import {
   EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
 import cloneDeep from "lodash.clonedeep";
-import { PromiEvent, types, utils } from "@ganache/utils";
 import Wallet from "./wallet";
+import Blockchain from "./blockchain";
+import { Fork } from "./forking/fork";
+import { Account } from "@ganache/ethereum-utils";
+import { Address } from "@ganache/ethereum-address";
+
+function parseCoinbase(
+  coinbase: string | number | Address,
+  initialAccounts: Account[]
+) {
+  switch (typeof coinbase) {
+    case "object":
+      return coinbase;
+    case "number":
+      const account = initialAccounts[coinbase];
+      if (account) {
+        return account.address;
+      } else {
+        throw new Error(`invalid coinbase address index: ${coinbase}`);
+      }
+    case "string":
+      return Address.from(coinbase);
+    default: {
+      throw new Error(
+        `coinbase address must be string or number, received: ${coinbase}`
+      );
+    }
+  }
+}
+
 declare type RequestMethods = types.KnownKeys<EthereumApi>;
 
 type mergePromiseGenerics<Type> = Promise<
@@ -35,31 +63,41 @@ type RequestParams<Method extends RequestMethods> = {
 const hasOwn = utils.hasOwn;
 
 export default class EthereumProvider
-  extends Emittery.Typed<{ message: any }, "connect" | "disconnect">
+  extends Emittery.Typed<
+    { message: any; error: Error },
+    "connect" | "disconnect"
+  >
   implements types.Provider<EthereumApi> {
-  #options: EthereumInternalOptions;
-  #api: EthereumApi;
-  #executor: utils.Executor;
-  #wallet: Wallet;
+  readonly #options: EthereumInternalOptions;
+  readonly #api: EthereumApi;
+  readonly #executor: utils.Executor;
+  readonly #wallet: Wallet;
+  readonly #blockchain: Blockchain;
 
   constructor(
     options: EthereumProviderOptions | EthereumLegacyProviderOptions = {},
     executor: utils.Executor
   ) {
     super();
+    this.#executor = executor;
+
     const providerOptions = (this.#options = EthereumOptionsConfig.normalize(
       options as EthereumProviderOptions
     ));
 
-    this.#executor = executor;
     const wallet = (this.#wallet = new Wallet(providerOptions.wallet));
-
-    this.#api = new EthereumApi(providerOptions, wallet, this);
+    const accounts = wallet.initialAccounts;
+    const fork = providerOptions.fork.url || providerOptions.fork.provider;
+    const fallback = fork ? new Fork(providerOptions, accounts) : null;
+    const coinbase = parseCoinbase(providerOptions.miner.coinbase, accounts);
+    const blockchain = new Blockchain(providerOptions, coinbase, fallback);
+    this.#blockchain = blockchain;
+    this.#api = new EthereumApi(providerOptions, wallet, blockchain);
   }
 
   async initialize() {
-    await this.#api.initialize();
-    await this.emit("connect");
+    await this.#blockchain.initialize(this.#wallet.initialAccounts);
+    this.emit("connect");
   }
 
   /**
@@ -215,8 +253,9 @@ export default class EthereumProvider
   }
 
   /**
-   * INTERNAL. Used when the caller wants to access the orignal `PromiEvent`, which would
-   * otherwise be flattened into a regular Promise through the Promise chain.
+   * INTERNAL. Used when the caller wants to access the original `PromiEvent`,
+   * which would otherwise be flattened into a regular Promise through the
+   * Promise chain.
    * @param request
    */
   public async _requestRaw<Method extends RequestMethods>({
@@ -277,7 +316,8 @@ export default class EthereumProvider
   };
 
   public disconnect = async () => {
-    await this.emit("disconnect");
+    await this.#blockchain.stop();
+    this.emit("disconnect");
     return;
   };
 

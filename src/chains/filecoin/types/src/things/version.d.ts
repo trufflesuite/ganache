@@ -38,3 +38,4 @@ declare class Version
 }
 declare type SerializedVersion = SerializedObject<VersionConfig>;
 export { Version, SerializedVersion };
+//# sourceMappingURL=version.d.ts.map

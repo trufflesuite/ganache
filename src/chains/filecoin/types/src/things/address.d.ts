@@ -70,3 +70,4 @@ declare class Address extends SerializableLiteral<AddressConfig> {
 }
 declare type SerializedAddress = string;
 export { Address, SerializedAddress, AddressProtocol, AddressNetwork };
+//# sourceMappingURL=address.d.ts.map

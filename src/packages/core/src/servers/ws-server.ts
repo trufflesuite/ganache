@@ -132,7 +132,7 @@ export default class WebsocketServer {
   }
   close() {
     this.#connections.forEach((_, ws) =>
-      ws.end(WebSocketCloseCodes.CLOSE_GOING_AWAY, "Server closed by client")
+      ws.end(WebSocketCloseCodes.CLOSE_NORMAL, "Server closed by client")
     );
   }
 }

@@ -9,3 +9,4 @@ export default class SignedMessageManager extends Manager<
   constructor(base: LevelUp);
   putSignedMessage(message: SignedMessage): Promise<void>;
 }
+//# sourceMappingURL=message-manager.d.ts.map

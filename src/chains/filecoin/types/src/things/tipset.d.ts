@@ -46,3 +46,4 @@ declare class Tipset
 }
 declare type SerializedTipset = SerializedObject<TipsetConfig>;
 export { Tipset, TipsetConfig, SerializedTipset };
+//# sourceMappingURL=tipset.d.ts.map

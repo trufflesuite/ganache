@@ -117,3 +117,4 @@ declare class DealInfo
 }
 declare type SerializedDealInfo = SerializedObject<DealInfoConfig>;
 export { DealInfo, DealInfoConfig, SerializedDealInfo };
+//# sourceMappingURL=deal-info.d.ts.map
