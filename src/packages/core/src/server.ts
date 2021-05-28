@@ -185,11 +185,7 @@ export class Server<
                 LIBUS_LISTEN_EXCLUSIVE_PORT,
                 resolve
               )
-            : this.#app.listen(
-                port as any,
-                LIBUS_LISTEN_EXCLUSIVE_PORT,
-                resolve
-              );
+            : this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
         }
       ).then(listenSocket => {
         if (listenSocket) {

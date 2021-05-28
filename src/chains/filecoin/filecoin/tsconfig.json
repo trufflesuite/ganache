@@ -7,7 +7,6 @@
     "noImplicitAny": true
   },
   "include": [
-    "package.json",
     "index.ts",
     "src/**/*"
   ],
