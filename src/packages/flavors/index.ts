@@ -62,7 +62,7 @@ export function GetConnector<T extends FlavorName>(
       case FilecoinFlavorName: {
         flavor = "@ganache/filecoin" as any;
         const Connector: Filecoin.Connector = require("@ganache/filecoin")
-          .Connector;
+          .default.Connector;
         // @ts-ignore
         return new Connector(providerOptions, executor);
       }
