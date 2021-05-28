@@ -37,7 +37,7 @@ jobs:
       - name: install node tools
         if: startsWith(matrix.os, 'windows-')
         # windows-build-tools@5.2.2 failed to install, so we use 4.0.0
-        run: npm install --global --production windows-build-tools@4.0.0
+        run: npm install --global --production windows-build-tools@5.2.2
       - name: install node-gyp
         if: startsWith(matrix.os, 'windows-')
         run: npm install --global node-gyp@7.1.2
