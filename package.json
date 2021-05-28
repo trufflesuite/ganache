@@ -15,7 +15,7 @@
     "postinstall": "lerna bootstrap && ts-node scripts/link-ts-references.ts && npm run tsc && ts-node scripts/postinstall",
     "reinstall": "npm run clean && npm install",
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
-    "test": "lerna exec -- npm run test",
+    "test": "lerna exec --concurrency 1 -- npm run test",
     "tsc": "ttsc --build src",
     "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist",
     "tsc.filecoin.declarations": "lerna run tsc.declarations --scope @ganache/filecoin && pretty-quick src/chains/filecoin/types"
