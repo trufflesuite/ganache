@@ -5,7 +5,7 @@ type Count = {
 
 /**
  * @param timestamp
- * @returns the millisconds that have ellapsed since `timestamp`
+ * @returns the milliseconds that have elapsed since `timestamp`
  */
 function timeSince(timestamp: number) {
   return Date.now() - timestamp;

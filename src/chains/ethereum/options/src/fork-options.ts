@@ -1,23 +1,16 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
-import { URL as _URL } from "@ganache/utils";
 import { Tag } from "@ganache/ethereum-utils";
+import { URL } from "url";
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
-
-declare var URL: {
-  prototype: _URL;
-  new (url: string, base?: string | _URL): _URL;
-  createObjectURL(object: any): string;
-  revokeObjectURL(url: string): void;
-};
 
 // we aren't going to treat block numbers as a bigint, so we don't want to
 // accept block numbers we can't add to
 const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 
 type HeaderRecord = { name: string; value: string };
-type ForkUrl = _URL & { _blockNumber?: number | Tag.LATEST };
+type ForkUrl = URL & { _blockNumber?: number | Tag.LATEST };
 
 export type ForkConfig = {
   options: {

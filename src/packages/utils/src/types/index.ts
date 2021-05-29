@@ -1,7 +1,6 @@
 export * from "./connector";
 export * from "./provider";
 export * from "./api";
-export * from "./url";
 
 export type KnownKeys<T> = {
   [K in keyof T]: string extends K ? never : number extends K ? never : K;

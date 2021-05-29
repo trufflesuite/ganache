@@ -15,6 +15,8 @@ import {
   HttpRequest,
   WebSocket
 } from "@trufflesuite/uws-js-unofficial";
+// SubscriptionMethod is a required import for Api Extractor.
+import type { SubscriptionMethod } from "./types/subscriptions";
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 export { StorageDealStatus } from "./types/storage-deal-status";
 

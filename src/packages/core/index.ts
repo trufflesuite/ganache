@@ -1,3 +1,6 @@
+// Options is a required import for Api Extractor.
+import type { Options } from "@ganache/flavors";
+
 import { ConnectorsByName, DefaultFlavor, FlavorName } from "@ganache/flavors";
 import ConnectorLoader from "./src/connector-loader";
 import { ProviderOptions, ServerOptions } from "./src/options";

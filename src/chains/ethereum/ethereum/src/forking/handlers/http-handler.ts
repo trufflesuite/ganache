@@ -1,5 +1,5 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { JsonRpcResponse, JsonRpcError, URL } from "@ganache/utils";
+import { JsonRpcResponse, JsonRpcError } from "@ganache/utils";
 import { AbortError } from "@ganache/ethereum-utils";
 // TODO: support http2
 import http, { RequestOptions, Agent as HttpAgent } from "http";

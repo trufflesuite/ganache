@@ -34,6 +34,8 @@ import {
   RPCQUANTITY_EMPTY,
   JsonRpcErrorCode
 } from "@ganache/utils";
+// StructLog is a required import for Api Extractor.
+import type { StructLog } from "./blockchain";
 import Blockchain, { TransactionTraceOptions } from "./blockchain";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import Wallet from "./wallet";

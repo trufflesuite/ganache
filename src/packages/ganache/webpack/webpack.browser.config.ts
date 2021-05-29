@@ -4,7 +4,6 @@ import path from "path";
 import merge from "webpack-merge";
 
 const config: webpack.Configuration = merge({}, base, {
-  externals: ["@ganache/filecoin"],
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
     fallback: {
@@ -30,7 +29,9 @@ const config: webpack.Configuration = merge({}, base, {
       leveldown: require.resolve("level-js/"),
       // browser version can't start a server, so just remove the websocket server since it can't work anyway
       "@trufflesuite/uws-js-unofficial": false,
-      "@ganache/filecoin": false
+      "@ganache/filecoin": false,
+      // `url` is already a global property in browser
+      url: false
     }
   },
   output: {
