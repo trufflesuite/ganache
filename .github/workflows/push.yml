@@ -59,7 +59,7 @@ jobs:
         run: npm install --global --production windows-build-tools@4.0.0
       - name: install node-gyp
         if: startsWith(matrix.os, 'windows-')
-        run: npm install --global node-gyp@6.1.0
+        run: npm install --global node-gyp@7.1.2
       - name: Set node config to use python2.7
         if: startsWith(matrix.os, 'windows-')
         run: npm config set python python2.7
