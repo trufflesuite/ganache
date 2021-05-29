@@ -2,7 +2,7 @@
 
 ## Getting set up
 
-- Use Node.js v10.13.0 (even though Ganache itself is compatible back to 10.7.0).
+- Use Node.js v10.13.0.
   - Why v10.13.0? Because this is the first version prettier supports.
   - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
     Windows, to configure your node version.

@@ -10,7 +10,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [10.7.0, 10.x, 11.x, 12.x, 13.x, 14.x]
+        # We start at Node 10.13.0 because it is the first Node 10 LTS release
+        node: [10.13.0, 10.x, 11.x, 12.x, 13.x, 14.x]
         os: [windows-2019, ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-11.0]
 
     runs-on: ${{ matrix.os }}
@@ -24,22 +25,20 @@ jobs:
 
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v1
-
         with:
           node-version: ${{ matrix.node }}
 
-      # we need build tools for the `bigint-buffer` module
       - name: Add msbuild to PATH
+        # we need msbuild tools for the `bigint-buffer` module
         if: startsWith(matrix.os, 'windows-')
         uses: microsoft/setup-msbuild@v1.0.2
 
-      - name: Update npm for node 10.7.0
-        # lerna bootstrap was failing on node 10.7.0 with npm 6.1.0, updating
-        # to npm 6.4.1 seems to fix the problem
-        if: ${{ startsWith(matrix.os, 'windows-') && matrix.node == '10.7.0' }}
-        run: npm install npm@6.4.1 --global
-
       - name: install node tools
+        # we don't need to install the windows-build-tools package, as we
+        # already have almost everything we need. We only need to install
+        # python 2.7. Also windows-build-tools@4 fails to install because some
+        # resources it downloads no longer exist, and windows-build-tools@5
+        # fails to install Python (it will wait on the python installer forever)
         if: startsWith(matrix.os, 'windows-')
         uses: actions/setup-python@v2
         with:
