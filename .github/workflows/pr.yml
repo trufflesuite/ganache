@@ -29,6 +29,9 @@ jobs:
       - name: Add msbuild to PATH
         if: startsWith(matrix.os, 'windows-')
         uses: microsoft/setup-msbuild@v1.0.2
+        with:
+          # VS 2019
+          vs-version: "[16.6.0]"
       - name: Update npm for node 10.7.0
         # lerna bootstrap was failing on node 10.7.0 with npm 6.1.0, updating
         # to npm 6.4.1 seems to fix the problem
@@ -44,9 +47,9 @@ jobs:
       - name: Set node config to use python2.7
         if: startsWith(matrix.os, 'windows-')
         run: npm config set python python2.7
-      - name: Set node config to set msvs_version to 2015
+      - name: Set node config to set msvs_version to 2019
         if: startsWith(matrix.os, 'windows-')
-        run: npm config set msvs_version 2015 --global
+        run: npm config set msvs_version 2019 --global
       - run: npm ci
       - run: npm run tsc
       - run: npm test
