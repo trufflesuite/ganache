@@ -37,10 +37,10 @@ jobs:
       - name: install node tools
         if: startsWith(matrix.os, 'windows-')
         # windows-build-tools@5.2.2 failed to install, so we use 4.0.0
-        run: npm install --global --production windows-build-tools@5.2.2
+        run: npm --vs2015 install --global --production windows-build-tools@5.2.2
       - name: install node-gyp
         if: startsWith(matrix.os, 'windows-')
-        run: npm install --global node-gyp@6.1.0
+        run: npm install --global node-gyp@7.1.2
       - name: Set node config to use python2.7
         if: startsWith(matrix.os, 'windows-')
         run: npm config set python python2.7
