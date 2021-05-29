@@ -37,16 +37,16 @@ jobs:
       - name: install node tools
         if: startsWith(matrix.os, 'windows-')
         # windows-build-tools@5.2.2 failed to install, so we use 4.0.0
-        run: npm install --global --production windows-build-tools@4.0.0
-      # - name: install node-gyp
-      #   if: startsWith(matrix.os, 'windows-')
-      #   run: npm install --global node-gyp@6.1.0
-      # - name: Set node config to use python2.7
-      #   if: startsWith(matrix.os, 'windows-')
-      #   run: npm config set python python2.7
-      # - name: Set node config to set msvs_version to 2015
-      #   if: startsWith(matrix.os, 'windows-')
-      #   run: npm config set msvs_version 2015 --global
+        run: npm install --global --production windows-build-tools@5.2.2
+      - name: install node-gyp
+        if: startsWith(matrix.os, 'windows-')
+        run: npm install --global node-gyp@6.1.0
+      - name: Set node config to use python2.7
+        if: startsWith(matrix.os, 'windows-')
+        run: npm config set python python2.7
+      - name: Set node config to set msvs_version to 2015
+        if: startsWith(matrix.os, 'windows-')
+        run: npm config set msvs_version 2015 --global
       - run: npm ci
       - run: npm run tsc
       - run: npm test
