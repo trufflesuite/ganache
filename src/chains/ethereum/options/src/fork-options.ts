@@ -193,7 +193,7 @@ export const ForkOptions: Definitions<ForkConfig> = {
       if (lastIndex !== -1) {
         // remove everything after the last @
         url = new URL(path.substr(0, lastIndex), url);
-        const blockNumber = path.substr(lastIndex);
+        const blockNumber = path.substr(lastIndex + 1);
         if (blockNumber && blockNumber !== Tag.LATEST) {
           // don't use parseInt because strings like `"123abc"` parse
           // to `123`, and there is probably an error on the user's side we'd
@@ -246,7 +246,7 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
       if (url) {
         // use the url's _blockNumber, if present, otherwise use "latest"
         if (url._blockNumber) {
-          //return url._blockNumber;
+          return url._blockNumber;
         } else {
           return Tag.LATEST;
         }

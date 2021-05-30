@@ -31,7 +31,12 @@ const initialize = <T extends FlavorName = typeof DefaultFlavor>(
 
   // Purposely not awaiting on this to prevent a breaking change
   // to the `Ganache.provider()` method
-  const connectPromise = connector.connect();
+  // TODO: remove the `connector.connect ? ` check and just use
+  // `connector.connect()` after publishing the `@ganache/filecoin` with the
+  // connector.connect interface
+  const connectPromise = connector.connect
+    ? connector.connect()
+    : (connector as any).initialize();
 
   // The request coordinator is initialized in a "paused" state; when the
   // provider is ready we unpause.. This lets us accept queue requests before

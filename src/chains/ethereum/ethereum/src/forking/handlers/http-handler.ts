@@ -92,7 +92,7 @@ export class HttpHandler extends BaseHandler implements Handler {
       return this.requestCache.get(data);
     }
 
-    const { protocol, host, port, pathname, search } = this.url;
+    const { protocol, hostname: host, port, pathname, search } = this.url;
     const requestOptions = {
       protocol,
       host,

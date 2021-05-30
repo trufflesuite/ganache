@@ -67,8 +67,11 @@ export function GetConnector<T extends FlavorName>(
     switch (flavor) {
       case FilecoinFlavorName: {
         flavor = "@ganache/filecoin" as any;
-        const Connector: FilecoinConnector = eval("require")(flavor).default
-          .Connector;
+        // TODO: remove the `typeof f.default != "undefined" ? ` check once the
+        // published filecoin plugin is updated to
+        const f = eval("require")(flavor);
+        const Connector: FilecoinConnector =
+          typeof f.default != "undefined" ? f.default.Connector : f.Connector;
         // @ts-ignore
         return new Connector(providerOptions, executor);
       }

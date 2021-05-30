@@ -1,3 +1,6 @@
+// Address is a required import for Api Extractor.
+import type { Address } from "@ganache/ethereum-address";
+
 import { BlockLogs, TransactionLog } from "@ganache/ethereum-utils";
 import { decode, digest, encodeRange } from "@ganache/rlp";
 import { Data, Quantity } from "@ganache/utils";
