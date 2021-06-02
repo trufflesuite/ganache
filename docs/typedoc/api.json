@@ -5307,7 +5307,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst signedTx = \"0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675\";\nconst txHash = await provider.send(\"eth_sendRawTransaction\", [signedTx] );\nconsole.log(txHash);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst signedTx = await provider.request({ method: \"eth_signTransaction\", params: [{ from, to }] });\nconst txHash = await provider.send(\"eth_sendRawTransaction\", [signedTx] );\nconsole.log(txHash);\n```\n"
 											}
 										]
 									},
