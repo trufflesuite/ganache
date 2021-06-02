@@ -1717,7 +1717,65 @@ export default class EthereumApi implements types.Api {
       return blockchain.queueTransaction(tx);
     }
   }
+  /**
+   * Signs a transaction that can be submitted to the network at a later time using `eth_sendRawTransaction`.
+   *
+   * Transaction call object:
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction - The transaction call object as seen in source.
+   * @returns The raw, signed transaction.
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to }] });
+   * console.log(signedTx)
+   * ```
+   */
+  @assertArgLength(1)
+  async eth_signTransaction(transaction: RpcTransaction) {
+    const blockchain = this.#blockchain;
+    const tx = new RuntimeTransaction(transaction, blockchain.common);
 
+    if (tx.from == null) {
+      throw new Error("from not found; is required");
+    }
+    const fromString = tx.from.toString();
+
+    const wallet = this.#wallet;
+    const isKnownAccount = wallet.knownAccounts.has(fromString);
+    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
+
+    if (!isUnlockedAccount) {
+      const msg = isKnownAccount
+        ? "authentication needed: password or unlock"
+        : "sender account not recognized";
+      throw new Error(msg);
+    }
+
+    if (tx.gas.isNull()) {
+      const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
+      if (defaultLimit === utils.RPCQUANTITY_EMPTY) {
+        // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
+        tx.gas = await this.eth_estimateGas(transaction, Tag.LATEST);
+      } else {
+        tx.gas = defaultLimit;
+      }
+    }
+
+    if (tx.gasPrice.isNull()) {
+      tx.gasPrice = this.#options.miner.gasPrice;
+    }
+
+    const secretKey = wallet.unlockedAccounts.get(fromString).toBuffer();
+    tx.signAndHash(secretKey);
+    return Data.from(tx.serialized).toString();
+  }
   // TODO: example doesn't work, not sure how to handle the signed transaction situation
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
