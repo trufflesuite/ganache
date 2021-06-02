@@ -1819,14 +1819,14 @@ export default class EthereumApi implements types.Api {
     tx.signAndHash(secretKey);
     return Data.from(tx.serialized).toString();
   }
-  // TODO: example doesn't work, not sure how to handle the signed transaction situation
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
    * @param transaction The signed transaction data.
    * @returns The transaction hash.
    * @example
    * ```javascript
-   * const signedTx = "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675";
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to }] });
    * const txHash = await provider.send("eth_sendRawTransaction", [signedTx] );
    * console.log(txHash);
    * ```
