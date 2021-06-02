@@ -486,10 +486,12 @@ export default class EthereumApi implements types.Api {
    * // revert the snapshot
    * const isReverted = await provider.send("evm_revert", [snapshotId] );
    * assert(isReverted);
-   * console.log(isReverted);
+   * console.log({isReverted: isReverted});
    *
+   * // ensure balance has reverted
    * const endingBalance = await provider.send("eth_getBalance", [from] );
-   * assert.strictEqual(BigInt(endingBalance), startingBalance);
+   * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
+   * console.log({isBalanceReverted: isBalanceReverted});
    * ```
    */
   @assertArgLength(1)
@@ -528,8 +530,10 @@ export default class EthereumApi implements types.Api {
    * const isReverted = await provider.send("evm_revert", [snapshotId] );
    * assert(isReverted);
    *
+   * // ensure balance has reverted
    * const endingBalance = await provider.send("eth_getBalance", [from] );
-   * assert.strictEqual(BigInt(endingBalance), startingBalance);
+   * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
+   * console.log({isBalanceReverted: isBalanceReverted});
    * ```
    */
   async evm_snapshot() {
