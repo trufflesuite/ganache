@@ -1781,9 +1781,9 @@ export default class EthereumApi implements types.Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_signTransaction(transaction: TypedRpcTransaction) {
+  async eth_signTransaction(transaction: RpcTransaction) {
     const blockchain = this.#blockchain;
-    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
+    const tx = new RuntimeTransaction(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");
@@ -1801,6 +1801,24 @@ export default class EthereumApi implements types.Api {
       throw new Error(msg);
     }
 
+    if (tx.gas.isNull()) {
+      const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
+      if (defaultLimit === utils.RPCQUANTITY_EMPTY) {
+        // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
+        tx.gas = await this.eth_estimateGas(transaction, Tag.LATEST);
+      } else {
+        tx.gas = defaultLimit;
+      }
+    }
+
+    if (tx.gasPrice.isNull()) {
+      tx.gasPrice = this.#options.miner.gasPrice;
+    }
+
+    const secretKey = wallet.unlockedAccounts.get(fromString).toBuffer();
+    tx.signAndHash(secretKey);
+    return Data.from(tx.serialized).toString();
+  }
   // TODO: example doesn't work, not sure how to handle the signed transaction situation
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
