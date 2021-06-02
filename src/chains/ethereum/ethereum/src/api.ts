@@ -2813,17 +2813,17 @@ export default class EthereumApi implements types.Api {
    * const passphrase = "passphrase";
    * const from = await provider.send("personal_newAccount", [passphrase] );
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to }, passphrase] });
+   * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to, gas: "0x5b8d80"}, passphrase] });
    * console.log(signedTx)
    * ```
    */
   @assertArgLength(2)
   async personal_signTransaction(
-    transaction: TypedRpcTransaction,
+    transaction: RpcTransaction,
     passphrase: string
   ) {
     const blockchain = this.#blockchain;
-    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
+    const tx = new RuntimeTransaction(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");
