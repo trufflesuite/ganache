@@ -2783,6 +2783,58 @@ export default class EthereumApi implements types.Api {
 
     return blockchain.queueTransaction(tx);
   }
+  /**
+   * Validates the given passphrase and signs a transaction that can be 
+   * submitted to the network at a later time using `eth_sendRawTransaction`.
+   *
+   * The transaction is the same argument as for `eth_signTransaction` and
+   * contains the from address. If the passphrase can be used to decrypt the
+   * private key belogging to `tx.from` the transaction is verified and signed.
+   * The account is not unlocked globally in the node and cannot be used in other RPC calls.
+   * 
+   * Transaction call object:
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction - The transaction call object as seen in source.
+   * @returns The raw, signed transaction.
+   * @example
+   * ```javascript
+   * const [to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const passphrase = "passphrase";
+   * const from = await provider.send("personal_newAccount", [passphrase] );
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to, gas: "0x5b8d80"}, passphrase] });
+   * console.log(signedTx)
+   * ```
+   */
+  @assertArgLength(2)
+  async personal_signTransaction(
+    transaction: RpcTransaction,
+    passphrase: string
+  ) {
+    const blockchain = this.#blockchain;
+    const tx = new RuntimeTransaction(transaction, blockchain.common);
+
+    if (tx.from == null) {
+      throw new Error("from not found; is required");
+    }
+    const fromString = tx.from.toString();
+
+    const wallet = this.#wallet;
+    const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
+    if (encryptedKeyFile === undefined || encryptedKeyFile === null) {
+      throw new Error("no key for given address or file");
+    }
+    
+    const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
+    tx.signAndHash(secretKey);
+    return Data.from(tx.serialized).toString();
+  }
   //#endregion
 
   //#region rpc
