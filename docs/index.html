@@ -2915,7 +2915,7 @@ arrive. To check if the state has changed, call <code>eth_getFilterChanges</code
             </div>
             <div class="monaco" data-method="eth_sendRawTransaction_0" data-language="javascript">
               <pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
-<span class="hljs-keyword">const</span> signedTx = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_signTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to }] });
+<span class="hljs-keyword">const</span> signedTx = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_signTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to, <span class="hljs-attr">gas</span>: <span class="hljs-string">&quot;0x5b8d80&quot;</span> }] });
 <span class="hljs-keyword">const</span> txHash = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;eth_sendRawTransaction&quot;</span>, [signedTx] );
 <span class="hljs-built_in">console</span>.log(txHash);
 </code></pre>
