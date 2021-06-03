@@ -1714,20 +1714,6 @@ export default class EthereumApi implements types.Api {
       throw new Error(msg);
     }
 
-    if (tx.gas.isNull()) {
-      const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
-      if (defaultLimit === utils.RPCQUANTITY_EMPTY) {
-        // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
-        tx.gas = await this.eth_estimateGas(transaction, Tag.LATEST);
-      } else {
-        tx.gas = defaultLimit;
-      }
-    }
-
-    if (tx.gasPrice.isNull()) {
-      tx.gasPrice = this.#options.miner.gasPrice;
-    }
-
     const secretKey = wallet.unlockedAccounts.get(fromString).toBuffer();
     tx.signAndHash(secretKey);
     return Data.from(tx.serialized).toString();
@@ -2813,7 +2799,7 @@ export default class EthereumApi implements types.Api {
    * const passphrase = "passphrase";
    * const from = await provider.send("personal_newAccount", [passphrase] );
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to, gas: "0x5b8d80"}, passphrase] });
+   * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to}, passphrase] });
    * console.log(signedTx)
    * ```
    */
