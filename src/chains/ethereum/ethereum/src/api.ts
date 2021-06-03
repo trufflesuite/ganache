@@ -1725,7 +1725,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
-   * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to }] });
+   * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
    * const txHash = await provider.send("eth_sendRawTransaction", [signedTx] );
    * console.log(txHash);
    * ```
