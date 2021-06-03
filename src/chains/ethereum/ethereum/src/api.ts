@@ -1721,7 +1721,7 @@ export default class EthereumApi implements types.Api {
    * @example
    * ```javascript
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
-   * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to }] });
+   * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
    * const txHash = await provider.send("eth_sendRawTransaction", [signedTx] );
    * console.log(txHash);
    * ```
@@ -2770,14 +2770,14 @@ export default class EthereumApi implements types.Api {
     return blockchain.queueTransaction(tx);
   }
   /**
-   * Validates the given passphrase and signs a transaction that can be 
+   * Validates the given passphrase and signs a transaction that can be
    * submitted to the network at a later time using `eth_sendRawTransaction`.
    *
    * The transaction is the same argument as for `eth_signTransaction` and
    * contains the from address. If the passphrase can be used to decrypt the
    * private key belogging to `tx.from` the transaction is verified and signed.
    * The account is not unlocked globally in the node and cannot be used in other RPC calls.
-   * 
+   *
    * Transaction call object:
    * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
    * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
@@ -2816,7 +2816,7 @@ export default class EthereumApi implements types.Api {
     if (encryptedKeyFile === undefined || encryptedKeyFile === null) {
       throw new Error("no key for given address or file");
     }
-    
+
     const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
     tx.signAndHash(secretKey);
     return Data.from(tx.serialized).toString();
