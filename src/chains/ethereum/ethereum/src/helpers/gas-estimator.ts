@@ -1,6 +1,9 @@
 import { Quantity } from "@ganache/utils";
 import { BN } from "ethereumjs-util";
 import { RuntimeError, RETURN_TYPES } from "@ganache/ethereum-utils";
+import { utils } from "@ganache/utils";
+
+const { RPCQUANTITY_EMPTY } = utils;
 
 const bn = (val = 0) => new (BN as any)(val);
 const STIPEND = bn(2300);
@@ -73,7 +76,7 @@ const estimateGas = (generateVM, runArgs, callback) => {
 };
 
 const binSearch = async (generateVM, runArgs, result, callback) => {
-  const MAX = Quantity.from(runArgs.block.header.gasLimit).toBigInt();
+  const MAX = runArgs.block.header.gasLimit;
   const gasRefund = result.execResult.gasRefund;
   const startingGas = gasRefund
     ? result.gasEstimate.add(gasRefund)
@@ -81,7 +84,7 @@ const binSearch = async (generateVM, runArgs, result, callback) => {
   const range = { lo: startingGas, hi: startingGas };
   const isEnoughGas = async gas => {
     const vm = generateVM(); // Generate fresh VM
-    runArgs.tx.gasLimit = gas.toBuffer();
+    runArgs.tx.gasLimit = new BN(gas.toArrayLike(Buffer));
     const result = await vm.runTx(runArgs).catch(vmerr => ({ vmerr }));
     return !result.vmerr && !result.execResult.exceptionError;
   };
@@ -252,7 +255,8 @@ const exactimate = async (vm, runArgs, callback) => {
     return callback(vmerr);
   } else if (result.execResult.exceptionError) {
     const error = new RuntimeError(
-      runArgs.tx.hash(),
+      // erroneous gas estimations don't have meaningful hashes
+      RPCQUANTITY_EMPTY,
       result,
       RETURN_TYPES.RETURN_VALUE
     );

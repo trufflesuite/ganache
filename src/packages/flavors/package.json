@@ -21,7 +21,7 @@
     "directory": "src/packages/flavors"
   },
   "scripts": {
-    "tsc": "ttsc"
+    "tsc": "ttsc --build"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -41,10 +41,20 @@
     "tooling"
   ],
   "dependencies": {
+    "@ganache/colors": "0.1.0",
     "@ganache/ethereum": "^0.1.0",
     "@ganache/ethereum-options": "0.1.0",
+    "@ganache/filecoin-options": "0.1.3",
     "@ganache/options": "0.1.0",
     "@ganache/tezos": "^0.1.0",
-    "@ganache/utils": "^0.1.0"
+    "@ganache/utils": "0.1.0",
+    "chalk": "4.1.0"
+  },
+  "devDependencies": {
+    "@ganache/filecoin": "0.1.5",
+    "@ganache/filecoin-types": "0.1.5"
+  },
+  "peerDependencies": {
+    "@ganache/filecoin": "^0.1.0"
   }
 }

@@ -1,6 +1,6 @@
 import { normalize } from "./helpers";
 import { Data, Quantity, utils } from "@ganache/utils";
-import { Address } from "@ganache/ethereum-utils";
+import { Address } from "@ganache/ethereum-address";
 import { Definitions } from "@ganache/options";
 
 export type MinerConfig = {
@@ -41,6 +41,18 @@ export type MinerConfig = {
          */
         gasPrice: string | number | bigint;
       };
+      cliType: string;
+    };
+
+    /**
+     * Sets the block difficulty
+     *
+     * @default 1
+     */
+    difficulty: {
+      type: Quantity;
+      rawType: number;
+      hasDefault: true;
     };
 
     /**
@@ -58,6 +70,7 @@ export type MinerConfig = {
          */
         gasLimit: string | number | bigint;
       };
+      cliType: string;
     };
 
     /**
@@ -70,6 +83,7 @@ export type MinerConfig = {
       type: Quantity;
       rawType: "estimate" | string | number | bigint;
       hasDefault: true;
+      cliType: string;
     };
 
     /**
@@ -88,6 +102,7 @@ export type MinerConfig = {
          */
         callGasLimit: string | number | bigint;
       };
+      cliType: string;
     };
 
     /**
@@ -138,9 +153,28 @@ export type MinerConfig = {
   };
 };
 
+/**
+ * Attempts to convert strings that don't start with `0x` to a BigInt
+ *
+ * @param str a string that represents a bigint, number, or hex number
+ */
+const toBigIntOrString = (str: string) => {
+  if (str.startsWith("0x")) {
+    return str;
+  } else {
+    return BigInt(str);
+  }
+};
+
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
-    normalize,
+    normalize: rawInput => {
+      if (rawInput < 0) {
+        throw new Error("miner.blockTime must be 0 or a positive number.");
+      }
+
+      return rawInput;
+    },
     cliDescription:
       'Sets the `blockTime` in seconds for automatic mining. A blockTime of `0` enables "instamine mode", where new executable transactions will be mined instantly.',
     default: () => 0,
@@ -155,7 +189,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
     default: () => Quantity.from(2_000_000_000),
     legacyName: "gasPrice",
     cliAliases: ["g", "gasPrice"],
-    cliType: "string"
+    cliType: "string",
+    cliCoerce: toBigIntOrString
   },
   blockGasLimit: {
     normalize: Quantity.from,
@@ -163,7 +198,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
     default: () => Quantity.from(12_000_000),
     legacyName: "gasLimit",
     cliAliases: ["l", "gasLimit"],
-    cliType: "string"
+    cliType: "string",
+    cliCoerce: toBigIntOrString
   },
   defaultTransactionGasLimit: {
     normalize: rawType =>
@@ -171,7 +207,14 @@ export const MinerOptions: Definitions<MinerConfig> = {
     cliDescription:
       'Sets the default transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
     default: () => Quantity.from(90_000),
-    cliType: "string"
+    cliType: "string",
+    cliCoerce: toBigIntOrString
+  },
+  difficulty: {
+    normalize: Quantity.from,
+    cliDescription: "Sets the block difficulty.",
+    default: () => utils.RPCQUANTITY_ONE,
+    cliType: "number"
   },
   callGasLimit: {
     normalize: Quantity.from,
@@ -179,7 +222,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
       "Sets the transaction gas limit in WEI for `eth_call` and `eth_estimateGas` calls.",
     default: () => Quantity.from(Number.MAX_SAFE_INTEGER),
     legacyName: "callGasLimit",
-    cliType: "string"
+    cliType: "string",
+    cliCoerce: toBigIntOrString
   },
   legacyInstamine: {
     normalize,

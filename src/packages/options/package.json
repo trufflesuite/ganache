@@ -20,7 +20,7 @@
     "directory": "src/packages/options"
   },
   "scripts": {
-    "tsc": "ttsc"
+    "tsc": "ttsc --build"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -43,8 +43,5 @@
     "@ganache/utils": "^0.1.0",
     "bip39": "3.0.2",
     "seedrandom": "3.0.5"
-  },
-  "devDependencies": {
-    "@types/seedrandom": "2.4.28"
   }
 }

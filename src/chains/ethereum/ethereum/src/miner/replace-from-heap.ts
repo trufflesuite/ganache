@@ -1,9 +1,9 @@
+import { RuntimeTransaction } from "@ganache/ethereum-transaction";
 import { utils } from "@ganache/utils";
-import { Transaction } from "@ganache/ethereum-utils";
 
 export default function replaceFromHeap(
-  priced: utils.Heap<Transaction>,
-  source: utils.Heap<Transaction>
+  priced: utils.Heap<RuntimeTransaction>,
+  source: utils.Heap<RuntimeTransaction>
 ) {
   // get the next best for this account, removing from the source Heap:
   const next = source.peek();

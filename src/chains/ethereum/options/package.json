@@ -21,7 +21,7 @@
     "directory": "src/chains/ethereum/options"
   },
   "scripts": {
-    "tsc": "ttsc",
+    "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
@@ -44,10 +44,14 @@
     "truffle"
   ],
   "dependencies": {
+    "@ganache/ethereum-address": "0.1.0",
     "@ganache/ethereum-utils": "0.1.0",
     "@ganache/options": "0.1.0",
     "@ganache/utils": "0.1.0",
     "bip39": "3.0.3",
     "seedrandom": "3.0.5"
+  },
+  "devDependencies": {
+    "@types/seedrandom": "3.0.0"
   }
 }

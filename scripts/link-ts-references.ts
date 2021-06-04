@@ -3,11 +3,13 @@
  * monorepo dependencies in each package's package.json.
  */
 
-import { resolve, join, relative, sep } from "path";
-import glob from "glob";
-
 import { readFileSync, existsSync, writeFileSync } from "fs-extra";
-import JSON5 from "comment-json";
+import { resolve, join, relative, sep } from "path";
+
+// using `require` because everything in scripts uses typescript's default
+// compiler settings, and these two modules require enabling `esModuleInterop`
+const JSON5 = require("comment-json");
+const glob = require("glob");
 
 type Mapping = { [key: string]: string };
 

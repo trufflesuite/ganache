@@ -9,7 +9,6 @@ const config: webpack.Configuration = merge({}, base, {
     fallback: {
       //#region node polyfills
       util: require.resolve("util/"),
-      crypto: require.resolve("crypto-browserify"),
       path: require.resolve("path-browserify"),
       assert: require.resolve("assert/"),
       stream: require.resolve("stream-browserify/"),
@@ -17,16 +16,20 @@ const config: webpack.Configuration = merge({}, base, {
       process: require.resolve("process/browser"),
       events: require.resolve("events/"),
       buffer: require.resolve("buffer/"),
-      fs: false
+      fs: false,
+      http: false,
+      https: false
       //#endregion node polyfills
     },
     alias: {
       "tmp-promise": require.resolve("./polyfills/browser-tmp-promise"),
       "bigint-buffer": require.resolve("./polyfills/browser-bigint-buffer"),
+      "crypto": require.resolve("./polyfills/browser-crypto"),
       // replace leveldown with a browser version
       leveldown: require.resolve("level-js/"),
       // browser version can't start a server, so just remove the websocket server since it can't work anyway
-      "uWebSockets.js": false
+      "@trufflesuite/uws-js-unofficial": false,
+      "@ganache/filecoin": false
     }
   },
   output: {
