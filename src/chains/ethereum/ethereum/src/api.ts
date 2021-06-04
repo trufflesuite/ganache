@@ -45,7 +45,7 @@ import Emittery from "emittery";
 import estimateGas from "./helpers/gas-estimator";
 import { assertArgLength } from "./helpers/assert-arg-length";
 import { parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
-import { decode } from "@ganache/rlp";
+import { decode, encode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block/src/serialize";
 
@@ -1521,27 +1521,40 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
-   * Returns the information about a transaction requested by transaction hash.
+   * Returns the bytes of the transaction requested by transaction hash.
    *
    * @param transactionHash 32 Bytes - hash of a transaction
+   * @result The bytes of the transaction data or `null` if no transaction was found.
+   *
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   *
+   * const tx = await provider.request({ method: "eth_getRawTransactionByHash", params: [ txHash ] });
+   * console.log(tx);
+   * ```
    */
   @assertArgLength(1)
-  async eth_getRawTransactionByHash(transactionHash: string) {
-    const { transactions } = this.#blockchain;
-    const hashBuffer = Data.from(transactionHash).toBuffer();
-
-    // we must check the database before checking the pending cache, because the
-    // cache is updated _after_ the transaction is already in the database, and
-    // the database contains block info whereas the pending cache doesn't.
-    const transaction = await transactions.get(hashBuffer);
-
-    if (transaction === null) {
-      // if we can't find it in the list of pending transactions, check the db!
-      const tx = transactions.transactionPool.find(hashBuffer);
-      return tx ? tx.serialize() : null;
-    } else {
-      return Data.from(transaction.serialize());
+  async eth_getRawTransactionByHash(transactionHash: DATA) {
+    const transaction = await this.eth_getTransactionByHash(transactionHash);
+    if(transaction !== null){
+      const rawTxComponents = [
+        transaction.nonce.toBuffer(),
+        transaction.gasPrice.toBuffer(),
+        transaction.gas.toBuffer(),
+        transaction.to.toBuffer(),
+        transaction.value.toBuffer(),
+        transaction.input.toBuffer(),
+        transaction.v.toBuffer(),
+        transaction.r.toBuffer(),
+        transaction.s.toBuffer()
+      ];
+      return "0x" + encode(rawTxComponents).toString("hex");
     }
+    return null
   }
 
   /**
