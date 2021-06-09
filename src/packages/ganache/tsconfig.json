@@ -6,7 +6,12 @@
   "include": [
     "index.ts",
     "src/**/*",
+    "node_modules/**/@ganache/**/lib/**/*",
     "src/cli.ts"
+  ],
+  "typeRoots": [
+    "./node_modules/@types",
+    "./node_modules/@ganache"
   ],
   "paths": {
     "@ganache/cli/src/cli": [

@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "outDir": "lib",
     "alwaysStrict": true,
     "declaration": true,
     "declarationMap": true,

@@ -2,11 +2,15 @@
   "extends": "../../../tsconfig-base.json",
   "compilerOptions": {
     "outDir": "lib",
+    "declarationDir": "typings",
     "composite": true,
     "strictNullChecks": true,
     "noImplicitAny": true
   },
-  "include": ["index.ts", "src"],
+  "include": [
+    "index.ts",
+    "src"
+  ],
   "references": [
     {
       "name": "@ganache/options",

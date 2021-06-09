@@ -150,7 +150,7 @@ process.stdout.write(`${COLORS.Reset}`);
       homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${folderName}#readme`,
       license: "MIT",
       main: "lib/index.js",
-      typings: "lib/index.d.ts",
+      typings: "typings",
       source: "index.ts",
       directories: {
         lib: "lib",
@@ -200,7 +200,8 @@ process.stdout.write(`${COLORS.Reset}`);
     const tsConfig = {
       extends: `${relativePathToSrc}tsconfig-base.json`,
       compilerOptions: {
-        outDir: "lib"
+        outDir: "lib",
+        declarationDir: "typings"
       },
       include: ["src", "index.ts"]
     };

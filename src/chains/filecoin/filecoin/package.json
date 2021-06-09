@@ -10,7 +10,7 @@
     "npm": ">=6.4.1"
   },
   "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
+  "typings": "typings",
   "directories": {
     "lib": "lib",
     "test": "tests"
