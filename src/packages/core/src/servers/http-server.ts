@@ -89,6 +89,7 @@ export default class HttpServer {
   constructor(app: TemplatedApp, connector: Connector) {
     this.#connector = connector;
 
+    connector.addRoutes(app);
     // JSON-RPC routes...
     app.post("/", this.#handlePost).options("/", this.#handleOptions);
 

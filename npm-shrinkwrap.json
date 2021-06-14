@@ -4733,6 +4733,12 @@
         "mime-types": "^2.1.12"
       }
     },
+    "fp-ts": {
+      "version": "2.10.5",
+      "resolved": "https://registry.npmjs.org/fp-ts/-/fp-ts-2.10.5.tgz",
+      "integrity": "sha512-X2KfTIV0cxIk3d7/2Pvp/pxL/xr2MV1WooyEzKtTWYSc1+52VF4YzjBTXqeOlSiZsPCxIBpDGfT9Dyo7WEY0DQ==",
+      "dev": true
+    },
     "fragment-cache": {
       "version": "0.2.1",
       "resolved": "https://registry.npmjs.org/fragment-cache/-/fragment-cache-0.2.1.tgz",
@@ -5972,6 +5978,18 @@
         "from2": "^2.3.0",
         "p-is-promise": "^3.0.0"
       }
+    },
+    "io-ts": {
+      "version": "2.2.16",
+      "resolved": "https://registry.npmjs.org/io-ts/-/io-ts-2.2.16.tgz",
+      "integrity": "sha512-y5TTSa6VP6le0hhmIyN0dqEXkrZeJLeC5KApJq6VLci3UEKF80lZ+KuoUs02RhBxNWlrqSNxzfI7otLX1Euv8Q==",
+      "dev": true
+    },
+    "io-ts-transformer": {
+      "version": "1.1.8",
+      "resolved": "https://registry.npmjs.org/io-ts-transformer/-/io-ts-transformer-1.1.8.tgz",
+      "integrity": "sha512-NJXhy7qNH7trg/2aqa280Nd2kNOy21zrDFf2PmOgiZIhJFeGY5amH42OqguZAC8OxnQVCCmjMj1ACvSD2xI1ew==",
+      "dev": true
     },
     "ip": {
       "version": "1.1.5",

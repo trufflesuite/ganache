@@ -17,6 +17,7 @@
     "newLine": "lf",
     "lib": ["ES2020"],
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "plugins": [
       {
         "transform": "ts-transformer-inline-file/transformer"

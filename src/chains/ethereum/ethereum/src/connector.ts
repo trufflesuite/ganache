@@ -2,7 +2,12 @@ import Emittery from "emittery";
 import EthereumApi from "./api";
 import { JsonRpcTypes, types, utils } from "@ganache/utils";
 import EthereumProvider from "./provider";
-import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
+import {
+  RecognizedString,
+  WebSocket,
+  HttpRequest,
+  TemplatedApp
+} from "uWebSockets.js";
 import { CodedError, ErrorCodes } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,
@@ -48,6 +53,7 @@ export class Connector
       this.emit("ready");
     });
   }
+  addRoutes(app: TemplatedApp): void {}
 
   parse(message: Buffer) {
     try {

@@ -1,5 +1,10 @@
 import { Provider } from "./provider";
-import { RecognizedString, WebSocket, HttpRequest } from "uWebSockets.js";
+import {
+  RecognizedString,
+  WebSocket,
+  HttpRequest,
+  TemplatedApp
+} from "uWebSockets.js";
 import { Api } from "./api";
 import { KnownKeys } from "../types";
 import Emittery from "emittery";
@@ -13,6 +18,12 @@ export interface Connector<
   ResponseFormat
 > extends Emittery.Typed<undefined, "ready" | "close"> {
   provider: Provider<ApiImplementation>;
+
+  /**
+   * Adds http routes
+   * @param app
+   */
+  addRoutes(app: TemplatedApp): void;
 
   /**
    * Parses a raw message into something that can be handled by `handle`
