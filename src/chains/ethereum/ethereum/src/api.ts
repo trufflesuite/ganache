@@ -2701,8 +2701,8 @@ export default class EthereumApi implements types.Api {
    * // generate an account
    * const passphrase = "passphrase";
    * const newAccount = await provider.send("personal_newAccount", [passphrase] );
-   * const isLocked = await provider.send("personal_unlockAccount", [newAccount, passphrase] );
-   * console.log(isLocked);
+   * const isUnlocked = await provider.send("personal_unlockAccount", [newAccount, passphrase] );
+   * console.log(isUnlocked);
    * ```
    */
   @assertArgLength(2, 3)
