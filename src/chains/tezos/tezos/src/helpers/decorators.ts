@@ -121,16 +121,7 @@ export function FromQuery(name: string, required: boolean, type: unknown) {
   };
 }
 
-type Props<T> = T extends t.TypeC<infer U> ? U : never;
-type TypeC<T> = T extends t.TypeOf<infer U>
-  ? U extends t.Props
-    ? t.TypeC<U>
-    : never
-  : never;
-type UnTypeC<T> = T extends t.TypeC<infer U> ? U : never;
-// request is derived schema
-
-export function FromBody<T>(name: string, type: T) {
+export function FromBody<T>(name: string, type: t.Type<T>) {
   return function (target: Object, propertyName: string, index: number) {
     const parameter: Parameter = {
       name,

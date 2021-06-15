@@ -141,7 +141,7 @@ export default class TezosApi implements types.Api {
    */
   @Post
   async "/injection/block"(
-    @FromBody<BlockRequestSchema>("body", GetBlockRequestSchema())
+    @FromBody<BlockRequest>("body", GetBlockRequestSchema())
     body: BlockRequest
   ): Promise<string> {
     return JSON.stringify(body);
