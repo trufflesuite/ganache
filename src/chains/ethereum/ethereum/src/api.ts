@@ -2684,7 +2684,6 @@ export default class EthereumApi implements types.Api {
     );
   }
 
-  // TODO: example doesn't return correct value
   /**
    * Validate the given passphrase and submit transaction.
    *
