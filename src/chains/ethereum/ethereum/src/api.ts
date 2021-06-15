@@ -2799,7 +2799,7 @@ export default class EthereumApi implements types.Api {
    * const passphrase = "passphrase";
    * const from = await provider.send("personal_newAccount", [passphrase] );
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
-   * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to}, passphrase] });
+   * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to }, passphrase] });
    * console.log(signedTx)
    * ```
    */
