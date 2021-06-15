@@ -4816,7 +4816,7 @@ account.</p>
 
     <p>The transaction is the same argument as for <code>eth_sendTransaction</code> and
 contains the from address. If the passphrase can be used to decrypt the
-private key belogging to <code>tx.from</code> the transaction is verified, signed and
+private key belonging to <code>tx.from</code> the transaction is verified, signed and
 send onto the network. The account is not unlocked globally in the node
 and cannot be used in other RPC calls.</p>
 <p>Transaction call object:</p>
@@ -4951,7 +4951,7 @@ The account is not unlocked globally in the node and cannot be used in other RPC
 <span class="hljs-keyword">const</span> passphrase = <span class="hljs-string">&quot;passphrase&quot;</span>;
 <span class="hljs-keyword">const</span> <span class="hljs-keyword">from</span> = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_newAccount&quot;</span>, [passphrase] );
 <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_subscribe&quot;</span>, <span class="hljs-attr">params</span>: [<span class="hljs-string">&quot;newHeads&quot;</span>] });
-<span class="hljs-keyword">const</span> signedTx = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;personal_signTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to}, passphrase] });
+<span class="hljs-keyword">const</span> signedTx = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;personal_signTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to }, passphrase] });
 <span class="hljs-built_in">console</span>.log(signedTx)
 </code></pre>
 
@@ -5022,8 +5022,8 @@ should remain unlocked for. Set to 0 to disable automatic locking.</li>
               <pre><code class="language-javascript"><span class="hljs-comment">// generate an account</span>
 <span class="hljs-keyword">const</span> passphrase = <span class="hljs-string">&quot;passphrase&quot;</span>;
 <span class="hljs-keyword">const</span> newAccount = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_newAccount&quot;</span>, [passphrase] );
-<span class="hljs-keyword">const</span> isLocked = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_unlockAccount&quot;</span>, [newAccount, passphrase] );
-<span class="hljs-built_in">console</span>.log(isLocked);
+<span class="hljs-keyword">const</span> isUnlocked = <span class="hljs-keyword">await</span> provider.send(<span class="hljs-string">&quot;personal_unlockAccount&quot;</span>, [newAccount, passphrase] );
+<span class="hljs-built_in">console</span>.log(isUnlocked);
 </code></pre>
 
             </div>
