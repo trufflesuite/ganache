@@ -568,19 +568,19 @@ export default class EthereumApi implements types.Api {
   }
 
   /**
-   * Sets the minimal accepted gas price when mining transactions.
-   * Any transactions that are below this limit are excluded from the mining
-   * process.
-   * @param number Minimal accepted gas price.
+   * Sets the default accepted gas price when mining transactions.
+   * Any transactions that don't specify a gas price will use this amount.
+   * Transactions that are below this limit are excluded from the mining process.
+   * @param number Default accepted gas price.
    * @returns `true`.
    * @example
    * ```javascript
-   * console.log(await provider.send("miner_setGasPrice", [300000] ));
+   * console.log(await provider.send("miner_setDefaultGasPrice", [300000] ));
    * ```
    */
   @assertArgLength(1)
-  async miner_setGasPrice(number: QUANTITY) {
-    this.#options.miner.gasPrice = Quantity.from(number);
+  async miner_setDefaultGasPrice(number: QUANTITY) {
+    this.#options.miner.defaultGasPrice = Quantity.from(number);
     return true;
   }
 
@@ -1285,13 +1285,13 @@ export default class EthereumApi implements types.Api {
    * @returns Integer of the current gas price in wei.
    * @example
    * ```javascript
-   * const gasPrice = await provider.request({ method: "eth_gasPrice", params: [] });
-   * console.log(gasPrice);
+   * const defaultGasPrice = await provider.request({ method: "eth_defaultGasPrice", params: [] });
+   * console.log(defaultGasPrice);
    * ```
    */
   @assertArgLength(0)
-  async eth_gasPrice() {
-    return this.#options.miner.gasPrice;
+  async eth_defaultGasPrice() {
+    return this.#options.miner.defaultGasPrice;
   }
 
   /**
@@ -1631,7 +1631,7 @@ export default class EthereumApi implements types.Api {
     }
 
     if (tx.gasPrice.isNull()) {
-      tx.gasPrice = this.#options.miner.gasPrice;
+      tx.gasPrice = this.#options.miner.defaultGasPrice;
     }
 
     if (isUnlockedAccount) {

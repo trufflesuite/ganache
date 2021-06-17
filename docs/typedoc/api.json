@@ -1558,6 +1558,65 @@
 							]
 						},
 						{
+							"id": 167,
+							"name": "eth_defaultGasPrice",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"decorators": [
+								{
+									"name": "assertArgLength",
+									"type": {
+										"type": "reference",
+										"name": "assertArgLength"
+									},
+									"arguments": {
+										"min": "0"
+									}
+								}
+							],
+							"signatures": [
+								{
+									"id": 168,
+									"name": "eth_defaultGasPrice",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {
+										"isExported": true
+									},
+									"comment": {
+										"shortText": "Returns the current price per gas in wei.",
+										"returns": "Integer of the current gas price in wei.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst defaultGasPrice = await provider.request({ method: \"eth_defaultGasPrice\", params: [] });\nconsole.log(defaultGasPrice);\n```\n"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "reference",
+												"name": "Quantity"
+											}
+										],
+										"name": "Promise"
+									}
+								}
+							],
+							"sources": [
+								{
+									"fileName": "chains/ethereum/ethereum/src/api.ts",
+									"line": 1293,
+									"character": 27
+								}
+							]
+						},
+						{
 							"id": 103,
 							"name": "eth_estimateGas",
 							"kind": 2048,
@@ -1659,65 +1718,6 @@
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
 									"line": 729,
 									"character": 23
-								}
-							]
-						},
-						{
-							"id": 167,
-							"name": "eth_gasPrice",
-							"kind": 2048,
-							"kindString": "Method",
-							"flags": {
-								"isExported": true
-							},
-							"decorators": [
-								{
-									"name": "assertArgLength",
-									"type": {
-										"type": "reference",
-										"name": "assertArgLength"
-									},
-									"arguments": {
-										"min": "0"
-									}
-								}
-							],
-							"signatures": [
-								{
-									"id": 168,
-									"name": "eth_gasPrice",
-									"kind": 4096,
-									"kindString": "Call signature",
-									"flags": {
-										"isExported": true
-									},
-									"comment": {
-										"shortText": "Returns the current price per gas in wei.",
-										"returns": "Integer of the current gas price in wei.",
-										"tags": [
-											{
-												"tag": "example",
-												"text": "\n```javascript\nconst gasPrice = await provider.request({ method: \"eth_gasPrice\", params: [] });\nconsole.log(gasPrice);\n```\n"
-											}
-										]
-									},
-									"type": {
-										"type": "reference",
-										"typeArguments": [
-											{
-												"type": "reference",
-												"name": "Quantity"
-											}
-										],
-										"name": "Promise"
-									}
-								}
-							],
-							"sources": [
-								{
-									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1293,
-									"character": 20
 								}
 							]
 						},
@@ -6987,6 +6987,83 @@
 							]
 						},
 						{
+							"id": 83,
+							"name": "miner_setDefaultGasPrice",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"decorators": [
+								{
+									"name": "assertArgLength",
+									"type": {
+										"type": "reference",
+										"name": "assertArgLength"
+									},
+									"arguments": {
+										"min": "1"
+									}
+								}
+							],
+							"signatures": [
+								{
+									"id": 84,
+									"name": "miner_setDefaultGasPrice",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {
+										"isExported": true
+									},
+									"comment": {
+										"shortText": "Sets the default accepted gas price when mining transactions.\nAny transactions that don't specify a gas price will use this amount.\nTransactions that are below this limit are excluded from the miningp process.",
+										"returns": "`true`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setDefaultGasPrice\", [300000] ));\n```\n"
+											}
+										]
+									},
+									"parameters": [
+										{
+											"id": 85,
+											"name": "number",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {
+												"isExported": true
+											},
+											"comment": {
+												"text": "Default accepted gas price."
+											},
+											"type": {
+												"type": "reference",
+												"name": "QUANTITY"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "intrinsic",
+												"name": "boolean"
+											}
+										],
+										"name": "Promise"
+									}
+								}
+							],
+							"sources": [
+								{
+									"fileName": "chains/ethereum/ethereum/src/api.ts",
+									"line": 582,
+									"character": 32
+								}
+							]
+						},
+						{
 							"id": 86,
 							"name": "miner_setEtherbase",
 							"kind": 2048,
@@ -7137,83 +7214,6 @@
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
 									"line": 613,
 									"character": 22
-								}
-							]
-						},
-						{
-							"id": 83,
-							"name": "miner_setGasPrice",
-							"kind": 2048,
-							"kindString": "Method",
-							"flags": {
-								"isExported": true
-							},
-							"decorators": [
-								{
-									"name": "assertArgLength",
-									"type": {
-										"type": "reference",
-										"name": "assertArgLength"
-									},
-									"arguments": {
-										"min": "1"
-									}
-								}
-							],
-							"signatures": [
-								{
-									"id": 84,
-									"name": "miner_setGasPrice",
-									"kind": 4096,
-									"kindString": "Call signature",
-									"flags": {
-										"isExported": true
-									},
-									"comment": {
-										"shortText": "Sets the minimal accepted gas price when mining transactions.\nAny transactions that are below this limit are excluded from the mining\nprocess.",
-										"returns": "`true`.",
-										"tags": [
-											{
-												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setGasPrice\", [300000] ));\n```\n"
-											}
-										]
-									},
-									"parameters": [
-										{
-											"id": 85,
-											"name": "number",
-											"kind": 32768,
-											"kindString": "Parameter",
-											"flags": {
-												"isExported": true
-											},
-											"comment": {
-												"text": "Minimal accepted gas price."
-											},
-											"type": {
-												"type": "reference",
-												"name": "QUANTITY"
-											}
-										}
-									],
-									"type": {
-										"type": "reference",
-										"typeArguments": [
-											{
-												"type": "intrinsic",
-												"name": "boolean"
-											}
-										],
-										"name": "Promise"
-									}
-								}
-							],
-							"sources": [
-								{
-									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 582,
-									"character": 25
 								}
 							]
 						},
@@ -7928,7 +7928,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2720,
+									"line": 2719,
 									"character": 32
 								}
 							]
@@ -8019,7 +8019,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2773,
+									"line": 2772,
 									"character": 32
 								}
 							]
@@ -8340,7 +8340,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2807,
+									"line": 2806,
 									"character": 19
 								}
 							]
@@ -8417,7 +8417,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2864,
+									"line": 2863,
 									"character": 22
 								}
 							]
@@ -8497,7 +8497,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2912,
+									"line": 2911,
 									"character": 28
 								}
 							]
@@ -8574,7 +8574,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2927,
+									"line": 2926,
 									"character": 23
 								}
 							]
@@ -8651,7 +8651,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2839,
+									"line": 2838,
 									"character": 23
 								}
 							]
@@ -8747,7 +8747,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2881,
+									"line": 2880,
 									"character": 21
 								}
 							]
@@ -8800,7 +8800,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2849,
+									"line": 2848,
 									"character": 20
 								}
 							]
@@ -8859,7 +8859,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2824,
+									"line": 2823,
 									"character": 23
 								}
 							]
@@ -8934,7 +8934,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2942,
+									"line": 2941,
 									"character": 16
 								}
 							]
@@ -9011,7 +9011,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2897,
+									"line": 2896,
 									"character": 27
 								}
 							]
@@ -9070,7 +9070,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2956,
+									"line": 2955,
 									"character": 19
 								}
 							]
@@ -9249,8 +9249,8 @@
 								301,
 								173,
 								111,
-								103,
 								167,
+								103,
 								175,
 								117,
 								113,
@@ -9297,9 +9297,9 @@
 								63,
 								69,
 								71,
+								83,
 								86,
 								89,
-								83,
 								78,
 								81,
 								99,
