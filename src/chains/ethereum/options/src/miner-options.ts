@@ -188,7 +188,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       "Sets the default gas price in WEI for transactions if not otherwise specified.",
     default: () => Quantity.from(2_000_000_000),
     legacyName: "gasPrice",
-    cliAliases: ["g", "defaultGasPrice"],
+    cliAliases: ["g", "defaultGasPrice", "gasPrice"],
     cliType: "string",
     cliCoerce: toBigIntOrString
   },
