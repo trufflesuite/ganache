@@ -31,13 +31,13 @@ export type MinerConfig = {
      *
      * @default 2_000_000
      */
-    gasPrice: {
+    defaultGasPrice: {
       type: Quantity;
       rawType: string | number | bigint;
       hasDefault: true;
       legacy: {
         /**
-         * @deprecated Use miner.gasPrice instead
+         * @deprecated Use miner.defaultGasPrice instead
          */
         gasPrice: string | number | bigint;
       };
@@ -182,13 +182,13 @@ export const MinerOptions: Definitions<MinerConfig> = {
     cliAliases: ["b", "blockTime"],
     cliType: "number"
   },
-  gasPrice: {
+  defaultGasPrice: {
     normalize: Quantity.from,
     cliDescription:
       "Sets the default gas price in WEI for transactions if not otherwise specified.",
     default: () => Quantity.from(2_000_000_000),
     legacyName: "gasPrice",
-    cliAliases: ["g", "gasPrice"],
+    cliAliases: ["g", "defaultGasPrice"],
     cliType: "string",
     cliCoerce: toBigIntOrString
   },
