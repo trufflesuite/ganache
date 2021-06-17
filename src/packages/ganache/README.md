@@ -89,7 +89,7 @@ HD Wallet
 Mnemonic:      candy maple velvet cake sugar cream honey rich smooth crumble sweet treat
 Base HD Path:  m/44'/60'/0'/0/{account_index}
 
-Gas Price
+Default Gas Price
 ==================
 20000000000
 
