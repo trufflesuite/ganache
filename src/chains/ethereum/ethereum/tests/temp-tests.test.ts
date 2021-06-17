@@ -231,7 +231,7 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("transfers value", async () => {
-    const p = await getProvider({ miner: { gasPrice: 0 } });
+    const p = await getProvider({ miner: { defaultGasPrice: 0 } });
     const accounts = await p.send("eth_accounts");
     const ONE_ETHER = utils.WEI;
     const options = p.getOptions();
