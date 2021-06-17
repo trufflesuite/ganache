@@ -53,11 +53,11 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     console.log(`Base HD Path:  ${liveOptions.wallet.hdPath}{account_index}`);
   }
 
-  if (liveOptions.miner.gasPrice) {
+  if (liveOptions.miner.defaultGasPrice) {
     console.log("");
-    console.log("Gas Price");
+    console.log("Default Gas Price");
     console.log("==================");
-    console.log(liveOptions.miner.gasPrice.toBigInt());
+    console.log(liveOptions.miner.defaultGasPrice.toBigInt());
   }
 
   if (liveOptions.miner.blockGasLimit) {
