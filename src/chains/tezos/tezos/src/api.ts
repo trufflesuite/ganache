@@ -3,37 +3,35 @@ import { TezosInternalOptions } from "@ganache/tezos-options";
 import Wallet from "./wallet";
 import { assertArgLength } from "./helpers/assert-arg-length";
 import {
-  BlockHeader,
   BlockRequest,
-  BlockRequestSchema,
   Checkpoint,
   Frozenbalancebycycle,
-  GetBlockRequestSchema,
-  LevelsInCurrentCycle,
-  NewRequest,
-  NewSchema,
+  BlockRequestSchema,
   Operation,
   OperationHash,
-  OperationSchema,
-  ParsedBlockResponse,
-  ProtocolDataResponse
+  OperationSchema
 } from "./things";
 import {
   BakingRightsResponse,
-  BlockFullHeader,
   ContractResponse,
   DelegatesResponse,
   EndorsingRightsResponse,
   EntrypointsResponse,
-  Level,
   MichelsonV1Expression,
   RPCRunOperationParam,
   ScriptedContracts
 } from "@taquito/rpc";
 import BigNumber from "bignumber.js";
-import { FromBody, FromQuery, FromUrl, Get, Post } from "./helpers/decorators";
-
-import * as D from "io-ts/Decoder";
+import {
+  FromBody,
+  FromBodySkipValidation,
+  FromQuery,
+  FromUrl,
+  Get,
+  Post,
+  SpecialQueryParameter
+} from "./helpers/decorators";
+import * as t from "io-ts";
 
 export default class TezosApi implements types.Api {
   readonly [index: string]: (...args: any) => Promise<any>;
@@ -70,7 +68,7 @@ export default class TezosApi implements types.Api {
   async "/test/:chainId/post"(
     @FromUrl("chainId", Number) chainId: string,
     @FromQuery("length", true, Number) length: number,
-    @FromBody("body", OperationSchema())
+    @FromBody<Operation>("body", OperationSchema())
     body: Operation
   ): Promise<any[]> {
     return [chainId, length, body];
@@ -88,7 +86,7 @@ export default class TezosApi implements types.Api {
        universal string representation
           Either a plain UTF8 string, or a sequence of bytes for strings that
           contain invalid byte sequences.
-       string || { "invalid_utf8_string": [ integer ∈ [0, 255] ... ] }
+       string || { "invalid_utf8_string"/: [ integer ∈ [0, 255] ... ] }
    */
   @Get
   async "/chains/:chainId/blocks"(
@@ -141,10 +139,10 @@ export default class TezosApi implements types.Api {
    */
   @Post
   async "/injection/block"(
-    @FromBody<BlockRequest>("body", GetBlockRequestSchema())
-    body: BlockRequest
+    @FromBody<BlockRequest>("blockRequest", BlockRequestSchema())
+    blockRequest: BlockRequest
   ): Promise<string> {
-    return JSON.stringify(body);
+    return JSON.stringify(blockRequest);
   }
 
   /**
@@ -154,7 +152,7 @@ export default class TezosApi implements types.Api {
    * If ?async is true, the function returns immediately. Otherwise, the operation will be validated before the result is returned.
    * An optional ?chain parameter can be used to specify whether to inject on the test chain or the main chain.
    */
-  @assertArgLength(1)
+  @Post
   async "/injection/operation"(signedOpBytes: string): Promise<OperationHash> {
     return "operation-hash";
   }
@@ -167,8 +165,8 @@ export default class TezosApi implements types.Api {
    * All existing contracts (including non-empty default contracts).
    * @returns An array of base58 implicit or originated contract hashes
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts"(): Promise<string[]> {
+  @Get
+  async "/:blockId/context/contracts"(): Promise<string[]> {
     return [];
   }
 
@@ -176,8 +174,10 @@ export default class TezosApi implements types.Api {
    * Access the complete status of a contract.
    * @returns contract information
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts/:contractId"(): Promise<ContractResponse> {
+  @Get
+  async "/:blockId/context/contracts/:contractId"(
+    @FromUrl("contractId", String) contractId: string
+  ): Promise<ContractResponse> {
     return null;
   }
 
@@ -185,8 +185,11 @@ export default class TezosApi implements types.Api {
    * Access the balance of a contract.
    * @returns contract balance
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts/:contractId/balance"(): Promise<BigNumber> {
+  @Get
+  async "/:blockId/context/contracts/:contractId/balance"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("contractId", String) contractId: string
+  ): Promise<BigNumber> {
     return new BigNumber(12.34);
   }
 
@@ -194,8 +197,11 @@ export default class TezosApi implements types.Api {
    * Access the counter of a contract, if any.
    * @returns contract counter
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts/:contractId/counter"(): Promise<BigNumber> {
+  @Get
+  async "/:blockId/context/contracts/:contractId/counter"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("contractId", String) contractId: string
+  ): Promise<BigNumber> {
     return new BigNumber(1);
   }
 
@@ -203,24 +209,34 @@ export default class TezosApi implements types.Api {
    * Access the delegate of a contract, if any.
    * @returns contract delegate
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts/:contractId/delegate"(): Promise<string> {
+  @Get
+  async "/:blockId/context/contracts/:contractId/delegate"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("contractId", String) contractId: string
+  ): Promise<string> {
     return "public_key_hash";
   }
 
   /**
    * @returns the list of entrypoints of the contract
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts/:contractId/entrypoints"(): Promise<EntrypointsResponse> {
+  @Get
+  async "/:blockId/context/contracts/:contractId/entrypoints"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("contractId", String) contractId: string
+  ): Promise<EntrypointsResponse> {
     return null;
   }
 
   /**
    * @returns the type of the given entrypoint of the contract
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts/:contractId/entrypoints/:entrypoint"(): Promise<MichelsonV1Expression> {
+  @Get
+  async "/:blockId/context/contracts/:contractId/entrypoints/:entrypoint/:entrypointId"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("contractId", String) contractId: string,
+    @FromUrl("entrypointId", String) entrypointId: string
+  ): Promise<MichelsonV1Expression> {
     return null;
   }
 
@@ -228,8 +244,11 @@ export default class TezosApi implements types.Api {
    * Access the manager of a contract.
    * @returns the manager key of a contract.
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts/:contractId/manager_key"(): Promise<string> {
+  @Get
+  async "/:blockId/context/contracts/:contractId/manager_key"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("contractId", String) contractId: string
+  ): Promise<string> {
     return "public_key_of_contract";
   }
 
@@ -237,8 +256,11 @@ export default class TezosApi implements types.Api {
    * Access the code and data of the contract.
    * @returns the code and data of the contract.
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts/:contractId/script"(): Promise<ScriptedContracts> {
+  @Get
+  async "/:blockId/context/contracts/:contractId/script"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("contractId", String) contractId: string
+  ): Promise<ScriptedContracts> {
     return null;
   }
 
@@ -246,8 +268,11 @@ export default class TezosApi implements types.Api {
    * Access the data of the contract.
    * @returns the data of the contract.
    */
-  @assertArgLength(0)
-  async ":blockId/context/contracts/:contractId/storage"(): Promise<MichelsonV1Expression> {
+  @Get
+  async "/:blockId/context/contracts/:contractId/storage"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("contractId", String) contractId: string
+  ): Promise<MichelsonV1Expression> {
     return null;
   }
 
@@ -259,25 +284,41 @@ export default class TezosApi implements types.Api {
    * Lists all registered delegates.
    * @returns all registered delegates.
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates"(): Promise<string[]> {
-    return [];
+  @Get
+  async "/:blockId/context/delegates"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromQuery("active", false, SpecialQueryParameter)
+    active?: SpecialQueryParameter,
+    @FromQuery("inactive", false, SpecialQueryParameter)
+    inactive?: SpecialQueryParameter
+  ): Promise<string[]> {
+    return [
+      blockId,
+      active ? active.toString() : "active not defined",
+      inactive ? inactive.toString() : "inactive not defined"
+    ];
   }
 
   /**
    * Everything about a delegate.
    * @returns delegate information
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates/:pkh"(): Promise<DelegatesResponse> {
+  @Get
+  async "/:blockId/context/delegates/:pkh"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("pkh", String) pkh: string
+  ): Promise<DelegatesResponse> {
     return null;
   }
 
   /**
    * @returns the full balance of a given delegate, including the frozen balances.
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates/:pkh/balance"(): Promise<BigNumber> {
+  @Get
+  async "/:blockId/context/delegates/:pkh/balance"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("pkh", String) pkh: string
+  ): Promise<BigNumber> {
     return null;
   }
 
@@ -285,42 +326,55 @@ export default class TezosApi implements types.Api {
    * Tells whether the delegate is currently tagged as deactivated or not.
    * @returns true if delegate is deactivated else false
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates/:pkh/deactivated"(): Promise<boolean> {
+  @Get
+  async "/:blockId/context/delegates/:pkh/deactivated"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("pkh", String) pkh: string
+  ): Promise<boolean> {
     return false;
   }
 
   /**
    * @returns the balances of all the contracts that delegate to a given delegate. This excludes the delegate's own balance and its frozen balances.
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates/:pkh/delegated_balance"(): Promise<BigNumber> {
+  @Get
+  async "/:blockId/context/delegates/:pkh/delegated_balance"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("pkh", String) pkh: string
+  ): Promise<BigNumber> {
     return null;
   }
 
   /**
    * @returns the list of contracts that delegate to a given delegate.
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates/:pkh/delegated_contracts"(): Promise<
-    string[]
-  > {
+  @Get
+  async "/:blockId/context/delegates/:pkh/delegated_contracts"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("pkh", String) pkh: string
+  ): Promise<string[]> {
     return null;
   }
 
   /**
    * @returns the total frozen balances of a given delegate, this includes the frozen deposits, rewards and fees.
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates/:pkh/frozen_balance"(): Promise<BigNumber> {
+  @Get
+  async "/:blockId/context/delegates/:pkh/frozen_balance"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("pkh", String) pkh: string
+  ): Promise<BigNumber> {
     return null;
   }
 
   /**
    * @returns the frozen balances of a given delegate, indexed by the cycle by which it will be unfrozen.
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates/:pkh/frozen_balance_by_cycle"(): Promise<Frozenbalancebycycle> {
+  @Get
+  async "/:blockId/context/delegates/:pkh/frozen_balance_by_cycle"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("pkh", String) pkh: string
+  ): Promise<Frozenbalancebycycle> {
     return null;
   }
 
@@ -330,8 +384,11 @@ export default class TezosApi implements types.Api {
    * For deactivated delegates, this value contains the cycle by which they were deactivated.
    * @returns the cycle by the end of which the delegate might be deactivated.
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates/:pkh/grace_period"(): Promise<number> {
+  @Get
+  async "/:blockId/context/delegates/:pkh/grace_period"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("pkh", String) pkh: string
+  ): Promise<number> {
     return null;
   }
 
@@ -340,8 +397,11 @@ export default class TezosApi implements types.Api {
    * The rewards do not count in the delegated balance until they are unfrozen.
    * @returns the total amount of tokens delegated to a given delegate.
    */
-  @assertArgLength(0)
-  async ":blockId/context/delegates/:pkh/staking_balance"(): Promise<BigNumber> {
+  @Get
+  async "/:blockId/context/delegates/:pkh/staking_balance"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("pkh", String) pkh: string
+  ): Promise<BigNumber> {
     return null;
   }
 
@@ -353,16 +413,22 @@ export default class TezosApi implements types.Api {
    * Info about the nonce of a previous block.
    * @returns the info about the nonce of a previous block.
    */
-  @assertArgLength(0)
-  async ":blockId/context/nonces/:blockLevel"(): Promise<string> {
+  @Get
+  async "/:blockId/context/nonces/:blockLevel"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("blockLevel", String) blockLevel: string
+  ): Promise<string> {
     return null;
   }
 
   /**
    * @returns the raw context.
    */
-  @assertArgLength(0)
-  async ":blockId/context/raw/bytes"(): Promise<string> {
+  @Get
+  async "/:blockId/context/raw/bytes"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromQuery("depth", true, Number) depth: Number
+  ): Promise<string> {
     return null;
   }
 
@@ -370,8 +436,11 @@ export default class TezosApi implements types.Api {
    * Seed of the cycle to which the block belongs.
    * @returns the seed of the cycle to which the block belongs.
    */
-  @assertArgLength(0)
-  async ":blockId/context/raw/seed"(seed: any): Promise<string> {
+  @Post
+  async "/:blockId/context/seed"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromBody("seed", t.type({})) seed: any // TODO : Confirm t.type
+  ): Promise<string> {
     return null;
   }
 
@@ -379,11 +448,13 @@ export default class TezosApi implements types.Api {
    * Get the endorsing power of an endorsement, that is, the number of slots that the endorser has
    * @returns the endorsing power.
    */
-  @assertArgLength(0)
-  async ":blockId/context/raw/endorsing_power"(
+  @Post
+  async "/:blockId/context/endorsing_power"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromBodySkipValidation("rpcRunOperationParam")
     rpcRunOperationParam: RPCRunOperationParam
   ): Promise<number> {
-    return null;
+    return 1;
   }
 
   //#endregion
@@ -397,26 +468,26 @@ export default class TezosApi implements types.Api {
    * The timestamps are omitted for levels in the past, and are only estimates for levels later that the next block, based on the hypothesis that all predecessor blocks were baked at the first priority.
    * @returns the baking rights response.
    */
-  @assertArgLength(0)
-  async ":blockId/helpers/baking_rights"(): Promise<BakingRightsResponse> {
+  @Get
+  async "/:blockId/helpers/baking_rights"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromQuery("level", false, Number) level: Number,
+    @FromQuery("cycle", false, Number) cycle: Number,
+    @FromQuery("delegate", false, String) delegate: String,
+    @FromQuery("max_priority", false, Number) max_priority: Number,
+    @FromQuery("all", false, SpecialQueryParameter) all: SpecialQueryParameter
+  ): Promise<BakingRightsResponse> {
     return null;
   }
 
   /**
    * Try to complete a prefix of a Base58Check-encoded data. This RPC is actually able to complete hashes of block, operations, public_keys and contracts.
    */
-  @assertArgLength(0)
-  async ":blockId/helpers/complete/:prefix"(): Promise<string[]> {
-    return null;
-  }
-
-  /**
-   * Returns the level of the interrogated block, or the one of a block located `offset` blocks after in the chain (or before when negative).
-   * For instance, the next block if `offset` is 1.
-   * @returns the current level of the block.
-   */
-  @assertArgLength(0)
-  async ":blockId/helpers/current_level"(): Promise<Level> {
+  @Get
+  async "/:blockId/helpers/complete/:prefix"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromUrl("prefix", String) prefix: string
+  ): Promise<string[]> {
     return null;
   }
 
@@ -427,53 +498,13 @@ export default class TezosApi implements types.Api {
    * The timestamps are omitted for levels in the past, and are only estimates for levels later that the next block, based on the hypothesis that all predecessor blocks were baked at the first priority.
    * @returns the endorsing rights response.
    */
-  @assertArgLength(0)
-  async ":blockId/helpers/endorsing_rights"({
-    blockId
-  }: {
-    blockId: string;
-  }): Promise<EndorsingRightsResponse> {
-    return null;
-  }
-
-  /**
-   * Forge an operation.
-   * @returns the protocol response.
-   */
-  @assertArgLength(0)
-  async ":blockId/helpers/forge/operations"(
-    blockFullHeader: BlockFullHeader
-  ): Promise<ProtocolDataResponse> {
-    return null;
-  }
-
-  /**
-   * Forge a block header.
-   * @returns the raw block header.
-   */
-  @assertArgLength(0)
-  async ":blockId/helpers/forge_block_header"(
-    blockFullHeader: BlockFullHeader
-  ): Promise<BlockHeader> {
-    return null;
-  }
-
-  /**
-   * Levels of a cycle.
-   * @returns the levels of a cycle.
-   */
-  @assertArgLength(0)
-  async ":blockId/helpers/levels_in_current_cycle"(): Promise<LevelsInCurrentCycle> {
-    return null;
-  }
-
-  /**
-   * Parse a block.
-   */
-  @assertArgLength(0)
-  async ":blockId/helpers/parse/block"(
-    blockFullHeader: BlockFullHeader
-  ): Promise<ParsedBlockResponse> {
+  @Get
+  async "/:blockId/helpers/endorsing_rights"(
+    @FromUrl("blockId", String) blockId: string,
+    @FromQuery("level", false, Number) level: Number,
+    @FromQuery("cycle", false, Number) cycle: Number,
+    @FromQuery("delegate", false, String) delegate: String
+  ): Promise<EndorsingRightsResponse> {
     return null;
   }
 

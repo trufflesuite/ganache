@@ -6,19 +6,10 @@ const blockRequestSchema = t.type({
   operations: t.array(OperationSchema())
 });
 
-const newSchema = t.type({
-  data: t.number,
-  operations: t.array(OperationSchema())
-});
-
 export type BlockRequest = t.TypeOf<typeof blockRequestSchema>;
-
-export type NewRequest = t.TypeOf<typeof newSchema>;
 
 export type BlockRequestSchema = typeof blockRequestSchema;
 
-export type NewSchema = typeof newSchema;
-
-export function GetBlockRequestSchema() {
+export function BlockRequestSchema() {
   return blockRequestSchema;
 }

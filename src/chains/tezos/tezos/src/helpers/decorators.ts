@@ -134,6 +134,19 @@ export function FromBody<T>(name: string, type: t.Type<T>) {
   };
 }
 
+export function FromBodySkipValidation(name: string) {
+  return function (target: Object, propertyName: string, index: number) {
+    const parameter: Parameter = {
+      name,
+      required: true,
+      category: ParameterCategory.Body,
+      index,
+      type: undefined
+    };
+    _configureEndpointForParameter(target, propertyName, parameter);
+  };
+}
+
 export interface EndpointConfig {
   method?: EndpointMethod;
   url: string;
@@ -158,4 +171,9 @@ export enum EndpointMethod {
   Post,
   Put,
   Delete
+}
+export enum SpecialQueryParameter {
+  active = "active",
+  inactive = "inactive",
+  all = "all"
 }

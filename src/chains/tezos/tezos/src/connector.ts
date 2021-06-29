@@ -15,7 +15,8 @@ import {
   EndpointConfig,
   EndpointMethod,
   Parameter,
-  ParameterCategory
+  ParameterCategory,
+  SpecialQueryParameter
 } from "./helpers/decorators";
 
 import { isLeft, Left, Right } from "fp-ts/Either";
@@ -149,30 +150,20 @@ export class Connector
                 endpoint.method === EndpointMethod.Put
               ) {
                 this.getBodyParameter(res, obj => {
-                  const validationResult = (param.type as Decoder<unknown>).decode(
-                    obj
-                  );
-                  // console.log(validationResult);
-                  // console.log(param.type["name"]);
-                  // console.log(isRight(D.struct(param.type).decode(obj)));
-                  // console.log(D.draw(validationResult));
-                  // console.log(obj.prototype);
-                  // console.log(typeof obj);
-                  // console.log(typeof param.type);
+                  if (param.type !== undefined) {
+                    const validationResult = (param.type as Decoder<unknown>).decode(
+                      obj
+                    );
 
-                  // const usersDecoder = buildDecoder<Operation>();
-
-                  // const result1 = isRight(usersDecoder.decode(obj));
-                  // console.log(result1);
-                  if (isLeft((param.type as Decoder<unknown>).decode(obj))) {
-                    res
-                      .writeStatus("400 BadRequest")
-                      .end(
-                        "Invalid request. Expected request format : " +
-                          param.type["name"]
-                      );
+                    if (isLeft((param.type as Decoder<unknown>).decode(obj))) {
+                      res
+                        .writeStatus("400 BadRequest")
+                        .end(
+                          "Invalid request. Expected request format : " +
+                            param.type["name"]
+                        );
+                    }
                   }
-
                   TezosApi.prototype[endpoint.url]
                     .call(this, ...parameters, obj)
                     .then(response => {
@@ -211,6 +202,8 @@ export class Connector
         "Parameter (" + param.name + ") not found in query string"
       );
     }
+
+    if (!urlSearchParams.has(param.name)) return null;
     const queryParameter: any = urlSearchParams.get(param.name);
     const value = this.parseParameter(param, queryParameter);
     return value;
@@ -268,6 +261,13 @@ export class Connector
           throw new Error("Parameter (" + param.name + ") is not a date");
         }
         value = Date.parse(value);
+        break;
+      case SpecialQueryParameter:
+        value = SpecialQueryParameter[param.name.toLowerCase()];
+        // if (isLeft(validationResult)) {
+        //   throw new Error("Parameter (" + param.name + ") is not a date");
+        // }
+        // value = Date.parse(value);
         break;
       default:
         break;

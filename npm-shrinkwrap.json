@@ -5985,12 +5985,6 @@
       "integrity": "sha512-y5TTSa6VP6le0hhmIyN0dqEXkrZeJLeC5KApJq6VLci3UEKF80lZ+KuoUs02RhBxNWlrqSNxzfI7otLX1Euv8Q==",
       "dev": true
     },
-    "io-ts-transformer": {
-      "version": "1.1.8",
-      "resolved": "https://registry.npmjs.org/io-ts-transformer/-/io-ts-transformer-1.1.8.tgz",
-      "integrity": "sha512-NJXhy7qNH7trg/2aqa280Nd2kNOy21zrDFf2PmOgiZIhJFeGY5amH42OqguZAC8OxnQVCCmjMj1ACvSD2xI1ew==",
-      "dev": true
-    },
     "ip": {
       "version": "1.1.5",
       "resolved": "https://registry.npmjs.org/ip/-/ip-1.1.5.tgz",
