@@ -121,7 +121,7 @@ export function FromQuery(name: string, required: boolean, type: unknown) {
   };
 }
 
-export function FromBody<T>(name: string, type: t.Type<T>) {
+export function FromBody<T>(name: string, type: t.Type<T> | undefined) {
   return function (target: Object, propertyName: string, index: number) {
     const parameter: Parameter = {
       name,
@@ -129,19 +129,6 @@ export function FromBody<T>(name: string, type: t.Type<T>) {
       category: ParameterCategory.Body,
       index,
       type
-    };
-    _configureEndpointForParameter(target, propertyName, parameter);
-  };
-}
-
-export function FromBodySkipValidation(name: string) {
-  return function (target: Object, propertyName: string, index: number) {
-    const parameter: Parameter = {
-      name,
-      required: true,
-      category: ParameterCategory.Body,
-      index,
-      type: undefined
     };
     _configureEndpointForParameter(target, propertyName, parameter);
   };

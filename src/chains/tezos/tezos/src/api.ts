@@ -24,7 +24,6 @@ import {
 import BigNumber from "bignumber.js";
 import {
   FromBody,
-  FromBodySkipValidation,
   FromQuery,
   FromUrl,
   Get,
@@ -451,7 +450,7 @@ export default class TezosApi implements types.Api {
   @Post
   async "/:blockId/context/endorsing_power"(
     @FromUrl("blockId", String) blockId: string,
-    @FromBodySkipValidation("rpcRunOperationParam")
+    @FromBody("rpcRunOperationParam", undefined)
     rpcRunOperationParam: RPCRunOperationParam
   ): Promise<number> {
     return 1;
