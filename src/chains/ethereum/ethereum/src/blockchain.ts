@@ -931,9 +931,13 @@ export default class Blockchain extends Emittery.Typed<
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
     const hasToAddress = transaction.to != null;
-    let to: any = null;
+    let to = null;
     if (hasToAddress) {
-      to = { buf: transaction.to.toBuffer() } as any;
+      const toBuf = transaction.to.toBuffer();
+      to = {
+        equals: (a: { buf: Buffer }) => toBuf.equals(a.buf),
+        buf: toBuf
+      };
     } else {
       to = null;
     }
@@ -956,10 +960,14 @@ export default class Blockchain extends Emittery.Typed<
       // commit/revert later because this stateTrie is ephemeral anyway.
       vm.stateManager.checkpoint();
 
+      const caller = transaction.from.toBuffer();
       result = await vm.runCall({
-        caller: { buf: transaction.from.toBuffer() } as any,
+        caller: {
+          buf: caller,
+          equals: (a: { buf: Buffer }) => caller.equals(a.buf)
+        } as any,
         data: transaction.data && transaction.data.toBuffer(),
-        gasPrice: { toArrayLike: () => transaction.gasPrice.toBuffer() } as any,
+        gasPrice: new BN(transaction.gasPrice.toBuffer()),
         gasLimit: new BN(Quantity.from(gasLeft).toBuffer()),
         to,
         value:

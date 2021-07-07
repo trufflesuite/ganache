@@ -16,7 +16,7 @@
     "reinstall": "npm run clean && npm install",
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec --concurrency 1 -- npm run test",
-    "tsc": "ttsc --build src",
+    "tsc": "ttsc --build src && ts-node ./src/packages/ganache/webpack/bundle-types.ts",
     "tscd": "lerna run --scope @ganache/core 'ttsc --declaration --emitDeclarationOnly'",
     "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist typings"
   },

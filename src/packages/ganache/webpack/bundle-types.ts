@@ -1,4 +1,4 @@
-import { existsSync, copySync } from "fs-extra";
+import { existsSync, copySync, writeFileSync } from "fs-extra";
 import { join } from "path";
 const glob = require("glob");
 
@@ -32,6 +32,12 @@ packageDirectories
   .forEach(({ name, dir }) => {
     const typesName = convertName(name);
     const source = join(dir, "typings");
-    const destination = join(__dirname, "..", "lib", "node_modules", typesName);
+
+    const folder = join(__dirname, "..", "lib", "node_modules", typesName);
+
+    const destination = join(folder, "typings");
     copySync(source, destination);
+
+    const indexDestination = join(folder, "index.d.ts");
+    writeFileSync(indexDestination, 'export * from "./typings"');
   });

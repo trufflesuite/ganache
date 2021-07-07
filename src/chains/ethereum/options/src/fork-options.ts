@@ -46,6 +46,15 @@ export type ForkConfig = {
           readonly params?: readonly unknown[] | object;
         }) => Promise<unknown>;
       };
+      legacy: {
+        /**
+         * @deprecated Use fork.provider instead
+         */
+        fork: {
+          readonly method: string;
+          readonly params?: readonly unknown[] | object;
+        };
+      };
     };
 
     /**
@@ -234,9 +243,14 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
     cliAliases: ["f", "fork"]
   },
   provider: {
-    normalize: rawInput => rawInput,
+    normalize: rawInput => {
+      // if rawInput is a string it will be handled by the `url` handler
+      if (typeof rawInput === "string") return;
+      return rawInput;
+    },
     cliDescription: "Specify an EIP-1193 provider to use instead of a url.",
-    disableInCLI: true
+    disableInCLI: true,
+    legacyName: "fork"
   },
   blockNumber: {
     normalize,

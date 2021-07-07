@@ -91,7 +91,7 @@ export class RuntimeBlock {
     parentHash: Buffer;
     difficulty: BnExtra;
     totalDifficulty: Buffer;
-    coinbase: { buf: Buffer };
+    coinbase: { buf: Buffer; toBuffer: () => Buffer };
     number: BnExtra;
     gasLimit: BnExtra;
     timestamp: BnExtra;
@@ -107,9 +107,10 @@ export class RuntimeBlock {
     previousBlockTotalDifficulty: Quantity
   ) {
     const ts = timestamp.toBuffer();
+    const coinbaseBuffer = coinbase.toBuffer();
     this.header = {
       parentHash: parentHash.toBuffer(),
-      coinbase: { buf: coinbase.toBuffer() },
+      coinbase: { buf: coinbaseBuffer, toBuffer: () => coinbaseBuffer },
       number: new BnExtra(number.toBuffer()),
       difficulty: new BnExtra(difficulty.toBuffer()),
       totalDifficulty: Quantity.from(

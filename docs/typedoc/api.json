@@ -253,7 +253,7 @@
 													},
 													"sources": [
 														{
-															"fileName": "chains/ethereum/utils/lib/src/types/filters.d.ts",
+															"fileName": "chains/ethereum/utils/typings/src/types/filters.d.ts",
 															"line": 26,
 															"character": 10
 														}
@@ -273,7 +273,7 @@
 													},
 													"sources": [
 														{
-															"fileName": "chains/ethereum/utils/lib/src/types/filters.d.ts",
+															"fileName": "chains/ethereum/utils/typings/src/types/filters.d.ts",
 															"line": 23,
 															"character": 8
 														}
@@ -293,7 +293,7 @@
 													},
 													"sources": [
 														{
-															"fileName": "chains/ethereum/utils/lib/src/types/filters.d.ts",
+															"fileName": "chains/ethereum/utils/typings/src/types/filters.d.ts",
 															"line": 25,
 															"character": 15
 														}
@@ -313,7 +313,7 @@
 													},
 													"sources": [
 														{
-															"fileName": "chains/ethereum/utils/lib/src/types/filters.d.ts",
+															"fileName": "chains/ethereum/utils/typings/src/types/filters.d.ts",
 															"line": 24,
 															"character": 11
 														}
@@ -1182,7 +1182,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																	"line": 1303,
+																	"line": 1311,
 																	"character": 16
 																}
 															],
@@ -1202,7 +1202,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																	"line": 1303,
+																	"line": 1311,
 																	"character": 41
 																}
 															],
@@ -1222,7 +1222,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																	"line": 1303,
+																	"line": 1311,
 																	"character": 28
 																}
 															],
@@ -2705,7 +2705,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 121,
 																		"character": 15
 																	}
@@ -2725,7 +2725,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 122,
 																		"character": 17
 																	}
@@ -2745,7 +2745,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 123,
 																		"character": 19
 																	}
@@ -2765,7 +2765,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 124,
 																		"character": 12
 																	}
@@ -2797,7 +2797,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 125,
 																		"character": 16
 																	}
@@ -2817,7 +2817,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 126,
 																		"character": 15
 																	}
@@ -2837,7 +2837,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 127,
 																		"character": 14
 																	}
@@ -2869,7 +2869,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 128,
 																		"character": 23
 																	}
@@ -2889,7 +2889,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 129,
 																		"character": 24
 																	}
@@ -3010,7 +3010,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 121,
 																		"character": 15
 																	}
@@ -3030,7 +3030,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 122,
 																		"character": 17
 																	}
@@ -3050,7 +3050,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 123,
 																		"character": 19
 																	}
@@ -3070,7 +3070,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 124,
 																		"character": 12
 																	}
@@ -3102,7 +3102,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 125,
 																		"character": 16
 																	}
@@ -3122,7 +3122,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 126,
 																		"character": 15
 																	}
@@ -3142,7 +3142,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 127,
 																		"character": 14
 																	}
@@ -3174,7 +3174,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 128,
 																		"character": 23
 																	}
@@ -3194,7 +3194,7 @@
 																},
 																"sources": [
 																	{
-																		"fileName": "chains/ethereum/utils/lib/src/things/blocklogs.d.ts",
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 129,
 																		"character": 24
 																	}
@@ -3609,7 +3609,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 184,
 																	"character": 17
 																}
@@ -3629,7 +3629,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 185,
 																	"character": 19
 																}
@@ -3649,7 +3649,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 187,
 																	"character": 12
 																}
@@ -3669,7 +3669,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 190,
 																	"character": 11
 																}
@@ -3689,7 +3689,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 191,
 																	"character": 16
 																}
@@ -3709,7 +3709,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 182,
 																	"character": 12
 																}
@@ -3729,7 +3729,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 192,
 																	"character": 13
 																}
@@ -3749,7 +3749,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 183,
 																	"character": 13
 																}
@@ -3769,7 +3769,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 194,
 																	"character": 9
 																}
@@ -3789,7 +3789,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 195,
 																	"character": 9
 																}
@@ -3809,7 +3809,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 188,
 																	"character": 10
 																}
@@ -3829,7 +3829,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 186,
 																	"character": 24
 																}
@@ -3849,7 +3849,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 193,
 																	"character": 9
 																}
@@ -3869,7 +3869,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/runtime-transaction.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/runtime-transaction.d.ts",
 																	"line": 189,
 																	"character": 13
 																}
@@ -4091,7 +4091,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 32,
 																	"character": 17
 																}
@@ -4111,7 +4111,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 31,
 																	"character": 19
 																}
@@ -4131,7 +4131,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 37,
 																	"character": 23
 																}
@@ -4151,7 +4151,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 35,
 																	"character": 25
 																}
@@ -4171,7 +4171,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 33,
 																	"character": 12
 																}
@@ -4191,7 +4191,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 36,
 																	"character": 15
 																}
@@ -4211,7 +4211,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 38,
 																	"character": 12
 																}
@@ -4239,7 +4239,7 @@
 																				},
 																				"sources": [
 																					{
-																						"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																						"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																						"line": 39,
 																						"character": 19
 																					}
@@ -4259,7 +4259,7 @@
 																				},
 																				"sources": [
 																					{
-																						"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																						"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																						"line": 40,
 																						"character": 21
 																					}
@@ -4279,7 +4279,7 @@
 																				},
 																				"sources": [
 																					{
-																						"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																						"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																						"line": 41,
 																						"character": 23
 																					}
@@ -4299,7 +4299,7 @@
 																				},
 																				"sources": [
 																					{
-																						"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																						"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																						"line": 42,
 																						"character": 16
 																					}
@@ -4331,7 +4331,7 @@
 																				},
 																				"sources": [
 																					{
-																						"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																						"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																						"line": 43,
 																						"character": 20
 																					}
@@ -4351,7 +4351,7 @@
 																				},
 																				"sources": [
 																					{
-																						"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																						"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																						"line": 44,
 																						"character": 19
 																					}
@@ -4371,7 +4371,7 @@
 																				},
 																				"sources": [
 																					{
-																						"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																						"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																						"line": 45,
 																						"character": 18
 																					}
@@ -4403,7 +4403,7 @@
 																				},
 																				"sources": [
 																					{
-																						"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																						"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																						"line": 46,
 																						"character": 27
 																					}
@@ -4423,7 +4423,7 @@
 																				},
 																				"sources": [
 																					{
-																						"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																						"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																						"line": 47,
 																						"character": 28
 																					}
@@ -4453,7 +4453,7 @@
 																		],
 																		"sources": [
 																			{
-																				"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																				"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																				"line": 38,
 																				"character": 13
 																			}
@@ -4472,7 +4472,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 49,
 																	"character": 17
 																}
@@ -4492,7 +4492,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 50,
 																	"character": 14
 																}
@@ -4512,7 +4512,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 34,
 																	"character": 10
 																}
@@ -4532,7 +4532,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 29,
 																	"character": 23
 																}
@@ -4552,7 +4552,7 @@
 															},
 															"sources": [
 																{
-																	"fileName": "chains/ethereum/transaction/lib/src/transaction-receipt.d.ts",
+																	"fileName": "chains/ethereum/transaction/typings/src/transaction-receipt.d.ts",
 																	"line": 30,
 																	"character": 24
 																}

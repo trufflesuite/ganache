@@ -63,8 +63,8 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     const from = transaction.from;
     let transactionNonce: bigint;
-    if (secretKey == null || !transaction.nonce.isNull()) {
-      transactionNonce = transaction.nonce.toBigInt() || 0n;
+    if (!transaction.nonce.isNull()) {
+      transactionNonce = transaction.nonce.toBigInt();
       if (transactionNonce < 0n) {
         throw new CodedError(NONCE_TOO_LOW, JsonRpcErrorCode.INVALID_INPUT);
       }
@@ -115,7 +115,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     ) {
       // check if a transaction with the same nonce is in the origin's
       // executables queue already. Replace the matching transaction or throw this
-      // new transaction away as neccessary.
+      // new transaction away as necessary.
       const pendingArray = executableOriginTransactions.array;
       const priceBump = this.#priceBump;
       const newGasPrice = transaction.gasPrice.toBigInt();
@@ -133,7 +133,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           if (!currentPendingTx.locked && newGasPrice > thisPricePremium) {
             isExecutableTransaction = true;
             // do an in-place replace without triggering a re-sort because we
-            // already know where this tranasaction should go in this "byNonce"
+            // already know where this transaction should go in this "byNonce"
             // heap.
             pendingArray[i] = transaction;
 
@@ -155,7 +155,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           highestNonce = thisNonce;
         }
       }
-      if (secretKey && transactionNonce === void 0) {
+      if (transactionNonce === void 0) {
         // if we aren't signed and don't have a transactionNonce yet set it now
         transactionNonce = highestNonce + 1n;
         transaction.nonce = Quantity.from(transactionNonce);
@@ -180,7 +180,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       const transactor = await transactorNoncePromise;
 
       const transactorNonce = transactor ? transactor.toBigInt() : 0n;
-      if (secretKey && transactionNonce === void 0) {
+      if (transactionNonce === void 0) {
         // if we don't have a transactionNonce, just use the account's next
         // nonce and mark as executable
         transactionNonce = transactorNonce ? transactorNonce : 0n;
