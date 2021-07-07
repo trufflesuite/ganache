@@ -10,7 +10,8 @@
   "types": "lib/index.d.ts",
   "source": "index.ts",
   "bin": {
-    "ganache": "dist/cli/ganache.min.js"
+    "ganache": "dist/cli/ganache.min.js",
+    "ganache-cli": "dist/cli/ganache.min.js"
   },
   "directories": {
     "lib": "lib",
