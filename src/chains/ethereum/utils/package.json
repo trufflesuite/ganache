@@ -1,7 +1,9 @@
 {
   "name": "@ganache/ethereum-utils",
-  "access": "public",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-internal.1326+068d1650",
   "description": "",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/utils#readme",
@@ -48,11 +50,12 @@
     "@ethereumjs/common": "2.3.0",
     "@ethereumjs/tx": "3.1.1",
     "@ethereumjs/vm": "5.2.0",
-    "@ganache/ethereum-address": "0.1.0",
-    "@ganache/rlp": "0.1.0",
-    "@ganache/utils": "0.1.0",
+    "@ganache/ethereum-address": "^0.1.1-internal.1326+068d1650",
+    "@ganache/rlp": "^0.1.1-internal.1326+068d1650",
+    "@ganache/utils": "^0.1.1-internal.1326+068d1650",
     "emittery": "0.7.2",
     "ethereumjs-abi": "0.6.8",
     "ethereumjs-util": "7.0.9"
-  }
+  },
+  "gitHead": "068d165086a08ef30557157b9314b836fa4795cb"
 }

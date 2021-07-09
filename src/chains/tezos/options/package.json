@@ -1,7 +1,9 @@
 {
   "name": "@ganache/tezos-options",
-  "access": "public",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-internal.1326+068d1650",
   "description": "",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/tezos/options#readme",
@@ -43,5 +45,6 @@
     "web3",
     "tooling",
     "truffle"
-  ]
+  ],
+  "gitHead": "068d165086a08ef30557157b9314b836fa4795cb"
 }

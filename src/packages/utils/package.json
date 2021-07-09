@@ -1,7 +1,9 @@
 {
   "name": "@ganache/utils",
-  "access": "public",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-internal.1326+068d1650",
   "description": "Utility functions for @ganache packages",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/utils#readme",
@@ -47,10 +49,11 @@
     "seedrandom": "3.0.5"
   },
   "devDependencies": {
-    "@types/seedrandom": "2.4.28",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3"
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
+    "@types/seedrandom": "2.4.28"
   },
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"
-  }
+  },
+  "gitHead": "068d165086a08ef30557157b9314b836fa4795cb"
 }

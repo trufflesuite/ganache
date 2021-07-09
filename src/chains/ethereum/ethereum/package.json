@@ -1,7 +1,9 @@
 {
   "name": "@ganache/ethereum",
-  "access": "public",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-internal.1326+068d1650",
   "description": "Ganache's Ethereum client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/ethereum/ethereum#readme",
@@ -51,15 +53,15 @@
     "@ethereumjs/common": "2.3.0",
     "@ethereumjs/tx": "3.1.1",
     "@ethereumjs/vm": "5.2.0",
-    "@ganache/ethereum-address": "0.1.0",
-    "@ganache/ethereum-block": "0.1.0",
-    "@ganache/ethereum-options": "0.1.0",
-    "@ganache/ethereum-transaction": "0.1.0",
-    "@ganache/ethereum-utils": "0.1.0",
-    "@ganache/options": "0.1.0",
-    "@ganache/promise-queue": "0.1.0",
-    "@ganache/rlp": "0.1.0",
-    "@ganache/utils": "0.1.0",
+    "@ganache/ethereum-address": "^0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum-block": "^0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum-options": "^0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum-transaction": "^0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum-utils": "^0.1.1-internal.1326+068d1650",
+    "@ganache/options": "^0.1.1-internal.1326+068d1650",
+    "@ganache/promise-queue": "^0.1.1-internal.1326+068d1650",
+    "@ganache/rlp": "^0.1.1-internal.1326+068d1650",
+    "@ganache/utils": "^0.1.1-internal.1326+068d1650",
     "abort-controller": "3.0.0",
     "bip39": "3.0.2",
     "emittery": "0.7.2",
@@ -107,5 +109,6 @@
   "optionalDependencies": {
     "bufferutil": "4.0.3",
     "utf-8-validate": "5.0.4"
-  }
+  },
+  "gitHead": "068d165086a08ef30557157b9314b836fa4795cb"
 }

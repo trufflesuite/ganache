@@ -1,7 +1,9 @@
 {
   "name": "@ganache/promise-queue",
-  "access": "public",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-internal.1326+068d1650",
   "description": "A queue that resolves Promise instances in first-in first-out order.",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/promise-queue#readme",
@@ -46,5 +48,5 @@
   "dependencies": {
     "emittery": "0.7.2"
   },
-  "devDependencies": {}
+  "gitHead": "068d165086a08ef30557157b9314b836fa4795cb"
 }
