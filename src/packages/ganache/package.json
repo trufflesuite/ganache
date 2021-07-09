@@ -5,21 +5,21 @@
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
   "license": "MIT",
-  "main": "dist/node/core.js",
+  "main": "lib/index.js",
   "browser": "dist/web/ganache.min.js",
   "typings": "lib/index.d.ts",
   "source": "index.ts",
   "bin": {
-    "ganache": "dist/node/cli.js",
-    "ganache-cli": "dist/node/cli.js"
+    "ganache": "lib/src/cli.js",
+    "ganache-cli": "lib/src/cli.js"
   },
   "directories": {
     "lib": "lib",
     "test": "tests"
   },
   "files": [
-    "/dist",
-    "/lib/**/*.d.ts"
+    "/lib",
+    "dist"
   ],
   "repository": {
     "type": "git",
@@ -51,9 +51,6 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/core": "^0.1.0",
-    "@ganache/cli": "^0.1.0",
-    "@ganache/flavors": "^0.1.0",
     "@types/node": "14.14.6",
     "assert": "2.0.0",
     "buffer": "6.0.1",
@@ -77,6 +74,9 @@
     "webpack-cli": "4.5.0"
   },
   "dependencies": {
+    "@ganache/cli": "^0.1.0",
+    "@ganache/core": "^0.1.0",
+    "@ganache/flavors": "^0.1.0",
     "bigint-buffer": "1.1.5",
     "keccak": "3.0.1",
     "leveldown": "5.6.0",
