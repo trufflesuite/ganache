@@ -1,5 +1,6 @@
 {
   "name": "@ganache/filecoin-options",
+  "access": "public",
   "version": "0.1.3",
   "description": "",
   "author": "Tim Coulter",

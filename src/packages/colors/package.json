@@ -1,5 +1,6 @@
 {
   "name": "@ganache/colors",
+  "access": "public",
   "version": "0.1.0",
   "description": "Truffle's colors, hex encoded",
   "author": "David Murdoch",

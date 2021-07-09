@@ -1,5 +1,6 @@
 {
   "name": "@ganache/flavors",
+  "access": "public",
   "version": "0.1.0",
   "description": "Ganache's flavors enumeration and TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",

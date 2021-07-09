@@ -1,5 +1,6 @@
 {
   "name": "@ganache/promise-queue",
+  "access": "public",
   "version": "0.1.0",
   "description": "A queue that resolves Promise instances in first-in first-out order.",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",

@@ -17,7 +17,7 @@
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec --concurrency 1 -- npm run test",
     "tsc": "ttsc --build src",
-    "release": "npm run publish --tag internal",
+    "release": "npm run tsc && npm test && NODE_OPTIONS=--max_old_space_size=4096 npm run build && lerna publish --canary --preid internal",
     "tscd": "lerna run --scope @ganache/core 'ttsc --declaration --emitDeclarationOnly'",
     "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist typings"
   },

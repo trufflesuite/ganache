@@ -1,5 +1,6 @@
 {
   "name": "@ganache/options",
+  "access": "public",
   "version": "0.1.0",
   "description": "Ganache's server/provider options TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",

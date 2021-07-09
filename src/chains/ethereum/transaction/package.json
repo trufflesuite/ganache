@@ -1,5 +1,6 @@
 {
   "name": "@ganache/ethereum-transaction",
+  "access": "public",
   "version": "0.1.0",
   "description": "",
   "author": "David Murdoch",

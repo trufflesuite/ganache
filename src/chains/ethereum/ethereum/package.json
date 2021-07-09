@@ -1,5 +1,6 @@
 {
   "name": "@ganache/ethereum",
+  "access": "public",
   "version": "0.1.0",
   "description": "Ganache's Ethereum client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
@@ -15,9 +16,6 @@
   "files": [
     "lib"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache-core.git",

@@ -1,5 +1,6 @@
 {
   "name": "@ganache/filecoin",
+  "access": "public",
   "version": "0.1.5",
   "description": "Ganache's Filecoin client implementation",
   "author": "Tim Coulter",
@@ -19,9 +20,6 @@
     "lib/index.*",
     "dist"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/trufflesuite/ganache-core.git",
