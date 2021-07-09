@@ -16,7 +16,8 @@
     "test": "test"
   },
   "files": [
-    "lib"
+    "lib",
+    "typings"
   ],
   "repository": {
     "type": "git",

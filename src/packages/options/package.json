@@ -15,7 +15,8 @@
     "lib": "lib"
   },
   "files": [
-    "lib"
+    "lib",
+    "typings"
   ],
   "repository": {
     "type": "git",
