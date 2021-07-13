@@ -40,7 +40,7 @@ export default class BlockLogManager extends Manager<BlockLogs> {
       const logs = await this.get(blockNumber);
       return logs ? [...logs.filter(addresses, topics)] : [];
     } else {
-      const { addresses, topics, fromBlock, toBlockNumber } = parseFilter(
+      const { addresses, topics, fromBlock, toBlockNumber } = await parseFilter(
         filter,
         blockchain
       );
