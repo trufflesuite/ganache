@@ -14,6 +14,7 @@ import {
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
+import cloneDeep from "lodash.clonedeep";
 
 /**
  * Checks if the `replacer` is eligible to replace the `replacee` transaction
@@ -451,6 +452,32 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       }
     }
     return null;
+  }
+  /**
+   * Deep clones and resets the transaction pool's `executables` such that `inProgress`
+   * transactions are moved back to `pending` and all transactions are unlocked.
+   * @returns Cloned and reset copy of transaction pool's `executables`.
+   */
+  public cloneAndResetExecutables() {
+    const executables = cloneDeep(this.executables);
+    const inProgress = executables.inProgress;
+    const pending = executables.pending;
+    if (inProgress.size > 0) {
+      inProgress.forEach(tx => {
+        tx.locked = false; // unlock the tx so it can actually be mined and "added" to the block
+        const origin = tx.from.toString();
+        if (pending.has(origin)) {
+          const currentAtOrigin = pending.get(origin);
+          currentAtOrigin.push(tx);
+          pending.set(origin, currentAtOrigin);
+        } else {
+          const newHeap = utils.Heap.from(tx, byNonce);
+          pending.set(origin, newHeap);
+        }
+        inProgress.delete(tx);
+      });
+    }
+    return executables;
   }
 
   readonly drain = () => {
