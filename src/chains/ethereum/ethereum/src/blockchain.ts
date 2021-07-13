@@ -586,6 +586,52 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     );
   };
 
+  createPendingBlock = async (previousBlock: Block) => {
+    const nextBlock = this.#readyNextBlock(previousBlock);
+    const options = this.#options;
+    const minerOpts = options.miner;
+    // If the executables has inProgress transactions, we were already
+    // in the middle of mining a block when the pending block was requested.
+    // The block that is currently being mined is what we want to return as pending,
+    // so we'll reset the executables to be what it was when mining started,
+    // i.e. all inProgress executables are moved to the front of the pending executables.
+    const executables = this.transactions.transactionPool.cloneAndResetExecutables();
+    const instamine = this.#instamine;
+    const maxTransactions = instamine ? 1 : -1;
+    // we don't want any events from mining to be
+    // caught by `this.vm`, so we need to make a new one.
+    const vm = await this.createVmFromStateTrie(
+      this.trie.copy(false),
+      options.chain.allowUnlimitedContractSize,
+      true
+    );
+    vm.stateManager.checkpoint();
+    const miner = new Miner(
+      minerOpts,
+      executables,
+      instamine,
+      vm,
+      this.#readyNextBlock
+    );
+    let pendingBlock: Block;
+    // set up listener to actually assign the newly mined pending block
+    miner.on(
+      "block",
+      async (blockData: {
+        block: Block;
+        serialized: Buffer;
+        storageKeys: StorageKeys;
+        transactions: RuntimeTransaction[];
+      }) => {
+        pendingBlock = blockData.block;
+      }
+    );
+    // await so we're sure the above line has had time to set the pending block
+    // even though we don't actually need the result of `miner.mine`
+    await miner.mine(nextBlock, maxTransactions, true);
+    return pendingBlock;
+  };
+
   isStarted = () => {
     return this.#state === Status.started;
   };
