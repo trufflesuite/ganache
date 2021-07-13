@@ -53,7 +53,7 @@
     "node-gyp-build": "4.2.3"
   },
   "devDependencies": {
-    "@ethereumjs/vm": "5.2.0",
+    "@ethereumjs/vm": "5.5.0",
     "@types/mocha": "8.2.2",
     "cross-env": "7.0.2",
     "mocha": "8.4.0",
