@@ -934,7 +934,7 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(1)
   async eth_getBlockTransactionCountByNumber(blockNumber: QUANTITY | Tag) {
     const { blocks } = this.#blockchain;
-    const blockNum = blocks.getEffectiveNumber(blockNumber);
+    const blockNum = await blocks.getEffectiveNumber(blockNumber);
     const rawBlock = await blocks.getRawByBlockNumber(blockNum);
     if (!rawBlock) return null;
 
@@ -1435,7 +1435,7 @@ export default class EthereumApi implements types.Api {
     blockNumber: QUANTITY | Tag = Tag.LATEST
   ) {
     const blockchain = this.#blockchain;
-    const blockNum = blockchain.blocks.getEffectiveNumber(blockNumber);
+    const blockNum = await blockchain.blocks.getEffectiveNumber(blockNumber);
     const block = await blockchain.blocks.getRawByBlockNumber(blockNum);
 
     if (!block) throw new Error("header not found");
@@ -2099,17 +2099,23 @@ export default class EthereumApi implements types.Api {
   async eth_newFilter(filter: RangeFilterArgs = {}) {
     const blockchain = this.#blockchain;
     const { addresses, topics } = parseFilterDetails(filter);
-    const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
-      const blockNumber = blockLogs.blockNumber;
-      // every time we get a blockLogs message we re-check what the filter's
-      // range is. We do this because "latest" isn't the latest block at the
-      // time the filter was set up, rather it is the actual latest *mined*
-      // block (that is: not pending)
-      const { fromBlock, toBlock } = parseFilterRange(filter, blockchain);
-      if (fromBlock <= blockNumber && toBlock >= blockNumber) {
-        value.updates.push(...blockLogs.filter(addresses, topics));
+    const unsubscribe = blockchain.on(
+      "blockLogs",
+      async (blockLogs: BlockLogs) => {
+        const blockNumber = blockLogs.blockNumber;
+        // every time we get a blockLogs message we re-check what the filter's
+        // range is. We do this because "latest" isn't the latest block at the
+        // time the filter was set up, rather it is the actual latest *mined*
+        // block (that is: not pending)
+        const { fromBlock, toBlock } = await parseFilterRange(
+          filter,
+          blockchain
+        );
+        if (fromBlock <= blockNumber && toBlock >= blockNumber) {
+          value.updates.push(...blockLogs.filter(addresses, topics));
+        }
       }
-    });
+    );
     const value = { updates: [], unsubscribe, filter, type: FilterTypes.log };
     const filterId = this.#getId();
     this.#filters.set(filterId.toString(), value);
