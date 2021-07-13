@@ -21,11 +21,6 @@ export default class BlockManager extends Manager<Block> {
    */
   public latest: Block;
 
-  /**
-   * The next block
-   */
-  public pending: Block;
-
   #blockchain: Blockchain;
   #common: Common;
   #blockIndexes: LevelUp;
@@ -67,7 +62,7 @@ export default class BlockManager extends Manager<Block> {
     return json == null ? null : Block.rawFromJSON(json);
   };
 
-  getBlockByTag(tag: Tag) {
+  async getBlockByTag(tag: Tag) {
     switch (Tag.normalize(tag as Tag)) {
       case Tag.LATEST:
         return this.latest;
@@ -77,7 +72,7 @@ export default class BlockManager extends Manager<Block> {
         break;
       case Tag.PENDING:
         // TODO: build a real pending block!
-        return this.latest; // this.createBlock(this.latest.header);
+        return await this.fetchPendingBlock(this.latest);
       case Tag.EARLIEST:
         return this.earliest;
       default:
@@ -88,9 +83,11 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST): Quantity {
+  async getEffectiveNumber(
+    tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+  ): Promise<Quantity> {
     if (typeof tagOrBlockNumber === "string") {
-      const block = this.getBlockByTag(tagOrBlockNumber as Tag);
+      const block = await this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {
         return block.header.number;
       }
@@ -144,7 +141,7 @@ export default class BlockManager extends Manager<Block> {
 
   async get(tagOrBlockNumber: QUANTITY | Buffer | Tag) {
     if (typeof tagOrBlockNumber === "string") {
-      const block = this.getBlockByTag(tagOrBlockNumber as Tag);
+      const block = await this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) return block;
     }
 
@@ -199,5 +196,9 @@ export default class BlockManager extends Manager<Block> {
           resolve(void 0);
         });
     });
+  }
+
+  async fetchPendingBlock(previousBlock: Block) {
+    return await this.#blockchain.createPendingBlock(previousBlock);
   }
 }
