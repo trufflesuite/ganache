@@ -1,7 +1,6 @@
 import { types } from "@ganache/utils";
 import { TezosInternalOptions } from "@ganache/tezos-options";
 import Wallet from "./wallet";
-import { assertArgLength } from "./helpers/assert-arg-length";
 import {
   BlockRequest,
   Checkpoint,
@@ -58,7 +57,6 @@ export default class TezosApi implements types.Api {
    * Returns a list of addresses owned by client.
    * @returns Array of 20 Bytes - addresses owned by the client.
    */
-  @assertArgLength(0)
   async tez_accounts() {
     return this.#wallet.initialAccounts.map(m => m.pkh);
   }
