@@ -22,9 +22,10 @@ import {
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
-  EthereumRawTx,
-  RpcTransaction,
-  RuntimeTransaction
+  RuntimeTransaction,
+  TypedRpcTransaction,
+  TransactionFactory,
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
@@ -76,7 +77,7 @@ type TypedData = Exclude<
 //#endregion
 
 //#region helpers
-function assertExceptionalTransactions(transactions: RuntimeTransaction[]) {
+function assertExceptionalTransactions(transactions: TypedTransaction[]) {
   let baseError: string = null;
   let errors: string[];
   const data = {};
@@ -741,7 +742,7 @@ export default class EthereumApi implements Api {
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
-      const tx = new RuntimeTransaction(transaction, this.#blockchain.common);
+      const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
       if (tx.from == null) {
         tx.from = coinbase;
       }
@@ -755,6 +756,7 @@ export default class EthereumApi implements Api {
         parentHeader.parentHash,
         parentHeader.miner,
         tx.gas.toBuffer(),
+        parentHeader.gasUsed.toBuffer(),
         parentHeader.timestamp,
         options.miner.difficulty,
         parentHeader.totalDifficulty
@@ -1601,9 +1603,10 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_sendTransaction(transaction: RpcTransaction) {
+  async eth_sendTransaction(transaction: TypedRpcTransaction) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
     if (tx.from == null) {
       throw new Error("from not found; is required");
     }
@@ -1662,9 +1665,9 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_signTransaction(transaction: RpcTransaction) {
+  async eth_signTransaction(transaction: TypedRpcTransaction) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");
@@ -1700,10 +1703,8 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
-    const data = Data.from(transaction).toBuffer();
-    const raw = decode<EthereumRawTx>(data);
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(raw, blockchain.common);
+    const tx = TransactionFactory.fromString(transaction, blockchain.common);
     return blockchain.queueTransaction(tx);
   }
 
@@ -2406,6 +2407,7 @@ export default class EthereumApi implements Api {
       parentHeader.parentHash,
       blockchain.coinbase,
       gas.toBuffer(),
+      parentHeader.gasUsed.toBuffer(),
       parentHeader.timestamp,
       options.miner.difficulty,
       parentHeader.totalDifficulty
@@ -2722,7 +2724,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(2)
   async personal_sendTransaction(transaction: any, passphrase: string) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
     const from = tx.from;
     if (from == null) {
       throw new Error("from not found; is required");
@@ -2774,11 +2776,11 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async personal_signTransaction(
-    transaction: RpcTransaction,
+    transaction: TypedRpcTransaction,
     passphrase: string
   ) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");

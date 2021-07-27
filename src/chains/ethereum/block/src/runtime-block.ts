@@ -10,11 +10,12 @@ import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
-  EthereumRawTx,
+  BlockRawTransaction,
   GanacheRawBlockTransactionMetaData,
-  RuntimeTransaction
+  RawLegacyPayload
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
+import { TypedTransaction } from "@ganache/ethereum-transaction";
 
 /**
  * BN, but with an extra `buf` property that caches the original Buffer value
@@ -94,6 +95,7 @@ export class RuntimeBlock {
     coinbase: { buf: Buffer; toBuffer: () => Buffer };
     number: BnExtra;
     gasLimit: BnExtra;
+    gasUsed: BnExtra;
     timestamp: BnExtra;
   };
 
@@ -102,6 +104,7 @@ export class RuntimeBlock {
     parentHash: Data,
     coinbase: Address,
     gasLimit: Buffer,
+    gasUsed: Buffer,
     timestamp: Quantity,
     difficulty: Quantity,
     previousBlockTotalDifficulty: Quantity
@@ -117,6 +120,7 @@ export class RuntimeBlock {
         previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
       ).toBuffer(),
       gasLimit: new BnExtra(gasLimit),
+      gasUsed: new BnExtra(gasUsed),
       timestamp: new BnExtra(ts)
     };
   }
@@ -129,7 +133,6 @@ export class RuntimeBlock {
    * @param receiptTrie
    * @param bloom
    * @param stateRoot
-   * @param gasUsed
    * @param extraData
    * @param transactions
    * @param storageKeys
@@ -141,7 +144,7 @@ export class RuntimeBlock {
     stateRoot: Buffer,
     gasUsed: bigint,
     extraData: Data,
-    transactions: RuntimeTransaction[],
+    transactions: TypedTransaction[],
     storageKeys: StorageKeys
   ) {
     const { header } = this;
@@ -163,10 +166,14 @@ export class RuntimeBlock {
       BUFFER_8_ZERO // nonce
     ];
     const { totalDifficulty } = header;
-    const txs: EthereumRawTx[] = [];
+    const txs: BlockRawTransaction[] = []; // we don't want
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     transactions.forEach(tx => {
-      txs.push(tx.raw);
+      if (tx.raw[0][0] === undefined) {
+        txs.push(<RawLegacyPayload>tx.raw.slice(1));
+      } else {
+        txs.push(<BlockRawTransaction>tx.raw);
+      }
       extraTxs.push([tx.from.toBuffer(), tx.hash.toBuffer()]);
     });
     const { serialized, size } = serialize([
