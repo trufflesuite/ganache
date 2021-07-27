@@ -1,8 +1,8 @@
 import { Data, Quantity } from "@ganache/utils";
 import {
   BlockTransaction,
-  EthereumRawTx,
-  GanacheRawBlockTransactionMetaData
+  GanacheRawBlockTransactionMetaData,
+  TypedRawTransaction
 } from "@ganache/ethereum-transaction";
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
@@ -20,7 +20,7 @@ export class Block {
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
   protected _common: Common;
-  protected _rawTransactions: EthereumRawTx[];
+  protected _rawTransactions: TypedRawTransaction[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
   public header: BlockHeader;
@@ -109,7 +109,7 @@ export class Block {
       Data.from(json.nonce).toBuffer()
     ];
     const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
-    const txs: EthereumRawTx[] = [];
+    const txs: TypedRawTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     json.transactions.forEach(tx => {
       txs.push([
@@ -144,7 +144,7 @@ export class Block {
 
   static fromParts(
     rawHeader: EthereumRawBlockHeader,
-    txs: EthereumRawTx[],
+    txs: TypedRawTransaction[],
     totalDifficulty: Buffer,
     extraTxs: GanacheRawBlockTransactionMetaData[],
     size: number,
