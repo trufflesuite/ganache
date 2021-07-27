@@ -748,6 +748,7 @@ export default class EthereumApi implements types.Api {
         parentHeader.parentHash,
         parentHeader.miner,
         tx.gas.toBuffer(),
+        parentHeader.gasUsed.toBuffer(),
         parentHeader.timestamp,
         options.miner.difficulty,
         parentHeader.totalDifficulty
@@ -2432,6 +2433,7 @@ export default class EthereumApi implements types.Api {
       parentHeader.parentHash,
       blockchain.coinbase,
       gas.toBuffer(),
+      parentHeader.gasUsed.toBuffer(),
       parentHeader.timestamp,
       options.miner.difficulty,
       parentHeader.totalDifficulty

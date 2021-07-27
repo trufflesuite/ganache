@@ -90,6 +90,7 @@ export class RuntimeBlock {
     coinbase: { buf: Buffer };
     number: BnExtra;
     gasLimit: BnExtra;
+    gasUsed: BnExtra;
     timestamp: BnExtra;
   };
 
@@ -98,6 +99,7 @@ export class RuntimeBlock {
     parentHash: Data,
     coinbase: Address,
     gasLimit: Buffer,
+    gasUsed: Buffer,
     timestamp: Quantity,
     difficulty: Quantity,
     previousBlockTotalDifficulty: Quantity
@@ -112,6 +114,7 @@ export class RuntimeBlock {
         previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
       ).toBuffer(),
       gasLimit: new BnExtra(gasLimit),
+      gasUsed: new BnExtra(gasUsed),
       timestamp: new BnExtra(ts)
     };
   }
@@ -124,7 +127,6 @@ export class RuntimeBlock {
    * @param receiptTrie
    * @param bloom
    * @param stateRoot
-   * @param gasUsed
    * @param extraData
    * @param transactions
    * @param storageKeys
