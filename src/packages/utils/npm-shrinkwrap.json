@@ -17,9 +17,9 @@
 			}
 		},
 		"@types/seedrandom": {
-			"version": "2.4.28",
-			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-2.4.28.tgz",
-			"integrity": "sha512-SMA+fUwULwK7sd/ZJicUztiPs8F1yCPwF3O23Z9uQ32ME5Ha0NmDK9+QTsYE4O2tHXChzXomSWWeIhCnoN1LqA==",
+			"version": "3.0.1",
+			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-3.0.1.tgz",
+			"integrity": "sha512-giB9gzDeiCeloIXDgzFBCgjj1k4WxcDrZtGl6h1IqmUPlxF+Nx8Ve+96QCyDZ/HseB/uvDsKbpib9hU5cU53pw==",
 			"dev": true
 		},
 		"accepts": {
@@ -223,9 +223,9 @@
 			}
 		},
 		"forwarded": {
-			"version": "0.1.2",
-			"resolved": "https://registry.npmjs.org/forwarded/-/forwarded-0.1.2.tgz",
-			"integrity": "sha1-mMI9qxF1ZXuMBXPozszZGw/xjIQ=",
+			"version": "0.2.0",
+			"resolved": "https://registry.npmjs.org/forwarded/-/forwarded-0.2.0.tgz",
+			"integrity": "sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==",
 			"dev": true
 		},
 		"fresh": {
@@ -302,18 +302,18 @@
 			"dev": true
 		},
 		"mime-db": {
-			"version": "1.47.0",
-			"resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.47.0.tgz",
-			"integrity": "sha512-QBmA/G2y+IfeS4oktet3qRZ+P5kPhCKRXxXnQEudYqUaEioAU1/Lq2us3D/t1Jfo4hE9REQPrbB7K5sOczJVIw==",
+			"version": "1.48.0",
+			"resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.48.0.tgz",
+			"integrity": "sha512-FM3QwxV+TnZYQ2aRqhlKBMHxk10lTbMt3bBkMAp54ddrNeVSfcQYOOKuGuy3Ddrm38I04If834fOUSq1yzslJQ==",
 			"dev": true
 		},
 		"mime-types": {
-			"version": "2.1.30",
-			"resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.30.tgz",
-			"integrity": "sha512-crmjA4bLtR8m9qLpHvgxSChT+XoSlZi8J4n/aIdn3z92e/U47Z0V/yl+Wh9W046GgFVAmoNR/fmdbZYcSSIUeg==",
+			"version": "2.1.31",
+			"resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.31.tgz",
+			"integrity": "sha512-XGZnNzm3QvgKxa8dpzyhFTHmpP3l5YNusmne07VUOXxou9CqUqYa/HBy124RqtVh/O2pECas/MOcsDgpilPOPg==",
 			"dev": true,
 			"requires": {
-				"mime-db": "1.47.0"
+				"mime-db": "1.48.0"
 			}
 		},
 		"ms": {
@@ -360,12 +360,12 @@
 			"dev": true
 		},
 		"proxy-addr": {
-			"version": "2.0.6",
-			"resolved": "https://registry.npmjs.org/proxy-addr/-/proxy-addr-2.0.6.tgz",
-			"integrity": "sha512-dh/frvCBVmSsDYzw6n926jv974gddhkFPfiN8hPOi30Wax25QZyZEGveluCgliBnqmuM+UJmBErbAUFIoDbjOw==",
+			"version": "2.0.7",
+			"resolved": "https://registry.npmjs.org/proxy-addr/-/proxy-addr-2.0.7.tgz",
+			"integrity": "sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==",
 			"dev": true,
 			"requires": {
-				"forwarded": "~0.1.2",
+				"forwarded": "0.2.0",
 				"ipaddr.js": "1.9.1"
 			}
 		},
@@ -498,9 +498,9 @@
 			"dev": true
 		},
 		"ws": {
-			"version": "7.4.4",
-			"resolved": "https://registry.npmjs.org/ws/-/ws-7.4.4.tgz",
-			"integrity": "sha512-Qm8k8ojNQIMx7S+Zp8u/uHOx7Qazv3Yv4q68MiWWWOJhiwG5W3x7iqmRtJo8xxrciZUY4vRxUTJCKuRnF28ZZw==",
+			"version": "7.5.3",
+			"resolved": "https://registry.npmjs.org/ws/-/ws-7.5.3.tgz",
+			"integrity": "sha512-kQ/dHIzuLrS6Je9+uv81ueZomEwH0qVYstcAQ4/Z93K8zeko9gtAbttJWzoC5ukqXY1PpoouV3+VSOqEAFt5wg==",
 			"dev": true
 		}
 	}
