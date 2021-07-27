@@ -1,5 +1,9 @@
 import { Data, Quantity, utils } from "@ganache/utils";
-import { EthereumRawTx } from "./raw";
+import {
+  EthereumRawAccessListTx,
+  EthereumRawTx,
+  TypedRawTransaction
+} from "./raw";
 import { digest, encode, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
@@ -136,7 +140,7 @@ const SHARED_BUFFER = Buffer.allocUnsafe(65);
 export const computeFromAddress = (
   partialRlp: { output: Buffer[] | Readonly<Buffer[]>; length: number },
   v: number,
-  raw: EthereumRawTx,
+  raw: TypedRawTransaction,
   chainId: number
 ) => {
   const senderPubKey = ecdaRecover(partialRlp, SHARED_BUFFER, v, chainId, raw);
@@ -148,9 +152,29 @@ export const computeHash = (raw: EthereumRawTx) => {
   return Data.from(keccak(encode(raw)), 32);
 };
 
-export const computeInstrinsics = (
+export const computeInstrinsicsLegacyTx = (
   v: Quantity,
   raw: EthereumRawTx,
+  chainId: number
+) => {
+  const encodedData = encodeRange(raw, 0, 6);
+  const encodedSignature = encodeRange(raw, 6, 3);
+  const serialized = digest(
+    [encodedData.output, encodedSignature.output],
+    encodedData.length + encodedSignature.length
+  );
+  return {
+    from: computeFromAddress(encodedData, v.toNumber(), raw, chainId),
+    hash: Data.from(keccak(serialized), 32),
+    serialized,
+    encodedData,
+    encodedSignature
+  };
+};
+
+export const computeInstrinsicsAccessListTx = (
+  v: Quantity,
+  raw: EthereumRawAccessListTx,
   chainId: number
 ) => {
   const encodedData = encodeRange(raw, 0, 6);

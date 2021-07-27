@@ -23,8 +23,9 @@ import {
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   EthereumRawTx,
-  RpcTransaction,
-  RuntimeTransaction
+  RuntimeTransaction,
+  TypedRpcTransaction,
+  TransactionFactory
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
@@ -50,7 +51,7 @@ import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block/src/serialize";
 
 // Read in the current ganache version from core's package.json
-const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
+const { version } = { version: "7.0.0-internal.21" }; //$INLINE_JSON("../../../../packages/ganache/package.json");
 const { keccak } = utils;
 //#endregion
 
@@ -741,7 +742,7 @@ export default class EthereumApi implements types.Api {
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
-      const tx = new RuntimeTransaction(transaction, this.#blockchain.common);
+      const tx = TransactionFactory.fromTxData(transaction, blockchain.common);
       if (tx.from == null) {
         tx.from = coinbase;
       }
@@ -1601,9 +1602,10 @@ export default class EthereumApi implements types.Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_sendTransaction(transaction: RpcTransaction) {
+  async eth_sendTransaction(transaction: TypedRpcTransaction) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+
+    const tx = TransactionFactory.fromTxData(transaction, blockchain.common);
     if (tx.from == null) {
       throw new Error("from not found; is required");
     }
@@ -1662,9 +1664,9 @@ export default class EthereumApi implements types.Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_signTransaction(transaction: RpcTransaction) {
+  async eth_signTransaction(transaction: TypedRpcTransaction) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromTxData(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");
@@ -1703,7 +1705,7 @@ export default class EthereumApi implements types.Api {
     const data = Data.from(transaction).toBuffer();
     const raw = decode<EthereumRawTx>(data);
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(raw, blockchain.common);
+    const tx = TransactionFactory.fromTxData(raw, blockchain.common);
     return blockchain.queueTransaction(tx);
   }
 
@@ -2718,7 +2720,7 @@ export default class EthereumApi implements types.Api {
   @assertArgLength(2)
   async personal_sendTransaction(transaction: any, passphrase: string) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromTxData(transaction, blockchain.common);
     const from = tx.from;
     if (from == null) {
       throw new Error("from not found; is required");
@@ -2770,11 +2772,11 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(2)
   async personal_signTransaction(
-    transaction: RpcTransaction,
+    transaction: TypedRpcTransaction,
     passphrase: string
   ) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromTxData(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");

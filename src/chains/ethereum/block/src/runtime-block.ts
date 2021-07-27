@@ -4,11 +4,11 @@ import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
-  EthereumRawTx,
   GanacheRawBlockTransactionMetaData,
-  RuntimeTransaction
+  TypedRawTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
+import { TypedTransaction } from "@ganache/ethereum-transaction/src/transaction-types";
 
 /**
  * BN, but with an extra `buf` property that caches the original Buffer value
@@ -136,7 +136,7 @@ export class RuntimeBlock {
     stateRoot: Buffer,
     gasUsed: bigint,
     extraData: Data,
-    transactions: RuntimeTransaction[],
+    transactions: TypedTransaction[],
     storageKeys: StorageKeys
   ) {
     const { header } = this;
@@ -158,7 +158,7 @@ export class RuntimeBlock {
       BUFFER_8_ZERO // nonce
     ];
     const { totalDifficulty } = header;
-    const txs: EthereumRawTx[] = [];
+    const txs: TypedRawTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     transactions.forEach(tx => {
       txs.push(tx.raw);
