@@ -51,6 +51,7 @@ import { LevelUp } from "levelup";
 import { activatePrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { TypedTransaction } from "@ganache/ethereum-transaction/src/transaction-types";
+import { BUFFER_ZERO } from "@ganache/utils/src/utils";
 
 const {
   BUFFER_EMPTY,
@@ -515,6 +516,7 @@ export default class Blockchain extends Emittery.Typed<
       previousBlock.hash(),
       this.coinbase,
       this.#options.miner.blockGasLimit.toBuffer(),
+      BUFFER_ZERO,
       Quantity.from(timestamp == null ? this.#currentTime() : timestamp),
       this.#options.miner.difficulty,
       previousBlock.header.totalDifficulty
@@ -620,6 +622,7 @@ export default class Blockchain extends Emittery.Typed<
         this.fallback.block.hash(),
         this.coinbase,
         blockGasLimit.toBuffer(),
+        BUFFER_ZERO,
         Quantity.from(timestamp),
         this.#options.miner.difficulty,
         this.fallback.block.header.totalDifficulty
@@ -661,6 +664,7 @@ export default class Blockchain extends Emittery.Typed<
       Quantity.from(BUFFER_32_ZERO),
       this.coinbase,
       blockGasLimit.toBuffer(),
+      BUFFER_ZERO, // TODO, verify
       Quantity.from(timestamp),
       this.#options.miner.difficulty,
       RPCQUANTITY_ZERO // we start the totalDifficulty at 0
@@ -1183,6 +1187,7 @@ export default class Blockchain extends Emittery.Typed<
       parentBlock.hash(),
       parentBlock.header.miner,
       parentBlock.header.gasLimit.toBuffer(),
+      BUFFER_ZERO, //TODO, confirm
       // make sure we use the same timestamp as the target block
       targetBlock.header.timestamp,
       this.#options.miner.difficulty,
