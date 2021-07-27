@@ -41,7 +41,7 @@
   ],
   "dependencies": {
     "@ganache/utils": "^0.1.0",
-    "bip39": "3.0.2",
+    "bip39": "3.0.4",
     "seedrandom": "3.0.5"
   }
 }

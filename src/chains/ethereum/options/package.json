@@ -48,10 +48,10 @@
     "@ganache/ethereum-utils": "0.1.0",
     "@ganache/options": "0.1.0",
     "@ganache/utils": "0.1.0",
-    "bip39": "3.0.3",
+    "bip39": "3.0.4",
     "seedrandom": "3.0.5"
   },
   "devDependencies": {
-    "@types/seedrandom": "3.0.0"
+    "@types/seedrandom": "3.0.1"
   }
 }
