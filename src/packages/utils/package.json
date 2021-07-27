@@ -49,8 +49,8 @@
     "seedrandom": "3.0.5"
   },
   "devDependencies": {
-    "@types/seedrandom": "2.4.28",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3"
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
+    "@types/seedrandom": "3.0.1"
   },
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"
