@@ -34,7 +34,6 @@ import { Fork } from "./forking/fork";
 import { Address } from "@ganache/ethereum-address";
 import {
   calculateIntrinsicGas,
-  RuntimeTransaction,
   TransactionReceipt,
   VmTransaction
 } from "@ganache/ethereum-transaction";
@@ -51,6 +50,7 @@ import { ForkTrie } from "./forking/trie";
 import { LevelUp } from "levelup";
 import { activatePrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
+import { TypedTransaction } from "@ganache/ethereum-transaction/src/transaction-types";
 
 const {
   BUFFER_EMPTY,
@@ -76,7 +76,7 @@ export enum Status {
 type BlockchainTypedEvents = {
   block: Block;
   blockLogs: BlockLogs;
-  pendingTransaction: RuntimeTransaction;
+  pendingTransaction: TypedTransaction;
 };
 type BlockchainEvents = "ready" | "stop";
 
@@ -364,7 +364,7 @@ export default class Blockchain extends Emittery.Typed<
     block: Block;
     serialized: Buffer;
     storageKeys: StorageKeys;
-    transactions: RuntimeTransaction[];
+    transactions: TypedTransaction[];
   }) => {
     const { blocks } = this;
     blocks.latest = block;
@@ -377,7 +377,7 @@ export default class Blockchain extends Emittery.Typed<
       const timestamp = blockHeader.timestamp;
       const timestampStr = new Date(timestamp.toNumber() * 1000).toString();
       const logOutput: string[] = [];
-      transactions.forEach((tx: RuntimeTransaction, i: number) => {
+      transactions.forEach((tx: TypedTransaction, i: number) => {
         const hash = tx.hash.toBuffer();
         const index = Quantity.from(i);
 
@@ -429,7 +429,7 @@ export default class Blockchain extends Emittery.Typed<
   #emitNewBlock = async (blockInfo: {
     block: Block;
     blockLogs: BlockLogs;
-    transactions: RuntimeTransaction[];
+    transactions: TypedTransaction[];
   }) => {
     const options = this.#options;
     const { block, blockLogs, transactions } = blockInfo;
@@ -496,7 +496,7 @@ export default class Blockchain extends Emittery.Typed<
     block: Block;
     serialized: Buffer;
     storageKeys: StorageKeys;
-    transactions: RuntimeTransaction[];
+    transactions: TypedTransaction[];
   }) => {
     this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
       .then(() => this.#saveNewBlock(blockData))
@@ -857,7 +857,7 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   public async queueTransaction(
-    transaction: RuntimeTransaction,
+    transaction: TypedTransaction,
     secretKey?: Data
   ) {
     // NOTE: this.transactions.add *must* be awaited before returning the

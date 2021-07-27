@@ -1,11 +1,13 @@
 import { Data, Quantity, utils } from "@ganache/utils";
+import { BN } from "ethereumjs-util";
 import type Common from "@ethereumjs/common";
-import { EthereumRawTx, GanacheRawExtraTx } from "./raw";
+import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
 import { decode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { Address } from "@ganache/ethereum-address";
+import { Params } from "./params";
 
-const { RPCQUANTITY_EMPTY } = utils;
+const { RPCQUANTITY_EMPTY, BUFFER_EMPTY, BUFFER_32_ZERO } = utils;
 
 /**
  * A frozen tranasction is a transaction that is part of a block.
@@ -33,14 +35,14 @@ export class FrozenTransaction extends BaseTransaction {
   public common: Common;
 
   constructor(
-    data: Buffer | [EthereumRawTx, GanacheRawExtraTx],
+    data: Buffer | [TypedRawTransaction, GanacheRawExtraTx],
     common: Common
   ) {
     super(common);
 
     if (Buffer.isBuffer(data)) {
       const decoded = (decode(data) as any) as [
-        EthereumRawTx,
+        TypedRawTransaction,
         GanacheRawExtraTx
       ];
 
@@ -53,7 +55,7 @@ export class FrozenTransaction extends BaseTransaction {
     Object.freeze(this);
   }
 
-  public setRaw(raw: EthereumRawTx) {
+  public setRaw(raw: TypedRawTransaction) {
     const [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = raw;
 
     this.nonce = Quantity.from(nonce);
@@ -95,4 +97,45 @@ export class FrozenTransaction extends BaseTransaction {
       s: this.s
     };
   };
+
+  public toVmTransaction() {
+    const sender = this.from.toBuffer();
+    const to = this.to.toBuffer();
+    const data = this.data.toBuffer();
+    return {
+      hash: () => BUFFER_32_ZERO,
+      nonce: new BN(this.nonce.toBuffer()),
+      gasPrice: new BN(this.gasPrice.toBuffer()),
+      gasLimit: new BN(this.gas.toBuffer()),
+      to:
+        to.length === 0
+          ? null
+          : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
+      value: new BN(this.value.toBuffer()),
+      data,
+      getSenderAddress: () => ({
+        buf: sender,
+        equals: (a: { buf: Buffer }) => sender.equals(a.buf)
+      }),
+      /**
+       * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
+       */
+      getBaseFee: () => {
+        let fee = this.calculateIntrinsicGas();
+        if (to.equals(BUFFER_EMPTY)) {
+          fee += Params.TRANSACTION_CREATION;
+        }
+        return new BN(Quantity.from(fee).toBuffer());
+      },
+      getUpfrontCost: () => {
+        const { gas, gasPrice, value } = this;
+        try {
+          const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
+          return new BN(Quantity.from(c).toBuffer());
+        } catch (e) {
+          throw e;
+        }
+      }
+    };
+  }
 }
