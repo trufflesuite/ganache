@@ -70,8 +70,8 @@ export const calculateIntrinsicGas = (data: Data, common: Common) => {
 };
 
 export class BaseTransaction {
+  public type: Quantity;
   public nonce: Quantity;
-  public gasPrice: Quantity;
   public gas: Quantity;
   public to: Address | null;
   public value: Quantity;
@@ -88,48 +88,7 @@ export class BaseTransaction {
     this.common = common;
   }
 
-  public toVmTransaction() {
-    const sender = this.from.toBuffer();
-    const to = this.to.toBuffer();
-    const data = this.data.toBuffer();
-    return {
-      hash: () => BUFFER_32_ZERO,
-      nonce: new BN(this.nonce.toBuffer()),
-      gasPrice: new BN(this.gasPrice.toBuffer()),
-      gasLimit: new BN(this.gas.toBuffer()),
-      to:
-        to.length === 0
-          ? null
-          : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
-      value: new BN(this.value.toBuffer()),
-      data,
-      getSenderAddress: () => ({
-        buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf)
-      }),
-      /**
-       * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
-       */
-      getBaseFee: () => {
-        let fee = this.calculateIntrinsicGas();
-        if (to.equals(BUFFER_EMPTY)) {
-          fee += Params.TRANSACTION_CREATION;
-        }
-        return new BN(Quantity.from(fee).toBuffer());
-      },
-      getUpfrontCost: () => {
-        const { gas, gasPrice, value } = this;
-        try {
-          const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-          return new BN(Quantity.from(c).toBuffer());
-        } catch (e) {
-          throw e;
-        }
-      }
-    };
-  }
   public calculateIntrinsicGas() {
     return calculateIntrinsicGas(this.data, this.common);
   }
-  public toJSON: () => any;
 }
