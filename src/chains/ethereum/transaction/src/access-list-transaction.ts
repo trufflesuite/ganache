@@ -83,6 +83,7 @@ export class AccessListTransaction extends RuntimeTransaction {
           : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
       value: new BN(this.value.toBuffer()),
       data,
+      AccessListJSON: this.accessListJSON,
       getSenderAddress: () => ({
         buf: sender,
         equals: (a: { buf: Buffer }) => sender.equals(a.buf)
@@ -105,6 +106,10 @@ export class AccessListTransaction extends RuntimeTransaction {
         } catch (e) {
           throw e;
         }
+      },
+      supports: (capability: any) => {
+        const capabilities: any[] = [2718, 2930];
+        return capabilities.includes(capability);
       }
     };
   }
