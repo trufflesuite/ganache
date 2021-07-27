@@ -1,3 +1,19 @@
+import { AccessList } from "@ethereumjs/tx";
+
+export type TypedRpcTransaction =
+  | (RpcTransaction & {
+      type: never;
+      accessList: never;
+    })
+  | (RpcTransaction & {
+      type: string;
+      accessList: never;
+    })
+  | (RpcTransaction & {
+      type: string;
+      accessList: AccessList;
+    });
+
 export type RpcTransaction =
   | {
       from: string;
