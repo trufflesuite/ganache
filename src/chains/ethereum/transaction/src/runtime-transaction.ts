@@ -4,12 +4,11 @@ import {
   TransactionLog
 } from "@ganache/ethereum-utils";
 import { Data, Quantity, utils } from "@ganache/utils";
-import { RpcTransaction } from "./rpc-transaction";
+import { RpcTransaction, TypedRpcTransaction } from "./rpc-transaction";
 import { ecsign } from "ethereumjs-util";
 import type Common from "@ethereumjs/common";
-import { EthereumRawTx, GanacheRawExtraTx } from "./raw";
+import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
 import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
-import { computeInstrinsics } from "./signing";
 import { encodeRange, digest, EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { TransactionReceipt } from "./transaction-receipt";
@@ -54,7 +53,7 @@ const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
  * yet part of a block.
  */
 
-export class RuntimeTransaction extends BaseTransaction {
+export abstract class RuntimeTransaction extends BaseTransaction {
   public hash: Data | null;
   /**
    * used by the miner to mark if this transaction is eligible for reordering or
@@ -66,14 +65,14 @@ export class RuntimeTransaction extends BaseTransaction {
   public receipt: TransactionReceipt;
   public execException: RuntimeError;
 
-  public raw: EthereumRawTx | null;
+  public raw: TypedRawTransaction | null;
   public serialized: Buffer;
   public encodedData: EncodedPart;
   public encodedSignature: EncodedPart;
   private finalizer: (eventData: TransactionFinalization) => void;
   private finalized: Promise<TransactionFinalization>;
 
-  constructor(data: EthereumRawTx | RpcTransaction, common: Common) {
+  constructor(data: TypedRawTransaction | TypedRpcTransaction, common: Common) {
     super(common);
     let finalizer: (value: TransactionFinalization) => void;
     this.finalized = new Promise<TransactionFinalization>(resolve => {
@@ -84,7 +83,6 @@ export class RuntimeTransaction extends BaseTransaction {
     if (Array.isArray(data)) {
       // handle raw data (sendRawTranasction)
       this.nonce = Quantity.from(data[0], true);
-      this.gasPrice = Quantity.from(data[1]);
       this.gas = Quantity.from(data[2]);
       this.to = data[3].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[3]);
       this.value = Quantity.from(data[4]);
@@ -99,7 +97,7 @@ export class RuntimeTransaction extends BaseTransaction {
         hash,
         encodedData,
         encodedSignature
-      } = computeInstrinsics(this.v, data, this.common.chainId());
+      } = this.computeIntrinsics(this.v, data, this.common.chainId());
 
       this.from = from;
       this.raw = data;
@@ -110,7 +108,6 @@ export class RuntimeTransaction extends BaseTransaction {
     } else {
       // handle JSON
       this.nonce = Quantity.from(data.nonce, true);
-      this.gasPrice = Quantity.from(data.gasPrice);
       this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
       this.to =
         data.to == null
@@ -139,24 +136,14 @@ export class RuntimeTransaction extends BaseTransaction {
         this.s = Quantity.from(data.s, true);
 
         // compute the `hash` and the `from` address
-        const raw: EthereumRawTx = [
-          this.nonce.toBuffer(),
-          this.gasPrice.toBuffer(),
-          this.gas.toBuffer(),
-          this.to.toBuffer(),
-          this.value.toBuffer(),
-          this.data.toBuffer(),
-          this.v.toBuffer(),
-          this.r.toBuffer(),
-          this.s.toBuffer()
-        ];
+        const raw: TypedRawTransaction = this.toEthRawTransaction();
         const {
           from,
           serialized,
           hash,
           encodedData,
           encodedSignature
-        } = computeInstrinsics(this.v, raw, this.common.chainId());
+        } = this.computeIntrinsics(this.v, raw, this.common.chainId());
 
         // if the user specified a `from` address in addition to the  `v`, `r`,
         //  and `s` values, make sure the `from` address matches
@@ -196,17 +183,11 @@ export class RuntimeTransaction extends BaseTransaction {
     }
 
     const chainId = this.common.chainId();
-    const raw: EthereumRawTx = [
-      this.nonce.toBuffer(),
-      this.gasPrice.toBuffer(),
-      this.gas.toBuffer(),
-      this.to.toBuffer(),
-      this.value.toBuffer(),
-      this.data.toBuffer(),
+    const raw: TypedRawTransaction = this.toEthRawTransaction(
       Quantity.from(chainId).toBuffer(),
       BUFFER_EMPTY,
       BUFFER_EMPTY
-    ];
+    );
     const data = encodeRange(raw, 0, 6);
     const dataLength = data.length;
 
@@ -240,7 +221,7 @@ export class RuntimeTransaction extends BaseTransaction {
     transactionIndex: Quantity
   ): Buffer {
     // todo(perf):make this work with encodeRange and digest
-    const txAndExtraData: [EthereumRawTx, GanacheRawExtraTx] = [
+    const txAndExtraData: [TypedRawTransaction, GanacheRawExtraTx] = [
       this.raw,
       [
         this.from.toBuffer(),
@@ -253,24 +234,7 @@ export class RuntimeTransaction extends BaseTransaction {
     return encode(txAndExtraData);
   }
 
-  public toJSON = () => {
-    return {
-      hash: this.hash,
-      nonce: this.nonce,
-      blockHash: null,
-      blockNumber: null,
-      transactionIndex: null,
-      from: this.from,
-      to: this.to.isNull() ? null : this.to,
-      value: this.value,
-      gas: this.gas,
-      gasPrice: this.gasPrice,
-      input: this.data,
-      v: this.v,
-      r: this.r,
-      s: this.s
-    };
-  };
+  abstract toJSON();
 
   /**
    * Initializes the receipt and logs
@@ -337,4 +301,17 @@ export class RuntimeTransaction extends BaseTransaction {
     // resolves the `#finalized` promise
     this.finalizer({ status, error });
   }
+  protected abstract toEthRawTransaction(
+    v?: Buffer,
+    r?: Buffer,
+    s?: Buffer
+  ): TypedRawTransaction;
+
+  protected abstract computeIntrinsics(
+    v: Quantity,
+    raw: TypedRawTransaction,
+    chainId: number
+  );
+
+  protected abstract toVmTransaction();
 }
