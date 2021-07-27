@@ -5,7 +5,7 @@ import {
   BUFFER_EMPTY,
   uintToBuffer
 } from "@ganache/utils";
-import { EthereumRawTx } from "./raw";
+import { RawAccessListTx, RawLegacyTx } from "./raw";
 import { digest, encode, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
@@ -77,7 +77,8 @@ export const ecdaRecover = (
   sharedBuffer: Buffer,
   v: number,
   chainId: number,
-  raw: Buffer[]
+  rBuf: Buffer,
+  sBuf: Buffer
 ) => {
   let data: Buffer;
   let recid: number;
@@ -104,8 +105,8 @@ export const ecdaRecover = (
   const message = keccak(data);
 
   const signature = sharedBuffer.slice(0, 64);
-  copyOrFill(raw[7], signature, 0, 32);
-  copyOrFill(raw[8], signature, 32, 32);
+  copyOrFill(rBuf, signature, 0, 32);
+  copyOrFill(sBuf, signature, 32, 32);
 
   const output = sharedBuffer.slice(0, 33);
   const success = secp256k1.ecdsaRecover(output, signature, recid, message);
@@ -140,23 +141,32 @@ const SHARED_BUFFER = Buffer.allocUnsafe(65);
 export const computeFromAddress = (
   partialRlp: { output: Buffer[] | Readonly<Buffer[]>; length: number },
   v: number,
-  raw: EthereumRawTx,
+  rBuf: Buffer,
+  sBuf: Buffer,
   chainId: number
 ) => {
-  const senderPubKey = ecdaRecover(partialRlp, SHARED_BUFFER, v, chainId, raw);
+  const senderPubKey = ecdaRecover(
+    partialRlp,
+    SHARED_BUFFER,
+    v,
+    chainId,
+    rBuf,
+    sBuf
+  );
   const publicKey = publicKeyConvert(SHARED_BUFFER, senderPubKey);
   return Address.from(keccak(publicKey.slice(1)).slice(-20));
 };
 
-export const computeHash = (raw: EthereumRawTx) => {
+export const computeHash = (raw: RawLegacyTx) => {
   return Data.from(keccak(encode(raw)), 32);
 };
 
-export const computeIntrinsics = (
+export const computeInstrinsicsLegacyTx = (
   v: Quantity,
-  raw: EthereumRawTx,
+  raw: RawLegacyTx,
   chainId: number
 ) => {
+  raw.shift();
   const encodedData = encodeRange(raw, 0, 6);
   const encodedSignature = encodeRange(raw, 6, 3);
   const serialized = digest(
@@ -164,7 +174,43 @@ export const computeIntrinsics = (
     encodedData.length + encodedSignature.length
   );
   return {
-    from: computeFromAddress(encodedData, v.toNumber(), raw, chainId),
+    from: computeFromAddress(
+      encodedData,
+      v.toNumber(),
+      raw[7],
+      raw[8],
+      chainId
+    ),
+    hash: Data.from(keccak(serialized), 32),
+    serialized,
+    encodedData,
+    encodedSignature
+  };
+};
+
+export const computeInstrinsicsAccessListTx = (
+  v: Quantity,
+  raw: RawAccessListTx,
+  chainId: number
+) => {
+  const typeBuf = raw[0];
+  const encodedData = encodeRange(raw, 1, 8);
+  const encodedSignature = encodeRange(raw, 9, 3);
+  const serialized = Buffer.concat([
+    typeBuf,
+    digest(
+      [encodedData.output, encodedSignature.output],
+      encodedData.length + encodedSignature.length
+    )
+  ]);
+  return {
+    from: computeFromAddress(
+      encodedData,
+      v.toNumber(),
+      raw[10],
+      raw[11],
+      chainId
+    ),
     hash: Data.from(keccak(serialized), 32),
     serialized,
     encodedData,

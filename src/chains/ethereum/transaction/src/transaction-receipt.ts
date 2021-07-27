@@ -1,8 +1,10 @@
+import { Address } from "@ganache/ethereum-address";
 import { BlockLogs, TransactionLog } from "@ganache/ethereum-utils";
 import { decode, digest, encodeRange } from "@ganache/rlp";
 import { Data, Quantity } from "@ganache/utils";
 import { RPCQUANTITY_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
 import { FrozenTransaction } from "./frozen-transaction";
+import { AccessList } from "@ethereumjs/tx";
 
 const STATUSES = [RPCQUANTITY_ZERO, RPCQUANTITY_ONE];
 
@@ -20,11 +22,40 @@ type GanacheExtrasRawReceipt = [
 
 type GanacheRawReceipt = [...EthereumRawReceipt, ...GanacheExtrasRawReceipt];
 
+export interface TransactionReceiptJSON {
+  transactionHash: Data;
+  transactionIndex: Quantity;
+  blockNumber: Quantity;
+  blockHash: Data;
+  from: Data;
+  to: Address;
+  cumulativeGasUsed: Quantity;
+  gasUsed: Quantity;
+  contractAddress: Data;
+  logs: {
+    address: Address;
+    blockHash: Data;
+    blockNumber: Quantity;
+    data: Data | Data[];
+    logIndex: Quantity;
+    removed: boolean;
+    topics: Data | Data[];
+    transactionHash: Data;
+    transactionIndex: Quantity;
+  }[];
+  logsBloom: Data;
+  status: Quantity;
+  type?: Quantity;
+  chainId?: Quantity;
+  accessList?: AccessList;
+}
+
 export class TransactionReceipt {
   public contractAddress: Buffer;
   #gasUsed: Buffer;
   raw: EthereumRawReceipt;
   encoded: { length: number; output: Buffer[] };
+  txType: Quantity;
 
   constructor(data?: Buffer) {
     if (data) {
@@ -45,11 +76,13 @@ export class TransactionReceipt {
     logsBloom: Buffer,
     logs: TransactionLog[],
     gasUsed: Buffer,
-    contractAddress: Buffer = null
+    contractAddress: Buffer = null,
+    type: Quantity = null
   ) => {
     this.raw = [status, cumulativeGasUsed, logsBloom, logs];
     this.contractAddress = contractAddress;
     this.#gasUsed = gasUsed;
+    this.txType = type;
   };
 
   static fromValues(
@@ -58,7 +91,8 @@ export class TransactionReceipt {
     logsBloom: Buffer,
     logs: TransactionLog[],
     gasUsed: Buffer,
-    contractAddress: Buffer
+    contractAddress: Buffer,
+    type: Quantity = null
   ) {
     const receipt = new TransactionReceipt();
     receipt.#init(
@@ -67,7 +101,8 @@ export class TransactionReceipt {
       logsBloom,
       logs,
       gasUsed,
-      contractAddress
+      contractAddress,
+      type
     );
     return receipt;
   }
@@ -76,6 +111,7 @@ export class TransactionReceipt {
     if (this.encoded == null) {
       this.encoded = encodeRange(this.raw, 0, 4);
     }
+
     if (all) {
       // the database format includes gasUsed and the contractAddress:
       const extras: GanacheExtrasRawReceipt = [
@@ -89,7 +125,10 @@ export class TransactionReceipt {
       );
     } else {
       // receipt trie format:
-      return digest([this.encoded.output], this.encoded.length);
+      const serialized = digest([this.encoded.output], this.encoded.length);
+      return this.txType
+        ? Buffer.concat([this.txType.toBuffer(), serialized])
+        : serialized;
     }
   }
 
@@ -110,8 +149,7 @@ export class TransactionReceipt {
     blockLog.blockNumber = blockNumber;
     raw[3].forEach(l => blockLog.append(transactionIndex, transactionHash, l));
     const logs = [...blockLog.toJSON()];
-
-    return {
+    let json: TransactionReceiptJSON = {
       transactionHash,
       transactionIndex,
       blockNumber,
@@ -125,5 +163,15 @@ export class TransactionReceipt {
       logsBloom: Data.from(raw[2], 256),
       status: STATUSES[raw[0][0]]
     };
+    if (transaction.type) {
+      json.type = transaction.type;
+    }
+    if (transaction.chainId) {
+      json.chainId = transaction.chainId;
+    }
+    if (transaction.accessListJSON) {
+      json.accessList = transaction.accessListJSON;
+    }
+    return json;
   }
 }

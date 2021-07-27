@@ -9,10 +9,10 @@ import {
   CodedError
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { RuntimeTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./miner/executables";
+import { TypedTransaction } from "@ganache/ethereum-transaction";
 
-function byNonce(values: RuntimeTransaction[], a: number, b: number) {
+function byNonce(values: TypedTransaction[], a: number, b: number) {
   return (
     (values[b].nonce.toBigInt() || 0n) > (values[a].nonce.toBigInt() || 0n)
   );
@@ -39,7 +39,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     inProgress: new Set(),
     pending: new Map()
   };
-  readonly #origins: Map<string, Heap<RuntimeTransaction>> = new Map();
+  readonly #origins: Map<string, Heap<TypedTransaction>> = new Map();
   readonly #accountPromises = new Map<string, Promise<Quantity>>();
 
   /**
@@ -51,7 +51,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
    * @returns data that can be used to drain the queue
    */
   public async prepareTransaction(
-    transaction: RuntimeTransaction,
+    transaction: TypedTransaction,
     secretKey?: Data
   ) {
     let err: Error;
@@ -323,7 +323,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     this.emit("drain");
   };
 
-  readonly #validateTransaction = (transaction: RuntimeTransaction): Error => {
+  readonly #validateTransaction = (transaction: TypedTransaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
     if (transaction.gas > this.#options.blockGasLimit) {
       return new CodedError(GAS_LIMIT, JsonRpcErrorCode.INVALID_INPUT);
