@@ -1,9 +1,5 @@
 import { Data, Quantity, utils } from "@ganache/utils";
-import {
-  EthereumRawAccessListTx,
-  EthereumRawTx,
-  TypedRawTransaction
-} from "./raw";
+import { RawAccessListTx, RawLegacyTx, TypedRawTransaction } from "./raw";
 import { digest, encode, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
@@ -77,7 +73,8 @@ export const ecdaRecover = (
   sharedBuffer: Buffer,
   v: number,
   chainId: number,
-  raw: Buffer[]
+  rBuf: Buffer,
+  sBuf: Buffer
 ) => {
   let data: Buffer;
   let recid: number;
@@ -104,8 +101,8 @@ export const ecdaRecover = (
   const message = keccak(data);
 
   const signature = sharedBuffer.slice(0, 64);
-  copyOrFill(raw[7], signature, 0, 32);
-  copyOrFill(raw[8], signature, 32, 32);
+  copyOrFill(rBuf, signature, 0, 32);
+  copyOrFill(sBuf, signature, 32, 32);
 
   const output = sharedBuffer.slice(0, 33);
   const success = secp256k1.ecdsaRecover(output, signature, recid, message);
@@ -140,31 +137,49 @@ const SHARED_BUFFER = Buffer.allocUnsafe(65);
 export const computeFromAddress = (
   partialRlp: { output: Buffer[] | Readonly<Buffer[]>; length: number },
   v: number,
-  raw: TypedRawTransaction,
+  rBuf: Buffer,
+  sBuf: Buffer,
   chainId: number
 ) => {
-  const senderPubKey = ecdaRecover(partialRlp, SHARED_BUFFER, v, chainId, raw);
+  const senderPubKey = ecdaRecover(
+    partialRlp,
+    SHARED_BUFFER,
+    v,
+    chainId,
+    rBuf,
+    sBuf
+  );
   const publicKey = publicKeyConvert(SHARED_BUFFER, senderPubKey);
   return Address.from(keccak(publicKey.slice(1)).slice(-20));
 };
 
-export const computeHash = (raw: EthereumRawTx) => {
+export const computeHash = (raw: RawLegacyTx) => {
   return Data.from(keccak(encode(raw)), 32);
 };
 
 export const computeInstrinsicsLegacyTx = (
   v: Quantity,
-  raw: EthereumRawTx,
+  raw: RawLegacyTx,
   chainId: number
 ) => {
-  const encodedData = encodeRange(raw, 0, 6);
-  const encodedSignature = encodeRange(raw, 6, 3);
+  const vStart: 6 | 7 = <6 | 7>(raw.length - 3); // index of v depends on the tx type
+  const encodedData = encodeRange(raw, 0, vStart);
+  const encodedSignature = encodeRange(raw, vStart, 3);
   const serialized = digest(
     [encodedData.output, encodedSignature.output],
     encodedData.length + encodedSignature.length
   );
+  if (raw.length !== 9) {
+    raw.shift(); // we no longer need the type for further computations, so strip it
+  }
   return {
-    from: computeFromAddress(encodedData, v.toNumber(), raw, chainId),
+    from: computeFromAddress(
+      encodedData,
+      v.toNumber(),
+      raw[7],
+      raw[8],
+      chainId
+    ),
     hash: Data.from(keccak(serialized), 32),
     serialized,
     encodedData,
@@ -174,7 +189,7 @@ export const computeInstrinsicsLegacyTx = (
 
 export const computeInstrinsicsAccessListTx = (
   v: Quantity,
-  raw: EthereumRawAccessListTx,
+  raw: RawAccessListTx,
   chainId: number
 ) => {
   const encodedData = encodeRange(raw, 0, 6);
@@ -184,7 +199,13 @@ export const computeInstrinsicsAccessListTx = (
     encodedData.length + encodedSignature.length
   );
   return {
-    from: computeFromAddress(encodedData, v.toNumber(), raw, chainId),
+    from: computeFromAddress(
+      encodedData,
+      v.toNumber(),
+      raw[9],
+      raw[10],
+      chainId
+    ),
     hash: Data.from(keccak(serialized), 32),
     serialized,
     encodedData,
