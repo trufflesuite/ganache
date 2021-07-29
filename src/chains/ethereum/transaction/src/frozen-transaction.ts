@@ -1,18 +1,46 @@
 import { Data, Quantity, utils } from "@ganache/utils";
 import { BN } from "ethereumjs-util";
 import type Common from "@ethereumjs/common";
-import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
+import {
+  GanacheRawExtraTx,
+  RawAccessListTx,
+  RawLegacyTx,
+  TypedRawTransaction
+} from "./raw";
 import { decode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { Address } from "@ganache/ethereum-address";
 import { Params } from "./params";
+import { AccessListBuffer, AccessList } from "@ethereumjs/tx";
+import { TransactionFactory } from "./transaction-factory";
+import { LegacyTransaction } from "./legacy-transaction";
+import { AccessListTransaction } from "./access-list-transaction";
+import { AccessLists } from "./access-lists";
 
 const { RPCQUANTITY_EMPTY, BUFFER_EMPTY, BUFFER_32_ZERO } = utils;
+
+export interface FrozenTransactionJSON {
+  type?: Quantity;
+  hash: Data;
+  nonce: Quantity;
+  blockHash: Data;
+  blockNumber: Quantity;
+  transactionIndex: Quantity;
+  from: Data | null;
+  to: Address | null;
+  value: Quantity;
+  gas: Quantity;
+  gasPrice: Quantity;
+  input: Data;
+  accessList?: AccessList;
+  v: Quantity;
+  r: Quantity;
+  s: Quantity;
+}
 
 /**
  * A frozen tranasction is a transaction that is part of a block.
  */
-
 export class FrozenTransaction extends BaseTransaction {
   public nonce: Quantity;
   public gasPrice: Quantity;
@@ -23,6 +51,9 @@ export class FrozenTransaction extends BaseTransaction {
   public v: Quantity;
   public r: Quantity;
   public s: Quantity;
+  public type: Quantity;
+  public accessList: AccessListBuffer;
+  public accessListJSON: AccessList;
 
   // from, index, hash, blockNumber, and blockHash are extra data we store to
   // support account mascarading, quick receipts:
@@ -56,7 +87,37 @@ export class FrozenTransaction extends BaseTransaction {
   }
 
   public setRaw(raw: TypedRawTransaction) {
-    const [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = raw;
+    const txType = TransactionFactory.typeOfRaw(raw);
+    let [nonce, gasPrice, gasLimit, to, value, data, v, r, s]: Buffer[] = [];
+    if (txType === LegacyTransaction) {
+      if (TransactionFactory.txIncludesType(raw)) {
+        // whether they explicitly say so or not, this is a tx type 0,
+        // but we'll return it how they sent it, so only set this value
+        // if the user included it with their request
+        this.type = Quantity.from("0x0");
+        raw.shift(); // then shift over the array to lose the type
+      }
+      [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <RawLegacyTx>raw;
+    } else if (txType === AccessListTransaction) {
+      let type: Buffer, accessList: AccessListBuffer;
+      [
+        type,
+        nonce,
+        gasPrice,
+        gasLimit,
+        to,
+        value,
+        accessList,
+        data,
+        v,
+        r,
+        s
+      ] = <RawAccessListTx>raw;
+      this.type = Quantity.from(type);
+      const accessListData = AccessLists.getAccessListData(accessList);
+      this.accessList = accessListData.accessList;
+      this.accessListJSON = accessListData.AccessListJSON;
+    }
 
     this.nonce = Quantity.from(nonce);
     this.gasPrice = Quantity.from(gasPrice);
@@ -80,7 +141,7 @@ export class FrozenTransaction extends BaseTransaction {
   }
 
   public toJSON = () => {
-    return {
+    let json: FrozenTransactionJSON = {
       hash: this.hash,
       nonce: this.nonce,
       blockHash: this.blockHash,
@@ -96,6 +157,13 @@ export class FrozenTransaction extends BaseTransaction {
       r: this.r,
       s: this.s
     };
+    if (this.type) {
+      json.type = this.type;
+    }
+    if (this.accessList) {
+      json.accessList = this.accessListJSON;
+    }
+    return json;
   };
 
   public toVmTransaction() {
