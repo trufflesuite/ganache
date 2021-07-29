@@ -5,10 +5,9 @@ import {
 } from "@ganache/ethereum-utils";
 import { Data, Quantity, utils } from "@ganache/utils";
 import { RpcTransaction, TypedRpcTransaction } from "./rpc-transaction";
-import { ecsign } from "ethereumjs-util";
 import type Common from "@ethereumjs/common";
 import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
-import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
+import type { RunTxResult } from "../../utils/node_modules/@ethereumjs/vm/dist/runTx";
 import { encodeRange, digest, EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { TransactionReceipt } from "./transaction-receipt";
@@ -39,13 +38,7 @@ type TransactionFinalization =
   | { status: "confirmed"; error?: Error }
   | { status: "rejected"; error: Error };
 
-const {
-  keccak,
-  RPCQUANTITY_ONE,
-  BUFFER_ZERO,
-  RPCQUANTITY_EMPTY,
-  BUFFER_EMPTY
-} = utils;
+const { RPCQUANTITY_ONE, BUFFER_ZERO, RPCQUANTITY_EMPTY } = utils;
 const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
 
 /**
@@ -80,32 +73,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     });
     this.finalizer = finalizer;
 
-    if (Array.isArray(data)) {
-      // handle raw data (sendRawTranasction)
-      this.nonce = Quantity.from(data[0], true);
-      this.gas = Quantity.from(data[2]);
-      this.to = data[3].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[3]);
-      this.value = Quantity.from(data[4]);
-      this.data = Data.from(data[5]);
-      this.v = Quantity.from(data[6]);
-      this.r = Quantity.from(data[7]);
-      this.s = Quantity.from(data[8]);
-
-      const {
-        from,
-        serialized,
-        hash,
-        encodedData,
-        encodedSignature
-      } = this.computeIntrinsics(this.v, data, this.common.chainId());
-
-      this.from = from;
-      this.raw = data;
-      this.serialized = serialized;
-      this.hash = hash;
-      this.encodedData = encodedData;
-      this.encodedSignature = encodedSignature;
-    } else {
+    if (!Array.isArray(data)) {
       // handle JSON
       this.nonce = Quantity.from(data.nonce, true);
       this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
@@ -175,45 +143,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
    *
    * @param privateKey - Must be 32 bytes in length
    */
-  public signAndHash(privateKey: Buffer) {
-    if (this.v != null) {
-      throw new Error(
-        "Internal Error: RuntimeTransaction `sign` called but transaction has already been signed"
-      );
-    }
-
-    const chainId = this.common.chainId();
-    const raw: TypedRawTransaction = this.toEthRawTransaction(
-      Quantity.from(chainId).toBuffer(),
-      BUFFER_EMPTY,
-      BUFFER_EMPTY
-    );
-    const data = encodeRange(raw, 0, 6);
-    const dataLength = data.length;
-
-    const ending = encodeRange(raw, 6, 3);
-    const msgHash = keccak(
-      digest([data.output, ending.output], dataLength + ending.length)
-    );
-    const sig = ecsign(msgHash, privateKey, chainId);
-    this.v = Quantity.from(sig.v);
-    this.r = Quantity.from(sig.r);
-    this.s = Quantity.from(sig.s);
-
-    raw[6] = this.v.toBuffer();
-    raw[7] = this.r.toBuffer();
-    raw[8] = this.s.toBuffer();
-
-    this.raw = raw;
-    const encodedSignature = encodeRange(raw, 6, 3);
-    this.serialized = digest(
-      [data.output, encodedSignature.output],
-      dataLength + encodedSignature.length
-    );
-    this.hash = Data.from(keccak(this.serialized));
-    this.encodedData = data;
-    this.encodedSignature = encodedSignature;
-  }
+  protected abstract signAndHash(privateKey: Buffer);
 
   public serializeForDb(
     blockHash: Data,
