@@ -1,33 +1,47 @@
+import { AccessListBuffer } from "@ethereumjs/tx";
 /**
  * The raw data for an ethereum transaction.
  */
-export type EthereumRawTx = [
-  nonce: Buffer,
-  gasPrice: Buffer,
-  gas: Buffer,
-  to: Buffer,
-  value: Buffer,
-  data: Buffer,
-  v: Buffer,
-  r: Buffer,
-  s: Buffer
-];
+export type RawLegacyTx =
+  | [
+      nonce: Buffer,
+      gasPrice: Buffer,
+      gas: Buffer,
+      to: Buffer,
+      value: Buffer,
+      data: Buffer,
+      v: Buffer,
+      r: Buffer,
+      s: Buffer
+    ]
+  | [
+      type: Buffer,
+      nonce: Buffer,
+      gasPrice: Buffer,
+      gas: Buffer,
+      to: Buffer,
+      value: Buffer,
+      data: Buffer,
+      v: Buffer,
+      r: Buffer,
+      s: Buffer
+    ];
 
-export type EthereumRawAccessListTx = [
+export type RawAccessListTx = [
   type: Buffer,
   nonce: Buffer,
   gasPrice: Buffer,
   gas: Buffer,
   to: Buffer,
   value: Buffer,
-  accessList: Buffer,
+  accessList: AccessListBuffer,
   data: Buffer,
   v: Buffer,
   r: Buffer,
   s: Buffer
 ];
 
-export type TypedRawTransaction = EthereumRawTx | EthereumRawAccessListTx;
+export type TypedRawTransaction = RawLegacyTx | RawAccessListTx;
 
 /**
  * Extra data Ganache stores as part of a transaction in order to support
