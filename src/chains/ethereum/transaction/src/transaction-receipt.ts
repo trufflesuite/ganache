@@ -1,8 +1,10 @@
+import { Address } from "@ganache/ethereum-address";
 import { BlockLogs, TransactionLog } from "@ganache/ethereum-utils";
 import { decode, digest, encodeRange } from "@ganache/rlp";
 import { Data, Quantity } from "@ganache/utils";
 import { utils } from "@ganache/utils";
 import { FrozenTransaction } from "./frozen-transaction";
+import { AccessList } from "@ethereumjs/tx";
 
 const STATUSES = [utils.RPCQUANTITY_ZERO, utils.RPCQUANTITY_ONE];
 
@@ -19,6 +21,33 @@ type GanacheExtrasRawReceipt = [
 ];
 
 type GanacheRawReceipt = [...EthereumRawReceipt, ...GanacheExtrasRawReceipt];
+
+export interface TransactionReceiptJSON {
+  transactionHash: Data;
+  transactionIndex: Quantity;
+  blockNumber: Quantity;
+  blockHash: Data;
+  from: Data;
+  to: Address;
+  cumulativeGasUsed: Quantity;
+  gasUsed: Quantity;
+  contractAddress: Data;
+  logs: {
+    address: Address;
+    blockHash: Data;
+    blockNumber: Quantity;
+    data: Data | Data[];
+    logIndex: Quantity;
+    removed: boolean;
+    topics: Data | Data[];
+    transactionHash: Data;
+    transactionIndex: Quantity;
+  }[];
+  logsBloom: Data;
+  status: Quantity;
+  type?: Quantity;
+  accessList?: AccessList;
+}
 
 export class TransactionReceipt {
   public contractAddress: Buffer;
@@ -110,8 +139,7 @@ export class TransactionReceipt {
     blockLog.blockNumber = blockNumber;
     raw[3].forEach(l => blockLog.append(transactionIndex, transactionHash, l));
     const logs = [...blockLog.toJSON()];
-
-    return {
+    let json: TransactionReceiptJSON = {
       transactionHash,
       transactionIndex,
       blockNumber,
@@ -125,5 +153,12 @@ export class TransactionReceipt {
       logsBloom: Data.from(raw[2], 256),
       status: STATUSES[raw[0][0]]
     };
+    if (transaction.type) {
+      json.type = transaction.type;
+    }
+    if (transaction.accessListJSON) {
+      json.accessList = transaction.accessListJSON;
+    }
+    return json;
   }
 }
