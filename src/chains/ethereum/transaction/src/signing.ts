@@ -192,8 +192,8 @@ export const computeInstrinsicsAccessListTx = (
   raw: RawAccessListTx,
   chainId: number
 ) => {
-  const encodedData = encodeRange(raw, 0, 6);
-  const encodedSignature = encodeRange(raw, 6, 3);
+  const encodedData = encodeRange(raw, 0, 8);
+  const encodedSignature = encodeRange(raw, 8, 3);
   const serialized = digest(
     [encodedData.output, encodedSignature.output],
     encodedData.length + encodedSignature.length
