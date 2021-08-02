@@ -35,7 +35,6 @@ export class AccessListTransaction extends RuntimeTransaction {
   ) {
     super(data, common);
     if (Array.isArray(data)) {
-      this.type = Quantity.from(data[0]);
       this.nonce = Quantity.from(data[1], true);
       this.gasPrice = Quantity.from(data[2]);
       this.gas = Quantity.from(data[3]);
@@ -160,10 +159,11 @@ export class AccessListTransaction extends RuntimeTransaction {
       BUFFER_EMPTY,
       BUFFER_EMPTY
     );
-    const data = encodeRange(raw, 0, 8);
+    raw.shift(); // don't include the type in the encoding, we'll add it back later.
+    const data = encodeRange(raw, 0, 7);
     const dataLength = data.length;
 
-    const ending = encodeRange(raw, 8, 3);
+    const ending = encodeRange(raw, 7, 3);
     const msgHash = keccak(
       digest([data.output, ending.output], dataLength + ending.length)
     );
@@ -172,20 +172,25 @@ export class AccessListTransaction extends RuntimeTransaction {
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 
-    raw[8] = this.v.toBuffer();
-    raw[9] = this.r.toBuffer();
-    raw[10] = this.s.toBuffer();
+    raw[7] = this.v.toBuffer();
+    raw[8] = this.r.toBuffer();
+    raw[9] = this.s.toBuffer();
 
     this.raw = raw;
-    const encodedSignature = encodeRange(raw, 6, 3);
-    this.serialized = digest(
-      [data.output, encodedSignature.output],
-      dataLength + encodedSignature.length
-    );
+    const encodedSignature = encodeRange(raw, 7, 3);
+    this.serialized = Buffer.concat([
+      // raw data is type concatenated with the rest of the data rlp encoded
+      this.type.toBuffer(),
+      digest(
+        [data.output, encodedSignature.output],
+        dataLength + encodedSignature.length
+      )
+    ]);
     this.hash = Data.from(keccak(this.serialized));
     this.encodedData = data;
     this.encodedSignature = encodedSignature;
   }
+
   public toEthRawTransaction(
     v?: Buffer,
     r?: Buffer,

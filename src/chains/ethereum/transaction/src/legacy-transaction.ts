@@ -174,11 +174,13 @@ export class LegacyTransaction extends RuntimeTransaction {
       BUFFER_EMPTY,
       BUFFER_EMPTY
     );
-    let vStart: 6 | 7 = raw.length === 9 ? 6 : 7; // location of v in tx depends on if type is included
-    const data = encodeRange(raw, 0, vStart);
+    if (this.type) {
+      raw.shift();
+    }
+    const data = encodeRange(raw, 0, 6);
     const dataLength = data.length;
 
-    const ending = encodeRange(raw, vStart, 3);
+    const ending = encodeRange(raw, 6, 3);
     const msgHash = keccak(
       digest([data.output, ending.output], dataLength + ending.length)
     );
@@ -187,16 +189,19 @@ export class LegacyTransaction extends RuntimeTransaction {
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 
-    raw[vStart] = this.v.toBuffer();
-    raw[vStart + 1] = this.r.toBuffer();
-    raw[vStart + 2] = this.s.toBuffer();
+    raw[6] = this.v.toBuffer();
+    raw[7] = this.r.toBuffer();
+    raw[8] = this.s.toBuffer();
 
     this.raw = raw;
     const encodedSignature = encodeRange(raw, 6, 3);
-    this.serialized = digest(
+    const digested = digest(
       [data.output, encodedSignature.output],
       dataLength + encodedSignature.length
     );
+    this.serialized = this.type
+      ? Buffer.concat([this.type.toBuffer(), digested])
+      : digested;
     this.hash = Data.from(keccak(this.serialized));
     this.encodedData = data;
     this.encodedSignature = encodedSignature;
