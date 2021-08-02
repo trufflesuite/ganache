@@ -22,10 +22,10 @@ import {
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
-  EthereumRawTx,
   RuntimeTransaction,
   TypedRpcTransaction,
-  TransactionFactory
+  TransactionFactory,
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
@@ -77,7 +77,7 @@ type TypedData = Exclude<
 //#endregion
 
 //#region helpers
-function assertExceptionalTransactions(transactions: RuntimeTransaction[]) {
+function assertExceptionalTransactions(transactions: TypedTransaction[]) {
   let baseError: string = null;
   let errors: string[];
   const data = {};
@@ -1703,10 +1703,8 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
-    const data = Data.from(transaction).toBuffer();
-    const raw = decode<EthereumRawTx>(data);
     const blockchain = this.#blockchain;
-    const tx = TransactionFactory.fromTxData(raw, blockchain.common);
+    const tx = TransactionFactory.fromTxData(transaction, blockchain.common);
     return blockchain.queueTransaction(tx);
   }
 
