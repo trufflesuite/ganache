@@ -2,19 +2,19 @@ import { utils, Data, Quantity } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
 import { BaseTransaction } from "./base-transaction";
-import { BN } from "ethereumjs-util";
-import { Hardfork } from "./hardfork";
-import { Params } from "./params";
-import { RuntimeTransaction } from "./runtime-transaction";
+import { PrefixedHexString } from "ethereumjs-util";
 import { LegacyTransaction } from "./legacy-transaction";
 import { AccessListTransaction } from "./access-list-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import { RawAccessListTx, RawLegacyTx, TypedRawTransaction } from "./raw";
 import { TypedTransaction } from "./transaction-types";
-
-const { BUFFER_EMPTY, BUFFER_32_ZERO } = utils;
+import { decode } from "@ganache/rlp";
 
 const MAX_UINT64 = 1n << (64n - 1n);
+
+const UNTYPED_TX_START_BYTE = parseInt("0xc0"); // all txs with first byte >= 0xc0 are untyped
+const LEGACY_TX_TYPE_ID = parseInt("0x0");
+const ACCESS_LIST_TX_TYPE_ID = parseInt("0x1");
 
 export class TransactionFactory {
   /**
@@ -24,10 +24,25 @@ export class TransactionFactory {
    * @param common - Options to pass on to the constructor of the transaction
    */
   public static fromTxData(
-    txData: TypedRpcTransaction | TypedRawTransaction,
+    txData: TypedRpcTransaction | TypedRawTransaction | PrefixedHexString,
     common: Common
   ): TypedTransaction {
-    if (Array.isArray(txData)) {
+    if (typeof txData === "string") {
+      let data = Data.from(txData).toBuffer();
+      const txType = this.typeOfString(txData);
+      if (txType === LegacyTransaction) {
+        const raw = decode<RawLegacyTx>(data);
+        return LegacyTransaction.fromTxData(raw, common);
+      } else if (txType === AccessListTransaction) {
+        const typeBuf = data.slice(0, 1); // the type is not rlp encoded, so it shouldn't be fed to our rlp decoder
+        data = data.slice(1, data.length);
+        const raw = decode<RawAccessListTx>(data);
+        raw.splice(0, 0, typeBuf); // now put our type back to the front of the list
+        return AccessListTransaction.fromTxData(raw, common);
+      } else {
+        throw new Error(`Tx instantiation with supplied type not supported`);
+      }
+    } else if (Array.isArray(txData)) {
       const txType = this.typeOfRaw(txData);
       if (txType === LegacyTransaction) {
         return LegacyTransaction.fromTxData(<RawLegacyTx>txData, common);
@@ -52,6 +67,16 @@ export class TransactionFactory {
       }
     }
   }
+
+  public static typeOfString(str: PrefixedHexString) {
+    const firstByte = parseInt(str.substr(0, 4));
+    if (firstByte >= UNTYPED_TX_START_BYTE || firstByte === LEGACY_TX_TYPE_ID) {
+      return LegacyTransaction;
+    } else if (firstByte === ACCESS_LIST_TX_TYPE_ID) {
+      return AccessListTransaction;
+    }
+  }
+
   public static typeOfRaw(raw: TypedRawTransaction) {
     // 9 is the length of the legacy EthereumRawTx
     // if it's 9, there's no type. Otherwise, the first
