@@ -49,10 +49,10 @@
   ],
   "dependencies": {
     "@ethereumjs/common": "2.3.0",
-    "@ganache/ethereum-address": "^0.1.1-internal.1326+068d1650",
-    "@ganache/ethereum-utils": "^0.1.1-internal.1326+068d1650",
-    "@ganache/rlp": "^0.1.1-internal.1326+068d1650",
-    "@ganache/utils": "^0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum-address": "0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum-utils": "0.1.1-internal.1326+068d1650",
+    "@ganache/rlp": "0.1.1-internal.1326+068d1650",
+    "@ganache/utils": "0.1.1-internal.1326+068d1650",
     "ethereumjs-util": "7.0.9",
     "node-gyp-build": "4.2.3"
   },

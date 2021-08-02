@@ -5,21 +5,21 @@
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
   "license": "MIT",
-  "main": "lib/index.js",
+  "main": "dist/node/core.js",
   "browser": "dist/web/ganache.min.js",
   "typings": "lib/index.d.ts",
   "source": "index.ts",
   "bin": {
-    "ganache": "lib/src/cli.js",
-    "ganache-cli": "lib/src/cli.js"
+    "ganache": "dist/node/cli.js",
+    "ganache-cli": "dist/node/cli.js"
   },
   "directories": {
     "lib": "lib",
     "test": "tests"
   },
   "files": [
-    "/lib",
-    "dist"
+    "/dist",
+    "/index.d.ts"
   ],
   "repository": {
     "type": "git",
@@ -51,6 +51,9 @@
     "truffle"
   ],
   "devDependencies": {
+    "@ganache/cli": "0.1.1-internal.1326+068d1650",
+    "@ganache/core": "0.1.1-internal.1326+068d1650",
+    "@ganache/flavors": "0.1.1-internal.1326+068d1650",
     "@types/node": "14.14.6",
     "assert": "2.0.0",
     "buffer": "6.0.1",
@@ -74,16 +77,13 @@
     "webpack-cli": "4.5.0"
   },
   "dependencies": {
-    "@ganache/cli": "^0.1.1-internal.1326+068d1650",
-    "@ganache/core": "^0.1.1-internal.1326+068d1650",
-    "@ganache/flavors": "^0.1.1-internal.1326+068d1650",
     "bigint-buffer": "1.1.5",
     "keccak": "3.0.1",
     "leveldown": "5.6.0",
     "secp256k1": "4.0.2"
   },
   "peerDependencies": {
-    "@ganache/filecoin": "^0.1.0"
+    "@ganache/filecoin": "0.1.0"
   },
   "gitHead": "068d165086a08ef30557157b9314b836fa4795cb"
 }

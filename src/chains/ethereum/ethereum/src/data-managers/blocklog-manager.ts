@@ -3,10 +3,7 @@ import { LevelUp } from "levelup";
 import Manager from "./manager";
 import Blockchain from "../blockchain";
 import { parseFilter, parseFilterDetails } from "../helpers/filter-parsing";
-
-// Data and Address are required imports for Api Extractor.
-import { Data, Quantity } from "@ganache/utils";
-import type { Address } from "@ganache/ethereum-address";
+import { Quantity } from "@ganache/utils";
 
 export default class BlockLogManager extends Manager<BlockLogs> {
   #blockchain: Blockchain;

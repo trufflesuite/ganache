@@ -48,10 +48,10 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/ethereum-address": "^0.1.1-internal.1326+068d1650",
-    "@ganache/ethereum-utils": "^0.1.1-internal.1326+068d1650",
-    "@ganache/options": "^0.1.1-internal.1326+068d1650",
-    "@ganache/utils": "^0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum-address": "0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum-utils": "0.1.1-internal.1326+068d1650",
+    "@ganache/options": "0.1.1-internal.1326+068d1650",
+    "@ganache/utils": "0.1.1-internal.1326+068d1650",
     "bip39": "3.0.3",
     "seedrandom": "3.0.5"
   },

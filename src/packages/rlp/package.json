@@ -48,7 +48,7 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/utils": "^0.1.1-internal.1326+068d1650",
+    "@ganache/utils": "0.1.1-internal.1326+068d1650",
     "rlp": "2.2.6"
   },
   "devDependencies": {

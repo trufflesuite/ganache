@@ -45,20 +45,20 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/colors": "^0.1.1-internal.1326+068d1650",
-    "@ganache/ethereum": "^0.1.1-internal.1326+068d1650",
-    "@ganache/ethereum-options": "^0.1.1-internal.1326+068d1650",
-    "@ganache/filecoin-options": "^0.1.4-internal.1326+068d1650",
-    "@ganache/options": "^0.1.1-internal.1326+068d1650",
-    "@ganache/tezos": "^0.1.1-internal.1326+068d1650",
-    "@ganache/utils": "^0.1.1-internal.1326+068d1650",
+    "@ganache/colors": "0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum": "0.1.1-internal.1326+068d1650",
+    "@ganache/ethereum-options": "0.1.1-internal.1326+068d1650",
+    "@ganache/filecoin-options": "0.1.4-internal.1326+068d1650",
+    "@ganache/options": "0.1.1-internal.1326+068d1650",
+    "@ganache/tezos": "0.1.1-internal.1326+068d1650",
+    "@ganache/utils": "0.1.1-internal.1326+068d1650",
     "chalk": "4.1.0"
   },
   "devDependencies": {
-    "@ganache/filecoin": "^0.1.6-internal.1326+068d1650"
+    "@ganache/filecoin": "0.1.6-internal.1326+068d1650"
   },
   "peerDependencies": {
-    "@ganache/filecoin": "^0.1.0"
+    "@ganache/filecoin": "0.1.0"
   },
   "gitHead": "068d165086a08ef30557157b9314b836fa4795cb"
 }
