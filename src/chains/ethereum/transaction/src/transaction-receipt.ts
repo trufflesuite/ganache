@@ -113,6 +113,7 @@ export class TransactionReceipt {
     }
 
     if (all) {
+      //TODO evaluate how typed txs affect this
       // the database format includes gasUsed and the contractAddress:
       const extras: GanacheExtrasRawReceipt = [
         this.#gasUsed,
