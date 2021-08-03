@@ -7,7 +7,7 @@ import { Data, Quantity, utils } from "@ganache/utils";
 import { RpcTransaction, TypedRpcTransaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
 import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
-import type { RunTxResult } from "../../utils/node_modules/@ethereumjs/vm/dist/runTx";
+import type { RunTxResult } from "../../utils/node_modules/@ethereumjs/vm/dist/runTx"; //TODO
 import { encodeRange, digest, EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { TransactionReceipt } from "./transaction-receipt";
@@ -192,9 +192,9 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       result.bloom.bitvector,
       (this.logs = vmResult.logs || ([] as TransactionLog[])),
       result.gasUsed.toArrayLike(Buffer),
-      result.createdAddress ? result.createdAddress.buf : null
+      result.createdAddress ? result.createdAddress.buf : null,
+      this.type
     ));
-
     return receipt.serialize(false);
   }
 
