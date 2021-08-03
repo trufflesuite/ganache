@@ -27,20 +27,25 @@ export type RawLegacyTx =
       s: Buffer
     ];
 
-export type RawAccessListTx = [
-  type: Buffer,
+type Concat<T extends unknown[], U extends unknown[]> = [...T, ...U];
+
+type TxType = [type: Buffer];
+
+export type RawAccessListPayload = [
+  chainId: Buffer,
   nonce: Buffer,
   gasPrice: Buffer,
   gas: Buffer,
   to: Buffer,
   value: Buffer,
-  accessList: AccessListBuffer,
   data: Buffer,
+  accessList: AccessListBuffer,
   v: Buffer,
   r: Buffer,
   s: Buffer
 ];
 
+export type RawAccessListTx = Concat<TxType, RawAccessListPayload>;
 export type TypedRawTransaction = RawLegacyTx | RawAccessListTx;
 
 /**
