@@ -9,12 +9,8 @@ import { Params } from "./params";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
-import { RawAccessListTx, RawLegacyTx, TypedRawTransaction } from "./raw";
-import {
-  AccessListEIP2930Transaction,
-  AccessList,
-  AccessListBuffer
-} from "@ethereumjs/tx";
+import { RawAccessListTx, TypedRawTransaction } from "./raw";
+import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
 import { AccessLists } from "./access-lists";
 import { computeInstrinsicsAccessListTx } from "./signing";
 
@@ -35,18 +31,18 @@ export class AccessListTransaction extends RuntimeTransaction {
   ) {
     super(data, common);
     if (Array.isArray(data)) {
-      this.nonce = Quantity.from(data[1], true);
-      this.gasPrice = Quantity.from(data[2]);
-      this.gas = Quantity.from(data[3]);
-      this.to = data[3].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[4]);
-      this.value = Quantity.from(data[5]);
-      const accessListData = AccessLists.getAccessListData(data[6]);
+      this.nonce = Quantity.from(data[2], true);
+      this.gasPrice = Quantity.from(data[3]);
+      this.gas = Quantity.from(data[4]);
+      this.to = data[5].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[5]);
+      this.value = Quantity.from(data[6]);
+      this.data = Data.from(data[7]);
+      const accessListData = AccessLists.getAccessListData(data[8]);
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
-      this.data = Data.from(data[7]);
-      this.v = Quantity.from(data[8]);
-      this.r = Quantity.from(data[9]);
-      this.s = Quantity.from(data[10]);
+      this.v = Quantity.from(data[9]);
+      this.r = Quantity.from(data[10]);
+      this.s = Quantity.from(data[11]);
 
       const {
         from,
@@ -154,33 +150,36 @@ export class AccessListTransaction extends RuntimeTransaction {
     }
 
     const chainId = this.common.chainId();
+    const typeBuf = this.type.toBuffer();
     const raw: RawAccessListTx = this.toEthRawTransaction(
       Quantity.from(chainId).toBuffer(),
       BUFFER_EMPTY,
       BUFFER_EMPTY
     );
-    raw.shift(); // don't include the type in the encoding, we'll add it back later.
-    const data = encodeRange(raw, 0, 7);
+    const data = encodeRange(raw, 1, 8);
     const dataLength = data.length;
 
-    const ending = encodeRange(raw, 7, 3);
-    const msgHash = keccak(
+    const ending = encodeRange(raw, 9, 3);
+    const msg = Buffer.concat([
+      typeBuf,
       digest([data.output, ending.output], dataLength + ending.length)
-    );
+    ]);
+    const msgHash = keccak(msg);
     const sig = ecsign(msgHash, privateKey, chainId);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 
-    raw[7] = this.v.toBuffer();
-    raw[8] = this.r.toBuffer();
-    raw[9] = this.s.toBuffer();
+    raw[9] = this.v.toBuffer();
+    raw[10] = this.r.toBuffer();
+    raw[11] = this.s.toBuffer();
 
     this.raw = raw;
-    const encodedSignature = encodeRange(raw, 7, 3);
+
+    const encodedSignature = encodeRange(raw, 9, 3);
+    // raw data is type concatenated with the rest of the data rlp encoded
     this.serialized = Buffer.concat([
-      // raw data is type concatenated with the rest of the data rlp encoded
-      this.type.toBuffer(),
+      typeBuf,
       digest(
         [data.output, encodedSignature.output],
         dataLength + encodedSignature.length
@@ -198,13 +197,14 @@ export class AccessListTransaction extends RuntimeTransaction {
   ): RawAccessListTx {
     return [
       this.type.toBuffer(),
+      Quantity.from(this.common.chainId()).toBuffer(),
       this.nonce.toBuffer(),
       this.gasPrice.toBuffer(),
       this.gas.toBuffer(),
       this.to.toBuffer(),
       this.value.toBuffer(),
-      this.accessList,
       this.data.toBuffer(),
+      this.accessList,
       v ? v : this.v.toBuffer(),
       r ? r : this.r.toBuffer(),
       s ? s : this.s.toBuffer()
