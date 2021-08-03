@@ -1,6 +1,20 @@
 import Emittery from "emittery";
 import EthereumApi from "./api";
-import { JsonRpcTypes, PromiEvent, types, utils } from "@ganache/utils";
+import {
+  Executor,
+  hasOwn,
+  KnownKeys,
+  Provider,
+  JsonRpcRequest,
+  JsonRpcResponse,
+  JsonRpcError,
+  makeResponse,
+  makeError,
+  Quantity,
+  Data,
+  OverloadedParameters,
+  PromiEvent
+} from "@ganache/utils";
 import {
   EthereumProviderOptions,
   EthereumInternalOptions,
@@ -11,8 +25,10 @@ import cloneDeep from "lodash.clonedeep";
 import Wallet from "./wallet";
 import Blockchain from "./blockchain";
 import { Fork } from "./forking/fork";
-import { Account } from "@ganache/ethereum-utils";
+import { ITraceData, Account } from "@ganache/ethereum-utils";
 import { Address } from "@ganache/ethereum-address";
+
+declare type RequestMethods = KnownKeys<EthereumApi>;
 
 function parseCoinbase(
   coinbase: string | number | Address,
@@ -38,45 +54,44 @@ function parseCoinbase(
   }
 }
 
-declare type RequestMethods = types.KnownKeys<EthereumApi>;
+type Primitives = string | number | null | undefined | symbol | bigint;
+type Clean<X> = X extends Primitives
+  ? X
+  : X extends Quantity | Data | ITraceData
+  ? string
+  : { [N in keyof X]: Clean<X[N]> };
 
-type mergePromiseGenerics<Type> = Promise<
-  Type extends Promise<infer X> ? X : never
+type cleanAndMergePromiseGenerics<Type> = Promise<
+  Type extends Promise<infer X> ? Clean<X> : never
 >;
 
 interface Callback {
-  (err?: Error, response?: JsonRpcTypes.Response | JsonRpcTypes.Error): void;
+  (err?: Error, response?: JsonRpcResponse | JsonRpcError): void;
 }
 
 interface BatchedCallback {
-  (
-    err?: Error,
-    response?: (JsonRpcTypes.Response | JsonRpcTypes.Error)[]
-  ): void;
+  (err?: Error, response?: (JsonRpcResponse | JsonRpcError)[]): void;
 }
 
 type RequestParams<Method extends RequestMethods> = {
   readonly method: Method;
-  readonly params: Parameters<EthereumApi[Method]> | undefined;
+  readonly params: OverloadedParameters<EthereumApi[Method]> | undefined;
 };
-
-const hasOwn = utils.hasOwn;
-
 export default class EthereumProvider
   extends Emittery.Typed<
     { message: any; error: Error },
     "connect" | "disconnect"
   >
-  implements types.Provider<EthereumApi> {
-  readonly #options: EthereumInternalOptions;
-  readonly #api: EthereumApi;
-  readonly #executor: utils.Executor;
-  readonly #wallet: Wallet;
+  implements Provider<EthereumApi> {
+  #options: EthereumInternalOptions;
+  #api: EthereumApi;
+  #executor: Executor;
+  #wallet: Wallet;
   readonly #blockchain: Blockchain;
 
   constructor(
     options: EthereumProviderOptions | EthereumLegacyProviderOptions = {},
-    executor: utils.Executor
+    executor: Executor
   ) {
     super();
     this.#executor = executor;
@@ -134,63 +149,86 @@ export default class EthereumProvider
   public removeListener = this.off;
 
   /**
-   * @param payload
-   * @param callback
+   * @param method - the params
+   * @param params - the params
+   * @ignore Non standard! Do not use.
+   */
+  public send<Method extends RequestMethods>(
+    method: Method,
+    params?: OverloadedParameters<EthereumApi[typeof method]>
+  ): cleanAndMergePromiseGenerics<ReturnType<EthereumApi[typeof method]>>;
+  /**
+   * @param payload - payload
+   * @param callback - callback
    * @deprecated Use the `request` method
    */
-  public send(
-    payload: JsonRpcTypes.Request<EthereumApi>,
+  public send<Method extends KnownKeys<EthereumApi>>(
+    payload: JsonRpcRequest<EthereumApi, Method>,
     callback?: Callback
   ): undefined;
   /**
    * Legacy callback style API
-   * @param payload JSON-RPC payload
-   * @param callback callback
+   * @param payloads - JSON-RPC payload
+   * @param callback - callback
    * @deprecated Batch transactions have been deprecated. Send payloads
    * individually via the `request` method.
    */
-  public send(
-    payloads: JsonRpcTypes.Request<EthereumApi>[],
+  public send<Method extends KnownKeys<EthereumApi>>(
+    payloads: JsonRpcRequest<EthereumApi, Method>[],
     callback?: BatchedCallback
   ): undefined;
-  /**
-   * @param method
-   * @param params
-   * @ignore Non standard! Do not use.
-   */
-  public send(
-    method: RequestMethods,
-    params?: Parameters<EthereumApi[typeof method]>
-  ): any;
-  public send(
+  public send<Method extends KnownKeys<EthereumApi>>(
     arg1:
       | RequestMethods
-      | JsonRpcTypes.Request<EthereumApi>
-      | JsonRpcTypes.Request<EthereumApi>[],
-    arg2?: Callback | BatchedCallback | any[]
+      | JsonRpcRequest<EthereumApi, Method>
+      | JsonRpcRequest<EthereumApi, Method>[],
+    arg2?: Callback | BatchedCallback
   ) {
     return this.#send(arg1, arg2);
   }
 
   /**
    * Legacy callback style API
-   * @param payload JSON-RPC payload
-   * @param callback callback
+   * @param payload - JSON-RPC payload
+   * @param callback - callback
    * @deprecated Use the `request` method.
    */
-  public sendAsync(
-    payload: JsonRpcTypes.Request<EthereumApi>,
-    callback?: Callback | BatchedCallback
-  ): void {
-    this.#send(payload, callback);
-  }
-
-  #send = (
+  /**
+   * @param payload - payload
+   * @param callback - callback
+   * @deprecated Use the `request` method
+   */
+  public sendAsync<Method extends KnownKeys<EthereumApi>>(
+    payload: JsonRpcRequest<EthereumApi, Method>,
+    callback?: Callback
+  ): undefined;
+  /**
+   * Legacy callback style API
+   * @param payloads - JSON-RPC payload
+   * @param callback - callback
+   * @deprecated Batch transactions have been deprecated. Send payloads
+   * individually via the `request` method.
+   */
+  public sendAsync<Method extends KnownKeys<EthereumApi>>(
+    payloads: JsonRpcRequest<EthereumApi, Method>[],
+    callback?: BatchedCallback
+  ): undefined;
+  public sendAsync<Method extends KnownKeys<EthereumApi>>(
     arg1:
       | RequestMethods
-      | JsonRpcTypes.Request<EthereumApi>
-      | JsonRpcTypes.Request<EthereumApi>[],
-    arg2?: Callback | BatchedCallback | any[]
+      | JsonRpcRequest<EthereumApi, Method>
+      | JsonRpcRequest<EthereumApi, Method>[],
+    arg2?: Callback | BatchedCallback
+  ) {
+    this.#send(arg1, arg2);
+  }
+
+  #send = <Method extends KnownKeys<EthereumApi>>(
+    arg1:
+      | RequestMethods
+      | JsonRpcRequest<EthereumApi, Method>
+      | JsonRpcRequest<EthereumApi, Method>[],
+    arg2?: Callback | BatchedCallback
   ): Promise<{}> | void => {
     let method: RequestMethods;
     let params: any;
@@ -199,7 +237,7 @@ export default class EthereumProvider
       // this signature is (not) non-standard and is only a ganache thing!!!
       // we should probably remove it, but I really like it so I haven't yet.
       method = arg1;
-      params = arg2 as Parameters<EthereumApi[typeof method]>;
+      params = (arg2 as unknown) as OverloadedParameters<EthereumApi[Method]>;
       response = this.request({ method, params });
     } else if (typeof arg2 === "function") {
       // handle backward compatibility with callback-style ganache-core
@@ -226,27 +264,13 @@ export default class EthereumProvider
 
   /**
    * EIP-1193 style request method
-   * @param args
-   * @returns A Promise that resolves with the method's result or rejects with a CodedError
-   * @EIP [1193](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1193.md)
-   */
-  public async request<Method extends RequestMethods>(
-    args: Parameters<EthereumApi[Method]>["length"] extends 0
-      ? Pick<RequestParams<Method>, "method">
-      : never
-  ): mergePromiseGenerics<ReturnType<EthereumApi[Method]>>;
-  /**
-   * EIP-1193 style request method
-   * @param args
+   * @param args - the args
    * @returns A Promise that resolves with the method's result or rejects with a CodedError
    * @EIP [1193](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1193.md)
    */
   public async request<Method extends RequestMethods>(
     args: RequestParams<Method>
-  ): mergePromiseGenerics<ReturnType<EthereumApi[Method]>>;
-  public async request<Method extends RequestMethods>(
-    args: RequestParams<Method>
-  ) {
+  ): cleanAndMergePromiseGenerics<ReturnType<EthereumApi[Method]>> {
     const rawResult = await this._requestRaw(args);
     const value = await rawResult.value;
     return JSON.parse(JSON.stringify(value));
@@ -256,7 +280,7 @@ export default class EthereumProvider
    * INTERNAL. Used when the caller wants to access the original `PromiEvent`,
    * which would otherwise be flattened into a regular Promise through the
    * Promise chain.
-   * @param request
+   * @param request - the request
    */
   public async _requestRaw<Method extends RequestMethods>({
     method,
@@ -265,7 +289,9 @@ export default class EthereumProvider
     this.#logRequest(method, params);
 
     const result = await this.#executor.execute(this.#api, method, params);
-    const promise = result.value as mergePromiseGenerics<typeof result.value>;
+    const promise = result.value as cleanAndMergePromiseGenerics<
+      typeof result.value
+    >;
     if (promise instanceof PromiEvent) {
       promise.on("message", data => {
         // EIP-1193
@@ -297,9 +323,9 @@ export default class EthereumProvider
     return { value: value };
   }
 
-  #logRequest = (
-    method: string,
-    params: Parameters<EthereumApi[typeof method]>
+  #logRequest = <Method extends RequestMethods>(
+    method: Method,
+    params: OverloadedParameters<EthereumApi[typeof method]>
   ) => {
     const options = this.#options;
     if (options.logging.verbose) {
@@ -322,10 +348,12 @@ export default class EthereumProvider
   };
 
   //#region legacy
-  #legacySendPayloads = (payloads: JsonRpcTypes.Request<EthereumApi>[]) => {
+  #legacySendPayloads = <Method extends KnownKeys<EthereumApi>>(
+    payloads: JsonRpcRequest<EthereumApi, Method>[]
+  ) => {
     return Promise.all(payloads.map(this.#legacySendPayload)).then(results => {
       let mainError: Error = null;
-      const responses: (JsonRpcTypes.Response | JsonRpcTypes.Error)[] = [];
+      const responses: (JsonRpcResponse | JsonRpcError)[] = [];
       results.forEach(({ error, result }, i) => {
         responses.push(result);
         if (error) {
@@ -339,17 +367,18 @@ export default class EthereumProvider
     });
   };
 
-  #legacySendPayload = async (payload: JsonRpcTypes.Request<EthereumApi>) => {
+  #legacySendPayload = async <Method extends KnownKeys<EthereumApi>>(
+    payload: JsonRpcRequest<EthereumApi, Method>
+  ) => {
     const method = payload.method as RequestMethods;
-    const params = payload.params as Parameters<EthereumApi[typeof method]>;
+    const params = payload.params as OverloadedParameters<
+      EthereumApi[typeof method]
+    >;
     try {
       const result = await this.request({ method, params });
       return {
-        error: null as JsonRpcTypes.Error,
-        result: JsonRpcTypes.Response(
-          payload.id,
-          JSON.parse(JSON.stringify(result))
-        )
+        error: null as JsonRpcError,
+        result: makeResponse(payload.id, JSON.parse(JSON.stringify(result)))
       };
     } catch (error) {
       let result: any;
@@ -360,7 +389,7 @@ export default class EthereumProvider
         result = error.result;
         delete error.result;
       }
-      return { error, result: JsonRpcTypes.Error(payload.id, error, result) };
+      return { error, result: makeError(payload.id, error, result) };
     }
   };
   //#endregion

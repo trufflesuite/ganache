@@ -1,12 +1,14 @@
-import { Account, EthereumRawAccount, QUANTITY, Tag } from "@ganache/ethereum-utils";
+import {
+  Account,
+  EthereumRawAccount,
+  QUANTITY,
+  Tag
+} from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "ethereumjs-util";
-import { utils, Quantity, Data } from "@ganache/utils";
+import { Quantity, Data, RPCQUANTITY_ZERO, BUFFER_EMPTY } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { decode } from "@ganache/rlp";
 import Blockchain from "../blockchain";
-
-const { RPCQUANTITY_ZERO, BUFFER_EMPTY } = utils;
-
 export default class AccountManager {
   #blockchain: Blockchain;
 

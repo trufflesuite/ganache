@@ -1,5 +1,5 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { Data, Quantity, utils } from "@ganache/utils";
+import { Data, Quantity, KNOWN_CHAINIDS } from "@ganache/utils";
 import AbortController from "abort-controller";
 import Common from "@ethereumjs/common";
 import { HttpHandler } from "./handlers/http-handler";
@@ -9,8 +9,6 @@ import { Tag } from "@ganache/ethereum-utils";
 import { Block } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
 import { Account } from "@ganache/ethereum-utils";
-
-const { KNOWN_CHAINIDS } = utils;
 
 function fetchChainId(fork: Fork) {
   return fork
@@ -74,15 +72,41 @@ export class Fork {
         }
       }
     } else if (forkingOptions.provider) {
+      let id = 0;
       this.#handler = {
         request: <T>(method: string, params: any[]) => {
-          return forkingOptions.provider.request({
-            method,
-            // format params via JSON stringification because the params might
-            // be Quantity or Data, which aren't valid as `params` themselves,
-            // but when JSON stringified they are
-            params: JSON.parse(JSON.stringify(params))
-          }) as Promise<T>;
+          // format params via JSON stringification because the params might
+          // be Quantity or Data, which aren't valid as `params` themselves,
+          // but when JSON stringified they are
+          const paramCopy = JSON.parse(JSON.stringify(params));
+          if (forkingOptions.provider.request) {
+            return forkingOptions.provider.request({
+              method,
+              params: paramCopy
+            }) as Promise<T>;
+          } else if ((forkingOptions.provider as any).send) {
+            // TODO: remove support for legacy providers
+            // legacy `.send`
+            console.warn(
+              "WARNING: Ganache forking only supports EIP-1193-compliant providers. Legacy support for send is currently enabled, but will be removed in a future version _without_ a breaking change. To remove this warning, switch to an EIP-1193 provider. This error is probably caused by an old version of Web3's HttpProvider (or an ganache < v7)"
+            );
+            return new Promise<T>((resolve, reject) => {
+              (forkingOptions.provider as any).send(
+                {
+                  id: id++,
+                  jsonrpc: "2.0",
+                  method,
+                  params: paramCopy
+                },
+                (err: Error, response: { result: T }) => {
+                  if (err) return void reject(err);
+                  resolve(response.result);
+                }
+              );
+            });
+          } else {
+            throw new Error("Forking `provider` must be EIP-1193 compatible");
+          }
         },
         close: () => Promise.resolve()
       };

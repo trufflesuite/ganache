@@ -1,10 +1,16 @@
-import * as Ethereum from "@ganache/ethereum";
+import {
+  Connector as EthereumConnector,
+  Provider as EthereumProvider
+} from "@ganache/ethereum";
+import type {
+  Connector as FilecoinConnector,
+  Provider as FilecoinProvider
+} from "@ganache/filecoin";
 import {
   EthereumDefaults,
   EthereumProviderOptions,
   EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
-import * as Filecoin from "@ganache/filecoin-types";
 import {
   FilecoinDefaults,
   FilecoinProviderOptions,
@@ -15,7 +21,7 @@ import chalk from "chalk";
 
 // we need "@ganache/options" in order for TS to properly infer types for `DefaultOptionsByName`
 import "@ganache/options";
-import { utils } from "@ganache/utils";
+import { Executor } from "@ganache/utils";
 
 const NEED_HELP = "Need help? Reach out to the Truffle community at";
 const COMMUNITY_LINK = "https://trfl.co/support";
@@ -31,8 +37,8 @@ export const DefaultOptionsByName = {
 };
 
 export type ConnectorsByName = {
-  [EthereumFlavorName]: Ethereum.Connector;
-  [FilecoinFlavorName]: Filecoin.Connector;
+  [EthereumFlavorName]: EthereumConnector;
+  [FilecoinFlavorName]: FilecoinConnector;
 };
 
 export type OptionsByName = {
@@ -49,10 +55,10 @@ export type Connector = {
 export function GetConnector<T extends FlavorName>(
   flavor: T,
   providerOptions: Options<typeof flavor>,
-  executor: utils.Executor
+  executor: Executor
 ): ConnectorsByName[T] {
   if (flavor === DefaultFlavor) {
-    return new Ethereum.Connector(
+    return new EthereumConnector(
       providerOptions,
       executor
     ) as ConnectorsByName[T];
@@ -61,8 +67,11 @@ export function GetConnector<T extends FlavorName>(
     switch (flavor) {
       case FilecoinFlavorName: {
         flavor = "@ganache/filecoin" as any;
-        const Connector: Filecoin.Connector = require("@ganache/filecoin")
-          .default.Connector;
+        // TODO: remove the `typeof f.default != "undefined" ? ` check once the
+        // published filecoin plugin is updated to
+        const f = eval("require")(flavor);
+        const Connector: FilecoinConnector =
+          typeof f.default != "undefined" ? f.default.Connector : f.Connector;
         // @ts-ignore
         return new Connector(providerOptions, executor);
       }
@@ -93,7 +102,10 @@ export function GetConnector<T extends FlavorName>(
   }
 }
 
-export type Providers = Ethereum.Provider | Filecoin.Provider;
+/**
+ * @public
+ */
+export type Provider = EthereumProvider | FilecoinProvider;
 
 type EthereumOptions<T = "ethereum"> = {
   flavor?: T;

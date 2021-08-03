@@ -2,16 +2,17 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { AbortError } from "@ganache/ethereum-utils";
 import { AbortSignal } from "abort-controller";
 import WebSocket from "ws";
-import { Handler, JsonRpcResponse } from "../types";
+import { Handler } from "../types";
 import { BaseHandler } from "./base-handler";
 import Deferred, { DeferredPromise } from "../deferred";
+import { JsonRpcResponse, JsonRpcError } from "@ganache/utils";
 
 export class WsHandler extends BaseHandler implements Handler {
   private open: Promise<unknown>;
   private connection: WebSocket;
   private inFlightRequests = new Map<
     string | number,
-    DeferredPromise<JsonRpcResponse>
+    DeferredPromise<JsonRpcResponse | JsonRpcError>
   >();
 
   constructor(options: EthereumInternalOptions, abortSignal: AbortSignal) {
@@ -52,7 +53,7 @@ export class WsHandler extends BaseHandler implements Handler {
 
       //console.log("sending request: " + data);
       const messageId = this.id++;
-      const deferred = Deferred<JsonRpcResponse>();
+      const deferred = Deferred<JsonRpcResponse | JsonRpcError>();
 
       // TODO: timeout an in-flight request after some amount of time
       this.inFlightRequests.set(messageId, deferred);
@@ -79,7 +80,9 @@ export class WsHandler extends BaseHandler implements Handler {
     if (event.type !== "message") return;
 
     // TODO: handle invalid JSON (throws on parse)?
-    const result = JSON.parse(event.data as any) as JsonRpcResponse;
+    const result = JSON.parse(event.data as any) as
+      | JsonRpcResponse
+      | JsonRpcError;
     const id = result.id;
     const prom = this.inFlightRequests.get(id);
     if (prom) {

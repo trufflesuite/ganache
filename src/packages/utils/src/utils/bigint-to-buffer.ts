@@ -1,6 +1,6 @@
+import { toBufferBE } from "../common";
 import { uintToBuffer } from "./uint-to-buffer";
 
-const MAX_UINT32 = 0xffffffffn;
 const allocUnsafe = Buffer.allocUnsafe;
 
 let _bigIntToBuffer: (val: bigint) => Buffer;
@@ -16,8 +16,6 @@ function bigIntByteLength(value: bigint) {
 
 const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
 try {
-  const { toBufferBE } = require("bigint-buffer");
-
   // force fallback if only `toBufferBE` is missing (this can happen if toBufferBE isn't polyfilled for the browser,
   // which, at the time of this writing... it isn't)
   if (!toBufferBE) throw new Error("Missing function `toBufferBE`!");

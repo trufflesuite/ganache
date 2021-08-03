@@ -6,6 +6,7 @@ import Common from "@ethereumjs/common";
 import { join } from "path";
 import compile from "../../helpers/compile";
 import { EthereumProviderOptions } from "@ganache/ethereum-options";
+import { Data } from "@ganache/utils";
 
 describe("api", () => {
   describe("eth", () => {
@@ -33,28 +34,31 @@ describe("api", () => {
         });
         accounts = await provider.send("eth_accounts");
       });
-      async function signAndSendRaw(tx: Object, passedProvider?: EthereumProvider) {
-          if(passedProvider !== undefined) {
-            provider = passedProvider;
-          }
-          const transaction = Transaction.fromTxData(tx, { common });
-          const secretKeyBuffer = Buffer.from(secretKey.substr(2), "hex");
-          const signed = transaction.sign(secretKeyBuffer);
+      async function signAndSendRaw(
+        tx: Object,
+        passedProvider?: EthereumProvider
+      ) {
+        if (passedProvider !== undefined) {
+          provider = passedProvider;
+        }
+        const transaction = Transaction.fromTxData(tx, { common });
+        const secretKeyBuffer = Buffer.from(secretKey.substr(2), "hex");
+        const signed = transaction.sign(secretKeyBuffer);
 
-          await provider.send("eth_subscribe", ["newHeads"]);
-          const txHash = await provider.send("eth_sendRawTransaction", [
-            signed.serialize()
-          ]);
-          await provider.once("message");
+        await provider.send("eth_subscribe", ["newHeads"]);
+        const txHash = await provider.send("eth_sendRawTransaction", [
+          Data.from(signed.serialize()).toString()
+        ]);
+        await provider.once("message");
 
-          const receipt = await provider.send("eth_getTransactionReceipt", [
-            txHash
-          ]);
-          return [receipt, txHash];
+        const receipt = await provider.send("eth_getTransactionReceipt", [
+          txHash
+        ]);
+        return { receipt, txHash };
       }
       describe("options", () => {
         it("processes a signed transaction", async () => {
-          const [receipt, txHash] = await signAndSendRaw({
+          const { receipt, txHash } = await signAndSendRaw({
             value: "0xff",
             gasLimit: "0x33450",
             to: accounts[0]
@@ -69,7 +73,7 @@ describe("api", () => {
           it('returns `"0x0"` `status`, `null` `to`, and a non-empty `contractAddress` on OOG failure', async () => {
             const { code: data } = compile(join(contractDir, "NoOp.sol"));
 
-            const [receipt] = await signAndSendRaw({
+            const { receipt } = await signAndSendRaw({
               data,
               gasLimit: 60000
             });
@@ -87,11 +91,14 @@ describe("api", () => {
             accounts: string[]
           ) {
             const contract = compile(join(contractDir, "Reverts.sol"));
-            const [receipt] = await signAndSendRaw({
-              from: accounts[0],
-              data: contract.code,
-              gasLimit: 3141592
-            }, provider);
+            const { receipt } = await signAndSendRaw(
+              {
+                from: accounts[0],
+                data: contract.code,
+                gasLimit: 3141592
+              },
+              provider
+            );
             assert.strictEqual(receipt.blockNumber, "0x1");
 
             const contractAddress = receipt.contractAddress;

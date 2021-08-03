@@ -5,7 +5,7 @@ import secp256K1 from "secp256k1";
 import base32 from "base32-encoding";
 import { StartDealParams } from "./start-deal-params";
 import cbor from "borc";
-import { utils } from "@ganache/utils";
+import { RandomNumberGenerator } from "@ganache/utils";
 import { Message } from "./message";
 import { Signature } from "./signature";
 
@@ -233,7 +233,7 @@ class Address extends SerializableLiteral<AddressConfig> {
   }
 
   static random(
-    rng: utils.RandomNumberGenerator = new utils.RandomNumberGenerator(),
+    rng: RandomNumberGenerator = new RandomNumberGenerator(),
     protocol: AddressProtocol = AddressProtocol.BLS,
     network: AddressNetwork = AddressNetwork.Testnet
   ): Address {

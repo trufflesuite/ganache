@@ -16,9 +16,9 @@ import {
   StorageRangeResult,
   SubscriptionId,
   SubscriptionName,
-  TraceTransactionResult,
+  EthereumRawAccount,
   TransactionTraceOptions,
-  EthereumRawAccount
+  TraceTransactionResult
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
@@ -28,16 +28,18 @@ import {
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
-import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import {
-  types,
   Data,
   Quantity,
   PromiEvent,
-  utils,
-  JsonRpcTypes
+  Api,
+  keccak,
+  RPCQUANTITY_ZERO,
+  RPCQUANTITY_EMPTY,
+  JsonRpcErrorCode
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
+import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 
@@ -51,11 +53,9 @@ import { GanacheRawBlock } from "@ganache/ethereum-block/src/serialize";
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
-const { keccak } = utils;
 //#endregion
 
 //#region Constants
-const { RPCQUANTITY_ZERO } = utils;
 const CLIENT_VERSION = `Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`;
 const PROTOCOL_VERSION = Data.from("0x3f");
 const RPC_MODULES = {
@@ -108,7 +108,7 @@ function assertExceptionalTransactions(transactions: RuntimeTransaction[]) {
 
 //#endregion helpers
 
-export default class EthereumApi implements types.Api {
+export default class EthereumApi implements Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
   readonly #getId = (id => () => Quantity.from(++id))(0);
@@ -140,10 +140,10 @@ export default class EthereumApi implements types.Api {
   /**
    * Stores a string in the local database.
    *
-   * @param dbName Database name.
-   * @param key Key name.
-   * @param value String to store.
-   * @returns Returns true if the value was stored, otherwise false.
+   * @param dbName - Database name.
+   * @param key - Key name.
+   * @param value - String to store.
+   * @returns returns true if the value was stored, otherwise false.
    * @example
    * ```javascript
    * console.log(await provider.send("db_putString", ["testDb", "testKey", "testValue"] ));
@@ -157,8 +157,8 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns string from the local database.
    *
-   * @param dbName Database name.
-   * @param key Key name.
+   * @param dbName - Database name.
+   * @param key - Key name.
    * @returns The previously stored string.
    * @example
    * ```javascript
@@ -173,10 +173,10 @@ export default class EthereumApi implements types.Api {
   /**
    * Stores binary data in the local database.
    *
-   * @param dbName Database name.
-   * @param key Key name.
-   * @param data Data to store.
-   * @returns `true` if the value was stored, otherwise `false`.
+   * @param dbName - Database name.
+   * @param key - Key name.
+   * @param data - Data to store.
+   * @returns true if the value was stored, otherwise false.
    * @example
    * ```javascript
    * console.log(await provider.send("db_putHex", ["testDb", "testKey", "0x0"] ));
@@ -190,8 +190,8 @@ export default class EthereumApi implements types.Api {
   /**
    * Returns binary data from the local database.
    *
-   * @param dbName Database name.
-   * @param key Key name.
+   * @param dbName - Database name.
+   * @param key - Key name.
    * @returns The previously stored data.
    * @example
    * ```javascript
@@ -239,8 +239,8 @@ export default class EthereumApi implements types.Api {
    * Mines a block independent of whether or not mining is started or stopped.
    * Will mine an empty block if there are no available transactions to mine.
    *
-   * @param timestamp The timestamp the block should be mined with.
-   * EXPERIEMENTAL: Optionally, specify an `options` object with `timestamp`
+   * @param timestamp - the timestamp the block should be mined with.
+   * EXPERIMENTAL: Optionally, specify an `options` object with `timestamp`
    * and/or `blocks` fields. If `blocks` is given, it will mine exactly `blocks`
    *  number of blocks, regardless of any other blocks mined or reverted during it's
    * operation. This behavior is subject to change!
@@ -254,8 +254,8 @@ export default class EthereumApi implements types.Api {
    * console.log("end", await provider.send("eth_blockNumber"));
    * ```
    */
-  async evm_mine(timestamp?: number): Promise<"0x0">;
-  async evm_mine(options?: {
+  async evm_mine(timestamp: number): Promise<"0x0">;
+  async evm_mine(options: {
     timestamp?: number;
     blocks?: number;
   }): Promise<"0x0">;
@@ -273,8 +273,8 @@ export default class EthereumApi implements types.Api {
       }
       // TODO(perf): add an option to mine a bunch of blocks in a batch so
       // we can save them all to the database in one go.
-      // Devs like to move the blockchain forward by thousands of blocks at a
-      // time and doing this would make it way faster
+      // Developers like to move the blockchain forward by thousands of blocks
+      // at a time and doing this would make it way faster
       for (let i = 0; i < blocks; i++) {
         const transactions = await blockchain.mine(-1, timestamp, true);
         if (vmErrorsOnRPCResponse) {
@@ -297,8 +297,8 @@ export default class EthereumApi implements types.Api {
    *
    * Warning: this will result in an invalid state tree.
    *
-   * @param address The account address to update.
-   * @param nonce The nonce value to be set.
+   * @param address - The account address to update.
+   * @param nonce - The nonce value to be set.
    * @returns `true` if it worked, otherwise `false`.
    * @example
    * ```javascript
@@ -510,7 +510,7 @@ export default class EthereumApi implements types.Api {
    */
   async evm_lockUnknownAccount(address: DATA) {
     const lowerAddress = address.toLowerCase();
-    // if this is a known account, don'we can't unlock it this way
+    // if this is a known account we can't unlock it this way
     if (this.#wallet.knownAccounts.has(lowerAddress)) {
       throw new Error("cannot lock known/personal account");
     }
@@ -637,7 +637,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Returns Keccak-256 (not the standardized SHA3-256) of the given data.
-   * @param data The data to convert into a SHA3 hash.
+   * @param data - the data to convert into a SHA3 hash.
    * @returns The SHA3 result of the given string.
    * @example
    * ```javascript
@@ -1107,7 +1107,7 @@ export default class EthereumApi implements types.Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getUncleCountByBlockNumber(number: QUANTITY | Tag) {
+  async eth_getUncleCountByBlockNumber(blockNumber: QUANTITY | Tag) {
     return RPCQUANTITY_ZERO;
   }
 
@@ -1622,7 +1622,7 @@ export default class EthereumApi implements types.Api {
 
     if (tx.gas.isNull()) {
       const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
-      if (defaultLimit === utils.RPCQUANTITY_EMPTY) {
+      if (defaultLimit === RPCQUANTITY_EMPTY) {
         // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
         tx.gas = await this.eth_estimateGas(transaction, Tag.LATEST);
       } else {
@@ -1862,11 +1862,14 @@ export default class EthereumApi implements types.Api {
    * @returns A subscription id.
    */
   eth_subscribe(
-    subscriptionName: "logs",
+    subscriptionName: Extract<SubscriptionName, "logs">,
     options: BaseFilterArgs
   ): PromiEvent<Quantity>;
   @assertArgLength(1, 2)
-  eth_subscribe(subscriptionName: SubscriptionName, options?: BaseFilterArgs) {
+  eth_subscribe(
+    subscriptionName: SubscriptionName,
+    options?: BaseFilterArgs
+  ): PromiEvent<Quantity> {
     const subscriptions = this.#subscriptions;
     switch (subscriptionName) {
       case "newHeads": {
@@ -1967,7 +1970,7 @@ export default class EthereumApi implements types.Api {
       default:
         throw new CodedError(
           `no \"${subscriptionName}\" subscription in eth namespace`,
-          JsonRpcTypes.ErrorCode.METHOD_NOT_FOUND
+          JsonRpcErrorCode.METHOD_NOT_FOUND
         );
     }
   }
@@ -2096,9 +2099,10 @@ export default class EthereumApi implements types.Api {
    * ```
    */
   @assertArgLength(0, 1)
-  async eth_newFilter(filter: RangeFilterArgs = {}) {
+  async eth_newFilter(filter?: RangeFilterArgs) {
     const blockchain = this.#blockchain;
-    const { addresses, topics } = parseFilterDetails(filter);
+    if (filter == null) filter = {};
+    const { addresses, topics } = parseFilterDetails(filter || {});
     const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
       const blockNumber = blockLogs.blockNumber;
       // every time we get a blockLogs message we re-check what the filter's
@@ -2440,9 +2444,9 @@ export default class EthereumApi implements types.Api {
    * optional argument, which specifies the options for this specific call.
    * The possible options are:
    *
-   * * `disableStorage`: {boolean} Setting this to `true` will disable storage capture (default = `false`).
-   * * `disableMemory`: {boolean} Setting this to `true` will disable memory capture (default = `false`).
-   * * `disableStack`: {boolean} Setting this to `true` will disable stack capture (default = `false`).
+   * * `disableStorage`: \{boolean\} Setting this to `true` will disable storage capture (default = `false`).
+   * * `disableMemory`: \{boolean\} Setting this to `true` will disable memory capture (default = `false`).
+   * * `disableStack`: \{boolean\} Setting this to `true` will disable stack capture (default = `false`).
    *
    * @param transactionHash Hash of the transaction to trace.
    * @param options - See options in source.
@@ -2657,9 +2661,9 @@ export default class EthereumApi implements types.Api {
    *
    * The account can be used with `eth_sign` and `eth_sendTransaction` while it is
    * unlocked.
-   * @param address The address of the account to unlock.
-   * @param passphrase Passphrase to unlock the account.
-   * @param duration (Default: 300) Duration in seconds how long the account
+   * @param address - 20 Bytes - The address of the account to unlock.
+   * @param passphrase - Passphrase to unlock the account.
+   * @param duration - (default: 300) Duration in seconds how long the account
    * should remain unlocked for. Set to 0 to disable automatic locking.
    * @returns `true` if it worked. Throws an error or returns `false` if it did not.
    * @example
@@ -2745,7 +2749,7 @@ export default class EthereumApi implements types.Api {
    *
    * The transaction is the same argument as for `eth_signTransaction` and
    * contains the from address. If the passphrase can be used to decrypt the
-   * private key belogging to `tx.from` the transaction is verified and signed.
+   * private key belonging to `tx.from` the transaction is verified and signed.
    * The account is not unlocked globally in the node and cannot be used in other RPC calls.
    *
    * Transaction call object:
@@ -2813,7 +2817,7 @@ export default class EthereumApi implements types.Api {
   /**
    * Creates new whisper identity in the client.
    *
-   * @returns The address of the new identity.
+   * @returns - The address of the new identity.
    * @example
    * ```javascript
    * console.log(await provider.send("shh_newIdentity"));
@@ -2852,7 +2856,7 @@ export default class EthereumApi implements types.Api {
   /**
    * Adds a whisper identity to the group.
    *
-   * @param address The identity address to add to a group.
+   * @param address - The identity address to add to a group.
    * @returns `true` if the identity was successfully added to the group, otherwise `false`.
    * @example
    * ```javascript
@@ -2867,9 +2871,9 @@ export default class EthereumApi implements types.Api {
   /**
    * Creates filter to notify, when client receives whisper message matching the filter options.
    *
-   * @param to (optional) Identity of the receiver. When present it will try to decrypt any incoming message
+   * @param to - (optional) Identity of the receiver. When present it will try to decrypt any incoming message
    *  if the client holds the private key to this identity.
-   * @param topics Array of topics which the incoming message's topics should match.
+   * @param topics - Array of topics which the incoming message's topics should match.
    * @returns Returns `true` if the identity was successfully added to the group, otherwise `false`.
    * @example
    * ```javascript
@@ -2885,7 +2889,7 @@ export default class EthereumApi implements types.Api {
    * Uninstalls a filter with given id. Should always be called when watch is no longer needed.
    * Additionally filters timeout when they aren't requested with `shh_getFilterChanges` for a period of time.
    *
-   * @param id The filter id. Ex: "0x7"
+   * @param id - The filter id. Ex: "0x7"
    * @returns `true` if the filter was successfully uninstalled, otherwise `false`.
    * @example
    * ```javascript
@@ -2915,7 +2919,7 @@ export default class EthereumApi implements types.Api {
   /**
    * Get all messages matching a filter. Unlike shh_getFilterChanges this returns all messages.
    *
-   * @param id The filter id. Ex: "0x7"
+   * @param id - The filter id. Ex: "0x7"
    * @returns See: `shh_getFilterChanges`.
    * @example
    * ```javascript

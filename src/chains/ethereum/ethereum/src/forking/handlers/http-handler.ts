@@ -1,19 +1,19 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { types } from "@ganache/utils";
+import { JsonRpcResponse, JsonRpcError } from "@ganache/utils";
 import { AbortError } from "@ganache/ethereum-utils";
 // TODO: support http2
 import http, { RequestOptions, Agent as HttpAgent } from "http";
 import https, { Agent as HttpsAgent } from "https";
 import { AbortSignal } from "abort-controller";
 import { BaseHandler } from "./base-handler";
-import { Handler, JsonRpcResponse } from "../types";
+import { Handler } from "../types";
 import Deferred from "../deferred";
 
 const { JSONRPC_PREFIX } = BaseHandler;
 
 export class HttpHandler extends BaseHandler implements Handler {
   private agent: HttpAgent;
-  private url: types.URL;
+  private url: URL;
 
   private _request: (
     options: RequestOptions,
@@ -92,7 +92,7 @@ export class HttpHandler extends BaseHandler implements Handler {
       return this.requestCache.get(data);
     }
 
-    const { protocol, host, port, pathname, search } = this.url;
+    const { protocol, hostname: host, port, pathname, search } = this.url;
     const requestOptions = {
       protocol,
       host,
@@ -109,7 +109,7 @@ export class HttpHandler extends BaseHandler implements Handler {
       if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
       //console.log("sending request: " + data);
-      const deferred = Deferred<JsonRpcResponse>();
+      const deferred = Deferred<JsonRpcResponse | JsonRpcError>();
       const postData = `${JSONRPC_PREFIX}${this.id++},${data.slice(1)}`;
       this.headers["content-length"] = postData.length;
 

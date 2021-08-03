@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 import Readline from "readline";
-import Ganache, { Status } from "@ganache/core";
+import Ganache, { ServerStatus } from "@ganache/core";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
 import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
-import { Provider as FilecoinProvider } from "@ganache/filecoin-types";
-import { Provider as EthereumProvider } from "@ganache/ethereum";
+import type { Provider as FilecoinProvider } from "@ganache/filecoin";
+import type { Provider as EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -65,11 +65,11 @@ const closeHandler = async () => {
   try {
     // graceful shutdown
     switch (server.status) {
-      case Status.opening:
+      case ServerStatus.opening:
         receivedShutdownSignal = true;
         console.log("Server is currently starting; waiting…");
         return;
-      case Status.open:
+      case ServerStatus.open:
         console.log("Shutting down…");
         await server.close();
         console.log("Server has been shut down");

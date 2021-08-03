@@ -1,3 +1,4 @@
+import { Data } from "@ganache/utils";
 import { ITraceData } from "../things/trace-data";
 import { TraceStorageMap } from "../things/trace-storage-map";
 
@@ -23,4 +24,11 @@ export type TraceTransactionResult = {
   gas: number;
   structLogs: StructLog[];
   returnValue: string;
+  storage: Record<
+    string,
+    {
+      key: Data;
+      value: Data;
+    }
+  >;
 };

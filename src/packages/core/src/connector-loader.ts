@@ -1,18 +1,12 @@
-import { utils } from "@ganache/utils";
-import {
-  DefaultFlavor,
-  FlavorName,
-  GetConnector,
-  Options
-} from "@ganache/flavors";
-
-const { Executor } = utils;
+import { Executor, RequestCoordinator } from "@ganache/utils";
+import { DefaultFlavor, FlavorName } from "@ganache/flavors";
+import { GetConnector, Options as ProviderOptions } from "@ganache/flavors";
 
 const initialize = <T extends FlavorName = typeof DefaultFlavor>(
-  options: Options<T> = {
+  options: ProviderOptions<T> = {
     flavor: DefaultFlavor,
     chain: { asyncRequestProcessing: true }
-  } as Options<T>
+  } as ProviderOptions<T>
 ) => {
   const flavor = (options.flavor || DefaultFlavor) as T;
 
@@ -24,7 +18,7 @@ const initialize = <T extends FlavorName = typeof DefaultFlavor>(
     "chain" in options
       ? options["chain"].asyncRequestProcessing
       : options["asyncRequestProcessing"];
-  const requestCoordinator = new utils.RequestCoordinator(
+  const requestCoordinator = new RequestCoordinator(
     asyncRequestProcessing ? 0 : 1
   );
 
@@ -37,7 +31,12 @@ const initialize = <T extends FlavorName = typeof DefaultFlavor>(
 
   // Purposely not awaiting on this to prevent a breaking change
   // to the `Ganache.provider()` method
-  const connectPromise = connector.connect();
+  // TODO: remove the `connector.connect ? ` check and just use
+  // `connector.connect()` after publishing the `@ganache/filecoin` with the
+  // connector.connect interface
+  const connectPromise = connector.connect
+    ? connector.connect()
+    : (connector as any).initialize();
 
   // The request coordinator is initialized in a "paused" state; when the
   // provider is ready we unpause.. This lets us accept queue requests before

@@ -3,13 +3,21 @@ import {
   RETURN_TYPES,
   TransactionLog
 } from "@ganache/ethereum-utils";
-import { Data, Quantity, utils } from "@ganache/utils";
+import {
+  Data,
+  Quantity,
+  keccak,
+  RPCQUANTITY_ONE,
+  BUFFER_ZERO,
+  RPCQUANTITY_EMPTY,
+  BUFFER_EMPTY
+} from "@ganache/utils";
 import { RpcTransaction } from "./rpc-transaction";
 import { ecsign } from "ethereumjs-util";
 import type Common from "@ethereumjs/common";
 import { EthereumRawTx, GanacheRawExtraTx } from "./raw";
 import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
-import { computeInstrinsics } from "./signing";
+import { computeIntrinsics } from "./signing";
 import { encodeRange, digest, EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { TransactionReceipt } from "./transaction-receipt";
@@ -40,13 +48,6 @@ type TransactionFinalization =
   | { status: "confirmed"; error?: Error }
   | { status: "rejected"; error: Error };
 
-const {
-  keccak,
-  RPCQUANTITY_ONE,
-  BUFFER_ZERO,
-  RPCQUANTITY_EMPTY,
-  BUFFER_EMPTY
-} = utils;
 const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
 
 /**
@@ -82,7 +83,7 @@ export class RuntimeTransaction extends BaseTransaction {
     this.finalizer = finalizer;
 
     if (Array.isArray(data)) {
-      // handle raw data (sendRawTranasction)
+      // handle raw data (sendRawTransaction)
       this.nonce = Quantity.from(data[0], true);
       this.gasPrice = Quantity.from(data[1]);
       this.gas = Quantity.from(data[2]);
@@ -99,7 +100,7 @@ export class RuntimeTransaction extends BaseTransaction {
         hash,
         encodedData,
         encodedSignature
-      } = computeInstrinsics(this.v, data, this.common.chainId());
+      } = computeIntrinsics(this.v, data, this.common.chainId());
 
       this.from = from;
       this.raw = data;
@@ -156,7 +157,7 @@ export class RuntimeTransaction extends BaseTransaction {
           hash,
           encodedData,
           encodedSignature
-        } = computeInstrinsics(this.v, raw, this.common.chainId());
+        } = computeIntrinsics(this.v, raw, this.common.chainId());
 
         // if the user specified a `from` address in addition to the  `v`, `r`,
         //  and `s` values, make sure the `from` address matches

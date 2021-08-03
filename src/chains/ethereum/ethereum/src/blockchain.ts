@@ -17,16 +17,28 @@ import {
   RangedStorageKeys,
   StructLog,
   TransactionTraceOptions,
-  EthereumRawAccount
+  EthereumRawAccount,
+  TraceTransactionResult
 } from "@ganache/ethereum-utils";
 import { decode } from "@ganache/rlp";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
-import { Quantity, Data, utils } from "@ganache/utils";
 import Common from "@ethereumjs/common";
 import VM from "@ethereumjs/vm";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { VmError, ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
+import {
+  Quantity,
+  Data,
+  BUFFER_EMPTY,
+  RPCQUANTITY_EMPTY,
+  BUFFER_32_ZERO,
+  BUFFER_256_ZERO,
+  RPCQUANTITY_ZERO,
+  findInsertPosition,
+  unref,
+  KNOWN_CHAINIDS
+} from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
 import BlockLogManager from "./data-managers/blocklog-manager";
@@ -52,18 +64,6 @@ import { ForkTrie } from "./forking/trie";
 import { LevelUp } from "levelup";
 import { activatePrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
-
-const {
-  BUFFER_EMPTY,
-  RPCQUANTITY_EMPTY,
-  BUFFER_32_ZERO,
-  BUFFER_256_ZERO,
-  RPCQUANTITY_ZERO,
-  findInsertPosition,
-  KNOWN_CHAINIDS
-} = utils;
-
-const unref = utils.unref;
 
 export enum Status {
   // Flags
@@ -902,9 +902,20 @@ export default class Blockchain extends Emittery.Typed<
     let gasLeft = transaction.gas.toBigInt();
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
-    gasLeft -= calculateIntrinsicGas(data, this.common);
+    const hasToAddress = transaction.to != null;
+    let to = null;
+    if (hasToAddress) {
+      const toBuf = transaction.to.toBuffer();
+      to = {
+        equals: (a: { buf: Buffer }) => toBuf.equals(a.buf),
+        buf: toBuf
+      };
+    } else {
+      to = null;
+    }
+    gasLeft -= calculateIntrinsicGas(data, hasToAddress, this.common);
 
-    if (gasLeft >= 0) {
+    if (gasLeft >= 0n) {
       const stateTrie = this.trie.copy(false);
       stateTrie.setContext(
         parentBlock.header.stateRoot.toBuffer(),
@@ -921,15 +932,16 @@ export default class Blockchain extends Emittery.Typed<
       // commit/revert later because this stateTrie is ephemeral anyway.
       vm.stateManager.checkpoint();
 
+      const caller = transaction.from.toBuffer();
       result = await vm.runCall({
-        caller: { buf: transaction.from.toBuffer() } as any,
+        caller: {
+          buf: caller,
+          equals: (a: { buf: Buffer }) => caller.equals(a.buf)
+        } as any,
         data: transaction.data && transaction.data.toBuffer(),
-        gasPrice: { toArrayLike: () => transaction.gasPrice.toBuffer() } as any,
+        gasPrice: new BN(transaction.gasPrice.toBuffer()),
         gasLimit: new BN(Quantity.from(gasLeft).toBuffer()),
-        to:
-          transaction.to == null
-            ? null
-            : ({ buf: transaction.to.toBuffer() } as any),
+        to,
         value:
           transaction.value == null
             ? new BN(0)
@@ -964,7 +976,7 @@ export default class Blockchain extends Emittery.Typed<
     options: TransactionTraceOptions,
     keys?: Buffer[],
     contractAddress?: Buffer
-  ) => {
+  ): Promise<TraceTransactionResult> => {
     let currentDepth = -1;
     const storageStack: TraceStorageMap[] = [];
 
@@ -1261,14 +1273,15 @@ export default class Blockchain extends Emittery.Typed<
     );
 
     // #3 - Rerun every transaction in block prior to and including the requested transaction
-    const { gas, structLogs, returnValue } = await this.#traceTransaction(
-      trie,
-      newBlock,
-      options
-    );
+    const {
+      gas,
+      structLogs,
+      returnValue,
+      storage
+    } = await this.#traceTransaction(trie, newBlock, options);
 
     // #4 - Send results back
-    return { gas, structLogs, returnValue };
+    return { gas, structLogs, returnValue, storage };
   }
 
   /**

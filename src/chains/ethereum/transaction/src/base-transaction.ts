@@ -1,26 +1,38 @@
-import { utils, Data, Quantity } from "@ganache/utils";
+import {
+  BUFFER_EMPTY,
+  BUFFER_32_ZERO,
+  Data,
+  Quantity,
+  BUFFER_ZERO
+} from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
 import { BN } from "ethereumjs-util";
 import { Hardfork } from "./hardfork";
 import { Params } from "./params";
 
-const { BUFFER_EMPTY, BUFFER_32_ZERO } = utils;
-
 const MAX_UINT64 = 1n << (64n - 1n);
 
 /**
  * Compute the 'intrinsic gas' for a message with the given data.
- * @param data The transaction's data
- * @param hardfork The hardfork use to determine gas costs
+ * @param data - The transaction's data
+ * @param hasToAddress - boolean,
+ * @param common - The Common use to determine gas costs
  * @returns The absolute minimum amount of gas this transaction will consume,
  * or `-1` if the data in invalid (gas consumption would exceed `MAX_UINT64`
  * (`(2n ** 64n) - 1n`).
  */
-export const calculateIntrinsicGas = (data: Data, common: Common) => {
+export const calculateIntrinsicGas = (
+  data: Data,
+  hasToAddress: boolean,
+  common: Common
+) => {
   const hardfork = common.hardfork() as Hardfork;
   // Set the starting gas for the raw transaction
   let gas = Params.TRANSACTION_GAS;
+  // if it doesn't have a "to" address this is a contract creation and it costs
+  // `TRANSACTION_CREATION` more gas.
+  if (!hasToAddress) gas += Params.TRANSACTION_CREATION;
   if (data) {
     const input = data.toBuffer();
     // Bump the required gas by the amount of transactional data
@@ -111,10 +123,7 @@ export class BaseTransaction {
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
       getBaseFee: () => {
-        let fee = this.calculateIntrinsicGas();
-        if (to.equals(BUFFER_EMPTY)) {
-          fee += Params.TRANSACTION_CREATION;
-        }
+        const fee = this.calculateIntrinsicGas();
         return new BN(Quantity.from(fee).toBuffer());
       },
       getUpfrontCost: () => {
@@ -129,7 +138,9 @@ export class BaseTransaction {
     };
   }
   public calculateIntrinsicGas() {
-    return calculateIntrinsicGas(this.data, this.common);
+    const hasToAddress =
+      this.to != null && !this.to.toBuffer().equals(BUFFER_EMPTY);
+    return calculateIntrinsicGas(this.data, hasToAddress, this.common);
   }
   public toJSON: () => any;
 }

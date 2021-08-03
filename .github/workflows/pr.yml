@@ -10,7 +10,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [10.7.0, 10.x, 11.x, 12.x, 13.x, 14.x]
+        # We start at Node 10.18.0 because it is the first version filecoin's
+        # CBOR package will let us install. Once filecoin is moved out of the
+        # monorepo we want to use 10.7.0 (earliest version the Ethereum side
+        # supports) or 10.13.0 (first node 10 LTS version).
+        node: [10.18.0, 10.x, 11.x, 12.x, 13.x, 14.x]
         os: [windows-2019, ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-11.0]
 
     runs-on: ${{ matrix.os }}
@@ -21,32 +25,40 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v2
+
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-      # we need build tools for the `bigint-buffer` module
+
       - name: Add msbuild to PATH
+        # we need msbuild tools for the `bigint-buffer` module
         if: startsWith(matrix.os, 'windows-')
         uses: microsoft/setup-msbuild@v1.0.2
-      - name: Update npm for node 10.7.0
-        # lerna bootstrap was failing on node 10.7.0 with npm 6.1.0, updating
-        # to npm 6.4.1 seems to fix the problem
-        if: ${{ startsWith(matrix.os, 'windows-') && matrix.node == '10.7.0' }}
-        run: npm install npm@6.4.1 --global
+
       - name: install node tools
+        # we don't need to install the windows-build-tools package, as we
+        # already have almost everything we need. We only need to install
+        # python 2.7. Also windows-build-tools@4 fails to install because some
+        # resources it downloads no longer exist, and windows-build-tools@5
+        # fails to install Python (it will wait on the python installer forever)
         if: startsWith(matrix.os, 'windows-')
-        # windows-build-tools@5.2.2 failed to install, so we use 4.0.0
-        run: npm install --global --production windows-build-tools@4.0.0
+        uses: actions/setup-python@v2
+        with:
+          python-version: "2.7"
+
       - name: install node-gyp
         if: startsWith(matrix.os, 'windows-')
         run: npm install --global node-gyp@7.1.2
+
       - name: Set node config to use python2.7
         if: startsWith(matrix.os, 'windows-')
         run: npm config set python python2.7
-      - name: Set node config to set msvs_version to 2015
+
+      - name: Set node config to set msvs_version to 2019
         if: startsWith(matrix.os, 'windows-')
-        run: npm config set msvs_version 2015 --global
+        run: npm config set msvs_version 2019 --global
+
       - run: npm ci
       - run: npm run tsc
       - run: npm test

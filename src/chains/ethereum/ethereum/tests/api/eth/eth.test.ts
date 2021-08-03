@@ -13,6 +13,7 @@ describe("api", () => {
 
     beforeEach(async () => {
       provider = await getProvider();
+
       accounts = await provider.send("eth_accounts");
     });
 
@@ -102,7 +103,7 @@ describe("api", () => {
         assert.strictEqual(tx.v, "0xa95");
       });
 
-      it("chainid option should change the chain id", async () => {
+      it("chainId option should change the chain id", async () => {
         const provider = await getProvider({ chain: { chainId: 1234 } });
         const result = await provider.send("eth_chainId");
         assert.deepStrictEqual(result, "0x4d2");
@@ -128,7 +129,7 @@ describe("api", () => {
         const tx = {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         };
 
         const txCount1 = await provider.send("eth_getTransactionCount", [
@@ -212,7 +213,7 @@ describe("api", () => {
         const tx = {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         };
 
         const startingBlockNumber = parseInt(
@@ -221,11 +222,11 @@ describe("api", () => {
         await provider.send("eth_subscribe", ["newHeads"]);
         await provider.send("eth_sendTransaction", [{ ...tx }]);
         await provider.once("message");
-        const blockx1 = await provider.send("eth_blockNumber");
+        const block1 = await provider.send("eth_blockNumber");
         assert.strictEqual(
-          +blockx1,
+          +block1,
           startingBlockNumber + 1,
-          "first tx's block number not as expected"
+          "first transaction's block number not as expected"
         );
 
         const awaitFor = count =>
@@ -256,16 +257,16 @@ describe("api", () => {
         ]);
         await wait;
         wait = awaitFor(4);
-        const blockx5 = await provider.send("eth_blockNumber");
+        const block5 = await provider.send("eth_blockNumber");
         assert.strictEqual(
-          +blockx5,
+          +block5,
           startingBlockNumber + 5,
           "second block's number not as expected"
         );
         await wait;
-        const blockx9 = await provider.send("eth_blockNumber");
+        const block9 = await provider.send("eth_blockNumber");
         assert.strictEqual(
-          +blockx9,
+          +block9,
           startingBlockNumber + 9,
           "third block's number not as expected"
         );
@@ -280,7 +281,7 @@ describe("api", () => {
         {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         }
       ]);
       const _message = await provider.once("message");
@@ -299,7 +300,7 @@ describe("api", () => {
         {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         }
       ]);
       const _message = await provider.once("message");
@@ -326,7 +327,7 @@ describe("api", () => {
         {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         }
       ]);
       const _message = await provider.once("message");
@@ -344,7 +345,7 @@ describe("api", () => {
         {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         }
       ]);
       await provider.once("message");
@@ -415,7 +416,7 @@ describe("api", () => {
         {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         }
       ]);
       await provider.once("message");
@@ -442,7 +443,7 @@ describe("api", () => {
         {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         }
       ]);
       const _message = await provider.once("message");
@@ -470,7 +471,7 @@ describe("api", () => {
         {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         }
       ]);
       const _message = await provider.once("message");
@@ -485,7 +486,7 @@ describe("api", () => {
         {
           from: accounts[0],
           to: accounts[1],
-          value: 1
+          value: "0x1"
         }
       ]);
       const _message = await provider.once("message");

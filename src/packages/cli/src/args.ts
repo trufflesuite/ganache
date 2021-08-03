@@ -10,12 +10,12 @@ import {
   Definitions,
   YargsPrimitiveCliTypeStrings
 } from "@ganache/options";
-import { serverDefaults } from "@ganache/core";
 import { Command, Argv } from "./types";
 import chalk from "chalk";
 import { EOL } from "os";
 import marked from "marked";
 import TerminalRenderer from "marked-terminal";
+import { _DefaultServerOptions } from "@ganache/core";
 
 marked.setOptions({
   renderer: new TerminalRenderer({
@@ -115,6 +115,37 @@ function processOption(
   }
 }
 
+function applyDefaults(
+  flavorDefaults:
+    | typeof DefaultOptionsByName[keyof typeof DefaultOptionsByName]
+    | typeof _DefaultServerOptions,
+  flavorArgs: yargs.Argv<{}>,
+  flavor: keyof typeof DefaultOptionsByName
+) {
+  for (const category in flavorDefaults) {
+    type GroupType = `${Capitalize<typeof category>}:`;
+    const group = `${category[0].toUpperCase()}${category.slice(
+      1
+    )}:` as GroupType;
+    const categoryObj = (flavorDefaults[
+      category
+    ] as unknown) as Definitions<Base.Config>;
+    const state = {};
+    for (const option in categoryObj) {
+      const optionObj = categoryObj[option];
+      processOption(
+        state,
+        category,
+        group,
+        option,
+        optionObj,
+        flavorArgs,
+        flavor
+      );
+    }
+  }
+}
+
 export default function (version: string, isDocker: boolean) {
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
@@ -158,44 +189,9 @@ export default function (version: string, isDocker: boolean) {
       command,
       chalk`Use the {bold ${flavor}} flavor of Ganache`,
       flavorArgs => {
-        let category: keyof typeof flavorDefaults;
-        for (category in flavorDefaults) {
-          type GroupType = `${Capitalize<typeof category>}:`;
-          const group = `${category[0].toUpperCase()}${category.slice(
-            1
-          )}:` as GroupType;
-          const categoryObj = flavorDefaults[category];
-          const state = {};
-          for (const option in categoryObj) {
-            const optionObj = categoryObj[option];
-            processOption(
-              state,
-              category,
-              group,
-              option,
-              optionObj,
-              flavorArgs,
-              flavor
-            );
-          }
-        }
+        applyDefaults(flavorDefaults, flavorArgs, flavor);
 
-        const state = {};
-        const categoryObj = serverDefaults.server;
-        const group = "Server:";
-        for (const option in categoryObj) {
-          const optionObj = categoryObj[option];
-
-          processOption(
-            state,
-            "server",
-            group,
-            option,
-            optionObj,
-            flavorArgs,
-            flavor
-          );
-        }
+        applyDefaults(_DefaultServerOptions, flavorArgs, flavor);
 
         flavorArgs = flavorArgs
           .option("server.host", {

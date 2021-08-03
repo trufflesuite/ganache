@@ -1,9 +1,6 @@
-import { Quantity } from "@ganache/utils";
 import { BN } from "ethereumjs-util";
 import { RuntimeError, RETURN_TYPES } from "@ganache/ethereum-utils";
-import { utils } from "@ganache/utils";
-
-const { RPCQUANTITY_EMPTY } = utils;
+import { RPCQUANTITY_EMPTY } from "@ganache/utils";
 
 const bn = (val = 0) => new (BN as any)(val);
 const STIPEND = bn(2300);
