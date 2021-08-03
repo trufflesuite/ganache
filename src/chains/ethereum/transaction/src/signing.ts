@@ -1,5 +1,5 @@
 import { Data, Quantity, utils } from "@ganache/utils";
-import { RawAccessListTx, RawLegacyTx, TypedRawTransaction } from "./raw";
+import { RawAccessListTx, RawLegacyTx } from "./raw";
 import { digest, encode, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
@@ -192,18 +192,22 @@ export const computeInstrinsicsAccessListTx = (
   raw: RawAccessListTx,
   chainId: number
 ) => {
-  const encodedData = encodeRange(raw, 0, 8);
-  const encodedSignature = encodeRange(raw, 8, 3);
-  const serialized = digest(
-    [encodedData.output, encodedSignature.output],
-    encodedData.length + encodedSignature.length
-  );
+  const typeBuf = raw[0];
+  const encodedData = encodeRange(raw, 1, 8);
+  const encodedSignature = encodeRange(raw, 9, 3);
+  const serialized = Buffer.concat([
+    typeBuf,
+    digest(
+      [encodedData.output, encodedSignature.output],
+      encodedData.length + encodedSignature.length
+    )
+  ]);
   return {
     from: computeFromAddress(
       encodedData,
       v.toNumber(),
-      raw[9],
       raw[10],
+      raw[11],
       chainId
     ),
     hash: Data.from(keccak(serialized), 32),
