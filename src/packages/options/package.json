@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-internal.1333+7e80572f",
+  "version": "0.1.1-internal.1334+5f8ce0f7",
   "description": "Ganache's server/provider options TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/options#readme",
@@ -44,9 +44,9 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/utils": "^0.1.1-internal.1333+7e80572f",
+    "@ganache/utils": "^0.1.1-internal.1334+5f8ce0f7",
     "bip39": "3.0.2",
     "seedrandom": "3.0.5"
   },
-  "gitHead": "7e80572fb8aefb786578c4bb5a8b6a286d7b9c99"
+  "gitHead": "5f8ce0f7f7cc9a3db53f61aac13c4539de25ca1e"
 }

@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-internal.1333+7e80572f",
+  "version": "0.1.1-internal.1334+5f8ce0f7",
   "description": "",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/transaction#readme",
@@ -49,10 +49,10 @@
   ],
   "dependencies": {
     "@ethereumjs/common": "2.3.0",
-    "@ganache/ethereum-address": "^0.1.1-internal.1333+7e80572f",
-    "@ganache/ethereum-utils": "^0.1.1-internal.1333+7e80572f",
-    "@ganache/rlp": "^0.1.1-internal.1333+7e80572f",
-    "@ganache/utils": "^0.1.1-internal.1333+7e80572f",
+    "@ganache/ethereum-address": "^0.1.1-internal.1334+5f8ce0f7",
+    "@ganache/ethereum-utils": "^0.1.1-internal.1334+5f8ce0f7",
+    "@ganache/rlp": "^0.1.1-internal.1334+5f8ce0f7",
+    "@ganache/utils": "^0.1.1-internal.1334+5f8ce0f7",
     "ethereumjs-util": "7.0.9",
     "node-gyp-build": "4.2.3"
   },
@@ -66,5 +66,5 @@
     "ttypescript": "1.5.12",
     "typescript": "4.1.3"
   },
-  "gitHead": "7e80572fb8aefb786578c4bb5a8b6a286d7b9c99"
+  "gitHead": "5f8ce0f7f7cc9a3db53f61aac13c4539de25ca1e"
 }
