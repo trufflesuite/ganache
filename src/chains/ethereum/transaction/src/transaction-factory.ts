@@ -107,7 +107,7 @@ export class TransactionFactory {
       // Assume legacy transaction
       return LegacyTransaction;
     } else {
-      const txType = parseInt(rpc.type); // TODO
+      const txType = parseInt(rpc.type);
       if (txType === 0) {
         return LegacyTransaction;
       } else if (txType === 1) {
