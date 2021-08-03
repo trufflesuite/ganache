@@ -1,9 +1,9 @@
 import { BlockLogs, FilterArgs } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import Manager from "./manager";
+import { Quantity } from "@ganache/utils";
 import Blockchain from "../blockchain";
 import { parseFilter, parseFilterDetails } from "../helpers/filter-parsing";
-import { Quantity } from "@ganache/utils";
 
 export default class BlockLogManager extends Manager<BlockLogs> {
   #blockchain: Blockchain;
