@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-internal.1341",
+  "version": "0.1.1-internal.1+b83ce61d",
   "description": "Ganache's flavors enumeration and TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/flavors#readme",
@@ -45,20 +45,20 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/colors": "0.1.1-internal.1341",
-    "@ganache/ethereum": "0.1.1-internal.1341",
-    "@ganache/ethereum-options": "0.1.1-internal.1341",
-    "@ganache/filecoin-options": "0.1.1-internal.1341",
-    "@ganache/options": "0.1.1-internal.1341",
-    "@ganache/tezos": "0.1.1-internal.1341",
-    "@ganache/utils": "0.1.1-internal.1341",
+    "@ganache/colors": "0.1.1-internal.1+b83ce61d",
+    "@ganache/ethereum": "0.1.1-internal.1+b83ce61d",
+    "@ganache/ethereum-options": "0.1.1-internal.1+b83ce61d",
+    "@ganache/filecoin-options": "0.1.1-internal.1+b83ce61d",
+    "@ganache/options": "0.1.1-internal.1+b83ce61d",
+    "@ganache/tezos": "0.1.1-internal.1+b83ce61d",
+    "@ganache/utils": "0.1.1-internal.1+b83ce61d",
     "chalk": "4.1.0"
   },
   "devDependencies": {
-    "@ganache/filecoin": "0.1.1-internal.1341"
+    "@ganache/filecoin": "0.1.1-internal.1+b83ce61d"
   },
   "peerDependencies": {
     "@ganache/filecoin": "0.1.0"
   },
-  "gitHead": "2b88f17336d3844ce7803de161851cc3bf5b88f8"
+  "gitHead": "b83ce61dbf26bc3b9161f53933e9da551978b564"
 }
