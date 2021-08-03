@@ -1,6 +1,6 @@
 {
 	"name": "@ganache/filecoin-options",
-	"version": "0.1.4-internal.1326+068d1650",
+	"version": "0.1.4-internal.1333+7e80572f",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {

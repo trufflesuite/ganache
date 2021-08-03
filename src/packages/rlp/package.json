@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-internal.1326+068d1650",
+  "version": "0.1.1-internal.1333+7e80572f",
   "description": "Recursive Length Prefix Encoding Module",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/rlp#readme",
@@ -48,7 +48,7 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/utils": "0.1.1-internal.1326+068d1650",
+    "@ganache/utils": "^0.1.1-internal.1333+7e80572f",
     "rlp": "2.2.6"
   },
   "devDependencies": {
@@ -60,5 +60,5 @@
     "ttypescript": "1.5.12",
     "typescript": "4.1.3"
   },
-  "gitHead": "068d165086a08ef30557157b9314b836fa4795cb"
+  "gitHead": "7e80572fb8aefb786578c4bb5a8b6a286d7b9c99"
 }
