@@ -99,16 +99,17 @@ export class FrozenTransaction extends BaseTransaction {
       }
       [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <RawLegacyTx>raw;
     } else if (txType === AccessListTransaction) {
-      let type: Buffer, accessList: AccessListBuffer;
+      let type: Buffer, chainId: Buffer, accessList: AccessListBuffer;
       [
         type,
+        chainId, // TODO: currently aren't using chainId. Do we need to?
         nonce,
         gasPrice,
         gasLimit,
         to,
         value,
-        accessList,
         data,
+        accessList,
         v,
         r,
         s
