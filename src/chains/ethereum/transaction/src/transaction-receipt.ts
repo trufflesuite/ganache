@@ -110,25 +110,25 @@ export class TransactionReceipt {
     if (this.encoded == null) {
       this.encoded = encodeRange(this.raw, 0, 4);
     }
+    let serialized: Buffer;
     if (all) {
-      //TODO evaluate how typed txs affect this
       // the database format includes gasUsed and the contractAddress:
       const extras: GanacheExtrasRawReceipt = [
         this.#gasUsed,
         this.contractAddress
       ];
       const epilogue = encodeRange(extras, 0, 2);
-      return digest(
+      serialized = digest(
         [this.encoded.output, epilogue.output],
         this.encoded.length + epilogue.length
       );
     } else {
       // receipt trie format:
-      const serialized = digest([this.encoded.output], this.encoded.length);
-      return this.txType
-        ? Buffer.concat([this.txType.toBuffer(), serialized])
-        : serialized;
+      serialized = digest([this.encoded.output], this.encoded.length);
     }
+    return this.txType
+      ? Buffer.concat([this.txType.toBuffer(), serialized])
+      : serialized;
   }
 
   public toJSON(
