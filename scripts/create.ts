@@ -156,7 +156,7 @@ process.stdout.write(`${COLORS.Reset}`);
         lib: "lib",
         test: "tests"
       },
-      files: ["lib"],
+      files: ["lib", "typings"],
       repository: {
         type: "git",
         url: "https://github.com/trufflesuite/ganache-core.git",
