@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-internal.1334+5f8ce0f7",
+  "version": "0.1.1-internal.1338+2b88f173",
   "description": "",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/address#readme",
@@ -57,7 +57,7 @@
     "typescript": "4.1.3"
   },
   "dependencies": {
-    "@ganache/utils": "^0.1.1-internal.1334+5f8ce0f7"
+    "@ganache/utils": "^0.1.1-internal.1338+2b88f173"
   },
-  "gitHead": "5f8ce0f7f7cc9a3db53f61aac13c4539de25ca1e"
+  "gitHead": "2b88f17336d3844ce7803de161851cc3bf5b88f8"
 }
