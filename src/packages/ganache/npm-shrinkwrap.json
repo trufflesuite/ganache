@@ -1,6 +1,6 @@
 {
 	"name": "ganache",
-	"version": "7.0.0-internal.1336",
+	"version": "7.0.0-canary.2+bb3106bf",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {

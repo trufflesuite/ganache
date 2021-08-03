@@ -1,6 +1,6 @@
 {
 	"name": "@ganache/rlp",
-	"version": "0.1.1-internal.1334+5f8ce0f7",
+	"version": "0.1.1-canary.2+bb3106bf",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {

@@ -341,7 +341,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async evm_increaseTime(seconds: QUANTITY) {
+  async evm_increaseTime(seconds: number | QUANTITY) {
     const milliseconds =
       (typeof seconds === "number"
         ? seconds
@@ -368,7 +368,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0, 1)
-  async evm_setTime(time: QUANTITY | Date) {
+  async evm_setTime(time: number | QUANTITY | Date) {
     let t: number;
     switch (typeof time) {
       case "object":

@@ -2,6 +2,7 @@ import assert from "assert";
 import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
 import EthereumProvider from "../../../src/provider";
+import { RpcTransaction } from "@ganache/ethereum-transaction";
 
 describe("api", () => {
   describe("personal", () => {
@@ -173,97 +174,99 @@ describe("api", () => {
         "personal_sendTransaction should still be locked the after the transaction is processed"
       );
     }
-async function testLockedAccountWithPassphraseViaPersonal_SignTransaction(
-  provider: EthereumProvider,
-  newAccount: string,
-  passphrase: string
-) {
-  const transaction = {
-    from: newAccount,
-    to: newAccount,
-    gasLimit: 21000,
-    gasPrice: 0,
-    value: 0,
-    nonce: 0
-  };
+    async function testLockedAccountWithPassphraseViaPersonal_SignTransaction(
+      provider: EthereumProvider,
+      newAccount: string,
+      passphrase: string
+    ) {
+      const transaction = {
+        from: newAccount,
+        to: newAccount,
+        gasLimit: Quantity.from(21000).toString(),
+        gasPrice: "0x0",
+        value: "0x0",
+        nonce: "0x0"
+      };
 
-  // make sure we can't use the account via personal_sendTransaction and no passphrase
-  await assert.rejects(
-    provider.send("personal_signTransaction", [transaction, undefined]),
-    {
-      message: "could not decrypt key with given password"
-    },
-    "personal_sendTransaction should have rejected due to locked from account without its passphrase"
-  );
-
-  // make sure we can't use the account with bad passphrases
-  const invalidPassphrases = [
-    "this is not my passphrase",
-    null,
-    undefined,
-    Buffer.allocUnsafe(0),
-    1,
-    0,
-    Infinity,
-    NaN
-  ];
-  await Promise.all(
-    invalidPassphrases.map(invalidPassphrase => {
-      return assert.rejects(
-        provider.send("personal_signTransaction", [
-          transaction,
-          invalidPassphrase as any
-        ]),
+      // make sure we can't use the account via personal_sendTransaction and no passphrase
+      await assert.rejects(
+        provider.send("personal_signTransaction", [transaction, undefined]),
         {
           message: "could not decrypt key with given password"
         },
-        "Transaction should have rejected due to locked from account with wrong passphrase"
+        "personal_sendTransaction should have rejected due to locked from account without its passphrase"
       );
-    })
-  );
 
-  // use personal_sendTransaction with the valid passphrase
-  await provider.send("eth_subscribe", ["newHeads"]);
-  const signedTxPromise = provider.send("personal_signTransaction", [
-    transaction,
-    passphrase
-  ]);
-  const msgPromise = signedTxPromise.then(() => provider.once("message"));
+      // make sure we can't use the account with bad passphrases
+      const invalidPassphrases = [
+        "this is not my passphrase",
+        null,
+        undefined,
+        Buffer.allocUnsafe(0),
+        1,
+        0,
+        Infinity,
+        NaN
+      ];
+      await Promise.all(
+        invalidPassphrases.map(invalidPassphrase => {
+          return assert.rejects(
+            provider.send("personal_signTransaction", [
+              transaction,
+              invalidPassphrase as any
+            ]),
+            {
+              message: "could not decrypt key with given password"
+            },
+            "Transaction should have rejected due to locked from account with wrong passphrase"
+          );
+        })
+      );
 
-  await assert.rejects(
-    provider.send("eth_signTransaction", [
-      Object.assign({}, transaction, { nonce: 1 })
-    ]),
-    {
-      message: "authentication needed: password or unlock"
-    },
-    "personal_signTransaction should not unlock the while transaction is bring processed"
-  );
+      // use personal_sendTransaction with the valid passphrase
+      await provider.send("eth_subscribe", ["newHeads"]);
+      const signedTxPromise = provider.send("personal_signTransaction", [
+        transaction,
+        passphrase
+      ]);
+      const msgPromise = signedTxPromise.then(() => provider.once("message"));
 
-  const signedTx = await signedTxPromise;
-  const transactionHash = await provider.send("eth_sendRawTransaction", [signedTx]);
-  await msgPromise;
+      await assert.rejects(
+        provider.send("eth_signTransaction", [
+          Object.assign({}, transaction, { nonce: 1 })
+        ]),
+        {
+          message: "authentication needed: password or unlock"
+        },
+        "personal_signTransaction should not unlock the while transaction is bring processed"
+      );
 
-  const receipt = await provider.send("eth_getTransactionReceipt", [
-    transactionHash
-  ]);
-  assert.strictEqual(
-    receipt.status,
-    "0x1",
-    "Transaction failed when it should have succeeded"
-  );
+      const signedTx = await signedTxPromise;
+      const transactionHash = await provider.send("eth_sendRawTransaction", [
+        signedTx
+      ]);
+      await msgPromise;
 
-  // ensure the account is still locked
-  await assert.rejects(
-    provider.send("eth_sendTransaction", [
-      Object.assign({}, transaction, { nonce: 1 })
-    ]),
-    {
-      message: "authentication needed: password or unlock"
-    },
-    "personal_sendTransaction should still be locked the after the transaction is processed"
-  );
-}
+      const receipt = await provider.send("eth_getTransactionReceipt", [
+        transactionHash
+      ]);
+      assert.strictEqual(
+        receipt.status,
+        "0x1",
+        "Transaction failed when it should have succeeded"
+      );
+
+      // ensure the account is still locked
+      await assert.rejects(
+        provider.send("eth_sendTransaction", [
+          Object.assign({}, transaction, { nonce: "0x0" })
+        ]),
+        {
+          message: "authentication needed: password or unlock"
+        },
+        "personal_sendTransaction should still be locked the after the transaction is processed"
+      );
+    }
 
     describe("newAccount", () => {
       it("generates deterministic accounts", async () => {
