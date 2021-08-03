@@ -17,7 +17,7 @@
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec --concurrency 1 -- npm run test",
     "tsc": "ttsc --build src",
-    "release": "npm run tsc.clean && npm run tsc && npm test && npm run build && lerna publish --canary --preid internal",
+    "release": "npm run tsc.clean && npm run tsc && npm test && npm run build && lerna publish --canary --preid internal --dist-tag internal",
     "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist typings"
   },
   "devDependencies": {
