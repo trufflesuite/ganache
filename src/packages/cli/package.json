@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-internal.1338+2b88f173",
+  "version": "0.1.1-internal.1341",
   "description": "",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/cli#readme",
@@ -53,15 +53,15 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/ethereum": "^0.1.1-internal.1338+2b88f173",
-    "@ganache/filecoin": "^0.1.6-internal.1338+2b88f173"
+    "@ganache/ethereum": "0.1.1-internal.1341",
+    "@ganache/filecoin": "0.1.1-internal.1341"
   },
   "dependencies": {
-    "@ganache/colors": "^0.1.1-internal.1338+2b88f173",
-    "@ganache/core": "^0.1.1-internal.1338+2b88f173",
-    "@ganache/flavors": "^0.1.1-internal.1338+2b88f173",
-    "@ganache/options": "^0.1.1-internal.1338+2b88f173",
-    "@ganache/utils": "^0.1.1-internal.1338+2b88f173",
+    "@ganache/colors": "0.1.1-internal.1341",
+    "@ganache/core": "0.1.1-internal.1341",
+    "@ganache/flavors": "0.1.1-internal.1341",
+    "@ganache/options": "0.1.1-internal.1341",
+    "@ganache/utils": "0.1.1-internal.1341",
     "@types/node": "14.14.6",
     "chalk": "4.1.0",
     "ethereumjs-util": "7.0.9",
