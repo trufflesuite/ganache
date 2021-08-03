@@ -6,7 +6,12 @@ import { PrefixedHexString } from "ethereumjs-util";
 import { LegacyTransaction } from "./legacy-transaction";
 import { AccessListTransaction } from "./access-list-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
-import { RawAccessListTx, RawLegacyTx, TypedRawTransaction } from "./raw";
+import {
+  RawAccessListPayload,
+  RawAccessListTx,
+  RawLegacyTx,
+  TypedRawTransaction
+} from "./raw";
 import { TypedTransaction } from "./transaction-types";
 import { decode } from "@ganache/rlp";
 
@@ -34,10 +39,10 @@ export class TransactionFactory {
         const raw = decode<RawLegacyTx>(data);
         return LegacyTransaction.fromTxData(raw, common);
       } else if (txType === AccessListTransaction) {
-        const typeBuf = data.slice(0, 1); // the type is not rlp encoded, so it shouldn't be fed to our rlp decoder
-        data = data.slice(1, data.length);
-        const raw = decode<RawAccessListTx>(data);
-        raw.splice(0, 0, typeBuf); // now put our type back to the front of the list
+        const type = data.slice(0, 1);
+        data = data.slice(1, data.length); // remove type because it's not rlp encoded and thus can't be decoded
+        const decoded = decode<RawAccessListPayload>(data);
+        const raw = <RawAccessListTx>[type, ...decoded.slice(0)]; // add the type back to our raw data
         return AccessListTransaction.fromTxData(raw, common);
       } else {
         throw new Error(`Tx instantiation with supplied type not supported`);
