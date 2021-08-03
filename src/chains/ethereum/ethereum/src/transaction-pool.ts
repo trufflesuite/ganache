@@ -1,7 +1,7 @@
 import Emittery from "emittery";
 import Blockchain from "./blockchain";
-import { JsonRpcTypes, utils } from "@ganache/utils";
-import { Data, Quantity } from "@ganache/utils";
+import { Heap } from "@ganache/utils";
+import { Data, Quantity, JsonRpcErrorCode, ACCOUNT_ZERO } from "@ganache/utils";
 import {
   GAS_LIMIT,
   INTRINSIC_GAS_TOO_LOW,
@@ -39,7 +39,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     inProgress: new Set(),
     pending: new Map()
   };
-  readonly #origins: Map<string, utils.Heap<RuntimeTransaction>> = new Map();
+  readonly #origins: Map<string, Heap<RuntimeTransaction>> = new Map();
   readonly #accountPromises = new Map<string, Promise<Quantity>>();
 
   /**
@@ -63,13 +63,10 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     const from = transaction.from;
     let transactionNonce: bigint;
-    if (secretKey == null || !transaction.nonce.isNull()) {
-      transactionNonce = transaction.nonce.toBigInt() || 0n;
+    if (!transaction.nonce.isNull()) {
+      transactionNonce = transaction.nonce.toBigInt();
       if (transactionNonce < 0n) {
-        throw new CodedError(
-          NONCE_TOO_LOW,
-          JsonRpcTypes.ErrorCode.INVALID_INPUT
-        );
+        throw new CodedError(NONCE_TOO_LOW, JsonRpcErrorCode.INVALID_INPUT);
       }
     }
 
@@ -118,7 +115,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     ) {
       // check if a transaction with the same nonce is in the origin's
       // executables queue already. Replace the matching transaction or throw this
-      // new transaction away as neccessary.
+      // new transaction away as necessary.
       const pendingArray = executableOriginTransactions.array;
       const priceBump = this.#priceBump;
       const newGasPrice = transaction.gasPrice.toBigInt();
@@ -136,7 +133,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           if (!currentPendingTx.locked && newGasPrice > thisPricePremium) {
             isExecutableTransaction = true;
             // do an in-place replace without triggering a re-sort because we
-            // already know where this tranasaction should go in this "byNonce"
+            // already know where this transaction should go in this "byNonce"
             // heap.
             pendingArray[i] = transaction;
 
@@ -144,13 +141,13 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
               "rejected",
               new CodedError(
                 "Transaction replaced by better transaction",
-                JsonRpcTypes.ErrorCode.TRANSACTION_REJECTED
+                JsonRpcErrorCode.TRANSACTION_REJECTED
               )
             );
           } else {
             throw new CodedError(
               "replacement transaction underpriced",
-              JsonRpcTypes.ErrorCode.TRANSACTION_REJECTED
+              JsonRpcErrorCode.TRANSACTION_REJECTED
             );
           }
         }
@@ -158,7 +155,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           highestNonce = thisNonce;
         }
       }
-      if (secretKey && transactionNonce === void 0) {
+      if (transactionNonce === void 0) {
         // if we aren't signed and don't have a transactionNonce yet set it now
         transactionNonce = highestNonce + 1n;
         transaction.nonce = Quantity.from(transactionNonce);
@@ -183,7 +180,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       const transactor = await transactorNoncePromise;
 
       const transactorNonce = transactor ? transactor.toBigInt() : 0n;
-      if (secretKey && transactionNonce === void 0) {
+      if (transactionNonce === void 0) {
         // if we don't have a transactionNonce, just use the account's next
         // nonce and mark as executable
         transactionNonce = transactorNonce ? transactorNonce : 0n;
@@ -210,7 +207,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       const from = transaction.from.toBuffer();
 
       let fakePrivateKey: Buffer;
-      if (from.equals(utils.ACCOUNT_ZERO)) {
+      if (from.equals(ACCOUNT_ZERO)) {
         fakePrivateKey = Buffer.allocUnsafe(32);
         // allow signing with the 0x0 address
         // see: https://github.com/ethereumjs/ethereumjs-monorepo/issues/829#issue-674385636
@@ -227,11 +224,11 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         executableOriginTransactions.push(transaction);
       } else {
         // if we don't yet have an executables queue for this origin make one now
-        executableOriginTransactions = utils.Heap.from(transaction, byNonce);
+        executableOriginTransactions = Heap.from(transaction, byNonce);
         executables.set(origin, executableOriginTransactions);
       }
 
-      // Now we need to drain any queued transacions that were previously
+      // Now we need to drain any queued transactions that were previously
       // not executable due to nonce gaps into the origin's queue...
       if (queuedOriginTransactions) {
         let nextExpectedNonce = transactionNonce + 1n;
@@ -263,7 +260,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       if (queuedOriginTransactions) {
         queuedOriginTransactions.push(transaction);
       } else {
-        origins.set(origin, utils.Heap.from(transaction, byNonce));
+        origins.set(origin, Heap.from(transaction, byNonce));
       }
 
       return false;
@@ -329,7 +326,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   readonly #validateTransaction = (transaction: RuntimeTransaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
     if (transaction.gas > this.#options.blockGasLimit) {
-      return new CodedError(GAS_LIMIT, JsonRpcTypes.ErrorCode.INVALID_INPUT);
+      return new CodedError(GAS_LIMIT, JsonRpcErrorCode.INVALID_INPUT);
     }
 
     // Should supply enough intrinsic gas
@@ -337,7 +334,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     if (gas === -1n || transaction.gas.toBigInt() < gas) {
       return new CodedError(
         INTRINSIC_GAS_TOO_LOW,
-        JsonRpcTypes.ErrorCode.INVALID_INPUT
+        JsonRpcErrorCode.INVALID_INPUT
       );
     }
 

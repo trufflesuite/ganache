@@ -7,14 +7,13 @@ import {
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
-import { utils } from "@ganache/utils";
+import { keccak, BUFFER_EMPTY } from "@ganache/utils";
 import {
   EthereumRawBlockHeader,
   GanacheRawBlock,
   serialize
 } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
-const { keccak, BUFFER_EMPTY } = utils;
 
 export class Block {
   protected _size: number;

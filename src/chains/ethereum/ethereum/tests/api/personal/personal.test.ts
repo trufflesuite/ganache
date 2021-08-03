@@ -22,10 +22,10 @@ describe("api", () => {
       const transaction = {
         from: newAccount,
         to: newAccount,
-        gasLimit: 21000,
-        gasPrice: 0,
-        value: 0,
-        nonce: 0
+        gasLimit: `0x${(21000).toString(16)}`,
+        gasPrice: "0x0",
+        value: "0x0",
+        nonce: "0x0"
       };
 
       // make sure we can't use the account via eth_sendTransaction
@@ -89,10 +89,10 @@ describe("api", () => {
       const transaction = {
         from: newAccount,
         to: newAccount,
-        gasLimit: 21000,
-        gasPrice: 0,
-        value: 0,
-        nonce: 0
+        gasLimit: `0x${(21000).toString(16)}`,
+        gasPrice: "0x0",
+        value: "0x0",
+        nonce: "0x0"
       };
 
       // make sure we can't use the account via personal_sendTransaction and no passphrase

@@ -1,5 +1,4 @@
-import { utils, Quantity } from "@ganache/utils";
-const { BUFFER_ZERO, BUFFER_EMPTY } = utils;
+import { BUFFER_ZERO, BUFFER_EMPTY, Quantity } from "@ganache/utils";
 
 type Piece = [length: Buffer, part: Buffer];
 

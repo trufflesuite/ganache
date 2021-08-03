@@ -1,23 +1,16 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
-import { types } from "@ganache/utils";
 import { Tag } from "@ganache/ethereum-utils";
+import { URL } from "url";
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
 
-declare var URL: {
-  prototype: types.URL;
-  new (url: string, base?: string | types.URL): types.URL;
-  createObjectURL(object: any): string;
-  revokeObjectURL(url: string): void;
-};
-
-// we aren't going to treat block numbers as big ints, so we don't want to
+// we aren't going to treat block numbers as a bigint, so we don't want to
 // accept block numbers we can't add to
 const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 
 type HeaderRecord = { name: string; value: string };
-type ForkUrl = types.URL & { _blockNumber?: number | Tag.LATEST };
+type ForkUrl = URL & { _blockNumber?: number | Tag.LATEST };
 
 export type ForkConfig = {
   options: {
@@ -52,6 +45,15 @@ export type ForkConfig = {
           readonly method: string;
           readonly params?: readonly unknown[] | object;
         }) => Promise<unknown>;
+      };
+      legacy: {
+        /**
+         * @deprecated Use fork.provider instead
+         */
+        fork: {
+          readonly method: string;
+          readonly params?: readonly unknown[] | object;
+        };
       };
     };
 
@@ -109,7 +111,7 @@ export type ForkConfig = {
      *
      * Sent as Api-User-Agent when used in the browser.
      *
-     * Will be overriden by a `"User-Agent"` value defined in the `fork.headers` option, if provided.
+     * Will be overridden by a `"User-Agent"` value defined in the `fork.headers` option, if provided.
      *
      * @default "Ganache/VERSION (https://www.trufflesuite.com/ganache; ganache＠trufflesuite.com) ＠ganache/ethereum/VERSION"
      */
@@ -119,11 +121,11 @@ export type ForkConfig = {
     };
 
     /**
-     * The Orgin header sent to the fork on each request.
+     * The Origin header sent to the fork on each request.
      *
      * Ignored in the browser.
      *
-     * Will be overriden by an `"Origin"` value defined in the `fork.headers` option, if provided.
+     * Will be overridden by an `"Origin"` value defined in the `fork.headers` option, if provided.
      */
     origin: {
       type: string;
@@ -200,7 +202,7 @@ export const ForkOptions: Definitions<ForkConfig> = {
       if (lastIndex !== -1) {
         // remove everything after the last @
         url = new URL(path.substr(0, lastIndex), url);
-        const blockNumber = path.substr(lastIndex);
+        const blockNumber = path.substr(lastIndex + 1);
         if (blockNumber && blockNumber !== Tag.LATEST) {
           // don't use parseInt because strings like `"123abc"` parse
           // to `123`, and there is probably an error on the user's side we'd
@@ -241,9 +243,14 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
     cliAliases: ["f", "fork"]
   },
   provider: {
-    normalize: rawInput => rawInput,
+    normalize: rawInput => {
+      // if rawInput is a string it will be handled by the `url` handler
+      if (typeof rawInput === "string") return;
+      return rawInput;
+    },
     cliDescription: "Specify an EIP-1193 provider to use instead of a url.",
-    disableInCLI: true
+    disableInCLI: true,
+    legacyName: "fork"
   },
   blockNumber: {
     normalize,
@@ -253,7 +260,7 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
       if (url) {
         // use the url's _blockNumber, if present, otherwise use "latest"
         if (url._blockNumber) {
-          //return url._blockNumber;
+          return url._blockNumber;
         } else {
           return Tag.LATEST;
         }
@@ -317,7 +324,7 @@ Shorthand for \`fork: { headers: { "Authorization": "Bearer {YOUR-ENCODED-JWT}" 
 
 Sent as Api-User-Agent when used in the browser.
  
-Will be overriden by a \`"User-Agent"\` defined in the \`fork.headers\` option, if provided.`,
+Will be overridden by a \`"User-Agent"\` defined in the \`fork.headers\` option, if provided.`,
     default: () => {
       return `Ganache/${version} (https://www.trufflesuite.com/ganache; ganache<at>trufflesuite.com)`;
     }
@@ -325,11 +332,11 @@ Will be overriden by a \`"User-Agent"\` defined in the \`fork.headers\` option, 
   },
   origin: {
     normalize,
-    cliDescription: `The Orgin header sent to the fork on each request.
+    cliDescription: `The Origin header sent to the fork on each request.
 
 Ignored in the browser.
 
-Will be overriden by an \`"Origin"\` value defined in the \`fork.headers\` option, if provided.`
+Will be overridden by an \`"Origin"\` value defined in the \`fork.headers\` option, if provided.`
     //implies: ["url"]
   },
 

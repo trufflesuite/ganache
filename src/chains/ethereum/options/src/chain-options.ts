@@ -23,7 +23,7 @@ export type ChainConfig = {
      * differently than production environments. You should only set this to
      * `true` during local debugging.
      *
-     * @default false
+     * @defaultValue false
      */
     readonly allowUnlimitedContractSize: {
       type: boolean;
@@ -39,7 +39,7 @@ export type ChainConfig = {
     /**
      * When set to `false` only one request will be processed at a time.
      *
-     * @default true
+     * @defaultValue true
      */
     readonly asyncRequestProcessing: {
       type: boolean;
@@ -57,7 +57,7 @@ export type ChainConfig = {
      * transaction signing as introduced by
      * [EIP-155](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md).
      *
-     * @default 1337
+     * @defaultValue 1337
      */
     readonly chainId: {
       type: number;
@@ -76,7 +76,7 @@ export type ChainConfig = {
      * Defaults to the current timestamp, via JavaScript's `Date.now()` (the
      * number of millisconds since the UNIX epoch).
      *
-     * @default Date.now()
+     * @defaultValue Date.now()
      */
     readonly networkId: {
       type: number;
@@ -106,7 +106,7 @@ export type ChainConfig = {
 
     /**
      * Set the hardfork rules for the EVM.
-     * @default "berlin"
+     * @defaultValue "berlin"
      */
     readonly hardfork: {
       type: Hardfork;
@@ -122,7 +122,7 @@ export type ChainConfig = {
     /**
      * Whether to report runtime errors from EVM code as RPC errors.
      *
-     * @default false
+     * @defaultValue false
      */
     readonly vmErrorsOnRPCResponse: {
       type: boolean;

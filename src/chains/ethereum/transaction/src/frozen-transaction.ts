@@ -1,14 +1,12 @@
-import { Data, Quantity, utils } from "@ganache/utils";
+import { Data, Quantity, RPCQUANTITY_EMPTY } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
 import { EthereumRawTx, GanacheRawExtraTx } from "./raw";
 import { decode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { Address } from "@ganache/ethereum-address";
 
-const { RPCQUANTITY_EMPTY } = utils;
-
 /**
- * A frozen tranasction is a transaction that is part of a block.
+ * A frozen transaction is a transaction that is part of a block.
  */
 
 export class FrozenTransaction extends BaseTransaction {
@@ -23,7 +21,7 @@ export class FrozenTransaction extends BaseTransaction {
   public s: Quantity;
 
   // from, index, hash, blockNumber, and blockHash are extra data we store to
-  // support account mascarading, quick receipts:
+  // support account masquerading, quick receipts:
   // public from: Address;
   public index: Quantity;
   public hash: Data;

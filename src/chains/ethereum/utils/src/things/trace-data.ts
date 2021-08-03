@@ -1,10 +1,10 @@
-import { utils } from "@ganache/utils";
-const { bufferToMinHexKey } = utils;
+import { bufferToMinHexKey } from "@ganache/utils";
 
 export interface ITraceData {
   toBuffer(): Buffer;
   toString(): string;
   toJSON(): string;
+  isTraceData?: boolean;
 }
 
 const BYTE_LENGTH = 32;
@@ -49,7 +49,7 @@ const PREFIXES = [
 ];
 
 export const TraceDataFactory = () => {
-  const traceDataLookup: Map<string, any> = new Map();
+  const traceDataLookup: Map<string, ITraceData> = new Map();
 
   const TraceData = {
     from: (value: Buffer) => {
@@ -64,7 +64,7 @@ export const TraceDataFactory = () => {
       let buffer: Buffer;
       let str: string;
 
-      const data = {
+      const data: ITraceData = {
         /**
          * Returns a 32-byte 0-padded Buffer
          */

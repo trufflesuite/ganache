@@ -1,5 +1,12 @@
 import { Address } from "@ganache/ethereum-address";
-import { utils, Quantity, Data } from "@ganache/utils";
+import {
+  keccak,
+  BUFFER_EMPTY,
+  BUFFER_ZERO,
+  RPCQUANTITY_EMPTY,
+  Quantity,
+  Data
+} from "@ganache/utils";
 import type { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import AccountManager from "../data-managers/account-manager";
@@ -10,8 +17,6 @@ import * as lexico from "./lexicographic-key-codec";
 import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "ethereumjs-util";
-
-const { keccak, BUFFER_EMPTY, BUFFER_ZERO, RPCQUANTITY_EMPTY } = utils;
 
 const GET_CODE = "eth_getCode";
 const GET_NONCE = "eth_getTransactionCount";

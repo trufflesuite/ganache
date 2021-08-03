@@ -1,5 +1,5 @@
 import Emittery from "emittery";
-import { utils, types } from "@ganache/utils";
+import { Connector, Executor } from "@ganache/utils";
 import Provider from "./src/provider";
 import TezosApi from "./src/api";
 import { HttpRequest } from "@trufflesuite/uws-js-unofficial";
@@ -9,11 +9,11 @@ export const TezosProvider = Provider;
 
 export class TezosConnector
   extends Emittery.Typed<undefined, "ready" | "close">
-  implements types.Connector<TezosApi, unknown, unknown> {
+  implements Connector<TezosApi, unknown, unknown> {
   provider: Provider;
   #api: TezosApi;
 
-  constructor(providerOptions: any, requestCoordinator: utils.Executor) {
+  constructor(providerOptions: any, requestCoordinator: Executor) {
     super();
 
     const api = (this.#api = new TezosApi());

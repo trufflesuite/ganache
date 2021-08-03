@@ -8,7 +8,7 @@ describe("api", () => {
       const nowIsh = roundedTo5Seconds(Date.now());
       const provider = await getProvider();
       const netVersion = await provider.send("net_version");
-      assert.strictEqual(roundedTo5Seconds(netVersion), nowIsh);
+      assert.strictEqual(roundedTo5Seconds(parseInt(netVersion, 10)), nowIsh);
     });
 
     it("net_listening", async () => {

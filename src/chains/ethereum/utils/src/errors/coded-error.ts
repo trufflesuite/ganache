@@ -1,4 +1,4 @@
-import { JsonRpcTypes } from "@ganache/utils";
+import { JsonRpcErrorCode } from "@ganache/utils";
 
 export class CodedError extends Error {
   code: number;
@@ -8,7 +8,7 @@ export class CodedError extends Error {
 
     this.code = code;
   }
-  static from(error: Error, code: JsonRpcTypes.ErrorCode) {
+  static from(error: Error, code: JsonRpcErrorCode) {
     const codedError = new CodedError(error.message, code);
     codedError.stack = error.stack;
     return codedError;

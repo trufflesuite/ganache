@@ -1,4 +1,10 @@
-import { Data, Quantity, utils } from "@ganache/utils";
+import {
+  Data,
+  Quantity,
+  keccak,
+  BUFFER_EMPTY,
+  uintToBuffer
+} from "@ganache/utils";
 import { EthereumRawTx } from "./raw";
 import { digest, encode, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
@@ -9,8 +15,6 @@ try {
 } catch (err) {
   secp256k1 = require("secp256k1/lib/elliptic");
 }
-
-const { keccak, BUFFER_EMPTY, uintToBuffer } = utils;
 
 const intToBuffer = (value: number) =>
   value === 0 ? BUFFER_EMPTY : uintToBuffer(value);
@@ -38,7 +42,7 @@ function copyOrFill(
   targetStart: number,
   length: number
 ) {
-  if (source.byteLength > length) throw new Error("Invalid siganture");
+  if (source.byteLength > length) throw new Error("Invalid signature");
 
   // first, copy zeroes
   const numZeroes = length - source.byteLength;
@@ -148,7 +152,7 @@ export const computeHash = (raw: EthereumRawTx) => {
   return Data.from(keccak(encode(raw)), 32);
 };
 
-export const computeInstrinsics = (
+export const computeIntrinsics = (
   v: Quantity,
   raw: EthereumRawTx,
   chainId: number

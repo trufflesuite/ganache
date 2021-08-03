@@ -8,7 +8,7 @@ import Ganache, { Server } from "../index";
 import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
-import { Status } from "../src/server";
+import { ServerStatus } from "../src/server";
 import http from "http";
 // https://github.com/sindresorhus/into-stream/releases/tag/v6.0.0
 import intoStream = require("into-stream");
@@ -52,7 +52,7 @@ describe("server", () => {
 
   async function teardown() {
     // if the server is opening or open, try to close it.
-    if (s && (s.status & Status.openingOrOpen) !== 0) {
+    if (s && (s.status & ServerStatus.openingOrOpen) !== 0) {
       await s.close();
     }
   }
@@ -72,34 +72,34 @@ describe("server", () => {
     it("returns its status", async () => {
       const s = Ganache.server();
       try {
-        assert.strictEqual(s.status, Status.ready);
+        assert.strictEqual(s.status, ServerStatus.ready);
         const pendingListen = s.listen(port);
-        assert.strictEqual(s.status, Status.opening);
+        assert.strictEqual(s.status, ServerStatus.opening);
         assert.ok(
-          s.status & Status.opening,
+          s.status & ServerStatus.opening,
           "Bitmask broken: can't be used to determine `opening` state"
         );
         await pendingListen;
-        assert.strictEqual(s.status, Status.open);
+        assert.strictEqual(s.status, ServerStatus.open);
         assert.ok(
-          s.status & Status.open,
+          s.status & ServerStatus.open,
           "Bitmask broken: can't be used to determine `open` state"
         );
         const pendingClose = s.close();
-        assert.strictEqual(s.status, Status.closing);
+        assert.strictEqual(s.status, ServerStatus.closing);
         assert.ok(
-          s.status & Status.closing,
+          s.status & ServerStatus.closing,
           "Bitmask broken: can't be used to determine `closing` state"
         );
         await pendingClose;
-        assert.strictEqual(s.status, Status.closed);
+        assert.strictEqual(s.status, ServerStatus.closed);
         assert.ok(
-          s.status & Status.closed,
+          s.status & ServerStatus.closed,
           "Bitmask broken: can't be used to determine `closed` state"
         );
       } catch (e) {
         // in case of failure, make sure we properly shut things down
-        if (s.status & Status.open) {
+        if (s.status & ServerStatus.open) {
           await s.close().catch(e => e);
         }
         throw e;
@@ -188,9 +188,10 @@ describe("server", () => {
       server.listen(port);
 
       try {
-        await assert.rejects(setup, {
-          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
-        });
+        await assert.rejects(
+          setup(),
+          `Error: listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
+        );
       } finally {
         await teardown();
         server.close();
@@ -232,7 +233,7 @@ describe("server", () => {
           });
         } catch (e) {
           // in case of failure, make sure we properly shut things down
-          if (s2.status & Status.open) {
+          if (s2.status & ServerStatus.open) {
             await s2.close().catch(e => e);
           }
           throw e;

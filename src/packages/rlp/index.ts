@@ -1,7 +1,7 @@
 import { getLength, decode as _decode } from "rlp";
 import type { Decoded } from "rlp";
-import { utils } from "@ganache/utils";
 import type { RangeOf, Remainders } from "./types";
+import { uintToBuffer } from "@ganache/utils";
 
 export { getLength, Decoded };
 
@@ -110,9 +110,9 @@ export function encodeLength(len: number, offset: number): Buffer {
     buf[0] = len + offset;
     return buf;
   } else {
-    const hexLength = utils.uintToBuffer(len);
+    const hexLength = uintToBuffer(len);
     const lLength = hexLength.length;
-    const firstByte = utils.uintToBuffer(offset + 55 + lLength);
+    const firstByte = uintToBuffer(offset + 55 + lLength);
     return Buffer.concat([firstByte, hexLength], firstByte.length + lLength);
   }
 }

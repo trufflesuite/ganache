@@ -1,4 +1,4 @@
-import { Provider } from "@ganache/filecoin-types";
+import type { Provider } from "@ganache/filecoin";
 
 export default async function (
   provider: Provider,

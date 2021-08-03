@@ -1,7 +1,6 @@
 import { LevelUp } from "levelup";
-import { utils, Data } from "@ganache/utils";
+import { BUFFER_ZERO, Data } from "@ganache/utils";
 const NOTFOUND = 404;
-const { BUFFER_ZERO } = utils;
 
 export type Instantiable<T> = { new (...args: any[]): T };
 

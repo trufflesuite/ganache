@@ -2,6 +2,7 @@
   "extends": "../../../tsconfig-base.json",
   "compilerOptions": {
     "outDir": "lib",
+    "declarationDir": "typings",
     "composite": true,
     "strictNullChecks": true,
     "noImplicitAny": true
@@ -18,10 +19,6 @@
     {
       "name": "@ganache/filecoin-options",
       "path": "../options"
-    },
-    {
-      "name": "@ganache/options",
-      "path": "../../../packages/options"
     },
     {
       "name": "@ganache/utils",

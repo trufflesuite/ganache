@@ -28,7 +28,7 @@ describe("api", () => {
         ]);
 
         const deploymentHash = await provider.send("eth_sendTransaction", [
-          { from: accounts[0], data: contract.code, gas: 3141592 }
+          { from: accounts[0], data: contract.code, gas: "0x2fefd8" }
         ]);
         await provider.once("message");
 
@@ -47,7 +47,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: contractAddress,
-            gas: 3141592,
+            gas: "0x2fefd8",
             data: `0x${methods["setValue(uint256)"]}${initialValue}`
           }
         ]);
@@ -282,7 +282,7 @@ describe("api", () => {
               {
                 from: accounts[0],
                 to: contractAddress,
-                gas: 3141592,
+                gas: "0x2fefd8",
                 data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000001`
               }
             ]),
@@ -290,7 +290,7 @@ describe("api", () => {
               {
                 from: accounts[0],
                 to: contractAddress,
-                gas: 3141592,
+                gas: "0x2fefd8",
                 data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000002`
               }
             ]),
@@ -298,7 +298,7 @@ describe("api", () => {
               {
                 from: accounts[0],
                 to: contractAddress,
-                gas: 3141592,
+                gas: "0x2fefd8",
                 data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000003`
               }
             ])
@@ -320,21 +320,21 @@ describe("api", () => {
           const [resultForTx1, resultForTx2, resultForTx3] = await Promise.all([
             provider.send("debug_storageRangeAt", [
               txReceipt1.blockHash,
-              txReceipt1.transactionIndex, // 0
+              parseInt(txReceipt1.transactionIndex), // 0
               contractAddress,
               "0x00",
               1
             ]),
             await provider.send("debug_storageRangeAt", [
               txReceipt2.blockHash,
-              txReceipt2.transactionIndex, // 1
+              parseInt(txReceipt2.transactionIndex), // 1
               contractAddress,
               "0x00",
               1
             ]),
             provider.send("debug_storageRangeAt", [
               txReceipt3.blockHash,
-              txReceipt3.transactionIndex, // 2
+              parseInt(txReceipt3.transactionIndex), // 2
               contractAddress,
               "0x00",
               1
@@ -433,7 +433,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: contractAddress,
-            gas: 3141592,
+            gas: "0x2fefd8",
             data: `0x${methods["setValue(uint)"]}${initialValue}`
           }
         ]);

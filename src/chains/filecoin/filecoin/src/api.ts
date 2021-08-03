@@ -1,5 +1,5 @@
 //#region Imports
-import { types, Quantity, PromiEvent, Subscription } from "@ganache/utils";
+import { Quantity, PromiEvent, Subscription, Api } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import {
   StartDealParams,
@@ -39,7 +39,7 @@ import { SerializedBlockHeader } from "./things/block-header";
 import { SerializedBlockMessages } from "./things/block-messages";
 import { StorageDealStatus } from "./types/storage-deal-status";
 
-export default class FilecoinApi implements types.Api {
+export default class FilecoinApi implements Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
   readonly #getId = (id => () => Quantity.from(++id))(0);

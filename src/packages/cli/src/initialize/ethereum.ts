@@ -1,9 +1,7 @@
-import { Provider } from "@ganache/ethereum";
-import { utils } from "@ganache/utils";
+import { WEI } from "@ganache/utils";
+import type { Provider } from "@ganache/ethereum";
 import { toChecksumAddress } from "ethereumjs-util";
 import { CliSettings } from "../types";
-
-const WEI = utils.WEI;
 
 export default function (provider: Provider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();

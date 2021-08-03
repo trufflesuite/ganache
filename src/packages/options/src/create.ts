@@ -2,23 +2,21 @@ import { Definitions, ExternalConfig, InternalConfig } from "./definition";
 import { Base } from "./base";
 import { UnionToTuple } from "./exclusive";
 
-import { utils } from "@ganache/utils";
+import { hasOwn } from "@ganache/utils";
 
-const hasOwn = utils.hasOwn;
+export type NamespacedOptions = { [key: string]: Base.Config };
 
-type Options = { [key: string]: Base.Config };
-
-export type ProviderOptions<O extends Options> = Partial<
+export type ProviderOptions<O extends NamespacedOptions> = Partial<
   {
     [K in keyof O]: ExternalConfig<O[K]>;
   }
 >;
 
-export type InternalOptions<O extends Options> = {
+export type InternalOptions<O extends NamespacedOptions> = {
   [K in keyof O]: InternalConfig<O[K]>;
 };
 
-export type Defaults<O extends Options> = {
+export type Defaults<O extends NamespacedOptions> = {
   [K in keyof O]: Definitions<O[K]>;
 };
 
@@ -106,7 +104,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
   }
 }
 
-export class OptionsConfig<O extends Options> {
+export class OptionsConfig<O extends NamespacedOptions> {
   #defaults: Defaults<O>;
   #namespaces: UnionToTuple<keyof Defaults<O>>;
 

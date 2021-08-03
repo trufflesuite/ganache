@@ -13,7 +13,7 @@ import { SerializedBlockHeader } from "../../../src/things/block-header";
 import { Balance } from "../../../src/things/balance";
 import { Signature } from "../../../src/things/signature";
 import { SigType } from "../../../src/things/sig-type";
-import { utils } from "@ganache/utils";
+import { RandomNumberGenerator } from "@ganache/utils";
 
 const LotusRPC = require("@filecoin-shipyard/lotus-client-rpc").LotusRPC;
 
@@ -812,7 +812,7 @@ describe("api", () => {
       it("should accept a properly signed (with SECP256K1 address) transfer message", async () => {
         const originalAddress = accounts[0].address.value;
         const secpAddress = Address.random(
-          new utils.RandomNumberGenerator(),
+          new RandomNumberGenerator(),
           AddressProtocol.SECP256K1
         );
 

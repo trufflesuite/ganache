@@ -1,5 +1,12 @@
 import { normalize } from "./helpers";
-import { Data, Quantity, utils } from "@ganache/utils";
+import {
+  Data,
+  Quantity,
+  ACCOUNT_ZERO,
+  BUFFER_EMPTY,
+  RPCQUANTITY_EMPTY,
+  RPCQUANTITY_ONE
+} from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { Definitions } from "@ganache/options";
 
@@ -13,7 +20,7 @@ export type MinerConfig = {
      * Using the `blockTime` option is discouraged unless you have tests which
      * require a specific mining interval.
      *
-     * @default 0 // "instamine mode"
+     * @defaultValue 0 // "instamine mode"
      */
     blockTime: {
       type: number;
@@ -29,7 +36,7 @@ export type MinerConfig = {
     /**
      * Sets the default gas price in WEI for transactions if not otherwise specified.
      *
-     * @default 2_000_000
+     * @defaultValue 2_000_000
      */
     gasPrice: {
       type: Quantity;
@@ -47,7 +54,7 @@ export type MinerConfig = {
     /**
      * Sets the block difficulty
      *
-     * @default 1
+     * @defaultValue 1
      */
     difficulty: {
       type: Quantity;
@@ -58,7 +65,7 @@ export type MinerConfig = {
     /**
      * Sets the block gas limit in WEI.
      *
-     * @default 12_000_000
+     * @defaultValue 12_000_000
      */
     blockGasLimit: {
       type: Quantity;
@@ -77,7 +84,7 @@ export type MinerConfig = {
      * Sets the default transaction gas limit in WEI. Set to `"estimate"` to
      * use an estimate (slows down transaction execution by 40%+).
      *
-     * @default 90_000
+     * @defaultValue 90_000
      */
     defaultTransactionGasLimit: {
       type: Quantity;
@@ -90,7 +97,7 @@ export type MinerConfig = {
      * Sets the transaction gas limit in WEI for `eth_call` and
      * eth_estimateGas` calls.
      *
-     * @default 9_007_199_254_740_991 // 2**53 - 1
+     * @defaultValue 9_007_199_254_740_991 // 2**53 - 1
      */
     callGasLimit: {
       type: Quantity;
@@ -110,7 +117,7 @@ export type MinerConfig = {
      * the transaction's hash is returned to the caller. If `legacyInstamine` is
      * `true`, `blockTime` must be `0` (default).
      *
-     * @default false
+     * @defaultValue false
      * @deprecated Will be removed in v4
      */
     legacyInstamine: {
@@ -132,7 +139,7 @@ export type MinerConfig = {
      * * `{string}` hex-encoded address
      * * `{number}` index of the account returned by `eth_getAccounts`
      *
-     * @default "0x0000000000000000000000000000000000000000"
+     * @defaultValue "0x0000000000000000000000000000000000000000"
      */
     coinbase: {
       rawType: string | number;
@@ -143,7 +150,7 @@ export type MinerConfig = {
     /**
      * Set the extraData block header field a miner can include.
      *
-     * @default ""
+     * @defaultValue ""
      */
     extraData: {
       rawType: string;
@@ -203,7 +210,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   defaultTransactionGasLimit: {
     normalize: rawType =>
-      rawType === "estimate" ? utils.RPCQUANTITY_EMPTY : Quantity.from(rawType),
+      rawType === "estimate" ? RPCQUANTITY_EMPTY : Quantity.from(rawType),
     cliDescription:
       'Sets the default transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
     default: () => Quantity.from(90_000),
@@ -213,7 +220,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   difficulty: {
     normalize: Quantity.from,
     cliDescription: "Sets the block difficulty.",
-    default: () => utils.RPCQUANTITY_ONE,
+    default: () => RPCQUANTITY_ONE,
     cliType: "number"
   },
   callGasLimit: {
@@ -238,7 +245,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return typeof rawType === "number" ? rawType : Address.from(rawType);
     },
     cliDescription: "Sets the address where mining rewards will go.",
-    default: () => Address.from(utils.ACCOUNT_ZERO)
+    default: () => Address.from(ACCOUNT_ZERO)
   },
   extraData: {
     normalize: (extra: string) => {
@@ -251,7 +258,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return bytes;
     },
     cliDescription: "Set the extraData block header field a miner can include.",
-    default: () => Data.from(utils.BUFFER_EMPTY),
+    default: () => Data.from(BUFFER_EMPTY),
     cliType: "string"
   }
 };

@@ -1,10 +1,9 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { JsonRpcTypes } from "@ganache/utils";
+import { JsonRpcError, JsonRpcResponse } from "@ganache/utils";
 import { AbortSignal } from "abort-controller";
 import { OutgoingHttpHeaders } from "http";
 import RateLimiter from "../rate-limiter/rate-limiter";
 
-type JsonRpcResponse = JsonRpcTypes.Error | JsonRpcTypes.Response;
 type Headers = OutgoingHttpHeaders & { authorization?: string };
 
 const INVALID_AUTH_ERROR =
@@ -14,7 +13,10 @@ const WINDOW_SECONDS = 30;
 export class BaseHandler {
   static JSONRPC_PREFIX = '{"jsonrpc":"2.0","id":';
   protected id: number = 1;
-  protected requestCache = new Map<string, Promise<JsonRpcResponse>>();
+  protected requestCache = new Map<
+    string,
+    Promise<JsonRpcError | JsonRpcResponse>
+  >();
   protected limiter: RateLimiter;
   protected headers: Headers;
   protected abortSignal: AbortSignal;

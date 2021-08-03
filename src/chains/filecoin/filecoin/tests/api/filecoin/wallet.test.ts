@@ -5,7 +5,7 @@ import { Address, AddressProtocol } from "../../../src/things/address";
 import { KeyType } from "../../../src/things/key-type";
 import { SerializedKeyInfo } from "../../../src/things/key-info";
 import { SigType } from "../../../src/things/sig-type";
-import { utils } from "@ganache/utils";
+import { RandomNumberGenerator } from "@ganache/utils";
 import { Message, SerializedMessage } from "../../../src/things/message";
 import { SerializedSignature } from "../../../src/things/signature";
 import { SerializedSignedMessage } from "../../../src/things/signed-message";
@@ -159,7 +159,7 @@ describe("api", () => {
 
       it("should import a random SECP256K1 address/privatekey", async () => {
         addressSECP256K1 = Address.random(
-          new utils.RandomNumberGenerator(),
+          new RandomNumberGenerator(),
           AddressProtocol.SECP256K1
         );
         const importedAddress = await client.walletImport({
@@ -177,7 +177,7 @@ describe("api", () => {
       it("should reject importing a secp256k1-ledger address", async () => {
         try {
           const address = Address.random(
-            new utils.RandomNumberGenerator(),
+            new RandomNumberGenerator(),
             AddressProtocol.SECP256K1
           );
           await client.walletImport({

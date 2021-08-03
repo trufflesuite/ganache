@@ -1,4 +1,10 @@
-import { utils, Data, Quantity } from "@ganache/utils";
+import {
+  Data,
+  Quantity,
+  BUFFER_EMPTY,
+  BUFFER_32_ZERO,
+  BUFFER_8_ZERO
+} from "@ganache/utils";
 import { BN, KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
@@ -21,8 +27,6 @@ class BnExtra extends BN {
     this.buf = number;
   }
 }
-
-const { BUFFER_EMPTY, BUFFER_32_ZERO, BUFFER_8_ZERO } = utils;
 
 export type BlockHeader = {
   parentHash: Data;
@@ -87,7 +91,7 @@ export class RuntimeBlock {
     parentHash: Buffer;
     difficulty: BnExtra;
     totalDifficulty: Buffer;
-    coinbase: { buf: Buffer };
+    coinbase: { buf: Buffer; toBuffer: () => Buffer };
     number: BnExtra;
     gasLimit: BnExtra;
     timestamp: BnExtra;
@@ -103,9 +107,10 @@ export class RuntimeBlock {
     previousBlockTotalDifficulty: Quantity
   ) {
     const ts = timestamp.toBuffer();
+    const coinbaseBuffer = coinbase.toBuffer();
     this.header = {
       parentHash: parentHash.toBuffer(),
-      coinbase: { buf: coinbase.toBuffer() },
+      coinbase: { buf: coinbaseBuffer, toBuffer: () => coinbaseBuffer },
       number: new BnExtra(number.toBuffer()),
       difficulty: new BnExtra(difficulty.toBuffer()),
       totalDifficulty: Quantity.from(

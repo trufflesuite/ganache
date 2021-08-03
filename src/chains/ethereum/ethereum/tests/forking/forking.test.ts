@@ -2,7 +2,7 @@ import ganache from "../../../../../packages/core";
 import assert from "assert";
 import EthereumProvider from "../../src/provider";
 import Server from "../../../../../packages/core/lib/src/server";
-import { Quantity, utils } from "@ganache/utils";
+import { Quantity, WEI } from "@ganache/utils";
 import {
   logging,
   startLocalChain,
@@ -12,7 +12,6 @@ import {
 } from "./helpers";
 import compile from "../helpers/compile";
 import path from "path";
-const { WEI } = utils;
 
 describe("forking", () => {
   const PORT = 9999;
@@ -178,10 +177,10 @@ describe("forking", () => {
         "Failed sanity check; local starting block number should be 2. Adjust test and check test to fix."
       );
 
-      const blockNumsWithCode = range(contractBlockNum, blockNum);
-      const blockNumsWithoutCode = range(0, contractBlockNum - 1);
+      const blockNumbersWithCode = range(contractBlockNum, blockNum);
+      const blockNumbersWithoutCode = range(0, contractBlockNum - 1);
 
-      return { blockNum, blockNumsWithCode, blockNumsWithoutCode };
+      return { blockNum, blockNumbersWithCode, blockNumbersWithoutCode };
     }
 
     async function checkOriginalData(
@@ -283,12 +282,13 @@ describe("forking", () => {
 
     it("should fetch contract code from the remote chain via the local chain", async () => {
       const { localProvider } = await startLocalChain(PORT);
-      const { blockNumsWithCode, blockNumsWithoutCode } = await getBlockRanges(
-        localProvider
-      );
+      const {
+        blockNumbersWithCode,
+        blockNumbersWithoutCode
+      } = await getBlockRanges(localProvider);
 
       await Promise.all(
-        blockNumsWithCode.map(blockNumber =>
+        blockNumbersWithCode.map(blockNumber =>
           localProvider
             .send("eth_getCode", [
               contractAddress,
@@ -299,7 +299,7 @@ describe("forking", () => {
       );
 
       await Promise.all(
-        blockNumsWithoutCode.map(blockNumber =>
+        blockNumbersWithoutCode.map(blockNumber =>
           localProvider
             .send("eth_getCode", [
               contractAddress,
@@ -314,15 +314,15 @@ describe("forking", () => {
       const { localProvider } = await startLocalChain(PORT);
       const {
         blockNum,
-        blockNumsWithCode,
-        blockNumsWithoutCode
+        blockNumbersWithCode,
+        blockNumbersWithoutCode
       } = await getBlockRanges(localProvider);
 
       const _get = (value: string, blockNum: number) =>
         get(localProvider, value, blockNum);
 
       await Promise.all(
-        blockNumsWithCode.map(async blockNumber => {
+        blockNumbersWithCode.map(async blockNumber => {
           const value0 = await _get("value0", blockNumber);
           assert.strictEqual(parseInt(value0, 16), 0);
 
@@ -341,7 +341,7 @@ describe("forking", () => {
       );
 
       await Promise.all(
-        blockNumsWithoutCode.map(async blockNumber => {
+        blockNumbersWithoutCode.map(async blockNumber => {
           const value0 = await _get("value0", blockNumber);
           assert.strictEqual(value0, "0x");
 
@@ -364,8 +364,8 @@ describe("forking", () => {
       const { localProvider } = await startLocalChain(PORT);
       const {
         blockNum,
-        blockNumsWithCode,
-        blockNumsWithoutCode
+        blockNumbersWithCode,
+        blockNumbersWithoutCode
       } = await getBlockRanges(localProvider);
 
       function set(key: number, value: number) {
@@ -402,10 +402,10 @@ describe("forking", () => {
       const blockNumsAfterNine = range(blockNum + 1, postNineBlockNum);
 
       // the blocks created before the `set` should still have the original values
-      await checkOriginalData(blockNumsWithCode, _get);
+      await checkOriginalData(blockNumbersWithCode, _get);
 
       // the pre-contract blocks should still have no values
-      await checkRangeForValue(blockNumsWithoutCode, "0x", _get);
+      await checkRangeForValue(blockNumbersWithoutCode, "0x", _get);
 
       const nine =
         "0x0000000000000000000000000000000000000000000000000000000000000009";
@@ -421,10 +421,10 @@ describe("forking", () => {
       const blockNumsAfterZero = range(postNineBlockNum + 1, postZeroBlockNum);
 
       // the pre-contract blocks should still have no values
-      await checkRangeForValue(blockNumsWithoutCode, "0x", _get);
+      await checkRangeForValue(blockNumbersWithoutCode, "0x", _get);
 
       // the blocks created before the `set` should still have the original values
-      await checkOriginalData(blockNumsWithCode, _get);
+      await checkOriginalData(blockNumbersWithCode, _get);
 
       // post-nine-blocks that are pre-zero should still be set to nine
       await checkRangeForValue(blockNumsAfterNine, nine, _get);
@@ -447,10 +447,10 @@ describe("forking", () => {
       );
 
       // the pre-contract blocks should still have no values
-      await checkRangeForValue(blockNumsWithoutCode, "0x", _get);
+      await checkRangeForValue(blockNumbersWithoutCode, "0x", _get);
 
       // the blocks created before the `set` should still have the original values
-      await checkOriginalData(blockNumsWithCode, _get);
+      await checkOriginalData(blockNumbersWithCode, _get);
 
       // post-nine-blocks that are pre-zero should still be set to nine
       await checkRangeForValue(blockNumsAfterNine, nine, _get);

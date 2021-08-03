@@ -3,8 +3,7 @@ import {
   GanacheRawBlockTransactionMetaData
 } from "@ganache/ethereum-transaction";
 import { digest, encodeLength, encodeRange, encode } from "@ganache/rlp";
-import { utils } from "@ganache/utils";
-const { uintToBuffer } = utils;
+import { uintToBuffer } from "@ganache/utils";
 
 export type GanacheRawBlockExtras = [
   totalDifficulty: Buffer,
