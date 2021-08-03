@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-internal.1+bb7c63ff",
+  "version": "0.1.1-canary.2+bb3106bf",
   "description": "Utility functions for @ganache packages",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/utils#readme",
@@ -56,5 +56,5 @@
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"
   },
-  "gitHead": "bb7c63ff9f767f3cfe5280a80163fdaa61f3e65f"
+  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
 }

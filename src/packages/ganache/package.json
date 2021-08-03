@@ -1,6 +1,6 @@
 {
   "name": "ganache",
-  "version": "7.0.0-internal.1+bb7c63ff",
+  "version": "7.0.0-canary.2+bb3106bf",
   "description": "A library and cli to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
@@ -51,9 +51,9 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/cli": "0.1.1-internal.1+bb7c63ff",
-    "@ganache/core": "0.1.1-internal.1+bb7c63ff",
-    "@ganache/flavors": "0.1.1-internal.1+bb7c63ff",
+    "@ganache/cli": "0.1.1-canary.2+bb3106bf",
+    "@ganache/core": "0.1.1-canary.2+bb3106bf",
+    "@ganache/flavors": "0.1.1-canary.2+bb3106bf",
     "@types/node": "14.14.6",
     "assert": "2.0.0",
     "buffer": "6.0.1",
@@ -85,5 +85,5 @@
   "peerDependencies": {
     "@ganache/filecoin": "0.1.0"
   },
-  "gitHead": "bb7c63ff9f767f3cfe5280a80163fdaa61f3e65f"
+  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
 }
