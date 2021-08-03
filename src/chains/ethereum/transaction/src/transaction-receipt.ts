@@ -54,6 +54,7 @@ export class TransactionReceipt {
   #gasUsed: Buffer;
   raw: EthereumRawReceipt;
   encoded: { length: number; output: Buffer[] };
+  txType: Quantity;
 
   constructor(data?: Buffer) {
     if (data) {
@@ -74,11 +75,13 @@ export class TransactionReceipt {
     logsBloom: Buffer,
     logs: TransactionLog[],
     gasUsed: Buffer,
-    contractAddress: Buffer = null
+    contractAddress: Buffer = null,
+    type: Quantity = null
   ) => {
     this.raw = [status, cumulativeGasUsed, logsBloom, logs];
     this.contractAddress = contractAddress;
     this.#gasUsed = gasUsed;
+    this.txType = type;
   };
 
   static fromValues(
@@ -87,7 +90,8 @@ export class TransactionReceipt {
     logsBloom: Buffer,
     logs: TransactionLog[],
     gasUsed: Buffer,
-    contractAddress: Buffer
+    contractAddress: Buffer,
+    type: Quantity = null
   ) {
     const receipt = new TransactionReceipt();
     receipt.#init(
@@ -96,7 +100,8 @@ export class TransactionReceipt {
       logsBloom,
       logs,
       gasUsed,
-      contractAddress
+      contractAddress,
+      type
     );
     return receipt;
   }
@@ -106,6 +111,7 @@ export class TransactionReceipt {
       this.encoded = encodeRange(this.raw, 0, 4);
     }
     if (all) {
+      //TODO evaluate how typed txs affect this
       // the database format includes gasUsed and the contractAddress:
       const extras: GanacheExtrasRawReceipt = [
         this.#gasUsed,
@@ -118,7 +124,10 @@ export class TransactionReceipt {
       );
     } else {
       // receipt trie format:
-      return digest([this.encoded.output], this.encoded.length);
+      const serialized = digest([this.encoded.output], this.encoded.length);
+      return this.txType
+        ? Buffer.concat([this.txType.toBuffer(), serialized])
+        : serialized;
     }
   }
 
