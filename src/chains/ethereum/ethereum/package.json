@@ -81,7 +81,7 @@
     "semaphore": "1.1.0",
     "subleveldown": "5.0.1",
     "tmp-promise": "3.0.2",
-    "ws": "7.4.2"
+    "ws": "7.4.6"
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
