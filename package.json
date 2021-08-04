@@ -3,7 +3,7 @@
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "private": true,
   "engines": {
-    "node": ">=10.13.0 <=14.16.0",
+    "node": ">=10.18.0 <=14.16.0",
     "npm": ">=6.4.1"
   },
   "scripts": {
