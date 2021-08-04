@@ -25,6 +25,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
+
+      - name: Set npm to v6
+        if: startsWith(matrix.node, '16.')
+        run: npm install -g npm@6
+
       - run: npm ci
       - run: npm run tsc
       - run: npm test
@@ -53,6 +58,10 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
+
+      - name: Set npm to v6
+        if: startsWith(matrix.node, '16.')
+        run: npm install -g npm@6
 
       - name: Add msbuild to PATH
         # we need msbuild tools for the `bigint-buffer` module

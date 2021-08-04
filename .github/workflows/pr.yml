@@ -31,6 +31,10 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
+      - name: Set npm to v6
+        if: startsWith(matrix.node, '16.')
+        run: npm install -g npm@6
+
       - name: Add msbuild to PATH
         # we need msbuild tools for the `bigint-buffer` module
         if: startsWith(matrix.os, 'windows-')
