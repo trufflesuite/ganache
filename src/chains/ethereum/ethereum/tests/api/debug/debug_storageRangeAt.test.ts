@@ -10,8 +10,8 @@ describe("api", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       let contractAddress: string;
-      let blockHash: string | Buffer;
-      let deploymentBlockHash: string | Buffer;
+      let blockHash: string;
+      let deploymentBlockHash: string;
       let methods: {
         [methodName: string]: string;
       };
@@ -389,8 +389,7 @@ describe("api", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       let contractAddress: string;
-      let blockHash: string | Buffer;
-      let deploymentBlockHash: string | Buffer;
+      let blockHash: string;
 
       before(async () => {
         provider = await getProvider();
@@ -423,7 +422,6 @@ describe("api", () => {
           [deploymentHash.toString()]
         );
         contractAddress = deploymentTxReceipt.contractAddress;
-        deploymentBlockHash = deploymentTxReceipt.blockHash;
 
         const methods = contract.contract.evm.methodIdentifiers;
         const initialValue =

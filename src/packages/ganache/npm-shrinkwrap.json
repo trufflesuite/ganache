@@ -1,6 +1,6 @@
 {
 	"name": "ganache",
-	"version": "7.0.0-internal.1336",
+	"version": "7.0.0-canary.2+bb3106bf",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
@@ -1866,6 +1866,12 @@
 				"ajv": "^6.12.5",
 				"ajv-keywords": "^3.5.2"
 			}
+		},
+		"scrypt-js": {
+			"version": "3.0.1",
+			"resolved": "https://registry.npmjs.org/scrypt-js/-/scrypt-js-3.0.1.tgz",
+			"integrity": "sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==",
+			"dev": true
 		},
 		"secp256k1": {
 			"version": "4.0.2",

@@ -12,7 +12,7 @@
 			"flags": {
 				"isExported": true
 			},
-			"originalName": "/home/david/work/ganache-core/src/chains/ethereum/ethereum/src/api.ts",
+			"originalName": "/home/micaiah/work/ganache-core/src/chains/ethereum/ethereum/src/api.ts",
 			"children": [
 				{
 					"id": 2,
@@ -498,6 +498,16 @@
 									"flags": {
 										"isExported": true
 									},
+									"comment": {
+										"shortText": "Returns the kademlia table in a readable table format.",
+										"returns": "Returns the kademlia table in a readable table format.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"bzz_hive\"));\n```\n"
+											}
+										]
+									},
 									"type": {
 										"type": "reference",
 										"typeArguments": [
@@ -549,6 +559,16 @@
 									"kindString": "Call signature",
 									"flags": {
 										"isExported": true
+									},
+									"comment": {
+										"shortText": "Returns details about the swarm node.",
+										"returns": "Returns details about the swarm node.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"bzz_info\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -603,8 +623,14 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns binary data from the local database",
-										"returns": "The previously stored data.\n"
+										"shortText": "Returns binary data from the local database.",
+										"returns": "The previously stored data.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"db_getHex\", [\"testDb\", \"testKey\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -690,8 +716,14 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns string from the local database",
-										"returns": "The previously stored string.\n"
+										"shortText": "Returns string from the local database.",
+										"returns": "The previously stored string.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"db_getString\", [\"testDb\", \"testKey\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -778,7 +810,13 @@
 									},
 									"comment": {
 										"shortText": "Stores binary data in the local database.",
-										"returns": "true if the value was stored, otherwise false.\n"
+										"returns": "`true` if the value was stored, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"db_putHex\", [\"testDb\", \"testKey\", \"0x0\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -825,8 +863,8 @@
 												"text": "Data to store."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -881,7 +919,13 @@
 									},
 									"comment": {
 										"shortText": "Stores a string in the local database.",
-										"returns": "returns true if the value was stored, otherwise false.\n"
+										"returns": "Returns true if the value was stored, otherwise false.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"db_putString\", [\"testDb\", \"testKey\", \"testValue\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -954,7 +998,7 @@
 							]
 						},
 						{
-							"id": 326,
+							"id": 309,
 							"name": "debug_storageRangeAt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -963,7 +1007,7 @@
 							},
 							"signatures": [
 								{
-									"id": 327,
+									"id": 310,
 									"name": "debug_storageRangeAt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -976,7 +1020,7 @@
 									},
 									"parameters": [
 										{
-											"id": 328,
+											"id": 311,
 											"name": "blockHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -984,24 +1028,15 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 32 Bytes - hash of a block"
+												"text": "Hash of a block."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 329,
+											"id": 312,
 											"name": "transactionIndex",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1009,7 +1044,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY - the index of the transaction in the block"
+												"text": "Integer of the transaction index position."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -1017,7 +1052,7 @@
 											}
 										},
 										{
-											"id": 330,
+											"id": 313,
 											"name": "contractAddress",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1025,15 +1060,15 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 20 Bytes - address of the contract"
+												"text": "Address of the contract."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 331,
+											"id": 314,
 											"name": "startKey",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1044,21 +1079,12 @@
 												"text": "hash of the start key for grabbing storage entries"
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 332,
+											"id": 315,
 											"name": "maxResult",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1066,7 +1092,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer of maximum number of storage entries to return"
+												"text": "Integer of maximum number of storage entries to return."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -1095,7 +1121,7 @@
 							]
 						},
 						{
-							"id": 308,
+							"id": 305,
 							"name": "debug_traceTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1104,7 +1130,7 @@
 							},
 							"signatures": [
 								{
-									"id": 309,
+									"id": 306,
 									"name": "debug_traceTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1124,7 +1150,7 @@
 									},
 									"parameters": [
 										{
-											"id": 310,
+											"id": 307,
 											"name": "transactionHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1135,12 +1161,12 @@
 												"text": "transactionHash"
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 311,
+											"id": 308,
 											"name": "options",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1481,7 +1507,7 @@
 							]
 						},
 						{
-							"id": 175,
+							"id": 169,
 							"name": "eth_accounts",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1502,7 +1528,7 @@
 							],
 							"signatures": [
 								{
-									"id": 176,
+									"id": 170,
 									"name": "eth_accounts",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1511,7 +1537,13 @@
 									},
 									"comment": {
 										"shortText": "Returns a list of addresses owned by client.",
-										"returns": "Array of 20 Bytes - addresses owned by the client.\n"
+										"returns": "Array of 20 Bytes - addresses owned by the client.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nconsole.log(accounts);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -1537,7 +1569,7 @@
 							]
 						},
 						{
-							"id": 177,
+							"id": 171,
 							"name": "eth_blockNumber",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1558,7 +1590,7 @@
 							],
 							"signatures": [
 								{
-									"id": 178,
+									"id": 172,
 									"name": "eth_blockNumber",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1567,7 +1599,13 @@
 									},
 									"comment": {
 										"shortText": "Returns the number of the most recent block.",
-										"returns": "integer of the current block number the client is on.\n"
+										"returns": "The current block number the client is on.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst blockNumber = await provider.request({ method: \"eth_blockNumber\" });\nconsole.log(blockNumber);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -1590,7 +1628,7 @@
 							]
 						},
 						{
-							"id": 304,
+							"id": 301,
 							"name": "eth_call",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1612,7 +1650,7 @@
 							],
 							"signatures": [
 								{
-									"id": 305,
+									"id": 302,
 									"name": "eth_call",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1621,11 +1659,18 @@
 									},
 									"comment": {
 										"shortText": "Executes a new message call immediately without creating a transaction on the block chain.",
-										"returns": "the return value of executed contract.\n"
+										"text": "Transaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"returns": "The return value of executed contract.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst txObj = { from, gas: \"0x5b8d80\", gasPrice: \"0x1dfd14000\", value:\"0x0\", data: simpleSol };\nconst result = await provider.request({ method: \"eth_call\", params: [txObj, \"latest\"] });\nconsole.log(result);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 306,
+											"id": 303,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1641,7 +1686,7 @@
 											}
 										},
 										{
-											"id": 307,
+											"id": 304,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1655,12 +1700,8 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -1692,7 +1733,7 @@
 							]
 						},
 						{
-							"id": 179,
+							"id": 173,
 							"name": "eth_chainId",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1713,7 +1754,7 @@
 							],
 							"signatures": [
 								{
-									"id": 180,
+									"id": 174,
 									"name": "eth_chainId",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1755,7 +1796,7 @@
 							]
 						},
 						{
-							"id": 117,
+							"id": 111,
 							"name": "eth_coinbase",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1776,7 +1817,7 @@
 							],
 							"signatures": [
 								{
-									"id": 118,
+									"id": 112,
 									"name": "eth_coinbase",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1785,7 +1826,13 @@
 									},
 									"comment": {
 										"shortText": "Returns the client coinbase address.",
-										"returns": "20 bytes - the current coinbase address.\n"
+										"returns": "The current coinbase address.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst coinbaseAddress = await provider.request({ method: \"eth_coinbase\" });\nconsole.log(coinbaseAddress);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -1808,7 +1855,7 @@
 							]
 						},
 						{
-							"id": 109,
+							"id": 103,
 							"name": "eth_estimateGas",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1830,7 +1877,7 @@
 							],
 							"signatures": [
 								{
-									"id": 110,
+									"id": 104,
 									"name": "eth_estimateGas",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1839,42 +1886,49 @@
 									},
 									"comment": {
 										"shortText": "Generates and returns an estimate of how much gas is necessary to allow the\ntransaction to complete. The transaction will not be added to the\nblockchain. Note that the estimate may be significantly more than the\namount of gas actually used by the transaction, for a variety of reasons\nincluding EVM mechanics and node performance.",
-										"returns": "the amount of gas used.\n",
+										"text": "Transaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"returns": "The amount of gas used.\n",
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nconst gasEstimate = await provider.request({ method: \"eth_estimateGas\", params: [{ from: accounts[0], to: accounts[1] }, \"latest\" ] });\nconsole.log(gasEstimate);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst gasEstimate = await provider.request({ method: \"eth_estimateGas\", params: [{ from, to }, \"latest\" ] });\nconsole.log(gasEstimate);\n```\n"
 											}
 										]
 									},
 									"parameters": [
 										{
-											"id": 111,
+											"id": 105,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "The transaction call object as seen in source."
+											},
 											"type": {
-												"type": "reference",
-												"name": "RpcTransaction"
+												"type": "intrinsic",
+												"name": "any"
 											}
 										},
 										{
-											"id": 112,
+											"id": 106,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
+											},
 											"type": {
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -1906,7 +1960,7 @@
 							]
 						},
 						{
-							"id": 173,
+							"id": 167,
 							"name": "eth_gasPrice",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1927,7 +1981,7 @@
 							],
 							"signatures": [
 								{
-									"id": 174,
+									"id": 168,
 									"name": "eth_gasPrice",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1936,7 +1990,13 @@
 									},
 									"comment": {
 										"shortText": "Returns the current price per gas in wei.",
-										"returns": "integer of the current gas price in wei.\n"
+										"returns": "Integer of the current gas price in wei.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst gasPrice = await provider.request({ method: \"eth_gasPrice\", params: [] });\nconsole.log(gasPrice);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -1959,7 +2019,7 @@
 							]
 						},
 						{
-							"id": 181,
+							"id": 175,
 							"name": "eth_getBalance",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1981,7 +2041,7 @@
 							],
 							"signatures": [
 								{
-									"id": 182,
+									"id": 176,
 									"name": "eth_getBalance",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1989,11 +2049,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns the balance of the account of given address."
+										"shortText": "Returns the balance of the account of given address.",
+										"returns": "Integer of the account balance in wei.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst accounts = await provider.request({ method: \"eth_accounts\", params: [] });\nconst balance = await provider.request({ method: \"eth_getBalance\", params: [accounts[0], \"latest\"] });\nconsole.log(balance);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 183,
+											"id": 177,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2001,15 +2068,15 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "20 Bytes - address to check for balance."
+												"text": "Address to check for balance."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 184,
+											"id": 178,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2017,7 +2084,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\"\n or \"pending\", see the default block parameter\n"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
 											},
 											"type": {
 												"type": "union",
@@ -2028,7 +2095,7 @@
 													},
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -2060,7 +2127,7 @@
 							]
 						},
 						{
-							"id": 123,
+							"id": 117,
 							"name": "eth_getBlockByHash",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2082,7 +2149,7 @@
 							],
 							"signatures": [
 								{
-									"id": 124,
+									"id": 118,
 									"name": "eth_getBlockByHash",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2091,33 +2158,33 @@
 									},
 									"comment": {
 										"shortText": "Returns information about a block by block hash.",
-										"returns": "Block\n"
+										"returns": "The block, `null` if the block doesn't exist.\n\n* `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.\n* `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.\n* `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.\n* `miner`: `DATA`, 20 Bytes -  Address of the miner.\n* `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.\n* `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.\n* `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.\n* `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.\n* `difficulty`: `QUANTITY` - Integer of the difficulty of this block.\n* `number`: `QUANTITY` - The block number. `null` when pending.\n* `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.\n* `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.\n* `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.\n* `extraData`: `DATA` - Extra data for the block.\n* `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.\n* `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.\n* `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.\n* `size`: `QUANTITY` - Integer the size of the block in bytes.\n* `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.\n* `uncles`: `Array` - Array of uncle hashes.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst block = await provider.request({ method: \"eth_getBlockByHash\", params: [txReceipt.blockHash, true] });\nconsole.log(block);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 125,
+											"id": 119,
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "Hash of a block."
+											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 126,
+											"id": 120,
 											"name": "transactions",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2125,7 +2192,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "Boolean - If true it returns the full transaction objects, if false only the hashes of the\ntransactions."
+												"text": "If `true` it returns the full transaction objects, if `false` only the hashes of the\ntransactions."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -2155,7 +2222,7 @@
 							]
 						},
 						{
-							"id": 119,
+							"id": 113,
 							"name": "eth_getBlockByNumber",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2177,7 +2244,7 @@
 							],
 							"signatures": [
 								{
-									"id": 120,
+									"id": 114,
 									"name": "eth_getBlockByNumber",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2186,11 +2253,17 @@
 									},
 									"comment": {
 										"shortText": "Returns information about a block by block number.",
-										"returns": "the block, `null` if the block doesn't exist.\n"
+										"returns": "The block, `null` if the block doesn't exist.\n\n* `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.\n* `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.\n* `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.\n* `miner`: `DATA`, 20 Bytes -  Address of the miner.\n* `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.\n* `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.\n* `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.\n* `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.\n* `difficulty`: `QUANTITY` - Integer of the difficulty of this block.\n* `number`: `QUANTITY` - The block number. `null` when pending.\n* `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.\n* `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.\n* `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.\n* `extraData`: `DATA` - Extra data for the block.\n* `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.\n* `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.\n* `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.\n* `size`: `QUANTITY` - Integer the size of the block in bytes.\n* `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.\n* `uncles`: `Array` - Array of uncle hashes.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst block = await provider.request({ method: \"eth_getBlockByNumber\", params: [\"0x0\", false] });\nconsole.log(block);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 121,
+											"id": 115,
 											"name": "number",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2198,14 +2271,14 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY|TAG - integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
+												"text": "Integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the\ndefault block parameter."
 											},
 											"type": {
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -2215,7 +2288,7 @@
 											}
 										},
 										{
-											"id": 122,
+											"id": 116,
 											"name": "transactions",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2223,7 +2296,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "Boolean - If true it returns the full transaction objects, if false only the hashes of the\ntransactions."
+												"text": "If `true` it returns the full transaction objects, if `false` only the hashes of the\ntransactions."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -2253,7 +2326,7 @@
 							]
 						},
 						{
-							"id": 130,
+							"id": 124,
 							"name": "eth_getBlockTransactionCountByHash",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2274,7 +2347,7 @@
 							],
 							"signatures": [
 								{
-									"id": 131,
+									"id": 125,
 									"name": "eth_getBlockTransactionCountByHash",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2282,11 +2355,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns the number of transactions in a block from a block matching the given block hash."
+										"shortText": "Returns the number of transactions in a block from a block matching the given block hash.",
+										"returns": "Number of transactions in the block.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst txCount = await provider.request({ method: \"eth_getBlockTransactionCountByHash\", params: [txReceipt.blockHash] });\nconsole.log(txCount);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 132,
+											"id": 126,
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2294,20 +2374,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 32 Bytes - hash of a block.\n"
+												"text": "Hash of a block."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -2332,7 +2403,7 @@
 							]
 						},
 						{
-							"id": 127,
+							"id": 121,
 							"name": "eth_getBlockTransactionCountByNumber",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2353,7 +2424,7 @@
 							],
 							"signatures": [
 								{
-									"id": 128,
+									"id": 122,
 									"name": "eth_getBlockTransactionCountByNumber",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2361,11 +2432,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns the number of transactions in a block from a block matching the given block number."
+										"shortText": "Returns the number of transactions in a block from a block matching the given block number.",
+										"returns": "Integer of the number of transactions in the block.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst txCount = await provider.request({ method: \"eth_getBlockTransactionCountByNumber\", params: [\"0x0\"] });\nconsole.log(txCount);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 129,
+											"id": 123,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2376,8 +2454,8 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -2408,7 +2486,7 @@
 							]
 						},
 						{
-							"id": 185,
+							"id": 179,
 							"name": "eth_getCode",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2430,7 +2508,7 @@
 							],
 							"signatures": [
 								{
-									"id": 186,
+									"id": 180,
 									"name": "eth_getCode",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2439,11 +2517,17 @@
 									},
 									"comment": {
 										"shortText": "Returns code at a given address.",
-										"returns": "the code from the given address.\n"
+										"returns": "The code from the given address.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst code = await provider.request({ method: \"eth_getCode\", params: [txReceipt.contractAddress, \"latest\"] });\nconsole.log(code);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 187,
+											"id": 181,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2451,7 +2535,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "20 Bytes - address"
+												"text": "Address."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -2459,7 +2543,7 @@
 											}
 										},
 										{
-											"id": 188,
+											"id": 182,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2467,14 +2551,14 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\" or \"pending\", see the default block\nparameter"
+												"text": "Integer block number, or the string \"latest\", \"earliest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -2506,7 +2590,7 @@
 							]
 						},
 						{
-							"id": 133,
+							"id": 127,
 							"name": "eth_getCompilers",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2527,12 +2611,22 @@
 							],
 							"signatures": [
 								{
-									"id": 134,
+									"id": 128,
 									"name": "eth_getCompilers",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
 										"isExported": true
+									},
+									"comment": {
+										"shortText": "Returns a list of available compilers.",
+										"returns": "List of available compilers.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst compilers = await provider.send(\"eth_getCompilers\");\nconsole.log(compilers);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -2558,7 +2652,7 @@
 							]
 						},
 						{
-							"id": 268,
+							"id": 265,
 							"name": "eth_getFilterChanges",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2579,7 +2673,7 @@
 							],
 							"signatures": [
 								{
-									"id": 269,
+									"id": 266,
 									"name": "eth_getFilterChanges",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2588,11 +2682,17 @@
 									},
 									"comment": {
 										"shortText": "Polling method for a filter, which returns an array of logs, block hashes,\nor transaction hashes, depending on the filter type, which occurred since\nlast poll.",
-										"returns": "an array of logs, block hashes, or transaction hashes, depending\non the filter type, which occurred since last poll.\n"
+										"returns": "An array of logs, block hashes, or transaction hashes, depending\non the filter type, which occurred since last poll.\n\nFor filters created with `eth_newBlockFilter` the return are block hashes (`DATA`, 32 Bytes).\n\nFor filters created with `eth_newPendingTransactionFilter` the return are transaction hashes (`DATA`, 32 Bytes).\n\nFor filters created with `eth_newFilter` the return are log objects with the following parameters:\n* `removed`: `TAG` - `true` when the log was removed, `false` if its a valid log.\n* `logIndex`: `QUANTITY` - Integer of the log index position in the block. `null` when pending.\n* `transactionIndex`: `QUANTITY` - Integer of the transactions index position. `null` when pending.\n* `transactionHash`: `DATA`, 32 Bytes - Hash of the transaction where the log was. `null` when pending.\n* `blockHash`: `DATA`, 32 Bytes - Hash of the block where the log was. `null` when pending.\n* `blockNumber`: `QUANTITY` - The block number where the log was in. `null` when pending.\n* `address`: `DATA`, 20 Bytes - The address from which the log originated.\n* `data`: `DATA` - Contains one or more 32 Bytes non-indexed arguments of the log.\n* `topics`: `Array of DATA` - Array of 0 to 4 32 Bytes `DATA` of indexed log arguments.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\nconst filterId = await provider.send(\"eth_newFilter\");\n\nconst subscriptionId = await provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst changes = await provider.request({ method: \"eth_getFilterChanges\", params: [filterId] });\nconsole.log(changes);\n\nawait provider.send(\"eth_unsubscribe\", [subscriptionId]);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 270,
+											"id": 267,
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2600,11 +2700,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the filter id."
+												"text": "The filter id."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -2632,7 +2732,7 @@
 							]
 						},
 						{
-							"id": 274,
+							"id": 271,
 							"name": "eth_getFilterLogs",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2653,7 +2753,7 @@
 							],
 							"signatures": [
 								{
-									"id": 275,
+									"id": 272,
 									"name": "eth_getFilterLogs",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2662,20 +2762,29 @@
 									},
 									"comment": {
 										"shortText": "Returns an array of all logs matching filter with given id.",
-										"returns": "Array of log objects, or an empty array.\n"
+										"returns": "Array of log objects, or an empty array.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\nconst filterId = await provider.send(\"eth_newFilter\");\n\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst logs = await provider.request({ method: \"eth_getFilterLogs\", params: [filterId] });\nconsole.log(logs);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 276,
+											"id": 273,
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "The filter id."
+											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -2687,7 +2796,7 @@
 												"elementType": {
 													"type": "reflection",
 													"declaration": {
-														"id": 277,
+														"id": 274,
 														"name": "__type",
 														"kind": 65536,
 														"kindString": "Type literal",
@@ -2696,7 +2805,7 @@
 														},
 														"children": [
 															{
-																"id": 278,
+																"id": 275,
 																"name": "address",
 																"kind": 32,
 																"kindString": "Variable",
@@ -2716,7 +2825,7 @@
 																}
 															},
 															{
-																"id": 279,
+																"id": 276,
 																"name": "blockHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -2736,7 +2845,7 @@
 																}
 															},
 															{
-																"id": 280,
+																"id": 277,
 																"name": "blockNumber",
 																"kind": 32,
 																"kindString": "Variable",
@@ -2756,7 +2865,7 @@
 																}
 															},
 															{
-																"id": 281,
+																"id": 278,
 																"name": "data",
 																"kind": 32,
 																"kindString": "Variable",
@@ -2768,6 +2877,78 @@
 																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
 																		"line": 124,
 																		"character": 12
+																	}
+																],
+																"type": {
+																	"type": "union",
+																	"types": [
+																		{
+																			"type": "reference",
+																			"name": "Data"
+																		},
+																		{
+																			"type": "array",
+																			"elementType": {
+																				"type": "reference",
+																				"name": "Data"
+																			}
+																		}
+																	]
+																}
+															},
+															{
+																"id": 279,
+																"name": "logIndex",
+																"kind": 32,
+																"kindString": "Variable",
+																"flags": {
+																	"isExported": true
+																},
+																"sources": [
+																	{
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
+																		"line": 125,
+																		"character": 16
+																	}
+																],
+																"type": {
+																	"type": "reference",
+																	"name": "Quantity"
+																}
+															},
+															{
+																"id": 280,
+																"name": "removed",
+																"kind": 32,
+																"kindString": "Variable",
+																"flags": {
+																	"isExported": true
+																},
+																"sources": [
+																	{
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
+																		"line": 126,
+																		"character": 15
+																	}
+																],
+																"type": {
+																	"type": "intrinsic",
+																	"name": "boolean"
+																}
+															},
+															{
+																"id": 281,
+																"name": "topics",
+																"kind": 32,
+																"kindString": "Variable",
+																"flags": {
+																	"isExported": true
+																},
+																"sources": [
+																	{
+																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
+																		"line": 127,
+																		"character": 14
 																	}
 																],
 																"type": {
@@ -2789,78 +2970,6 @@
 															},
 															{
 																"id": 282,
-																"name": "logIndex",
-																"kind": 32,
-																"kindString": "Variable",
-																"flags": {
-																	"isExported": true
-																},
-																"sources": [
-																	{
-																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
-																		"line": 125,
-																		"character": 16
-																	}
-																],
-																"type": {
-																	"type": "reference",
-																	"name": "Quantity"
-																}
-															},
-															{
-																"id": 283,
-																"name": "removed",
-																"kind": 32,
-																"kindString": "Variable",
-																"flags": {
-																	"isExported": true
-																},
-																"sources": [
-																	{
-																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
-																		"line": 126,
-																		"character": 15
-																	}
-																],
-																"type": {
-																	"type": "intrinsic",
-																	"name": "boolean"
-																}
-															},
-															{
-																"id": 284,
-																"name": "topics",
-																"kind": 32,
-																"kindString": "Variable",
-																"flags": {
-																	"isExported": true
-																},
-																"sources": [
-																	{
-																		"fileName": "chains/ethereum/utils/typings/src/things/blocklogs.d.ts",
-																		"line": 127,
-																		"character": 14
-																	}
-																],
-																"type": {
-																	"type": "union",
-																	"types": [
-																		{
-																			"type": "reference",
-																			"name": "Data"
-																		},
-																		{
-																			"type": "array",
-																			"elementType": {
-																				"type": "reference",
-																				"name": "Data"
-																			}
-																		}
-																	]
-																}
-															},
-															{
-																"id": 285,
 																"name": "transactionHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -2880,7 +2989,7 @@
 																}
 															},
 															{
-																"id": 286,
+																"id": 283,
 																"name": "transactionIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -2905,15 +3014,15 @@
 																"title": "Variables",
 																"kind": 32,
 																"children": [
+																	275,
+																	276,
+																	277,
 																	278,
 																	279,
 																	280,
 																	281,
 																	282,
-																	283,
-																	284,
-																	285,
-																	286
+																	283
 																]
 															}
 														]
@@ -2934,7 +3043,7 @@
 							]
 						},
 						{
-							"id": 287,
+							"id": 284,
 							"name": "eth_getLogs",
 							"kind": 2048,
 							"kindString": "Method",
@@ -2955,7 +3064,7 @@
 							],
 							"signatures": [
 								{
-									"id": 288,
+									"id": 285,
 									"name": "eth_getLogs",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -2964,11 +3073,18 @@
 									},
 									"comment": {
 										"shortText": "Returns an array of all logs matching a given filter object.",
-										"returns": "Array of log objects, or an empty array.\n"
+										"text": "Filter options:\n* `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.\n* `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also\nbe an array of `DATA` with \"or\" options.\n* `blockHash`: `DATA`, 32 Bytes (optional) - Hash of the block to restrict logs from. If `blockHash` is present,\nthen neither `fromBlock` or `toBlock` are allowed.\n",
+										"returns": "Array of log objects, or an empty array.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\n\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nconst txHash = await provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst { contractAddress } = await provider.send(\"eth_getTransactionReceipt\", [txHash] );\n\nconst logs = await provider.request({ method: \"eth_getLogs\", params: [{ address: contractAddress }] });\nconsole.log(logs);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 289,
+											"id": 286,
 											"name": "filter",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -2976,7 +3092,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The filter options"
+												"text": "The filter options as seen in source."
 											},
 											"type": {
 												"type": "reference",
@@ -2992,7 +3108,7 @@
 												"elementType": {
 													"type": "reflection",
 													"declaration": {
-														"id": 290,
+														"id": 287,
 														"name": "__type",
 														"kind": 65536,
 														"kindString": "Type literal",
@@ -3001,7 +3117,7 @@
 														},
 														"children": [
 															{
-																"id": 291,
+																"id": 288,
 																"name": "address",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3021,7 +3137,7 @@
 																}
 															},
 															{
-																"id": 292,
+																"id": 289,
 																"name": "blockHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3041,7 +3157,7 @@
 																}
 															},
 															{
-																"id": 293,
+																"id": 290,
 																"name": "blockNumber",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3061,7 +3177,7 @@
 																}
 															},
 															{
-																"id": 294,
+																"id": 291,
 																"name": "data",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3093,7 +3209,7 @@
 																}
 															},
 															{
-																"id": 295,
+																"id": 292,
 																"name": "logIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3113,7 +3229,7 @@
 																}
 															},
 															{
-																"id": 296,
+																"id": 293,
 																"name": "removed",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3133,7 +3249,7 @@
 																}
 															},
 															{
-																"id": 297,
+																"id": 294,
 																"name": "topics",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3165,7 +3281,7 @@
 																}
 															},
 															{
-																"id": 298,
+																"id": 295,
 																"name": "transactionHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3185,7 +3301,7 @@
 																}
 															},
 															{
-																"id": 299,
+																"id": 296,
 																"name": "transactionIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -3210,15 +3326,15 @@
 																"title": "Variables",
 																"kind": 32,
 																"children": [
+																	288,
+																	289,
+																	290,
 																	291,
 																	292,
 																	293,
 																	294,
 																	295,
-																	296,
-																	297,
-																	298,
-																	299
+																	296
 																]
 															}
 														]
@@ -3239,7 +3355,7 @@
 							]
 						},
 						{
-							"id": 189,
+							"id": 183,
 							"name": "eth_getStorageAt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3261,7 +3377,7 @@
 							],
 							"signatures": [
 								{
-									"id": 190,
+									"id": 184,
 									"name": "eth_getStorageAt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3269,29 +3385,42 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns the value from a storage position at a given address."
+										"shortText": "Returns the value from a storage position at a given address.",
+										"returns": "The value in storage at the requested position.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst storageValue = await provider.request({ method: \"eth_getStorageAt\", params: [txReceipt.contractAddress, \"0x0\", \"latest\"] });\nconsole.log(storageValue);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 191,
+											"id": 185,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "Address of the storage."
+											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 192,
+											"id": 186,
 											"name": "position",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
+											},
+											"comment": {
+												"text": "Integer of the position in the storage."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -3299,7 +3428,7 @@
 											}
 										},
 										{
-											"id": 193,
+											"id": 187,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3307,14 +3436,14 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\"\n or \"pending\", see the default block parameter\n"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\"."
 											},
 											"type": {
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -3346,7 +3475,7 @@
 							]
 						},
 						{
-							"id": 135,
+							"id": 129,
 							"name": "eth_getTransactionByBlockHashAndIndex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3367,7 +3496,7 @@
 							],
 							"signatures": [
 								{
-									"id": 136,
+									"id": 130,
 									"name": "eth_getTransactionByBlockHashAndIndex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3375,11 +3504,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns information about a transaction by block hash and transaction index position."
+										"shortText": "Returns information about a transaction by block hash and transaction index position.",
+										"returns": "The transaction object or `null` if no transaction was found.\n\n* `hash`: `DATA`, 32 Bytes - The transaction hash.\n* `nonce`: `QUANTITY` - The number of transactions made by the sender prior to this one.\n* `blockHash`: `DATA`, 32 Bytes - The hash of the block the transaction is in. `null` when pending.\n* `blockNumber`: `QUANTITY` - The number of the block the transaction is in. `null` when pending.\n* `transactionIndex`: `QUANTITY` - The index position of the transaction in the block.\n* `from`: `DATA`, 20 Bytes - The address the transaction is sent from.\n* `to`: `DATA`, 20 Bytes - The address the transaction is sent to.\n* `value`: `QUANTITY` - The value transferred in wei.\n* `gas`: `QUANTITY` - The gas provided by the sender.\n* `gasPrice`: `QUANTITY` - The price of gas in wei.\n* `input`: `DATA` - The data sent along with the transaction.\n* `v`: `QUANTITY` - ECDSA recovery id.\n* `r`: `DATA`, 32 Bytes - ECDSA signature r.\n* `s`: `DATA`, 32 Bytes - ECDSA signature s.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst { blockHash, transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockHashAndIndex\", params: [ blockHash, transactionIndex ] });\nconsole.log(tx);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 137,
+											"id": 131,
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3387,24 +3523,15 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 32 Bytes - hash of a block."
+												"text": "Hash of a block."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 138,
+											"id": 132,
 											"name": "index",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3412,11 +3539,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY - integer of the transaction index position.\n"
+												"text": "Integer of the transaction index position."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -3441,7 +3568,7 @@
 							]
 						},
 						{
-							"id": 139,
+							"id": 133,
 							"name": "eth_getTransactionByBlockNumberAndIndex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3462,7 +3589,7 @@
 							],
 							"signatures": [
 								{
-									"id": 140,
+									"id": 134,
 									"name": "eth_getTransactionByBlockNumberAndIndex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3470,11 +3597,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns information about a transaction by block number and transaction index position."
+										"shortText": "Returns information about a transaction by block number and transaction index position.",
+										"returns": "The transaction object or `null` if no transaction was found.\n\n* `hash`: `DATA`, 32 Bytes - The transaction hash.\n* `nonce`: `QUANTITY` - The number of transactions made by the sender prior to this one.\n* `blockHash`: `DATA`, 32 Bytes - The hash of the block the transaction is in. `null` when pending.\n* `blockNumber`: `QUANTITY` - The number of the block the transaction is in. `null` when pending.\n* `transactionIndex`: `QUANTITY` - The index position of the transaction in the block.\n* `from`: `DATA`, 20 Bytes - The address the transaction is sent from.\n* `to`: `DATA`, 20 Bytes - The address the transaction is sent to.\n* `value`: `QUANTITY` - The value transferred in wei.\n* `gas`: `QUANTITY` - The gas provided by the sender.\n* `gasPrice`: `QUANTITY` - The price of gas in wei.\n* `input`: `DATA` - The data sent along with the transaction.\n* `v`: `QUANTITY` - ECDSA recovery id.\n* `r`: `DATA`, 32 Bytes - ECDSA signature r.\n* `s`: `DATA`, 32 Bytes - ECDSA signature s.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst { transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockNumberAndIndex\", params: [ \"latest\", transactionIndex ] });\nconsole.log(tx);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 141,
+											"id": 135,
 											"name": "number",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3482,14 +3616,14 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY|TAG - a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the default\nblock parameter."
+												"text": "A block number, or the string \"earliest\", \"latest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -3499,7 +3633,7 @@
 											}
 										},
 										{
-											"id": 142,
+											"id": 136,
 											"name": "index",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3507,11 +3641,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "QUANTITY - integer of the transaction index position.\n"
+												"text": "Integer of the transaction index position."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -3536,7 +3670,7 @@
 							]
 						},
 						{
-							"id": 194,
+							"id": 188,
 							"name": "eth_getTransactionByHash",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3557,7 +3691,7 @@
 							],
 							"signatures": [
 								{
-									"id": 195,
+									"id": 189,
 									"name": "eth_getTransactionByHash",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3565,11 +3699,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns the information about a transaction requested by transaction hash."
+										"shortText": "Returns the information about a transaction requested by transaction hash.",
+										"returns": "The transaction object or `null` if no transaction was found.\n\n* `hash`: `DATA`, 32 Bytes - The transaction hash.\n* `nonce`: `QUANTITY` - The number of transactions made by the sender prior to this one.\n* `blockHash`: `DATA`, 32 Bytes - The hash of the block the transaction is in. `null` when pending.\n* `blockNumber`: `QUANTITY` - The number of the block the transaction is in. `null` when pending.\n* `transactionIndex`: `QUANTITY` - The index position of the transaction in the block.\n* `from`: `DATA`, 20 Bytes - The address the transaction is sent from.\n* `to`: `DATA`, 20 Bytes - The address the transaction is sent to.\n* `value`: `QUANTITY` - The value transferred in wei.\n* `gas`: `QUANTITY` - The gas provided by the sender.\n* `gasPrice`: `QUANTITY` - The price of gas in wei.\n* `input`: `DATA` - The data sent along with the transaction.\n* `v`: `QUANTITY` - ECDSA recovery id.\n* `r`: `DATA`, 32 Bytes - ECDSA signature r.\n* `s`: `DATA`, 32 Bytes - ECDSA signature s.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst tx = await provider.request({ method: \"eth_getTransactionByHash\", params: [ txHash ] });\nconsole.log(tx);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 196,
+											"id": 190,
 											"name": "transactionHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3577,11 +3718,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "32 Bytes - hash of a transaction\n"
+												"text": "Hash of a transaction."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -3591,7 +3732,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-													"id": 197,
+													"id": 191,
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -3600,7 +3741,7 @@
 													},
 													"children": [
 														{
-															"id": 200,
+															"id": 194,
 															"name": "blockHash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3620,7 +3761,7 @@
 															}
 														},
 														{
-															"id": 201,
+															"id": 195,
 															"name": "blockNumber",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3640,7 +3781,7 @@
 															}
 														},
 														{
-															"id": 203,
+															"id": 197,
 															"name": "from",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3660,7 +3801,7 @@
 															}
 														},
 														{
-															"id": 206,
+															"id": 200,
 															"name": "gas",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3680,7 +3821,7 @@
 															}
 														},
 														{
-															"id": 207,
+															"id": 201,
 															"name": "gasPrice",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3700,7 +3841,7 @@
 															}
 														},
 														{
-															"id": 198,
+															"id": 192,
 															"name": "hash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3720,7 +3861,7 @@
 															}
 														},
 														{
-															"id": 208,
+															"id": 202,
 															"name": "input",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3740,7 +3881,7 @@
 															}
 														},
 														{
-															"id": 199,
+															"id": 193,
 															"name": "nonce",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3760,7 +3901,7 @@
 															}
 														},
 														{
-															"id": 210,
+															"id": 204,
 															"name": "r",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3780,7 +3921,7 @@
 															}
 														},
 														{
-															"id": 211,
+															"id": 205,
 															"name": "s",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3800,7 +3941,7 @@
 															}
 														},
 														{
-															"id": 204,
+															"id": 198,
 															"name": "to",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3820,7 +3961,7 @@
 															}
 														},
 														{
-															"id": 202,
+															"id": 196,
 															"name": "transactionIndex",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3840,7 +3981,7 @@
 															}
 														},
 														{
-															"id": 209,
+															"id": 203,
 															"name": "v",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3860,7 +4001,7 @@
 															}
 														},
 														{
-															"id": 205,
+															"id": 199,
 															"name": "value",
 															"kind": 32,
 															"kindString": "Variable",
@@ -3885,20 +4026,20 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
+																194,
+																195,
+																197,
 																200,
 																201,
-																203,
-																206,
-																207,
-																198,
-																208,
-																199,
-																210,
-																211,
-																204,
+																192,
 																202,
-																209,
-																205
+																193,
+																204,
+																205,
+																198,
+																196,
+																203,
+																199
 															]
 														}
 													]
@@ -3918,7 +4059,7 @@
 							]
 						},
 						{
-							"id": 300,
+							"id": 297,
 							"name": "eth_getTransactionCount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -3940,7 +4081,7 @@
 							],
 							"signatures": [
 								{
-									"id": 301,
+									"id": 298,
 									"name": "eth_getTransactionCount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -3949,11 +4090,17 @@
 									},
 									"comment": {
 										"shortText": "Returns the number of transactions sent from an address.",
-										"returns": "integer of the number of transactions sent from this address.\n"
+										"returns": "Number of transactions sent from this address.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nawait provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst txCount = await provider.request({ method: \"eth_getTransactionCount\", params: [ from, \"latest\" ] });\nconsole.log(txCount);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 302,
+											"id": 299,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3964,12 +4111,12 @@
 												"text": "address"
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 303,
+											"id": 300,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -3977,7 +4124,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "integer block number, or the string \"latest\", \"earliest\"\nor \"pending\", see the default block parameter"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -4016,7 +4163,7 @@
 							]
 						},
 						{
-							"id": 212,
+							"id": 206,
 							"name": "eth_getTransactionReceipt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4037,7 +4184,7 @@
 							],
 							"signatures": [
 								{
-									"id": 213,
+									"id": 207,
 									"name": "eth_getTransactionReceipt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4046,12 +4193,18 @@
 									},
 									"comment": {
 										"shortText": "Returns the receipt of a transaction by transaction hash.",
-										"text": "Note That the receipt is not available for pending transactions.\n",
-										"returns": "Returns the receipt of a transaction by transaction hash.\n"
+										"text": "Note: The receipt is not available for pending transactions.\n",
+										"returns": "Returns the receipt of a transaction by transaction hash.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [ txHash ] });\nconsole.log(txReceipt);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 214,
+											"id": 208,
 											"name": "transactionHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4059,11 +4212,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "32 Bytes - hash of a transaction"
+												"text": "Hash of a transaction."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -4073,7 +4226,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-													"id": 215,
+													"id": 209,
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -4082,7 +4235,7 @@
 													},
 													"children": [
 														{
-															"id": 219,
+															"id": 213,
 															"name": "blockHash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4102,7 +4255,7 @@
 															}
 														},
 														{
-															"id": 218,
+															"id": 212,
 															"name": "blockNumber",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4122,7 +4275,7 @@
 															}
 														},
 														{
-															"id": 224,
+															"id": 218,
 															"name": "contractAddress",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4142,7 +4295,7 @@
 															}
 														},
 														{
-															"id": 222,
+															"id": 216,
 															"name": "cumulativeGasUsed",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4162,7 +4315,7 @@
 															}
 														},
 														{
-															"id": 220,
+															"id": 214,
 															"name": "from",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4182,7 +4335,7 @@
 															}
 														},
 														{
-															"id": 223,
+															"id": 217,
 															"name": "gasUsed",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4202,7 +4355,7 @@
 															}
 														},
 														{
-															"id": 225,
+															"id": 219,
 															"name": "logs",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4221,7 +4374,7 @@
 																"elementType": {
 																	"type": "reflection",
 																	"declaration": {
-																		"id": 226,
+																		"id": 220,
 																		"name": "__type",
 																		"kind": 65536,
 																		"kindString": "Type literal",
@@ -4230,7 +4383,7 @@
 																		},
 																		"children": [
 																			{
-																				"id": 227,
+																				"id": 221,
 																				"name": "address",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -4250,7 +4403,7 @@
 																				}
 																			},
 																			{
-																				"id": 228,
+																				"id": 222,
 																				"name": "blockHash",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -4270,7 +4423,7 @@
 																				}
 																			},
 																			{
-																				"id": 229,
+																				"id": 223,
 																				"name": "blockNumber",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -4290,7 +4443,7 @@
 																				}
 																			},
 																			{
-																				"id": 230,
+																				"id": 224,
 																				"name": "data",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -4322,7 +4475,7 @@
 																				}
 																			},
 																			{
-																				"id": 231,
+																				"id": 225,
 																				"name": "logIndex",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -4342,7 +4495,7 @@
 																				}
 																			},
 																			{
-																				"id": 232,
+																				"id": 226,
 																				"name": "removed",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -4362,7 +4515,7 @@
 																				}
 																			},
 																			{
-																				"id": 233,
+																				"id": 227,
 																				"name": "topics",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -4394,7 +4547,7 @@
 																				}
 																			},
 																			{
-																				"id": 234,
+																				"id": 228,
 																				"name": "transactionHash",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -4414,7 +4567,7 @@
 																				}
 																			},
 																			{
-																				"id": 235,
+																				"id": 229,
 																				"name": "transactionIndex",
 																				"kind": 32,
 																				"kindString": "Variable",
@@ -4439,15 +4592,15 @@
 																				"title": "Variables",
 																				"kind": 32,
 																				"children": [
+																					221,
+																					222,
+																					223,
+																					224,
+																					225,
+																					226,
 																					227,
 																					228,
-																					229,
-																					230,
-																					231,
-																					232,
-																					233,
-																					234,
-																					235
+																					229
 																				]
 																			}
 																		],
@@ -4463,7 +4616,7 @@
 															}
 														},
 														{
-															"id": 236,
+															"id": 230,
 															"name": "logsBloom",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4483,7 +4636,7 @@
 															}
 														},
 														{
-															"id": 237,
+															"id": 231,
 															"name": "status",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4503,7 +4656,7 @@
 															}
 														},
 														{
-															"id": 221,
+															"id": 215,
 															"name": "to",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4523,7 +4676,7 @@
 															}
 														},
 														{
-															"id": 216,
+															"id": 210,
 															"name": "transactionHash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4543,7 +4696,7 @@
 															}
 														},
 														{
-															"id": 217,
+															"id": 211,
 															"name": "transactionIndex",
 															"kind": 32,
 															"kindString": "Variable",
@@ -4568,18 +4721,18 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-																219,
+																213,
+																212,
 																218,
-																224,
-																222,
-																220,
-																223,
-																225,
-																236,
-																237,
-																221,
 																216,
-																217
+																214,
+																217,
+																219,
+																230,
+																231,
+																215,
+																210,
+																211
 															]
 														}
 													]
@@ -4599,7 +4752,7 @@
 							]
 						},
 						{
-							"id": 149,
+							"id": 143,
 							"name": "eth_getUncleByBlockHashAndIndex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4620,7 +4773,7 @@
 							],
 							"signatures": [
 								{
-									"id": 150,
+									"id": 144,
 									"name": "eth_getUncleByBlockHashAndIndex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4628,11 +4781,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns information about a uncle of a block by hash and uncle index position."
+										"shortText": "Returns information about a uncle of a block by hash and uncle index position.",
+										"returns": "A block object or `null` when no block is found.\n\n* `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.\n* `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.\n* `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.\n* `miner`: `DATA`, 20 Bytes -  Address of the miner.\n* `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.\n* `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.\n* `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.\n* `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.\n* `difficulty`: `QUANTITY` - Integer of the difficulty of this block.\n* `number`: `QUANTITY` - The block number. `null` when pending.\n* `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.\n* `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.\n* `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.\n* `extraData`: `DATA` - Extra data for the block.\n* `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.\n* `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.\n* `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.\n* `size`: `QUANTITY` - Integer the size of the block in bytes.\n* `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.\n* `uncles`: `Array` - Array of uncle hashes.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst blockHash = await provider.send(\"eth_getBlockByNumber\", [\"latest\"] );\nconst block = await provider.send(\"eth_getUncleByBlockHashAndIndex\", [blockHash, \"0x0\"] );\nconsole.log(block);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 151,
+											"id": 145,
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4640,7 +4800,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "hash of a block"
+												"text": "Hash of a block."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -4648,7 +4808,7 @@
 											}
 										},
 										{
-											"id": 152,
+											"id": 146,
 											"name": "index",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4656,7 +4816,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the uncle's index position.\n"
+												"text": "The uncle's index position."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -4685,7 +4845,7 @@
 							]
 						},
 						{
-							"id": 153,
+							"id": 147,
 							"name": "eth_getUncleByBlockNumberAndIndex",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4706,7 +4866,7 @@
 							],
 							"signatures": [
 								{
-									"id": 154,
+									"id": 148,
 									"name": "eth_getUncleByBlockNumberAndIndex",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4714,11 +4874,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns information about a uncle of a block by hash and uncle index position."
+										"shortText": "Returns information about a uncle of a block by hash and uncle index position.",
+										"returns": "A block object or `null` when no block is found.\n\n* `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.\n* `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.\n* `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.\n* `miner`: `DATA`, 20 Bytes -  Address of the miner.\n* `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.\n* `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.\n* `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.\n* `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.\n* `difficulty`: `QUANTITY` - Integer of the difficulty of this block.\n* `number`: `QUANTITY` - The block number. `null` when pending.\n* `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.\n* `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.\n* `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.\n* `extraData`: `DATA` - Extra data for the block.\n* `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.\n* `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.\n* `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.\n* `size`: `QUANTITY` - Integer the size of the block in bytes.\n* `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.\n* `uncles`: `Array` - Array of uncle hashes.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst block = await provider.send(\"eth_getUncleByBlockNumberAndIndex\", [\"latest\", \"0x0\"] );\nconsole.log(block);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 155,
+											"id": 149,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4726,7 +4893,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the default block\nparameter."
+												"text": "A block number, or the string \"earliest\", \"latest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -4743,7 +4910,7 @@
 											}
 										},
 										{
-											"id": 156,
+											"id": 150,
 											"name": "uncleIndex",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4751,7 +4918,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the uncle's index position.\n"
+												"text": "The uncle's index position."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -4780,7 +4947,7 @@
 							]
 						},
 						{
-							"id": 143,
+							"id": 137,
 							"name": "eth_getUncleCountByBlockHash",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4801,7 +4968,7 @@
 							],
 							"signatures": [
 								{
-									"id": 144,
+									"id": 138,
 									"name": "eth_getUncleCountByBlockHash",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4809,11 +4976,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns the number of uncles in a block from a block matching the given block hash."
+										"shortText": "Returns the number of uncles in a block from a block matching the given block hash.",
+										"returns": "The number of uncles in a block.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst blockHash = await provider.send(\"eth_getBlockByNumber\", [\"latest\"] );\nconst uncleCount = await provider.send(\"eth_getUncleCountByBlockHash\", [blockHash] );\nconsole.log(uncleCount);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 145,
+											"id": 139,
 											"name": "hash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4821,20 +4995,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "DATA, 32 Bytes - hash of a block.\n"
+												"text": "Hash of a block."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -4859,7 +5024,7 @@
 							]
 						},
 						{
-							"id": 146,
+							"id": 140,
 							"name": "eth_getUncleCountByBlockNumber",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4880,7 +5045,7 @@
 							],
 							"signatures": [
 								{
-									"id": 147,
+									"id": 141,
 									"name": "eth_getUncleCountByBlockNumber",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4888,11 +5053,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns the number of uncles in a block from a block matching the given block hash."
+										"shortText": "Returns the number of uncles in a block from a block matching the given block hash.",
+										"returns": "The number of uncles in a block.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst uncleCount = await provider.send(\"eth_getUncleCountByBlockNumber\", [\"latest\"] );\nconsole.log(uncleCount);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 148,
+											"id": 142,
 											"name": "number",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -4903,12 +5075,12 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
-														"name": "Buffer"
+														"name": "Tag"
 													}
 												]
 											}
@@ -4935,7 +5107,7 @@
 							]
 						},
 						{
-							"id": 157,
+							"id": 151,
 							"name": "eth_getWork",
 							"kind": 2048,
 							"kindString": "Method",
@@ -4956,7 +5128,7 @@
 							],
 							"signatures": [
 								{
-									"id": 158,
+									"id": 152,
 									"name": "eth_getWork",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -4964,12 +5136,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns: An Array with the following elements\n1: DATA, 32 Bytes - current block header pow-hash\n2: DATA, 32 Bytes - the seed hash used for the DAG.\n3: DATA, 32 Bytes - the boundary condition (\"target\"), 2^256 / difficulty.",
-										"returns": "the hash of the current block, the seedHash, and the boundary condition to be met (\"target\").\n"
+										"shortText": "Returns: An Array with the following elements\n1: `DATA`, 32 Bytes - current block header pow-hash\n2: `DATA`, 32 Bytes - the seed hash used for the DAG.\n3: `DATA`, 32 Bytes - the boundary condition (\"target\"), 2^256 / difficulty.",
+										"returns": "The hash of the current block, the seedHash, and the boundary condition to be met (\"target\").",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"eth_getWork\", [\"0x0\"] ));\n ```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 159,
+											"id": 153,
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5024,7 +5202,7 @@
 							]
 						},
 						{
-							"id": 171,
+							"id": 165,
 							"name": "eth_hashrate",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5045,7 +5223,7 @@
 							],
 							"signatures": [
 								{
-									"id": 172,
+									"id": 166,
 									"name": "eth_hashrate",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5054,7 +5232,13 @@
 									},
 									"comment": {
 										"shortText": "Returns the number of hashes per second that the node is mining with.",
-										"returns": "number of hashes per second.\n"
+										"returns": "Number of hashes per second.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst hashrate = await provider.request({ method: \"eth_hashrate\", params: [] });\nconsole.log(hashrate);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -5077,7 +5261,7 @@
 							]
 						},
 						{
-							"id": 169,
+							"id": 163,
 							"name": "eth_mining",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5098,7 +5282,7 @@
 							],
 							"signatures": [
 								{
-									"id": 170,
+									"id": 164,
 									"name": "eth_mining",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5107,7 +5291,13 @@
 									},
 									"comment": {
 										"shortText": "Returns `true` if client is actively mining new blocks.",
-										"returns": "returns `true` if the client is mining, otherwise `false`.\n"
+										"returns": "returns `true` if the client is mining, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst isMining = await provider.request({ method: \"eth_mining\", params: [] });\nconsole.log(isMining);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -5130,7 +5320,7 @@
 							]
 						},
 						{
-							"id": 261,
+							"id": 258,
 							"name": "eth_newBlockFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5151,7 +5341,7 @@
 							],
 							"signatures": [
 								{
-									"id": 262,
+									"id": 259,
 									"name": "eth_newBlockFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5160,7 +5350,13 @@
 									},
 									"comment": {
 										"shortText": "Creates a filter in the node, to notify when a new block arrives. To check\nif the state has changed, call `eth_getFilterChanges`.",
-										"returns": "A filter id.\n"
+										"returns": "A filter id.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst filterId = await provider.request({ method: \"eth_newBlockFilter\", params: [] });\nconsole.log(filterId);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -5183,7 +5379,7 @@
 							]
 						},
 						{
-							"id": 265,
+							"id": 262,
 							"name": "eth_newFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5205,7 +5401,7 @@
 							],
 							"signatures": [
 								{
-									"id": 266,
+									"id": 263,
 									"name": "eth_newFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5214,11 +5410,18 @@
 									},
 									"comment": {
 										"shortText": "Creates a filter object, based on filter options, to notify when the state\nchanges (logs). To check if the state has changed, call\n`eth_getFilterChanges`.",
-										"text": "If the from `fromBlock` or `toBlock` option are equal to \"latest\" the\nfilter continually append logs for whatever block is seen as latest at the\ntime the block was mined, not just for the block that was \"latest\" when the\nfilter was created.\n\n### A note on specifying topic filters:\nTopics are order-dependent. A transaction with a log with topics [A, B]\nwill be matched by the following topic filters:\n * `[]` “anything”\n * `[A]` “A in first position (and anything after)”\n * `[null, B]` “anything in first position AND B in second position (and\nanything after)”\n * `[A, B]` “A in first position AND B in second position (and anything\nafter)”\n * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second\nposition (and anything after)”\n"
+										"text": "If the from `fromBlock` or `toBlock` option are equal to \"latest\" the\nfilter continually append logs for whatever block is seen as latest at the\ntime the block was mined, not just for the block that was \"latest\" when the\nfilter was created.\n\n### A note on specifying topic filters:\nTopics are order-dependent. A transaction with a log with topics [A, B]\nwill be matched by the following topic filters:\n * `[]` “anything”\n * `[A]` “A in first position (and anything after)”\n * `[null, B]` “anything in first position AND B in second position (and\nanything after)”\n * `[A, B]` “A in first position AND B in second position (and anything\nafter)”\n * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second\nposition (and anything after)”\n\nFilter options:\n* `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.\n* `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also\nbe an array of `DATA` with \"or\" options.\n",
+										"returns": "A filter id.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst filterId = await provider.request({ method: \"eth_newFilter\", params: [] });\nconsole.log(filterId);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 267,
+											"id": 264,
 											"name": "filter",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5227,7 +5430,7 @@
 												"isOptional": true
 											},
 											"comment": {
-												"text": "The filter options\n"
+												"text": "The filter options as seen in source.\n"
 											},
 											"type": {
 												"type": "reference",
@@ -5256,7 +5459,7 @@
 							]
 						},
 						{
-							"id": 263,
+							"id": 260,
 							"name": "eth_newPendingTransactionFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5277,7 +5480,7 @@
 							],
 							"signatures": [
 								{
-									"id": 264,
+									"id": 261,
 									"name": "eth_newPendingTransactionFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5286,7 +5489,13 @@
 									},
 									"comment": {
 										"shortText": "Creates a filter in the node, to notify when new pending transactions\narrive. To check if the state has changed, call `eth_getFilterChanges`.",
-										"returns": "A filter id.\n"
+										"returns": "A filter id.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst filterId = await provider.request({ method: \"eth_newPendingTransactionFilter\", params: [] });\nconsole.log(filterId);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -5309,7 +5518,7 @@
 							]
 						},
 						{
-							"id": 113,
+							"id": 107,
 							"name": "eth_protocolVersion",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5330,7 +5539,7 @@
 							],
 							"signatures": [
 								{
-									"id": 114,
+									"id": 108,
 									"name": "eth_protocolVersion",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5339,7 +5548,13 @@
 									},
 									"comment": {
 										"shortText": "Returns the current ethereum protocol version.",
-										"returns": "The current ethereum protocol version.\n"
+										"returns": "The current ethereum protocol version.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst version = await provider.request({ method: \"eth_protocolVersion\", params: [] });\nconsole.log(version);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -5362,7 +5577,7 @@
 							]
 						},
 						{
-							"id": 241,
+							"id": 238,
 							"name": "eth_sendRawTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5383,7 +5598,7 @@
 							],
 							"signatures": [
 								{
-									"id": 242,
+									"id": 239,
 									"name": "eth_sendRawTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5392,18 +5607,26 @@
 									},
 									"comment": {
 										"shortText": "Creates new message call transaction or a contract creation for signed transactions.",
-										"returns": "The transaction hash\n"
+										"returns": "The transaction hash.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst signedTx = await provider.request({ method: \"eth_signTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nconst txHash = await provider.send(\"eth_sendRawTransaction\", [signedTx] );\nconsole.log(txHash);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 243,
+											"id": 240,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "The signed transaction data."
+											},
 											"type": {
 												"type": "intrinsic",
 												"name": "string"
@@ -5431,7 +5654,7 @@
 							]
 						},
 						{
-							"id": 238,
+							"id": 232,
 							"name": "eth_sendTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5452,7 +5675,7 @@
 							],
 							"signatures": [
 								{
-									"id": 239,
+									"id": 233,
 									"name": "eth_sendTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5461,18 +5684,27 @@
 									},
 									"comment": {
 										"shortText": "Creates new message call transaction or a contract creation, if the data field contains code.",
-										"returns": "The transaction hash\n"
+										"text": "Transaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"returns": "The transaction hash.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconsole.log(txHash);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 240,
+											"id": 234,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "The transaction call object as seen in source."
+											},
 											"type": {
 												"type": "reference",
 												"name": "RpcTransaction"
@@ -5500,7 +5732,7 @@
 							]
 						},
 						{
-							"id": 244,
+							"id": 241,
 							"name": "eth_sign",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5521,7 +5753,7 @@
 							],
 							"signatures": [
 								{
-									"id": 245,
+									"id": 242,
 									"name": "eth_sign",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5531,51 +5763,45 @@
 									"comment": {
 										"shortText": "The sign method calculates an Ethereum specific signature with:\n`sign(keccak256(\"\\x19Ethereum Signed Message:\\n\" + message.length + message)))`.",
 										"text": "By adding a prefix to the message makes the calculated signature\nrecognizable as an Ethereum specific signature. This prevents misuse where a malicious DApp can sign arbitrary data\n (e.g. transaction) and use the signature to impersonate the victim.\n\nNote the address to sign with must be unlocked.\n",
-										"returns": "Signature\n"
+										"returns": "Signature - a hex encoded 129 byte array\nstarting with `0x`. It encodes the `r`, `s`, and `v` parameters from\nappendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)\n in big-endian format. Bytes 0...64 contain the `r` parameter, bytes\n64...128 the `s` parameter, and the last byte the `v` parameter. Note\nthat the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [account] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst msg = \"0x307866666666666666666666\";\nconst signature = await provider.request({ method: \"eth_sign\", params: [account, msg] });\nconsole.log(signature);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 246,
+											"id": 243,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "Address to sign with."
+											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 247,
+											"id": 244,
 											"name": "message",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "Message to sign."
+											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -5600,7 +5826,85 @@
 							]
 						},
 						{
-							"id": 248,
+							"id": 235,
+							"name": "eth_signTransaction",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"decorators": [
+								{
+									"name": "assertArgLength",
+									"type": {
+										"type": "reference",
+										"name": "assertArgLength"
+									},
+									"arguments": {
+										"min": "1"
+									}
+								}
+							],
+							"signatures": [
+								{
+									"id": 236,
+									"name": "eth_signTransaction",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {
+										"isExported": true
+									},
+									"comment": {
+										"shortText": "Signs a transaction that can be submitted to the network at a later time using `eth_sendRawTransaction`.",
+										"text": "Transaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"returns": "The raw, signed transaction.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst signedTx = await provider.request({ method: \"eth_signTransaction\", params: [{ from, to }] });\nconsole.log(signedTx)\n```\n"
+											}
+										]
+									},
+									"parameters": [
+										{
+											"id": 237,
+											"name": "transaction",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {
+												"isExported": true
+											},
+											"comment": {
+												"text": "The transaction call object as seen in source."
+											},
+											"type": {
+												"type": "reference",
+												"name": "RpcTransaction"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "intrinsic",
+												"name": "string"
+											}
+										],
+										"name": "Promise"
+									}
+								}
+							],
+							"sources": [
+								{
+									"fileName": "chains/ethereum/ethereum/src/api.ts",
+									"line": 1665,
+									"character": 27
+								}
+							]
+						},
+						{
+							"id": 245,
 							"name": "eth_signTypedData",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5621,7 +5925,7 @@
 							],
 							"signatures": [
 								{
-									"id": 249,
+									"id": 246,
 									"name": "eth_signTypedData",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5633,13 +5937,17 @@
 										"tags": [
 											{
 												"tag": "eip",
-												"text": "[712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)\n"
+												"text": "[712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)"
+											},
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [account] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst typedData = {\n types: {\n   EIP712Domain: [\n     { name: 'name', type: 'string' },\n     { name: 'version', type: 'string' },\n     { name: 'chainId', type: 'uint256' },\n     { name: 'verifyingContract', type: 'address' },\n   ],\n   Person: [\n     { name: 'name', type: 'string' },\n     { name: 'wallet', type: 'address' }\n   ],\n   Mail: [\n     { name: 'from', type: 'Person' },\n     { name: 'to', type: 'Person' },\n     { name: 'contents', type: 'string' }\n   ],\n },\n primaryType: 'Mail',\n domain: {\n   name: 'Ether Mail',\n   version: '1',\n   chainId: 1,\n   verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',\n },\n message: {\n   from: {\n     name: 'Cow',\n     wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',\n   },\n   to: {\n     name: 'Bob',\n     wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',\n   },\n   contents: 'Hello, Bob!',\n },\n};\nconst signature = await provider.request({ method: \"eth_signTypedData\", params: [account, typedData] });\nconsole.log(signature);\n```\n"
 											}
 										]
 									},
 									"parameters": [
 										{
-											"id": 250,
+											"id": 247,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5650,21 +5958,12 @@
 												"text": "Address of the account that will sign the messages."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Buffer"
-													}
-												]
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 251,
+											"id": 248,
 											"name": "typedData",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5702,7 +6001,7 @@
 							]
 						},
 						{
-							"id": 165,
+							"id": 159,
 							"name": "eth_submitHashrate",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5723,7 +6022,7 @@
 							],
 							"signatures": [
 								{
-									"id": 166,
+									"id": 160,
 									"name": "eth_submitHashrate",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5732,11 +6031,17 @@
 									},
 									"comment": {
 										"shortText": "Used for submitting mining hashrate.",
-										"returns": "`true` if submitting went through successfully and `false` otherwise.\n"
+										"returns": "`true` if submitting went through succesfully and `false` otherwise.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst hashRate = \"0x0000000000000000000000000000000000000000000000000000000000000001\";\nconst clientId = \"0xb2222a74119abd18dbcb7d1f661c6578b7bbeb4984c50e66ed538347f606b971\";\nconst result = await provider.request({ method: \"eth_submitHashrate\", params: [hashRate, clientId] });\nconsole.log(result);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 167,
+											"id": 161,
 											"name": "hashRate",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5744,15 +6049,15 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "a hexadecimal string representation (32 bytes) of the hash rate"
+												"text": "A hexadecimal string representation (32 bytes) of the hash rate."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 168,
+											"id": 162,
 											"name": "clientID",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5763,8 +6068,8 @@
 												"text": "a random hexadecimal(32 bytes) ID identifying the client"
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -5789,7 +6094,7 @@
 							]
 						},
 						{
-							"id": 160,
+							"id": 154,
 							"name": "eth_submitWork",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5810,7 +6115,7 @@
 							],
 							"signatures": [
 								{
-									"id": 161,
+									"id": 155,
 									"name": "eth_submitWork",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5818,12 +6123,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Used for submitting a proof-of-work solution",
-										"returns": "`true` if the provided solution is valid, otherwise `false`.\n"
+										"shortText": "Used for submitting a proof-of-work solution.",
+										"returns": "`true` if the provided solution is valid, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst nonce = \"0xe0df4bd14ab39a71\";\nconst powHash = \"0x0000000000000000000000000000000000000000000000000000000000000001\";\nconst digest = \"0xb2222a74119abd18dbcb7d1f661c6578b7bbeb4984c50e66ed538347f606b971\";\nconst result = await provider.request({ method: \"eth_submitWork\", params: [nonce, powHash, digest] });\nconsole.log(result);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 162,
+											"id": 156,
 											"name": "nonce",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5839,7 +6150,7 @@
 											}
 										},
 										{
-											"id": 163,
+											"id": 157,
 											"name": "powHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5855,7 +6166,7 @@
 											}
 										},
 										{
-											"id": 164,
+											"id": 158,
 											"name": "digest",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5892,7 +6203,7 @@
 							]
 						},
 						{
-							"id": 252,
+							"id": 249,
 							"name": "eth_subscribe",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5914,7 +6225,7 @@
 							],
 							"signatures": [
 								{
-									"id": 253,
+									"id": 250,
 									"name": "eth_subscribe",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5923,18 +6234,26 @@
 									},
 									"comment": {
 										"shortText": "Starts a subscription to a particular event. For every event that matches\nthe subscription a JSON-RPC notification with event details and\nsubscription ID will be sent to a client.",
-										"returns": "A subscription id.\n"
+										"returns": "A subscription id.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst subscriptionId = await provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconsole.log(subscriptionId);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 254,
+											"id": 251,
 											"name": "subscriptionName",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
-											"comment": {},
+											"comment": {
+												"text": "Name for the subscription."
+											},
 											"type": {
 												"type": "reference",
 												"name": "SubscriptionName"
@@ -5953,7 +6272,7 @@
 									}
 								},
 								{
-									"id": 255,
+									"id": 252,
 									"name": "eth_subscribe",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5966,7 +6285,7 @@
 									},
 									"parameters": [
 										{
-											"id": 256,
+											"id": 253,
 											"name": "subscriptionName",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5990,7 +6309,7 @@
 											}
 										},
 										{
-											"id": 257,
+											"id": 254,
 											"name": "options",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6037,7 +6356,7 @@
 							]
 						},
 						{
-							"id": 115,
+							"id": 109,
 							"name": "eth_syncing",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6058,7 +6377,7 @@
 							],
 							"signatures": [
 								{
-									"id": 116,
+									"id": 110,
 									"name": "eth_syncing",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6090,7 +6409,7 @@
 							]
 						},
 						{
-							"id": 271,
+							"id": 268,
 							"name": "eth_uninstallFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6111,7 +6430,7 @@
 							],
 							"signatures": [
 								{
-									"id": 272,
+									"id": 269,
 									"name": "eth_uninstallFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6120,11 +6439,17 @@
 									},
 									"comment": {
 										"shortText": "Uninstalls a filter with given id. Should always be called when watch is\nno longer needed.",
-										"returns": "`true` if the filter was successfully uninstalled, otherwise\n`false`.\n"
+										"returns": "`true` if the filter was successfully uninstalled, otherwise\n`false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst filterId = await provider.request({ method: \"eth_newFilter\", params: [] });\nconst result = await provider.request({ method: \"eth_uninstallFilter\", params: [filterId] });\nconsole.log(result);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 273,
+											"id": 270,
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6132,11 +6457,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the filter id."
+												"text": "The filter id."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -6161,7 +6486,7 @@
 							]
 						},
 						{
-							"id": 258,
+							"id": 255,
 							"name": "eth_unsubscribe",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6182,21 +6507,34 @@
 							],
 							"signatures": [
 								{
-									"id": 259,
+									"id": 256,
 									"name": "eth_unsubscribe",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
 										"isExported": true
 									},
+									"comment": {
+										"shortText": "Cancel a subscription to a particular event. Returns a boolean indicating\nif the subscription was successfully cancelled.",
+										"returns": "`true` if subscription was cancelled successfully, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst subscriptionId = await provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst result = await provider.request({ method: \"eth_unsubscribe\", params: [subscriptionId] });\nconsole.log(result);\n```\n"
+											}
+										]
+									},
 									"parameters": [
 										{
-											"id": 260,
+											"id": 257,
 											"name": "subscriptionId",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
+											},
+											"comment": {
+												"text": "The ID of the subscription to unsubscribe to."
 											},
 											"type": {
 												"type": "reference",
@@ -6225,7 +6563,7 @@
 							]
 						},
 						{
-							"id": 66,
+							"id": 60,
 							"name": "evm_increaseTime",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6246,7 +6584,7 @@
 							],
 							"signatures": [
 								{
-									"id": 67,
+									"id": 61,
 									"name": "evm_increaseTime",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6255,11 +6593,17 @@
 									},
 									"comment": {
 										"shortText": "Jump forward in time by the given amount of time, in seconds.",
-										"returns": "Returns the total time adjustment, in seconds.\n"
+										"returns": "Returns the total time adjustment, in seconds.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst seconds = 10;\nconst timeAdjustment = await provider.send(\"evm_increaseTime\", [seconds] );\nconsole.log(timeAdjustment);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 68,
+											"id": 62,
 											"name": "seconds",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6267,20 +6611,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "Must be greater than or equal to `0`"
+												"text": "Number of seconds to jump forward in time by. Must be greater than or equal to `0`."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "number"
-													},
-													{
-														"type": "intrinsic",
-														"name": "string"
-													}
-												]
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -6305,7 +6640,7 @@
 							]
 						},
 						{
-							"id": 81,
+							"id": 75,
 							"name": "evm_lockUnknownAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6314,7 +6649,7 @@
 							},
 							"signatures": [
 								{
-									"id": 82,
+									"id": 76,
 									"name": "evm_lockUnknownAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6324,11 +6659,17 @@
 									"comment": {
 										"shortText": "Locks any unknown account.",
 										"text": "Note: accounts known to the `personal` namespace and accounts returned by\n`eth_accounts` cannot be locked using this method.\n",
-										"returns": "`true` if the account was locked successfully, `false` if the\naccount was already locked. Throws an error if the account could not be\nlocked.\n"
+										"returns": "`true` if the account was locked successfully, `false` if the\naccount was already locked. Throws an error if the account could not be\nlocked.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst address = \"0x742d35Cc6634C0532925a3b844Bc454e4438f44e\";\nconst result = await provider.send(\"evm_lockUnknownAccount\", [address] );\nconsole.log(result);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 83,
+											"id": 77,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6336,11 +6677,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "address the address of the account to lock"
+												"text": "The address of the account to lock."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -6401,11 +6742,7 @@
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nawait provider.send(\"evm_mine\", Date.now());\n```\n"
-											},
-											{
-												"tag": "example",
-												"text": "\n```javascript\nconsole.log(\"start\", await provider.send(\"eth_blockNumber\"));\nawait provider.send(\"evm_mine\", [{blocks: 5}]); // mines 5 blocks\nconsole.log(\"end\", await provider.send(\"eth_blockNumber\"));\n```\n"
+												"text": "\n```javascript\nconsole.log(\"start\", await provider.send(\"eth_blockNumber\"));\nawait provider.send(\"evm_mine\", [{blocks: 5}] ); // mines 5 blocks\nconsole.log(\"end\", await provider.send(\"eth_blockNumber\"));\n```\n"
 											}
 										]
 									},
@@ -6419,7 +6756,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the timestamp the block should be mined with.\nEXPERIMENTAL: Optionally, specify an `options` object with `timestamp`\nand/or `blocks` fields. If `blocks` is given, it will mine exactly `blocks`\n number of blocks, regardless of any other blocks mined or reverted during it's\noperation. This behavior is subject to change!\n"
+												"text": "The timestamp the block should be mined with.\nEXPERIEMENTAL: Optionally, specify an `options` object with `timestamp`\nand/or `blocks` fields. If `blocks` is given, it will mine exactly `blocks`\n number of blocks, regardless of any other blocks mined or reverted during it's\noperation. This behavior is subject to change!\n"
 											},
 											"type": {
 												"type": "intrinsic",
@@ -6561,7 +6898,7 @@
 							]
 						},
 						{
-							"id": 72,
+							"id": 66,
 							"name": "evm_revert",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6582,7 +6919,7 @@
 							],
 							"signatures": [
 								{
-									"id": 73,
+									"id": 67,
 									"name": "evm_revert",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6591,21 +6928,17 @@
 									},
 									"comment": {
 										"shortText": "Revert the state of the blockchain to a previous snapshot. Takes a single\nparameter, which is the snapshot id to revert to. This deletes the given\nsnapshot, as well as any snapshots taken after (Ex: reverting to id 0x1\nwill delete snapshots with ids 0x1, 0x2, etc... If no snapshot id is\npassed it will revert to the latest snapshot.",
-										"returns": "`true` if a snapshot was reverted, otherwise `false`\n",
+										"returns": "`true` if a snapshot was reverted, otherwise `false`.\n",
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst snapshotId = await provider.send(\"evm_snapshot\");\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId]);\n```\n"
-											},
-											{
-												"tag": "example",
-												"text": "\n```javascript\nconst provider = ganache.provider();\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from]));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}]);\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from]);\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId]);\nassert(isReverted);\n\nconst endingBalance = await provider.send(\"eth_getBalance\", [from]);\nassert.strictEqual(BigInt(endingBalance), startingBalance);\n```\n"
+												"text": "\n```javascript\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from] ));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"] );\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}] );\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from] );\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId] );\nassert(isReverted);\nconsole.log({isReverted: isReverted});\n\n// ensure balance has reverted\nconst endingBalance = await provider.send(\"eth_getBalance\", [from] );\nconst isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);\nconsole.log({isBalanceReverted: isBalanceReverted});\n```\n"
 											}
 										]
 									},
 									"parameters": [
 										{
-											"id": 74,
+											"id": 68,
 											"name": "snapshotId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6613,20 +6946,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "the snapshot id to revert"
+												"text": "The snapshot id to revert."
 											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "intrinsic",
-														"name": "number"
-													}
-												]
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -6651,7 +6975,7 @@
 							]
 						},
 						{
-							"id": 62,
+							"id": 56,
 							"name": "evm_setAccountNonce",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6672,7 +6996,7 @@
 							],
 							"signatures": [
 								{
-									"id": 63,
+									"id": 57,
 									"name": "evm_setAccountNonce",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6722,8 +7046,8 @@
 										"type": "reference",
 										"typeArguments": [
 											{
-												"type": "intrinsic",
-												"name": "boolean"
+												"tag": "example",
+												"text": "\n```javascript\nconst nonce = \"0x3e8\";\nconst [address] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst result = await provider.send(\"evm_setAccountNonce\", [address, nonce] );\nconsole.log(result);\n```\n"
 											}
 										],
 										"name": "Promise"
@@ -6777,68 +7101,29 @@
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "The account address to update."
+											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
 											"id": 59,
-											"name": "position",
+											"name": "nonce",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "The nonce value to be set."
+											},
 											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "bigint"
-													},
-													{
-														"type": "intrinsic",
-														"name": "number"
-													}
-												]
+												"type": "reference",
+												"name": "QUANTITY"
 											}
-										},
-										{
-											"id": 60,
-											"name": "storage",
-											"kind": 32768,
-											"kindString": "Parameter",
-											"flags": {
-												"isExported": true
-											},
-											"type": {
-												"type": "intrinsic",
-												"name": "string"
-											}
-										},
-										{
-											"id": 61,
-											"name": "blockNumber",
-											"kind": 32768,
-											"kindString": "Parameter",
-											"flags": {
-												"isExported": true
-											},
-											"type": {
-												"type": "union",
-												"types": [
-													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
-														"type": "reference",
-														"name": "Tag"
-													}
-												]
-											},
-											"defaultValue": "Tag.LATEST"
 										}
 									],
 									"type": {
@@ -6846,7 +7131,7 @@
 										"typeArguments": [
 											{
 												"type": "intrinsic",
-												"name": "void"
+												"name": "boolean"
 											}
 										],
 										"name": "Promise"
@@ -6862,7 +7147,7 @@
 							]
 						},
 						{
-							"id": 69,
+							"id": 63,
 							"name": "evm_setTime",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6884,7 +7169,7 @@
 							],
 							"signatures": [
 								{
-									"id": 70,
+									"id": 64,
 									"name": "evm_setTime",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6894,31 +7179,36 @@
 									"comment": {
 										"shortText": "Sets the internal clock time to the given timestamp.",
 										"text": "Warning: This will allow you to move *backwards* in time, which may cause\nnew blocks to appear to be mined before old blocks. This is will result in\nan invalid state.\n",
-										"returns": "The amount of *seconds* between the given timestamp and now.\n"
+										"returns": "The amount of *seconds* between the given timestamp and now.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst currentDate = Date.now();\nsetTimeout(async () => {\n  const time = await provider.send(\"evm_setTime\", [currentDate] );\n  console.log(time); // should be about two seconds ago\n}, 1000);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 71,
+											"id": 65,
 											"name": "time",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "JavaScript timestamp (millisecond precision)."
+											},
 											"type": {
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
 														"name": "Date"
-													},
-													{
-														"type": "intrinsic",
-														"name": "number"
 													}
 												]
 											}
@@ -6945,7 +7235,7 @@
 							]
 						},
 						{
-							"id": 75,
+							"id": 69,
 							"name": "evm_snapshot",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6954,7 +7244,7 @@
 							},
 							"signatures": [
 								{
-									"id": 76,
+									"id": 70,
 									"name": "evm_snapshot",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6963,15 +7253,11 @@
 									},
 									"comment": {
 										"shortText": "Snapshot the state of the blockchain at the current block. Takes no\nparameters. Returns the id of the snapshot that was created. A snapshot can\nonly be reverted once. After a successful `evm_revert`, the same snapshot\nid cannot be used again. Consider creating a new snapshot after each\n`evm_revert` if you need to revert to the same point multiple times.",
-										"returns": "The hex-encoded identifier for this snapshot\n",
+										"returns": "The hex-encoded identifier for this snapshot.\n",
 										"tags": [
 											{
 												"tag": "example",
-												"text": "\n```javascript\nconst snapshotId = await provider.send(\"evm_snapshot\");\n```\n"
-											},
-											{
-												"tag": "example",
-												"text": "\n```javascript\nconst provider = ganache.provider();\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from]));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}]);\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from]);\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId]);\nassert(isReverted);\n\nconst endingBalance = await provider.send(\"eth_getBalance\", [from]);\nassert.strictEqual(BigInt(endingBalance), startingBalance);\n```\n"
+												"text": "\n```javascript\nconst provider = ganache.provider();\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from] ));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"] );\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}] );\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from] );\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId] );\nassert(isReverted);\n\n// ensure balance has reverted\nconst endingBalance = await provider.send(\"eth_getBalance\", [from] );\nconst isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);\nconsole.log({isBalanceReverted: isBalanceReverted});\n```\n"
 											}
 										]
 									},
@@ -6996,7 +7282,7 @@
 							]
 						},
 						{
-							"id": 77,
+							"id": 71,
 							"name": "evm_unlockUnknownAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7005,7 +7291,7 @@
 							},
 							"signatures": [
 								{
-									"id": 78,
+									"id": 72,
 									"name": "evm_unlockUnknownAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7014,11 +7300,18 @@
 									},
 									"comment": {
 										"shortText": "Unlocks any unknown account.",
-										"returns": "`true` if the account was unlocked successfully, `false` if the\naccount was already unlocked. Throws an error if the account could not be\nunlocked.\n"
+										"text": "Note: accounts known to the `personal` namespace and accounts returned by\n`eth_accounts` cannot be unlocked using this method.\n",
+										"returns": "`true` if the account was unlocked successfully, `false` if the\naccount was already unlocked. Throws an error if the account could not be\nunlocked.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst address = \"0x742d35Cc6634C0532925a3b844Bc454e4438f44e\";\nconst result = await provider.send(\"evm_unlockUnknownAccount\", [address] );\nconsole.log(result);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 79,
+											"id": 73,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7026,15 +7319,15 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "address the address of the account to unlock"
+												"text": "The address of the account to unlock."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
-											"id": 80,
+											"id": 74,
 											"name": "duration",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7042,7 +7335,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "(default: disabled) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
+												"text": "(Default: disabled) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7072,7 +7365,7 @@
 							]
 						},
 						{
-							"id": 92,
+							"id": 86,
 							"name": "miner_setEtherbase",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7093,7 +7386,7 @@
 							],
 							"signatures": [
 								{
-									"id": 93,
+									"id": 87,
 									"name": "miner_setEtherbase",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7101,11 +7394,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Sets the etherbase, where mining rewards will go."
+										"shortText": "Sets the etherbase, where mining rewards will go.",
+										"returns": "`true`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [account] = await provider.request({ method: \"eth_accounts\", params: [] });\nconsole.log(await provider.send(\"miner_setEtherbase\", [account] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 94,
+											"id": 88,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7116,8 +7416,8 @@
 												"text": "address\n"
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -7142,7 +7442,7 @@
 							]
 						},
 						{
-							"id": 95,
+							"id": 89,
 							"name": "miner_setExtra",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7163,7 +7463,7 @@
 							],
 							"signatures": [
 								{
-									"id": 96,
+									"id": 90,
 									"name": "miner_setExtra",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7171,11 +7471,18 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Set the extraData block header field a miner can include."
+										"shortText": "Set the extraData block header field a miner can include.",
+										"returns": "If successfully set returns `true`, otherwise returns an error.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setExtra\", [\"0x0\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 97,
+											"id": 91,
 											"name": "extra",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7186,8 +7493,8 @@
 												"text": "extra\n"
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -7212,7 +7519,7 @@
 							]
 						},
 						{
-							"id": 89,
+							"id": 83,
 							"name": "miner_setGasPrice",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7233,17 +7540,26 @@
 							],
 							"signatures": [
 								{
-									"id": 90,
+									"id": 84,
 									"name": "miner_setGasPrice",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
 										"isExported": true
 									},
-									"comment": {},
+									"comment": {
+										"shortText": "Sets the minimal accepted gas price when mining transactions.\nAny transactions that are below this limit are excluded from the mining\nprocess.",
+										"returns": "`true`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setGasPrice\", [300000] ));\n```\n"
+											}
+										]
+									},
 									"parameters": [
 										{
-											"id": 91,
+											"id": 85,
 											"name": "number",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7251,11 +7567,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "Sets the minimal accepted gas price when mining transactions.\nAny transactions that are below this limit are excluded from the mining\nprocess.\n"
+												"text": "Minimal accepted gas price."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -7280,7 +7596,7 @@
 							]
 						},
 						{
-							"id": 84,
+							"id": 78,
 							"name": "miner_start",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7302,7 +7618,7 @@
 							],
 							"signatures": [
 								{
-									"id": 85,
+									"id": 79,
 									"name": "miner_start",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7312,11 +7628,17 @@
 									"comment": {
 										"shortText": "Resume the CPU mining process with the given number of threads.",
 										"text": "Note: `threads` is ignored.",
-										"returns": "true\n"
+										"returns": "`true`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nawait provider.send(\"miner_stop\");\n// check that eth_mining returns false\nconsole.log(await provider.send(\"eth_mining\"));\nawait provider.send(\"miner_start\");\n// check that eth_mining returns true\nconsole.log(await provider.send(\"eth_mining\"));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 86,
+											"id": 80,
 											"name": "threads",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7354,7 +7676,7 @@
 							]
 						},
 						{
-							"id": 87,
+							"id": 81,
 							"name": "miner_stop",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7375,7 +7697,7 @@
 							],
 							"signatures": [
 								{
-									"id": 88,
+									"id": 82,
 									"name": "miner_stop",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7383,7 +7705,14 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Stop the CPU mining operation."
+										"shortText": "Stop the CPU mining operation.",
+										"returns": "`true`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// check that eth_mining returns true\nconsole.log(await provider.send(\"eth_mining\"));\nawait provider.send(\"miner_stop\");\n// check that eth_mining returns false\nconsole.log(await provider.send(\"eth_mining\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -7406,7 +7735,7 @@
 							]
 						},
 						{
-							"id": 105,
+							"id": 99,
 							"name": "net_listening",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7427,7 +7756,7 @@
 							],
 							"signatures": [
 								{
-									"id": 106,
+									"id": 100,
 									"name": "net_listening",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7436,7 +7765,13 @@
 									},
 									"comment": {
 										"shortText": "Returns `true` if client is actively listening for network connections.",
-										"returns": "`true` when listening, otherwise `false`.\n"
+										"returns": "`true` when listening, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"net_listening\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -7459,7 +7794,7 @@
 							]
 						},
 						{
-							"id": 107,
+							"id": 101,
 							"name": "net_peerCount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7480,7 +7815,7 @@
 							],
 							"signatures": [
 								{
-									"id": 108,
+									"id": 102,
 									"name": "net_peerCount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7489,7 +7824,13 @@
 									},
 									"comment": {
 										"shortText": "Returns number of peers currently connected to the client.",
-										"returns": "integer of the number of connected peers.\n"
+										"returns": "Number of connected peers.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"net_peerCount\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -7512,7 +7853,7 @@
 							]
 						},
 						{
-							"id": 103,
+							"id": 97,
 							"name": "net_version",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7533,7 +7874,7 @@
 							],
 							"signatures": [
 								{
-									"id": 104,
+									"id": 98,
 									"name": "net_version",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7542,7 +7883,13 @@
 									},
 									"comment": {
 										"shortText": "Returns the current network id.",
-										"returns": "The current network id. This value should NOT be JSON-RPC\nQuantity/Data encoded.\n"
+										"returns": "The current network id. This value should NOT be JSON-RPC\nQuantity/Data encoded.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"net_version\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -7610,8 +7957,8 @@
 												"text": "rawKey"
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -7682,7 +8029,13 @@
 									},
 									"comment": {
 										"shortText": "Returns all the Ethereum account addresses of all keys that have been\nadded.",
-										"returns": "the Ethereum account addresses of all keys that have been added.\n"
+										"returns": "The Ethereum account addresses of all keys that have been added.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"personal_listAccounts\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -7693,6 +8046,83 @@
 													"type": "intrinsic",
 													"name": "string"
 												}
+											}
+										],
+										"name": "Promise"
+									}
+								}
+							],
+							"sources": [
+								{
+									"fileName": "chains/ethereum/ethereum/src/api.ts",
+									"line": 2562,
+									"character": 29
+								}
+							]
+						},
+						{
+							"id": 325,
+							"name": "personal_lockAccount",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"decorators": [
+								{
+									"name": "assertArgLength",
+									"type": {
+										"type": "reference",
+										"name": "assertArgLength"
+									},
+									"arguments": {
+										"min": "1"
+									}
+								}
+							],
+							"signatures": [
+								{
+									"id": 326,
+									"name": "personal_lockAccount",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {
+										"isExported": true
+									},
+									"comment": {
+										"shortText": "Locks the account. The account can no longer be used to send transactions.",
+										"returns": "Returns `true` if the account was locked, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [account] = await provider.send(\"personal_listAccounts\");\nconst isLocked = await provider.send(\"personal_lockAccount\", [account] );\nconsole.log(isLocked);\n```\n"
+											}
+										]
+									},
+									"parameters": [
+										{
+											"id": 327,
+											"name": "address",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {
+												"isExported": true
+											},
+											"comment": {
+												"text": "The account address to be locked."
+											},
+											"type": {
+												"type": "reference",
+												"name": "DATA"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "intrinsic",
+												"name": "boolean"
 											}
 										],
 										"name": "Promise"
@@ -7737,7 +8167,14 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Locks the account. The account can no longer be used to send transactions."
+										"shortText": "Generates a new account with private key. Returns the address of the new\naccount.",
+										"returns": "The new account's address.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst address = await provider.send(\"personal_newAccount\", [passphrase] );\nconsole.log(address);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -7749,7 +8186,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "\n"
+												"text": "The passphrase to encrypt the private key with."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7761,8 +8198,8 @@
 										"type": "reference",
 										"typeArguments": [
 											{
-												"type": "intrinsic",
-												"name": "boolean"
+												"type": "reference",
+												"name": "Address"
 											}
 										],
 										"name": "Promise"
@@ -7793,7 +8230,7 @@
 										"name": "assertArgLength"
 									},
 									"arguments": {
-										"min": "1"
+										"min": "2"
 									}
 								}
 							],
@@ -7807,8 +8244,15 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Generates a new account with private key. Returns the address of the new\naccount.",
-										"returns": "The new account's address\n"
+										"shortText": "Validate the given passphrase and submit transaction.",
+										"text": "The transaction is the same argument as for `eth_sendTransaction` and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belonging to `tx.from` the transaction is verified, signed and\nsend onto the network. The account is not unlocked globally in the node\nand cannot be used in other RPC calls.\n\nTransaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"returns": "The transaction hash or if unsuccessful an error.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase] );\nconst [to] = await provider.send(\"personal_listAccounts\");\n\n// use account and passphrase to send the transaction\nconst txHash = await provider.send(\"personal_sendTransaction\", [{ from: newAccount, to, gasLimit: \"0x5b8d80\" }, passphrase] );\nconsole.log(txHash);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -7833,7 +8277,7 @@
 										"typeArguments": [
 											{
 												"type": "reference",
-												"name": "Address"
+												"name": "Data"
 											}
 										],
 										"name": "Promise"
@@ -7878,8 +8322,15 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Validate the given passphrase and submit transaction.",
-										"text": "The transaction is the same argument as for eth_sendTransaction and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belonging to tx.from the transaction is verified, signed and\nsend onto the network. The account is not unlocked globally in the node\nand cannot be used in other RPC calls.\n"
+										"shortText": "Validates the given passphrase and signs a transaction that can be\nsubmitted to the network at a later time using `eth_sendRawTransaction`.",
+										"text": "The transaction is the same argument as for `eth_signTransaction` and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belogging to `tx.from` the transaction is verified and signed.\nThe account is not unlocked globally in the node and cannot be used in other RPC calls.\n\nTransaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"returns": "The raw, signed transaction.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst [to] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst passphrase = \"passphrase\";\nconst from = await provider.send(\"personal_newAccount\", [passphrase] );\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst signedTx = await provider.request({ method: \"personal_signTransaction\", params: [{ from, to }, passphrase] });\nconsole.log(signedTx)\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -7890,9 +8341,12 @@
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "The transaction call object as seen in source."
+											},
 											"type": {
-												"type": "intrinsic",
-												"name": "any"
+												"type": "reference",
+												"name": "RpcTransaction"
 											}
 										},
 										{
@@ -7916,8 +8370,8 @@
 										"type": "reference",
 										"typeArguments": [
 											{
-												"type": "reference",
-												"name": "Data"
+												"type": "intrinsic",
+												"name": "string"
 											}
 										],
 										"name": "Promise"
@@ -7964,8 +8418,14 @@
 									},
 									"comment": {
 										"shortText": "Unlocks the account for use.",
-										"text": "The unencrypted key will be held in memory until the unlock duration\nexpires. The unlock duration defaults to 300 seconds. An explicit duration\nof zero seconds unlocks the key until geth exits.\n\nThe account can be used with eth_sign and eth_sendTransaction while it is\nunlocked.",
-										"returns": "true if it worked. Throws an error if it did not.\n"
+										"text": "The unencrypted key will be held in memory until the unlock duration\nexpires. The unlock duration defaults to 300 seconds. An explicit duration\nof zero seconds unlocks the key until geth exits.\n\nThe account can be used with `eth_sign` and `eth_sendTransaction` while it is\nunlocked.",
+										"returns": "`true` if it worked. Throws an error or returns `false` if it did not.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// generate an account\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase] );\nconst isUnlocked = await provider.send(\"personal_unlockAccount\", [newAccount, passphrase] );\nconsole.log(isUnlocked);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -7977,11 +8437,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "20 Bytes - The address of the account to unlock."
+												"text": "The address of the account to unlock."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -8009,7 +8469,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "(default: 300) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
+												"text": "(Default: 300) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -8066,6 +8526,16 @@
 									"kindString": "Call signature",
 									"flags": {
 										"isExported": true
+									},
+									"comment": {
+										"shortText": "Returns object of RPC modules.",
+										"returns": "RPC modules.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"rpc_modules\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -8267,8 +8737,14 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Adds a whisper identity to the group",
-										"returns": "true if the identity was successfully added to the group, otherwise false.\n"
+										"shortText": "Adds a whisper identity to the group.",
+										"returns": "`true` if the identity was successfully added to the group, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_addToGroup\", [\"0x0\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8283,8 +8759,8 @@
 												"text": "The identity address to add to a group."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -8339,7 +8815,13 @@
 									},
 									"comment": {
 										"shortText": "Polling method for whisper filters. Returns new messages since the last call of this method.",
-										"returns": "More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges\n"
+										"returns": "More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getFilterChanges\", [\"0x0\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8354,8 +8836,8 @@
 												"text": "The filter id. Ex: \"0x7\""
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -8413,7 +8895,13 @@
 									},
 									"comment": {
 										"shortText": "Get all messages matching a filter. Unlike shh_getFilterChanges this returns all messages.",
-										"returns": "See: shh_getFilterChanges\n"
+										"returns": "See: `shh_getFilterChanges`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_getMessages\", [\"0x0\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8428,8 +8916,8 @@
 												"text": "The filter id. Ex: \"0x7\""
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -8484,7 +8972,13 @@
 									},
 									"comment": {
 										"shortText": "Checks if the client hold the private keys for a given identity.",
-										"returns": "returns true if the client holds the privatekey for that identity, otherwise false.\n"
+										"returns": "Returns `true` if the client holds the private key for that identity, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_hasIdentity\", [\"0x0\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8499,8 +8993,8 @@
 												"text": "The identity address to check."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -8555,7 +9049,13 @@
 									},
 									"comment": {
 										"shortText": "Creates filter to notify, when client receives whisper message matching the filter options.",
-										"returns": "returns true if the identity was successfully added to the group, otherwise false.\n"
+										"returns": "Returns `true` if the identity was successfully added to the group, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_newFilter\", [\"0x0\", []] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8567,11 +9067,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "-\n^(optional) Identity of the receiver. When present it will try to decrypt any incoming message\n if the client holds the private key to this identity."
+												"text": "(optional) Identity of the receiver. When present it will try to decrypt any incoming message\n if the client holds the private key to this identity."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -8583,13 +9083,13 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "Array of DATA topics which the incoming message's topics should match."
+												"text": "Array of topics which the incoming message's topics should match."
 											},
 											"type": {
 												"type": "array",
 												"elementType": {
-													"type": "intrinsic",
-													"name": "any"
+													"type": "reference",
+													"name": "DATA"
 												}
 											}
 										}
@@ -8645,7 +9145,7 @@
 									},
 									"comment": {
 										"shortText": "Creates a new group.",
-										"returns": "the address of the new group.\n"
+										"returns": "The address of the new group.\n"
 									},
 									"type": {
 										"type": "reference",
@@ -8698,7 +9198,13 @@
 									},
 									"comment": {
 										"shortText": "Creates new whisper identity in the client.",
-										"returns": "result - the address of the new identity.\n"
+										"returns": "The address of the new identity.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_newIdentity\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -8751,7 +9257,13 @@
 									},
 									"comment": {
 										"shortText": "Creates a whisper message and injects it into the network for distribution.",
-										"returns": "returns true if the message was sent, otherwise false.\n"
+										"returns": "Returns `true` if the message was sent, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_post\", [{}] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8819,8 +9331,14 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Uninstalls a filter with given id. Should always be called when watch is no longer needed.\nAdditionally Filters timeout when they aren't requested with shh_getFilterChanges for a period of time.",
-										"returns": "true if the filter was successfully uninstalled, otherwise false.\n"
+										"shortText": "Uninstalls a filter with given id. Should always be called when watch is no longer needed.\nAdditionally filters timeout when they aren't requested with `shh_getFilterChanges` for a period of time.",
+										"returns": "`true` if the filter was successfully uninstalled, otherwise `false`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_uninstallFilter\", [\"0x0\"] ));\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -8835,8 +9353,8 @@
 												"text": "The filter id. Ex: \"0x7\""
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -8891,7 +9409,13 @@
 									},
 									"comment": {
 										"shortText": "Returns the current whisper protocol version.",
-										"returns": "The current whisper protocol version\n"
+										"returns": "The current whisper protocol version.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"shh_version\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -8914,7 +9438,7 @@
 							]
 						},
 						{
-							"id": 98,
+							"id": 92,
 							"name": "web3_clientVersion",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8935,7 +9459,7 @@
 							],
 							"signatures": [
 								{
-									"id": 99,
+									"id": 93,
 									"name": "web3_clientVersion",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8944,7 +9468,13 @@
 									},
 									"comment": {
 										"shortText": "Returns the current client version.",
-										"returns": "The current client version.\n"
+										"returns": "The current client version.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"web3_clientVersion\"));\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -8967,7 +9497,7 @@
 							]
 						},
 						{
-							"id": 100,
+							"id": 94,
 							"name": "web3_sha3",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8988,7 +9518,7 @@
 							],
 							"signatures": [
 								{
-									"id": 101,
+									"id": 95,
 									"name": "web3_sha3",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8997,11 +9527,17 @@
 									},
 									"comment": {
 										"shortText": "Returns Keccak-256 (not the standardized SHA3-256) of the given data.",
-										"returns": "The SHA3 result of the given string.\n"
+										"returns": "The SHA3 result of the given string.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst data = \"hello trufflers\";\nconst sha3 = await provider.send(\"web3_sha3\", [data] );\nconsole.log(sha3);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 102,
+											"id": 96,
 											"name": "data",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9012,8 +9548,8 @@
 												"text": "the data to convert into a SHA3 hash."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -9068,63 +9604,62 @@
 								31,
 								35,
 								26,
-								326,
-								308,
-								175,
-								177,
-								304,
-								179,
-								117,
-								109,
-								173,
-								181,
-								123,
-								119,
-								130,
-								127,
-								185,
-								133,
-								268,
-								274,
-								287,
-								189,
-								135,
-								139,
-								194,
-								300,
-								212,
-								149,
-								153,
-								143,
-								146,
-								157,
-								171,
+								309,
+								305,
 								169,
-								261,
-								265,
-								263,
+								171,
+								301,
+								173,
+								111,
+								103,
+								167,
+								175,
+								117,
 								113,
-								241,
-								238,
-								244,
-								248,
-								165,
-								160,
-								252,
-								115,
+								124,
+								121,
+								179,
+								127,
+								265,
 								271,
+								284,
+								183,
+								129,
+								133,
+								188,
+								297,
+								206,
+								143,
+								147,
+								137,
+								140,
+								151,
+								165,
+								163,
 								258,
-								66,
-								81,
-								48,
-								72,
-								62,
-								56,
-								69,
+								262,
+								260,
+								107,
+								238,
+								232,
+								241,
+								235,
+								245,
+								159,
+								154,
+								249,
+								109,
+								268,
+								255,
+								60,
 								75,
-								77,
-								92,
-								95,
+								48,
+								66,
+								56,
+								63,
+								69,
+								71,
+								86,
 								89,
 								84,
 								87,

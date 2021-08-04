@@ -15,7 +15,10 @@ import {
   StorageRangeResult,
   StorageRecords,
   RangedStorageKeys,
-  EthereumRawAccount
+  StructLog,
+  TransactionTraceOptions,
+  EthereumRawAccount,
+  TraceTransactionResult
 } from "@ganache/ethereum-utils";
 import { decode } from "@ganache/rlp";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
@@ -77,37 +80,6 @@ type BlockchainTypedEvents = {
   pendingTransaction: RuntimeTransaction;
 };
 type BlockchainEvents = "ready" | "stop";
-
-export type TransactionTraceOptions = {
-  disableStorage?: boolean;
-  disableMemory?: boolean;
-  disableStack?: boolean;
-};
-
-export type StructLog = {
-  depth: number;
-  error: string;
-  gas: number;
-  gasCost: number;
-  memory: Array<ITraceData>;
-  op: string;
-  pc: number;
-  stack: Array<ITraceData>;
-  storage: TraceStorageMap;
-};
-
-export type TraceTransactionResult = {
-  gas: number;
-  structLogs: StructLog[];
-  returnValue: string;
-  storage: Record<
-    string,
-    {
-      key: Data;
-      value: Data;
-    }
-  >;
-};
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -1301,14 +1273,15 @@ export default class Blockchain extends Emittery.Typed<
     );
 
     // #3 - Rerun every transaction in block prior to and including the requested transaction
-    const { gas, structLogs, returnValue } = await this.#traceTransaction(
-      trie,
-      newBlock,
-      options
-    );
+    const {
+      gas,
+      structLogs,
+      returnValue,
+      storage
+    } = await this.#traceTransaction(trie, newBlock, options);
 
     // #4 - Send results back
-    return { gas, structLogs, returnValue };
+    return { gas, structLogs, returnValue, storage };
   }
 
   /**
@@ -1333,10 +1306,10 @@ export default class Blockchain extends Emittery.Typed<
    * @param maxResult
    */
   public async storageRangeAt(
-    blockHash: string | Buffer,
+    blockHash: string,
     txIndex: number,
     contractAddress: string,
-    startKey: string | Buffer,
+    startKey: string,
     maxResult: number
   ): Promise<StorageRangeResult> {
     // #1 - get block information
@@ -1344,7 +1317,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // get transaction using txIndex
     const transactions = targetBlock.getTransactions();
-    const transaction = transactions[Quantity.from(txIndex).toNumber()];
+    const transaction = transactions[txIndex];
     if (!transaction) {
       throw new Error(
         `transaction index ${txIndex} is out of range for block ${blockHash}`

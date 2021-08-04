@@ -5,16 +5,20 @@ import {
   VM_EXCEPTION,
   VM_EXCEPTIONS,
   CodedError,
+  DATA,
   WhisperPostObject,
   BaseFilterArgs,
   Filter,
   FilterArgs,
   FilterTypes,
+  QUANTITY,
   RangeFilterArgs,
+  StorageRangeResult,
   SubscriptionId,
   SubscriptionName,
-  StorageRangeResult,
-  EthereumRawAccount
+  EthereumRawAccount,
+  TransactionTraceOptions,
+  TraceTransactionResult
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
@@ -34,7 +38,7 @@ import {
   RPCQUANTITY_EMPTY,
   JsonRpcErrorCode
 } from "@ganache/utils";
-import Blockchain, { TransactionTraceOptions } from "./blockchain";
+import Blockchain from "./blockchain";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
@@ -140,6 +144,10 @@ export default class EthereumApi implements Api {
    * @param key - Key name.
    * @param value - String to store.
    * @returns returns true if the value was stored, otherwise false.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("db_putString", ["testDb", "testKey", "testValue"] ));
+   * ```
    */
   @assertArgLength(3)
   async db_putString(dbName: string, key: string, value: string) {
@@ -147,11 +155,15 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Returns string from the local database
+   * Returns string from the local database.
    *
    * @param dbName - Database name.
    * @param key - Key name.
    * @returns The previously stored string.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("db_getString", ["testDb", "testKey"] ));
+   * ```
    */
   @assertArgLength(2)
   async db_getString(dbName: string, key: string) {
@@ -165,18 +177,26 @@ export default class EthereumApi implements Api {
    * @param key - Key name.
    * @param data - Data to store.
    * @returns true if the value was stored, otherwise false.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("db_putHex", ["testDb", "testKey", "0x0"] ));
+   * ```
    */
   @assertArgLength(3)
-  async db_putHex(dbName: string, key: string, data: string) {
+  async db_putHex(dbName: string, key: string, data: DATA) {
     return false;
   }
 
   /**
-   * Returns binary data from the local database
+   * Returns binary data from the local database.
    *
    * @param dbName - Database name.
    * @param key - Key name.
    * @returns The previously stored data.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("db_getHex", ["testDb", "testKey"] ));
+   * ```
    */
   @assertArgLength(2)
   async db_getHex(dbName: string, key: string) {
@@ -185,11 +205,27 @@ export default class EthereumApi implements Api {
   //#endregion
 
   //#region bzz
+  /**
+   * Returns the kademlia table in a readable table format.
+   * @returns Returns the kademlia table in a readable table format.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("bzz_hive"));
+   * ```
+   */
   @assertArgLength(0)
   async bzz_hive() {
     return [];
   }
 
+  /**
+   * Returns details about the swarm node.
+   * @returns Returns details about the swarm node.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("bzz_info"));
+   * ```
+   */
   @assertArgLength(0)
   async bzz_info() {
     return [];
@@ -213,13 +249,8 @@ export default class EthereumApi implements Api {
    *
    * @example
    * ```javascript
-   * await provider.send("evm_mine", Date.now());
-   * ```
-   *
-   * @example
-   * ```javascript
    * console.log("start", await provider.send("eth_blockNumber"));
-   * await provider.send("evm_mine", [{blocks: 5}]); // mines 5 blocks
+   * await provider.send("evm_mine", [{blocks: 5}] ); // mines 5 blocks
    * console.log("end", await provider.send("eth_blockNumber"));
    * ```
    */
@@ -260,67 +291,25 @@ export default class EthereumApi implements Api {
     return "0x0";
   }
 
-  @assertArgLength(3, 4)
-  async evm_setStorageAt(
-    address: string,
-    position: bigint | number,
-    storage: string,
-    blockNumber: string | Tag = Tag.LATEST
-  ) {
-    const blockchain = this.#blockchain;
-    const blockProm = blockchain.blocks.getRawByBlockNumber(
-      blockchain.blocks.getEffectiveNumber(blockNumber)
-    );
-
-    const block = await blockProm;
-    if (!block) throw new Error("header not found");
-
-    const blockData = decode<GanacheRawBlock>(block);
-    const headerData = blockData[0];
-    const blockStateRoot = headerData[3];
-    const trie = blockchain.trie.copy(false);
-    trie.root = blockStateRoot;
-
-    const posBuff = Quantity.from(position).toBuffer();
-    const length = posBuff.length;
-    let paddedPosBuff: Buffer;
-    if (length < 32) {
-      // storage locations are 32 bytes wide, so we need to expand any value
-      // given to 32 bytes.
-      paddedPosBuff = Buffer.allocUnsafe(32).fill(0);
-      posBuff.copy(paddedPosBuff, 32 - length);
-    } else if (length === 32) {
-      paddedPosBuff = posBuff;
-    } else {
-      // if the position value we're passed is > 32 bytes, truncate it. This is
-      // what geth does.
-      paddedPosBuff = posBuff.slice(-32);
-    }
-
-    const addressData = await trie.get(Address.from(address).toBuffer());
-    // An address's stateRoot is stored in the 3rd rlp entry
-    blockchain.trie.root = ((decode(addressData) as any) as [
-      Buffer /*nonce*/,
-      Buffer /*amount*/,
-      Buffer /*stateRoot*/,
-      Buffer /*codeHash*/
-    ])[2];
-
-    return blockchain.trie.put(paddedPosBuff, Data.from(storage).toBuffer());
-  }
-
   /**
    * Sets the given account's nonce to the specified value. Mines a new block
    * before returning.
    *
    * Warning: this will result in an invalid state tree.
    *
-   * @param address - address
-   * @param nonce - nonce
-   * @returns `true` if it worked
+   * @param address - The account address to update.
+   * @param nonce - The nonce value to be set.
+   * @returns `true` if it worked, otherwise `false`.
+   * @example
+   * ```javascript
+   * const nonce = "0x3e8";
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_setAccountNonce", [address, nonce] );
+   * console.log(result);
+   * ```
    */
   @assertArgLength(2)
-  async evm_setAccountNonce(address: string, nonce: string) {
+  async evm_setAccountNonce(address: DATA, nonce: QUANTITY) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     const buffer = Address.from(address).toBuffer();
@@ -342,11 +331,17 @@ export default class EthereumApi implements Api {
 
   /**
    * Jump forward in time by the given amount of time, in seconds.
-   * @param seconds - Must be greater than or equal to `0`
+   * @param seconds Number of seconds to jump forward in time by. Must be greater than or equal to `0`.
    * @returns Returns the total time adjustment, in seconds.
+   * @example
+   * ```javascript
+   * const seconds = 10;
+   * const timeAdjustment = await provider.send("evm_increaseTime", [seconds] );
+   * console.log(timeAdjustment);
+   * ```
    */
   @assertArgLength(1)
-  async evm_increaseTime(seconds: number | string) {
+  async evm_increaseTime(seconds: number | QUANTITY) {
     const milliseconds =
       (typeof seconds === "number"
         ? seconds
@@ -361,11 +356,19 @@ export default class EthereumApi implements Api {
    * new blocks to appear to be mined before old blocks. This is will result in
    * an invalid state.
    *
-   * @param timestamp - JavaScript timestamp (millisecond precision)
+   * @param time JavaScript timestamp (millisecond precision).
    * @returns The amount of *seconds* between the given timestamp and now.
+   * @example
+   * ```javascript
+   * const currentDate = Date.now();
+   * setTimeout(async () => {
+   *   const time = await provider.send("evm_setTime", [currentDate] );
+   *   console.log(time); // should be about two seconds ago
+   * }, 1000);
+   * ```
    */
   @assertArgLength(0, 1)
-  async evm_setTime(time: string | Date | number) {
+  async evm_setTime(time: number | QUANTITY | Date) {
     let t: number;
     switch (typeof time) {
       case "object":
@@ -388,43 +391,39 @@ export default class EthereumApi implements Api {
    * will delete snapshots with ids 0x1, 0x2, etc... If no snapshot id is
    * passed it will revert to the latest snapshot.
    *
-   * @param snapshotId - the snapshot id to revert
-   * @returns `true` if a snapshot was reverted, otherwise `false`
+   * @param snapshotId The snapshot id to revert.
+   * @returns `true` if a snapshot was reverted, otherwise `false`.
    *
    * @example
    * ```javascript
-   * const snapshotId = await provider.send("evm_snapshot");
-   * const isReverted = await provider.send("evm_revert", [snapshotId]);
-   * ```
-   *
-   * @example
-   * ```javascript
-   * const provider = ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
-   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
+   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from] ));
    *
    * // take a snapshot
    * const snapshotId = await provider.send("evm_snapshot");
    *
    * // send value to another account (over-simplified example)
-   * await provider.send("eth_subscribe", ["newHeads"]);
-   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}]);
+   * await provider.send("eth_subscribe", ["newHeads"] );
+   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}] );
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * // ensure balance has updated
-   * const newBalance = await provider.send("eth_getBalance", [from]);
+   * const newBalance = await provider.send("eth_getBalance", [from] );
    * assert(BigInt(newBalance) < startingBalance);
    *
    * // revert the snapshot
-   * const isReverted = await provider.send("evm_revert", [snapshotId]);
+   * const isReverted = await provider.send("evm_revert", [snapshotId] );
    * assert(isReverted);
+   * console.log({isReverted: isReverted});
    *
-   * const endingBalance = await provider.send("eth_getBalance", [from]);
-   * assert.strictEqual(BigInt(endingBalance), startingBalance);
+   * // ensure balance has reverted
+   * const endingBalance = await provider.send("eth_getBalance", [from] );
+   * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
+   * console.log({isBalanceReverted: isBalanceReverted});
    * ```
    */
   @assertArgLength(1)
-  async evm_revert(snapshotId: string | number) {
+  async evm_revert(snapshotId: QUANTITY) {
     return this.#blockchain.revert(Quantity.from(snapshotId));
   }
 
@@ -435,37 +434,34 @@ export default class EthereumApi implements Api {
    * id cannot be used again. Consider creating a new snapshot after each
    * `evm_revert` if you need to revert to the same point multiple times.
    *
-   * @returns The hex-encoded identifier for this snapshot
-   *
-   * @example
-   * ```javascript
-   * const snapshotId = await provider.send("evm_snapshot");
-   * ```
+   * @returns The hex-encoded identifier for this snapshot.
    *
    * @example
    * ```javascript
    * const provider = ganache.provider();
    * const [from, to] = await provider.send("eth_accounts");
-   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from]));
+   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from] ));
    *
    * // take a snapshot
    * const snapshotId = await provider.send("evm_snapshot");
    *
    * // send value to another account (over-simplified example)
-   * await provider.send("eth_subscribe", ["newHeads"]);
-   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}]);
+   * await provider.send("eth_subscribe", ["newHeads"] );
+   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}] );
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * // ensure balance has updated
-   * const newBalance = await provider.send("eth_getBalance", [from]);
+   * const newBalance = await provider.send("eth_getBalance", [from] );
    * assert(BigInt(newBalance) < startingBalance);
    *
    * // revert the snapshot
-   * const isReverted = await provider.send("evm_revert", [snapshotId]);
+   * const isReverted = await provider.send("evm_revert", [snapshotId] );
    * assert(isReverted);
    *
-   * const endingBalance = await provider.send("eth_getBalance", [from]);
-   * assert.strictEqual(BigInt(endingBalance), startingBalance);
+   * // ensure balance has reverted
+   * const endingBalance = await provider.send("eth_getBalance", [from] );
+   * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
+   * console.log({isBalanceReverted: isBalanceReverted});
    * ```
    */
   async evm_snapshot() {
@@ -474,14 +470,24 @@ export default class EthereumApi implements Api {
 
   /**
    * Unlocks any unknown account.
-   * @param address - address the address of the account to unlock
-   * @param duration - (default: disabled) Duration in seconds how long the account
+   *
+   * Note: accounts known to the `personal` namespace and accounts returned by
+   * `eth_accounts` cannot be unlocked using this method.
+   *
+   * @param address The address of the account to unlock.
+   * @param duration (Default: disabled) Duration in seconds how long the account
    * should remain unlocked for. Set to 0 to disable automatic locking.
    * @returns `true` if the account was unlocked successfully, `false` if the
    * account was already unlocked. Throws an error if the account could not be
    * unlocked.
+   * @example
+   * ```javascript
+   * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+   * const result = await provider.send("evm_unlockUnknownAccount", [address] );
+   * console.log(result);
+   * ```
    */
-  async evm_unlockUnknownAccount(address: string, duration: number = 0) {
+  async evm_unlockUnknownAccount(address: DATA, duration: number = 0) {
     return this.#wallet.unlockUnknownAccount(address.toLowerCase(), duration);
   }
 
@@ -491,12 +497,18 @@ export default class EthereumApi implements Api {
    * Note: accounts known to the `personal` namespace and accounts returned by
    * `eth_accounts` cannot be locked using this method.
    *
-   * @param address - address the address of the account to lock
+   * @param address The address of the account to lock.
    * @returns `true` if the account was locked successfully, `false` if the
    * account was already locked. Throws an error if the account could not be
    * locked.
+   * @example
+   * ```javascript
+   * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+   * const result = await provider.send("evm_lockUnknownAccount", [address] );
+   * console.log(result);
+   * ```
    */
-  async evm_lockUnknownAccount(address: string) {
+  async evm_lockUnknownAccount(address: DATA) {
     const lowerAddress = address.toLowerCase();
     // if this is a known account we can't unlock it this way
     if (this.#wallet.knownAccounts.has(lowerAddress)) {
@@ -512,8 +524,17 @@ export default class EthereumApi implements Api {
    * Resume the CPU mining process with the given number of threads.
    *
    * Note: `threads` is ignored.
-   * @param threads - (ignored)
-   * @returns true
+   * @param threads Number of threads to resume the CPU mining process with.
+   * @returns `true`.
+   * @example
+   * ```javascript
+   * await provider.send("miner_stop");
+   * // check that eth_mining returns false
+   * console.log(await provider.send("eth_mining"));
+   * await provider.send("miner_start");
+   * // check that eth_mining returns true
+   * console.log(await provider.send("eth_mining"));
+   * ```
    */
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
@@ -530,6 +551,15 @@ export default class EthereumApi implements Api {
 
   /**
    * Stop the CPU mining operation.
+   * @returns `true`.
+   * @example
+   * ```javascript
+   * // check that eth_mining returns true
+   * console.log(await provider.send("eth_mining"));
+   * await provider.send("miner_stop");
+   * // check that eth_mining returns false
+   * console.log(await provider.send("eth_mining"));
+   * ```
    */
   @assertArgLength(0)
   async miner_stop() {
@@ -538,33 +568,49 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   *
-   * @param number - Sets the minimal accepted gas price when mining transactions.
+   * Sets the minimal accepted gas price when mining transactions.
    * Any transactions that are below this limit are excluded from the mining
    * process.
+   * @param number Minimal accepted gas price.
+   * @returns `true`.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("miner_setGasPrice", [300000] ));
+   * ```
    */
   @assertArgLength(1)
-  async miner_setGasPrice(number: string) {
+  async miner_setGasPrice(number: QUANTITY) {
     this.#options.miner.gasPrice = Quantity.from(number);
     return true;
   }
 
   /**
    * Sets the etherbase, where mining rewards will go.
-   * @param address - address
+   * @param address The address where the mining rewards will go.
+   * @returns `true`.
+   * @example
+   * ```javascript
+   * const [account] = await provider.request({ method: "eth_accounts", params: [] });
+   * console.log(await provider.send("miner_setEtherbase", [account] ));
+   * ```
    */
   @assertArgLength(1)
-  async miner_setEtherbase(address: string) {
+  async miner_setEtherbase(address: DATA) {
     this.#blockchain.coinbase = Address.from(address);
     return true;
   }
 
   /**
    * Set the extraData block header field a miner can include.
-   * @param extra - extra
+   * @param extra The `extraData` to include.
+   * @returns If successfully set returns `true`, otherwise returns an error.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("miner_setExtra", ["0x0"] ));
+   * ```
    */
   @assertArgLength(1)
-  async miner_setExtra(extra: string) {
+  async miner_setExtra(extra: DATA) {
     const bytes = Data.from(extra);
     const length = bytes.toBuffer().length;
     if (length > 32) {
@@ -579,6 +625,10 @@ export default class EthereumApi implements Api {
   /**
    * Returns the current client version.
    * @returns The current client version.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("web3_clientVersion"));
+   * ```
    */
   @assertArgLength(0)
   async web3_clientVersion() {
@@ -589,9 +639,15 @@ export default class EthereumApi implements Api {
    * Returns Keccak-256 (not the standardized SHA3-256) of the given data.
    * @param data - the data to convert into a SHA3 hash.
    * @returns The SHA3 result of the given string.
+   * @example
+   * ```javascript
+   * const data = "hello trufflers";
+   * const sha3 = await provider.send("web3_sha3", [data] );
+   * console.log(sha3);
+   * ```
    */
   @assertArgLength(1)
-  async web3_sha3(data: string) {
+  async web3_sha3(data: DATA) {
     return Data.from(keccak(Buffer.from(data)));
   }
   //#endregion
@@ -601,6 +657,10 @@ export default class EthereumApi implements Api {
    * Returns the current network id.
    * @returns The current network id. This value should NOT be JSON-RPC
    * Quantity/Data encoded.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("net_version"));
+   * ```
    */
   @assertArgLength(0)
   async net_version() {
@@ -610,6 +670,10 @@ export default class EthereumApi implements Api {
   /**
    * Returns `true` if client is actively listening for network connections.
    * @returns `true` when listening, otherwise `false`.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("net_listening"));
+   * ```
    */
   @assertArgLength(0)
   async net_listening() {
@@ -618,7 +682,11 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns number of peers currently connected to the client.
-   * @returns integer of the number of connected peers.
+   * @returns Number of connected peers.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("net_peerCount"));
+   * ```
    */
   @assertArgLength(0)
   async net_peerCount() {
@@ -628,6 +696,7 @@ export default class EthereumApi implements Api {
 
   //#region eth
 
+  // TODO: example doesn't return correct value
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
@@ -635,19 +704,31 @@ export default class EthereumApi implements Api {
    * amount of gas actually used by the transaction, for a variety of reasons
    * including EVM mechanics and node performance.
    *
-   * @returns the amount of gas used.
+   * Transaction call object:
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction The transaction call object as seen in source.
+   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   *  or "pending".
+   *
+   * @returns The amount of gas used.
    *
    * @example
    * ```javascript
-   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
-   * const gasEstimate = await provider.request({ method: "eth_estimateGas", params: [{ from: accounts[0], to: accounts[1] }, "latest" ] });
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const gasEstimate = await provider.request({ method: "eth_estimateGas", params: [{ from, to }, "latest" ] });
    * console.log(gasEstimate);
    * ```
    */
   @assertArgLength(1, 2)
   async eth_estimateGas(
-    transaction: RpcTransaction,
-    blockNumber: string | Tag = Tag.LATEST
+    transaction: any,
+    blockNumber: QUANTITY | Tag = Tag.LATEST
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
@@ -694,6 +775,11 @@ export default class EthereumApi implements Api {
   /**
    * Returns the current ethereum protocol version.
    * @returns The current ethereum protocol version.
+   * @example
+   * ```javascript
+   * const version = await provider.request({ method: "eth_protocolVersion", params: [] });
+   * console.log(version);
+   * ```
    */
   @assertArgLength(0)
   async eth_protocolVersion() {
@@ -701,12 +787,20 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Returns an object with data about the sync status or false.
-   * @returns An object with sync status data or false, when not syncing:
-   *   startingBlock: \{bigint\} - The block at which the import started (will
-   *    only be reset, after the sync reached his head)
-   *   currentBlock: \{bigint\} - The current block, same as eth_blockNumber
-   *   highestBlock: \{bigint\} - The estimated highest block
+   * Returns an object containing data about the sync status or `false` when not syncing.
+   *
+   * @returns An object with sync status data or `false`, when not syncing.
+   *
+   * * `startingBlock`: {bigint} The block at which the import started (will
+   *     only be reset, after the sync reached his head).
+   * * `currentBlock`: {bigint} The current block, same as `eth_blockNumber`.
+   * * `highestBlock`: {bigint} The estimated highest block.
+   *
+   * @example
+   * ```javascript
+   * const result = await provider.request({ method: "eth_syncing", params: [] });
+   * console.log(result);
+   * ```
    */
   @assertArgLength(0)
   async eth_syncing() {
@@ -715,7 +809,12 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the client coinbase address.
-   * @returns 20 bytes - the current coinbase address.
+   * @returns The current coinbase address.
+   * @example
+   * ```javascript
+   * const coinbaseAddress = await provider.request({ method: "eth_coinbase" });
+   * console.log(coinbaseAddress);
+   * ```
    */
   @assertArgLength(0)
   async eth_coinbase() {
@@ -724,28 +823,97 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns information about a block by block number.
-   * @param number - QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the
+   * @param number Integer of a block number, or the string "earliest", "latest" or "pending", as in the
    * default block parameter.
-   * @param transactions - Boolean - If true it returns the full transaction objects, if false only the hashes of the
+   * @param transactions If `true` it returns the full transaction objects, if `false` only the hashes of the
    * transactions.
-   * @returns the block, `null` if the block doesn't exist.
+   * @returns The block, `null` if the block doesn't exist.
+   *
+   * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
+   * * `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.
+   * * `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.
+   * * `miner`: `DATA`, 20 Bytes -  Address of the miner.
+   * * `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.
+   * * `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.
+   * * `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.
+   * * `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.
+   * * `difficulty`: `QUANTITY` - Integer of the difficulty of this block.
+   * * `number`: `QUANTITY` - The block number. `null` when pending.
+   * * `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.
+   * * `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.
+   * * `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.
+   * * `extraData`: `DATA` - Extra data for the block.
+   * * `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.
+   * * `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.
+   * * `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.
+   * * `size`: `QUANTITY` - Integer the size of the block in bytes.
+   * * `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.
+   * * `uncles`: `Array` - Array of uncle hashes.
+   *
+   * @example
+   * ```javascript
+   * const block = await provider.request({ method: "eth_getBlockByNumber", params: ["0x0", false] });
+   * console.log(block);
+   * ```
    */
   @assertArgLength(1, 2)
-  async eth_getBlockByNumber(number: string | Tag, transactions = false) {
+  async eth_getBlockByNumber(number: QUANTITY | Tag, transactions = false) {
     const block = await this.#blockchain.blocks.get(number).catch(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
   /**
    * Returns information about a block by block hash.
-   * @param number - QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the
-   * default block parameter.
-   * @param transactions - Boolean - If true it returns the full transaction objects, if false only the hashes of the
+   * @param hash Hash of a block.
+   * @param transactions If `true` it returns the full transaction objects, if `false` only the hashes of the
    * transactions.
-   * @returns Block
+   * @returns The block, `null` if the block doesn't exist.
+   *
+   * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
+   * * `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.
+   * * `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.
+   * * `miner`: `DATA`, 20 Bytes -  Address of the miner.
+   * * `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.
+   * * `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.
+   * * `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.
+   * * `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.
+   * * `difficulty`: `QUANTITY` - Integer of the difficulty of this block.
+   * * `number`: `QUANTITY` - The block number. `null` when pending.
+   * * `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.
+   * * `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.
+   * * `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.
+   * * `extraData`: `DATA` - Extra data for the block.
+   * * `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.
+   * * `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.
+   * * `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.
+   * * `size`: `QUANTITY` - Integer the size of the block in bytes.
+   * * `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.
+   * * `uncles`: `Array` - Array of uncle hashes.
+   *
+   * @example
+   * ```javascript
+   * // Simple.sol
+   * // // SPDX-License-Identifier: MIT
+   * //  pragma solidity ^0.7.4;
+   * //
+   * //  contract Simple {
+   * //      uint256 public value;
+   * //      constructor() payable {
+   * //          value = 5;
+   * //      }
+   * //  }
+   * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const block = await provider.request({ method: "eth_getBlockByHash", params: [txReceipt.blockHash, true] });
+   * console.log(block);
+   * ```
    */
   @assertArgLength(1, 2)
-  async eth_getBlockByHash(hash: string | Buffer, transactions = false) {
+  async eth_getBlockByHash(hash: DATA, transactions = false) {
     const block = await this.#blockchain.blocks
       .getByHash(hash)
       .catch(_ => null);
@@ -754,11 +922,17 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the number of transactions in a block from a block matching the given block number.
-   * @param number - QUANTITY|TAG - integer of a block number, or the string "earliest", "latest" or "pending", as in the
+   * @param number Integer of a block number, or the string "earliest", "latest" or "pending", as in the
    * default block parameter.
+   * @returns Integer of the number of transactions in the block.
+   * @example
+   * ```javascript
+   * const txCount = await provider.request({ method: "eth_getBlockTransactionCountByNumber", params: ["0x0"] });
+   * console.log(txCount);
+   * ```
    */
   @assertArgLength(1)
-  async eth_getBlockTransactionCountByNumber(blockNumber: string | Tag) {
+  async eth_getBlockTransactionCountByNumber(blockNumber: QUANTITY | Tag) {
     const { blocks } = this.#blockchain;
     const blockNum = blocks.getEffectiveNumber(blockNumber);
     const rawBlock = await blocks.getRawByBlockNumber(blockNum);
@@ -770,10 +944,32 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the number of transactions in a block from a block matching the given block hash.
-   * @param hash - DATA, 32 Bytes - hash of a block.
+   * @param hash Hash of a block.
+   * @returns Number of transactions in the block.
+   * @example
+   * ```javascript
+   * // Simple.sol
+   * // // SPDX-License-Identifier: MIT
+   * //  pragma solidity ^0.7.4;
+   * //
+   * //  contract Simple {
+   * //      uint256 public value;
+   * //      constructor() payable {
+   * //          value = 5;
+   * //      }
+   * //  }
+   * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const txCount = await provider.request({ method: "eth_getBlockTransactionCountByHash", params: [txReceipt.blockHash] });
+   * console.log(txCount);
+   * ```
    */
   @assertArgLength(1)
-  async eth_getBlockTransactionCountByHash(hash: string | Buffer) {
+  async eth_getBlockTransactionCountByHash(hash: DATA) {
     const { blocks } = this.#blockchain;
     const blockNum = await blocks.getNumberFromHash(hash);
     if (!blockNum) return null;
@@ -785,6 +981,15 @@ export default class EthereumApi implements Api {
     return Quantity.from(rawTransactions.length);
   }
 
+  /**
+   * Returns a list of available compilers.
+   * @returns List of available compilers.
+   * @example
+   * ```javascript
+   * const compilers = await provider.send("eth_getCompilers");
+   * console.log(compilers);
+   * ```
+   */
   @assertArgLength(0)
   async eth_getCompilers() {
     return [] as string[];
@@ -792,17 +997,42 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns information about a transaction by block hash and transaction index position.
-   * @param hash - DATA, 32 Bytes - hash of a block.
-   * @param index - QUANTITY - integer of the transaction index position.
+   * @param hash Hash of a block.
+   * @param index Integer of the transaction index position.
+   * @returns The transaction object or `null` if no transaction was found.
+   *
+   * * `hash`: `DATA`, 32 Bytes - The transaction hash.
+   * * `nonce`: `QUANTITY` - The number of transactions made by the sender prior to this one.
+   * * `blockHash`: `DATA`, 32 Bytes - The hash of the block the transaction is in. `null` when pending.
+   * * `blockNumber`: `QUANTITY` - The number of the block the transaction is in. `null` when pending.
+   * * `transactionIndex`: `QUANTITY` - The index position of the transaction in the block.
+   * * `from`: `DATA`, 20 Bytes - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 Bytes - The address the transaction is sent to.
+   * * `value`: `QUANTITY` - The value transferred in wei.
+   * * `gas`: `QUANTITY` - The gas provided by the sender.
+   * * `gasPrice`: `QUANTITY` - The price of gas in wei.
+   * * `input`: `DATA` - The data sent along with the transaction.
+   * * `v`: `QUANTITY` - ECDSA recovery id.
+   * * `r`: `DATA`, 32 Bytes - ECDSA signature r.
+   * * `s`: `DATA`, 32 Bytes - ECDSA signature s.
+   *
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const { blockHash, transactionIndex } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   *
+   * const tx = await provider.request({ method: "eth_getTransactionByBlockHashAndIndex", params: [ blockHash, transactionIndex ] });
+   * console.log(tx);
+   * ```
    */
   @assertArgLength(2)
-  async eth_getTransactionByBlockHashAndIndex(
-    hash: string | Buffer,
-    index: string
-  ) {
+  async eth_getTransactionByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
     const block = await this.eth_getBlockByHash(hash, true);
     if (block) {
-      const tx = block.transactions[parseInt(index, 10)];
+      const tx = block.transactions[Quantity.from(index).toNumber()];
       if (tx) return tx;
     }
     return null;
@@ -810,105 +1040,225 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns information about a transaction by block number and transaction index position.
-   * @param number - QUANTITY|TAG - a block number, or the string "earliest", "latest" or "pending", as in the default
-   * block parameter.
-   * @param index - QUANTITY - integer of the transaction index position.
+   * @param number A block number, or the string "earliest", "latest" or "pending".
+   * @param index Integer of the transaction index position.
+   * @returns The transaction object or `null` if no transaction was found.
+   *
+   * * `hash`: `DATA`, 32 Bytes - The transaction hash.
+   * * `nonce`: `QUANTITY` - The number of transactions made by the sender prior to this one.
+   * * `blockHash`: `DATA`, 32 Bytes - The hash of the block the transaction is in. `null` when pending.
+   * * `blockNumber`: `QUANTITY` - The number of the block the transaction is in. `null` when pending.
+   * * `transactionIndex`: `QUANTITY` - The index position of the transaction in the block.
+   * * `from`: `DATA`, 20 Bytes - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 Bytes - The address the transaction is sent to.
+   * * `value`: `QUANTITY` - The value transferred in wei.
+   * * `gas`: `QUANTITY` - The gas provided by the sender.
+   * * `gasPrice`: `QUANTITY` - The price of gas in wei.
+   * * `input`: `DATA` - The data sent along with the transaction.
+   * * `v`: `QUANTITY` - ECDSA recovery id.
+   * * `r`: `DATA`, 32 Bytes - ECDSA signature r.
+   * * `s`: `DATA`, 32 Bytes - ECDSA signature s.
+   *
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const { transactionIndex } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   *
+   * const tx = await provider.request({ method: "eth_getTransactionByBlockNumberAndIndex", params: [ "latest", transactionIndex ] });
+   * console.log(tx);
+   * ```
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockNumberAndIndex(
-    number: string | Tag,
-    index: string
+    number: QUANTITY | Tag,
+    index: QUANTITY
   ) {
     const block = await this.eth_getBlockByNumber(number, true);
-    return block.transactions[parseInt(index, 10)];
+    return block.transactions[parseInt(Quantity.from(index).toString(), 10)];
   }
 
   /**
    * Returns the number of uncles in a block from a block matching the given block hash.
-   * @param hash - DATA, 32 Bytes - hash of a block.
+   * @param hash Hash of a block.
+   * @returns The number of uncles in a block.
+   * @example
+   * ```javascript
+   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"] );
+   * const uncleCount = await provider.send("eth_getUncleCountByBlockHash", [blockHash] );
+   * console.log(uncleCount);
+   * ```
    */
   @assertArgLength(1)
-  async eth_getUncleCountByBlockHash(hash: string | Buffer) {
+  async eth_getUncleCountByBlockHash(hash: DATA) {
     return RPCQUANTITY_ZERO;
   }
 
   /**
    * Returns the number of uncles in a block from a block matching the given block hash.
-   * @param hash - DATA, 32 Bytes - hash of a block.
+   * @param blockNumber A block number, or the string "earliest", "latest" or "pending".
+   * @returns The number of uncles in a block.
+   * @example
+   * ```javascript
+   * const uncleCount = await provider.send("eth_getUncleCountByBlockNumber", ["latest"] );
+   * console.log(uncleCount);
+   * ```
    */
   @assertArgLength(1)
-  async eth_getUncleCountByBlockNumber(number: string | Buffer) {
+  async eth_getUncleCountByBlockNumber(blockNumber: QUANTITY | Tag) {
     return RPCQUANTITY_ZERO;
   }
 
   /**
    * Returns information about a uncle of a block by hash and uncle index position.
    *
-   * @param hash - hash of a block
-   * @param index - the uncle's index position.
+   * @param hash Hash of a block.
+   * @param index The uncle's index position.
+   * @returns A block object or `null` when no block is found.
+   *
+   * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
+   * * `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.
+   * * `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.
+   * * `miner`: `DATA`, 20 Bytes -  Address of the miner.
+   * * `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.
+   * * `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.
+   * * `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.
+   * * `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.
+   * * `difficulty`: `QUANTITY` - Integer of the difficulty of this block.
+   * * `number`: `QUANTITY` - The block number. `null` when pending.
+   * * `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.
+   * * `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.
+   * * `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.
+   * * `extraData`: `DATA` - Extra data for the block.
+   * * `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.
+   * * `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.
+   * * `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.
+   * * `size`: `QUANTITY` - Integer the size of the block in bytes.
+   * * `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.
+   * * `uncles`: `Array` - Array of uncle hashes.
+   *
+   * @example
+   * ```javascript
+   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"] );
+   * const block = await provider.send("eth_getUncleByBlockHashAndIndex", [blockHash, "0x0"] );
+   * console.log(block);
+   * ```
    */
   @assertArgLength(2)
-  async eth_getUncleByBlockHashAndIndex(hash: string, index: string) {
+  async eth_getUncleByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
     return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
   }
 
   /**
    * Returns information about a uncle of a block by hash and uncle index position.
    *
-   * @param blockNumber - a block number, or the string "earliest", "latest" or "pending", as in the default block
-   * parameter.
-   * @param uncleIndex - the uncle's index position.
+   * @param blockNumber A block number, or the string "earliest", "latest" or "pending".
+   * @param uncleIndex The uncle's index position.
+   * @returns A block object or `null` when no block is found.
+   *
+   * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
+   * * `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.
+   * * `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.
+   * * `miner`: `DATA`, 20 Bytes -  Address of the miner.
+   * * `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.
+   * * `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.
+   * * `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.
+   * * `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.
+   * * `difficulty`: `QUANTITY` - Integer of the difficulty of this block.
+   * * `number`: `QUANTITY` - The block number. `null` when pending.
+   * * `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.
+   * * `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.
+   * * `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.
+   * * `extraData`: `DATA` - Extra data for the block.
+   * * `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.
+   * * `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.
+   * * `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.
+   * * `size`: `QUANTITY` - Integer the size of the block in bytes.
+   * * `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.
+   * * `uncles`: `Array` - Array of uncle hashes.
+   *
+   * @example
+   * ```javascript
+   * const block = await provider.send("eth_getUncleByBlockNumberAndIndex", ["latest", "0x0"] );
+   * console.log(block);
+   * ```
    */
   @assertArgLength(2)
   async eth_getUncleByBlockNumberAndIndex(
-    blockNumber: string | Tag,
-    uncleIndex: string
+    blockNumber: QUANTITY | Tag,
+    uncleIndex: QUANTITY
   ) {
     return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
   }
 
   /**
    * Returns: An Array with the following elements
-   * 1: DATA, 32 Bytes - current block header pow-hash
-   * 2: DATA, 32 Bytes - the seed hash used for the DAG.
-   * 3: DATA, 32 Bytes - the boundary condition ("target"), 2^256 / difficulty.
+   * 1: `DATA`, 32 Bytes - current block header pow-hash
+   * 2: `DATA`, 32 Bytes - the seed hash used for the DAG.
+   * 3: `DATA`, 32 Bytes - the boundary condition ("target"), 2^256 / difficulty.
    *
-   * @param - filterId - A filter id
-   * @returns the hash of the current block, the seedHash, and the boundary condition to be met ("target").
+   * @param filterId A filter id.
+   * @returns The hash of the current block, the seedHash, and the boundary condition to be met ("target").
+   * @example
+   * ```javascript
+   * console.log(await provider.send("eth_getWork", ["0x0"] ));
+   *  ```
    */
   @assertArgLength(1)
-  async eth_getWork(filterId: string) {
+  async eth_getWork(filterId: QUANTITY) {
     return [] as [string, string, string] | [];
   }
 
   /**
-   * Used for submitting a proof-of-work solution
+   * Used for submitting a proof-of-work solution.
    *
-   * @param nonce - {DATA, 8 Bytes} The nonce found (64 bits)
-   * @param powHash - {DATA, 32 Bytes} The header's pow-hash (256 bits)
-   * @param digest - {DATA, 32 Bytes} The mix digest (256 bits)
+   * @param nonce The nonce found (64 bits).
+   * @param powHash The header's pow-hash (256 bits).
+   * @param digest The mix digest (256 bits).
    * @returns `true` if the provided solution is valid, otherwise `false`.
+   * @example
+   * ```javascript
+   * const nonce = "0xe0df4bd14ab39a71";
+   * const powHash = "0x0000000000000000000000000000000000000000000000000000000000000001";
+   * const digest = "0xb2222a74119abd18dbcb7d1f661c6578b7bbeb4984c50e66ed538347f606b971";
+   * const result = await provider.request({ method: "eth_submitWork", params: [nonce, powHash, digest] });
+   * console.log(result);
+   * ```
    */
   @assertArgLength(3)
-  async eth_submitWork(nonce: string, powHash: string, digest: string) {
+  async eth_submitWork(nonce: DATA, powHash: DATA, digest: DATA) {
     return false;
   }
 
   /**
    * Used for submitting mining hashrate.
    *
-   * @param hashRate - a hexadecimal string representation (32 bytes) of the hash rate
-   * @param clientID - a random hexadecimal(32 bytes) ID identifying the client
-   * @returns `true` if submitting went through successfully and `false` otherwise.
+   * @param hashRate A hexadecimal string representation (32 bytes) of the hash rate.
+   * @param clientID A random hexadecimal(32 bytes) ID identifying the client.
+   * @returns `true` if submitting went through succesfully and `false` otherwise.
+   * @example
+   * ```javascript
+   * const hashRate = "0x0000000000000000000000000000000000000000000000000000000000000001";
+   * const clientId = "0xb2222a74119abd18dbcb7d1f661c6578b7bbeb4984c50e66ed538347f606b971";
+   * const result = await provider.request({ method: "eth_submitHashrate", params: [hashRate, clientId] });
+   * console.log(result);
+   * ```
    */
   @assertArgLength(2)
-  async eth_submitHashrate(hashRate: string, clientID: string) {
+  async eth_submitHashrate(hashRate: DATA, clientID: DATA) {
     return false;
   }
 
   /**
    * Returns `true` if client is actively mining new blocks.
    * @returns returns `true` if the client is mining, otherwise `false`.
+   * @example
+   * ```javascript
+   * const isMining = await provider.request({ method: "eth_mining", params: [] });
+   * console.log(isMining);
+   * ```
    */
   @assertArgLength(0)
   async eth_mining() {
@@ -918,7 +1268,12 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the number of hashes per second that the node is mining with.
-   * @returns number of hashes per second.
+   * @returns Number of hashes per second.
+   * @example
+   * ```javascript
+   * const hashrate = await provider.request({ method: "eth_hashrate", params: [] });
+   * console.log(hashrate);
+   * ```
    */
   @assertArgLength(0)
   async eth_hashrate() {
@@ -927,7 +1282,12 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the current price per gas in wei.
-   * @returns integer of the current gas price in wei.
+   * @returns Integer of the current gas price in wei.
+   * @example
+   * ```javascript
+   * const gasPrice = await provider.request({ method: "eth_gasPrice", params: [] });
+   * console.log(gasPrice);
+   * ```
    */
   @assertArgLength(0)
   async eth_gasPrice() {
@@ -937,6 +1297,11 @@ export default class EthereumApi implements Api {
   /**
    * Returns a list of addresses owned by client.
    * @returns Array of 20 Bytes - addresses owned by the client.
+   * @example
+   * ```javascript
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * console.log(accounts);
+   * ```
    */
   @assertArgLength(0)
   async eth_accounts() {
@@ -945,7 +1310,12 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the number of the most recent block.
-   * @returns integer of the current block number the client is on.
+   * @returns The current block number the client is on.
+   * @example
+   * ```javascript
+   * const blockNumber = await provider.request({ method: "eth_blockNumber" });
+   * console.log(blockNumber);
+   * ```
    */
   @assertArgLength(0)
   async eth_blockNumber() {
@@ -971,14 +1341,23 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the balance of the account of given address.
-   * @param address 20 Bytes - address to check for balance.
-   * @param blockNumber integer block number, or the string "latest", "earliest"
-   *  or "pending", see the default block parameter
+   * @param address Address to check for balance.
+   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   *  or "pending".
+   *
+   * @returns Integer of the account balance in wei.
+   *
+   * @example
+   * ```javascript
+   * const accounts = await provider.request({ method: "eth_accounts", params: [] });
+   * const balance = await provider.request({ method: "eth_getBalance", params: [accounts[0], "latest"] });
+   * console.log(balance);
+   * ```
    */
   @assertArgLength(1, 2)
   async eth_getBalance(
-    address: string,
-    blockNumber: string | Buffer | Tag = Tag.LATEST
+    address: DATA,
+    blockNumber: QUANTITY | Tag = Tag.LATEST
   ) {
     return this.#blockchain.accounts.getBalance(
       Address.from(address),
@@ -989,29 +1368,71 @@ export default class EthereumApi implements Api {
   /**
    * Returns code at a given address.
    *
-   * @param address 20 Bytes - address
-   * @param blockNumber integer block number, or the string "latest", "earliest" or "pending", see the default block
-   * parameter
-   * @returns the code from the given address.
+   * @param address Address.
+   * @param blockNumber Integer block number, or the string "latest", "earliest" or "pending".
+   * @returns The code from the given address.
+   * @example
+   * ```javascript
+   * // Simple.sol
+   * // // SPDX-License-Identifier: MIT
+   * //  pragma solidity ^0.7.4;
+   * //
+   * //  contract Simple {
+   * //      uint256 public value;
+   * //      constructor() payable {
+   * //          value = 5;
+   * //      }
+   * //  }
+   * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const code = await provider.request({ method: "eth_getCode", params: [txReceipt.contractAddress, "latest"] });
+   * console.log(code);
+   * ```
    */
   @assertArgLength(1, 2)
-  async eth_getCode(address: string, blockNumber: string | Tag = Tag.LATEST) {
+  async eth_getCode(address: DATA, blockNumber: QUANTITY | Tag = Tag.LATEST) {
     const { accounts } = this.#blockchain;
     return accounts.getCode(Address.from(address), blockNumber);
   }
 
   /**
    * Returns the value from a storage position at a given address.
-   * @param data 20 Bytes - address of the storage.
-   * @param quantity integer of the position in the storage.
-   * @param blockNumber integer block number, or the string "latest", "earliest"
-   *  or "pending", see the default block parameter
+   * @param address Address of the storage.
+   * @param position Integer of the position in the storage.
+   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   *  or "pending".
+   * @returns The value in storage at the requested position.
+   * @example
+   * ```javascript
+   * // Simple.sol
+   * // // SPDX-License-Identifier: MIT
+   * //  pragma solidity ^0.7.4;
+   * //
+   * //  contract Simple {
+   * //      uint256 public value;
+   * //      constructor() payable {
+   * //          value = 5;
+   * //      }
+   * //  }
+   * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const storageValue = await provider.request({ method: "eth_getStorageAt", params: [txReceipt.contractAddress, "0x0", "latest"] });
+   * console.log(storageValue);
+   * ```
    */
   @assertArgLength(2, 3)
   async eth_getStorageAt(
-    address: string,
-    position: string,
-    blockNumber: string | Tag = Tag.LATEST
+    address: DATA,
+    position: QUANTITY,
+    blockNumber: QUANTITY | Tag = Tag.LATEST
   ) {
     const blockchain = this.#blockchain;
     const blockNum = blockchain.blocks.getEffectiveNumber(blockNumber);
@@ -1051,10 +1472,37 @@ export default class EthereumApi implements Api {
   /**
    * Returns the information about a transaction requested by transaction hash.
    *
-   * @param transactionHash 32 Bytes - hash of a transaction
+   * @param transactionHash Hash of a transaction.
+   * @returns The transaction object or `null` if no transaction was found.
+   *
+   * * `hash`: `DATA`, 32 Bytes - The transaction hash.
+   * * `nonce`: `QUANTITY` - The number of transactions made by the sender prior to this one.
+   * * `blockHash`: `DATA`, 32 Bytes - The hash of the block the transaction is in. `null` when pending.
+   * * `blockNumber`: `QUANTITY` - The number of the block the transaction is in. `null` when pending.
+   * * `transactionIndex`: `QUANTITY` - The index position of the transaction in the block.
+   * * `from`: `DATA`, 20 Bytes - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 Bytes - The address the transaction is sent to.
+   * * `value`: `QUANTITY` - The value transferred in wei.
+   * * `gas`: `QUANTITY` - The gas provided by the sender.
+   * * `gasPrice`: `QUANTITY` - The price of gas in wei.
+   * * `input`: `DATA` - The data sent along with the transaction.
+   * * `v`: `QUANTITY` - ECDSA recovery id.
+   * * `r`: `DATA`, 32 Bytes - ECDSA signature r.
+   * * `s`: `DATA`, 32 Bytes - ECDSA signature s.
+   *
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   *
+   * const tx = await provider.request({ method: "eth_getTransactionByHash", params: [ txHash ] });
+   * console.log(tx);
+   * ```
    */
   @assertArgLength(1)
-  async eth_getTransactionByHash(transactionHash: string) {
+  async eth_getTransactionByHash(transactionHash: DATA) {
     const { transactions } = this.#blockchain;
     const hashBuffer = Data.from(transactionHash).toBuffer();
 
@@ -1075,13 +1523,23 @@ export default class EthereumApi implements Api {
   /**
    * Returns the receipt of a transaction by transaction hash.
    *
-   * Note That the receipt is not available for pending transactions.
+   * Note: The receipt is not available for pending transactions.
    *
-   * @param transactionHash 32 Bytes - hash of a transaction
+   * @param transactionHash Hash of a transaction.
    * @returns Returns the receipt of a transaction by transaction hash.
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   *
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [ txHash ] });
+   * console.log(txReceipt);
+   * ```
    */
   @assertArgLength(1)
-  async eth_getTransactionReceipt(transactionHash: string) {
+  async eth_getTransactionReceipt(transactionHash: DATA) {
     const { transactions, transactionReceipts, blocks } = this.#blockchain;
     const dataHash = Data.from(transactionHash);
     const txHash = dataHash.toBuffer();
@@ -1122,8 +1580,25 @@ export default class EthereumApi implements Api {
 
   /**
    * Creates new message call transaction or a contract creation, if the data field contains code.
-   * @param transaction
-   * @returns The transaction hash
+   *
+   * Transaction call object:
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction - The transaction call object as seen in source.
+   * @returns The transaction hash.
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * console.log(txHash);
+   * ```
    */
   @assertArgLength(1)
   async eth_sendTransaction(transaction: RpcTransaction) {
@@ -1166,11 +1641,62 @@ export default class EthereumApi implements Api {
       return blockchain.queueTransaction(tx);
     }
   }
+  /**
+   * Signs a transaction that can be submitted to the network at a later time using `eth_sendRawTransaction`.
+   *
+   * Transaction call object:
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction - The transaction call object as seen in source.
+   * @returns The raw, signed transaction.
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to }] });
+   * console.log(signedTx)
+   * ```
+   */
+  @assertArgLength(1)
+  async eth_signTransaction(transaction: RpcTransaction) {
+    const blockchain = this.#blockchain;
+    const tx = new RuntimeTransaction(transaction, blockchain.common);
 
+    if (tx.from == null) {
+      throw new Error("from not found; is required");
+    }
+    const fromString = tx.from.toString();
+
+    const wallet = this.#wallet;
+    const isKnownAccount = wallet.knownAccounts.has(fromString);
+    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
+
+    if (!isUnlockedAccount) {
+      const msg = isKnownAccount
+        ? "authentication needed: password or unlock"
+        : "sender account not recognized";
+      throw new Error(msg);
+    }
+
+    const secretKey = wallet.unlockedAccounts.get(fromString).toBuffer();
+    tx.signAndHash(secretKey);
+    return Data.from(tx.serialized).toString();
+  }
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
-   * @param transaction
-   * @returns The transaction hash
+   * @param transaction The signed transaction data.
+   * @returns The transaction hash.
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * const txHash = await provider.send("eth_sendRawTransaction", [signedTx] );
+   * console.log(txHash);
+   * ```
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
@@ -1191,12 +1717,24 @@ export default class EthereumApi implements Api {
    *
    * Note the address to sign with must be unlocked.
    *
-   * @param account address
-   * @param data message to sign
-   * @returns Signature
+   * @param address Address to sign with.
+   * @param message Message to sign.
+   * @returns Signature - a hex encoded 129 byte array
+   * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
+   * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
+   *  in big-endian format. Bytes 0...64 contain the `r` parameter, bytes
+   * 64...128 the `s` parameter, and the last byte the `v` parameter. Note
+   * that the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
+   * @example
+   * ```javascript
+   * const [account] = await provider.request({ method: "eth_accounts", params: [] });
+   * const msg = "0x307866666666666666666666";
+   * const signature = await provider.request({ method: "eth_sign", params: [account, msg] });
+   * console.log(signature);
+   * ```
    */
   @assertArgLength(2)
-  async eth_sign(address: string | Buffer, message: string | Buffer) {
+  async eth_sign(address: DATA, message: DATA) {
     const account = Address.from(address).toString().toLowerCase();
 
     const privateKey = this.#wallet.unlockedAccounts.get(account);
@@ -1221,9 +1759,52 @@ export default class EthereumApi implements Api {
    * 64...128 the `s` parameter, and the last byte the `v` parameter. Note
    * that the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
    * @EIP [712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)
+   * @example
+   * ```javascript
+   * const [account] = await provider.request({ method: "eth_accounts", params: [] });
+   * const typedData = {
+   *  types: {
+   *    EIP712Domain: [
+   *      { name: 'name', type: 'string' },
+   *      { name: 'version', type: 'string' },
+   *      { name: 'chainId', type: 'uint256' },
+   *      { name: 'verifyingContract', type: 'address' },
+   *    ],
+   *    Person: [
+   *      { name: 'name', type: 'string' },
+   *      { name: 'wallet', type: 'address' }
+   *    ],
+   *    Mail: [
+   *      { name: 'from', type: 'Person' },
+   *      { name: 'to', type: 'Person' },
+   *      { name: 'contents', type: 'string' }
+   *    ],
+   *  },
+   *  primaryType: 'Mail',
+   *  domain: {
+   *    name: 'Ether Mail',
+   *    version: '1',
+   *    chainId: 1,
+   *    verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+   *  },
+   *  message: {
+   *    from: {
+   *      name: 'Cow',
+   *      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+   *    },
+   *    to: {
+   *      name: 'Bob',
+   *      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+   *    },
+   *    contents: 'Hello, Bob!',
+   *  },
+   * };
+   * const signature = await provider.request({ method: "eth_signTypedData", params: [account, typedData] });
+   * console.log(signature);
+   * ```
    */
   @assertArgLength(2)
-  async eth_signTypedData(address: string | Buffer, typedData: TypedData) {
+  async eth_signTypedData(address: DATA, typedData: TypedData) {
     const account = Address.from(address).toString().toLowerCase();
 
     const privateKey = this.#wallet.unlockedAccounts.get(account);
@@ -1259,8 +1840,13 @@ export default class EthereumApi implements Api {
    * the subscription a JSON-RPC notification with event details and
    * subscription ID will be sent to a client.
    *
-   * @param subscriptionName
+   * @param subscriptionName Name for the subscription.
    * @returns A subscription id.
+   * @example
+   * ```javascript
+   * const subscriptionId = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * console.log(subscriptionId);
+   * ```
    */
   eth_subscribe(subscriptionName: SubscriptionName): PromiEvent<Quantity>;
   /**
@@ -1389,6 +1975,19 @@ export default class EthereumApi implements Api {
     }
   }
 
+  /**
+   * Cancel a subscription to a particular event. Returns a boolean indicating
+   * if the subscription was successfully cancelled.
+   *
+   * @param subscriptionId The ID of the subscription to unsubscribe to.
+   * @returns `true` if subscription was cancelled successfully, otherwise `false`.
+   * @example
+   * ```javascript
+   * const subscriptionId = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const result = await provider.request({ method: "eth_unsubscribe", params: [subscriptionId] });
+   * console.log(result);
+   * ```
+   */
   @assertArgLength(1)
   async eth_unsubscribe(subscriptionId: SubscriptionId) {
     const subscriptions = this.#subscriptions;
@@ -1407,6 +2006,11 @@ export default class EthereumApi implements Api {
    * if the state has changed, call `eth_getFilterChanges`.
    *
    * @returns A filter id.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newBlockFilter", params: [] });
+   * console.log(filterId);
+   * ```
    */
   @assertArgLength(0)
   async eth_newBlockFilter() {
@@ -1429,6 +2033,11 @@ export default class EthereumApi implements Api {
    * arrive. To check if the state has changed, call `eth_getFilterChanges`.
    *
    * @returns A filter id.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newPendingTransactionFilter", params: [] });
+   * console.log(filterId);
+   * ```
    */
   @assertArgLength(0)
   async eth_newPendingTransactionFilter() {
@@ -1471,7 +2080,23 @@ export default class EthereumApi implements Api {
    *  * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second
    * position (and anything after)”
    *
-   * @param filter - The filter options
+   * Filter options:
+   * * `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
+   * or "pending".
+   * * `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
+   * or "pending".
+   * * `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.
+   * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also
+   * be an array of `DATA` with "or" options.
+   *
+   * @param filter The filter options as seen in source.
+   *
+   * @returns A filter id.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newFilter", params: [] });
+   * console.log(filterId);
+   * ```
    */
   @assertArgLength(0, 1)
   async eth_newFilter(filter?: RangeFilterArgs) {
@@ -1500,13 +2125,60 @@ export default class EthereumApi implements Api {
    * or transaction hashes, depending on the filter type, which occurred since
    * last poll.
    *
-   * @param filterId - the filter id.
-   * @returns an array of logs, block hashes, or transaction hashes, depending
+   * @param filterId The filter id.
+   * @returns An array of logs, block hashes, or transaction hashes, depending
    * on the filter type, which occurred since last poll.
+   *
+   * For filters created with `eth_newBlockFilter` the return are block hashes (`DATA`, 32 Bytes).
+   *
+   * For filters created with `eth_newPendingTransactionFilter` the return are transaction hashes (`DATA`, 32 Bytes).
+   *
+   * For filters created with `eth_newFilter` the return are log objects with the following parameters:
+   * * `removed`: `TAG` - `true` when the log was removed, `false` if its a valid log.
+   * * `logIndex`: `QUANTITY` - Integer of the log index position in the block. `null` when pending.
+   * * `transactionIndex`: `QUANTITY` - Integer of the transactions index position. `null` when pending.
+   * * `transactionHash`: `DATA`, 32 Bytes - Hash of the transaction where the log was. `null` when pending.
+   * * `blockHash`: `DATA`, 32 Bytes - Hash of the block where the log was. `null` when pending.
+   * * `blockNumber`: `QUANTITY` - The block number where the log was in. `null` when pending.
+   * * `address`: `DATA`, 20 Bytes - The address from which the log originated.
+   * * `data`: `DATA` - Contains one or more 32 Bytes non-indexed arguments of the log.
+   * * `topics`: `Array of DATA` - Array of 0 to 4 32 Bytes `DATA` of indexed log arguments.
+   *
+   * @example
+   * ```javascript
+   * // Logs.sol
+   * // // SPDX-License-Identifier: MIT
+   * // pragma solidity ^0.7.4;
+   * // contract Logs {
+   * //   event Event(uint256 indexed first, uint256 indexed second);
+   * //   constructor() {
+   * //     emit Event(1, 2);
+   * //   }
+   * //
+   * //   function logNTimes(uint8 n) public {
+   * //     for (uint8 i = 0; i < n; i++) {
+   * //       emit Event(i, i);
+   * //     }
+   * //   }
+   * // }
+   *
+   * const logsContract = "0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033";
+   * const [from] = await provider.send("eth_accounts");
+   * const filterId = await provider.send("eth_newFilter");
+   *
+   * const subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
+   * await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
+   * await provider.once("message");
+   *
+   * const changes = await provider.request({ method: "eth_getFilterChanges", params: [filterId] });
+   * console.log(changes);
+   *
+   * await provider.send("eth_unsubscribe", [subscriptionId]);
+   * ```
    */
   @assertArgLength(1)
-  async eth_getFilterChanges(filterId: string) {
-    const filter = this.#filters.get(filterId);
+  async eth_getFilterChanges(filterId: QUANTITY) {
+    const filter = this.#filters.get(Quantity.from(filterId).toString());
     if (filter) {
       const updates = filter.updates;
       filter.updates = [];
@@ -1520,26 +2192,63 @@ export default class EthereumApi implements Api {
    * Uninstalls a filter with given id. Should always be called when watch is
    * no longer needed.
    *
-   * @param filterId - the filter id.
+   * @param filterId The filter id.
    * @returns `true` if the filter was successfully uninstalled, otherwise
    * `false`.
+   * @example
+   * ```javascript
+   * const filterId = await provider.request({ method: "eth_newFilter", params: [] });
+   * const result = await provider.request({ method: "eth_uninstallFilter", params: [filterId] });
+   * console.log(result);
+   * ```
    */
   @assertArgLength(1)
-  async eth_uninstallFilter(filterId: string) {
-    const filter = this.#filters.get(filterId);
+  async eth_uninstallFilter(filterId: QUANTITY) {
+    const id = Quantity.from(filterId).toString();
+    const filter = this.#filters.get(id);
     if (!filter) return false;
     filter.unsubscribe();
-    return this.#filters.delete(filterId);
+    return this.#filters.delete(id);
   }
 
   /**
    * Returns an array of all logs matching filter with given id.
    *
+   * @param filterId The filter id.
    * @returns Array of log objects, or an empty array.
+   * @example
+   * ```javascript
+   * // Logs.sol
+   * // // SPDX-License-Identifier: MIT
+   * // pragma solidity ^0.7.4;
+   * // contract Logs {
+   * //   event Event(uint256 indexed first, uint256 indexed second);
+   * //   constructor() {
+   * //     emit Event(1, 2);
+   * //   }
+   * //
+   * //   function logNTimes(uint8 n) public {
+   * //     for (uint8 i = 0; i < n; i++) {
+   * //       emit Event(i, i);
+   * //     }
+   * //   }
+   * // }
+   *
+   * const logsContract = "0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033";
+   * const [from] = await provider.send("eth_accounts");
+   * const filterId = await provider.send("eth_newFilter");
+   *
+   * await provider.send("eth_subscribe", ["newHeads"]);
+   * await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
+   * await provider.once("message");
+   *
+   * const logs = await provider.request({ method: "eth_getFilterLogs", params: [filterId] });
+   * console.log(logs);
+   * ```
    */
   @assertArgLength(1)
-  async eth_getFilterLogs(filterId: string) {
-    const filter = this.#filters.get(filterId);
+  async eth_getFilterLogs(filterId: QUANTITY) {
+    const filter = this.#filters.get(Quantity.from(filterId).toString());
     if (filter && filter.type === FilterTypes.log) {
       return this.eth_getLogs(filter.filter);
     } else {
@@ -1550,8 +2259,49 @@ export default class EthereumApi implements Api {
   /**
    * Returns an array of all logs matching a given filter object.
    *
-   * @param filter - The filter options
+   * Filter options:
+   * * `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
+   * or "pending".
+   * * `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
+   * or "pending".
+   * * `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.
+   * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also
+   * be an array of `DATA` with "or" options.
+   * * `blockHash`: `DATA`, 32 Bytes (optional) - Hash of the block to restrict logs from. If `blockHash` is present,
+   * then neither `fromBlock` or `toBlock` are allowed.
+   *
+   * @param filter The filter options as seen in source.
    * @returns Array of log objects, or an empty array.
+   * @example
+   * ```javascript
+   * // Logs.sol
+   * // // SPDX-License-Identifier: MIT
+   * // pragma solidity ^0.7.4;
+   * // contract Logs {
+   * //   event Event(uint256 indexed first, uint256 indexed second);
+   * //   constructor() {
+   * //     emit Event(1, 2);
+   * //   }
+   * //
+   * //   function logNTimes(uint8 n) public {
+   * //     for (uint8 i = 0; i < n; i++) {
+   * //       emit Event(i, i);
+   * //     }
+   * //   }
+   * // }
+   *
+   * const logsContract = "0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033";
+   * const [from] = await provider.send("eth_accounts");
+   *
+   * await provider.send("eth_subscribe", ["newHeads"]);
+   * const txHash = await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
+   * await provider.once("message");
+   *
+   * const { contractAddress } = await provider.send("eth_getTransactionReceipt", [txHash] );
+   *
+   * const logs = await provider.request({ method: "eth_getLogs", params: [{ address: contractAddress }] });
+   * console.log(logs);
+   * ```
    */
   @assertArgLength(1)
   async eth_getLogs(filter: FilterArgs) {
@@ -1561,15 +2311,25 @@ export default class EthereumApi implements Api {
   /**
    * Returns the number of transactions sent from an address.
    *
-   * @param address - address
-   * @param blockNumber - integer block number, or the string "latest", "earliest"
-   * or "pending", see the default block parameter
-   * @returns integer of the number of transactions sent from this address.
+   * @param address `DATA`, 20 Bytes - The address to get number of transactions sent from
+   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * or "pending".
+   * @returns Number of transactions sent from this address.
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   *
+   * const txCount = await provider.request({ method: "eth_getTransactionCount", params: [ from, "latest" ] });
+   * console.log(txCount);
+   * ```
    */
   @assertArgLength(1, 2)
   async eth_getTransactionCount(
-    address: string,
-    blockNumber: string | Tag = Tag.LATEST
+    address: DATA,
+    blockNumber: QUANTITY | Tag = Tag.LATEST
   ) {
     return this.#blockchain.accounts.getNonce(
       Address.from(address),
@@ -1580,16 +2340,40 @@ export default class EthereumApi implements Api {
   /**
    * Executes a new message call immediately without creating a transaction on the block chain.
    *
-   * @param transaction - transaction
-   * @param blockNumber - blockNumber
+   * Transaction call object:
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
-   * @returns the return value of executed contract.
+   * @param transaction - The transaction call object as seen in source.
+   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   *  or "pending".
+   *
+   * @returns The return value of executed contract.
+   * @example
+   * ```javascript
+   * // Simple.sol
+   * // // SPDX-License-Identifier: MIT
+   * //  pragma solidity ^0.7.4;
+   * //
+   * //  contract Simple {
+   * //      uint256 public value;
+   * //      constructor() payable {
+   * //          value = 5;
+   * //      }
+   * //  }
+   * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
+   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest"] });
+   * console.log(result);
+   * ```
    */
   @assertArgLength(1, 2)
-  async eth_call(
-    transaction: any,
-    blockNumber: string | Buffer | Tag = Tag.LATEST
-  ) {
+  async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.LATEST) {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
@@ -1664,9 +2448,21 @@ export default class EthereumApi implements Api {
    * * `disableMemory`: \{boolean\} Setting this to `true` will disable memory capture (default = `false`).
    * * `disableStack`: \{boolean\} Setting this to `true` will disable stack capture (default = `false`).
    *
-   * @param transactionHash - transactionHash
-   * @param options - options
-   * @returns returns comment
+   * @param transactionHash Hash of the transaction to trace.
+   * @param options - See options in source.
+   * @returns Returns the `gas`, `structLogs`, and `returnValue` for the traced transaction.
+   *
+   * The `structLogs` are an array of logs, which contains the following fields:
+   * * `depth`: The execution depth.
+   * * `error`: Information about an error, if one occurred.
+   * * `gas`: The number of gas remaining.
+   * * `gasCost`: The cost of gas in wei.
+   * * `memory`: An array containing the contract's memory data.
+   * * `op`: The current opcode.
+   * * `pc`: The current program counter.
+   * * `stack`: The EVM execution stack.
+   * * `storage`: An object containing the contract's storage data.
+   *
    * @example
    * ```javascript
    * // Simple.sol
@@ -1689,38 +2485,68 @@ export default class EthereumApi implements Api {
    * ```
    */
   async debug_traceTransaction(
-    transactionHash: string,
+    transactionHash: DATA,
     options?: TransactionTraceOptions
-  ) {
+  ): Promise<TraceTransactionResult> {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
+  // TODO: example doesn't return correct value
   /**
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
    *
-   * @param blockHash - DATA, 32 Bytes - hash of a block
-   * @param transactionIndex - QUANTITY - the index of the transaction in the block
-   * @param contractAddress - DATA, 20 Bytes - address of the contract
-   * @param startKey - hash of the start key for grabbing storage entries
-   * @param maxResult - integer of maximum number of storage entries to return
-   * @returns returns a storage object with the keys being keccak-256 hashes of the storage keys,
-   * and the values being the raw, un-hashed key and value for that specific storage slot. Also
+   * @param blockHash Hash of a block.
+   * @param transactionIndex Integer of the transaction index position.
+   * @param contractAddress Address of the contract.
+   * @param startKey Hash of the start key for grabbing storage entries.
+   * @param maxResult Integer of maximum number of storage entries to return.
+   * @returns Returns a storage object with the keys being keccak-256 hashes of the storage keys,
+   * and the values being the raw, unhashed key and value for that specific storage slot. Also
    * returns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.
+   * @example
+   * ```javascript
+   * // Simple.sol
+   * // // SPDX-License-Identifier: MIT
+   * //  pragma solidity ^0.7.4;
+   * //
+   * //  contract Simple {
+   * //      uint256 public value;
+   * //      constructor() payable {
+   * //          value = 5;
+   * //      }
+   * //  }
+   * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const initialTxHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   *
+   * const {contractAddress} = await provider.request({ method: "eth_getTransactionReceipt", params: [initialTxHash] });
+   *
+   * // set value to 19
+   * const data = "0x552410770000000000000000000000000000000000000000000000000000000000000019";
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to: contractAddress, data }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   *
+   * const { blockHash, transactionIndex } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const storage = await provider.request({ method: "debug_storageRangeAt", params: [blockHash, transactionIndex, contractAddress, "0x01", 1] });
+   * console.log(storage);
+   * ```
    */
   async debug_storageRangeAt(
-    blockHash: string | Buffer,
+    blockHash: DATA,
     transactionIndex: number,
-    contractAddress: string,
-    startKey: string | Buffer,
+    contractAddress: DATA,
+    startKey: DATA,
     maxResult: number
   ): Promise<StorageRangeResult> {
     return this.#blockchain.storageRangeAt(
       blockHash,
-      transactionIndex,
+      Quantity.from(transactionIndex).toNumber(),
       contractAddress,
       startKey,
-      maxResult
+      Quantity.from(maxResult).toNumber()
     );
   }
 
@@ -1730,18 +2556,29 @@ export default class EthereumApi implements Api {
   /**
    * Returns all the Ethereum account addresses of all keys that have been
    * added.
-   * @returns the Ethereum account addresses of all keys that have been added.
+   * @returns The Ethereum account addresses of all keys that have been added.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("personal_listAccounts"));
+   * ```
    */
   @assertArgLength(0)
   async personal_listAccounts() {
     return this.#wallet.addresses;
   }
 
+  // TODO: example doesn't return correct value
   /**
    * Generates a new account with private key. Returns the address of the new
    * account.
-   * @param passphrase - passphrase
-   * @returns The new account's address
+   * @param passphrase The passphrase to encrypt the private key with.
+   * @returns The new account's address.
+   * @example
+   * ```javascript
+   * const passphrase = "passphrase";
+   * const address = await provider.send("personal_newAccount", [passphrase] );
+   * console.log(address);
+   * ```
    */
   @assertArgLength(1)
   async personal_newAccount(passphrase: string) {
@@ -1766,12 +2603,20 @@ export default class EthereumApi implements Api {
   /**
    * Imports the given unencrypted private key (hex string) into the key store, encrypting it with the passphrase.
    *
-   * @param rawKey - rawKey
-   * @param passphrase - passphrase
+   * @param rawKey The raw, unencrypted private key to import.
+   * @param passphrase The passphrase to encrypt with.
    * @returns Returns the address of the new account.
+   * @example
+   * ```javascript
+   * const rawKey = "0x0123456789012345678901234567890123456789012345678901234567890123";
+   * const passphrase = "passphrase";
+   *
+   * const address = await provider.send("personal_importRawKey",[rawKey, passphrase] );
+   * console.log(address);
+   * ```
    */
   @assertArgLength(2)
-  async personal_importRawKey(rawKey: string, passphrase: string) {
+  async personal_importRawKey(rawKey: DATA, passphrase: string) {
     if (typeof passphrase !== "string") {
       throw new Error("missing value for required argument `passphrase`");
     }
@@ -1792,13 +2637,21 @@ export default class EthereumApi implements Api {
 
   /**
    * Locks the account. The account can no longer be used to send transactions.
-   * @param address
+   * @param address The account address to be locked.
+   * @returns Returns `true` if the account was locked, otherwise `false`.
+   * @example
+   * ```javascript
+   * const [account] = await provider.send("personal_listAccounts");
+   * const isLocked = await provider.send("personal_lockAccount", [account] );
+   * console.log(isLocked);
+   * ```
    */
   @assertArgLength(1)
-  async personal_lockAccount(address: string) {
+  async personal_lockAccount(address: DATA) {
     return this.#wallet.lockAccount(address.toLowerCase());
   }
 
+  // TODO: example doesn't return correct value
   /**
    * Unlocks the account for use.
    *
@@ -1806,17 +2659,25 @@ export default class EthereumApi implements Api {
    * expires. The unlock duration defaults to 300 seconds. An explicit duration
    * of zero seconds unlocks the key until geth exits.
    *
-   * The account can be used with eth_sign and eth_sendTransaction while it is
+   * The account can be used with `eth_sign` and `eth_sendTransaction` while it is
    * unlocked.
    * @param address - 20 Bytes - The address of the account to unlock.
    * @param passphrase - Passphrase to unlock the account.
    * @param duration - (default: 300) Duration in seconds how long the account
    * should remain unlocked for. Set to 0 to disable automatic locking.
-   * @returns true if it worked. Throws an error if it did not.
+   * @returns `true` if it worked. Throws an error or returns `false` if it did not.
+   * @example
+   * ```javascript
+   * // generate an account
+   * const passphrase = "passphrase";
+   * const newAccount = await provider.send("personal_newAccount", [passphrase] );
+   * const isUnlocked = await provider.send("personal_unlockAccount", [newAccount, passphrase] );
+   * console.log(isUnlocked);
+   * ```
    */
   @assertArgLength(2, 3)
   async personal_unlockAccount(
-    address: string,
+    address: DATA,
     passphrase: string,
     duration: number = 300
   ) {
@@ -1830,14 +2691,33 @@ export default class EthereumApi implements Api {
   /**
    * Validate the given passphrase and submit transaction.
    *
-   * The transaction is the same argument as for eth_sendTransaction and
+   * The transaction is the same argument as for `eth_sendTransaction` and
    * contains the from address. If the passphrase can be used to decrypt the
-   * private key belonging to tx.from the transaction is verified, signed and
+   * private key belonging to `tx.from` the transaction is verified, signed and
    * send onto the network. The account is not unlocked globally in the node
    * and cannot be used in other RPC calls.
    *
-   * @param txData - txData
-   * @param passphrase - passphrase
+   * Transaction call object:
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param txData - The transaction call object as seen in source.
+   * @param passphrase - The passphrase to decrpyt the private key belonging to `tx.from`.
+   * @returns The transaction hash or if unsuccessful an error.
+   * @example
+   * ```javascript
+   * const passphrase = "passphrase";
+   * const newAccount = await provider.send("personal_newAccount", [passphrase] );
+   * const [to] = await provider.send("personal_listAccounts");
+   *
+   * // use account and passphrase to send the transaction
+   * const txHash = await provider.send("personal_sendTransaction", [{ from: newAccount, to, gasLimit: "0x5b8d80" }, passphrase] );
+   * console.log(txHash);
+   * ```
    */
   @assertArgLength(2)
   async personal_sendTransaction(transaction: any, passphrase: string) {
@@ -1863,9 +2743,69 @@ export default class EthereumApi implements Api {
 
     return blockchain.queueTransaction(tx);
   }
+  /**
+   * Validates the given passphrase and signs a transaction that can be
+   * submitted to the network at a later time using `eth_sendRawTransaction`.
+   *
+   * The transaction is the same argument as for `eth_signTransaction` and
+   * contains the from address. If the passphrase can be used to decrypt the
+   * private key belonging to `tx.from` the transaction is verified and signed.
+   * The account is not unlocked globally in the node and cannot be used in other RPC calls.
+   *
+   * Transaction call object:
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction - The transaction call object as seen in source.
+   * @returns The raw, signed transaction.
+   * @example
+   * ```javascript
+   * const [to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const passphrase = "passphrase";
+   * const from = await provider.send("personal_newAccount", [passphrase] );
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to }, passphrase] });
+   * console.log(signedTx)
+   * ```
+   */
+  @assertArgLength(2)
+  async personal_signTransaction(
+    transaction: RpcTransaction,
+    passphrase: string
+  ) {
+    const blockchain = this.#blockchain;
+    const tx = new RuntimeTransaction(transaction, blockchain.common);
+
+    if (tx.from == null) {
+      throw new Error("from not found; is required");
+    }
+    const fromString = tx.from.toString();
+
+    const wallet = this.#wallet;
+    const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
+    if (encryptedKeyFile === undefined || encryptedKeyFile === null) {
+      throw new Error("no key for given address or file");
+    }
+
+    const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
+    tx.signAndHash(secretKey);
+    return Data.from(tx.serialized).toString();
+  }
   //#endregion
 
   //#region rpc
+  /**
+   * Returns object of RPC modules.
+   * @returns RPC modules.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("rpc_modules"));
+   * ```
+   */
   @assertArgLength(0)
   async rpc_modules() {
     return RPC_MODULES;
@@ -1877,7 +2817,11 @@ export default class EthereumApi implements Api {
   /**
    * Creates new whisper identity in the client.
    *
-   * @returns result - the address of the new identity.
+   * @returns - The address of the new identity.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_newIdentity"));
+   * ```
    */
   @assertArgLength(0)
   async shh_newIdentity() {
@@ -1888,17 +2832,21 @@ export default class EthereumApi implements Api {
    * Checks if the client hold the private keys for a given identity.
    *
    * @param address - The identity address to check.
-   * @returns returns true if the client holds the privatekey for that identity, otherwise false.
+   * @returns Returns `true` if the client holds the private key for that identity, otherwise `false`.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_hasIdentity", ["0x0"] ));
+   * ```
    */
   @assertArgLength(1)
-  async shh_hasIdentity(address: string) {
+  async shh_hasIdentity(address: DATA) {
     return false;
   }
 
   /**
    * Creates a new group.
    *
-   * @returns the address of the new group.
+   * @returns The address of the new group.
    */
   @assertArgLength(0)
   async shh_newGroup() {
@@ -1906,39 +2854,50 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Adds a whisper identity to the group
+   * Adds a whisper identity to the group.
    *
    * @param address - The identity address to add to a group.
-   * @returns true if the identity was successfully added to the group, otherwise false.
+   * @returns `true` if the identity was successfully added to the group, otherwise `false`.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_addToGroup", ["0x0"] ));
+   * ```
    */
   @assertArgLength(1)
-  async shh_addToGroup(address: string) {
+  async shh_addToGroup(address: DATA) {
     return false;
   }
 
   /**
    * Creates filter to notify, when client receives whisper message matching the filter options.
    *
-   * @param to -
-   * ^(optional) Identity of the receiver. When present it will try to decrypt any incoming message
+   * @param to - (optional) Identity of the receiver. When present it will try to decrypt any incoming message
    *  if the client holds the private key to this identity.
-   * @param topics - Array of DATA topics which the incoming message's topics should match.
-   * @returns returns true if the identity was successfully added to the group, otherwise false.
+   * @param topics - Array of topics which the incoming message's topics should match.
+   * @returns Returns `true` if the identity was successfully added to the group, otherwise `false`.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_newFilter", ["0x0", []] ));
+   * ```
    */
   @assertArgLength(2)
-  async shh_newFilter(to: string, topics: any[]) {
+  async shh_newFilter(to: DATA, topics: DATA[]) {
     return false;
   }
 
   /**
    * Uninstalls a filter with given id. Should always be called when watch is no longer needed.
-   * Additionally Filters timeout when they aren't requested with shh_getFilterChanges for a period of time.
+   * Additionally filters timeout when they aren't requested with `shh_getFilterChanges` for a period of time.
    *
    * @param id - The filter id. Ex: "0x7"
-   * @returns true if the filter was successfully uninstalled, otherwise false.
+   * @returns `true` if the filter was successfully uninstalled, otherwise `false`.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_uninstallFilter", ["0x0"] ));
+   * ```
    */
   @assertArgLength(1)
-  async shh_uninstallFilter(id: string) {
+  async shh_uninstallFilter(id: QUANTITY) {
     return false;
   }
 
@@ -1947,9 +2906,13 @@ export default class EthereumApi implements Api {
    *
    * @param id - The filter id. Ex: "0x7"
    * @returns More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_getFilterChanges", ["0x0"] ));
+   * ```
    */
   @assertArgLength(1)
-  async shh_getFilterChanges(id: string) {
+  async shh_getFilterChanges(id: QUANTITY) {
     return [];
   }
 
@@ -1957,10 +2920,14 @@ export default class EthereumApi implements Api {
    * Get all messages matching a filter. Unlike shh_getFilterChanges this returns all messages.
    *
    * @param id - The filter id. Ex: "0x7"
-   * @returns See: shh_getFilterChanges
+   * @returns See: `shh_getFilterChanges`.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_getMessages", ["0x0"] ));
+   * ```
    */
   @assertArgLength(1)
-  async shh_getMessages(id: string) {
+  async shh_getMessages(id: QUANTITY) {
     return false;
   }
 
@@ -1968,7 +2935,11 @@ export default class EthereumApi implements Api {
    * Creates a whisper message and injects it into the network for distribution.
    *
    * @param postData
-   * @returns returns true if the message was sent, otherwise false.
+   * @returns Returns `true` if the message was sent, otherwise `false`.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_post", [{}] ));
+   * ```
    */
   @assertArgLength(1)
   async shh_post(postData: WhisperPostObject) {
@@ -1978,7 +2949,11 @@ export default class EthereumApi implements Api {
   /**
    * Returns the current whisper protocol version.
    *
-   * @returns The current whisper protocol version
+   * @returns The current whisper protocol version.
+   * @example
+   * ```javascript
+   * console.log(await provider.send("shh_version"));
+   * ```
    */
   @assertArgLength(0)
   async shh_version() {
