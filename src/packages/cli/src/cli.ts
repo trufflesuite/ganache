@@ -45,11 +45,11 @@ const cliSettings = argv.server;
 
 console.log(detailedVersion);
 
-let server;
+let server: ReturnType<typeof Ganache.server>;
 try {
   server = Ganache.server(argv);
 } catch (error) {
-  console.log(error.message);
+  console.error(error.message);
   process.exit(1);
 }
 
