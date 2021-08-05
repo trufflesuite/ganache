@@ -43,7 +43,7 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
       [Data.from(transactionHash).toString()]
     );
     if (tx == null) return null;
-    const runTx = TransactionFactory.fromTxData(tx, fallback.common);
+    const runTx = TransactionFactory.fromRpc(tx, fallback.common);
     return runTx.serializeForDb(
       Data.from((tx as any).blockHash, 32),
       Quantity.from((tx as any).blockNumber),
