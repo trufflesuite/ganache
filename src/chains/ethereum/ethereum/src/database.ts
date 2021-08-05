@@ -1,12 +1,14 @@
 import { AbstractLevelDOWN } from "abstract-leveldown";
 import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
-import levelup, { LevelUp } from "levelup";
+// import levelup, { LevelUp } from "levelup";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-const leveldown = require("leveldown");
-const sub = require("subleveldown");
-const encode = require("encoding-down");
+import levelup from "levelup";
+import type { LevelUp } from "levelup";
+import leveldown from "leveldown";
+import sub from "subleveldown";
+import encode from "encoding-down";
 
 setGracefulCleanup();
 const tmpOptions = { prefix: "ganache-core_", unsafeCleanup: true };
@@ -24,6 +26,7 @@ export default class Database extends Emittery {
   public blockLogs: LevelUp;
   public transactions: LevelUp;
   public transactionReceipts: LevelUp;
+  public storageKeys: LevelUp;
   public trie: LevelUp;
   public readonly initialized: boolean;
   #rootStore: AbstractLevelDOWN;
@@ -44,15 +47,17 @@ export default class Database extends Emittery {
 
     this.#options = options;
     this.blockchain = blockchain;
-    this.#initialize();
   }
 
-  #initialize = async () => {
-    const levelupOptions: any = { valueEncoding: "binary" };
+  initialize = async () => {
+    const levelupOptions: any = {
+      keyEncoding: "binary",
+      valueEncoding: "binary"
+    };
     const store = this.#options.db;
-    let db: levelup.LevelUp;
+    let db: LevelUp;
     if (store) {
-      this.#rootStore = encode(store, levelupOptions);
+      this.#rootStore = encode(store as any, levelupOptions);
       db = levelup(this.#rootStore, {});
     } else {
       let directory = this.#options.dbPath;
@@ -70,7 +75,7 @@ export default class Database extends Emittery {
       const leveldownOpts = { prefix: "" };
       const store = encode(leveldown(directory, leveldownOpts), levelupOptions);
       this.#rootStore = store;
-      db = levelup(store, {});
+      db = levelup(store);
     }
 
     // don't continue if we closed while we were waiting for the db
@@ -90,7 +95,7 @@ export default class Database extends Emittery {
     this.blockLogs = sub(db, "l", levelupOptions);
     this.transactions = sub(db, "t", levelupOptions);
     this.transactionReceipts = sub(db, "r", levelupOptions);
-
+    this.storageKeys = sub(db, "s", levelupOptions);
     return this.emit("ready");
   };
 
@@ -163,6 +168,7 @@ export default class Database extends Emittery {
         this.blockIndexes.close(),
         this.transactionReceipts.close(),
         this.transactions.close(),
+        this.storageKeys.close(),
         this.trie.close()
       ]);
     }

@@ -1,18 +1,21 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
-import compile from "../../helpers/compile";
+import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
-import { Quantity } from "@ganache/utils";
 const THIRTY_TWO_BYES = "0".repeat(64);
 
 describe("api", () => {
   describe("eth", () => {
     describe("getStorageAt", () => {
       let provider: EthereumProvider;
-      const contract = compile(join(__dirname, "./contracts/GetStorageAt.sol"));
+      let contract: CompileOutput;
       let contractAddress: string;
       let contractMethods: any;
+
+      before(() => {
+        contract = compile(join(__dirname, "./contracts/GetStorageAt.sol"));
+      });
 
       beforeEach(async () => {
         provider = await getProvider({

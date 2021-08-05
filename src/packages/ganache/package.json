@@ -1,17 +1,17 @@
 {
   "name": "ganache",
-  "version": "3.0.0-internal.15",
+  "version": "7.0.0-canary.2+bb3106bf",
   "description": "A library and cli to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/ganache#readme",
   "license": "MIT",
-  "main": "dist/node/ganache.min.js",
+  "main": "dist/node/core.js",
   "browser": "dist/web/ganache.min.js",
-  "types": "lib/index.d.ts",
+  "typings": "lib/index.d.ts",
   "source": "index.ts",
   "bin": {
-    "ganache": "dist/cli/ganache.min.js",
-    "ganache-cli": "dist/cli/ganache.min.js"
+    "ganache": "dist/node/cli.js",
+    "ganache-cli": "dist/node/cli.js"
   },
   "directories": {
     "lib": "lib",
@@ -19,7 +19,7 @@
   },
   "files": [
     "/dist",
-    "/lib/**/*.d.ts"
+    "/index.d.ts"
   ],
   "repository": {
     "type": "git",
@@ -27,8 +27,8 @@
     "directory": "src/packages/ganache"
   },
   "scripts": {
-    "build": "webpack",
-    "tsc": "ttsc",
+    "build": "npm run tsc && npx shx rm -rf ./dist && webpack",
+    "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
     "start": "cross-env TS_NODE_COMPILER=ttypescript node --require ts-node/register --inspect src/cli.ts"
@@ -51,10 +51,12 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/cli": "^0.1.0",
-    "@ganache/flavors": "^0.1.0",
+    "@ganache/cli": "0.1.1-canary.2+bb3106bf",
+    "@ganache/core": "0.1.1-canary.2+bb3106bf",
+    "@ganache/flavors": "0.1.1-canary.2+bb3106bf",
     "@types/node": "14.14.6",
     "assert": "2.0.0",
+    "browserify-aes": "1.2.0",
     "buffer": "6.0.1",
     "crypto-browserify": "3.12.0",
     "events": "3.2.0",
@@ -63,7 +65,9 @@
     "os-browserify": "0.3.0",
     "path-browserify": "1.0.1",
     "process": "0.11.10",
+    "scrypt-js": "3.0.1",
     "shebang-loader": "0.0.1",
+    "shx": "0.3.3",
     "stream-browserify": "3.0.0",
     "terser-webpack-plugin": "5.0.3",
     "ts-loader": "8.0.7",
@@ -71,13 +75,17 @@
     "ttypescript": "1.5.12",
     "typescript": "4.1.3",
     "util": "0.12.3",
-    "webpack": "5.4.0",
-    "webpack-cli": "4.2.0"
+    "webpack": "5.21.2",
+    "webpack-cli": "4.5.0"
   },
   "dependencies": {
     "bigint-buffer": "1.1.5",
     "keccak": "3.0.1",
     "leveldown": "5.6.0",
     "secp256k1": "4.0.2"
-  }
+  },
+  "peerDependencies": {
+    "@ganache/filecoin": "0.1.0"
+  },
+  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
 }

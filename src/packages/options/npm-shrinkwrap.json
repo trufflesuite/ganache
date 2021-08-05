@@ -1,6 +1,6 @@
 {
 	"name": "@ganache/options",
-	"version": "0.1.0",
+	"version": "0.1.1-canary.2+bb3106bf",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
@@ -8,12 +8,6 @@
 			"version": "11.11.6",
 			"resolved": "https://registry.npmjs.org/@types/node/-/node-11.11.6.tgz",
 			"integrity": "sha512-Exw4yUWMBXM3X+8oqzJNRqZSwUAaS4+7NdvHqQuFi/d+synz++xmX3QIf+BFqneW8N31R8Ky+sikfZUXq07ggQ=="
-		},
-		"@types/seedrandom": {
-			"version": "2.4.28",
-			"resolved": "https://registry.npmjs.org/@types/seedrandom/-/seedrandom-2.4.28.tgz",
-			"integrity": "sha512-SMA+fUwULwK7sd/ZJicUztiPs8F1yCPwF3O23Z9uQ32ME5Ha0NmDK9+QTsYE4O2tHXChzXomSWWeIhCnoN1LqA==",
-			"dev": true
 		},
 		"bip39": {
 			"version": "3.0.2",
@@ -86,9 +80,9 @@
 			}
 		},
 		"pbkdf2": {
-			"version": "3.1.1",
-			"resolved": "https://registry.npmjs.org/pbkdf2/-/pbkdf2-3.1.1.tgz",
-			"integrity": "sha512-4Ejy1OPxi9f2tt1rRV7Go7zmfDQ+ZectEQz3VGUQhgq62HtIRPDyG/JtnwIxs6x3uNMwo2V7q1fMvKjb+Tnpqg==",
+			"version": "3.1.2",
+			"resolved": "https://registry.npmjs.org/pbkdf2/-/pbkdf2-3.1.2.tgz",
+			"integrity": "sha512-iuh7L6jA7JEGu2WxDwtQP1ddOpaJNC4KlDEFfdQajSGgGPNi4OyDc2R7QnbY2bR9QjBVGwgvTdNJZoE7RaxUMA==",
 			"requires": {
 				"create-hash": "^1.1.2",
 				"create-hmac": "^1.1.4",

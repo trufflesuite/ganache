@@ -1,23 +1,27 @@
 {
   "name": "@ganache/cli",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-canary.2+bb3106bf",
   "description": "",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/cli#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "typings",
   "source": "index.ts",
   "bin": {
     "ganache": "./lib/src/cli.js",
     "ganache-cli": "./lib/src/cli.js"
   },
   "directories": {
-    "lib": "/lib",
-    "test": "/tests"
+    "lib": "lib",
+    "test": "tests"
   },
   "files": [
-    "/lib"
+    "lib",
+    "typings"
   ],
   "repository": {
     "type": "git",
@@ -25,7 +29,7 @@
     "directory": "src/packages/cli"
   },
   "scripts": {
-    "tsc": "ttsc",
+    "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
     "start": "cross-env TS_NODE_COMPILER=ttypescript node --require ts-node/register --inspect src/cli.ts"
@@ -49,18 +53,19 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/core": "0.1.0"
+    "@ganache/ethereum": "0.1.1-canary.2+bb3106bf",
+    "@ganache/filecoin": "0.1.1-canary.2+bb3106bf"
   },
   "dependencies": {
-    "@ganache/colors": "^0.1.0",
-    "@ganache/ethereum": "0.1.0",
-    "@ganache/ethereum-options": "0.1.0",
-    "@ganache/flavors": "0.1.0",
-    "@ganache/options": "0.1.0",
-    "@ganache/utils": "0.1.0",
+    "@ganache/colors": "0.1.1-canary.2+bb3106bf",
+    "@ganache/core": "0.1.1-canary.2+bb3106bf",
+    "@ganache/flavors": "0.1.1-canary.2+bb3106bf",
+    "@ganache/options": "0.1.1-canary.2+bb3106bf",
+    "@ganache/utils": "0.1.1-canary.2+bb3106bf",
     "@types/node": "14.14.6",
     "chalk": "4.1.0",
-    "ethereumjs-util": "7.0.7",
+    "ethereumjs-util": "7.0.9",
     "marked-terminal": "4.1.0"
-  }
+  },
+  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
 }

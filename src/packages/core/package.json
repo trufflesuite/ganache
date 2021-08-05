@@ -1,32 +1,33 @@
 {
   "name": "@ganache/core",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-canary.2+bb3106bf",
   "description": "A library to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/core#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "typings",
   "source": "index.ts",
   "directories": {
     "lib": "lib",
     "test": "tests"
   },
   "files": [
-    "lib"
+    "lib",
+    "typings"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache-core.git",
     "directory": "src/packages/core"
   },
   "scripts": {
-    "tsc": "ttsc",
+    "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --throw-deprecation --trace-warnings --check-leaks --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_PROJECT=tsconfig.json TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --throw-deprecation --trace-warnings --check-leaks --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -46,16 +47,24 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/ethereum": "^0.1.0",
-    "@ganache/flavors": "^0.1.0",
-    "@ganache/options": "^0.1.0",
-    "@ganache/tezos": "^0.1.0",
-    "@ganache/utils": "^0.1.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+    "@ganache/ethereum": "0.1.1-canary.2+bb3106bf",
+    "@ganache/flavors": "0.1.1-canary.2+bb3106bf",
+    "@ganache/options": "0.1.1-canary.2+bb3106bf",
+    "@ganache/tezos": "0.1.1-canary.2+bb3106bf",
+    "@ganache/utils": "0.1.1-canary.2+bb3106bf",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
+    "aggregate-error": "3.1.0",
+    "emittery": "0.8.1",
+    "promise.allsettled": "1.0.4"
   },
   "devDependencies": {
+    "@types/promise.allsettled": "1.0.3",
     "@types/superagent": "4.1.10",
+    "cross-env": "7.0.3",
+    "mocha": "8.4.0",
+    "nyc": "15.1.0",
     "superagent": "6.1.0",
-    "ws": "7.3.1"
-  }
+    "ws": "7.4.6"
+  },
+  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
 }

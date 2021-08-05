@@ -1,14 +1,15 @@
-import { Address, Account } from "@ganache/ethereum-utils";
-import { Data, Quantity, utils } from "@ganache/utils";
+import { Account } from "@ganache/ethereum-utils";
+import { Data, Quantity, RPCQUANTITY_ZERO, unref, WEI } from "@ganache/utils";
 import { privateToAddress } from "ethereumjs-util";
 import secp256k1 from "secp256k1";
 import { mnemonicToSeedSync } from "bip39";
 import HDKey from "hdkey";
-import { alea as rng } from "seedrandom";
+import { alea } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
 import { writeFileSync } from "fs";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { Address } from "@ganache/ethereum-address";
 
 //#region Constants
 const SCRYPT_PARAMS = {
@@ -18,7 +19,6 @@ const SCRYPT_PARAMS = {
   r: 1
 } as const;
 const CIPHER = "aes-128-ctr";
-const WEI = utils.WEI;
 //#endregion
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [
@@ -92,6 +92,8 @@ export default class Wallet {
 
   constructor(opts: EthereumInternalOptions["wallet"]) {
     this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
+    // create a RNG from our initial starting conditions (opts.mnemonic)
+    this.#randomRng = alea("ganache " + opts.mnemonic);
 
     const initialAccounts = (this.initialAccounts = this.#initializeAccounts(
       opts
@@ -183,21 +185,25 @@ export default class Wallet {
         fileData.addresses[address] = address;
         fileData.private_keys[address] = privateKey;
       });
+
+      // WARNING: Do not turn this to an async method without
+      // making a Wallet.initialize() function and calling it via
+      // Provider.initialize(). No async methods in constructors.
+      // writeFileSync here is acceptable.
       writeFileSync(opts.accountKeysPath, JSON.stringify(fileData));
     }
     //#endregion
   }
 
-  #seedCounter = 0n;
+  #randomRng: () => number;
 
   #randomBytes = (length: number) => {
     // Since this is a mock RPC library, the rng doesn't need to be
     // cryptographically secure, and determinism is desired.
     const buf = Buffer.allocUnsafe(length);
-    const seed = (this.#seedCounter += 1n);
-    const rand = rng(seed.toString());
+    const rand = this.#randomRng;
     for (let i = 0; i < length; i++) {
-      buf[i] = (rand() * 255) | 0;
+      buf[i] = (rand() * 256) | 0; // generates a random number from 0 to 255
     }
     return buf;
   };
@@ -371,17 +377,14 @@ export default class Wallet {
     return account;
   }
 
-  public createRandomAccount(startingSeed: string) {
+  public createRandomAccount() {
     // create some seeded deterministic psuedo-randomness based on the chain's
-    // initial starting conditions (`startingSeed`)
-    const seed = Buffer.concat([
-      Buffer.from(startingSeed),
-      this.#randomBytes(64)
-    ]);
+    // initial starting conditions
+    const seed = this.#randomBytes(128);
     const acct = HDKey.fromMasterSeed(seed);
     const address = uncompressedPublicKeyToAddress(acct.publicKey);
     const privateKey = Data.from(acct.privateKey);
-    return Wallet.createAccount(utils.RPCQUANTITY_ZERO, privateKey, address);
+    return Wallet.createAccount(RPCQUANTITY_ZERO, privateKey, address);
   }
 
   public async unlockAccount(
@@ -404,7 +407,7 @@ export default class Wallet {
     const durationMs = (duration * 1000) | 0;
     if (durationMs > 0) {
       const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
-      utils.unref(timeout);
+      unref(timeout);
       this.lockTimers.set(lowerAddress, timeout as any);
     }
 
@@ -427,7 +430,7 @@ export default class Wallet {
     const durationMs = (duration * 1000) | 0;
     if (durationMs > 0) {
       const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
-      utils.unref(timeout);
+      unref(timeout);
       this.lockTimers.set(lowerAddress, timeout as any);
     }
 

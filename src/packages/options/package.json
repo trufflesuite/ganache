@@ -1,18 +1,22 @@
 {
   "name": "@ganache/options",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-canary.2+bb3106bf",
   "description": "Ganache's server/provider options TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/options#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "typings",
   "source": "index.ts",
   "directories": {
     "lib": "lib"
   },
   "files": [
-    "lib"
+    "lib",
+    "typings"
   ],
   "repository": {
     "type": "git",
@@ -20,7 +24,7 @@
     "directory": "src/packages/options"
   },
   "scripts": {
-    "tsc": "ttsc"
+    "tsc": "ttsc --build"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -40,11 +44,9 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/utils": "^0.1.0",
+    "@ganache/utils": "0.1.1-canary.2+bb3106bf",
     "bip39": "3.0.2",
     "seedrandom": "3.0.5"
   },
-  "devDependencies": {
-    "@types/seedrandom": "2.4.28"
-  }
+  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
 }

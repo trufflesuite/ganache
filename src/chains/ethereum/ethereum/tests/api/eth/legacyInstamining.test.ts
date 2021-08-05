@@ -14,7 +14,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: accounts[1],
-            value: 1
+            value: "0x1"
           }
         ]);
         const receipt = await provider.send("eth_getTransactionReceipt", [
@@ -33,7 +33,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: accounts[1],
-            value: 1
+            value: "0x1"
           }
         ]);
         const receipt = await provider.send("eth_getTransactionReceipt", [
@@ -58,7 +58,7 @@ describe("api", () => {
                 {
                   from: accounts[0],
                   to: accounts[1],
-                  value: "0x76bc75e2d63100000"
+                  value: "0x76bc75e2d631000000"
                 }
               ]
             },

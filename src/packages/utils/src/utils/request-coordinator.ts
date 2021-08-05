@@ -1,3 +1,5 @@
+import { OverloadedParameters } from "../types";
+
 const noop = () => {};
 
 /**
@@ -78,7 +80,7 @@ export class RequestCoordinator {
   public queue = <T extends (...args: unknown[]) => unknown>(
     fn: T,
     thisArgument: any,
-    argumentsList: Parameters<T>
+    argumentsList: OverloadedParameters<T>
   ) => {
     return new Promise<{ value: ReturnType<typeof fn> }>((resolve, reject) => {
       // const executor is `async` to force the return value into a Promise.

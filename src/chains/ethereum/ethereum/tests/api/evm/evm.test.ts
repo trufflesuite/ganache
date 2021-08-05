@@ -77,6 +77,14 @@ describe("api", () => {
     });
 
     describe("evm_mine", () => {
+      it("should mine `n` blocks on demand", async () => {
+        const provider = await getProvider();
+        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
+        await provider.request({ method: "evm_mine", params: [{ blocks: 5 }] });
+        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
+        assert.strictEqual(currentBlock, initialBlock + 5);
+      });
+
       it("should mine a block on demand", async () => {
         const provider = await getProvider();
         const initialBlock = parseInt(await provider.send("eth_blockNumber"));
@@ -172,11 +180,10 @@ describe("api", () => {
         await provider.send("personal_lockAccount", [address]);
         try {
           await assert.rejects(
-            provider.send("evm_unlockUnknownAccount", [
-              {
-                message: "cannot unlock known/personal account"
-              }
-            ])
+            provider.send("evm_unlockUnknownAccount", [address]),
+            {
+              message: "cannot unlock known/personal account"
+            }
           );
         } finally {
           // unlock the account

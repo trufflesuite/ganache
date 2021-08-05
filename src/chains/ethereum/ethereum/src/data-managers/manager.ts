@@ -1,6 +1,5 @@
 import { LevelUp } from "levelup";
-import { Data } from "@ganache/utils";
-import { Tag } from "@ganache/ethereum-utils";
+import { BUFFER_ZERO, Data } from "@ganache/utils";
 const NOTFOUND = 404;
 
 export type Instantiable<T> = { new (...args: any[]): T };
@@ -18,13 +17,13 @@ export default class Manager<T> {
     this.#options = options;
     this.base = base;
   }
-  getRaw(key: string | Buffer | Tag): Promise<Buffer> {
+  getRaw(key: string | Buffer): Promise<Buffer> {
     if (typeof key === "string") {
       key = Data.from(key).toBuffer();
     }
 
     if (key.length === 0) {
-      return null;
+      key = BUFFER_ZERO;
     }
 
     return this.base.get(key).catch(e => {

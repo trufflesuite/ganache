@@ -1,11 +1,17 @@
 {
-  "extends": "../../../tsconfig.json",
+  "extends": "../../tsconfig-base.json",
   "compilerOptions": {
     "outDir": "lib"
   },
-  "include": ["index.ts", "src/**/*", "src/cli.ts"],
+  "include": [
+    "index.ts",
+    "src/**/*",
+    "src/cli.ts"
+  ],
   "paths": {
-    "@ganache/cli/src/cli": ["../cli/src/cli"]
+    "@ganache/cli/src/cli": [
+      "../cli/src/cli"
+    ]
   },
   "references": [
     {
@@ -15,6 +21,14 @@
     {
       "name": "@ganache/flavors",
       "path": "../flavors"
+    },
+    {
+      "name": "@ganache/filecoin",
+      "path": "../../chains/filecoin/filecoin"
+    },
+    {
+      "name": "@ganache/core",
+      "path": "../core"
     }
   ]
 }

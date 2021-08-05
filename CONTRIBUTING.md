@@ -2,7 +2,7 @@
 
 ## Getting set up
 
-- Use Node.js v10.13.0 (even though Ganache itself is compatible back to 10.7.0).
+- Use Node.js v10.13.0.
   - Why v10.13.0? Because this is the first version prettier supports.
   - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
     Windows, to configure your node version.
@@ -29,7 +29,7 @@ If installation fails due to a `node-gyp` issue you may need to perform some add
 - Install [https://www.npmjs.com/package/windows-build-tools](Windows-Build-Tools)
   - `npm install --global windows-build-tools`
 
-### On macOS
+### on macOS
 
 - I have no idea.
 
@@ -47,9 +47,15 @@ directories, then reinstalls all modules.
 
 ## To compile
 
-Compiles all packages:
+Compiles the `ganache` package and its internal dependencies and subdependencies:
 
 - `npm run tsc`
+
+To compile a package directly:
+
+- `npx lerna run --scope @ganache/<name> tsc`
+
+This can be useful if the package isn't yet in ganache's dependency tree.
 
 ## To build the ganache package
 

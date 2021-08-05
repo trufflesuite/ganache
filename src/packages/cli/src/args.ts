@@ -1,17 +1,21 @@
 import { TruffleColors } from "@ganache/colors";
 import yargs, { Options } from "yargs";
-import { DefaultFlavor, DefaultOptionsByName } from "@ganache/flavors";
+import {
+  DefaultFlavor,
+  FilecoinFlavorName,
+  DefaultOptionsByName
+} from "@ganache/flavors";
 import {
   Base,
   Definitions,
   YargsPrimitiveCliTypeStrings
 } from "@ganache/options";
-import { serverDefaults } from "@ganache/core";
 import { Command, Argv } from "./types";
 import chalk from "chalk";
 import { EOL } from "os";
 import marked from "marked";
 import TerminalRenderer from "marked-terminal";
+import { _DefaultServerOptions } from "@ganache/core";
 
 marked.setOptions({
   renderer: new TerminalRenderer({
@@ -23,7 +27,7 @@ marked.setOptions({
 
 const wrapWidth = Math.min(120, yargs.terminalWidth());
 const NEED_HELP = "Need more help? Reach out to the Truffle community at";
-const COMMUNITY_LINK = "https://gitter.im/ConsenSys/truffle";
+const COMMUNITY_LINK = "https://trfl.co/support";
 
 function unescapeEntities(html: string) {
   return html
@@ -31,7 +35,8 @@ function unescapeEntities(html: string) {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+    .replace(/&#39;/g, "'")
+    .replace(/\*\#COLON\|\*/g, ":");
 }
 const highlight = (t: string) => unescapeEntities(marked.parseInline(t));
 const center = (str: string) =>
@@ -47,8 +52,9 @@ function processOption(
   category: string,
   group: string,
   option: string,
-  optionObj: Definitions<Base.Config>[string | number],
-  argv: yargs.Argv
+  optionObj: Definitions<Base.Config>[string],
+  argv: yargs.Argv,
+  flavor: string
 ) {
   if (optionObj.disableInCLI !== true) {
     const shortHand = [];
@@ -68,11 +74,13 @@ function processOption(
     const generateDefaultDescription = () => {
       // default sometimes requires a config, so we supply one
       return (state[option] = optionObj.default
-        ? optionObj.default(state).toString()
+        ? optionObj.default(state, flavor).toString()
         : undefined);
     };
     const defaultDescription =
-      optionObj.defaultDescription || generateDefaultDescription();
+      "defaultDescription" in optionObj
+        ? optionObj.defaultDescription
+        : generateDefaultDescription();
 
     // we need to specify the type of each array so yargs properly casts
     // the types held within each array
@@ -90,14 +98,9 @@ function processOption(
       array,
       type,
       choices: optionObj.cliChoices,
-      coerce: optionObj.cliCoerce
+      coerce: optionObj.cliCoerce,
+      implies: optionObj.implies
     };
-
-    if ("conflicts" in optionObj) {
-      options.conflicts = (optionObj as {
-        conflicts: string[];
-      }).conflicts.map(c => `${category}.${c}`);
-    }
 
     const key = `${category}.${option}`;
 
@@ -112,15 +115,52 @@ function processOption(
   }
 }
 
+function applyDefaults(
+  flavorDefaults:
+    | typeof DefaultOptionsByName[keyof typeof DefaultOptionsByName]
+    | typeof _DefaultServerOptions,
+  flavorArgs: yargs.Argv<{}>,
+  flavor: keyof typeof DefaultOptionsByName
+) {
+  for (const category in flavorDefaults) {
+    type GroupType = `${Capitalize<typeof category>}:`;
+    const group = `${category[0].toUpperCase()}${category.slice(
+      1
+    )}:` as GroupType;
+    const categoryObj = (flavorDefaults[
+      category
+    ] as unknown) as Definitions<Base.Config>;
+    const state = {};
+    for (const option in categoryObj) {
+      const optionObj = categoryObj[option];
+      processOption(
+        state,
+        category,
+        group,
+        option,
+        optionObj,
+        flavorArgs,
+        flavor
+      );
+    }
+  }
+}
+
 export default function (version: string, isDocker: boolean) {
+  const versionUsageOutputText = chalk`{hex("${
+    TruffleColors.porsche
+  }").bold ${center(version)}}`;
   let args = yargs
     // disable dot-notation because yargs just can't coerce args properly...
     // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
     .parserConfiguration({ "dot-notation": false })
     .strict()
-    .usage(chalk`{hex("${TruffleColors.porsche}").bold ${center(version)}}`)
+    .usage(versionUsageOutputText)
     .epilogue(
-      chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
+      versionUsageOutputText +
+        EOL +
+        EOL +
+        chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
         EOL +
         chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
     );
@@ -132,6 +172,10 @@ export default function (version: string, isDocker: boolean) {
     let defaultPort: number;
     switch (flavor) {
       // since "ethereum" is the DefaultFlavor we don't need a `case` for it
+      case FilecoinFlavorName:
+        command = flavor;
+        defaultPort = 7777;
+        break;
       case DefaultFlavor:
         command = ["$0", flavor];
         defaultPort = 8545;
@@ -145,37 +189,9 @@ export default function (version: string, isDocker: boolean) {
       command,
       chalk`Use the {bold ${flavor}} flavor of Ganache`,
       flavorArgs => {
-        let category: keyof typeof flavorDefaults;
-        for (category in flavorDefaults) {
-          type GroupType = `${Capitalize<typeof category>}:`;
-          const group = `${category[0].toUpperCase()}${category.slice(
-            1
-          )}:` as GroupType;
-          const categoryObj = (flavorDefaults[
-            category
-          ] as unknown) as Definitions<Base.Config>;
-          const state = {};
-          for (const option in categoryObj) {
-            const optionObj = categoryObj[option];
-            processOption(
-              state,
-              category,
-              group,
-              option,
-              optionObj,
-              flavorArgs
-            );
-          }
-        }
+        applyDefaults(flavorDefaults, flavorArgs, flavor);
 
-        const state = {};
-        const categoryObj = serverDefaults.server;
-        const group = "Server:";
-        for (const option in categoryObj) {
-          const optionObj = categoryObj[option];
-
-          processOption(state, "server", group, option, optionObj, flavorArgs);
-        }
+        applyDefaults(_DefaultServerOptions, flavorArgs, flavor);
 
         flavorArgs = flavorArgs
           .option("server.host", {

@@ -1,15 +1,18 @@
 import assert from "assert";
 import Ganache from "../";
-import { Provider as EthereumProvider } from "@ganache/ethereum";
 
 describe("connector", () => {
   it("works without passing options", async () => {
-    assert.doesNotThrow(() => Ganache.provider());
+    assert.doesNotThrow(async () => {
+      const _provider = Ganache.provider();
+    });
   });
 
   it("it logs when `options.verbose` is `true`", async () => {
     const logger = { log: (_msg: string) => {} };
-    const p = Ganache.provider({ logging: { logger, verbose: true } });
+    const p = Ganache.provider({
+      logging: { logger, verbose: true }
+    });
 
     logger.log = msg => {
       assert.strictEqual(
@@ -31,7 +34,7 @@ describe("connector", () => {
     });
   });
 
-  it("it processes requests asyncronously when `asyncRequestProcessing` is default (true)", async () => {
+  it("it processes requests asynchronously when `asyncRequestProcessing` is default (true)", async () => {
     const p = Ganache.provider();
     const accounts = await p.send("eth_accounts");
     // `eth_accounts` should always be faster than eth_getBalance; eth_accounts
@@ -44,8 +47,10 @@ describe("connector", () => {
     assert.strictEqual(result.length, 10);
   });
 
-  it("it processes requests syncronously when `asyncRequestProcessing` is `false`", async () => {
-    const p = Ganache.provider({ chain: { asyncRequestProcessing: false } });
+  it("it processes requests synchronously when `asyncRequestProcessing` is `false`", async () => {
+    const p = Ganache.provider({
+      chain: { asyncRequestProcessing: false }
+    });
     const accounts = await p.send("eth_accounts");
     // eth_getBalance should return first even though eth_accounts is faster;
     // eth_getBalance should return before eth_accounts because of the
@@ -53,7 +58,7 @@ describe("connector", () => {
     const calA = p.send("eth_getBalance", [accounts[0]]);
     const callB = p.send("eth_accounts");
     const result = await Promise.race([calA, callB]);
-    assert.strictEqual(result, "0x56bc75e2d63100000");
+    assert.strictEqual(result, "0x3635c9adc5dea00000");
   });
 
   // duck punch a property that shouldn't appear on the API. we test this
@@ -61,7 +66,7 @@ describe("connector", () => {
   // in the foot on accident
   it.skip("TODO: allow 'injecting' our own engine or API into a provider!", async () => {
     const p = Ganache.provider();
-    // this won't work becase ganache uses _real_ private properties that can't
+    // this won't work because ganache uses _real_ private properties that can't
     // be duck punched. This test is supposed to ensure that _real_ non-function
     // own properties (and __proto__ properties) can't be executed.
     (p as any)._engine._api.__proto__.illegalProperty = true;
@@ -71,7 +76,9 @@ describe("connector", () => {
   });
 
   it("rejects invalid rpc methods", async () => {
-    const p = Ganache.provider();
+    const p = Ganache.provider({
+      logger: { log: () => {} }
+    });
 
     const illegalMethodNames = [
       "toString",
@@ -84,11 +91,15 @@ describe("connector", () => {
       "constructor"
     ] as const;
     await Promise.all(
-      illegalMethodNames.map(methodName => {
-        assert.rejects(() => p.send(methodName as any), {
-          message: `The method ${methodName} does not exist/is not available`
-        });
-      })
+      illegalMethodNames.map(methodName =>
+        assert.rejects(
+          p.send(methodName as any),
+          {
+            message: `The method ${methodName} does not exist/is not available`
+          },
+          `Missed expected rejection for method "${methodName}"`
+        )
+      )
     );
 
     // make sure we reject non-strings over the classical send interface
@@ -130,7 +141,8 @@ describe("connector", () => {
           }),
           {
             message: `The method ${method} does not exist/is not available`
-          }
+          },
+          `Missing expected rejections for "${method}"`
         );
       })
     );

@@ -1,30 +1,31 @@
 {
   "name": "@ganache/utils",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-canary.2+bb3106bf",
   "description": "Utility functions for @ganache packages",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/utils#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "typings",
   "source": "index.ts",
   "directories": {
     "lib": "lib",
     "test": "tests"
   },
   "files": [
-    "lib"
+    "lib",
+    "typings"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache-core.git",
     "directory": "src/packages/utils"
   },
   "scripts": {
-    "tsc": "ttsc"
+    "tsc": "ttsc --build"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -45,12 +46,15 @@
   ],
   "dependencies": {
     "emittery": "0.7.2",
-    "keccak": "3.0.1"
+    "keccak": "3.0.1",
+    "seedrandom": "3.0.5"
   },
   "devDependencies": {
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.4.0"
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
+    "@types/seedrandom": "2.4.28"
   },
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"
-  }
+  },
+  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
 }

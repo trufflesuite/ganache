@@ -69,25 +69,26 @@ describe("api", () => {
             type: "eth_subscription",
             data: {
               result: {
-                difficulty: "0x0",
+                difficulty: "0x1",
+                totalDifficulty: "0x2",
                 extraData: "0x",
                 gasLimit: gasLimit,
                 gasUsed: "0x0",
                 hash:
-                  "0x7ffe37737a6a39477f0cd9eeb632a6b393c440ad17b6e82fcbe1ebf6556d768c",
+                  "0xbda5af9012bf0f767232d80fd2eba0872001a0910f8324af8ef20268849f554a",
                 logsBloom: `0x${"0".repeat(512)}`,
                 miner: `0x${"0".repeat(40)}`,
                 mixHash: `0x${"0".repeat(64)}`,
                 nonce: "0x0000000000000000",
                 number: Quantity.from(startingBlockNumber + 1).toString(),
                 parentHash:
-                  "0x48ba6f672feca71b75568153ce81c75d0a8074c935d4ab2a23fc7dd64dd13fe2",
+                  "0x5063838e49a74a67242ded810c134d34a892acd7e726ea1dcc5499c9c36471db",
                 receiptsRoot:
                   "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
                 sha3Uncles:
                   "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
                 stateRoot:
-                  "0xf0d9daf6f1dd86ae11b32005e9717845db40b6ddd926a37973922a957c400071",
+                  "0x4971da3022e43da306da38e8ed8a7990b8f0d842164e1662ee28a84921d59ad4",
                 timestamp: Quantity.from(timestamp).toString(),
                 transactionsRoot:
                   "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"

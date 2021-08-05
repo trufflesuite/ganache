@@ -1,4 +1,6 @@
-import chalk from "chalk";
+// using `require` because everything in scripts uses typescript's default
+// compiler settings, and this module requires enabling `esModuleInterop`
+const chalk = require("chalk");
 
 console.log("");
 console.log(
