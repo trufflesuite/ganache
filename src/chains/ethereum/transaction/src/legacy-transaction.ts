@@ -9,7 +9,7 @@ import { Hardfork } from "./hardfork";
 import { Params } from "./params";
 import { RuntimeTransaction } from "./runtime-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
-import { RawLegacyTx, TypedRawTransaction } from "./raw";
+import { RawLegacyPayload, RawLegacyTx, TypedRawTransaction } from "./raw";
 import { computeInstrinsicsLegacyTx } from "./signing";
 
 const { keccak, BUFFER_EMPTY, BUFFER_32_ZERO, RPCQUANTITY_EMPTY } = utils;
@@ -35,11 +35,13 @@ export interface LegacyTransactionJSON {
 }
 export class LegacyTransaction extends RuntimeTransaction {
   public gasPrice: Quantity;
-  public type: Quantity;
+  public type: Quantity = Quantity.from("0x0");
 
-  public constructor(data: RawLegacyTx | TypedRpcTransaction, common: Common) {
+  public constructor(
+    data: RawLegacyPayload | TypedRpcTransaction,
+    common: Common
+  ) {
     super(data, common);
-    // handle raw data (sendRawTranasction)
     if (Array.isArray(data)) {
       if (data.length > 9) {
         // we already know this is a legacy transaction, but
@@ -59,6 +61,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.v = Quantity.from(data[6]);
       this.r = Quantity.from(data[7]);
       this.s = Quantity.from(data[8]);
+      this.raw = [this.type.toBuffer(), ...data];
 
       const {
         from,
@@ -66,19 +69,15 @@ export class LegacyTransaction extends RuntimeTransaction {
         hash,
         encodedData,
         encodedSignature
-      } = this.computeIntrinsics(this.v, data, this.common.chainId());
+      } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
 
       this.from = from;
-      this.raw = data;
       this.serialized = serialized;
       this.hash = hash;
       this.encodedData = encodedData;
       this.encodedSignature = encodedSignature;
     } else {
       this.gasPrice = Quantity.from(data.gasPrice);
-      if (data.type) {
-        this.type = Quantity.from(data.type);
-      }
     }
   }
 
@@ -106,7 +105,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   };
 
   public static fromTxData(
-    data: RawLegacyTx | TypedRpcTransaction,
+    data: RawLegacyPayload | TypedRpcTransaction,
     common: Common
   ) {
     return new LegacyTransaction(data, common);
@@ -151,8 +150,7 @@ export class LegacyTransaction extends RuntimeTransaction {
         }
       },
       supports: (capability: any) => {
-        const capabilities: any[] = [];
-        return capabilities.includes(capability);
+        return false;
       }
     };
   }
@@ -174,13 +172,10 @@ export class LegacyTransaction extends RuntimeTransaction {
       BUFFER_EMPTY,
       BUFFER_EMPTY
     );
-    if (this.type) {
-      raw.shift();
-    }
-    const data = encodeRange(raw, 0, 6);
+    const data = encodeRange(raw, 1, 6);
     const dataLength = data.length;
 
-    const ending = encodeRange(raw, 6, 3);
+    const ending = encodeRange(raw, 7, 3);
     const msgHash = keccak(
       digest([data.output, ending.output], dataLength + ending.length)
     );
@@ -189,51 +184,34 @@ export class LegacyTransaction extends RuntimeTransaction {
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 
-    raw[6] = this.v.toBuffer();
-    raw[7] = this.r.toBuffer();
-    raw[8] = this.s.toBuffer();
+    raw[7] = this.v.toBuffer();
+    raw[8] = this.r.toBuffer();
+    raw[9] = this.s.toBuffer();
 
     this.raw = raw;
-    const encodedSignature = encodeRange(raw, 6, 3);
-    const digested = digest(
+    const encodedSignature = encodeRange(raw, 7, 3);
+    this.serialized = digest(
       [data.output, encodedSignature.output],
       dataLength + encodedSignature.length
     );
-    this.serialized = this.type
-      ? Buffer.concat([this.type.toBuffer(), digested])
-      : digested;
     this.hash = Data.from(keccak(this.serialized));
     this.encodedData = data;
     this.encodedSignature = encodedSignature;
   }
 
-  public toEthRawTransaction(v?: Buffer, r?: Buffer, s?: Buffer): RawLegacyTx {
-    if (this.type) {
-      return [
-        this.type.toBuffer(),
-        this.nonce.toBuffer(),
-        this.gasPrice.toBuffer(),
-        this.gas.toBuffer(),
-        this.to.toBuffer(),
-        this.value.toBuffer(),
-        this.data.toBuffer(),
-        v ? v : this.v.toBuffer(),
-        r ? r : this.r.toBuffer(),
-        s ? s : this.s.toBuffer()
-      ];
-    } else {
-      return [
-        this.nonce.toBuffer(),
-        this.gasPrice.toBuffer(),
-        this.gas.toBuffer(),
-        this.to.toBuffer(),
-        this.value.toBuffer(),
-        this.data.toBuffer(),
-        v ? v : this.v.toBuffer(),
-        r ? r : this.r.toBuffer(),
-        s ? s : this.s.toBuffer()
-      ];
-    }
+  public toEthRawTransaction(v: Buffer, r: Buffer, s: Buffer): RawLegacyTx {
+    return [
+      this.type.toBuffer(),
+      this.nonce.toBuffer(),
+      this.gasPrice.toBuffer(),
+      this.gas.toBuffer(),
+      this.to.toBuffer(),
+      this.value.toBuffer(),
+      this.data.toBuffer(),
+      v ? v : this.v.toBuffer(),
+      r ? r : this.r.toBuffer(),
+      s ? s : this.s.toBuffer()
+    ];
   }
 
   public computeIntrinsics(
@@ -241,10 +219,6 @@ export class LegacyTransaction extends RuntimeTransaction {
     raw: TypedRawTransaction,
     chainId: number
   ) {
-    let shiftedRaw: RawLegacyTx = <RawLegacyTx>raw;
-    if (raw.length !== 9) {
-      shiftedRaw.shift();
-    }
-    return computeInstrinsicsLegacyTx(v, shiftedRaw, chainId);
+    return computeInstrinsicsLegacyTx(v, <RawLegacyTx>raw, chainId);
   }
 }

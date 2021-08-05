@@ -6,7 +6,7 @@ import {
 import { Data, Quantity, utils } from "@ganache/utils";
 import { RpcTransaction, TypedRpcTransaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
-import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
+import { GanacheRawExtraTx, TypedRawPayload, TypedRawTransaction } from "./raw";
 import type { RunTxResult } from "../../utils/node_modules/@ethereumjs/vm/dist/runTx"; //TODO
 import { encodeRange, digest, EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
@@ -65,7 +65,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   private finalizer: (eventData: TransactionFinalization) => void;
   private finalized: Promise<TransactionFinalization>;
 
-  constructor(data: TypedRawTransaction | TypedRpcTransaction, common: Common) {
+  constructor(data: TypedRawPayload | TypedRpcTransaction, common: Common) {
     super(common);
     let finalizer: (value: TransactionFinalization) => void;
     this.finalized = new Promise<TransactionFinalization>(resolve => {
@@ -104,7 +104,11 @@ export abstract class RuntimeTransaction extends BaseTransaction {
         this.s = Quantity.from(data.s, true);
 
         // compute the `hash` and the `from` address
-        const raw: TypedRawTransaction = this.toEthRawTransaction();
+        const raw: TypedRawTransaction = this.toEthRawTransaction(
+          this.v.toBuffer(),
+          this.r.toBuffer(),
+          this.s.toBuffer()
+        );
         const {
           from,
           serialized,
@@ -232,9 +236,9 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     this.finalizer({ status, error });
   }
   protected abstract toEthRawTransaction(
-    v?: Buffer,
-    r?: Buffer,
-    s?: Buffer
+    v: Buffer,
+    r: Buffer,
+    s: Buffer
   ): TypedRawTransaction;
 
   protected abstract computeIntrinsics(

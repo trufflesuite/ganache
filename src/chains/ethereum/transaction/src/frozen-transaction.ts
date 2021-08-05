@@ -22,6 +22,7 @@ const { RPCQUANTITY_EMPTY, BUFFER_EMPTY, BUFFER_32_ZERO } = utils;
 export interface FrozenTransactionJSON {
   type?: Quantity;
   hash: Data;
+  chainId?: Quantity;
   nonce: Quantity;
   blockHash: Data;
   blockNumber: Quantity;
@@ -52,6 +53,7 @@ export class FrozenTransaction extends BaseTransaction {
   public r: Quantity;
   public s: Quantity;
   public type: Quantity;
+  public chainId: Quantity;
   public accessList: AccessListBuffer;
   public accessListJSON: AccessList;
 
@@ -88,33 +90,16 @@ export class FrozenTransaction extends BaseTransaction {
 
   public setRaw(raw: TypedRawTransaction) {
     const txType = TransactionFactory.typeOfRaw(raw);
-    let [nonce, gasPrice, gasLimit, to, value, data, v, r, s]: Buffer[] = [];
+    let [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s]: Buffer[] = []; // prettier-ignore
+
     if (txType === LegacyTransaction) {
-      if (TransactionFactory.txIncludesType(raw)) {
-        // whether they explicitly say so or not, this is a tx type 0,
-        // but we'll return it how they sent it, so only set this value
-        // if the user included it with their request
-        this.type = Quantity.from("0x0");
-        raw.shift(); // then shift over the array to lose the type
-      }
-      [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <RawLegacyTx>raw;
+      [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <RawLegacyTx>raw; //prettier-ignore
     } else if (txType === AccessListTransaction) {
-      let type: Buffer, chainId: Buffer, accessList: AccessListBuffer;
-      [
-        type,
-        chainId, // TODO: currently aren't using chainId. Do we need to?
-        nonce,
-        gasPrice,
-        gasLimit,
-        to,
-        value,
-        data,
-        accessList,
-        v,
-        r,
-        s
-      ] = <RawAccessListTx>raw;
+      let chainId: Buffer, accessList: AccessListBuffer;
+      [type, chainId, nonce, gasPrice, gasLimit, to, value, data, accessList, v, r, s] = <RawAccessListTx>raw; //prettier-ignore
+
       this.type = Quantity.from(type);
+      this.chainId = Quantity.from(chainId);
       const accessListData = AccessLists.getAccessListData(accessList);
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
@@ -160,6 +145,9 @@ export class FrozenTransaction extends BaseTransaction {
     };
     if (this.type) {
       json.type = this.type;
+    }
+    if (this.chainId) {
+      json.chainId = this.chainId;
     }
     if (this.accessList) {
       json.accessList = this.accessListJSON;

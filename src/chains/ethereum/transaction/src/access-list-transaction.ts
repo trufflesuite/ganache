@@ -9,7 +9,11 @@ import { Params } from "./params";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
-import { RawAccessListTx, TypedRawTransaction } from "./raw";
+import {
+  RawAccessListPayload,
+  RawAccessListTx,
+  TypedRawTransaction
+} from "./raw";
 import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
 import { AccessLists } from "./access-lists";
 import { computeInstrinsicsAccessListTx } from "./signing";
@@ -18,31 +22,34 @@ const { keccak, BUFFER_EMPTY, BUFFER_32_ZERO, RPCQUANTITY_EMPTY } = utils;
 
 const MAX_UINT64 = 1n << (64n - 1n);
 
+const CAPABILITIES: any[] = [2718, 2930];
 export class AccessListTransaction extends RuntimeTransaction {
-  public chainId: BN;
+  public chainId: Quantity;
   public accessList: AccessListBuffer;
   public accessListJSON: AccessList;
   public gasPrice: Quantity;
   public type: Quantity = Quantity.from("0x1");
 
   public constructor(
-    data: RawAccessListTx | TypedRpcTransaction,
+    data: RawAccessListPayload | TypedRpcTransaction,
     common: Common
   ) {
     super(data, common);
     if (Array.isArray(data)) {
-      this.nonce = Quantity.from(data[2], true);
-      this.gasPrice = Quantity.from(data[3]);
-      this.gas = Quantity.from(data[4]);
-      this.to = data[5].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[5]);
-      this.value = Quantity.from(data[6]);
-      this.data = Data.from(data[7]);
-      const accessListData = AccessLists.getAccessListData(data[8]);
+      this.chainId = Quantity.from(data[0]);
+      this.nonce = Quantity.from(data[1], true);
+      this.gasPrice = Quantity.from(data[2]);
+      this.gas = Quantity.from(data[3]);
+      this.to = data[4].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[4]);
+      this.value = Quantity.from(data[5]);
+      this.data = Data.from(data[6]);
+      const accessListData = AccessLists.getAccessListData(data[7]);
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
-      this.v = Quantity.from(data[9]);
-      this.r = Quantity.from(data[10]);
-      this.s = Quantity.from(data[11]);
+      this.v = Quantity.from(data[8]);
+      this.r = Quantity.from(data[9]);
+      this.s = Quantity.from(data[10]);
+      this.raw = [this.type.toBuffer(), ...data];
 
       const {
         from,
@@ -50,15 +57,15 @@ export class AccessListTransaction extends RuntimeTransaction {
         hash,
         encodedData,
         encodedSignature
-      } = this.computeIntrinsics(this.v, data, this.common.chainId());
+      } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
 
       this.from = from;
-      this.raw = data;
       this.serialized = serialized;
       this.hash = hash;
       this.encodedData = encodedData;
       this.encodedSignature = encodedSignature;
     } else {
+      this.chainId = Quantity.from(data.chainId);
       this.gasPrice = Quantity.from(data.gasPrice);
       const accessListData = AccessLists.getAccessListData(data.accessList);
       this.accessList = accessListData.accessList;
@@ -86,7 +93,7 @@ export class AccessListTransaction extends RuntimeTransaction {
   };
 
   public static fromTxData(
-    data: RawAccessListTx | TypedRpcTransaction,
+    data: RawAccessListPayload | TypedRpcTransaction,
     common: Common
   ) {
     return new AccessListTransaction(data, common);
@@ -132,8 +139,7 @@ export class AccessListTransaction extends RuntimeTransaction {
         }
       },
       supports: (capability: any) => {
-        const capabilities: any[] = [2718, 2930];
-        return capabilities.includes(capability);
+        return CAPABILITIES.includes(capability);
       }
     };
   }
@@ -190,14 +196,10 @@ export class AccessListTransaction extends RuntimeTransaction {
     this.encodedSignature = encodedSignature;
   }
 
-  public toEthRawTransaction(
-    v?: Buffer,
-    r?: Buffer,
-    s?: Buffer
-  ): RawAccessListTx {
+  public toEthRawTransaction(v: Buffer, r: Buffer, s: Buffer): RawAccessListTx {
     return [
       this.type.toBuffer(),
-      Quantity.from(this.common.chainId()).toBuffer(),
+      this.chainId.toBuffer(),
       this.nonce.toBuffer(),
       this.gasPrice.toBuffer(),
       this.gas.toBuffer(),
@@ -205,9 +207,9 @@ export class AccessListTransaction extends RuntimeTransaction {
       this.value.toBuffer(),
       this.data.toBuffer(),
       this.accessList,
-      v ? v : this.v.toBuffer(),
-      r ? r : this.r.toBuffer(),
-      s ? s : this.s.toBuffer()
+      v,
+      r,
+      s
     ];
   }
 
