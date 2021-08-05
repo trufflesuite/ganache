@@ -1,4 +1,4 @@
-FROM node:14.15.5 AS builder
+FROM node:14.17.4 AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN npm run --prefix=src/packages/ganache build
 # prune development dependencies
 RUN npm prune --production
 
-FROM node:14.15.5-slim
+FROM node:14.17.4-slim
 
 WORKDIR /app
 
