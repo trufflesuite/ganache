@@ -46,6 +46,7 @@ export interface TransactionReceiptJSON {
   logsBloom: Data;
   status: Quantity;
   type?: Quantity;
+  chainId?: Quantity;
   accessList?: AccessList;
 }
 
@@ -110,7 +111,7 @@ export class TransactionReceipt {
     if (this.encoded == null) {
       this.encoded = encodeRange(this.raw, 0, 4);
     }
-    let serialized: Buffer;
+
     if (all) {
       // the database format includes gasUsed and the contractAddress:
       const extras: GanacheExtrasRawReceipt = [
@@ -118,17 +119,17 @@ export class TransactionReceipt {
         this.contractAddress
       ];
       const epilogue = encodeRange(extras, 0, 2);
-      serialized = digest(
+      return digest(
         [this.encoded.output, epilogue.output],
         this.encoded.length + epilogue.length
       );
     } else {
       // receipt trie format:
-      serialized = digest([this.encoded.output], this.encoded.length);
+      const serialized = digest([this.encoded.output], this.encoded.length);
+      return this.txType
+        ? Buffer.concat([this.txType.toBuffer(), serialized])
+        : serialized;
     }
-    return this.txType
-      ? Buffer.concat([this.txType.toBuffer(), serialized])
-      : serialized;
   }
 
   public toJSON(
@@ -164,6 +165,9 @@ export class TransactionReceipt {
     };
     if (transaction.type) {
       json.type = transaction.type;
+    }
+    if (transaction.chainId) {
+      json.chainId = transaction.chainId;
     }
     if (transaction.accessListJSON) {
       json.accessList = transaction.accessListJSON;
