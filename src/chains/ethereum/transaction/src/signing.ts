@@ -162,16 +162,13 @@ export const computeInstrinsicsLegacyTx = (
   raw: RawLegacyTx,
   chainId: number
 ) => {
-  const vStart: 6 | 7 = <6 | 7>(raw.length - 3); // index of v depends on the tx type
-  const encodedData = encodeRange(raw, 0, vStart);
-  const encodedSignature = encodeRange(raw, vStart, 3);
+  raw.shift();
+  const encodedData = encodeRange(raw, 0, 6);
+  const encodedSignature = encodeRange(raw, 6, 3);
   const serialized = digest(
     [encodedData.output, encodedSignature.output],
     encodedData.length + encodedSignature.length
   );
-  if (raw.length !== 9) {
-    raw.shift(); // we no longer need the type for further computations, so strip it
-  }
   return {
     from: computeFromAddress(
       encodedData,
