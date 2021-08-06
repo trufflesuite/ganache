@@ -13,7 +13,7 @@ RUN npm ci --unsafe-perm
 RUN npm run build
 
 # prune development dependencies
-RUN npm prune --production
+RUN npx lerna exec --scope ganache -- npm prune --production
 
 # we use node "slim" instead of "alpine" until we create a uwebsockets build for alpine.
 FROM node:14.17.4-slim@sha256:766e2dcf4461582f7f750656807edbc28019753cecae92b1f2b25d13d3401ef3
