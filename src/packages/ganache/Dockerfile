@@ -32,4 +32,4 @@ ENV NODE_ENV production
 EXPOSE 8545
 
 # set the entrypoint
-ENTRYPOINT ["node", "/app/dist/cli/ganache.min.js"]
+ENTRYPOINT ["node", "/app/dist/node/cli.js"]
