@@ -17,9 +17,13 @@ export async function runTransactions(
   block: RuntimeBlock
 ) {
   for (let i = 0, l = transactions.length; i < l; i++) {
-    await vm.runTx({
-      tx: transactions[i] as any,
-      block: block as any
-    });
+    await vm
+      .runTx({
+        tx: transactions[i] as any,
+        block: block as any
+      })
+      // we ignore transactions that error because we just want to _run_ these,
+      // transactions just to update the blockchain's state
+      .catch(() => {});
   }
 }
