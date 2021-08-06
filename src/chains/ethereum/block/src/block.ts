@@ -1,8 +1,11 @@
 import { Data, Quantity } from "@ganache/utils";
 import {
+  BlockRawTransaction,
   BlockTransaction,
   GanacheRawBlockTransactionMetaData,
-  TypedRawTransaction
+  LegacyTransaction,
+  RawLegacyPayload,
+  TransactionFactory
 } from "@ganache/ethereum-transaction";
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
@@ -20,7 +23,7 @@ export class Block {
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
   protected _common: Common;
-  protected _rawTransactions: TypedRawTransaction[];
+  protected _rawTransactions: BlockRawTransaction[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
   public header: BlockHeader;
@@ -109,20 +112,15 @@ export class Block {
       Data.from(json.nonce).toBuffer()
     ];
     const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
-    const txs: TypedRawTransaction[] = [];
+    const txs: BlockRawTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     json.transactions.forEach(tx => {
-      txs.push([
-        Quantity.from(tx.nonce).toBuffer(),
-        Quantity.from(tx.gasPrice).toBuffer(),
-        Quantity.from(tx.gas).toBuffer(),
-        tx.to == null ? BUFFER_EMPTY : Address.from(tx.to).toBuffer(),
-        Quantity.from(tx.value).toBuffer(),
-        Data.from(tx.input).toBuffer(),
-        Quantity.from(tx.v).toBuffer(),
-        Quantity.from(tx.r).toBuffer(),
-        Quantity.from(tx.s).toBuffer()
-      ]);
+      const txType = TransactionFactory.typeOfRPC(tx);
+      if (txType === LegacyTransaction) {
+        txs.push(<RawLegacyPayload>tx.raw.slice(1));
+      } else {
+        txs.push(<BlockRawTransaction>tx.raw);
+      }
       extraTxs.push([
         Quantity.from(tx.from).toBuffer(),
         Quantity.from(tx.hash).toBuffer()
@@ -144,7 +142,7 @@ export class Block {
 
   static fromParts(
     rawHeader: EthereumRawBlockHeader,
-    txs: TypedRawTransaction[],
+    txs: BlockRawTransaction[],
     totalDifficulty: Buffer,
     extraTxs: GanacheRawBlockTransactionMetaData[],
     size: number,
