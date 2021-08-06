@@ -173,7 +173,7 @@ describe("api", () => {
       // in the final trace is found through execution. Again,
       // this test is meant as a change detector, not necessarily a
       // failure detector.
-      const expectedObjectsInFinalTrace = 30899;
+      const expectedObjectsInFinalTrace = 30900;
       const timesToRunLoop = 100;
       const from = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
       const privateKey = Data.from(
