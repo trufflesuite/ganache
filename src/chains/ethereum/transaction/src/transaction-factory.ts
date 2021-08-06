@@ -8,9 +8,7 @@ import { AccessListTransaction } from "./access-list-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
   RawAccessListPayload,
-  RawAccessListTx,
   RawLegacyPayload,
-  RawLegacyTx,
   TypedRawTransaction
 } from "./raw";
 import { TypedTransaction } from "./transaction-types";
@@ -101,8 +99,8 @@ export class TransactionFactory {
     }
   }
 
-  public static typeOfRaw(raw: TypedRawTransaction) {
-    const type = raw[0][0];
+  public static typeOfRaw(raw: TypedRawTransaction | RawLegacyPayload) {
+    const type = raw[0][0]; // TODO this can be unsafe to pass to typeOf. What if the first value is nonce of 1? will look like a different tx
     return this.typeOf(type);
   }
 
