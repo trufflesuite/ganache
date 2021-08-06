@@ -58,8 +58,9 @@ export type MinerConfig = {
      */
     difficulty: {
       type: Quantity;
-      rawType: number;
+      rawType: string | number | bigint;
       hasDefault: true;
+      cliType: string;
     };
 
     /**
@@ -221,7 +222,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
     normalize: Quantity.from,
     cliDescription: "Sets the block difficulty.",
     default: () => RPCQUANTITY_ONE,
-    cliType: "number"
+    cliType: "string",
+    cliCoerce: toBigIntOrString
   },
   callGasLimit: {
     normalize: Quantity.from,
