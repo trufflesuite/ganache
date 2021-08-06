@@ -7,40 +7,42 @@ export default function (provider: Provider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
 
+  const addresses = Object.keys(accounts);
   console.log("");
   console.log("Available Accounts");
   console.log("==================");
+  if (addresses.length > 0) {
+    addresses.forEach(function (address, index) {
+      const balance = accounts[address].balance;
+      const strBalance = balance / WEI;
+      const about = balance % WEI === 0n ? "" : "~";
+      let line = `(${index}) ${toChecksumAddress(
+        address
+      )} (${about}${strBalance} ETH)`;
 
-  const addresses = Object.keys(accounts);
+      if (!accounts[address].unlocked) {
+        line += " 🔒";
+      }
 
-  addresses.forEach(function (address, index) {
-    const balance = accounts[address].balance;
-    const strBalance = balance / WEI;
-    const about = balance % WEI === 0n ? "" : "~";
-    let line = `(${index}) ${toChecksumAddress(
-      address
-    )} (${about}${strBalance} ETH)`;
+      console.log(line);
+    });
 
-    if (!accounts[address].unlocked) {
-      line += " 🔒";
-    }
-
-    console.log(line);
-  });
-
-  console.log("");
-  console.log("Private Keys");
-  console.log("==================");
-
-  addresses.forEach(function (address, index) {
-    console.log(`(${index}) ${accounts[address].secretKey}`);
-  });
-
-  if (liveOptions.wallet.accountKeysPath != null) {
     console.log("");
-    console.log(
-      `Accounts and keys saved to ${liveOptions.wallet.accountKeysPath}`
-    );
+    console.log("Private Keys");
+    console.log("==================");
+
+    addresses.forEach(function (address, index) {
+      console.log(`(${index}) ${accounts[address].secretKey}`);
+    });
+
+    if (liveOptions.wallet.accountKeysPath != null) {
+      console.log("");
+      console.log(
+        `Accounts and keys saved to ${liveOptions.wallet.accountKeysPath}`
+      );
+    }
+  } else {
+    console.log("(no accounts unlocked)");
   }
 
   if (liveOptions.wallet.accounts == null) {

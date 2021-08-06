@@ -251,13 +251,13 @@ export default class Wallet {
         }
       }
     } else {
-      const numerOfAccounts = options.totalAccounts;
-      if (numerOfAccounts) {
-        accounts = Array(numerOfAccounts);
+      const numberOfAccounts = options.totalAccounts;
+      if (numberOfAccounts != null) {
+        accounts = Array(numberOfAccounts);
         const hdPath = options.hdPath;
         const hdKey = this.#hdKey;
 
-        for (let index = 0; index < numerOfAccounts; index++) {
+        for (let index = 0; index < numberOfAccounts; index++) {
           const acct = hdKey.derive(hdPath + index);
           const address = uncompressedPublicKeyToAddress(acct.publicKey);
           const privateKey = Data.from(acct.privateKey);
@@ -267,10 +267,6 @@ export default class Wallet {
             address
           );
         }
-      } else {
-        throw new Error(
-          "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
-        );
       }
     }
     return accounts;

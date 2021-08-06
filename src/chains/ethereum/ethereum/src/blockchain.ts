@@ -306,6 +306,10 @@ export default class Blockchain extends Emittery.Typed<
 
       // if we don't already have a latest block, create a genesis block!
       if (!latest) {
+        if (initialAccounts.length > 0) {
+          await this.#commitAccounts(initialAccounts);
+        }
+
         this.#blockBeingSavedPromise = this.#initializeGenesisBlock(
           firstBlockTime,
           options.miner.blockGasLimit,
