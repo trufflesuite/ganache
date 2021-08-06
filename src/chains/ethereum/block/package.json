@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1307+edabb55b",
+  "version": "0.1.1-canary.1310+9213ec5e",
   "description": "",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/block#readme",
@@ -58,13 +58,13 @@
   },
   "dependencies": {
     "@ethereumjs/common": "2.3.0",
-    "@ganache/ethereum-address": "0.1.1-canary.1307+edabb55b",
-    "@ganache/ethereum-transaction": "0.1.1-canary.1307+edabb55b",
-    "@ganache/ethereum-utils": "0.1.1-canary.1307+edabb55b",
-    "@ganache/rlp": "0.1.1-canary.1307+edabb55b",
-    "@ganache/utils": "0.1.1-canary.1307+edabb55b",
+    "@ganache/ethereum-address": "0.1.1-canary.1310+9213ec5e",
+    "@ganache/ethereum-transaction": "0.1.1-canary.1310+9213ec5e",
+    "@ganache/ethereum-utils": "0.1.1-canary.1310+9213ec5e",
+    "@ganache/rlp": "0.1.1-canary.1310+9213ec5e",
+    "@ganache/utils": "0.1.1-canary.1310+9213ec5e",
     "emittery": "0.7.2",
     "ethereumjs-util": "7.0.9"
   },
-  "gitHead": "edabb55b11e1bbba3564f34434f4b414bbcd41a4"
+  "gitHead": "9213ec5e10fe6708ef0cbb29258878bce4d25d24"
 }
