@@ -10,7 +10,7 @@ RUN npm run clean
 RUN npm ci --unsafe-perm
 
 # build application
-RUN npm run --prefix=src/packages/ganache build
+RUN npm run build
 
 # prune development dependencies
 RUN npm prune --production
