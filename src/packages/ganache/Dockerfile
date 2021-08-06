@@ -24,6 +24,7 @@ WORKDIR /app
 COPY --from=builder /app/src/packages/ganache .
 
 ENV DOCKER true
+ENV NODE_ENV production
 
 EXPOSE 8545
 
