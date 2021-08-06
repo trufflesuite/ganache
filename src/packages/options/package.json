@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.2+bb3106bf",
+  "version": "0.1.1-canary.1307+edabb55b",
   "description": "Ganache's server/provider options TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/options#readme",
@@ -44,9 +44,9 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/utils": "0.1.1-canary.2+bb3106bf",
+    "@ganache/utils": "0.1.1-canary.1307+edabb55b",
     "bip39": "3.0.2",
     "seedrandom": "3.0.5"
   },
-  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
+  "gitHead": "edabb55b11e1bbba3564f34434f4b414bbcd41a4"
 }

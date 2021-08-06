@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.2+bb3106bf",
+  "version": "0.1.1-canary.1307+edabb55b",
   "description": "Ganache's flavors enumeration and TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/flavors#readme",
@@ -45,20 +45,20 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/colors": "0.1.1-canary.2+bb3106bf",
-    "@ganache/ethereum": "0.1.1-canary.2+bb3106bf",
-    "@ganache/ethereum-options": "0.1.1-canary.2+bb3106bf",
-    "@ganache/filecoin-options": "0.1.1-canary.2+bb3106bf",
-    "@ganache/options": "0.1.1-canary.2+bb3106bf",
-    "@ganache/tezos": "0.1.1-canary.2+bb3106bf",
-    "@ganache/utils": "0.1.1-canary.2+bb3106bf",
+    "@ganache/colors": "0.1.1-canary.1307+edabb55b",
+    "@ganache/ethereum": "0.1.1-canary.1307+edabb55b",
+    "@ganache/ethereum-options": "0.1.1-canary.1307+edabb55b",
+    "@ganache/filecoin-options": "0.1.1-canary.1307+edabb55b",
+    "@ganache/options": "0.1.1-canary.1307+edabb55b",
+    "@ganache/tezos": "0.1.1-canary.1307+edabb55b",
+    "@ganache/utils": "0.1.1-canary.1307+edabb55b",
     "chalk": "4.1.0"
   },
   "devDependencies": {
-    "@ganache/filecoin": "0.1.1-canary.2+bb3106bf"
+    "@ganache/filecoin": "0.1.1-canary.1307+edabb55b"
   },
   "peerDependencies": {
     "@ganache/filecoin": "0.1.0"
   },
-  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
+  "gitHead": "edabb55b11e1bbba3564f34434f4b414bbcd41a4"
 }
