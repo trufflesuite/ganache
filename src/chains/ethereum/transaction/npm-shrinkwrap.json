@@ -1,6 +1,6 @@
 {
 	"name": "@ganache/ethereum-transaction",
-	"version": "0.1.1-canary.2+bb3106bf",
+	"version": "0.1.1-canary.1310+9213ec5e",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {

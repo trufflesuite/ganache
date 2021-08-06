@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.2+bb3106bf",
+  "version": "0.1.1-canary.1310+9213ec5e",
   "description": "Truffle's colors, hex encoded",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/colors#readme",
@@ -39,5 +39,5 @@
     "truffle",
     "truffle-colors"
   ],
-  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
+  "gitHead": "9213ec5e10fe6708ef0cbb29258878bce4d25d24"
 }

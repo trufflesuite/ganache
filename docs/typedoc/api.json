@@ -12,7 +12,7 @@
 			"flags": {
 				"isExported": true
 			},
-			"originalName": "/home/micaiah/work/ganache-core/src/chains/ethereum/ethereum/src/api.ts",
+			"originalName": "/home/david/work/ganache-core/src/chains/ethereum/ethereum/src/api.ts",
 			"children": [
 				{
 					"id": 2,
@@ -96,7 +96,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 108,
+											"line": 112,
 											"character": 27
 										}
 									]
@@ -181,7 +181,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 115,
+									"line": 119,
 									"character": 27
 								}
 							]
@@ -199,7 +199,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 114,
+									"line": 118,
 									"character": 22
 								}
 							],
@@ -221,7 +221,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 111,
+									"line": 115,
 									"character": 19
 								}
 							],
@@ -359,7 +359,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 110,
+									"line": 114,
 									"character": 17
 								}
 							],
@@ -382,7 +382,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 113,
+									"line": 117,
 									"character": 19
 								}
 							],
@@ -404,7 +404,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 112,
+									"line": 116,
 									"character": 25
 								}
 							],
@@ -460,7 +460,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 115,
+									"line": 119,
 									"character": 18
 								}
 							],
@@ -526,7 +526,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 189,
+									"line": 217,
 									"character": 16
 								}
 							]
@@ -588,7 +588,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 194,
+									"line": 230,
 									"character": 16
 								}
 							]
@@ -681,7 +681,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 182,
+									"line": 202,
 									"character": 17
 								}
 							]
@@ -774,7 +774,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 157,
+									"line": 169,
 									"character": 20
 								}
 							]
@@ -810,7 +810,7 @@
 									},
 									"comment": {
 										"shortText": "Stores binary data in the local database.",
-										"returns": "`true` if the value was stored, otherwise `false`.",
+										"returns": "true if the value was stored, otherwise false.",
 										"tags": [
 											{
 												"tag": "example",
@@ -883,7 +883,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 170,
+									"line": 186,
 									"character": 17
 								}
 							]
@@ -919,7 +919,7 @@
 									},
 									"comment": {
 										"shortText": "Stores a string in the local database.",
-										"returns": "Returns true if the value was stored, otherwise false.",
+										"returns": "returns true if the value was stored, otherwise false.",
 										"tags": [
 											{
 												"tag": "example",
@@ -992,7 +992,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 145,
+									"line": 153,
 									"character": 20
 								}
 							]
@@ -1016,7 +1016,13 @@
 									},
 									"comment": {
 										"shortText": "Attempts to replay the transaction as it was executed on the network and\nreturn storage data given a starting key and max number of entries to return.",
-										"returns": "returns a storage object with the keys being keccak-256 hashes of the storage keys,\nand the values being the raw, un-hashed key and value for that specific storage slot. Also\nreturns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.\n"
+										"returns": "Returns a storage object with the keys being keccak-256 hashes of the storage keys,\nand the values being the raw, unhashed key and value for that specific storage slot. Also\nreturns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst initialTxHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst {contractAddress} = await provider.request({ method: \"eth_getTransactionReceipt\", params: [initialTxHash] });\n\n// set value to 19\nconst data = \"0x552410770000000000000000000000000000000000000000000000000000000000000019\";\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to: contractAddress, data }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst { blockHash, transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst storage = await provider.request({ method: \"debug_storageRangeAt\", params: [blockHash, transactionIndex, contractAddress, \"0x01\", 1] });\nconsole.log(storage);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
@@ -1076,7 +1082,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "hash of the start key for grabbing storage entries"
+												"text": "Hash of the start key for grabbing storage entries."
 											},
 											"type": {
 												"type": "reference",
@@ -1115,7 +1121,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1711,
+									"line": 2537,
 									"character": 28
 								}
 							]
@@ -1140,7 +1146,7 @@
 									"comment": {
 										"shortText": "Attempt to run the transaction in the exact same manner as it was executed\non the network. It will replay any transaction that may have been executed\nprior to this one before it will finally attempt to execute the transaction\nthat corresponds to the given hash.",
 										"text": "In addition to the hash of the transaction you may give it a secondary\noptional argument, which specifies the options for this specific call.\nThe possible options are:\n\n* `disableStorage`: \\{boolean\\} Setting this to `true` will disable storage capture (default = `false`).\n* `disableMemory`: \\{boolean\\} Setting this to `true` will disable memory capture (default = `false`).\n* `disableStack`: \\{boolean\\} Setting this to `true` will disable stack capture (default = `false`).\n",
-										"returns": "returns comment",
+										"returns": "Returns the `gas`, `structLogs`, and `returnValue` for the traced transaction.\n\nThe `structLogs` are an array of logs, which contains the following fields:\n* `depth`: The execution depth.\n* `error`: Information about an error, if one occurred.\n* `gas`: The number of gas remaining.\n* `gasCost`: The cost of gas in wei.\n* `memory`: An array containing the contract's memory data.\n* `op`: The current opcode.\n* `pc`: The current program counter.\n* `stack`: The EVM execution stack.\n* `storage`: An object containing the contract's storage data.\n",
 										"tags": [
 											{
 												"tag": "example",
@@ -1158,7 +1164,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "transactionHash"
+												"text": "Hash of the transaction to trace."
 											},
 											"type": {
 												"type": "reference",
@@ -1175,7 +1181,7 @@
 												"isOptional": true
 											},
 											"comment": {
-												"text": "options"
+												"text": "See options in source."
 											},
 											"type": {
 												"type": "reference",
@@ -1187,311 +1193,8 @@
 										"type": "reference",
 										"typeArguments": [
 											{
-												"type": "reflection",
-												"declaration": {
-													"id": 312,
-													"name": "__type",
-													"kind": 65536,
-													"kindString": "Type literal",
-													"flags": {
-														"isExported": true
-													},
-													"children": [
-														{
-															"id": 313,
-															"name": "gas",
-															"kind": 32,
-															"kindString": "Variable",
-															"flags": {
-																"isExported": true
-															},
-															"sources": [
-																{
-																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																	"line": 1311,
-																	"character": 16
-																}
-															],
-															"type": {
-																"type": "intrinsic",
-																"name": "number"
-															}
-														},
-														{
-															"id": 325,
-															"name": "returnValue",
-															"kind": 32,
-															"kindString": "Variable",
-															"flags": {
-																"isExported": true
-															},
-															"sources": [
-																{
-																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																	"line": 1311,
-																	"character": 41
-																}
-															],
-															"type": {
-																"type": "intrinsic",
-																"name": "string"
-															}
-														},
-														{
-															"id": 314,
-															"name": "structLogs",
-															"kind": 32,
-															"kindString": "Variable",
-															"flags": {
-																"isExported": true
-															},
-															"sources": [
-																{
-																	"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																	"line": 1311,
-																	"character": 28
-																}
-															],
-															"type": {
-																"type": "array",
-																"elementType": {
-																	"type": "reflection",
-																	"declaration": {
-																		"id": 315,
-																		"name": "__type",
-																		"kind": 65536,
-																		"kindString": "Type literal",
-																		"flags": {
-																			"isExported": true
-																		},
-																		"children": [
-																			{
-																				"id": 316,
-																				"name": "depth",
-																				"kind": 32,
-																				"kindString": "Variable",
-																				"flags": {
-																					"isExported": true
-																				},
-																				"sources": [
-																					{
-																						"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																						"line": 88,
-																						"character": 7
-																					}
-																				],
-																				"type": {
-																					"type": "intrinsic",
-																					"name": "number"
-																				}
-																			},
-																			{
-																				"id": 317,
-																				"name": "error",
-																				"kind": 32,
-																				"kindString": "Variable",
-																				"flags": {
-																					"isExported": true
-																				},
-																				"sources": [
-																					{
-																						"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																						"line": 89,
-																						"character": 7
-																					}
-																				],
-																				"type": {
-																					"type": "intrinsic",
-																					"name": "string"
-																				}
-																			},
-																			{
-																				"id": 318,
-																				"name": "gas",
-																				"kind": 32,
-																				"kindString": "Variable",
-																				"flags": {
-																					"isExported": true
-																				},
-																				"sources": [
-																					{
-																						"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																						"line": 90,
-																						"character": 5
-																					}
-																				],
-																				"type": {
-																					"type": "intrinsic",
-																					"name": "number"
-																				}
-																			},
-																			{
-																				"id": 319,
-																				"name": "gasCost",
-																				"kind": 32,
-																				"kindString": "Variable",
-																				"flags": {
-																					"isExported": true
-																				},
-																				"sources": [
-																					{
-																						"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																						"line": 91,
-																						"character": 9
-																					}
-																				],
-																				"type": {
-																					"type": "intrinsic",
-																					"name": "number"
-																				}
-																			},
-																			{
-																				"id": 320,
-																				"name": "memory",
-																				"kind": 32,
-																				"kindString": "Variable",
-																				"flags": {
-																					"isExported": true
-																				},
-																				"sources": [
-																					{
-																						"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																						"line": 92,
-																						"character": 8
-																					}
-																				],
-																				"type": {
-																					"type": "reference",
-																					"typeArguments": [
-																						{
-																							"type": "reference",
-																							"name": "ITraceData"
-																						}
-																					],
-																					"name": "Array"
-																				}
-																			},
-																			{
-																				"id": 321,
-																				"name": "op",
-																				"kind": 32,
-																				"kindString": "Variable",
-																				"flags": {
-																					"isExported": true
-																				},
-																				"sources": [
-																					{
-																						"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																						"line": 93,
-																						"character": 4
-																					}
-																				],
-																				"type": {
-																					"type": "intrinsic",
-																					"name": "string"
-																				}
-																			},
-																			{
-																				"id": 322,
-																				"name": "pc",
-																				"kind": 32,
-																				"kindString": "Variable",
-																				"flags": {
-																					"isExported": true
-																				},
-																				"sources": [
-																					{
-																						"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																						"line": 94,
-																						"character": 4
-																					}
-																				],
-																				"type": {
-																					"type": "intrinsic",
-																					"name": "number"
-																				}
-																			},
-																			{
-																				"id": 323,
-																				"name": "stack",
-																				"kind": 32,
-																				"kindString": "Variable",
-																				"flags": {
-																					"isExported": true
-																				},
-																				"sources": [
-																					{
-																						"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																						"line": 95,
-																						"character": 7
-																					}
-																				],
-																				"type": {
-																					"type": "reference",
-																					"typeArguments": [
-																						{
-																							"type": "reference",
-																							"name": "ITraceData"
-																						}
-																					],
-																					"name": "Array"
-																				}
-																			},
-																			{
-																				"id": 324,
-																				"name": "storage",
-																				"kind": 32,
-																				"kindString": "Variable",
-																				"flags": {
-																					"isExported": true
-																				},
-																				"sources": [
-																					{
-																						"fileName": "chains/ethereum/ethereum/src/blockchain.ts",
-																						"line": 96,
-																						"character": 9
-																					}
-																				],
-																				"type": {
-																					"type": "reference",
-																					"name": "TraceStorageMap"
-																				}
-																			}
-																		],
-																		"groups": [
-																			{
-																				"title": "Variables",
-																				"kind": 32,
-																				"children": [
-																					316,
-																					317,
-																					318,
-																					319,
-																					320,
-																					321,
-																					322,
-																					323,
-																					324
-																				]
-																			}
-																		]
-																	}
-																}
-															}
-														}
-													],
-													"groups": [
-														{
-															"title": "Variables",
-															"kind": 32,
-															"children": [
-																313,
-																325,
-																314
-															]
-														}
-													]
-												}
+												"type": "reference",
+												"name": "TraceTransactionResult"
 											}
 										],
 										"name": "Promise"
@@ -1501,7 +1204,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1691,
+									"line": 2487,
 									"character": 30
 								}
 							]
@@ -1563,7 +1266,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 942,
+									"line": 1307,
 									"character": 20
 								}
 							]
@@ -1622,7 +1325,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 951,
+									"line": 1321,
 									"character": 23
 								}
 							]
@@ -1678,7 +1381,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "transaction"
+												"text": "The transaction call object as seen in source."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -1694,7 +1397,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "blockNumber\n"
+												"text": "Integer block number, or the string \"latest\", \"earliest\"\n or \"pending\".\n"
 											},
 											"type": {
 												"type": "union",
@@ -1727,7 +1430,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1589,
+									"line": 2376,
 									"character": 16
 								}
 							]
@@ -1790,7 +1493,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 968,
+									"line": 1338,
 									"character": 19
 								}
 							]
@@ -1849,7 +1552,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 721,
+									"line": 820,
 									"character": 20
 								}
 							]
@@ -2013,7 +1716,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 648,
+									"line": 729,
 									"character": 23
 								}
 							]
@@ -2090,10 +1793,6 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
-													},
-													{
 														"type": "reference",
 														"name": "QUANTITY"
 													},
@@ -2121,7 +1820,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 979,
+									"line": 1358,
 									"character": 22
 								}
 							]
@@ -2216,7 +1915,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 748,
+									"line": 916,
 									"character": 26
 								}
 							]
@@ -2320,7 +2019,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 734,
+									"line": 860,
 									"character": 28
 								}
 							]
@@ -2397,7 +2096,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 776,
+									"line": 972,
 									"character": 42
 								}
 							]
@@ -2480,7 +2179,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 761,
+									"line": 935,
 									"character": 44
 								}
 							]
@@ -2538,8 +2237,8 @@
 												"text": "Address."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -2584,7 +2283,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 998,
+									"line": 1397,
 									"character": 19
 								}
 							]
@@ -2646,7 +2345,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 789,
+									"line": 994,
 									"character": 24
 								}
 							]
@@ -2726,7 +2425,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1508,
+									"line": 2180,
 									"character": 28
 								}
 							]
@@ -3037,7 +2736,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1541,
+									"line": 2250,
 									"character": 25
 								}
 							]
@@ -3349,7 +3048,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1557,
+									"line": 2307,
 									"character": 19
 								}
 							]
@@ -3423,8 +3122,8 @@
 												"text": "Integer of the position in the storage."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										},
 										{
@@ -3469,7 +3168,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1011,
+									"line": 1432,
 									"character": 24
 								}
 							]
@@ -3562,7 +3261,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 799,
+									"line": 1032,
 									"character": 45
 								}
 							]
@@ -3664,7 +3363,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 818,
+									"line": 1075,
 									"character": 47
 								}
 							]
@@ -4053,7 +3752,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1057,
+									"line": 1505,
 									"character": 32
 								}
 							]
@@ -4108,7 +3807,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "address"
+												"text": "`DATA`, 20 Bytes - The address to get number of transactions sent from"
 											},
 											"type": {
 												"type": "reference",
@@ -4130,8 +3829,8 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -4157,7 +3856,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1570,
+									"line": 2330,
 									"character": 31
 								}
 							]
@@ -4746,7 +4445,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1084,
+									"line": 1542,
 									"character": 33
 								}
 							]
@@ -4803,8 +4502,8 @@
 												"text": "Hash of a block."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -4819,8 +4518,8 @@
 												"text": "The uncle's index position."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -4839,7 +4538,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 851,
+									"line": 1150,
 									"character": 39
 								}
 							]
@@ -4899,8 +4598,8 @@
 												"type": "union",
 												"types": [
 													{
-														"type": "intrinsic",
-														"name": "string"
+														"type": "reference",
+														"name": "QUANTITY"
 													},
 													{
 														"type": "reference",
@@ -4921,8 +4620,8 @@
 												"text": "The uncle's index position."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -4941,7 +4640,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 863,
+									"line": 1189,
 									"character": 41
 								}
 							]
@@ -5018,7 +4717,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 831,
+									"line": 1095,
 									"character": 36
 								}
 							]
@@ -5065,11 +4764,14 @@
 									"parameters": [
 										{
 											"id": 142,
-											"name": "number",
+											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
+											},
+											"comment": {
+												"text": "A block number, or the string \"earliest\", \"latest\" or \"pending\"."
 											},
 											"type": {
 												"type": "union",
@@ -5101,7 +4803,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 840,
+									"line": 1110,
 									"character": 38
 								}
 							]
@@ -5154,9 +4856,12 @@
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "A filter id."
+											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "QUANTITY"
 											}
 										}
 									],
@@ -5196,7 +4901,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 880,
+									"line": 1210,
 									"character": 19
 								}
 							]
@@ -5255,7 +4960,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 924,
+									"line": 1279,
 									"character": 20
 								}
 							]
@@ -5314,7 +5019,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 914,
+									"line": 1264,
 									"character": 18
 								}
 							]
@@ -5373,7 +5078,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1412,
+									"line": 2016,
 									"character": 26
 								}
 							]
@@ -5453,7 +5158,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1477,
+									"line": 2102,
 									"character": 21
 								}
 							]
@@ -5512,7 +5217,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1434,
+									"line": 2043,
 									"character": 39
 								}
 							]
@@ -5571,7 +5276,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 699,
+									"line": 785,
 									"character": 27
 								}
 							]
@@ -5648,7 +5353,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1176,
+									"line": 1702,
 									"character": 30
 								}
 							]
@@ -5726,7 +5431,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1129,
+									"line": 1604,
 									"character": 27
 								}
 							]
@@ -5820,7 +5525,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1199,
+									"line": 1737,
 									"character": 16
 								}
 							]
@@ -5975,7 +5680,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"id": 402,
+												"id": 389,
 												"name": "TypedData"
 											}
 										}
@@ -5995,7 +5700,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1226,
+									"line": 1807,
 									"character": 25
 								}
 							]
@@ -6065,7 +5770,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "a random hexadecimal(32 bytes) ID identifying the client"
+												"text": "A random hexadecimal(32 bytes) ID identifying the client."
 											},
 											"type": {
 												"type": "reference",
@@ -6088,7 +5793,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 905,
+									"line": 1250,
 									"character": 26
 								}
 							]
@@ -6142,11 +5847,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "{DATA, 8 Bytes} The nonce found (64 bits)"
+												"text": "The nonce found (64 bits)."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -6158,11 +5863,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "{DATA, 32 Bytes} The header's pow-hash (256 bits)"
+												"text": "The header's pow-hash (256 bits)."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										},
 										{
@@ -6174,11 +5879,11 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "{DATA, 32 Bytes} The mix digest (256 bits)"
+												"text": "The mix digest (256 bits)."
 											},
 											"type": {
-												"type": "intrinsic",
-												"name": "string"
+												"type": "reference",
+												"name": "DATA"
 											}
 										}
 									],
@@ -6197,7 +5902,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 893,
+									"line": 1231,
 									"character": 22
 								}
 							]
@@ -6340,17 +6045,17 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1265,
+									"line": 1851,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1278,
+									"line": 1864,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1283,
+									"line": 1869,
 									"character": 15
 								}
 							]
@@ -6385,8 +6090,14 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Returns an object with data about the sync status or false.",
-										"returns": "An object with sync status data or false, when not syncing:\n  startingBlock: \\{bigint\\} - The block at which the import started (will\n   only be reset, after the sync reached his head)\n  currentBlock: \\{bigint\\} - The current block, same as eth_blockNumber\n  highestBlock: \\{bigint\\} - The estimated highest block\n"
+										"shortText": "Returns an object containing data about the sync status or `false` when not syncing.",
+										"returns": "An object with sync status data or `false`, when not syncing.\n\n* `startingBlock`: {bigint} The block at which the import started (will\n    only be reset, after the sync reached his head).\n* `currentBlock`: {bigint} The current block, same as `eth_blockNumber`.\n* `highestBlock`: {bigint} The estimated highest block.\n",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst result = await provider.request({ method: \"eth_syncing\", params: [] });\nconsole.log(result);\n```\n"
+											}
+										]
 									},
 									"type": {
 										"type": "reference",
@@ -6403,7 +6114,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 712,
+									"line": 806,
 									"character": 19
 								}
 							]
@@ -6480,7 +6191,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1528,
+									"line": 2206,
 									"character": 27
 								}
 							]
@@ -6557,7 +6268,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1393,
+									"line": 1992,
 									"character": 23
 								}
 							]
@@ -6614,8 +6325,17 @@
 												"text": "Number of seconds to jump forward in time by. Must be greater than or equal to `0`."
 											},
 											"type": {
-												"type": "reference",
-												"name": "QUANTITY"
+												"type": "union",
+												"types": [
+													{
+														"type": "intrinsic",
+														"name": "number"
+													},
+													{
+														"type": "reference",
+														"name": "QUANTITY"
+													}
+												]
 											}
 										}
 									],
@@ -6634,7 +6354,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 349,
+									"line": 344,
 									"character": 24
 								}
 							]
@@ -6700,7 +6420,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 499,
+									"line": 511,
 									"character": 30
 								}
 							]
@@ -6756,7 +6476,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The timestamp the block should be mined with.\nEXPERIEMENTAL: Optionally, specify an `options` object with `timestamp`\nand/or `blocks` fields. If `blocks` is given, it will mine exactly `blocks`\n number of blocks, regardless of any other blocks mined or reverted during it's\noperation. This behavior is subject to change!\n"
+												"text": "the timestamp the block should be mined with.\nEXPERIMENTAL: Optionally, specify an `options` object with `timestamp`\nand/or `blocks` fields. If `blocks` is given, it will mine exactly `blocks`\n number of blocks, regardless of any other blocks mined or reverted during it's\noperation. This behavior is subject to change!\n"
 											},
 											"type": {
 												"type": "intrinsic",
@@ -6815,7 +6535,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 229,
+																	"line": 260,
 																	"character": 10
 																}
 															],
@@ -6836,7 +6556,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 228,
+																	"line": 259,
 																	"character": 13
 																}
 															],
@@ -6859,7 +6579,7 @@
 													"sources": [
 														{
 															"fileName": "chains/ethereum/ethereum/src/api.ts",
-															"line": 227,
+															"line": 258,
 															"character": 25
 														}
 													]
@@ -6882,17 +6602,17 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 226,
+									"line": 257,
 									"character": 16
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 227,
+									"line": 258,
 									"character": 16
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 232,
+									"line": 263,
 									"character": 16
 								}
 							]
@@ -6969,7 +6689,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 427,
+									"line": 426,
 									"character": 18
 								}
 							]
@@ -7006,91 +6726,13 @@
 									"comment": {
 										"shortText": "Sets the given account's nonce to the specified value. Mines a new block\nbefore returning.",
 										"text": "Warning: this will result in an invalid state tree.\n",
-										"returns": "`true` if it worked\n"
-									},
-									"parameters": [
-										{
-											"id": 64,
-											"name": "address",
-											"kind": 32768,
-											"kindString": "Parameter",
-											"flags": {
-												"isExported": true
-											},
-											"comment": {
-												"text": "address"
-											},
-											"type": {
-												"type": "intrinsic",
-												"name": "string"
-											}
-										},
-										{
-											"id": 65,
-											"name": "nonce",
-											"kind": 32768,
-											"kindString": "Parameter",
-											"flags": {
-												"isExported": true
-											},
-											"comment": {
-												"text": "nonce"
-											},
-											"type": {
-												"type": "intrinsic",
-												"name": "string"
-											}
-										}
-									],
-									"type": {
-										"type": "reference",
-										"typeArguments": [
+										"returns": "`true` if it worked, otherwise `false`.",
+										"tags": [
 											{
 												"tag": "example",
 												"text": "\n```javascript\nconst nonce = \"0x3e8\";\nconst [address] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst result = await provider.send(\"evm_setAccountNonce\", [address, nonce] );\nconsole.log(result);\n```\n"
 											}
-										],
-										"name": "Promise"
-									}
-								}
-							],
-							"sources": [
-								{
-									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 323,
-									"character": 27
-								}
-							]
-						},
-						{
-							"id": 56,
-							"name": "evm_setStorageAt",
-							"kind": 2048,
-							"kindString": "Method",
-							"flags": {
-								"isExported": true
-							},
-							"decorators": [
-								{
-									"name": "assertArgLength",
-									"type": {
-										"type": "reference",
-										"name": "assertArgLength"
-									},
-									"arguments": {
-										"min": "3",
-										"max": "4"
-									}
-								}
-							],
-							"signatures": [
-								{
-									"id": 57,
-									"name": "evm_setStorageAt",
-									"kind": 4096,
-									"kindString": "Call signature",
-									"flags": {
-										"isExported": true
+										]
 									},
 									"parameters": [
 										{
@@ -7141,8 +6783,8 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 264,
-									"character": 24
+									"line": 312,
+									"character": 27
 								}
 							]
 						},
@@ -7203,6 +6845,10 @@
 												"type": "union",
 												"types": [
 													{
+														"type": "intrinsic",
+														"name": "number"
+													},
+													{
 														"type": "reference",
 														"name": "QUANTITY"
 													},
@@ -7229,7 +6875,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 368,
+									"line": 371,
 									"character": 19
 								}
 							]
@@ -7276,7 +6922,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 471,
+									"line": 467,
 									"character": 20
 								}
 							]
@@ -7359,7 +7005,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 484,
+									"line": 490,
 									"character": 32
 								}
 							]
@@ -7394,7 +7040,7 @@
 										"isExported": true
 									},
 									"comment": {
-										"shortText": "Sets the default accepted gas price when mining transactions.\nAny transactions that don't specify a gas price will use this amount.\nTransactions that are below this limit are excluded from the miningp process.",
+										"shortText": "Sets the default accepted gas price when mining transactions.\nAny transactions that don't specify a gas price will use this amount.\nTransactions that are below this limit are excluded from the mining process.",
 										"returns": "`true`.",
 										"tags": [
 											{
@@ -7646,7 +7292,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "(ignored)"
+												"text": "Number of threads to resume the CPU mining process with."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7670,7 +7316,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 519,
+									"line": 540,
 									"character": 19
 								}
 							]
@@ -7729,7 +7375,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 535,
+									"line": 565,
 									"character": 18
 								}
 							]
@@ -7788,7 +7434,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 615,
+									"line": 679,
 									"character": 21
 								}
 							]
@@ -7847,7 +7493,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 624,
+									"line": 692,
 									"character": 21
 								}
 							]
@@ -7906,13 +7552,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 606,
+									"line": 666,
 									"character": 19
 								}
 							]
 						},
 						{
-							"id": 338,
+							"id": 321,
 							"name": "personal_importRawKey",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7933,7 +7579,7 @@
 							],
 							"signatures": [
 								{
-									"id": 339,
+									"id": 322,
 									"name": "personal_importRawKey",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7942,11 +7588,17 @@
 									},
 									"comment": {
 										"shortText": "Imports the given unencrypted private key (hex string) into the key store, encrypting it with the passphrase.",
-										"returns": "Returns the address of the new account.\n"
+										"returns": "Returns the address of the new account.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst rawKey = \"0x0123456789012345678901234567890123456789012345678901234567890123\";\nconst passphrase = \"passphrase\";\n\nconst address = await provider.send(\"personal_importRawKey\",[rawKey, passphrase] );\nconsole.log(address);\n```\n"
+											}
+										]
 									},
 									"parameters": [
 										{
-											"id": 340,
+											"id": 323,
 											"name": "rawKey",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7954,7 +7606,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "rawKey"
+												"text": "The raw, unencrypted private key to import."
 											},
 											"type": {
 												"type": "reference",
@@ -7962,7 +7614,7 @@
 											}
 										},
 										{
-											"id": 341,
+											"id": 324,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7970,7 +7622,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "passphrase"
+												"text": "The passphrase to encrypt with."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7993,13 +7645,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1774,
+									"line": 2619,
 									"character": 29
 								}
 							]
 						},
 						{
-							"id": 333,
+							"id": 316,
 							"name": "personal_listAccounts",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8020,7 +7672,7 @@
 							],
 							"signatures": [
 								{
-									"id": 334,
+									"id": 317,
 									"name": "personal_listAccounts",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8055,7 +7707,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2562,
+									"line": 2566,
 									"character": 29
 								}
 							]
@@ -8132,14 +7784,14 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1736,
-									"character": 29
+									"line": 2650,
+									"character": 28
 								}
 							]
 						},
 						{
-							"id": 342,
-							"name": "personal_lockAccount",
+							"id": 318,
+							"name": "personal_newAccount",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -8159,8 +7811,8 @@
 							],
 							"signatures": [
 								{
-									"id": 343,
-									"name": "personal_lockAccount",
+									"id": 319,
+									"name": "personal_newAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -8178,8 +7830,8 @@
 									},
 									"parameters": [
 										{
-											"id": 344,
-											"name": "address",
+											"id": 320,
+											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
@@ -8209,14 +7861,14 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1798,
-									"character": 28
+									"line": 2584,
+									"character": 27
 								}
 							]
 						},
 						{
-							"id": 335,
-							"name": "personal_newAccount",
+							"id": 333,
+							"name": "personal_sendTransaction",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -8236,8 +7888,8 @@
 							],
 							"signatures": [
 								{
-									"id": 336,
-									"name": "personal_newAccount",
+									"id": 334,
+									"name": "personal_sendTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -8256,7 +7908,20 @@
 									},
 									"parameters": [
 										{
-											"id": 337,
+											"id": 335,
+											"name": "transaction",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {
+												"isExported": true
+											},
+											"type": {
+												"type": "intrinsic",
+												"name": "any"
+											}
+										},
+										{
+											"id": 336,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8264,7 +7929,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "passphrase"
+												"text": "The passphrase to decrpyt the private key belonging to `tx.from`."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -8287,14 +7952,14 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2719,
+									"line": 2723,
 									"character": 32
 								}
 							]
 						},
 						{
-							"id": 350,
-							"name": "personal_sendTransaction",
+							"id": 337,
+							"name": "personal_signTransaction",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -8314,8 +7979,8 @@
 							],
 							"signatures": [
 								{
-									"id": 351,
-									"name": "personal_sendTransaction",
+									"id": 338,
+									"name": "personal_signTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -8323,7 +7988,7 @@
 									},
 									"comment": {
 										"shortText": "Validates the given passphrase and signs a transaction that can be\nsubmitted to the network at a later time using `eth_sendRawTransaction`.",
-										"text": "The transaction is the same argument as for `eth_signTransaction` and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belogging to `tx.from` the transaction is verified and signed.\nThe account is not unlocked globally in the node and cannot be used in other RPC calls.\n\nTransaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
+										"text": "The transaction is the same argument as for `eth_signTransaction` and\ncontains the from address. If the passphrase can be used to decrypt the\nprivate key belonging to `tx.from` the transaction is verified and signed.\nThe account is not unlocked globally in the node and cannot be used in other RPC calls.\n\nTransaction call object:\n* `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.\n* `to`: `DATA`, 20 bytes - The address the transaction is sent to.\n* `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.\n* `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.\n* `value`: `QUANTITY` (optional) - Integer of the value in wei.\n* `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.\n",
 										"returns": "The raw, signed transaction.",
 										"tags": [
 											{
@@ -8334,7 +7999,7 @@
 									},
 									"parameters": [
 										{
-											"id": 352,
+											"id": 339,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8350,15 +8015,12 @@
 											}
 										},
 										{
-											"id": 353,
+											"id": 340,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
-											},
-											"comment": {
-												"text": "passphrase\n"
 											},
 											"type": {
 												"type": "intrinsic",
@@ -8381,13 +8043,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2772,
+									"line": 2776,
 									"character": 32
 								}
 							]
 						},
 						{
-							"id": 345,
+							"id": 328,
 							"name": "personal_unlockAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8409,7 +8071,7 @@
 							],
 							"signatures": [
 								{
-									"id": 346,
+									"id": 329,
 									"name": "personal_unlockAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8429,7 +8091,7 @@
 									},
 									"parameters": [
 										{
-											"id": 347,
+											"id": 330,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8437,7 +8099,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The address of the account to unlock."
+												"text": "20 Bytes - The address of the account to unlock."
 											},
 											"type": {
 												"type": "reference",
@@ -8445,7 +8107,7 @@
 											}
 										},
 										{
-											"id": 348,
+											"id": 331,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8461,7 +8123,7 @@
 											}
 										},
 										{
-											"id": 349,
+											"id": 332,
 											"name": "duration",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8469,7 +8131,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "(Default: 300) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
+												"text": "(default: 300) Duration in seconds how long the account\nshould remain unlocked for. Set to 0 to disable automatic locking."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -8493,13 +8155,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1818,
+									"line": 2679,
 									"character": 30
 								}
 							]
 						},
 						{
-							"id": 354,
+							"id": 341,
 							"name": "rpc_modules",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8520,7 +8182,7 @@
 							],
 							"signatures": [
 								{
-									"id": 355,
+									"id": 342,
 									"name": "rpc_modules",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8543,7 +8205,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-													"id": 356,
+													"id": 343,
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -8552,29 +8214,8 @@
 													},
 													"children": [
 														{
-															"id": 357,
+															"id": 344,
 															"name": "eth",
-															"kind": 32,
-															"kindString": "Variable",
-															"flags": {
-																"isExported": true
-															},
-															"sources": [
-																{
-																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 58,
-																	"character": 5
-																}
-															],
-															"type": {
-																"type": "stringLiteral",
-																"value": "1.0"
-															},
-															"defaultValue": "\"1.0\""
-														},
-														{
-															"id": 361,
-															"name": "evm",
 															"kind": 32,
 															"kindString": "Variable",
 															"flags": {
@@ -8594,8 +8235,8 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 358,
-															"name": "net",
+															"id": 348,
+															"name": "evm",
 															"kind": 32,
 															"kindString": "Variable",
 															"flags": {
@@ -8604,7 +8245,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 59,
+																	"line": 66,
 																	"character": 5
 																}
 															],
@@ -8615,8 +8256,8 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 362,
-															"name": "personal",
+															"id": 345,
+															"name": "net",
 															"kind": 32,
 															"kindString": "Variable",
 															"flags": {
@@ -8626,6 +8267,27 @@
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
 																	"line": 63,
+																	"character": 5
+																}
+															],
+															"type": {
+																"type": "stringLiteral",
+																"value": "1.0"
+															},
+															"defaultValue": "\"1.0\""
+														},
+														{
+															"id": 349,
+															"name": "personal",
+															"kind": 32,
+															"kindString": "Variable",
+															"flags": {
+																"isExported": true
+															},
+															"sources": [
+																{
+																	"fileName": "chains/ethereum/ethereum/src/api.ts",
+																	"line": 67,
 																	"character": 10
 																}
 															],
@@ -8636,7 +8298,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 359,
+															"id": 346,
 															"name": "rpc",
 															"kind": 32,
 															"kindString": "Variable",
@@ -8646,7 +8308,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 60,
+																	"line": 64,
 																	"character": 5
 																}
 															],
@@ -8657,7 +8319,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 360,
+															"id": 347,
 															"name": "web3",
 															"kind": 32,
 															"kindString": "Variable",
@@ -8667,7 +8329,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 61,
+																	"line": 65,
 																	"character": 6
 																}
 															],
@@ -8683,12 +8345,12 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-																357,
-																361,
-																358,
-																362,
-																359,
-																360
+																344,
+																348,
+																345,
+																349,
+																346,
+																347
 															]
 														}
 													]
@@ -8702,13 +8364,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2806,
+									"line": 2810,
 									"character": 19
 								}
 							]
 						},
 						{
-							"id": 370,
+							"id": 357,
 							"name": "shh_addToGroup",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8729,7 +8391,7 @@
 							],
 							"signatures": [
 								{
-									"id": 371,
+									"id": 358,
 									"name": "shh_addToGroup",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8748,7 +8410,7 @@
 									},
 									"parameters": [
 										{
-											"id": 372,
+											"id": 359,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8779,13 +8441,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2863,
+									"line": 2867,
 									"character": 22
 								}
 							]
 						},
 						{
-							"id": 380,
+							"id": 367,
 							"name": "shh_getFilterChanges",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8806,7 +8468,7 @@
 							],
 							"signatures": [
 								{
-									"id": 381,
+									"id": 368,
 									"name": "shh_getFilterChanges",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8825,7 +8487,7 @@
 									},
 									"parameters": [
 										{
-											"id": 382,
+											"id": 369,
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8859,13 +8521,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2911,
+									"line": 2915,
 									"character": 28
 								}
 							]
 						},
 						{
-							"id": 383,
+							"id": 370,
 							"name": "shh_getMessages",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8886,7 +8548,7 @@
 							],
 							"signatures": [
 								{
-									"id": 384,
+									"id": 371,
 									"name": "shh_getMessages",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8905,7 +8567,7 @@
 									},
 									"parameters": [
 										{
-											"id": 385,
+											"id": 372,
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -8936,13 +8598,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2926,
+									"line": 2930,
 									"character": 23
 								}
 							]
 						},
 						{
-							"id": 365,
+							"id": 352,
 							"name": "shh_hasIdentity",
 							"kind": 2048,
 							"kindString": "Method",
@@ -8963,7 +8625,7 @@
 							],
 							"signatures": [
 								{
-									"id": 366,
+									"id": 353,
 									"name": "shh_hasIdentity",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -8982,7 +8644,7 @@
 									},
 									"parameters": [
 										{
-											"id": 367,
+											"id": 354,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9013,13 +8675,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2838,
+									"line": 2842,
 									"character": 23
 								}
 							]
 						},
 						{
-							"id": 373,
+							"id": 360,
 							"name": "shh_newFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9040,7 +8702,7 @@
 							],
 							"signatures": [
 								{
-									"id": 374,
+									"id": 361,
 									"name": "shh_newFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9059,7 +8721,7 @@
 									},
 									"parameters": [
 										{
-											"id": 375,
+											"id": 362,
 											"name": "to",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9075,7 +8737,7 @@
 											}
 										},
 										{
-											"id": 376,
+											"id": 363,
 											"name": "topics",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9109,13 +8771,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2880,
+									"line": 2884,
 									"character": 21
 								}
 							]
 						},
 						{
-							"id": 368,
+							"id": 355,
 							"name": "shh_newGroup",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9136,7 +8798,7 @@
 							],
 							"signatures": [
 								{
-									"id": 369,
+									"id": 356,
 									"name": "shh_newGroup",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9162,13 +8824,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2848,
+									"line": 2852,
 									"character": 20
 								}
 							]
 						},
 						{
-							"id": 363,
+							"id": 350,
 							"name": "shh_newIdentity",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9189,7 +8851,7 @@
 							],
 							"signatures": [
 								{
-									"id": 364,
+									"id": 351,
 									"name": "shh_newIdentity",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9198,7 +8860,7 @@
 									},
 									"comment": {
 										"shortText": "Creates new whisper identity in the client.",
-										"returns": "The address of the new identity.",
+										"returns": "- The address of the new identity.",
 										"tags": [
 											{
 												"tag": "example",
@@ -9221,13 +8883,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2823,
+									"line": 2827,
 									"character": 23
 								}
 							]
 						},
 						{
-							"id": 386,
+							"id": 373,
 							"name": "shh_post",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9248,7 +8910,7 @@
 							],
 							"signatures": [
 								{
-									"id": 387,
+									"id": 374,
 									"name": "shh_post",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9267,7 +8929,7 @@
 									},
 									"parameters": [
 										{
-											"id": 388,
+											"id": 375,
 											"name": "postData",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9296,13 +8958,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2941,
+									"line": 2945,
 									"character": 16
 								}
 							]
 						},
 						{
-							"id": 377,
+							"id": 364,
 							"name": "shh_uninstallFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9323,7 +8985,7 @@
 							],
 							"signatures": [
 								{
-									"id": 378,
+									"id": 365,
 									"name": "shh_uninstallFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9342,7 +9004,7 @@
 									},
 									"parameters": [
 										{
-											"id": 379,
+											"id": 366,
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -9373,13 +9035,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2896,
+									"line": 2900,
 									"character": 27
 								}
 							]
 						},
 						{
-							"id": 389,
+							"id": 376,
 							"name": "shh_version",
 							"kind": 2048,
 							"kindString": "Method",
@@ -9400,7 +9062,7 @@
 							],
 							"signatures": [
 								{
-									"id": 390,
+									"id": 377,
 									"name": "shh_version",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -9432,7 +9094,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2955,
+									"line": 2959,
 									"character": 19
 								}
 							]
@@ -9491,7 +9153,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 584,
+									"line": 634,
 									"character": 26
 								}
 							]
@@ -9568,7 +9230,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 594,
+									"line": 650,
 									"character": 17
 								}
 							]
@@ -9672,30 +9334,28 @@
 								325,
 								318,
 								333,
-								342,
-								335,
-								350,
-								345,
-								354,
+								337,
+								328,
+								341,
+								357,
+								367,
 								370,
-								380,
-								383,
-								365,
+								352,
+								360,
+								355,
+								350,
 								373,
-								368,
-								363,
-								386,
-								377,
-								389,
-								98,
-								100
+								364,
+								376,
+								92,
+								94
 							]
 						}
 					],
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 107,
+							"line": 111,
 							"character": 32
 						}
 					],
@@ -9707,7 +9367,7 @@
 					]
 				},
 				{
-					"id": 402,
+					"id": 389,
 					"name": "TypedData",
 					"kind": 4194304,
 					"kindString": "Type alias",
@@ -9715,7 +9375,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 68,
+							"line": 72,
 							"character": 14
 						}
 					],
@@ -9758,7 +9418,7 @@
 					}
 				},
 				{
-					"id": 392,
+					"id": 379,
 					"name": "CLIENT_VERSION",
 					"kind": 32,
 					"kindString": "Variable",
@@ -9768,7 +9428,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 55,
+							"line": 59,
 							"character": 20
 						}
 					],
@@ -9779,7 +9439,7 @@
 					"defaultValue": "`Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`"
 				},
 				{
-					"id": 393,
+					"id": 380,
 					"name": "PROTOCOL_VERSION",
 					"kind": 32,
 					"kindString": "Variable",
@@ -9789,7 +9449,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 56,
+							"line": 60,
 							"character": 22
 						}
 					],
@@ -9800,7 +9460,7 @@
 					"defaultValue": "Data.from(\"0x3f\")"
 				},
 				{
-					"id": 394,
+					"id": 381,
 					"name": "RPC_MODULES",
 					"kind": 32,
 					"kindString": "Variable",
@@ -9810,41 +9470,22 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 57,
+							"line": 61,
 							"character": 17
 						}
 					],
 					"type": {
 						"type": "reflection",
 						"declaration": {
-							"id": 395,
+							"id": 382,
 							"name": "__type",
 							"kind": 65536,
 							"kindString": "Type literal",
 							"flags": {},
 							"children": [
 								{
-									"id": 396,
+									"id": 383,
 									"name": "eth",
-									"kind": 32,
-									"kindString": "Variable",
-									"flags": {},
-									"sources": [
-										{
-											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 58,
-											"character": 5
-										}
-									],
-									"type": {
-										"type": "stringLiteral",
-										"value": "1.0"
-									},
-									"defaultValue": "\"1.0\""
-								},
-								{
-									"id": 400,
-									"name": "evm",
 									"kind": 32,
 									"kindString": "Variable",
 									"flags": {},
@@ -9862,15 +9503,15 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 397,
-									"name": "net",
+									"id": 387,
+									"name": "evm",
 									"kind": 32,
 									"kindString": "Variable",
 									"flags": {},
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 59,
+											"line": 66,
 											"character": 5
 										}
 									],
@@ -9881,8 +9522,8 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 401,
-									"name": "personal",
+									"id": 384,
+									"name": "net",
 									"kind": 32,
 									"kindString": "Variable",
 									"flags": {},
@@ -9890,6 +9531,25 @@
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
 											"line": 63,
+											"character": 5
+										}
+									],
+									"type": {
+										"type": "stringLiteral",
+										"value": "1.0"
+									},
+									"defaultValue": "\"1.0\""
+								},
+								{
+									"id": 388,
+									"name": "personal",
+									"kind": 32,
+									"kindString": "Variable",
+									"flags": {},
+									"sources": [
+										{
+											"fileName": "chains/ethereum/ethereum/src/api.ts",
+											"line": 67,
 											"character": 10
 										}
 									],
@@ -9900,7 +9560,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 398,
+									"id": 385,
 									"name": "rpc",
 									"kind": 32,
 									"kindString": "Variable",
@@ -9908,7 +9568,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 60,
+											"line": 64,
 											"character": 5
 										}
 									],
@@ -9919,7 +9579,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 399,
+									"id": 386,
 									"name": "web3",
 									"kind": 32,
 									"kindString": "Variable",
@@ -9927,7 +9587,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 61,
+											"line": 65,
 											"character": 6
 										}
 									],
@@ -9943,12 +9603,12 @@
 									"title": "Variables",
 									"kind": 32,
 									"children": [
-										396,
-										400,
-										397,
-										401,
-										398,
-										399
+										383,
+										387,
+										384,
+										388,
+										385,
+										386
 									]
 								}
 							]
@@ -9957,7 +9617,7 @@
 					"defaultValue": "{\n  eth: \"1.0\",\n  net: \"1.0\",\n  rpc: \"1.0\",\n  web3: \"1.0\",\n  evm: \"1.0\",\n  personal: \"1.0\"\n} as const"
 				},
 				{
-					"id": 391,
+					"id": 378,
 					"name": "version",
 					"kind": 32,
 					"kindString": "Variable",
@@ -9965,7 +9625,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 51,
+							"line": 55,
 							"character": 15
 						}
 					],
@@ -9975,21 +9635,21 @@
 					}
 				},
 				{
-					"id": 403,
+					"id": 390,
 					"name": "assertExceptionalTransactions",
 					"kind": 64,
 					"kindString": "Function",
 					"flags": {},
 					"signatures": [
 						{
-							"id": 404,
+							"id": 391,
 							"name": "assertExceptionalTransactions",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 405,
+									"id": 392,
 									"name": "transactions",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -10012,7 +9672,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 75,
+							"line": 79,
 							"character": 38
 						}
 					]
@@ -10030,24 +9690,24 @@
 					"title": "Type aliases",
 					"kind": 4194304,
 					"children": [
-						402
+						389
 					]
 				},
 				{
 					"title": "Variables",
 					"kind": 32,
 					"children": [
-						392,
-						393,
-						394,
-						391
+						379,
+						380,
+						381,
+						378
 					]
 				},
 				{
 					"title": "Functions",
 					"kind": 64,
 					"children": [
-						403
+						390
 					]
 				}
 			],
