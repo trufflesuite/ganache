@@ -2,8 +2,10 @@ import { Data, Quantity, utils } from "@ganache/utils";
 import { BN } from "ethereumjs-util";
 import type Common from "@ethereumjs/common";
 import {
+  BlockRawTransaction,
   GanacheRawExtraTx,
   RawAccessListTx,
+  RawLegacyPayload,
   RawLegacyTx,
   TypedRawTransaction
 } from "./raw";
@@ -68,7 +70,7 @@ export class FrozenTransaction extends BaseTransaction {
   public common: Common;
 
   constructor(
-    data: Buffer | [TypedRawTransaction, GanacheRawExtraTx],
+    data: Buffer | [BlockRawTransaction, GanacheRawExtraTx],
     common: Common
   ) {
     super(common);
@@ -88,23 +90,29 @@ export class FrozenTransaction extends BaseTransaction {
     Object.freeze(this);
   }
 
-  public setRaw(raw: TypedRawTransaction) {
-    const txType = TransactionFactory.typeOfRaw(raw);
+  public setRaw(raw: TypedRawTransaction | RawLegacyPayload) {
     let [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s]: Buffer[] = []; // prettier-ignore
 
-    if (txType === LegacyTransaction) {
-      [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <RawLegacyTx>raw; //prettier-ignore
-    } else if (txType === AccessListTransaction) {
-      let chainId: Buffer, accessList: AccessListBuffer;
-      [type, chainId, nonce, gasPrice, gasLimit, to, value, data, accessList, v, r, s] = <RawAccessListTx>raw; //prettier-ignore
+    if (raw.length === 9) {
+      // LegacyTransaction but with type missing
+      type = Quantity.from("0x0").toBuffer();
+      [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <RawLegacyPayload>raw; //prettier-ignore
+    } else {
+      const txType = TransactionFactory.typeOfRaw(raw);
+      if (txType === LegacyTransaction) {
+        [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <RawLegacyTx>raw; //prettier-ignore
+      } else if (txType === AccessListTransaction) {
+        let chainId: Buffer, accessList: AccessListBuffer;
+        [type, chainId, nonce, gasPrice, gasLimit, to, value, data, accessList, v, r, s] = <RawAccessListTx>raw; //prettier-ignore
 
-      this.type = Quantity.from(type);
-      this.chainId = Quantity.from(chainId);
-      const accessListData = AccessLists.getAccessListData(accessList);
-      this.accessList = accessListData.accessList;
-      this.accessListJSON = accessListData.AccessListJSON;
+        this.chainId = Quantity.from(chainId);
+        const accessListData = AccessLists.getAccessListData(accessList);
+        this.accessList = accessListData.accessList;
+        this.accessListJSON = accessListData.AccessListJSON;
+      }
     }
 
+    this.type = Quantity.from(type);
     this.nonce = Quantity.from(nonce);
     this.gasPrice = Quantity.from(gasPrice);
     this.gas = Quantity.from(gasLimit);
