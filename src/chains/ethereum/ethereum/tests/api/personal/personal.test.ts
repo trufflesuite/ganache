@@ -345,7 +345,7 @@ describe("api", () => {
 
       describe("personal_unlockAccount ➡ eth_sendTransaction ➡ personal_lockAccount", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { gasPrice: 0 } });
+          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_newAccount", [
@@ -362,7 +362,7 @@ describe("api", () => {
 
       describe("personal_sendTransaction", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { gasPrice: 0 } });
+          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_newAccount", [
@@ -378,7 +378,7 @@ describe("api", () => {
       });
       describe("personal_signTransaction", () => {
         it("signs transaction from locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { gasPrice: 0 } });
+          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_newAccount", [
@@ -414,7 +414,7 @@ describe("api", () => {
 
       describe("personal_unlockAccount ➡ eth_sendTransaction ➡ personal_lockAccount", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { gasPrice: 0 } });
+          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [
@@ -432,7 +432,7 @@ describe("api", () => {
 
       describe("personal_sendTransaction", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { gasPrice: 0 } });
+          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [
             secretKey,
@@ -449,7 +449,7 @@ describe("api", () => {
 
       describe("personal_signTransaction", () => {
         it("signs transaction from locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { gasPrice: 0 } });
+          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [
             secretKey,

@@ -38,7 +38,7 @@ export type MinerConfig = {
      *
      * @defaultValue 2_000_000
      */
-    gasPrice: {
+    defaultGasPrice: {
       type: Quantity;
       rawType: string | number | bigint;
       hasDefault: true;
@@ -189,7 +189,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
     cliAliases: ["b", "blockTime"],
     cliType: "number"
   },
-  gasPrice: {
+  defaultGasPrice: {
     normalize: Quantity.from,
     cliDescription:
       "Sets the default gas price in WEI for transactions if not otherwise specified.",
