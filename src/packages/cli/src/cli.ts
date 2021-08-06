@@ -64,7 +64,7 @@ process.on("uncaughtException", function (e) {
 
 let receivedShutdownSignal: boolean = false;
 const handleSignal = async (signal: NodeJS.Signals) => {
-  console.log(`Received shutdown signal: ${signal}`);
+  console.log(`\nReceived shutdown signal: ${signal}`);
   closeHandler();
 };
 const closeHandler = async () => {
