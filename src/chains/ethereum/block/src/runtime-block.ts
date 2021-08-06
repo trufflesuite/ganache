@@ -4,8 +4,9 @@ import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
+  BlockRawTransaction,
   GanacheRawBlockTransactionMetaData,
-  TypedRawTransaction
+  RawLegacyPayload
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
 import { TypedTransaction } from "@ganache/ethereum-transaction/src/transaction-types";
@@ -160,10 +161,14 @@ export class RuntimeBlock {
       BUFFER_8_ZERO // nonce
     ];
     const { totalDifficulty } = header;
-    const txs: TypedRawTransaction[] = [];
+    const txs: BlockRawTransaction[] = []; // we don't want
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     transactions.forEach(tx => {
-      txs.push(tx.raw);
+      if (tx.raw[0][0] === undefined) {
+        txs.push(<RawLegacyPayload>tx.raw.slice(1));
+      } else {
+        txs.push(<BlockRawTransaction>tx.raw);
+      }
       extraTxs.push([tx.from.toBuffer(), tx.hash.toBuffer()]);
     });
     const { serialized, size } = serialize([
