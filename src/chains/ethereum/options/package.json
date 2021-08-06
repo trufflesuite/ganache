@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1313+1ae4c4f5",
+  "version": "0.1.1-canary.1318+5e6032d2",
   "description": "",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/options#readme",
@@ -48,15 +48,15 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/ethereum-address": "0.1.1-canary.1313+1ae4c4f5",
-    "@ganache/ethereum-utils": "0.1.1-canary.1313+1ae4c4f5",
-    "@ganache/options": "0.1.1-canary.1313+1ae4c4f5",
-    "@ganache/utils": "0.1.1-canary.1313+1ae4c4f5",
+    "@ganache/ethereum-address": "0.1.1-canary.1318+5e6032d2",
+    "@ganache/ethereum-utils": "0.1.1-canary.1318+5e6032d2",
+    "@ganache/options": "0.1.1-canary.1318+5e6032d2",
+    "@ganache/utils": "0.1.1-canary.1318+5e6032d2",
     "bip39": "3.0.3",
     "seedrandom": "3.0.5"
   },
   "devDependencies": {
     "@types/seedrandom": "3.0.0"
   },
-  "gitHead": "1ae4c4f5522c50c53e35dd73d4731465b28ce386"
+  "gitHead": "5e6032d29ca8134eac334b59ffceab091f84db27"
 }

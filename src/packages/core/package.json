@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1313+1ae4c4f5",
+  "version": "0.1.1-canary.1318+5e6032d2",
   "description": "A library to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/core#readme",
@@ -47,11 +47,11 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/ethereum": "0.1.1-canary.1313+1ae4c4f5",
-    "@ganache/flavors": "0.1.1-canary.1313+1ae4c4f5",
-    "@ganache/options": "0.1.1-canary.1313+1ae4c4f5",
-    "@ganache/tezos": "0.1.1-canary.1313+1ae4c4f5",
-    "@ganache/utils": "0.1.1-canary.1313+1ae4c4f5",
+    "@ganache/ethereum": "0.1.1-canary.1318+5e6032d2",
+    "@ganache/flavors": "0.1.1-canary.1318+5e6032d2",
+    "@ganache/options": "0.1.1-canary.1318+5e6032d2",
+    "@ganache/tezos": "0.1.1-canary.1318+5e6032d2",
+    "@ganache/utils": "0.1.1-canary.1318+5e6032d2",
     "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
     "aggregate-error": "3.1.0",
     "emittery": "0.8.1",
@@ -66,5 +66,5 @@
     "superagent": "6.1.0",
     "ws": "7.4.6"
   },
-  "gitHead": "1ae4c4f5522c50c53e35dd73d4731465b28ce386"
+  "gitHead": "5e6032d29ca8134eac334b59ffceab091f84db27"
 }
