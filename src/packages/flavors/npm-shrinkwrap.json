@@ -1,6 +1,6 @@
 {
 	"name": "@ganache/flavors",
-	"version": "0.1.1-canary.1307+edabb55b",
+	"version": "0.1.1-canary.1310+9213ec5e",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
