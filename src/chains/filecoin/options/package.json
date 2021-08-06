@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1310+9213ec5e",
+  "version": "0.1.1-canary.1313+1ae4c4f5",
   "description": "",
   "author": "Tim Coulter",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/filecoin/options#readme",
@@ -50,7 +50,7 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/options": "0.1.1-canary.1310+9213ec5e",
+    "@ganache/options": "0.1.1-canary.1313+1ae4c4f5",
     "@types/seedrandom": "3.0.0",
     "@types/terser-webpack-plugin": "5.0.2",
     "node-loader": "1.0.2",
@@ -63,5 +63,5 @@
   "dependencies": {
     "keccak": "3.0.1"
   },
-  "gitHead": "9213ec5e10fe6708ef0cbb29258878bce4d25d24"
+  "gitHead": "1ae4c4f5522c50c53e35dd73d4731465b28ce386"
 }
