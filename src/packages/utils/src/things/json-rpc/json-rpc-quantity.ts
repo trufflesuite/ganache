@@ -1,6 +1,6 @@
+import { bufferToBigInt, BUFFER_EMPTY } from "../../utils";
 import { BaseJsonRpcType } from "./json-rpc-base-types";
-import { toBigIntBE } from "bigint-buffer";
-
+// TODO(perf): rewrite this stuff since it isn't really caching anything
 export class Quantity extends BaseJsonRpcType {
   _nullable: boolean = false;
   public static from(
@@ -13,6 +13,7 @@ export class Quantity extends BaseJsonRpcType {
     return q;
   }
   public toString(): string | null {
+    // TODO(perf): memoize this stuff
     if (Buffer.isBuffer(this.value)) {
       let val = this.value.toString("hex").replace(/^(?:0+(.+?))?$/, "$1");
 
@@ -21,55 +22,43 @@ export class Quantity extends BaseJsonRpcType {
           return null;
         }
         // RPC Quantities must represent `0` as `0x0`
-        val = "0";
+        return "0x0";
       }
-      return "0x" + val;
+      return `0x${val}`;
+    } else if (this.value == null) {
+      return "0x";
     } else {
       return super.toString();
     }
+  }
+  public toBuffer(byteLength: number | null = null): Buffer {
+    // 0x0, 0x00, 0x000, etc should return BUFFER_EMPTY
+    if (Buffer.isBuffer(this.value)) {
+      return this.value;
+    } else if (typeof this.value === "string" && byteLength == null) {
+      let val = this.value.slice(2).replace(/^(?:0+(.+?))?$/, "$1");
+      if (val === "" || val === "0") {
+        return BUFFER_EMPTY;
+      }
+    } else if (this.value === 0 || this.value === 0n) {
+      return BUFFER_EMPTY;
+    }
+
+    return super.toBuffer();
   }
   public toBigInt(): bigint | null {
     const value = this.value;
 
     // TODO(perf): memoize this stuff
     if (Buffer.isBuffer(value)) {
-      // Parsed as BE.
-
-      // This doesn't handle negative values. We may need to add logic to handle
-      // it because it is possible values returned from the VM could be negative
-      // and stored in a buffer.
-
-      const length = value.byteLength;
-      if (length === 0) {
-        return null;
-      }
-      // Buffers that are 6 bytes or less can be converted with built-in methods
-      if (length <= 6) {
-        return BigInt(value.readUIntBE(0, length));
-      }
-
-      let view: DataView;
-      // Buffers that are 7 bytes need to be padded to 8 bytes
-      if (length === 7) {
-        const padded = new Uint8Array(8);
-        // set byte 0 to 0, and bytes 1-8 to the value's 7 bytes:
-        padded.set(value, 1);
-        view = new DataView(padded.buffer);
-      } else if (length === 8) {
-        view = new DataView(value.buffer, value.byteOffset, length);
-      } else {
-        // TODO: toBigIntBE is a native lib with no pure JS fallback yet.
-        return toBigIntBE(value);
-        // TODO: handle bigint's stored as Buffers that are this big?
-        // It's not too hard.
-        // throw new Error(`Cannot convert Buffer of length ${length} to bigint!`);
-      }
-      return view.getBigUint64(0) as bigint;
+      const bigInt = bufferToBigInt(value);
+      return bigInt == null ? (this._nullable ? null : 0n) : bigInt;
     } else {
-      return value != null ? BigInt(value) : 0n;
+      return value == null ? (this._nullable ? null : 0n) : BigInt(value);
     }
   }
   public toNumber() {
+    // TODO(perf): memoize this stuff
     return typeof this.value === "number"
       ? this.value
       : Number(this.toBigInt());

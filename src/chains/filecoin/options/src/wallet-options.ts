@@ -28,7 +28,7 @@ export type WalletConfig = {
     /**
      * Number of accounts to generate at startup.
      *
-     * @default 10
+     * @defaultValue 10
      */
     totalAccounts: {
       type: number;
@@ -54,7 +54,7 @@ export type WalletConfig = {
     /**
      * The default account balance, specified in FIL.
      *
-     * @default 100 // FIL
+     * @defaultValue 100 // FIL
      */
     defaultBalance: {
       type: number;

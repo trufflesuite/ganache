@@ -6,8 +6,11 @@
  * @license MIT
  */
 
-try {
-  module.exports = require("./src/connector");
-} catch (e) {
-  module.exports = require("../dist/node/ganache-filecoin.min.js");
-}
+import { Connector, Provider, StorageDealStatus } from "./src/connector";
+export type { Connector, Provider, StorageDealStatus } from "./src/connector";
+
+export default {
+  Connector,
+  Provider,
+  StorageDealStatus
+};

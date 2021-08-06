@@ -3,7 +3,7 @@ import TerserPlugin from "terser-webpack-plugin";
 
 const base: webpack.Configuration = {
   mode: "production",
-  entry: "./index-webpack.ts",
+  entry: "./index.ts",
   devtool: "source-map",
   module: {
     rules: [

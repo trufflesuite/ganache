@@ -1,27 +1,31 @@
 import {
-  params,
-  Transaction,
-  Block,
-  RuntimeBlock,
   RuntimeError,
   RETURN_TYPES,
-  Executables,
   TraceDataFactory,
   StepEvent,
   StorageKeys
 } from "@ganache/ethereum-utils";
-import { utils, Quantity, Data } from "@ganache/utils";
-import { promisify } from "util";
-import Trie from "merkle-patricia-tree";
+import {
+  Quantity,
+  BUFFER_EMPTY,
+  BUFFER_256_ZERO,
+  keccak,
+  uintToBuffer,
+  Heap
+} from "@ganache/utils";
+import { encode } from "@ganache/rlp";
+import { BaseTrie as Trie } from "merkle-patricia-tree";
 import Emittery from "emittery";
-import VM from "ethereumjs-vm";
-import { encode as rlpEncode } from "rlp";
+import VM from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
-const { BUFFER_EMPTY, BUFFER_256_ZERO, keccak } = utils;
+import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
+import { Params, RuntimeTransaction } from "@ganache/ethereum-transaction";
+import { Executables } from "./executables";
+import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 
 export type BlockData = {
-  blockTransactions: Transaction[];
+  blockTransactions: RuntimeTransaction[];
   transactionsTrie: Trie;
   receiptTrie: Trie;
   gasUsed: bigint;
@@ -29,11 +33,13 @@ export type BlockData = {
   extraData: string;
 };
 
-const putInTrie = (trie: Trie, key: Buffer, val: Buffer) =>
-  promisify(trie.put.bind(trie))(key, val);
+const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
+  let i = 256;
+  while (--i) blockBloom[i] |= bloom[i];
+};
 
-const sortByPrice = (values: Transaction[], a: number, b: number) =>
-  Quantity.from(values[a].gasPrice) > Quantity.from(values[b].gasPrice);
+const sortByPrice = (values: RuntimeTransaction[], a: number, b: number) =>
+  values[a].gasPrice > values[b].gasPrice;
 
 export default class Miner extends Emittery.Typed<
   {
@@ -41,6 +47,7 @@ export default class Miner extends Emittery.Typed<
       block: Block;
       serialized: Buffer;
       storageKeys: StorageKeys;
+      transactions: RuntimeTransaction[];
     };
   },
   "idle"
@@ -56,9 +63,6 @@ export default class Miner extends Emittery.Typed<
   readonly #options: EthereumInternalOptions["miner"];
   readonly #instamine: boolean;
   readonly #vm: VM;
-  readonly #checkpoint: () => Promise<any>;
-  readonly #commit: () => Promise<any>;
-  readonly #revert: () => Promise<any>;
   readonly #createBlock: (previousBlock: Block) => RuntimeBlock;
 
   public async pause() {
@@ -82,7 +86,7 @@ export default class Miner extends Emittery.Typed<
   }
 
   // create a Heap that sorts by gasPrice
-  readonly #priced = new utils.Heap<Transaction>(sortByPrice);
+  readonly #priced = new Heap<RuntimeTransaction>(sortByPrice);
   /*
    * @param executables A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -96,15 +100,11 @@ export default class Miner extends Emittery.Typed<
     createBlock: (previousBlock: Block) => RuntimeBlock
   ) {
     super();
-    const stateManager = vm.stateManager;
 
     this.#vm = vm;
     this.#options = options;
     this.#executables = executables;
     this.#instamine = instamine;
-    this.#checkpoint = promisify(stateManager.checkpoint.bind(stateManager));
-    this.#commit = promisify(stateManager.commit.bind(stateManager));
-    this.#revert = promisify(stateManager.revert.bind(stateManager));
     this.#createBlock = createBlock;
 
     // initialize the heap with an empty array
@@ -173,6 +173,7 @@ export default class Miner extends Emittery.Typed<
     onlyOneBlock: boolean
   ) => {
     let block: Block;
+    const vm = this.#vm;
 
     const { pending, inProgress } = this.#executables;
     const options = this.#options;
@@ -181,7 +182,7 @@ export default class Miner extends Emittery.Typed<
     const priced = this.#priced;
     const legacyInstamine = this.#options.legacyInstamine;
     const storageKeys: StorageKeys = new Map();
-    let blockTransactions: Transaction[];
+    let blockTransactions: RuntimeTransaction[];
     do {
       keepMining = false;
       this.#isBusy = true;
@@ -192,14 +193,14 @@ export default class Miner extends Emittery.Typed<
 
       // don't mine anything at all if maxTransactions is `0`
       if (maxTransactions === 0) {
-        await this.#checkpoint();
-        await this.#commit();
+        await vm.stateManager.checkpoint();
+        await vm.stateManager.commit();
         const finalizedBlockData = runtimeBlock.finalize(
           transactionsTrie.root,
           receiptTrie.root,
           BUFFER_256_ZERO,
-          this.#vm.stateManager._trie.root,
-          BUFFER_EMPTY, // gas used
+          (vm.stateManager as any)._trie.root,
+          0n, // gas used
           options.extraData,
           [],
           storageKeys
@@ -214,11 +215,11 @@ export default class Miner extends Emittery.Typed<
       let blockGasUsed = 0n;
 
       const blockBloom = Buffer.allocUnsafe(256).fill(0);
-      const promises: Promise<never>[] = [];
+      const promises: Promise<void>[] = [];
 
       // Set a block-level checkpoint so our unsaved trie doesn't update the
       // vm's "live" trie.
-      await this.#checkpoint();
+      await vm.stateManager.checkpoint();
 
       const TraceData = TraceDataFactory();
       // We need to listen for any SSTORE opcodes so we can grab the raw, unhashed version
@@ -239,14 +240,14 @@ export default class Miner extends Emittery.Typed<
         next();
       };
 
-      this.#vm.on("step", stepListener);
+      vm.on("step", stepListener);
       // Run until we run out of items, or until the inner loop stops us.
       // we don't call `shift()` here because we will may need to `replace`
       // this `best` transaction with the next best transaction from the same
       // origin later.
-      let best: Transaction;
+      let best: RuntimeTransaction;
       while ((best = priced.peek())) {
-        const origin = Data.from(best.from).toString();
+        const origin = best.from.toString();
 
         if (best.calculateIntrinsicGas() > blockGasLeft) {
           // if the current best transaction can't possibly fit in this block
@@ -261,11 +262,16 @@ export default class Miner extends Emittery.Typed<
           continue;
         }
 
-        this.#currentlyExecutingPrice = Quantity.from(best.gasPrice).toBigInt();
+        this.#currentlyExecutingPrice = best.gasPrice.toBigInt();
 
         // Set a transaction-level checkpoint so we can undo state changes in
         // the case where the transaction is rejected by the VM.
-        await this.#checkpoint();
+        await vm.stateManager.checkpoint();
+
+        // Set the internal trie's block number (for forking)
+        (vm.stateManager as any)._trie.blockNumber = Quantity.from(
+          runtimeBlock.header.number.toArrayLike(Buffer)
+        );
 
         const result = await this.#runTx(best, runtimeBlock, origin, pending);
         if (result !== null) {
@@ -274,23 +280,24 @@ export default class Miner extends Emittery.Typed<
           ).toBigInt();
           if (blockGasLeft >= gasUsed) {
             // if the transaction will fit in the block, commit it!
-            await this.#commit();
+            await vm.stateManager.commit();
             blockTransactions[numTransactions] = best;
 
             blockGasLeft -= gasUsed;
             blockGasUsed += gasUsed;
 
             // calculate receipt and tx tries
-            const txKey = rlpEncode(numTransactions);
-            promises.push(putInTrie(transactionsTrie, txKey, best.serialize()));
+            const txKey = encode(
+              numTransactions === 0
+                ? BUFFER_EMPTY
+                : uintToBuffer(numTransactions)
+            );
+            promises.push(transactionsTrie.put(txKey, best.serialized));
             const receipt = best.fillFromResult(result, blockGasUsed);
-            promises.push(putInTrie(receiptTrie, txKey, receipt));
+            promises.push(receiptTrie.put(txKey, receipt));
 
             // update the block's bloom
-            const bloom = result.bloom.bitvector;
-            for (let i = 0; i < 256; i++) {
-              blockBloom[i] |= bloom[i];
-            }
+            updateBloom(blockBloom, result.bloom.bitvector);
 
             numTransactions++;
 
@@ -312,7 +319,7 @@ export default class Miner extends Emittery.Typed<
             // notice: when `maxTransactions` is `-1` (AKA infinite), `numTransactions === maxTransactions`
             // will always return false, so this comparison works out fine.
             if (
-              blockGasLeft <= params.TRANSACTION_GAS ||
+              blockGasLeft <= Params.TRANSACTION_GAS ||
               numTransactions === maxTransactions
             ) {
               if (keepMining) {
@@ -338,7 +345,7 @@ export default class Miner extends Emittery.Typed<
             }
           } else {
             // didn't fit in the current block
-            await this.#revert();
+            await vm.stateManager.revert();
 
             // unlock the transaction so the transaction pool can reconsider this
             // transaction
@@ -354,23 +361,21 @@ export default class Miner extends Emittery.Typed<
           // revert its changes here.
           // Note: we don't clean up (`removeBest`, etc) because `runTx`'s
           // error handler does the clean up itself.
-          await this.#revert();
+          await vm.stateManager.revert();
         }
       }
 
       await Promise.all(promises);
-      await this.#commit();
+      await vm.stateManager.commit();
 
-      this.#vm.removeListener("step", stepListener);
+      vm.removeListener("step", stepListener);
 
       const finalizedBlockData = runtimeBlock.finalize(
         transactionsTrie.root,
         receiptTrie.root,
         blockBloom,
-        this.#vm.stateManager._trie.root,
-        blockGasUsed === 0n
-          ? BUFFER_EMPTY
-          : Quantity.from(blockGasUsed).toBuffer(),
+        (vm.stateManager as any)._trie.root,
+        blockGasUsed,
         options.extraData,
         blockTransactions,
         storageKeys
@@ -406,13 +411,20 @@ export default class Miner extends Emittery.Typed<
   };
 
   #runTx = async (
-    tx: Transaction,
+    tx: RuntimeTransaction,
     block: RuntimeBlock,
     origin: string,
-    pending: Map<string, utils.Heap<Transaction>>
+    pending: Map<string, Heap<RuntimeTransaction>>
   ) => {
     try {
-      return await this.#vm.runTx({ tx, block } as any);
+      const vm = this.#vm;
+      const o = {
+        tx: tx.toVmTransaction() as any,
+        block: block as any
+      };
+      const r = vm.runTx(o);
+      const p = await r;
+      return p;
     } catch (err) {
       const errorMessage = err.message;
       // We do NOT want to re-run this transaction.
@@ -434,11 +446,9 @@ export default class Miner extends Emittery.Typed<
           exceptionError: { error: errorMessage },
           returnValue: BUFFER_EMPTY
         }
-      };
-      tx.finalize(
-        "rejected",
-        new RuntimeError(tx.hash(), e as any, RETURN_TYPES.TRANSACTION_HASH)
-      );
+      } as EVMResult;
+      const error = new RuntimeError(tx.hash, e, RETURN_TYPES.TRANSACTION_HASH);
+      tx.finalize("rejected", error);
       return null;
     }
   };
@@ -467,7 +477,7 @@ export default class Miner extends Emittery.Typed<
       const heap = mapping[1];
       const next = heap.peek();
       if (next && !next.locked) {
-        const origin = Data.from(next.from).toString();
+        const origin = next.from.toString();
         origins.add(origin);
         priced.push(next);
         next.locked = true;
@@ -492,14 +502,14 @@ export default class Miner extends Emittery.Typed<
       const heap = mapping[1];
       const next = heap.peek();
       if (next && !next.locked) {
-        const price = Quantity.from(next.gasPrice).toBigInt();
+        const price = next.gasPrice.toBigInt();
 
         if (this.#currentlyExecutingPrice > price) {
           // don't insert a transaction into the miner's `priced` heap
           // if it will be better than its last
           continue;
         }
-        const origin = Data.from(next.from).toString();
+        const origin = next.from.toString();
         if (origins.has(origin)) {
           // don't insert a transaction into the miner's `priced` heap if it
           // has already queued up transactions for that origin

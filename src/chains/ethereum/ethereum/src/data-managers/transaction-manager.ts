@@ -1,14 +1,18 @@
-import { Transaction } from "@ganache/ethereum-utils";
 import Manager from "./manager";
 import TransactionPool from "../transaction-pool";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import PromiseQueue from "@ganache/promise-queue";
-import Common from "ethereumjs-common";
-import { Data } from "@ganache/utils";
+import type Common from "@ethereumjs/common";
+import { Data, Quantity } from "@ganache/utils";
+import {
+  FrozenTransaction,
+  RpcTransaction,
+  RuntimeTransaction
+} from "@ganache/ethereum-transaction";
 
-export default class TransactionManager extends Manager<Transaction> {
+export default class TransactionManager extends Manager<FrozenTransaction> {
   public readonly transactionPool: TransactionPool;
 
   readonly #queue = new PromiseQueue<boolean>();
@@ -16,15 +20,42 @@ export default class TransactionManager extends Manager<Transaction> {
   #resumer: Promise<void>;
   #resolver: (value: void) => void;
 
+  #blockchain: Blockchain;
+
   constructor(
     options: EthereumInternalOptions["miner"],
     common: Common,
     blockchain: Blockchain,
     base: LevelUp
   ) {
-    super(base, Transaction, common);
+    super(base, FrozenTransaction, common);
+    this.#blockchain = blockchain;
 
     this.transactionPool = new TransactionPool(options, blockchain);
+  }
+
+  fromFallback = async (transactionHash: Buffer) => {
+    const { fallback } = this.#blockchain;
+    const tx = await fallback.request<RpcTransaction>(
+      "eth_getTransactionByHash",
+      [Data.from(transactionHash).toString()]
+    );
+    if (tx == null) return null;
+    const runTx = new RuntimeTransaction(tx, fallback.common);
+    return runTx.serializeForDb(
+      Data.from((tx as any).blockHash, 32),
+      Quantity.from((tx as any).blockNumber),
+      Quantity.from((tx as any).transactionIndex)
+    );
+  };
+
+  public async getRaw(transactionHash: Buffer): Promise<Buffer> {
+    return super.getRaw(transactionHash).then(block => {
+      if (block == null && this.#blockchain.fallback) {
+        return this.fromFallback(transactionHash);
+      }
+      return block;
+    });
   }
 
   /**
@@ -37,7 +68,7 @@ export default class TransactionManager extends Manager<Transaction> {
    * @returns `true` if the `transaction` is immediately executable, `false` if
    * it may be valid in the future. Throws if the transaction is invalid.
    */
-  public async add(transaction: Transaction, secretKey?: Data) {
+  public async add(transaction: RuntimeTransaction, secretKey?: Data) {
     if (this.#paused) {
       await this.#resumer;
     }

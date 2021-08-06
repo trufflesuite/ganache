@@ -42,7 +42,7 @@ export type WalletConfig = {
     /**
      * Number of accounts to generate at startup.
      *
-     * @default 10
+     * @defaultValue 10
      */
     totalAccounts: {
       type: number;
@@ -128,7 +128,7 @@ export type WalletConfig = {
     /**
      * Lock available accounts by default (good for third party transaction signing).
      *
-     * @default false
+     * @defaultValue false
      */
     secure: {
       type: boolean;
@@ -163,7 +163,7 @@ export type WalletConfig = {
     /**
      * The default account balance, specified in ether.
      *
-     * @default 100 // ether
+     * @defaultValue 1000 // ether
      */
     defaultBalance: {
       type: number;
@@ -179,7 +179,7 @@ export type WalletConfig = {
     /**
      * The hierarchical deterministic path to use when generating accounts.
      *
-     * @default "m/44'/60'/0'/0/"
+     * @defaultValue "m/44'/60'/0'/0/"
      */
     hdPath: {
       type: string;
@@ -294,7 +294,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
   defaultBalance: {
     normalize,
     cliDescription: "The default account balance, specified in ether.",
-    default: () => 100,
+    default: () => 1000,
     legacyName: "default_balance_ether",
     cliAliases: ["e", "defaultBalanceEther"],
     cliType: "number"

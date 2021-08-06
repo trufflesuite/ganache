@@ -19,7 +19,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: accounts[1],
-            value: 1
+            value: "0x1"
           }
         ]);
         await provider.once("message");
@@ -37,7 +37,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: accounts[1],
-            value: 1
+            value: "0x1"
           }
         ]);
         await provider.once("message");
@@ -54,7 +54,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: accounts[1],
-            value: 1
+            value: "0x1"
           }
         ]);
         await provider.once("message");
@@ -73,7 +73,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: accounts[1],
-            value: 1
+            value: "0x1"
           }
         ]);
         await provider.once("message");

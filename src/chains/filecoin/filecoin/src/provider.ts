@@ -1,6 +1,13 @@
 import Emittery from "emittery";
-import { PromiEvent, Subscription, types, utils } from "@ganache/utils";
-import JsonRpc from "@ganache/utils/src/things/jsonrpc";
+import {
+  Executor,
+  PromiEvent,
+  Provider,
+  JsonRpcRequest,
+  Subscription,
+  KnownKeys
+} from "@ganache/utils";
+
 import FilecoinApi from "./api";
 import GanacheSchema from "./schema";
 import { Schema } from "@filecoin-shipyard/lotus-client-schema";
@@ -14,19 +21,24 @@ import cloneDeep from "lodash.clonedeep";
 
 // Meant to mimic this provider:
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
-export default class FilecoinProvider
+export default class FilecoinProvider<
+    R extends JsonRpcRequest<
+      FilecoinApi,
+      KnownKeys<FilecoinApi>
+    > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
+  >
   extends Emittery.Typed<{}, "connect" | "disconnect">
   // Do I actually need this? `types.Provider` doesn't actually define anything behavior
-  implements types.Provider<FilecoinApi> {
+  implements Provider<FilecoinApi> {
   #options: FilecoinInternalOptions;
   #api: FilecoinApi;
-  #executor: utils.Executor;
+  #executor: Executor;
 
   readonly blockchain: Blockchain;
 
   static readonly Schema: Schema = GanacheSchema;
 
-  constructor(options: FilecoinProviderOptions = {}, executor: utils.Executor) {
+  constructor(options: FilecoinProviderOptions = {}, executor: Executor) {
     super();
     const providerOptions = (this.#options = FilecoinOptionsConfig.normalize(
       options as FilecoinProviderOptions
@@ -78,13 +90,13 @@ export default class FilecoinProvider
     await this.blockchain.waitForReady();
   }
 
-  async send(payload: JsonRpc.Request<FilecoinApi>) {
+  async send(payload: R) {
     const result = await this._requestRaw(payload);
     return result.value;
   }
 
   async _requestRaw<Method extends keyof FilecoinApi = keyof FilecoinApi>(
-    payload: JsonRpc.Request<FilecoinApi>
+    payload: R
   ) {
     // The `as any` is needed here because of this hackery of appending the
     // JSON `id` no longer fits within the strictly typed `execute` `params`
@@ -133,7 +145,7 @@ export default class FilecoinProvider
 
   // Reference implementation: https://git.io/JtO3H
   async sendSubscription(
-    payload: JsonRpc.Request<FilecoinApi>,
+    payload: R,
     schemaMethod: { subscription?: boolean },
     subscriptionCallback: (data: any) => void
   ) {

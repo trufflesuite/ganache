@@ -1,4 +1,9 @@
-import { InternalOptions, ServerOptions, serverOptionsConfig } from "./options";
+import {
+  InternalOptions,
+  serverDefaults,
+  ServerOptions,
+  serverOptionsConfig
+} from "./options";
 
 import allSettled from "promise.allsettled";
 import AggregateError from "aggregate-error";
@@ -6,17 +11,23 @@ import uWS, {
   TemplatedApp,
   us_listen_socket
 } from "@trufflesuite/uws-js-unofficial";
-import { Connector, DefaultFlavor } from "@ganache/flavors";
+import {
+  Connector,
+  ConnectorsByName,
+  DefaultFlavor,
+  FlavorName,
+  Options
+} from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
 
-type Provider = Connector["provider"];
+export type Provider = Connector["provider"];
 
 const DEFAULT_HOST = "127.0.0.1";
 
-type Callback = (err: Error | null) => void;
+export type Callback = (err: Error | null) => void;
 
 /**
  * Server ready state constants.
@@ -30,7 +41,7 @@ type Callback = (err: Error | null) => void;
  *  * closed: `status === Status.closed` or `status & Status.closed !== 0`
  *  * closing || closed: `status & Status.closingOrClosed !== 0` or `status & (Status.closing | Status.closed) !== 0`
  */
-export enum Status {
+export enum ServerStatus {
   /**
    * The Server is in an unknown state; perhaps construction didn't succeed
    */
@@ -65,17 +76,31 @@ export enum Status {
   closingOrClosed = (1 << 3) | (1 << 4)
 }
 
-export class Server extends Emittery<{ open: undefined; close: undefined }> {
+/**
+ * For private use. May change in the future.
+ * I don't don't think these options should be held in this `core` package.
+ * @ignore
+ */
+export const _DefaultServerOptions = serverDefaults;
+
+/**
+ * @public
+ */
+export class Server<
+  T extends FlavorName = typeof DefaultFlavor
+> extends Emittery<{ open: undefined; close: undefined }> {
   #options: InternalOptions;
-  #providerOptions: ServerOptions;
-  #status: number = Status.unknown;
+  #providerOptions: Options<T>;
+  #status: number = ServerStatus.unknown;
   #app: TemplatedApp | null = null;
   #httpServer: HttpServer | null = null;
   #listenSocket: us_listen_socket | null = null;
-  #connector: Connector | null = null;
+  #connector: ConnectorsByName[T];
   #websocketServer: WebsocketServer | null = null;
 
-  public get provider(): Provider {
+  #initializer: Promise<void>;
+
+  public get provider(): ConnectorsByName[T]["provider"] {
     return this.#connector.provider;
   }
 
@@ -83,19 +108,28 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
     return this.#status;
   }
 
-  constructor(providerAndServerOptions: ServerOptions = { flavor: DefaultFlavor }) {
+  constructor(
+    providerAndServerOptions: ServerOptions<T> = {
+      flavor: DefaultFlavor
+    } as ServerOptions<T>
+  ) {
     super();
-
     this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
     this.#providerOptions = providerAndServerOptions;
-    this.#status = Status.ready;
-  }
+    this.#status = ServerStatus.ready;
 
-  private async initialize() {
+    // we need to start initializing now because `initialize` sets the
+    // `provider` property... and someone might want to do:
+    //   const server = Ganache.server();
+    //   const provider = server.provider;
+    //   await server.listen(8545)
     const connector = (this.#connector = ConnectorLoader.initialize(
       this.#providerOptions
     ));
+    this.#initializer = this.initialize(connector);
+  }
 
+  private async initialize(connector: Connector) {
     const _app = (this.#app = uWS.App());
 
     if (this.#options.server.ws) {
@@ -107,7 +141,7 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
     }
     this.#httpServer = new HttpServer(_app, connector, this.#options.server);
 
-    await connector.once("ready");
+    await (connector as any).once("ready");
   }
 
   listen(port: number): Promise<void>;
@@ -126,23 +160,25 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
     }
     const callbackIsFunction = typeof callback === "function";
     const status = this.#status;
-    if (status === Status.closing) {
+    if (status === ServerStatus.closing) {
       // if closing
       const err = new Error(`Cannot start server while it is closing.`);
       return callbackIsFunction
         ? process.nextTick(callback!, err)
         : Promise.reject(err);
-    } else if ((status & Status.openingOrOpen) !== 0) {
+    } else if ((status & ServerStatus.openingOrOpen) !== 0) {
       // if opening or open
-      const err = new Error(`Server is already open, or is opening, on port: ${port}.`);
+      const err = new Error(
+        `Server is already open, or is opening, on port: ${port}.`
+      );
       return callbackIsFunction
         ? process.nextTick(callback!, err)
         : Promise.reject(err);
     }
 
-    this.#status = Status.opening;
+    this.#status = ServerStatus.opening;
 
-    const initializePromise = this.initialize();
+    const initializePromise = this.#initializer;
 
     // This `shim()` is necessary for `Promise.allSettled` to be shimmed
     // in `node@10`. We cannot use `allSettled([...])` directly due to
@@ -160,31 +196,29 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
           // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
           const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
           hostname
-            ? this.#app.listen(
+            ? (this.#app as any).listen(
                 hostname,
                 port,
                 LIBUS_LISTEN_EXCLUSIVE_PORT,
                 resolve
               )
-            : this.#app.listen(port as any, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+            : this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
         }
       ).then(listenSocket => {
         if (listenSocket) {
-          this.#status = Status.open;
+          this.#status = ServerStatus.open;
           this.#listenSocket = listenSocket;
-          if (callbackIsFunction) callback!(null);
         } else {
-          this.#status = Status.closed;
+          this.#status = ServerStatus.closed;
           const err = new Error(
             `listen EADDRINUSE: address already in use ${
               hostname || DEFAULT_HOST
             }:${port}.`
           );
-          if (callbackIsFunction) callback!(err);
-          else throw err;
+          throw err;
         }
       })
-    ]).then(async (promiseResults) => {
+    ]).then(async promiseResults => {
       const errors: Error[] = [];
 
       if (promiseResults[0].status === "rejected") {
@@ -197,36 +231,37 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
       if (errors.length === 0) {
         this.emit("open");
       } else {
-        this.#status = Status.unknown;
+        this.#status = ServerStatus.unknown;
         try {
           await this.close();
         } catch (e) {
           errors.push(e);
         }
-        const aggregateError = new AggregateError(errors);
-        if (callbackIsFunction) {
-          callback!(aggregateError);
+        if (errors.length > 1) {
+          throw new AggregateError(errors);
         } else {
-          throw aggregateError;
+          throw errors[0];
         }
       }
     });
 
-    if (!callbackIsFunction) {
+    if (callbackIsFunction) {
+      promise.then(() => callback(null)).catch(callback);
+    } else {
       return promise;
     }
   }
 
   public async close() {
-    if (this.#status === Status.opening) {
+    if (this.#status === ServerStatus.opening) {
       // if opening
       throw new Error(`Cannot close server while it is opening.`);
-    } else if ((this.#status & Status.closingOrClosed) !== 0) {
+    } else if ((this.#status & ServerStatus.closingOrClosed) !== 0) {
       // if closing or closed
       throw new Error(`Server is already closing or closed.`);
     }
 
-    this.#status = Status.closing;
+    this.#status = ServerStatus.closing;
 
     // clean up the websocket objects
     const _listenSocket = this.#listenSocket;
@@ -250,7 +285,7 @@ export class Server extends Emittery<{ open: undefined; close: undefined }> {
       await this.#connector.close();
     }
 
-    this.#status = Status.closed;
+    this.#status = ServerStatus.closed;
     this.#app = null;
 
     await this.emit("close");

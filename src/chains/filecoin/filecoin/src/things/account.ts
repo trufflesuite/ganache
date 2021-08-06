@@ -1,4 +1,4 @@
-import { utils } from "@ganache/utils";
+import { RandomNumberGenerator } from "@ganache/utils";
 import {
   Address,
   AddressProtocol,
@@ -63,7 +63,7 @@ class Account
 
   static random(
     defaultFIL: number,
-    rng: utils.RandomNumberGenerator = new utils.RandomNumberGenerator(),
+    rng: RandomNumberGenerator = new RandomNumberGenerator(),
     protocol: AddressProtocol = AddressProtocol.BLS,
     network: AddressNetwork = AddressNetwork.Testnet
   ): Account {

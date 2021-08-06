@@ -1,7 +1,7 @@
 import assert from "assert";
 import EthereumProvider from "../src/provider";
 import getProvider from "./helpers/getProvider";
-import { JsonRpcTypes } from "@ganache/utils";
+import { JsonRpcRequest } from "@ganache/utils";
 import EthereumApi from "../src/api";
 
 describe("provider", () => {
@@ -40,7 +40,7 @@ describe("provider", () => {
     });
 
     it("returns things via legacy", async () => {
-      const jsonRpcRequest: JsonRpcTypes.Request<EthereumApi> = {
+      const jsonRpcRequest: JsonRpcRequest<EthereumApi, "net_version"> = {
         id: "1",
         jsonrpc: "2.0",
         method: "net_version"

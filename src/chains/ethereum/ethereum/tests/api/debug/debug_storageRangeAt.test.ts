@@ -10,8 +10,8 @@ describe("api", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       let contractAddress: string;
-      let blockHash: string | Buffer;
-      let deploymentBlockHash: string | Buffer;
+      let blockHash: string;
+      let deploymentBlockHash: string;
       let methods: {
         [methodName: string]: string;
       };
@@ -28,7 +28,7 @@ describe("api", () => {
         ]);
 
         const deploymentHash = await provider.send("eth_sendTransaction", [
-          { from: accounts[0], data: contract.code, gas: 3141592 }
+          { from: accounts[0], data: contract.code, gas: "0x2fefd8" }
         ]);
         await provider.once("message");
 
@@ -47,7 +47,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: contractAddress,
-            gas: 3141592,
+            gas: "0x2fefd8",
             data: `0x${methods["setValue(uint256)"]}${initialValue}`
           }
         ]);
@@ -94,7 +94,7 @@ describe("api", () => {
           result.nextKey,
           "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6"
         );
-      });
+      }).timeout(0);
 
       it("should return only the filled storage slots", async () => {
         const result = await provider.send("debug_storageRangeAt", [
@@ -282,7 +282,7 @@ describe("api", () => {
               {
                 from: accounts[0],
                 to: contractAddress,
-                gas: 3141592,
+                gas: "0x2fefd8",
                 data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000001`
               }
             ]),
@@ -290,7 +290,7 @@ describe("api", () => {
               {
                 from: accounts[0],
                 to: contractAddress,
-                gas: 3141592,
+                gas: "0x2fefd8",
                 data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000002`
               }
             ]),
@@ -298,7 +298,7 @@ describe("api", () => {
               {
                 from: accounts[0],
                 to: contractAddress,
-                gas: 3141592,
+                gas: "0x2fefd8",
                 data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000003`
               }
             ])
@@ -320,21 +320,21 @@ describe("api", () => {
           const [resultForTx1, resultForTx2, resultForTx3] = await Promise.all([
             provider.send("debug_storageRangeAt", [
               txReceipt1.blockHash,
-              txReceipt1.transactionIndex, // 0
+              parseInt(txReceipt1.transactionIndex), // 0
               contractAddress,
               "0x00",
               1
             ]),
             await provider.send("debug_storageRangeAt", [
               txReceipt2.blockHash,
-              txReceipt2.transactionIndex, // 1
+              parseInt(txReceipt2.transactionIndex), // 1
               contractAddress,
               "0x00",
               1
             ]),
             provider.send("debug_storageRangeAt", [
               txReceipt3.blockHash,
-              txReceipt3.transactionIndex, // 2
+              parseInt(txReceipt3.transactionIndex), // 2
               contractAddress,
               "0x00",
               1
@@ -389,12 +389,11 @@ describe("api", () => {
       let provider: EthereumProvider;
       let accounts: string[];
       let contractAddress: string;
-      let blockHash: string | Buffer;
-      let deploymentBlockHash: string | Buffer;
+      let blockHash: string;
 
       before(async () => {
         provider = await getProvider();
-        accounts = await provider.send("eth_accounts");
+        accounts = await provider.send("eth_accounts", []);
         const contract = compile(
           path.join(
             __dirname,
@@ -410,16 +409,19 @@ describe("api", () => {
         ]);
 
         const deploymentHash = await provider.send("eth_sendTransaction", [
-          { from: accounts[0], data: contract.code, gas: 3141592 }
+          {
+            from: accounts[0],
+            data: contract.code,
+            gas: `0x${(3141592).toString(16)}`
+          }
         ]);
         await provider.once("message");
 
         const deploymentTxReceipt = await provider.send(
           "eth_getTransactionReceipt",
-          [deploymentHash]
+          [deploymentHash.toString()]
         );
         contractAddress = deploymentTxReceipt.contractAddress;
-        deploymentBlockHash = deploymentTxReceipt.blockHash;
 
         const methods = contract.contract.evm.methodIdentifiers;
         const initialValue =
@@ -429,7 +431,7 @@ describe("api", () => {
           {
             from: accounts[0],
             to: contractAddress,
-            gas: 3141592,
+            gas: "0x2fefd8",
             data: `0x${methods["setValue(uint)"]}${initialValue}`
           }
         ]);

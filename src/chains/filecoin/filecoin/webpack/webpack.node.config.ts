@@ -13,8 +13,22 @@ const config: webpack.Configuration = merge({}, base, {
     "ipfs-http-client",
     "ipfs-http-server",
     "ipld-dag-cbor",
+    "bigint-buffer",
     "leveldown",
-    "secp256k1"
+    "secp256k1",
+    "keccak",
+    {
+      "@ganache/core": path.resolve(
+        __dirname,
+        "../",
+        "dist",
+        "node",
+        "ganache.min.js"
+      )
+    }
+  ],
+  plugins: [
+    new webpack.BannerPlugin({ banner: "#!/usr/bin/env node", raw: true })
   ],
   module: {
     rules: [

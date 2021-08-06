@@ -2,7 +2,6 @@ import assert from "assert";
 import FilecoinProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import getIpfsClient from "../../helpers/getIpfsClient";
-import { IPFSClient } from "ipfs-http-client";
 import { CID } from "../../../src/things/cid";
 import { StartDealParams } from "../../../src/things/start-deal-params";
 import { RootCID } from "../../../src/things/root-cid";
@@ -60,7 +59,7 @@ describe("api", () => {
     });
 
     describe("Filecoin.ClientStartDeal, Filecoin.ClientListDeals, Ganache.GetDealById, Filecoin.ClientGetDealInfo, and Filecoin.ClientGetDealUpdates", () => {
-      let ipfs: IPFSClient;
+      let ipfs: any;
       let currentDeal: DealInfo = new DealInfo({
         dealId: -1
       });
@@ -230,7 +229,7 @@ describe("api", () => {
     });
 
     describe("Filecoin.ClientFindData, Filecoin.ClientRetrieve, and Filecoin.ClientHasLocal", () => {
-      let ipfs: IPFSClient;
+      let ipfs: any;
       let offer: SerializedQueryOffer;
       let address: string;
       let beginningBalance: string;

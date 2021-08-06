@@ -155,7 +155,9 @@ export default class HttpServer {
 
         let payload: ReturnType<Connector["parse"]>;
         try {
-          const message = buffer ? Buffer.concat([buffer, chunk]) : chunk;
+          const message = buffer
+            ? Buffer.concat([buffer, chunk], buffer.length + chunk.length)
+            : chunk;
           payload = connector.parse(message);
         } catch (e) {
           sendResponse(
@@ -203,9 +205,9 @@ export default class HttpServer {
           });
       } else {
         if (buffer) {
-          buffer = Buffer.concat([buffer, chunk]);
+          buffer = Buffer.concat([buffer, chunk], buffer.length + chunk.length);
         } else {
-          buffer = Buffer.concat([chunk]);
+          buffer = Buffer.concat([chunk], chunk.length);
         }
       }
     });

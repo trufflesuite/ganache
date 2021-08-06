@@ -44,7 +44,7 @@ Ganache can be used from the [command line](#command-line-use) or [programmatica
 
 ### Command line use
 
-You must first install [Node.js](https://nodejs.org/) >= v10.7.0 and npm >= 6.4.1.
+You must first install [Node.js](https://nodejs.org/) >= v10.13.0 and npm >= 6.4.1.
 
 To install ganache globally, run:
 
@@ -89,7 +89,7 @@ HD Wallet
 Mnemonic:      candy maple velvet cake sugar cream honey rich smooth crumble sweet treat
 Base HD Path:  m/44'/60'/0'/0/{account_index}
 
-Gas Price
+Default Gas Price
 ==================
 20000000000
 

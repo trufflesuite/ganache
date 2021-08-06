@@ -1,19 +1,23 @@
 {
   "name": "@ganache/tezos-options",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-canary.2+bb3106bf",
   "description": "",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/tezos/options#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "typings",
   "source": "index.ts",
   "directories": {
     "lib": "lib",
     "test": "tests"
   },
   "files": [
-    "lib"
+    "lib",
+    "typings"
   ],
   "repository": {
     "type": "git",
@@ -42,5 +46,6 @@
     "web3",
     "tooling",
     "truffle"
-  ]
+  ],
+  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
 }

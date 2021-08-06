@@ -11,7 +11,7 @@ export type MinerConfig = {
      * Using the `blockTime` option is discouraged unless you have tests which
      * require a specific mining interval.
      *
-     * @default 0 // "instamine mode"
+     * @defaultValue 0 // "instamine mode"
      */
     blockTime: {
       type: number;
@@ -25,7 +25,7 @@ export type MinerConfig = {
      * Call `Ganache.EnableMiner` or `Ganache.DisableMiner` to enable/disable
      * during runtime.
      *
-     * @default true
+     * @defaultValue true
      */
     mine: {
       type: boolean;

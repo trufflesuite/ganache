@@ -25,7 +25,7 @@ describe("api", () => {
           {
             from: accounts[0],
             data: contract.code,
-            gas: 3141592
+            gas: "0x2fefd8"
           }
         ]);
         await provider.once("message");
@@ -82,10 +82,10 @@ describe("api", () => {
 
             assert.strictEqual(message1.data.result.length, numberOfLogs);
 
-            const unsubResult = await provider.send("eth_unsubscribe", [
+            const unsubscribeResult = await provider.send("eth_unsubscribe", [
               subscriptionId
             ]);
-            assert.strictEqual(unsubResult, true);
+            assert.strictEqual(unsubscribeResult, true);
             await provider.send("eth_sendTransaction", [{ ...tx }]);
             const message = await Promise.race([
               onceMessageFor(subscriptionId),
@@ -119,7 +119,7 @@ describe("api", () => {
             {
               from: accounts[0],
               to: contractAddress,
-              gas: 3141592,
+              gas: "0x2fefd8",
               data: data
             }
           ]);
@@ -145,7 +145,7 @@ describe("api", () => {
             {
               from: accounts[0],
               to: contractAddress,
-              gas: 3141592,
+              gas: "0x2fefd8",
               data: data
             }
           ]);
@@ -174,7 +174,7 @@ describe("api", () => {
             {
               from: accounts[0],
               to: contractAddress,
-              gas: 3141592,
+              gas: "0x2fefd8",
               data: data
             }
           ]); // 0x3
@@ -270,7 +270,7 @@ describe("api", () => {
             {
               from: accounts[0],
               to: contractAddress,
-              gas: 3141592,
+              gas: "0x2fefd8",
               data: data
             }
           ]); // 0x3
@@ -418,14 +418,14 @@ describe("api", () => {
           const tx = { from: accounts[0], to: contractAddress, data };
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
-          let hash = await provider.once("message");
+          let msg = await provider.once("message");
           const changes1 = await provider.send("eth_getFilterChanges", [
             filterId
           ]);
           assert.strictEqual(changes1.length, 1);
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
-          let hash2 = await provider.once("message");
+          let msg2 = await provider.once("message");
           provider.send("eth_sendTransaction", [{ ...tx }]);
           let hash3 = await provider.once("message");
 

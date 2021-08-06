@@ -1,19 +1,23 @@
 {
   "name": "@ganache/colors",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-canary.2+bb3106bf",
   "description": "Truffle's colors, hex encoded",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/colors#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "typings",
   "source": "index.ts",
   "directories": {
     "lib": "lib",
     "test": "test"
   },
   "files": [
-    "lib"
+    "lib",
+    "typings"
   ],
   "repository": {
     "type": "git",
@@ -34,5 +38,6 @@
     "tooling",
     "truffle",
     "truffle-colors"
-  ]
+  ],
+  "gitHead": "bb3106bf9f2f1389096d0b3153dc7e4b463aea69"
 }
