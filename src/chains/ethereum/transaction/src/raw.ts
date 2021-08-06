@@ -38,6 +38,7 @@ export type RawAccessListTx = Concat<TxType, RawAccessListPayload>;
 
 export type TypedRawTransaction = RawLegacyTx | RawAccessListTx;
 export type TypedRawPayload = RawLegacyPayload | RawAccessListPayload;
+export type BlockRawTransaction = RawLegacyPayload | RawAccessListTx;
 
 /**
  * Extra data Ganache stores as part of a transaction in order to support
