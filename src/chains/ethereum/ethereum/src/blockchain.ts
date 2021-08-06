@@ -1261,6 +1261,12 @@ export default class Blockchain extends Emittery.Typed<
       transactionHashBuffer
     );
 
+    // only copy relevant transactions
+    newBlock.transactions = newBlock.transactions.slice(
+      0,
+      1 + transaction.index.toNumber()
+    );
+
     // #2 - Set state root of original block
     //
     // TODO: Forking needs the forked block number passed during this step:
