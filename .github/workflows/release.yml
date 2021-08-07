@@ -32,7 +32,7 @@ jobs:
 
       - name: Version
         # ${GITHUB_REF##*/} is the branch name
-        run: lerna version --yes --exact --sign-git-tag --sign-git-commit --prerelease --preid ${GITHUB_REF##*/}
+        run: lerna version prerelease --yes --exact --sign-git-tag --sign-git-commit --preid ${GITHUB_REF##*/}
 
       - name: Update versions in npm-shrinkwrap
         run: lerna exec -- npm shrinkwrap
