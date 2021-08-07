@@ -14,7 +14,7 @@
     "docs.preview": "lerna run docs.preview",
     "postinstall": "lerna bootstrap && ts-node scripts/link-ts-references.ts && npm run tsc && ts-node scripts/postinstall",
     "reinstall": "npm run clean && npm install",
-    "release": "npm run tsc.clean && npm run tsc && npm test && npm run build && lerna publish --yes --canary --no-git-reset --preid canary --dist-tag canary --force-publish --exact && lerna exec -- npm shrinkwrap && npm run docs.build",
+    "release": "npm run tsc.clean && npm run tsc && npm test && npm run build && lerna publish --yes --no-git-reset --preid canary --dist-tag canary --exact && lerna exec -- npm shrinkwrap && npm run docs.build",
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec --concurrency 1 -- npm run test",
     "tsc": "ttsc --build src",
