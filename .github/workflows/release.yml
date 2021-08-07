@@ -1,0 +1,45 @@
+name: ganache-cli CD
+
+on:
+  push:
+    branches: [canary]
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
+
+      - name: Git Identity
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Version
+        # ${GITHUB_REF##*/} is the branch name
+        run: lerna version --yes --exact --sign-git-tag --sign-git-commit --prerelease --preid ${GITHUB_REF##*/}
+
+      - name: Update versions in npm-shrinkwrap
+        run: lerna exec -- npm shrinkwrap
+
+      - name: Release
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_OTP_KEY: ${{ secrets.NPM_OTP_KEY }}
+        run: npm run otp && lerna publish from-git --yes
