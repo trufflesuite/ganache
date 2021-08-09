@@ -15,9 +15,9 @@ jobs:
 
       - name: Git Identity
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
+          git config --global user.name 'ganache-test-bot'
+          git config --global user.email 'david+ganache-test-bot@trufflesuite.com'
+          git remote set-url origin https://ganache-test-bot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -26,20 +26,25 @@ jobs:
 
       - name: Test
         run: npm test
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
 
       - name: Build
         run: npm run build
 
       - name: Version
         # ${GITHUB_REF##*/} is the branch name
-        run: lerna version prerelease --yes --exact --sign-git-tag --sign-git-commit --preid ${GITHUB_REF##*/}
+        run: $(npm bin)/lerna version prerelease --yes --exact --preid ${GITHUB_REF##*/}
+        # TODO: require signed commits and tags via ` --sign-git-tag --sign-git-commit`
 
       - name: Update versions in npm-shrinkwrap
-        run: lerna exec -- npm shrinkwrap
+        run: $(npm bin)/lerna exec -- npm shrinkwrap
+
+      # - name: Smoke test release
+      # TODO: set up verdaccio to mock npm https://verdaccio.org/
 
       - name: Release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_OTP_KEY: ${{ secrets.NPM_OTP_KEY }}
-        run: npm run otp && lerna publish from-git --yes
+        run: $(npm bin)/lerna publish from-git --yes --dist-tag ${GITHUB_REF##*/} --pre-dist-tag ${GITHUB_REF##*/}
