@@ -45,7 +45,7 @@ jobs:
       - name: Update documentation
         run: |
           npm run docs.build
-          git add docs/**/*
+          git add docs/**
           git commit --amend --no-edit
 
       # TODO: sign the last commit
