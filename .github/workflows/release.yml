@@ -13,15 +13,15 @@ jobs:
         with:
           node-version: 14
 
-      - name: Git Identity
+      - name: Set git identity
         run: |
-          git config --global user.name 'ganache-test-bot'
+          git config --global user.name 'Ganache Bot'
           git config --global user.email 'david+ganache-test-bot@trufflesuite.com'
-          git remote set-url origin https://ganache-test-bot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
+          git remote set-url origin https://ganache-bot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install
+      - name: Run installation
         run: npm ci
 
       # - name: Test
@@ -29,20 +29,20 @@ jobs:
       #   env:
       #     INFURA_KEY: ${{ secrets.INFURA_KEY }}
 
-      - name: Build
+      - name: Run build
         run: npm run build
 
-      - name: Version
+      - name: Update package versions
         # ${GITHUB_REF##*/} is the branch name
         run: $(npm bin)/lerna version --no-push prerelease --yes --exact --preid ${GITHUB_REF##*/}
 
-      - name: Update versions in npm-shrinkwrap
+      - name: Update versions in npm-shrinkwrap.json files
         run: |
           $(npm bin)/lerna exec -- npm shrinkwrap
           git add **/*/npm-shrinkwrap.json
           git commit --amend --no-edit
 
-      - name: Update Docs
+      - name: Update documentation
         run: |
           npm run docs.build
           git add docs/**/*
@@ -50,13 +50,13 @@ jobs:
 
       # TODO: sign the last commit
 
-      - name: Push
+      - name: Push to git
         run: git push origin ${GITHUB_REF##*/}
 
       # - name: Smoke test release
       # TODO: set up verdaccio to mock npm https://verdaccio.org/
 
-      - name: Release
+      - name: Release to npm
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
