@@ -945,6 +945,12 @@
 			"resolved": "https://registry.npmjs.org/@types/minimatch/-/minimatch-3.0.5.tgz",
 			"integrity": "sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ=="
 		},
+		"@types/mocha": {
+			"version": "8.2.2",
+			"resolved": "https://registry.npmjs.org/@types/mocha/-/mocha-8.2.2.tgz",
+			"integrity": "sha512-Lwh0lzzqT5Pqh6z61P3c3P5nm6fzQK/MMHl9UKeneAeInVflBSz1O2EkX6gM6xfJd7FBXBY5purtLx7fUiZ7Hw==",
+			"dev": true
+		},
 		"@types/ms": {
 			"version": "0.7.31",
 			"resolved": "https://registry.npmjs.org/@types/ms/-/ms-0.7.31.tgz",
@@ -1361,6 +1367,12 @@
 			"version": "1.0.0",
 			"resolved": "https://registry.npmjs.org/archy/-/archy-1.0.0.tgz",
 			"integrity": "sha1-+cjBN1fMHde8N5rHeyxipcKGjEA=",
+			"dev": true
+		},
+		"arg": {
+			"version": "4.1.3",
+			"resolved": "https://registry.npmjs.org/arg/-/arg-4.1.3.tgz",
+			"integrity": "sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==",
 			"dev": true
 		},
 		"argparse": {
@@ -2310,10 +2322,16 @@
 				"sha.js": "^2.4.8"
 			}
 		},
+		"create-require": {
+			"version": "1.1.1",
+			"resolved": "https://registry.npmjs.org/create-require/-/create-require-1.1.1.tgz",
+			"integrity": "sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==",
+			"dev": true
+		},
 		"cross-env": {
-			"version": "7.0.2",
-			"resolved": "https://registry.npmjs.org/cross-env/-/cross-env-7.0.2.tgz",
-			"integrity": "sha512-KZP/bMEOJEDCkDQAyRhu3RL2ZO/SUVrxQVI0G3YEQ+OLbRA3c6zgixe8Mq8a/z7+HKlNEjo8oiLUs8iRijY2Rw==",
+			"version": "7.0.3",
+			"resolved": "https://registry.npmjs.org/cross-env/-/cross-env-7.0.3.tgz",
+			"integrity": "sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==",
 			"dev": true,
 			"requires": {
 				"cross-spawn": "^7.0.1"
@@ -2945,9 +2963,9 @@
 			}
 		},
 		"electron-to-chromium": {
-			"version": "1.3.799",
-			"resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.799.tgz",
-			"integrity": "sha512-V2rbYWdGvSqrg+95KjkVuSi41bGfrhrOzjl1tSi2VLnm0mRe3FsSvhiqidSiSll9WiMhrQAhpDcW/wcqK3c+Yw==",
+			"version": "1.3.800",
+			"resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.800.tgz",
+			"integrity": "sha512-qagikPjZJSDWP85uWoxs32oK/xk/y3MhDZELfKRCWI7pBc0ZFlmjnXb+3+aNMaiqboeDJJa0v7CJd5cO1HKwEQ==",
 			"dev": true
 		},
 		"elliptic": {
@@ -8260,6 +8278,12 @@
 				}
 			}
 		},
+		"make-error": {
+			"version": "1.3.6",
+			"resolved": "https://registry.npmjs.org/make-error/-/make-error-1.3.6.tgz",
+			"integrity": "sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==",
+			"dev": true
+		},
 		"marked": {
 			"version": "1.0.0",
 			"resolved": "https://registry.npmjs.org/marked/-/marked-1.0.0.tgz",
@@ -10820,11 +10844,34 @@
 				}
 			}
 		},
+		"ts-node": {
+			"version": "9.1.1",
+			"resolved": "https://registry.npmjs.org/ts-node/-/ts-node-9.1.1.tgz",
+			"integrity": "sha512-hPlt7ZACERQGf03M253ytLY3dHbGNGrAq9qIHWUY9XHYl1z7wYngSr3OQ5xmui8o2AaxsONxIzjafLUiWBo1Fg==",
+			"dev": true,
+			"requires": {
+				"arg": "^4.1.0",
+				"create-require": "^1.1.0",
+				"diff": "^4.0.1",
+				"make-error": "^1.1.1",
+				"source-map-support": "^0.5.17",
+				"yn": "3.1.1"
+			}
+		},
 		"ts-transformer-inline-file": {
 			"version": "0.1.1",
 			"resolved": "https://registry.npmjs.org/ts-transformer-inline-file/-/ts-transformer-inline-file-0.1.1.tgz",
 			"integrity": "sha512-2bPkAFjATsRG4ld8TFTUqn4TvEdXLQf/wwGsepFeRKSXLPqFRhdUHusAGPB1/Zif3CVjppD+bfne58gynd8RfQ==",
 			"dev": true
+		},
+		"ttypescript": {
+			"version": "1.5.12",
+			"resolved": "https://registry.npmjs.org/ttypescript/-/ttypescript-1.5.12.tgz",
+			"integrity": "sha512-1ojRyJvpnmgN9kIHmUnQPlEV1gq+VVsxVYjk/NfvMlHSmYxjK5hEvOOU2MQASrbekTUiUM7pR/nXeCc8bzvMOQ==",
+			"dev": true,
+			"requires": {
+				"resolve": ">=1.9.0"
+			}
 		},
 		"type-detect": {
 			"version": "4.0.8",
@@ -10908,6 +10955,12 @@
 			"requires": {
 				"lunr": "^2.3.8"
 			}
+		},
+		"typescript": {
+			"version": "4.1.3",
+			"resolved": "https://registry.npmjs.org/typescript/-/typescript-4.1.3.tgz",
+			"integrity": "sha512-B3ZIOf1IKeH2ixgHhj6la6xdwR9QrLC5d1VKeCSY4tvkqhF2eqd9O7txNlS0PO3GrBAFIdr3L1ndNwteUbZLYg==",
+			"dev": true
 		},
 		"typical": {
 			"version": "6.0.1",
@@ -11516,6 +11569,12 @@
 			"version": "0.1.2",
 			"resolved": "https://registry.npmjs.org/yeast/-/yeast-0.1.2.tgz",
 			"integrity": "sha1-AI4G2AlDIMNy28L47XagymyKxBk="
+		},
+		"yn": {
+			"version": "3.1.1",
+			"resolved": "https://registry.npmjs.org/yn/-/yn-3.1.1.tgz",
+			"integrity": "sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==",
+			"dev": true
 		},
 		"yocto-queue": {
 			"version": "0.1.0",
