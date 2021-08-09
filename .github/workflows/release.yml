@@ -24,10 +24,10 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Test
-        run: npm test
-        env:
-          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+      # - name: Test
+      #   run: npm test
+      #   env:
+      #     INFURA_KEY: ${{ secrets.INFURA_KEY }}
 
       - name: Build
         run: npm run build
