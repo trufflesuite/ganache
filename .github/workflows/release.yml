@@ -50,6 +50,9 @@ jobs:
 
       # TODO: sign the last commit
 
+      - name: Push
+        run: git push origin ${GITHUB_REF##*/}
+
       # - name: Smoke test release
       # TODO: set up verdaccio to mock npm https://verdaccio.org/
 
