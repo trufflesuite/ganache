@@ -575,11 +575,11 @@ export default class EthereumApi implements Api {
    * @returns `true`.
    * @example
    * ```javascript
-   * console.log(await provider.send("miner_setDefaultGasPrice", [300000] ));
+   * console.log(await provider.send("miner_setGasPrice", [300000] ));
    * ```
    */
   @assertArgLength(1)
-  async miner_setDefaultGasPrice(number: QUANTITY) {
+  async miner_setGasPrice(number: QUANTITY) {
     this.#options.miner.defaultGasPrice = Quantity.from(number);
     return true;
   }
@@ -1285,12 +1285,12 @@ export default class EthereumApi implements Api {
    * @returns Integer of the current gas price in wei.
    * @example
    * ```javascript
-   * const defaultGasPrice = await provider.request({ method: "eth_defaultGasPrice", params: [] });
-   * console.log(defaultGasPrice);
+   * const gasPrice = await provider.request({ method: "eth_gasPrice", params: [] });
+   * console.log(gasPrice);
    * ```
    */
   @assertArgLength(0)
-  async eth_defaultGasPrice() {
+  async eth_gasPrice() {
     return this.#options.miner.defaultGasPrice;
   }
 
