@@ -104,7 +104,7 @@ describe("api", () => {
       });
     });
 
-    describe("miner_setDefaultGasPrice", () => {
+    describe("miner_setGasPrice", () => {
       let provider: EthereumProvider;
       let accounts: string[];
 
@@ -113,15 +113,15 @@ describe("api", () => {
         accounts = await provider.send("eth_accounts");
       });
 
-      it("sets the defaultGasPrice and uses it as the default price in tranactions", async () => {
-        const newDefaultGasPrice = "0xffff";
-        const setState = await provider.send("miner_setDefaultGasPrice", [
-          newDefaultGasPrice
+      it("sets the gasPrice and uses it as the default price in transactions", async () => {
+        const newGasPrice = "0xffff";
+        const setState = await provider.send("miner_setGasPrice", [
+          newGasPrice
         ]);
         assert.strictEqual(setState, true);
 
-        const ethDefaultGasPrice = await provider.send("eth_defaultGasPrice");
-        assert.strictEqual(ethDefaultGasPrice, newDefaultGasPrice);
+        const ethGasPrice = await provider.send("eth_gasPrice");
+        assert.strictEqual(ethGasPrice, newGasPrice);
 
         await provider.send("eth_subscribe", ["newHeads"]);
         const txHash = await provider.send("eth_sendTransaction", [
@@ -132,7 +132,7 @@ describe("api", () => {
         const { gasPrice } = await provider.send("eth_getTransactionByHash", [
           txHash
         ]);
-        assert.strictEqual(gasPrice, newDefaultGasPrice);
+        assert.strictEqual(gasPrice, newGasPrice);
       });
     });
   });
