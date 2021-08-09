@@ -1,4 +1,4 @@
-name: ganache-cli CD
+name: Release
 
 on:
   push:
