@@ -29,16 +29,6 @@ require("./link-ts-references");
 
 execSync("npm run tsc", execArgs);
 
-// lerna breaks yarn.lock/package-lock.json/npm-shrinkwrap.json files
-// by omitting our internal packages from them. We can fix this by
-// running `npm i --only-package-lock` in each package
-if (!lernaUseCi) {
-  execSync(`$(npm bin)/lerna exec --concurrency 1 -- npm shrinkwrap`, execArgs);
-  // shrinkwrapping must be run twice because the first one doesn't pick up the @ganache/*
-  // packages (that lerna removes as part of it's `npm install` process).
-  execSync(`$(npm bin)/lerna exec --concurrency 1 -- npm shrinkwrap`, execArgs);
-}
-
 console.log("");
 console.log(
   chalk`{bold.cyan Tip:} {cyan run} {bold.yellow.dim source completions.sh} {cyan to supply bash completions for npm scripts}`

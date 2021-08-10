@@ -25,8 +25,7 @@
     "directory": "src/packages/utils"
   },
   "scripts": {
-    "tsc": "ttsc --build",
-    "prepublishOnly": "npm prune --production && npm shrinkwrap"
+    "tsc": "ttsc --build"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"

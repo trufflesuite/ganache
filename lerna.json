@@ -5,6 +5,11 @@
     "version": {
       "allowBranch": ["canary"],
       "message": "chore(release): publish"
+    },
+    "bootstrap": {
+      "hoist": true,
+      "npmClientArgs": ["--no-package-lock"],
+      "reject-cycles": true
     }
   }
 }
