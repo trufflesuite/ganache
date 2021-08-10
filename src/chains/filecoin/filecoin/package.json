@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1323",
+  "version": "0.1.1-canary.1324",
   "description": "Ganache's Filecoin client implementation",
   "author": "Tim Coulter",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/filecoin#readme",
@@ -57,8 +57,8 @@
     "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",
     "@filecoin-shipyard/lotus-client-rpc": "0.2.0",
     "@filecoin-shipyard/lotus-client-schema": "2.0.0",
-    "@ganache/filecoin-options": "0.1.1-canary.1323",
-    "@ganache/utils": "0.1.1-canary.1323",
+    "@ganache/filecoin-options": "0.1.1-canary.1324",
+    "@ganache/utils": "0.1.1-canary.1324",
     "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
     "@types/bn.js": "5.1.0",
     "@types/deep-equal": "1.0.1",

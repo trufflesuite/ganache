@@ -29,9 +29,6 @@ jobs:
         env:
           INFURA_KEY: ${{ secrets.INFURA_KEY }}
 
-      - name: Run build
-        run: npm run build
-
       - name: Update package versions
         # ${GITHUB_REF##*/} is the branch name
         run: |
@@ -39,6 +36,9 @@ jobs:
           echo 'TAGS<<EOF' >> $GITHUB_ENV
           git tag --points-at HEAD >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
+
+      - name: Run build
+        run: npm run build
 
       # - name: Update versions in npm-shrinkwrap.json files
       #   run: |
