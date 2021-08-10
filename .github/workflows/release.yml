@@ -24,10 +24,10 @@ jobs:
       - name: Run installation
         run: npm ci
 
-      # - name: Test
-      #   run: npm test
-      #   env:
-      #     INFURA_KEY: ${{ secrets.INFURA_KEY }}
+      - name: Test
+        run: npm test
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
 
       - name: Run build
         run: npm run build
@@ -36,7 +36,9 @@ jobs:
         # ${GITHUB_REF##*/} is the branch name
         run: |
           $(npm bin)/lerna version prerelease --no-push --yes --exact --preid ${GITHUB_REF##*/}
-          TAGS=$(git tag -l --points-at HEAD)
+          echo 'TAGS<<EOF' >> $GITHUB_ENV
+          git tag --points-at HEAD >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Update versions in npm-shrinkwrap.json files
         run: |
@@ -50,9 +52,9 @@ jobs:
           git add docs/**
           git commit --amend --no-edit
 
-      # TODO: sign the last commit and tag
+      # # TODO: sign the last commit and tag
       - name: Tag the amended release commit
-        run: for val in $TAGS; do git tag -a $val --force; done
+        run: while IFS= read -r line ; do git tag -a $line -m $line --force; done <<< "${{ env.TAGS }}"
 
       - name: Push changes to git
         run: |
@@ -60,10 +62,11 @@ jobs:
           git push origin --tags
 
       # - name: Smoke test release
-      # TODO: set up verdaccio to mock npm https://verdaccio.org/
+      #   TODO: set up verdaccio to mock npm https://verdaccio.org/
 
       - name: Release to npm
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: $(npm bin)/lerna publish from-git --yes --dist-tag ${GITHUB_REF##*/} --pre-dist-tag ${GITHUB_REF##*/}
+          # need --no-verify-access until https://github.com/lerna/lerna/issues/2788 is fixed
+        run: $(npm bin)/lerna publish from-git --yes --dist-tag ${GITHUB_REF##*/} --pre-dist-tag ${GITHUB_REF##*/} --no-verify-access
