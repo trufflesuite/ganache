@@ -1982,9 +1982,9 @@
       }
     },
     "@octokit/openapi-types": {
-      "version": "9.4.0",
-      "resolved": "https://registry.npmjs.org/@octokit/openapi-types/-/openapi-types-9.4.0.tgz",
-      "integrity": "sha512-rKRkXikOJgDNImPl49IJuECLVXjj+t4qOXHhl8SBjMQCGGp1w4m5Ud/0kfdUx+zCpTvBN8vaOUDF4nnboZoOtQ==",
+      "version": "9.5.0",
+      "resolved": "https://registry.npmjs.org/@octokit/openapi-types/-/openapi-types-9.5.0.tgz",
+      "integrity": "sha512-AEq5uAZJCnrOuNUg91yDjkE3mXyMq2lSiJpOpDyzy1e2mT1CSpsu8Yf7DuabD7TmQi0UEC8o0YrDjeXgNoI54Q==",
       "dev": true
     },
     "@octokit/plugin-enterprise-rest": {
@@ -1994,12 +1994,12 @@
       "dev": true
     },
     "@octokit/plugin-paginate-rest": {
-      "version": "2.15.0",
-      "resolved": "https://registry.npmjs.org/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-2.15.0.tgz",
-      "integrity": "sha512-/vjcb0w6ggVRtsb8OJBcRR9oEm+fpdo8RJk45khaWw/W0c8rlB2TLCLyZt/knmC17NkX7T9XdyQeEY7OHLSV1g==",
+      "version": "2.15.1",
+      "resolved": "https://registry.npmjs.org/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-2.15.1.tgz",
+      "integrity": "sha512-47r52KkhQDkmvUKZqXzA1lKvcyJEfYh3TKAIe5+EzMeyDM3d+/s5v11i2gTk8/n6No6DPi3k5Ind6wtDbo/AEg==",
       "dev": true,
       "requires": {
-        "@octokit/types": "^6.23.0"
+        "@octokit/types": "^6.24.0"
       }
     },
     "@octokit/plugin-request-log": {
@@ -2064,12 +2064,12 @@
       }
     },
     "@octokit/types": {
-      "version": "6.24.0",
-      "resolved": "https://registry.npmjs.org/@octokit/types/-/types-6.24.0.tgz",
-      "integrity": "sha512-MfEimJeQ8AV1T2nI5kOfHqsqPHaAnG0Dw3MVoHSEsEq6iLKx2N91o+k2uAgXhPYeSE76LVBqjgTShnFFgNwe0A==",
+      "version": "6.25.0",
+      "resolved": "https://registry.npmjs.org/@octokit/types/-/types-6.25.0.tgz",
+      "integrity": "sha512-bNvyQKfngvAd/08COlYIN54nRgxskmejgywodizQNyiKoXmWRAjKup2/LYwm+T9V0gsKH6tuld1gM0PzmOiB4Q==",
       "dev": true,
       "requires": {
-        "@octokit/openapi-types": "^9.4.0"
+        "@octokit/openapi-types": "^9.5.0"
       }
     },
     "@tootallnate/once": {
@@ -5736,9 +5736,9 @@
       }
     },
     "node-releases": {
-      "version": "1.1.73",
-      "resolved": "https://registry.npmjs.org/node-releases/-/node-releases-1.1.73.tgz",
-      "integrity": "sha512-uW7fodD6pyW2FZNZnp/Z3hvWKeEW1Y8R1+1CnErE8cXFXzl5blBOoVB41CvMer6P6Q0S5FXDwcHgFd1Wj0U9zg==",
+      "version": "1.1.74",
+      "resolved": "https://registry.npmjs.org/node-releases/-/node-releases-1.1.74.tgz",
+      "integrity": "sha512-caJBVempXZPepZoZAPCWRTNxYQ+xtG/KAi4ozTA5A+nJ7IU+kLQCbqaUjb5Rwy14M9upBWiQ4NutcmW04LJSRw==",
       "dev": true
     },
     "nopt": {
