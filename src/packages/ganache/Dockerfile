@@ -7,7 +7,7 @@ COPY . .
 
 # clean and install dependencies
 RUN npm run clean
-RUN npm ci --unsafe-perm
+RUN npm i --unsafe-perm
 
 # build application
 RUN npm run build
