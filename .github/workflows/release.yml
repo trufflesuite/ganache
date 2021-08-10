@@ -61,6 +61,11 @@ jobs:
           git push origin ${GITHUB_REF##*/}
           git push origin --tags
 
+      - name: Set up auth for npm publish
+        run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       # - name: Smoke test release
       #   TODO: set up verdaccio to mock npm https://verdaccio.org/
 
