@@ -34,7 +34,9 @@ jobs:
 
       - name: Update package versions
         # ${GITHUB_REF##*/} is the branch name
-        run: $(npm bin)/lerna version --no-push prerelease --yes --exact --preid ${GITHUB_REF##*/}
+        run: |
+          $(npm bin)/lerna version prerelease --no-push --yes --exact --preid ${GITHUB_REF##*/}
+          TAGS=$(git tag -l --points-at HEAD)
 
       - name: Update versions in npm-shrinkwrap.json files
         run: |
@@ -48,10 +50,14 @@ jobs:
           git add docs/**
           git commit --amend --no-edit
 
-      # TODO: sign the last commit
+      # TODO: sign the last commit and tag
+      - name: Tag the amended release commit
+        run: for val in $TAGS; do git tag -a $val --force; done
 
-      - name: Push to git
-        run: git push origin ${GITHUB_REF##*/}
+      - name: Push changes to git
+        run: |
+          git push origin ${GITHUB_REF##*/}
+          git push origin --tags
 
       # - name: Smoke test release
       # TODO: set up verdaccio to mock npm https://verdaccio.org/
