@@ -1,11 +1,11 @@
 {
   "name": "@ganache/options",
-  "version": "0.1.1-canary.1320",
+  "version": "0.1.1-canary.1321",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
     "@ganache/utils": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "requires": {
         "bigint-buffer": "1.1.5",
         "emittery": "0.7.2",
