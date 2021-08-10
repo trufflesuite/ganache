@@ -64,9 +64,9 @@ jobs:
       # - name: Smoke test release
       #   TODO: set up verdaccio to mock npm https://verdaccio.org/
 
+      # this needs `--no-verify-access` until https://github.com/lerna/lerna/issues/2788 is fixed
       - name: Release to npm
+        run: $(npm bin)/lerna publish from-git --yes --dist-tag ${GITHUB_REF##*/} --pre-dist-tag ${GITHUB_REF##*/} --no-verify-access
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # need --no-verify-access until https://github.com/lerna/lerna/issues/2788 is fixed
-        run: $(npm bin)/lerna publish from-git --yes --dist-tag ${GITHUB_REF##*/} --pre-dist-tag ${GITHUB_REF##*/} --no-verify-access
