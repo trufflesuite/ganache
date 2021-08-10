@@ -72,6 +72,5 @@
     "chalk": "4.1.0",
     "ethereumjs-util": "7.0.9",
     "marked-terminal": "4.1.0"
-  },
-  "gitHead": "5e6032d29ca8134eac334b59ffceab091f84db27"
+  }
 }

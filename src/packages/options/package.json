@@ -48,7 +48,6 @@
     "bip39": "3.0.2",
     "seedrandom": "3.0.5"
   },
-  "gitHead": "5e6032d29ca8134eac334b59ffceab091f84db27",
   "devDependencies": {
     "@types/mocha": "8.2.2",
     "cross-env": "7.0.3",

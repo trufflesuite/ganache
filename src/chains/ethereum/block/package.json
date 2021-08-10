@@ -65,6 +65,5 @@
     "@ganache/utils": "0.1.1-canary.1321",
     "emittery": "0.7.2",
     "ethereumjs-util": "7.0.9"
-  },
-  "gitHead": "5e6032d29ca8134eac334b59ffceab091f84db27"
+  }
 }

@@ -101,6 +101,5 @@
     "webpack": "5.21.2",
     "webpack-cli": "4.5.0",
     "ws": "7.4.6"
-  },
-  "gitHead": "5e6032d29ca8134eac334b59ffceab091f84db27"
+  }
 }
