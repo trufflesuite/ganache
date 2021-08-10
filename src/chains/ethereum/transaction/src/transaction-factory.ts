@@ -100,7 +100,11 @@ export class TransactionFactory {
   }
 
   public static typeOfRaw(raw: TypedRawTransaction | RawLegacyPayload) {
-    const type = raw[0][0]; // TODO this can be unsafe to pass to typeOf. What if the first value is nonce of 1? will look like a different tx
+    // length of raw legacy payload. All other TXs will start with the type.
+    if (raw.length === 9) {
+      return LegacyTransaction;
+    }
+    const type = raw[0][0];
     return this.typeOf(type);
   }
 

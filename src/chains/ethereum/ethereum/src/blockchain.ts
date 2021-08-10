@@ -664,7 +664,7 @@ export default class Blockchain extends Emittery.Typed<
       Quantity.from(BUFFER_32_ZERO),
       this.coinbase,
       blockGasLimit.toBuffer(),
-      BUFFER_ZERO, // TODO, verify
+      BUFFER_ZERO,
       Quantity.from(timestamp),
       this.#options.miner.difficulty,
       RPCQUANTITY_ZERO // we start the totalDifficulty at 0
@@ -1187,7 +1187,7 @@ export default class Blockchain extends Emittery.Typed<
       parentBlock.hash(),
       parentBlock.header.miner,
       parentBlock.header.gasLimit.toBuffer(),
-      BUFFER_ZERO, //TODO, confirm
+      BUFFER_ZERO,
       // make sure we use the same timestamp as the target block
       targetBlock.header.timestamp,
       this.#options.miner.difficulty,
