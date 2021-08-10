@@ -31,7 +31,8 @@
     "build": "webpack",
     "tsc": "ttsc --build",
     "test": "ts-node ../../../../scripts/skip-if-less-than-node-12.ts || nyc --reporter lcov npm run mocha",
-    "mocha": "ts-node ../../../../scripts/skip-if-less-than-node-12.ts || cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.test.json mocha --timeout 60000 --no-parallel --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "ts-node ../../../../scripts/skip-if-less-than-node-12.ts || cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.test.json mocha --timeout 60000 --no-parallel --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
+    "prepublishOnly": "npm prune --production && npm shrinkwrap"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"

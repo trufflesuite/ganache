@@ -27,7 +27,8 @@
   "scripts": {
     "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --require ts-node/register --recursive --check-leaks 'tests/**.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --require ts-node/register --recursive --check-leaks 'tests/**.ts'",
+    "prepublishOnly": "npm prune --production && npm shrinkwrap"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
