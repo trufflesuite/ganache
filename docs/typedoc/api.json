@@ -1049,6 +1049,9 @@
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "Integer of the transaction index position."
+											},
 											"type": {
 												"type": "intrinsic",
 												"name": "number"
@@ -1077,6 +1080,9 @@
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
+											},
+											"comment": {
+												"text": "Hash of the start key for grabbing storage entries."
 											},
 											"type": {
 												"type": "reference",
@@ -7582,7 +7588,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The passphrase to encrypt the private key with."
+												"text": "The raw, unencrypted private key to import."
 											},
 											"type": {
 												"type": "reference",
@@ -7598,7 +7604,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The raw, unencrypted private key to import."
+												"text": "The passphrase to encrypt with."
 											},
 											"type": {
 												"type": "intrinsic",
@@ -7737,7 +7743,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "\n"
+												"text": "The account address to be locked."
 											},
 											"type": {
 												"type": "reference",
@@ -7814,7 +7820,7 @@
 												"isExported": true
 											},
 											"comment": {
-												"text": "The passphrase to encrypt with."
+												"text": "The passphrase to encrypt the private key with."
 											},
 											"type": {
 												"type": "intrinsic",

@@ -1,5 +1,5 @@
 import Manager from "./manager";
-import { Tag, Block, QUANTITY } from "@ganache/ethereum-utils";
+import { Tag, QUANTITY } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
@@ -87,7 +87,9 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST) {
+  getEffectiveNumber(
+    tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+  ): Quantity {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {

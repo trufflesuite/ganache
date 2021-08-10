@@ -17,7 +17,8 @@ import {
   SubscriptionId,
   SubscriptionName,
   TraceTransactionResult,
-  TransactionTraceOptions
+  TransactionTraceOptions,
+  EthereumRawAccount
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
@@ -29,7 +30,14 @@ import {
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { types, Data, Quantity, PromiEvent, utils } from "@ganache/utils";
+import {
+  types,
+  Data,
+  Quantity,
+  PromiEvent,
+  utils,
+  JsonRpcTypes
+} from "@ganache/utils";
 import Blockchain from "./blockchain";
 import Wallet from "./wallet";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
@@ -926,14 +934,14 @@ export default class EthereumApi implements types.Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getBlockTransactionCountByNumber(number: QUANTITY | Tag) {
-    const rawBlock = await this.#blockchain.blocks.getRaw(number);
-    if (rawBlock) {
-      const data = rlpDecode(rawBlock);
-      return Quantity.from((data[1] as any).length);
-    } else {
-      return null;
-    }
+  async eth_getBlockTransactionCountByNumber(blockNumber: QUANTITY | Tag) {
+    const { blocks } = this.#blockchain;
+    const blockNum = blocks.getEffectiveNumber(blockNumber);
+    const rawBlock = await blocks.getRawByBlockNumber(blockNum);
+    if (!rawBlock) return null;
+
+    const [, rawTransactions] = decode<GanacheRawBlock>(rawBlock);
+    return Quantity.from(rawTransactions.length);
   }
 
   /**
@@ -964,14 +972,15 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1)
   async eth_getBlockTransactionCountByHash(hash: DATA) {
-    const number = await this.#blockchain.blocks.getNumberFromHash(hash);
-    if (number) {
-      return this.eth_getBlockTransactionCountByNumber(
-        Quantity.from(number).toNumber()
-      );
-    } else {
-      return null;
-    }
+    const { blocks } = this.#blockchain;
+    const blockNum = await blocks.getNumberFromHash(hash);
+    if (!blockNum) return null;
+
+    const rawBlock = await blocks.getRawByBlockNumber(Quantity.from(blockNum));
+    if (!rawBlock) return null;
+
+    const [, rawTransactions] = decode<GanacheRawBlock>(rawBlock);
+    return Quantity.from(rawTransactions.length);
   }
 
   /**
@@ -1388,45 +1397,8 @@ export default class EthereumApi implements types.Api {
    */
   @assertArgLength(1, 2)
   async eth_getCode(address: DATA, blockNumber: QUANTITY | Tag = Tag.LATEST) {
-    const blockchain = this.#blockchain;
-    const blockProm = blockchain.blocks.getRaw(blockNumber);
-
-    const trie = blockchain.trie.copy();
-    const block = await blockProm;
-    if (!block) throw new Error("header not found");
-
-    const blockData = (rlpDecode(block) as unknown) as [
-      [Buffer, Buffer, Buffer, Buffer /* stateRoot */] /* header */,
-      Buffer[],
-      Buffer[]
-    ];
-    const headerData = blockData[0];
-    const blockStateRoot = headerData[3];
-    trie.root = blockStateRoot;
-
-    const addressDataPromise = this.#blockchain.getFromTrie(
-      trie,
-      Address.from(address).toBuffer()
-    );
-
-    const addressData = await addressDataPromise;
-    // An address's codeHash is stored in the 4th rlp entry
-    const codeHash = ((rlpDecode(addressData) as any) as [
-      Buffer /*nonce*/,
-      Buffer /*amount*/,
-      Buffer /*stateRoot*/,
-      Buffer /*codeHash*/
-    ])[3];
-    // if this address isn't a contract, return 0x
-    if (!codeHash || KECCAK256_NULL.equals(codeHash)) {
-      return Data.from("0x");
-    }
-    return new Promise((resolve, reject) => {
-      trie.getRaw(codeHash, (err: Error, data: Buffer) => {
-        if (err) return void reject(err);
-        resolve(Data.from(data));
-      });
-    });
+    const { accounts } = this.#blockchain;
+    return accounts.getCode(Address.from(address), blockNumber);
   }
 
   /**
@@ -2523,7 +2495,7 @@ export default class EthereumApi implements types.Api {
    * return storage data given a starting key and max number of entries to return.
    *
    * @param blockHash Hash of a block.
-   * @param txIndex Integer of the transaction index position.
+   * @param transactionIndex Integer of the transaction index position.
    * @param contractAddress Address of the contract.
    * @param startKey Hash of the start key for grabbing storage entries.
    * @param maxResult Integer of maximum number of storage entries to return.
@@ -2913,7 +2885,7 @@ export default class EthereumApi implements types.Api {
 
   /**
    * Uninstalls a filter with given id. Should always be called when watch is no longer needed.
-   * Additonally filters timeout when they aren't requested with `shh_getFilterChanges` for a period of time.
+   * Additionally filters timeout when they aren't requested with `shh_getFilterChanges` for a period of time.
    *
    * @param id The filter id. Ex: "0x7"
    * @returns `true` if the filter was successfully uninstalled, otherwise `false`.

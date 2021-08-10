@@ -10,7 +10,6 @@ export * from "./things/trace-data";
 export * from "./things/trace-storage-map";
 
 export * from "./types/debug-storage";
-export * from "./types/executables";
 export * from "./types/extract-values-from-types";
 export * from "./types/filters";
 export * from "./types/hex-datatypes";

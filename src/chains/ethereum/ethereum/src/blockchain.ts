@@ -16,7 +16,8 @@ import {
   StorageRecords,
   RangedStorageKeys,
   StructLog,
-  TransactionTraceOptions
+  TransactionTraceOptions,
+  EthereumRawAccount
 } from "@ganache/ethereum-utils";
 import { decode } from "@ganache/rlp";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
