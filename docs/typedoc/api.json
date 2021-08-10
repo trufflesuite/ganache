@@ -12,7 +12,7 @@
 			"flags": {
 				"isExported": true
 			},
-			"originalName": "/home/david/work/ganache-core/src/chains/ethereum/ethereum/src/api.ts",
+			"originalName": "/home/runner/work/ganache-core/ganache-core/src/chains/ethereum/ethereum/src/api.ts",
 			"children": [
 				{
 					"id": 2,
@@ -1558,65 +1558,6 @@
 							]
 						},
 						{
-							"id": 167,
-							"name": "eth_defaultGasPrice",
-							"kind": 2048,
-							"kindString": "Method",
-							"flags": {
-								"isExported": true
-							},
-							"decorators": [
-								{
-									"name": "assertArgLength",
-									"type": {
-										"type": "reference",
-										"name": "assertArgLength"
-									},
-									"arguments": {
-										"min": "0"
-									}
-								}
-							],
-							"signatures": [
-								{
-									"id": 168,
-									"name": "eth_defaultGasPrice",
-									"kind": 4096,
-									"kindString": "Call signature",
-									"flags": {
-										"isExported": true
-									},
-									"comment": {
-										"shortText": "Returns the current price per gas in wei.",
-										"returns": "Integer of the current gas price in wei.",
-										"tags": [
-											{
-												"tag": "example",
-												"text": "\n```javascript\nconst defaultGasPrice = await provider.request({ method: \"eth_defaultGasPrice\", params: [] });\nconsole.log(defaultGasPrice);\n```\n"
-											}
-										]
-									},
-									"type": {
-										"type": "reference",
-										"typeArguments": [
-											{
-												"type": "reference",
-												"name": "Quantity"
-											}
-										],
-										"name": "Promise"
-									}
-								}
-							],
-							"sources": [
-								{
-									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1293,
-									"character": 27
-								}
-							]
-						},
-						{
 							"id": 103,
 							"name": "eth_estimateGas",
 							"kind": 2048,
@@ -1718,6 +1659,65 @@
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
 									"line": 729,
 									"character": 23
+								}
+							]
+						},
+						{
+							"id": 167,
+							"name": "eth_gasPrice",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"decorators": [
+								{
+									"name": "assertArgLength",
+									"type": {
+										"type": "reference",
+										"name": "assertArgLength"
+									},
+									"arguments": {
+										"min": "0"
+									}
+								}
+							],
+							"signatures": [
+								{
+									"id": 168,
+									"name": "eth_gasPrice",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {
+										"isExported": true
+									},
+									"comment": {
+										"shortText": "Returns the current price per gas in wei.",
+										"returns": "Integer of the current gas price in wei.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst gasPrice = await provider.request({ method: \"eth_gasPrice\", params: [] });\nconsole.log(gasPrice);\n```\n"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "reference",
+												"name": "Quantity"
+											}
+										],
+										"name": "Promise"
+									}
+								}
+							],
+							"sources": [
+								{
+									"fileName": "chains/ethereum/ethereum/src/api.ts",
+									"line": 1293,
+									"character": 20
 								}
 							]
 						},
@@ -7011,83 +7011,6 @@
 							]
 						},
 						{
-							"id": 83,
-							"name": "miner_setDefaultGasPrice",
-							"kind": 2048,
-							"kindString": "Method",
-							"flags": {
-								"isExported": true
-							},
-							"decorators": [
-								{
-									"name": "assertArgLength",
-									"type": {
-										"type": "reference",
-										"name": "assertArgLength"
-									},
-									"arguments": {
-										"min": "1"
-									}
-								}
-							],
-							"signatures": [
-								{
-									"id": 84,
-									"name": "miner_setDefaultGasPrice",
-									"kind": 4096,
-									"kindString": "Call signature",
-									"flags": {
-										"isExported": true
-									},
-									"comment": {
-										"shortText": "Sets the default accepted gas price when mining transactions.\nAny transactions that don't specify a gas price will use this amount.\nTransactions that are below this limit are excluded from the mining process.",
-										"returns": "`true`.",
-										"tags": [
-											{
-												"tag": "example",
-												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setDefaultGasPrice\", [300000] ));\n```\n"
-											}
-										]
-									},
-									"parameters": [
-										{
-											"id": 85,
-											"name": "number",
-											"kind": 32768,
-											"kindString": "Parameter",
-											"flags": {
-												"isExported": true
-											},
-											"comment": {
-												"text": "Default accepted gas price."
-											},
-											"type": {
-												"type": "reference",
-												"name": "QUANTITY"
-											}
-										}
-									],
-									"type": {
-										"type": "reference",
-										"typeArguments": [
-											{
-												"type": "intrinsic",
-												"name": "boolean"
-											}
-										],
-										"name": "Promise"
-									}
-								}
-							],
-							"sources": [
-								{
-									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 582,
-									"character": 32
-								}
-							]
-						},
-						{
 							"id": 86,
 							"name": "miner_setEtherbase",
 							"kind": 2048,
@@ -7238,6 +7161,83 @@
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
 									"line": 613,
 									"character": 22
+								}
+							]
+						},
+						{
+							"id": 83,
+							"name": "miner_setGasPrice",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"decorators": [
+								{
+									"name": "assertArgLength",
+									"type": {
+										"type": "reference",
+										"name": "assertArgLength"
+									},
+									"arguments": {
+										"min": "1"
+									}
+								}
+							],
+							"signatures": [
+								{
+									"id": 84,
+									"name": "miner_setGasPrice",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {
+										"isExported": true
+									},
+									"comment": {
+										"shortText": "Sets the default accepted gas price when mining transactions.\nAny transactions that don't specify a gas price will use this amount.\nTransactions that are below this limit are excluded from the mining process.",
+										"returns": "`true`.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconsole.log(await provider.send(\"miner_setGasPrice\", [300000] ));\n```\n"
+											}
+										]
+									},
+									"parameters": [
+										{
+											"id": 85,
+											"name": "number",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {
+												"isExported": true
+											},
+											"comment": {
+												"text": "Default accepted gas price."
+											},
+											"type": {
+												"type": "reference",
+												"name": "QUANTITY"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "intrinsic",
+												"name": "boolean"
+											}
+										],
+										"name": "Promise"
+									}
+								}
+							],
+							"sources": [
+								{
+									"fileName": "chains/ethereum/ethereum/src/api.ts",
+									"line": 582,
+									"character": 25
 								}
 							]
 						},
@@ -9273,8 +9273,8 @@
 								301,
 								173,
 								111,
-								167,
 								103,
+								167,
 								175,
 								117,
 								113,
@@ -9321,9 +9321,9 @@
 								63,
 								69,
 								71,
-								83,
 								86,
 								89,
+								83,
 								78,
 								81,
 								99,
