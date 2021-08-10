@@ -12,7 +12,7 @@
     "create": "ts-node scripts/create",
     "docs.build": "shx cp -r src/packages/ganache/dist/web/* docs/assets/js/ganache && lerna run docs.build && ts-node scripts/build-docs/",
     "docs.preview": "lerna run docs.preview",
-    "postinstall": "lerna bootstrap && ts-node scripts/link-ts-references.ts && npm run tsc && ts-node scripts/postinstall",
+    "postinstall": "lerna bootstrap -no-ci && ts-node scripts/link-ts-references.ts && npm run tsc && ts-node scripts/postinstall",
     "reinstall": "npm run clean && npm install",
     "release": "npm run tsc.clean && npm run tsc && npm test && npm run build && lerna publish --yes --canary --no-git-reset --preid canary --dist-tag canary --force-publish --exact && npm run docs.build",
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
