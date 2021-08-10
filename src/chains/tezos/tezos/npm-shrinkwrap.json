@@ -1,19 +1,19 @@
 {
   "name": "@ganache/tezos",
-  "version": "0.1.1-canary.1320",
+  "version": "0.1.1-canary.1321",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
     "@ganache/options": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "requires": {
-        "@ganache/utils": "0.1.1-canary.1320",
+        "@ganache/utils": "0.1.1-canary.1321",
         "bip39": "3.0.2",
         "seedrandom": "3.0.5"
       },
       "dependencies": {
         "@ganache/utils": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "bigint-buffer": "1.1.5",
             "emittery": "0.7.2",
@@ -2195,7 +2195,7 @@
       }
     },
     "@ganache/utils": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "requires": {
         "bigint-buffer": "1.1.5",
         "emittery": "0.7.2",

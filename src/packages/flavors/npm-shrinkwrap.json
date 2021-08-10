@@ -1,11 +1,11 @@
 {
   "name": "@ganache/flavors",
-  "version": "0.1.1-canary.1320",
+  "version": "0.1.1-canary.1321",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
     "@ganache/colors": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "dependencies": {
         "@types/mocha": {
           "version": "https://registry.npmjs.org/@types/mocha/-/mocha-8.2.2.tgz",
@@ -813,21 +813,21 @@
       }
     },
     "@ganache/ethereum": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "requires": {
         "@ethereumjs/block": "3.2.0",
         "@ethereumjs/common": "2.3.0",
         "@ethereumjs/tx": "3.1.1",
         "@ethereumjs/vm": "5.2.0",
-        "@ganache/ethereum-address": "0.1.1-canary.1320",
-        "@ganache/ethereum-block": "0.1.1-canary.1320",
-        "@ganache/ethereum-options": "0.1.1-canary.1320",
-        "@ganache/ethereum-transaction": "0.1.1-canary.1320",
-        "@ganache/ethereum-utils": "0.1.1-canary.1320",
-        "@ganache/options": "0.1.1-canary.1320",
-        "@ganache/promise-queue": "0.1.1-canary.1320",
-        "@ganache/rlp": "0.1.1-canary.1320",
-        "@ganache/utils": "0.1.1-canary.1320",
+        "@ganache/ethereum-address": "0.1.1-canary.1321",
+        "@ganache/ethereum-block": "0.1.1-canary.1321",
+        "@ganache/ethereum-options": "0.1.1-canary.1321",
+        "@ganache/ethereum-transaction": "0.1.1-canary.1321",
+        "@ganache/ethereum-utils": "0.1.1-canary.1321",
+        "@ganache/options": "0.1.1-canary.1321",
+        "@ganache/promise-queue": "0.1.1-canary.1321",
+        "@ganache/rlp": "0.1.1-canary.1321",
+        "@ganache/utils": "0.1.1-canary.1321",
         "abort-controller": "3.0.0",
         "bip39": "3.0.2",
         "bufferutil": "4.0.3",
@@ -1245,9 +1245,9 @@
           }
         },
         "@ganache/ethereum-address": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
-            "@ganache/utils": "0.1.1-canary.1320"
+            "@ganache/utils": "0.1.1-canary.1321"
           },
           "dependencies": {
             "@babel/code-frame": {
@@ -1520,7 +1520,7 @@
               }
             },
             "@ganache/utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "bigint-buffer": "1.1.5",
                 "emittery": "0.7.2",
@@ -4320,14 +4320,14 @@
           }
         },
         "@ganache/ethereum-block": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "@ethereumjs/common": "2.3.0",
-            "@ganache/ethereum-address": "0.1.1-canary.1320",
-            "@ganache/ethereum-transaction": "0.1.1-canary.1320",
-            "@ganache/ethereum-utils": "0.1.1-canary.1320",
-            "@ganache/rlp": "0.1.1-canary.1320",
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/ethereum-address": "0.1.1-canary.1321",
+            "@ganache/ethereum-transaction": "0.1.1-canary.1321",
+            "@ganache/ethereum-utils": "0.1.1-canary.1321",
+            "@ganache/rlp": "0.1.1-canary.1321",
+            "@ganache/utils": "0.1.1-canary.1321",
             "emittery": "0.7.2",
             "ethereumjs-util": "7.0.9"
           },
@@ -4626,9 +4626,9 @@
               }
             },
             "@ganache/ethereum-address": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
-                "@ganache/utils": "0.1.1-canary.1320"
+                "@ganache/utils": "0.1.1-canary.1321"
               },
               "dependencies": {
                 "@babel/code-frame": {
@@ -4851,7 +4851,7 @@
                   }
                 },
                 "@ganache/utils": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
                     "bigint-buffer": "1.1.5",
                     "emittery": "0.7.2",
@@ -6063,13 +6063,13 @@
               }
             },
             "@ganache/ethereum-transaction": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "@ethereumjs/common": "2.3.0",
-                "@ganache/ethereum-address": "0.1.1-canary.1320",
-                "@ganache/ethereum-utils": "0.1.1-canary.1320",
-                "@ganache/rlp": "0.1.1-canary.1320",
-                "@ganache/utils": "0.1.1-canary.1320",
+                "@ganache/ethereum-address": "0.1.1-canary.1321",
+                "@ganache/ethereum-utils": "0.1.1-canary.1321",
+                "@ganache/rlp": "0.1.1-canary.1321",
+                "@ganache/utils": "0.1.1-canary.1321",
                 "ethereumjs-util": "7.0.9",
                 "node-gyp-build": "4.2.3"
               },
@@ -6546,9 +6546,9 @@
                   }
                 },
                 "@ganache/ethereum-address": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
-                    "@ganache/utils": "0.1.1-canary.1320"
+                    "@ganache/utils": "0.1.1-canary.1321"
                   },
                   "dependencies": {
                     "@babel/code-frame": {
@@ -6771,7 +6771,7 @@
                       }
                     },
                     "@ganache/utils": {
-                      "version": "0.1.1-canary.1320",
+                      "version": "0.1.1-canary.1321",
                       "requires": {
                         "bigint-buffer": "1.1.5",
                         "emittery": "0.7.2",
@@ -7983,14 +7983,14 @@
                   }
                 },
                 "@ganache/ethereum-utils": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
                     "@ethereumjs/common": "2.3.0",
                     "@ethereumjs/tx": "3.1.1",
                     "@ethereumjs/vm": "5.2.0",
-                    "@ganache/ethereum-address": "0.1.1-canary.1320",
-                    "@ganache/rlp": "0.1.1-canary.1320",
-                    "@ganache/utils": "0.1.1-canary.1320",
+                    "@ganache/ethereum-address": "0.1.1-canary.1321",
+                    "@ganache/rlp": "0.1.1-canary.1321",
+                    "@ganache/utils": "0.1.1-canary.1321",
                     "emittery": "0.7.2",
                     "ethereumjs-abi": "0.6.8",
                     "ethereumjs-util": "7.0.9"
@@ -8155,9 +8155,9 @@
                       }
                     },
                     "@ganache/ethereum-address": {
-                      "version": "0.1.1-canary.1320",
+                      "version": "0.1.1-canary.1321",
                       "requires": {
-                        "@ganache/utils": "0.1.1-canary.1320"
+                        "@ganache/utils": "0.1.1-canary.1321"
                       },
                       "dependencies": {
                         "@babel/code-frame": {
@@ -8380,7 +8380,7 @@
                           }
                         },
                         "@ganache/utils": {
-                          "version": "0.1.1-canary.1320",
+                          "version": "0.1.1-canary.1321",
                           "requires": {
                             "bigint-buffer": "1.1.5",
                             "emittery": "0.7.2",
@@ -9592,9 +9592,9 @@
                       }
                     },
                     "@ganache/rlp": {
-                      "version": "0.1.1-canary.1320",
+                      "version": "0.1.1-canary.1321",
                       "requires": {
-                        "@ganache/utils": "0.1.1-canary.1320",
+                        "@ganache/utils": "0.1.1-canary.1321",
                         "rlp": "2.2.6"
                       },
                       "dependencies": {
@@ -9868,7 +9868,7 @@
                           }
                         },
                         "@ganache/utils": {
-                          "version": "0.1.1-canary.1320",
+                          "version": "0.1.1-canary.1321",
                           "requires": {
                             "bigint-buffer": "1.1.5",
                             "emittery": "0.7.2",
@@ -12552,7 +12552,7 @@
                       }
                     },
                     "@ganache/utils": {
-                      "version": "0.1.1-canary.1320",
+                      "version": "0.1.1-canary.1321",
                       "requires": {
                         "bigint-buffer": "1.1.5",
                         "emittery": "0.7.2",
@@ -15513,9 +15513,9 @@
                   }
                 },
                 "@ganache/rlp": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
-                    "@ganache/utils": "0.1.1-canary.1320",
+                    "@ganache/utils": "0.1.1-canary.1321",
                     "rlp": "2.2.6"
                   },
                   "dependencies": {
@@ -15739,7 +15739,7 @@
                       }
                     },
                     "@ganache/utils": {
-                      "version": "0.1.1-canary.1320",
+                      "version": "0.1.1-canary.1321",
                       "requires": {
                         "bigint-buffer": "1.1.5",
                         "emittery": "0.7.2",
@@ -16964,7 +16964,7 @@
                   }
                 },
                 "@ganache/utils": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
                     "bigint-buffer": "1.1.5",
                     "emittery": "0.7.2",
@@ -20641,14 +20641,14 @@
               }
             },
             "@ganache/ethereum-utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "@ethereumjs/common": "2.3.0",
                 "@ethereumjs/tx": "3.1.1",
                 "@ethereumjs/vm": "5.2.0",
-                "@ganache/ethereum-address": "0.1.1-canary.1320",
-                "@ganache/rlp": "0.1.1-canary.1320",
-                "@ganache/utils": "0.1.1-canary.1320",
+                "@ganache/ethereum-address": "0.1.1-canary.1321",
+                "@ganache/rlp": "0.1.1-canary.1321",
+                "@ganache/utils": "0.1.1-canary.1321",
                 "emittery": "0.7.2",
                 "ethereumjs-abi": "0.6.8",
                 "ethereumjs-util": "7.0.9"
@@ -20735,22 +20735,22 @@
                   }
                 },
                 "@ganache/ethereum-address": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
-                    "@ganache/utils": "0.1.1-canary.1320"
+                    "@ganache/utils": "0.1.1-canary.1321"
                   },
                   "dependencies": {}
                 },
                 "@ganache/rlp": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
-                    "@ganache/utils": "0.1.1-canary.1320",
+                    "@ganache/utils": "0.1.1-canary.1321",
                     "rlp": "2.2.6"
                   },
                   "dependencies": {}
                 },
                 "@ganache/utils": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
                     "bigint-buffer": "1.1.5",
                     "emittery": "0.7.2",
@@ -22381,9 +22381,9 @@
               }
             },
             "@ganache/rlp": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
-                "@ganache/utils": "0.1.1-canary.1320",
+                "@ganache/utils": "0.1.1-canary.1321",
                 "rlp": "2.2.6"
               },
               "dependencies": {
@@ -22607,7 +22607,7 @@
                   }
                 },
                 "@ganache/utils": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
                     "bigint-buffer": "1.1.5",
                     "emittery": "0.7.2",
@@ -23832,7 +23832,7 @@
               }
             },
             "@ganache/utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "bigint-buffer": "1.1.5",
                 "emittery": "0.7.2",
@@ -26892,20 +26892,20 @@
           }
         },
         "@ganache/ethereum-options": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
-            "@ganache/ethereum-address": "0.1.1-canary.1320",
-            "@ganache/ethereum-utils": "0.1.1-canary.1320",
-            "@ganache/options": "0.1.1-canary.1320",
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/ethereum-address": "0.1.1-canary.1321",
+            "@ganache/ethereum-utils": "0.1.1-canary.1321",
+            "@ganache/options": "0.1.1-canary.1321",
+            "@ganache/utils": "0.1.1-canary.1321",
             "bip39": "3.0.3",
             "seedrandom": "3.0.5"
           },
           "dependencies": {
             "@ganache/ethereum-address": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
-                "@ganache/utils": "0.1.1-canary.1320"
+                "@ganache/utils": "0.1.1-canary.1321"
               },
               "dependencies": {
                 "@babel/code-frame": {
@@ -27128,7 +27128,7 @@
                   }
                 },
                 "@ganache/utils": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
                     "bigint-buffer": "1.1.5",
                     "emittery": "0.7.2",
@@ -28340,14 +28340,14 @@
               }
             },
             "@ganache/ethereum-utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "@ethereumjs/common": "2.3.0",
                 "@ethereumjs/tx": "3.1.1",
                 "@ethereumjs/vm": "5.2.0",
-                "@ganache/ethereum-address": "0.1.1-canary.1320",
-                "@ganache/rlp": "0.1.1-canary.1320",
-                "@ganache/utils": "0.1.1-canary.1320",
+                "@ganache/ethereum-address": "0.1.1-canary.1321",
+                "@ganache/rlp": "0.1.1-canary.1321",
+                "@ganache/utils": "0.1.1-canary.1321",
                 "emittery": "0.7.2",
                 "ethereumjs-abi": "0.6.8",
                 "ethereumjs-util": "7.0.9"
@@ -28434,22 +28434,22 @@
                   }
                 },
                 "@ganache/ethereum-address": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
-                    "@ganache/utils": "0.1.1-canary.1320"
+                    "@ganache/utils": "0.1.1-canary.1321"
                   },
                   "dependencies": {}
                 },
                 "@ganache/rlp": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
-                    "@ganache/utils": "0.1.1-canary.1320",
+                    "@ganache/utils": "0.1.1-canary.1321",
                     "rlp": "2.2.6"
                   },
                   "dependencies": {}
                 },
                 "@ganache/utils": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
                     "bigint-buffer": "1.1.5",
                     "emittery": "0.7.2",
@@ -30080,15 +30080,15 @@
               }
             },
             "@ganache/options": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
-                "@ganache/utils": "0.1.1-canary.1320",
+                "@ganache/utils": "0.1.1-canary.1321",
                 "bip39": "3.0.2",
                 "seedrandom": "3.0.5"
               },
               "dependencies": {
                 "@ganache/utils": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
                     "bigint-buffer": "1.1.5",
                     "emittery": "0.7.2",
@@ -32141,7 +32141,7 @@
               }
             },
             "@ganache/utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "bigint-buffer": "1.1.5",
                 "emittery": "0.7.2",
@@ -34198,13 +34198,13 @@
           }
         },
         "@ganache/ethereum-transaction": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "@ethereumjs/common": "2.3.0",
-            "@ganache/ethereum-address": "0.1.1-canary.1320",
-            "@ganache/ethereum-utils": "0.1.1-canary.1320",
-            "@ganache/rlp": "0.1.1-canary.1320",
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/ethereum-address": "0.1.1-canary.1321",
+            "@ganache/ethereum-utils": "0.1.1-canary.1321",
+            "@ganache/rlp": "0.1.1-canary.1321",
+            "@ganache/utils": "0.1.1-canary.1321",
             "ethereumjs-util": "7.0.9",
             "node-gyp-build": "4.2.3"
           },
@@ -34511,21 +34511,21 @@
               }
             },
             "@ganache/ethereum-address": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
-                "@ganache/utils": "0.1.1-canary.1320"
+                "@ganache/utils": "0.1.1-canary.1321"
               },
               "dependencies": {}
             },
             "@ganache/ethereum-utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "@ethereumjs/common": "2.3.0",
                 "@ethereumjs/tx": "3.1.1",
                 "@ethereumjs/vm": "5.2.0",
-                "@ganache/ethereum-address": "0.1.1-canary.1320",
-                "@ganache/rlp": "0.1.1-canary.1320",
-                "@ganache/utils": "0.1.1-canary.1320",
+                "@ganache/ethereum-address": "0.1.1-canary.1321",
+                "@ganache/rlp": "0.1.1-canary.1321",
+                "@ganache/utils": "0.1.1-canary.1321",
                 "emittery": "0.7.2",
                 "ethereumjs-abi": "0.6.8",
                 "ethereumjs-util": "7.0.9"
@@ -34533,15 +34533,15 @@
               "dependencies": {}
             },
             "@ganache/rlp": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
-                "@ganache/utils": "0.1.1-canary.1320",
+                "@ganache/utils": "0.1.1-canary.1321",
                 "rlp": "2.2.6"
               },
               "dependencies": {}
             },
             "@ganache/utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "bigint-buffer": "1.1.5",
                 "emittery": "0.7.2",
@@ -36662,14 +36662,14 @@
           }
         },
         "@ganache/ethereum-utils": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "@ethereumjs/common": "2.3.0",
             "@ethereumjs/tx": "3.1.1",
             "@ethereumjs/vm": "5.2.0",
-            "@ganache/ethereum-address": "0.1.1-canary.1320",
-            "@ganache/rlp": "0.1.1-canary.1320",
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/ethereum-address": "0.1.1-canary.1321",
+            "@ganache/rlp": "0.1.1-canary.1321",
+            "@ganache/utils": "0.1.1-canary.1321",
             "emittery": "0.7.2",
             "ethereumjs-abi": "0.6.8",
             "ethereumjs-util": "7.0.9"
@@ -36756,22 +36756,22 @@
               }
             },
             "@ganache/ethereum-address": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
-                "@ganache/utils": "0.1.1-canary.1320"
+                "@ganache/utils": "0.1.1-canary.1321"
               },
               "dependencies": {}
             },
             "@ganache/rlp": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
-                "@ganache/utils": "0.1.1-canary.1320",
+                "@ganache/utils": "0.1.1-canary.1321",
                 "rlp": "2.2.6"
               },
               "dependencies": {}
             },
             "@ganache/utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "bigint-buffer": "1.1.5",
                 "emittery": "0.7.2",
@@ -38402,15 +38402,15 @@
           }
         },
         "@ganache/options": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/utils": "0.1.1-canary.1321",
             "bip39": "3.0.2",
             "seedrandom": "3.0.5"
           },
           "dependencies": {
             "@ganache/utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "bigint-buffer": "1.1.5",
                 "emittery": "0.7.2",
@@ -39245,7 +39245,7 @@
           }
         },
         "@ganache/promise-queue": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "emittery": "0.7.2"
           },
@@ -40061,9 +40061,9 @@
           }
         },
         "@ganache/rlp": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/utils": "0.1.1-canary.1321",
             "rlp": "2.2.6"
           },
           "dependencies": {
@@ -40287,7 +40287,7 @@
               }
             },
             "@ganache/utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "bigint-buffer": "1.1.5",
                 "emittery": "0.7.2",
@@ -41512,7 +41512,7 @@
           }
         },
         "@ganache/utils": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "bigint-buffer": "1.1.5",
             "emittery": "0.7.2",
@@ -47593,32 +47593,32 @@
       }
     },
     "@ganache/ethereum-options": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "requires": {
-        "@ganache/ethereum-address": "0.1.1-canary.1320",
-        "@ganache/ethereum-utils": "0.1.1-canary.1320",
-        "@ganache/options": "0.1.1-canary.1320",
-        "@ganache/utils": "0.1.1-canary.1320",
+        "@ganache/ethereum-address": "0.1.1-canary.1321",
+        "@ganache/ethereum-utils": "0.1.1-canary.1321",
+        "@ganache/options": "0.1.1-canary.1321",
+        "@ganache/utils": "0.1.1-canary.1321",
         "bip39": "3.0.3",
         "seedrandom": "3.0.5"
       },
       "dependencies": {
         "@ganache/ethereum-address": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
-            "@ganache/utils": "0.1.1-canary.1320"
+            "@ganache/utils": "0.1.1-canary.1321"
           },
           "dependencies": {}
         },
         "@ganache/ethereum-utils": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "@ethereumjs/common": "2.3.0",
             "@ethereumjs/tx": "3.1.1",
             "@ethereumjs/vm": "5.2.0",
-            "@ganache/ethereum-address": "0.1.1-canary.1320",
-            "@ganache/rlp": "0.1.1-canary.1320",
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/ethereum-address": "0.1.1-canary.1321",
+            "@ganache/rlp": "0.1.1-canary.1321",
+            "@ganache/utils": "0.1.1-canary.1321",
             "emittery": "0.7.2",
             "ethereumjs-abi": "0.6.8",
             "ethereumjs-util": "7.0.9"
@@ -47626,16 +47626,16 @@
           "dependencies": {}
         },
         "@ganache/options": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/utils": "0.1.1-canary.1321",
             "bip39": "3.0.2",
             "seedrandom": "3.0.5"
           },
           "dependencies": {}
         },
         "@ganache/utils": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "bigint-buffer": "1.1.5",
             "emittery": "0.7.2",
@@ -48474,7 +48474,7 @@
       }
     },
     "@ganache/filecoin": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "dev": true,
       "requires": {
         "ipfs": "0.52.3",
@@ -48818,13 +48818,13 @@
             },
             "@ganache/options": {
               "requires": {
-                "@ganache/utils": "0.1.1-canary.1320",
+                "@ganache/utils": "0.1.1-canary.1321",
                 "bip39": "3.0.2",
                 "seedrandom": "3.0.5"
               },
               "dependencies": {
                 "@ganache/utils": {
-                  "version": "0.1.1-canary.1320",
+                  "version": "0.1.1-canary.1321",
                   "requires": {
                     "bigint-buffer": "1.1.5",
                     "emittery": "0.7.2",
@@ -64187,7 +64187,7 @@
       }
     },
     "@ganache/filecoin-options": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "requires": {
         "keccak": "3.0.1"
       },
@@ -64199,7 +64199,7 @@
         },
         "@ganache/options": {
           "requires": {
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/utils": "0.1.1-canary.1321",
             "bip39": "3.0.2",
             "seedrandom": "3.0.5"
           },
@@ -65749,15 +65749,15 @@
       }
     },
     "@ganache/options": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "requires": {
-        "@ganache/utils": "0.1.1-canary.1320",
+        "@ganache/utils": "0.1.1-canary.1321",
         "bip39": "3.0.2",
         "seedrandom": "3.0.5"
       },
       "dependencies": {
         "@ganache/utils": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "bigint-buffer": "1.1.5",
             "emittery": "0.7.2",
@@ -66592,23 +66592,23 @@
       }
     },
     "@ganache/tezos": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "requires": {
-        "@ganache/options": "0.1.1-canary.1320",
-        "@ganache/utils": "0.1.1-canary.1320",
+        "@ganache/options": "0.1.1-canary.1321",
+        "@ganache/utils": "0.1.1-canary.1321",
         "emittery": "0.7.2"
       },
       "dependencies": {
         "@ganache/options": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
-            "@ganache/utils": "0.1.1-canary.1320",
+            "@ganache/utils": "0.1.1-canary.1321",
             "bip39": "3.0.2",
             "seedrandom": "3.0.5"
           },
           "dependencies": {
             "@ganache/utils": {
-              "version": "0.1.1-canary.1320",
+              "version": "0.1.1-canary.1321",
               "requires": {
                 "bigint-buffer": "1.1.5",
                 "emittery": "0.7.2",
@@ -67443,7 +67443,7 @@
           }
         },
         "@ganache/utils": {
-          "version": "0.1.1-canary.1320",
+          "version": "0.1.1-canary.1321",
           "requires": {
             "bigint-buffer": "1.1.5",
             "emittery": "0.7.2",
@@ -71173,7 +71173,7 @@
       }
     },
     "@ganache/utils": {
-      "version": "0.1.1-canary.1320",
+      "version": "0.1.1-canary.1321",
       "requires": {
         "bigint-buffer": "1.1.5",
         "emittery": "0.7.2",
