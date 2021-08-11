@@ -635,7 +635,10 @@
 									</div>
 								</li>
 								<li>
-									<h5>keyStart: <span class="tsd-signature-type">DATA</span></h5>
+									<h5>startKey: <span class="tsd-signature-type">DATA</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Hash of the start key for grabbing storage entries.</p>
+									</div>
 								</li>
 								<li>
 									<h5>maxResult: <span class="tsd-signature-type">number</span></h5>
@@ -2641,6 +2644,48 @@
 									<dd><pre><code class="language-javascript"><span class="hljs-keyword">const</span> [<span class="hljs-keyword">from</span>, to] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
 <span class="hljs-keyword">const</span> signedTx = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_signTransaction&quot;</span>, <span class="hljs-attr">params</span>: [{ <span class="hljs-keyword">from</span>, to }] });
 <span class="hljs-built_in">console</span>.log(signedTx)</code></pre>
+									</dd>
+									<dt>example</dt>
+									<dd><pre><code class="language-javascript"><span class="hljs-keyword">const</span> [account] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });
+<span class="hljs-keyword">const</span> typedData = {
+ <span class="hljs-attr">types</span>: {
+   <span class="hljs-attr">EIP712Domain</span>: [
+     { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;name&#x27;</span>, <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;string&#x27;</span> },
+     { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;version&#x27;</span>, <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;string&#x27;</span> },
+     { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;chainId&#x27;</span>, <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;uint256&#x27;</span> },
+     { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;verifyingContract&#x27;</span>, <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;address&#x27;</span> },
+   ],
+   <span class="hljs-attr">Person</span>: [
+     { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;name&#x27;</span>, <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;string&#x27;</span> },
+     { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;wallet&#x27;</span>, <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;address&#x27;</span> }
+   ],
+   <span class="hljs-attr">Mail</span>: [
+     { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;from&#x27;</span>, <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;Person&#x27;</span> },
+     { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;to&#x27;</span>, <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;Person&#x27;</span> },
+     { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;contents&#x27;</span>, <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;string&#x27;</span> }
+   ],
+ },
+ <span class="hljs-attr">primaryType</span>: <span class="hljs-string">&#x27;Mail&#x27;</span>,
+ <span class="hljs-attr">domain</span>: {
+   <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Ether Mail&#x27;</span>,
+   <span class="hljs-attr">version</span>: <span class="hljs-string">&#x27;1&#x27;</span>,
+   <span class="hljs-attr">chainId</span>: <span class="hljs-number">1</span>,
+   <span class="hljs-attr">verifyingContract</span>: <span class="hljs-string">&#x27;0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC&#x27;</span>,
+ },
+ <span class="hljs-attr">message</span>: {
+   <span class="hljs-attr">from</span>: {
+     <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Cow&#x27;</span>,
+     <span class="hljs-attr">wallet</span>: <span class="hljs-string">&#x27;0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826&#x27;</span>,
+   },
+   <span class="hljs-attr">to</span>: {
+     <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Bob&#x27;</span>,
+     <span class="hljs-attr">wallet</span>: <span class="hljs-string">&#x27;0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB&#x27;</span>,
+   },
+   <span class="hljs-attr">contents</span>: <span class="hljs-string">&#x27;Hello, Bob!&#x27;</span>,
+ },
+};
+<span class="hljs-keyword">const</span> signature = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_signTypedData&quot;</span>, <span class="hljs-attr">params</span>: [account, typedData] });
+<span class="hljs-built_in">console</span>.log(signature);</code></pre>
 									</dd>
 									<dt>example</dt>
 									<dd><pre><code class="language-javascript"><span class="hljs-keyword">const</span> [account] = <span class="hljs-keyword">await</span> provider.request({ <span class="hljs-attr">method</span>: <span class="hljs-string">&quot;eth_accounts&quot;</span>, <span class="hljs-attr">params</span>: [] });

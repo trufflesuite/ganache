@@ -1049,6 +1049,9 @@
 											"flags": {
 												"isExported": true
 											},
+											"comment": {
+												"text": "Integer of the transaction index position."
+											},
 											"type": {
 												"type": "intrinsic",
 												"name": "number"
@@ -1077,6 +1080,9 @@
 											"kindString": "Parameter",
 											"flags": {
 												"isExported": true
+											},
+											"comment": {
+												"text": "Hash of the start key for grabbing storage entries."
 											},
 											"type": {
 												"type": "reference",
@@ -6752,8 +6758,8 @@
 										"type": "reference",
 										"typeArguments": [
 											{
-												"tag": "example",
-												"text": "\n```javascript\nconst nonce = \"0x3e8\";\nconst [address] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst result = await provider.send(\"evm_setAccountNonce\", [address, nonce] );\nconsole.log(result);\n```\n"
+												"type": "intrinsic",
+												"name": "boolean"
 											}
 										],
 										"name": "Promise"

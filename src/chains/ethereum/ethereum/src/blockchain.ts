@@ -16,7 +16,8 @@ import {
   StorageRecords,
   RangedStorageKeys,
   StructLog,
-  TransactionTraceOptions
+  TransactionTraceOptions,
+  EthereumRawAccount
 } from "@ganache/ethereum-utils";
 import { decode } from "@ganache/rlp";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
@@ -77,9 +78,9 @@ export enum Status {
 type BlockchainTypedEvents = {
   block: Block;
   blockLogs: BlockLogs;
-  pendingTransaction: Transaction;
+  pendingTransaction: TypedTransaction;
 };
-type BlockchainEvents = "start" | "stop";
+type BlockchainEvents = "ready" | "stop";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
