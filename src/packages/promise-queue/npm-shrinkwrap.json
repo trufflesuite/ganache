@@ -5,9 +5,9 @@
 	"requires": true,
 	"dependencies": {
 		"emittery": {
-			"version": "0.7.2",
-			"resolved": "https://registry.npmjs.org/emittery/-/emittery-0.7.2.tgz",
-			"integrity": "sha512-A8OG5SR/ij3SsJdWDJdkkSYUjQdCUx6APQXem0SaEePBSRg4eymGYwBkKo1Y6DU+af/Jn2dBQqDBvjnr9Vi8nQ=="
+			"version": "0.8.1",
+			"resolved": "https://registry.npmjs.org/emittery/-/emittery-0.8.1.tgz",
+			"integrity": "sha512-uDfvUjVrfGJJhymx/kz6prltenw1u7WrCg1oa94zYY8xxVpLLUu045LAT0dhDZdXG58/EpPL/5kA180fQ/qudg=="
 		}
 	}
 }

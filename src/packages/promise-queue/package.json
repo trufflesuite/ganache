@@ -43,7 +43,7 @@
     "tooling"
   ],
   "dependencies": {
-    "emittery": "0.7.2"
+    "emittery": "0.8.1"
   },
   "devDependencies": {}
 }
