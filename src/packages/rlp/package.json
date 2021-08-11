@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1318+5e6032d2",
+  "version": "0.1.1-canary.1335",
   "description": "Recursive Length Prefix Encoding Module",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/rlp#readme",
@@ -27,7 +27,7 @@
   "scripts": {
     "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript DE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache-core/issues"
@@ -48,17 +48,16 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/utils": "0.1.1-canary.1318+5e6032d2",
+    "@ganache/utils": "0.1.1-canary.1335",
     "rlp": "2.2.6"
   },
   "devDependencies": {
     "@types/mocha": "8.2.2",
-    "cross-env": "7.0.2",
+    "cross-env": "7.0.3",
     "mocha": "8.4.0",
     "nyc": "15.1.0",
-    "ts-node": "9.0.0",
+    "ts-node": "9.1.1",
     "ttypescript": "1.5.12",
     "typescript": "4.1.3"
-  },
-  "gitHead": "5e6032d29ca8134eac334b59ffceab091f84db27"
+  }
 }

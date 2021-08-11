@@ -23,10 +23,6 @@
       "path": "../flavors"
     },
     {
-      "name": "@ganache/filecoin",
-      "path": "../../chains/filecoin/filecoin"
-    },
-    {
       "name": "@ganache/core",
       "path": "../core"
     }

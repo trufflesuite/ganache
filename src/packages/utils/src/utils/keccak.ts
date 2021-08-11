@@ -1,4 +1,4 @@
-import makeKeccak, { Keccak } from "keccak";
+import makeKeccak from "keccak";
 
 const RATE = 1088;
 const CAPACITY = 512;

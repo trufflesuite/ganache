@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1318+5e6032d2",
+  "version": "0.1.1-canary.1335",
   "description": "Utility functions for @ganache packages",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/utils#readme",
@@ -51,10 +51,15 @@
   },
   "devDependencies": {
     "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
-    "@types/seedrandom": "2.4.28"
+    "@types/mocha": "8.2.2",
+    "@types/seedrandom": "2.4.28",
+    "cross-env": "7.0.3",
+    "mocha": "8.4.0",
+    "ts-node": "9.1.1",
+    "ttypescript": "1.5.12",
+    "typescript": "4.1.3"
   },
   "optionalDependencies": {
     "bigint-buffer": "1.1.5"
-  },
-  "gitHead": "5e6032d29ca8134eac334b59ffceab091f84db27"
+  }
 }

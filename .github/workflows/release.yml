@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    branches: [canary]
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
+
+      - name: Set git identity
+        run: |
+          git config --global user.name 'Ganache Bot'
+          git config --global user.email 'david+ganache-test-bot@trufflesuite.com'
+          git remote set-url origin https://ganache-bot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run installation
+        run: npm ci
+
+      - name: Test
+        run: npm test
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+
+      - name: Update package versions
+        # ${GITHUB_REF##*/} is the branch name
+        run: |
+          $(npm bin)/lerna version prerelease --no-push --yes --exact --preid ${GITHUB_REF##*/}
+          echo 'TAGS<<EOF' >> $GITHUB_ENV
+          git tag --points-at HEAD >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: Run build
+        run: npm run build
+
+      - name: Update documentation
+        run: |
+          npm run docs.build
+          git add docs/**
+          git commit --amend --no-edit
+
+      # # TODO: sign the last commit and tag
+      - name: Tag the amended release commit
+        run: while IFS= read -r line ; do git tag -a $line -m $line --force; done <<< "${{ env.TAGS }}"
+
+      - name: Push changes to git
+        run: |
+          git push origin ${GITHUB_REF##*/}
+          git push origin --tags
+
+      - name: Set up auth for npm publish
+        run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # - name: Smoke test release
+      #   TODO: set up verdaccio to mock npm https://verdaccio.org/
+
+      # this needs `--no-verify-access` until https://github.com/lerna/lerna/issues/2788 is fixed
+      - name: Release to npm
+        run: |
+          $(npm bin)/lerna publish from-git --yes --dist-tag ${GITHUB_REF##*/} --pre-dist-tag ${GITHUB_REF##*/} --no-verify-access
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
