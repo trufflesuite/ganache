@@ -245,7 +245,6 @@ describe("${packageName}", () => {
       const headerdoc = `/*!
   * ${packageName}
   *
-  * @copyright Truffle Blockchain Group
   * @author ${pkg.author}
   * @license ${pkg.license}
 */
