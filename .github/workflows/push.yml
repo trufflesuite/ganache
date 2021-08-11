@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-      - run: npm i
+      - run: npm ci
       - run: npm run tsc
       - run: npm test
         env:
@@ -82,7 +82,7 @@ jobs:
         if: startsWith(matrix.os, 'windows-')
         run: npm config set msvs_version 2019 --global
 
-      - run: npm i
+      - run: npm ci
       - run: npm run tsc
       - run: npm test
         env:

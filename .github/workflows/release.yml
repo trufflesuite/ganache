@@ -22,7 +22,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run installation
-        run: npm i
+        run: npm ci
 
       - name: Test
         run: npm test
