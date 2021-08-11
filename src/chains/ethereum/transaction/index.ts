@@ -1,7 +1,6 @@
 /*!
  * @ganache/ethereum-transaction
  *
- * @copyright Truffle Blockchain Group
  * @author David Murdoch
  * @license MIT
  */
