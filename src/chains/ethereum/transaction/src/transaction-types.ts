@@ -1,4 +1,4 @@
-import { AccessListTransaction } from "./access-list-transaction";
+import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
 import { LegacyTransaction } from "./legacy-transaction";
 
-export type TypedTransaction = LegacyTransaction | AccessListTransaction;
+export type TypedTransaction = LegacyTransaction | EIP2930AccessListTransaction;

@@ -11,12 +11,12 @@ import type Common from "@ethereumjs/common";
 import { BaseTransaction } from "./base-transaction";
 import { PrefixedHexString } from "ethereumjs-util";
 import { LegacyTransaction } from "./legacy-transaction";
-import { AccessListTransaction } from "./access-list-transaction";
+import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
-  RawAccessListPayload,
-  RawLegacyPayload,
-  TypedRawTransaction
+  EIP2930AccessListDatabasePayload,
+  LegacyDatabasePayload,
+  TypedDatabaseTransaction
 } from "./raw";
 import { TypedTransaction } from "./transaction-types";
 import { decode } from "@ganache/rlp";
@@ -38,8 +38,8 @@ export class TransactionFactory {
     const txType = this.typeOfRPC(txData);
     if (txType === LegacyTransaction) {
       return LegacyTransaction.fromTxData(txData, common);
-    } else if (txType === AccessListTransaction) {
-      return AccessListTransaction.fromTxData(txData, common);
+    } else if (txType === EIP2930AccessListTransaction) {
+      return EIP2930AccessListTransaction.fromTxData(txData, common);
     } else {
       throw new Error(`Tx instantiation with supplied type not supported`);
     }
@@ -50,15 +50,15 @@ export class TransactionFactory {
    * @param txData - The raw transaction data. The `type` field will determine which transaction type is returned (if undefined, creates a legacy transaction)
    * @param common - Options to pass on to the constructor of the transaction
    */
-  public static fromRaw(txData: TypedRawTransaction, common: Common) {
+  public static fromRaw(txData: TypedDatabaseTransaction, common: Common) {
     const type = txData[0][0];
     const data = txData.slice(1, txData.length); // remove type because it's not rlp encoded and thus can't be decoded
     const txType = this.typeOf(type);
     if (txType === LegacyTransaction) {
-      return LegacyTransaction.fromTxData(<RawLegacyPayload>data, common);
-    } else if (txType === AccessListTransaction) {
-      return AccessListTransaction.fromTxData(
-        <RawAccessListPayload>data,
+      return LegacyTransaction.fromTxData(<LegacyDatabasePayload>data, common);
+    } else if (txType === EIP2930AccessListTransaction) {
+      return EIP2930AccessListTransaction.fromTxData(
+        <EIP2930AccessListDatabasePayload>data,
         common
       );
     } else {
@@ -81,13 +81,13 @@ export class TransactionFactory {
       if (type === undefined) {
         data = data.slice(1, data.length);
       }
-      const raw = decode<RawLegacyPayload>(data);
-      return LegacyTransaction.fromTxData(<RawLegacyPayload>raw, common);
+      const raw = decode<LegacyDatabasePayload>(data);
+      return LegacyTransaction.fromTxData(<LegacyDatabasePayload>raw, common);
     } else {
       data = data.slice(1, data.length); // remove type because it's not rlp encoded and thus can't be decoded
-      if (txType === AccessListTransaction) {
-        const raw = decode<RawAccessListPayload>(data);
-        return AccessListTransaction.fromTxData(raw, common);
+      if (txType === EIP2930AccessListTransaction) {
+        const raw = decode<EIP2930AccessListDatabasePayload>(data);
+        return EIP2930AccessListTransaction.fromTxData(raw, common);
       } else {
         throw new Error(`Tx instantiation with type ${type} not supported`);
       }
@@ -102,11 +102,13 @@ export class TransactionFactory {
     ) {
       return LegacyTransaction;
     } else if (type === ACCESS_LIST_TX_TYPE_ID) {
-      return AccessListTransaction;
+      return EIP2930AccessListTransaction;
     }
   }
 
-  public static typeOfRaw(raw: TypedRawTransaction | RawLegacyPayload) {
+  public static typeOfRaw(
+    raw: TypedDatabaseTransaction | LegacyDatabasePayload
+  ) {
     const type = raw[0][0]; // TODO this can be unsafe to pass to typeOf. What if the first value is nonce of 1? will look like a different tx
     return this.typeOf(type);
   }
