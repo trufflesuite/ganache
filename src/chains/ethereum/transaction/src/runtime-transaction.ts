@@ -12,7 +12,11 @@ import {
 } from "@ganache/utils";
 import { RpcTransaction, TypedRpcTransaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
-import { GanacheRawExtraTx, TypedRawPayload, TypedRawTransaction } from "./raw";
+import {
+  GanacheRawExtraTx,
+  TypedDatabasePayload,
+  TypedDatabaseTransaction
+} from "./raw";
 import type { RunTxResult } from "../../utils/node_modules/@ethereumjs/vm/dist/runTx"; //TODO
 import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
@@ -63,14 +67,17 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   public receipt: TransactionReceipt;
   public execException: RuntimeError;
 
-  public raw: TypedRawTransaction | null;
+  public raw: TypedDatabaseTransaction | null;
   public serialized: Buffer;
   public encodedData: EncodedPart;
   public encodedSignature: EncodedPart;
   private finalizer: (eventData: TransactionFinalization) => void;
   private finalized: Promise<TransactionFinalization>;
 
-  constructor(data: TypedRawPayload | TypedRpcTransaction, common: Common) {
+  constructor(
+    data: TypedDatabasePayload | TypedRpcTransaction,
+    common: Common
+  ) {
     super(common);
     let finalizer: (value: TransactionFinalization) => void;
     this.finalized = new Promise<TransactionFinalization>(resolve => {
@@ -109,7 +116,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
         this.s = Quantity.from(data.s, true);
 
         // compute the `hash` and the `from` address
-        const raw: TypedRawTransaction = this.toEthRawTransaction(
+        const raw: TypedDatabaseTransaction = this.toEthRawTransaction(
           this.v.toBuffer(),
           this.r.toBuffer(),
           this.s.toBuffer()
@@ -160,7 +167,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     transactionIndex: Quantity
   ): Buffer {
     // todo(perf):make this work with encodeRange and digest
-    const txAndExtraData: [TypedRawTransaction, GanacheRawExtraTx] = [
+    const txAndExtraData: [TypedDatabaseTransaction, GanacheRawExtraTx] = [
       this.raw,
       [
         this.from.toBuffer(),
@@ -244,11 +251,11 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     v: Buffer,
     r: Buffer,
     s: Buffer
-  ): TypedRawTransaction;
+  ): TypedDatabaseTransaction;
 
   protected abstract computeIntrinsics(
     v: Quantity,
-    raw: TypedRawTransaction,
+    raw: TypedDatabaseTransaction,
     chainId: number
   );
 

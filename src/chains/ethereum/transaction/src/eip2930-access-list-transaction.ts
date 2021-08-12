@@ -17,9 +17,9 @@ import { TypedRpcTransaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
 import {
-  RawAccessListPayload,
-  RawAccessListTx,
-  TypedRawTransaction
+  EIP2930AccessListDatabasePayload,
+  EIP2930AccessListDatabaseTx,
+  TypedDatabaseTransaction
 } from "./raw";
 import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
 import { AccessLists } from "./access-lists";
@@ -28,7 +28,7 @@ import { computeInstrinsicsAccessListTx } from "./signing";
 const MAX_UINT64 = 1n << (64n - 1n);
 
 const CAPABILITIES: any[] = [2718, 2930];
-export class AccessListTransaction extends RuntimeTransaction {
+export class EIP2930AccessListTransaction extends RuntimeTransaction {
   public chainId: Quantity;
   public accessList: AccessListBuffer;
   public accessListJSON: AccessList;
@@ -36,7 +36,7 @@ export class AccessListTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x1");
 
   public constructor(
-    data: RawAccessListPayload | TypedRpcTransaction,
+    data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
     common: Common
   ) {
     super(data, common);
@@ -98,10 +98,10 @@ export class AccessListTransaction extends RuntimeTransaction {
   };
 
   public static fromTxData(
-    data: RawAccessListPayload | TypedRpcTransaction,
+    data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
     common: Common
   ) {
-    return new AccessListTransaction(data, common);
+    return new EIP2930AccessListTransaction(data, common);
   }
 
   public toVmTransaction() {
@@ -159,7 +159,7 @@ export class AccessListTransaction extends RuntimeTransaction {
 
     const chainId = this.common.chainId();
     const typeBuf = this.type.toBuffer();
-    const raw: RawAccessListTx = this.toEthRawTransaction(
+    const raw: EIP2930AccessListDatabaseTx = this.toEthRawTransaction(
       Quantity.from(chainId).toBuffer(),
       BUFFER_EMPTY,
       BUFFER_EMPTY
@@ -198,7 +198,11 @@ export class AccessListTransaction extends RuntimeTransaction {
     this.encodedSignature = encodedSignature;
   }
 
-  public toEthRawTransaction(v: Buffer, r: Buffer, s: Buffer): RawAccessListTx {
+  public toEthRawTransaction(
+    v: Buffer,
+    r: Buffer,
+    s: Buffer
+  ): EIP2930AccessListDatabaseTx {
     return [
       this.type.toBuffer(),
       this.chainId.toBuffer(),
@@ -217,9 +221,13 @@ export class AccessListTransaction extends RuntimeTransaction {
 
   public computeIntrinsics(
     v: Quantity,
-    raw: TypedRawTransaction,
+    raw: TypedDatabaseTransaction,
     chainId: number
   ) {
-    return computeInstrinsicsAccessListTx(v, <RawAccessListTx>raw, chainId);
+    return computeInstrinsicsAccessListTx(
+      v,
+      <EIP2930AccessListDatabaseTx>raw,
+      chainId
+    );
   }
 }

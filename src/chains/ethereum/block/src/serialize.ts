@@ -1,5 +1,5 @@
 import {
-  BlockRawTransaction,
+  BlockDatabaseTransaction,
   GanacheRawBlockTransactionMetaData
 } from "@ganache/ethereum-transaction";
 import { digest, encodeLength, encodeRange, encode } from "@ganache/rlp";
@@ -29,7 +29,7 @@ export type EthereumRawBlockHeader = [
 ];
 export type EthereumRawBlock = [
   rawHeader: EthereumRawBlockHeader,
-  rawTransactions: BlockRawTransaction[],
+  rawTransactions: BlockDatabaseTransaction[],
   uncles: []
 ];
 type Head<T extends any[]> = T extends [...infer Head, any] ? Head : any[];

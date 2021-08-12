@@ -7,7 +7,7 @@ type Concat<T extends unknown[], U extends unknown[]> = [...T, ...U];
 
 type TxType = [type: Buffer];
 
-export type RawLegacyPayload = [
+export type LegacyDatabasePayload = [
   nonce: Buffer,
   gasPrice: Buffer,
   gas: Buffer,
@@ -19,7 +19,7 @@ export type RawLegacyPayload = [
   s: Buffer
 ];
 
-export type RawAccessListPayload = [
+export type EIP2930AccessListDatabasePayload = [
   chainId: Buffer,
   nonce: Buffer,
   gasPrice: Buffer,
@@ -33,12 +33,21 @@ export type RawAccessListPayload = [
   s: Buffer
 ];
 
-export type RawLegacyTx = Concat<TxType, RawLegacyPayload>;
-export type RawAccessListTx = Concat<TxType, RawAccessListPayload>;
+export type LegacyDatabaseTx = Concat<TxType, LegacyDatabasePayload>;
+export type EIP2930AccessListDatabaseTx = Concat<
+  TxType,
+  EIP2930AccessListDatabasePayload
+>;
 
-export type TypedRawTransaction = RawLegacyTx | RawAccessListTx;
-export type TypedRawPayload = RawLegacyPayload | RawAccessListPayload;
-export type BlockRawTransaction = RawLegacyPayload | RawAccessListTx;
+export type TypedDatabaseTransaction =
+  | LegacyDatabaseTx
+  | EIP2930AccessListDatabaseTx;
+export type TypedDatabasePayload =
+  | LegacyDatabasePayload
+  | EIP2930AccessListDatabasePayload;
+export type BlockDatabaseTransaction =
+  | LegacyDatabasePayload
+  | EIP2930AccessListDatabaseTx;
 
 /**
  * Extra data Ganache stores as part of a transaction in order to support

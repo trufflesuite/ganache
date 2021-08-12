@@ -16,7 +16,11 @@ import { Hardfork } from "./hardfork";
 import { Params } from "./params";
 import { RuntimeTransaction } from "./runtime-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
-import { RawLegacyPayload, RawLegacyTx, TypedRawTransaction } from "./raw";
+import {
+  LegacyDatabasePayload,
+  LegacyDatabaseTx,
+  TypedDatabaseTransaction
+} from "./raw";
 import { computeInstrinsicsLegacyTx } from "./signing";
 
 const MAX_UINT64 = 1n << (64n - 1n);
@@ -43,7 +47,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x0");
 
   public constructor(
-    data: RawLegacyPayload | TypedRpcTransaction,
+    data: LegacyDatabasePayload | TypedRpcTransaction,
     common: Common
   ) {
     super(data, common);
@@ -110,7 +114,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   };
 
   public static fromTxData(
-    data: RawLegacyPayload | TypedRpcTransaction,
+    data: LegacyDatabasePayload | TypedRpcTransaction,
     common: Common
   ) {
     return new LegacyTransaction(data, common);
@@ -169,7 +173,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     }
 
     const chainId = this.common.chainId();
-    const raw: RawLegacyTx = this.toEthRawTransaction(
+    const raw: LegacyDatabaseTx = this.toEthRawTransaction(
       Quantity.from(chainId).toBuffer(),
       BUFFER_EMPTY,
       BUFFER_EMPTY
@@ -201,7 +205,11 @@ export class LegacyTransaction extends RuntimeTransaction {
     this.encodedSignature = encodedSignature;
   }
 
-  public toEthRawTransaction(v: Buffer, r: Buffer, s: Buffer): RawLegacyTx {
+  public toEthRawTransaction(
+    v: Buffer,
+    r: Buffer,
+    s: Buffer
+  ): LegacyDatabaseTx {
     return [
       this.type.toBuffer(),
       this.nonce.toBuffer(),
@@ -218,9 +226,9 @@ export class LegacyTransaction extends RuntimeTransaction {
 
   public computeIntrinsics(
     v: Quantity,
-    raw: TypedRawTransaction,
+    raw: TypedDatabaseTransaction,
     chainId: number
   ) {
-    return computeInstrinsicsLegacyTx(v, <RawLegacyTx>raw, chainId);
+    return computeInstrinsicsLegacyTx(v, <LegacyDatabaseTx>raw, chainId);
   }
 }

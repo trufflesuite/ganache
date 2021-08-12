@@ -5,7 +5,7 @@ import {
   BUFFER_EMPTY,
   uintToBuffer
 } from "@ganache/utils";
-import { RawAccessListTx, RawLegacyTx } from "./raw";
+import { EIP2930AccessListDatabaseTx, LegacyDatabaseTx } from "./raw";
 import { digest, encode, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
@@ -157,13 +157,13 @@ export const computeFromAddress = (
   return Address.from(keccak(publicKey.slice(1)).slice(-20));
 };
 
-export const computeHash = (raw: RawLegacyTx) => {
+export const computeHash = (raw: LegacyDatabaseTx) => {
   return Data.from(keccak(encode(raw)), 32);
 };
 
 export const computeInstrinsicsLegacyTx = (
   v: Quantity,
-  raw: RawLegacyTx,
+  raw: LegacyDatabaseTx,
   chainId: number
 ) => {
   raw.shift();
@@ -190,7 +190,7 @@ export const computeInstrinsicsLegacyTx = (
 
 export const computeInstrinsicsAccessListTx = (
   v: Quantity,
-  raw: RawAccessListTx,
+  raw: EIP2930AccessListDatabaseTx,
   chainId: number
 ) => {
   const typeBuf = raw[0];

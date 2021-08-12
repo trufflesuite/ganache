@@ -7,12 +7,12 @@ import {
 import { BN } from "ethereumjs-util";
 import type Common from "@ethereumjs/common";
 import {
-  BlockRawTransaction,
+  BlockDatabaseTransaction,
   GanacheRawExtraTx,
-  RawAccessListTx,
-  RawLegacyPayload,
-  RawLegacyTx,
-  TypedRawTransaction
+  EIP2930AccessListDatabaseTx,
+  LegacyDatabasePayload,
+  LegacyDatabaseTx,
+  TypedDatabaseTransaction
 } from "./raw";
 import { decode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
@@ -20,7 +20,7 @@ import { Address } from "@ganache/ethereum-address";
 import { AccessListBuffer, AccessList } from "@ethereumjs/tx";
 import { TransactionFactory } from "./transaction-factory";
 import { LegacyTransaction } from "./legacy-transaction";
-import { AccessListTransaction } from "./access-list-transaction";
+import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
 import { AccessLists } from "./access-lists";
 export interface FrozenTransactionJSON {
   type?: Quantity;
@@ -71,14 +71,14 @@ export class FrozenTransaction extends BaseTransaction {
   public common: Common;
 
   constructor(
-    data: Buffer | [BlockRawTransaction, GanacheRawExtraTx],
+    data: Buffer | [BlockDatabaseTransaction, GanacheRawExtraTx],
     common: Common
   ) {
     super(common);
 
     if (Buffer.isBuffer(data)) {
       const decoded = (decode(data) as any) as [
-        TypedRawTransaction,
+        TypedDatabaseTransaction,
         GanacheRawExtraTx
       ];
 
@@ -91,20 +91,20 @@ export class FrozenTransaction extends BaseTransaction {
     Object.freeze(this);
   }
 
-  public setRaw(raw: TypedRawTransaction | RawLegacyPayload) {
+  public setRaw(raw: TypedDatabaseTransaction | LegacyDatabasePayload) {
     let [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s]: Buffer[] = []; // prettier-ignore
 
     if (raw.length === 9) {
       // LegacyTransaction but with type missing
       type = Quantity.from("0x0").toBuffer();
-      [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <RawLegacyPayload>raw; //prettier-ignore
+      [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <LegacyDatabasePayload>raw; //prettier-ignore
     } else {
       const txType = TransactionFactory.typeOfRaw(raw);
       if (txType === LegacyTransaction) {
-        [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <RawLegacyTx>raw; //prettier-ignore
-      } else if (txType === AccessListTransaction) {
+        [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <LegacyDatabaseTx>raw; //prettier-ignore
+      } else if (txType === EIP2930AccessListTransaction) {
         let chainId: Buffer, accessList: AccessListBuffer;
-        [type, chainId, nonce, gasPrice, gasLimit, to, value, data, accessList, v, r, s] = <RawAccessListTx>raw; //prettier-ignore
+        [type, chainId, nonce, gasPrice, gasLimit, to, value, data, accessList, v, r, s] = <EIP2930AccessListDatabaseTx>raw; //prettier-ignore
 
         this.chainId = Quantity.from(chainId);
         const accessListData = AccessLists.getAccessListData(accessList);

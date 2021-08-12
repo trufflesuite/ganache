@@ -5,7 +5,7 @@
  * @license MIT
  */
 
-export * from "./src/access-list-transaction";
+export * from "./src/eip2930-access-list-transaction";
 export * from "./src/base-transaction";
 export * from "./src/block-transaction";
 export * from "./src/fake-transaction";
