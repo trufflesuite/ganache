@@ -74,6 +74,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
 
   public toJSON = () => {
     return {
+      type: this.type,
       hash: this.hash,
       nonce: this.nonce,
       blockHash: null,

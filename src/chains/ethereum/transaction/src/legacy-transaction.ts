@@ -20,23 +20,6 @@ import {
 } from "./raw";
 import { computeInstrinsicsLegacyTx } from "./signing";
 
-export interface LegacyTransactionJSON {
-  type?: Quantity;
-  hash: Data;
-  nonce: Quantity;
-  blockHash: Data;
-  blockNumber: Quantity;
-  transactionIndex: Data;
-  from: Data | null;
-  to: Address | null;
-  value: Quantity;
-  gas: Quantity;
-  gasPrice: Quantity;
-  input: Data;
-  v: Quantity;
-  r: Quantity;
-  s: Quantity;
-}
 export class LegacyTransaction extends RuntimeTransaction {
   public gasPrice: Quantity;
   public type: Quantity = Quantity.from("0x0");
@@ -77,7 +60,8 @@ export class LegacyTransaction extends RuntimeTransaction {
   }
 
   public toJSON = () => {
-    let json: LegacyTransactionJSON = {
+    return {
+      type: this.type,
       hash: this.hash,
       nonce: this.nonce,
       blockHash: null,
@@ -93,10 +77,6 @@ export class LegacyTransaction extends RuntimeTransaction {
       r: this.r,
       s: this.s
     };
-    if (this.type) {
-      json.type = this.type;
-    }
-    return json;
   };
 
   public static fromTxData(

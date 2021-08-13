@@ -137,6 +137,7 @@ export class FrozenTransaction extends BaseTransaction {
 
   public toJSON = () => {
     let json: FrozenTransactionJSON = {
+      type: this.type,
       hash: this.hash,
       nonce: this.nonce,
       blockHash: this.blockHash,
@@ -152,9 +153,6 @@ export class FrozenTransaction extends BaseTransaction {
       r: this.r,
       s: this.s
     };
-    if (this.type) {
-      json.type = this.type;
-    }
     if (this.chainId) {
       json.chainId = this.chainId;
     }
