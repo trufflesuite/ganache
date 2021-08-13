@@ -184,136 +184,44 @@ describe("server", () => {
     });
 
     it("fails to listen if the socket is already in use by 3rd party, Promise", async () => {
-      await new Promise<void>(async resolve => {
-        const server = http.createServer();
-        server.listen(port);
+      const server = http.createServer();
+      server.listen(port);
 
-        const expectedErrorRegex = new RegExp(`EADDRINUSE.*${port}`);
-
-        const localTearDown = async () => {
-          process.removeListener("uncaughtException", handleUncaughtException);
-          process.on("uncaughtException", mochaListener);
-          try {
-            await teardown();
-          } catch (e) {
-            if (
-              e.message !== "Cannot close server while it is opening." &&
-              e.message !== "Server is already closing or closed."
-            ) {
-              throw e;
-            }
-          }
-          server.close();
-        };
-
-        let uncaughtExceptionOccurred = false;
-        const handleUncaughtException = async err => {
-          uncaughtExceptionOccurred = true;
-          await localTearDown();
-          assert.notStrictEqual(
-            expectedErrorRegex.exec(err.message),
-            `Received unexpected error: ${err.message}`
-          );
-          resolve();
-        };
-
-        const mochaListener = process.listeners("uncaughtException").pop();
-        process.removeListener("uncaughtException", mochaListener);
-        process.on("uncaughtException", handleUncaughtException);
-
-        try {
-          await setup();
-          await new Promise(resolve => setTimeout(resolve, 500));
-          if (!uncaughtExceptionOccurred) {
-            assert.fail(
-              "Successfully listened twice on the same port instead of erroring"
-            );
-          }
-        } catch (e) {
-          if (e.code === "ERR_ASSERTION") {
-            throw e;
-          } else {
-            assert.notStrictEqual(
-              expectedErrorRegex.exec(e.message),
-              `Received unexpected error: ${e.message}`
-            );
-          }
-        } finally {
-          if (!uncaughtExceptionOccurred) {
-            await localTearDown();
-            resolve();
-          }
-        }
-      });
+      try {
+        await assert.rejects(
+          setup(),
+          `Error: listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
+        );
+      } finally {
+        await Promise.all([
+          teardown(),
+          new Promise<void>((resolve, reject) =>
+            server.close(err => (err ? reject(err) : resolve()))
+          )
+        ]);
+      }
     });
 
     it("fails to listen if the socket is already in use by 3rd party, Callback", async () => {
-      await new Promise<void>(async resolve => {
-        const server = http.createServer();
-        server.listen(port);
-
-        const expectedErrorRegex = new RegExp(`EADDRINUSE.*${port}`);
-
-        const localTearDown = async () => {
-          process.removeListener("uncaughtException", handleUncaughtException);
-          process.on("uncaughtException", mochaListener);
-          try {
-            await teardown();
-          } catch (e) {
-            if (
-              e.message !== "Cannot close server while it is opening." &&
-              e.message !== "Server is already closing or closed."
-            ) {
-              throw e;
-            }
-          }
-          server.close();
-        };
-
-        let uncaughtExceptionOccurred = false;
-        const handleUncaughtException = async err => {
-          uncaughtExceptionOccurred = true;
-          await localTearDown();
-          assert.notStrictEqual(
-            expectedErrorRegex.exec(err.message),
-            `Received unexpected error: ${err.message}`
-          );
-          resolve();
-        };
-
-        const mochaListener = process.listeners("uncaughtException").pop();
-        process.removeListener("uncaughtException", mochaListener);
-        process.on("uncaughtException", handleUncaughtException);
-
-        try {
-          // @ts-ignore - `s` errors if you run tsc and then test
-          // because it tries to compare the built declaration file to
-          // the TS file, causing missing #<var> private variables
-          const s = Ganache.server();
-          const listen = promisify(s.listen.bind(s));
-          await listen(port);
-          await new Promise(resolve => setTimeout(resolve, 500));
-          if (!uncaughtExceptionOccurred) {
-            assert.fail(
-              "Successfully listened twice on the same port instead of erroring"
-            );
-          }
-        } catch (e) {
-          if (e.code === "ERR_ASSERTION") {
-            throw e;
-          } else {
-            assert.notStrictEqual(
-              expectedErrorRegex.exec(e.message),
-              `Received unexpected error: ${e.message}`
-            );
-          }
-        } finally {
-          if (!uncaughtExceptionOccurred) {
-            await localTearDown();
-            resolve();
-          }
-        }
-      });
+      const server = http.createServer();
+      server.listen(port);
+      try {
+        // @ts-ignore - `s` errors if you run tsc and then test
+        // because it tries to compare the built declaration file to
+        // the TS file, causing missing #<var> private variables
+        const s = Ganache.server();
+        const listen = promisify(s.listen.bind(s));
+        await assert.rejects(listen(port), {
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
+        });
+      } finally {
+        await Promise.all([
+          teardown(),
+          new Promise<void>((resolve, reject) =>
+            server.close(err => (err ? reject(err) : resolve()))
+          )
+        ]);
+      }
     });
 
     // skip on Windows until https://github.com/uNetworking/uSockets/pull/101 is merged
