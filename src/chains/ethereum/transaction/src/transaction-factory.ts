@@ -1,15 +1,5 @@
-import {
-  Data,
-  Quantity,
-  keccak,
-  BUFFER_EMPTY,
-  BUFFER_32_ZERO,
-  RPCQUANTITY_EMPTY
-} from "@ganache/utils";
-import { Address } from "@ganache/ethereum-address";
+import { Data } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
-import { BaseTransaction } from "./base-transaction";
-import { PrefixedHexString } from "ethereumjs-util";
 import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
@@ -18,10 +8,7 @@ import {
   LegacyDatabasePayload,
   TypedDatabaseTransaction
 } from "./raw";
-import { TypedTransaction } from "./transaction-types";
 import { decode } from "@ganache/rlp";
-
-const MAX_UINT64 = 1n << (64n - 1n);
 
 const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
 const LEGACY_TX_TYPE_ID = 0x0;

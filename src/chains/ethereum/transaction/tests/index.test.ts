@@ -9,8 +9,7 @@ import {
 import Common from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
 import { EthereumOptionsConfig } from "../../options";
-import { BUFFER_32_ZERO, BUFFER_EMPTY, Quantity } from "@ganache/utils";
-import { BN } from "ethereumjs-util";
+import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
 
 describe("@ganache/ethereum-transaction", async () => {
   const common = Common.forCustomChain(

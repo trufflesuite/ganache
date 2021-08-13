@@ -10,7 +10,7 @@ import {
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
-import { keccak, BUFFER_EMPTY } from "@ganache/utils";
+import { keccak } from "@ganache/utils";
 import {
   EthereumRawBlockHeader,
   GanacheRawBlock,
