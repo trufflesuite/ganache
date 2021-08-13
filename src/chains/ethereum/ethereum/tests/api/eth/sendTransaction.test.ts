@@ -4,6 +4,7 @@ import compile from "../../helpers/compile";
 import { join } from "path";
 import EthereumProvider from "../../../src/provider";
 import { EthereumProviderOptions } from "@ganache/ethereum-options";
+import { TypedRpcTransaction } from "@ganache/ethereum-transaction";
 
 describe("api", () => {
   describe("eth", () => {
@@ -165,6 +166,68 @@ describe("api", () => {
             await test({ chain: { vmErrorsOnRPCResponse: false } });
             await test({ chain: { vmErrorsOnRPCResponse: true } });
           });
+        });
+      });
+
+      describe("transaction types", () => {
+        let provider: EthereumProvider;
+        let from, to, accessListAcc: string;
+        beforeEach(async () => {
+          provider = await getProvider();
+          [from, to, accessListAcc] = await provider.send("eth_accounts");
+        });
+        it("infers legacy from unspecified tx type", async () => {
+          const untypedLegacyTx: TypedRpcTransaction = {
+            from: from,
+            to: to,
+            gasPrice: "0xffff"
+          };
+          await provider.send("eth_subscribe", ["newHeads"]);
+
+          const transactionHash = await provider.send("eth_sendTransaction", [
+            untypedLegacyTx
+          ]);
+
+          await provider.once("message");
+
+          const receipt = await provider.send("eth_getTransactionReceipt", [
+            transactionHash
+          ]);
+
+          assert.strictEqual(receipt.type, "0x0");
+        });
+        it("allows eip2930 access list tx", async () => {
+          const accessListStorageKey =
+            "0x0000000000000000000000000000000000000000000000000000000000000004";
+          const accessListTx: TypedRpcTransaction = {
+            from: from,
+            to: to,
+            gasPrice: "0xffff",
+            type: "0x1",
+            accessList: [
+              {
+                address: accessListAcc,
+                storageKeys: [accessListStorageKey]
+              }
+            ]
+          };
+          await provider.send("eth_subscribe", ["newHeads"]);
+
+          const transactionHash = await provider.send("eth_sendTransaction", [
+            accessListTx
+          ]);
+
+          await provider.once("message");
+
+          const receipt = await provider.send("eth_getTransactionReceipt", [
+            transactionHash
+          ]);
+
+          assert.strictEqual(receipt.type, "0x1");
+          assert.strictEqual(
+            receipt.accessList[0].storageKeys[0],
+            accessListStorageKey
+          );
         });
       });
     });
