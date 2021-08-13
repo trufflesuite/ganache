@@ -22,7 +22,7 @@ if (process.env.npm_config_argv) {
   }
 }
 
-execSync(`$(npm bin)/lerna bootstrap --ci=${lernaUseCi}`, execArgs);
+execSync(`npx --no-install lerna bootstrap --ci=${lernaUseCi}`, execArgs);
 
 // update typescript project references
 require("./link-ts-references");

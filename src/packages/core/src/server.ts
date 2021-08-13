@@ -7,9 +7,11 @@ import {
 
 import allSettled from "promise.allsettled";
 import AggregateError from "aggregate-error";
-import uWS, {
+import {
+  App,
   TemplatedApp,
-  us_listen_socket
+  us_listen_socket,
+  us_listen_socket_close
 } from "@trufflesuite/uws-js-unofficial";
 import {
   Connector,
@@ -130,7 +132,7 @@ export class Server<
   }
 
   private async initialize(connector: Connector) {
-    const _app = (this.#app = uWS.App());
+    const _app = (this.#app = App());
 
     if (this.#options.server.ws) {
       this.#websocketServer = new WebsocketServer(
@@ -191,7 +193,7 @@ export class Server<
     const promise = Promise.allSettled([
       initializePromise,
       new Promise(
-        (resolve: (listenSocket: false | uWS.us_listen_socket) => void) => {
+        (resolve: (listenSocket: false | us_listen_socket) => void) => {
           // Make sure we have *exclusive* use of this port.
           // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
           const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
@@ -268,7 +270,7 @@ export class Server<
     this.#listenSocket = null;
     // close the socket to prevent any more connections
     if (_listenSocket !== null) {
-      uWS.us_listen_socket_close(_listenSocket);
+      us_listen_socket_close(_listenSocket);
     }
     // close all the connected websockets:
     if (this.#websocketServer !== null) {

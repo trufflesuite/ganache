@@ -193,15 +193,18 @@ describe("server", () => {
           `Error: listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
         );
       } finally {
-        await teardown();
-        server.close();
+        await Promise.all([
+          teardown(),
+          new Promise<void>((resolve, reject) =>
+            server.close(err => (err ? reject(err) : resolve()))
+          )
+        ]);
       }
     });
 
     it("fails to listen if the socket is already in use by 3rd party, Callback", async () => {
       const server = http.createServer();
       server.listen(port);
-
       try {
         // @ts-ignore - `s` errors if you run tsc and then test
         // because it tries to compare the built declaration file to
@@ -212,8 +215,12 @@ describe("server", () => {
           message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
         });
       } finally {
-        await teardown();
-        server.close();
+        await Promise.all([
+          teardown(),
+          new Promise<void>((resolve, reject) =>
+            server.close(err => (err ? reject(err) : resolve()))
+          )
+        ]);
       }
     });
 
@@ -221,25 +228,74 @@ describe("server", () => {
     (IS_WINDOWS ? xit : it)(
       "fails to listen if the socket is already in use by Ganache",
       async () => {
-        await setup();
-        // @ts-ignore - `s` errors if you run tsc and then test
-        // because it tries to compare the built declaration file to
-        // the TS file, causing missing #<var> private variables
-        const s2 = Ganache.server();
+        await new Promise<void>(async resolve => {
+          await setup();
 
-        try {
-          await assert.rejects(s2.listen(port), {
-            message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
-          });
-        } catch (e) {
-          // in case of failure, make sure we properly shut things down
-          if (s2.status & ServerStatus.open) {
-            await s2.close().catch(e => e);
+          // @ts-ignore - `s` errors if you run tsc and then test
+          // because it tries to compare the built declaration file to
+          // the TS file, causing missing #<var> private variables
+          const s2 = Ganache.server();
+
+          const expectedErrorRegex = new RegExp(`EADDRINUSE.*${port}`);
+
+          const localTearDown = async () => {
+            process.removeListener(
+              "uncaughtException",
+              handleUncaughtException
+            );
+            process.on("uncaughtException", mochaListener);
+            try {
+              await s2.close();
+            } catch (e) {
+              if (
+                e.message !== "Cannot close server while it is opening." &&
+                e.message !== "Server is already closing or closed."
+              ) {
+                throw e;
+              }
+            }
+            await teardown();
+          };
+
+          let uncaughtExceptionOccurred = false;
+          const handleUncaughtException = async err => {
+            uncaughtExceptionOccurred = true;
+            await localTearDown();
+            assert.notStrictEqual(
+              expectedErrorRegex.exec(err.message),
+              `Received unexpected error: ${err.message}`
+            );
+            resolve();
+          };
+
+          const mochaListener = process.listeners("uncaughtException").pop();
+          process.removeListener("uncaughtException", mochaListener);
+          process.on("uncaughtException", handleUncaughtException);
+
+          try {
+            await s2.listen(port);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (!uncaughtExceptionOccurred) {
+              assert.fail(
+                "Successfully listened twice on the same port instead of erroring"
+              );
+            }
+          } catch (e) {
+            if (e.code === "ERR_ASSERTION") {
+              throw e;
+            } else {
+              assert.notStrictEqual(
+                expectedErrorRegex.exec(e.message),
+                `Received unexpected error: ${e.message}`
+              );
+            }
+          } finally {
+            if (!uncaughtExceptionOccurred) {
+              await localTearDown();
+              resolve();
+            }
           }
-          throw e;
-        } finally {
-          await teardown();
-        }
+        });
       }
     );
 
