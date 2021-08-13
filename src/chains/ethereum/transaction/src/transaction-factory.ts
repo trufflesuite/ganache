@@ -41,7 +41,11 @@ export class TransactionFactory {
     } else if (txType === EIP2930AccessListTransaction) {
       return EIP2930AccessListTransaction.fromTxData(txData, common);
     } else {
-      throw new Error(`Tx instantiation with supplied type not supported`);
+      throw new Error(
+        `Tx instantiation with supplied type ${
+          "type" in txData ? txData.type : ""
+        } not supported`
+      );
     }
   }
   /**
@@ -50,7 +54,10 @@ export class TransactionFactory {
    * @param txData - The raw transaction data. The `type` field will determine which transaction type is returned (if undefined, creates a legacy transaction)
    * @param common - Options to pass on to the constructor of the transaction
    */
-  public static fromRaw(txData: TypedDatabaseTransaction, common: Common) {
+  public static fromDatabaseTx(
+    txData: TypedDatabaseTransaction,
+    common: Common
+  ) {
     const type = txData[0][0];
     const data = txData.slice(1, txData.length); // remove type because it's not rlp encoded and thus can't be decoded
     const txType = this.typeOf(type);
