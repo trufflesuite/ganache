@@ -9,11 +9,8 @@ import {
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
 import { ecsign } from "ethereumjs-util";
-import { BaseTransaction } from "./base-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { BN } from "ethereumjs-util";
-import { Hardfork } from "./hardfork";
-import { Params } from "./params";
 import { RuntimeTransaction } from "./runtime-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
@@ -22,8 +19,6 @@ import {
   TypedDatabaseTransaction
 } from "./raw";
 import { computeInstrinsicsLegacyTx } from "./signing";
-
-const MAX_UINT64 = 1n << (64n - 1n);
 
 export interface LegacyTransactionJSON {
   type?: Quantity;

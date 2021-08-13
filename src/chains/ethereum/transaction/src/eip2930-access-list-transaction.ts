@@ -8,11 +8,8 @@ import {
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
-import { BaseTransaction } from "./base-transaction";
 import { BN } from "ethereumjs-util";
 import { ecsign } from "ethereumjs-util";
-import { Hardfork } from "./hardfork";
-import { Params } from "./params";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
@@ -24,8 +21,6 @@ import {
 import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
 import { AccessLists } from "./access-lists";
 import { computeInstrinsicsAccessListTx } from "./signing";
-
-const MAX_UINT64 = 1n << (64n - 1n);
 
 const CAPABILITIES: any[] = [2718, 2930];
 export class EIP2930AccessListTransaction extends RuntimeTransaction {
