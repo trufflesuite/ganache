@@ -50,7 +50,7 @@ import { assertArgLength } from "./helpers/assert-arg-length";
 import { parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
 import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
-import { GanacheRawBlock } from "@ganache/ethereum-block/src/serialize";
+import { GanacheRawBlock } from "@ganache/ethereum-block";
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
