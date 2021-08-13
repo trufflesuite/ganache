@@ -27,10 +27,21 @@ describe("@ganache/ethereum-transaction", async () => {
   const [from, to, accessListAcc] = wallet.addresses;
   const fromBuf = Quantity.from(from).toBuffer();
   const fakePrivateKey = Buffer.concat([fromBuf, fromBuf.slice(0, 12)]);
+  const accessListStorageKey =
+    "0x0000000000000000000000000000000000000000000000000000000000000004";
 
   describe("TransactionFactory", () => {
     describe("LegacyTransaction type from factory", () => {
       let txFromRpc: LegacyTransaction;
+      it("infers legacy transaction if type ommitted", async () => {
+        const rpc: TypedRpcTransaction = {
+          from: from,
+          to: to,
+          gasPrice: "0xffff"
+        };
+        txFromRpc = <LegacyTransaction>TransactionFactory.fromRpc(rpc, common);
+        assert.strictEqual(txFromRpc.type.toString(), "0x0");
+      });
       it("generates legacy transactions from rpc data", async () => {
         const rpc: TypedRpcTransaction = {
           from: from,
@@ -61,8 +72,6 @@ describe("@ganache/ethereum-transaction", async () => {
     describe("EIP2930AccessListTransaction type from factory", () => {
       let txFromRpc: EIP2930AccessListTransaction;
       let key: string;
-      const accessListStorageKey =
-        "0x0000000000000000000000000000000000000000000000000000000000000004";
 
       it("generates eip2930 access list transactions from rpc data", async () => {
         const rpc: TypedRpcTransaction = {
@@ -181,8 +190,6 @@ describe("@ganache/ethereum-transaction", async () => {
     });
   });
   describe("EIP2930AccessListTransaction Type", () => {
-    const accessListStorageKey =
-      "0x0000000000000000000000000000000000000000000000000000000000000004";
     const rpc: TypedRpcTransaction = {
       from: from,
       to: to,
@@ -273,7 +280,7 @@ describe("@ganache/ethereum-transaction", async () => {
       };
       assert.throws(() => {
         TransactionFactory.fromRpc(rpc, common);
-      }, "Tx instantiation with supplied type 55 not supported");
+      });
     });
     it("does not allow unsupported tx types from raw buffer data", async () => {
       const db: TypedDatabaseTransaction = [
@@ -290,13 +297,13 @@ describe("@ganache/ethereum-transaction", async () => {
       ];
       assert.throws(() => {
         TransactionFactory.fromDatabaseTx(db, common);
-      }, "Tx instantiation with supplied type 55 not supported");
+      });
     });
     it("does not allow unsupported tx types from raw string data", async () => {
       const str: string = "0x55";
       assert.throws(() => {
         TransactionFactory.fromString(str, common);
-      }, "Tx instantiation with supplied type 55 not supported");
+      });
     });
     it("gets tx type from raw data", async () => {
       const db: TypedDatabaseTransaction = [
@@ -312,6 +319,36 @@ describe("@ganache/ethereum-transaction", async () => {
         BUFFER_EMPTY
       ];
       assert.strictEqual(TransactionFactory.typeOfRaw(db), LegacyTransaction);
+    });
+
+    describe("checks for hardfork's support of transaction types", () => {
+      const preBerlin = Common.forCustomChain(
+        "mainnet",
+        {
+          name: "ganache",
+          chainId: 1337,
+          comment: "Local test network",
+          bootstrapNodes: []
+        },
+        "istanbul"
+      );
+      it("does not support EIP2930AccessListTransaction before berlin hardfork", async () => {
+        const rpc: TypedRpcTransaction = {
+          from: from,
+          to: to,
+          type: "0x1",
+          gasPrice: "0xffff",
+          accessList: [
+            {
+              address: accessListAcc,
+              storageKeys: [accessListStorageKey]
+            }
+          ]
+        };
+        assert.throws(() => {
+          TransactionFactory.fromRpc(rpc, preBerlin);
+        });
+      });
     });
   });
 });
