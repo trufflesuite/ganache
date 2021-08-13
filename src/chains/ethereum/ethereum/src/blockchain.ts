@@ -48,7 +48,8 @@ import { Address } from "@ganache/ethereum-address";
 import {
   calculateIntrinsicGas,
   TransactionReceipt,
-  VmTransaction
+  VmTransaction,
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 import { runTransactions } from "./helpers/run-transactions";
@@ -63,7 +64,6 @@ import { ForkTrie } from "./forking/trie";
 import { LevelUp } from "levelup";
 import { activatePrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
-import { TypedTransaction } from "@ganache/ethereum-transaction";
 import { BUFFER_ZERO } from "@ganache/utils";
 
 export enum Status {

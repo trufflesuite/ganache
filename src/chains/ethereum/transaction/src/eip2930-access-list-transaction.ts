@@ -8,8 +8,7 @@ import {
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
-import { BN } from "ethereumjs-util";
-import { ecsign } from "ethereumjs-util";
+import { BN, ecsign } from "ethereumjs-util";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";

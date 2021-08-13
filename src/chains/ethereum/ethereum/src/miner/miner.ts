@@ -20,10 +20,9 @@ import VM from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { Params } from "@ganache/ethereum-transaction";
+import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
-import { TypedTransaction } from "@ganache/ethereum-transaction";
 
 export type BlockData = {
   blockTransactions: TypedTransaction[];
