@@ -264,7 +264,7 @@ describe("@ganache/ethereum-transaction", async () => {
     });
   });
   describe("Error and helper cases", () => {
-    it("does not allow unsupported tx types", async () => {
+    it("does not allow unsupported tx types from rpc data", async () => {
       const rpc: TypedRpcTransaction = {
         from: from,
         to: to,
@@ -273,9 +273,9 @@ describe("@ganache/ethereum-transaction", async () => {
       };
       assert.throws(() => {
         TransactionFactory.fromRpc(rpc, common);
-      }, "Tx instantiation with supplied type 0x55 not supported");
+      }, "Tx instantiation with supplied type 55 not supported");
     });
-    it("generates legacy transactions from raw buffer data", async () => {
+    it("does not allow unsupported tx types from raw buffer data", async () => {
       const db: TypedDatabaseTransaction = [
         Buffer.from("0x55"),
         BUFFER_EMPTY,
@@ -292,7 +292,7 @@ describe("@ganache/ethereum-transaction", async () => {
         TransactionFactory.fromDatabaseTx(db, common);
       }, "Tx instantiation with supplied type 55 not supported");
     });
-    it("generates legacy transactions from raw string", async () => {
+    it("does not allow unsupported tx types from raw string data", async () => {
       const str: string = "0x55";
       assert.throws(() => {
         TransactionFactory.fromString(str, common);
