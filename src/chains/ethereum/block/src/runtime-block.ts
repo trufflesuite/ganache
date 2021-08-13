@@ -12,10 +12,12 @@ import { Block } from "./block";
 import {
   BlockDatabaseTransaction,
   GanacheRawBlockTransactionMetaData,
-  LegacyDatabasePayload
+  LegacyDatabasePayload,
+  LegacyTransaction,
+  TransactionFactory,
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
-import { TypedTransaction } from "@ganache/ethereum-transaction";
 
 /**
  * BN, but with an extra `buf` property that caches the original Buffer value
@@ -166,10 +168,10 @@ export class RuntimeBlock {
       BUFFER_8_ZERO // nonce
     ];
     const { totalDifficulty } = header;
-    const txs: BlockDatabaseTransaction[] = []; // we don't want
+    const txs: BlockDatabaseTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     transactions.forEach(tx => {
-      if (tx.raw[0][0] === undefined) {
+      if (TransactionFactory.typeOfRaw(tx.raw) === LegacyTransaction) {
         txs.push(<LegacyDatabasePayload>tx.raw.slice(1));
       } else {
         txs.push(<BlockDatabaseTransaction>tx.raw);
