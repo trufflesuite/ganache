@@ -6,6 +6,7 @@ import { TypedRpcTransaction } from "./rpc-transaction";
 import {
   EIP2930AccessListDatabasePayload,
   LegacyDatabasePayload,
+  TypedDatabasePayload,
   TypedDatabaseTransaction
 } from "./raw";
 import { decode } from "@ganache/rlp";
@@ -15,6 +16,38 @@ const LEGACY_TX_TYPE_ID = 0x0;
 const ACCESS_LIST_TX_TYPE_ID = 0x1;
 
 export class TransactionFactory {
+  private static _fromData(
+    txData: TypedRpcTransaction | TypedDatabasePayload,
+    txType: typeof EIP2930AccessListTransaction | typeof LegacyTransaction,
+    common
+  ) {
+    if (txType === LegacyTransaction) {
+      // TODO: this could be send _with_ a txType even though EIP-2718 isn't activated. Do we care?
+      return txType.fromTxData(
+        <LegacyDatabasePayload | TypedRpcTransaction>txData,
+        common
+      );
+    } else {
+      if (common.isActivatedEIP(2718)) {
+        if (txType === EIP2930AccessListTransaction) {
+          if (common.isActivatedEIP(2930)) {
+            return txType.fromTxData(
+              <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
+              common
+            );
+          } else {
+            // TODO: I believe this is unreachable with current architecture.
+            // If 2718 is supported, so is 2930.
+            throw new Error(`EIP 2930 is not activated.`);
+          }
+        } else {
+          throw new Error(`Tx instantiation with supplied type not supported`);
+        }
+      } else {
+        throw new Error(`EIP 2718 is not activated.`);
+      }
+    }
+  }
   /**
    * Create a transaction from a `txData` object
    *
@@ -23,17 +56,8 @@ export class TransactionFactory {
    */
   public static fromRpc(txData: TypedRpcTransaction, common: Common) {
     const txType = this.typeOfRPC(txData);
-    if (txType === LegacyTransaction) {
-      return LegacyTransaction.fromTxData(txData, common);
-    } else if (txType === EIP2930AccessListTransaction) {
-      return EIP2930AccessListTransaction.fromTxData(txData, common);
-    } else {
-      throw new Error(
-        `Tx instantiation with supplied type ${
-          "type" in txData ? txData.type : ""
-        } not supported`
-      );
-    }
+
+    return this._fromData(txData, txType, common);
   }
   /**
    * Create a transaction from a `txData` object
@@ -45,19 +69,10 @@ export class TransactionFactory {
     txData: TypedDatabaseTransaction,
     common: Common
   ) {
-    const type = txData[0][0];
+    const typeVal = txData[0][0];
     const data = txData.slice(1, txData.length); // remove type because it's not rlp encoded and thus can't be decoded
-    const txType = this.typeOf(type);
-    if (txType === LegacyTransaction) {
-      return LegacyTransaction.fromTxData(<LegacyDatabasePayload>data, common);
-    } else if (txType === EIP2930AccessListTransaction) {
-      return EIP2930AccessListTransaction.fromTxData(
-        <EIP2930AccessListDatabasePayload>data,
-        common
-      );
-    } else {
-      throw new Error(`Tx instantiation with type ${type} not supported`);
-    }
+    const txType = this.typeOf(typeVal);
+    return this._fromData(<TypedDatabasePayload>data, txType, common);
   }
   /**
    * Create a transaction from a `txData` object
@@ -69,23 +84,11 @@ export class TransactionFactory {
     let data = Data.from(txData).toBuffer();
     const type = data[0];
     const txType = this.typeOf(type);
-    if (txType === LegacyTransaction) {
-      // type 0x0 toBuffer() is going to be empty, meaning
-      // a type was sent. strip it away
-      if (type === undefined) {
-        data = data.slice(1, data.length);
-      }
-      const raw = decode<LegacyDatabasePayload>(data);
-      return LegacyTransaction.fromTxData(<LegacyDatabasePayload>raw, common);
-    } else {
-      data = data.slice(1, data.length); // remove type because it's not rlp encoded and thus can't be decoded
-      if (txType === EIP2930AccessListTransaction) {
-        const raw = decode<EIP2930AccessListDatabasePayload>(data);
-        return EIP2930AccessListTransaction.fromTxData(raw, common);
-      } else {
-        throw new Error(`Tx instantiation with type ${type} not supported`);
-      }
+    if (type === undefined || txType !== LegacyTransaction) {
+      data = data.slice(1);
     }
+    const raw = decode<TypedDatabasePayload>(data);
+    return this._fromData(raw, txType, common);
   }
 
   public static typeOf(type: number) {
