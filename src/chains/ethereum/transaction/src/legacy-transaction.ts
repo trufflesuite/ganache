@@ -52,15 +52,6 @@ export class LegacyTransaction extends RuntimeTransaction {
   ) {
     super(data, common);
     if (Array.isArray(data)) {
-      if (data.length > 9) {
-        // we already know this is a legacy transaction, but
-        // it could have the "type" field at the beginning.
-        // so if there are more than nine fields, the user added
-        // the transaction type to the beginning. We can remove it
-        // and shift everything up in the array.
-        this.type = Quantity.from("0x0");
-        data.shift();
-      }
       this.nonce = Quantity.from(data[0], true);
       this.gasPrice = Quantity.from(data[1]);
       this.gas = Quantity.from(data[2]);
@@ -218,9 +209,9 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.to.toBuffer(),
       this.value.toBuffer(),
       this.data.toBuffer(),
-      v ? v : this.v.toBuffer(),
-      r ? r : this.r.toBuffer(),
-      s ? s : this.s.toBuffer()
+      v,
+      r,
+      s
     ];
   }
 
