@@ -2,9 +2,7 @@ import base from "./webpack.common.config";
 import webpack from "webpack";
 import path from "path";
 import merge from "webpack-merge";
-
-let moduleCounter = 0;
-let nodeModules = {};
+import DeduplicatePlugin from "./deduplicate-plugin";
 
 const config: webpack.Configuration = merge({}, base, {
   target: "node10.7",
@@ -23,7 +21,8 @@ const config: webpack.Configuration = merge({}, base, {
       include: "cli.js",
       banner: "#!/usr/bin/env node",
       raw: true
-    })
+    }),
+    new DeduplicatePlugin()
   ],
   optimization: {
     splitChunks: {
@@ -35,12 +34,16 @@ const config: webpack.Configuration = merge({}, base, {
     chunkIds: "total-size"
   },
   externals: [
+    //#region dependencies that have the potential to compile something at install time
     "bigint-buffer",
     "leveldown",
     "secp256k1",
     "keccak",
+    // our µWebSockets.js uses `ws`, as does some other libs. `ws` likes to have
+    // these `bufferutil` and `utf-8-validate` to make it go faster
     "bufferutil",
     "utf-8-validate",
+    //#endregion
     "@ganache/filecoin"
   ],
   module: {
