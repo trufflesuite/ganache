@@ -14,7 +14,7 @@ jobs:
         # CBOR package will let us install. Once filecoin is moved out of the
         # monorepo we want to use 10.7.0 (earliest version the Ethereum side
         # supports) or 10.13.0 (first node 10 LTS version).
-        node: [10.18.0, 10.x, 11.x, 12.x, 13.x, 14.x]
+        node: [10.18.0, 10.x, 11.x, 12.x, 13.x, 14.x, 15.x, 16.x]
         os: [ubuntu-20.04]
 
     runs-on: ${{ matrix.os }}

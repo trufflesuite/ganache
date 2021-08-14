@@ -1,6 +1,6 @@
 {
 	"name": "ganache",
-	"version": "7.0.0-canary.1337",
+	"version": "7.0.0-canary.1338",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
@@ -547,6 +547,14 @@
 			"resolved": "https://registry.npmjs.org/buffer-xor/-/buffer-xor-1.0.3.tgz",
 			"integrity": "sha1-JuYe0UIvtw3ULm42cp7VHYVf6Nk=",
 			"dev": true
+		},
+		"bufferutil": {
+			"version": "4.0.3",
+			"resolved": "https://registry.npmjs.org/bufferutil/-/bufferutil-4.0.3.tgz",
+			"integrity": "sha512-yEYTwGndELGvfXsImMBLop58eaGW+YdONi1fNjTINSY98tmMmFijBG6WXgdkfuLNt4imzQNtIE+eBp1PVpMCSw==",
+			"requires": {
+				"node-gyp-build": "^4.2.0"
+			}
 		},
 		"call-bind": {
 			"version": "1.0.2",
@@ -2649,6 +2657,14 @@
 			"dev": true,
 			"requires": {
 				"punycode": "^2.1.0"
+			}
+		},
+		"utf-8-validate": {
+			"version": "5.0.4",
+			"resolved": "https://registry.npmjs.org/utf-8-validate/-/utf-8-validate-5.0.4.tgz",
+			"integrity": "sha512-MEF05cPSq3AwJ2C7B7sHAA6i53vONoZbMGX8My5auEVm6W+dJ2Jd/TZPyGJ5CH42V2XtbI5FD28HeHeqlPzZ3Q==",
+			"requires": {
+				"node-gyp-build": "^4.2.0"
 			}
 		},
 		"util": {
