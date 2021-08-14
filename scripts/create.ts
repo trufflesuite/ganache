@@ -264,14 +264,14 @@ describe("${packageName}", () => {
       return Promise.all([
         writeFile(
           join(dir, ".npmignore"),
-          `./index.ts
-tests
-.nyc_output
-coverage
-scripts
-src
-tsconfig.json
-typedoc.json
+          `/index.ts
+/tests
+/.nyc_output
+/coverage
+/scripts
+/src
+/tsconfig.json
+/typedoc.json
 `
         ),
         writeFile(join(dir, "LICENSE"), LICENSE)

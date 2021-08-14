@@ -3,6 +3,6 @@ tests
 .nyc_output
 coverage
 scripts
-src
+/src
 tsconfig.json
 typedoc.json
