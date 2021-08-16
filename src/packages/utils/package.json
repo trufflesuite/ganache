@@ -25,7 +25,8 @@
     "directory": "src/packages/utils"
   },
   "scripts": {
-    "tsc": "ttsc --build"
+    "tsc": "ttsc --build",
+    "test": "echo 'no tests'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
