@@ -19,32 +19,36 @@ export class TransactionFactory {
   private static _fromData(
     txData: TypedRpcTransaction | TypedDatabasePayload,
     txType: typeof EIP2930AccessListTransaction | typeof LegacyTransaction,
-    common
+    common: Common
   ) {
     if (txType === LegacyTransaction) {
-      // TODO: this could be send _with_ a txType even though EIP-2718 isn't activated. Do we care?
       return txType.fromTxData(
         <LegacyDatabasePayload | TypedRpcTransaction>txData,
         common
       );
+    }
+    if (!common.isActivatedEIP(2718)) {
+      if (txType === EIP2930AccessListTransaction) {
+        // normalize tx to legacy
+        return LegacyTransaction.fromEIP2930AccessListTransaction(
+          <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
+          common
+        );
+      }
     } else {
-      if (common.isActivatedEIP(2718)) {
-        if (txType === EIP2930AccessListTransaction) {
-          if (common.isActivatedEIP(2930)) {
-            return txType.fromTxData(
-              <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
-              common
-            );
-          } else {
-            // TODO: I believe this is unreachable with current architecture.
-            // If 2718 is supported, so is 2930.
-            throw new Error(`EIP 2930 is not activated.`);
-          }
+      if (txType === EIP2930AccessListTransaction) {
+        if (common.isActivatedEIP(2930)) {
+          return txType.fromTxData(
+            <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
+            common
+          );
         } else {
-          throw new Error(`Tx instantiation with supplied type not supported`);
+          // TODO: I believe this is unreachable with current architecture.
+          // If 2718 is supported, so is 2930.
+          throw new Error(`EIP 2930 is not activated.`);
         }
       } else {
-        throw new Error(`EIP 2718 is not activated.`);
+        throw new Error(`Tx instantiation with supplied type not supported`);
       }
     }
   }

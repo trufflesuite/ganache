@@ -18,6 +18,7 @@ import {
 } from "./runtime-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
+  EIP2930AccessListDatabasePayload,
   LegacyDatabasePayload,
   LegacyDatabaseTx,
   TypedDatabaseTransaction
@@ -94,7 +95,19 @@ export class LegacyTransaction extends RuntimeTransaction {
   ) {
     return new LegacyTransaction(data, common);
   }
-
+  public static fromEIP2930AccessListTransaction(
+    data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
+    common: Common
+  ) {
+    if (Array.isArray(data)) {
+      // remove 1st item, chainId, and 7th item, accessList
+      return new LegacyTransaction(
+        data.slice(1, 7).concat(data.slice(8)) as LegacyDatabasePayload,
+        common
+      );
+    }
+    return new LegacyTransaction(data, common);
+  }
   public toVmTransaction() {
     const sender = this.from.toBuffer();
     const to = this.to.toBuffer();
