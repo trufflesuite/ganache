@@ -29,11 +29,13 @@ describe("@ganache/ethereum-transaction", async () => {
   const fakePrivateKey = Buffer.concat([fromBuf, fromBuf.slice(0, 12)]);
   const accessListStorageKey =
     "0x0000000000000000000000000000000000000000000000000000000000000004";
+  let rawEIP2930DBData: TypedDatabaseTransaction;
+  let rawEIP2930StringData: string;
 
   describe("TransactionFactory", () => {
     describe("LegacyTransaction type from factory", () => {
       let txFromRpc: LegacyTransaction;
-      it("infers legacy transaction if type ommitted", async () => {
+      it("infers legacy transaction if type ommitted", () => {
         const rpc: TypedRpcTransaction = {
           from: from,
           to: to,
@@ -95,13 +97,13 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.strictEqual(key, accessListStorageKey);
       });
       it("generates eip2930 access list transactions from raw buffer data", async () => {
-        const db: TypedDatabaseTransaction = txFromRpc.toEthRawTransaction(
+        rawEIP2930DBData = txFromRpc.toEthRawTransaction(
           txFromRpc.v.toBuffer(),
           txFromRpc.r.toBuffer(),
           txFromRpc.s.toBuffer()
         );
         const txFromDb = <EIP2930AccessListTransaction>(
-          TransactionFactory.fromDatabaseTx(db, common)
+          TransactionFactory.fromDatabaseTx(rawEIP2930DBData, common)
         );
         key = txFromDb.accessListJSON[0].storageKeys[0];
         assert.strictEqual(txFromDb.type.toString(), "0x1");
@@ -109,9 +111,9 @@ describe("@ganache/ethereum-transaction", async () => {
       });
 
       it("generates eip2930 access list transactions from raw string", async () => {
-        const str: string = "0x" + txFromRpc.serialized.toString("hex");
+        rawEIP2930StringData = "0x" + txFromRpc.serialized.toString("hex");
         const txFromString = <EIP2930AccessListTransaction>(
-          TransactionFactory.fromString(str, common)
+          TransactionFactory.fromString(rawEIP2930StringData, common)
         );
         key = txFromString.accessListJSON[0].storageKeys[0];
         assert.strictEqual(txFromString.type.toString(), "0x1");
@@ -322,6 +324,7 @@ describe("@ganache/ethereum-transaction", async () => {
     });
 
     describe("checks for hardfork's support of transaction types", () => {
+      let txFromRpc;
       const preBerlin = Common.forCustomChain(
         "mainnet",
         {
@@ -332,7 +335,7 @@ describe("@ganache/ethereum-transaction", async () => {
         },
         "istanbul"
       );
-      it("does not support EIP2930AccessListTransaction before berlin hardfork", async () => {
+      it("converts EIP2930AccessList RPC data to LegacyTransaction before berlin hardfork", () => {
         const rpc: TypedRpcTransaction = {
           from: from,
           to: to,
@@ -345,9 +348,29 @@ describe("@ganache/ethereum-transaction", async () => {
             }
           ]
         };
-        assert.throws(() => {
-          TransactionFactory.fromRpc(rpc, preBerlin);
-        });
+        txFromRpc = TransactionFactory.fromRpc(rpc, preBerlin);
+
+        assert.strictEqual(txFromRpc.type.toString(), "0x0");
+        assert.strictEqual(txFromRpc.accessList, undefined);
+      });
+      it("converts EIP2930AccessList raw database data to LegacyTransaction before berlin hardfork", () => {
+        const txFromDb = TransactionFactory.fromDatabaseTx(
+          rawEIP2930DBData,
+          preBerlin
+        ) as any;
+
+        assert.strictEqual(txFromDb.type.toString(), "0x0");
+        assert.strictEqual(txFromDb.accessList, undefined);
+      });
+
+      it("converts EIP2930AccessList raw string data to LegacyTransaction before berlin hardfork", () => {
+        const txFromString = TransactionFactory.fromString(
+          rawEIP2930StringData,
+          preBerlin
+        ) as any;
+
+        assert.strictEqual(txFromString.type.toString(), "0x0");
+        assert.strictEqual(txFromString.accessList, undefined);
       });
     });
   });
