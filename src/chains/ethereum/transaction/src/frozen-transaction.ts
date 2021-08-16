@@ -137,7 +137,6 @@ export class FrozenTransaction extends BaseTransaction {
 
   public toJSON = () => {
     let json: FrozenTransactionJSON = {
-      type: this.type,
       hash: this.hash,
       nonce: this.nonce,
       blockHash: this.blockHash,
@@ -153,6 +152,12 @@ export class FrozenTransaction extends BaseTransaction {
       r: this.r,
       s: this.s
     };
+    // if the tx has made it to become a frozen tx without EIP2718, we know it's
+    // a legacy tx, so we don't need to check type's value. don't respond with type
+    // if there on a hardfork where types don't exist
+    if (this.common.isActivatedEIP(2718)) {
+      json.type = this.type;
+    }
     if (this.chainId) {
       json.chainId = this.chainId;
     }

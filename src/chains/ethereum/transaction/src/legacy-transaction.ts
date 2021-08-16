@@ -60,8 +60,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   }
 
   public toJSON = () => {
-    return {
-      type: this.type,
+    let json = {
       hash: this.hash,
       nonce: this.nonce,
       blockHash: null,
@@ -77,6 +76,10 @@ export class LegacyTransaction extends RuntimeTransaction {
       r: this.r,
       s: this.s
     };
+    if (this.common.isActivatedEIP(2718)) {
+      (json as any).type = this.type;
+    }
+    return json as typeof json & { type?: LegacyTransaction["type"] };
   };
 
   public static fromTxData(
