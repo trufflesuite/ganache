@@ -17,7 +17,7 @@ import {
   TypedDatabasePayload,
   TypedDatabaseTransaction
 } from "./raw";
-import type { RunTxResult } from "../../utils/node_modules/@ethereumjs/vm/dist/runTx"; //TODO
+import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
 import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { TransactionReceipt } from "./transaction-receipt";
