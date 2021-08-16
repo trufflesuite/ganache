@@ -39,8 +39,8 @@ const config: webpack.Configuration = merge({}, base, {
     "leveldown",
     "secp256k1",
     "keccak",
-    // our µWebSockets.js uses `ws`, as does some other libs. `ws` likes to have
-    // these `bufferutil` and `utf-8-validate` to make it go faster
+    // our µWebSockets.js uses `ws`, as does some other libs. `ws` likes to use
+    // `bufferutil` and `utf-8-validate`, if available, to make it go faster
     "bufferutil",
     "utf-8-validate",
     //#endregion
