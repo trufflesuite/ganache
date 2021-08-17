@@ -95,62 +95,6 @@ export abstract class RuntimeTransaction extends BaseTransaction {
           : toValidLengthAddress(data.to, "to");
       this.value = Quantity.from(data.value);
       this.data = Data.from(data.data == null ? data.input : data.data);
-
-      // If we have v, r, or s validate and use them
-      if (hasPartialSignature(data)) {
-        if (data.v == null || data.r == null || data.s == null) {
-          throw new Error(
-            "Transaction signature is incomplete; v, r, and s are required."
-          );
-        }
-
-        // if we have a signature the `nonce` field is required
-        if (data.nonce == null) {
-          throw new Error(
-            "Signed transaction is incomplete; nonce is required."
-          );
-        }
-
-        this.v = Quantity.from(data.v, true);
-        this.r = Quantity.from(data.r, true);
-        this.s = Quantity.from(data.s, true);
-
-        // compute the `hash` and the `from` address
-        const raw: TypedDatabaseTransaction = this.toEthRawTransaction(
-          this.v.toBuffer(),
-          this.r.toBuffer(),
-          this.s.toBuffer()
-        );
-        const {
-          from,
-          serialized,
-          hash,
-          encodedData,
-          encodedSignature
-        } = this.computeIntrinsics(this.v, raw, this.common.chainId());
-
-        // if the user specified a `from` address in addition to the  `v`, `r`,
-        //  and `s` values, make sure the `from` address matches
-        if (data.from !== null) {
-          const userFrom = toValidLengthAddress(data.from, "from");
-          if (!from.toBuffer().equals(userFrom.toBuffer())) {
-            throw new Error(
-              "Transaction is signed and contains a `from` field, but the signature doesn't match."
-            );
-          }
-        }
-        this.from = from;
-        this.raw = raw;
-        this.serialized = serialized;
-        this.hash = hash;
-        this.encodedData = encodedData;
-        this.encodedSignature = encodedSignature;
-      } else if (data.from != null) {
-        // we don't have a signature yet, so we just need to record the `from`
-        // address for now. The TransactionPool will fill in the `hash` and
-        // `raw` fields during signing
-        this.from = toValidLengthAddress(data.from, "from");
-      }
     }
   }
 
@@ -221,6 +165,62 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   public getLogs(): TransactionLog[] {
     return this.logs;
   }
+
+  validateAndSetSignature = (data: TypedRpcTransaction) => {
+    // If we have v, r, or s validate and use them
+    if (hasPartialSignature(data)) {
+      if (data.v == null || data.r == null || data.s == null) {
+        throw new Error(
+          "Transaction signature is incomplete; v, r, and s are required."
+        );
+      }
+
+      // if we have a signature the `nonce` field is required
+      if (data.nonce == null) {
+        throw new Error("Signed transaction is incomplete; nonce is required.");
+      }
+
+      this.v = Quantity.from(data.v, true);
+      this.r = Quantity.from(data.r, true);
+      this.s = Quantity.from(data.s, true);
+
+      // compute the `hash` and the `from` address
+      const raw: TypedDatabaseTransaction = this.toEthRawTransaction(
+        this.v.toBuffer(),
+        this.r.toBuffer(),
+        this.s.toBuffer()
+      );
+      const {
+        from,
+        serialized,
+        hash,
+        encodedData,
+        encodedSignature
+      } = this.computeIntrinsics(this.v, raw, this.common.chainId());
+
+      // if the user specified a `from` address in addition to the  `v`, `r`,
+      //  and `s` values, make sure the `from` address matches
+      if (data.from !== null) {
+        const userFrom = toValidLengthAddress(data.from, "from");
+        if (!from.toBuffer().equals(userFrom.toBuffer())) {
+          throw new Error(
+            "Transaction is signed and contains a `from` field, but the signature doesn't match."
+          );
+        }
+      }
+      this.from = from;
+      this.raw = raw;
+      this.serialized = serialized;
+      this.hash = hash;
+      this.encodedData = encodedData;
+      this.encodedSignature = encodedSignature;
+    } else if (data.from != null) {
+      // we don't have a signature yet, so we just need to record the `from`
+      // address for now. The TransactionPool will fill in the `hash` and
+      // `raw` fields during signing
+      this.from = toValidLengthAddress(data.from, "from");
+    }
+  };
 
   /**
    * Returns a Promise that is resolved with the confirmation status and, if

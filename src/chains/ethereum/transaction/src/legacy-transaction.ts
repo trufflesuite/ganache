@@ -11,7 +11,11 @@ import type Common from "@ethereumjs/common";
 import { ecsign } from "ethereumjs-util";
 import { encodeRange, digest } from "@ganache/rlp";
 import { BN } from "ethereumjs-util";
-import { RuntimeTransaction } from "./runtime-transaction";
+import {
+  hasPartialSignature,
+  RuntimeTransaction,
+  toValidLengthAddress
+} from "./runtime-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
   LegacyDatabasePayload,
@@ -56,6 +60,8 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.encodedSignature = encodedSignature;
     } else {
       this.gasPrice = Quantity.from(data.gasPrice);
+
+      this.validateAndSetSignature(data);
     }
   }
 

@@ -69,6 +69,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       const accessListData = AccessLists.getAccessListData(data.accessList);
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
+      this.validateAndSetSignature(data);
     }
   }
 
