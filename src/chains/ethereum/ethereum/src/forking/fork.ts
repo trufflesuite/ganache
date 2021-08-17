@@ -185,7 +185,7 @@ export class Fork {
       this.#setBlockDataFromChainAndOptions(),
       this.#setCommonFromChain()
     ]);
-    this.block = new Block(Block.rawFromJSON(block), this.common);
+    this.block = new Block(Block.rawFromJSON(block, this.common), this.common);
   }
 
   public request<T = unknown>(method: string, params: unknown[]): Promise<T> {

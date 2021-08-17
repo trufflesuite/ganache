@@ -64,7 +64,7 @@ export default class BlockManager extends Manager<Block> {
         : Quantity.from(tagOrBlockNumber).toString(),
       true
     ]);
-    return json == null ? null : Block.rawFromJSON(json);
+    return json == null ? null : Block.rawFromJSON(json, this.#common);
   };
 
   getBlockByTag(tag: Tag) {
@@ -88,7 +88,9 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST): Quantity {
+  getEffectiveNumber(
+    tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+  ): Quantity {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {
@@ -115,7 +117,7 @@ export default class BlockManager extends Manager<Block> {
           true
         ]);
         if (json && BigInt(json.number) <= fallback.blockNumber.toBigInt()) {
-          return new Block(Block.rawFromJSON(json), this.#common);
+          return new Block(Block.rawFromJSON(json, this.#common), this.#common);
         } else {
           return null;
         }
