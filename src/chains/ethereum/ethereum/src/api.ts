@@ -1542,7 +1542,12 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_getTransactionReceipt(transactionHash: DATA) {
-    const { transactions, transactionReceipts, blocks } = this.#blockchain;
+    const {
+      transactions,
+      transactionReceipts,
+      blocks,
+      common
+    } = this.#blockchain;
     const dataHash = Data.from(transactionHash);
     const txHash = dataHash.toBuffer();
 
@@ -1557,7 +1562,7 @@ export default class EthereumApi implements Api {
       blockPromise
     ]);
     if (transaction) {
-      return receipt.toJSON(block, transaction);
+      return receipt.toJSON(block, transaction, common);
     }
 
     // if we are performing non-legacy instamining, then check to see if the

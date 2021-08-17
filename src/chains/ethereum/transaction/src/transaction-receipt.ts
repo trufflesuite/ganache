@@ -5,6 +5,7 @@ import { Data, Quantity } from "@ganache/utils";
 import { RPCQUANTITY_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
 import { FrozenTransaction } from "./frozen-transaction";
 import { AccessList } from "@ethereumjs/tx";
+import Common from "@ethereumjs/common";
 
 const STATUSES = [RPCQUANTITY_ZERO, RPCQUANTITY_ONE];
 
@@ -134,7 +135,8 @@ export class TransactionReceipt {
 
   public toJSON(
     block: { hash(): Data; header: { number: Quantity } },
-    transaction: FrozenTransaction
+    transaction: FrozenTransaction,
+    common: Common
   ) {
     const raw = this.raw;
     const contractAddress =
@@ -163,7 +165,7 @@ export class TransactionReceipt {
       logsBloom: Data.from(raw[2], 256),
       status: STATUSES[raw[0][0]]
     };
-    if (transaction.type) {
+    if (transaction.type && common.isActivatedEIP(2718)) {
       json.type = transaction.type;
     }
     if (transaction.chainId) {
