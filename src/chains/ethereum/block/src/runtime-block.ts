@@ -130,14 +130,6 @@ export class RuntimeBlock {
   /**
    * Returns the serialization of all block data, the hash of the block header,
    * and a map of the hashed and raw storage keys
-   *
-   * @param transactionsTrie
-   * @param receiptTrie
-   * @param bloom
-   * @param stateRoot
-   * @param extraData
-   * @param transactions
-   * @param storageKeys
    */
   finalize(
     transactionsTrie: Buffer,
