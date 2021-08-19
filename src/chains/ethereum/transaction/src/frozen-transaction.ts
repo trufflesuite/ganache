@@ -7,11 +7,9 @@ import {
 import { BN } from "ethereumjs-util";
 import type Common from "@ethereumjs/common";
 import {
-  BlockDatabaseTransaction,
   GanacheRawExtraTx,
   EIP2930AccessListDatabaseTx,
   LegacyDatabasePayload,
-  LegacyDatabaseTx,
   TypedDatabaseTransaction
 } from "./raw";
 import { decode } from "@ganache/rlp";
@@ -71,7 +69,7 @@ export class FrozenTransaction extends BaseTransaction {
   public common: Common;
 
   constructor(
-    data: Buffer | [BlockDatabaseTransaction, GanacheRawExtraTx],
+    data: Buffer | [TypedDatabaseTransaction, GanacheRawExtraTx],
     common: Common
   ) {
     super(common);
@@ -91,29 +89,24 @@ export class FrozenTransaction extends BaseTransaction {
     Object.freeze(this);
   }
 
-  public setRaw(raw: TypedDatabaseTransaction | LegacyDatabasePayload) {
+  public setRaw(raw: TypedDatabaseTransaction) {
     let [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s]: Buffer[] = []; // prettier-ignore
 
-    if (raw.length === 9) {
-      // LegacyTransaction but with type missing
-      type = Quantity.from("0x0").toBuffer();
+    const txType = TransactionFactory.typeOfRaw(raw);
+    if (txType === LegacyTransaction) {
       [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <LegacyDatabasePayload>raw; //prettier-ignore
-    } else {
-      const txType = TransactionFactory.typeOfRaw(raw);
-      if (txType === LegacyTransaction) {
-        [type, nonce, gasPrice, gasLimit, to, value, data, v, r, s] = <LegacyDatabaseTx>raw; //prettier-ignore
-      } else if (txType === EIP2930AccessListTransaction) {
-        let chainId: Buffer, accessList: AccessListBuffer;
-        [type, chainId, nonce, gasPrice, gasLimit, to, value, data, accessList, v, r, s] = <EIP2930AccessListDatabaseTx>raw; //prettier-ignore
+      this.type = Quantity.from("0x0");
+    } else if (txType === EIP2930AccessListTransaction) {
+      let chainId: Buffer, accessList: AccessListBuffer;
+      [type, chainId, nonce, gasPrice, gasLimit, to, value, data, accessList, v, r, s] = <EIP2930AccessListDatabaseTx>raw; //prettier-ignore
 
-        this.chainId = Quantity.from(chainId);
-        const accessListData = AccessLists.getAccessListData(accessList);
-        this.accessList = accessListData.accessList;
-        this.accessListJSON = accessListData.AccessListJSON;
-      }
+      this.chainId = Quantity.from(chainId);
+      const accessListData = AccessLists.getAccessListData(accessList);
+      this.accessList = accessListData.accessList;
+      this.accessListJSON = accessListData.AccessListJSON;
+      this.type = Quantity.from(type);
     }
 
-    this.type = Quantity.from(type);
     this.nonce = Quantity.from(nonce);
     this.gasPrice = Quantity.from(gasPrice);
     this.gas = Quantity.from(gasLimit);

@@ -16,7 +16,6 @@ import { TypedRpcTransaction } from "./rpc-transaction";
 import {
   EIP2930AccessListDatabasePayload,
   LegacyDatabasePayload,
-  LegacyDatabaseTx,
   TypedDatabaseTransaction
 } from "./raw";
 import { computeInstrinsicsLegacyTx } from "./signing";
@@ -41,7 +40,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.v = Quantity.from(data[6]);
       this.r = Quantity.from(data[7]);
       this.s = Quantity.from(data[8]);
-      this.raw = [this.type.toBuffer(), ...data];
+      this.raw = data;
 
       const {
         from,
@@ -158,15 +157,15 @@ export class LegacyTransaction extends RuntimeTransaction {
     }
 
     const chainId = this.common.chainId();
-    const raw: LegacyDatabaseTx = this.toEthRawTransaction(
+    const raw: LegacyDatabasePayload = this.toEthRawTransaction(
       Quantity.from(chainId).toBuffer(),
       BUFFER_EMPTY,
       BUFFER_EMPTY
     );
-    const data = encodeRange(raw, 1, 6);
+    const data = encodeRange(raw, 0, 6);
     const dataLength = data.length;
 
-    const ending = encodeRange(raw, 7, 3);
+    const ending = encodeRange(raw, 6, 3);
     const msgHash = keccak(
       digest([data.output, ending.output], dataLength + ending.length)
     );
@@ -175,12 +174,12 @@ export class LegacyTransaction extends RuntimeTransaction {
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 
-    raw[7] = this.v.toBuffer();
-    raw[8] = this.r.toBuffer();
-    raw[9] = this.s.toBuffer();
+    raw[6] = this.v.toBuffer();
+    raw[7] = this.r.toBuffer();
+    raw[8] = this.s.toBuffer();
 
     this.raw = raw;
-    const encodedSignature = encodeRange(raw, 7, 3);
+    const encodedSignature = encodeRange(raw, 6, 3);
     this.serialized = digest(
       [data.output, encodedSignature.output],
       dataLength + encodedSignature.length
@@ -194,9 +193,8 @@ export class LegacyTransaction extends RuntimeTransaction {
     v: Buffer,
     r: Buffer,
     s: Buffer
-  ): LegacyDatabaseTx {
+  ): LegacyDatabasePayload {
     return [
-      this.type.toBuffer(),
       this.nonce.toBuffer(),
       this.gasPrice.toBuffer(),
       this.gas.toBuffer(),
@@ -214,6 +212,6 @@ export class LegacyTransaction extends RuntimeTransaction {
     raw: TypedDatabaseTransaction,
     chainId: number
   ) {
-    return computeInstrinsicsLegacyTx(v, <LegacyDatabaseTx>raw, chainId);
+    return computeInstrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
   }
 }

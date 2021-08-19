@@ -5,8 +5,8 @@ import {
   BUFFER_EMPTY,
   uintToBuffer
 } from "@ganache/utils";
-import { EIP2930AccessListDatabaseTx, LegacyDatabaseTx } from "./raw";
-import { digest, encode, encodeRange } from "@ganache/rlp";
+import { EIP2930AccessListDatabaseTx, LegacyDatabasePayload } from "./raw";
+import { digest, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
 let secp256k1;
@@ -157,16 +157,11 @@ export const computeFromAddress = (
   return Address.from(keccak(publicKey.slice(1)).slice(-20));
 };
 
-export const computeHash = (raw: LegacyDatabaseTx) => {
-  return Data.from(keccak(encode(raw)), 32);
-};
-
 export const computeInstrinsicsLegacyTx = (
   v: Quantity,
-  raw: LegacyDatabaseTx,
+  raw: LegacyDatabasePayload,
   chainId: number
 ) => {
-  raw.shift();
   const encodedData = encodeRange(raw, 0, 6);
   const encodedSignature = encodeRange(raw, 6, 3);
   const serialized = digest(

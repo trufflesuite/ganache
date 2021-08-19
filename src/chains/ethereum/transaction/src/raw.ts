@@ -40,14 +40,11 @@ export type EIP2930AccessListDatabaseTx = Concat<
 >;
 
 export type TypedDatabaseTransaction =
-  | LegacyDatabaseTx
+  | LegacyDatabasePayload
   | EIP2930AccessListDatabaseTx;
 export type TypedDatabasePayload =
   | LegacyDatabasePayload
   | EIP2930AccessListDatabasePayload;
-export type BlockDatabaseTransaction =
-  | LegacyDatabasePayload
-  | EIP2930AccessListDatabaseTx;
 
 /**
  * Extra data Ganache stores as part of a transaction in order to support

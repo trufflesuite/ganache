@@ -2,7 +2,7 @@ import type Common from "@ethereumjs/common";
 import {
   GanacheRawBlockTransactionMetaData,
   GanacheRawExtraTx,
-  BlockDatabaseTransaction
+  TypedDatabaseTransaction
 } from "./raw";
 import { FrozenTransaction } from "./frozen-transaction";
 
@@ -12,7 +12,7 @@ import { FrozenTransaction } from "./frozen-transaction";
 
 export class BlockTransaction extends FrozenTransaction {
   constructor(
-    data: BlockDatabaseTransaction,
+    data: TypedDatabaseTransaction,
     [from, hash]: GanacheRawBlockTransactionMetaData,
     blockHash: Buffer,
     blockNumber: Buffer,

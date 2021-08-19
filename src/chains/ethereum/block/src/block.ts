@@ -1,10 +1,9 @@
-import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
+import { Data, Quantity } from "@ganache/utils";
 import {
-  BlockDatabaseTransaction,
   BlockTransaction,
   GanacheRawBlockTransactionMetaData,
-  LegacyDatabasePayload,
-  TransactionFactory
+  TransactionFactory,
+  TypedDatabaseTransaction
 } from "@ganache/ethereum-transaction";
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
@@ -21,7 +20,7 @@ export class Block {
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
   protected _common: Common;
-  protected _rawTransactions: BlockDatabaseTransaction[];
+  protected _rawTransactions: TypedDatabaseTransaction[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
   public header: BlockHeader;
@@ -110,7 +109,7 @@ export class Block {
       Data.from(json.nonce).toBuffer()
     ];
     const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
-    const txs: BlockDatabaseTransaction[] = [];
+    const txs: TypedDatabaseTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     json.transactions.forEach(tx => {
       const typedTx = TransactionFactory.fromRpc(tx, common);
@@ -119,11 +118,7 @@ export class Block {
         typedTx.r.toBuffer(),
         typedTx.s.toBuffer()
       );
-      if (typedTx.type.toBuffer() === BUFFER_EMPTY) {
-        txs.push(<LegacyDatabasePayload>raw.slice(1));
-      } else {
-        txs.push(<BlockDatabaseTransaction>raw);
-      }
+      txs.push(<TypedDatabaseTransaction>raw);
       extraTxs.push([
         Quantity.from(tx.from).toBuffer(),
         Quantity.from(tx.hash).toBuffer()
@@ -145,7 +140,7 @@ export class Block {
 
   static fromParts(
     rawHeader: EthereumRawBlockHeader,
-    txs: BlockDatabaseTransaction[],
+    txs: TypedDatabaseTransaction[],
     totalDifficulty: Buffer,
     extraTxs: GanacheRawBlockTransactionMetaData[],
     size: number,

@@ -74,9 +74,14 @@ export class TransactionFactory {
     common: Common
   ) {
     const typeVal = txData[0][0];
-    const data = txData.slice(1, txData.length); // remove type because it's not rlp encoded and thus can't be decoded
     const txType = this.typeOf(typeVal);
-    return this._fromData(<TypedDatabasePayload>data, txType, common);
+    return this._fromData(
+      <TypedDatabasePayload>(
+        (txType === LegacyTransaction ? txData : txData.slice(1)) // if the type is at the front, remove it
+      ),
+      txType,
+      common
+    );
   }
   /**
    * Create a transaction from a `txData` object
@@ -88,10 +93,9 @@ export class TransactionFactory {
     let data = Data.from(txData).toBuffer();
     const type = data[0];
     const txType = this.typeOf(type);
-    if (type === undefined || txType !== LegacyTransaction) {
-      data = data.slice(1);
-    }
-    const raw = decode<TypedDatabasePayload>(data);
+    const raw = decode<TypedDatabasePayload>(
+      txType === LegacyTransaction ? data : data.slice(1)
+    );
     return this._fromData(raw, txType, common);
   }
 
@@ -107,10 +111,8 @@ export class TransactionFactory {
     }
   }
 
-  public static typeOfRaw(
-    raw: TypedDatabaseTransaction | LegacyDatabasePayload
-  ) {
-    // length of raw legacy payload. All other TXs will start with the type.
+  public static typeOfRaw(raw: TypedDatabaseTransaction) {
+    // LegacyTransactions won't have the type up front to parse
     if (raw.length === 9) {
       return LegacyTransaction;
     }
