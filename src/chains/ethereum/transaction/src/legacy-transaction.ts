@@ -11,11 +11,7 @@ import type Common from "@ethereumjs/common";
 import { ecsign } from "ethereumjs-util";
 import { encodeRange, digest } from "@ganache/rlp";
 import { BN } from "ethereumjs-util";
-import {
-  hasPartialSignature,
-  RuntimeTransaction,
-  toValidLengthAddress
-} from "./runtime-transaction";
+import { RuntimeTransaction } from "./runtime-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
   LegacyDatabasePayload,
