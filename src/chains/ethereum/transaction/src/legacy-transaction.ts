@@ -30,7 +30,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   ) {
     super(data, common);
     if (Array.isArray(data)) {
-      this.nonce = Quantity.from(data[0], true);
+      this.nonce = Quantity.from(data[0]);
       this.gasPrice = Quantity.from(data[1]);
       this.gas = Quantity.from(data[2]);
       this.to = data[3].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[3]);
