@@ -9,7 +9,7 @@ import { KnownKeys } from "../types";
 import Emittery from "emittery";
 
 /**
- * Connects an arbitrary public chain provider to ganache-core
+ * Connects an arbitrary public chain provider to ganache
  */
 export interface Connector<
   ApiImplementation extends Api,

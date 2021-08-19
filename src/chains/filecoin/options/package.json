@@ -6,7 +6,7 @@
   "version": "0.1.1-canary.1336",
   "description": "",
   "author": "Tim Coulter",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/filecoin/options#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/filecoin/options#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/src/index.d.ts",
@@ -22,7 +22,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "url": "https://github.com/trufflesuite/ganache.git",
     "directory": "src/chains/filecoin/options"
   },
   "scripts": {
@@ -32,7 +32,7 @@
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
-    "url": "https://github.com/trufflesuite/ganache-core/issues"
+    "url": "https://github.com/trufflesuite/ganache/issues"
   },
   "keywords": [
     "ganache",

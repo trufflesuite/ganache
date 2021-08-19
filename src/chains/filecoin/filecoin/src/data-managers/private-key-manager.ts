@@ -66,7 +66,7 @@ export default class PrivateKeyManager {
     if (!this.#addressesWithPrivateKeys.includes(address)) {
       this.#addressesWithPrivateKeys.push(address);
 
-      // TODO(perf): (Issue ganache-core#875) If the number of private
+      // TODO(perf): (Issue ganache#875) If the number of private
       // keys becomes very large (a highly unlikely event), this would
       // kill performance whenever accounts were created
       this.base.put(
@@ -89,7 +89,7 @@ export default class PrivateKeyManager {
       );
       this.base.del(Buffer.from(address));
 
-      // TODO(perf): (Issue ganache-core#875) If the number of private
+      // TODO(perf): (Issue ganache#875) If the number of private
       // keys becomes very large (a highly unlikely event), this would
       // kill performance whenever accounts were created
       await this.base.put(
@@ -107,7 +107,7 @@ export default class PrivateKeyManager {
       );
       this.#addressesWithPrivateKeys.unshift(address);
 
-      // TODO(perf): (Issue ganache-core#875) If the number of private
+      // TODO(perf): (Issue ganache#875) If the number of private
       // keys becomes very large (a highly unlikely event), this would
       // kill performance whenever accounts were created
       await this.base.put(

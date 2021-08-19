@@ -31,7 +31,7 @@ export class Block {
       this._raw = deserialized[0];
       this._rawTransactions = deserialized[1] || [];
       // TODO: support actual uncle data (needed for forking!)
-      // Issue: https://github.com/trufflesuite/ganache-core/issues/786
+      // Issue: https://github.com/trufflesuite/ganache/issues/786
       // const uncles = deserialized[2];
       const totalDifficulty = deserialized[3];
       this.header = makeHeader(this._raw, totalDifficulty);
