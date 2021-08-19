@@ -19,6 +19,7 @@ import {
   TypedDatabaseTransaction
 } from "./raw";
 import { computeInstrinsicsLegacyTx } from "./signing";
+import { Capability } from "./transaction-types";
 
 export class LegacyTransaction extends RuntimeTransaction {
   public gasPrice: Quantity;
@@ -123,7 +124,7 @@ export class LegacyTransaction extends RuntimeTransaction {
           throw e;
         }
       },
-      supports: (capability: any) => {
+      supports: (capability: Capability) => {
         return false;
       }
     };

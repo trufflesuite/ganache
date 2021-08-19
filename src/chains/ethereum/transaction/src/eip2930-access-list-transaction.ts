@@ -20,8 +20,9 @@ import {
 import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
 import { AccessLists } from "./access-lists";
 import { computeInstrinsicsAccessListTx } from "./signing";
+import { Capability } from "./transaction-types";
 
-const CAPABILITIES: any[] = [2718, 2930];
+const CAPABILITIES = [2718, 2930] as const;
 export class EIP2930AccessListTransaction extends RuntimeTransaction {
   public chainId: Quantity;
   public accessList: AccessListBuffer;
@@ -136,7 +137,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
           throw e;
         }
       },
-      supports: (capability: any) => {
+      supports: (capability: Capability) => {
         return CAPABILITIES.includes(capability);
       }
     };
