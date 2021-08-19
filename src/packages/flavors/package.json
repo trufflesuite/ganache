@@ -6,7 +6,7 @@
   "version": "0.1.1-canary.1337",
   "description": "Ganache's flavors enumeration and TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/flavors#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/flavors#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -21,14 +21,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "url": "https://github.com/trufflesuite/ganache.git",
     "directory": "src/packages/flavors"
   },
   "scripts": {
     "tsc": "ttsc --build"
   },
   "bugs": {
-    "url": "https://github.com/trufflesuite/ganache-core/issues"
+    "url": "https://github.com/trufflesuite/ganache/issues"
   },
   "keywords": [
     "ganache",

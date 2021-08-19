@@ -83,7 +83,7 @@ class Address extends SerializableLiteral<AddressConfig> {
 
   async signMessage(message: Message): Promise<Buffer> {
     if (this.#privateKey) {
-      // TODO (Issue ganache-core#867): From the code at https://git.io/Jtud2,
+      // TODO (Issue ganache#867): From the code at https://git.io/Jtud2,
       // it appears that messages are signed using the CID. However there are
       // two issues here that I spent too much time trying to figure out:
       //   1. We don't generate an identical CID

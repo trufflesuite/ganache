@@ -11,7 +11,7 @@ import sub from "subleveldown";
 import encode from "encoding-down";
 
 setGracefulCleanup();
-const tmpOptions = { prefix: "ganache-core_", unsafeCleanup: true };
+const tmpOptions = { prefix: "ganache_", unsafeCleanup: true };
 const noop = () => Promise.resolve();
 
 export default class Database extends Emittery {

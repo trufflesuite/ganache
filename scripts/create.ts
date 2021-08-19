@@ -147,7 +147,7 @@ process.stdout.write(`${COLORS.Reset}`);
       version,
       description: "",
       author: packageAuthor || rootPackageJson.author,
-      homepage: `https://github.com/trufflesuite/ganache-core/tree/develop/src/${location}/${folderName}#readme`,
+      homepage: `https://github.com/trufflesuite/ganache/tree/develop/src/${location}/${folderName}#readme`,
       license: "MIT",
       main: "lib/index.js",
       typings: "typings",
@@ -159,7 +159,7 @@ process.stdout.write(`${COLORS.Reset}`);
       files: ["lib", "typings"],
       repository: {
         type: "git",
-        url: "https://github.com/trufflesuite/ganache-core.git",
+        url: "https://github.com/trufflesuite/ganache.git",
         directory: `src/${location}/${folderName}`
       },
       scripts: {
@@ -169,7 +169,7 @@ process.stdout.write(`${COLORS.Reset}`);
           "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
       },
       bugs: {
-        url: "https://github.com/trufflesuite/ganache-core/issues"
+        url: "https://github.com/trufflesuite/ganache/issues"
       },
       keywords: [
         "ganache",

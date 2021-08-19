@@ -6,7 +6,7 @@
   "version": "0.1.1-canary.1337",
   "description": "",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/options#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/options#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -21,7 +21,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "url": "https://github.com/trufflesuite/ganache.git",
     "directory": "src/chains/ethereum/options"
   },
   "scripts": {
@@ -30,7 +30,7 @@
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
-    "url": "https://github.com/trufflesuite/ganache-core/issues"
+    "url": "https://github.com/trufflesuite/ganache/issues"
   },
   "keywords": [
     "ganache",

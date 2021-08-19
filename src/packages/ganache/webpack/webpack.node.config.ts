@@ -17,7 +17,7 @@ const config: webpack.Configuration = merge({}, base, {
     path: path.resolve(__dirname, "../", "dist", "node")
   },
   plugins: [
-    // add a shebang at the top of the generated `ganache-cli.min.js`
+    // add a shebang at the top of the generated `cli.js`
     new webpack.BannerPlugin({
       entryOnly: true,
       include: "cli.js",

@@ -264,7 +264,7 @@ describe("Random tests that are temporary!", () => {
   });
 
   describe("options:account_keys_path", () => {
-    const fileName = join(os.tmpdir(), "/ganache-core-test-accounts.json");
+    const fileName = join(os.tmpdir(), "/ganache-test-accounts.json");
 
     function cleanUp() {
       try {

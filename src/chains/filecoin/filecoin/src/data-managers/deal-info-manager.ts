@@ -6,7 +6,7 @@ import { RootCID, SerializedRootCID } from "../things/root-cid";
 const NOTFOUND = 404;
 
 /**
- * TODO: (Issue ganache-core#868) This loads all Deal CIDs and
+ * TODO: (Issue ganache#868) This loads all Deal CIDs and
  * then all the deals themselves into memory. The downstream
  * consumers of this manager then filters them at every time
  * it's used (i.e. filters them by DealInfo.State).

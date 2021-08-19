@@ -7,8 +7,8 @@
   - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
     Windows, to configure your node version.
     - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v10.13.0.
-- `git clone git@github.com:trufflesuite/ganache-core.git`
-- `cd ganache-core`
+- `git clone git@github.com:trufflesuite/ganache.git`
+- `cd ganache`
 - `npm install` (use npm v6)
 - On Linux and macOS: run `source completions.sh` to enable autocomplete for npm scripts.
 
@@ -169,7 +169,7 @@ These are guidelines, not rules. :-)
   support, and make sure it's absolutely necessary.
 - Pin all dependencies, even dev dependencies.
 - Use npm; do not use yarn.
-- Don't use web3, ethers, etc in ganache-core core code. (Tests are fine)
+- Don't use web3, ethers, etc in ganache core code. (Tests are fine)
 - Ensure a smooth development experience on Windows, Mac, and Linux.
 - Do not use bash scripts for critical development or configuration.
 - Do not use CLI commands in npm scripts or build scripts that aren't available by default on supported platforms.

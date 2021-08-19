@@ -1274,7 +1274,7 @@ export default class Blockchain extends Emittery.Typed<
     // #2 - Set state root of original block
     //
     // TODO: Forking needs the forked block number passed during this step:
-    // https://github.com/trufflesuite/ganache-core/blob/develop/lib/blockchain_double.js#L917
+    // https://github.com/trufflesuite/ganache/blob/develop/lib/blockchain_double.js#L917
     const trie = this.trie.copy();
     trie.setContext(
       parentBlock.header.stateRoot.toBuffer(),

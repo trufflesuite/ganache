@@ -6,7 +6,7 @@
   "version": "0.1.1-canary.1337",
   "description": "",
   "author": "David Murdoch",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/cli#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/cli#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -25,7 +25,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "url": "https://github.com/trufflesuite/ganache.git",
     "directory": "src/packages/cli"
   },
   "scripts": {
@@ -35,7 +35,7 @@
     "start": "cross-env TS_NODE_COMPILER=ttypescript node --require ts-node/register --inspect src/cli.ts"
   },
   "bugs": {
-    "url": "https://github.com/trufflesuite/ganache-core/issues"
+    "url": "https://github.com/trufflesuite/ganache/issues"
   },
   "keywords": [
     "ganache",
