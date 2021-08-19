@@ -33,7 +33,6 @@ export type EIP2930AccessListDatabasePayload = [
   s: Buffer
 ];
 
-export type LegacyDatabaseTx = Concat<TxType, LegacyDatabasePayload>;
 export type EIP2930AccessListDatabaseTx = Concat<
   TxType,
   EIP2930AccessListDatabasePayload
