@@ -3,7 +3,6 @@ import {
   BlockDatabaseTransaction,
   BlockTransaction,
   GanacheRawBlockTransactionMetaData,
-  LegacyTransaction,
   LegacyDatabasePayload,
   TransactionFactory
 } from "@ganache/ethereum-transaction";
