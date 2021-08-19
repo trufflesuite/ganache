@@ -5,7 +5,7 @@ import {
   isAccessList
 } from "@ethereumjs/tx";
 import Common from "@ethereumjs/common";
-import { bufferToHex, setLengthLeft, toBuffer } from "ethereumjs-util";
+import { bufferToHex, toBuffer } from "ethereumjs-util";
 
 export class AccessLists {
   public static getAccessListData(accessList: AccessListBuffer | AccessList) {
