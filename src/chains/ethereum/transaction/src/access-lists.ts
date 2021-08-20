@@ -4,7 +4,7 @@ import {
   AccessListItem,
   isAccessList
 } from "@ethereumjs/tx";
-import { bufferToHex, toBuffer } from "ethereumjs-util";
+import { Data } from "@ganache/utils";
 import { Params } from "./params";
 
 export class AccessLists {
@@ -21,12 +21,12 @@ export class AccessLists {
 
       for (let i = 0; i < accessList.length; i++) {
         const item: AccessListItem = accessList[i];
-        const addressBuffer = toBuffer(item.address);
+        const addressBuffer = Data.from(item.address, 32).toBuffer();
         const storageItems: Buffer[] = [];
         const storageKeysLength = item.storageKeys.length;
         slots += storageKeysLength;
         for (let index = 0; index < storageKeysLength; index++) {
-          storageItems.push(toBuffer(item.storageKeys[index]));
+          storageItems.push(Data.from(item.storageKeys[index]).toBuffer());
         }
         newAccessList.push([addressBuffer, storageItems]);
       }
@@ -37,12 +37,12 @@ export class AccessLists {
       const json: AccessList = [];
       for (let i = 0; i < bufferAccessList.length; i++) {
         const data = bufferAccessList[i];
-        const address = bufferToHex(data[0]);
+        const address = Data.from(data[0], 32).toString();
         const storageKeys: string[] = [];
         const storageKeysLength = data[1].length;
         slots += storageKeysLength;
         for (let item = 0; item < storageKeysLength; item++) {
-          storageKeys.push(bufferToHex(data[1][item]));
+          storageKeys.push(Data.from(data[1][item], 32).toString());
         }
         const jsonItem: AccessListItem = {
           address,
