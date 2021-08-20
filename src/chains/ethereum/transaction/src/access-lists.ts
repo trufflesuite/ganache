@@ -4,13 +4,17 @@ import {
   AccessListItem,
   isAccessList
 } from "@ethereumjs/tx";
-import Common from "@ethereumjs/common";
 import { bufferToHex, toBuffer } from "ethereumjs-util";
+import { Params } from "./params";
 
 export class AccessLists {
   public static getAccessListData(accessList: AccessListBuffer | AccessList) {
-    let AccessListJSON;
-    let bufferAccessList;
+    let AccessListJSON: AccessList;
+    let bufferAccessList: AccessListBuffer;
+
+    let slots: number = 0;
+    const accessListStorageKeyCost = Params.ACCESS_LIST_STORAGE_KEY_GAS;
+    const accessListAddressCost = Params.ACCESS_LIST_ADDRESS_GAS;
     if (accessList && isAccessList(accessList)) {
       AccessListJSON = accessList;
       const newAccessList: AccessListBuffer = [];
@@ -19,21 +23,25 @@ export class AccessLists {
         const item: AccessListItem = accessList[i];
         const addressBuffer = toBuffer(item.address);
         const storageItems: Buffer[] = [];
-        for (let index = 0; index < item.storageKeys.length; index++) {
+        const storageKeysLength = item.storageKeys.length;
+        slots += storageKeysLength;
+        for (let index = 0; index < storageKeysLength; index++) {
           storageItems.push(toBuffer(item.storageKeys[index]));
         }
         newAccessList.push([addressBuffer, storageItems]);
       }
       bufferAccessList = newAccessList;
     } else {
-      bufferAccessList = accessList ? accessList : [];
+      bufferAccessList = accessList ? <AccessListBuffer>accessList : [];
       // build the JSON
       const json: AccessList = [];
       for (let i = 0; i < bufferAccessList.length; i++) {
         const data = bufferAccessList[i];
         const address = bufferToHex(data[0]);
         const storageKeys: string[] = [];
-        for (let item = 0; item < data[1].length; item++) {
+        const storageKeysLength = data[1].length;
+        slots += storageKeysLength;
+        for (let item = 0; item < storageKeysLength; item++) {
           storageKeys.push(bufferToHex(data[1][item]));
         }
         const jsonItem: AccessListItem = {
@@ -44,34 +52,14 @@ export class AccessLists {
       }
       AccessListJSON = json;
     }
-
+    const dataFee = BigInt(
+      bufferAccessList.length * accessListAddressCost +
+        slots * accessListStorageKeyCost
+    );
     return {
       AccessListJSON,
-      accessList: bufferAccessList
+      accessList: bufferAccessList,
+      dataFeeEIP2930: dataFee
     };
-  }
-
-  public static getDataFeeEIP2930(
-    accessList: AccessListBuffer,
-    common: Common
-  ): number {
-    const accessListStorageKeyCost = common.param(
-      "gasPrices",
-      "accessListStorageKeyCost"
-    );
-    const accessListAddressCost = common.param(
-      "gasPrices",
-      "accessListAddressCost"
-    );
-
-    let slots = 0;
-    for (let index = 0; index < accessList.length; index++) {
-      const item = accessList[index];
-      const storageSlots = item[1];
-      slots += storageSlots.length;
-    }
-
-    const addresses = accessList.length;
-    return addresses * accessListAddressCost + slots * accessListStorageKeyCost;
   }
 }
