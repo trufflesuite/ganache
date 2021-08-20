@@ -1,4 +1,4 @@
-import { Data } from "@ganache/utils";
+import { Data, JsonRpcErrorCode } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
 import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
@@ -10,6 +10,7 @@ import {
   TypedDatabaseTransaction
 } from "./raw";
 import { decode } from "@ganache/rlp";
+import { CodedError } from "@ganache/ethereum-utils";
 
 const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
 const LEGACY_TX_TYPE_ID = 0x0;
@@ -45,12 +46,18 @@ export class TransactionFactory {
         } else {
           // TODO: I believe this is unreachable with current architecture.
           // If 2718 is supported, so is 2930.
-          throw new Error(`EIP 2930 is not activated.`);
+          throw new CodedError(
+            `EIP 2930 is not activated.`,
+            JsonRpcErrorCode.INVALID_PARAMS
+          );
         }
-      } else {
-        throw new Error(`Tx instantiation with supplied type not supported`);
       }
     }
+
+    throw new CodedError(
+      `Tx instantiation with supplied type not supported`,
+      JsonRpcErrorCode.METHOD_NOT_FOUND
+    );
   }
   /**
    * Create a transaction from a `txData` object
