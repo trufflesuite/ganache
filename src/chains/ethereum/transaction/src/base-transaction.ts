@@ -1,13 +1,6 @@
-import {
-  BUFFER_EMPTY,
-  BUFFER_32_ZERO,
-  Data,
-  Quantity,
-  BUFFER_ZERO
-} from "@ganache/utils";
+import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
-import { BN } from "ethereumjs-util";
 import { Hardfork } from "./hardfork";
 import { Params } from "./params";
 
