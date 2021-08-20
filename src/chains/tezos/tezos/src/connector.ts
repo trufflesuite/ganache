@@ -66,12 +66,7 @@ export class Connector<
       providerOptions,
       executor
     ));
-    // provider.on("connect", () => {
-    //   // tell the consumer (like a `ganache-core` server/connector) everything is ready
-    //   this.emit("ready");
-    // });
   }
-  // connect: () => Promise<void>;
 
   async connect() {
     this.#provider.on("connect", () => {
