@@ -27,6 +27,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   public chainId: Quantity;
   public accessList: AccessListBuffer;
   public accessListJSON: AccessList;
+  public accessListDataFee: bigint;
   public gasPrice: Quantity;
   public type: Quantity = Quantity.from("0x1");
 
@@ -46,6 +47,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       const accessListData = AccessLists.getAccessListData(data[7]);
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
+      this.accessListDataFee = accessListData.dataFeeEIP2930;
       this.v = Quantity.from(data[8]);
       this.r = Quantity.from(data[9]);
       this.s = Quantity.from(data[10]);
@@ -70,6 +72,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       const accessListData = AccessLists.getAccessListData(data.accessList);
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
+      this.accessListDataFee = accessListData.dataFeeEIP2930;
       this.validateAndSetSignature(data);
     }
   }
@@ -126,7 +129,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.from(fee).toBuffer());
+        return new BN(Quantity.from(fee + this.accessListDataFee).toBuffer());
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
