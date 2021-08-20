@@ -11,11 +11,11 @@ describe("api", () => {
       beforeEach(async () => {
         // create a logger to test output
         logger = {
-          clearLoggedStuff: function () {
+          clearLoggedStuff: function() {
             this.loggedStuff = "";
           },
           loggedStuff: "",
-          log: function (message) {
+          log: function(message) {
             if (message) {
               this.loggedStuff += message;
             }
@@ -75,7 +75,9 @@ describe("api", () => {
           assert.strictEqual(result, null);
           assert(
             logger.loggedStuff.includes(
-              "Ganache `eth_getTransactionReceipt` notice"
+              " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
+                ` > \`${hash}\` has not\n` +
+                " > yet been mined. See https://trfl.co/v7-instamine for additional information."
             )
           );
         });
@@ -85,6 +87,7 @@ describe("api", () => {
             logging: { logger },
             miner: { blockTime: 1 }
           });
+          const [from] = await nonInstamineProvider.send("eth_accounts")
 
           const hash = await nonInstamineProvider.send("eth_sendTransaction", [
             { from, to: from }
@@ -126,6 +129,8 @@ describe("api", () => {
             logging: { logger },
             miner: { legacyInstamine: true }
           });
+
+          const [from] = await legacyInstamineProvider.send("eth_accounts")
 
           const hash = await legacyInstamineProvider.send(
             "eth_sendTransaction",

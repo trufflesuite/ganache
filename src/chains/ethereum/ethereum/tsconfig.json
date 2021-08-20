@@ -2,9 +2,13 @@
   "extends": "../../../tsconfig-base.json",
   "compilerOptions": {
     "outDir": "lib",
+    "declarationDir": "typings",
     "composite": true
   },
-  "include": ["index.ts", "src/**/*"],
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
   "references": [
     {
       "name": "@ganache/ethereum-utils",
@@ -25,6 +29,22 @@
     {
       "name": "@ganache/utils",
       "path": "../../../packages/utils"
+    },
+    {
+      "name": "@ganache/rlp",
+      "path": "../../../packages/rlp"
+    },
+    {
+      "name": "@ganache/ethereum-transaction",
+      "path": "../transaction"
+    },
+    {
+      "name": "@ganache/ethereum-address",
+      "path": "../address"
+    },
+    {
+      "name": "@ganache/ethereum-block",
+      "path": "../block"
     }
   ]
 }

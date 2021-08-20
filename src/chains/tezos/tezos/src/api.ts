@@ -1,4 +1,3 @@
-import { types } from "@ganache/utils";
 import { TezosInternalOptions } from "@ganache/tezos-options";
 import Wallet from "./wallet";
 import {
@@ -30,8 +29,9 @@ import {
   SpecialQueryParameter
 } from "./helpers/decorators";
 import * as t from "io-ts";
+import { Api } from "@ganache/utils";
 
-export default class TezosApi implements types.Api {
+export default class TezosApi implements Api {
   readonly [index: string]: (...args: any) => Promise<any>;
   readonly #options: TezosInternalOptions;
   readonly #wallet: Wallet;

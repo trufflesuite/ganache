@@ -1,4 +1,13 @@
 {
   "packages": ["src/packages/*", "src/chains/*/*"],
-  "version": "independent"
+  "version": "independent",
+  "command": {
+    "version": {
+      "allowBranch": ["canary"],
+      "message": "chore(release): publish"
+    },
+    "bootstrap": {
+      "reject-cycles": true
+    }
+  }
 }

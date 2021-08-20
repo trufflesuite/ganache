@@ -1,4 +1,4 @@
-import { utils } from "@ganache/utils";
+import { WEI } from "@ganache/utils";
 import os from "os";
 import fs from "fs";
 import assert from "assert";
@@ -29,12 +29,13 @@ describe("Random tests that are temporary!", () => {
     const p = await getProvider(options);
     const accounts = await p.send("eth_accounts");
     const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
+    await p.send("eth_subscribe", ["logs", {}]);
     await p.send("eth_subscribe", ["newHeads"]);
     await p.send("eth_sendTransaction", [
       {
         from: accounts[0],
         to: accounts[1],
-        value: 1
+        value: "0x1"
       }
     ]);
     await p.once("message");
@@ -47,20 +48,6 @@ describe("Random tests that are temporary!", () => {
     const p = await getProvider();
     const options = p.getOptions();
     assert.deepStrictEqual(typeof options.wallet.mnemonic, "string");
-  });
-
-  it("shouldn't allow initialization without accounts", async () => {
-    const options = { wallet: { totalAccounts: 0 } } as any;
-    await assert.rejects(getProvider(options), {
-      message:
-        "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
-    });
-
-    options.wallet.accounts = [];
-    await assert.rejects(getProvider(options), {
-      message:
-        "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
-    });
   });
 
   it("sets up accounts", async () => {
@@ -116,7 +103,7 @@ describe("Random tests that are temporary!", () => {
         {
           from: accounts[2],
           to: accounts[1],
-          value: 123
+          value: "0x7b"
         }
       ]);
     };
@@ -130,7 +117,7 @@ describe("Random tests that are temporary!", () => {
       {
         from: accounts[0],
         to: accounts[1],
-        value: 123
+        value: "0x7b"
       }
     ]);
 
@@ -145,7 +132,7 @@ describe("Random tests that are temporary!", () => {
       {
         from: accounts[1],
         to: accounts[0],
-        value: 123
+        value: "0x7b"
       }
     ]);
 
@@ -201,7 +188,7 @@ describe("Random tests that are temporary!", () => {
 
     const storage = await p.send("eth_getStorageAt", [
       receipt.contractAddress,
-      0,
+      "0x0",
       receipt.blockNumber
     ]);
     assert.strictEqual(storage, "0x05");
@@ -224,23 +211,24 @@ describe("Random tests that are temporary!", () => {
 
     const storage2 = await p.send("eth_getStorageAt", [
       receipt.contractAddress,
-      0,
+      "0x0",
       txReceipt.blockNumber
     ]);
     assert.strictEqual(storage2, "0x19");
   });
 
   it("transfers value", async () => {
-    const p = await getProvider({ miner: { gasPrice: 0 } });
+    const p = await getProvider({ miner: { defaultGasPrice: 0 } });
     const accounts = await p.send("eth_accounts");
-    const ONE_ETHER = utils.WEI;
-    const startingBalance = 100n * ONE_ETHER;
+    const ONE_ETHER = WEI;
+    const options = p.getOptions();
+    const startingBalance = BigInt(options.wallet.defaultBalance) * ONE_ETHER;
     await p.send("eth_subscribe", ["newHeads"]);
     await p.send("eth_sendTransaction", [
       {
         from: accounts[1],
         to: accounts[2],
-        value: ONE_ETHER
+        value: `0x${ONE_ETHER.toString(16)}`
       }
     ]);
     await p.once("message");

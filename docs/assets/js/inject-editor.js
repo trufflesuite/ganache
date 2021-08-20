@@ -64,7 +64,19 @@ require([
             line.classList.add("console-line");
             line.innerHTML = args
               .map(a => {
-                if (typeof a === "object") {
+                if (a instanceof Error) {
+                  return (
+                    "<pre style='white-space:pre-wrap'>" +
+                    escapeHtml(
+                      JSON.stringify(
+                        { ...a, message: a.message, stack: a.stack },
+                        null,
+                        2
+                      )
+                    ) +
+                    "</pre>"
+                  );
+                } else if (typeof a === "object") {
                   try {
                     return (
                       "<pre style='white-space:pre-wrap'>" +
@@ -109,6 +121,7 @@ require([
         if (a === b) return true;
         throw new Error("not strict equal");
       };
+
       const fn = new AsyncFunction(
         "ganache",
         "assert",
@@ -118,7 +131,6 @@ require([
             return await (async () => {
               "use strict";
               ${codeText}
-              ;
             })();
           } catch (e) {
             console.log(e);

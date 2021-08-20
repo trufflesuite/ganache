@@ -1,4 +1,5 @@
-import { Provider } from "@ganache/ethereum";
+import { WEI } from "@ganache/utils";
+import type { Provider } from "@ganache/ethereum";
 import { toChecksumAddress } from "ethereumjs-util";
 import { CliSettings } from "../types";
 
@@ -6,41 +7,42 @@ export default function (provider: Provider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
 
+  const addresses = Object.keys(accounts);
   console.log("");
   console.log("Available Accounts");
   console.log("==================");
+  if (addresses.length > 0) {
+    addresses.forEach(function (address, index) {
+      const balance = accounts[address].balance;
+      const strBalance = balance / WEI;
+      const about = balance % WEI === 0n ? "" : "~";
+      let line = `(${index}) ${toChecksumAddress(
+        address
+      )} (${about}${strBalance} ETH)`;
 
-  const addresses = Object.keys(accounts);
-  const ethInWei = 1000000000000000000n;
+      if (!accounts[address].unlocked) {
+        line += " 🔒";
+      }
 
-  addresses.forEach(function (address, index) {
-    const balance = accounts[address].balance;
-    const strBalance = balance / ethInWei;
-    const about = balance % ethInWei === 0n ? "" : "~";
-    let line = `(${index}) ${toChecksumAddress(
-      address
-    )} (${about}${strBalance} ETH)`;
+      console.log(line);
+    });
 
-    if (!accounts[address].unlocked) {
-      line += " 🔒";
-    }
-
-    console.log(line);
-  });
-
-  console.log("");
-  console.log("Private Keys");
-  console.log("==================");
-
-  addresses.forEach(function (address, index) {
-    console.log(`(${index}) ${accounts[address].secretKey}`);
-  });
-
-  if (liveOptions.wallet.accountKeysPath != null) {
     console.log("");
-    console.log(
-      `Accounts and keys saved to ${liveOptions.wallet.accountKeysPath}`
-    );
+    console.log("Private Keys");
+    console.log("==================");
+
+    addresses.forEach(function (address, index) {
+      console.log(`(${index}) ${accounts[address].secretKey}`);
+    });
+
+    if (liveOptions.wallet.accountKeysPath != null) {
+      console.log("");
+      console.log(
+        `Accounts and keys saved to ${liveOptions.wallet.accountKeysPath}`
+      );
+    }
+  } else {
+    console.log("(no accounts unlocked)");
   }
 
   if (liveOptions.wallet.accounts == null) {
@@ -51,11 +53,11 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     console.log(`Base HD Path:  ${liveOptions.wallet.hdPath}{account_index}`);
   }
 
-  if (liveOptions.miner.gasPrice) {
+  if (liveOptions.miner.defaultGasPrice) {
     console.log("");
-    console.log("Gas Price");
+    console.log("Default Gas Price");
     console.log("==================");
-    console.log(liveOptions.miner.gasPrice.toBigInt());
+    console.log(liveOptions.miner.defaultGasPrice.toBigInt());
   }
 
   if (liveOptions.miner.blockGasLimit) {
@@ -72,26 +74,18 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     console.log(liveOptions.miner.callGasLimit.toBigInt());
   }
 
-  // if (options.fork) {
-  //   console.log("");
-  //   console.log("Forked Chain");
-  //   console.log("==================");
-  //   console.log(`Location:       ${state.blockchain.options.fork}`);
-  //   console.log(
-  //     `Block:          ${to.number(state.blockchain.forkBlockNumber)}`
-  //   );
-  //   console.log(`Network ID:     ${state.net_version}`);
-  //   console.log(
-  //     `Time:           ${(state.blockchain.startTime || new Date()).toString()}`
-  //   );
-  //   let maxCacheSize;
-  //   if (options.forkCacheSize === -1) {
-  //     maxCacheSize = "∞";
-  //   } else {
-  //     maxCacheSize = `${options.forkCacheSize} bytes`;
-  //   }
-  //   console.log(`Max Cache Size: ${maxCacheSize}`);
-  // }
+  if (liveOptions.fork.url) {
+    console.log("");
+    console.log("Forked Chain");
+    console.log("==================");
+    console.log(`Location:        ${liveOptions.fork.url.toString()}`);
+    console.log(`Block:           ${liveOptions.fork.blockNumber}`);
+    console.log(`Network ID:      ${liveOptions.chain.networkId}`);
+    console.log(`Time:            ${new Date().toString()}`);
+    if (liveOptions.fork.requestsPerSecond !== 0) {
+      console.log(`Requests/Second: ${liveOptions.fork.requestsPerSecond}`);
+    }
+  }
 
   console.log("");
   console.log("Chain Id");
@@ -99,5 +93,5 @@ export default function (provider: Provider, cliSettings: CliSettings) {
   console.log(liveOptions.chain.chainId);
 
   console.log("");
-  console.log("Listening on " + cliSettings.host + ":" + cliSettings.port);
+  console.log("RPC Listening on " + cliSettings.host + ":" + cliSettings.port);
 }

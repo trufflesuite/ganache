@@ -113,7 +113,7 @@ describe("api", () => {
         accounts = await provider.send("eth_accounts");
       });
 
-      it("sets the gasPrice and uses it as the default price in tranactions", async () => {
+      it("sets the gasPrice and uses it as the default price in transactions", async () => {
         const newGasPrice = "0xffff";
         const setState = await provider.send("miner_setGasPrice", [
           newGasPrice

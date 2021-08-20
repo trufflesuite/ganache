@@ -4,7 +4,7 @@ import {
   WebSocket,
   HttpRequest,
   TemplatedApp
-} from "uWebSockets.js";
+} from "@trufflesuite/uws-js-unofficial";
 import { Api } from "./api";
 import { KnownKeys } from "../types";
 import Emittery from "emittery";
@@ -24,6 +24,13 @@ export interface Connector<
    * @param app
    */
   addRoutes(app: TemplatedApp): void;
+  
+  /** 
+   * Instructs the connector to initialize its internal components. Must return
+   * a promise that resolves once it has fully started, or reject if it couldn't
+   * start.
+   */
+  connect: () => Promise<void>;
 
   /**
    * Parses a raw message into something that can be handled by `handle`
@@ -59,6 +66,13 @@ export interface Connector<
    * @param payload
    */
   format(result: ResponseFormat, payload: RequestFormat): RecognizedString;
+
+  /**
+   * Formats the error response
+   * @param error
+   * @param payload
+   */
+  formatError(error: Error, payload: RequestFormat): RecognizedString;
 
   close(): void;
 }

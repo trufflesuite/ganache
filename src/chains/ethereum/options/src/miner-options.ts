@@ -1,6 +1,13 @@
 import { normalize } from "./helpers";
-import { Data, Quantity, utils } from "@ganache/utils";
-import { Address } from "@ganache/ethereum-utils";
+import {
+  Data,
+  Quantity,
+  ACCOUNT_ZERO,
+  BUFFER_EMPTY,
+  RPCQUANTITY_EMPTY,
+  RPCQUANTITY_ONE
+} from "@ganache/utils";
+import { Address } from "@ganache/ethereum-address";
 import { Definitions } from "@ganache/options";
 
 export type MinerConfig = {
@@ -13,7 +20,7 @@ export type MinerConfig = {
      * Using the `blockTime` option is discouraged unless you have tests which
      * require a specific mining interval.
      *
-     * @default 0 // "instamine mode"
+     * @defaultValue 0 // "instamine mode"
      */
     blockTime: {
       type: number;
@@ -29,9 +36,9 @@ export type MinerConfig = {
     /**
      * Sets the default gas price in WEI for transactions if not otherwise specified.
      *
-     * @default 2_000_000
+     * @defaultValue 2_000_000
      */
-    gasPrice: {
+    defaultGasPrice: {
       type: Quantity;
       rawType: string | number | bigint;
       hasDefault: true;
@@ -41,23 +48,25 @@ export type MinerConfig = {
          */
         gasPrice: string | number | bigint;
       };
+      cliType: string;
     };
 
     /**
      * Sets the block difficulty
      *
-     * @default 1
+     * @defaultValue 1
      */
     difficulty: {
       type: Quantity;
-      rawType: number;
+      rawType: string | number | bigint;
       hasDefault: true;
+      cliType: string;
     };
 
     /**
      * Sets the block gas limit in WEI.
      *
-     * @default 12_000_000
+     * @defaultValue 12_000_000
      */
     blockGasLimit: {
       type: Quantity;
@@ -69,25 +78,27 @@ export type MinerConfig = {
          */
         gasLimit: string | number | bigint;
       };
+      cliType: string;
     };
 
     /**
      * Sets the default transaction gas limit in WEI. Set to `"estimate"` to
      * use an estimate (slows down transaction execution by 40%+).
      *
-     * @default 90_000
+     * @defaultValue 90_000
      */
     defaultTransactionGasLimit: {
       type: Quantity;
       rawType: "estimate" | string | number | bigint;
       hasDefault: true;
+      cliType: string;
     };
 
     /**
      * Sets the transaction gas limit in WEI for `eth_call` and
      * eth_estimateGas` calls.
      *
-     * @default 9_007_199_254_740_991 // 2**53 - 1
+     * @defaultValue 9_007_199_254_740_991 // 2**53 - 1
      */
     callGasLimit: {
       type: Quantity;
@@ -99,6 +110,7 @@ export type MinerConfig = {
          */
         callGasLimit: string | number | bigint;
       };
+      cliType: string;
     };
 
     /**
@@ -106,7 +118,7 @@ export type MinerConfig = {
      * the transaction's hash is returned to the caller. If `legacyInstamine` is
      * `true`, `blockTime` must be `0` (default).
      *
-     * @default false
+     * @defaultValue false
      * @deprecated Will be removed in v4
      */
     legacyInstamine: {
@@ -128,7 +140,7 @@ export type MinerConfig = {
      * * `{string}` hex-encoded address
      * * `{number}` index of the account returned by `eth_getAccounts`
      *
-     * @default "0x0000000000000000000000000000000000000000"
+     * @defaultValue "0x0000000000000000000000000000000000000000"
      */
     coinbase: {
       rawType: string | number;
@@ -139,7 +151,7 @@ export type MinerConfig = {
     /**
      * Set the extraData block header field a miner can include.
      *
-     * @default ""
+     * @defaultValue ""
      */
     extraData: {
       rawType: string;
@@ -149,9 +161,28 @@ export type MinerConfig = {
   };
 };
 
+/**
+ * Attempts to convert strings that don't start with `0x` to a BigInt
+ *
+ * @param str a string that represents a bigint, number, or hex number
+ */
+const toBigIntOrString = (str: string) => {
+  if (str.startsWith("0x")) {
+    return str;
+  } else {
+    return BigInt(str);
+  }
+};
+
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
-    normalize,
+    normalize: rawInput => {
+      if (rawInput < 0) {
+        throw new Error("miner.blockTime must be 0 or a positive number.");
+      }
+
+      return rawInput;
+    },
     cliDescription:
       'Sets the `blockTime` in seconds for automatic mining. A blockTime of `0` enables "instamine mode", where new executable transactions will be mined instantly.',
     default: () => 0,
@@ -159,14 +190,15 @@ export const MinerOptions: Definitions<MinerConfig> = {
     cliAliases: ["b", "blockTime"],
     cliType: "number"
   },
-  gasPrice: {
+  defaultGasPrice: {
     normalize: Quantity.from,
     cliDescription:
       "Sets the default gas price in WEI for transactions if not otherwise specified.",
     default: () => Quantity.from(2_000_000_000),
     legacyName: "gasPrice",
     cliAliases: ["g", "gasPrice"],
-    cliType: "string"
+    cliType: "string",
+    cliCoerce: toBigIntOrString
   },
   blockGasLimit: {
     normalize: Quantity.from,
@@ -174,21 +206,24 @@ export const MinerOptions: Definitions<MinerConfig> = {
     default: () => Quantity.from(12_000_000),
     legacyName: "gasLimit",
     cliAliases: ["l", "gasLimit"],
-    cliType: "string"
+    cliType: "string",
+    cliCoerce: toBigIntOrString
   },
   defaultTransactionGasLimit: {
     normalize: rawType =>
-      rawType === "estimate" ? utils.RPCQUANTITY_EMPTY : Quantity.from(rawType),
+      rawType === "estimate" ? RPCQUANTITY_EMPTY : Quantity.from(rawType),
     cliDescription:
       'Sets the default transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
     default: () => Quantity.from(90_000),
-    cliType: "string"
+    cliType: "string",
+    cliCoerce: toBigIntOrString
   },
   difficulty: {
     normalize: Quantity.from,
     cliDescription: "Sets the block difficulty.",
-    default: () => utils.RPCQUANTITY_ONE,
-    cliType: "number"
+    default: () => RPCQUANTITY_ONE,
+    cliType: "string",
+    cliCoerce: toBigIntOrString
   },
   callGasLimit: {
     normalize: Quantity.from,
@@ -196,7 +231,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
       "Sets the transaction gas limit in WEI for `eth_call` and `eth_estimateGas` calls.",
     default: () => Quantity.from(Number.MAX_SAFE_INTEGER),
     legacyName: "callGasLimit",
-    cliType: "string"
+    cliType: "string",
+    cliCoerce: toBigIntOrString
   },
   legacyInstamine: {
     normalize,
@@ -211,7 +247,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return typeof rawType === "number" ? rawType : Address.from(rawType);
     },
     cliDescription: "Sets the address where mining rewards will go.",
-    default: () => Address.from(utils.ACCOUNT_ZERO)
+    default: () => Address.from(ACCOUNT_ZERO)
   },
   extraData: {
     normalize: (extra: string) => {
@@ -224,7 +260,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return bytes;
     },
     cliDescription: "Set the extraData block header field a miner can include.",
-    default: () => Data.from(utils.BUFFER_EMPTY),
+    default: () => Data.from(BUFFER_EMPTY),
     cliType: "string"
   }
 };

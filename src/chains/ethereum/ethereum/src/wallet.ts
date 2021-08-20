@@ -1,14 +1,15 @@
-import { Address, Account } from "@ganache/ethereum-utils";
-import { Data, Quantity, utils } from "@ganache/utils";
+import { Account } from "@ganache/ethereum-utils";
+import { Data, Quantity, RPCQUANTITY_ZERO, unref, WEI } from "@ganache/utils";
 import { privateToAddress } from "ethereumjs-util";
 import secp256k1 from "secp256k1";
 import { mnemonicToSeedSync } from "bip39";
 import HDKey from "hdkey";
-import { alea as rng } from "seedrandom";
+import { alea } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
 import { writeFileSync } from "fs";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import { Address } from "@ganache/ethereum-address";
 
 //#region Constants
 const SCRYPT_PARAMS = {
@@ -18,7 +19,6 @@ const SCRYPT_PARAMS = {
   r: 1
 } as const;
 const CIPHER = "aes-128-ctr";
-const WEI = utils.WEI;
 //#endregion
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [
@@ -93,7 +93,7 @@ export default class Wallet {
   constructor(opts: EthereumInternalOptions["wallet"]) {
     this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
     // create a RNG from our initial starting conditions (opts.mnemonic)
-    this.#randomRng = rng("ganache " + opts.mnemonic);
+    this.#randomRng = alea("ganache " + opts.mnemonic);
 
     const initialAccounts = (this.initialAccounts = this.#initializeAccounts(
       opts
@@ -185,12 +185,17 @@ export default class Wallet {
         fileData.addresses[address] = address;
         fileData.private_keys[address] = privateKey;
       });
+
+      // WARNING: Do not turn this to an async method without
+      // making a Wallet.initialize() function and calling it via
+      // Provider.initialize(). No async methods in constructors.
+      // writeFileSync here is acceptable.
       writeFileSync(opts.accountKeysPath, JSON.stringify(fileData));
     }
     //#endregion
   }
 
-  #randomRng: seedrandom.prng;
+  #randomRng: () => number;
 
   #randomBytes = (length: number) => {
     // Since this is a mock RPC library, the rng doesn't need to be
@@ -246,13 +251,13 @@ export default class Wallet {
         }
       }
     } else {
-      const numerOfAccounts = options.totalAccounts;
-      if (numerOfAccounts) {
-        accounts = Array(numerOfAccounts);
+      const numberOfAccounts = options.totalAccounts;
+      if (numberOfAccounts != null) {
+        accounts = Array(numberOfAccounts);
         const hdPath = options.hdPath;
         const hdKey = this.#hdKey;
 
-        for (let index = 0; index < numerOfAccounts; index++) {
+        for (let index = 0; index < numberOfAccounts; index++) {
           const acct = hdKey.derive(hdPath + index);
           const address = uncompressedPublicKeyToAddress(acct.publicKey);
           const privateKey = Data.from(acct.privateKey);
@@ -262,10 +267,6 @@ export default class Wallet {
             address
           );
         }
-      } else {
-        throw new Error(
-          "Cannot initialize chain: either options.accounts or options.total_accounts must be specified"
-        );
       }
     }
     return accounts;
@@ -379,7 +380,7 @@ export default class Wallet {
     const acct = HDKey.fromMasterSeed(seed);
     const address = uncompressedPublicKeyToAddress(acct.publicKey);
     const privateKey = Data.from(acct.privateKey);
-    return Wallet.createAccount(utils.RPCQUANTITY_ZERO, privateKey, address);
+    return Wallet.createAccount(RPCQUANTITY_ZERO, privateKey, address);
   }
 
   public async unlockAccount(
@@ -402,7 +403,7 @@ export default class Wallet {
     const durationMs = (duration * 1000) | 0;
     if (durationMs > 0) {
       const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
-      utils.unref(timeout);
+      unref(timeout);
       this.lockTimers.set(lowerAddress, timeout as any);
     }
 
@@ -425,7 +426,7 @@ export default class Wallet {
     const durationMs = (duration * 1000) | 0;
     if (durationMs > 0) {
       const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
-      utils.unref(timeout);
+      unref(timeout);
       this.lockTimers.set(lowerAddress, timeout as any);
     }
 

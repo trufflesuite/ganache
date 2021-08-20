@@ -3,6 +3,9 @@
   "references": [
     {
       "path": "packages/ganache"
+    },
+    {
+      "path": "chains/filecoin/filecoin"
     }
   ]
 }

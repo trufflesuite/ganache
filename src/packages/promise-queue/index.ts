@@ -4,7 +4,7 @@ import Entry from "./src/entry";
 const emitteryMethods = ["emit", "once"] as const;
 
 /**
- * Creates a FIFO queue to that ensures promises are _resolved_ in the order
+ * Creates a FIFO queue that ensures promises are _resolved_ in the order
  * they were added.
  *
  * This is different than a FIFO queue that _executes_ functions that
@@ -22,12 +22,12 @@ const emitteryMethods = ["emit", "once"] as const;
  *   queue.add(fast)
  * ]); // returns "slow"
  *
- * Additionally, the queued promise chain can be cleared via `queue.clear(value)`.
- * This will cause the chain of promises to all resolve immediately with the
- * given value. *
- *
- * * note: whatever the promise starting doing when it was created will still
- * happen, no promises are aborted; rather, the return value is ignored.
+ * // Additionally, the queued promise chain can be cleared via `queue.clear(value)`.
+ * // This will cause the chain of promises to all resolve immediately with the
+ * // given value. *
+ * //
+ * // * note: whatever the promise starting doing when it was created will still
+ * // happen, no promises are aborted; rather, the return value is ignored.
  * ```
  */
 @Emittery.mixin(Symbol.for("emittery"), emitteryMethods)

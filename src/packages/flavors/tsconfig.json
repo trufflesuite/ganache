@@ -2,9 +2,13 @@
   "extends": "../../tsconfig-base.json",
   "compilerOptions": {
     "outDir": "lib",
+    "declarationDir": "typings",
     "composite": true
   },
-  "include": ["index.ts", "src/**/*"],
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
   "references": [
     {
       "name": "@ganache/ethereum",
@@ -27,8 +31,20 @@
       "path": "../../chains/tezos/options"
     },
     {
+      "name": "@ganache/filecoin",
+      "path": "../../chains/filecoin/filecoin"
+    },
+    {
+      "name": "@ganache/filecoin-options",
+      "path": "../../chains/filecoin/options"
+    },
+    {
       "name": "@ganache/options",
       "path": "../options"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../colors"
     }
   ]
 }

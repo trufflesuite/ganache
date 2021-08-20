@@ -180,11 +180,10 @@ describe("api", () => {
         await provider.send("personal_lockAccount", [address]);
         try {
           await assert.rejects(
-            provider.send("evm_unlockUnknownAccount", [
-              {
-                message: "cannot unlock known/personal account"
-              }
-            ])
+            provider.send("evm_unlockUnknownAccount", [address]),
+            {
+              message: "cannot unlock known/personal account"
+            }
           );
         } finally {
           // unlock the account

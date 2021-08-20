@@ -1,48 +1,65 @@
+import {
+  Executor,
+  hasOwn,
+  KnownKeys,
+  makeError,
+  makeResponse,
+  OverloadedParameters,
+  Provider
+} from "@ganache/utils";
 import Emittery from "emittery";
 import TezosApi from "./api";
-import { JsonRpcTypes } from "@ganache/utils";
 import {
   TezosProviderOptions,
   TezosInternalOptions,
   TezosOptionsConfig
 } from "@ganache/tezos-options";
 import cloneDeep from "lodash.clonedeep";
-import { PromiEvent, types, utils } from "@ganache/utils";
+import {
+  PromiEvent,
+  JsonRpcRequest,
+  JsonRpcResponse,
+  JsonRpcError
+} from "@ganache/utils";
 import Wallet from "./wallet";
 import { Account } from "@ganache/tezos-utils";
-declare type RequestMethods = types.KnownKeys<TezosApi>;
+import { Quantity } from "@ganache/utils";
+import { Data } from "@ganache/utils";
+declare type RequestMethods = KnownKeys<TezosApi>;
 
-type mergePromiseGenerics<Type> = Promise<
-  Type extends Promise<infer X> ? X : never
+type Primitives = string | number | null | undefined | symbol | bigint;
+type Clean<X> = X extends Primitives
+  ? X
+  : X extends Quantity | Data // | ITraceData // TODO : check if ITraceData is required for tezos
+  ? string
+  : { [N in keyof X]: Clean<X[N]> };
+
+type cleanAndMergePromiseGenerics<Type> = Promise<
+  Type extends Promise<infer X> ? Clean<X> : never
 >;
 
 interface Callback {
-  (err?: Error, response?: JsonRpcTypes.Response | JsonRpcTypes.Error): void;
+  (err?: Error, response?: JsonRpcResponse | JsonRpcError): void;
 }
 
 interface BatchedCallback {
-  (
-    err?: Error,
-    response?: (JsonRpcTypes.Response | JsonRpcTypes.Error)[]
-  ): void;
+  (err?: Error, response?: (JsonRpcResponse | JsonRpcError)[]): void;
 }
 
 type RequestParams<Method extends RequestMethods> = {
   readonly method: Method;
-  readonly params: Parameters<TezosApi[Method]> | undefined;
+  readonly params: OverloadedParameters<TezosApi[Method]> | undefined;
 };
-
-const hasOwn = utils.hasOwn;
 
 export default class TezosProvider
   extends Emittery.Typed<{ message: any }, "connect" | "disconnect">
-  implements types.Provider<TezosApi> {
+  implements Provider<TezosApi> {
   #options: TezosInternalOptions;
   #api: TezosApi;
-  #executor: utils.Executor;
+  #executor: Executor;
   #wallet: Wallet;
 
-  constructor(options: TezosProviderOptions = {}, executor: utils.Executor) {
+  constructor(options: TezosProviderOptions = {}, executor: Executor) {
     super();
     const providerOptions = (this.#options = TezosOptionsConfig.normalize(
       options as TezosProviderOptions
@@ -84,40 +101,31 @@ export default class TezosProvider
   public removeListener = this.off;
 
   /**
-   * @param payload
-   * @param callback
+   * @param payload - payload
+   * @param callback - callback
    * @deprecated Use the `request` method
    */
-  public send(
-    payload: JsonRpcTypes.Request<TezosApi>,
+  public send<Method extends KnownKeys<TezosApi>>(
+    payload: JsonRpcRequest<TezosApi, Method>,
     callback?: Callback
   ): undefined;
   /**
    * Legacy callback style API
-   * @param payload JSON-RPC payload
-   * @param callback callback
+   * @param payloads - JSON-RPC payload
+   * @param callback - callback
    * @deprecated Batch transactions have been deprecated. Send payloads
    * individually via the `request` method.
    */
-  public send(
-    payloads: JsonRpcTypes.Request<TezosApi>[],
+  public send<Method extends KnownKeys<TezosApi>>(
+    payloads: JsonRpcRequest<TezosApi, Method>[],
     callback?: BatchedCallback
   ): undefined;
-  /**
-   * @param method
-   * @param params
-   * @ignore Non standard! Do not use.
-   */
-  public send(
-    method: RequestMethods,
-    params?: Parameters<TezosApi[typeof method]>
-  ): any;
-  public send(
+  public send<Method extends KnownKeys<TezosApi>>(
     arg1:
       | RequestMethods
-      | JsonRpcTypes.Request<TezosApi>
-      | JsonRpcTypes.Request<TezosApi>[],
-    arg2?: Callback | BatchedCallback | any[]
+      | JsonRpcRequest<TezosApi, Method>
+      | JsonRpcRequest<TezosApi, Method>[],
+    arg2?: Callback | BatchedCallback
   ) {
     return this.#send(arg1, arg2);
   }
@@ -128,19 +136,19 @@ export default class TezosProvider
    * @param callback callback
    * @deprecated Use the `request` method.
    */
-  public sendAsync(
-    payload: JsonRpcTypes.Request<TezosApi>,
+  public sendAsync<Method extends KnownKeys<TezosApi>>(
+    payload: JsonRpcRequest<TezosApi, Method>,
     callback?: Callback | BatchedCallback
   ): void {
     this.#send(payload, callback);
   }
 
-  #send = (
+  #send = <Method extends KnownKeys<TezosApi>>(
     arg1:
       | RequestMethods
-      | JsonRpcTypes.Request<TezosApi>
-      | JsonRpcTypes.Request<TezosApi>[],
-    arg2?: Callback | BatchedCallback | any[]
+      | JsonRpcRequest<TezosApi, Method>
+      | JsonRpcRequest<TezosApi, Method>[],
+    arg2?: Callback | BatchedCallback
   ): Promise<{}> | void => {
     let method: RequestMethods;
     let params: any;
@@ -149,7 +157,7 @@ export default class TezosProvider
       // this signature is (not) non-standard and is only a ganache thing!!!
       // we should probably remove it, but I really like it so I haven't yet.
       method = arg1;
-      params = arg2 as Parameters<TezosApi[typeof method]>;
+      params = (arg2 as unknown) as OverloadedParameters<TezosApi[Method]>;
       response = this.request({ method, params });
     } else if (typeof arg2 === "function") {
       // handle backward compatibility with callback-style ganache-core
@@ -179,22 +187,10 @@ export default class TezosProvider
    * @param args
    * @returns A Promise that resolves with the method's result or rejects with a CodedError
    */
-  public async request<Method extends RequestMethods>(
-    args: Parameters<TezosApi[Method]>["length"] extends 0
-      ? Pick<RequestParams<Method>, "method">
-      : never
-  ): mergePromiseGenerics<ReturnType<TezosApi[Method]>>;
-  /**
-   * EIP-1193 style request method
-   * @param args
-   * @returns A Promise that resolves with the method's result or rejects with a CodedError
-   */
+  // @ts-ignore
   public async request<Method extends RequestMethods>(
     args: RequestParams<Method>
-  ): mergePromiseGenerics<ReturnType<TezosApi[Method]>>;
-  public async request<Method extends RequestMethods>(
-    args: RequestParams<Method>
-  ) {
+  ): cleanAndMergePromiseGenerics<ReturnType<TezosApi[Method]>> {
     const rawResult = await this._requestRaw(args);
     const value = await rawResult.value;
     return JSON.parse(JSON.stringify(value));
@@ -212,7 +208,9 @@ export default class TezosProvider
     // this.#logRequest(method, params);
 
     const result = await this.#executor.execute(this.#api, method, params);
-    const promise = result.value as mergePromiseGenerics<typeof result.value>;
+    const promise = result.value as cleanAndMergePromiseGenerics<
+      typeof result.value
+    >;
     if (promise instanceof PromiEvent) {
       promise.on("message", data => {
         // EIP-1193
@@ -242,10 +240,12 @@ export default class TezosProvider
   };
 
   //#region legacy
-  #legacySendPayloads = (payloads: JsonRpcTypes.Request<TezosApi>[]) => {
+  #legacySendPayloads = <Method extends KnownKeys<TezosApi>>(
+    payloads: JsonRpcRequest<TezosApi, Method>[]
+  ) => {
     return Promise.all(payloads.map(this.#legacySendPayload)).then(results => {
       let mainError: Error = null;
-      const responses: (JsonRpcTypes.Response | JsonRpcTypes.Error)[] = [];
+      const responses: (JsonRpcResponse | JsonRpcError)[] = [];
       results.forEach(({ error, result }, i) => {
         responses.push(result);
         if (error) {
@@ -259,17 +259,18 @@ export default class TezosProvider
     });
   };
 
-  #legacySendPayload = async (payload: JsonRpcTypes.Request<TezosApi>) => {
+  #legacySendPayload = async <Method extends KnownKeys<TezosApi>>(
+    payload: JsonRpcRequest<TezosApi, Method>
+  ) => {
     const method = payload.method as RequestMethods;
-    const params = payload.params as Parameters<TezosApi[typeof method]>;
+    const params = payload.params as OverloadedParameters<
+      TezosApi[typeof method]
+    >;
     try {
       const result = await this.request({ method, params });
       return {
-        error: null as JsonRpcTypes.Error,
-        result: JsonRpcTypes.Response(
-          payload.id,
-          JSON.parse(JSON.stringify(result))
-        )
+        error: null as JsonRpcError,
+        result: makeResponse(payload.id, JSON.parse(JSON.stringify(result)))
       };
     } catch (error) {
       let result: any;
@@ -280,7 +281,7 @@ export default class TezosProvider
         result = error.result;
         delete error.result;
       }
-      return { error, result: JsonRpcTypes.Error(payload.id, error, result) };
+      return { error, result: makeError(payload.id, error, result) };
     }
   };
   //#endregion

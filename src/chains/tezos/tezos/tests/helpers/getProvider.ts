@@ -1,7 +1,6 @@
-import { utils } from "@ganache/utils";
+import { RequestCoordinator, Executor } from "@ganache/utils";
 import TezosProvider from "../../src/provider";
 import { TezosProviderOptions } from "@ganache/tezos-options";
-const { RequestCoordinator, Executor } = utils;
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 

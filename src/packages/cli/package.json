@@ -1,23 +1,27 @@
 {
   "name": "@ganache/cli",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-canary.1335",
   "description": "",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/cli#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "typings",
   "source": "index.ts",
   "bin": {
     "ganache": "./lib/src/cli.js",
     "ganache-cli": "./lib/src/cli.js"
   },
   "directories": {
-    "lib": "/lib",
-    "test": "/tests"
+    "lib": "lib",
+    "test": "tests"
   },
   "files": [
-    "/lib"
+    "lib",
+    "typings"
   ],
   "repository": {
     "type": "git",
@@ -49,20 +53,27 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/core": "0.1.0"
+    "@ganache/ethereum": "0.1.1-canary.1335",
+    "@ganache/filecoin": "0.1.1-canary.1335",
+    "@ganache/tezos": "0.1.0",
+    "@types/mocha": "8.2.2",
+    "cross-env": "7.0.3",
+    "mocha": "8.4.0",
+    "ts-node": "9.1.1",
+    "ttypescript": "1.5.12",
+    "typescript": "4.1.3"
   },
   "dependencies": {
-    "@ganache/colors": "^0.1.0",
-    "@ganache/ethereum": "0.1.0",
-    "@ganache/ethereum-options": "0.1.0",
-    "@ganache/flavors": "0.1.0",
-    "@ganache/options": "0.1.0",
-    "@ganache/tezos": "0.1.0",
+    "@ganache/ethereum-options": "0.1.1-canary.1335",
     "@ganache/tezos-options": "0.1.0",
-    "@ganache/utils": "0.1.0",
+    "@ganache/colors": "0.1.1-canary.1335",
+    "@ganache/core": "0.1.1-canary.1335",
+    "@ganache/flavors": "0.1.1-canary.1335",
+    "@ganache/options": "0.1.1-canary.1335",
+    "@ganache/utils": "0.1.1-canary.1335",
     "@types/node": "14.14.6",
     "chalk": "4.1.0",
-    "ethereumjs-util": "7.0.7",
+    "ethereumjs-util": "7.0.9",
     "marked-terminal": "4.1.0"
   }
 }

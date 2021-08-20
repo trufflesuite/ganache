@@ -1,19 +1,23 @@
 {
   "name": "@ganache/ethereum-utils",
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1-canary.1335",
   "description": "",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/ethereum/utils#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "typings": "typings",
   "source": "index.ts",
   "directories": {
     "lib": "lib",
     "test": "tests"
   },
   "files": [
-    "lib"
+    "lib",
+    "typings"
   ],
   "repository": {
     "type": "git",
@@ -44,12 +48,22 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/utils": "0.1.0",
-    "emittery": "0.8.1",
+    "@ethereumjs/common": "2.3.0",
+    "@ethereumjs/tx": "3.1.1",
+    "@ethereumjs/vm": "5.2.0",
+    "@ganache/ethereum-address": "0.1.1-canary.1335",
+    "@ganache/rlp": "0.1.1-canary.1335",
+    "@ganache/utils": "0.1.1-canary.1335",
+    "emittery": "0.7.2",
     "ethereumjs-abi": "0.6.8",
-    "ethereumjs-tx": "2.1.2",
-    "ethereumjs-util": "7.0.7",
-    "ethereumjs-vm": "4.2.0",
-    "rlp": "2.2.6"
+    "ethereumjs-util": "7.0.9"
+  },
+  "devDependencies": {
+    "@types/mocha": "8.2.2",
+    "cross-env": "7.0.3",
+    "mocha": "8.4.0",
+    "ts-node": "9.1.1",
+    "ttypescript": "1.5.12",
+    "typescript": "4.1.3"
   }
 }

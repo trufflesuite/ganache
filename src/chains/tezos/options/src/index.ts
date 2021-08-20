@@ -21,15 +21,7 @@ export type TezosInternalOptions = {
   [K in keyof TezosOptions]: InternalConfig<TezosOptions[K]>;
 };
 
-export type TezosDefaults = {
-  [K in keyof TezosOptions]: Definitions<TezosOptions[K]>;
-};
-
 export const TezosDefaults: Defaults<TezosOptions> = {
-  wallet: WalletOptions
-};
-
-export const tezosDefaults: Defaults<TezosOptions> = {
   wallet: WalletOptions
 };
 

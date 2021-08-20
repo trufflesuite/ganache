@@ -44,6 +44,6 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/utils": "0.1.0"
+    "@ganache/utils": "0.1.1-canary.1335"
   }
 }

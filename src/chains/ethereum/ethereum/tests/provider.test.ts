@@ -1,7 +1,7 @@
 import assert from "assert";
 import EthereumProvider from "../src/provider";
 import getProvider from "./helpers/getProvider";
-import { JsonRpcTypes } from "@ganache/utils";
+import { JsonRpcRequest } from "@ganache/utils";
 import EthereumApi from "../src/api";
 
 describe("provider", () => {
@@ -13,6 +13,17 @@ describe("provider", () => {
         accounts[0],
         "0x59ef313e6ee26bab6bcb1b5694e59613debd88da"
       );
+    });
+
+    it("errors when conflicting options are passed to the provider", async () => {
+      assert.rejects(async () => {
+        await getProvider({
+          wallet: {
+            deterministic: true,
+            seed: "123"
+          } as Object // "as Object" lets us get around ts typechecking during compilation
+        });
+      });
     });
   });
 
@@ -29,7 +40,7 @@ describe("provider", () => {
     });
 
     it("returns things via legacy", async () => {
-      const jsonRpcRequest: JsonRpcTypes.Request<EthereumApi> = {
+      const jsonRpcRequest: JsonRpcRequest<EthereumApi, "net_version"> = {
         id: "1",
         jsonrpc: "2.0",
         method: "net_version"

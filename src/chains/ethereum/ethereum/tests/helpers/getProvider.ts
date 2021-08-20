@@ -1,7 +1,6 @@
-import { utils } from "@ganache/utils";
+import { RequestCoordinator, Executor } from "@ganache/utils";
 import EthereumProvider from "../../src/provider";
 import { EthereumProviderOptions } from "@ganache/ethereum-options";
-const { RequestCoordinator, Executor } = utils;
 
 const mnemonic =
   "into trim cross then helmet popular suit hammer cart shrug oval student";
@@ -29,12 +28,8 @@ const getProvider = async (
   const requestCoordinator = new RequestCoordinator(doAsync ? 0 : 1);
   const executor = new Executor(requestCoordinator);
   const provider = new EthereumProvider(options, executor);
-  await new Promise(resolve => {
-    provider.on("connect", () => {
-      requestCoordinator.resume();
-      resolve(void 0);
-    });
-  });
+  await provider.initialize();
+  requestCoordinator.resume();
   return provider;
 };
 

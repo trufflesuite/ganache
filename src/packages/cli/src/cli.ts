@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 import Readline from "readline";
-import Ganache, { Status } from "@ganache/core";
+import Ganache, { ServerStatus } from "@ganache/core";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
-import { EthereumFlavorName, TezosFlavorName } from "@ganache/flavors";
+import { EthereumFlavorName, FilecoinFlavorName, TezosFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
+import initializeFilecoin from "./initialize/filecoin";
 import initializeTezos from "./initialize/tezos";
-import { Provider as TezosProvider } from "@ganache/tezos";
-import { Provider as EthereumProvider } from "@ganache/ethereum";
+import type { Provider as FilecoinProvider } from "@ganache/filecoin";
+import type { Provider as EthereumProvider } from "@ganache/ethereum";
+import type { Provider as TezosProvider } from "@ganache/tezos";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -29,10 +31,10 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
   process.exit(exitCode);
 };
 
-const { version: ganacheVersion } = $INLINE_JSON("../../core/package.json");
-const { version } = $INLINE_JSON("../package.json");
-const detailedVersion =
-  "Ganache CLI v" + version + " (ganache-core: " + ganacheVersion + ")";
+const { version: coreVersion } = $INLINE_JSON("../../core/package.json");
+const { version: cliVersion } = $INLINE_JSON("../package.json");
+const { version } = $INLINE_JSON("../../ganache/package.json");
+const detailedVersion = `ganache v ${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
 
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
@@ -43,9 +45,15 @@ const flavor = argv.flavor;
 
 const cliSettings = argv.server;
 
-const server = Ganache.server(argv);
-
 console.log(detailedVersion);
+
+let server: ReturnType<typeof Ganache.server>;
+try {
+  server = Ganache.server(argv);
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
+}
 
 let started = false;
 process.on("uncaughtException", function (e) {
@@ -58,18 +66,18 @@ process.on("uncaughtException", function (e) {
 
 let receivedShutdownSignal: boolean = false;
 const handleSignal = async (signal: NodeJS.Signals) => {
-  console.log(`Received shutdown signal: ${signal}`);
+  console.log(`\nReceived shutdown signal: ${signal}`);
   closeHandler();
 };
 const closeHandler = async () => {
   try {
     // graceful shutdown
     switch (server.status) {
-      case Status.opening:
+      case ServerStatus.opening:
         receivedShutdownSignal = true;
         console.log("Server is currently starting; waiting…");
         return;
-      case Status.open:
+      case ServerStatus.open:
         console.log("Shutting down…");
         await server.close();
         console.log("Server has been shut down");
@@ -122,11 +130,19 @@ async function startGanache(err: Error) {
   started = true;
 
   switch (flavor) {
-    case TezosFlavorName: {
-      server.provider.on("connect", () => {
-        initializeTezos(server.provider as TezosProvider, cliSettings);
-      });
+    case FilecoinFlavorName: {
+      await initializeFilecoin(
+        server.provider as FilecoinProvider,
+        cliSettings
+      );
       break;
+    }
+    case TezosFlavorName: {
+      initializeTezos(
+        server.provider as unknown as TezosProvider,
+        cliSettings
+      );
+     break;
     }
     case EthereumFlavorName:
     default: {

@@ -1,9 +1,10 @@
+import { WEI } from "@ganache/utils";
 import assert from "assert";
 import { join } from "path";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 
-const eth = "0x" + 1000000000000000000n.toString(16);
+const eth = "0x" + WEI.toString(16);
 
 describe("api", () => {
   describe("evm", () => {
@@ -82,7 +83,7 @@ describe("api", () => {
 
         // Assert the starting balance is where we think it is, including tx costs.
         assert(
-          balance > 98900000000000000000 && balance < 99000000000000000000
+          balance > 990000000000000000000n && balance < 999000000000000000000n
         );
         startingBalance = balance;
 
@@ -110,7 +111,7 @@ describe("api", () => {
 
         // Assert the starting balance is where we think it is, including tx costs.
         assert(
-          balance > 97900000000000000000n && balance < 98000000000000000000n
+          balance > 980000000000000000000n && balance < 998000000000000000000n
         );
 
         const status = await send("evm_revert", [snapshotId]);
@@ -281,7 +282,7 @@ describe("api", () => {
           "At least 1 receipt should be null"
         );
 
-        // and that the transations were all accepted
+        // and that the transactions were all accepted
         transactions.forEach(transaction => {
           assert.notStrictEqual(
             transaction,
@@ -347,7 +348,7 @@ describe("api", () => {
 
         const transactions = await Promise.all(txHashes.map(getTx));
 
-        // and that the transations were all accepted
+        // and that the transactions were all accepted
         transactions.forEach(transaction => {
           assert.notStrictEqual(
             transaction,
@@ -412,9 +413,9 @@ describe("api", () => {
 
         const txsMinedProm = new Promise(resolve => {
           let count = 0;
-          const unsub = provider.on("message", m => {
+          const unsubscribe = provider.on("message", _ => {
             if (++count === 2) {
-              unsub();
+              unsubscribe();
               resolve(null);
             }
           });
@@ -463,9 +464,9 @@ describe("api", () => {
 
         const gotTxsProm = new Promise(resolve => {
           let count = 0;
-          const unsub = provider.on("message", m => {
+          const unsubscribe = provider.on("message", m => {
             if (++count === 3) {
-              unsub();
+              unsubscribe();
               resolve(null);
             }
           });

@@ -1,13 +1,14 @@
-import { encode as rlpEncode, decode as rlpDecode } from "rlp";
 import { Data, Quantity } from "@ganache/utils";
-import { Address } from "./address";
-import { utils } from "@ganache/utils";
+import { BUFFER_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
+import { decode, encode } from "@ganache/rlp";
+import { Address } from "@ganache/ethereum-address";
 
 export type TransactionLog = [
   address: Buffer,
   topics: Buffer[],
   data: Buffer | Buffer[]
 ];
+
 export type BlockLog = [
   removed: Buffer,
   transactionIndex: Buffer,
@@ -53,7 +54,7 @@ export class BlockLogs {
 
   constructor(data: Buffer) {
     if (data) {
-      const decoded = (rlpDecode(data) as unknown) as [Buffer, BlockLog[]];
+      const decoded = (decode(data) as unknown) as [Buffer, BlockLog[]];
       this[_raw] = decoded;
     }
   }
@@ -63,9 +64,9 @@ export class BlockLogs {
    * @param blockHash Creates an BlogLogs entity with an empty internal logs
    * array.
    */
-  static create(blockHash: Buffer) {
+  static create(blockHash: Data) {
     const blockLog = Object.create(BlockLogs.prototype) as BlockLogs;
-    blockLog[_raw] = [blockHash, []];
+    blockLog[_raw] = [blockHash.toBuffer(), []];
     return blockLog;
   }
 
@@ -73,7 +74,7 @@ export class BlockLogs {
    * rlpEncode's the blockHash and logs array for db storage
    */
   public serialize() {
-    return rlpEncode(this[_raw]);
+    return encode(this[_raw]);
   }
 
   /**
@@ -83,14 +84,14 @@ export class BlockLogs {
    * @param log
    */
   public append(
-    /*removed: boolean, */ transactionIndex: Buffer,
-    transactionHash: Buffer,
+    /*removed: boolean, */ transactionIndex: Quantity,
+    transactionHash: Data,
     log: TransactionLog
   ) {
     this[_raw][1].push([
-      utils.BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
-      transactionIndex, // transactionIndex
-      transactionHash, // transactionHash
+      BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
+      transactionIndex.toBuffer(), // transactionIndex
+      transactionHash.toBuffer(), // transactionHash
       log[0], // `address`
       log[1], // `topics`
       log[2] // `data`
@@ -105,6 +106,38 @@ export class BlockLogs {
   }
 
   public blockNumber: Quantity;
+
+  static fromJSON(json: any[] | null) {
+    if (!json || json.length === 0) {
+      return null;
+    }
+
+    const blockHash: string = json[0].blockHash;
+    const blockNumber: string = json[0].blockNumber;
+    const blockLogs = BlockLogs.create(Data.from(blockHash, 32));
+    blockLogs.blockNumber = Quantity.from(blockNumber);
+    json.forEach(log => {
+      const address = Address.from(log.address);
+      const blockNumber = log.blockNumber;
+      const data = Array.isArray(log.data)
+        ? log.data.map(d => Data.from(d).toBuffer())
+        : Data.from(log.data).toBuffer();
+      const logIndex = log.logIndex;
+      const removed =
+        log.removed === false ? BUFFER_ZERO : RPCQUANTITY_ONE.toBuffer();
+      const topics = Array.isArray(log.topics)
+        ? log.topics.map(t => Data.from(t, 32).toBuffer())
+        : Data.from(log.topics, 32).toBuffer();
+      const transactionHash = Data.from(log.transactionHash, 32);
+      const transactionIndex = Quantity.from(log.transactionIndex);
+      blockLogs.append(transactionIndex, transactionHash, [
+        address.toBuffer(), // `address`
+        topics,
+        data
+      ]);
+    });
+    return blockLogs;
+  }
 
   toJSON() {
     return this[_logs]().toJSON();
@@ -171,7 +204,7 @@ export class BlockLogs {
         ? data.map(d => Data.from(d, d.length))
         : Data.from(data, data.length),
       logIndex, // this is the index in the *block*
-      removed: log[0].equals(utils.BUFFER_ZERO) ? false : true,
+      removed: log[0].equals(BUFFER_ZERO) ? false : true,
       topics: Array.isArray(topics)
         ? topics.map(t => Data.from(t, 32))
         : Data.from(topics, 32),

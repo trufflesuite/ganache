@@ -1,13 +1,21 @@
 import Emittery from "emittery";
 import TezosApi from "./api";
-import { JsonRpcTypes, types, utils } from "@ganache/utils";
+import {
+  Connector as IConnector,
+  Executor,
+  makeError,
+  makeResponse,
+  JsonRpcRequest,
+  JsonRpcResponse,
+  KnownKeys
+} from "@ganache/utils";
 import TezosProvider from "./provider";
 import {
   RecognizedString,
   WebSocket,
   HttpRequest,
   TemplatedApp
-} from "uWebSockets.js";
+} from "@trufflesuite/uws-js-unofficial";
 import { CodedError, ErrorCodes } from "@ganache/tezos-utils";
 import { TezosProviderOptions } from "@ganache/tezos-options";
 import { URLSearchParams } from "url";
@@ -25,9 +33,6 @@ import {
   DateFromISOString,
   NumberFromString
 } from "io-ts-types";
-import * as D from "io-ts/Decoder";
-import { isRight } from "fp-ts/lib/These";
-import { Operation } from "./things";
 import { Decoder } from "io-ts-extra";
 
 export type ProviderOptions = TezosProviderOptions;
@@ -40,33 +45,36 @@ function isHttp(
   return connection.constructor.name === "uWS.HttpRequest";
 }
 
-export class Connector
-  extends Emittery.Typed<undefined, "ready" | "close">
-  implements
-    types.Connector<
+export class Connector<
+    R extends JsonRpcRequest<TezosApi, KnownKeys<TezosApi>> = JsonRpcRequest<
       TezosApi,
-      any,
-      any
-      // JsonRpcTypes.Request<TezosApi> | JsonRpcTypes.Request<TezosApi>[],
-      // JsonRpcTypes.Response
-    > {
+      KnownKeys<TezosApi>
+    >
+  >
+  extends Emittery.Typed<undefined, "ready" | "close">
+  implements IConnector<TezosApi, R | R[], JsonRpcResponse> {
   #provider: TezosProvider;
 
   get provider() {
     return this.#provider;
   }
 
-  constructor(
-    providerOptions: ProviderOptions = null,
-    executor: utils.Executor
-  ) {
+  constructor(providerOptions: ProviderOptions = null, executor: Executor) {
     super();
 
     const provider = (this.#provider = new TezosProvider(
       providerOptions,
       executor
     ));
-    provider.on("connect", () => {
+    // provider.on("connect", () => {
+    //   // tell the consumer (like a `ganache-core` server/connector) everything is ready
+    //   this.emit("ready");
+    // });
+  }
+  // connect: () => Promise<void>;
+
+  async connect() {
+    this.#provider.on("connect", () => {
       // tell the consumer (like a `ganache-core` server/connector) everything is ready
       this.emit("ready");
     });
@@ -317,16 +325,13 @@ export class Connector
 
   parse(message: Buffer) {
     try {
-      return JSON.parse(message) as JsonRpcTypes.Request<TezosApi>;
+      return JSON.parse(message) as R;
     } catch (e) {
       throw new CodedError(e.message, ErrorCodes.PARSE_ERROR);
     }
   }
 
-  handle(
-    payload: JsonRpcTypes.Request<TezosApi> | JsonRpcTypes.Request<TezosApi>[],
-    connection: HttpRequest | WebSocket
-  ) {
+  handle(payload: R | R[], connection: HttpRequest | WebSocket) {
     if (Array.isArray(payload)) {
       // handle batch transactions
       const promises = payload.map(payload =>
@@ -339,53 +344,35 @@ export class Connector
       return this.#handle(payload, connection);
     }
   }
-  #handle = (
-    payload: JsonRpcTypes.Request<TezosApi>,
-    connection: HttpRequest | WebSocket
-  ) => {
+  #handle = (payload: R, connection: HttpRequest | WebSocket) => {
     const method = payload.method;
     // TODO: Add tezos specific error codes
     const params = payload.params as Parameters<TezosApi[typeof method]>;
     return this.#provider._requestRaw({ method, params });
   };
 
-  format(
-    result: any,
-    payload: JsonRpcTypes.Request<TezosApi>
-  ): RecognizedString;
-  format(
-    results: any[],
-    payloads: JsonRpcTypes.Request<TezosApi>[]
-  ): RecognizedString;
-  format(
-    results: any | any[],
-    payload: JsonRpcTypes.Request<TezosApi> | JsonRpcTypes.Request<TezosApi>[]
-  ): RecognizedString {
+  format(result: any, payload: R): RecognizedString;
+  format(results: any[], payloads: R[]): RecognizedString;
+  format(results: any | any[], payload: R | R[]): RecognizedString {
     if (Array.isArray(payload)) {
       return JSON.stringify(
         payload.map((payload, i) => {
           const result = results[i];
           if (result instanceof Error) {
-            return JsonRpcTypes.Error(payload.id, result as any);
+            return makeError(payload.id, result as any);
           } else {
-            return JsonRpcTypes.Response(payload.id, result);
+            return makeResponse(payload.id, result);
           }
         })
       );
     } else {
-      const json = JsonRpcTypes.Response(payload.id, results);
+      const json = makeResponse(payload.id, results);
       return JSON.stringify(json);
     }
   }
 
-  formatError(
-    error: Error & { code: number },
-    payload: JsonRpcTypes.Request<TezosApi>
-  ): RecognizedString {
-    const json = JsonRpcTypes.Error(
-      payload && payload.id ? payload.id : null,
-      error
-    );
+  formatError(error: Error & { code: number }, payload: R): RecognizedString {
+    const json = makeError(payload && payload.id ? payload.id : null, error);
     return JSON.stringify(json);
   }
 
