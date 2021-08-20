@@ -85,7 +85,7 @@
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.8",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.9",
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
     "@types/keccak": "3.0.1",
