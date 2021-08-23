@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1339",
+  "version": "0.1.1-canary.1340",
   "description": "Ganache's Tezos client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/tezos/tezos#readme",
@@ -42,8 +42,8 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/options": "0.1.1-canary.1339",
-    "@ganache/utils": "0.1.1-canary.1339",
+    "@ganache/options": "0.1.1-canary.1340",
+    "@ganache/utils": "0.1.1-canary.1340",
     "emittery": "0.7.2"
   },
   "devDependencies": {
