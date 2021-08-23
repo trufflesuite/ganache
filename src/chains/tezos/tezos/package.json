@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.9",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.10",
     "@types/mocha": "8.2.2",
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",

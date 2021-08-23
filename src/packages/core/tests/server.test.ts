@@ -9,6 +9,8 @@ import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
 import { ServerStatus } from "../src/server";
+import { MAX_PAYLOAD_SIZE as WS_MAX_PAYLOAD_SIZE } from "../src/servers/ws-server";
+
 import http from "http";
 // https://github.com/sindresorhus/into-stream/releases/tag/v6.0.0
 import intoStream = require("into-stream");
@@ -902,6 +904,54 @@ describe("server", () => {
           };
           ws.send(JSON.stringify(subscribeJson));
         });
+      });
+    });
+
+    describe("max payload size", () => {
+      let ws: WebSocket;
+      beforeEach(() => {
+        ws = new WebSocket("ws://localhost:" + port);
+      });
+      afterEach(() => {
+        if (ws) {
+          ws.close();
+        }
+      });
+
+      const canSendPayloadWithoutSocketClose = (payload: Buffer) => {
+        return new Promise<boolean>(resolve => {
+          const handleClose = code => {
+            resolve(false);
+          };
+          ws.on("open", () => ws.send(payload));
+          ws.on("close", handleClose);
+          ws.once("message", () => {
+            ws.off("close", handleClose);
+            resolve(true);
+          });
+        });
+      };
+
+      it("can handle payloads up to max payload size", async () => {
+        // This payload is invalid JSON-RPC, but we are just testing if the
+        // server will receive it _at all_. It _should_ reject it as invalid
+        // data, but *not* close the connection.
+        const largePayload = Buffer.alloc(WS_MAX_PAYLOAD_SIZE);
+        assert.strictEqual(
+          await canSendPayloadWithoutSocketClose(largePayload),
+          true
+        );
+      });
+
+      it("can not send payload greater than max payload size; ws is closed on large payloads", async () => {
+        // This payload is invalid JSON-RPC, but we are just testing if the
+        // server will receive it _at all_. It _should_ close the websocket
+        // connection, not just reject the data.
+        const tooLargePayload = Buffer.alloc(WS_MAX_PAYLOAD_SIZE + 1);
+        assert.strictEqual(
+          await canSendPayloadWithoutSocketClose(tooLargePayload),
+          false
+        );
       });
     });
 
