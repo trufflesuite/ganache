@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [canary]
+    branches: [alpha, canary]
 
 jobs:
   release:
@@ -31,11 +31,10 @@ jobs:
 
       - name: Update package versions
         # ${GITHUB_REF##*/} is the branch name
-        run: |
-          $(npm bin)/lerna version prerelease --no-push --yes --exact --preid ${GITHUB_REF##*/}
-          echo 'TAGS<<EOF' >> $GITHUB_ENV
-          git tag --points-at HEAD >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
+        run: $(npm bin)/lerna version prerelease --no-push --yes --exact --preid ${GITHUB_REF##*/}
+        # echo 'TAGS<<EOF' >> $GITHUB_ENV
+        # git tag --points-at HEAD >> $GITHUB_ENV
+        # echo 'EOF' >> $GITHUB_ENV
 
       - name: Run build
         run: npm run build
