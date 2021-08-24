@@ -1,0 +1,10 @@
+{
+  "name": "ganache-core",
+  "private": "true",
+  "main": "make-svg.js",
+  "license": "MIT",
+  "devDependencies": {
+    "lodash.escape": "4.0.1",
+    "lodash.unescape": "4.0.1"
+  }
+}
