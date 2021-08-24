@@ -24,5 +24,5 @@
   }
 </style>
 </defs>
-  <text x="0" y="0" dominant-baseline="hanging" text-anchor="left" class="logo">Breaking Changes</text>
+  <text x="50%" y="0" dominant-baseline="hanging" text-anchor="middle" class="logo">Breaking Changes</text>
 </svg>

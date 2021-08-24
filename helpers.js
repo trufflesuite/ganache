@@ -27,6 +27,7 @@ const makeImageAnchor = (text) => {
   const name = fileName.replace(/\.svg$/i, "");
   const escaped = escape(text);
   const html = [];
+  html.push(`<p align=\"center\">`);
   html.push(
     `<a id="user-content-VERSION-${name}" href="#user-content-VERSION-${name}">`
   );
@@ -34,6 +35,7 @@ const makeImageAnchor = (text) => {
     `<img alt="${escaped}" width="auto" src="https://raw.githubusercontent.com/trufflesuite/ganache/release-notes-assets/svgs/${fileName}">`
   );
   html.push(`</a>`);
+  html.push(`</p>`);
   return html.join("");
 };
 
