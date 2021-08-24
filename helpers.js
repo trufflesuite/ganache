@@ -12,7 +12,7 @@ const makeSvg = (text) => {
 
   const fileName = makeFileName(text);
 
-  const path = join(__dirname, "svgs", fileName);
+  const path = join(__dirname, "title-images", fileName);
 
   writeFileSync(path, newSvg);
   return path;
