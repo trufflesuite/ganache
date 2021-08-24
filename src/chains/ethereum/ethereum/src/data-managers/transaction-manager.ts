@@ -11,6 +11,12 @@ import {
   TypedRpcTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
+
+// since our Manager needs to receive and Instantiable class with a
+// consistent return type and our transaction factory can return
+// any number of transaction types, we pass in this empty
+// no op class to fool the Manager
+
 class NoOp {}
 export default class TransactionManager extends Manager<NoOp> {
   public readonly transactionPool: TransactionPool;
