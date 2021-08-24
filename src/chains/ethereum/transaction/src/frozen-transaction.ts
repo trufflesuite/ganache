@@ -129,7 +129,7 @@ export class FrozenTransaction extends BaseTransaction {
   }
 
   public toJSON = () => {
-    let json: FrozenTransactionJSON = {
+    const json: FrozenTransactionJSON = {
       hash: this.hash,
       nonce: this.nonce,
       blockHash: this.blockHash,

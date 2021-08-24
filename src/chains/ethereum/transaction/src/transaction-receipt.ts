@@ -151,7 +151,7 @@ export class TransactionReceipt {
     blockLog.blockNumber = blockNumber;
     raw[3].forEach(l => blockLog.append(transactionIndex, transactionHash, l));
     const logs = [...blockLog.toJSON()];
-    let json: TransactionReceiptJSON = {
+    const json: TransactionReceiptJSON = {
       transactionHash,
       transactionIndex,
       blockNumber,
