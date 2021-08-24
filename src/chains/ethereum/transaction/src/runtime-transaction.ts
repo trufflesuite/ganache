@@ -76,9 +76,10 @@ export abstract class RuntimeTransaction extends BaseTransaction {
 
   constructor(
     data: TypedDatabasePayload | TypedRpcTransaction,
-    common: Common
+    common: Common,
+    extra?: GanacheRawExtraTx
   ) {
-    super(common);
+    super(common, extra);
     let finalizer: (value: TransactionFinalization) => void;
     this.finalized = new Promise<TransactionFinalization>(resolve => {
       finalizer = (...args: any[]) => process.nextTick(resolve, ...args);

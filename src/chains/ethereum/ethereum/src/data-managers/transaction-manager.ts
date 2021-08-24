@@ -7,14 +7,12 @@ import PromiseQueue from "@ganache/promise-queue";
 import type Common from "@ethereumjs/common";
 import { Data, Quantity } from "@ganache/utils";
 import {
-  FrozenTransaction,
-  RuntimeTransaction,
   TransactionFactory,
   TypedRpcTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
-
-export default class TransactionManager extends Manager<FrozenTransaction> {
+class NoOp {}
+export default class TransactionManager extends Manager<NoOp> {
   public readonly transactionPool: TransactionPool;
 
   readonly #queue = new PromiseQueue<boolean>();
@@ -30,7 +28,7 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
     blockchain: Blockchain,
     base: LevelUp
   ) {
-    super(base, FrozenTransaction, common);
+    super(base, TransactionFactory, common);
     this.#blockchain = blockchain;
 
     this.transactionPool = new TransactionPool(options, blockchain);
@@ -60,6 +58,11 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
     });
   }
 
+  public async get(key: string | Buffer) {
+    const factory = (await super.get(key)) as TransactionFactory;
+    if (!factory) return null;
+    return factory.tx;
+  }
   /**
    * Adds the transaction to the transaction pool.
    *

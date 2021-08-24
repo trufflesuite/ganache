@@ -15,11 +15,12 @@ import { RuntimeTransaction } from "./runtime-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
   EIP2930AccessListDatabasePayload,
+  GanacheRawExtraTx,
   LegacyDatabasePayload,
   TypedDatabaseTransaction
 } from "./raw";
 import { computeInstrinsicsLegacyTx } from "./signing";
-import { Capability } from "./transaction-types";
+import { Capability, LegacyTransactionJSON } from "./transaction-types";
 
 export class LegacyTransaction extends RuntimeTransaction {
   public gasPrice: Quantity;
@@ -27,9 +28,10 @@ export class LegacyTransaction extends RuntimeTransaction {
 
   public constructor(
     data: LegacyDatabasePayload | TypedRpcTransaction,
-    common: Common
+    common: Common,
+    extra?: GanacheRawExtraTx
   ) {
-    super(data, common);
+    super(data, common, extra);
     if (Array.isArray(data)) {
       this.nonce = Quantity.from(data[0]);
       this.gasPrice = Quantity.from(data[1]);
@@ -62,13 +64,13 @@ export class LegacyTransaction extends RuntimeTransaction {
     }
   }
 
-  public toJSON = () => {
-    let json = {
+  public toJSON(): LegacyTransactionJSON {
+    const json: LegacyTransactionJSON = {
       hash: this.hash,
       nonce: this.nonce,
-      blockHash: null,
-      blockNumber: null,
-      transactionIndex: null,
+      blockHash: this.blockHash ? this.blockHash : null,
+      blockNumber: this.blockNumber ? this.blockNumber : null,
+      transactionIndex: this.index ? this.index : null,
       from: this.from,
       to: this.to.isNull() ? null : this.to,
       value: this.value,
@@ -79,18 +81,21 @@ export class LegacyTransaction extends RuntimeTransaction {
       r: this.r,
       s: this.s
     };
+
     if (this.common.isActivatedEIP(2718)) {
-      (json as any).type = this.type;
+      json.type = this.type;
     }
-    return json as typeof json & { type?: LegacyTransaction["type"] };
-  };
+    return json;
+  }
 
   public static fromTxData(
     data: LegacyDatabasePayload | TypedRpcTransaction,
-    common: Common
+    common: Common,
+    extra?: GanacheRawExtraTx
   ) {
-    return new LegacyTransaction(data, common);
+    return new LegacyTransaction(data, common, extra);
   }
+
   public static fromEIP2930AccessListTransaction(
     data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
     common: Common

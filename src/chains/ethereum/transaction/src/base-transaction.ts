@@ -3,6 +3,7 @@ import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
 import { Hardfork } from "./hardfork";
 import { Params } from "./params";
+import { GanacheRawExtraTx } from "./raw";
 
 const MAX_UINT64 = 1n << (64n - 1n);
 
@@ -89,8 +90,29 @@ export class BaseTransaction {
 
   public common: Common;
 
-  constructor(common: Common) {
+  // from, index, hash, blockNumber, and blockHash are extra data we store to
+  // support account masquerading, quick receipts:
+  // public from: Address;
+  public index: Quantity;
+  public hash: Data;
+  public blockNumber: Quantity;
+  public blockHash: Data;
+
+  constructor(common: Common, extra?: GanacheRawExtraTx) {
     this.common = common;
+    if (extra) {
+      this.setExtra(extra);
+    }
+  }
+
+  public setExtra(raw: GanacheRawExtraTx) {
+    const [from, hash, blockHash, blockNumber, index] = raw;
+
+    this.from = Address.from(from);
+    this.hash = Data.from(hash, 32);
+    this.blockHash = Data.from(blockHash, 32);
+    this.blockNumber = Quantity.from(blockNumber);
+    this.index = Quantity.from(index);
   }
 
   public calculateIntrinsicGas() {

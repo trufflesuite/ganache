@@ -15,12 +15,16 @@ import { RuntimeTransaction } from "./runtime-transaction";
 import {
   EIP2930AccessListDatabasePayload,
   EIP2930AccessListDatabaseTx,
+  GanacheRawExtraTx,
   TypedDatabaseTransaction
 } from "./raw";
 import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
 import { AccessLists } from "./access-lists";
 import { computeInstrinsicsAccessListTx } from "./signing";
-import { Capability } from "./transaction-types";
+import {
+  Capability,
+  EIP2930AccessListTransactionJSON
+} from "./transaction-types";
 
 const CAPABILITIES = [2718, 2930] as const;
 export class EIP2930AccessListTransaction extends RuntimeTransaction {
@@ -33,9 +37,10 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
 
   public constructor(
     data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
-    common: Common
+    common: Common,
+    extra?: GanacheRawExtraTx
   ) {
-    super(data, common);
+    super(data, common, extra);
     if (Array.isArray(data)) {
       this.chainId = Quantity.from(data[0]);
       this.nonce = Quantity.from(data[1]);
@@ -77,31 +82,33 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     }
   }
 
-  public toJSON = () => {
+  public toJSON(): EIP2930AccessListTransactionJSON {
     return {
-      type: this.type,
       hash: this.hash,
+      type: this.type,
+      chainId: this.chainId,
       nonce: this.nonce,
-      blockHash: null,
-      blockNumber: null,
-      transactionIndex: null,
+      blockHash: this.blockHash ? this.blockHash : null,
+      blockNumber: this.blockNumber ? this.blockNumber : null,
+      transactionIndex: this.index ? this.index : null,
       from: this.from,
       to: this.to.isNull() ? null : this.to,
       value: this.value,
       gas: this.gas,
       gasPrice: this.gasPrice,
       input: this.data,
+      accessList: this.accessListJSON,
       v: this.v,
       r: this.r,
       s: this.s
     };
-  };
-
+  }
   public static fromTxData(
     data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
-    common: Common
+    common: Common,
+    extra?: GanacheRawExtraTx
   ) {
-    return new EIP2930AccessListTransaction(data, common);
+    return new EIP2930AccessListTransaction(data, common, extra);
   }
 
   public toVmTransaction() {

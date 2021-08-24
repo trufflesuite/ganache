@@ -5,27 +5,39 @@ import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction"
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
   EIP2930AccessListDatabasePayload,
+  GanacheRawExtraTx,
   LegacyDatabasePayload,
   TypedDatabasePayload,
   TypedDatabaseTransaction
 } from "./raw";
 import { decode } from "@ganache/rlp";
 import { CodedError } from "@ganache/ethereum-utils";
+import { TypedTransaction } from "./transaction-types";
 
 const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
 const LEGACY_TX_TYPE_ID = 0x0;
 const ACCESS_LIST_TX_TYPE_ID = 0x1;
 
 export class TransactionFactory {
+  public tx: TypedTransaction;
+  constructor(raw: Buffer, common: Common) {
+    const [txData, extra] = (decode(raw) as any) as [
+      TypedDatabaseTransaction,
+      GanacheRawExtraTx
+    ];
+    this.tx = TransactionFactory.fromDatabaseTx(txData, common, extra);
+  }
   private static _fromData(
     txData: TypedRpcTransaction | TypedDatabasePayload,
     txType: typeof EIP2930AccessListTransaction | typeof LegacyTransaction,
-    common: Common
+    common: Common,
+    extra?: GanacheRawExtraTx
   ) {
     if (txType === LegacyTransaction) {
       return txType.fromTxData(
         <LegacyDatabasePayload | TypedRpcTransaction>txData,
-        common
+        common,
+        extra
       );
     }
     if (!common.isActivatedEIP(2718)) {
@@ -41,7 +53,8 @@ export class TransactionFactory {
         if (common.isActivatedEIP(2930)) {
           return txType.fromTxData(
             <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
-            common
+            common,
+            extra
           );
         } else {
           // TODO: I believe this is unreachable with current architecture.
@@ -78,16 +91,17 @@ export class TransactionFactory {
    */
   public static fromDatabaseTx(
     txData: TypedDatabaseTransaction,
-    common: Common
+    common: Common,
+    extra?: GanacheRawExtraTx
   ) {
-    const typeVal = txData[0][0];
-    const txType = this.typeOf(typeVal);
+    const txType = this.typeOfRaw(txData);
     return this._fromData(
       <TypedDatabasePayload>(
         (txType === LegacyTransaction ? txData : txData.slice(1)) // if the type is at the front, remove it
       ),
       txType,
-      common
+      common,
+      extra
     );
   }
   /**

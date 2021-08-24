@@ -7,9 +7,7 @@
 
 export * from "./src/eip2930-access-list-transaction";
 export * from "./src/base-transaction";
-export * from "./src/block-transaction";
 export * from "./src/fake-transaction";
-export * from "./src/frozen-transaction";
 export * from "./src/hardfork";
 export * from "./src/legacy-transaction";
 export * from "./src/params";

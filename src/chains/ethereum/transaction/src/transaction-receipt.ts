@@ -3,9 +3,9 @@ import { BlockLogs, TransactionLog } from "@ganache/ethereum-utils";
 import { decode, digest, encodeRange } from "@ganache/rlp";
 import { Data, Quantity } from "@ganache/utils";
 import { RPCQUANTITY_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
-import { FrozenTransaction } from "./frozen-transaction";
 import { AccessList } from "@ethereumjs/tx";
 import Common from "@ethereumjs/common";
+import { TypedTransaction } from "./transaction-types";
 
 const STATUSES = [RPCQUANTITY_ZERO, RPCQUANTITY_ONE];
 
@@ -135,7 +135,7 @@ export class TransactionReceipt {
 
   public toJSON(
     block: { hash(): Data; header: { number: Quantity } },
-    transaction: FrozenTransaction,
+    transaction: TypedTransaction,
     common: Common
   ) {
     const raw = this.raw;
@@ -168,10 +168,10 @@ export class TransactionReceipt {
     if (transaction.type && common.isActivatedEIP(2718)) {
       json.type = transaction.type;
     }
-    if (transaction.chainId) {
+    if ("chainId" in transaction) {
       json.chainId = transaction.chainId;
     }
-    if (transaction.accessListJSON) {
+    if ("chainId" in transaction) {
       json.accessList = transaction.accessListJSON;
     }
     return json;

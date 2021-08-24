@@ -1,9 +1,10 @@
 import { Data, Quantity } from "@ganache/utils";
 import {
-  BlockTransaction,
   GanacheRawBlockTransactionMetaData,
+  GanacheRawExtraTx,
   TransactionFactory,
-  TypedDatabaseTransaction
+  TypedDatabaseTransaction,
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
@@ -50,17 +51,17 @@ export class Block {
 
   getTransactions() {
     const common = this._common;
-    return this._rawTransactions.map(
-      (raw, index) =>
-        new BlockTransaction(
-          raw,
-          this._rawTransactionMetaData[index],
-          this.hash().toBuffer(),
-          this.header.number.toBuffer(),
-          Quantity.from(index).toBuffer(),
-          common
-        )
-    );
+    return this._rawTransactions.map((raw, index) => {
+      const [from, hash] = this._rawTransactionMetaData[index];
+      const extra: GanacheRawExtraTx = [
+        from,
+        hash,
+        this.hash().toBuffer(),
+        this.header.number.toBuffer(),
+        Quantity.from(index).toBuffer()
+      ];
+      return TransactionFactory.fromDatabaseTx(raw, common, extra);
+    });
   }
 
   toJSON(includeFullTransactions = false) {
@@ -70,14 +71,15 @@ export class Block {
     const number = this.header.number.toBuffer();
     const common = this._common;
     const jsonTxs = this._rawTransactions.map((raw, index) => {
-      const tx = new BlockTransaction(
-        raw,
-        this._rawTransactionMetaData[index],
+      const [from, hash] = this._rawTransactionMetaData[index];
+      const extra: GanacheRawExtraTx = [
+        from,
+        hash,
         hashBuffer,
         number,
-        Quantity.from(index).toBuffer(),
-        common
-      );
+        Quantity.from(index).toBuffer()
+      ];
+      const tx = TransactionFactory.fromDatabaseTx(raw, common, extra);
       return txFn(tx);
     });
 
@@ -130,11 +132,11 @@ export class Block {
 
   getTxFn(
     include = false
-  ): (tx: BlockTransaction) => ReturnType<BlockTransaction["toJSON"]> | Data {
+  ): (tx: TypedTransaction) => ReturnType<TypedTransaction["toJSON"]> | Data {
     if (include) {
-      return (tx: BlockTransaction) => tx.toJSON();
+      return (tx: TypedTransaction) => tx.toJSON();
     } else {
-      return (tx: BlockTransaction) => tx.hash;
+      return (tx: TypedTransaction) => tx.hash;
     }
   }
 
