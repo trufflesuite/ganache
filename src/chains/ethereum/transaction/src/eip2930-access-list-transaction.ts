@@ -26,7 +26,8 @@ import {
   EIP2930AccessListTransactionJSON
 } from "./transaction-types";
 
-const CAPABILITIES = [2718, 2930] as const;
+const CAPABILITIES = [2718, 2930];
+
 export class EIP2930AccessListTransaction extends RuntimeTransaction {
   public chainId: Quantity;
   public accessList: AccessListBuffer;
