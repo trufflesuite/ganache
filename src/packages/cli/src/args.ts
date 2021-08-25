@@ -157,12 +157,12 @@ export default function (version: string, isDocker: boolean) {
     .strict()
     .usage(versionUsageOutputText)
     .epilogue(
-      versionUsageOutputText +
-        EOL +
-        EOL +
-        chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
-        EOL +
-        chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
+      versionUsageOutputText + EOL
+      // TODO: uncomment once we have a valid domain
+      // + EOL +
+      // chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
+      // EOL +
+      // chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
     );
 
   let flavor: keyof typeof DefaultOptionsByName;

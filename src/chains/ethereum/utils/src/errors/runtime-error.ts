@@ -44,7 +44,7 @@ export class RuntimeError extends CodedError {
     ) {
       try {
         // it is possible for the `returnValue` to be gibberish that can't be
-        // decoded. See: https://github.com/trufflesuite/ganache-core/pull/452
+        // decoded. See: https://github.com/trufflesuite/ganache/pull/452
         reason = rawDecode(["bytes"], returnValue.slice(4))[0].toString();
         message += " " + reason;
       } catch {

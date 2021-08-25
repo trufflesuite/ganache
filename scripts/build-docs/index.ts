@@ -231,7 +231,7 @@ function renderTag(method: Method, tag: Tag, i: number) {
 
 function renderSource(method: Method) {
   const source = method.sources[0];
-  return `<a href="https://github.com/trufflesuite/ganache-core/blob/next/src/${source.fileName}#L${source.line}" target="_blank" rel="noopener">source</a>`;
+  return `<a href="https://github.com/trufflesuite/ganache/blob/next/src/${source.fileName}#L${source.line}" target="_blank" rel="noopener">source</a>`;
 }
 
 function renderTags(method: Method) {

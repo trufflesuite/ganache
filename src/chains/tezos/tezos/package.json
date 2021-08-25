@@ -3,10 +3,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1335",
+  "version": "0.1.1-alpha.0",
   "description": "Ganache's Tezos client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/tezos/tezos#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/tezos/tezos#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -21,14 +21,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "url": "https://github.com/trufflesuite/ganache.git",
     "directory": "src/chains/tezos/tezos"
   },
   "scripts": {
-    "tsc": "ttsc --build"
+    "tsc": "ttsc --build",
+    "test": "echo 'no tests'"
   },
   "bugs": {
-    "url": "https://github.com/trufflesuite/ganache-core/issues"
+    "url": "https://github.com/trufflesuite/ganache/issues"
   },
   "keywords": [
     "ganache",
@@ -41,13 +42,13 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/options": "0.1.1-canary.1335",
-    "@ganache/utils": "0.1.1-canary.1335",
+    "@ganache/options": "0.1.1-alpha.0",
+    "@ganache/utils": "0.1.1-alpha.0",
     "emittery": "0.7.2"
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.8",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.10",
     "@types/mocha": "8.2.2",
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",

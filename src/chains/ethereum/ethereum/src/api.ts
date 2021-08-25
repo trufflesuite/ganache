@@ -1578,7 +1578,9 @@ export default class EthereumApi implements Api {
         options.logging.logger.log(
           " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
             ` > \`${dataHash.toString()}\` has not\n` +
-            " > yet been mined. See https://trfl.co/v7-instamine for additional information."
+            " > yet been mined."
+          // TODO: uncomment once we have a valid domain
+          // + " See https://trfl.co/v7-instamine for additional information."
         );
       }
     }

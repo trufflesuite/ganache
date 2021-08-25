@@ -91,9 +91,10 @@ export function GetConnector<T extends FlavorName>(
           ` ▸ if you're using Ganache as a library run: \n` +
           chalk`   {blue.bold $ npm install ${flavor}}\n` +
           ` ▸ if you're using Ganache as a CLI run: \n` +
-          chalk`   {blue.bold $ npm install --global ${flavor}}\n\n` +
-          chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
-          chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
+          chalk`   {blue.bold $ npm install --global ${flavor}}\n\n`
+        // TODO: uncomment once we have a valid domain
+        // + chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
+        // chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
       );
       process.exit(1);
     } else {

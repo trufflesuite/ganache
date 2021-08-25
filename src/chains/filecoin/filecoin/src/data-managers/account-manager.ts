@@ -32,7 +32,7 @@ export default class AccountManager extends Manager<Account, AccountConfig> {
     this.#database = database;
   }
 
-  // TODO(perf): (Issue ganache-core#876) There's probably a bit of
+  // TODO(perf): (Issue ganache#876) There's probably a bit of
   // performance optimizations that could be done here. putAccount
   // is called whenever the account changes (balance, nonce,
   // private key)

@@ -3,10 +3,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1335",
+  "version": "0.1.1-alpha.0",
   "description": "Ganache's Filecoin client implementation",
   "author": "Tim Coulter",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/filecoin#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/filecoin#readme",
   "license": "MIT",
   "engines": {
     "node": ">=12.13.0 <=14.14.0",
@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/trufflesuite/ganache-core.git",
+    "url": "git+https://github.com/trufflesuite/ganache.git",
     "directory": "src/chains/filecoin"
   },
   "scripts": {
@@ -34,7 +34,7 @@
     "mocha": "ts-node ../../../../scripts/skip-if-less-than-node-12.ts || cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.test.json mocha --timeout 60000 --no-parallel --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
-    "url": "https://github.com/trufflesuite/ganache-core/issues"
+    "url": "https://github.com/trufflesuite/ganache/issues"
   },
   "keywords": [
     "ganache",
@@ -57,9 +57,9 @@
     "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",
     "@filecoin-shipyard/lotus-client-rpc": "0.2.0",
     "@filecoin-shipyard/lotus-client-schema": "2.0.0",
-    "@ganache/filecoin-options": "0.1.1-canary.1335",
-    "@ganache/utils": "0.1.1-canary.1335",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.8",
+    "@ganache/filecoin-options": "0.1.1-alpha.0",
+    "@ganache/utils": "0.1.1-alpha.0",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.10",
     "@types/bn.js": "5.1.0",
     "@types/deep-equal": "1.0.1",
     "@types/levelup": "4.3.0",

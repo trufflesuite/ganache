@@ -38,6 +38,7 @@ function deleteDevDepsFromLeaf(leaf: Leaf) {
     Object.entries(leaf.dependencies).forEach(([name, entry]) => {
       if (entry.dev) {
         console.log(`removing ${name} from shrinkwrap`);
+        removeCount++;
         delete leaf.dependencies[name];
       }
     });

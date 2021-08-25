@@ -3,10 +3,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1335",
+  "version": "0.1.1-alpha.0",
   "description": "Ganache's Ethereum client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/ethereum/ethereum#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/ethereum/ethereum#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -21,7 +21,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "url": "https://github.com/trufflesuite/ganache.git",
     "directory": "src/chains/ethereum/ethereum"
   },
   "scripts": {
@@ -33,7 +33,7 @@
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha -s 0 -t 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
-    "url": "https://github.com/trufflesuite/ganache-core/issues"
+    "url": "https://github.com/trufflesuite/ganache/issues"
   },
   "keywords": [
     "ganache",
@@ -50,19 +50,19 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/ethereum-address": "0.1.1-canary.1335",
-    "@ganache/ethereum-block": "0.1.1-canary.1335",
-    "@ganache/ethereum-options": "0.1.1-canary.1335",
-    "@ganache/ethereum-transaction": "0.1.1-canary.1335",
-    "@ganache/ethereum-utils": "0.1.1-canary.1335",
-    "@ganache/options": "0.1.1-canary.1335",
-    "@ganache/promise-queue": "0.1.1-canary.1335",
-    "@ganache/rlp": "0.1.1-canary.1335",
-    "@ganache/utils": "0.1.1-canary.1335",
     "@ethereumjs/block": "3.4.0",
     "@ethereumjs/common": "2.4.0",
     "@ethereumjs/tx": "3.3.0",
     "@ethereumjs/vm": "5.5.0",
+    "@ganache/ethereum-address": "0.1.1-alpha.0",
+    "@ganache/ethereum-block": "0.1.1-alpha.0",
+    "@ganache/ethereum-options": "0.1.1-alpha.0",
+    "@ganache/ethereum-transaction": "0.1.1-alpha.0",
+    "@ganache/ethereum-utils": "0.1.1-alpha.0",
+    "@ganache/options": "0.1.1-alpha.0",
+    "@ganache/promise-queue": "0.1.1-alpha.0",
+    "@ganache/rlp": "0.1.1-alpha.0",
+    "@ganache/utils": "0.1.1-alpha.0",
     "abort-controller": "3.0.0",
     "bip39": "3.0.4",
     "emittery": "0.7.2",
@@ -85,7 +85,7 @@
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.8",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.10",
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
     "@types/keccak": "3.0.1",

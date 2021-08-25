@@ -32,7 +32,7 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
 const { version: coreVersion } = $INLINE_JSON("../../core/package.json");
 const { version: cliVersion } = $INLINE_JSON("../package.json");
 const { version } = $INLINE_JSON("../../ganache/package.json");
-const detailedVersion = `ganache v ${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
+const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
 
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";

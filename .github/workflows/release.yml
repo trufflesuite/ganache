@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [canary]
+    branches: [alpha, canary]
 
 jobs:
   release:
