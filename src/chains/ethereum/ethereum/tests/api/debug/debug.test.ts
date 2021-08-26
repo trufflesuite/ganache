@@ -193,7 +193,7 @@ describe("api", () => {
 
       // The following will set up a vm, deploy the debugging contract,
       // then run the transaction against that contract that we want to trace.
-      const common = new Common({ chain: "mainnet", hardfork: "berlin" });
+      const common = Common.forCustomChain("mainnet", { chainId: 1337 });
 
       const blockchain = new Blockchain(
         EthereumOptionsConfig.normalize({}),

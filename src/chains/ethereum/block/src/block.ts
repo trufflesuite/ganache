@@ -134,7 +134,7 @@ export class Block {
     include = false
   ): (tx: TypedTransaction) => ReturnType<TypedTransaction["toJSON"]> | Data {
     if (include) {
-      return (tx: TypedTransaction) => tx.toJSON();
+      return (tx: TypedTransaction) => tx.toJSON(this._common);
     } else {
       return (tx: TypedTransaction) => tx.hash;
     }

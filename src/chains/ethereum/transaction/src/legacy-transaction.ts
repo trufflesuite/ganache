@@ -44,19 +44,23 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.s = Quantity.from(data[8]);
       this.raw = data;
 
-      const {
-        from,
-        serialized,
-        hash,
-        encodedData,
-        encodedSignature
-      } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
+      if (this.common) {
+        // TODO(hack): Transactions that come from the database must not be
+        // validated since they may come from a fork.
+        const {
+          from,
+          serialized,
+          hash,
+          encodedData,
+          encodedSignature
+        } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
 
-      this.from = from;
-      this.serialized = serialized;
-      this.hash = hash;
-      this.encodedData = encodedData;
-      this.encodedSignature = encodedSignature;
+        this.from = from;
+        this.serialized = serialized;
+        this.hash = hash;
+        this.encodedData = encodedData;
+        this.encodedSignature = encodedSignature;
+      }
     } else {
       this.gasPrice = Quantity.from(data.gasPrice);
 
@@ -64,7 +68,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     }
   }
 
-  public toJSON(): LegacyTransactionJSON {
+  public toJSON(common?: Common): LegacyTransactionJSON {
     const json: LegacyTransactionJSON = {
       hash: this.hash,
       nonce: this.nonce,
@@ -82,7 +86,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       s: this.s
     };
 
-    if (this.common.isActivatedEIP(2718)) {
+    if ((this.common || common).isActivatedEIP(2718)) {
       json.type = this.type;
     }
     return json;

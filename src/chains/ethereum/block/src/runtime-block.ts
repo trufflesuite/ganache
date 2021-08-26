@@ -175,7 +175,11 @@ export class RuntimeBlock {
     // deserialization work since we already have everything in a deserialized
     // state here. We'll just set it ourselves by reaching into the "_private"
     // fields.
-    const block = new Block(null, null);
+    const block = new Block(
+      null,
+      // TODO(hack)!
+      transactions.length > 0 ? transactions[0].common : null
+    );
     (block as any)._raw = rawHeader;
     (block as any)._rawTransactions = txs;
     (block as any).header = makeHeader(rawHeader, totalDifficulty);

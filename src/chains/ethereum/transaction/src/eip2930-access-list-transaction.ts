@@ -59,19 +59,23 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.s = Quantity.from(data[10]);
       this.raw = [this.type.toBuffer(), ...data];
 
-      const {
-        from,
-        serialized,
-        hash,
-        encodedData,
-        encodedSignature
-      } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
+      if (this.common) {
+        // TODO(hack): Transactions that come from the database must not be
+        // validated since they may come from a fork.
+        const {
+          from,
+          serialized,
+          hash,
+          encodedData,
+          encodedSignature
+        } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
 
-      this.from = from;
-      this.serialized = serialized;
-      this.hash = hash;
-      this.encodedData = encodedData;
-      this.encodedSignature = encodedSignature;
+        this.from = from;
+        this.serialized = serialized;
+        this.hash = hash;
+        this.encodedData = encodedData;
+        this.encodedSignature = encodedSignature;
+      }
     } else {
       this.chainId = Quantity.from(data.chainId);
       this.gasPrice = Quantity.from(data.gasPrice);
@@ -83,7 +87,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     }
   }
 
-  public toJSON(): EIP2930AccessListTransactionJSON {
+  public toJSON(common?: Common): EIP2930AccessListTransactionJSON {
     return {
       hash: this.hash,
       type: this.type,

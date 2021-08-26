@@ -1516,9 +1516,9 @@ export default class EthereumApi implements Api {
     if (transaction === null) {
       // if we can't find it in the list of pending transactions, check the db!
       const tx = transactions.transactionPool.find(hashBuffer);
-      return tx ? tx.toJSON() : null;
+      return tx ? tx.toJSON(this.#blockchain.common) : null;
     } else {
-      return transaction.toJSON();
+      return transaction.toJSON(this.#blockchain.common);
     }
   }
 
