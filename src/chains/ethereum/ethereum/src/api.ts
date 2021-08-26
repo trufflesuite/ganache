@@ -22,7 +22,6 @@ import {
 } from "@ganache/ethereum-utils";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
-  RuntimeTransaction,
   TypedRpcTransaction,
   TransactionFactory,
   TypedTransaction
@@ -1953,7 +1952,7 @@ export default class EthereumApi implements Api {
 
         const unsubscribe = this.#blockchain.on(
           "pendingTransaction",
-          (transaction: RuntimeTransaction) => {
+          (transaction: TypedTransaction) => {
             const result = transaction.hash.toString();
             promiEvent.emit("message", {
               type: "eth_subscription",
@@ -2051,7 +2050,7 @@ export default class EthereumApi implements Api {
   async eth_newPendingTransactionFilter() {
     const unsubscribe = this.#blockchain.on(
       "pendingTransaction",
-      (transaction: RuntimeTransaction) => {
+      (transaction: TypedTransaction) => {
         value.updates.push(transaction.hash);
       }
     );
