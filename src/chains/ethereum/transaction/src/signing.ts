@@ -5,7 +5,11 @@ import {
   BUFFER_EMPTY,
   uintToBuffer
 } from "@ganache/utils";
-import { EIP2930AccessListDatabaseTx, LegacyDatabasePayload } from "./raw";
+import {
+  EIP1559FeeMarketDatabaseTx,
+  EIP2930AccessListDatabaseTx,
+  LegacyDatabasePayload
+} from "./raw";
 import { digest, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
@@ -204,6 +208,36 @@ export const computeInstrinsicsAccessListTx = (
       v.toNumber(),
       raw[10],
       raw[11],
+      chainId
+    ),
+    hash: Data.from(keccak(serialized), 32),
+    serialized,
+    encodedData,
+    encodedSignature
+  };
+};
+
+export const computeInstrinsicsFeeMarketTx = (
+  v: Quantity,
+  raw: EIP1559FeeMarketDatabaseTx,
+  chainId: number
+) => {
+  const typeBuf = raw[0];
+  const encodedData = encodeRange(raw, 1, 9);
+  const encodedSignature = encodeRange(raw, 10, 3);
+  const serialized = Buffer.concat([
+    typeBuf,
+    digest(
+      [encodedData.output, encodedSignature.output],
+      encodedData.length + encodedSignature.length
+    )
+  ]);
+  return {
+    from: computeFromAddress(
+      encodedData,
+      v.toNumber(),
+      raw[11],
+      raw[12],
       chainId
     ),
     hash: Data.from(keccak(serialized), 32),

@@ -4,6 +4,7 @@ import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
+  EIP1559FeeMarketDatabasePayload,
   EIP2930AccessListDatabasePayload,
   GanacheRawExtraTx,
   LegacyDatabasePayload,
@@ -13,10 +14,12 @@ import {
 import { decode } from "@ganache/rlp";
 import { CodedError } from "@ganache/ethereum-utils";
 import { TypedTransaction } from "./transaction-types";
+import { EIP1559FeeMarketTransaction } from "./eip1559-fee-market-transaction";
 
 const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
 const LEGACY_TX_TYPE_ID = 0x0;
-const ACCESS_LIST_TX_TYPE_ID = 0x1;
+const EIP2930_ACCESS_LIST_TX_TYPE_ID = 0x1;
+const EIP1559_FEE_MARKET_TX_TYPE_ID = 0x2;
 
 export class TransactionFactory {
   public tx: TypedTransaction;
@@ -29,7 +32,10 @@ export class TransactionFactory {
   }
   private static _fromData(
     txData: TypedRpcTransaction | TypedDatabasePayload,
-    txType: typeof EIP2930AccessListTransaction | typeof LegacyTransaction,
+    txType:
+      | typeof EIP2930AccessListTransaction
+      | typeof LegacyTransaction
+      | typeof EIP1559FeeMarketTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -47,6 +53,8 @@ export class TransactionFactory {
           <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
           common
         );
+      } else if (txType === EIP1559FeeMarketTransaction) {
+        return; // TODO
       }
     } else {
       if (txType === EIP2930AccessListTransaction) {
@@ -61,6 +69,19 @@ export class TransactionFactory {
           // If 2718 is supported, so is 2930.
           throw new CodedError(
             `EIP 2930 is not activated.`,
+            JsonRpcErrorCode.INVALID_PARAMS
+          );
+        }
+      } else if (txType === EIP1559FeeMarketTransaction) {
+        if (common.isActivatedEIP(1559)) {
+          return txType.fromTxData(
+            <EIP1559FeeMarketDatabasePayload | TypedRpcTransaction>txData,
+            common,
+            extra
+          );
+        } else {
+          throw new CodedError(
+            `EIP 1559 is not activated.`,
             JsonRpcErrorCode.INVALID_PARAMS
           );
         }
@@ -127,8 +148,10 @@ export class TransactionFactory {
       type === undefined
     ) {
       return LegacyTransaction;
-    } else if (type === ACCESS_LIST_TX_TYPE_ID) {
+    } else if (type === EIP2930_ACCESS_LIST_TX_TYPE_ID) {
       return EIP2930AccessListTransaction;
+    } else if (type === EIP1559_FEE_MARKET_TX_TYPE_ID) {
+      return EIP1559FeeMarketTransaction;
     }
   }
 
