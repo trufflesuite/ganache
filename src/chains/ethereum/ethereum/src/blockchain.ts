@@ -524,7 +524,8 @@ export default class Blockchain extends Emittery.Typed<
       BUFFER_ZERO,
       Quantity.from(timestamp == null ? this.#currentTime() : timestamp),
       this.#options.miner.difficulty,
-      previousBlock.header.totalDifficulty
+      previousBlock.header.totalDifficulty,
+      Block.calcNextBaseFee(this.common, previousBlock)
     );
   };
 
@@ -630,7 +631,8 @@ export default class Blockchain extends Emittery.Typed<
         BUFFER_ZERO,
         Quantity.from(timestamp),
         this.#options.miner.difficulty,
-        this.fallback.block.header.totalDifficulty
+        this.fallback.block.header.totalDifficulty,
+        Block.calcNextBaseFee(this.common)
       );
 
       // store the genesis block in the database
@@ -672,7 +674,8 @@ export default class Blockchain extends Emittery.Typed<
       BUFFER_ZERO,
       Quantity.from(timestamp),
       this.#options.miner.difficulty,
-      RPCQUANTITY_ZERO // we start the totalDifficulty at 0
+      RPCQUANTITY_ZERO, // we start the totalDifficulty at 0
+      Block.calcNextBaseFee(this.common)
     );
 
     // store the genesis block in the database
@@ -1208,7 +1211,8 @@ export default class Blockchain extends Emittery.Typed<
       // make sure we use the same timestamp as the target block
       targetBlock.header.timestamp,
       this.#options.miner.difficulty,
-      parentBlock.header.totalDifficulty
+      parentBlock.header.totalDifficulty,
+      Block.calcNextBaseFee(this.common, parentBlock)
     ) as RuntimeBlock & {
       uncleHeaders: [];
       transactions: VmTransaction[];

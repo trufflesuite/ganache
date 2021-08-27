@@ -45,6 +45,7 @@ export type BlockHeader = {
   extraData: Data;
   mixHash: Data;
   nonce: Data;
+  baseFeePerGas?: Quantity;
 };
 
 /**
@@ -79,7 +80,9 @@ export function makeHeader(
     extraData: Data.from(raw[12]),
     mixHash: Data.from(raw[13], 32),
     nonce: Data.from(raw[14], 8),
-    totalDifficulty: Quantity.from(totalDifficulty, false)
+    totalDifficulty: Quantity.from(totalDifficulty, false),
+    baseFeePerGas:
+      raw[15] === BUFFER_EMPTY ? undefined : Quantity.from(raw[15], false)
   };
 }
 
@@ -96,6 +99,7 @@ export class RuntimeBlock {
     gasLimit: BnExtra;
     gasUsed: BnExtra;
     timestamp: BnExtra;
+    baseFeePerGas?: BnExtra;
   };
 
   constructor(
@@ -106,7 +110,8 @@ export class RuntimeBlock {
     gasUsed: Buffer,
     timestamp: Quantity,
     difficulty: Quantity,
-    previousBlockTotalDifficulty: Quantity
+    previousBlockTotalDifficulty: Quantity,
+    baseFeePerGas?: Buffer
   ) {
     const ts = timestamp.toBuffer();
     const coinbaseBuffer = coinbase.toBuffer();
@@ -120,7 +125,9 @@ export class RuntimeBlock {
       ).toBuffer(),
       gasLimit: new BnExtra(gasLimit),
       gasUsed: new BnExtra(gasUsed),
-      timestamp: new BnExtra(ts)
+      timestamp: new BnExtra(ts),
+      baseFeePerGas:
+        baseFeePerGas === undefined ? undefined : new BnExtra(baseFeePerGas)
     };
   }
 
@@ -154,7 +161,10 @@ export class RuntimeBlock {
       header.timestamp.buf,
       extraData.toBuffer(),
       BUFFER_32_ZERO, // mixHash
-      BUFFER_8_ZERO // nonce
+      BUFFER_8_ZERO, // nonce
+      header.baseFeePerGas === undefined
+        ? BUFFER_EMPTY
+        : header.baseFeePerGas.buf
     ];
     const { totalDifficulty } = header;
     const txs: TypedDatabaseTransaction[] = [];
