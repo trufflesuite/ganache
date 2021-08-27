@@ -16,7 +16,7 @@ import {
   serialize
 } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
-
+import { BlockParams } from "./block-params";
 export class Block {
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
@@ -155,5 +155,38 @@ export class Block {
     block._rawTransactionMetaData = extraTxs;
     block._size = size;
     return block;
+  }
+
+  static calcNextBaseFee(common: Common, parentBlock?: Block) {
+    if (!common.isActivatedEIP(1559)) {
+      return undefined;
+    }
+    // genesis block
+    if (parentBlock === undefined) {
+      return BlockParams.INITIAL_BASE_FEE_PER_GAS;
+    }
+    const header = parentBlock.header;
+    const parentGasTarget = header.gasLimit.toNumber() / BlockParams.ELASTICITY;
+    const parentGasUsed = header.gasUsed.toNumber();
+    if (parentGasTarget === parentGasUsed) {
+      return header.baseFeePerGas.toBuffer();
+    } else {
+      const baseFeePerGasNum = header.baseFeePerGas.toNumber();
+      const gasUsedDelta = Math.abs(parentGasTarget - parentGasUsed);
+      // TODO: consider using BN to use proper integer division
+      const adjustedFeeDelta = Math.floor(
+        (baseFeePerGasNum * gasUsedDelta) /
+          parentGasTarget /
+          BlockParams.BASE_FEE_MAX_CHANGE_DENOMINATOR
+      );
+
+      if (parentGasUsed > parentGasTarget) {
+        return Quantity.from(
+          baseFeePerGasNum + Math.max(adjustedFeeDelta, 1)
+        ).toBuffer();
+      } else {
+        return Quantity.from(baseFeePerGasNum - adjustedFeeDelta).toBuffer();
+      }
+    }
   }
 }
