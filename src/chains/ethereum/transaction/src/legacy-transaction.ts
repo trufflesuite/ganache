@@ -223,4 +223,8 @@ export class LegacyTransaction extends RuntimeTransaction {
   ) {
     return computeInstrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
   }
+
+  public getStandardizedGasPrice() {
+    return this.gasPrice;
+  }
 }
