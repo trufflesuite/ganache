@@ -34,8 +34,8 @@ export const toValidLengthAddress = (address: string, fieldName: string) => {
 };
 
 export const hasPartialSignature = (
-  data: RpcTransaction
-): data is RpcTransaction & {
+  data: TypedRpcTransaction
+): data is TypedRpcTransaction & {
   from?: string;
   v?: string;
   r?: string;
@@ -261,4 +261,5 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   );
 
   protected abstract toVmTransaction();
+  protected abstract getStandardizedGasPrice();
 }
