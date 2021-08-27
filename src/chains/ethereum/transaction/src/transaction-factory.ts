@@ -47,14 +47,17 @@ export class TransactionFactory {
       );
     }
     if (!common.isActivatedEIP(2718)) {
+      // normalize tx to legacy because typed tx envelope is not available on this HF
       if (txType === EIP2930AccessListTransaction) {
-        // normalize tx to legacy
         return LegacyTransaction.fromEIP2930AccessListTransaction(
           <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
           common
         );
       } else if (txType === EIP1559FeeMarketTransaction) {
-        return; // TODO
+        return LegacyTransaction.fromEIP15590FeeMarketTransaction(
+          <EIP1559FeeMarketDatabasePayload | TypedRpcTransaction>txData,
+          common
+        );
       }
     } else {
       if (txType === EIP2930AccessListTransaction) {
