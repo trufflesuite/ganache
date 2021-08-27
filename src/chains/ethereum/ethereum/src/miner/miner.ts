@@ -39,7 +39,7 @@ const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
 };
 
 const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
-  values[a].gasPrice > values[b].gasPrice;
+  values[a].getStandardizedGasPrice() > values[b].getStandardizedGasPrice();
 
 export default class Miner extends Emittery.Typed<
   {
@@ -262,7 +262,9 @@ export default class Miner extends Emittery.Typed<
           continue;
         }
 
-        this.#currentlyExecutingPrice = best.gasPrice.toBigInt();
+        this.#currentlyExecutingPrice = best
+          .getStandardizedGasPrice()
+          .toBigInt();
 
         // Set a transaction-level checkpoint so we can undo state changes in
         // the case where the transaction is rejected by the VM.
@@ -502,7 +504,7 @@ export default class Miner extends Emittery.Typed<
       const heap = mapping[1];
       const next = heap.peek();
       if (next && !next.locked) {
-        const price = next.gasPrice.toBigInt();
+        const price = next.getStandardizedGasPrice().toBigInt();
 
         if (this.#currentlyExecutingPrice > price) {
           // don't insert a transaction into the miner's `priced` heap
