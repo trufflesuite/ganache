@@ -238,4 +238,8 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       chainId
     );
   }
+
+  public getStandardizedGasPrice() {
+    return this.gasPrice;
+  }
 }
