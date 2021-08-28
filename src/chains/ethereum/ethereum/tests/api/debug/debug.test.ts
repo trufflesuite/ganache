@@ -9,7 +9,7 @@ import { Account, TraceStorageMap } from "@ganache/ethereum-utils";
 import Common from "@ethereumjs/common";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { Address } from "@ganache/ethereum-address";
-import { RuntimeTransaction } from "@ganache/ethereum-transaction";
+import { LegacyTransaction } from "@ganache/ethereum-transaction";
 import Blockchain from "../../../src/blockchain";
 
 describe("api", () => {
@@ -193,7 +193,7 @@ describe("api", () => {
 
       // The following will set up a vm, deploy the debugging contract,
       // then run the transaction against that contract that we want to trace.
-      const common = new Common({ chain: "mainnet", hardfork: "berlin" });
+      const common = Common.forCustomChain("mainnet", { chainId: 1337 });
 
       const blockchain = new Blockchain(
         EthereumOptionsConfig.normalize({}),
@@ -203,7 +203,7 @@ describe("api", () => {
       await blockchain.initialize(initialAccounts);
 
       // Deployment transaction
-      const deploymentTransaction = new RuntimeTransaction(
+      const deploymentTransaction = new LegacyTransaction(
         {
           data: contract.code,
           from: from.toString(),
@@ -225,7 +225,7 @@ describe("api", () => {
       );
 
       // Transaction to call the loop function
-      const loopTransaction = new RuntimeTransaction(
+      const loopTransaction = new LegacyTransaction(
         {
           data: Data.from(
             Buffer.from(

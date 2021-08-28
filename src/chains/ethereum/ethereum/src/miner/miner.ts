@@ -20,12 +20,12 @@ import VM from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { Params, RuntimeTransaction } from "@ganache/ethereum-transaction";
+import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 
 export type BlockData = {
-  blockTransactions: RuntimeTransaction[];
+  blockTransactions: TypedTransaction[];
   transactionsTrie: Trie;
   receiptTrie: Trie;
   gasUsed: bigint;
@@ -38,7 +38,7 @@ const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
   while (--i) blockBloom[i] |= bloom[i];
 };
 
-const sortByPrice = (values: RuntimeTransaction[], a: number, b: number) =>
+const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
   values[a].gasPrice > values[b].gasPrice;
 
 export default class Miner extends Emittery.Typed<
@@ -47,7 +47,7 @@ export default class Miner extends Emittery.Typed<
       block: Block;
       serialized: Buffer;
       storageKeys: StorageKeys;
-      transactions: RuntimeTransaction[];
+      transactions: TypedTransaction[];
     };
   },
   "idle"
@@ -86,7 +86,7 @@ export default class Miner extends Emittery.Typed<
   }
 
   // create a Heap that sorts by gasPrice
-  readonly #priced = new Heap<RuntimeTransaction>(sortByPrice);
+  readonly #priced = new Heap<TypedTransaction>(sortByPrice);
   /*
    * @param executables A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -182,7 +182,7 @@ export default class Miner extends Emittery.Typed<
     const priced = this.#priced;
     const legacyInstamine = this.#options.legacyInstamine;
     const storageKeys: StorageKeys = new Map();
-    let blockTransactions: RuntimeTransaction[];
+    let blockTransactions: TypedTransaction[];
     do {
       keepMining = false;
       this.#isBusy = true;
@@ -245,7 +245,7 @@ export default class Miner extends Emittery.Typed<
       // we don't call `shift()` here because we will may need to `replace`
       // this `best` transaction with the next best transaction from the same
       // origin later.
-      let best: RuntimeTransaction;
+      let best: TypedTransaction;
       while ((best = priced.peek())) {
         const origin = best.from.toString();
 
@@ -411,10 +411,10 @@ export default class Miner extends Emittery.Typed<
   };
 
   #runTx = async (
-    tx: RuntimeTransaction,
+    tx: TypedTransaction,
     block: RuntimeBlock,
     origin: string,
-    pending: Map<string, Heap<RuntimeTransaction>>
+    pending: Map<string, Heap<TypedTransaction>>
   ) => {
     try {
       const vm = this.#vm;

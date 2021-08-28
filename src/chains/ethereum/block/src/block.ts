@@ -1,13 +1,15 @@
 import { Data, Quantity } from "@ganache/utils";
 import {
-  BlockTransaction,
-  EthereumRawTx,
-  GanacheRawBlockTransactionMetaData
+  GanacheRawBlockTransactionMetaData,
+  GanacheRawExtraTx,
+  TransactionFactory,
+  TypedDatabaseTransaction,
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
-import { keccak, BUFFER_EMPTY } from "@ganache/utils";
+import { keccak } from "@ganache/utils";
 import {
   EthereumRawBlockHeader,
   GanacheRawBlock,
@@ -19,7 +21,7 @@ export class Block {
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
   protected _common: Common;
-  protected _rawTransactions: EthereumRawTx[];
+  protected _rawTransactions: TypedDatabaseTransaction[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
   public header: BlockHeader;
@@ -49,17 +51,17 @@ export class Block {
 
   getTransactions() {
     const common = this._common;
-    return this._rawTransactions.map(
-      (raw, index) =>
-        new BlockTransaction(
-          raw,
-          this._rawTransactionMetaData[index],
-          this.hash().toBuffer(),
-          this.header.number.toBuffer(),
-          Quantity.from(index).toBuffer(),
-          common
-        )
-    );
+    return this._rawTransactions.map((raw, index) => {
+      const [from, hash] = this._rawTransactionMetaData[index];
+      const extra: GanacheRawExtraTx = [
+        from,
+        hash,
+        this.hash().toBuffer(),
+        this.header.number.toBuffer(),
+        Quantity.from(index).toBuffer()
+      ];
+      return TransactionFactory.fromDatabaseTx(raw, common, extra);
+    });
   }
 
   toJSON(includeFullTransactions = false) {
@@ -69,14 +71,15 @@ export class Block {
     const number = this.header.number.toBuffer();
     const common = this._common;
     const jsonTxs = this._rawTransactions.map((raw, index) => {
-      const tx = new BlockTransaction(
-        raw,
-        this._rawTransactionMetaData[index],
+      const [from, hash] = this._rawTransactionMetaData[index];
+      const extra: GanacheRawExtraTx = [
+        from,
+        hash,
         hashBuffer,
         number,
-        Quantity.from(index).toBuffer(),
-        common
-      );
+        Quantity.from(index).toBuffer()
+      ];
+      const tx = TransactionFactory.fromDatabaseTx(raw, common, extra);
       return txFn(tx);
     });
 
@@ -89,7 +92,7 @@ export class Block {
     };
   }
 
-  static rawFromJSON(json: any) {
+  static rawFromJSON(json: any, common: Common) {
     const header: EthereumRawBlockHeader = [
       Data.from(json.parentHash).toBuffer(),
       Data.from(json.sha3Uncles).toBuffer(),
@@ -108,20 +111,16 @@ export class Block {
       Data.from(json.nonce).toBuffer()
     ];
     const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
-    const txs: EthereumRawTx[] = [];
+    const txs: TypedDatabaseTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     json.transactions.forEach(tx => {
-      txs.push([
-        Quantity.from(tx.nonce).toBuffer(),
-        Quantity.from(tx.gasPrice).toBuffer(),
-        Quantity.from(tx.gas).toBuffer(),
-        tx.to == null ? BUFFER_EMPTY : Address.from(tx.to).toBuffer(),
-        Quantity.from(tx.value).toBuffer(),
-        Data.from(tx.input).toBuffer(),
-        Quantity.from(tx.v).toBuffer(),
-        Quantity.from(tx.r).toBuffer(),
-        Quantity.from(tx.s).toBuffer()
-      ]);
+      const typedTx = TransactionFactory.fromRpc(tx, common);
+      const raw = typedTx.toEthRawTransaction(
+        typedTx.v.toBuffer(),
+        typedTx.r.toBuffer(),
+        typedTx.s.toBuffer()
+      );
+      txs.push(<TypedDatabaseTransaction>raw);
       extraTxs.push([
         Quantity.from(tx.from).toBuffer(),
         Quantity.from(tx.hash).toBuffer()
@@ -133,17 +132,17 @@ export class Block {
 
   getTxFn(
     include = false
-  ): (tx: BlockTransaction) => ReturnType<BlockTransaction["toJSON"]> | Data {
+  ): (tx: TypedTransaction) => ReturnType<TypedTransaction["toJSON"]> | Data {
     if (include) {
-      return (tx: BlockTransaction) => tx.toJSON();
+      return (tx: TypedTransaction) => tx.toJSON(this._common);
     } else {
-      return (tx: BlockTransaction) => tx.hash;
+      return (tx: TypedTransaction) => tx.hash;
     }
   }
 
   static fromParts(
     rawHeader: EthereumRawBlockHeader,
-    txs: EthereumRawTx[],
+    txs: TypedDatabaseTransaction[],
     totalDifficulty: Buffer,
     extraTxs: GanacheRawBlockTransactionMetaData[],
     size: number,

@@ -464,4 +464,30 @@ describe("forking", () => {
       await checkRangeForValue(blockNumsAfterEleven, eleven, _get);
     });
   });
+
+  describe("blocks", () => {
+    let localProvider: EthereumProvider;
+    beforeEach("start local chain", async () => {
+      const [from, to] = remoteAccounts;
+      const tx = {
+        from,
+        to
+      };
+      const subId = await remoteProvider.send("eth_subscribe", ["newHeads"]);
+      remoteProvider.send("eth_sendTransaction", [tx]);
+      await remoteProvider.once("message");
+      await remoteProvider.send("eth_unsubscribe", [subId]);
+
+      ({ localProvider } = await startLocalChain(PORT));
+    });
+
+    it("ensure local block's latest matches remote block's latest (with transaction)", async () => {
+      const [remoteBlock, localBlock] = await Promise.all(
+        [remoteProvider, localProvider].map(provider =>
+          provider.send("eth_getBlockByNumber", ["0x1", true])
+        )
+      );
+      assert.deepStrictEqual(localBlock, remoteBlock);
+    });
+  });
 });

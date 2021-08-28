@@ -35,5 +35,16 @@ export const Params = {
   /**
    * Fee for creation a transaction
    */
-  TRANSACTION_CREATION: 32000n
+  TRANSACTION_CREATION: 32000n,
+
+  /* ... */
+  /**
+   * Gas cost per address in an EIP-2930 Access List transaction
+   */
+  ACCESS_LIST_ADDRESS_GAS: 2400,
+
+  /**
+   * Gas cost per storage key in an EIP-2930 Access List transaction
+   */
+  ACCESS_LIST_STORAGE_KEY_GAS: 1900
 };

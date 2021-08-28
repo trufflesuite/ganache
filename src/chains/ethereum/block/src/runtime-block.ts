@@ -10,9 +10,9 @@ import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
-  EthereumRawTx,
+  TypedDatabaseTransaction,
   GanacheRawBlockTransactionMetaData,
-  RuntimeTransaction
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
 
@@ -94,6 +94,7 @@ export class RuntimeBlock {
     coinbase: { buf: Buffer; toBuffer: () => Buffer };
     number: BnExtra;
     gasLimit: BnExtra;
+    gasUsed: BnExtra;
     timestamp: BnExtra;
   };
 
@@ -102,6 +103,7 @@ export class RuntimeBlock {
     parentHash: Data,
     coinbase: Address,
     gasLimit: Buffer,
+    gasUsed: Buffer,
     timestamp: Quantity,
     difficulty: Quantity,
     previousBlockTotalDifficulty: Quantity
@@ -117,6 +119,7 @@ export class RuntimeBlock {
         previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
       ).toBuffer(),
       gasLimit: new BnExtra(gasLimit),
+      gasUsed: new BnExtra(gasUsed),
       timestamp: new BnExtra(ts)
     };
   }
@@ -124,15 +127,6 @@ export class RuntimeBlock {
   /**
    * Returns the serialization of all block data, the hash of the block header,
    * and a map of the hashed and raw storage keys
-   *
-   * @param transactionsTrie
-   * @param receiptTrie
-   * @param bloom
-   * @param stateRoot
-   * @param gasUsed
-   * @param extraData
-   * @param transactions
-   * @param storageKeys
    */
   finalize(
     transactionsTrie: Buffer,
@@ -141,7 +135,7 @@ export class RuntimeBlock {
     stateRoot: Buffer,
     gasUsed: bigint,
     extraData: Data,
-    transactions: RuntimeTransaction[],
+    transactions: TypedTransaction[],
     storageKeys: StorageKeys
   ) {
     const { header } = this;
@@ -163,10 +157,10 @@ export class RuntimeBlock {
       BUFFER_8_ZERO // nonce
     ];
     const { totalDifficulty } = header;
-    const txs: EthereumRawTx[] = [];
+    const txs: TypedDatabaseTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     transactions.forEach(tx => {
-      txs.push(tx.raw);
+      txs.push(<TypedDatabaseTransaction>tx.raw);
       extraTxs.push([tx.from.toBuffer(), tx.hash.toBuffer()]);
     });
     const { serialized, size } = serialize([
@@ -181,7 +175,11 @@ export class RuntimeBlock {
     // deserialization work since we already have everything in a deserialized
     // state here. We'll just set it ourselves by reaching into the "_private"
     // fields.
-    const block = new Block(null, null);
+    const block = new Block(
+      null,
+      // TODO(hack)!
+      transactions.length > 0 ? transactions[0].common : null
+    );
     (block as any)._raw = rawHeader;
     (block as any)._rawTransactions = txs;
     (block as any).header = makeHeader(rawHeader, totalDifficulty);
