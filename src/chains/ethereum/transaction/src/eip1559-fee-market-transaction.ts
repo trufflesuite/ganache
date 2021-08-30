@@ -43,7 +43,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     super(data, common, extra);
     if (Array.isArray(data)) {
       this.chainId = Quantity.from(data[0]);
-      this.nonce = Quantity.from(data[1], true);
+      this.nonce = Quantity.from(data[1]);
       this.maxPriorityFeePerGas = Quantity.from(data[2]);
       this.maxFeePerGas = Quantity.from(data[3]);
       this.gas = Quantity.from(data[4]);
