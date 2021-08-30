@@ -1,6 +1,11 @@
 import assert from "assert";
 import {
+  EIP1559FeeMarketDatabasePayload,
+  EIP1559FeeMarketDatabaseTx,
+  EIP2930AccessListDatabasePayload,
+  EIP2930AccessListDatabaseTx,
   EIP2930AccessListTransaction,
+  LegacyDatabasePayload,
   LegacyTransaction,
   TransactionFactory,
   TypedDatabaseTransaction,
@@ -8,17 +13,11 @@ import {
 } from "../../transaction";
 import Common from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
+import { decode } from "@ganache/rlp";
 import { EthereumOptionsConfig } from "../../options";
 import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
 import { Buffer } from "buffer";
-
-const toBuffRecurse = arr => {
-  if (Array.isArray(arr[0])) {
-    return arr.map(toBuffRecurse);
-  } else {
-    return Buffer.from(arr);
-  }
-};
+import { EIP1559FeeMarketTransaction } from "../typings/src/eip1559-fee-market-transaction";
 
 describe("@ganache/ethereum-transaction", async () => {
   const common = Common.forCustomChain(
@@ -29,7 +28,7 @@ describe("@ganache/ethereum-transaction", async () => {
       comment: "Local test network",
       bootstrapNodes: []
     },
-    "berlin"
+    "london"
   );
   // #region configure accounts and private keys in wallet
   const privKey = `0x${"46".repeat(32)}`;
@@ -60,13 +59,13 @@ describe("@ganache/ethereum-transaction", async () => {
     type: "0x0",
     gasPrice: "0xffff"
   };
-  // prettier-ignore
-  const rawLegacyDbTx: TypedDatabaseTransaction = <TypedDatabaseTransaction>(
-    [[],[255, 255],[],[90,23,101,11,232,79,40,237,88,62,147,230,237,12,153,177,209,252,27,52],[],[],[10, 149],[217,194,211,203,101,215,7,159,82,141,40,215,130,254,117,46,214,152,56,20,129,247,185,23,144,224,103,234,51,92,29,192],[115,17,49,119,138,224,97,170,41,86,124,198,179,111,227,82,128,146,182,135,251,104,195,245,41,73,63,202,32,12,113,29]]
-    .map(toBuffRecurse)
-  );
+
   const rawLegacyStrTx =
     "0xf8618082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080820a95a0d9c2d3cb65d7079f528d28d782fe752ed698381481f7b91790e067ea335c1dc0a0731131778ae061aa29567cc6b36fe3528092b687fb68c3f529493fca200c711d";
+
+  const rawLegacyDbTx = decode<LegacyDatabasePayload>(
+    Buffer.from(rawLegacyStrTx.slice(2), "hex")
+  );
   // #endregion legacy transaction
 
   // #region access list transactions
@@ -84,14 +83,40 @@ describe("@ganache/ethereum-transaction", async () => {
       }
     ]
   };
-  // prettier-ignore
-  const rawEIP2930DBData: TypedDatabaseTransaction = <TypedDatabaseTransaction>(
-    [[1],[],[],[255, 255],[],[90, 23, 101, 11, 232, 79, 40, 237, 88, 62, 147, 230, 237, 12, 153, 177, 209, 252, 27, 52],[],[],[[[14, 251, 208, 190, 192, 218, 141, 204, 10, 212, 66, 167, 211, 55, 233, 205, 194, 221, 106, 84],[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4]]]],[10, 150],[175, 186, 135, 199, 21, 101, 226, 38, 189, 123, 159, 186, 181, 35, 76, 230, 46, 196, 121, 243, 86, 249, 138, 173, 150, 248, 17, 66, 14, 164, 72, 247],[6, 236, 10, 9, 245, 8, 218, 76, 18, 229, 45, 63, 152, 73, 152, 229, 77, 250, 8, 46, 107, 121, 96, 80, 167, 58, 138, 1, 187, 157, 193, 14]]
-    .map(toBuffRecurse)
-  );
+
   const rawEIP2930StringData =
     "0x01f89c808082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a00000000000000000000000000000000000000000000000000000000000000004820a96a0afba87c71565e226bd7b9fbab5234ce62ec479f356f98aad96f811420ea448f7a006ec0a09f508da4c12e52d3f984998e54dfa082e6b796050a73a8a01bb9dc10e";
+  const eip2930Buf = Buffer.from(rawEIP2930StringData.slice(2), "hex");
+  const rawEIP2930DBData: EIP2930AccessListDatabaseTx = [
+    eip2930Buf.slice(0, 1),
+    ...decode<EIP2930AccessListDatabasePayload>(eip2930Buf.slice(1))
+  ];
   // #endregion access list transactions
+
+  //#region fee market transactions
+  const feeMarketTx: TypedRpcTransaction = {
+    from: from,
+    to: to,
+    type: "0x2",
+    maxPriorityFeePerGas: "0xff",
+    maxFeePerGas: "0xffff",
+    accessList: [
+      {
+        address: accessListAcc,
+        storageKeys: [accessListStorageKey]
+      }
+    ]
+  };
+
+  const rawEIP1559StringData =
+    "0x02f89e808081ff82ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a00000000000000000000000000000000000000000000000000000000000000004820a96a02ccd79d8d8da2c2fa22ffaf74abfd995142745ede371d4061581aebc17a17319a0774def35a8a81b04506ed0676e0ddf391859ab86e33c8b484d945ab89ddf8a56";
+
+  const eip1559Buf = Buffer.from(rawEIP1559StringData.slice(2), "hex");
+  const rawEIP1559DBData: EIP1559FeeMarketDatabaseTx = [
+    eip1559Buf.slice(0, 1),
+    ...decode<EIP1559FeeMarketDatabasePayload>(eip1559Buf.slice(1))
+  ];
+  // #endregion fee market transactions
   // #endregion configure transaction constants
 
   describe("TransactionFactory", () => {
@@ -123,6 +148,12 @@ describe("@ganache/ethereum-transaction", async () => {
         );
         assert.strictEqual(txFromString.type.toString(), "0x0");
       });
+      it("normalizes an eip-2930 transaction to legacy when access list is ommited", async () => {
+        const tempAccessListTx = JSON.parse(JSON.stringify(accessListTx)); // don't want to alter accessListTx
+        tempAccessListTx.accessList = undefined;
+        const txFromRpc = TransactionFactory.fromRpc(tempAccessListTx, common);
+        assert.strictEqual(txFromRpc.type.toString(), "0x0");
+      });
     });
 
     describe("EIP2930AccessListTransaction type from factory", () => {
@@ -150,6 +181,41 @@ describe("@ganache/ethereum-transaction", async () => {
         const key = txFromString.accessListJSON[0].storageKeys[0];
         assert.strictEqual(txFromString.type.toString(), "0x1");
         assert.strictEqual(key, accessListStorageKey);
+      });
+    });
+
+    describe("EIP1559FeeMarketTransaction type from factory", () => {
+      it("generates eip1559 fee market transactions from rpc data", async () => {
+        const txFromRpc = <EIP2930AccessListTransaction>(
+          TransactionFactory.fromRpc(feeMarketTx, common)
+        );
+        const key = txFromRpc.accessListJSON[0].storageKeys[0];
+        assert.strictEqual(txFromRpc.type.toString(), "0x2");
+      });
+      it("generates eip1559 fee market transactions from raw buffer data", async () => {
+        const txFromDb = <EIP2930AccessListTransaction>(
+          TransactionFactory.fromDatabaseTx(rawEIP1559DBData, common)
+        );
+        const key = txFromDb.accessListJSON[0].storageKeys[0];
+        assert.strictEqual(txFromDb.type.toString(), "0x2");
+      });
+      it("generates eip1559 fee market transactions from raw string", async () => {
+        const txFromString = <EIP2930AccessListTransaction>(
+          TransactionFactory.fromString(rawEIP1559StringData, common)
+        );
+        assert.strictEqual(txFromString.type.toString(), "0x2");
+      });
+      it("normalizes a legacy transaction to eip-1559 when gas price is ommited", async () => {
+        const tempLegacyTx = JSON.parse(JSON.stringify(typedLegacyTx)); // don't want to alter accessListTx
+        tempLegacyTx.gasPrice = undefined;
+        const txFromRpc = TransactionFactory.fromRpc(tempLegacyTx, common);
+        assert.strictEqual(txFromRpc.type.toString(), "0x2");
+      });
+      it("normalizes an eip-2930 transaction to eip-1559 when gas price is ommited", async () => {
+        const tempAccessListTx = JSON.parse(JSON.stringify(accessListTx)); // don't want to alter accessListTx
+        tempAccessListTx.gasPrice = undefined;
+        const txFromRpc = TransactionFactory.fromRpc(tempAccessListTx, common);
+        assert.strictEqual(txFromRpc.type.toString(), "0x2");
       });
     });
   });
@@ -295,6 +361,82 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.s, tx.s);
     });
   });
+
+  describe("EIP1559FeeMarketTransaction Type", () => {
+    const tx = <EIP1559FeeMarketTransaction>(
+      TransactionFactory.fromRpc(feeMarketTx, common)
+    );
+    it("can be signed and hashed", () => {
+      assert.strictEqual(tx.hash, undefined);
+      tx.signAndHash(privKeyBuf);
+      assert.strictEqual(
+        tx.hash.toString(),
+        "0x01cb0d22f115f3ced3d4a3d25480b8307048458d04c7f207ae48c9d5b94b62dc"
+      );
+    });
+    describe("toVmTransaction", () => {
+      const vmTx = tx.toVmTransaction();
+
+      it("has a function to return the hash", () => {
+        assert.notDeepStrictEqual(vmTx.hash().toString(), "");
+      });
+      it("has nonce property", () => {
+        assert.strictEqual(vmTx.nonce.toString(), "0");
+      });
+      it("has maxPriorityFeePerGas property", () => {
+        assert.strictEqual(vmTx.maxPriorityFeePerGas.toString(), "255");
+      });
+      it("has maxFeePerGas property", () => {
+        assert.strictEqual(vmTx.maxFeePerGas.toString(), "65535");
+      });
+      it("has gasLimit property", () => {
+        assert.strictEqual(vmTx.gasLimit.toString(), "0");
+      });
+      it("has to property", () => {
+        assert.strictEqual("0x" + vmTx.to.buf.toString("hex"), to);
+      });
+      it("has value property", () => {
+        assert.strictEqual(vmTx.value.toString(), "0");
+      });
+      it("has data property", () => {
+        assert.strictEqual(vmTx.data.toString(), "");
+      });
+      it("has a function to get sender address", () => {
+        assert.strictEqual(
+          "0x" + vmTx.getSenderAddress().buf.toString("hex"),
+          from
+        );
+      });
+      it("has a function to get base fee", () => {
+        assert.strictEqual(vmTx.getBaseFee().toString(), "21000");
+      });
+      it("has a function to get base upfront cost", () => {
+        assert.strictEqual(vmTx.getUpfrontCost().toString(), "0");
+      });
+      it("has a function to check capability support", () => {
+        assert.strictEqual(vmTx.supports(1559), true);
+      });
+    });
+    it("can be converted to JSON", () => {
+      const jsonTx = tx.toJSON();
+      //assert.strictEqual(jsonTx.type, txFromRpc.type);
+      assert.strictEqual(jsonTx.hash, tx.hash);
+      assert.strictEqual(jsonTx.nonce, tx.nonce);
+      assert.strictEqual(jsonTx.blockHash, null);
+      assert.strictEqual(jsonTx.blockNumber, null);
+      assert.strictEqual(jsonTx.transactionIndex, null);
+      assert.strictEqual(jsonTx.from, tx.from);
+      assert.strictEqual(jsonTx.to, tx.to);
+      assert.strictEqual(jsonTx.value, tx.value);
+      assert.strictEqual(jsonTx.gas, tx.gas);
+      assert.strictEqual(jsonTx.maxPriorityFeePerGas, tx.maxPriorityFeePerGas);
+      assert.strictEqual(jsonTx.maxFeePerGas, tx.maxFeePerGas);
+      assert.strictEqual(jsonTx.input, tx.data);
+      assert.strictEqual(jsonTx.v, tx.v);
+      assert.strictEqual(jsonTx.r, tx.r);
+      assert.strictEqual(jsonTx.s, tx.s);
+    });
+  });
   describe("Error and helper cases", () => {
     it("does not allow unsupported tx types from rpc data", async () => {
       const rpc: TypedRpcTransaction = {
@@ -355,43 +497,116 @@ describe("@ganache/ethereum-transaction", async () => {
     });
 
     describe("checks for hardfork's support of transaction types", () => {
-      const preBerlin = Common.forCustomChain(
-        "mainnet",
-        {
-          name: "ganache",
-          chainId: 1337,
-          comment: "Local test network",
-          bootstrapNodes: []
-        },
-        "istanbul"
-      );
-      it("converts EIP2930AccessList RPC data to LegacyTransaction before berlin hardfork", () => {
-        const txFromRpc = TransactionFactory.fromRpc(
-          accessListTx,
-          preBerlin
-        ) as any;
+      describe("pre-berlin checks", () => {
+        const preBerlin = Common.forCustomChain(
+          "mainnet",
+          {
+            name: "ganache",
+            chainId: 1337,
+            comment: "Local test network",
+            bootstrapNodes: []
+          },
+          "istanbul"
+        );
+        it("creates legacy transaction before berlin hardfork", () => {
+          const txFromRpc = TransactionFactory.fromRpc(
+            untypedTx,
+            preBerlin
+          ) as any;
 
-        assert.strictEqual(txFromRpc.type.toString(), "0x0");
-        assert.strictEqual(txFromRpc.accessList, undefined);
+          assert.strictEqual(txFromRpc.type.toString(), "0x0");
+        });
+        it("converts EIP2930AccessList RPC data to LegacyTransaction before berlin hardfork", () => {
+          const txFromRpc = TransactionFactory.fromRpc(
+            accessListTx,
+            preBerlin
+          ) as any;
+
+          assert.strictEqual(txFromRpc.type.toString(), "0x0");
+          assert.strictEqual(txFromRpc.accessList, undefined);
+        });
+
+        it("converts EIP2930AccessList raw database data to LegacyTransaction before berlin hardfork", () => {
+          const txFromDb = TransactionFactory.fromDatabaseTx(
+            rawEIP2930DBData,
+            preBerlin
+          ) as any;
+
+          assert.strictEqual(txFromDb.type.toString(), "0x0");
+          assert.strictEqual(txFromDb.accessList, undefined);
+        });
+
+        it("converts EIP2930AccessList raw string data to LegacyTransaction before berlin hardfork", () => {
+          const txFromString = TransactionFactory.fromString(
+            rawEIP2930StringData,
+            preBerlin
+          ) as any;
+
+          assert.strictEqual(txFromString.type.toString(), "0x0");
+          assert.strictEqual(txFromString.accessList, undefined);
+        });
+
+        it("converts EIP1559FeeMarket RPC data to LegacyTransaction before berlin hardfork", () => {
+          const txFromRpc = TransactionFactory.fromRpc(
+            feeMarketTx,
+            preBerlin
+          ) as any;
+
+          assert.strictEqual(txFromRpc.type.toString(), "0x0");
+          assert.strictEqual(txFromRpc.accessList, undefined);
+        });
+        it("converts EIP1559FeeMarket raw database data to LegacyTransaction before berlin hardfork", () => {
+          const txFromDb = TransactionFactory.fromDatabaseTx(
+            rawEIP1559DBData,
+            preBerlin
+          ) as any;
+
+          assert.strictEqual(txFromDb.type.toString(), "0x0");
+          assert.strictEqual(txFromDb.accessList, undefined);
+        });
+        it("converts EIP1559FeeMarket raw string data to LegacyTransaction before berlin hardfork", () => {
+          const txFromString = TransactionFactory.fromString(
+            rawEIP1559StringData,
+            preBerlin
+          ) as any;
+
+          assert.strictEqual(txFromString.type.toString(), "0x0");
+          assert.strictEqual(txFromString.accessList, undefined);
+        });
       });
-      it("converts EIP2930AccessList raw database data to LegacyTransaction before berlin hardfork", () => {
-        const txFromDb = TransactionFactory.fromDatabaseTx(
-          rawEIP2930DBData,
-          preBerlin
-        ) as any;
 
-        assert.strictEqual(txFromDb.type.toString(), "0x0");
-        assert.strictEqual(txFromDb.accessList, undefined);
-      });
+      describe("pre-london checks", () => {
+        const preLondon = Common.forCustomChain(
+          "mainnet",
+          {
+            name: "ganache",
+            chainId: 1337,
+            comment: "Local test network",
+            bootstrapNodes: []
+          },
+          "berlin"
+        );
+        it("creates legacy transaction before london hardfork", () => {
+          const txFromRpc = TransactionFactory.fromRpc(
+            untypedTx,
+            preLondon
+          ) as any;
 
-      it("converts EIP2930AccessList raw string data to LegacyTransaction before berlin hardfork", () => {
-        const txFromString = TransactionFactory.fromString(
-          rawEIP2930StringData,
-          preBerlin
-        ) as any;
+          assert.strictEqual(txFromRpc.type.toString(), "0x0");
+        });
+        it("creates eip2930 transaction before london hardfork", () => {
+          const txFromRpc = TransactionFactory.fromRpc(
+            accessListTx,
+            preLondon
+          ) as any;
 
-        assert.strictEqual(txFromString.type.toString(), "0x0");
-        assert.strictEqual(txFromString.accessList, undefined);
+          assert.strictEqual(txFromRpc.type.toString(), "0x1");
+        });
+        it("throws if eip1559 transaction is sent before london hardfork", () => {
+          assert.throws(() => {
+            TransactionFactory.fromRpc(feeMarketTx, preLondon);
+          });
+        });
       });
     });
   });
