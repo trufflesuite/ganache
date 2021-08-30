@@ -161,32 +161,40 @@ export class Block {
     if (!common.isActivatedEIP(1559)) {
       return undefined;
     }
+    let nextBaseFee: bigint;
     // genesis block
     if (parentBlock === undefined) {
-      return BlockParams.INITIAL_BASE_FEE_PER_GAS;
-    }
-    const header = parentBlock.header;
-    const parentGasTarget = header.gasLimit.toNumber() / BlockParams.ELASTICITY;
-    const parentGasUsed = header.gasUsed.toNumber();
-    if (parentGasTarget === parentGasUsed) {
-      return header.baseFeePerGas.toBuffer();
+      nextBaseFee = BlockParams.INITIAL_BASE_FEE_PER_GAS;
     } else {
-      const baseFeePerGasNum = header.baseFeePerGas.toNumber();
-      const gasUsedDelta = Math.abs(parentGasTarget - parentGasUsed);
-      // TODO: consider using BN to use proper integer division
-      const adjustedFeeDelta = Math.floor(
-        (baseFeePerGasNum * gasUsedDelta) /
+      const header = parentBlock.header;
+      const parentGasTarget =
+        header.gasLimit.toBigInt() / BlockParams.ELASTICITY;
+      const parentGasUsed = header.gasUsed.toBigInt();
+      const baseFeePerGas = header.baseFeePerGas
+        ? header.baseFeePerGas.toBigInt()
+        : BlockParams.INITIAL_BASE_FEE_PER_GAS;
+      if (parentGasTarget === parentGasUsed) {
+        nextBaseFee = baseFeePerGas;
+      } else if (parentGasUsed > parentGasTarget) {
+        const gasUsedDelta = parentGasUsed - parentGasTarget;
+        const adjustedFeeDelta =
+          (baseFeePerGas * gasUsedDelta) /
           parentGasTarget /
-          BlockParams.BASE_FEE_MAX_CHANGE_DENOMINATOR
-      );
-
-      if (parentGasUsed > parentGasTarget) {
-        return Quantity.from(
-          baseFeePerGasNum + Math.max(adjustedFeeDelta, 1)
-        ).toBuffer();
+          BlockParams.BASE_FEE_MAX_CHANGE_DENOMINATOR;
+        if (adjustedFeeDelta > 1n) {
+          nextBaseFee = baseFeePerGas + adjustedFeeDelta;
+        } else {
+          nextBaseFee = baseFeePerGas + 1n;
+        }
       } else {
-        return Quantity.from(baseFeePerGasNum - adjustedFeeDelta).toBuffer();
+        const gasUsedDelta = parentGasTarget - parentGasUsed;
+        const adjustedFeeDelta =
+          (baseFeePerGas * gasUsedDelta) /
+          parentGasTarget /
+          BlockParams.BASE_FEE_MAX_CHANGE_DENOMINATOR;
+        nextBaseFee = baseFeePerGas - adjustedFeeDelta;
       }
     }
+    return Quantity.from(nextBaseFee);
   }
 }
