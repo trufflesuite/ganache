@@ -39,15 +39,16 @@ export class TransactionFactory {
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
-    if (txType === LegacyTransaction) {
-      return txType.fromTxData(
-        <LegacyDatabasePayload | TypedRpcTransaction>txData,
-        common,
-        extra
-      );
-    }
+    // if tx type envelope isn't available yet on this HF,
+    // return legacy txs as is and convert typed txs to legacy
     if (!common.isActivatedEIP(2718)) {
-      // normalize tx to legacy because typed tx envelope is not available on this HF
+      if (txType === LegacyTransaction) {
+        return LegacyTransaction.fromTxData(
+          <LegacyDatabasePayload | TypedRpcTransaction>txData,
+          common,
+          extra
+        );
+      }
       if (txType === EIP2930AccessListTransaction) {
         return LegacyTransaction.fromEIP2930AccessListTransaction(
           <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
@@ -59,10 +60,16 @@ export class TransactionFactory {
           common
         );
       }
-    } else {
-      if (txType === EIP2930AccessListTransaction) {
+    } else if (!common.isActivatedEIP(1559)) {
+      if (txType === LegacyTransaction) {
+        return LegacyTransaction.fromTxData(
+          <TypedRpcTransaction>txData,
+          common,
+          extra
+        );
+      } else if (txType === EIP2930AccessListTransaction) {
         if (common.isActivatedEIP(2930)) {
-          return txType.fromTxData(
+          return EIP2930AccessListTransaction.fromTxData(
             <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
             common,
             extra
@@ -76,21 +83,63 @@ export class TransactionFactory {
           );
         }
       } else if (txType === EIP1559FeeMarketTransaction) {
-        if (common.isActivatedEIP(1559)) {
-          return txType.fromTxData(
-            <EIP1559FeeMarketDatabasePayload | TypedRpcTransaction>txData,
+        throw new CodedError(
+          `EIP 1559 is not activated.`,
+          JsonRpcErrorCode.INVALID_PARAMS
+        );
+      }
+    }
+    // eip 1559, 2930, and 2718 are activated
+    else {
+      // we can assume that all database transactions came from us, so
+      // the type doesn't need to be normalized.
+      if (Array.isArray(txData)) {
+        if (txType === LegacyTransaction) {
+          return LegacyTransaction.fromTxData(
+            <LegacyDatabasePayload>txData,
             common,
             extra
           );
-        } else {
-          throw new CodedError(
-            `EIP 1559 is not activated.`,
-            JsonRpcErrorCode.INVALID_PARAMS
+        } else if (txType === EIP2930AccessListTransaction) {
+          return EIP2930AccessListTransaction.fromTxData(
+            <EIP2930AccessListDatabasePayload>txData,
+            common,
+            extra
           );
+        } else if (txType === EIP1559FeeMarketTransaction) {
+          return EIP1559FeeMarketTransaction.fromTxData(
+            <EIP1559FeeMarketDatabasePayload>txData,
+            common,
+            extra
+          );
+        }
+      } else {
+        const toEIP1559 =
+          (txType === LegacyTransaction ||
+            txType === EIP2930AccessListTransaction) &&
+          txData.gasPrice === undefined;
+        if (toEIP1559) {
+          txData.maxFeePerGas = null;
+          txData.maxPriorityFeePerGas = "0x0";
+        }
+        if (txType === EIP1559FeeMarketTransaction || toEIP1559) {
+          return EIP1559FeeMarketTransaction.fromTxData(txData, common, extra);
+        } else if (txType === LegacyTransaction) {
+          return LegacyTransaction.fromTxData(txData, common, extra);
+        } else if (txType === EIP2930AccessListTransaction) {
+          // if no access list is provided, we convert to legacy
+          if (txData.accessList === undefined) {
+            return LegacyTransaction.fromTxData(txData, common, extra);
+          } else {
+            return EIP2930AccessListTransaction.fromTxData(
+              txData,
+              common,
+              extra
+            );
+          }
         }
       }
     }
-
     throw new CodedError(
       `Tx instantiation with supplied type not supported`,
       JsonRpcErrorCode.METHOD_NOT_FOUND
