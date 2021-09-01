@@ -6,6 +6,7 @@
  */
 
 export * from "./src/eip2930-access-list-transaction";
+export * from "./src/eip1559-fee-market-transaction";
 export * from "./src/base-transaction";
 export * from "./src/hardfork";
 export * from "./src/legacy-transaction";
