@@ -168,12 +168,6 @@ export class TransactionReceipt {
     if (transaction.type && common.isActivatedEIP(2718)) {
       json.type = transaction.type;
     }
-    if ("chainId" in transaction) {
-      json.chainId = transaction.chainId;
-    }
-    if ("chainId" in transaction) {
-      json.accessList = transaction.accessListJSON;
-    }
     return json;
   }
 }
