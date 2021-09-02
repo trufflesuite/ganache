@@ -74,6 +74,7 @@
     "leveldown": "5.6.0",
     "levelup": "4.4.0",
     "lodash.clonedeep": "4.5.0",
+    "mcl-wasm": "0.7.8",
     "merkle-patricia-tree": "4.2.0",
     "scrypt-js": "3.0.1",
     "secp256k1": "4.0.2",

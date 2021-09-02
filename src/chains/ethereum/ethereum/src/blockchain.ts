@@ -20,6 +20,7 @@ import {
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
+import type { Address as EthereumJsAddress } from "ethereumjs-util";
 import { decode } from "@ganache/rlp";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import Common from "@ethereumjs/common";
@@ -62,9 +63,22 @@ import {
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
 import { LevelUp } from "levelup";
-import { activatePrecompiles } from "./helpers/precompiles";
+import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
+import {
+  makeStepEvent,
+  VmAfterTransactionEvent,
+  VmBeforeTransactionEvent,
+  VmStepEvent
+} from "./provider-events";
+
+import mcl from "mcl-wasm";
+const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
+  mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
+  mcl.verifyOrderG1(true); // subgroup checks for G1
+  mcl.verifyOrderG2(true); // subgroup checks for G2
+});
 
 export enum Status {
   // Flags
@@ -79,6 +93,9 @@ type BlockchainTypedEvents = {
   block: Block;
   blockLogs: BlockLogs;
   pendingTransaction: TypedTransaction;
+  "ganache:vm:tx:step": VmStepEvent;
+  "ganache:vm:tx:before": VmBeforeTransactionEvent;
+  "ganache:vm:tx:after": VmAfterTransactionEvent;
 };
 type BlockchainEvents = "ready" | "stop";
 
@@ -334,6 +351,18 @@ export default class Blockchain extends Emittery.Typed<
         this.#readyNextBlock
       ));
 
+      //#region re-emit miner events:
+      miner.on("ganache:vm:tx:before", event => {
+        this.emit("ganache:vm:tx:before", event);
+      });
+      miner.on("ganache:vm:tx:step", event => {
+        this.emit("ganache:vm:tx:step", event);
+      });
+      miner.on("ganache:vm:tx:after", event => {
+        this.emit("ganache:vm:tx:after", event);
+      });
+      //#endregion
+
       //#region automatic mining
       const nullResolved = Promise.resolve(null);
       const mineAll = (maxTransactions: number) =>
@@ -581,7 +610,7 @@ export default class Blockchain extends Emittery.Typed<
 
     const common = this.common;
 
-    const vm = await VM.create({
+    const vm = new VM({
       state: stateTrie,
       activatePrecompiles: false,
       common,
@@ -593,7 +622,16 @@ export default class Blockchain extends Emittery.Typed<
     });
     if (activatePrecompile) {
       await activatePrecompiles(vm.stateManager);
+
+      if (common.isActivatedEIP(2537)) {
+        // BLS12-381 curve, not yet included in any supported hardforks
+        // but probably will be in the Shanghai hardfork
+        // TODO: remove above comment once Shanghai is supported!
+        await mclInitPromise; // ensure that mcl is initialized!
+      }
     }
+    // skip `vm.init`, since we don't use any of it
+    (vm as any)._isInitialized = true;
     return vm;
   };
 
@@ -907,21 +945,27 @@ export default class Blockchain extends Emittery.Typed<
     let result: EVMResult;
 
     const data = transaction.data;
-    let gasLeft = transaction.gas.toBigInt();
+    let gasLimit = transaction.gas.toBigInt();
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
     const hasToAddress = transaction.to != null;
-    let to = null;
+    let to: EthereumJsAddress = null;
     if (hasToAddress) {
       const toBuf = transaction.to.toBuffer();
       to = {
         equals: (a: { buf: Buffer }) => toBuf.equals(a.buf),
         buf: toBuf
-      };
+      } as any;
     } else {
       to = null;
     }
-    gasLeft -= calculateIntrinsicGas(data, hasToAddress, this.common);
+    const gasLeft =
+      gasLimit - calculateIntrinsicGas(data, hasToAddress, this.common);
+
+    const transactionContext = {};
+    this.emit("ganache:vm:tx:before", {
+      context: transactionContext
+    });
 
     if (gasLeft >= 0n) {
       const stateTrie = this.trie.copy(false);
@@ -934,13 +978,47 @@ export default class Blockchain extends Emittery.Typed<
       const vm = await this.createVmFromStateTrie(
         stateTrie,
         this.#options.chain.allowUnlimitedContractSize,
-        false
+        false // precompiles have already been initialized in the stateTrie
       );
+
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
       vm.stateManager.checkpoint();
 
+      vm.on("step", event => {
+        this.emit(
+          "ganache:vm:tx:step",
+          makeStepEvent(transactionContext, event)
+        );
+      });
+
       const caller = transaction.from.toBuffer();
+
+      if (this.common.isActivatedEIP(2929)) {
+        const sm = vm.stateManager as DefaultStateManager;
+        // handle Berlin hardfork warm storage reads
+        warmPrecompiles(sm);
+        sm.addWarmedAddress(caller);
+        // TODO: add to address to warm addresses
+        if (to) {
+          sm.addWarmedAddress(to.buf);
+        }
+      }
+
+      // we need to update the balance and nonce of the sender _before_
+      // we run this transaction so that things that rely on these values
+      // are correct (like contract creation!).
+      const fromAccount = await vm.stateManager.getAccount({
+        buf: caller
+      } as any);
+      fromAccount.nonce.iaddn(1);
+      const txCost = new BN(
+        (gasLimit * transaction.gasPrice.toBigInt()).toString()
+      );
+      fromAccount.balance.isub(txCost);
+      await vm.stateManager.putAccount({ buf: caller } as any, fromAccount);
+
+      // finally, run the call
       result = await vm.runCall({
         caller: {
           buf: caller,
@@ -965,6 +1043,9 @@ export default class Blockchain extends Emittery.Typed<
         }
       } as any;
     }
+    this.emit("ganache:vm:tx:after", {
+      context: transactionContext
+    });
     if (result.execResult.exceptionError) {
       if (this.#options.chain.vmErrorsOnRPCResponse) {
         // eth_call transactions don't really have a transaction hash
@@ -1020,12 +1101,18 @@ export default class Blockchain extends Emittery.Typed<
     const structLogs: Array<StructLog> = [];
     const TraceData = TraceDataFactory();
 
+    const transactionEventContext = {};
+
     const stepListener = async (
       event: StepEvent,
       next: (error?: any, cb?: any) => void
     ) => {
       // See these docs:
       // https://github.com/ethereum/go-ethereum/wiki/Management-APIs
+      this.emit(
+        "ganache:vm:tx:step",
+        makeStepEvent(transactionEventContext, event)
+      );
 
       const gasLeft = event.gasLeft.toNumber();
       const totalGasUsedAfterThisStep =
@@ -1146,6 +1233,9 @@ export default class Blockchain extends Emittery.Typed<
             })
           );
         }
+        vm.emit("ganache:vm:tx:before", {
+          context: transactionEventContext
+        });
         vm.on("step", stepListener);
       }
     };
@@ -1153,6 +1243,10 @@ export default class Blockchain extends Emittery.Typed<
     const removeListeners = () => {
       vm.removeListener("step", stepListener);
       vm.removeListener("beforeTx", beforeTxListener);
+
+      vm.emit("ganache:vm:tx:after", {
+        context: transactionEventContext
+      });
     };
 
     // Listen to beforeTx so we know when our target transaction

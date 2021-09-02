@@ -27,6 +27,12 @@ import Blockchain from "./blockchain";
 import { Fork } from "./forking/fork";
 import { ITraceData, Account } from "@ganache/ethereum-utils";
 import { Address } from "@ganache/ethereum-address";
+import {
+  DataEvent,
+  VmAfterTransactionEvent,
+  VmBeforeTransactionEvent,
+  VmStepEvent
+} from "./provider-events";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
@@ -79,7 +85,14 @@ type RequestParams<Method extends RequestMethods> = {
 };
 export default class EthereumProvider
   extends Emittery.Typed<
-    { message: any; error: Error },
+    {
+      message: MessageEvent;
+      data: DataEvent;
+      error: Error;
+      "ganache:vm:tx:step": VmStepEvent;
+      "ganache:vm:tx:before": VmBeforeTransactionEvent;
+      "ganache:vm:tx:after": VmAfterTransactionEvent;
+    },
     "connect" | "disconnect"
   >
   implements Provider<EthereumApi> {
@@ -107,6 +120,17 @@ export default class EthereumProvider
     const coinbase = parseCoinbase(providerOptions.miner.coinbase, accounts);
     const blockchain = new Blockchain(providerOptions, coinbase, fallback);
     this.#blockchain = blockchain;
+
+    blockchain.on("ganache:vm:tx:before", event => {
+      this.emit("ganache:vm:tx:before", event);
+    });
+    blockchain.on("ganache:vm:tx:step", event => {
+      this.emit("ganache:vm:tx:step", event);
+    });
+    blockchain.on("ganache:vm:tx:after", event => {
+      this.emit("ganache:vm:tx:after", event);
+    });
+
     this.#api = new EthereumApi(providerOptions, wallet, blockchain);
   }
 
@@ -295,16 +319,13 @@ export default class EthereumProvider
     if (promise instanceof PromiEvent) {
       promise.on("message", data => {
         // EIP-1193
-        this.emit("message" as never, data as never);
+        this.emit("message", data as any);
         // legacy
-        this.emit(
-          "data" as never,
-          {
-            jsonrpc: "2.0",
-            method: "eth_subscription",
-            params: (data as any).data
-          } as never
-        );
+        this.emit("data", {
+          jsonrpc: "2.0",
+          method: "eth_subscription",
+          params: (data as any).data
+        });
       });
     }
     const value = promise.catch((error: Error) => {

@@ -1,7 +1,13 @@
-import { StateManager } from "@ethereumjs/vm/dist/state";
+import type {
+  DefaultStateManager,
+  StateManager
+} from "@ethereumjs/vm/dist/state";
 import { Account, Address } from "ethereumjs-util";
 
 const NUM_PRECOMPILES = 18;
+/**
+ * And account with a balance of 1
+ */
 const SERIALIZED_PRECOMPILE = Uint8Array.from([
   248,
   68,
@@ -94,10 +100,22 @@ const makeAccount = (i: number): Address => {
  */
 export const activatePrecompiles = async (stateManager: StateManager) => {
   await stateManager.checkpoint();
+  const cache = (stateManager as any)._cache;
   for (let i = 1; i <= NUM_PRECOMPILES; i++) {
     const account = makeAccount(i);
-    (stateManager as any)._cache.put(account, PRECOMPILED_ACCOUNT);
+    cache.put(account, PRECOMPILED_ACCOUNT);
     stateManager.touchAccount(account as any);
   }
   await stateManager.commit();
+};
+
+/**
+ * Puts the precompile accounts into the warmed addresses
+ * @param stateManager
+ */
+export const warmPrecompiles = async (stateManager: DefaultStateManager) => {
+  for (let i = 1; i <= NUM_PRECOMPILES; i++) {
+    const account = makeAccount(i);
+    stateManager.addWarmedAddress(account.buf);
+  }
 };
