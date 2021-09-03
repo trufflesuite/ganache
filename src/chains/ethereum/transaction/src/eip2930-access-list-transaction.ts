@@ -45,7 +45,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     if (Array.isArray(data)) {
       this.chainId = Quantity.from(data[0]);
       this.nonce = Quantity.from(data[1]);
-      this.gasPrice = Quantity.from(data[2]);
+      this.gasPrice = this.effectiveGasPrice = Quantity.from(data[2]);
       this.gas = Quantity.from(data[3]);
       this.to = data[4].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[4]);
       this.value = Quantity.from(data[5]);
@@ -78,7 +78,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       }
     } else {
       this.chainId = Quantity.from(data.chainId);
-      this.gasPrice = Quantity.from(data.gasPrice);
+      this.gasPrice = this.effectiveGasPrice = Quantity.from(data.gasPrice);
       const accessListData = AccessLists.getAccessListData(data.accessList);
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
@@ -243,7 +243,5 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     );
   }
 
-  public getStandardizedGasPrice() {
-    return this.gasPrice;
-  }
+  public updateEffectiveGasPrice() {}
 }

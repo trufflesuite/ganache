@@ -49,6 +49,7 @@ export interface TransactionReceiptJSON {
   type?: Quantity;
   chainId?: Quantity;
   accessList?: AccessList;
+  effectiveGasPrice: Quantity;
 }
 
 export class TransactionReceipt {
@@ -134,7 +135,10 @@ export class TransactionReceipt {
   }
 
   public toJSON(
-    block: { hash(): Data; header: { number: Quantity } },
+    block: {
+      hash(): Data;
+      header: { number: Quantity; baseFeePerGas?: Quantity };
+    },
     transaction: TypedTransaction,
     common: Common
   ) {
@@ -151,6 +155,9 @@ export class TransactionReceipt {
     blockLog.blockNumber = blockNumber;
     raw[3].forEach(l => blockLog.append(transactionIndex, transactionHash, l));
     const logs = [...blockLog.toJSON()];
+    if (block.header.baseFeePerGas) {
+      transaction.updateEffectiveGasPrice(block.header.baseFeePerGas);
+    }
     const json: TransactionReceiptJSON = {
       transactionHash,
       transactionIndex,
@@ -163,7 +170,8 @@ export class TransactionReceipt {
       contractAddress,
       logs,
       logsBloom: Data.from(raw[2], 256),
-      status: STATUSES[raw[0][0]]
+      status: STATUSES[raw[0][0]],
+      effectiveGasPrice: transaction.effectiveGasPrice
     };
     if (transaction.type && common.isActivatedEIP(2718)) {
       json.type = transaction.type;
