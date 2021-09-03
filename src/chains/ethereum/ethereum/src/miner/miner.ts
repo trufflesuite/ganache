@@ -24,6 +24,12 @@ import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 
+export enum Capacity {
+  FillBlock = -1,
+  Empty = 0,
+  Single = 1
+}
+
 export type BlockData = {
   blockTransactions: TypedTransaction[];
   transactionsTrie: Trie;
@@ -130,7 +136,7 @@ export default class Miner extends Emittery.Typed<
    */
   public async mine(
     block: RuntimeBlock,
-    maxTransactions: number = -1,
+    maxTransactions: number | Capacity = Capacity.FillBlock,
     onlyOneBlock = false
   ) {
     if (this.#paused) {
@@ -156,7 +162,7 @@ export default class Miner extends Emittery.Typed<
 
   #mine = async (
     block: RuntimeBlock,
-    maxTransactions: number = -1,
+    maxTransactions: number | Capacity = Capacity.FillBlock,
     onlyOneBlock = false
   ) => {
     const { block: lastBlock, transactions } = await this.#mineTxs(
@@ -180,7 +186,7 @@ export default class Miner extends Emittery.Typed<
 
   #mineTxs = async (
     runtimeBlock: RuntimeBlock,
-    maxTransactions: number,
+    maxTransactions: number | Capacity,
     onlyOneBlock: boolean
   ) => {
     let block: Block;
@@ -203,7 +209,7 @@ export default class Miner extends Emittery.Typed<
       const receiptTrie = new Trie(null, null);
 
       // don't mine anything at all if maxTransactions is `0`
-      if (maxTransactions === 0) {
+      if (maxTransactions === Capacity.Empty) {
         await vm.stateManager.checkpoint();
         await vm.stateManager.commit();
         const finalizedBlockData = runtimeBlock.finalize(
