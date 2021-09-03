@@ -198,7 +198,7 @@ In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"`
 
 These events can be used to observe the lifecycle of any transaction executed via `*sendTransaction`, `eth_call`, `debug_traceTransaction`, or `debug_storageRangeAt`.
 
-These share the [event paradigm that Truffle uses](https://www.trufflesuite.com/docs/truffle/advanced/event-system#how-to-define-your-event-handlers), but without any of the wildcard handling, i.e., no `"vm:\*"` (for now).
+These share the [event paradigm that Truffle uses](https://www.trufflesuite.com/docs/truffle/advanced/event-system#how-to-define-your-event-handlers), but without any of the wildcard handling, i.e., no `"vm:*"` support (for now).
 
 Each of these events will emit a `context` object which is a unique object that can be used to identify a transaction over the course of its lifecycle. For example:
 
