@@ -860,7 +860,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_getBlockByNumber(number: QUANTITY | Tag, transactions = false) {
     const block = await this.#blockchain.blocks.get(number).catch(_ => null);
-    return block ? block.toJSON(transactions) : null;
+    return block ? block.toJSON(transactions, this.#blockchain.common) : null;
   }
 
   /**
@@ -1503,7 +1503,8 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getTransactionByHash(transactionHash: DATA) {
+  async eth_getTransactionByHash(transactionHash: DATA): Promise<any> {
+    // TODO: fix return type
     const { transactions } = this.#blockchain;
     const hashBuffer = Data.from(transactionHash).toBuffer();
 
@@ -1636,9 +1637,13 @@ export default class EthereumApi implements Api {
         tx.gas = defaultLimit;
       }
     }
-
-    if (tx.gasPrice.isNull()) {
+    if ("gasPrice" in tx && tx.gasPrice.isNull()) {
       tx.gasPrice = this.#options.miner.defaultGasPrice;
+    }
+
+    if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
+      const block = await this.#blockchain.blocks.get("latest").catch(_ => null); // prettier-ignore
+      tx.maxFeePerGas = Block.calcNextBaseFee(this.#blockchain.common, block);
     }
 
     if (isUnlockedAccount) {
@@ -1648,6 +1653,7 @@ export default class EthereumApi implements Api {
       return blockchain.queueTransaction(tx);
     }
   }
+
   /**
    * Signs a transaction that can be submitted to the network at a later time using `eth_sendRawTransaction`.
    *
