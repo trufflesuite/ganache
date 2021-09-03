@@ -196,7 +196,7 @@ New RPC documentation coming soon! See https://github.com/trufflesuite/ganache/t
 
 In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, we're currently planning on adding 3 more events for the launch of Ganache 7: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, and `"ganache:vm:tx:after"`.
 
-These events can be used to observe the lifecyle of any transaction executed via `*sendTransaction`, `eth_call`, `debug_traceTransaction`, or `debug_storageRangeAt`.
+These events can be used to observe the lifecycle of any transaction executed via `*sendTransaction`, `eth_call`, `debug_traceTransaction`, or `debug_storageRangeAt`.
 
 These share the [event paradigm that Truffle uses](https://www.trufflesuite.com/docs/truffle/advanced/event-system#how-to-define-your-event-handlers), but without any of the wildcard handling, i.e., no `"vm:\*"` (for now).
 
