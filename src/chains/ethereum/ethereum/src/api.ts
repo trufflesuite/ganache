@@ -50,6 +50,7 @@ import { parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
 import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
+import { Capacity } from "./miner/miner";
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
@@ -276,13 +277,21 @@ export default class EthereumApi implements Api {
       // Developers like to move the blockchain forward by thousands of blocks
       // at a time and doing this would make it way faster
       for (let i = 0; i < blocks; i++) {
-        const transactions = await blockchain.mine(-1, timestamp, true);
+        const transactions = await blockchain.mine(
+          Capacity.FillBlock,
+          timestamp,
+          true
+        );
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
       }
     } else {
-      const transactions = await blockchain.mine(-1, arg as number, true);
+      const transactions = await blockchain.mine(
+        Capacity.FillBlock,
+        arg as number,
+        true
+      );
       if (vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
       }
@@ -325,7 +334,7 @@ export default class EthereumApi implements Api {
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
-    await blockchain.mine(0);
+    await blockchain.mine(Capacity.Empty);
     return true;
   }
 

@@ -1,5 +1,5 @@
 import { EOL } from "os";
-import Miner from "./miner/miner";
+import Miner, { Capacity } from "./miner/miner";
 import Database from "./database";
 import Emittery from "emittery";
 import {
@@ -336,7 +336,7 @@ export default class Blockchain extends Emittery.Typed<
 
       //#region automatic mining
       const nullResolved = Promise.resolve(null);
-      const mineAll = (maxTransactions: number) =>
+      const mineAll = (maxTransactions: number | Capacity) =>
         this.#isPaused() ? nullResolved : this.mine(maxTransactions);
       if (instamine) {
         // insta mining
@@ -534,7 +534,7 @@ export default class Blockchain extends Emittery.Typed<
   };
 
   mine = async (
-    maxTransactions: number,
+    maxTransactions: number | Capacity,
     timestamp?: number,
     onlyOneBlock: boolean = false
   ) => {
@@ -562,7 +562,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // if we are instamining mine a block right away
     if (this.#instamine) {
-      return this.mine(-1);
+      return this.mine(Capacity.FillBlock);
     }
   }
 
