@@ -96,6 +96,9 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       value: this.value,
       maxPriorityFeePerGas: this.maxPriorityFeePerGas,
       maxFeePerGas: this.maxFeePerGas,
+      effectiveGasPrice: this.effectiveGasPrice
+        ? this.effectiveGasPrice
+        : this.maxFeePerGas,
       gas: this.gas,
       input: this.data,
       accessList: this.accessListJSON,
@@ -248,7 +251,21 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     );
   }
 
-  public getStandardizedGasPrice() {
-    return this.maxFeePerGas; // TODO
+  public updateEffectiveGasPrice(baseFeePerGas?: Quantity) {
+    if (baseFeePerGas) {
+      const baseFeePerGasNum = baseFeePerGas.toNumber();
+      const maxFeePerGasNum = this.maxFeePerGas.toNumber();
+      const maxPriorityFeePerGasNum = this.maxPriorityFeePerGas.toNumber();
+      const tip = Math.min(
+        maxFeePerGasNum - baseFeePerGasNum,
+        maxPriorityFeePerGasNum
+      );
+      this.effectiveGasPrice = Quantity.from(baseFeePerGasNum + tip);
+    } else {
+      // this can only happen if baseFeePerGas isn't set, which means
+      // we're pre eip-1559, which means we shouldn't be here in the
+      // first place. Might be safe to remove this case.
+      this.effectiveGasPrice = this.maxFeePerGas;
+    }
   }
 }

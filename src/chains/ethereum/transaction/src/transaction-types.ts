@@ -68,6 +68,7 @@ export type EIP1559FeeMarketTransactionJSON = {
   value: Quantity;
   maxPriorityFeePerGas: Quantity;
   maxFeePerGas: Quantity;
+  effectiveGasPrice: Quantity;
   gas: Quantity;
   input: Data;
   accessList: AccessList;
