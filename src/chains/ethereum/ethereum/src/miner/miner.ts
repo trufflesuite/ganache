@@ -1,8 +1,8 @@
+import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import {
   RuntimeError,
   RETURN_TYPES,
   TraceDataFactory,
-  StepEvent,
   StorageKeys
 } from "@ganache/ethereum-utils";
 import {
@@ -236,7 +236,7 @@ export default class Miner extends Emittery.Typed<
       // the storage key. Why you might ask? So we can reference the raw version in
       // debug_storageRangeAt.
       const stepListener = (
-        event: StepEvent,
+        event: InterpreterStep,
         next: (error?: any, cb?: any) => void
       ) => {
         if (event.opcode.name === "SSTORE") {

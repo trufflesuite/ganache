@@ -14,7 +14,6 @@ export * from "./types/extract-values-from-types";
 export * from "./types/filters";
 export * from "./types/hex-datatypes";
 export * from "./types/shh";
-export * from "./types/step-event";
 export * from "./types/subscriptions";
 export * from "./types/trace-transaction";
 export * from "./types/tuple-from-union";

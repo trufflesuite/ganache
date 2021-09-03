@@ -10,7 +10,6 @@ import {
   TraceStorageMap,
   RuntimeError,
   RETURN_TYPES,
-  StepEvent,
   StorageKeys,
   StorageRangeResult,
   StorageRecords,
@@ -21,6 +20,7 @@ import {
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
 import type { Address as EthereumJsAddress } from "ethereumjs-util";
+import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { decode } from "@ganache/rlp";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import Common from "@ethereumjs/common";
@@ -1104,7 +1104,7 @@ export default class Blockchain extends Emittery.Typed<
     const transactionEventContext = {};
 
     const stepListener = async (
-      event: StepEvent,
+      event: InterpreterStep,
       next: (error?: any, cb?: any) => void
     ) => {
       // See these docs:

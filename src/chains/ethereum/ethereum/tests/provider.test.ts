@@ -1,12 +1,12 @@
 import assert from "assert";
-import EthereumProvider from "../src/provider";
-import getProvider from "./helpers/getProvider";
-import { Data, JsonRpcRequest } from "@ganache/utils";
-import EthereumApi from "../src/api";
-import compile from "./helpers/compile";
 import { join } from "path";
 import Transaction from "@ethereumjs/tx/dist/legacyTransaction";
+import { Data, JsonRpcRequest } from "@ganache/utils";
 import Common from "@ethereumjs/common";
+import EthereumProvider from "../src/provider";
+import EthereumApi from "../src/api";
+import getProvider from "./helpers/getProvider";
+import compile from "./helpers/compile";
 
 describe("provider", () => {
   describe("options", () => {
@@ -42,7 +42,7 @@ describe("provider", () => {
     describe("ganache:vm:tx:* events", () => {
       let from: string;
       let contract: ReturnType<typeof compile>;
-      let transaction;
+      let transaction: { from: string; data: string; gasLimit: string };
       let controlEvents: [string, any][];
       beforeEach(async () => {
         [from] = await provider.send("eth_accounts");
@@ -62,7 +62,7 @@ describe("provider", () => {
       async function testEvents(transactionFunction: any) {
         let context: {};
         const events: [string, any][] = [];
-        const unsubBefore = provider.on("ganache:vm:tx:before", event => {
+        const unsubscribeBefore = provider.on("ganache:vm:tx:before", event => {
           context = event.context;
 
           assert.notStrictEqual(event.context, null);
@@ -70,23 +70,37 @@ describe("provider", () => {
           assert.strictEqual(typeof event.context, "object");
           events.push(["ganache:vm:tx:before", event]);
         });
-        const unSubStep = provider.on("ganache:vm:tx:step", event => {
+        const unsubscribeStep = provider.on("ganache:vm:tx:step", event => {
           assert.strictEqual(event.context, context);
           assert.strictEqual(typeof event.data.opcode.name, "string");
+
+          // delete some the data that may change in between runs:
+          assert.strictEqual(event.data.address.length, 20);
+          assert.strictEqual(event.data.codeAddress.length, 20);
+          assert.strictEqual(event.data.account.codeHash.length, 32);
+          assert.strictEqual(event.data.account.stateRoot.length, 32);
+          assert.strictEqual(typeof event.data.account.nonce, "bigint");
+          assert.strictEqual(typeof event.data.account.balance, "bigint");
+
+          delete event.data.address;
+          delete event.data.codeAddress;
+          delete event.data.account;
+
           events.push(["ganache:vm:tx:step", event]);
         });
-        const unsubAfter = provider.on("ganache:vm:tx:after", event => {
+        const unsubscribeAfter = provider.on("ganache:vm:tx:after", event => {
           assert.strictEqual(event.context, context);
           events.push(["ganache:vm:tx:after", event]);
         });
 
         await transactionFunction();
 
-        unsubBefore();
-        unSubStep();
-        unsubAfter();
+        unsubscribeBefore();
+        unsubscribeStep();
+        unsubscribeAfter();
 
         assert(events.length > 2, "missing expected events");
+
         // this function is used to collect the `controlEvents` that all other
         // tests rely on
         if (controlEvents) {
