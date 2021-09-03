@@ -194,7 +194,7 @@ New RPC documentation coming soon! See https://github.com/trufflesuite/ganache/t
 
 ### Ganache Provider Events
 
-In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, we're currently planning on adding 3 more events for the launch of Ganache 7: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, and `"ganache:vm:tx:after"`.
+In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, Ganache emits 3 additional events: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, and `"ganache:vm:tx:after"`.
 
 These events can be used to observe the lifecycle of any transaction executed via `*sendTransaction`, `eth_call`, `debug_traceTransaction`, or `debug_storageRangeAt`.
 
