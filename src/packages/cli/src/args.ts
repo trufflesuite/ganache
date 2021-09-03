@@ -27,7 +27,7 @@ marked.setOptions({
 
 const wrapWidth = Math.min(120, yargs.terminalWidth());
 const NEED_HELP = "Need more help? Reach out to the Truffle community at";
-const COMMUNITY_LINK = "https://trfl.co/support";
+const COMMUNITY_LINK = "https://trfl.io/support";
 
 function unescapeEntities(html: string) {
   return html
@@ -157,12 +157,12 @@ export default function (version: string, isDocker: boolean) {
     .strict()
     .usage(versionUsageOutputText)
     .epilogue(
-      versionUsageOutputText + EOL
-      // TODO: uncomment once we have a valid domain
-      // + EOL +
-      // chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
-      // EOL +
-      // chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
+      versionUsageOutputText +
+        EOL +
+        EOL +
+        chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
+        EOL +
+        chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
     );
 
   let flavor: keyof typeof DefaultOptionsByName;
