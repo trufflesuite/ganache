@@ -39,7 +39,7 @@ const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
 };
 
 const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
-  values[a].getStandardizedGasPrice() > values[b].getStandardizedGasPrice();
+  values[a].effectiveGasPrice > values[b].effectiveGasPrice;
 
 export default class Miner extends Emittery.Typed<
   {
@@ -58,6 +58,7 @@ export default class Miner extends Emittery.Typed<
   #isBusy: boolean = false;
   #paused: boolean = false;
   #resumer: Promise<void>;
+  #currentBlockBaseFeePerGas: Quantity;
   #resolver: (value: void) => void;
   readonly #executables: Executables;
   readonly #options: EthereumInternalOptions["miner"];
@@ -84,9 +85,14 @@ export default class Miner extends Emittery.Typed<
     this.#paused = false;
     this.#resolver();
   }
-
+  public refresher = (item: TypedTransaction, context: Quantity) => {
+    item.updateEffectiveGasPrice(context);
+  };
   // create a Heap that sorts by gasPrice
-  readonly #priced = new Heap<TypedTransaction>(sortByPrice);
+  readonly #priced = new Heap<TypedTransaction, Quantity>(
+    sortByPrice,
+    this.refresher
+  );
   /*
    * @param executables A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -105,7 +111,11 @@ export default class Miner extends Emittery.Typed<
     this.#options = options;
     this.#executables = executables;
     this.#instamine = instamine;
-    this.#createBlock = createBlock;
+    this.#createBlock = (previousBlock: Block) => {
+      const newBlock = createBlock(previousBlock);
+      this.#setCurrentBlockBaseFeePerGas(newBlock);
+      return newBlock;
+    };
 
     // initialize the heap with an empty array
     this.#priced.init([]);
@@ -136,6 +146,7 @@ export default class Miner extends Emittery.Typed<
       this.#updatePricedHeap();
       return;
     } else {
+      this.#setCurrentBlockBaseFeePerGas(block);
       this.#setPricedHeap();
       const result = await this.#mine(block, maxTransactions, onlyOneBlock);
       this.emit("idle");
@@ -262,9 +273,7 @@ export default class Miner extends Emittery.Typed<
           continue;
         }
 
-        this.#currentlyExecutingPrice = best
-          .getStandardizedGasPrice()
-          .toBigInt();
+        this.#currentlyExecutingPrice = best.effectiveGasPrice.toBigInt();
 
         // Set a transaction-level checkpoint so we can undo state changes in
         // the case where the transaction is rejected by the VM.
@@ -402,6 +411,11 @@ export default class Miner extends Emittery.Typed<
         if (priced.length !== 0) {
           maxTransactions = this.#instamine ? 1 : -1;
           runtimeBlock = this.#createBlock(block);
+          // if baseFeePerGas is undefined, we are pre london hard fork.
+          // no need to refresh the order of the heap because all Txs only have gasPrice.
+          if (this.#currentBlockBaseFeePerGas !== undefined) {
+            priced.refresh(this.#currentBlockBaseFeePerGas);
+          }
         } else {
           // reset the miner
           this.#reset();
@@ -416,7 +430,7 @@ export default class Miner extends Emittery.Typed<
     tx: TypedTransaction,
     block: RuntimeBlock,
     origin: string,
-    pending: Map<string, Heap<TypedTransaction>>
+    pending: Map<string, Heap<TypedTransaction, Quantity>>
   ) => {
     try {
       const vm = this.#vm;
@@ -477,10 +491,11 @@ export default class Miner extends Emittery.Typed<
 
     for (let mapping of pending) {
       const heap = mapping[1];
-      const next = heap.peek();
+      const next: TypedTransaction = heap.peek();
       if (next && !next.locked) {
         const origin = next.from.toString();
         origins.add(origin);
+        next.updateEffectiveGasPrice(this.#currentBlockBaseFeePerGas);
         priced.push(next);
         next.locked = true;
       }
@@ -504,7 +519,7 @@ export default class Miner extends Emittery.Typed<
       const heap = mapping[1];
       const next = heap.peek();
       if (next && !next.locked) {
-        const price = next.getStandardizedGasPrice().toBigInt();
+        const price = next.effectiveGasPrice.toBigInt();
 
         if (this.#currentlyExecutingPrice > price) {
           // don't insert a transaction into the miner's `priced` heap
@@ -518,9 +533,23 @@ export default class Miner extends Emittery.Typed<
           continue;
         }
         origins.add(origin);
+        next.updateEffectiveGasPrice(this.#currentBlockBaseFeePerGas);
         priced.push(next);
         next.locked = true;
       }
     }
+  };
+
+  /**
+   * Sets the #currentBlockBaseFeePerGas property if the current block
+   * has a baseFeePerGas property
+   */
+  #setCurrentBlockBaseFeePerGas = (block: RuntimeBlock) => {
+    const baseFeePerGas = block.header.baseFeePerGas;
+    // before london hard fork, there will be no baseFeePerGas on the block
+    this.#currentBlockBaseFeePerGas =
+      baseFeePerGas === undefined
+        ? undefined
+        : Quantity.from(baseFeePerGas.toBuffer());
   };
 }
