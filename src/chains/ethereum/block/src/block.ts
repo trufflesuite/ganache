@@ -64,12 +64,11 @@ export class Block {
     });
   }
 
-  toJSON(includeFullTransactions = false) {
+  toJSON(includeFullTransactions = false, common: Common) {
     const hash = this.hash();
     const txFn = this.getTxFn(includeFullTransactions);
     const hashBuffer = hash.toBuffer();
     const number = this.header.number.toBuffer();
-    const common = this._common;
     const jsonTxs = this._rawTransactions.map((raw, index) => {
       const [from, hash] = this._rawTransactionMetaData[index];
       const extra: GanacheRawExtraTx = [
