@@ -107,7 +107,7 @@ export type ChainConfig = {
 
     /**
      * Set the hardfork rules for the EVM.
-     * @defaultValue "berlin"
+     * @defaultValue "london"
      */
     readonly hardfork: {
       type: Hardfork;
