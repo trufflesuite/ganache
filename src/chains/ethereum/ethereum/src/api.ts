@@ -1512,8 +1512,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getTransactionByHash(transactionHash: DATA): Promise<any> {
-    // TODO: fix return type
+  async eth_getTransactionByHash(transactionHash: DATA) {
     const { transactions } = this.#blockchain;
     const hashBuffer = Data.from(transactionHash).toBuffer();
 
