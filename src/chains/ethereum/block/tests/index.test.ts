@@ -26,8 +26,7 @@ describe("@ganache/ethereum-block", async () => {
           ]
         },
         miner: {
-          blockGasLimit: "0xB749E0",
-          extraData: "0xd883010a06846765746888676f312e31362e34856c696e7578"
+          blockGasLimit: "0xB749E0"
         },
         chain: { chainId: 1337 }
       });
