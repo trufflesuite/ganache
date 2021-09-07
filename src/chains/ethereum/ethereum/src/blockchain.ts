@@ -1233,7 +1233,7 @@ export default class Blockchain extends Emittery.Typed<
             })
           );
         }
-        vm.emit("ganache:vm:tx:before", {
+        this.emit("ganache:vm:tx:before", {
           context: transactionEventContext
         });
         vm.on("step", stepListener);
@@ -1244,7 +1244,7 @@ export default class Blockchain extends Emittery.Typed<
       vm.removeListener("step", stepListener);
       vm.removeListener("beforeTx", beforeTxListener);
 
-      vm.emit("ganache:vm:tx:after", {
+      this.emit("ganache:vm:tx:after", {
         context: transactionEventContext
       });
     };
