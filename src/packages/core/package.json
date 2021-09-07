@@ -53,7 +53,7 @@
     "@ganache/options": "0.1.1-alpha.0",
     "@ganache/tezos": "0.1.1-alpha.0",
     "@ganache/utils": "0.1.1-alpha.0",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.11",
+    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.12",
     "aggregate-error": "3.1.0",
     "emittery": "0.8.1",
     "promise.allsettled": "1.0.4"
