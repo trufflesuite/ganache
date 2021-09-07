@@ -208,10 +208,13 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
       let fakePrivateKey: Buffer;
       if (from.equals(ACCOUNT_ZERO)) {
-        fakePrivateKey = Buffer.allocUnsafe(32);
-        // allow signing with the 0x0 address
+        // allow signing with the 0x0 address...
+        // always sign with the same fake key, a 31 `0`s followed by a single
+        // `1`. The key is arbitrary. It just must not be all `0`s and must be
+        // deterministic.
         // see: https://github.com/ethereumjs/ethereumjs-monorepo/issues/829#issue-674385636
-        fakePrivateKey[0] = 1;
+        fakePrivateKey = Buffer.allocUnsafe(32).fill(0, 0, 31);
+        fakePrivateKey[31] = 1;
       } else {
         fakePrivateKey = Buffer.concat([from, from.slice(0, 12)]);
       }
