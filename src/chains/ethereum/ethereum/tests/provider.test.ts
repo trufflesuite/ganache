@@ -167,10 +167,7 @@ describe("provider", () => {
         await provider.send("eth_unsubscribe", [subId]);
 
         await testEvents(async () => {
-          const subId = await provider.send("eth_subscribe", ["newHeads"]);
           await provider.send("debug_traceTransaction", [hash]);
-          await provider.once("message");
-          await provider.send("eth_unsubscribe", [subId]);
         });
       });
       it("emits vm:tx:* events for debug_storageRangeAt", async () => {
@@ -183,7 +180,6 @@ describe("provider", () => {
         ]);
 
         await testEvents(async () => {
-          const subId = await provider.send("eth_subscribe", ["newHeads"]);
           await provider.send("debug_storageRangeAt", [
             receipt.blockHash,
             0,
@@ -191,8 +187,6 @@ describe("provider", () => {
             "0x00",
             2
           ]);
-          await provider.once("message");
-          await provider.send("eth_unsubscribe", [subId]);
         });
       });
     });
