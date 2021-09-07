@@ -68,7 +68,6 @@ export default class Miner extends Emittery.Typed<
   #resolver: (value: void) => void;
   readonly #executables: Executables;
   readonly #options: EthereumInternalOptions["miner"];
-  readonly #instamine: boolean;
   readonly #vm: VM;
   readonly #createBlock: (previousBlock: Block) => RuntimeBlock;
 
@@ -107,7 +106,6 @@ export default class Miner extends Emittery.Typed<
   constructor(
     options: EthereumInternalOptions["miner"],
     executables: Executables,
-    instamine: boolean,
     vm: VM,
     createBlock: (previousBlock: Block) => RuntimeBlock
   ) {
@@ -116,7 +114,6 @@ export default class Miner extends Emittery.Typed<
     this.#vm = vm;
     this.#options = options;
     this.#executables = executables;
-    this.#instamine = instamine;
     this.#createBlock = (previousBlock: Block) => {
       const newBlock = createBlock(previousBlock);
       this.#setCurrentBlockBaseFeePerGas(newBlock);
@@ -178,7 +175,7 @@ export default class Miner extends Emittery.Typed<
       this.#pending = false;
       if (!onlyOneBlock && this.#priced.length > 0) {
         const nextBlock = this.#createBlock(lastBlock);
-        await this.#mine(nextBlock, this.#instamine ? 1 : -1);
+        await this.#mine(nextBlock, maxTransactions);
       }
     }
     return transactions;
@@ -415,7 +412,6 @@ export default class Miner extends Emittery.Typed<
         this.#updatePricedHeap();
 
         if (priced.length !== 0) {
-          maxTransactions = this.#instamine ? 1 : -1;
           runtimeBlock = this.#createBlock(block);
           // if baseFeePerGas is undefined, we are pre london hard fork.
           // no need to refresh the order of the heap because all Txs only have gasPrice.
