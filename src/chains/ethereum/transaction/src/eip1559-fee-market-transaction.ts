@@ -80,6 +80,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.accessListJSON = accessListData.AccessListJSON;
       this.validateAndSetSignature(data);
     }
+    this.updateEffectiveGasPrice();
   }
 
   public toJSON(): EIP1559FeeMarketTransactionJSON {
@@ -260,9 +261,10 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       );
       this.effectiveGasPrice = Quantity.from(baseFeePerGasNum + tip);
     } else {
-      // this can only happen if baseFeePerGas isn't set, which means
-      // we're pre eip-1559, which means we shouldn't be here in the
-      // first place. Might be safe to remove this case.
+      // TODO, there could be a better way to handle this, but:
+      // When the tx is first being constructed, we don't always have access to
+      // the block, so we don't have the baseFeePerGas. Instead, just default to
+      // the maxFeePerGas
       this.effectiveGasPrice = this.maxFeePerGas;
     }
   }
