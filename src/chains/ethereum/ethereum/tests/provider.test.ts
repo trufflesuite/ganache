@@ -43,10 +43,11 @@ describe("provider", () => {
       let from: string;
       let contract: ReturnType<typeof compile>;
       let transaction: { from: string; data: string; gasLimit: string };
-      let controlEvents: [string, any][];
+      let controlEvents: [string, any][] = null;
+      let deploymentHash: string;
       beforeEach(async () => {
         [from] = await provider.send("eth_accounts");
-        contract = compile(join(__dirname, "./contracts/Simple.sol"));
+        contract = compile(join(__dirname, "./contracts/DebugStorage.sol"));
         transaction = {
           from,
           data: contract.code,
@@ -54,12 +55,17 @@ describe("provider", () => {
         };
         const subId = await provider.send("eth_subscribe", ["newHeads"]);
         controlEvents = await testEvents(async () => {
-          await provider.send("eth_sendTransaction", [transaction]);
+          deploymentHash = await provider.send("eth_sendTransaction", [
+            transaction
+          ]);
           await provider.once("message");
           await provider.send("eth_unsubscribe", [subId]);
         });
       });
-      async function testEvents(transactionFunction: any) {
+      async function testEvents(
+        transactionFunction: any,
+        controlEvents: any = null
+      ) {
         let context: {};
         const events: [string, any][] = [];
         const unsubscribeBefore = provider.on("ganache:vm:tx:before", event => {
@@ -103,7 +109,7 @@ describe("provider", () => {
 
         // this function is used to collect the `controlEvents` that all other
         // tests rely on
-        if (controlEvents) {
+        if (controlEvents !== null) {
           assert.deepStrictEqual(
             events,
             controlEvents,
@@ -118,12 +124,12 @@ describe("provider", () => {
           await provider.send("eth_sendTransaction", [transaction]);
           await provider.once("message");
           await provider.send("eth_unsubscribe", [subId]);
-        });
+        }, controlEvents);
       });
       it("emits vm:tx:* events for eth_call", async () => {
         await testEvents(async () => {
           await provider.send("eth_call", [transaction]);
-        });
+        }, controlEvents);
       });
       it("emits vm:tx:* events for eth_sendRawTransaction", async () => {
         const accounts = provider.getInitialAccounts();
@@ -143,7 +149,7 @@ describe("provider", () => {
           await provider.send("eth_sendRawTransaction", [rawTransaction]);
           await provider.once("message");
           await provider.send("eth_unsubscribe", [subId]);
-        });
+        }, controlEvents);
       });
       it("emits vm:tx:* events for personal_sendTransaction", async () => {
         await testEvents(async () => {
@@ -158,7 +164,7 @@ describe("provider", () => {
           ]);
           await provider.once("message");
           await provider.send("eth_unsubscribe", [subId]);
-        });
+        }, controlEvents);
       });
       it("emits vm:tx:* events for debug_traceTransaction", async () => {
         const subId = await provider.send("eth_subscribe", ["newHeads"]);
@@ -168,26 +174,50 @@ describe("provider", () => {
 
         await testEvents(async () => {
           await provider.send("debug_traceTransaction", [hash]);
-        });
+        }, controlEvents);
       });
       it("emits vm:tx:* events for debug_storageRangeAt", async () => {
-        const subId = await provider.send("eth_subscribe", ["newHeads"]);
-        const hash = await provider.send("eth_sendTransaction", [transaction]);
-        await provider.once("message");
-        await provider.send("eth_unsubscribe", [subId]);
-        const receipt = await provider.send("eth_getTransactionReceipt", [
-          hash
-        ]);
+        // README
+        // This test is slightly different, as we actually send a transaction to the
+        // contract, and then measure those events, instead of the deployment
+        // transaction itself.
+
+        const {
+          contractAddress
+        } = await provider.send("eth_getTransactionReceipt", [deploymentHash]);
+        const initialValue = "0".repeat(62) + "19"; // 25
+        // call the setValue method so we have some stuff to trace at the
+        // deployed contract
+        let receipt: any;
+        const controlEvents = await testEvents(async () => {
+          const subId = await provider.send("eth_subscribe", ["newHeads"]);
+          const hash = await provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: contractAddress,
+              gas: "0x2fefd8",
+              data: `0x${contract.contract.evm.methodIdentifiers["setValue(uint256)"]}${initialValue}`
+            }
+          ]);
+          await provider.once("message");
+          await provider.send("eth_unsubscribe", [subId]);
+          receipt = await provider.send("eth_getTransactionReceipt", [hash]);
+        });
+        assert(controlEvents.length > 2);
 
         await testEvents(async () => {
-          await provider.send("debug_storageRangeAt", [
-            receipt.blockHash,
-            0,
-            receipt.contractAddress,
-            "0x00",
-            2
-          ]);
-        });
+          try {
+            await provider.send("debug_storageRangeAt", [
+              receipt.blockHash,
+              0,
+              contractAddress,
+              "0x00",
+              2
+            ]);
+          } catch (e) {
+            throw e;
+          }
+        }, controlEvents);
       });
     });
 

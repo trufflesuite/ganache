@@ -1212,8 +1212,21 @@ export default class Blockchain extends Emittery.Typed<
       }
     };
 
+    const afterTxListener = () => {
+      vm.removeListener("step", stepListener);
+      vm.removeListener("afterTransaction", afterTxListener);
+      this.emit("ganache:vm:tx:after", {
+        context: transactionEventContext
+      });
+    };
+
     const beforeTxListener = async (tx: VmTransaction) => {
       if (tx === transaction) {
+        this.emit("ganache:vm:tx:before", {
+          context: transactionEventContext
+        });
+        vm.on("step", stepListener);
+        vm.on("afterTx", afterTxListener);
         if (keys && contractAddress) {
           const database = this.#database;
           return Promise.all(
@@ -1233,20 +1246,13 @@ export default class Blockchain extends Emittery.Typed<
             })
           );
         }
-        this.emit("ganache:vm:tx:before", {
-          context: transactionEventContext
-        });
-        vm.on("step", stepListener);
       }
     };
 
     const removeListeners = () => {
       vm.removeListener("step", stepListener);
       vm.removeListener("beforeTx", beforeTxListener);
-
-      this.emit("ganache:vm:tx:after", {
-        context: transactionEventContext
-      });
+      vm.removeListener("afterTx", afterTxListener);
     };
 
     // Listen to beforeTx so we know when our target transaction
