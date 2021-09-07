@@ -96,7 +96,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       value: this.value,
       maxPriorityFeePerGas: this.maxPriorityFeePerGas,
       maxFeePerGas: this.maxFeePerGas,
-      effectiveGasPrice: this.effectiveGasPrice
+      gasPrice: this.effectiveGasPrice
         ? this.effectiveGasPrice
         : this.maxFeePerGas,
       gas: this.gas,
@@ -187,11 +187,9 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     const dataLength = data.length;
 
     const ending = encodeRange(raw, 10, 3);
-    const msg = Buffer.concat([
-      typeBuf,
+    const msgHash = keccak(
       digest([data.output, ending.output], dataLength + ending.length)
-    ]);
-    const msgHash = keccak(msg);
+    );
     const sig = ecsign(msgHash, privateKey, chainId);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);

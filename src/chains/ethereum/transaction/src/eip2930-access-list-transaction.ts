@@ -180,11 +180,9 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     const dataLength = data.length;
 
     const ending = encodeRange(raw, 9, 3);
-    const msg = Buffer.concat([
-      typeBuf,
+    const msgHash = keccak(
       digest([data.output, ending.output], dataLength + ending.length)
-    ]);
-    const msgHash = keccak(msg);
+    );
     const sig = ecsign(msgHash, privateKey, chainId);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
