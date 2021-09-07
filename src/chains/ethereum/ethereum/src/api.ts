@@ -1652,7 +1652,9 @@ export default class EthereumApi implements Api {
 
     if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
       const block = await this.#blockchain.blocks.get("latest").catch(_ => null); // prettier-ignore
-      tx.maxFeePerGas = Block.calcNextBaseFee(this.#blockchain.common, block);
+      tx.maxFeePerGas = Quantity.from(
+        Block.calcNextBaseFee(this.#blockchain.common, block)
+      );
     }
 
     if (isUnlockedAccount) {

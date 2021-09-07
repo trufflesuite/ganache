@@ -329,7 +329,6 @@ export default class Blockchain extends Emittery.Typed<
       const miner = (this.#miner = new Miner(
         minerOpts,
         txPool.executables,
-        instamine,
         this.vm,
         this.#readyNextBlock
       ));
@@ -525,7 +524,7 @@ export default class Blockchain extends Emittery.Typed<
       Quantity.from(timestamp == null ? this.#currentTime() : timestamp),
       this.#options.miner.difficulty,
       previousBlock.header.totalDifficulty,
-      Block.calcNextBaseFee(this.common, previousBlock).toBuffer()
+      Block.calcNextBaseFee(this.common, previousBlock)
     );
   };
 
@@ -632,7 +631,7 @@ export default class Blockchain extends Emittery.Typed<
         Quantity.from(timestamp),
         this.#options.miner.difficulty,
         this.fallback.block.header.totalDifficulty,
-        Block.calcNextBaseFee(this.common, this.fallback.block).toBuffer()
+        Block.calcNextBaseFee(this.common, this.fallback.block)
       );
 
       // store the genesis block in the database
@@ -675,7 +674,7 @@ export default class Blockchain extends Emittery.Typed<
       Quantity.from(timestamp),
       this.#options.miner.difficulty,
       RPCQUANTITY_ZERO, // we start the totalDifficulty at 0
-      Block.calcNextBaseFee(this.common).toBuffer()
+      Block.calcNextBaseFee(this.common)
     );
 
     // store the genesis block in the database
@@ -1212,7 +1211,7 @@ export default class Blockchain extends Emittery.Typed<
       targetBlock.header.timestamp,
       this.#options.miner.difficulty,
       parentBlock.header.totalDifficulty,
-      Block.calcNextBaseFee(this.common, parentBlock).toBuffer()
+      Block.calcNextBaseFee(this.common, parentBlock)
     ) as RuntimeBlock & {
       uncleHeaders: [];
       transactions: VmTransaction[];
