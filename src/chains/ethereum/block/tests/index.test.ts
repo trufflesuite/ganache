@@ -83,19 +83,19 @@ describe("@ganache/ethereum-block", async () => {
         await blockchain.resume();
       }
     });
-    it("genesis block has initial baseFeePerGas of 1000000000", async () => {
+    it("has initial baseFeePerGas of 1000000000 for genesis block", async () => {
       const block = await blockchain.blocks.get(BUFFER_ZERO);
       assert.strictEqual(block.header.baseFeePerGas.toNumber(), 1000000000);
     });
-    it("baseFeePerGas is calculated correctly when gasUsed is equal to gasTarget", async () => {
+    it("calculates baseFeePerGas correctly when gasUsed is equal to gasTarget", async () => {
       const block = await blockchain.blocks.get(Buffer.from([2]));
       assert.strictEqual(block.header.baseFeePerGas.toNumber(), 875106911);
     });
-    it("baseFeePerGas is calculated correctly when gasUsed is above gasTarget", async () => {
+    it("calculates baseFeePerGas correctly when gasUsed is above gasTarget", async () => {
       const block = await blockchain.blocks.get(Buffer.from([3]));
       assert.strictEqual(block.header.baseFeePerGas.toNumber(), 876853759);
     });
-    it("baseFeePerGas is calculated correctly when gasUsed is below gasTarget", async () => {
+    it("calculates baseFeePerGas correctly when gasUsed is below gasTarget", async () => {
       const block = await blockchain.blocks.get(Buffer.from([4]));
       assert.strictEqual(block.header.baseFeePerGas.toNumber(), 771090691);
     });
