@@ -123,12 +123,15 @@ describe.only("miner", async () => {
       const block = await lowGasLimitBlockchain.blocks.get(Buffer.from([1]));
       const lowBlockJson = block.toJSON(true, common);
       const lowBlockTxJson = lowBlockJson.transactions[0] as any;
+      // because of our low gas price, only one transaction should be on the block.
       assert.strictEqual(lowBlockJson.transactions.length, 1);
-      assert.strictEqual(lowBlockTxJson.from.toString(), from1);
+      // the first tx mined in our lowBlock chain (i.e., the only tx on the first block)
+      // should be the same as the first tx mined on our highBlock chain
       assert.strictEqual(
-        (highBlockJson.transactions[0] as any).from.toString(),
-        from1
+        lowBlockTxJson.from.toString(),
+        (highBlockJson.transactions[0] as any).from.toString()
       );
+      // the gasPrice should be equal to the initial gasPrice set on the tx
       assert.strictEqual(lowBlockTxJson.gasPrice.toString(), "0x3b023380");
     });
 
@@ -136,14 +139,17 @@ describe.only("miner", async () => {
       const block = await lowGasLimitBlockchain.blocks.get(Buffer.from([2]));
       const lowBlockJson = block.toJSON(true, common);
       const lowBlockTxJson = lowBlockJson.transactions[0] as any;
+      // because of our low gas price, only one transaction should be on the block.
       assert.strictEqual(lowBlockJson.transactions.length, 1);
-      // they will be in a different order between the two chains
-      assert.strictEqual(lowBlockTxJson.from.toString(), from2);
-      // the second tx should be third tx of the high limit block
+      // the second tx mined in our lowBlock chain (i.e., the only tx on the second block)
+      // should be the same as the THIRD tx mined on our highBlock chain.
+      // This proves that the lowBlock chain's pool was reordered when a new block was mined.
       assert.strictEqual(
-        (highBlockJson.transactions[2] as any).from.toString(),
-        from2
+        lowBlockTxJson.from.toString(),
+        (highBlockJson.transactions[2] as any).from.toString()
       );
+      // the gasPrice should be equal to the maxFeePerGas set on the tx because of the
+      // increase in price of the baseFeePerGas after the block was mined
       assert.strictEqual(lowBlockTxJson.gasPrice.toString(), "0x3b023380");
     });
 
