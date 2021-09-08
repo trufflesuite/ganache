@@ -194,6 +194,6 @@ export class Block {
         nextBaseFee = baseFeePerGas - adjustedFeeDelta;
       }
     }
-    return Quantity.from(nextBaseFee).toBuffer(); // TODO there must be a better way
+    return Quantity.from(nextBaseFee).toBuffer();
   }
 }

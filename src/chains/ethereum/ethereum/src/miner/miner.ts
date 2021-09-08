@@ -552,6 +552,6 @@ export default class Miner extends Emittery.Typed<
     this.#currentBlockBaseFeePerGas =
       baseFeePerGas === undefined
         ? undefined
-        : Quantity.from(baseFeePerGas.toBuffer());
+        : Quantity.from(baseFeePerGas.buf);
   };
 }
