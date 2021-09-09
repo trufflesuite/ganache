@@ -3,8 +3,8 @@ const to = require("../lib/utils/to");
 const bootstrap = require("./helpers/contract/bootstrap");
 
 const providerOptions = [
-  { miner: { blockGasLimit: 6721975 }, chain: { vmErrorsOnRPCResponse: true } },
-  { miner: { blockGasLimit: 6721975 }, chain: { vmErrorsOnRPCResponse: false } }
+  { miner: { blockGasLimit: 6721975 }, chain: { vmErrorsOnRPCResponse: true, hardfork: "berlin" } },
+  { miner: { blockGasLimit: 6721975 }, chain: { vmErrorsOnRPCResponse: false, hardfork: "berlin" } }
 ];
 
 // Run all test with options
@@ -41,7 +41,7 @@ function tests(ganacheProviderOptions) {
         });
     });
 
-    it("Should fail to estimate gas when the transaction is invalid", async() => {
+    it("Should fail to estimate gas when the transaction is invalid", async () => {
       const { accounts, instance, send } = context;
       const txParams = {
         from: accounts[0],

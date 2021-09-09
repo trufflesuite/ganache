@@ -9,14 +9,14 @@ describe("Accounts", () => {
   const badAddress = "0x1234567890123456789012345678901234567890";
   const mnemonic = "into trim cross then helmet popular suit hammer cart shrug oval student";
 
-  it("should respect the BIP99 mnemonic", async() => {
+  it("should respect the BIP99 mnemonic", async () => {
     const options = { mnemonic };
     const { accounts } = await initializeTestProvider(options);
 
     assert.strictEqual(accounts[0], expectedAddress);
   });
 
-  it("should lock all accounts when specified", async() => {
+  it("should lock all accounts when specified", async () => {
     const options = {
       mnemonic,
       secure: true
@@ -41,7 +41,7 @@ describe("Accounts", () => {
     );
   });
 
-  it("should unlock specified accounts, in conjunction with --secure", async() => {
+  it("should unlock specified accounts, in conjunction with --secure", async () => {
     const options = {
       mnemonic,
       secure: true,
@@ -76,7 +76,7 @@ describe("Accounts", () => {
     );
   });
 
-  it("should unlock specified accounts, in conjunction with --secure, using array indexes", async() => {
+  it("should unlock specified accounts, in conjunction with --secure, using array indexes", async () => {
     const accountIndexToUnlock = 5;
     const options = {
       mnemonic,
@@ -113,12 +113,13 @@ describe("Accounts", () => {
     );
   });
 
-  it("should unlock accounts even if private key isn't managed by the testrpc (impersonation)", async() => {
+  it("should unlock accounts even if private key isn't managed by the testrpc (impersonation)", async () => {
     const options = {
       mnemonic,
       secure: true,
       unlocked_accounts: [0, badAddress],
-      gasPrice: 0
+      gasPrice: 0,
+      hardfork: "berlin"
     };
 
     const { web3 } = await initializeTestProvider(options);
@@ -162,7 +163,7 @@ describe("Accounts", () => {
     );
   });
 
-  it("should create a 2 accounts when passing an object to provider", async() => {
+  it("should create a 2 accounts when passing an object to provider", async () => {
     const options = {
       accounts: [{ balance: "0x12" }, { balance: "0x13" }]
     };
@@ -172,7 +173,7 @@ describe("Accounts", () => {
     assert.strictEqual(accounts.length, 2, "The number of accounts created should be 2");
   });
 
-  it("should create the correct number of accounts as specified by total_accounts", async() => {
+  it("should create the correct number of accounts as specified by total_accounts", async () => {
     const options = {
       total_accounts: 7
     };
@@ -182,7 +183,7 @@ describe("Accounts", () => {
     assert.strictEqual(accounts.length, 7, "The number of accounts created should be 7");
   });
 
-  it("should respect the default_balance_ether option", async() => {
+  it("should respect the default_balance_ether option", async () => {
     const options = {
       default_balance_ether: 1.23456
     };

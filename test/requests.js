@@ -329,6 +329,7 @@ const tests = function(web3) {
       signingWeb3 = new Web3();
       signingWeb3.setProvider(
         Ganache.provider({
+          hardfork: "berlin",
           gasLimit: 6721975,
           legacyInstamine: true,
           vmErrorsOnRPCResponse: true,
@@ -399,6 +400,7 @@ const tests = function(web3) {
       signingWeb3 = new Web3();
       signingWeb3.setProvider(
         Ganache.provider({
+          hardfork: "berlin",
           gasLimit: 6721975,
           legacyInstamine: true,
           vmErrorsOnRPCResponse: true,
@@ -1094,7 +1096,7 @@ const tests = function(web3) {
           });
         });
       } else {
-        pendingNextBlockNumber = (async() => {
+        pendingNextBlockNumber = (async () => {
           // for the HttpServer tests we need to poll for the next block
           const startingBlockNumber = await web3.eth.getBlockNumber();
           let currrentBlockNumber;
@@ -1172,14 +1174,14 @@ const tests = function(web3) {
       );
     });
 
-    it("should read data via a call when specified blockNumber is \"earliest\" (eth_call)", async function() {
+    it('should read data via a call when specified blockNumber is "earliest" (eth_call)', async function() {
       const callData = contract.callData;
 
       const result = await web3.eth.call(callData, "earliest");
       assert.strictEqual(result, "0x", "value retrieved from earliest block should be 0x");
     });
 
-    it("should read data via a call when specified blockNumber is \"pending\" (eth_call)", async function() {
+    it('should read data via a call when specified blockNumber is "pending" (eth_call)', async function() {
       const callData = contract.callData;
 
       const result = await web3.eth.call(callData, "pending");
@@ -1369,15 +1371,15 @@ const tests = function(web3) {
             // Ganache provider responds with an `err`, so check that, too.
             assert.strictEqual(
               err.message,
-              "cannot convert string value \"\" into type `Quantity`; " +
-                "strings must be hex-encoded and prefixed with \"0x\"."
+              'cannot convert string value "" into type `Quantity`; ' +
+                'strings must be hex-encoded and prefixed with "0x".'
             );
           }
           if (result.error) {
             assert.strictEqual(
               result.error.message,
-              "cannot convert string value \"\" into type `Quantity`; " +
-                "strings must be hex-encoded and prefixed with \"0x\"."
+              'cannot convert string value "" into type `Quantity`; ' +
+                'strings must be hex-encoded and prefixed with "0x".'
             );
           } else {
             assert.fail("eth_getTransactionCount did not return an error message for invalid data");
@@ -1711,6 +1713,7 @@ describe("Provider:", function() {
   const web3 = new Web3();
   web3.setProvider(
     Ganache.provider({
+      hardfork: "berlin",
       gasLimit: 6721975,
       legacyInstamine: true,
       vmErrorsOnRPCResponse: true,
@@ -1737,6 +1740,7 @@ describe("HTTP Server:", function() {
 
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
+      hardfork: "berlin",
       gasLimit: 6721975,
       legacyInstamine: true,
       vmErrorsOnRPCResponse: true,
@@ -1765,6 +1769,7 @@ describe("WebSockets Server:", function() {
 
   before("Initialize Ganache server", async function() {
     server = Ganache.server({
+      hardfork: "berlin",
       gasLimit: 6721975,
       legacyInstamine: true,
       vmErrorsOnRPCResponse: true,
@@ -1781,7 +1786,7 @@ describe("WebSockets Server:", function() {
 
   tests(web3);
 
-  it("Can also handle binary websocket data", async() => {
+  it("Can also handle binary websocket data", async () => {
     // Python web3 only sends binary over websockets and we should
     // be able to handle it.
 
@@ -1828,7 +1833,7 @@ describe("WebSockets Server:", function() {
     );
   }).timeout(500); // fail quick if our hacked-together websocket handler fails.
 
-  after("Shutdown server", async() => {
+  after("Shutdown server", async () => {
     await server.close();
   });
 });

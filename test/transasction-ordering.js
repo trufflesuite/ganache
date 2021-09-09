@@ -6,7 +6,7 @@ describe("Transaction Ordering", function() {
   let context;
 
   before("Setting up accounts and provider", async function() {
-    context = await initializeTestProvider();
+    context = await initializeTestProvider({ hardfork: "berlin" });
     context.sendTransaction = (txData) =>
       new Promise((resolve) => context.web3.eth.sendTransaction(txData).on("transactionHash", resolve));
   });

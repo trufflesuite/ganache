@@ -33,7 +33,8 @@ describe("Gas", function() {
         const ganacheProviderOptions = {
           seed,
           gasPrice: 0,
-          vmErrorsOnRPCResponse: true
+          vmErrorsOnRPCResponse: true,
+          hardfork: "berlin"
         };
         const context = await bootstrap(contractRef, ganacheProviderOptions);
 

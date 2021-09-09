@@ -92,7 +92,7 @@ describe("Gas", function() {
           }
         });
 
-        it("Should not timeout when running a long test", async() => {
+        it("Should not timeout when running a long test", async () => {
           try {
             await context.instance.methods.runsOutOfGas().send({ from: context.accounts[0] });
             assert.fail();
@@ -101,7 +101,7 @@ describe("Gas", function() {
           }
         }).timeout(5000);
 
-        it("Should estimate gas perfectly with EIP150 - recursive CALL", async() => {
+        it("Should estimate gas perfectly with EIP150 - recursive CALL", async () => {
           const { accounts, instance, send } = Fib;
           const txParams = {
             from: accounts[0],
@@ -126,7 +126,7 @@ describe("Gas", function() {
           );
         });
 
-        it("Should estimate gas perfectly with EIP150 - CREATE", async() => {
+        it("Should estimate gas perfectly with EIP150 - CREATE", async () => {
           const { accounts, instance, send } = ContractFactory;
           const txParams = {
             from: accounts[0],
@@ -148,7 +148,7 @@ describe("Gas", function() {
           );
         });
 
-        it("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async() => {
+        it("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async () => {
           const { accounts, instance } = Donation;
           // Pre-condition
           const address = accounts[0];
@@ -170,7 +170,7 @@ describe("Gas", function() {
         }).timeout(1000000);
 
         if (hardfork !== "byzantium") {
-          it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async() => {
+          it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async () => {
             const { accounts, instance } = TestDepth;
             const depth = 3;
             const promises = Array(depth)
@@ -180,7 +180,7 @@ describe("Gas", function() {
                 return instance.methods
                   .depth(depth)
                   .estimateGas()
-                  .then(async(est) => {
+                  .then(async (est) => {
                     return Promise.all([
                       assert.doesNotReject(
                         instance.methods.depth(depth).send({
@@ -205,7 +205,7 @@ describe("Gas", function() {
             await Promise.all(promises);
           }).timeout(3000);
 
-          it("Should estimate gas perfectly with EIP150 - CREATE2", async() => {
+          it("Should estimate gas perfectly with EIP150 - CREATE2", async () => {
             const { accounts, instance, web3 } = Create2;
             const { result: newContract } = compile("./test/contracts/gas/", "GasLeft");
             const bytecode = newContract.contracts["GasLeft.sol"].GasLeft.evm.bytecode.object;
@@ -236,7 +236,7 @@ describe("Gas", function() {
           }).timeout(1000000);
 
           // TODO: Make this actually test SVT
-          it("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async() => {
+          it("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async () => {
             const { accounts, instance, send, web3 } = SendContract;
             const toBN = (hex) => new BN(hex.substring(2), "hex");
             const toBNStr = (hex, base = 10) => toBN(hex).toString(base);
@@ -295,7 +295,7 @@ describe("Gas", function() {
           }).timeout(10000);
         }
 
-        it("should correctly handle non-zero value child messages", async() => {
+        it("should correctly handle non-zero value child messages", async () => {
           const {
             accounts: [from],
             instance: { _address: to, methods },
@@ -628,7 +628,7 @@ describe("Gas", function() {
               const promiEvent = web3.eth.sendTransaction(transaction);
 
               return new Promise((resolve) => {
-                promiEvent.once("transactionHash", async(hash) => {
+                promiEvent.once("transactionHash", async (hash) => {
                   // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
                   const receipt = await web3.eth.getTransactionReceipt(hash);
                   assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
@@ -827,7 +827,7 @@ describe("Gas", function() {
         it("should calculate gas expenses correctly with a user-defined default gasPrice", async function() {
           const transferAmount = "500";
           const gasPrice = "0x2000";
-          const options = { seed, gasPrice };
+          const options = { seed, gasPrice, hardfork: "berlin" };
           const { accounts, web3 } = await initializeTestProvider(options);
           await confirmGasPrice(gasPrice, false, web3, accounts, transferAmount);
         });
@@ -835,7 +835,8 @@ describe("Gas", function() {
         it("should calculate cumalativeGas and gasUsed correctly for many transactions in a block", async function() {
           const options = {
             blockTime: 0.5, // seconds
-            seed
+            seed,
+            hardfork: "istanbul"
           };
           const { send, accounts, web3 } = await initializeTestProvider(options);
           await send("miner_stop");
@@ -876,7 +877,7 @@ describe("Gas", function() {
               const promiEvent = web3.eth.sendTransaction(transaction);
 
               return new Promise((resolve) => {
-                promiEvent.once("transactionHash", async(hash) => {
+                promiEvent.once("transactionHash", async (hash) => {
                   // Ensure there's no receipt since the transaction hasn't yet been processed. Ensure IntervalMining
                   const receipt = await web3.eth.getTransactionReceipt(hash);
                   assert.strictEqual(receipt, null, "No receipt since the transaction hasn't yet been processed.");
