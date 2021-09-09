@@ -11,8 +11,8 @@ export class Heap<T, U = any> {
    * as determined by the `less` function, is at the tip/root of the heap.
    * To read the highest priority element without removing it call peek(). To
    * read and remove the element call `shift()`
-   * @param size the size of the heap
    * @param less the comparator function
+   * @param refresher the refresher function
    */
   constructor(less: Comparator<T>, refresher?: (item: T, context: U) => void) {
     this.less = less;
@@ -27,6 +27,11 @@ export class Heap<T, U = any> {
     }
   }
 
+  /**
+   * Updates all entries by calling the Heap's `refresher` function for each
+   * item in the heap and then re-sorting.
+   * @param context
+   */
   public refresh(context: U) {
     const length = this.length;
     const mid = (length / 2) | 0;
@@ -214,6 +219,7 @@ export class Heap<T, U = any> {
    * heap.
    * @param item
    * @param less
+   * @param refresher
    */
   public static from<T, U>(
     item: T,
