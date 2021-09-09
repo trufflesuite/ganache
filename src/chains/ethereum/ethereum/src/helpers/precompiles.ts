@@ -6,7 +6,7 @@ import { Account, Address } from "ethereumjs-util";
 
 const NUM_PRECOMPILES = 18;
 /**
- * And account with a balance of 1
+ * An account with a balance of 1
  */
 const SERIALIZED_PRECOMPILE = Uint8Array.from([
   248,

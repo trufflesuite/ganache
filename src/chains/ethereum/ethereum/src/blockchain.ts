@@ -181,8 +181,8 @@ export default class Blockchain extends Emittery.Typed<
   #timer: NodeJS.Timer | null = null;
 
   /**
-   * Because step events are expensive, CPU-wise, to create and emit we only do
-   * it conditionally.
+   * Because step events are expensive to create and emit, CPU-wise, we do it
+   * conditionally.
    */
   #emitStepEvent: boolean = false;
   public blocks: BlockManager;
@@ -657,11 +657,11 @@ export default class Blockchain extends Emittery.Typed<
   ) => {
     if (this.fallback != null) {
       // commit accounts, but for forking.
-      const sm = this.vm.stateManager as any;
+      const sm = this.vm.stateManager;
       this.vm.stateManager.checkpoint();
       initialAccounts.forEach(acc => {
-        const a = { buf: acc.address.toBuffer() };
-        sm._cache.put(a, acc as any);
+        const a = { buf: acc.address.toBuffer() } as any;
+        (sm as any)._cache.put(a, acc);
         sm.touchAccount(a);
       });
       await this.vm.stateManager.commit();
@@ -992,25 +992,20 @@ export default class Blockchain extends Emittery.Typed<
       // commit/revert later because this stateTrie is ephemeral anyway.
       vm.stateManager.checkpoint();
 
-      vm.on("step", event => {
+      vm.on("step", (event: InterpreterStep) => {
         if (!this.#emitStepEvent) return;
-        this.emit(
-          "ganache:vm:tx:step",
-          makeStepEvent(transactionContext, event)
-        );
+        const ganacheStepEvent = makeStepEvent(transactionContext, event);
+        this.emit("ganache:vm:tx:step", ganacheStepEvent);
       });
 
       const caller = transaction.from.toBuffer();
 
       if (this.common.isActivatedEIP(2929)) {
-        const sm = vm.stateManager as DefaultStateManager;
+        const stateManager = vm.stateManager as DefaultStateManager;
         // handle Berlin hardfork warm storage reads
-        warmPrecompiles(sm);
-        sm.addWarmedAddress(caller);
-        // TODO: add to address to warm addresses
-        if (to) {
-          sm.addWarmedAddress(to.buf);
-        }
+        warmPrecompiles(stateManager);
+        stateManager.addWarmedAddress(caller);
+        if (to) stateManager.addWarmedAddress(to.buf);
       }
 
       // we need to update the balance and nonce of the sender _before_

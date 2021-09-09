@@ -13,7 +13,8 @@ export type VmStepEvent = {
 function normalizeEvent(event: InterpreterStep) {
   const { account, memory: originalMemory, opcode } = event;
   const memoryLength = originalMemory.length;
-  // We need to copy some buffers so the user can't mutate them on us
+
+  // We need to copy some buffers so the user can't mutate them on us:
   // Instead of making a bunch of individual buffers, we just make 1 and then
   // it up when needed.
   const sharedBuffer = Buffer.allocUnsafe(104 + memoryLength);
@@ -32,6 +33,7 @@ function normalizeEvent(event: InterpreterStep) {
   } else {
     memory = BUFFER_ZERO;
   }
+
   return {
     account: {
       nonce: Quantity.from(account.nonce.toArrayLike(Buffer)).toBigInt(),
@@ -41,7 +43,7 @@ function normalizeEvent(event: InterpreterStep) {
     },
     address,
     codeAddress,
-    depth: event.depth,
+    depth: BigInt(event.depth),
     gasLeft: Quantity.from(event.gasLeft.toArrayLike(Buffer)).toBigInt(),
     gasRefund: Quantity.from(event.gasRefund.toArrayLike(Buffer)).toBigInt(),
     memory,
@@ -52,9 +54,9 @@ function normalizeEvent(event: InterpreterStep) {
       name: opcode.name,
       fee: opcode.fee
     },
-    pc: event.pc,
-    returnStack: event.returnStack.map(s => s.toBuffer()),
-    stack: event.stack.map(s => s.toBuffer())
+    pc: BigInt(event.pc),
+    returnStack: event.returnStack.map(rs => rs.toArrayLike(Buffer)),
+    stack: event.stack.map(s => s.toArrayLike(Buffer))
   };
 }
 
