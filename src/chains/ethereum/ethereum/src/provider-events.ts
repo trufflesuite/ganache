@@ -59,13 +59,9 @@ function normalizeEvent(event: InterpreterStep) {
 }
 
 export function makeStepEvent(context: EvmStepContext, event: InterpreterStep) {
-  let cached: Readonly<VmStepData>;
   return {
     context,
-    get data() {
-      if (cached !== undefined) return cached;
-      return (cached = normalizeEvent(event));
-    }
+    data: normalizeEvent(event)
   };
 }
 

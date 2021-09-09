@@ -179,6 +179,12 @@ export default class Blockchain extends Emittery.Typed<
    * When not instamining (blockTime > 0) this value holds the timeout timer.
    */
   #timer: NodeJS.Timer | null = null;
+
+  /**
+   * Because step events are expensive, CPU-wise, to create and emit we only do
+   * it conditionally.
+   */
+  #emitStepEvent: boolean = false;
   public blocks: BlockManager;
   public blockLogs: BlockLogManager;
   public transactions: TransactionManager;
@@ -356,6 +362,7 @@ export default class Blockchain extends Emittery.Typed<
         this.emit("ganache:vm:tx:before", event);
       });
       miner.on("ganache:vm:tx:step", event => {
+        if (!this.#emitStepEvent) return;
         this.emit("ganache:vm:tx:step", event);
       });
       miner.on("ganache:vm:tx:after", event => {
@@ -986,6 +993,7 @@ export default class Blockchain extends Emittery.Typed<
       vm.stateManager.checkpoint();
 
       vm.on("step", event => {
+        if (!this.#emitStepEvent) return;
         this.emit(
           "ganache:vm:tx:step",
           makeStepEvent(transactionContext, event)
@@ -1534,6 +1542,11 @@ export default class Blockchain extends Emittery.Typed<
       storage,
       nextKey
     };
+  }
+
+  public toggleStepEvent(enable: boolean) {
+    this.#emitStepEvent = enable;
+    this.#miner.toggleStepEvent(enable);
   }
 
   /**

@@ -68,6 +68,12 @@ export default class Miner extends Emittery.Typed<
   #paused: boolean = false;
   #resumer: Promise<void>;
   #resolver: (value: void) => void;
+
+  /**
+   * Because step events are expensive, CPU-wise, to create and emit we only do
+   * it conditionally.
+   */
+  #emitStepEvent: boolean = false;
   readonly #executables: Executables;
   readonly #options: EthereumInternalOptions["miner"];
   readonly #instamine: boolean;
@@ -429,6 +435,7 @@ export default class Miner extends Emittery.Typed<
     const vm = this.#vm;
     this.emit("ganache:vm:tx:before", { context });
     const stepListener = event => {
+      if (!this.#emitStepEvent) return;
       this.emit("ganache:vm:tx:step", makeStepEvent(context, event));
     };
     vm.on("step", stepListener);
@@ -536,4 +543,8 @@ export default class Miner extends Emittery.Typed<
       }
     }
   };
+
+  public toggleStepEvent(enable: boolean) {
+    this.#emitStepEvent = enable;
+  }
 }

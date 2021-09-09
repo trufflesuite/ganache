@@ -60,6 +60,35 @@ function parseCoinbase(
   }
 }
 
+/**
+ * Detects when a ganache:vm:tx:step listener is active and signals the onChange
+ * function when the status changes
+ * @param provider
+ * @param onChange
+ */
+function hookEventSystem(
+  provider: EthereumProvider,
+  onChange: (status: boolean) => void
+) {
+  let listenerCount = 0;
+  provider.on(Emittery.listenerAdded as any, ({ eventName }) => {
+    if (eventName === "ganache:vm:tx:step" || eventName === undefined) {
+      if (listenerCount === 0) {
+        onChange(true);
+      }
+      listenerCount++;
+    }
+  });
+  provider.on(Emittery.listenerRemoved as any, ({ eventName }) => {
+    if (eventName === "ganache:vm:tx:step" || eventName === undefined) {
+      listenerCount--;
+      if (listenerCount === 0) {
+        onChange(false);
+      }
+    }
+  });
+}
+
 type Primitives = string | number | null | undefined | symbol | bigint;
 type Clean<X> = X extends Primitives
   ? X
@@ -129,6 +158,10 @@ export default class EthereumProvider
     });
     blockchain.on("ganache:vm:tx:after", event => {
       this.emit("ganache:vm:tx:after", event);
+    });
+
+    hookEventSystem(this, (enable: boolean) => {
+      blockchain.toggleStepEvent(enable);
     });
 
     this.#api = new EthereumApi(providerOptions, wallet, blockchain);
