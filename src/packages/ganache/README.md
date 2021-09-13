@@ -228,14 +228,14 @@ interface StepEvent {
 
 const contexts = new Map();
 provider.on("ganache:vm:tx:before", (event: { context: {} }) => {
-  context.set(event.context, []);
+  contexts.set(event.context, []);
 });
 provider.on("ganache:vm:tx:step", (event: StepEvent) => {
-  context.get(event.context).push(event.data);
+  contexts.get(event.context).push(event.data);
 });
 provider.on("ganache:vm:tx:after", (event: { context: {} }) => {
-  doAThingWithThisTransactionsSteps(context.get(event.context));
-  context.delete(event.context);
+  doAThingWithThisTransactionsSteps(contexts.get(event.context));
+  contexts.delete(event.context);
 });
 ```
 
