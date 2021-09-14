@@ -434,6 +434,8 @@ export default class Miner extends Emittery.Typed<
     const context = {};
     const vm = this.#vm;
     this.emit("ganache:vm:tx:before", { context });
+    // we always listen to the step event even if `#emitStepEvent` is false in
+    // case the user starts listening in the middle of the transaction.
     const stepListener = event => {
       if (!this.#emitStepEvent) return;
       this.emit("ganache:vm:tx:step", makeStepEvent(context, event));
