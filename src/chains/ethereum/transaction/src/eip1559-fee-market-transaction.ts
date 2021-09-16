@@ -2,13 +2,13 @@ import {
   Data,
   Quantity,
   keccak,
-  BUFFER_EMPTY,
   BUFFER_32_ZERO,
-  RPCQUANTITY_EMPTY
+  RPCQUANTITY_EMPTY,
+  BUFFER_ZERO
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
-import { BN, ecsign } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
@@ -25,6 +25,22 @@ import {
   Capability,
   EIP1559FeeMarketTransactionJSON
 } from "./transaction-types";
+import secp256k1 from "@ganache/secp256k1";
+
+function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
+  const object = { signature: new Uint8Array(64), recid: null };
+  const status = secp256k1.ecdsaSign(object, msgHash, privateKey);
+  if (status === 0) {
+    const buffer = object.signature.buffer;
+    const r = Buffer.from(buffer, 0, 32);
+    const s = Buffer.from(buffer, 32, 32);
+    return { r, s, v: object.recid };
+  } else {
+    throw new Error(
+      "The nonce generation function failed, or the private key was invalid"
+    );
+  }
+}
 
 const CAPABILITIES = [2718, 2930, 1559];
 export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
@@ -58,21 +74,27 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.s = Quantity.from(data[11]);
       this.raw = [this.type.toBuffer(), ...data];
 
-      const {
-        from,
-        serialized,
-        hash,
-        encodedData,
-        encodedSignature
-      } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
+      if (!extra) {
+        // TODO(hack): Transactions that come from the database must not be
+        // validated since they may come from a fork.
+        const {
+          from,
+          serialized,
+          hash,
+          encodedData,
+          encodedSignature
+        } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
 
-      this.from = from;
-      this.serialized = serialized;
-      this.hash = hash;
-      this.encodedData = encodedData;
-      this.encodedSignature = encodedSignature;
+        this.from = from;
+        this.serialized = serialized;
+        this.hash = hash;
+        this.encodedData = encodedData;
+        this.encodedSignature = encodedSignature;
+      }
     } else {
-      this.chainId = Quantity.from(data.chainId);
+      this.chainId = Quantity.from(
+        data.chainId || common.chainIdBN().toArrayLike(Buffer)
+      );
       this.maxPriorityFeePerGas = Quantity.from(data.maxPriorityFeePerGas);
       this.maxFeePerGas = Quantity.from(data.maxFeePerGas);
       const accessListData = AccessLists.getAccessListData(data.accessList);
@@ -83,7 +105,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     this.updateEffectiveGasPrice();
   }
 
-  public toJSON(): EIP1559FeeMarketTransactionJSON {
+  public toJSON(_common?: Common): EIP1559FeeMarketTransactionJSON {
     return {
       type: this.type,
       hash: this.hash,
@@ -177,21 +199,19 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       );
     }
 
-    const chainId = this.common.chainId();
     const typeBuf = this.type.toBuffer();
     const raw: EIP1559FeeMarketDatabaseTx = this.toEthRawTransaction(
-      Quantity.from(chainId).toBuffer(),
-      BUFFER_EMPTY,
-      BUFFER_EMPTY
+      BUFFER_ZERO,
+      BUFFER_ZERO,
+      BUFFER_ZERO
     );
     const data = encodeRange(raw, 1, 9);
     const dataLength = data.length;
 
-    const ending = encodeRange(raw, 10, 3);
     const msgHash = keccak(
-      digest([data.output, ending.output], dataLength + ending.length)
+      Buffer.concat([typeBuf, digest([data.output], dataLength)])
     );
-    const sig = ecsign(msgHash, privateKey, chainId);
+    const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);

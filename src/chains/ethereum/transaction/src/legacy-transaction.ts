@@ -45,7 +45,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.s = Quantity.from(data[8]);
       this.raw = data;
 
-      if (this.common) {
+      if (!extra) {
         // TODO(hack): Transactions that come from the database must not be
         // validated since they may come from a fork.
         const {
@@ -112,29 +112,6 @@ export class LegacyTransaction extends RuntimeTransaction {
         common
       );
     }
-    return new LegacyTransaction(data, common);
-  }
-
-  public static fromEIP15590FeeMarketTransaction(
-    data: EIP1559FeeMarketDatabasePayload | TypedRpcTransaction,
-    common: Common
-  ) {
-    if (Array.isArray(data)) {
-      const rawLegacy: LegacyDatabasePayload = [
-        data[1], // nonce
-        data[3], // we'll use the max fee per gas as the gas price
-        data[4], // gas
-        data[5], // to
-        data[6], // value
-        data[7], // data
-        data[9], // v
-        data[10], // r
-        data[11] // s
-      ];
-      // remove 1st item, chainId, and 7th item, accessList
-      return new LegacyTransaction(rawLegacy, common);
-    }
-    data.gasPrice = data.maxFeePerGas;
     return new LegacyTransaction(data, common);
   }
 

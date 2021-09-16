@@ -20,7 +20,7 @@ import {
   TransactionTraceOptions,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   TypedRpcTransaction,
   TransactionFactory,
@@ -767,7 +767,8 @@ export default class EthereumApi implements Api {
         parentHeader.gasUsed.toBuffer(),
         parentHeader.timestamp,
         options.miner.difficulty,
-        parentHeader.totalDifficulty
+        parentHeader.totalDifficulty,
+        Block.calcNextBaseFee(parentBlock)
       );
       const runArgs = {
         tx: tx.toVmTransaction(),
@@ -868,8 +869,10 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async eth_getBlockByNumber(number: QUANTITY | Tag, transactions = false) {
-    const block = await this.#blockchain.blocks.get(number).catch(_ => null);
-    return block ? block.toJSON(transactions, this.#blockchain.common) : null;
+    const block = await this.#blockchain.blocks
+      .get(number)
+      .catch<Block>(_ => null);
+    return block ? block.toJSON(transactions) : null;
   }
 
   /**
@@ -926,7 +929,7 @@ export default class EthereumApi implements Api {
   async eth_getBlockByHash(hash: DATA, transactions = false) {
     const block = await this.#blockchain.blocks
       .getByHash(hash)
-      .catch(_ => null);
+      .catch<Block>(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
@@ -1040,12 +1043,15 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
-    const block = await this.eth_getBlockByHash(hash, true);
-    if (block) {
-      const tx = block.transactions[Quantity.from(index).toNumber()];
-      if (tx) return tx;
-    }
-    return null;
+    const blockchain = this.#blockchain;
+    const block = await blockchain.blocks
+      .getByHash(hash)
+      .catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+      blockchain.common
+    );
   }
 
   /**
@@ -1086,8 +1092,13 @@ export default class EthereumApi implements Api {
     number: QUANTITY | Tag,
     index: QUANTITY
   ) {
-    const block = await this.eth_getBlockByNumber(number, true);
-    return block.transactions[parseInt(Quantity.from(index).toString(), 10)];
+    const blockchain = this.#blockchain;
+    const block = await blockchain.blocks.get(number).catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+      blockchain.common
+    );
   }
 
   /**
@@ -1652,9 +1663,9 @@ export default class EthereumApi implements Api {
     }
 
     if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
-      const block = await this.#blockchain.blocks.get("latest").catch(_ => null); // prettier-ignore
+      const block = this.#blockchain.blocks.latest;
       tx.maxFeePerGas = Quantity.from(
-        Block.calcNextBaseFee(this.#blockchain.common, block)
+        Block.calcMaxNBlocksBaseFee(3, <BaseFeeHeader>block.header)
       );
     }
 
@@ -1921,6 +1932,9 @@ export default class EthereumApi implements Api {
             transactionsRoot: header.transactionsRoot,
             sha3Uncles: header.sha3Uncles
           };
+          if (header.baseFeePerGas !== undefined) {
+            (result as any).baseFeePerGas = header.baseFeePerGas;
+          }
 
           // TODO: move the JSON stringification closer to where the message
           // is actually sent to the listener
@@ -2432,7 +2446,8 @@ export default class EthereumApi implements Api {
       parentHeader.gasUsed.toBuffer(),
       parentHeader.timestamp,
       options.miner.difficulty,
-      parentHeader.totalDifficulty
+      parentHeader.totalDifficulty,
+      Block.calcNextBaseFee(parentBlock)
     );
 
     const simulatedTransaction = {

@@ -523,8 +523,8 @@ export default class Blockchain extends Emittery.Typed<
       BUFFER_ZERO,
       Quantity.from(timestamp == null ? this.#currentTime() : timestamp),
       this.#options.miner.difficulty,
-      previousBlock.header.totalDifficulty,
-      Block.calcNextBaseFee(this.common, previousBlock)
+      previousHeader.totalDifficulty,
+      Block.calcNextBaseFee(previousBlock)
     );
   };
 
@@ -611,27 +611,38 @@ export default class Blockchain extends Emittery.Typed<
     initialAccounts: Account[]
   ) => {
     if (this.fallback != null) {
+      const { block: fallbackBlock } = this.fallback;
+      const { miner: minerOptions } = this.#options;
+
       // commit accounts, but for forking.
-      const sm = this.vm.stateManager as any;
-      this.vm.stateManager.checkpoint();
+      const stateManager = <DefaultStateManager>this.vm.stateManager;
+      stateManager.checkpoint();
       initialAccounts.forEach(acc => {
-        const a = { buf: acc.address.toBuffer() };
-        sm._cache.put(a, acc as any);
-        sm.touchAccount(a);
+        const a = { buf: acc.address.toBuffer() } as any;
+        (stateManager as any)._cache.put(a, acc);
+        stateManager.touchAccount(a);
       });
-      await this.vm.stateManager.commit();
+      await stateManager.commit();
 
       // create the genesis block
+      let baseFeePerGas: bigint;
+      if (this.common.isActivatedEIP(1559)) {
+        if (fallbackBlock.header.baseFeePerGas === undefined) {
+          baseFeePerGas = Block.INITIAL_BASE_FEE_PER_GAS;
+        } else {
+          baseFeePerGas = fallbackBlock.header.baseFeePerGas.toBigInt();
+        }
+      }
       const genesis = new RuntimeBlock(
-        Quantity.from(this.fallback.block.header.number.toBigInt() + 1n),
-        this.fallback.block.hash(),
+        Quantity.from(fallbackBlock.header.number.toBigInt() + 1n),
+        fallbackBlock.hash(),
         this.coinbase,
         blockGasLimit.toBuffer(),
         BUFFER_ZERO,
         Quantity.from(timestamp),
-        this.#options.miner.difficulty,
-        this.fallback.block.header.totalDifficulty,
-        Block.calcNextBaseFee(this.common, this.fallback.block)
+        minerOptions.difficulty,
+        fallbackBlock.header.totalDifficulty,
+        baseFeePerGas
       );
 
       // store the genesis block in the database
@@ -641,7 +652,7 @@ export default class Blockchain extends Emittery.Typed<
         BUFFER_256_ZERO,
         this.trie.root,
         0n,
-        this.#options.miner.extraData,
+        minerOptions.extraData,
         [],
         new Map()
       );
@@ -665,6 +676,9 @@ export default class Blockchain extends Emittery.Typed<
     const rawBlockNumber = RPCQUANTITY_EMPTY;
 
     // create the genesis block
+    const baseFeePerGas = this.common.isActivatedEIP(1559)
+      ? Block.INITIAL_BASE_FEE_PER_GAS
+      : undefined;
     const genesis = new RuntimeBlock(
       rawBlockNumber,
       Quantity.from(BUFFER_32_ZERO),
@@ -674,7 +688,7 @@ export default class Blockchain extends Emittery.Typed<
       Quantity.from(timestamp),
       this.#options.miner.difficulty,
       RPCQUANTITY_ZERO, // we start the totalDifficulty at 0
-      Block.calcNextBaseFee(this.common)
+      baseFeePerGas
     );
 
     // store the genesis block in the database
@@ -1126,12 +1140,12 @@ export default class Blockchain extends Emittery.Typed<
         }
       }
     };
-
+    let mypromise;
     const beforeTxListener = async (tx: VmTransaction) => {
       if (tx === transaction) {
         if (keys && contractAddress) {
           const database = this.#database;
-          return Promise.all(
+          return (mypromise = Promise.all(
             keys.map(async key => {
               // get the raw key using the hashed key
               let rawKey = await database.storageKeys.get(key);
@@ -1146,7 +1160,7 @@ export default class Blockchain extends Emittery.Typed<
                 value: Data.from(result, 32)
               };
             })
-          );
+          ));
         }
         vm.on("step", stepListener);
       }
@@ -1179,6 +1193,7 @@ export default class Blockchain extends Emittery.Typed<
     // It's possible we've removed handling specific cases in this implementation.
     // e.g., the previous incantation of RuntimeError
     await runTransactions(vm, newBlock.transactions, newBlock);
+    await mypromise;
 
     // Just to be safe
     removeListeners();
@@ -1211,7 +1226,7 @@ export default class Blockchain extends Emittery.Typed<
       targetBlock.header.timestamp,
       this.#options.miner.difficulty,
       parentBlock.header.totalDifficulty,
-      Block.calcNextBaseFee(this.common, parentBlock)
+      Block.calcNextBaseFee(parentBlock)
     ) as RuntimeBlock & {
       uncleHeaders: [];
       transactions: VmTransaction[];

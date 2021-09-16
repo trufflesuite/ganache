@@ -8,6 +8,7 @@ import {
   LegacyDatabasePayload,
   LegacyTransaction,
   TransactionFactory,
+  TransactionType,
   TypedDatabaseTransaction,
   TypedRpcTransaction
 } from "../../transaction";
@@ -492,7 +493,7 @@ describe("@ganache/ethereum-transaction", async () => {
       ];
       assert.strictEqual(
         TransactionFactory.typeOfRaw(db as TypedDatabaseTransaction),
-        LegacyTransaction
+        TransactionType.Legacy
       );
     });
 
@@ -526,24 +527,25 @@ describe("@ganache/ethereum-transaction", async () => {
           assert.strictEqual(txFromRpc.accessList, undefined);
         });
 
-        it("converts EIP2930AccessList raw database data to LegacyTransaction before berlin hardfork", () => {
+        it("does not convert EIP2930AccessList raw database data to LegacyTransaction before berlin hardfork", () => {
           const txFromDb = TransactionFactory.fromDatabaseTx(
             rawEIP2930DBData,
-            preBerlin
+            common
           ) as any;
 
-          assert.strictEqual(txFromDb.type.toString(), "0x0");
-          assert.strictEqual(txFromDb.accessList, undefined);
+          assert.strictEqual(txFromDb.type.toString(), "0x1");
+          assert.deepStrictEqual(txFromDb.accessList.length, 1);
         });
 
-        it("converts EIP2930AccessList raw string data to LegacyTransaction before berlin hardfork", () => {
-          const txFromString = TransactionFactory.fromString(
-            rawEIP2930StringData,
-            preBerlin
-          ) as any;
-
-          assert.strictEqual(txFromString.type.toString(), "0x0");
-          assert.strictEqual(txFromString.accessList, undefined);
+        it("does not convert EIP2930AccessList raw string data to LegacyTransaction before berlin hardfork", () => {
+          assert.throws(
+            () =>
+              TransactionFactory.fromString(
+                rawEIP2930StringData,
+                preBerlin
+              ) as any,
+            { message: "invalid remainder" }
+          );
         });
 
         it("converts EIP1559FeeMarket RPC data to LegacyTransaction before berlin hardfork", () => {
@@ -555,23 +557,21 @@ describe("@ganache/ethereum-transaction", async () => {
           assert.strictEqual(txFromRpc.type.toString(), "0x0");
           assert.strictEqual(txFromRpc.accessList, undefined);
         });
-        it("converts EIP1559FeeMarket raw database data to LegacyTransaction before berlin hardfork", () => {
+        it("does not convert EIP1559FeeMarket raw database data to LegacyTransaction", () => {
           const txFromDb = TransactionFactory.fromDatabaseTx(
             rawEIP1559DBData,
-            preBerlin
+            common
           ) as any;
 
-          assert.strictEqual(txFromDb.type.toString(), "0x0");
-          assert.strictEqual(txFromDb.accessList, undefined);
+          assert.strictEqual(txFromDb.type.toString(), "0x2");
+          assert.strictEqual(txFromDb.accessList.length, 1);
         });
-        it("converts EIP1559FeeMarket raw string data to LegacyTransaction before berlin hardfork", () => {
-          const txFromString = TransactionFactory.fromString(
-            rawEIP1559StringData,
-            preBerlin
-          ) as any;
-
-          assert.strictEqual(txFromString.type.toString(), "0x0");
-          assert.strictEqual(txFromString.accessList, undefined);
+        it("does not convert EIP1559FeeMarket raw string data to LegacyTransaction", () => {
+          assert.throws(
+            () =>
+              TransactionFactory.fromString(rawEIP1559StringData, preBerlin),
+            { message: "invalid remainder" }
+          );
         });
       });
 

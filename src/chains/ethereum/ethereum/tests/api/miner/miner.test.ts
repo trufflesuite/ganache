@@ -109,7 +109,7 @@ describe("api", () => {
       let accounts: string[];
 
       beforeEach(async () => {
-        provider = await getProvider();
+        provider = await getProvider({ chain: { hardfork: "berlin" } });
         accounts = await provider.send("eth_accounts");
       });
 

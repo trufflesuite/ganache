@@ -116,12 +116,12 @@ describe("miner", async () => {
       const highGasBlock = await highGasLimitBlockchain.blocks.get(
         Buffer.from([1])
       );
-      highBlockJson = highGasBlock.toJSON(true, common);
+      highBlockJson = highGasBlock.toJSON(true);
     });
 
     it("orders transactions by gasPrice", async () => {
       const block = await lowGasLimitBlockchain.blocks.get(Buffer.from([1]));
-      const lowBlockJson = block.toJSON(true, common);
+      const lowBlockJson = block.toJSON(true);
       const lowBlockTxJson = lowBlockJson.transactions[0] as any;
       // because of our low gas price, only one transaction should be on the block.
       assert.strictEqual(lowBlockJson.transactions.length, 1);
@@ -137,7 +137,7 @@ describe("miner", async () => {
 
     it("updates baseFeePerGas and order of tx pool when a new block is mined", async () => {
       const block = await lowGasLimitBlockchain.blocks.get(Buffer.from([2]));
-      const lowBlockJson = block.toJSON(true, common);
+      const lowBlockJson = block.toJSON(true);
       const lowBlockTxJson = lowBlockJson.transactions[0] as any;
       // because of our low gas price, only one transaction should be on the block.
       assert.strictEqual(lowBlockJson.transactions.length, 1);
@@ -155,7 +155,7 @@ describe("miner", async () => {
 
     it("updates baseFeePerGas and rejects txs that don't pay enough for gas when a new block is mined", async () => {
       const block = await lowGasLimitBlockchain.blocks.get(Buffer.from([3]));
-      const lowBlockJson = block.toJSON(false, common);
+      const lowBlockJson = block.toJSON(false);
       // the low gas limit chain will be too expensive for the remaining tx, so it won't be included in the block
       assert.strictEqual(lowBlockJson.transactions.length, 0);
       // the remaining tx should be second tx of the high limit block

@@ -45,6 +45,10 @@
     {
       "name": "@ganache/ethereum-block",
       "path": "../block"
+    },
+    {
+      "name": "@ganache/secp256k1",
+      "path": "../../../packages/secp256k1"
     }
   ]
 }

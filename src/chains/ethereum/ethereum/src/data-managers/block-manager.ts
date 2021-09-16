@@ -4,7 +4,18 @@ import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
 import Blockchain from "../blockchain";
-import { Block } from "@ganache/ethereum-block";
+import {
+  Block,
+  EthereumRawBlockHeader,
+  serialize
+} from "@ganache/ethereum-block";
+import { Address } from "@ganache/ethereum-address";
+import {
+  GanacheRawBlockTransactionMetaData,
+  TransactionFactory,
+  TransactionType,
+  TypedDatabaseTransaction
+} from "@ganache/ethereum-transaction";
 
 const NOTFOUND = 404;
 
@@ -54,6 +65,55 @@ export default class BlockManager extends Manager<Block> {
     this.#blockIndexes = blockIndexes;
   }
 
+  static rawFromJSON(json: any, common: Common) {
+    const header: EthereumRawBlockHeader = [
+      Data.from(json.parentHash).toBuffer(),
+      Data.from(json.sha3Uncles).toBuffer(),
+      Address.from(json.miner).toBuffer(),
+      Data.from(json.stateRoot).toBuffer(),
+      Data.from(json.transactionsRoot).toBuffer(),
+      Data.from(json.receiptsRoot).toBuffer(),
+      Data.from(json.logsBloom).toBuffer(),
+      Quantity.from(json.difficulty).toBuffer(),
+      Quantity.from(json.number).toBuffer(),
+      Quantity.from(json.gasLimit).toBuffer(),
+      Quantity.from(json.gasUsed).toBuffer(),
+      Quantity.from(json.timestamp).toBuffer(),
+      Data.from(json.extraData).toBuffer(),
+      Data.from(json.mixHash).toBuffer(),
+      Data.from(json.nonce).toBuffer()
+    ];
+    // only add baseFeePerGas if the transaction JSON already has it
+    if (json.baseFeePerGas !== undefined) {
+      header[15] = Data.from(json.baseFeePerGas).toBuffer();
+    }
+    const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
+    const txs: TypedDatabaseTransaction[] = [];
+    const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
+    json.transactions.forEach((tx, index) => {
+      const blockExtra = [
+        Quantity.from(tx.from).toBuffer(),
+        Quantity.from(tx.hash).toBuffer()
+      ] as any;
+      const txExtra = [
+        ...blockExtra,
+        Data.from(json.hash).toBuffer(),
+        Quantity.from(json.number).toBuffer(),
+        index
+      ] as any;
+      const typedTx = TransactionFactory.fromRpc(tx, common, txExtra);
+      const raw = typedTx.toEthRawTransaction(
+        typedTx.v.toBuffer(),
+        typedTx.r.toBuffer(),
+        typedTx.s.toBuffer()
+      );
+      txs.push(<TypedDatabaseTransaction>raw);
+      extraTxs.push(blockExtra);
+    });
+
+    return serialize([header, txs, [], totalDifficulty, extraTxs]).serialized;
+  }
+
   fromFallback = async (
     tagOrBlockNumber: string | Buffer | Tag
   ): Promise<Buffer> => {
@@ -64,7 +124,7 @@ export default class BlockManager extends Manager<Block> {
         : Quantity.from(tagOrBlockNumber).toString(),
       true
     ]);
-    return json == null ? null : Block.rawFromJSON(json, this.#common);
+    return json == null ? null : BlockManager.rawFromJSON(json, this.#common);
   };
 
   getBlockByTag(tag: Tag) {
@@ -117,7 +177,10 @@ export default class BlockManager extends Manager<Block> {
           true
         ]);
         if (json && BigInt(json.number) <= fallback.blockNumber.toBigInt()) {
-          return new Block(Block.rawFromJSON(json, this.#common), this.#common);
+          return new Block(
+            BlockManager.rawFromJSON(json, this.#common),
+            this.#common
+          );
         } else {
           return null;
         }

@@ -24,6 +24,8 @@ export async function runTransactions(
       })
       // we ignore transactions that error because we just want to _run_ these,
       // transactions just to update the blockchain's state
-      .catch(() => {});
+      .catch(e => {
+        console.log(e);
+      });
   }
 }

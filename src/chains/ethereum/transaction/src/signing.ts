@@ -12,13 +12,7 @@ import {
 } from "./raw";
 import { digest, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
-
-let secp256k1;
-try {
-  secp256k1 = require("node-gyp-build")(__dirname);
-} catch (err) {
-  secp256k1 = require("secp256k1/lib/elliptic");
-}
+import secp256k1 from "@ganache/secp256k1";
 
 const intToBuffer = (value: number) =>
   value === 0 ? BUFFER_EMPTY : uintToBuffer(value);
@@ -76,7 +70,7 @@ export const isValidSigRecovery = (recovery: number) => {
  * @param msgHash
  * @param recovery
  */
-export const ecdaRecover = (
+export const ecdsaRecover = (
   partialRlp: { output: Buffer[] | Readonly<Buffer[]>; length: number },
   sharedBuffer: Buffer,
   v: number,
@@ -106,6 +100,17 @@ export const ecdaRecover = (
   if (!isValidSigRecovery(recid)) {
     throw new Error("Invalid signature v value");
   }
+
+  return _ecdsaRecover(data, sharedBuffer, rBuf, sBuf, recid);
+};
+
+function _ecdsaRecover(
+  data: Buffer,
+  sharedBuffer: Buffer,
+  rBuf: Buffer,
+  sBuf: Buffer,
+  recid: number
+) {
   const message = keccak(data);
 
   const signature = sharedBuffer.slice(0, 64);
@@ -118,7 +123,7 @@ export const ecdaRecover = (
     throw new Error("Invalid Signature");
   }
   return output;
-};
+}
 
 /**
  *
@@ -149,7 +154,7 @@ export const computeFromAddress = (
   sBuf: Buffer,
   chainId: number
 ) => {
-  const senderPubKey = ecdaRecover(
+  const senderPubKey = ecdsaRecover(
     partialRlp,
     SHARED_BUFFER,
     v,
@@ -232,14 +237,24 @@ export const computeInstrinsicsFeeMarketTx = (
       encodedData.length + encodedSignature.length
     )
   ]);
+
+  const data = Buffer.concat([
+    typeBuf,
+    digest([encodedData.output], encodedData.length)
+  ]);
+  const senderPubKey = _ecdsaRecover(
+    data,
+    SHARED_BUFFER,
+    raw[11],
+    raw[12],
+    v.toNumber()
+  );
+
+  const publicKey = publicKeyConvert(SHARED_BUFFER, senderPubKey);
+  const from = Address.from(keccak(publicKey.slice(1)).slice(-20));
+
   return {
-    from: computeFromAddress(
-      encodedData,
-      v.toNumber(),
-      raw[11],
-      raw[12],
-      chainId
-    ),
+    from: from,
     hash: Data.from(keccak(serialized), 32),
     serialized,
     encodedData,

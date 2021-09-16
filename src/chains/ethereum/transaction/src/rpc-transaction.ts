@@ -26,29 +26,29 @@ export type TypedRpcTransaction =
   | EIP2930AccessListRpcTransaction
   | EIP1559FeeMarketRpcTransaction;
 
-export type LegacyRpcTransaction = RpcTransaction & {
-  gasPrice?: string;
-  chainId?: never;
-  accessList?: never;
-  maxPriorityFeePerGas?: never;
-  maxFeePerGas?: never;
+export type LegacyRpcTransaction = Readonly<RpcTransaction> & {
+  readonly gasPrice?: string;
+  readonly chainId?: never;
+  readonly accessList?: never;
+  readonly maxPriorityFeePerGas?: never;
+  readonly maxFeePerGas?: never;
 };
-export type EIP2930AccessListRpcTransaction = RpcTransaction & {
-  type: TxType;
-  chainId?: string;
-  gasPrice?: string;
-  accessList?: AccessList;
-  maxPriorityFeePerGas?: never;
-  maxFeePerGas?: never;
+export type EIP2930AccessListRpcTransaction = Readonly<RpcTransaction> & {
+  readonly type: TxType;
+  readonly chainId?: string;
+  readonly gasPrice?: string;
+  readonly accessList?: AccessList;
+  readonly maxPriorityFeePerGas?: never;
+  readonly maxFeePerGas?: never;
 };
 
-export type EIP1559FeeMarketRpcTransaction = RpcTransaction & {
-  type: TxType;
-  chainId?: string;
-  gasPrice?: never;
-  maxPriorityFeePerGas?: string;
-  maxFeePerGas?: string;
-  accessList?: AccessList;
+export type EIP1559FeeMarketRpcTransaction = Readonly<RpcTransaction> & {
+  readonly type: TxType;
+  readonly chainId?: string;
+  readonly gasPrice?: never;
+  readonly maxPriorityFeePerGas?: string;
+  readonly maxFeePerGas?: string;
+  readonly accessList?: AccessList;
 };
 
 export type RpcTransaction =

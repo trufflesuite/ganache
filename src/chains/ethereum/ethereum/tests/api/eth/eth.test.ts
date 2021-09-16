@@ -95,8 +95,13 @@ describe("api", () => {
 
       it("should use the default chain id when signing transactions", async () => {
         await provider.send("eth_subscribe", ["newHeads"]);
+        const gasPrice = await provider.send("eth_gasPrice", []);
         const txHash = await provider.send("eth_sendTransaction", [
-          { from: accounts[0], to: accounts[0] }
+          {
+            from: accounts[0],
+            to: accounts[0],
+            gasPrice
+          }
         ]);
         await provider.once("message");
         const tx = await provider.send("eth_getTransactionByHash", [txHash]);
@@ -416,7 +421,8 @@ describe("api", () => {
         {
           from: accounts[0],
           to: accounts[1],
-          value: "0x1"
+          value: "0x1",
+          gasPrice: "0x77359400"
         }
       ]);
       await provider.once("message");
@@ -439,11 +445,13 @@ describe("api", () => {
 
     it("eth_getTransactionByBlockHashAndIndex", async () => {
       await provider.send("eth_subscribe", ["newHeads"]);
+      const gasPrice = await provider.send("eth_gasPrice", []);
       const txHash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
           to: accounts[1],
-          value: "0x1"
+          value: "0x1",
+          gasPrice
         }
       ]);
       const _message = await provider.once("message");

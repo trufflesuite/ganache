@@ -48,6 +48,9 @@ export type BlockHeader = {
   baseFeePerGas?: Quantity;
 };
 
+export type BaseFeeHeader = BlockHeader &
+  Required<Pick<BlockHeader, "baseFeePerGas">>;
+
 /**
  * Returns the size of the serialized data as it would have been calculated had
  * we stored things geth does, i.e., `totalDfficulty` is not usually stored in
@@ -82,7 +85,7 @@ export function makeHeader(
     nonce: Data.from(raw[14], 8),
     totalDifficulty: Quantity.from(totalDifficulty, false),
     baseFeePerGas:
-      raw[15] === BUFFER_EMPTY ? undefined : Quantity.from(raw[15], false)
+      raw[15] === undefined ? undefined : Quantity.from(raw[15], false)
   };
 }
 
@@ -111,7 +114,7 @@ export class RuntimeBlock {
     timestamp: Quantity,
     difficulty: Quantity,
     previousBlockTotalDifficulty: Quantity,
-    baseFeePerGas?: Buffer
+    baseFeePerGas?: bigint
   ) {
     const ts = timestamp.toBuffer();
     const coinbaseBuffer = coinbase.toBuffer();
@@ -127,7 +130,9 @@ export class RuntimeBlock {
       gasUsed: new BnExtra(gasUsed),
       timestamp: new BnExtra(ts),
       baseFeePerGas:
-        baseFeePerGas === undefined ? undefined : new BnExtra(baseFeePerGas)
+        baseFeePerGas === undefined
+          ? undefined
+          : new BnExtra(Quantity.from(baseFeePerGas).toBuffer())
     };
   }
 
@@ -161,11 +166,12 @@ export class RuntimeBlock {
       header.timestamp.buf,
       extraData.toBuffer(),
       BUFFER_32_ZERO, // mixHash
-      BUFFER_8_ZERO, // nonce
-      header.baseFeePerGas === undefined
-        ? BUFFER_EMPTY
-        : header.baseFeePerGas.buf
+      BUFFER_8_ZERO // nonce
     ];
+    if (header.baseFeePerGas) {
+      rawHeader[15] = header.baseFeePerGas.buf;
+    }
+
     const { totalDifficulty } = header;
     const txs: TypedDatabaseTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];

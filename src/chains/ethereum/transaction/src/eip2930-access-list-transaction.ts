@@ -59,7 +59,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.s = Quantity.from(data[10]);
       this.raw = [this.type.toBuffer(), ...data];
 
-      if (this.common) {
+      if (!extra) {
         // TODO(hack): Transactions that come from the database must not be
         // validated since they may come from a fork.
         const {
@@ -87,7 +87,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     }
   }
 
-  public toJSON(common?: Common): EIP2930AccessListTransactionJSON {
+  public toJSON(_common?: Common): EIP2930AccessListTransactionJSON {
     return {
       hash: this.hash,
       type: this.type,
@@ -183,7 +183,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     const msgHash = keccak(
       digest([data.output, ending.output], dataLength + ending.length)
     );
-    const sig = ecsign(msgHash, privateKey, chainId);
+    const sig = ecsign(msgHash, privateKey, null);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
