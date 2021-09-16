@@ -681,7 +681,7 @@ export default class Blockchain extends Emittery.Typed<
       : undefined;
     const genesis = new RuntimeBlock(
       rawBlockNumber,
-      Quantity.from(BUFFER_32_ZERO),
+      Data.from(BUFFER_32_ZERO),
       this.coinbase,
       blockGasLimit.toBuffer(),
       BUFFER_ZERO,
