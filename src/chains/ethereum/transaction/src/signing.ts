@@ -194,8 +194,7 @@ export const computeInstrinsicsLegacyTx = (
 
 export const computeInstrinsicsAccessListTx = (
   v: Quantity,
-  raw: EIP2930AccessListDatabaseTx,
-  chainId: number
+  raw: EIP2930AccessListDatabaseTx
 ) => {
   const typeBuf = raw[0];
   const encodedData = encodeRange(raw, 1, 8);
@@ -207,14 +206,24 @@ export const computeInstrinsicsAccessListTx = (
       encodedData.length + encodedSignature.length
     )
   ]);
+
+  const data = Buffer.concat([
+    typeBuf,
+    digest([encodedData.output], encodedData.length)
+  ]);
+  const senderPubKey = _ecdsaRecover(
+    data,
+    SHARED_BUFFER,
+    raw[10],
+    raw[11],
+    v.toNumber()
+  );
+
+  const publicKey = publicKeyConvert(SHARED_BUFFER, senderPubKey);
+  const from = Address.from(keccak(publicKey.slice(1)).slice(-20));
+
   return {
-    from: computeFromAddress(
-      encodedData,
-      v.toNumber(),
-      raw[10],
-      raw[11],
-      chainId
-    ),
+    from: from,
     hash: Data.from(keccak(serialized), 32),
     serialized,
     encodedData,
@@ -224,8 +233,7 @@ export const computeInstrinsicsAccessListTx = (
 
 export const computeInstrinsicsFeeMarketTx = (
   v: Quantity,
-  raw: EIP1559FeeMarketDatabaseTx,
-  chainId: number
+  raw: EIP1559FeeMarketDatabaseTx
 ) => {
   const typeBuf = raw[0];
   const encodedData = encodeRange(raw, 1, 9);

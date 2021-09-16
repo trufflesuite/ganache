@@ -86,7 +86,7 @@ describe("@ganache/ethereum-transaction", async () => {
   };
 
   const rawEIP2930StringData =
-    "0x01f89c808082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a00000000000000000000000000000000000000000000000000000000000000004820a96a0afba87c71565e226bd7b9fbab5234ce62ec479f356f98aad96f811420ea448f7a006ec0a09f508da4c12e52d3f984998e54dfa082e6b796050a73a8a01bb9dc10e";
+    "0x01f89a808082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a0000000000000000000000000000000000000000000000000000000000000000480a0afba87c71565e226bd7b9fbab5234ce62ec479f356f98aad96f811420ea448f7a006ec0a09f508da4c12e52d3f984998e54dfa082e6b796050a73a8a01bb9dc10e";
   const eip2930Buf = Buffer.from(rawEIP2930StringData.slice(2), "hex");
   const rawEIP2930DBData: EIP2930AccessListDatabaseTx = [
     eip2930Buf.slice(0, 1),
@@ -110,8 +110,7 @@ describe("@ganache/ethereum-transaction", async () => {
   };
 
   const rawEIP1559StringData =
-    "0x02f89e808081ff82ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a00000000000000000000000000000000000000000000000000000000000000004820a96a02ccd79d8d8da2c2fa22ffaf74abfd995142745ede371d4061581aebc17a17319a0774def35a8a81b04506ed0676e0ddf391859ab86e33c8b484d945ab89ddf8a56";
-
+    "0x02f89c808081ff82ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a0000000000000000000000000000000000000000000000000000000000000000480a02ccd79d8d8da2c2fa22ffaf74abfd995142745ede371d4061581aebc17a17319a0774def35a8a81b04506ed0676e0ddf391859ab86e33c8b484d945ab89ddf8a56";
   const eip1559Buf = Buffer.from(rawEIP1559StringData.slice(2), "hex");
   const rawEIP1559DBData: EIP1559FeeMarketDatabaseTx = [
     eip1559Buf.slice(0, 1),
@@ -187,21 +186,21 @@ describe("@ganache/ethereum-transaction", async () => {
 
     describe("EIP1559FeeMarketTransaction type from factory", () => {
       it("generates eip1559 fee market transactions from rpc data", async () => {
-        const txFromRpc = <EIP2930AccessListTransaction>(
+        const txFromRpc = <EIP1559FeeMarketTransaction>(
           TransactionFactory.fromRpc(feeMarketTx, common)
         );
         const key = txFromRpc.accessListJSON[0].storageKeys[0];
         assert.strictEqual(txFromRpc.type.toString(), "0x2");
       });
       it("generates eip1559 fee market transactions from raw buffer data", async () => {
-        const txFromDb = <EIP2930AccessListTransaction>(
+        const txFromDb = <EIP1559FeeMarketTransaction>(
           TransactionFactory.fromDatabaseTx(rawEIP1559DBData, common)
         );
         const key = txFromDb.accessListJSON[0].storageKeys[0];
         assert.strictEqual(txFromDb.type.toString(), "0x2");
       });
       it("generates eip1559 fee market transactions from raw string", async () => {
-        const txFromString = <EIP2930AccessListTransaction>(
+        const txFromString = <EIP1559FeeMarketTransaction>(
           TransactionFactory.fromString(rawEIP1559StringData, common)
         );
         assert.strictEqual(txFromString.type.toString(), "0x2");
@@ -300,7 +299,7 @@ describe("@ganache/ethereum-transaction", async () => {
       tx.signAndHash(privKeyBuf);
       assert.strictEqual(
         tx.hash.toString(),
-        "0x9d26a8ab765ad7fe2a8c93b7b9e03054fe8161de3db6552b41e4958e38ac40e5"
+        "0x017e5ed133db246767bfa2acb0f3e3ddfc5f0511adcdbf35d9e26fc01b9c4b0b"
       );
     });
     describe("toVmTransaction", () => {
@@ -372,7 +371,7 @@ describe("@ganache/ethereum-transaction", async () => {
       tx.signAndHash(privKeyBuf);
       assert.strictEqual(
         tx.hash.toString(),
-        "0xb8f4376bff37e91788986999073f81a9997efa72eb8d3a9d6c61d7f909c16731"
+        "0xabe11ba446440bd0ea9b9e9de9eb479ae4555455ec2244a80ef7a72eddf6fe17"
       );
     });
     describe("toVmTransaction", () => {

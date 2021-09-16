@@ -43,6 +43,7 @@ function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
 }
 
 const CAPABILITIES = [2718, 2930, 1559];
+
 export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   public chainId: Quantity;
   public maxPriorityFeePerGas: Quantity;
@@ -83,7 +84,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
           hash,
           encodedData,
           encodedSignature
-        } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
+        } = this.computeIntrinsics(this.v, this.raw);
 
         this.from = from;
         this.serialized = serialized;
@@ -258,16 +259,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     ];
   }
 
-  public computeIntrinsics(
-    v: Quantity,
-    raw: TypedDatabaseTransaction,
-    chainId: number
-  ) {
-    return computeInstrinsicsFeeMarketTx(
-      v,
-      <EIP1559FeeMarketDatabaseTx>raw,
-      chainId
-    );
+  public computeIntrinsics(v: Quantity, raw: TypedDatabaseTransaction) {
+    return computeInstrinsicsFeeMarketTx(v, <EIP1559FeeMarketDatabaseTx>raw);
   }
 
   public updateEffectiveGasPrice(baseFeePerGas?: Quantity) {

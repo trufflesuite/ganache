@@ -8,7 +8,7 @@ import {
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
-import { BN, ecsign } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
@@ -25,6 +25,22 @@ import {
   Capability,
   EIP2930AccessListTransactionJSON
 } from "./transaction-types";
+import secp256k1 from "@ganache/secp256k1";
+
+function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
+  const object = { signature: new Uint8Array(64), recid: null };
+  const status = secp256k1.ecdsaSign(object, msgHash, privateKey);
+  if (status === 0) {
+    const buffer = object.signature.buffer;
+    const r = Buffer.from(buffer, 0, 32);
+    const s = Buffer.from(buffer, 32, 32);
+    return { r, s, v: object.recid };
+  } else {
+    throw new Error(
+      "The nonce generation function failed, or the private key was invalid"
+    );
+  }
+}
 
 const CAPABILITIES = [2718, 2930];
 
@@ -68,7 +84,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
           hash,
           encodedData,
           encodedSignature
-        } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
+        } = this.computeIntrinsics(this.v, this.raw);
 
         this.from = from;
         this.serialized = serialized;
@@ -77,7 +93,9 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
         this.encodedSignature = encodedSignature;
       }
     } else {
-      this.chainId = Quantity.from(data.chainId);
+      this.chainId = Quantity.from(
+        data.chainId || common.chainIdBN().toArrayLike(Buffer)
+      );
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data.gasPrice);
       const accessListData = AccessLists.getAccessListData(data.accessList);
       this.accessList = accessListData.accessList;
@@ -183,7 +201,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     const msgHash = keccak(
       digest([data.output, ending.output], dataLength + ending.length)
     );
-    const sig = ecsign(msgHash, privateKey, null);
+    const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
@@ -229,16 +247,8 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     ];
   }
 
-  public computeIntrinsics(
-    v: Quantity,
-    raw: TypedDatabaseTransaction,
-    chainId: number
-  ) {
-    return computeInstrinsicsAccessListTx(
-      v,
-      <EIP2930AccessListDatabaseTx>raw,
-      chainId
-    );
+  public computeIntrinsics(v: Quantity, raw: TypedDatabaseTransaction) {
+    return computeInstrinsicsAccessListTx(v, <EIP2930AccessListDatabaseTx>raw);
   }
 
   public updateEffectiveGasPrice() {}
