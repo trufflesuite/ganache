@@ -18,6 +18,7 @@ describe("miner", async () => {
     let highBlockJson: any;
     let common: Common;
     let from1: string, from2: string, from3: string, to: string;
+
     before(async function () {
       this.timeout(0);
       common = Common.forCustomChain(
@@ -112,6 +113,13 @@ describe("miner", async () => {
         }
         await blockchain.resume();
       }
+
+      // Wait until the the `blockchain` actually says the
+      // `highGasLimitBlockchain` block is ready as `await blockchain.resume()`
+      // above doesn't guarantee that the `blockchain` has processed the the
+      // block.
+      await highGasLimitBlockchain.once("block");
+
       // all txs are on this one block so lets save for future use
       const highGasBlock = await highGasLimitBlockchain.blocks.get(
         Buffer.from([1])
@@ -119,7 +127,7 @@ describe("miner", async () => {
       highBlockJson = highGasBlock.toJSON(true);
     });
 
-    it("orders transactions by gasPrice", async () => {
+    it.only("orders transactions by gasPrice", async () => {
       const block = await lowGasLimitBlockchain.blocks.get(Buffer.from([1]));
       const lowBlockJson = block.toJSON(true);
       const lowBlockTxJson = lowBlockJson.transactions[0] as any;
