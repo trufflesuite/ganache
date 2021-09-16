@@ -483,8 +483,8 @@ export default class Blockchain extends Emittery.Typed<
       str += `  Contract created: ${Address.from(contractAddress)}${EOL}`;
     }
 
-    str += `  Gas usage: ${Quantity.from(receipt.raw[1]).toNumber()}${EOL}
-  Block number: ${blockNumber.toNumber()}${EOL}
+    str += `  Gas usage: ${Quantity.from(receipt.raw[1]).toNumber()}
+  Block number: ${blockNumber.toNumber()}
   Block time: ${timestamp}${EOL}`;
 
     if (error) {
