@@ -52,6 +52,37 @@ import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 
+async function autofillDefaultTransactionValues(
+  tx: TypedTransaction,
+  eth_estimateGas: (
+    tx: TypedRpcTransaction,
+    tag: QUANTITY | Tag
+  ) => Promise<Quantity>,
+  transaction: TypedRpcTransaction,
+  blockchain: Blockchain,
+  options: EthereumInternalOptions
+) {
+  if (tx.gas.isNull()) {
+    const defaultLimit = options.miner.defaultTransactionGasLimit;
+    if (defaultLimit === RPCQUANTITY_EMPTY) {
+      // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
+      tx.gas = await eth_estimateGas(transaction, Tag.LATEST);
+    } else {
+      tx.gas = defaultLimit;
+    }
+  }
+  if ("gasPrice" in tx && tx.gasPrice.isNull()) {
+    tx.gasPrice = options.miner.defaultGasPrice;
+  }
+
+  if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
+    const block = blockchain.blocks.latest;
+    tx.maxFeePerGas = Quantity.from(
+      Block.calcNBlocksMaxBaseFee(3, <BaseFeeHeader>block.header)
+    );
+  }
+}
+
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
 //#endregion
@@ -736,7 +767,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async eth_estimateGas(
-    transaction: any,
+    transaction: TypedRpcTransaction,
     blockNumber: QUANTITY | Tag = Tag.LATEST
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
@@ -1649,25 +1680,13 @@ export default class EthereumApi implements Api {
       throw new Error(msg);
     }
 
-    if (tx.gas.isNull()) {
-      const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
-      if (defaultLimit === RPCQUANTITY_EMPTY) {
-        // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
-        tx.gas = await this.eth_estimateGas(transaction, Tag.LATEST);
-      } else {
-        tx.gas = defaultLimit;
-      }
-    }
-    if ("gasPrice" in tx && tx.gasPrice.isNull()) {
-      tx.gasPrice = this.#options.miner.defaultGasPrice;
-    }
-
-    if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
-      const block = blockchain.blocks.latest;
-      tx.maxFeePerGas = Quantity.from(
-        Block.calcNBlocksMaxBaseFee(3, <BaseFeeHeader>block.header)
-      );
-    }
+    await autofillDefaultTransactionValues(
+      tx,
+      this.eth_estimateGas.bind(this),
+      transaction,
+      blockchain,
+      this.#options
+    );
 
     if (isUnlockedAccount) {
       const secretKey = wallet.unlockedAccounts.get(fromString);
@@ -2759,7 +2778,10 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async personal_sendTransaction(transaction: any, passphrase: string) {
+  async personal_sendTransaction(
+    transaction: TypedRpcTransaction,
+    passphrase: string
+  ) {
     const blockchain = this.#blockchain;
     const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
     const from = tx.from;
@@ -2775,13 +2797,22 @@ export default class EthereumApi implements Api {
       throw new Error("no key for given address or file");
     }
 
+    await autofillDefaultTransactionValues(
+      tx,
+      this.eth_estimateGas.bind(this),
+      transaction,
+      blockchain,
+      this.#options
+    );
+
     if (encryptedKeyFile !== null) {
       const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
-      tx.signAndHash(secretKey);
+      return blockchain.queueTransaction(tx, Data.from(secretKey));
+    } else {
+      return blockchain.queueTransaction(tx);
     }
-
-    return blockchain.queueTransaction(tx);
   }
+
   /**
    * Validates the given passphrase and signs a transaction that can be
    * submitted to the network at a later time using `eth_sendRawTransaction`.

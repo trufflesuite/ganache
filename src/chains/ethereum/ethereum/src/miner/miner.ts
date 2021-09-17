@@ -1,8 +1,8 @@
+import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import {
   RuntimeError,
   RETURN_TYPES,
   TraceDataFactory,
-  StepEvent,
   StorageKeys
 } from "@ganache/ethereum-utils";
 import {
@@ -23,6 +23,12 @@ import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import {
+  makeStepEvent,
+  VmAfterTransactionEvent,
+  VmBeforeTransactionEvent,
+  VmStepEvent
+} from "../provider-events";
 
 /**
  * How many transactions should be in the block.
@@ -73,6 +79,9 @@ export default class Miner extends Emittery.Typed<
       storageKeys: StorageKeys;
       transactions: TypedTransaction[];
     };
+    "ganache:vm:tx:step": VmStepEvent;
+    "ganache:vm:tx:before": VmBeforeTransactionEvent;
+    "ganache:vm:tx:after": VmAfterTransactionEvent;
   },
   "idle"
 > {
@@ -84,6 +93,12 @@ export default class Miner extends Emittery.Typed<
   #resumer: Promise<void>;
   #currentBlockBaseFeePerGas: Quantity;
   #resolver: (value: void) => void;
+
+  /**
+   * Because step events are expensive, CPU-wise, to create and emit we only do
+   * it conditionally.
+   */
+  #emitStepEvent: boolean = false;
   readonly #executables: Executables;
   readonly #options: EthereumInternalOptions["miner"];
   readonly #vm: VM;
@@ -257,7 +272,7 @@ export default class Miner extends Emittery.Typed<
       // the storage key. Why you might ask? So we can reference the raw version in
       // debug_storageRangeAt.
       const stepListener = (
-        event: StepEvent,
+        event: InterpreterStep,
         next: (error?: any, cb?: any) => void
       ) => {
         if (event.opcode.name === "SSTORE") {
@@ -450,15 +465,21 @@ export default class Miner extends Emittery.Typed<
     origin: string,
     pending: Map<string, Heap<TypedTransaction, Quantity>>
   ) => {
+    const context = {};
+    const vm = this.#vm;
+    this.emit("ganache:vm:tx:before", { context });
+    // we always listen to the step event even if `#emitStepEvent` is false in
+    // case the user starts listening in the middle of the transaction.
+    const stepListener = event => {
+      if (!this.#emitStepEvent) return;
+      this.emit("ganache:vm:tx:step", makeStepEvent(context, event));
+    };
+    vm.on("step", stepListener);
     try {
-      const vm = this.#vm;
-      const o = {
+      return await vm.runTx({
         tx: tx.toVmTransaction() as any,
         block: block as any
-      };
-      const r = vm.runTx(o);
-      const p = await r;
-      return p;
+      });
     } catch (err) {
       const errorMessage = err.message;
       // We do NOT want to re-run this transaction.
@@ -484,6 +505,9 @@ export default class Miner extends Emittery.Typed<
       const error = new RuntimeError(tx.hash, e, RETURN_TYPES.TRANSACTION_HASH);
       tx.finalize("rejected", error);
       return null;
+    } finally {
+      vm.removeListener("step", stepListener);
+      this.emit("ganache:vm:tx:after", { context });
     }
   };
 
@@ -557,6 +581,10 @@ export default class Miner extends Emittery.Typed<
       }
     }
   };
+
+  public toggleStepEvent(enable: boolean) {
+    this.#emitStepEvent = enable;
+  }
 
   /**
    * Sets the #currentBlockBaseFeePerGas property if the current block

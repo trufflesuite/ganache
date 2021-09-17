@@ -1,8 +1,12 @@
 import assert from "assert";
+import { join } from "path";
+import Transaction from "@ethereumjs/tx/dist/legacyTransaction";
+import { Data, JsonRpcRequest } from "@ganache/utils";
+import Common from "@ethereumjs/common";
 import EthereumProvider from "../src/provider";
-import getProvider from "./helpers/getProvider";
-import { JsonRpcRequest } from "@ganache/utils";
 import EthereumApi from "../src/api";
+import getProvider from "./helpers/getProvider";
+import compile from "./helpers/compile";
 
 describe("provider", () => {
   describe("options", () => {
@@ -33,6 +37,190 @@ describe("provider", () => {
 
     beforeEach(async () => {
       provider = await getProvider({ chain: { networkId } });
+    });
+
+    describe("ganache:vm:tx:* events", () => {
+      let from: string;
+      let contract: ReturnType<typeof compile>;
+      let transaction: { from: string; data: string; gasLimit: string };
+      let controlEvents: [string, any][] = null;
+      let deploymentHash: string;
+      beforeEach(async () => {
+        [from] = await provider.send("eth_accounts");
+        contract = compile(join(__dirname, "./contracts/DebugStorage.sol"));
+        transaction = {
+          from,
+          data: contract.code,
+          gasLimit: "0x2fefd8"
+        };
+        const subId = await provider.send("eth_subscribe", ["newHeads"]);
+        controlEvents = await testEvents(async () => {
+          deploymentHash = await provider.send("eth_sendTransaction", [
+            transaction
+          ]);
+          await provider.once("message");
+          await provider.send("eth_unsubscribe", [subId]);
+        });
+      });
+      async function testEvents(
+        transactionFunction: any,
+        controlEvents: any = null
+      ) {
+        let context: {};
+        const events: [string, any][] = [];
+        const unsubscribeBefore = provider.on("ganache:vm:tx:before", event => {
+          context = event.context;
+
+          assert.notStrictEqual(event.context, null);
+          assert.notStrictEqual(event.context, undefined);
+          assert.strictEqual(typeof event.context, "object");
+          events.push(["ganache:vm:tx:before", event]);
+        });
+        const unsubscribeStep = provider.on("ganache:vm:tx:step", event => {
+          assert.strictEqual(event.context, context);
+          assert.strictEqual(typeof event.data.opcode.name, "string");
+
+          // delete some the data that may change in between runs:
+          assert.strictEqual(event.data.address.length, 20);
+          assert.strictEqual(event.data.codeAddress.length, 20);
+          assert.strictEqual(event.data.account.codeHash.length, 32);
+          assert.strictEqual(event.data.account.stateRoot.length, 32);
+          assert.strictEqual(typeof event.data.account.nonce, "bigint");
+          assert.strictEqual(typeof event.data.account.balance, "bigint");
+
+          delete event.data.address;
+          delete event.data.codeAddress;
+          delete event.data.account;
+
+          events.push(["ganache:vm:tx:step", event]);
+        });
+        const unsubscribeAfter = provider.on("ganache:vm:tx:after", event => {
+          assert.strictEqual(event.context, context);
+          events.push(["ganache:vm:tx:after", event]);
+        });
+
+        await transactionFunction();
+
+        unsubscribeBefore();
+        unsubscribeStep();
+        unsubscribeAfter();
+
+        assert(events.length > 2, "missing expected events");
+
+        // this function is used to collect the `controlEvents` that all other
+        // tests rely on
+        if (controlEvents !== null) {
+          assert.deepStrictEqual(
+            events,
+            controlEvents,
+            "events don't match from expected/control to actual"
+          );
+        }
+        return events;
+      }
+      it("emits vm:tx:* events for eth_sendTransaction", async () => {
+        await testEvents(async () => {
+          const subId = await provider.send("eth_subscribe", ["newHeads"]);
+          await provider.send("eth_sendTransaction", [transaction]);
+          await provider.once("message");
+          await provider.send("eth_unsubscribe", [subId]);
+        }, controlEvents);
+      });
+      it("emits vm:tx:* events for eth_call", async () => {
+        await testEvents(async () => {
+          await provider.send("eth_call", [transaction]);
+        }, controlEvents);
+      });
+      it("emits vm:tx:* events for eth_sendRawTransaction", async () => {
+        const accounts = provider.getInitialAccounts();
+        const gasPrice = await provider.send("eth_gasPrice", []);
+        const secretKey = Data.from(accounts[from].secretKey).toBuffer();
+        const tx = Transaction.fromTxData(
+          // specify gasPrice so we don't have to deal with a type 2 transaction
+          { ...transaction, nonce: "0x1", gasPrice },
+          {
+            common: Common.forCustomChain("mainnet", { chainId: 1337 })
+          }
+        );
+        const rawTransaction = Data.from(
+          tx.sign(secretKey).serialize()
+        ).toString();
+
+        await testEvents(async () => {
+          const subId = await provider.send("eth_subscribe", ["newHeads"]);
+          await provider.send("eth_sendRawTransaction", [rawTransaction]);
+          await provider.once("message");
+          await provider.send("eth_unsubscribe", [subId]);
+        }, controlEvents);
+      });
+      it("emits vm:tx:* events for personal_sendTransaction", async () => {
+        await testEvents(async () => {
+          const subId = await provider.send("eth_subscribe", ["newHeads"]);
+          const accounts = provider.getInitialAccounts();
+          const secretKey = Data.from(accounts[from].secretKey).toString();
+          const password = "password";
+          await provider.send("personal_importRawKey", [secretKey, password]);
+          await provider.send("personal_sendTransaction", [
+            transaction,
+            password
+          ]);
+          await provider.once("message");
+          await provider.send("eth_unsubscribe", [subId]);
+        }, controlEvents);
+      });
+      it("emits vm:tx:* events for debug_traceTransaction", async () => {
+        const subId = await provider.send("eth_subscribe", ["newHeads"]);
+        const hash = await provider.send("eth_sendTransaction", [transaction]);
+        await provider.once("message");
+        await provider.send("eth_unsubscribe", [subId]);
+
+        await testEvents(async () => {
+          await provider.send("debug_traceTransaction", [hash]);
+        }, controlEvents);
+      });
+      it("emits vm:tx:* events for debug_storageRangeAt", async () => {
+        // README
+        // This test is slightly different, as we actually send a transaction to the
+        // contract, and then measure those events, instead of the deployment
+        // transaction itself.
+
+        const {
+          contractAddress
+        } = await provider.send("eth_getTransactionReceipt", [deploymentHash]);
+        const initialValue = "0".repeat(62) + "19"; // 25
+        // call the setValue method so we have some stuff to trace at the
+        // deployed contract
+        let receipt: any;
+        const controlEvents = await testEvents(async () => {
+          const subId = await provider.send("eth_subscribe", ["newHeads"]);
+          const hash = await provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: contractAddress,
+              gas: "0x2fefd8",
+              data: `0x${contract.contract.evm.methodIdentifiers["setValue(uint256)"]}${initialValue}`
+            }
+          ]);
+          await provider.once("message");
+          await provider.send("eth_unsubscribe", [subId]);
+          receipt = await provider.send("eth_getTransactionReceipt", [hash]);
+        });
+        assert(controlEvents.length > 2);
+
+        await testEvents(async () => {
+          try {
+            await provider.send("debug_storageRangeAt", [
+              receipt.blockHash,
+              0,
+              contractAddress,
+              "0x00",
+              2
+            ]);
+          } catch (e) {
+            throw e;
+          }
+        }, controlEvents);
+      });
     });
 
     it("returns things via EIP-1193", async () => {
