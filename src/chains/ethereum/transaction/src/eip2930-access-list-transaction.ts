@@ -20,7 +20,7 @@ import {
 } from "./raw";
 import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
 import { AccessLists } from "./access-lists";
-import { computeInstrinsicsAccessListTx } from "./signing";
+import { computeIntrinsicsAccessListTx } from "./signing";
 import {
   Capability,
   EIP2930AccessListTransactionJSON
@@ -246,7 +246,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   }
 
   public computeIntrinsics(v: Quantity, raw: TypedDatabaseTransaction) {
-    return computeInstrinsicsAccessListTx(v, <EIP2930AccessListDatabaseTx>raw);
+    return computeIntrinsicsAccessListTx(v, <EIP2930AccessListDatabaseTx>raw);
   }
 
   public updateEffectiveGasPrice() {}
