@@ -24,9 +24,24 @@ import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 
+/**
+ * How many transactions should be in the block.
+ */
 export enum Capacity {
+  /**
+   * Keep mining transactions until there are no more transactions that can fit
+   * in the block, or there are no transactions left to mine.
+   */
   FillBlock = -1,
+  /**
+   * Mine an empty block, even if there are executable transactions available to
+   * mine.
+   */
   Empty = 0,
+  /**
+   * Mine a block with a single transaction, or empty if there are no executable
+   * transactions available to mine.
+   */
   Single = 1
 }
 
