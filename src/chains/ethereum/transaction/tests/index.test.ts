@@ -45,6 +45,7 @@ describe("@ganache/ethereum-transaction", async () => {
   });
   const wallet = new Wallet(options.wallet);
   const [from, to, accessListAcc] = wallet.addresses;
+
   // #endregion configure accounts and private keys in wallet
 
   // #region configure transaction constants
@@ -299,7 +300,7 @@ describe("@ganache/ethereum-transaction", async () => {
       tx.signAndHash(privKeyBuf);
       assert.strictEqual(
         tx.hash.toString(),
-        "0x017e5ed133db246767bfa2acb0f3e3ddfc5f0511adcdbf35d9e26fc01b9c4b0b"
+        "0x078395f79508111c9061f9983d387c8b7bfed990dfa098497aa4d34b0e47b265"
       );
     });
     describe("toVmTransaction", () => {
