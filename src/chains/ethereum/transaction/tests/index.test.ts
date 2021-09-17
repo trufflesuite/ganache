@@ -544,7 +544,7 @@ describe("@ganache/ethereum-transaction", async () => {
                 rawEIP2930StringData,
                 preBerlin
               ) as any,
-            { message: "invalid remainder" }
+            { message: "Could not decode transaction: invalid remainder" }
           );
         });
 
@@ -570,7 +570,7 @@ describe("@ganache/ethereum-transaction", async () => {
           assert.throws(
             () =>
               TransactionFactory.fromString(rawEIP1559StringData, preBerlin),
-            { message: "invalid remainder" }
+            { message: "Could not decode transaction: invalid remainder" }
           );
         });
       });
