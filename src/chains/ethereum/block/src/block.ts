@@ -159,7 +159,7 @@ export class Block {
     return nextBaseFee;
   }
 
-  static calcMaxNBlocksBaseFee(blocks: number, parentHeader: BaseFeeHeader) {
+  static calcNBlocksMaxBaseFee(blocks: number, parentHeader: BaseFeeHeader) {
     const { BASE_FEE_MAX_CHANGE_DENOMINATOR } = BlockParams;
 
     let maxPossibleBaseFee = this.calcNextBaseFeeBigInt(parentHeader);
