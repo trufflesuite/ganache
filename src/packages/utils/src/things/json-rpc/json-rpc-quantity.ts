@@ -41,6 +41,8 @@ export class Quantity extends BaseJsonRpcType {
       }
       if (best > 0) {
         return this.value.slice(best);
+      } else {
+        return this.value;
       }
     } else if (typeof this.value === "string") {
       let val = this.value.slice(2).replace(/^(?:0+(.+?))?$/, "$1");
