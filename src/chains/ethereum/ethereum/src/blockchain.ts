@@ -1128,10 +1128,12 @@ export default class Blockchain extends Emittery.Typed<
     ) => {
       // See these docs:
       // https://github.com/ethereum/go-ethereum/wiki/Management-APIs
-      this.emit(
-        "ganache:vm:tx:step",
-        makeStepEvent(transactionEventContext, event)
-      );
+      if (this.#emitStepEvent) {
+        this.emit(
+          "ganache:vm:tx:step",
+          makeStepEvent(transactionEventContext, event)
+        );
+      }
 
       const gasLeft = event.gasLeft.toNumber();
       const totalGasUsedAfterThisStep =
