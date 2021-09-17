@@ -113,7 +113,6 @@ export class LegacyTransaction extends RuntimeTransaction {
     }
     return new LegacyTransaction(data, common);
   }
-
   public toVmTransaction() {
     const sender = this.from.toBuffer();
     const to = this.to.toBuffer();
