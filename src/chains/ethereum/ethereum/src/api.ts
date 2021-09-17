@@ -1663,7 +1663,7 @@ export default class EthereumApi implements Api {
     }
 
     if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
-      const block = this.#blockchain.blocks.latest;
+      const block = blockchain.blocks.latest;
       tx.maxFeePerGas = Quantity.from(
         Block.calcMaxNBlocksBaseFee(3, <BaseFeeHeader>block.header)
       );
