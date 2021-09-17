@@ -28,7 +28,8 @@ describe("@ganache/ethereum-block", async () => {
         miner: {
           blockGasLimit: "0xB749E0"
         },
-        chain: { chainId: 1337 }
+        chain: { chainId: 1337 },
+        logging: { logger: { log: (_message: string) => {} } } // ignore logging
       });
       const wallet = new Wallet(options.wallet);
       const [from, to] = wallet.addresses;
