@@ -162,7 +162,7 @@ export class Block {
   static calcMaxNBlocksBaseFee(blocks: number, parentHeader: BaseFeeHeader) {
     const { BASE_FEE_MAX_CHANGE_DENOMINATOR } = BlockParams;
 
-    let lastMaxBlockBaseFee = this.calcNextBaseFeeBigInt(parentHeader);
+    let maxPossibleBaseFee = this.calcNextBaseFeeBigInt(parentHeader);
 
     // we must calculate each future block's max base fee individually because
     // each block's base fee must be appropriately "floored" (Math.floor) before
@@ -171,10 +171,10 @@ export class Block {
     // FYI: the more performant, but rounding error-prone, way is:
     // return lastMaxBlockBaseFee + (lastMaxBlockBaseFee * ((BASE_FEE_MAX_CHANGE_DENOMINATOR-1)**(blocks-1)) / ((BASE_FEE_MAX_CHANGE_DENOMINATOR)**(blocks-1)))
     while (--blocks) {
-      lastMaxBlockBaseFee +=
-        lastMaxBlockBaseFee / BASE_FEE_MAX_CHANGE_DENOMINATOR;
+      maxPossibleBaseFee +=
+        maxPossibleBaseFee / BASE_FEE_MAX_CHANGE_DENOMINATOR;
     }
-    return lastMaxBlockBaseFee;
+    return maxPossibleBaseFee;
   }
 
   static calcNextBaseFee(parentBlock: Block) {
