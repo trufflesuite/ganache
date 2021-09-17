@@ -212,12 +212,22 @@ export class TransactionFactory {
     const type = data[0];
     const txType = this.typeOf(type);
     if (common.isActivatedEIP(2718)) {
-      const raw = decode<TypedDatabasePayload>(
-        txType === TransactionType.Legacy ? data : data.slice(1)
-      );
+      let raw: TypedDatabasePayload;
+      try {
+        raw = decode<TypedDatabasePayload>(
+          txType === TransactionType.Legacy ? data : data.slice(1)
+        );
+      } catch (e) {
+        throw new Error("Could not decode transaction: " + e.message);
+      }
       return this._fromData(raw, txType, common);
     } else {
-      const raw = decode<TypedDatabasePayload>(data);
+      let raw: TypedDatabasePayload;
+      try {
+        raw = decode<LegacyDatabasePayload>(data);
+      } catch (e) {
+        throw new Error("Could not decode transaction: " + e.message);
+      }
       return this._fromData(raw, TransactionType.Legacy, common);
     }
   }
