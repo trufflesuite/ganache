@@ -31,11 +31,7 @@ export class Quantity extends BaseJsonRpcType {
       return super.toString();
     }
   }
-  public toBuffer(_test?: any): Buffer {
-    if (_test !== undefined)
-      throw new Error(
-        "byte length was used, dummy! you probably shouldn't have removed it"
-      );
+  public toBuffer(): Buffer {
     // 0x0, 0x00, 0x000, etc should return BUFFER_EMPTY
     if (Buffer.isBuffer(this.value)) {
       // trim zeros from start
