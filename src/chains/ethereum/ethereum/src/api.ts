@@ -289,7 +289,7 @@ export default class EthereumApi implements Api {
     } else {
       const transactions = await blockchain.mine(
         Capacity.FillBlock,
-        arg as number,
+        arg as number | null,
         true
       );
       if (vmErrorsOnRPCResponse) {
