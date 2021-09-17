@@ -9,6 +9,7 @@ import { Tag } from "@ganache/ethereum-utils";
 import { Block } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
 import { Account } from "@ganache/ethereum-utils";
+import BlockManager from "../data-managers/block-manager";
 
 function fetchChainId(fork: Fork) {
   return fork
@@ -188,7 +189,10 @@ export class Fork {
       this.#setBlockDataFromChainAndOptions(),
       this.#setCommonFromChain()
     ]);
-    this.block = new Block(Block.rawFromJSON(block, this.common), this.common);
+    this.block = new Block(
+      BlockManager.rawFromJSON(block, this.common),
+      this.common
+    );
   }
 
   public request<T = unknown>(method: string, params: unknown[]): Promise<T> {

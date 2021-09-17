@@ -1,7 +1,5 @@
 {
   "extends": "../tsconfig.json",
-  "include": [
-    "./",
-    "../src/blockchain"
-  ]
+  "include": ["./", "../src/**/*"],
+  "compilerOptions": { "rootDir": "../" }
 }

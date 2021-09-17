@@ -1,26 +1,50 @@
 type Comparator<T> = (values: T[], a: number, b: number) => boolean;
 
-export class Heap<T> {
+export class Heap<T, U = any> {
   public length: number = 0;
   public array: T[] = [];
-  protected readonly less: Comparator<T>;
+  protected less: Comparator<T>;
+  protected refresher: (item: T, context: U) => void;
 
   /**
    * Creates a priority-queue heap where the highest priority element,
    * as determined by the `less` function, is at the tip/root of the heap.
    * To read the highest priority element without removing it call peek(). To
    * read and remove the element call `shift()`
-   * @param size the size of the heap
    * @param less the comparator function
+   * @param refresher the refresher function
    */
-  constructor(less: Comparator<T>) {
+  constructor(less: Comparator<T>, refresher?: (item: T, context: U) => void) {
     this.less = less;
+    this.refresher = refresher;
   }
 
   public init(array: T[]) {
     this.array = array;
     const length = (this.length = array.length);
     for (let i = ((length / 2) | 0) - 1; i >= 0; ) {
+      this.down(i--, length);
+    }
+  }
+
+  /**
+   * Updates all entries by calling the Heap's `refresher` function for each
+   * item in the heap and then re-sorting.
+   * @param context
+   */
+  /**
+   * Updates all entries by calling the Heap's `refresher` function for each
+   * item in the heap and then re-sorting.
+   * @param context
+   */
+  public refresh(context: U) {
+    const length = this.length;
+    const mid = (length / 2) | 0;
+    for (let i = mid; i < length; i++) {
+      this.refresher(this.array[i], context);
+    }
+    for (let i = mid - 1; i >= 0; ) {
+      this.refresher(this.array[i], context);
       this.down(i--, length);
     }
   }
@@ -200,9 +224,14 @@ export class Heap<T> {
    * heap.
    * @param item
    * @param less
+   * @param refresher
    */
-  public static from<T>(item: T, less: Comparator<T>) {
-    const heap = new Heap<T>(less);
+  public static from<T, U>(
+    item: T,
+    less: Comparator<T>,
+    refresher?: (item: T, context: U) => void
+  ) {
+    const heap = new Heap<T, U>(less, refresher);
     heap.array = [item];
     heap.length = 1;
     return heap;

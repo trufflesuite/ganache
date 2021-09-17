@@ -18,10 +18,12 @@ describe("api", () => {
             });
             const [from] = await provider.send("eth_accounts");
 
+            const gasPrice = await provider.send("eth_gasPrice", []);
             const gasEstimate = await provider.send("eth_estimateGas", [
               {
                 from,
-                to: from
+                to: from,
+                gasPrice
               }
             ]);
             await provider.send("eth_subscribe", ["newHeads"]);
@@ -29,7 +31,8 @@ describe("api", () => {
             const hash = await provider.send("eth_sendTransaction", [
               {
                 from,
-                to: from
+                to: from,
+                gasPrice
               }
             ]);
 
@@ -177,6 +180,15 @@ describe("api", () => {
             },
             wallet: {
               unlockedAccounts: [ZERO_ADDRESS]
+            },
+            chain: {
+              // use berlin here because we just want to test if we can use the
+              // "zero" address, and we do this by transferring value while
+              // setting the gasPrice to `0`. This isn't possible after the
+              // `london` hardfork currently, as we don't provide an option to
+              // allow for a 0 `maxFeePerGas` value.
+              // TODO: remove once we have a configurable `maxFeePerGas`
+              hardfork: "berlin"
             }
           });
           const [from] = await provider.send("eth_accounts");

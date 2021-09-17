@@ -20,7 +20,7 @@ import {
   TransactionTraceOptions,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   TypedRpcTransaction,
   TransactionFactory,
@@ -39,7 +39,7 @@ import {
   JsonRpcErrorCode
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
-import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 
@@ -50,6 +50,7 @@ import { parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
 import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
+import { Capacity } from "./miner/miner";
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
@@ -276,13 +277,21 @@ export default class EthereumApi implements Api {
       // Developers like to move the blockchain forward by thousands of blocks
       // at a time and doing this would make it way faster
       for (let i = 0; i < blocks; i++) {
-        const transactions = await blockchain.mine(-1, timestamp, true);
+        const transactions = await blockchain.mine(
+          Capacity.FillBlock,
+          timestamp,
+          true
+        );
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
       }
     } else {
-      const transactions = await blockchain.mine(-1, arg as number, true);
+      const transactions = await blockchain.mine(
+        Capacity.FillBlock,
+        arg as number | null,
+        true
+      );
       if (vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
       }
@@ -325,7 +334,7 @@ export default class EthereumApi implements Api {
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
-    await blockchain.mine(0);
+    await blockchain.mine(Capacity.Empty);
     return true;
   }
 
@@ -758,7 +767,8 @@ export default class EthereumApi implements Api {
         parentHeader.gasUsed.toBuffer(),
         parentHeader.timestamp,
         options.miner.difficulty,
-        parentHeader.totalDifficulty
+        parentHeader.totalDifficulty,
+        Block.calcNextBaseFee(parentBlock)
       );
       const runArgs = {
         tx: tx.toVmTransaction(),
@@ -859,7 +869,9 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async eth_getBlockByNumber(number: QUANTITY | Tag, transactions = false) {
-    const block = await this.#blockchain.blocks.get(number).catch(_ => null);
+    const block = await this.#blockchain.blocks
+      .get(number)
+      .catch<Block>(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
@@ -917,7 +929,7 @@ export default class EthereumApi implements Api {
   async eth_getBlockByHash(hash: DATA, transactions = false) {
     const block = await this.#blockchain.blocks
       .getByHash(hash)
-      .catch(_ => null);
+      .catch<Block>(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
@@ -1031,12 +1043,15 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
-    const block = await this.eth_getBlockByHash(hash, true);
-    if (block) {
-      const tx = block.transactions[Quantity.from(index).toNumber()];
-      if (tx) return tx;
-    }
-    return null;
+    const blockchain = this.#blockchain;
+    const block = await blockchain.blocks
+      .getByHash(hash)
+      .catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+      blockchain.common
+    );
   }
 
   /**
@@ -1077,8 +1092,13 @@ export default class EthereumApi implements Api {
     number: QUANTITY | Tag,
     index: QUANTITY
   ) {
-    const block = await this.eth_getBlockByNumber(number, true);
-    return block.transactions[parseInt(Quantity.from(index).toString(), 10)];
+    const blockchain = this.#blockchain;
+    const block = await blockchain.blocks.get(number).catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+      blockchain.common
+    );
   }
 
   /**
@@ -1638,9 +1658,15 @@ export default class EthereumApi implements Api {
         tx.gas = defaultLimit;
       }
     }
-
-    if (tx.gasPrice.isNull()) {
+    if ("gasPrice" in tx && tx.gasPrice.isNull()) {
       tx.gasPrice = this.#options.miner.defaultGasPrice;
+    }
+
+    if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
+      const block = blockchain.blocks.latest;
+      tx.maxFeePerGas = Quantity.from(
+        Block.calcNBlocksMaxBaseFee(3, <BaseFeeHeader>block.header)
+      );
     }
 
     if (isUnlockedAccount) {
@@ -1650,6 +1676,7 @@ export default class EthereumApi implements Api {
       return blockchain.queueTransaction(tx);
     }
   }
+
   /**
    * Signs a transaction that can be submitted to the network at a later time using `eth_sendRawTransaction`.
    *
@@ -1905,6 +1932,9 @@ export default class EthereumApi implements Api {
             transactionsRoot: header.transactionsRoot,
             sha3Uncles: header.sha3Uncles
           };
+          if (header.baseFeePerGas !== undefined) {
+            (result as any).baseFeePerGas = header.baseFeePerGas;
+          }
 
           // TODO: move the JSON stringification closer to where the message
           // is actually sent to the listener
@@ -2416,7 +2446,8 @@ export default class EthereumApi implements Api {
       parentHeader.gasUsed.toBuffer(),
       parentHeader.timestamp,
       options.miner.difficulty,
-      parentHeader.totalDifficulty
+      parentHeader.totalDifficulty,
+      Block.calcNextBaseFee(parentBlock)
     );
 
     const simulatedTransaction = {

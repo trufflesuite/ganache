@@ -5,16 +5,14 @@ import {
   BUFFER_EMPTY,
   uintToBuffer
 } from "@ganache/utils";
-import { EIP2930AccessListDatabaseTx, LegacyDatabasePayload } from "./raw";
+import {
+  EIP1559FeeMarketDatabaseTx,
+  EIP2930AccessListDatabaseTx,
+  LegacyDatabasePayload
+} from "./raw";
 import { digest, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
-
-let secp256k1;
-try {
-  secp256k1 = require("node-gyp-build")(__dirname);
-} catch (err) {
-  secp256k1 = require("secp256k1/lib/elliptic");
-}
+import secp256k1 from "@ganache/secp256k1";
 
 const intToBuffer = (value: number) =>
   value === 0 ? BUFFER_EMPTY : uintToBuffer(value);
@@ -72,7 +70,7 @@ export const isValidSigRecovery = (recovery: number) => {
  * @param msgHash
  * @param recovery
  */
-export const ecdaRecover = (
+export const ecdsaRecover = (
   partialRlp: { output: Buffer[] | Readonly<Buffer[]>; length: number },
   sharedBuffer: Buffer,
   v: number,
@@ -99,9 +97,21 @@ export const ecdaRecover = (
     data = digest([partialRlp.output], partialRlp.length);
     recid = v - 27;
   }
+
+  return _ecdsaRecover(data, sharedBuffer, rBuf, sBuf, recid);
+};
+
+function _ecdsaRecover(
+  data: Buffer,
+  sharedBuffer: Buffer,
+  rBuf: Buffer,
+  sBuf: Buffer,
+  recid: number
+) {
   if (!isValidSigRecovery(recid)) {
     throw new Error("Invalid signature v value");
   }
+
   const message = keccak(data);
 
   const signature = sharedBuffer.slice(0, 64);
@@ -114,7 +124,7 @@ export const ecdaRecover = (
     throw new Error("Invalid Signature");
   }
   return output;
-};
+}
 
 /**
  *
@@ -145,7 +155,7 @@ export const computeFromAddress = (
   sBuf: Buffer,
   chainId: number
 ) => {
-  const senderPubKey = ecdaRecover(
+  const senderPubKey = ecdsaRecover(
     partialRlp,
     SHARED_BUFFER,
     v,
@@ -157,7 +167,7 @@ export const computeFromAddress = (
   return Address.from(keccak(publicKey.slice(1)).slice(-20));
 };
 
-export const computeInstrinsicsLegacyTx = (
+export const computeIntrinsicsLegacyTx = (
   v: Quantity,
   raw: LegacyDatabasePayload,
   chainId: number
@@ -183,10 +193,9 @@ export const computeInstrinsicsLegacyTx = (
   };
 };
 
-export const computeInstrinsicsAccessListTx = (
+export const computeIntrinsicsAccessListTx = (
   v: Quantity,
-  raw: EIP2930AccessListDatabaseTx,
-  chainId: number
+  raw: EIP2930AccessListDatabaseTx
 ) => {
   const typeBuf = raw[0];
   const encodedData = encodeRange(raw, 1, 8);
@@ -198,14 +207,63 @@ export const computeInstrinsicsAccessListTx = (
       encodedData.length + encodedSignature.length
     )
   ]);
+
+  const data = Buffer.concat([
+    typeBuf,
+    digest([encodedData.output], encodedData.length)
+  ]);
+  const senderPubKey = _ecdsaRecover(
+    data,
+    SHARED_BUFFER,
+    raw[10],
+    raw[11],
+    v.toNumber()
+  );
+
+  const publicKey = publicKeyConvert(SHARED_BUFFER, senderPubKey);
+  const from = Address.from(keccak(publicKey.slice(1)).slice(-20));
+
   return {
-    from: computeFromAddress(
-      encodedData,
-      v.toNumber(),
-      raw[10],
-      raw[11],
-      chainId
-    ),
+    from: from,
+    hash: Data.from(keccak(serialized), 32),
+    serialized,
+    encodedData,
+    encodedSignature
+  };
+};
+
+export const computeIntrinsicsFeeMarketTx = (
+  v: Quantity,
+  raw: EIP1559FeeMarketDatabaseTx
+) => {
+  const typeBuf = raw[0];
+  const encodedData = encodeRange(raw, 1, 9);
+  const encodedSignature = encodeRange(raw, 10, 3);
+  const serialized = Buffer.concat([
+    typeBuf,
+    digest(
+      [encodedData.output, encodedSignature.output],
+      encodedData.length + encodedSignature.length
+    )
+  ]);
+
+  const data = Buffer.concat([
+    typeBuf,
+    digest([encodedData.output], encodedData.length)
+  ]);
+  const senderPubKey = _ecdsaRecover(
+    data,
+    SHARED_BUFFER,
+    raw[11],
+    raw[12],
+    v.toNumber()
+  );
+
+  const publicKey = publicKeyConvert(SHARED_BUFFER, senderPubKey);
+  const from = Address.from(keccak(publicKey.slice(1)).slice(-20));
+
+  return {
+    from: from,
     hash: Data.from(keccak(serialized), 32),
     serialized,
     encodedData,

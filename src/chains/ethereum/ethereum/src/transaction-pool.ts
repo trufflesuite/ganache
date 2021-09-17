@@ -118,14 +118,14 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       // new transaction away as necessary.
       const pendingArray = executableOriginTransactions.array;
       const priceBump = this.#priceBump;
-      const newGasPrice = transaction.gasPrice.toBigInt();
+      const newGasPrice = transaction.effectiveGasPrice.toBigInt();
       // Notice: we're iterating over the raw heap array, which isn't
       // necessarily sorted
       for (let i = 0; i < length; i++) {
         const currentPendingTx = pendingArray[i];
         const thisNonce = currentPendingTx.nonce.toBigInt();
         if (thisNonce === transactionNonce) {
-          const gasPrice = currentPendingTx.gasPrice.toBigInt();
+          const gasPrice = currentPendingTx.effectiveGasPrice.toBigInt();
           const thisPricePremium = gasPrice + (gasPrice * priceBump) / 100n;
 
           // if our new price is `gasPrice * priceBumpPercent` better than our
