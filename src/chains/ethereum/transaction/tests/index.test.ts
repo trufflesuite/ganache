@@ -64,6 +64,8 @@ describe("@ganache/ethereum-transaction", async () => {
 
   const rawLegacyStrTx =
     "0xf8618082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080820a95a0d9c2d3cb65d7079f528d28d782fe752ed698381481f7b91790e067ea335c1dc0a0731131778ae061aa29567cc6b36fe3528092b687fb68c3f529493fca200c711d";
+  const rawLegacyStrTxChainId1234 =
+    "0xf8618082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b3480808209c8a0c5e728f25ba7e771865291d91fe50945190d81ed2e240a4755370fb87dff349ea014e6102d81eb9a66307c487e662b0f9f91e78b203e06ba853fcf246fa49145db";
 
   const rawLegacyDbTx = decode<LegacyDatabasePayload>(
     Buffer.from(rawLegacyStrTx.slice(2), "hex")
@@ -87,7 +89,9 @@ describe("@ganache/ethereum-transaction", async () => {
   };
 
   const rawEIP2930StringData =
-    "0x01f89a808082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a0000000000000000000000000000000000000000000000000000000000000000480a0afba87c71565e226bd7b9fbab5234ce62ec479f356f98aad96f811420ea448f7a006ec0a09f508da4c12e52d3f984998e54dfa082e6b796050a73a8a01bb9dc10e";
+    "0x01f89c8205398082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a0000000000000000000000000000000000000000000000000000000000000000480a096fe05ce879533fcdc1094e8eb18780024f93b5dec1160b542f396148f4eafdba06e4a230ccf316118fed883ff63bb072e112dbffeae06bb076c95d93ae731341c";
+  const rawEIP2930StringDataChainId1234 =
+    "0x01f89c8204d28082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a0000000000000000000000000000000000000000000000000000000000000000401a02b78e5b29b6820ceb9d936b3144ec0e491c49c4c5923260cac8068e156b45a25a05e0863362858d72afa42ad5f35d2673793c4d1c18d93bc710b3b7212ecaed939";
   const eip2930Buf = Buffer.from(rawEIP2930StringData.slice(2), "hex");
   const rawEIP2930DBData: EIP2930AccessListDatabaseTx = [
     eip2930Buf.slice(0, 1),
@@ -111,7 +115,9 @@ describe("@ganache/ethereum-transaction", async () => {
   };
 
   const rawEIP1559StringData =
-    "0x02f89c808081ff82ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a0000000000000000000000000000000000000000000000000000000000000000480a02ccd79d8d8da2c2fa22ffaf74abfd995142745ede371d4061581aebc17a17319a0774def35a8a81b04506ed0676e0ddf391859ab86e33c8b484d945ab89ddf8a56";
+    "0x02f89e8205398081ff82ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a0000000000000000000000000000000000000000000000000000000000000000480a0274488defb0af8f0dcf1ecf4ff6bb60c0a7584a76db38575e0d57c9ec064c385a01707e5bdd3978be9aaa8375ed70186ea4a01cff5e9fc183855b198c4cb022e4c";
+  const rawEIP1559StringDataChainId1234 =
+    "0x02f89e8204d28081ff82ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080f838f7940efbd0bec0da8dcc0ad442a7d337e9cdc2dd6a54e1a0000000000000000000000000000000000000000000000000000000000000000480a0090645667290e86dc0faa28cbcbaa2fcb641a8688010ee1fc74911eba0351e7fa03ebdbed56c38a0991508bd8c2ad1d266e835807a97f8e4ad658f82b8ed6b111a";
   const eip1559Buf = Buffer.from(rawEIP1559StringData.slice(2), "hex");
   const rawEIP1559DBData: EIP1559FeeMarketDatabaseTx = [
     eip1559Buf.slice(0, 1),
@@ -123,6 +129,15 @@ describe("@ganache/ethereum-transaction", async () => {
   describe("TransactionFactory", () => {
     describe("LegacyTransaction type from factory", () => {
       let txFromRpc: LegacyTransaction;
+      it("fails to parse legacy transaction without EIP-155 signature", () => {
+        assert.throws(
+          () =>
+            <LegacyTransaction>(
+              TransactionFactory.fromString(rawLegacyStrTxChainId1234, common)
+            ),
+          { message: "Invalid signature v value" }
+        );
+      });
       it("infers legacy transaction if type omitted", () => {
         txFromRpc = <LegacyTransaction>(
           TransactionFactory.fromRpc(untypedTx, common)
@@ -166,6 +181,21 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.strictEqual(txFromRpc.type.toString(), "0x1");
         assert.strictEqual(key, accessListStorageKey);
       });
+      it("fails to parse EIP-2390 transaction with wrong chainId", async () => {
+        assert.throws(
+          () =>
+            <EIP2930AccessListTransaction>(
+              TransactionFactory.fromString(
+                rawEIP2930StringDataChainId1234,
+                common
+              )
+            ),
+          {
+            message: "Invalid chain id (1234) for chain with id 1337.",
+            code: -32000
+          }
+        );
+      });
       it("generates eip2930 access list transactions from raw buffer data", async () => {
         const txFromDb = <EIP2930AccessListTransaction>(
           TransactionFactory.fromDatabaseTx(rawEIP2930DBData, common)
@@ -199,6 +229,21 @@ describe("@ganache/ethereum-transaction", async () => {
         );
         const key = txFromDb.accessListJSON[0].storageKeys[0];
         assert.strictEqual(txFromDb.type.toString(), "0x2");
+      });
+      it("fails to parse EIP-1559 transaction with wrong chainId", async () => {
+        assert.throws(
+          () =>
+            <EIP1559FeeMarketTransaction>(
+              TransactionFactory.fromString(
+                rawEIP1559StringDataChainId1234,
+                common
+              )
+            ),
+          {
+            message: "Invalid chain id (1234) for chain with id 1337.",
+            code: -32000
+          }
+        );
       });
       it("generates eip1559 fee market transactions from raw string", async () => {
         const txFromString = <EIP1559FeeMarketTransaction>(
