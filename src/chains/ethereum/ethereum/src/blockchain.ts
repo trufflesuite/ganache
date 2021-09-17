@@ -1140,12 +1140,12 @@ export default class Blockchain extends Emittery.Typed<
         }
       }
     };
-    let mypromise;
+
     const beforeTxListener = async (tx: VmTransaction) => {
       if (tx === transaction) {
         if (keys && contractAddress) {
           const database = this.#database;
-          return (mypromise = Promise.all(
+          return Promise.all(
             keys.map(async key => {
               // get the raw key using the hashed key
               let rawKey = await database.storageKeys.get(key);
@@ -1160,7 +1160,7 @@ export default class Blockchain extends Emittery.Typed<
                 value: Data.from(result, 32)
               };
             })
-          ));
+          );
         }
         vm.on("step", stepListener);
       }
@@ -1193,7 +1193,6 @@ export default class Blockchain extends Emittery.Typed<
     // It's possible we've removed handling specific cases in this implementation.
     // e.g., the previous incantation of RuntimeError
     await runTransactions(vm, newBlock.transactions, newBlock);
-    await mypromise;
 
     // Just to be safe
     removeListeners();
