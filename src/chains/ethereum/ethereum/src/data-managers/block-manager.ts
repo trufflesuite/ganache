@@ -83,7 +83,7 @@ export default class BlockManager extends Manager<Block> {
       Data.from(json.mixHash).toBuffer(),
       Data.from(json.nonce).toBuffer()
     ];
-    // only add baseFeePerGas if the transaction JSON already has it
+    // only add baseFeePerGas if the block's JSON already has it
     if (json.baseFeePerGas !== undefined) {
       header[15] = Data.from(json.baseFeePerGas).toBuffer();
     }
