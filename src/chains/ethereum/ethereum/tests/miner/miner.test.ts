@@ -20,7 +20,7 @@ describe("miner", async () => {
     let from1: string, from2: string, from3: string, to: string;
 
     before(async function () {
-      this.timeout(0);
+      this.timeout(5000);
       common = Common.forCustomChain(
         "mainnet",
         {
