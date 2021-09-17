@@ -56,6 +56,7 @@ export class Block {
   }
 
   getTransactions() {
+    const common = this._common;
     return this._rawTransactions.map((raw, index) => {
       const [from, hash] = this._rawTransactionMetaData[index];
       const extra: GanacheRawExtraTx = [
@@ -65,7 +66,7 @@ export class Block {
         this.header.number.toBuffer(),
         Quantity.from(index).toBuffer()
       ];
-      return TransactionFactory.fromDatabaseTx(raw, this._common, extra);
+      return TransactionFactory.fromDatabaseTx(raw, common, extra);
     });
   }
 
@@ -74,6 +75,7 @@ export class Block {
     const txFn = this.getTxFn(includeFullTransactions);
     const hashBuffer = hash.toBuffer();
     const number = this.header.number.toBuffer();
+    const common = this._common;
     const jsonTxs = this._rawTransactions.map((raw, index) => {
       const [from, hash] = this._rawTransactionMetaData[index];
       const extra: GanacheRawExtraTx = [
@@ -83,7 +85,7 @@ export class Block {
         number,
         Quantity.from(index).toBuffer()
       ];
-      const tx = TransactionFactory.fromDatabaseTx(raw, this._common, extra);
+      const tx = TransactionFactory.fromDatabaseTx(raw, common, extra);
       return txFn(tx);
     });
 
