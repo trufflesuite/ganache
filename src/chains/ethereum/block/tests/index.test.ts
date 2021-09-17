@@ -12,7 +12,7 @@ describe("@ganache/ethereum-block", async () => {
   describe("baseFeePerGas calculations", () => {
     let blockchain: Blockchain;
     before(async function () {
-      this.timeout(0);
+      this.timeout(5000);
       const privKey = `0x${"46".repeat(32)}`;
       const privKeyData = Data.from(privKey);
       const options = EthereumOptionsConfig.normalize({
