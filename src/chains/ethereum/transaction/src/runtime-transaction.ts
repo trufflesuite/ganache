@@ -34,8 +34,8 @@ export const toValidLengthAddress = (address: string, fieldName: string) => {
 };
 
 export const hasPartialSignature = (
-  data: RpcTransaction
-): data is RpcTransaction & {
+  data: TypedRpcTransaction
+): data is TypedRpcTransaction & {
   from?: string;
   v?: string;
   r?: string;
@@ -125,7 +125,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     return encode(txAndExtraData);
   }
 
-  abstract toJSON();
+  abstract toJSON(common: Common);
 
   /**
    * Initializes the receipt and logs
@@ -191,30 +191,32 @@ export abstract class RuntimeTransaction extends BaseTransaction {
         this.r.toBuffer(),
         this.s.toBuffer()
       );
-      const {
-        from,
-        serialized,
-        hash,
-        encodedData,
-        encodedSignature
-      } = this.computeIntrinsics(this.v, raw, this.common.chainId());
-
-      // if the user specified a `from` address in addition to the  `v`, `r`,
-      //  and `s` values, make sure the `from` address matches
-      if (data.from !== null) {
-        const userFrom = toValidLengthAddress(data.from, "from");
-        if (!from.toBuffer().equals(userFrom.toBuffer())) {
-          throw new Error(
-            "Transaction is signed and contains a `from` field, but the signature doesn't match."
-          );
-        }
-      }
-      this.from = from;
       this.raw = raw;
-      this.serialized = serialized;
-      this.hash = hash;
-      this.encodedData = encodedData;
-      this.encodedSignature = encodedSignature;
+      if (!this.from) {
+        const {
+          from,
+          serialized,
+          hash,
+          encodedData,
+          encodedSignature
+        } = this.computeIntrinsics(this.v, raw, this.common.chainId());
+
+        // if the user specified a `from` address in addition to the  `v`, `r`,
+        //  and `s` values, make sure the `from` address matches
+        if (data.from !== null) {
+          const userFrom = toValidLengthAddress(data.from, "from");
+          if (!from.toBuffer().equals(userFrom.toBuffer())) {
+            throw new Error(
+              "Transaction is signed and contains a `from` field, but the signature doesn't match."
+            );
+          }
+        }
+        this.from = from;
+        this.serialized = serialized;
+        this.hash = hash;
+        this.encodedData = encodedData;
+        this.encodedSignature = encodedSignature;
+      }
     } else if (data.from != null) {
       // we don't have a signature yet, so we just need to record the `from`
       // address for now. The TransactionPool will fill in the `hash` and
@@ -261,4 +263,5 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   );
 
   protected abstract toVmTransaction();
+  protected abstract updateEffectiveGasPrice(baseFeePerGas?: Quantity);
 }

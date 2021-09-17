@@ -16,7 +16,8 @@ export const Params = {
     | "petersburg"
     | "istanbul"
     | "muirGlacier"
-    | "berlin",
+    | "berlin"
+    | "london",
     bigint
   >([
     ["constantinople", 68n],
@@ -24,7 +25,8 @@ export const Params = {
     ["petersburg", 68n],
     ["istanbul", 16n],
     ["muirGlacier", 16n],
-    ["berlin", 16n]
+    ["berlin", 16n],
+    ["london", 16n]
   ]),
 
   /**

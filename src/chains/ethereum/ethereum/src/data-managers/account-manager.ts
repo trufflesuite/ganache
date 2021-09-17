@@ -5,7 +5,7 @@ import {
   Tag
 } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "ethereumjs-util";
-import { Quantity, Data, RPCQUANTITY_ZERO, BUFFER_EMPTY } from "@ganache/utils";
+import { Quantity, Data, RPCQUANTITY_ZERO, DATA_EMPTY } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { decode } from "@ganache/rlp";
 import Blockchain from "../blockchain";
@@ -86,10 +86,10 @@ export default class AccountManager {
   ): Promise<Data> {
     const data = await this.getRaw(address, blockNumber);
 
-    if (data == null) return Data.from(BUFFER_EMPTY);
+    if (data == null) return DATA_EMPTY;
 
     const [, , , codeHash] = decode<EthereumRawAccount>(data);
-    if (codeHash.equals(KECCAK256_NULL)) return Data.from(BUFFER_EMPTY);
+    if (codeHash.equals(KECCAK256_NULL)) return DATA_EMPTY;
     else return this.#blockchain.trie.db.get(codeHash).then(Data.from);
   }
 }

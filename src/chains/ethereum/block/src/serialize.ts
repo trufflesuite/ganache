@@ -25,7 +25,8 @@ export type EthereumRawBlockHeader = [
   timestamp: Buffer,
   extraData: Buffer,
   mixHash: Buffer,
-  nonce: Buffer
+  nonce: Buffer,
+  baseFeePerGas?: Buffer
 ];
 export type EthereumRawBlock = [
   rawHeader: EthereumRawBlockHeader,

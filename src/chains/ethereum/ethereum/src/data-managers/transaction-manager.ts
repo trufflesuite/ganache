@@ -8,6 +8,7 @@ import type Common from "@ethereumjs/common";
 import { Data, Quantity } from "@ganache/utils";
 import {
   TransactionFactory,
+  TransactionType,
   TypedRpcTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
@@ -47,7 +48,14 @@ export default class TransactionManager extends Manager<NoOp> {
       [Data.from(transactionHash).toString()]
     );
     if (tx == null) return null;
-    const runTx = TransactionFactory.fromRpc(tx, fallback.common);
+    const extra = [
+      Data.from(tx.from, 20).toBuffer(),
+      Data.from((tx as any).hash, 32).toBuffer(),
+      Data.from((tx as any).blockHash, 32).toBuffer(),
+      Quantity.from((tx as any).blockNumber).toBuffer(),
+      Quantity.from((tx as any).transactionIndex).toBuffer()
+    ] as any;
+    const runTx = TransactionFactory.fromRpc(tx, fallback.common, extra);
     return runTx.serializeForDb(
       Data.from((tx as any).blockHash, 32),
       Quantity.from((tx as any).blockNumber),

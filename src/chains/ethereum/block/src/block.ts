@@ -10,14 +10,19 @@ import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
-import {
-  EthereumRawBlockHeader,
-  GanacheRawBlock,
-  serialize
-} from "./serialize";
-import { Address } from "@ganache/ethereum-address";
+import { EthereumRawBlockHeader, GanacheRawBlock } from "./serialize";
+import { BlockParams } from "./block-params";
+
+export type BaseFeeHeader = BlockHeader &
+  Required<Pick<BlockHeader, "baseFeePerGas">>;
 
 export class Block {
+  /**
+   *  Base fee per gas for blocks without a parent containing a base fee per gas.
+   */
+  static readonly INITIAL_BASE_FEE_PER_GAS =
+    BlockParams.INITIAL_BASE_FEE_PER_GAS;
+
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
   protected _common: Common;
@@ -92,44 +97,6 @@ export class Block {
     };
   }
 
-  static rawFromJSON(json: any, common: Common) {
-    const header: EthereumRawBlockHeader = [
-      Data.from(json.parentHash).toBuffer(),
-      Data.from(json.sha3Uncles).toBuffer(),
-      Address.from(json.miner).toBuffer(),
-      Data.from(json.stateRoot).toBuffer(),
-      Data.from(json.transactionsRoot).toBuffer(),
-      Data.from(json.receiptsRoot).toBuffer(),
-      Data.from(json.logsBloom).toBuffer(),
-      Quantity.from(json.difficulty).toBuffer(),
-      Quantity.from(json.number).toBuffer(),
-      Quantity.from(json.gasLimit).toBuffer(),
-      Quantity.from(json.gasUsed).toBuffer(),
-      Quantity.from(json.timestamp).toBuffer(),
-      Data.from(json.extraData).toBuffer(),
-      Data.from(json.mixHash).toBuffer(),
-      Data.from(json.nonce).toBuffer()
-    ];
-    const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
-    const txs: TypedDatabaseTransaction[] = [];
-    const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
-    json.transactions.forEach(tx => {
-      const typedTx = TransactionFactory.fromRpc(tx, common);
-      const raw = typedTx.toEthRawTransaction(
-        typedTx.v.toBuffer(),
-        typedTx.r.toBuffer(),
-        typedTx.s.toBuffer()
-      );
-      txs.push(<TypedDatabaseTransaction>raw);
-      extraTxs.push([
-        Quantity.from(tx.from).toBuffer(),
-        Quantity.from(tx.hash).toBuffer()
-      ]);
-    });
-
-    return serialize([header, txs, [], totalDifficulty, extraTxs]).serialized;
-  }
-
   getTxFn(
     include = false
   ): (tx: TypedTransaction) => ReturnType<TypedTransaction["toJSON"]> | Data {
@@ -155,5 +122,70 @@ export class Block {
     block._rawTransactionMetaData = extraTxs;
     block._size = size;
     return block;
+  }
+
+  static calcNextBaseFeeBigInt(parentHeader: BaseFeeHeader) {
+    let nextBaseFee: bigint;
+
+    const header = parentHeader;
+    const parentGasTarget = header.gasLimit.toBigInt() / BlockParams.ELASTICITY;
+    const parentGasUsed = header.gasUsed.toBigInt();
+    const baseFeePerGas = header.baseFeePerGas
+      ? header.baseFeePerGas.toBigInt()
+      : BlockParams.INITIAL_BASE_FEE_PER_GAS;
+
+    if (parentGasTarget === parentGasUsed) {
+      // If the parent gasUsed is the same as the target, the baseFee remains unchanged.
+      nextBaseFee = baseFeePerGas;
+    } else if (parentGasUsed > parentGasTarget) {
+      // If the parent block used more gas than its target, the baseFee should increase.
+      const gasUsedDelta = parentGasUsed - parentGasTarget;
+      const adjustedFeeDelta =
+        (baseFeePerGas * gasUsedDelta) /
+        parentGasTarget /
+        BlockParams.BASE_FEE_MAX_CHANGE_DENOMINATOR;
+      if (adjustedFeeDelta > 1n) {
+        nextBaseFee = baseFeePerGas + adjustedFeeDelta;
+      } else {
+        nextBaseFee = baseFeePerGas + 1n;
+      }
+    } else {
+      // Otherwise if the parent block used less gas than its target, the baseFee should decrease.
+      const gasUsedDelta = parentGasTarget - parentGasUsed;
+      const adjustedFeeDelta =
+        (baseFeePerGas * gasUsedDelta) /
+        parentGasTarget /
+        BlockParams.BASE_FEE_MAX_CHANGE_DENOMINATOR;
+      nextBaseFee = baseFeePerGas - adjustedFeeDelta;
+    }
+
+    return nextBaseFee;
+  }
+
+  static calcNBlocksMaxBaseFee(blocks: number, parentHeader: BaseFeeHeader) {
+    const { BASE_FEE_MAX_CHANGE_DENOMINATOR } = BlockParams;
+
+    let maxPossibleBaseFee = this.calcNextBaseFeeBigInt(parentHeader);
+
+    // we must calculate each future block's max base fee individually because
+    // each block's base fee must be appropriately "floored" (Math.floor) before
+    // the following block's base fee is calculated. If we don't do this we'll
+    // end up with compounding rounding errors.
+    // FYI: the more performant, but rounding error-prone, way is:
+    // return lastMaxBlockBaseFee + (lastMaxBlockBaseFee * ((BASE_FEE_MAX_CHANGE_DENOMINATOR-1)**(blocks-1)) / ((BASE_FEE_MAX_CHANGE_DENOMINATOR)**(blocks-1)))
+    while (--blocks) {
+      maxPossibleBaseFee +=
+        maxPossibleBaseFee / BASE_FEE_MAX_CHANGE_DENOMINATOR;
+    }
+    return maxPossibleBaseFee;
+  }
+
+  static calcNextBaseFee(parentBlock: Block) {
+    const header = parentBlock.header;
+    if (header.baseFeePerGas === undefined) {
+      return undefined;
+    } else {
+      return this.calcNextBaseFeeBigInt(<BaseFeeHeader>header);
+    }
   }
 }

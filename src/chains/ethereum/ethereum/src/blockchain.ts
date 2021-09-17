@@ -1,5 +1,5 @@
 import { EOL } from "os";
-import Miner from "./miner/miner";
+import Miner, { Capacity } from "./miner/miner";
 import Database from "./database";
 import Emittery from "emittery";
 import {
@@ -352,7 +352,6 @@ export default class Blockchain extends Emittery.Typed<
       const miner = (this.#miner = new Miner(
         minerOpts,
         txPool.executables,
-        instamine,
         this.vm,
         this.#readyNextBlock
       ));
@@ -372,18 +371,18 @@ export default class Blockchain extends Emittery.Typed<
 
       //#region automatic mining
       const nullResolved = Promise.resolve(null);
-      const mineAll = (maxTransactions: number) =>
+      const mineAll = (maxTransactions: Capacity) =>
         this.#isPaused() ? nullResolved : this.mine(maxTransactions);
       if (instamine) {
         // insta mining
         // whenever the transaction pool is drained mine the txs into blocks
-        txPool.on("drain", mineAll.bind(null, 1));
+        txPool.on("drain", mineAll.bind(null, Capacity.Single));
       } else {
         // interval mining
         const wait = () =>
           // unref, so we don't hold the chain open if nothing can interact with it
           unref((this.#timer = setTimeout(next, minerOpts.blockTime * 1e3)));
-        const next = () => mineAll(-1).then(wait);
+        const next = () => mineAll(Capacity.FillBlock).then(wait);
         wait();
       }
       //#endregion
@@ -520,8 +519,8 @@ export default class Blockchain extends Emittery.Typed<
       str += `  Contract created: ${Address.from(contractAddress)}${EOL}`;
     }
 
-    str += `  Gas usage: ${Quantity.from(receipt.raw[1]).toNumber()}${EOL}
-  Block number: ${blockNumber.toNumber()}${EOL}
+    str += `  Gas usage: ${Quantity.from(receipt.raw[1]).toNumber()}
+  Block number: ${blockNumber.toNumber()}
   Block time: ${timestamp}${EOL}`;
 
     if (error) {
@@ -560,7 +559,8 @@ export default class Blockchain extends Emittery.Typed<
       BUFFER_ZERO,
       Quantity.from(timestamp == null ? this.#currentTime() : timestamp),
       this.#options.miner.difficulty,
-      previousBlock.header.totalDifficulty
+      previousHeader.totalDifficulty,
+      Block.calcNextBaseFee(previousBlock)
     );
   };
 
@@ -569,7 +569,7 @@ export default class Blockchain extends Emittery.Typed<
   };
 
   mine = async (
-    maxTransactions: number,
+    maxTransactions: number | Capacity,
     timestamp?: number,
     onlyOneBlock: boolean = false
   ) => {
@@ -597,7 +597,7 @@ export default class Blockchain extends Emittery.Typed<
 
     // if we are instamining mine a block right away
     if (this.#instamine) {
-      return this.mine(-1);
+      return this.mine(Capacity.FillBlock);
     }
   }
 
@@ -656,26 +656,38 @@ export default class Blockchain extends Emittery.Typed<
     initialAccounts: Account[]
   ) => {
     if (this.fallback != null) {
+      const { block: fallbackBlock } = this.fallback;
+      const { miner: minerOptions } = this.#options;
+
       // commit accounts, but for forking.
-      const sm = this.vm.stateManager;
-      this.vm.stateManager.checkpoint();
+      const stateManager = <DefaultStateManager>this.vm.stateManager;
+      stateManager.checkpoint();
       initialAccounts.forEach(acc => {
         const a = { buf: acc.address.toBuffer() } as any;
-        (sm as any)._cache.put(a, acc);
-        sm.touchAccount(a);
+        (stateManager as any)._cache.put(a, acc);
+        stateManager.touchAccount(a);
       });
-      await this.vm.stateManager.commit();
+      await stateManager.commit();
 
       // create the genesis block
+      let baseFeePerGas: bigint;
+      if (this.common.isActivatedEIP(1559)) {
+        if (fallbackBlock.header.baseFeePerGas === undefined) {
+          baseFeePerGas = Block.INITIAL_BASE_FEE_PER_GAS;
+        } else {
+          baseFeePerGas = fallbackBlock.header.baseFeePerGas.toBigInt();
+        }
+      }
       const genesis = new RuntimeBlock(
-        Quantity.from(this.fallback.block.header.number.toBigInt() + 1n),
-        this.fallback.block.hash(),
+        Quantity.from(fallbackBlock.header.number.toBigInt() + 1n),
+        fallbackBlock.hash(),
         this.coinbase,
         blockGasLimit.toBuffer(),
         BUFFER_ZERO,
         Quantity.from(timestamp),
-        this.#options.miner.difficulty,
-        this.fallback.block.header.totalDifficulty
+        minerOptions.difficulty,
+        fallbackBlock.header.totalDifficulty,
+        baseFeePerGas
       );
 
       // store the genesis block in the database
@@ -685,7 +697,7 @@ export default class Blockchain extends Emittery.Typed<
         BUFFER_256_ZERO,
         this.trie.root,
         0n,
-        this.#options.miner.extraData,
+        minerOptions.extraData,
         [],
         new Map()
       );
@@ -709,15 +721,19 @@ export default class Blockchain extends Emittery.Typed<
     const rawBlockNumber = RPCQUANTITY_EMPTY;
 
     // create the genesis block
+    const baseFeePerGas = this.common.isActivatedEIP(1559)
+      ? Block.INITIAL_BASE_FEE_PER_GAS
+      : undefined;
     const genesis = new RuntimeBlock(
       rawBlockNumber,
-      Quantity.from(BUFFER_32_ZERO),
+      Data.from(BUFFER_32_ZERO),
       this.coinbase,
       blockGasLimit.toBuffer(),
       BUFFER_ZERO,
       Quantity.from(timestamp),
       this.#options.miner.difficulty,
-      RPCQUANTITY_ZERO // we start the totalDifficulty at 0
+      RPCQUANTITY_ZERO, // we start the totalDifficulty at 0
+      baseFeePerGas
     );
 
     // store the genesis block in the database
@@ -1311,7 +1327,8 @@ export default class Blockchain extends Emittery.Typed<
       // make sure we use the same timestamp as the target block
       targetBlock.header.timestamp,
       this.#options.miner.difficulty,
-      parentBlock.header.totalDifficulty
+      parentBlock.header.totalDifficulty,
+      Block.calcNextBaseFee(parentBlock)
     ) as RuntimeBlock & {
       uncleHeaders: [];
       transactions: VmTransaction[];

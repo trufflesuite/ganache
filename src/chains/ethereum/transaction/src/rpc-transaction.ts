@@ -22,21 +22,39 @@ type HexPair = `${oneThroughSeven}${HexChar}`;
 type TxType = `0x${HexChar}` | `0x${HexPair}`; // tx types are valid 0 through 7f
 
 export type TypedRpcTransaction =
-  | (RpcTransaction & {
-      chainId?: never;
-      accessList?: never;
-    })
-  | (RpcTransaction & {
-      type: TxType;
-      chainId?: string;
-      accessList?: AccessList;
-    });
+  | LegacyRpcTransaction
+  | EIP2930AccessListRpcTransaction
+  | EIP1559FeeMarketRpcTransaction;
+
+export type LegacyRpcTransaction = Readonly<RpcTransaction> & {
+  readonly gasPrice?: string;
+  readonly chainId?: never;
+  readonly accessList?: never;
+  readonly maxPriorityFeePerGas?: never;
+  readonly maxFeePerGas?: never;
+};
+export type EIP2930AccessListRpcTransaction = Readonly<RpcTransaction> & {
+  readonly type: TxType;
+  readonly chainId?: string;
+  readonly gasPrice?: string;
+  readonly accessList?: AccessList;
+  readonly maxPriorityFeePerGas?: never;
+  readonly maxFeePerGas?: never;
+};
+
+export type EIP1559FeeMarketRpcTransaction = Readonly<RpcTransaction> & {
+  readonly type: TxType;
+  readonly chainId?: string;
+  readonly gasPrice?: never;
+  readonly maxPriorityFeePerGas?: string;
+  readonly maxFeePerGas?: string;
+  readonly accessList?: AccessList;
+};
 
 export type RpcTransaction =
   | {
       from: string;
       nonce?: string;
-      gasPrice?: string;
       gas?: string;
       gasLimit?: never;
       to?: string;
@@ -47,7 +65,6 @@ export type RpcTransaction =
   | {
       from: string;
       nonce?: string;
-      gasPrice?: string;
       /**
        * Alias for `gas`
        */
@@ -61,7 +78,6 @@ export type RpcTransaction =
   | {
       from: string;
       nonce?: string;
-      gasPrice?: string;
       gas?: string;
       gasLimit?: never;
       to?: string;
@@ -75,7 +91,6 @@ export type RpcTransaction =
   | {
       from: string;
       nonce?: string;
-      gasPrice?: string;
       /**
        * Alias for `gas`
        */
@@ -93,7 +108,6 @@ export type RpcTransaction =
   | {
       from?: string;
       nonce: string;
-      gasPrice?: string;
       gas?: string;
       gasLimit?: never;
       to?: string;
@@ -107,7 +121,6 @@ export type RpcTransaction =
   | {
       from?: string;
       nonce: string;
-      gasPrice?: string;
       /**
        * Alias for `gas`
        */
@@ -124,7 +137,6 @@ export type RpcTransaction =
   | {
       from?: string;
       nonce: string;
-      gasPrice?: string;
       gas?: string;
       gasLimit?: never;
       to?: string;
@@ -141,7 +153,6 @@ export type RpcTransaction =
   | {
       from?: string;
       nonce: string;
-      gasPrice?: string;
       /**
        * Alias for `gas`
        */

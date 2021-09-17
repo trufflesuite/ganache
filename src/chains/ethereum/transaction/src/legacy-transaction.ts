@@ -19,7 +19,7 @@ import {
   LegacyDatabasePayload,
   TypedDatabaseTransaction
 } from "./raw";
-import { computeInstrinsicsLegacyTx } from "./signing";
+import { computeIntrinsicsLegacyTx } from "./signing";
 import { Capability, LegacyTransactionJSON } from "./transaction-types";
 
 export class LegacyTransaction extends RuntimeTransaction {
@@ -34,7 +34,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     super(data, common, extra);
     if (Array.isArray(data)) {
       this.nonce = Quantity.from(data[0]);
-      this.gasPrice = Quantity.from(data[1]);
+      this.gasPrice = this.effectiveGasPrice = Quantity.from(data[1]);
       this.gas = Quantity.from(data[2]);
       this.to = data[3].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[3]);
       this.value = Quantity.from(data[4]);
@@ -44,7 +44,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.s = Quantity.from(data[8]);
       this.raw = data;
 
-      if (this.common) {
+      if (!extra) {
         // TODO(hack): Transactions that come from the database must not be
         // validated since they may come from a fork.
         const {
@@ -62,7 +62,7 @@ export class LegacyTransaction extends RuntimeTransaction {
         this.encodedSignature = encodedSignature;
       }
     } else {
-      this.gasPrice = Quantity.from(data.gasPrice);
+      this.gasPrice = this.effectiveGasPrice = Quantity.from(data.gasPrice);
 
       this.validateAndSetSignature(data);
     }
@@ -221,6 +221,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     raw: TypedDatabaseTransaction,
     chainId: number
   ) {
-    return computeInstrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
+    return computeIntrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
   }
+  public updateEffectiveGasPrice() {}
 }

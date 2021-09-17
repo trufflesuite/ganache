@@ -52,6 +52,7 @@
     "@ganache/ethereum-address": "0.1.1-alpha.0",
     "@ganache/ethereum-utils": "0.1.1-alpha.0",
     "@ganache/rlp": "0.1.1-alpha.0",
+    "@ganache/secp256k1": "0.1.0",
     "@ganache/utils": "0.1.1-alpha.0",
     "ethereumjs-util": "7.1.0",
     "node-gyp-build": "4.2.3"

@@ -474,7 +474,7 @@ describe("forking", () => {
         to
       };
       const subId = await remoteProvider.send("eth_subscribe", ["newHeads"]);
-      remoteProvider.send("eth_sendTransaction", [tx]);
+      await remoteProvider.send("eth_sendTransaction", [tx]);
       await remoteProvider.once("message");
       await remoteProvider.send("eth_unsubscribe", [subId]);
 
