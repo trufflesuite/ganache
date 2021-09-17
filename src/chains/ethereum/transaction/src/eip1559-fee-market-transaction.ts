@@ -4,7 +4,8 @@ import {
   keccak,
   BUFFER_32_ZERO,
   RPCQUANTITY_EMPTY,
-  BUFFER_ZERO
+  BUFFER_ZERO,
+  JsonRpcErrorCode
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
@@ -26,6 +27,7 @@ import {
   EIP1559FeeMarketTransactionJSON
 } from "./transaction-types";
 import secp256k1 from "@ganache/secp256k1";
+import { CodedError } from "@ganache/ethereum-utils";
 
 function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
   const object = { signature: new Uint8Array(64), recid: null };
@@ -76,8 +78,16 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.raw = [this.type.toBuffer(), ...data];
 
       if (!extra) {
-        // TODO(hack): Transactions that come from the database must not be
-        // validated since they may come from a fork.
+        // TODO(hack): we use the presence of `extra` to determine if this data
+        // come from the "database" or not. Transactions that come from the
+        // database must not be validated since they may come from a fork.
+        if (common.chainId() !== this.chainId.toNumber()) {
+          throw new CodedError(
+            `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
+            JsonRpcErrorCode.INVALID_INPUT
+          );
+        }
+
         const {
           from,
           serialized,
@@ -93,9 +103,18 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
         this.encodedSignature = encodedSignature;
       }
     } else {
-      this.chainId = Quantity.from(
-        data.chainId || common.chainIdBN().toArrayLike(Buffer)
-      );
+      if (data.chainId) {
+        this.chainId = Quantity.from(data.chainId);
+        if (this.common.chainId() !== this.chainId.toNumber()) {
+          throw new CodedError(
+            `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
+            JsonRpcErrorCode.INVALID_INPUT
+          );
+        }
+      } else {
+        this.chainId = Quantity.from(common.chainIdBN().toArrayLike(Buffer));
+      }
+
       this.maxPriorityFeePerGas = Quantity.from(data.maxPriorityFeePerGas);
       this.maxFeePerGas = Quantity.from(data.maxFeePerGas);
       const accessListData = AccessLists.getAccessListData(data.accessList);
