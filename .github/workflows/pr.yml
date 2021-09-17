@@ -26,7 +26,7 @@ jobs:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v2
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v1
