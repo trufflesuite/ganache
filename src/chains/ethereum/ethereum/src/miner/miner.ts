@@ -62,6 +62,9 @@ const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
 const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
   values[a].effectiveGasPrice > values[b].effectiveGasPrice;
 
+const refresher = (item: TypedTransaction, context: Quantity) =>
+  item.updateEffectiveGasPrice(context);
+
 export default class Miner extends Emittery.Typed<
   {
     block: {
@@ -105,13 +108,11 @@ export default class Miner extends Emittery.Typed<
     this.#paused = false;
     this.#resolver();
   }
-  public refresher = (item: TypedTransaction, context: Quantity) => {
-    item.updateEffectiveGasPrice(context);
-  };
+
   // create a Heap that sorts by gasPrice
   readonly #priced = new Heap<TypedTransaction, Quantity>(
     sortByPrice,
-    this.refresher
+    refresher
   );
   /*
    * @param executables A live Map of pending transactions from the transaction
