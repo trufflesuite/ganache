@@ -168,7 +168,7 @@ export class Block {
     // each block's base fee must be appropriately "floored" (Math.floor) before
     // the following block's base fee is calculated. If we don't do this we'll
     // end up with compounding rounding errors.
-    // FYI: the more performance but rounding error-prone would be:
+    // FYI: the more performant, but rounding error-prone, way is:
     // return lastMaxBlockBaseFee + (lastMaxBlockBaseFee * ((BASE_FEE_MAX_CHANGE_DENOMINATOR-1)**(blocks-1)) / ((BASE_FEE_MAX_CHANGE_DENOMINATOR)**(blocks-1)))
     while (--blocks) {
       lastMaxBlockBaseFee +=
