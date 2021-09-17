@@ -97,9 +97,6 @@ export const ecdsaRecover = (
     data = digest([partialRlp.output], partialRlp.length);
     recid = v - 27;
   }
-  if (!isValidSigRecovery(recid)) {
-    throw new Error("Invalid signature v value");
-  }
 
   return _ecdsaRecover(data, sharedBuffer, rBuf, sBuf, recid);
 };
@@ -111,6 +108,10 @@ function _ecdsaRecover(
   sBuf: Buffer,
   recid: number
 ) {
+  if (!isValidSigRecovery(recid)) {
+    throw new Error("Invalid signature v value");
+  }
+
   const message = keccak(data);
 
   const signature = sharedBuffer.slice(0, 64);
