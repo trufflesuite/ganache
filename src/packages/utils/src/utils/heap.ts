@@ -32,6 +32,11 @@ export class Heap<T, U = any> {
    * item in the heap and then re-sorting.
    * @param context
    */
+  /**
+   * Updates all entries by calling the Heap's `refresher` function for each
+   * item in the heap and then re-sorting.
+   * @param context
+   */
   public refresh(context: U) {
     const length = this.length;
     const mid = (length / 2) | 0;
