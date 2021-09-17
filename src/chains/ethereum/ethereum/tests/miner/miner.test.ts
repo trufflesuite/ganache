@@ -127,7 +127,7 @@ describe("miner", async () => {
       highBlockJson = highGasBlock.toJSON(true);
     });
 
-    it.only("orders transactions by gasPrice", async () => {
+    it("orders transactions by gasPrice", async () => {
       const block = await lowGasLimitBlockchain.blocks.get(Buffer.from([1]));
       const lowBlockJson = block.toJSON(true);
       const lowBlockTxJson = lowBlockJson.transactions[0] as any;
