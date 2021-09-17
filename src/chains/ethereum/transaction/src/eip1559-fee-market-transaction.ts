@@ -265,14 +265,12 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
 
   public updateEffectiveGasPrice(baseFeePerGas?: Quantity) {
     if (baseFeePerGas) {
-      const baseFeePerGasNum = baseFeePerGas.toNumber();
-      const maxFeePerGasNum = this.maxFeePerGas.toNumber();
-      const maxPriorityFeePerGasNum = this.maxPriorityFeePerGas.toNumber();
-      const tip = Math.min(
-        maxFeePerGasNum - baseFeePerGasNum,
-        maxPriorityFeePerGasNum
-      );
-      this.effectiveGasPrice = Quantity.from(baseFeePerGasNum + tip);
+      const baseFeePerGasBigInt = baseFeePerGas.toBigInt();
+      const maxFeePerGas = this.maxFeePerGas.toBigInt();
+      const maxPriorityFeePerGas = this.maxPriorityFeePerGas.toBigInt();
+      const a = maxFeePerGas - baseFeePerGasBigInt;
+      const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
+      this.effectiveGasPrice = Quantity.from(baseFeePerGasBigInt + tip);
     } else {
       // TODO, there could be a better way to handle this, but:
       // When the tx is first being constructed, we don't always have access to
