@@ -417,12 +417,13 @@ describe("api", () => {
 
     it("eth_getTransactionByBlockNumberAndIndex", async () => {
       await provider.send("eth_subscribe", ["newHeads"]);
+      const gasPrice = await provider.send("eth_gasPrice", []);
       const txHash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
           to: accounts[1],
           value: "0x1",
-          gasPrice: "0x77359400"
+          gasPrice
         }
       ]);
       await provider.once("message");
