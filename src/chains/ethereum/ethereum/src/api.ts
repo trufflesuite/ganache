@@ -39,7 +39,7 @@ import {
   JsonRpcErrorCode
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
-import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 
