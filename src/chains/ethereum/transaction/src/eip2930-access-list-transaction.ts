@@ -2,7 +2,7 @@ import {
   Data,
   Quantity,
   keccak,
-  BUFFER_EMPTY,
+  BUFFER_ZERO,
   BUFFER_32_ZERO,
   RPCQUANTITY_EMPTY
 } from "@ganache/utils";
@@ -187,19 +187,17 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       );
     }
 
-    const chainId = this.common.chainId();
     const typeBuf = this.type.toBuffer();
     const raw: EIP2930AccessListDatabaseTx = this.toEthRawTransaction(
-      Quantity.from(chainId).toBuffer(),
-      BUFFER_EMPTY,
-      BUFFER_EMPTY
+      BUFFER_ZERO,
+      BUFFER_ZERO,
+      BUFFER_ZERO
     );
     const data = encodeRange(raw, 1, 8);
     const dataLength = data.length;
 
-    const ending = encodeRange(raw, 9, 3);
     const msgHash = keccak(
-      digest([data.output, ending.output], dataLength + ending.length)
+      Buffer.concat([typeBuf, digest([data.output], dataLength)])
     );
     const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
