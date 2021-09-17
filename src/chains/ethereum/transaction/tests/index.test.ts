@@ -2,6 +2,7 @@ import assert from "assert";
 import {
   EIP1559FeeMarketDatabasePayload,
   EIP1559FeeMarketDatabaseTx,
+  EIP1559FeeMarketTransaction,
   EIP2930AccessListDatabasePayload,
   EIP2930AccessListDatabaseTx,
   EIP2930AccessListTransaction,
@@ -18,7 +19,6 @@ import { decode } from "@ganache/rlp";
 import { EthereumOptionsConfig } from "../../options";
 import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
 import { Buffer } from "buffer";
-import { EIP1559FeeMarketTransaction } from "../typings/src/eip1559-fee-market-transaction";
 
 describe("@ganache/ethereum-transaction", async () => {
   const common = Common.forCustomChain(
@@ -123,7 +123,7 @@ describe("@ganache/ethereum-transaction", async () => {
   describe("TransactionFactory", () => {
     describe("LegacyTransaction type from factory", () => {
       let txFromRpc: LegacyTransaction;
-      it("infers legacy transaction if type ommitted", () => {
+      it("infers legacy transaction if type omitted", () => {
         txFromRpc = <LegacyTransaction>(
           TransactionFactory.fromRpc(untypedTx, common)
         );
@@ -149,7 +149,7 @@ describe("@ganache/ethereum-transaction", async () => {
         );
         assert.strictEqual(txFromString.type.toString(), "0x0");
       });
-      it("normalizes an eip-2930 transaction to legacy when access list is ommited", async () => {
+      it("normalizes an eip-2930 transaction to legacy when access list is omitted", async () => {
         const tempAccessListTx = JSON.parse(JSON.stringify(accessListTx)); // don't want to alter accessListTx
         tempAccessListTx.accessList = undefined;
         const txFromRpc = TransactionFactory.fromRpc(tempAccessListTx, common);
@@ -206,13 +206,13 @@ describe("@ganache/ethereum-transaction", async () => {
         );
         assert.strictEqual(txFromString.type.toString(), "0x2");
       });
-      it("normalizes a legacy transaction to eip-1559 when gas price is ommited", async () => {
+      it("normalizes a legacy transaction to eip-1559 when gas price is omitted", async () => {
         const tempLegacyTx = JSON.parse(JSON.stringify(typedLegacyTx)); // don't want to alter accessListTx
         tempLegacyTx.gasPrice = undefined;
         const txFromRpc = TransactionFactory.fromRpc(tempLegacyTx, common);
         assert.strictEqual(txFromRpc.type.toString(), "0x2");
       });
-      it("normalizes an eip-2930 transaction to eip-1559 when gas price is ommited", async () => {
+      it("normalizes an eip-2930 transaction to eip-1559 when gas price is omitted", async () => {
         const tempAccessListTx = JSON.parse(JSON.stringify(accessListTx)); // don't want to alter accessListTx
         tempAccessListTx.gasPrice = undefined;
         const txFromRpc = TransactionFactory.fromRpc(tempAccessListTx, common);

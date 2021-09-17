@@ -19,7 +19,7 @@ import {
   LegacyDatabasePayload,
   TypedDatabaseTransaction
 } from "./raw";
-import { computeInstrinsicsLegacyTx } from "./signing";
+import { computeIntrinsicsLegacyTx } from "./signing";
 import { Capability, LegacyTransactionJSON } from "./transaction-types";
 
 export class LegacyTransaction extends RuntimeTransaction {
@@ -222,7 +222,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     raw: TypedDatabaseTransaction,
     chainId: number
   ) {
-    return computeInstrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
+    return computeIntrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
   }
   public updateEffectiveGasPrice() {}
 }

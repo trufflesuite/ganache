@@ -167,7 +167,7 @@ export const computeFromAddress = (
   return Address.from(keccak(publicKey.slice(1)).slice(-20));
 };
 
-export const computeInstrinsicsLegacyTx = (
+export const computeIntrinsicsLegacyTx = (
   v: Quantity,
   raw: LegacyDatabasePayload,
   chainId: number
@@ -193,7 +193,7 @@ export const computeInstrinsicsLegacyTx = (
   };
 };
 
-export const computeInstrinsicsAccessListTx = (
+export const computeIntrinsicsAccessListTx = (
   v: Quantity,
   raw: EIP2930AccessListDatabaseTx
 ) => {
@@ -232,7 +232,7 @@ export const computeInstrinsicsAccessListTx = (
   };
 };
 
-export const computeInstrinsicsFeeMarketTx = (
+export const computeIntrinsicsFeeMarketTx = (
   v: Quantity,
   raw: EIP1559FeeMarketDatabaseTx
 ) => {

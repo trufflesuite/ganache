@@ -20,7 +20,7 @@ import {
 } from "./raw";
 import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
 import { AccessLists } from "./access-lists";
-import { computeInstrinsicsFeeMarketTx } from "./signing";
+import { computeIntrinsicsFeeMarketTx } from "./signing";
 import {
   Capability,
   EIP1559FeeMarketTransactionJSON
@@ -260,7 +260,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public computeIntrinsics(v: Quantity, raw: TypedDatabaseTransaction) {
-    return computeInstrinsicsFeeMarketTx(v, <EIP1559FeeMarketDatabaseTx>raw);
+    return computeIntrinsicsFeeMarketTx(v, <EIP1559FeeMarketDatabaseTx>raw);
   }
 
   public updateEffectiveGasPrice(baseFeePerGas?: Quantity) {
