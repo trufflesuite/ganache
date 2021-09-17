@@ -8,7 +8,6 @@ import type Common from "@ethereumjs/common";
 import { Data, Quantity } from "@ganache/utils";
 import {
   TransactionFactory,
-  TransactionType,
   TypedRpcTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
