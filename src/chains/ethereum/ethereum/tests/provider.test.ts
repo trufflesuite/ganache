@@ -113,7 +113,7 @@ describe("provider", () => {
           assert.deepStrictEqual(
             events,
             controlEvents,
-            "missing expected events"
+            "events don't match from expected/control to actual"
           );
         }
         return events;
@@ -133,9 +133,11 @@ describe("provider", () => {
       });
       it("emits vm:tx:* events for eth_sendRawTransaction", async () => {
         const accounts = provider.getInitialAccounts();
+        const gasPrice = await provider.send("eth_gasPrice", []);
         const secretKey = Data.from(accounts[from].secretKey).toBuffer();
         const tx = Transaction.fromTxData(
-          { ...transaction, nonce: "0x1" },
+          // specify gasPrice so we don't have to deal with a type 2 transaction
+          { ...transaction, nonce: "0x1", gasPrice },
           {
             common: Common.forCustomChain("mainnet", { chainId: 1337 })
           }
