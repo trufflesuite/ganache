@@ -11,7 +11,7 @@ describe("api", () => {
         const signedTx = await provider.send("eth_signTransaction", [
           {
             type: "0x2",
-            chainId: "0x1337",
+            chainId: "0x539",
             from: from,
             to: to,
             gas: "0x5b8d80",
