@@ -10,13 +10,9 @@ import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
 import { BaseFeeHeader, BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
-import {
-  EthereumRawBlockHeader,
-  GanacheRawBlock,
-  serialize
-} from "./serialize";
-import { Address } from "@ganache/ethereum-address";
+import { EthereumRawBlockHeader, GanacheRawBlock } from "./serialize";
 import { BlockParams } from "./block-params";
+
 export class Block {
   /**
    *  Base fee per gas for blocks without a parent containing a base fee per gas.
