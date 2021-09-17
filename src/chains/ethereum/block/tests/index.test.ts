@@ -66,7 +66,7 @@ describe("@ganache/ethereum-block", async () => {
         { txCount: 290, newGasLimit: 11988553 },
         { txCount: 10, newGasLimit: 11976847 },
         // because we use the previous block to calculate the base fee,
-        // send/mine one more tx so we can see what the reulting base fee
+        // send/mine one more tx so we can see what the resulting base fee
         // is from the previous block
         { txCount: 1, newGasLimit: 11965152 }
       ];
