@@ -14,7 +14,6 @@ import { BN } from "ethereumjs-util";
 import { RuntimeTransaction } from "./runtime-transaction";
 import { TypedRpcTransaction } from "./rpc-transaction";
 import {
-  EIP1559FeeMarketDatabasePayload,
   EIP2930AccessListDatabasePayload,
   GanacheRawExtraTx,
   LegacyDatabasePayload,
