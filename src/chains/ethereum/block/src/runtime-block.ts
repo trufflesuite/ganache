@@ -48,9 +48,6 @@ export type BlockHeader = {
   baseFeePerGas?: Quantity;
 };
 
-export type BaseFeeHeader = BlockHeader &
-  Required<Pick<BlockHeader, "baseFeePerGas">>;
-
 /**
  * Returns the size of the serialized data as it would have been calculated had
  * we stored things geth does, i.e., `totalDfficulty` is not usually stored in

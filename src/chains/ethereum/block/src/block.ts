@@ -8,10 +8,13 @@ import {
 } from "@ganache/ethereum-transaction";
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
-import { BaseFeeHeader, BlockHeader, makeHeader } from "./runtime-block";
+import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
 import { EthereumRawBlockHeader, GanacheRawBlock } from "./serialize";
 import { BlockParams } from "./block-params";
+
+export type BaseFeeHeader = BlockHeader &
+  Required<Pick<BlockHeader, "baseFeePerGas">>;
 
 export class Block {
   /**
