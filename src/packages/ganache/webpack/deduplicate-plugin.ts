@@ -62,7 +62,11 @@ function createMapKey(name: string, version: string, file: string) {
 
 function createMapKeyFromResource(resource: Resource) {
   const fileData = resource.createData.resourceResolveData.descriptionFileData;
-  return createMapKey(fileData.name, fileData.version, resource.request);
+  return createMapKey(
+    fileData.name,
+    fileData.version,
+    resource.createData.resourceResolveData.relativePath
+  );
 }
 
 class DeduplicatePlugin extends NormalModuleReplacementPlugin {

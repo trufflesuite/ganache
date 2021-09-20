@@ -22,11 +22,18 @@ let secp256k1: {
   ) => 0 | 1;
 };
 try {
-  // load native secp256k1, if possible
-  secp256k1 = new (require("node-gyp-build")(
-    dirname(require.resolve("secp256k1/package.json"))
-  ).Secp256k1)();
-} catch (err) {
+  // TODO: find a better way :-)
+  // use `eval` to make `ganache`'s webpack ignore this
+  const nodeRequire: NodeRequire = eval("require");
+  const path = nodeRequire.resolve("secp256k1/package.json");
+  const dir = dirname(path);
+  const nodeGypBuild = require("node-gyp-build");
+  // load native secp256k1
+  const { Secp256k1 } = nodeGypBuild(dir);
+  secp256k1 = new Secp256k1();
+} catch {
+  // on error use the JS fallback
   secp256k1 = require("secp256k1/lib/elliptic");
 }
+
 export default secp256k1;
