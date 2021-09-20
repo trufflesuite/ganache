@@ -799,7 +799,7 @@ export default class EthereumApi implements Api {
         parentHeader.timestamp,
         options.miner.difficulty,
         parentHeader.totalDifficulty,
-        Block.calcNextBaseFee(parentBlock)
+        0n // no baseFeePerGas for estimates
       );
       const runArgs = {
         tx: tx.toVmTransaction(),
@@ -2466,7 +2466,7 @@ export default class EthereumApi implements Api {
       parentHeader.timestamp,
       options.miner.difficulty,
       parentHeader.totalDifficulty,
-      Block.calcNextBaseFee(parentBlock)
+      0n // no baseFeePerGas for eth_call
     );
 
     const simulatedTransaction = {
