@@ -46,10 +46,6 @@ describe("forking", () => {
       });
       const remoteBlock = JSON.parse(res.text).result;
 
-      remoteBlock.transactions.forEach(tx => {
-        delete tx.type;
-      });
-
       const block = await provider.send("eth_getBlockByNumber", [
         blockNumHex,
         true

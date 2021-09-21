@@ -36,8 +36,6 @@ describe("forking", () => {
         provider.send("eth_getTransactionByHash", [txHash])
       ]);
 
-      delete originalTx.type;
-
       assert.deepStrictEqual(tx, originalTx);
     });
   });
