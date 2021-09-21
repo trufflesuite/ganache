@@ -90,3 +90,4 @@ jobs:
       - run: npm test
         env:
           FORCE_COLOR: 1
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
