@@ -87,61 +87,6 @@ describe("Random tests that are temporary!", () => {
     );
   });
 
-  it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
-    const p = await getProvider({
-      wallet: {
-        mnemonic,
-        secure: true,
-        unlockedAccounts: ["0", 1]
-      }
-    });
-
-    const accounts = await p.send("eth_accounts");
-    const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
-    const badSend = async () => {
-      return p.send("eth_sendTransaction", [
-        {
-          from: accounts[2],
-          to: accounts[1],
-          value: "0x7b"
-        }
-      ]);
-    };
-    await assert.rejects(
-      badSend,
-      "Error: authentication needed: password or unlock"
-    );
-
-    await p.send("eth_subscribe", ["newHeads"]);
-    await p.send("eth_sendTransaction", [
-      {
-        from: accounts[0],
-        to: accounts[1],
-        value: "0x7b"
-      }
-    ]);
-
-    await p.once("message");
-
-    const balance1_2 = await p.send("eth_getBalance", [accounts[1]]);
-    assert.strictEqual(BigInt(balance1_1) + 123n, BigInt(balance1_2));
-
-    const balance0_1 = await p.send("eth_getBalance", [accounts[0]]);
-
-    await p.send("eth_sendTransaction", [
-      {
-        from: accounts[1],
-        to: accounts[0],
-        value: "0x7b"
-      }
-    ]);
-
-    await p.once("message");
-
-    const balance0_2 = await p.send("eth_getBalance", [accounts[0]]);
-    assert.strictEqual(BigInt(balance0_1) + 123n, BigInt(balance0_2));
-  });
-
   it("deploys contracts", async () => {
     const contract = compile(join(__dirname, "./contracts/HelloWorld.sol"));
 
@@ -218,7 +163,10 @@ describe("Random tests that are temporary!", () => {
   });
 
   it("transfers value", async () => {
-    const p = await getProvider({ miner: { defaultGasPrice: 0 } });
+    const p = await getProvider({
+      miner: { defaultGasPrice: 0 },
+      chain: { hardfork: "berlin" }
+    });
     const accounts = await p.send("eth_accounts");
     const ONE_ETHER = WEI;
     const options = p.getOptions();

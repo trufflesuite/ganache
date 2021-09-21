@@ -31,7 +31,9 @@ const config: webpack.Configuration = merge({}, base, {
       "@trufflesuite/uws-js-unofficial": false,
       "@ganache/filecoin": false,
       // `url` is already a global property in browser
-      url: false
+      url: false,
+      // mcl-wasm may be needed when creating a new @ethereumjs/vm and requires a browser version for browsers
+      "mcl-wasm": require.resolve("mcl-wasm/browser")
     }
   },
   output: {

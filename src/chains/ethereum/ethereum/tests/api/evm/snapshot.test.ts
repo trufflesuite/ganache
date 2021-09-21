@@ -423,8 +423,12 @@ describe("api", () => {
 
         // send some transactions
         const inFlightTxs = [
-          send("eth_sendTransaction", [{ from, to, value: value++ }]),
-          send("eth_sendTransaction", [{ from, to, value: value++ }])
+          send("eth_sendTransaction", [
+            { from, to, value: value++, gasPrice: "0xffffffff" }
+          ]),
+          send("eth_sendTransaction", [
+            { from, to, value: value++, gasPrice: "0xffffffff" }
+          ])
         ];
 
         // these two transactions have nonces that are too high to be executed immediately

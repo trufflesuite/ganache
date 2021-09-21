@@ -1,7 +1,14 @@
 import { Account } from "@ganache/ethereum-utils";
-import { Data, Quantity, RPCQUANTITY_ZERO, unref, WEI } from "@ganache/utils";
+import {
+  Data,
+  keccak,
+  Quantity,
+  RPCQUANTITY_ZERO,
+  unref,
+  WEI
+} from "@ganache/utils";
 import { privateToAddress } from "ethereumjs-util";
-import secp256k1 from "secp256k1";
+import secp256k1 from "@ganache/secp256k1";
 import { mnemonicToSeedSync } from "bip39";
 import HDKey from "hdkey";
 import { alea } from "seedrandom";
@@ -56,13 +63,24 @@ const scrypt = (...args: OmitLastType<Params>) => {
   );
 };
 
+/**
+ * A Buffer that can be reused by `uncompressedPublicKeyToAddress`.
+ */
+const SHARED_BUFFER = Buffer.allocUnsafe(65);
+
 const uncompressedPublicKeyToAddress = (uncompressedPublicKey: Buffer) => {
-  const compresedPublicKey = secp256k1
-    .publicKeyConvert(uncompressedPublicKey, false)
-    .slice(1);
-  const hasher = createKeccakHash("keccak256");
-  (hasher as any)._state.absorb(compresedPublicKey);
-  return Address.from(hasher.digest().slice(-20));
+  const status = secp256k1.publicKeyConvert(
+    SHARED_BUFFER,
+    uncompressedPublicKey
+  );
+  switch (status) {
+    case 0:
+      return Address.from(keccak(SHARED_BUFFER.slice(1)).slice(-20));
+    case 1:
+      throw new Error("Public Key could not be parsed");
+    case 2:
+      throw new Error("Public Key serialization error");
+  }
 };
 
 const asUUID = (uuid: Buffer | { length: 16 }) => {

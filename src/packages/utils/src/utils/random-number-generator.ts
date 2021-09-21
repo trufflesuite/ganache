@@ -1,7 +1,6 @@
 import seedrandom from "seedrandom";
-
 export class RandomNumberGenerator {
-  readonly rng: seedrandom.prng;
+  readonly rng: ReturnType<seedrandom.Callback>;
 
   // I was planning on using `state` here to restore the RNG
   // from a saved state (via the db on run or upon a revert),

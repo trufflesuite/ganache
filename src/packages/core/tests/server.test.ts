@@ -674,6 +674,11 @@ describe("server", () => {
         });
         ws.on("message", resolve);
       });
+      assert.strictEqual(
+        typeof response,
+        "string",
+        "response doesn't seem to be a string as expected"
+      );
       const json = JSON.parse(response);
       assert.strictEqual(json.result, `${networkId}`);
     });
@@ -691,7 +696,7 @@ describe("server", () => {
       assert.strictEqual(
         response.constructor,
         Buffer,
-        "response doesn't seem to be a Buffer as expect"
+        "response doesn't seem to be a Buffer as expected"
       );
       const json = JSON.parse(response);
       assert.strictEqual(

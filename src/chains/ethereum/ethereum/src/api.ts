@@ -20,11 +20,11 @@ import {
   TransactionTraceOptions,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
-  EthereumRawTx,
-  RpcTransaction,
-  RuntimeTransaction
+  TypedRpcTransaction,
+  TransactionFactory,
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
@@ -39,7 +39,7 @@ import {
   JsonRpcErrorCode
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
-import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 
@@ -49,7 +49,39 @@ import { assertArgLength } from "./helpers/assert-arg-length";
 import { parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
 import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
-import { GanacheRawBlock } from "@ganache/ethereum-block/src/serialize";
+import { GanacheRawBlock } from "@ganache/ethereum-block";
+import { Capacity } from "./miner/miner";
+
+async function autofillDefaultTransactionValues(
+  tx: TypedTransaction,
+  eth_estimateGas: (
+    tx: TypedRpcTransaction,
+    tag: QUANTITY | Tag
+  ) => Promise<Quantity>,
+  transaction: TypedRpcTransaction,
+  blockchain: Blockchain,
+  options: EthereumInternalOptions
+) {
+  if (tx.gas.isNull()) {
+    const defaultLimit = options.miner.defaultTransactionGasLimit;
+    if (defaultLimit === RPCQUANTITY_EMPTY) {
+      // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
+      tx.gas = await eth_estimateGas(transaction, Tag.LATEST);
+    } else {
+      tx.gas = defaultLimit;
+    }
+  }
+  if ("gasPrice" in tx && tx.gasPrice.isNull()) {
+    tx.gasPrice = options.miner.defaultGasPrice;
+  }
+
+  if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
+    const block = blockchain.blocks.latest;
+    tx.maxFeePerGas = Quantity.from(
+      Block.calcNBlocksMaxBaseFee(3, <BaseFeeHeader>block.header)
+    );
+  }
+}
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
@@ -76,7 +108,7 @@ type TypedData = Exclude<
 //#endregion
 
 //#region helpers
-function assertExceptionalTransactions(transactions: RuntimeTransaction[]) {
+function assertExceptionalTransactions(transactions: TypedTransaction[]) {
   let baseError: string = null;
   let errors: string[];
   const data = {};
@@ -276,13 +308,21 @@ export default class EthereumApi implements Api {
       // Developers like to move the blockchain forward by thousands of blocks
       // at a time and doing this would make it way faster
       for (let i = 0; i < blocks; i++) {
-        const transactions = await blockchain.mine(-1, timestamp, true);
+        const transactions = await blockchain.mine(
+          Capacity.FillBlock,
+          timestamp,
+          true
+        );
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
       }
     } else {
-      const transactions = await blockchain.mine(-1, arg as number, true);
+      const transactions = await blockchain.mine(
+        Capacity.FillBlock,
+        arg as number | null,
+        true
+      );
       if (vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
       }
@@ -325,7 +365,7 @@ export default class EthereumApi implements Api {
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
-    await blockchain.mine(0);
+    await blockchain.mine(Capacity.Empty);
     return true;
   }
 
@@ -727,7 +767,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async eth_estimateGas(
-    transaction: any,
+    transaction: TypedRpcTransaction,
     blockNumber: QUANTITY | Tag = Tag.LATEST
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
@@ -741,7 +781,7 @@ export default class EthereumApi implements Api {
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
-      const tx = new RuntimeTransaction(transaction, this.#blockchain.common);
+      const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
       if (tx.from == null) {
         tx.from = coinbase;
       }
@@ -755,9 +795,11 @@ export default class EthereumApi implements Api {
         parentHeader.parentHash,
         parentHeader.miner,
         tx.gas.toBuffer(),
+        parentHeader.gasUsed.toBuffer(),
         parentHeader.timestamp,
         options.miner.difficulty,
-        parentHeader.totalDifficulty
+        parentHeader.totalDifficulty,
+        0n // no baseFeePerGas for estimates
       );
       const runArgs = {
         tx: tx.toVmTransaction(),
@@ -858,7 +900,9 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async eth_getBlockByNumber(number: QUANTITY | Tag, transactions = false) {
-    const block = await this.#blockchain.blocks.get(number).catch(_ => null);
+    const block = await this.#blockchain.blocks
+      .get(number)
+      .catch<Block>(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
@@ -916,7 +960,7 @@ export default class EthereumApi implements Api {
   async eth_getBlockByHash(hash: DATA, transactions = false) {
     const block = await this.#blockchain.blocks
       .getByHash(hash)
-      .catch(_ => null);
+      .catch<Block>(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
@@ -1030,12 +1074,15 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
-    const block = await this.eth_getBlockByHash(hash, true);
-    if (block) {
-      const tx = block.transactions[Quantity.from(index).toNumber()];
-      if (tx) return tx;
-    }
-    return null;
+    const blockchain = this.#blockchain;
+    const block = await blockchain.blocks
+      .getByHash(hash)
+      .catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+      blockchain.common
+    );
   }
 
   /**
@@ -1076,8 +1123,13 @@ export default class EthereumApi implements Api {
     number: QUANTITY | Tag,
     index: QUANTITY
   ) {
-    const block = await this.eth_getBlockByNumber(number, true);
-    return block.transactions[parseInt(Quantity.from(index).toString(), 10)];
+    const blockchain = this.#blockchain;
+    const block = await blockchain.blocks.get(number).catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+      blockchain.common
+    );
   }
 
   /**
@@ -1514,9 +1566,9 @@ export default class EthereumApi implements Api {
     if (transaction === null) {
       // if we can't find it in the list of pending transactions, check the db!
       const tx = transactions.transactionPool.find(hashBuffer);
-      return tx ? tx.toJSON() : null;
+      return tx ? tx.toJSON(this.#blockchain.common) : null;
     } else {
-      return transaction.toJSON();
+      return transaction.toJSON(this.#blockchain.common);
     }
   }
 
@@ -1540,7 +1592,12 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_getTransactionReceipt(transactionHash: DATA) {
-    const { transactions, transactionReceipts, blocks } = this.#blockchain;
+    const {
+      transactions,
+      transactionReceipts,
+      blocks,
+      common
+    } = this.#blockchain;
     const dataHash = Data.from(transactionHash);
     const txHash = dataHash.toBuffer();
 
@@ -1555,7 +1612,7 @@ export default class EthereumApi implements Api {
       blockPromise
     ]);
     if (transaction) {
-      return receipt.toJSON(block, transaction);
+      return receipt.toJSON(block, transaction, common);
     }
 
     // if we are performing non-legacy instamining, then check to see if the
@@ -1603,9 +1660,10 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_sendTransaction(transaction: RpcTransaction) {
+  async eth_sendTransaction(transaction: TypedRpcTransaction) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
     if (tx.from == null) {
       throw new Error("from not found; is required");
     }
@@ -1622,19 +1680,13 @@ export default class EthereumApi implements Api {
       throw new Error(msg);
     }
 
-    if (tx.gas.isNull()) {
-      const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
-      if (defaultLimit === RPCQUANTITY_EMPTY) {
-        // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
-        tx.gas = await this.eth_estimateGas(transaction, Tag.LATEST);
-      } else {
-        tx.gas = defaultLimit;
-      }
-    }
-
-    if (tx.gasPrice.isNull()) {
-      tx.gasPrice = this.#options.miner.defaultGasPrice;
-    }
+    await autofillDefaultTransactionValues(
+      tx,
+      this.eth_estimateGas.bind(this),
+      transaction,
+      blockchain,
+      this.#options
+    );
 
     if (isUnlockedAccount) {
       const secretKey = wallet.unlockedAccounts.get(fromString);
@@ -1643,6 +1695,7 @@ export default class EthereumApi implements Api {
       return blockchain.queueTransaction(tx);
     }
   }
+
   /**
    * Signs a transaction that can be submitted to the network at a later time using `eth_sendRawTransaction`.
    *
@@ -1664,9 +1717,9 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_signTransaction(transaction: RpcTransaction) {
+  async eth_signTransaction(transaction: TypedRpcTransaction) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");
@@ -1702,10 +1755,8 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
-    const data = Data.from(transaction).toBuffer();
-    const raw = decode<EthereumRawTx>(data);
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(raw, blockchain.common);
+    const tx = TransactionFactory.fromString(transaction, blockchain.common);
     return blockchain.queueTransaction(tx);
   }
 
@@ -1900,6 +1951,9 @@ export default class EthereumApi implements Api {
             transactionsRoot: header.transactionsRoot,
             sha3Uncles: header.sha3Uncles
           };
+          if (header.baseFeePerGas !== undefined) {
+            (result as any).baseFeePerGas = header.baseFeePerGas;
+          }
 
           // TODO: move the JSON stringification closer to where the message
           // is actually sent to the listener
@@ -1947,7 +2001,7 @@ export default class EthereumApi implements Api {
 
         const unsubscribe = this.#blockchain.on(
           "pendingTransaction",
-          (transaction: RuntimeTransaction) => {
+          (transaction: TypedTransaction) => {
             const result = transaction.hash.toString();
             promiEvent.emit("message", {
               type: "eth_subscription",
@@ -2045,7 +2099,7 @@ export default class EthereumApi implements Api {
   async eth_newPendingTransactionFilter() {
     const unsubscribe = this.#blockchain.on(
       "pendingTransaction",
-      (transaction: RuntimeTransaction) => {
+      (transaction: TypedTransaction) => {
         value.updates.push(transaction.hash);
       }
     );
@@ -2408,9 +2462,11 @@ export default class EthereumApi implements Api {
       parentHeader.parentHash,
       blockchain.coinbase,
       gas.toBuffer(),
+      parentHeader.gasUsed.toBuffer(),
       parentHeader.timestamp,
       options.miner.difficulty,
-      parentHeader.totalDifficulty
+      parentHeader.totalDifficulty,
+      0n // no baseFeePerGas for eth_call
     );
 
     const simulatedTransaction = {
@@ -2722,9 +2778,12 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async personal_sendTransaction(transaction: any, passphrase: string) {
+  async personal_sendTransaction(
+    transaction: TypedRpcTransaction,
+    passphrase: string
+  ) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
     const from = tx.from;
     if (from == null) {
       throw new Error("from not found; is required");
@@ -2738,13 +2797,22 @@ export default class EthereumApi implements Api {
       throw new Error("no key for given address or file");
     }
 
+    await autofillDefaultTransactionValues(
+      tx,
+      this.eth_estimateGas.bind(this),
+      transaction,
+      blockchain,
+      this.#options
+    );
+
     if (encryptedKeyFile !== null) {
       const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
-      tx.signAndHash(secretKey);
+      return blockchain.queueTransaction(tx, Data.from(secretKey));
+    } else {
+      return blockchain.queueTransaction(tx);
     }
-
-    return blockchain.queueTransaction(tx);
   }
+
   /**
    * Validates the given passphrase and signs a transaction that can be
    * submitted to the network at a later time using `eth_sendRawTransaction`.
@@ -2776,11 +2844,11 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async personal_signTransaction(
-    transaction: RpcTransaction,
+    transaction: TypedRpcTransaction,
     passphrase: string
   ) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");

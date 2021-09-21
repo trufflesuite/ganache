@@ -1,8 +1,8 @@
+import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import {
   RuntimeError,
   RETURN_TYPES,
   TraceDataFactory,
-  StepEvent,
   StorageKeys
 } from "@ganache/ethereum-utils";
 import {
@@ -20,12 +20,39 @@ import VM from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { Params, RuntimeTransaction } from "@ganache/ethereum-transaction";
+import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import {
+  makeStepEvent,
+  VmAfterTransactionEvent,
+  VmBeforeTransactionEvent,
+  VmStepEvent
+} from "../provider-events";
+
+/**
+ * How many transactions should be in the block.
+ */
+export enum Capacity {
+  /**
+   * Keep mining transactions until there are no more transactions that can fit
+   * in the block, or there are no transactions left to mine.
+   */
+  FillBlock = -1,
+  /**
+   * Mine an empty block, even if there are executable transactions available to
+   * mine.
+   */
+  Empty = 0,
+  /**
+   * Mine a block with a single transaction, or empty if there are no executable
+   * transactions available to mine.
+   */
+  Single = 1
+}
 
 export type BlockData = {
-  blockTransactions: RuntimeTransaction[];
+  blockTransactions: TypedTransaction[];
   transactionsTrie: Trie;
   receiptTrie: Trie;
   gasUsed: bigint;
@@ -38,8 +65,11 @@ const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
   while (--i) blockBloom[i] |= bloom[i];
 };
 
-const sortByPrice = (values: RuntimeTransaction[], a: number, b: number) =>
-  values[a].gasPrice > values[b].gasPrice;
+const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
+  values[a].effectiveGasPrice > values[b].effectiveGasPrice;
+
+const refresher = (item: TypedTransaction, context: Quantity) =>
+  item.updateEffectiveGasPrice(context);
 
 export default class Miner extends Emittery.Typed<
   {
@@ -47,8 +77,11 @@ export default class Miner extends Emittery.Typed<
       block: Block;
       serialized: Buffer;
       storageKeys: StorageKeys;
-      transactions: RuntimeTransaction[];
+      transactions: TypedTransaction[];
     };
+    "ganache:vm:tx:step": VmStepEvent;
+    "ganache:vm:tx:before": VmBeforeTransactionEvent;
+    "ganache:vm:tx:after": VmAfterTransactionEvent;
   },
   "idle"
 > {
@@ -58,10 +91,16 @@ export default class Miner extends Emittery.Typed<
   #isBusy: boolean = false;
   #paused: boolean = false;
   #resumer: Promise<void>;
+  #currentBlockBaseFeePerGas: Quantity;
   #resolver: (value: void) => void;
+
+  /**
+   * Because step events are expensive, CPU-wise, to create and emit we only do
+   * it conditionally.
+   */
+  #emitStepEvent: boolean = false;
   readonly #executables: Executables;
   readonly #options: EthereumInternalOptions["miner"];
-  readonly #instamine: boolean;
   readonly #vm: VM;
   readonly #createBlock: (previousBlock: Block) => RuntimeBlock;
 
@@ -86,7 +125,10 @@ export default class Miner extends Emittery.Typed<
   }
 
   // create a Heap that sorts by gasPrice
-  readonly #priced = new Heap<RuntimeTransaction>(sortByPrice);
+  readonly #priced = new Heap<TypedTransaction, Quantity>(
+    sortByPrice,
+    refresher
+  );
   /*
    * @param executables A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -95,7 +137,6 @@ export default class Miner extends Emittery.Typed<
   constructor(
     options: EthereumInternalOptions["miner"],
     executables: Executables,
-    instamine: boolean,
     vm: VM,
     createBlock: (previousBlock: Block) => RuntimeBlock
   ) {
@@ -104,8 +145,11 @@ export default class Miner extends Emittery.Typed<
     this.#vm = vm;
     this.#options = options;
     this.#executables = executables;
-    this.#instamine = instamine;
-    this.#createBlock = createBlock;
+    this.#createBlock = (previousBlock: Block) => {
+      const newBlock = createBlock(previousBlock);
+      this.#setCurrentBlockBaseFeePerGas(newBlock);
+      return newBlock;
+    };
 
     // initialize the heap with an empty array
     this.#priced.init([]);
@@ -120,7 +164,7 @@ export default class Miner extends Emittery.Typed<
    */
   public async mine(
     block: RuntimeBlock,
-    maxTransactions: number = -1,
+    maxTransactions: number | Capacity = Capacity.FillBlock,
     onlyOneBlock = false
   ) {
     if (this.#paused) {
@@ -136,6 +180,7 @@ export default class Miner extends Emittery.Typed<
       this.#updatePricedHeap();
       return;
     } else {
+      this.#setCurrentBlockBaseFeePerGas(block);
       this.#setPricedHeap();
       const result = await this.#mine(block, maxTransactions, onlyOneBlock);
       this.emit("idle");
@@ -145,7 +190,7 @@ export default class Miner extends Emittery.Typed<
 
   #mine = async (
     block: RuntimeBlock,
-    maxTransactions: number = -1,
+    maxTransactions: number | Capacity = Capacity.FillBlock,
     onlyOneBlock = false
   ) => {
     const { block: lastBlock, transactions } = await this.#mineTxs(
@@ -161,7 +206,7 @@ export default class Miner extends Emittery.Typed<
       this.#pending = false;
       if (!onlyOneBlock && this.#priced.length > 0) {
         const nextBlock = this.#createBlock(lastBlock);
-        await this.#mine(nextBlock, this.#instamine ? 1 : -1);
+        await this.#mine(nextBlock, maxTransactions);
       }
     }
     return transactions;
@@ -169,7 +214,7 @@ export default class Miner extends Emittery.Typed<
 
   #mineTxs = async (
     runtimeBlock: RuntimeBlock,
-    maxTransactions: number,
+    maxTransactions: number | Capacity,
     onlyOneBlock: boolean
   ) => {
     let block: Block;
@@ -182,7 +227,7 @@ export default class Miner extends Emittery.Typed<
     const priced = this.#priced;
     const legacyInstamine = this.#options.legacyInstamine;
     const storageKeys: StorageKeys = new Map();
-    let blockTransactions: RuntimeTransaction[];
+    let blockTransactions: TypedTransaction[];
     do {
       keepMining = false;
       this.#isBusy = true;
@@ -192,7 +237,7 @@ export default class Miner extends Emittery.Typed<
       const receiptTrie = new Trie(null, null);
 
       // don't mine anything at all if maxTransactions is `0`
-      if (maxTransactions === 0) {
+      if (maxTransactions === Capacity.Empty) {
         await vm.stateManager.checkpoint();
         await vm.stateManager.commit();
         const finalizedBlockData = runtimeBlock.finalize(
@@ -227,7 +272,7 @@ export default class Miner extends Emittery.Typed<
       // the storage key. Why you might ask? So we can reference the raw version in
       // debug_storageRangeAt.
       const stepListener = (
-        event: StepEvent,
+        event: InterpreterStep,
         next: (error?: any, cb?: any) => void
       ) => {
         if (event.opcode.name === "SSTORE") {
@@ -245,7 +290,7 @@ export default class Miner extends Emittery.Typed<
       // we don't call `shift()` here because we will may need to `replace`
       // this `best` transaction with the next best transaction from the same
       // origin later.
-      let best: RuntimeTransaction;
+      let best: TypedTransaction;
       while ((best = priced.peek())) {
         const origin = best.from.toString();
 
@@ -262,7 +307,7 @@ export default class Miner extends Emittery.Typed<
           continue;
         }
 
-        this.#currentlyExecutingPrice = best.gasPrice.toBigInt();
+        this.#currentlyExecutingPrice = best.effectiveGasPrice.toBigInt();
 
         // Set a transaction-level checkpoint so we can undo state changes in
         // the case where the transaction is rejected by the VM.
@@ -398,8 +443,12 @@ export default class Miner extends Emittery.Typed<
         this.#updatePricedHeap();
 
         if (priced.length !== 0) {
-          maxTransactions = this.#instamine ? 1 : -1;
           runtimeBlock = this.#createBlock(block);
+          // if baseFeePerGas is undefined, we are pre london hard fork.
+          // no need to refresh the order of the heap because all Txs only have gasPrice.
+          if (this.#currentBlockBaseFeePerGas !== undefined) {
+            priced.refresh(this.#currentBlockBaseFeePerGas);
+          }
         } else {
           // reset the miner
           this.#reset();
@@ -411,20 +460,26 @@ export default class Miner extends Emittery.Typed<
   };
 
   #runTx = async (
-    tx: RuntimeTransaction,
+    tx: TypedTransaction,
     block: RuntimeBlock,
     origin: string,
-    pending: Map<string, Heap<RuntimeTransaction>>
+    pending: Map<string, Heap<TypedTransaction, Quantity>>
   ) => {
+    const context = {};
+    const vm = this.#vm;
+    this.emit("ganache:vm:tx:before", { context });
+    // we always listen to the step event even if `#emitStepEvent` is false in
+    // case the user starts listening in the middle of the transaction.
+    const stepListener = event => {
+      if (!this.#emitStepEvent) return;
+      this.emit("ganache:vm:tx:step", makeStepEvent(context, event));
+    };
+    vm.on("step", stepListener);
     try {
-      const vm = this.#vm;
-      const o = {
+      return await vm.runTx({
         tx: tx.toVmTransaction() as any,
         block: block as any
-      };
-      const r = vm.runTx(o);
-      const p = await r;
-      return p;
+      });
     } catch (err) {
       const errorMessage = err.message;
       // We do NOT want to re-run this transaction.
@@ -450,6 +505,9 @@ export default class Miner extends Emittery.Typed<
       const error = new RuntimeError(tx.hash, e, RETURN_TYPES.TRANSACTION_HASH);
       tx.finalize("rejected", error);
       return null;
+    } finally {
+      vm.removeListener("step", stepListener);
+      this.emit("ganache:vm:tx:after", { context });
     }
   };
 
@@ -475,10 +533,11 @@ export default class Miner extends Emittery.Typed<
 
     for (let mapping of pending) {
       const heap = mapping[1];
-      const next = heap.peek();
+      const next: TypedTransaction = heap.peek();
       if (next && !next.locked) {
         const origin = next.from.toString();
         origins.add(origin);
+        next.updateEffectiveGasPrice(this.#currentBlockBaseFeePerGas);
         priced.push(next);
         next.locked = true;
       }
@@ -502,7 +561,7 @@ export default class Miner extends Emittery.Typed<
       const heap = mapping[1];
       const next = heap.peek();
       if (next && !next.locked) {
-        const price = next.gasPrice.toBigInt();
+        const price = next.effectiveGasPrice.toBigInt();
 
         if (this.#currentlyExecutingPrice > price) {
           // don't insert a transaction into the miner's `priced` heap
@@ -516,9 +575,27 @@ export default class Miner extends Emittery.Typed<
           continue;
         }
         origins.add(origin);
+        next.updateEffectiveGasPrice(this.#currentBlockBaseFeePerGas);
         priced.push(next);
         next.locked = true;
       }
     }
+  };
+
+  public toggleStepEvent(enable: boolean) {
+    this.#emitStepEvent = enable;
+  }
+
+  /**
+   * Sets the #currentBlockBaseFeePerGas property if the current block
+   * has a baseFeePerGas property
+   */
+  #setCurrentBlockBaseFeePerGas = (block: RuntimeBlock) => {
+    const baseFeePerGas = block.header.baseFeePerGas;
+    // before london hard fork, there will be no baseFeePerGas on the block
+    this.#currentBlockBaseFeePerGas =
+      baseFeePerGas === undefined
+        ? undefined
+        : Quantity.from(baseFeePerGas.buf);
   };
 }

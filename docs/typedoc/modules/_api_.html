@@ -93,6 +93,7 @@
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-is-not-exported"><a href="_api_.html#assertexceptionaltransactions" class="tsd-kind-icon">assert<wbr>Exceptional<wbr>Transactions</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module tsd-is-not-exported"><a href="_api_.html#autofilldefaulttransactionvalues" class="tsd-kind-icon">autofill<wbr>Default<wbr>Transaction<wbr>Values</a></li>
 							</ul>
 						</section>
 					</div>
@@ -106,7 +107,7 @@
 					<div class="tsd-signature tsd-kind-icon">Typed<wbr>Data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Exclude</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Parameters&lt;typeof signTypedData_v4&gt;[1][&quot;data&quot;]</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">NotTypedData</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/c27953d/src/chains/ethereum/ethereum/src/api.ts#L72">chains/ethereum/ethereum/src/api.ts:72</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/071072e9/src/chains/ethereum/ethereum/src/api.ts#L104">chains/ethereum/ethereum/src/api.ts:104</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -119,7 +120,7 @@
 					<div class="tsd-signature tsd-kind-icon">CLIENT_<wbr>VERSION<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#x60;Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js&#x60;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/c27953d/src/chains/ethereum/ethereum/src/api.ts#L59">chains/ethereum/ethereum/src/api.ts:59</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/071072e9/src/chains/ethereum/ethereum/src/api.ts#L91">chains/ethereum/ethereum/src/api.ts:91</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -129,7 +130,7 @@
 					<div class="tsd-signature tsd-kind-icon">PROTOCOL_<wbr>VERSION<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Data</span><span class="tsd-signature-symbol"> = Data.from(&quot;0x3f&quot;)</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/c27953d/src/chains/ethereum/ethereum/src/api.ts#L60">chains/ethereum/ethereum/src/api.ts:60</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/071072e9/src/chains/ethereum/ethereum/src/api.ts#L92">chains/ethereum/ethereum/src/api.ts:92</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -139,7 +140,7 @@
 					<div class="tsd-signature tsd-kind-icon">RPC_<wbr>MODULES<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol"> = {eth: &quot;1.0&quot;,net: &quot;1.0&quot;,rpc: &quot;1.0&quot;,web3: &quot;1.0&quot;,evm: &quot;1.0&quot;,personal: &quot;1.0&quot;} as const</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/c27953d/src/chains/ethereum/ethereum/src/api.ts#L61">chains/ethereum/ethereum/src/api.ts:61</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/071072e9/src/chains/ethereum/ethereum/src/api.ts#L93">chains/ethereum/ethereum/src/api.ts:93</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -172,7 +173,7 @@
 					<div class="tsd-signature tsd-kind-icon">version<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/c27953d/src/chains/ethereum/ethereum/src/api.ts#L55">chains/ethereum/ethereum/src/api.ts:55</a></li>
+							<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/071072e9/src/chains/ethereum/ethereum/src/api.ts#L87">chains/ethereum/ethereum/src/api.ts:87</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -183,22 +184,78 @@
 					<a name="assertexceptionaltransactions" class="tsd-anchor"></a>
 					<h3>assert<wbr>Exceptional<wbr>Transactions</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
-						<li class="tsd-signature tsd-kind-icon">assert<wbr>Exceptional<wbr>Transactions<span class="tsd-signature-symbol">(</span>transactions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">RuntimeTransaction</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">assert<wbr>Exceptional<wbr>Transactions<span class="tsd-signature-symbol">(</span>transactions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TypedTransaction</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/c27953d/src/chains/ethereum/ethereum/src/api.ts#L79">chains/ethereum/ethereum/src/api.ts:79</a></li>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/071072e9/src/chains/ethereum/ethereum/src/api.ts#L111">chains/ethereum/ethereum/src/api.ts:111</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>transactions: <span class="tsd-signature-type">RuntimeTransaction</span><span class="tsd-signature-symbol">[]</span></h5>
+									<h5>transactions: <span class="tsd-signature-type">TypedTransaction</span><span class="tsd-signature-symbol">[]</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
+					<a name="autofilldefaulttransactionvalues" class="tsd-anchor"></a>
+					<h3>autofill<wbr>Default<wbr>Transaction<wbr>Values</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">autofill<wbr>Default<wbr>Transaction<wbr>Values<span class="tsd-signature-symbol">(</span>tx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TypedTransaction</span>, eth_estimateGas<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span>, transaction<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TypedRpcTransaction</span>, blockchain<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Blockchain</span>, options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">EthereumInternalOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/trufflesuite/ganache/blob/071072e9/src/chains/ethereum/ethereum/src/api.ts#L55">chains/ethereum/ethereum/src/api.ts:55</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>tx: <span class="tsd-signature-type">TypedTransaction</span></h5>
+								</li>
+								<li>
+									<h5>eth_estimateGas: <span class="tsd-signature-type">function</span></h5>
+									<ul class="tsd-parameters">
+										<li class="tsd-parameter-siganture">
+											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>tx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TypedRpcTransaction</span>, tag<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">QUANTITY</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Tag</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Quantity</span><span class="tsd-signature-symbol">&gt;</span></li>
+											</ul>
+											<ul class="tsd-descriptions">
+												<li class="tsd-description">
+													<h4 class="tsd-parameters-title">Parameters</h4>
+													<ul class="tsd-parameters">
+														<li>
+															<h5>tx: <span class="tsd-signature-type">TypedRpcTransaction</span></h5>
+														</li>
+														<li>
+															<h5>tag: <span class="tsd-signature-type">QUANTITY</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Tag</span></h5>
+														</li>
+													</ul>
+													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Quantity</span><span class="tsd-signature-symbol">&gt;</span></h4>
+												</li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+								<li>
+									<h5>transaction: <span class="tsd-signature-type">TypedRpcTransaction</span></h5>
+								</li>
+								<li>
+									<h5>blockchain: <span class="tsd-signature-type">Blockchain</span></h5>
+								</li>
+								<li>
+									<h5>options: <span class="tsd-signature-type">EthereumInternalOptions</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -237,6 +294,9 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
 						<a href="_api_.html#assertexceptionaltransactions" class="tsd-kind-icon">assert<wbr>Exceptional<wbr>Transactions</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
+						<a href="_api_.html#autofilldefaulttransactionvalues" class="tsd-kind-icon">autofill<wbr>Default<wbr>Transaction<wbr>Values</a>
 					</li>
 				</ul>
 			</nav>

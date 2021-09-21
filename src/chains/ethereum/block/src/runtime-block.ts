@@ -10,9 +10,9 @@ import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
-  EthereumRawTx,
+  TypedDatabaseTransaction,
   GanacheRawBlockTransactionMetaData,
-  RuntimeTransaction
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
 
@@ -45,6 +45,7 @@ export type BlockHeader = {
   extraData: Data;
   mixHash: Data;
   nonce: Data;
+  baseFeePerGas?: Quantity;
 };
 
 /**
@@ -79,7 +80,9 @@ export function makeHeader(
     extraData: Data.from(raw[12]),
     mixHash: Data.from(raw[13], 32),
     nonce: Data.from(raw[14], 8),
-    totalDifficulty: Quantity.from(totalDifficulty, false)
+    totalDifficulty: Quantity.from(totalDifficulty, false),
+    baseFeePerGas:
+      raw[15] === undefined ? undefined : Quantity.from(raw[15], false)
   };
 }
 
@@ -94,7 +97,9 @@ export class RuntimeBlock {
     coinbase: { buf: Buffer; toBuffer: () => Buffer };
     number: BnExtra;
     gasLimit: BnExtra;
+    gasUsed: BnExtra;
     timestamp: BnExtra;
+    baseFeePerGas?: BnExtra;
   };
 
   constructor(
@@ -102,9 +107,11 @@ export class RuntimeBlock {
     parentHash: Data,
     coinbase: Address,
     gasLimit: Buffer,
+    gasUsed: Buffer,
     timestamp: Quantity,
     difficulty: Quantity,
-    previousBlockTotalDifficulty: Quantity
+    previousBlockTotalDifficulty: Quantity,
+    baseFeePerGas?: bigint
   ) {
     const ts = timestamp.toBuffer();
     const coinbaseBuffer = coinbase.toBuffer();
@@ -117,22 +124,18 @@ export class RuntimeBlock {
         previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
       ).toBuffer(),
       gasLimit: new BnExtra(gasLimit),
-      timestamp: new BnExtra(ts)
+      gasUsed: new BnExtra(gasUsed),
+      timestamp: new BnExtra(ts),
+      baseFeePerGas:
+        baseFeePerGas === undefined
+          ? undefined
+          : new BnExtra(Quantity.from(baseFeePerGas).toBuffer())
     };
   }
 
   /**
    * Returns the serialization of all block data, the hash of the block header,
    * and a map of the hashed and raw storage keys
-   *
-   * @param transactionsTrie
-   * @param receiptTrie
-   * @param bloom
-   * @param stateRoot
-   * @param gasUsed
-   * @param extraData
-   * @param transactions
-   * @param storageKeys
    */
   finalize(
     transactionsTrie: Buffer,
@@ -141,7 +144,7 @@ export class RuntimeBlock {
     stateRoot: Buffer,
     gasUsed: bigint,
     extraData: Data,
-    transactions: RuntimeTransaction[],
+    transactions: TypedTransaction[],
     storageKeys: StorageKeys
   ) {
     const { header } = this;
@@ -162,11 +165,15 @@ export class RuntimeBlock {
       BUFFER_32_ZERO, // mixHash
       BUFFER_8_ZERO // nonce
     ];
+    if (header.baseFeePerGas) {
+      rawHeader[15] = header.baseFeePerGas.buf;
+    }
+
     const { totalDifficulty } = header;
-    const txs: EthereumRawTx[] = [];
+    const txs: TypedDatabaseTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     transactions.forEach(tx => {
-      txs.push(tx.raw);
+      txs.push(<TypedDatabaseTransaction>tx.raw);
       extraTxs.push([tx.from.toBuffer(), tx.hash.toBuffer()]);
     });
     const { serialized, size } = serialize([
@@ -181,7 +188,11 @@ export class RuntimeBlock {
     // deserialization work since we already have everything in a deserialized
     // state here. We'll just set it ourselves by reaching into the "_private"
     // fields.
-    const block = new Block(null, null);
+    const block = new Block(
+      null,
+      // TODO(hack)!
+      transactions.length > 0 ? transactions[0].common : null
+    );
     (block as any)._raw = rawHeader;
     (block as any)._rawTransactions = txs;
     (block as any).header = makeHeader(rawHeader, totalDifficulty);

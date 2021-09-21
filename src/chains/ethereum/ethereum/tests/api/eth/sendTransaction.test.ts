@@ -18,10 +18,12 @@ describe("api", () => {
             });
             const [from] = await provider.send("eth_accounts");
 
+            const gasPrice = await provider.send("eth_gasPrice", []);
             const gasEstimate = await provider.send("eth_estimateGas", [
               {
                 from,
-                to: from
+                to: from,
+                gasPrice
               }
             ]);
             await provider.send("eth_subscribe", ["newHeads"]);
@@ -29,7 +31,8 @@ describe("api", () => {
             const hash = await provider.send("eth_sendTransaction", [
               {
                 from,
-                to: from
+                to: from,
+                gasPrice
               }
             ]);
 
@@ -165,6 +168,111 @@ describe("api", () => {
             await test({ chain: { vmErrorsOnRPCResponse: false } });
             await test({ chain: { vmErrorsOnRPCResponse: true } });
           });
+        });
+      });
+
+      describe("unlocked accounts", () => {
+        it("can send transactions from an unlocked 0x0 address", async () => {
+          const ZERO_ADDRESS = "0x" + "0".repeat(40);
+          const provider = await getProvider({
+            miner: {
+              defaultGasPrice: 0
+            },
+            wallet: {
+              unlockedAccounts: [ZERO_ADDRESS]
+            },
+            chain: {
+              // use berlin here because we just want to test if we can use the
+              // "zero" address, and we do this by transferring value while
+              // setting the gasPrice to `0`. This isn't possible after the
+              // `london` hardfork currently, as we don't provide an option to
+              // allow for a 0 `maxFeePerGas` value.
+              // TODO: remove once we have a configurable `maxFeePerGas`
+              hardfork: "berlin"
+            }
+          });
+          const [from] = await provider.send("eth_accounts");
+          await provider.send("eth_subscribe", ["newHeads"]);
+          const initialZeroBalance = "0x1234";
+          await provider.send("eth_sendTransaction", [
+            { from: from, to: ZERO_ADDRESS, value: initialZeroBalance }
+          ]);
+          await provider.once("message");
+          const initialBalance = await provider.send("eth_getBalance", [
+            ZERO_ADDRESS
+          ]);
+          assert.strictEqual(
+            initialBalance,
+            initialZeroBalance,
+            "Zero address's balance isn't correct"
+          );
+          const removeValueFromZeroAmount = "0x123";
+          await provider.send("eth_sendTransaction", [
+            { from: ZERO_ADDRESS, to: from, value: removeValueFromZeroAmount }
+          ]);
+          await provider.once("message");
+          const afterSendBalance = BigInt(
+            await provider.send("eth_getBalance", [ZERO_ADDRESS])
+          );
+          assert.strictEqual(
+            BigInt(initialZeroBalance) - BigInt(removeValueFromZeroAmount),
+            afterSendBalance,
+            "Zero address's balance isn't correct"
+          );
+        });
+
+        it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
+          const p = await getProvider({
+            wallet: {
+              secure: true,
+              unlockedAccounts: ["0", 1]
+            }
+          });
+
+          const accounts = await p.send("eth_accounts");
+          const balance1_1 = await p.send("eth_getBalance", [accounts[1]]);
+          const badSend = async () => {
+            return p.send("eth_sendTransaction", [
+              {
+                from: accounts[2],
+                to: accounts[1],
+                value: "0x7b"
+              }
+            ]);
+          };
+          await assert.rejects(
+            badSend,
+            "Error: authentication needed: password or unlock"
+          );
+
+          await p.send("eth_subscribe", ["newHeads"]);
+          await p.send("eth_sendTransaction", [
+            {
+              from: accounts[0],
+              to: accounts[1],
+              value: "0x7b"
+            }
+          ]);
+
+          await p.once("message");
+
+          const balance1_2 = await p.send("eth_getBalance", [accounts[1]]);
+          assert.strictEqual(BigInt(balance1_1) + 123n, BigInt(balance1_2));
+
+          const balance0_1 = await p.send("eth_getBalance", [accounts[0]]);
+
+          await p.send("eth_sendTransaction", [
+            {
+              from: accounts[1],
+              to: accounts[0],
+              value: "0x7b"
+            }
+          ]);
+
+          await p.once("message");
+
+          const balance0_2 = await p.send("eth_getBalance", [accounts[0]]);
+          assert.strictEqual(BigInt(balance0_1) + 123n, BigInt(balance0_2));
         });
       });
     });

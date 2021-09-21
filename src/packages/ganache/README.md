@@ -192,6 +192,59 @@ const provider = new ethers.providers.Web3Provider(ganache.provider());
 
 New RPC documentation coming soon! See https://github.com/trufflesuite/ganache/tree/master#options for Ganache v2 documentation.
 
+### Ganache Provider Events
+
+In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, Ganache emits 3 additional events: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, and `"ganache:vm:tx:after"`.
+
+These events can be used to observe the lifecycle of any transaction executed via `*sendTransaction`, `eth_call`, `debug_traceTransaction`, or `debug_storageRangeAt`.
+
+These share the [event paradigm that Truffle uses](https://www.trufflesuite.com/docs/truffle/advanced/event-system#how-to-define-your-event-handlers), but without any of the wildcard handling, i.e., no `"vm:*"` support (for now).
+
+Each of these events will emit a `context` object which is a unique object that can be used to identify a transaction over the course of its lifecycle. For example:
+
+```typescript
+interface StepEvent {
+  account: {
+    nonce: bigint;
+    balance: bigint;
+    stateRoot: Buffer;
+    codeHash: Buffer;
+  };
+  address: Buffer;
+  codeAddress: Buffer;
+  depth: number;
+  gasLeft: bigint;
+  gasRefund: bigint;
+  memory: Buffer;
+  memoryWordCount: bigint;
+  opcode: {
+    name: string;
+    fee: number;
+  };
+  pc: number;
+  returnStack: Buffer[];
+  stack: Buffer[];
+}
+
+const contexts = new Map();
+provider.on("ganache:vm:tx:before", (event: { context: {} }) => {
+  contexts.set(event.context, []);
+});
+provider.on("ganache:vm:tx:step", (event: StepEvent) => {
+  contexts.get(event.context).push(event.data);
+});
+provider.on("ganache:vm:tx:after", (event: { context: {} }) => {
+  doAThingWithThisTransactionsSteps(contexts.get(event.context));
+  contexts.delete(event.context);
+});
+```
+
+The reason this `context` is necessary is that Ganache may run multiple transactions simultaneously, so `"ganache:vm:tx:step"` events from different transactions could be intermingled.
+
+The above events will be emitted for `eth_call`, `*sendTransaction`, `debug_traceTransaction`, and `debug_storageRangeAt`.
+
+Currently, we do not await the event listener's return value, however, we'll likely enable this in the future.
+
 ## Community
 
 - [Discord](https://trfl.co/truffle-community)

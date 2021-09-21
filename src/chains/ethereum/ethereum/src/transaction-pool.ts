@@ -9,10 +9,10 @@ import {
   CodedError
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { RuntimeTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./miner/executables";
+import { TypedTransaction } from "@ganache/ethereum-transaction";
 
-function byNonce(values: RuntimeTransaction[], a: number, b: number) {
+function byNonce(values: TypedTransaction[], a: number, b: number) {
   return (
     (values[b].nonce.toBigInt() || 0n) > (values[a].nonce.toBigInt() || 0n)
   );
@@ -39,7 +39,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     inProgress: new Set(),
     pending: new Map()
   };
-  readonly #origins: Map<string, Heap<RuntimeTransaction>> = new Map();
+  readonly #origins: Map<string, Heap<TypedTransaction>> = new Map();
   readonly #accountPromises = new Map<string, Promise<Quantity>>();
 
   /**
@@ -51,7 +51,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
    * @returns data that can be used to drain the queue
    */
   public async prepareTransaction(
-    transaction: RuntimeTransaction,
+    transaction: TypedTransaction,
     secretKey?: Data
   ) {
     let err: Error;
@@ -118,14 +118,14 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       // new transaction away as necessary.
       const pendingArray = executableOriginTransactions.array;
       const priceBump = this.#priceBump;
-      const newGasPrice = transaction.gasPrice.toBigInt();
+      const newGasPrice = transaction.effectiveGasPrice.toBigInt();
       // Notice: we're iterating over the raw heap array, which isn't
       // necessarily sorted
       for (let i = 0; i < length; i++) {
         const currentPendingTx = pendingArray[i];
         const thisNonce = currentPendingTx.nonce.toBigInt();
         if (thisNonce === transactionNonce) {
-          const gasPrice = currentPendingTx.gasPrice.toBigInt();
+          const gasPrice = currentPendingTx.effectiveGasPrice.toBigInt();
           const thisPricePremium = gasPrice + (gasPrice * priceBump) / 100n;
 
           // if our new price is `gasPrice * priceBumpPercent` better than our
@@ -208,10 +208,13 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
       let fakePrivateKey: Buffer;
       if (from.equals(ACCOUNT_ZERO)) {
-        fakePrivateKey = Buffer.allocUnsafe(32);
-        // allow signing with the 0x0 address
+        // allow signing with the 0x0 address...
+        // always sign with the same fake key, a 31 `0`s followed by a single
+        // `1`. The key is arbitrary. It just must not be all `0`s and must be
+        // deterministic.
         // see: https://github.com/ethereumjs/ethereumjs-monorepo/issues/829#issue-674385636
-        fakePrivateKey[0] = 1;
+        fakePrivateKey = Buffer.allocUnsafe(32).fill(0, 0, 31);
+        fakePrivateKey[31] = 1;
       } else {
         fakePrivateKey = Buffer.concat([from, from.slice(0, 12)]);
       }
@@ -323,7 +326,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     this.emit("drain");
   };
 
-  readonly #validateTransaction = (transaction: RuntimeTransaction): Error => {
+  readonly #validateTransaction = (transaction: TypedTransaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
     if (transaction.gas > this.#options.blockGasLimit) {
       return new CodedError(GAS_LIMIT, JsonRpcErrorCode.INVALID_INPUT);

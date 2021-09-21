@@ -9,6 +9,7 @@ import { Tag } from "@ganache/ethereum-utils";
 import { Block } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
 import { Account } from "@ganache/ethereum-utils";
+import BlockManager from "../data-managers/block-manager";
 
 function fetchChainId(fork: Fork) {
   return fork
@@ -42,6 +43,7 @@ export class Fork {
   #handler: Handler;
   #options: EthereumInternalOptions["fork"];
   #accounts: Account[];
+  #hardfork: string;
 
   public blockNumber: Quantity;
   public stateRoot: Data;
@@ -49,6 +51,7 @@ export class Fork {
 
   constructor(options: EthereumInternalOptions, accounts: Account[]) {
     const forkingOptions = (this.#options = options.fork);
+    this.#hardfork = options.chain.hardfork;
     this.#accounts = accounts;
 
     const { url } = forkingOptions;
@@ -123,6 +126,7 @@ export class Fork {
       KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
       {
         name: "ganache-fork",
+        defaultHardfork: this.#hardfork,
         networkId,
         chainId,
         comment: "Local test network fork"
@@ -185,7 +189,10 @@ export class Fork {
       this.#setBlockDataFromChainAndOptions(),
       this.#setCommonFromChain()
     ]);
-    this.block = new Block(Block.rawFromJSON(block), this.common);
+    this.block = new Block(
+      BlockManager.rawFromJSON(block, this.common),
+      this.common
+    );
   }
 
   public request<T = unknown>(method: string, params: unknown[]): Promise<T> {

@@ -3,7 +3,7 @@ import {
   Data,
   Quantity,
   ACCOUNT_ZERO,
-  BUFFER_EMPTY,
+  DATA_EMPTY,
   RPCQUANTITY_EMPTY,
   RPCQUANTITY_ONE
 } from "@ganache/utils";
@@ -260,7 +260,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return bytes;
     },
     cliDescription: "Set the extraData block header field a miner can include.",
-    default: () => Data.from(BUFFER_EMPTY),
+    default: () => DATA_EMPTY,
     cliType: "string"
   }
 };

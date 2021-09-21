@@ -52,7 +52,7 @@
   "devDependencies": {
     "@ganache/options": "0.1.1-alpha.0",
     "@types/mocha": "8.2.2",
-    "@types/seedrandom": "3.0.0",
+    "@types/seedrandom": "3.0.1",
     "@types/terser-webpack-plugin": "5.0.2",
     "cross-env": "7.0.3",
     "mocha": "8.4.0",
