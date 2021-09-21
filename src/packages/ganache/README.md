@@ -1,3 +1,7 @@
+_Looking for ganache-cli v6 documentation? Check here: https://github.com/trufflesuite/ganache-cli-archive_
+
+---
+
 <!-- Using h2 instead of h1 because npm doesn't support align=center on h1 tags -->
 <h2 align="center">
   <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://trufflesuite.github.io/ganache/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
