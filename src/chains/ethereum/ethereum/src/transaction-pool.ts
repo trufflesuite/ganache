@@ -104,6 +104,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     const origins = this.#origins;
     const queuedOriginTransactions = origins.get(origin);
 
+    let transactionIsAlreadyQueued = false;
     let isExecutableTransaction = false;
     const executables = this.executables.pending;
     let executableOriginTransactions = executables.get(origin);
@@ -131,11 +132,14 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           // if our new price is `gasPrice * priceBumpPercent` better than our
           // oldPrice, throw out the old now.
           if (!currentPendingTx.locked && newGasPrice > thisPricePremium) {
-            isExecutableTransaction = true;
             // do an in-place replace without triggering a re-sort because we
             // already know where this transaction should go in this "byNonce"
             // heap.
             pendingArray[i] = transaction;
+            // we don't want to mark this transaction as "executable" and thus
+            // have it added to the pool again. so use this flag to skip
+            // a re-queue.
+            transactionIsAlreadyQueued = true;
 
             currentPendingTx.finalize(
               "rejected",
@@ -221,7 +225,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       transaction.signAndHash(fakePrivateKey);
     }
 
-    if (isExecutableTransaction) {
+    if (transactionIsAlreadyQueued) {
+      return false;
+    } else if (isExecutableTransaction) {
       // if it is executable add it to the executables queue
       if (executableOriginTransactions) {
         executableOriginTransactions.push(transaction);
