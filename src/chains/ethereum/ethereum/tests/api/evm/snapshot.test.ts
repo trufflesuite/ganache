@@ -437,7 +437,7 @@ describe("api", () => {
             { from, to, value: value++, nonce: accountNonce + 3 }
           ]),
           send("eth_sendTransaction", [
-            { from, to, value: value++, nonce: accountNonce + 3 }
+            { from, to, value: value++, nonce: accountNonce + 4 }
           ])
         ];
 
