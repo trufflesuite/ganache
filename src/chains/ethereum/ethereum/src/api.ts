@@ -1858,7 +1858,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async eth_signTypedData(address: DATA, typedData: TypedData | string) {
+  async eth_signTypedData(address: DATA, typedData: TypedData) {
     return this.eth_signTypedData_v4(address, typedData);
   }
 
@@ -1918,16 +1918,16 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async eth_signTypedData_v4(address: DATA, typedData: TypedData | string) {
+  async eth_signTypedData_v4(address: DATA, typedData: TypedData) {
     const account = Address.from(address).toString().toLowerCase();
 
     const privateKey = this.#wallet.unlockedAccounts.get(account);
     if (privateKey == null) {
       throw new Error("cannot sign data; no private key");
     }
-    // TODO
+
     if (typeof typedData === "string") {
-      typedData = JSON.parse(typedData) as TypedData;
+      throw new Error("cannot sign data; string sent, expected object");
     }
 
     if (!typedData.types) {
