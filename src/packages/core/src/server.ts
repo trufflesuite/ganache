@@ -6,6 +6,15 @@ import {
 } from "./options";
 
 import allSettled from "promise.allsettled";
+
+// This `shim()` is necessary for `Promise.allSettled` to be shimmed
+// in `node@10`. We cannot use `allSettled([...])` directly due to
+// https://github.com/es-shims/Promise.allSettled/issues/5 without
+// upgrading Typescript. TODO: if Typescript is upgraded to 4.2.3+
+// then this line could be removed and `Promise.allSettled` below
+// could replaced with `allSettled`.
+allSettled.shim();
+
 import AggregateError from "aggregate-error";
 import {
   App,
@@ -100,7 +109,7 @@ export class Server<
   #connector: ConnectorsByName[T];
   #websocketServer: WebsocketServer | null = null;
 
-  #initializer: Promise<void>;
+  #initializer: Promise<[void, void]>;
 
   public get provider(): ConnectorsByName[T]["provider"] {
     return this.#connector.provider;
@@ -125,10 +134,16 @@ export class Server<
     //   const server = Ganache.server();
     //   const provider = server.provider;
     //   await server.listen(8545)
-    const connector = (this.#connector = ConnectorLoader.initialize(
-      this.#providerOptions
-    ));
-    this.#initializer = this.initialize(connector);
+    const loader = ConnectorLoader.initialize(this.#providerOptions);
+    const connector = (this.#connector = loader.connector);
+
+    // Since the ConnectorLoader starts an async promise that we intentionally
+    // don't await yet we keep the promise around for something else to handle
+    // later.
+    this.#initializer = Promise.all([
+      loader.promise,
+      this.initialize(connector)
+    ]);
   }
 
   private async initialize(connector: Connector) {
@@ -180,18 +195,8 @@ export class Server<
 
     this.#status = ServerStatus.opening;
 
-    const initializePromise = this.#initializer;
-
-    // This `shim()` is necessary for `Promise.allSettled` to be shimmed
-    // in `node@10`. We cannot use `allSettled([...])` directly due to
-    // https://github.com/es-shims/Promise.allSettled/issues/5 without
-    // upgrading Typescript. TODO: if Typescript is upgraded to 4.2.3+
-    // then this line could be removed and `Promise.allSettled` below
-    // could replaced with `allSettled`.
-    allSettled.shim();
-
     const promise = Promise.allSettled([
-      initializePromise,
+      this.#initializer,
       new Promise(
         (resolve: (listenSocket: false | us_listen_socket) => void) => {
           // Make sure we have *exclusive* use of this port.

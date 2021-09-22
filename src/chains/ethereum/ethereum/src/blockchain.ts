@@ -256,140 +256,149 @@ export default class Blockchain extends Emittery.Typed<
     const options = this.#options;
     const instamine = this.#instamine;
 
-    let common: Common;
-    if (this.fallback) {
-      await Promise.all([database.initialize(), this.fallback.initialize()]);
-      common = this.common = this.fallback.common;
-      options.fork.blockNumber = this.fallback.blockNumber.toNumber();
-      options.chain.networkId = common.networkId();
-      options.chain.chainId = common.chainId();
-    } else {
-      await database.initialize();
-      common = this.common = createCommon(
-        options.chain.chainId,
-        options.chain.networkId,
-        options.chain.hardfork
-      );
-    }
+    try {
+      let common: Common;
+      if (this.fallback) {
+        await this.fallback.initialize();
+        await database.initialize();
 
-    const blocks = (this.blocks = await BlockManager.initialize(
-      this,
-      common,
-      database.blockIndexes,
-      database.blocks
-    ));
-
-    this.blockLogs = new BlockLogManager(database.blockLogs, this);
-    this.transactions = new TransactionManager(
-      options.miner,
-      common,
-      this,
-      database.transactions
-    );
-    this.transactionReceipts = new TransactionReceiptManager(
-      database.transactionReceipts,
-      this
-    );
-    this.accounts = new AccountManager(this);
-    this.storageKeys = database.storageKeys;
-
-    // if we have a latest block, use it to set up the trie.
-    const { latest } = blocks;
-    {
-      let stateRoot: Data | null;
-      if (latest) {
-        this.#blockBeingSavedPromise = Promise.resolve({
-          block: latest,
-          blockLogs: null
-        });
-        ({ stateRoot } = latest.header);
+        common = this.common = this.fallback.common;
+        options.fork.blockNumber = this.fallback.blockNumber.toNumber();
+        options.chain.networkId = common.networkId();
+        options.chain.chainId = common.chainId();
       } else {
-        stateRoot = null;
-      }
-      this.trie = makeTrie(this, database.trie, stateRoot);
-    }
-
-    // create VM and listen to step events
-    this.vm = await this.createVmFromStateTrie(
-      this.trie,
-      options.chain.allowUnlimitedContractSize,
-      true
-    );
-
-    {
-      // create first block
-      let firstBlockTime: number;
-      if (options.chain.time != null) {
-        // If we were given a timestamp, use it instead of the `_currentTime`
-        const t = options.chain.time.getTime();
-        firstBlockTime = Math.floor(t / 1000);
-        this.setTime(t);
-      } else {
-        firstBlockTime = this.#currentTime();
-      }
-
-      // if we don't already have a latest block, create a genesis block!
-      if (!latest) {
-        if (initialAccounts.length > 0) {
-          await this.#commitAccounts(initialAccounts);
-        }
-
-        this.#blockBeingSavedPromise = this.#initializeGenesisBlock(
-          firstBlockTime,
-          options.miner.blockGasLimit,
-          initialAccounts
-        );
-        blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(
-          ({ block }) => block
+        await database.initialize();
+        common = this.common = createCommon(
+          options.chain.chainId,
+          options.chain.networkId,
+          options.chain.hardfork
         );
       }
-    }
 
-    {
-      // configure and start miner
-      const txPool = this.transactions.transactionPool;
-      const minerOpts = options.miner;
-      const miner = (this.#miner = new Miner(
-        minerOpts,
-        txPool.executables,
-        this.vm,
-        this.#readyNextBlock
+      const blocks = (this.blocks = await BlockManager.initialize(
+        this,
+        common,
+        database.blockIndexes,
+        database.blocks
       ));
 
-      //#region re-emit miner events:
-      miner.on("ganache:vm:tx:before", event => {
-        this.emit("ganache:vm:tx:before", event);
-      });
-      miner.on("ganache:vm:tx:step", event => {
-        if (!this.#emitStepEvent) return;
-        this.emit("ganache:vm:tx:step", event);
-      });
-      miner.on("ganache:vm:tx:after", event => {
-        this.emit("ganache:vm:tx:after", event);
-      });
-      //#endregion
+      this.blockLogs = new BlockLogManager(database.blockLogs, this);
+      this.transactions = new TransactionManager(
+        options.miner,
+        common,
+        this,
+        database.transactions
+      );
+      this.transactionReceipts = new TransactionReceiptManager(
+        database.transactionReceipts,
+        this
+      );
+      this.accounts = new AccountManager(this);
+      this.storageKeys = database.storageKeys;
 
-      //#region automatic mining
-      const nullResolved = Promise.resolve(null);
-      const mineAll = (maxTransactions: Capacity) =>
-        this.#isPaused() ? nullResolved : this.mine(maxTransactions);
-      if (instamine) {
-        // insta mining
-        // whenever the transaction pool is drained mine the txs into blocks
-        txPool.on("drain", mineAll.bind(null, Capacity.Single));
-      } else {
-        // interval mining
-        const wait = () =>
-          // unref, so we don't hold the chain open if nothing can interact with it
-          unref((this.#timer = setTimeout(next, minerOpts.blockTime * 1e3)));
-        const next = () => mineAll(Capacity.FillBlock).then(wait);
-        wait();
+      // if we have a latest block, use it to set up the trie.
+      const { latest } = blocks;
+      {
+        let stateRoot: Data | null;
+        if (latest) {
+          this.#blockBeingSavedPromise = Promise.resolve({
+            block: latest,
+            blockLogs: null
+          });
+          ({ stateRoot } = latest.header);
+        } else {
+          stateRoot = null;
+        }
+        this.trie = makeTrie(this, database.trie, stateRoot);
       }
-      //#endregion
 
-      miner.on("block", this.#handleNewBlockData);
+      // create VM and listen to step events
+      this.vm = await this.createVmFromStateTrie(
+        this.trie,
+        options.chain.allowUnlimitedContractSize,
+        true
+      );
 
-      this.once("stop").then(() => miner.clearListeners());
+      {
+        // create first block
+        let firstBlockTime: number;
+        if (options.chain.time != null) {
+          // If we were given a timestamp, use it instead of the `_currentTime`
+          const t = options.chain.time.getTime();
+          firstBlockTime = Math.floor(t / 1000);
+          this.setTime(t);
+        } else {
+          firstBlockTime = this.#currentTime();
+        }
+
+        // if we don't already have a latest block, create a genesis block!
+        if (!latest) {
+          if (initialAccounts.length > 0) {
+            await this.#commitAccounts(initialAccounts);
+          }
+
+          this.#blockBeingSavedPromise = this.#initializeGenesisBlock(
+            firstBlockTime,
+            options.miner.blockGasLimit,
+            initialAccounts
+          );
+          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(
+            ({ block }) => block
+          );
+        }
+      }
+
+      {
+        // configure and start miner
+        const txPool = this.transactions.transactionPool;
+        const minerOpts = options.miner;
+        const miner = (this.#miner = new Miner(
+          minerOpts,
+          txPool.executables,
+          this.vm,
+          this.#readyNextBlock
+        ));
+
+        //#region re-emit miner events:
+        miner.on("ganache:vm:tx:before", event => {
+          this.emit("ganache:vm:tx:before", event);
+        });
+        miner.on("ganache:vm:tx:step", event => {
+          if (!this.#emitStepEvent) return;
+          this.emit("ganache:vm:tx:step", event);
+        });
+        miner.on("ganache:vm:tx:after", event => {
+          this.emit("ganache:vm:tx:after", event);
+        });
+        //#endregion
+
+        //#region automatic mining
+        const nullResolved = Promise.resolve(null);
+        const mineAll = (maxTransactions: Capacity) =>
+          this.#isPaused() ? nullResolved : this.mine(maxTransactions);
+        if (instamine) {
+          // insta mining
+          // whenever the transaction pool is drained mine the txs into blocks
+          txPool.on("drain", mineAll.bind(null, Capacity.Single));
+        } else {
+          // interval mining
+          const wait = () =>
+            // unref, so we don't hold the chain open if nothing can interact with it
+            unref((this.#timer = setTimeout(next, minerOpts.blockTime * 1e3)));
+          const next = () => mineAll(Capacity.FillBlock).then(wait);
+          wait();
+        }
+        //#endregion
+
+        miner.on("block", this.#handleNewBlockData);
+
+        this.once("stop").then(() => miner.clearListeners());
+      }
+    } catch (e) {
+      // we failed to start up. bail! :-(
+      this.#state = Status.stopping;
+      this.stop();
+      throw e;
     }
 
     this.#state = Status.started;
@@ -1567,7 +1576,7 @@ export default class Blockchain extends Emittery.Typed<
    * Gracefully shuts down the blockchain service and all of its dependencies.
    */
   public async stop() {
-    // If the blockchain is still initalizing we don't want to shut down
+    // If the blockchain is still initializing we don't want to shut down
     // yet because there may still be database calls in flight. Leveldb may
     // cause a segfault due to a race condition between a db write and the close
     // call.
@@ -1575,17 +1584,19 @@ export default class Blockchain extends Emittery.Typed<
       await this.once("ready");
     }
 
+    this.#state = Status.stopping;
+
     // stop the polling miner, if necessary
     clearTimeout(this.#timer);
 
     // clean up listeners
-    this.vm.removeAllListeners();
+    this.vm && this.vm.removeAllListeners();
 
     // pause processing new transactions...
-    await this.transactions.pause();
+    this.transactions && (await this.transactions.pause());
 
     // then pause the miner, too.
-    await this.#miner.pause();
+    this.#miner && (await this.#miner.pause());
 
     // wait for anything in the process of being saved to finish up
     await this.#blockBeingSavedPromise;
@@ -1594,10 +1605,7 @@ export default class Blockchain extends Emittery.Typed<
 
     await this.emit("stop");
 
-    if (this.#state === Status.started) {
-      this.#state = Status.stopping;
-      await this.#database.close();
-      this.#state = Status.stopped;
-    }
+    this.#database && (await this.#database.close());
+    this.#state = Status.stopped;
   }
 }

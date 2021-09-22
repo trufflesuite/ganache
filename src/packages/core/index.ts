@@ -44,8 +44,8 @@ const Ganache = {
   provider: <T extends FlavorName = typeof DefaultFlavor>(
     options?: ProviderOptions<T>
   ): ConnectorsByName[T]["provider"] => {
-    const connector = ConnectorLoader.initialize<T>(options);
-    return connector.provider;
+    const loader = ConnectorLoader.initialize<T>(options);
+    return loader.connector.provider;
   }
 };
 

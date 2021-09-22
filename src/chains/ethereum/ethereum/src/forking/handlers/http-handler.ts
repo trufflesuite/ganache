@@ -1,6 +1,6 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { JsonRpcResponse, JsonRpcError } from "@ganache/utils";
-import { AbortError } from "@ganache/ethereum-utils";
+import { AbortError, CodedError } from "@ganache/ethereum-utils";
 // TODO: support http2
 import http, { RequestOptions, Agent as HttpAgent } from "http";
 import https, { Agent as HttpsAgent } from "https";
@@ -172,7 +172,7 @@ export class HttpHandler extends BaseHandler implements Handler {
       if ("result" in result) {
         return result.result;
       } else if ("error" in result) {
-        throw result.error;
+        throw new CodedError(result.error.message, result.error.code);
       }
     });
     this.requestCache.set(data, promise);

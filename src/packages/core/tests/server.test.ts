@@ -71,6 +71,16 @@ describe("server", () => {
       return response;
     }
 
+    it("handles connector initialization errors by rejecting on .listen", async () => {
+      // This Ganache.server({...}) here will cause an internal error in the
+      // Ethereum provider initialization. We don't want to throw an unhandled
+      // promise reject; so we handle it in the `listen` method.
+      const s = Ganache.server({
+        fork: { url: "https://mainnet.infura.io/v3/INVALID_URL" }
+      });
+      await assert.rejects(s.listen(port));
+    });
+
     it("returns its status", async () => {
       const s = Ganache.server();
       try {
