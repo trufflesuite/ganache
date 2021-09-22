@@ -395,9 +395,12 @@ export default class Blockchain extends Emittery.Typed<
         this.once("stop").then(() => miner.clearListeners());
       }
     } catch (e) {
-      // we failed to start up. bail! :-(
+      // we failed to start up :-( bail!
       this.#state = Status.stopping;
-      this.stop();
+      // ignore errors while stopping here, since we are already in an
+      // exceptional case
+      await this.stop().catch(_ => {});
+
       throw e;
     }
 
