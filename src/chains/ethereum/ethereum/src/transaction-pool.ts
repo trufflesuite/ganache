@@ -17,7 +17,33 @@ function byNonce(values: TypedTransaction[], a: number, b: number) {
     (values[b].nonce.toBigInt() || 0n) > (values[a].nonce.toBigInt() || 0n)
   );
 }
-
+/**
+ * Used to track a transaction's placement in the transaction pool based off
+ * of the its nonce.
+ */
+export enum TriageOptions {
+  /**
+   * Default value. A tx will be added to the future queue if it is not yet
+   * executable based off of the transaction's nonce.
+   */
+  FutureQueue = 0,
+  /**
+   * The transaction is currently executable based off the transaction's nonce.
+   */
+  Executable = 1,
+  /**
+   * The transaction is currently executable, has the same nonce as a pending
+   * transaction of the same origin, and has a gas price that is high enough to
+   * replace the currently pending transaction.
+   */
+  ReplacesPendingExecutable = 2,
+  /**
+   * The transaction is not currently executable but has the same nonce as a
+   * future queued transaction of the same origin and has a gas price that is
+   * high enough to replace the future queued transaction.
+   */
+  ReplacesFutureTransaction = 3
+}
 export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   #options: EthereumInternalOptions["miner"];
 
@@ -104,10 +130,12 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     const origins = this.#origins;
     const queuedOriginTransactions = origins.get(origin);
 
-    let transactionIsAlreadyQueued = false;
-    let isExecutableTransaction = false;
+    let transactionPlacement = TriageOptions.FutureQueue;
     const executables = this.executables.pending;
     let executableOriginTransactions = executables.get(origin);
+
+    const priceBump = this.#priceBump;
+    const newGasPrice = transaction.effectiveGasPrice.toBigInt();
 
     let length: number;
     if (
@@ -118,8 +146,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       // executables queue already. Replace the matching transaction or throw this
       // new transaction away as necessary.
       const pendingArray = executableOriginTransactions.array;
-      const priceBump = this.#priceBump;
-      const newGasPrice = transaction.effectiveGasPrice.toBigInt();
       // Notice: we're iterating over the raw heap array, which isn't
       // necessarily sorted
       for (let i = 0; i < length; i++) {
@@ -139,7 +165,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
             // we don't want to mark this transaction as "executable" and thus
             // have it added to the pool again. so use this flag to skip
             // a re-queue.
-            transactionIsAlreadyQueued = true;
+            transactionPlacement = TriageOptions.ReplacesPendingExecutable;
 
             currentPendingTx.finalize(
               "rejected",
@@ -159,16 +185,17 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           highestNonce = thisNonce;
         }
       }
+
       if (transactionNonce === void 0) {
         // if we aren't signed and don't have a transactionNonce yet set it now
         transactionNonce = highestNonce + 1n;
         transaction.nonce = Quantity.from(transactionNonce);
-        isExecutableTransaction = true;
+        transactionPlacement = TriageOptions.Executable;
         highestNonce = transactionNonce;
       } else if (transactionNonce === highestNonce + 1n) {
         // if our transaction's nonce is 1 higher than the last transaction in the
         // origin's heap we are executable.
-        isExecutableTransaction = true;
+        transactionPlacement = TriageOptions.Executable;
         highestNonce = transactionNonce;
       }
     } else {
@@ -189,7 +216,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         // nonce and mark as executable
         transactionNonce = transactorNonce ? transactorNonce : 0n;
         highestNonce = transactionNonce;
-        isExecutableTransaction = true;
+        transactionPlacement = TriageOptions.Executable;
         transaction.nonce = Quantity.from(transactionNonce);
       } else if (transactionNonce < transactorNonce) {
         // it's an error if the transaction's nonce is <= the persisted nonce
@@ -197,7 +224,61 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           `the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${transactionNonce}`
         );
       } else if (transactionNonce === transactorNonce) {
-        isExecutableTransaction = true;
+        transactionPlacement = TriageOptions.Executable;
+      }
+    }
+
+    // we have future transactions for this origin, this transaction is not yet
+    // executable, and this transaction is not replacing a previously queued/
+    // executable transaction, then this is potentially eligible to replace a
+    // future transaction
+    if (
+      queuedOriginTransactions &&
+      transactionPlacement !== TriageOptions.Executable &&
+      transactionPlacement !== TriageOptions.ReplacesPendingExecutable &&
+      (length = queuedOriginTransactions.length)
+    ) {
+      // check if a transaction with the same nonce is in the origin's
+      // future queue already. Replace the matching transaction or throw this
+      // new transaction away as necessary.
+      const queuedArray = queuedOriginTransactions.array;
+      const priceBump = this.#priceBump;
+      const newGasPrice = transaction.effectiveGasPrice.toBigInt();
+      // Notice: we're iterating over the raw heap array, which isn't
+      // necessarily sorted
+      for (let i = 0; i < length; i++) {
+        const currentQueuedTx = queuedArray[i];
+        const thisNonce = currentQueuedTx.nonce.toBigInt();
+        if (thisNonce === transactionNonce) {
+          const gasPrice = currentQueuedTx.effectiveGasPrice.toBigInt();
+          const thisPricePremium = gasPrice + (gasPrice * priceBump) / 100n;
+
+          // if our new price is `gasPrice * priceBumpPercent` better than our
+          // oldPrice, throw out the old now.
+          if (!currentQueuedTx.locked && newGasPrice > thisPricePremium) {
+            // do an in-place replace without triggering a re-sort because we
+            // already know where this transaction should go in this "byNonce"
+            // heap.
+            queuedArray[i] = transaction;
+            // we don't want to mark this transaction as "FutureQueue" and thus
+            // have it added to the pool again. so use this flag to skip
+            // a re-queue.
+            transactionPlacement = TriageOptions.ReplacesFutureTransaction;
+
+            currentQueuedTx.finalize(
+              "rejected",
+              new CodedError(
+                "Transaction replaced by better transaction",
+                JsonRpcErrorCode.TRANSACTION_REJECTED
+              )
+            );
+          } else {
+            throw new CodedError(
+              "replacement transaction underpriced",
+              JsonRpcErrorCode.TRANSACTION_REJECTED
+            );
+          }
+        }
       }
     }
 
@@ -225,9 +306,17 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       transaction.signAndHash(fakePrivateKey);
     }
 
-    if (transactionIsAlreadyQueued) {
+    if (transactionPlacement === TriageOptions.ReplacesPendingExecutable) {
+      // we've replaced the best transaction from this origin for this nonce,
+      // and it is executable
       return true;
-    } else if (isExecutableTransaction) {
+    } else if (
+      transactionPlacement === TriageOptions.ReplacesFutureTransaction
+    ) {
+      // we've replaced the best transaction from this origin for a future
+      // nonce, so this one isn't executable
+      return false;
+    } else if (transactionPlacement === TriageOptions.Executable) {
       // if it is executable add it to the executables queue
       if (executableOriginTransactions) {
         executableOriginTransactions.push(transaction);
@@ -271,7 +360,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       } else {
         origins.set(origin, Heap.from(transaction, byNonce));
       }
-
       return false;
     }
   }
