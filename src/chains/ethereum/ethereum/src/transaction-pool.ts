@@ -226,7 +226,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     }
 
     if (transactionIsAlreadyQueued) {
-      return false;
+      return true;
     } else if (isExecutableTransaction) {
       // if it is executable add it to the executables queue
       if (executableOriginTransactions) {
