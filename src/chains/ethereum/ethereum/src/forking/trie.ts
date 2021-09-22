@@ -173,15 +173,22 @@ export class ForkTrie extends GanacheTrie {
 
     // because code requires additional asynchronous processing, we await and
     // process it ASAP
-    const codeHex = await codeProm;
-    if (codeHex !== "0x") {
-      const code = Data.from(codeHex).toBuffer();
-      // the codeHash is just the keccak hash of the code itself
-      account.codeHash = keccak(code);
-      if (!account.codeHash.equals(KECCAK256_NULL)) {
-        // insert the code directly into the database with a key of `codeHash`
-        promises[2] = this.db.put(account.codeHash, code);
+    try {
+      const codeHex = await codeProm;
+      if (codeHex !== "0x") {
+        const code = Data.from(codeHex).toBuffer();
+        // the codeHash is just the keccak hash of the code itself
+        account.codeHash = keccak(code);
+        if (!account.codeHash.equals(KECCAK256_NULL)) {
+          // insert the code directly into the database with a key of `codeHash`
+          promises[2] = this.db.put(account.codeHash, code);
+        }
       }
+    } catch (e) {
+      // Since we fired off some promises that may throw themselves we need to
+      // catch these errors and discard them.
+      Promise.all(promises).catch(e => {});
+      throw e;
     }
 
     // finally, set the `nonce` and `balance` on the account before returning
