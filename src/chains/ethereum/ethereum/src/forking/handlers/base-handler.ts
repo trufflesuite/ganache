@@ -3,6 +3,7 @@ import { JsonRpcError, JsonRpcResponse } from "@ganache/utils";
 import { AbortSignal } from "abort-controller";
 import { OutgoingHttpHeaders } from "http";
 import RateLimiter from "../rate-limiter/rate-limiter";
+import LRU from "lru-cache";
 
 type Headers = OutgoingHttpHeaders & { authorization?: string };
 
@@ -17,6 +18,8 @@ export class BaseHandler {
     string,
     Promise<JsonRpcError | JsonRpcResponse>
   >();
+  protected valueCache: LRU<string, any>;
+
   protected limiter: RateLimiter;
   protected headers: Headers;
   protected abortSignal: AbortSignal;
@@ -33,24 +36,31 @@ export class BaseHandler {
       abortSignal
     );
 
-    const headers: Headers = {
-      "user-agent": userAgent
-    };
-    if (origin) {
-      headers["origin"] = origin;
+    this.valueCache = new LRU({
+      max: 1_073_741_824, // 1 gigabyte
+      length: (value, key) => {
+        return value.length + key.length;
+      }
+    });
+
+    // we don't header-related things if we are using a provider instead of a url
+    if (url) {
+      const headers: Headers = {
+        "user-agent": userAgent
+      };
+      if (origin) {
+        headers["origin"] = origin;
+      }
+
+      // we set our own Authentication headers, so username and password must be
+      // removed from the url. (The values have already been copied to the options)
+      url.password = url.username = "";
+      const isInfura = url.host.endsWith(".infura.io");
+
+      BaseHandler.setAuthHeaders(forkingOptions, headers);
+      BaseHandler.setUserHeaders(forkingOptions, headers, !isInfura);
+      this.headers = headers;
     }
-
-    // we set our own Authentication headers, so username and password must be
-    // removed from the url. (The values have already been copied to the options)
-    url.password = url.username = "";
-
-    BaseHandler.setAuthHeaders(forkingOptions, headers);
-    BaseHandler.setUserHeaders(
-      forkingOptions,
-      headers,
-      !url.host.endsWith(".infura.io")
-    );
-    this.headers = headers;
   }
 
   /**

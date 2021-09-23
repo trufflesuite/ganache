@@ -86,11 +86,13 @@ export class HttpHandler extends BaseHandler implements Handler {
   }
 
   public async request(method: string, params: unknown[]) {
-    const data = JSON.stringify({ method, params });
-    if (this.requestCache.has(data)) {
-      //console.log("cache hit: " + data);
-      return this.requestCache.get(data);
-    }
+    const key = JSON.stringify({ method, params });
+
+    if (this.requestCache.has(key)) return this.requestCache.get(key);
+
+    const cachedItem = this.valueCache.get(key);
+    // `as any` because JSON.parse can handle Buffers, but TS doesn't think it can.
+    if (cachedItem) return JSON.parse(cachedItem).result;
 
     const { protocol, hostname: host, port, pathname, search } = this.url;
     const requestOptions = {
@@ -108,9 +110,11 @@ export class HttpHandler extends BaseHandler implements Handler {
     const send = () => {
       if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-      //console.log("sending request: " + data);
-      const deferred = Deferred<JsonRpcResponse | JsonRpcError>();
-      const postData = `${JSONRPC_PREFIX}${this.id++},${data.slice(1)}`;
+      const deferred = Deferred<{
+        response: JsonRpcResponse | JsonRpcError;
+        raw: Buffer;
+      }>();
+      const postData = `${JSONRPC_PREFIX}${this.id++},${key.slice(1)}`;
       this.headers["content-length"] = postData.length;
 
       const req = this._request(requestOptions);
@@ -135,7 +139,10 @@ export class HttpHandler extends BaseHandler implements Handler {
         // TODO: handle invalid JSON (throws on parse)?
         buffer.then(buffer => {
           try {
-            deferred.resolve(JSON.parse(buffer));
+            deferred.resolve({
+              response: JSON.parse(buffer),
+              raw: buffer
+            });
           } catch {
             const resStr = buffer.toString();
             let shortStr: string;
@@ -165,17 +172,22 @@ export class HttpHandler extends BaseHandler implements Handler {
       req.write(postData);
       req.end();
 
-      return deferred.promise.finally(() => this.requestCache.delete(data));
+      return deferred.promise.finally(() => this.requestCache.delete(key));
     };
 
-    const promise = this.limiter.handle(send).then(result => {
-      if ("result" in result) {
-        return result.result;
-      } else if ("error" in result) {
-        throw new CodedError(result.error.message, result.error.code);
+    const promise = this.limiter.handle(send).then(({ response, raw }) => {
+      if ("result" in response) {
+        // only set the cache for non-error responses
+        this.valueCache.set(key, raw);
+
+        return response.result;
+      } else if ("error" in response) {
+        throw new CodedError(response.error.message, response.error.code);
+      } else {
+        throw new Error("Invalid response from fork provider.");
       }
     });
-    this.requestCache.set(data, promise);
+    this.requestCache.set(key, promise);
     return promise;
   }
 

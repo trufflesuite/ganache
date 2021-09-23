@@ -12,7 +12,10 @@ export class WsHandler extends BaseHandler implements Handler {
   private connection: WebSocket;
   private inFlightRequests = new Map<
     string | number,
-    DeferredPromise<JsonRpcResponse | JsonRpcError>
+    DeferredPromise<{
+      response: JsonRpcResponse | JsonRpcError;
+      raw: string | Buffer | ArrayBuffer;
+    }>
   >();
 
   constructor(options: EthereumInternalOptions, abortSignal: AbortSignal) {
@@ -42,37 +45,42 @@ export class WsHandler extends BaseHandler implements Handler {
     await this.open;
     if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-    const data = JSON.stringify({ method, params });
-    if (this.requestCache.has(data)) {
-      //console.log("cache hit: " + data);
-      return this.requestCache.get(data);
-    }
+    const key = JSON.stringify({ method, params });
+    if (this.requestCache.has(key)) return this.requestCache.get(key);
+
+    const cachedItem = this.valueCache.get(key);
+    if (cachedItem) return JSON.parse(cachedItem).result;
 
     const send = () => {
       if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-      //console.log("sending request: " + data);
       const messageId = this.id++;
-      const deferred = Deferred<JsonRpcResponse | JsonRpcError>();
+      const deferred = Deferred<{
+        response: JsonRpcResponse | JsonRpcError;
+        raw: string | Buffer | ArrayBuffer;
+      }>();
 
       // TODO: timeout an in-flight request after some amount of time
       this.inFlightRequests.set(messageId, deferred);
 
       this.connection.send(
-        BaseHandler.JSONRPC_PREFIX + messageId + `,${data.slice(1)}`
+        BaseHandler.JSONRPC_PREFIX + messageId + `,${key.slice(1)}`
       );
-      return deferred.promise.finally(() => this.requestCache.delete(data));
+      return deferred.promise.finally(() => this.requestCache.delete(key));
     };
-    const promise = this.limiter.handle(send).then(result => {
+    const promise = this.limiter.handle(send).then(({ response, raw }) => {
       if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-      if ("result" in result) {
-        return result.result;
-      } else if ("error" in result) {
-        throw result.error;
+      if ("result" in response) {
+        // only set the cache for non-error responses
+        this.valueCache.set(key, raw as Buffer);
+
+        return response.result;
+      } else if ("error" in response) {
+        throw response.error;
       }
     });
-    this.requestCache.set(data, promise);
+    this.requestCache.set(key, promise);
     return promise;
   }
 
@@ -87,7 +95,7 @@ export class WsHandler extends BaseHandler implements Handler {
     const prom = this.inFlightRequests.get(id);
     if (prom) {
       this.inFlightRequests.delete(id);
-      prom.resolve(result);
+      prom.resolve({ response: result, raw: event.data as any });
     }
   }
 
