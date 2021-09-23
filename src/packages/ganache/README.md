@@ -200,7 +200,7 @@ You can also use Ganache in the browser by adding the following script to your H
 <script src="https://cdn.jsdelivr.net/npm/ganache@version"></script>
 ```
 
-NOTE: the `version` in the above path needs to be replaced with a version number or tag that is [listed in npm](https://www.npmjs.com/package/ganache?activeTab=versions).
+NOTE: the `version` in the above path needs to be replaced with a version number or tag that is listed in [npm](https://www.npmjs.com/package/ganache?activeTab=versions).
 
 From there, Ganache is available in your browser for use:
 
