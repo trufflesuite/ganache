@@ -44,7 +44,7 @@ Ganache is an Ethereum simulator that makes developing Ethereum applications fas
 
 ## Getting Started
 
-Ganache can be used from the [command line](#command-line-use) or [programmatically](#programmatic-use) via Node.js.
+Ganache can be used from the [command line](#command-line-use), [programmatically](#programmatic-use) via Node.js, or [in the browser](#browser-use).
 
 ### Command line use
 
@@ -190,6 +190,23 @@ const web3 = new Web3(ganache.provider(), null, { transactionConfirmationBlocks:
 const ganache = require("ganache");
 
 const provider = new ethers.providers.Web3Provider(ganache.provider());
+```
+
+### Browser Use
+
+You can also use Ganache in the browser by adding the following script to your HTML:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/ganache@version"></script>
+```
+
+NOTE: the `version` in the above path needs to be replaced with a version number or tag that is [listed in npm](https://www.npmjs.com/package/ganache?activeTab=versions).
+
+From there, Ganache is available in your browser for use:
+
+```Javascript
+const options = {};
+const provider = Ganache.provider(options);
 ```
 
 ## Documentation
