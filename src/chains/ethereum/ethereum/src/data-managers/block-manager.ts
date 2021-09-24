@@ -13,7 +13,6 @@ import { Address } from "@ganache/ethereum-address";
 import {
   GanacheRawBlockTransactionMetaData,
   TransactionFactory,
-  TransactionType,
   TypedDatabaseTransaction
 } from "@ganache/ethereum-transaction";
 
