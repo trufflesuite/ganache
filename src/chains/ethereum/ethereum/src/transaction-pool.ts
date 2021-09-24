@@ -364,49 +364,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     }
   }
 
-  public getReplacerFunction(heap, index, option, transactionPlacement) {
-    return transaction => {
-      return this.replacerFunction(
-        heap,
-        option,
-        index,
-        transaction,
-        transactionPlacement
-      );
-    };
-  }
-
-  public replacerFunction(
-    heap,
-    option,
-    index,
-    transaction,
-    transactionPlacement
-  ) {
-    heap[index] = transaction;
-    transactionPlacement = option;
-  }
-
-  public loopTxs(
-    txHeapToLoop: Heap<TypedTransaction, any>,
-    fnsToCall: ((
-      tx: TypedTransaction,
-      nonce: bigint,
-      index: number
-    ) => boolean | void)[]
-  ) {
-    const length = txHeapToLoop.length;
-    const txsToLoop = txHeapToLoop.array;
-    for (let i = 0; i < length; i++) {
-      const currentTx = txsToLoop[i];
-      const thisNonce = currentTx.nonce.toBigInt();
-      for (let j = 0, l = fnsToCall.length; j < l; j++) {
-        // if a function returns false we can exit early without continuing to loop
-        if (!fnsToCall[j](currentTx, thisNonce, i)) return;
-      }
-    }
-  }
-
   public clear() {
     this.#origins.clear();
     this.#accountPromises.clear();
