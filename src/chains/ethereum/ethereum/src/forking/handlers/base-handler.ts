@@ -43,7 +43,9 @@ export class BaseHandler {
       }
     });
 
-    // we don't header-related things if we are using a provider instead of a url
+    // we don't need to header-related things if we are using a provider
+    // instead of a url since we aren't in charge of sending requests at the
+    // header level.
     if (url) {
       const headers: Headers = {
         "user-agent": userAgent
