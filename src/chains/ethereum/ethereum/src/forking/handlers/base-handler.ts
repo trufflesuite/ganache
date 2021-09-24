@@ -158,18 +158,14 @@ export class BaseHandler {
     const promise = this.limiter.handle(send).then(({ response, raw }) => {
       if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-      // check for null/undefined, as we can't trust that network responses will
-      // be well-formed
-      if (typeof response == "object") {
-        if (hasOwn(response, "result")) {
-          // cache non-error responses only
-          this.valueCache.set(key, raw);
+      if (hasOwn(response, "result")) {
+        // cache non-error responses only
+        this.valueCache.set(key, raw);
 
-          return response.result as T;
-        } else if (hasOwn(response, "error") && response.error != null) {
-          const { error } = response as JsonRpcError;
-          throw new CodedError(error.message, error.code);
-        }
+        return response.result as T;
+      } else if (hasOwn(response, "error") && response.error != null) {
+        const { error } = response as JsonRpcError;
+        throw new CodedError(error.message, error.code);
       }
       throw new Error(`${INVALID_RESPONSE}\`${JSON.stringify(response)}\``);
     });
