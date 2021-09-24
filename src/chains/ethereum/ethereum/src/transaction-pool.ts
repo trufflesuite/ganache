@@ -21,7 +21,7 @@ function byNonce(values: TypedTransaction[], a: number, b: number) {
  * Used to track a transaction's placement in the transaction pool based off
  * of the its nonce.
  */
-export enum TriageOptions {
+export enum TriageOption {
   /**
    * Default value. A tx will be added to the future queue if it is not yet
    * executable based off of the transaction's nonce.
@@ -130,7 +130,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     const origins = this.#origins;
     const queuedOriginTransactions = origins.get(origin);
 
-    let transactionPlacement = TriageOptions.FutureQueue;
+    let transactionPlacement = TriageOption.FutureQueue;
     const executables = this.executables.pending;
     let executableOriginTransactions = executables.get(origin);
 
@@ -165,7 +165,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
             // we don't want to mark this transaction as "executable" and thus
             // have it added to the pool again. so use this flag to skip
             // a re-queue.
-            transactionPlacement = TriageOptions.ReplacesPendingExecutable;
+            transactionPlacement = TriageOption.ReplacesPendingExecutable;
 
             currentPendingTx.finalize(
               "rejected",
@@ -190,12 +190,12 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         // if we aren't signed and don't have a transactionNonce yet set it now
         transactionNonce = highestNonce + 1n;
         transaction.nonce = Quantity.from(transactionNonce);
-        transactionPlacement = TriageOptions.Executable;
+        transactionPlacement = TriageOption.Executable;
         highestNonce = transactionNonce;
       } else if (transactionNonce === highestNonce + 1n) {
         // if our transaction's nonce is 1 higher than the last transaction in the
         // origin's heap we are executable.
-        transactionPlacement = TriageOptions.Executable;
+        transactionPlacement = TriageOption.Executable;
         highestNonce = transactionNonce;
       }
     } else {
@@ -216,7 +216,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         // nonce and mark as executable
         transactionNonce = transactorNonce ? transactorNonce : 0n;
         highestNonce = transactionNonce;
-        transactionPlacement = TriageOptions.Executable;
+        transactionPlacement = TriageOption.Executable;
         transaction.nonce = Quantity.from(transactionNonce);
       } else if (transactionNonce < transactorNonce) {
         // it's an error if the transaction's nonce is <= the persisted nonce
@@ -224,7 +224,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
           `the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${transactionNonce}`
         );
       } else if (transactionNonce === transactorNonce) {
-        transactionPlacement = TriageOptions.Executable;
+        transactionPlacement = TriageOption.Executable;
       }
     }
 
@@ -234,8 +234,8 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // future transaction
     if (
       queuedOriginTransactions &&
-      transactionPlacement !== TriageOptions.Executable &&
-      transactionPlacement !== TriageOptions.ReplacesPendingExecutable &&
+      transactionPlacement !== TriageOption.Executable &&
+      transactionPlacement !== TriageOption.ReplacesPendingExecutable &&
       (length = queuedOriginTransactions.length)
     ) {
       // check if a transaction with the same nonce is in the origin's
@@ -263,7 +263,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
             // we don't want to mark this transaction as "FutureQueue" and thus
             // have it added to the pool again. so use this flag to skip
             // a re-queue.
-            transactionPlacement = TriageOptions.ReplacesFutureTransaction;
+            transactionPlacement = TriageOption.ReplacesFutureTransaction;
 
             currentQueuedTx.finalize(
               "rejected",
@@ -306,61 +306,62 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       transaction.signAndHash(fakePrivateKey);
     }
 
-    if (transactionPlacement === TriageOptions.ReplacesPendingExecutable) {
-      // we've replaced the best transaction from this origin for this nonce,
-      // and it is executable
-      return true;
-    } else if (
-      transactionPlacement === TriageOptions.ReplacesFutureTransaction
-    ) {
-      // we've replaced the best transaction from this origin for a future
-      // nonce, so this one isn't executable
-      return false;
-    } else if (transactionPlacement === TriageOptions.Executable) {
-      // if it is executable add it to the executables queue
-      if (executableOriginTransactions) {
-        executableOriginTransactions.push(transaction);
-      } else {
-        // if we don't yet have an executables queue for this origin make one now
-        executableOriginTransactions = Heap.from(transaction, byNonce);
-        executables.set(origin, executableOriginTransactions);
-      }
-
-      // Now we need to drain any queued transactions that were previously
-      // not executable due to nonce gaps into the origin's queue...
-      if (queuedOriginTransactions) {
-        let nextExpectedNonce = transactionNonce + 1n;
-        while (true) {
-          const nextTx = queuedOriginTransactions.peek();
-          const nextTxNonce = nextTx.nonce.toBigInt() || 0n;
-          if (nextTxNonce !== nextExpectedNonce) {
-            break;
-          }
-
-          // we've got a an executable nonce! Put it in the executables queue.
-          executableOriginTransactions.push(nextTx);
-
-          // And then remove this transaction from its origin's queue
-          if (!queuedOriginTransactions.removeBest()) {
-            // removeBest() returns `false` when there are no more items after
-            // the removed item. Let's do some cleanup when that happens.
-            origins.delete(origin);
-            break;
-          }
-
-          nextExpectedNonce += 1n;
+    switch (transactionPlacement) {
+      case TriageOption.Executable:
+        // if it is executable add it to the executables queue
+        if (executableOriginTransactions) {
+          executableOriginTransactions.push(transaction);
+        } else {
+          // if we don't yet have an executables queue for this origin make one now
+          executableOriginTransactions = Heap.from(transaction, byNonce);
+          executables.set(origin, executableOriginTransactions);
         }
-      }
 
-      return true;
-    } else {
-      // otherwise, put it in the future queue
-      if (queuedOriginTransactions) {
-        queuedOriginTransactions.push(transaction);
-      } else {
-        origins.set(origin, Heap.from(transaction, byNonce));
-      }
-      return false;
+        // Now we need to drain any queued transactions that were previously
+        // not executable due to nonce gaps into the origin's queue...
+        if (queuedOriginTransactions) {
+          let nextExpectedNonce = transactionNonce + 1n;
+          while (true) {
+            const nextTx = queuedOriginTransactions.peek();
+            const nextTxNonce = nextTx.nonce.toBigInt() || 0n;
+            if (nextTxNonce !== nextExpectedNonce) {
+              break;
+            }
+
+            // we've got a an executable nonce! Put it in the executables queue.
+            executableOriginTransactions.push(nextTx);
+
+            // And then remove this transaction from its origin's queue
+            if (!queuedOriginTransactions.removeBest()) {
+              // removeBest() returns `false` when there are no more items after
+              // the removed item. Let's do some cleanup when that happens.
+              origins.delete(origin);
+              break;
+            }
+
+            nextExpectedNonce += 1n;
+          }
+        }
+        return true;
+
+      case TriageOption.FutureQueue:
+        // otherwise, put it in the future queue
+        if (queuedOriginTransactions) {
+          queuedOriginTransactions.push(transaction);
+        } else {
+          origins.set(origin, Heap.from(transaction, byNonce));
+        }
+        return false;
+
+      case TriageOption.ReplacesPendingExecutable:
+        // we've replaced the best transaction from this origin for this nonce,
+        // and it is executable
+        return true;
+
+      case TriageOption.ReplacesFutureTransaction:
+        // we've replaced the best transaction from this origin for a future
+        // nonce, so this one isn't executable
+        return false;
     }
   }
 
