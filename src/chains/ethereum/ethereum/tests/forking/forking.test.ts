@@ -42,7 +42,7 @@ describe("forking", () => {
     }
   });
   describe("invalid/exceptional responses", async () => {
-    // doesn'contents of FAKE_BLOCK don't matter, it just needs to be parsable
+    // contents of FAKE_BLOCK don't matter, it just needs to be parsable
     // by ganache
     const FAKE_BLOCK = {
       baseFeePerGas: "0x0",
