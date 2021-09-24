@@ -43,7 +43,7 @@ export class BaseHandler {
       }
     });
 
-    // we don't need to header-related things if we are using a provider
+    // we don't need header-related things if we are using a provider
     // instead of a url since we aren't in charge of sending requests at the
     // header level.
     if (url) {
