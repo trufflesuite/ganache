@@ -229,10 +229,7 @@ export default class RateLimiter {
         this.limitCounter.increment(currentWindow);
         const result = await fn();
         if (isExceededLimitError(result.response)) {
-          if (
-            result.response.error.data != null &&
-            hasOwn(result.response.error.data, "rate")
-          ) {
+          if (hasOwn(result.response.error.data, "rate")) {
             const backoffSeconds =
               result.response.error.data.rate.backoff_seconds;
             // console.log(`backing off for ${backoffSeconds}`);
