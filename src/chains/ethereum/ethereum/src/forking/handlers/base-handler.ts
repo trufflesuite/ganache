@@ -1,9 +1,12 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { JsonRpcError, JsonRpcResponse } from "@ganache/utils";
+import { hasOwn, JsonRpcError } from "@ganache/utils";
 import { AbortSignal } from "abort-controller";
 import { OutgoingHttpHeaders } from "http";
 import RateLimiter from "../rate-limiter/rate-limiter";
 import LRU from "lru-cache";
+import { AbortError, CodedError } from "@ganache/ethereum-utils";
+
+const INVALID_RESPONSE = "Invalid response from fork provider: ";
 
 type Headers = OutgoingHttpHeaders & { authorization?: string };
 
@@ -12,13 +15,10 @@ const INVALID_AUTH_ERROR =
 const WINDOW_SECONDS = 30;
 
 export class BaseHandler {
-  static JSONRPC_PREFIX = '{"jsonrpc":"2.0","id":';
+  static JSONRPC_PREFIX = '{"jsonrpc":"2.0","id":' as const;
   protected id: number = 1;
-  protected requestCache = new Map<
-    string,
-    Promise<JsonRpcError | JsonRpcResponse>
-  >();
-  protected valueCache: LRU<string, any>;
+  protected requestCache = new Map<string, Promise<unknown>>();
+  protected valueCache: LRU<string, string | Buffer>;
 
   protected limiter: RateLimiter;
   protected headers: Headers;
@@ -131,5 +131,47 @@ export class BaseHandler {
         }
       }
     }
+  }
+
+  getFromCache<T>(key: string) {
+    const cachedRequest = this.requestCache.get(key);
+    if (cachedRequest !== undefined) return cachedRequest as Promise<T>;
+
+    const cachedValue = this.valueCache.get(key);
+    if (cachedValue !== undefined) return JSON.parse(cachedValue).result as T;
+  }
+
+  async queueRequest<T>(
+    key: string,
+    send: (
+      ...args: unknown[]
+    ) => Promise<{
+      response: { result: any } | { error: { message: string; code: number } };
+      raw: string | Buffer;
+    }>
+  ): Promise<T> {
+    const cached = this.getFromCache<T>(key);
+    if (cached !== undefined) return cached;
+
+    const promise = this.limiter.handle(send).then(({ response, raw }) => {
+      if (this.abortSignal.aborted) return Promise.reject(new AbortError());
+
+      // check for null/undefined, as we can't trust that network responses will
+      // be well-formed
+      if (typeof response == "object") {
+        if (hasOwn(response, "result")) {
+          // cache non-error responses only
+          this.valueCache.set(key, raw);
+
+          return response.result as T;
+        } else if (hasOwn(response, "error") && response.error != null) {
+          const { error } = response as JsonRpcError;
+          throw new CodedError(error.message, error.code);
+        }
+      }
+      throw new Error(`${INVALID_RESPONSE}\`${JSON.stringify(response)}\``);
+    });
+    this.requestCache.set(key, promise);
+    return await promise;
   }
 }

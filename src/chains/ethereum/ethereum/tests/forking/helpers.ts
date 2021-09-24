@@ -48,10 +48,10 @@ export const updateRemotesAccountNonces = async (
   );
 };
 
-export const startLocalChain = async (port: number) => {
+export const startLocalChain = async (port: number, options?: any) => {
   const localProvider = await getProvider({
     logging,
-    fork: { url: `ws://0.0.0.0:${port}` },
+    fork: { url: `ws://0.0.0.0:${port}`, ...options },
     wallet: { deterministic: true }
   });
   return {

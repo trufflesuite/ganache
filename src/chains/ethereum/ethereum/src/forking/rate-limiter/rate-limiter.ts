@@ -2,7 +2,8 @@ import { AbortError } from "@ganache/ethereum-utils";
 import {
   JsonRpcResponse,
   JsonRpcError,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  hasOwn
 } from "@ganache/utils";
 import { AbortSignal } from "abort-controller";
 import Semaphore from "semaphore";
@@ -10,7 +11,10 @@ import { LimitCounter } from "./limit-counter";
 
 type PromiseFn<T> = (
   ...args: unknown[]
-) => Promise<{ response: JsonRpcResponse | JsonRpcError; raw: T }>;
+) => Promise<{
+  response: { result: any } | { error: { message: string; code: number } };
+  raw: T;
+}>;
 
 type RateLimitError = JsonRpcError & {
   readonly error: {
@@ -66,10 +70,19 @@ function timeTruncate(timestamp: number, duration: number) {
  * @returns true if the result is a JSON-RPC LIMIT_EXCEEDED error
  */
 function isExceededLimitError(
-  result: JsonRpcResponse | JsonRpcError
-): result is RateLimitError {
+  response:
+    | { result: any }
+    | {
+        error: {
+          code: number;
+          message: string;
+        };
+      }
+): response is RateLimitError {
   return (
-    "error" in result && result.error.code === JsonRpcErrorCode.LIMIT_EXCEEDED
+    hasOwn(response, "error") &&
+    response.error != null &&
+    response.error.code === JsonRpcErrorCode.LIMIT_EXCEEDED
   );
 }
 
@@ -216,7 +229,10 @@ export default class RateLimiter {
         this.limitCounter.increment(currentWindow);
         const result = await fn();
         if (isExceededLimitError(result.response)) {
-          if ("rate" in result.response.error.data) {
+          if (
+            result.response.error.data != null &&
+            hasOwn(result.response.error.data, "rate")
+          ) {
             const backoffSeconds =
               result.response.error.data.rate.backoff_seconds;
             // console.log(`backing off for ${backoffSeconds}`);

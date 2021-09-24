@@ -12,15 +12,13 @@ import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 
-function fetchChainId(fork: Fork) {
-  return fork
-    .request<string>("eth_chainId", [])
-    .then(chainIdHex => parseInt(chainIdHex, 16));
+async function fetchChainId(fork: Fork) {
+  const chainIdHex = await fork.request<string>("eth_chainId", []);
+  return parseInt(chainIdHex, 16);
 }
-function fetchNetworkId(fork: Fork) {
-  return fork
-    .request<string>("net_version", [])
-    .then(networkIdStr => parseInt(networkIdStr, 10));
+async function fetchNetworkId(fork: Fork) {
+  const networkIdStr = await fork.request<string>("net_version", []);
+  return parseInt(networkIdStr, 10);
 }
 function fetchBlockNumber(fork: Fork) {
   return fork.request<string>("eth_blockNumber", []);
@@ -28,14 +26,16 @@ function fetchBlockNumber(fork: Fork) {
 function fetchBlock(fork: Fork, blockNumber: Quantity | Tag.LATEST) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
 }
-function fetchNonce(
+async function fetchNonce(
   fork: Fork,
   address: Address,
   blockNumber: Quantity | Tag.LATEST
 ) {
-  return fork
-    .request<string>("eth_getTransactionCount", [address, blockNumber])
-    .then(nonce => Quantity.from(nonce));
+  const nonce = await fork.request<string>("eth_getTransactionCount", [
+    address,
+    blockNumber
+  ]);
+  return Quantity.from(nonce);
 }
 
 export class Fork {

@@ -85,15 +85,8 @@ export class HttpHandler extends BaseHandler implements Handler {
     });
   }
 
-  public async request(method: string, params: unknown[]) {
+  public async request<T>(method: string, params: unknown[]) {
     const key = JSON.stringify({ method, params });
-
-    if (this.requestCache.has(key)) return this.requestCache.get(key);
-
-    const cachedItem = this.valueCache.get(key);
-    // `as any` because JSON.parse can handle Buffers, but TS doesn't think it can.
-    if (cachedItem) return JSON.parse(cachedItem).result;
-
     const { protocol, hostname: host, port, pathname, search } = this.url;
     const requestOptions = {
       protocol,
@@ -175,20 +168,7 @@ export class HttpHandler extends BaseHandler implements Handler {
       return deferred.promise.finally(() => this.requestCache.delete(key));
     };
 
-    const promise = this.limiter.handle(send).then(({ response, raw }) => {
-      if ("result" in response) {
-        // only set the cache for non-error responses
-        this.valueCache.set(key, raw);
-
-        return response.result;
-      } else if ("error" in response) {
-        throw new CodedError(response.error.message, response.error.code);
-      } else {
-        throw new Error("Invalid response from fork provider.");
-      }
-    });
-    this.requestCache.set(key, promise);
-    return promise;
+    return await this.queueRequest<T>(key, send);
   }
 
   public close() {

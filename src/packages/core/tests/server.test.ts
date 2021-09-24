@@ -175,7 +175,7 @@ describe("server", () => {
       await setup();
       try {
         await s.close();
-        assert.rejects(s.close(), {
+        await assert.rejects(s.close(), {
           message: "Server is already closing or closed."
         });
       } finally {
@@ -187,7 +187,7 @@ describe("server", () => {
       await setup();
       try {
         s.close();
-        assert.rejects(s.close(), {
+        await assert.rejects(s.close(), {
           message: "Server is already closing or closed."
         });
       } finally {

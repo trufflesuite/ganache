@@ -1,11 +1,13 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { AbortError } from "@ganache/ethereum-utils";
+import { AbortError, CodedError } from "@ganache/ethereum-utils";
 import { AbortSignal } from "abort-controller";
 import WebSocket from "ws";
 import { Handler } from "../types";
 import { BaseHandler } from "./base-handler";
 import Deferred, { DeferredPromise } from "../deferred";
 import { JsonRpcResponse, JsonRpcError } from "@ganache/utils";
+
+const { JSONRPC_PREFIX } = BaseHandler;
 
 export class WsHandler extends BaseHandler implements Handler {
   private open: Promise<unknown>;
@@ -14,7 +16,7 @@ export class WsHandler extends BaseHandler implements Handler {
     string | number,
     DeferredPromise<{
       response: JsonRpcResponse | JsonRpcError;
-      raw: string | Buffer | ArrayBuffer;
+      raw: string | Buffer;
     }>
   >();
 
@@ -27,6 +29,16 @@ export class WsHandler extends BaseHandler implements Handler {
       origin,
       headers: this.headers
     });
+    // `nodebuffer` is already the default, but I just wanted to be explicit
+    // here because when `nodebuffer` is the binaryType the `message` event's
+    // data type is guaranteed to be a `Buffer`. We don't need to check for
+    // different types of data.
+    // I mention all this because if `arraybuffer` or `fragment` is used for the
+    // binaryType the `"message"` event's `data` may end up being
+    // `ArrayBuffer | Buffer`, or `Buffer[] | Buffer`, respectively.
+    // If you need to change this, you probably need to change our `onMessage`
+    // handler too.
+    this.connection.binaryType = "nodebuffer";
 
     this.open = this.connect(this.connection);
     this.connection.onclose = () => {
@@ -41,15 +53,11 @@ export class WsHandler extends BaseHandler implements Handler {
     this.connection.onmessage = this.onMessage.bind(this);
   }
 
-  public async request(method: string, params: unknown[]) {
+  public async request<T>(method: string, params: unknown[]) {
     await this.open;
     if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
     const key = JSON.stringify({ method, params });
-    if (this.requestCache.has(key)) return this.requestCache.get(key);
-
-    const cachedItem = this.valueCache.get(key);
-    if (cachedItem) return JSON.parse(cachedItem).result;
 
     const send = () => {
       if (this.abortSignal.aborted) return Promise.reject(new AbortError());
@@ -57,45 +65,32 @@ export class WsHandler extends BaseHandler implements Handler {
       const messageId = this.id++;
       const deferred = Deferred<{
         response: JsonRpcResponse | JsonRpcError;
-        raw: string | Buffer | ArrayBuffer;
+        raw: string | Buffer;
       }>();
 
       // TODO: timeout an in-flight request after some amount of time
       this.inFlightRequests.set(messageId, deferred);
 
-      this.connection.send(
-        BaseHandler.JSONRPC_PREFIX + messageId + `,${key.slice(1)}`
-      );
+      this.connection.send(`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`);
       return deferred.promise.finally(() => this.requestCache.delete(key));
     };
-    const promise = this.limiter.handle(send).then(({ response, raw }) => {
-      if (this.abortSignal.aborted) return Promise.reject(new AbortError());
-
-      if ("result" in response) {
-        // only set the cache for non-error responses
-        this.valueCache.set(key, raw as Buffer);
-
-        return response.result;
-      } else if ("error" in response) {
-        throw response.error;
-      }
-    });
-    this.requestCache.set(key, promise);
-    return promise;
+    return await this.queueRequest<T>(key, send);
   }
 
   public onMessage(event: WebSocket.MessageEvent) {
     if (event.type !== "message") return;
 
+    // data is always a `Buffer` because the websocket's binaryType is set to
+    // `nodebuffer`
+    const raw = event.data as Buffer;
+
     // TODO: handle invalid JSON (throws on parse)?
-    const result = JSON.parse(event.data as any) as
-      | JsonRpcResponse
-      | JsonRpcError;
-    const id = result.id;
+    const response = JSON.parse(raw) as JsonRpcResponse | JsonRpcError;
+    const id = response.id;
     const prom = this.inFlightRequests.get(id);
     if (prom) {
       this.inFlightRequests.delete(id);
-      prom.resolve({ response: result, raw: event.data as any });
+      prom.resolve({ response, raw: raw });
     }
   }
 
