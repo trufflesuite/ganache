@@ -92,17 +92,19 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   #blockchain: Blockchain;
   constructor(
     options: EthereumInternalOptions["miner"],
-    blockchain: Blockchain
+    blockchain: Blockchain,
+    origins: Map<string, Heap<TypedTransaction>> = new Map()
   ) {
     super();
     this.#blockchain = blockchain;
     this.#options = options;
+    this.#origins = origins;
   }
   public readonly executables: Executables = {
     inProgress: new Set(),
     pending: new Map()
   };
-  readonly #origins: Map<string, Heap<TypedTransaction>> = new Map();
+  readonly #origins: Map<string, Heap<TypedTransaction>>;
   readonly #accountPromises = new Map<string, Promise<Quantity>>();
 
   /**
