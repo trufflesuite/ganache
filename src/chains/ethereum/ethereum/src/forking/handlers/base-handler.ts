@@ -5,6 +5,7 @@ import { OutgoingHttpHeaders } from "http";
 import RateLimiter from "../rate-limiter/rate-limiter";
 import LRU from "lru-cache";
 import { AbortError, CodedError } from "@ganache/ethereum-utils";
+import { PersistentCache } from "../persistent-cache";
 
 const INVALID_RESPONSE = "Invalid response from fork provider: ";
 
@@ -23,6 +24,7 @@ export class BaseHandler {
   protected limiter: RateLimiter;
   protected headers: Headers;
   protected abortSignal: AbortSignal;
+  private persistentCache: PersistentCache;
 
   constructor(options: EthereumInternalOptions, abortSignal: AbortSignal) {
     const forkingOptions = options.fork;
@@ -63,6 +65,10 @@ export class BaseHandler {
       BaseHandler.setUserHeaders(forkingOptions, headers, !isInfura);
       this.headers = headers;
     }
+  }
+
+  public setCache(cache: PersistentCache) {
+    this.persistentCache = cache;
   }
 
   /**
@@ -135,12 +141,18 @@ export class BaseHandler {
     }
   }
 
-  getFromCache<T>(key: string) {
+  getFromMemCache<T>(key: string) {
     const cachedRequest = this.requestCache.get(key);
     if (cachedRequest !== undefined) return cachedRequest as Promise<T>;
 
     const cachedValue = this.valueCache.get(key);
     if (cachedValue !== undefined) return JSON.parse(cachedValue).result as T;
+  }
+
+  async getFromSlowCache<T>(key: string) {
+    if (!this.persistentCache) return;
+    const dbValue = await this.persistentCache.get(key).catch(_ => null);
+    if (dbValue != undefined) return JSON.parse(dbValue).result as T;
   }
 
   async queueRequest<T>(
@@ -150,26 +162,49 @@ export class BaseHandler {
     ) => Promise<{
       response: { result: any } | { error: { message: string; code: number } };
       raw: string | Buffer;
-    }>
+    }>,
+    options = { noCache: false }
   ): Promise<T> {
-    const cached = this.getFromCache<T>(key);
-    if (cached !== undefined) return cached;
+    if (!options.noCache) {
+      let cached = this.getFromMemCache<T>(key);
+      if (cached !== undefined) return cached;
 
-    const promise = this.limiter.handle(send).then(({ response, raw }) => {
-      if (this.abortSignal.aborted) return Promise.reject(new AbortError());
+      cached = await this.getFromSlowCache<T>(key);
+      if (cached !== undefined) return cached;
+    }
 
-      if (hasOwn(response, "result")) {
-        // cache non-error responses only
-        this.valueCache.set(key, raw);
+    const promise = this.limiter
+      .handle(send)
+      .then(async ({ response, raw }) => {
+        if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-        return response.result as T;
-      } else if (hasOwn(response, "error") && response.error != null) {
-        const { error } = response as JsonRpcError;
-        throw new CodedError(error.message, error.code);
-      }
-      throw new Error(`${INVALID_RESPONSE}\`${JSON.stringify(response)}\``);
-    });
+        if (hasOwn(response, "result")) {
+          if (!options.noCache) {
+            // cache non-error responses only
+            this.valueCache.set(key, raw);
+
+            // swallow errors for the persistentCache, since it's not vital that
+            // it always works
+            if (this.persistentCache) {
+              // TODO: set this up to fire and forget, but be gracefully handled
+              // on .close()
+              await this.persistentCache
+                .put(key, typeof raw === "string" ? Buffer.from(raw) : raw)
+                .catch(_ => {});
+            }
+          }
+
+          return response.result as T;
+        } else if (hasOwn(response, "error") && response.error != null) {
+          const { error } = response as JsonRpcError;
+          throw new CodedError(error.message, error.code);
+        }
+        throw new Error(`${INVALID_RESPONSE}\`${JSON.stringify(response)}\``);
+      });
     this.requestCache.set(key, promise);
     return await promise;
+  }
+  async close() {
+    await this.persistentCache.close();
   }
 }

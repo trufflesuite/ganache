@@ -160,6 +160,16 @@ export type ForkConfig = {
       type: number;
       hasDefault: true;
     };
+
+    /**
+     * Cache forking requests in a persistent db.
+     *
+     * @default true
+     */
+    cache: {
+      type: boolean;
+      hasDefault: true;
+    };
   };
 };
 
@@ -365,5 +375,11 @@ Defaults to: \`["User-Agent: Ganache/VERSION (https://www.trufflesuite.com/ganac
       "Restrict the number of requests per second sent to the fork provider. `0` means no limit is applied.",
     cliType: "number"
     //implies: ["url"]
+  },
+  cache: {
+    normalize,
+    default: () => true,
+    cliDescription: "Cache forking requests in a persistent db.",
+    cliType: "boolean"
   }
 };

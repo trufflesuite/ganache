@@ -11,6 +11,7 @@ import { Address } from "@ganache/ethereum-address";
 import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
+import { PersistentCache } from "./persistent-cache";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -21,16 +22,14 @@ async function fetchNetworkId(fork: Fork) {
   return parseInt(networkIdStr, 10);
 }
 function fetchBlockNumber(fork: Fork) {
-  return fork.request<string>("eth_blockNumber", []);
+  // {noCache: true} required so we never cache the blockNumber, as forking
+  // shouldn't ever cache a method that can change!
+  return fork.request<string>("eth_blockNumber", [], { noCache: true });
 }
 function fetchBlock(fork: Fork, blockNumber: Quantity | Tag.LATEST) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
 }
-async function fetchNonce(
-  fork: Fork,
-  address: Address,
-  blockNumber: Quantity | Tag.LATEST
-) {
+async function fetchNonce(fork: Fork, address: Address, blockNumber: Quantity) {
   const nonce = await fork.request<string>("eth_getTransactionCount", [
     address,
     blockNumber
@@ -152,18 +151,35 @@ export class Fork {
   };
 
   public async initialize() {
-    const [block] = await Promise.all([
+    const [block, cache] = await Promise.all([
       this.#setBlockDataFromChainAndOptions(),
+      this.#options.cache ? PersistentCache.create() : null,
       this.#setCommonFromChain()
     ]);
     this.block = new Block(
       BlockManager.rawFromJSON(block, this.common),
       this.common
     );
+    if (cache) await this.initCache(cache);
+  }
+  private async initCache(cache: PersistentCache) {
+    const chainId = this.common.chainId();
+    const networkId = this.common.networkId();
+    await cache.init(
+      chainId,
+      networkId,
+      this.block.hash().toString(),
+      this.request.bind(this)
+    );
+    this.#handler.setCache(cache);
   }
 
-  public request<T = unknown>(method: string, params: unknown[]): Promise<T> {
-    return this.#handler.request<T>(method, params);
+  public request<T = unknown>(
+    method: string,
+    params: unknown[],
+    options = { noCache: false }
+  ): Promise<T> {
+    return this.#handler.request<T>(method, params, options);
   }
 
   public abort() {
