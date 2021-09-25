@@ -120,7 +120,7 @@ export default class BlockManager extends Manager<Block> {
     let blockNumber: string;
     if (typeof tagOrBlockNumber === "string") {
       blockNumber = tagOrBlockNumber;
-    } else if (tagOrBlockNumber.toBigInt() > fallback.blockNumber.toBigInt()) {
+    } else if (!fallback.isValidForkBlockNumber(tagOrBlockNumber)) {
       // don't get the block if the requested block is _after_ our fallback's
       // blocknumber because it doesn't exist in our local chain.
       return null;

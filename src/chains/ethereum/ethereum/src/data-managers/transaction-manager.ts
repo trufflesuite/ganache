@@ -48,9 +48,14 @@ export default class TransactionManager extends Manager<NoOp> {
       [Data.from(transactionHash).toString()]
     );
     if (tx == null) return null;
+
     const blockHash = Data.from((tx as any).blockHash, 32);
     const blockNumber = Quantity.from((tx as any).blockNumber);
     const index = Quantity.from((tx as any).transactionIndex);
+
+    // don't get the transaction if the requested transaction is _after_ our
+    // fallback's blocknumber because it doesn't exist in our local chain.
+    if (!fallback.isValidForkBlockNumber(blockNumber)) return null;
 
     const extra: GanacheRawExtraTx = [
       Data.from(tx.from, 20).toBuffer(),
