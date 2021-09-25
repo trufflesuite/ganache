@@ -61,17 +61,22 @@ export class ProviderHandler extends BaseHandler implements Handler {
       throw new Error("Forking `provider` must be EIP-1193 compatible");
     }
   }
-  public async request<T>(method: string, params: unknown[]) {
+  public async request<T>(
+    method: string,
+    params: unknown[],
+    options = { noCache: false }
+  ) {
     // format params via JSON stringification because the params might
     // be Quantity or Data, which aren't valid as `params` themselves,
     // but when JSON stringified they are
     const strParams = JSON.stringify(params);
 
-    return await this.queueRequest<T>(`${method}:${strParams}`, () =>
-      this._request(method, JSON.parse(strParams) as unknown[])
+    return await this.queueRequest<T>(
+      method,
+      params,
+      `${method}:${strParams}`,
+      () => this._request(method, JSON.parse(strParams) as unknown[]),
+      options
     );
-  }
-  public close() {
-    return Promise.resolve();
   }
 }
