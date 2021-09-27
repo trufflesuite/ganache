@@ -130,9 +130,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     let txNonce: bigint;
     if (!transaction.nonce.isNull()) {
       txNonce = transaction.nonce.toBigInt();
-      if (txNonce < 0n) {
-        throw new CodedError(NONCE_TOO_LOW, JsonRpcErrorCode.INVALID_INPUT);
-      }
     }
 
     const origin = from.toString();
