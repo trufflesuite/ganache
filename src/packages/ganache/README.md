@@ -204,7 +204,7 @@ NOTE: the `version` in the above path needs to be replaced with a version number
 
 From there, Ganache is available in your browser for use:
 
-```Javascript
+```javascript
 const options = {};
 const provider = Ganache.provider(options);
 ```
