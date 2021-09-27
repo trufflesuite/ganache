@@ -1,10 +1,11 @@
-import { mkdir } from "fs/promises";
+import { promises } from "fs";
 import envPaths from "env-paths";
 import levelup from "levelup";
 import type { LevelUp } from "levelup";
 import leveldown from "leveldown";
 import sub from "subleveldown";
 import encode from "encoding-down";
+const { mkdir } = promises;
 
 let counter = 0;
 let singletonDb: LevelUp;
