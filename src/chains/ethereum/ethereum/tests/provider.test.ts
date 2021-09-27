@@ -20,7 +20,7 @@ describe("provider", () => {
     });
 
     it("errors when conflicting options are passed to the provider", async () => {
-      assert.rejects(async () => {
+      await assert.rejects(async () => {
         await getProvider({
           wallet: {
             deterministic: true,
@@ -248,6 +248,39 @@ describe("provider", () => {
           .map(async prom => {
             assert.strictEqual(await prom, void 0);
           })
+      );
+    });
+
+    it("asserts invalid arg lengths", async () => {
+      await assert.rejects(
+        () =>
+          provider.request({ method: "eth_accounts", params: ["invalid arg"] }),
+        {
+          message:
+            "Incorrect number of arguments. 'eth_accounts' requires exactly 0 arguments."
+        }
+      );
+      await assert.rejects(
+        () =>
+          provider.request({
+            method: "eth_getBlockByNumber",
+            params: [] as any
+          }),
+        {
+          message:
+            "Incorrect number of arguments. 'eth_getBlockByNumber' requires between 1 and 2 arguments."
+        }
+      );
+      await assert.rejects(
+        () =>
+          provider.request({
+            method: "eth_getBlockTransactionCountByNumber",
+            params: [] as any
+          }),
+        {
+          message:
+            "Incorrect number of arguments. 'eth_getBlockTransactionCountByNumber' requires exactly 1 argument."
+        }
       );
     });
   });

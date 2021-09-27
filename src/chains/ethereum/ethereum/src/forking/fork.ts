@@ -10,16 +10,15 @@ import { Block } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
 import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
+import { ProviderHandler } from "./handlers/provider-handler";
 
-function fetchChainId(fork: Fork) {
-  return fork
-    .request<string>("eth_chainId", [])
-    .then(chainIdHex => parseInt(chainIdHex, 16));
+async function fetchChainId(fork: Fork) {
+  const chainIdHex = await fork.request<string>("eth_chainId", []);
+  return parseInt(chainIdHex, 16);
 }
-function fetchNetworkId(fork: Fork) {
-  return fork
-    .request<string>("net_version", [])
-    .then(networkIdStr => parseInt(networkIdStr, 10));
+async function fetchNetworkId(fork: Fork) {
+  const networkIdStr = await fork.request<string>("net_version", []);
+  return parseInt(networkIdStr, 10);
 }
 function fetchBlockNumber(fork: Fork) {
   return fork.request<string>("eth_blockNumber", []);
@@ -27,14 +26,16 @@ function fetchBlockNumber(fork: Fork) {
 function fetchBlock(fork: Fork, blockNumber: Quantity | Tag.LATEST) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
 }
-function fetchNonce(
+async function fetchNonce(
   fork: Fork,
   address: Address,
   blockNumber: Quantity | Tag.LATEST
 ) {
-  return fork
-    .request<string>("eth_getTransactionCount", [address, blockNumber])
-    .then(nonce => Quantity.from(nonce));
+  const nonce = await fork.request<string>("eth_getTransactionCount", [
+    address,
+    blockNumber
+  ]);
+  return Quantity.from(nonce);
 }
 
 export class Fork {
@@ -75,44 +76,10 @@ export class Fork {
         }
       }
     } else if (forkingOptions.provider) {
-      let id = 0;
-      this.#handler = {
-        request: <T>(method: string, params: any[]) => {
-          // format params via JSON stringification because the params might
-          // be Quantity or Data, which aren't valid as `params` themselves,
-          // but when JSON stringified they are
-          const paramCopy = JSON.parse(JSON.stringify(params));
-          if (forkingOptions.provider.request) {
-            return forkingOptions.provider.request({
-              method,
-              params: paramCopy
-            }) as Promise<T>;
-          } else if ((forkingOptions.provider as any).send) {
-            // TODO: remove support for legacy providers
-            // legacy `.send`
-            console.warn(
-              "WARNING: Ganache forking only supports EIP-1193-compliant providers. Legacy support for send is currently enabled, but will be removed in a future version _without_ a breaking change. To remove this warning, switch to an EIP-1193 provider. This error is probably caused by an old version of Web3's HttpProvider (or ganache < v7)"
-            );
-            return new Promise<T>((resolve, reject) => {
-              (forkingOptions.provider as any).send(
-                {
-                  id: id++,
-                  jsonrpc: "2.0",
-                  method,
-                  params: paramCopy
-                },
-                (err: Error, response: { result: T }) => {
-                  if (err) return void reject(err);
-                  resolve(response.result);
-                }
-              );
-            });
-          } else {
-            throw new Error("Forking `provider` must be EIP-1193 compatible");
-          }
-        },
-        close: () => Promise.resolve()
-      };
+      this.#handler = new ProviderHandler(
+        options,
+        this.#abortController.signal
+      );
     }
   }
 

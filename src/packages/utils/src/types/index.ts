@@ -10,7 +10,7 @@ export type KnownKeys<T> = {
 
 declare global {
   interface JSON {
-    parse(text: Buffer, reviver?: (key: any, value: any) => any): any;
+    parse(text: string | Buffer, reviver?: (key: any, value: any) => any): any;
   }
 }
 
