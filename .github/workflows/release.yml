@@ -17,9 +17,9 @@ jobs:
 
       - name: Set git identity
         run: |
-          git config --global user.name 'Ganache Bot'
-          git config --global user.email 'david+ganache-test-bot@trufflesuite.com'
-          git remote set-url origin https://ganache-bot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
+          git config --global user.name 'Robot'
+          git config --global user.email 'robot@trufflesuite.com'
+          git remote set-url origin https://robot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
