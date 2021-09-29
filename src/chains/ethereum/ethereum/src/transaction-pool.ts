@@ -172,12 +172,14 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
 
     const priceBump = this.#priceBump;
     const newGasPrice = transaction.effectiveGasPrice.toBigInt();
-
-    if (executableOriginTransactions) {
+    let length: number;
+    if (
+      executableOriginTransactions &&
+      (length = executableOriginTransactions.length)
+    ) {
       // check if a transaction with the same nonce is in the origin's
       // executables queue already. Replace the matching transaction or throw this
       // new transaction away as necessary.
-      const length = executableOriginTransactions.length;
       const pendingArray = executableOriginTransactions.array;
       // Notice: we're iterating over the raw heap array, which isn't
       // necessarily sorted
@@ -251,12 +253,13 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     if (
       queuedOriginTransactions &&
       transactionPlacement !== TriageOption.Executable &&
-      transactionPlacement !== TriageOption.ReplacesPendingExecutable
+      transactionPlacement !== TriageOption.ReplacesPendingExecutable &&
+      (length = queuedOriginTransactions.length)
     ) {
       // check if a transaction with the same nonce is in the origin's
       // future queue already. Replace the matching transaction or throw this
       // new transaction away as necessary.
-      const length = queuedOriginTransactions.length;
+
       const queuedArray = queuedOriginTransactions.array;
       // Notice: we're iterating over the raw heap array, which isn't
       // necessarily sorted
