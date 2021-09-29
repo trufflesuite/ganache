@@ -91,7 +91,7 @@ describe("transaction pool", async () => {
     const options = EthereumOptionsConfig.normalize(optionsJson);
     const txPool = new TransactionPool(options.miner, blockchain, origins);
     const executableTx = TransactionFactory.fromRpc(executableRpc, common);
-    assert.rejects(
+    await assert.rejects(
       txPool.prepareTransaction(executableTx, secretKey),
       {
         code: -32000,
@@ -110,7 +110,7 @@ describe("transaction pool", async () => {
       gasLimit: "0xff"
     };
     const lowGasTx = TransactionFactory.fromRpc(lowGasRpc, common);
-    assert.rejects(
+    await assert.rejects(
       txPool.prepareTransaction(lowGasTx, secretKey),
       {
         code: -32000,
@@ -133,10 +133,10 @@ describe("transaction pool", async () => {
     } as any;
     const txPool = new TransactionPool(options.miner, fakeNonceChain, origins);
     const executableTx = TransactionFactory.fromRpc(executableRpc, common);
-    assert.rejects(
+    await assert.rejects(
       txPool.prepareTransaction(executableTx, secretKey),
       {
-        message: `the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: ${executableTx.nonce}`
+        message: `the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: ${executableTx.nonce.toBigInt()}`
       },
       "test"
     );
@@ -158,7 +158,7 @@ describe("transaction pool", async () => {
       executableTx.serialized.toString()
     );
     // the second time around, the gas price won't be high enough to replace, so it'll throw
-    assert.rejects(
+    await assert.rejects(
       txPool.prepareTransaction(executableTx, secretKey),
       {
         code: -32003,
@@ -184,7 +184,7 @@ describe("transaction pool", async () => {
     );
     // now, if we resend the same transaction, since the gas price isn't higher,
     // it should be rejected
-    assert.rejects(
+    await assert.rejects(
       txPool.prepareTransaction(futureNonceTx, secretKey),
       {
         code: -32003,
@@ -416,15 +416,16 @@ describe("transaction pool", async () => {
     const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
     await txPool.prepareTransaction(transaction);
-    txPool.on("drain", () => {
-      const { pending } = txPool.executables;
-      // our executable transaction should be found in the pending queue after the drain event
-      const found = findIn(transaction.hash.toBuffer(), pending);
-      assert.strictEqual(
-        found.serialized.toString(),
-        transaction.serialized.toString()
-      );
-    });
+    const drainPromise = txPool.once("drain");
     txPool.drain();
+    await drainPromise;
+
+    const { pending } = txPool.executables;
+    // our executable transaction should be found in the pending queue after the drain event
+    const found = findIn(transaction.hash.toBuffer(), pending);
+    assert.strictEqual(
+      found.serialized.toString(),
+      transaction.serialized.toString()
+    );
   });
 });
