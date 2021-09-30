@@ -5,7 +5,7 @@ import { OutgoingHttpHeaders } from "http";
 import RateLimiter from "../rate-limiter/rate-limiter";
 import LRU from "lru-cache";
 import { AbortError, CodedError } from "@ganache/ethereum-utils";
-import { PersistentCache } from "../persistent-cache";
+import { PersistentCache } from "../persistent-cache/persistent-cache";
 
 const INVALID_RESPONSE = "Invalid response from fork provider: ";
 
@@ -149,13 +149,22 @@ export class BaseHandler {
     if (cachedValue !== undefined) return JSON.parse(cachedValue).result as T;
   }
 
-  async getFromSlowCache<T>(key: string) {
+  async getFromSlowCache<T>(method: string, params: any[], key: string) {
     if (!this.persistentCache) return;
-    const dbValue = await this.persistentCache.get(key).catch(_ => null);
+    const dbValue = await this.persistentCache
+      .get(method, params, key)
+      .catch(e => {
+        if (e.notFound) return null;
+        // I/O or other error, throw as things are getting weird and the cache may
+        // have lost integrity
+        throw e;
+      });
     if (dbValue != undefined) return JSON.parse(dbValue).result as T;
   }
 
   async queueRequest<T>(
+    method: string,
+    params: any[],
     key: string,
     send: (
       ...args: unknown[]
@@ -169,7 +178,7 @@ export class BaseHandler {
       let cached = this.getFromMemCache<T>(key);
       if (cached !== undefined) return cached;
 
-      cached = await this.getFromSlowCache<T>(key);
+      cached = await this.getFromSlowCache<T>(method, params, key);
       if (cached !== undefined) return cached;
     }
 
@@ -186,11 +195,22 @@ export class BaseHandler {
             // swallow errors for the persistentCache, since it's not vital that
             // it always works
             if (this.persistentCache) {
-              // TODO: set this up to fire and forget, but be gracefully handled
-              // on .close()
-              await this.persistentCache
-                .put(key, typeof raw === "string" ? Buffer.from(raw) : raw)
+              const prom = this.persistentCache
+                .put(
+                  method,
+                  params,
+                  key,
+                  typeof raw === "string" ? Buffer.from(raw) : raw
+                )
                 .catch(_ => {});
+
+              // track these unawaited `puts`
+              this.fireForget.add(prom);
+
+              // clean up once complete
+              prom.finally(() => {
+                this.fireForget.delete(prom);
+              });
             }
           }
 
@@ -204,7 +224,9 @@ export class BaseHandler {
     this.requestCache.set(key, promise);
     return await promise;
   }
+  private fireForget = new Set();
   async close() {
-    await this.persistentCache.close();
+    await Promise.all(this.fireForget.keys());
+    this.persistentCache && (await this.persistentCache.close());
   }
 }

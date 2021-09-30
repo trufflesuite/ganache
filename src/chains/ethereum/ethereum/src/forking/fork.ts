@@ -11,7 +11,7 @@ import { Address } from "@ganache/ethereum-address";
 import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
-import { PersistentCache } from "./persistent-cache";
+import { PersistentCache } from "./persistent-cache/persistent-cache";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -163,12 +163,9 @@ export class Fork {
     if (cache) await this.initCache(cache);
   }
   private async initCache(cache: PersistentCache) {
-    const chainId = this.common.chainId();
-    const networkId = this.common.networkId();
     await cache.init(
-      chainId,
-      networkId,
-      this.block.hash().toString(),
+      this.block.header.number,
+      this.block.hash(),
       this.request.bind(this)
     );
     this.#handler.setCache(cache);
@@ -190,8 +187,12 @@ export class Fork {
     return this.#handler.close();
   }
 
+  public isValidForkBlockNumber(blockNumber: Quantity) {
+    return blockNumber.toBigInt() <= this.blockNumber.toBigInt();
+  }
+
   public selectValidForkBlockNumber(blockNumber: Quantity) {
-    return blockNumber.toBigInt() < this.blockNumber.toBigInt()
+    return this.isValidForkBlockNumber(blockNumber)
       ? blockNumber
       : this.blockNumber;
   }

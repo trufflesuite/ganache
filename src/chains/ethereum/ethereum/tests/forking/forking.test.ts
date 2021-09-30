@@ -149,7 +149,7 @@ describe("forking", () => {
         () =>
           startLocalChain(PORT, {
             url: null,
-            provider: { request: "not a function" },
+            provider: { request: "not a function" } as any,
             cache: false
           }),
         { message: "Forking `provider` must be EIP-1193 compatible" }
@@ -158,7 +158,7 @@ describe("forking", () => {
         () =>
           startLocalChain(PORT, {
             url: null,
-            provider: { send: "also not a function" },
+            provider: { send: "also not a function" } as any,
             cache: false
           }),
         { message: "Forking `provider` must be EIP-1193 compatible" }
@@ -172,7 +172,7 @@ describe("forking", () => {
         async () => {
           const provider = await startLocalChain(PORT, {
             url: null,
-            provider: remoteProvider,
+            provider: remoteProvider as any,
             cache: false
           });
           localProvider = provider.localProvider;
@@ -249,7 +249,7 @@ describe("forking", () => {
 
         const provider = await startLocalChain(PORT, {
           url: null,
-          provider: remoteProvider,
+          provider: remoteProvider as any,
           cache: false
         });
         localProvider = provider.localProvider;
@@ -674,7 +674,7 @@ describe("forking", () => {
     });
 
     it("should fetch changed contract data from the remote chain via the local chain", async () => {
-      const { localProvider } = await startLocalChain(PORT);
+      const { localProvider } = await startLocalChain(PORT, { cache: false });
       const {
         blockNum,
         blockNumbersWithCode,

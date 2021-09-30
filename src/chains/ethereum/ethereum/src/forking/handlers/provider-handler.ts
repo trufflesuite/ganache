@@ -72,12 +72,11 @@ export class ProviderHandler extends BaseHandler implements Handler {
     const strParams = JSON.stringify(params);
 
     return await this.queueRequest<T>(
+      method,
+      params,
       `${method}:${strParams}`,
       () => this._request(method, JSON.parse(strParams) as unknown[]),
       options
     );
-  }
-  public close() {
-    return Promise.resolve();
   }
 }

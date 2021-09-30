@@ -172,12 +172,6 @@ export class HttpHandler extends BaseHandler implements Handler {
       return deferred.promise.finally(() => this.requestCache.delete(key));
     };
 
-    return await this.queueRequest<T>(key, send, options);
-  }
-
-  public close() {
-    super.close();
-    // no op
-    return Promise.resolve();
+    return await this.queueRequest<T>(method, params, key, send, options);
   }
 }

@@ -1,4 +1,4 @@
-import { PersistentCache } from "./persistent-cache";
+import { PersistentCache } from "./persistent-cache/persistent-cache";
 
 export interface Handler {
   request: <T>(
