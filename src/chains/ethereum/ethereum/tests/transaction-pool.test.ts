@@ -97,7 +97,7 @@ describe("transaction pool", async () => {
         code: -32000,
         message: "exceeds block gas limit"
       },
-      "test"
+      "transaction with gas limit higher than block gas limit should have been rejected"
     );
   });
   it("rejects transactions whose gasLimit is not enough to run the transaction", async () => {
@@ -116,7 +116,7 @@ describe("transaction pool", async () => {
         code: -32000,
         message: "intrinsic gas too low"
       },
-      "test"
+      "transaction with gas limit that is too low to run the transaction should have been rejected"
     );
   });
 
@@ -138,7 +138,7 @@ describe("transaction pool", async () => {
       {
         message: `the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: ${executableTx.nonce.toBigInt()}`
       },
-      "test"
+      "transaction with nonce lower than account nonce should have been rejected"
     );
   });
 
@@ -164,7 +164,7 @@ describe("transaction pool", async () => {
         code: -32003,
         message: "transaction underpriced"
       },
-      "test"
+      "replacement transaction with insufficient gas price to replace should have been rejected"
     );
   });
 
@@ -190,7 +190,7 @@ describe("transaction pool", async () => {
         code: -32003,
         message: "transaction underpriced"
       },
-      "test"
+      "replacement transaction with insufficient gas price to replace should have been rejected"
     );
   });
 
