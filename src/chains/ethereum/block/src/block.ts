@@ -73,7 +73,8 @@ export class Block {
     const hash = this.hash();
     const txFn = this.getTxFn(includeFullTransactions);
     const hashBuffer = hash.toBuffer();
-    const number = this.header.number.toBuffer();
+    const header = this.header;
+    const number = header.number.toBuffer();
     const common = this._common;
     const jsonTxs = this._rawTransactions.map((raw, index) => {
       const [from, hash] = this._rawTransactionMetaData[index];
@@ -85,12 +86,17 @@ export class Block {
         Quantity.from(index).toBuffer()
       ];
       const tx = TransactionFactory.fromDatabaseTx(raw, common, extra);
+      // we could either parse the raw data to check if the tx is type 2,
+      // get the maxFeePerGas and maxPriorityFeePerGas, use those to calculate
+      // the effectiveGasPrice and add it to `extra` above, or we can just
+      // leave it out of extra and update the effectiveGasPrice after like this
+      tx.updateEffectiveGasPrice(header.baseFeePerGas);
       return txFn(tx);
     });
 
     return {
       hash,
-      ...this.header,
+      ...header,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
       uncles: [] as string[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})

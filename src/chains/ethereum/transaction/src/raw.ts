@@ -76,7 +76,8 @@ export type GanacheRawExtraTx = [
   hash: Buffer,
   blockHash: Buffer,
   blockNumber: Buffer,
-  index: Buffer
+  index: Buffer,
+  effectiveGasPrice?: Buffer
 ];
 
 /**
