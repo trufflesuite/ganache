@@ -122,7 +122,14 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.accessListJSON = accessListData.AccessListJSON;
       this.validateAndSetSignature(data);
     }
-    this.updateEffectiveGasPrice();
+    // there's a chance this value was already set from the `extra` passed to
+    // the base transaction, and we don't want to overwrite it
+    if (
+      this.effectiveGasPrice === undefined ||
+      this.effectiveGasPrice.valueOf() === undefined
+    ) {
+      this.updateEffectiveGasPrice();
+    }
   }
 
   public toJSON(_common?: Common): EIP1559FeeMarketTransactionJSON {
@@ -139,9 +146,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       value: this.value,
       maxPriorityFeePerGas: this.maxPriorityFeePerGas,
       maxFeePerGas: this.maxFeePerGas,
-      gasPrice: this.effectiveGasPrice
-        ? this.effectiveGasPrice
-        : this.maxFeePerGas,
+      gasPrice: this.effectiveGasPrice,
       gas: this.gas,
       input: this.data,
       accessList: this.accessListJSON,

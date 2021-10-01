@@ -119,7 +119,8 @@ export abstract class RuntimeTransaction extends BaseTransaction {
         this.hash.toBuffer(),
         blockHash.toBuffer(),
         blockNumber.toBuffer(),
-        transactionIndex.toBuffer()
+        transactionIndex.toBuffer(),
+        this.effectiveGasPrice.toBuffer()
       ]
     ];
     return encode(txAndExtraData);

@@ -7,6 +7,7 @@ import PromiseQueue from "@ganache/promise-queue";
 import type Common from "@ethereumjs/common";
 import { Data, Quantity } from "@ganache/utils";
 import {
+  GanacheRawExtraTx,
   TransactionFactory,
   TypedRpcTransaction,
   TypedTransaction
@@ -47,19 +48,20 @@ export default class TransactionManager extends Manager<NoOp> {
       [Data.from(transactionHash).toString()]
     );
     if (tx == null) return null;
-    const extra = [
+    const blockHash = Data.from((tx as any).blockHash, 32);
+    const blockNumber = Quantity.from((tx as any).blockNumber);
+    const index = Quantity.from((tx as any).transactionIndex);
+
+    const extra: GanacheRawExtraTx = [
       Data.from(tx.from, 20).toBuffer(),
       Data.from((tx as any).hash, 32).toBuffer(),
-      Data.from((tx as any).blockHash, 32).toBuffer(),
-      Quantity.from((tx as any).blockNumber).toBuffer(),
-      Quantity.from((tx as any).transactionIndex).toBuffer()
-    ] as any;
+      blockHash.toBuffer(),
+      blockNumber.toBuffer(),
+      index.toBuffer(),
+      Quantity.from(tx.gasPrice).toBuffer()
+    ];
     const runTx = TransactionFactory.fromRpc(tx, fallback.common, extra);
-    return runTx.serializeForDb(
-      Data.from((tx as any).blockHash, 32),
-      Quantity.from((tx as any).blockNumber),
-      Quantity.from((tx as any).transactionIndex)
-    );
+    return runTx.serializeForDb(blockHash, blockNumber, index);
   };
 
   public async getRaw(transactionHash: Buffer): Promise<Buffer> {
