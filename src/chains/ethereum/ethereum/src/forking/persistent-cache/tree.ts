@@ -1,5 +1,5 @@
 import * as lexico from "../lexicographic-key-codec";
-import { Data, Quantity } from "@ganache/utils";
+import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import * as rlp from "@ganache/rlp";
 
 /**
@@ -8,24 +8,28 @@ import * as rlp from "@ganache/rlp";
  */
 export class Tree {
   public key: Buffer;
-  public data: Buffer;
-  public parent: Buffer;
-  public children: Buffer[];
+  public hash: Buffer;
+  public closestKnownAncestor: Buffer;
+  public closestKnownDescendants: Buffer[];
 
   constructor(
-    key: Buffer,
-    data: Buffer,
-    parent: Buffer,
-    children: Buffer[] = []
+    height: Quantity,
+    hash: Data,
+    closestKnownAncestor: Buffer = BUFFER_EMPTY,
+    closestKnownDescendants: Buffer[] = []
   ) {
-    this.key = key;
-    this.data = data;
-    this.parent = parent;
-    this.children = children;
+    this.key = Tree.encodeKey(height, hash);
+    this.hash = hash.toBuffer();
+    this.closestKnownAncestor = closestKnownAncestor;
+    this.closestKnownDescendants = closestKnownDescendants;
   }
 
   public serialize() {
-    return rlp.encode([this.data, this.parent, this.children]);
+    return rlp.encode([
+      this.hash,
+      this.closestKnownAncestor,
+      this.closestKnownDescendants
+    ]);
   }
 
   decodeKey() {
@@ -41,12 +45,17 @@ export class Tree {
   }
 
   static deserialize(key: Buffer, value: Buffer) {
-    const [data, parent, children] = (rlp.decode(value) as unknown) as [
+    const [hash, parent, children] = (rlp.decode(value) as unknown) as [
       Buffer,
       Buffer,
       Buffer[]
     ];
-    return new Tree(key, data, parent, children);
+    const tree = Object.create(Tree.prototype) as Tree;
+    tree.key = key;
+    tree.hash = hash;
+    tree.closestKnownAncestor = parent;
+    tree.closestKnownDescendants = children;
+    return tree;
   }
 
   static encodeKey(height: Quantity, hash: Data) {

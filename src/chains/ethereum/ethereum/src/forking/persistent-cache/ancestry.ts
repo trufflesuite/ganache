@@ -9,7 +9,9 @@ export class Ancestry {
   private lock: Map<string, Promise<void>> = new Map();
   constructor(db: LevelUp, parent: Tree) {
     this.db = db;
-    this.next = parent.parent.equals(BUFFER_EMPTY) ? null : parent.parent;
+    this.next = parent.closestKnownAncestor.equals(BUFFER_EMPTY)
+      ? null
+      : parent.closestKnownAncestor;
     this.knownAncestors = new Set([parent.key.toString("hex")]);
   }
 
@@ -27,8 +29,9 @@ export class Ancestry {
     );
     const value = await this.db.get(next);
     const node = Tree.deserialize(next, value);
-    console.log("height: " + node.decodeKey().height);
-    this.next = node.parent.equals(BUFFER_EMPTY) ? null : node.parent;
+    this.next = node.closestKnownAncestor.equals(BUFFER_EMPTY)
+      ? null
+      : node.closestKnownAncestor;
     this.knownAncestors.add(node.key.toString("hex"));
     this.lock.delete(k);
     resolver();

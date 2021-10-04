@@ -163,7 +163,7 @@ export class Fork {
     if (cache) await this.initCache(cache);
   }
   private async initCache(cache: PersistentCache) {
-    await cache.init(
+    await cache.initialize(
       this.block.header.number,
       this.block.hash(),
       this.request.bind(this)

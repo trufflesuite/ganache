@@ -7,22 +7,24 @@ import leveldown from "leveldown";
 import sub from "subleveldown";
 import encode from "encoding-down";
 import * as lexico from "../lexicographic-key-codec";
-import {
-  BUFFER_EMPTY,
-  BUFFER_ZERO,
-  Data,
-  DATA_EMPTY,
-  Quantity
-} from "@ganache/utils";
+import { BUFFER_ZERO, Data, Quantity } from "@ganache/utils";
 import { Ancestry } from "./ancestry";
-import { getBlockNumberFromParams, setDbVersion } from "./helpers";
+import {
+  resolveTargetAndClosestAncestor,
+  getBlockByNumber,
+  getBlockNumberFromParams,
+  Request,
+  setDbVersion,
+  findClosestDescendants
+} from "./helpers";
 
 const { mkdir } = promises;
 
+// TODO: connect over ipc to a single global (versioned) process.
 let counter = 0;
 let singletonDb: LevelUp;
 
-const levelupOptions: any = {
+const levelupOptions = {
   keyEncoding: "binary",
   valueEncoding: "binary"
 };
@@ -35,43 +37,48 @@ export class PersistentCache {
   protected ancestorDb: LevelUp;
   protected ancestry: Ancestry;
   protected hash: Data;
-  protected request: any;
+  protected request: Request;
   constructor() {}
 
+  /**
+   * Serializes the entire database world state into a JSON tree
+   */
   static async serializeDb() {
     const cache = await PersistentCache.create();
-    return await new Promise(resolve => {
+    type Tree = Record<string, { descendants: Record<string, Tree> }>;
+    return await new Promise<Tree>(resolve => {
       const rs = cache.ancestorDb.createReadStream({
         keys: true,
         values: true
       });
-      const tree = {};
+      const tree: Tree = {};
       const collection = {};
       rs.on("data", ({ key, value }) => {
         const node = Tree.deserialize(key, value);
         (node as any).height = node.decodeKey().height.toNumber();
         const keyHex = key.toString("hex");
-        const parentKeyHex = node.parent.toString("hex");
+        const parentKeyHex = node.closestKnownAncestor.toString("hex");
         collection[keyHex] = node;
-        if (node.parent.length === 0) {
-          tree[keyHex] = node;
+        if (node.closestKnownAncestor.length === 0) {
+          tree[keyHex] = node as any;
         } else {
-          const descendents = collection[parentKeyHex].descendents || {};
-          descendents[keyHex] = node;
-          collection[parentKeyHex].descendents = descendents;
+          const descendants = collection[parentKeyHex].descendants || {};
+          descendants[keyHex] = node;
+          collection[parentKeyHex].descendants = descendants;
         }
-        (node as any).hash = Data.from(node.data).toString();
+        (node as any).hash = Data.from(node.hash).toString();
         (node as any).parent =
-          node.parent.length > 0
+          node.closestKnownAncestor.length > 0
             ? Data.from(collection[parentKeyHex].data).toString()
             : null;
         delete node.key;
-        delete node.data;
-        delete node.children;
+        delete node.hash;
+        delete node.closestKnownDescendants;
+        delete node.closestKnownAncestor;
       }).on("end", async () => {
         // deep copy (removes functions)
         await cache.close();
-        resolve(JSON.parse(JSON.stringify(tree)));
+        resolve(JSON.parse(JSON.stringify(tree)) as Tree);
       });
     });
   }
@@ -105,159 +112,76 @@ export class PersistentCache {
     return cache;
   }
 
-  async init(
-    height: Quantity,
-    hash: Data,
-    request: <T = unknown>(method: string, params: any[]) => Promise<T>
-  ) {
+  async initialize(height: Quantity, hash: Data, request: Request) {
     this.hash = hash;
     this.request = request;
 
-    const targetKey = Tree.encodeKey(height, hash);
+    const {
+      targetBlock,
+      closestAncestor
+    } = await resolveTargetAndClosestAncestor(
+      this.ancestorDb,
+      this.request,
+      height,
+      hash
+    );
 
-    let forkBlock: Tree;
-    let parentBlock: Tree;
-    try {
-      const value = await this.ancestorDb.get(targetKey);
-      forkBlock = Tree.deserialize(targetKey, value);
+    this.ancestry = new Ancestry(this.ancestorDb, closestAncestor);
 
-      if (forkBlock.parent.equals(BUFFER_EMPTY)) {
-        this.ancestry = new Ancestry(this.ancestorDb, forkBlock);
-        return;
-      }
+    const atomicBatch = this.ancestorDb.batch();
 
-      parentBlock = Tree.deserialize(
-        forkBlock.parent,
-        await this.ancestorDb.get(forkBlock.parent)
-      );
-
-      this.ancestry = new Ancestry(this.ancestorDb, parentBlock);
-    } catch (e) {
-      if (!e.notFound) throw e;
-
-      // get the closest known ancestor, or our genesis block
-      parentBlock = await this.findClosestAncestor(height);
-
-      // fork block is the same as the "earliest" block
-      if (parentBlock.key.equals(targetKey)) {
-        this.ancestry = new Ancestry(this.ancestorDb, parentBlock);
-        return;
-      }
-      forkBlock = new Tree(targetKey, this.hash.toBuffer(), parentBlock.key);
-    }
-
-    // ensure atomic writes!
-    const batch = this.ancestorDb.batch();
-
-    // Search the chain for this block for each child of our ancestor with a
-    // block number greater than our own. For each child that we find, we need
-    // to:
-    //  * update its node to point to us as its `parent`
-    //  * update our `parent` to add us as a child
-    //  * update our `parent` to remove children that have moved to us
-    //  * save us to the database
-    const newParentChildren = [forkBlock.key];
-    const newNodeChildren = [];
+    const ancestorsDescendants = [targetBlock.key];
+    const newNodeDescendants = [];
 
     await Promise.all(
-      parentBlock.children.map(async childKey => {
-        const { height: childHeight } = Tree.decodeKey(childKey);
-        // if the block number is less than our own it can't be our child
-        if (childHeight.toBigInt() <= height.toBigInt()) {
-          newParentChildren.push(childKey);
+      closestAncestor.closestKnownDescendants.map(async descendantKey => {
+        const { height: descendantHeight } = Tree.decodeKey(descendantKey);
+        // if the block number is less than our own it can't be our descendant
+        if (descendantHeight.toBigInt() <= height.toBigInt()) {
+          ancestorsDescendants.push(descendantKey);
           return;
         }
 
-        const childValue = await this.ancestorDb.get(childKey);
-        const childNode = Tree.deserialize(childKey, childValue);
-        const childRawBlock = await this.fetchBlock(childHeight);
-        // if the block doesn't exist on our chain, it can't be our child
+        const descendantValue = await this.ancestorDb.get(descendantKey);
+        const descendantNode = Tree.deserialize(descendantKey, descendantValue);
+
+        const descendantRawBlock = await this.getBlock(descendantHeight);
+        // if the block doesn't exist on our chain, it can't be our child, keep
+        // it in the parent
         if (
-          childRawBlock == null ||
-          childRawBlock.hash !== Data.from(childNode.data, 32).toString()
+          descendantRawBlock == null ||
+          descendantRawBlock.hash !==
+            Data.from(descendantNode.hash, 32).toString()
         ) {
-          newParentChildren.push(childKey);
-          return;
+          ancestorsDescendants.push(descendantKey);
+        } else {
+          newNodeDescendants.push(descendantNode.key);
+          descendantNode.closestKnownAncestor = targetBlock.key;
+          // update the descendant node with it's newly assigned
+          // closestKnownAncestor
+          atomicBatch.put(descendantNode.key, descendantNode.serialize());
         }
-
-        // do the above for the child as well? maybe we are the parent of the child's children?
-        // concern: performance!
-
-        newNodeChildren.push(childNode.key);
-        childNode.parent = forkBlock.key;
-        batch.put(childNode.key, childNode.serialize());
       })
     );
 
-    parentBlock.children = newParentChildren;
-    forkBlock.children = newNodeChildren;
+    for await (const possibleDescendent of findClosestDescendants(
+      this.ancestorDb,
+      this.request,
+      height
+    )) {
+      possibleDescendent;
+    }
+    closestAncestor.closestKnownDescendants = ancestorsDescendants;
+    targetBlock.closestKnownDescendants = newNodeDescendants;
 
-    batch.put(parentBlock.key, parentBlock.serialize());
-    batch.put(forkBlock.key, forkBlock.serialize());
+    atomicBatch.put(closestAncestor.key, closestAncestor.serialize());
+    atomicBatch.put(targetBlock.key, targetBlock.serialize());
 
-    await batch.write();
-
-    this.ancestry = new Ancestry(this.ancestorDb, parentBlock);
+    await atomicBatch.write();
   }
 
-  private async findClosestAncestor(height: Quantity) {
-    const { number, hash } = await this.request("eth_getBlockByNumber", [
-      "earliest",
-      false
-    ]);
-
-    const startHash = Data.from(hash, 32);
-    const start = Tree.encodeKey(Quantity.from(number), startHash);
-    const end = Tree.encodeKey(height, DATA_EMPTY);
-    const rs = this.ancestorDb.createReadStream({
-      gte: start,
-      lt: end,
-      keys: true,
-      values: true,
-      reverse: true
-    });
-    let resolved = false;
-    return new Promise<Tree>((resolve, reject) => {
-      const handleData = async ({ key, value }) => {
-        const node = Tree.deserialize(key, value);
-        const { height: candidateHeight } = node.decodeKey();
-        rs.pause();
-        const block = await this.fetchBlock(candidateHeight);
-        // if the chain has a block at this height, and the hash of the
-        // block is the same as the one in the db we've found our closest
-        // ancestor!
-        if (
-          !resolved &&
-          block !== null &&
-          block.hash === Data.from(node.data).toString()
-        ) {
-          // we've found what we were looking for
-          // stop everything we were doing
-          rs.off("data", handleData);
-          rs.off("end", handleEnd);
-          rs.off("error", reject);
-          // and destroy the stream
-          // `any` here because `destroy` is a thing, I promise!
-          // https://nodejs.org/docs/latest-v10.x/api/stream.html#stream_readable_destroy_error
-          (rs as any).destroy();
-
-          // and return our data
-          resolved = true;
-          resolve(Tree.deserialize(key, value));
-        } else {
-          rs.resume();
-        }
-      };
-      const handleEnd = async () => {
-        const node = new Tree(start, startHash.toBuffer(), BUFFER_EMPTY, []);
-        resolve(node);
-      };
-      rs.on("data", handleData).on("error", reject).on("end", handleEnd);
-    });
-  }
-
-  fetchBlock(height: Quantity) {
-    return this.request("eth_getBlockByNumber", [height.toString(), false]);
+  async getBlock(height: Quantity) {
+    return await getBlockByNumber(this.request, height);
   }
 
   get(method: string, params: any[], key: string) {
