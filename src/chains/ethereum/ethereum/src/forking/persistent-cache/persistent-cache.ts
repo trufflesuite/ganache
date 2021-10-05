@@ -164,13 +164,23 @@ export class PersistentCache {
       })
     );
 
+    //#region balance tree on the descendant side
+    // TODO: put a filter within `findClosestDescendants` so it doesn't check
+    // descendant block hashes we already know about
     for await (const possibleDescendent of findClosestDescendants(
       this.ancestorDb,
       this.request,
       height
     )) {
-      possibleDescendent;
+      const key = possibleDescendent.decodeKey();
+      const height = key.height.toBigInt();
+      const hash = possibleDescendent.hash.toString("hex");
+      console.log(
+        `Block ${height} ${hash} is an (eventual) descendant of the target block.`
+      );
     }
+    //#endregion balance tree on the descendant side
+
     closestAncestor.closestKnownDescendants = ancestorsDescendants;
     targetBlock.closestKnownDescendants = newNodeDescendants;
 
@@ -245,7 +255,6 @@ export class PersistentCache {
   private status: "closed" | "open" = "open";
   async close() {
     if (this.status === "closed") return;
-
     this.status = "closed";
     if (this.cacheDb) {
       await this.cacheDb.close();
@@ -254,12 +263,13 @@ export class PersistentCache {
       await this.ancestorDb.close();
     }
     if (this.db) {
-      counter--;
-      if (counter === 0) {
+      if (counter === 1) {
         const oldDb = singletonDb;
         singletonDb = null;
+        // TODO: DETERMINE IF NOT CLOSING PREVENTS THE NODE EVENT LOOP FROM SHUTTING DOWN
         await oldDb.close();
       }
+      counter--;
     }
   }
 }
