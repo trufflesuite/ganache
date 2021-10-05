@@ -35,5 +35,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ganache@alpha
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
