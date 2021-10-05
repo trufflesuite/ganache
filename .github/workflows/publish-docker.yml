@@ -12,7 +12,7 @@ jobs:
     name: Push Docker image to Docker Hub
     steps:
       - name: Get release VERSION
-        run: VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')
+        run: VERSION="test-version@1"
 
       - name: Check out the repo
         uses: actions/checkout@v2
