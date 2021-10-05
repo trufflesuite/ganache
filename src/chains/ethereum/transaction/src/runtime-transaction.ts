@@ -10,7 +10,7 @@ import {
   BUFFER_ZERO,
   RPCQUANTITY_EMPTY
 } from "@ganache/utils";
-import { RpcTransaction, TypedRpcTransaction } from "./rpc-transaction";
+import { TypedRpcTransaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
 import {
   GanacheRawExtraTx,
