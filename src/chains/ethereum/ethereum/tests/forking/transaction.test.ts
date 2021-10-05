@@ -43,7 +43,6 @@ describe("forking", () => {
           .then(req => JSON.parse(req.text).result),
         provider.send("eth_getTransactionByHash", [txHash])
       ]);
-      console.log(tx, originalTx);
       assert.deepStrictEqual(tx, originalTx);
     });
   });
