@@ -1,4 +1,4 @@
-name: Publish Github Package Publish
+name: Publish Github Package
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
 jobs:
   push_to_registry:
     runs-on: ubuntu-latest
-    name: Push Docker image to Docker Hub
+    name: Push Docker image to Github Package
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -32,7 +32,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: micaiahreid/test-publish
+          images: |
+            micaiahreid/test-publish
+            ghcr.io/${{ github.repository}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
