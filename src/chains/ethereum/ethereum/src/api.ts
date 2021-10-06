@@ -427,9 +427,8 @@ export default class EthereumApi implements Api {
   /**
    * Revert the state of the blockchain to a previous snapshot. Takes a single
    * parameter, which is the snapshot id to revert to. This deletes the given
-   * snapshot, as well as any snapshots taken after (Ex: reverting to id 0x1
-   * will delete snapshots with ids 0x1, 0x2, etc... If no snapshot id is
-   * passed it will revert to the latest snapshot.
+   * snapshot, as well as any snapshots taken after (e.g.: reverting to id 0x1
+   * will delete snapshots with ids 0x1, 0x2, etc.)
    *
    * @param snapshotId The snapshot id to revert.
    * @returns `true` if a snapshot was reverted, otherwise `false`.
