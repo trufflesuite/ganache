@@ -1,11 +1,10 @@
-import Emittery, { Typed } from "emittery";
+import Emittery from "emittery";
 import Blockchain from "./blockchain";
 import { Heap } from "@ganache/utils";
 import { Data, Quantity, JsonRpcErrorCode, ACCOUNT_ZERO } from "@ganache/utils";
 import {
   GAS_LIMIT,
   INTRINSIC_GAS_TOO_LOW,
-  NONCE_TOO_LOW,
   CodedError,
   UNDERPRICED,
   REPLACED
