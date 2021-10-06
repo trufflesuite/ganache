@@ -122,14 +122,6 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.accessListJSON = accessListData.AccessListJSON;
       this.validateAndSetSignature(data);
     }
-    // there's a chance this value was already set from the `extra` passed to
-    // the base transaction, and we don't want to overwrite it
-    if (
-      this.effectiveGasPrice === undefined ||
-      this.effectiveGasPrice.valueOf() === undefined
-    ) {
-      this.updateEffectiveGasPrice();
-    }
   }
 
   public toJSON(_common?: Common): EIP1559FeeMarketTransactionJSON {
@@ -287,20 +279,12 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     return computeIntrinsicsFeeMarketTx(v, <EIP1559FeeMarketDatabaseTx>raw);
   }
 
-  public updateEffectiveGasPrice(baseFeePerGas?: Quantity) {
-    if (baseFeePerGas) {
-      const baseFeePerGasBigInt = baseFeePerGas.toBigInt();
-      const maxFeePerGas = this.maxFeePerGas.toBigInt();
-      const maxPriorityFeePerGas = this.maxPriorityFeePerGas.toBigInt();
-      const a = maxFeePerGas - baseFeePerGasBigInt;
-      const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
-      this.effectiveGasPrice = Quantity.from(baseFeePerGasBigInt + tip);
-    } else {
-      // TODO, there could be a better way to handle this, but:
-      // When the tx is first being constructed, we don't always have access to
-      // the block, so we don't have the baseFeePerGas. Instead, just default to
-      // the maxFeePerGas
-      this.effectiveGasPrice = this.maxFeePerGas;
-    }
+  public updateEffectiveGasPrice(baseFeePerGas: Quantity) {
+    const baseFeePerGasBigInt = baseFeePerGas.toBigInt();
+    const maxFeePerGas = this.maxFeePerGas.toBigInt();
+    const maxPriorityFeePerGas = this.maxPriorityFeePerGas.toBigInt();
+    const a = maxFeePerGas - baseFeePerGasBigInt;
+    const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
+    this.effectiveGasPrice = Quantity.from(baseFeePerGasBigInt + tip);
   }
 }
