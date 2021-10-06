@@ -2,7 +2,6 @@ import { Tree } from "./tree";
 import { promises } from "fs";
 import envPaths from "env-paths";
 import levelup from "levelup";
-import type { LevelUp } from "levelup";
 import leveldown from "leveldown";
 import sub from "subleveldown";
 import encode from "encoding-down";
@@ -17,12 +16,9 @@ import {
   setDbVersion,
   findClosestDescendants
 } from "./helpers";
+import { LevelWait } from "./level-wait";
 
 const { mkdir } = promises;
-
-// TODO: connect over ipc to a single global (versioned) process.
-let counter = 0;
-let singletonDb: LevelUp;
 
 const levelupOptions = {
   keyEncoding: "binary",
@@ -30,11 +26,27 @@ const levelupOptions = {
 };
 const leveldownOpts = { prefix: "" };
 
+/**
+ * A leveldb-backed cache that enables associating immutable data as it existed
+ * at a specific height on a blockchain.
+ *
+ * Note:
+ *
+ * The relationships between blocks are valid, but not stable. Race
+ * contention between multiple processes is possible; this may cause
+ * relationships between blocks to be lost if multiple writes to the same blocks
+ * occur nearly simultaneously.
+ *
+ * This will not cause a loss of data, but may result in increased cache misses.
+ *
+ * The design affords faster db reads (one read to get known closest ancestors
+ * and descendants) and fast db writes (one write per node in a relationship).
+ */
 export class PersistentCache {
   public readonly version = BUFFER_ZERO;
-  protected db: LevelUp;
-  protected cacheDb: LevelUp;
-  protected ancestorDb: LevelUp;
+  protected db: LevelWait;
+  protected cacheDb: LevelWait;
+  protected ancestorDb: LevelWait;
   protected ancestry: Ancestry;
   protected hash: Data;
   protected request: Request;
@@ -46,14 +58,16 @@ export class PersistentCache {
   static async serializeDb() {
     const cache = await PersistentCache.create();
     type Tree = Record<string, { descendants: Record<string, Tree> }>;
-    return await new Promise<Tree>(resolve => {
+    return await new Promise<Tree>(async resolve => {
       const rs = cache.ancestorDb.createReadStream({
         keys: true,
         values: true
       });
       const tree: Tree = {};
       const collection = {};
-      rs.on("data", ({ key, value }) => {
+      for await (const data of rs) {
+        const { key, value } = (data as any) as { key: Buffer; value: Buffer };
+
         const node = Tree.deserialize(key, value);
         (node as any).height = node.decodeKey().height.toNumber();
         const keyHex = key.toString("hex");
@@ -75,40 +89,33 @@ export class PersistentCache {
         delete node.hash;
         delete node.closestKnownDescendants;
         delete node.closestKnownAncestor;
-      }).on("end", async () => {
-        // deep copy (removes functions)
-        await cache.close();
-        resolve(JSON.parse(JSON.stringify(tree)) as Tree);
-      });
+      }
+      await cache.close();
+      resolve(JSON.parse(JSON.stringify(tree)) as Tree);
     });
   }
 
   static async create() {
     const cache = new PersistentCache();
-    if (singletonDb) {
-      cache.db = singletonDb;
-      await cache.db.open();
-      cache.cacheDb = sub(cache.db, "c", levelupOptions);
-      await cache.cacheDb.open();
-      cache.ancestorDb = sub(cache.db, "a", levelupOptions);
-      await cache.ancestorDb.open();
-    } else {
-      const { data: directory } = envPaths("Ganache/db", { suffix: "" });
-      await mkdir(directory, { recursive: true });
 
-      const store = encode(leveldown(directory, leveldownOpts), levelupOptions);
-      cache.db = levelup(store);
-      await cache.db.open();
+    const { data: directory } = envPaths("Ganache/db", { suffix: "" });
+    await mkdir(directory, { recursive: true });
 
-      await setDbVersion(cache.db, cache.version);
+    const store = encode(leveldown(directory, leveldownOpts), levelupOptions);
+    const db = levelup(store, _err => {
+      // ignore startup errors as LevelWait is designed to handle them
+    });
+    cache.db = new LevelWait(db);
+    cache.cacheDb = new LevelWait(
+      sub(cache.db.db, "c", levelupOptions),
+      cache.db
+    );
+    cache.ancestorDb = new LevelWait(
+      sub(cache.db.db, "a", levelupOptions),
+      cache.db
+    );
 
-      cache.cacheDb = sub(cache.db, "c", levelupOptions);
-      await cache.cacheDb.open();
-      cache.ancestorDb = sub(cache.db, "a", levelupOptions);
-      await cache.ancestorDb.open();
-      singletonDb = cache.db;
-    }
-    counter++;
+    await setDbVersion(cache.db, cache.version);
     return cache;
   }
 
@@ -131,7 +138,8 @@ export class PersistentCache {
     const atomicBatch = this.ancestorDb.batch();
 
     const ancestorsDescendants = [targetBlock.key];
-    const newNodeDescendants = [];
+    const newNodeClosestKnownDescendants: Buffer[] = [];
+    const allKnownDescendants: Buffer[] = [];
 
     await Promise.all(
       closestAncestor.closestKnownDescendants.map(async descendantKey => {
@@ -155,7 +163,10 @@ export class PersistentCache {
         ) {
           ancestorsDescendants.push(descendantKey);
         } else {
-          newNodeDescendants.push(descendantNode.key);
+          newNodeClosestKnownDescendants.push(descendantNode.key);
+          // keep track of *all* known descendants do we don't bother
+          // checking if they are a known closest descendant later on
+          allKnownDescendants.push(...descendantNode.closestKnownDescendants);
           descendantNode.closestKnownAncestor = targetBlock.key;
           // update the descendant node with it's newly assigned
           // closestKnownAncestor
@@ -164,27 +175,70 @@ export class PersistentCache {
       })
     );
 
-    for await (const possibleDescendent of findClosestDescendants(
-      this.ancestorDb,
-      this.request,
-      height
-    )) {
-      possibleDescendent;
-    }
     closestAncestor.closestKnownDescendants = ancestorsDescendants;
-    targetBlock.closestKnownDescendants = newNodeDescendants;
+    targetBlock.closestKnownDescendants = newNodeClosestKnownDescendants;
 
     atomicBatch.put(closestAncestor.key, closestAncestor.serialize());
     atomicBatch.put(targetBlock.key, targetBlock.serialize());
 
     await atomicBatch.write();
+
+    // we DO want to re-balance the descendants, but we don't want to wait for
+    // it because it can't effect our current fork block's cache results since
+    // these caches will be for blocks higher than our own fork block
+    this.rebalanceDescendantTree(
+      height,
+      targetBlock,
+      allKnownDescendants
+    ).catch(e => {}); // if it fails, it fails.
   }
 
   async getBlock(height: Quantity) {
     return await getBlockByNumber(this.request, height);
   }
 
-  get(method: string, params: any[], key: string) {
+  async rebalanceDescendantTree(
+    height: Quantity,
+    targetBlock: Tree,
+    allKnownDescendants: Buffer[]
+  ) {
+    const atomicBatch = this.ancestorDb.batch();
+    const closestKnownDescendants = targetBlock.closestKnownDescendants;
+    const startSize = closestKnownDescendants.length;
+
+    for await (const maybeDescendant of findClosestDescendants(
+      this.ancestorDb,
+      this.request,
+      height
+    )) {
+      const key = maybeDescendant.key;
+
+      // if this already is a descendent of ours we can skip it
+      if (closestKnownDescendants.some(d => d.equals(key))) continue;
+
+      // this possibleDescendent's descendants can't be our direct descendants
+      // because trees can't merge
+      allKnownDescendants.push(...maybeDescendant.closestKnownDescendants);
+
+      // if this already is a descendent of one of our descendants skip it
+      if (allKnownDescendants.some(d => d.equals(key))) continue;
+
+      maybeDescendant.closestKnownAncestor = targetBlock.key;
+      closestKnownDescendants.push(maybeDescendant.key);
+
+      atomicBatch.put(maybeDescendant.key, maybeDescendant.serialize());
+    }
+
+    // only write if we have changes to write
+    if (startSize != closestKnownDescendants.length) {
+      targetBlock.closestKnownDescendants = closestKnownDescendants;
+      atomicBatch.put(targetBlock.key, targetBlock.serialize());
+    }
+
+    if (atomicBatch.length > 0) await atomicBatch.write();
+  }
+
+  async get(method: string, params: any[], key: string) {
     const blockNumber = getBlockNumberFromParams(method, params);
 
     const height = Quantity.from(blockNumber);
@@ -198,38 +252,16 @@ export class PersistentCache {
       keys: true,
       values: true
     });
-    return new Promise<Buffer>((resolve, reject) => {
-      let resolved = false;
-      const handleData = async ({ key, value }) => {
-        const [_height, _key, blockHash] = lexico.decode(key);
-        rs.pause();
-        if (
-          !resolved &&
-          (this.hash.toBuffer().equals(blockHash) ||
-            (await this.ancestry.has(blockHash)))
-        ) {
-          // we've found what we were looking for
-          // stop everything we were doing
-          rs.off("data", handleData);
-          rs.off("end", handleEnd);
-          rs.off("error", reject);
-          // and destroy the stream
-          // `any` here because `destroy` is a thing, I promise!
-          // https://nodejs.org/docs/latest-v10.x/api/stream.html#stream_readable_destroy_error
-          (rs as any).destroy();
-
-          // and return our data
-          resolved = true;
-          resolve(value);
-        } else {
-          rs.resume();
-        }
-      };
-      const handleEnd = () => {
-        resolve(null);
-      };
-      rs.on("data", handleData).on("error", reject).on("end", handleEnd);
-    });
+    for await (const data of rs) {
+      const { key, value } = data as { key: Buffer; value: Buffer };
+      const [_height, _key, blockHash] = lexico.decode(key);
+      if (
+        this.hash.toBuffer().equals(blockHash) ||
+        (await this.ancestry.has(blockHash))
+      ) {
+        return value;
+      }
+    }
   }
 
   put(method: string, params: any[], key: string, value: Buffer) {
@@ -254,12 +286,7 @@ export class PersistentCache {
       await this.ancestorDb.close();
     }
     if (this.db) {
-      counter--;
-      if (counter === 0) {
-        const oldDb = singletonDb;
-        singletonDb = null;
-        await oldDb.close();
-      }
+      await this.db.close();
     }
   }
 }

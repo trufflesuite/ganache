@@ -1,7 +1,6 @@
 import { Tag } from "@ganache/ethereum-utils";
 import { BUFFER_EMPTY, Data, DATA_EMPTY, Quantity } from "@ganache/utils";
-import { AbstractIteratorOptions } from "abstract-leveldown";
-import type { LevelUp } from "levelup";
+import { LevelWait } from "./level-wait";
 import { Tree } from "./tree";
 
 export type Request = (method: string, params: any[]) => Promise<any>;
@@ -57,7 +56,7 @@ export function getBlockNumberFromParams(method: string, params: any[]) {
   }
 }
 
-export async function setDbVersion(db: LevelUp, version: Buffer) {
+export async function setDbVersion(db: LevelWait, version: Buffer) {
   // set the version if the DB was just created, or error if we already have
   // a version, but it isn't what we expected
   try {
@@ -77,7 +76,7 @@ export async function setDbVersion(db: LevelUp, version: Buffer) {
 }
 
 export async function resolveTargetAndClosestAncestor(
-  db: LevelUp,
+  db: LevelWait,
   request: Request,
   targetHeight: Quantity,
   targetHash: Data
@@ -128,7 +127,7 @@ export async function resolveTargetAndClosestAncestor(
 }
 
 export async function* findRelated(
-  db: LevelUp,
+  db: LevelWait,
   request: Request,
   options: FindOptions
 ) {
@@ -160,7 +159,7 @@ export async function* findRelated(
  * @returns the closest known ancestor, or `upTo` if we know of no ancestors
  */
 export async function findClosestAncestor(
-  db: LevelUp,
+  db: LevelWait,
   request: Request,
   height: Quantity,
   upTo: Tree
@@ -181,7 +180,7 @@ export async function findClosestAncestor(
  * @returns the closest known descendants, or null
  */
 export async function* findClosestDescendants(
-  db: LevelUp,
+  db: LevelWait,
   request: Request,
   height: Quantity
 ) {

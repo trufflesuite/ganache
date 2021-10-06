@@ -1,13 +1,13 @@
 import { BUFFER_EMPTY } from "@ganache/utils";
-import type { LevelUp } from "levelup";
+import { LevelWait } from "./level-wait";
 import { Tree } from "./tree";
 
 export class Ancestry {
-  private db: LevelUp;
+  private db: LevelWait;
   private next: Buffer;
   private knownAncestors: Set<string>;
   private lock: Map<string, Promise<void>> = new Map();
-  constructor(db: LevelUp, parent: Tree) {
+  constructor(db: LevelWait, parent: Tree) {
     this.db = db;
     this.next = parent.closestKnownAncestor.equals(BUFFER_EMPTY)
       ? null
@@ -15,7 +15,7 @@ export class Ancestry {
     this.knownAncestors = new Set([parent.key.toString("hex")]);
   }
 
-  private async addNextAncestor(next: Buffer) {
+  private async loadNextAncestor(next: Buffer) {
     const k = next.toString("hex");
     if (this.lock.has(k)) {
       throw new Error("could not obtain lock");
@@ -47,7 +47,7 @@ export class Ancestry {
         await lock;
         return this.has(key);
       }
-      await this.addNextAncestor(this.next);
+      await this.loadNextAncestor(this.next);
       return this.has(key);
     } else {
       return false;
