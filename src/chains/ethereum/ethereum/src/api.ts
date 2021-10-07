@@ -75,8 +75,8 @@ async function autofillDefaultTransactionValues(
     tx.gasPrice = options.miner.defaultGasPrice;
   }
 
-  const block = blockchain.blocks.latest;
   if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
+    const block = blockchain.blocks.latest;
     tx.maxFeePerGas = Quantity.from(
       Block.calcNBlocksMaxBaseFee(3, <BaseFeeHeader>block.header)
     );
