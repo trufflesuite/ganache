@@ -72,15 +72,12 @@ describe("@ganache/ethereum-block", async () => {
         { txCount: 1, newGasLimit: 11965152 }
       ];
 
-      let baseFeePerGas: Quantity;
       for (let i = 0; i < gethBlockData.length; i++) {
         const data = gethBlockData[i];
         options.miner.blockGasLimit = Quantity.from(data.newGasLimit);
-        baseFeePerGas = blockchain.blocks.latest.header.baseFeePerGas;
         blockchain.pause();
         for (let j = 0; j < data.txCount; j++) {
           const feeMarketTx = TransactionFactory.fromRpc(tx, common);
-          feeMarketTx.updateEffectiveGasPrice(baseFeePerGas);
           await blockchain.queueTransaction(feeMarketTx, privKeyData);
         }
         // mine all txs in that group before moving onto the next block
