@@ -145,6 +145,19 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     if (transactorNoncePromise) {
       await transactorNoncePromise;
     }
+    // if the user called sendTransaction or signTransaction, effectiveGasPrice
+    // hasn't been set yet on the tx. calculating the effectiveGasPrice requires
+    // the block context, so we need to set it outside of the transaction. this
+    // value is updated in the miner as we're more sure of what block the tx will
+    // actually go on, but we still need to set it here for to check for valid
+    // transaction replacements of same origin/nonce transactions
+    if (
+      !transaction.effectiveGasPrice &&
+      this.#blockchain.common.isActivatedEIP(1559)
+    ) {
+      const baseFeePerGas = this.#blockchain.blocks.latest.header.baseFeePerGas;
+      transaction.updateEffectiveGasPrice(baseFeePerGas);
+    }
 
     // we should _probably_ cache `highestNonce`, but it's actually a really hard thing to cache as the current highest
     // nonce might be invalidated (like if the sender doesn't have enough funds), so we'd have to go back to the previous

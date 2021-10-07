@@ -81,15 +81,6 @@ async function autofillDefaultTransactionValues(
       Block.calcNBlocksMaxBaseFee(3, <BaseFeeHeader>block.header)
     );
   }
-
-  // if the user called sendTransaction or signTransaction, effectiveGasPrice
-  // hasn't been set yet on the tx. calculating the effectiveGasPrice requires
-  // the block context, so we need to set it outside of the transaction. this
-  // value is updated in the miner as we're more sure of what block the tx will
-  // actually go on, but we still need to pre-set it here for use in the tx pool
-  if (!tx.effectiveGasPrice) {
-    tx.updateEffectiveGasPrice(block.header.baseFeePerGas);
-  }
 }
 
 // Read in the current ganache version from core's package.json
