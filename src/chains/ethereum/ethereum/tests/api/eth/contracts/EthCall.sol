@@ -1,6 +1,6 @@
 pragma solidity ^0.7.4;
 
-contract Example {
+contract EthCall {
   uint public value;
 
   constructor() public payable {

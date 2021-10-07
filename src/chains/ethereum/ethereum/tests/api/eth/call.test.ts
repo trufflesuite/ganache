@@ -6,8 +6,8 @@ import { join } from "path";
 import { BUFFER_EMPTY, Quantity, RPCQUANTITY_EMPTY } from "@ganache/utils";
 import { RETURN_TYPES, RuntimeError } from "@ganache/ethereum-utils";
 
-const contract = compile(join(__dirname, "./contracts/Example.sol"), {
-  contractName: "Example"
+const contract = compile(join(__dirname, "./contracts/EthCall.sol"), {
+  contractName: "EthCall"
 });
 
 describe("api", () => {
