@@ -20,7 +20,7 @@ const testConfig = process.env["OVERKILL"]
 
 describe("forking", () => {
   describe("persistent cache", () => {
-    it.only("works", async () => {
+    it("works", async () => {
       const arb = Arbitrary.Networks().chain(model =>
         fc.record({
           model: fc.constant(model),

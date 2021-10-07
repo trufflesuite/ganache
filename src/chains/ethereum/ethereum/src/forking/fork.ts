@@ -153,7 +153,7 @@ export class Fork {
   public async initialize() {
     const [block, cache] = await Promise.all([
       this.#setBlockDataFromChainAndOptions(),
-      this.#options.cache ? PersistentCache.create() : null,
+      this.#options.noCache ? null : PersistentCache.create(),
       this.#setCommonFromChain()
     ]);
     this.block = new Block(

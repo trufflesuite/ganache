@@ -126,7 +126,7 @@ export const Networks = (): fc.Arbitrary<Model> =>
             weight: 1
           }
         ),
-        { maxLength: 5 }
+        { maxLength: 100 }
       )
     )
     .map(([addNetwork, commands]) => {
@@ -169,4 +169,4 @@ export const Batch = (model: Model): fc.Arbitrary<Batch> => {
 };
 
 export const Batches = (model: Model): fc.Arbitrary<Batch[]> =>
-  fc.array(Batch(model), { maxLength: 5 });
+  fc.array(Batch(model), { maxLength: 10 });

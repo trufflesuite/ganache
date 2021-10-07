@@ -162,11 +162,11 @@ export type ForkConfig = {
     };
 
     /**
-     * Cache forking requests in a persistent db.
+     * Don't cache forking requests in a persistent db.
      *
-     * @default true
+     * @default false
      */
-    cache: {
+    noCache: {
       type: boolean;
       hasDefault: true;
     };
@@ -376,10 +376,10 @@ Defaults to: \`["User-Agent: Ganache/VERSION (https://www.trufflesuite.com/ganac
     cliType: "number"
     //implies: ["url"]
   },
-  cache: {
+  noCache: {
     normalize,
-    default: () => true,
-    cliDescription: "Cache forking requests in a persistent db.",
+    default: () => false,
+    cliDescription: "DOn't cache forking requests in a persistent db.",
     cliType: "boolean"
   }
 };
