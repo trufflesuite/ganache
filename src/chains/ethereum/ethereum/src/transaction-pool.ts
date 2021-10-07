@@ -145,11 +145,11 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     if (transactorNoncePromise) {
       await transactorNoncePromise;
     }
-    // if the user called sendTransaction or signTransaction, effectiveGasPrice
+    // if the user called sendTransaction or sendRawTransaction, effectiveGasPrice
     // hasn't been set yet on the tx. calculating the effectiveGasPrice requires
     // the block context, so we need to set it outside of the transaction. this
     // value is updated in the miner as we're more sure of what block the tx will
-    // actually go on, but we still need to set it here for to check for valid
+    // actually go on, but we still need to set it here to check for valid
     // transaction replacements of same origin/nonce transactions
     if (
       !transaction.effectiveGasPrice &&
