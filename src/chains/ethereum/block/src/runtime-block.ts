@@ -165,7 +165,7 @@ export class RuntimeBlock {
       BUFFER_32_ZERO, // mixHash
       BUFFER_8_ZERO // nonce
     ];
-    if (header.baseFeePerGas) {
+    if (header.baseFeePerGas !== undefined) {
       rawHeader[15] = header.baseFeePerGas.buf;
     }
 

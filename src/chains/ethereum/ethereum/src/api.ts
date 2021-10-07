@@ -2495,6 +2495,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.LATEST) {
     const blockchain = this.#blockchain;
+    const common = this.#blockchain.common;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.header;
@@ -2521,6 +2522,44 @@ export default class EthereumApi implements Api {
       data = Data.from(transaction.data);
     }
 
+    // eth_call doesn't validate that the transaction has a sufficient
+    // "effectiveGasPrice". however, if `maxPriorityFeePerGas` or
+    // `maxFeePerGas` values are set, the baseFeePerGas is used to calculate
+    // the effectiveGasPrice, which is used to calculate tx costs/refunds.
+    const baseFeePerGasBigInt = Block.calcNextBaseFee(parentBlock);
+
+    let gasPrice: Quantity;
+    const hasGasPrice = typeof transaction.gasPrice !== "undefined";
+    if (!common.isActivatedEIP(1559)) {
+      gasPrice = Quantity.from(hasGasPrice ? 0 : transaction.gasPrice);
+    } else {
+      const hasMaxFeePerGas = typeof transaction.maxFeePerGas !== "undefined";
+      const hasMaxPriorityFeePerGas =
+        typeof transaction.maxPriorityFeePerGas !== "undefined";
+
+      if (hasGasPrice && (hasMaxFeePerGas || hasMaxPriorityFeePerGas)) {
+        throw new Error(
+          "both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified"
+        );
+      }
+      // User specified 1559 gas fields (or none), use those
+      let maxFeePerGas = 0n;
+      let maxPriorityFeePerGas = 0n;
+      if (hasMaxFeePerGas) {
+        maxFeePerGas = BigInt(transaction.maxFeePerGas);
+      }
+      if (hasMaxPriorityFeePerGas) {
+        maxPriorityFeePerGas = BigInt(transaction.maxPriorityFeePerGas);
+      }
+      if (maxPriorityFeePerGas > 0 || maxFeePerGas > 0) {
+        const a = maxFeePerGas - baseFeePerGasBigInt;
+        const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
+        gasPrice = Quantity.from(baseFeePerGasBigInt + tip);
+      } else {
+        gasPrice = Quantity.from(0);
+      }
+    }
+
     const block = new RuntimeBlock(
       parentHeader.number,
       parentHeader.parentHash,
@@ -2530,7 +2569,7 @@ export default class EthereumApi implements Api {
       parentHeader.timestamp,
       options.miner.difficulty,
       parentHeader.totalDifficulty,
-      0n // no baseFeePerGas for eth_call
+      baseFeePerGasBigInt
     );
 
     const simulatedTransaction = {
@@ -2541,9 +2580,7 @@ export default class EthereumApi implements Api {
           ? blockchain.coinbase
           : Address.from(transaction.from),
       to: transaction.to == null ? null : Address.from(transaction.to),
-      gasPrice: Quantity.from(
-        transaction.gasPrice == null ? 0 : transaction.gasPrice
-      ),
+      gasPrice,
       value:
         transaction.value == null ? null : Quantity.from(transaction.value),
       data,

@@ -491,17 +491,32 @@ describe("api", () => {
 
     it("eth_getTransactionByHash", async () => {
       await provider.send("eth_subscribe", ["newHeads"]);
-      const hash = await provider.send("eth_sendTransaction", [
-        {
-          from: accounts[0],
-          to: accounts[1],
-          value: "0x1"
-        }
-      ]);
+      const txJson = {
+        type: "0x2",
+        chainId: "0x539",
+        nonce: "0x0",
+        from: accounts[0],
+        to: accounts[1],
+        value: "0x1",
+        maxPriorityFeePerGas: "0xf",
+        maxFeePerGas: "0xfffffffff",
+        gas: "0x15f90",
+        input: "0x01",
+        accessList: []
+      } as any;
+      const hash = await provider.send("eth_sendTransaction", [txJson]);
       const _message = await provider.once("message");
+      // we want these values set for when we check against the return data,
+      // but they shouldn't be used in eth_sendTransaction, so we'll set them now
+      txJson.transactionIndex = "0x0";
+      txJson.gasPrice = "0x342770cf";
 
       const tx = await provider.send("eth_getTransactionByHash", [hash]);
-      assert(tx.transactionIndex, "0x0");
+
+      // loop over all of the data we set to verify it matches
+      for (const [key, value] of Object.entries(txJson)) {
+        assert.deepStrictEqual(value, tx[key]);
+      }
     });
   });
 });

@@ -5,7 +5,7 @@ import request from "superagent";
 
 describe("forking", () => {
   describe("transactions", () => {
-    const blockNumber = 0xb77935;
+    const blockNumber = 0xcb6169;
     const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
     let provider: EthereumProvider;
     before(async function () {
@@ -21,8 +21,16 @@ describe("forking", () => {
     });
 
     it("should get a transaction from the original chain", async () => {
+      // NOTE: we are using this specific transaction because it is a 1. type 2
+      // that 2. uses the maxPriorityFeePerGas. This verifies that we are
+      // correctly getting the effectiveGasPrice when we get the tx from the
+      // fallback. Currently, if the effectiveGasPrice is not set when creating
+      // the transaciton, it will default to maxFeePerGas. Then the miner,
+      // who has the block info, resets the effectiveGasPrice. But for already
+      // mined txs from the db (or in this case fork), we need to set that data
+      // as `extra` in the tx.
       const txHash =
-        "0x36833194e25e1c74482ac34dab72229f2469360daef53282b4eff0df9166c152";
+        "0xebab47c436cb1106e8f4d637d35aa4f21672db2b9b0f31bda42dd01cbf0e241c";
       const [originalTx, tx] = await Promise.all([
         request
           .post(URL)
@@ -35,7 +43,6 @@ describe("forking", () => {
           .then(req => JSON.parse(req.text).result),
         provider.send("eth_getTransactionByHash", [txHash])
       ]);
-
       assert.deepStrictEqual(tx, originalTx);
     });
   });

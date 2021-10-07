@@ -477,12 +477,14 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.gas, tx.gas);
       assert.strictEqual(jsonTx.maxPriorityFeePerGas, tx.maxPriorityFeePerGas);
       assert.strictEqual(jsonTx.maxFeePerGas, tx.maxFeePerGas);
+      assert.strictEqual(jsonTx.gasPrice, tx.effectiveGasPrice);
       assert.strictEqual(jsonTx.input, tx.data);
       assert.strictEqual(jsonTx.v, tx.v);
       assert.strictEqual(jsonTx.r, tx.r);
       assert.strictEqual(jsonTx.s, tx.s);
     });
   });
+
   describe("Error and helper cases", () => {
     it("does not allow unsupported tx types from rpc data", async () => {
       const rpc: TypedRpcTransaction = {

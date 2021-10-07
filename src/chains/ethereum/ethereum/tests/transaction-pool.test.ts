@@ -60,15 +60,6 @@ describe("transaction pool", async () => {
       gasLimit: "0xffff",
       nonce: "0x2"
     };
-    // we're spoofing a minimial fake blockchain for the tx pool that just
-    // returns an account's nonce
-    blockchain = {
-      accounts: {
-        getNonce: async () => {
-          return Quantity.from("0x0");
-        }
-      }
-    };
     common = Common.forCustomChain(
       "mainnet",
       {
@@ -79,6 +70,19 @@ describe("transaction pool", async () => {
       },
       "london"
     );
+    // we're spoofing a minimial fake blockchain for the tx pool that just
+    // returns an account's nonce
+    blockchain = {
+      accounts: {
+        getNonce: async () => {
+          return Quantity.from("0x0");
+        }
+      },
+      common,
+      blocks: {
+        latest: { header: { baseFeePerGas: Quantity.from(875000000) } }
+      }
+    };
   });
   beforeEach(async function () {
     // for each test, we'll need a fresh set of origins
@@ -129,6 +133,10 @@ describe("transaction pool", async () => {
         getNonce: async () => {
           return Quantity.from(1);
         }
+      },
+      common,
+      blocks: {
+        latest: { header: { baseFeePerGas: Quantity.from(875000000) } }
       }
     } as any;
     const txPool = new TransactionPool(options.miner, fakeNonceChain, origins);
@@ -247,6 +255,7 @@ describe("transaction pool", async () => {
       from: from,
       type: "0x2",
       maxFeePerGas: "0xffffffffff",
+      maxPriorityFeePerGas: "0xffffffff",
       gasLimit: "0xffff",
       nonce: "0x0"
     };
