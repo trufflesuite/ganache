@@ -103,21 +103,31 @@ export async function resolveTargetAndClosestAncestor(
     // we couldn't find our target block in the database so we need to figure
     // out it's relationships via the blockchain.
 
-    const earliestBlock = await getBlockByNumber(request, Tag.EARLIEST);
-    if (!earliestBlock) throw new Error('Could not find "earliest" block.');
+    // In order to avoid requesting the "earliest" block unnecessarily, we
+    // assume the "earliest" block can't be before block 0 (which seems like a
+    // reasonable assumption to me!).
+    // If our target is block `0` then we can't have a closest ancestor since
+    // we are the first block
+    if (targetHeight.toBigInt() === 0n) {
+      closestAncestor = null;
+      targetBlock = new Tree(targetHeight, targetHash);
+    } else {
+      const earliestBlock = await getBlockByNumber(request, Tag.EARLIEST);
+      if (!earliestBlock) throw new Error('Could not find "earliest" block.');
 
-    const { hash: earliestHash, number: earliestNumber } = earliestBlock;
-    const hash = Data.from(earliestHash, 32);
+      const { hash: earliestHash, number: earliestNumber } = earliestBlock;
+      const hash = Data.from(earliestHash, 32);
 
-    const earliest = new Tree(Quantity.from(earliestNumber), hash);
+      const earliest = new Tree(Quantity.from(earliestNumber), hash);
 
-    closestAncestor = await findClosestAncestor(
-      db,
-      request,
-      targetHeight,
-      earliest
-    );
-    targetBlock = new Tree(targetHeight, targetHash, closestAncestor.key);
+      closestAncestor = await findClosestAncestor(
+        db,
+        request,
+        targetHeight,
+        earliest
+      );
+      targetBlock = new Tree(targetHeight, targetHash, closestAncestor.key);
+    }
   }
 
   return {
@@ -145,7 +155,7 @@ export async function* findRelated(
     // if the chain has a block at this height, and the hash of the
     // block is the same as the one in the db we've found our closest
     // ancestor!
-    if (block !== null && block.hash === Data.from(node.hash).toString()) {
+    if (block != null && block.hash === Data.from(node.hash).toString()) {
       const shouldContinue = yield node;
       if (!shouldContinue) break;
     }

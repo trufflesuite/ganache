@@ -9,10 +9,15 @@ export class Ancestry {
   private lock: Map<string, Promise<void>> = new Map();
   constructor(db: LevelWait, parent: Tree) {
     this.db = db;
-    this.next = parent.closestKnownAncestor.equals(BUFFER_EMPTY)
-      ? null
-      : parent.closestKnownAncestor;
-    this.knownAncestors = new Set([parent.key.toString("hex")]);
+    if (parent == null) {
+      this.next = null;
+      this.knownAncestors = new Set();
+    } else {
+      this.next = parent.closestKnownAncestor.equals(BUFFER_EMPTY)
+        ? null
+        : parent.closestKnownAncestor;
+      this.knownAncestors = new Set([parent.key.toString("hex")]);
+    }
   }
 
   private async loadNextAncestor(next: Buffer) {

@@ -52,14 +52,24 @@ export class PersistentCache {
   protected request: Request;
   constructor() {}
 
+  static async deleteDb(dbSuffix?: string) {
+    return new Promise((resolve, reject) => {
+      const directory = PersistentCache.getDbDirectory(dbSuffix);
+      leveldown.destroy(directory, err => {
+        if (err) return void reject(err);
+        resolve(void 0);
+      });
+    });
+  }
   /**
    * Serializes the entire database world state into a JSON tree
    */
-  static async serializeDb() {
-    const cache = await PersistentCache.create();
-    type Tree = Record<string, { descendants: Record<string, Tree> }>;
+  static async serializeDb(dbSuffix?: string) {
+    const cache = await PersistentCache.create(dbSuffix);
+    type Tree = Record<string, { descendants: Tree }>;
     return await new Promise<Tree>(async resolve => {
       const rs = cache.ancestorDb.createReadStream({
+        gte: BUFFER_ZERO,
         keys: true,
         values: true
       });
@@ -83,10 +93,10 @@ export class PersistentCache {
         (node as any).hash = Data.from(node.hash).toString();
         (node as any).parent =
           node.closestKnownAncestor.length > 0
-            ? Data.from(collection[parentKeyHex].data).toString()
+            ? Data.from(collection[parentKeyHex].hash).toString()
             : null;
         delete node.key;
-        delete node.hash;
+        // delete node.hash;
         delete node.closestKnownDescendants;
         delete node.closestKnownAncestor;
       }
@@ -95,10 +105,17 @@ export class PersistentCache {
     });
   }
 
-  static async create() {
+  static getDbDirectory(suffix: string = "") {
+    const { data: directory } = envPaths("Ganache/db", {
+      suffix
+    });
+    return directory;
+  }
+
+  static async create(dbSuffix?: string) {
     const cache = new PersistentCache();
 
-    const { data: directory } = envPaths("Ganache/db", { suffix: "" });
+    const directory = PersistentCache.getDbDirectory(dbSuffix);
     await mkdir(directory, { recursive: true });
 
     const store = encode(leveldown(directory, leveldownOpts), levelupOptions);
@@ -135,58 +152,70 @@ export class PersistentCache {
 
     this.ancestry = new Ancestry(this.ancestorDb, closestAncestor);
 
-    const atomicBatch = this.ancestorDb.batch();
+    let allKnownDescendants = [];
+    // if we don't have a closestAncestor it because the target block is block 0
+    if (closestAncestor == null) {
+      allKnownDescendants = targetBlock.closestKnownDescendants;
+      await this.ancestorDb.put(targetBlock.key, targetBlock.serialize());
+    } else {
+      const atomicBatch = this.ancestorDb.batch();
 
-    const ancestorsDescendants = [targetBlock.key];
-    const newNodeClosestKnownDescendants: Buffer[] = [];
-    const allKnownDescendants: Buffer[] = [];
+      const ancestorsDescendants = [targetBlock.key];
+      const newNodeClosestKnownDescendants: Buffer[] = [];
 
-    await Promise.all(
-      closestAncestor.closestKnownDescendants.map(async descendantKey => {
-        const { height: descendantHeight } = Tree.decodeKey(descendantKey);
-        // if the block number is less than our own it can't be our descendant
-        if (descendantHeight.toBigInt() <= height.toBigInt()) {
-          ancestorsDescendants.push(descendantKey);
-          return;
-        }
+      await Promise.all(
+        closestAncestor.closestKnownDescendants.map(async descendantKey => {
+          // don't match ourself
+          if (descendantKey.equals(targetBlock.key)) return;
 
-        const descendantValue = await this.ancestorDb.get(descendantKey);
-        const descendantNode = Tree.deserialize(descendantKey, descendantValue);
+          const { height: descendantHeight } = Tree.decodeKey(descendantKey);
+          // if the block number is less than our own it can't be our descendant
+          if (descendantHeight.toBigInt() <= height.toBigInt()) {
+            ancestorsDescendants.push(descendantKey);
+            return;
+          }
 
-        const descendantRawBlock = await this.getBlock(descendantHeight);
-        // if the block doesn't exist on our chain, it can't be our child, keep
-        // it in the parent
-        if (
-          descendantRawBlock == null ||
-          descendantRawBlock.hash !==
-            Data.from(descendantNode.hash, 32).toString()
-        ) {
-          ancestorsDescendants.push(descendantKey);
-        } else {
-          newNodeClosestKnownDescendants.push(descendantNode.key);
-          // keep track of *all* known descendants do we don't bother
-          // checking if they are a known closest descendant later on
-          allKnownDescendants.push(...descendantNode.closestKnownDescendants);
-          descendantNode.closestKnownAncestor = targetBlock.key;
-          // update the descendant node with it's newly assigned
-          // closestKnownAncestor
-          atomicBatch.put(descendantNode.key, descendantNode.serialize());
-        }
-      })
-    );
+          const descendantValue = await this.ancestorDb.get(descendantKey);
+          const descendantNode = Tree.deserialize(
+            descendantKey,
+            descendantValue
+          );
 
-    closestAncestor.closestKnownDescendants = ancestorsDescendants;
-    targetBlock.closestKnownDescendants = newNodeClosestKnownDescendants;
+          const descendantRawBlock = await this.getBlock(descendantHeight);
+          // if the block doesn't exist on our chain, it can't be our child, keep
+          // it in the parent
+          if (
+            descendantRawBlock == null ||
+            descendantRawBlock.hash !==
+              Data.from(descendantNode.hash, 32).toString()
+          ) {
+            ancestorsDescendants.push(descendantKey);
+          } else {
+            newNodeClosestKnownDescendants.push(descendantNode.key);
+            // keep track of *all* known descendants do we don't bother
+            // checking if they are a known closest descendant later on
+            allKnownDescendants.push(...descendantNode.closestKnownDescendants);
+            descendantNode.closestKnownAncestor = targetBlock.key;
+            // update the descendant node with it's newly assigned
+            // closestKnownAncestor
+            atomicBatch.put(descendantNode.key, descendantNode.serialize());
+          }
+        })
+      );
 
-    atomicBatch.put(closestAncestor.key, closestAncestor.serialize());
-    atomicBatch.put(targetBlock.key, targetBlock.serialize());
+      closestAncestor.closestKnownDescendants = ancestorsDescendants;
+      targetBlock.closestKnownDescendants = newNodeClosestKnownDescendants;
 
-    await atomicBatch.write();
+      atomicBatch.put(closestAncestor.key, closestAncestor.serialize());
+      atomicBatch.put(targetBlock.key, targetBlock.serialize());
+
+      await atomicBatch.write();
+    }
 
     // we DO want to re-balance the descendants, but we don't want to wait for
     // it because it can't effect our current fork block's cache results since
     // these caches will be for blocks higher than our own fork block
-    this.rebalanceDescendantTree(
+    await this.rebalanceDescendantTree(
       height,
       targetBlock,
       allKnownDescendants
@@ -212,6 +241,9 @@ export class PersistentCache {
       height
     )) {
       const key = maybeDescendant.key;
+
+      // don't match with our own self
+      if (targetBlock.key.equals(key)) continue;
 
       // if this already is a descendent of ours we can skip it
       if (closestKnownDescendants.some(d => d.equals(key))) continue;

@@ -103,6 +103,7 @@
     "abstract-leveldown": "6.3.0",
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",
+    "fast-check": "2.17.0",
     "fs-extra": "9.0.1",
     "local-web-server": "4.2.1",
     "mocha": "8.4.0",
