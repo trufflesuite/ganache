@@ -204,8 +204,8 @@ export class BaseHandler {
                   typeof raw === "string" ? Buffer.from(raw) : raw
                 )
                 .catch(_ => {
-                  console.log("persitent cache error");
-                  console.log(_);
+                  // the cache.put may fail if the db is closed while a request
+                  // is in flight. This is a "fire and forget" method.
                 });
 
               // track these unawaited `puts`

@@ -1,13 +1,13 @@
 import { BUFFER_EMPTY } from "@ganache/utils";
-import { LevelWait } from "./level-wait";
+import { LevelUp } from "levelup";
 import { Tree } from "./tree";
 
 export class Ancestry {
-  private db: LevelWait;
+  private db: LevelUp;
   private next: Buffer;
   private knownAncestors: Set<string>;
   private lock: Map<string, Promise<void>> = new Map();
-  constructor(db: LevelWait, parent: Tree) {
+  constructor(db: LevelUp, parent: Tree) {
     this.db = db;
     if (parent == null) {
       this.next = null;

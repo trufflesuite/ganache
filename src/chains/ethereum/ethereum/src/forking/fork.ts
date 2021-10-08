@@ -12,6 +12,7 @@ import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
+import BlockLogManager from "../data-managers/blocklog-manager";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -151,9 +152,20 @@ export class Fork {
   };
 
   public async initialize() {
+    let cacheProm: Promise<PersistentCache>;
+    if (this.#options.noCache === false) {
+      // ignore cache start up errors as it is possible there is an open
+      // conflict if another ganache fork is running at the time this one is
+      // started. The cache isn't required (though performance will be
+      // degraded without it)
+      cacheProm = PersistentCache.create().catch(_e => null);
+    } else {
+      cacheProm = null;
+    }
+
     const [block, cache] = await Promise.all([
       this.#setBlockDataFromChainAndOptions(),
-      this.#options.noCache ? null : PersistentCache.create(),
+      cacheProm,
       this.#setCommonFromChain()
     ]);
     this.block = new Block(

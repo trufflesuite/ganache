@@ -1,7 +1,7 @@
 import { Tree } from "./tree";
 import { promises } from "fs";
 import envPaths from "env-paths";
-import levelup from "levelup";
+import levelup, { LevelUp } from "levelup";
 import leveldown from "leveldown";
 import sub from "subleveldown";
 import encode from "encoding-down";
@@ -16,7 +16,8 @@ import {
   setDbVersion,
   findClosestDescendants
 } from "./helpers";
-import { LevelWait } from "./level-wait";
+import { AbstractIterator } from "abstract-leveldown";
+import { AbstractLevelDOWN } from "abstract-leveldown";
 
 const { mkdir } = promises;
 
@@ -44,9 +45,15 @@ const leveldownOpts = { prefix: "" };
  */
 export class PersistentCache {
   public readonly version = BUFFER_ZERO;
-  protected db: LevelWait;
-  protected cacheDb: LevelWait;
-  protected ancestorDb: LevelWait;
+  protected db: LevelUp<AbstractLevelDOWN, AbstractIterator<Buffer, Buffer>>;
+  protected cacheDb: LevelUp<
+    AbstractLevelDOWN,
+    AbstractIterator<Buffer, Buffer>
+  >;
+  protected ancestorDb: LevelUp<
+    AbstractLevelDOWN,
+    AbstractIterator<Buffer, Buffer>
+  >;
   protected ancestry: Ancestry;
   protected hash: Data;
   protected request: Request;
@@ -119,18 +126,20 @@ export class PersistentCache {
     await mkdir(directory, { recursive: true });
 
     const store = encode(leveldown(directory, leveldownOpts), levelupOptions);
-    const db = levelup(store, _err => {
-      // ignore startup errors as LevelWait is designed to handle them
+    const db = await new Promise<LevelUp>((resolve, reject) => {
+      const db = levelup(store, (err: Error) => {
+        if (err) return void reject(err);
+        resolve(db);
+      });
     });
-    cache.db = new LevelWait(db);
-    cache.cacheDb = new LevelWait(
-      sub(cache.db.db, "c", levelupOptions),
-      cache.db
-    );
-    cache.ancestorDb = new LevelWait(
-      sub(cache.db.db, "a", levelupOptions),
-      cache.db
-    );
+    console.log("opened!");
+    cache.db = db;
+    cache.cacheDb = sub(db, "c", levelupOptions);
+    cache.ancestorDb = sub(db, "a", levelupOptions);
+    console.log("await cache.cacheDb.open();");
+    await cache.cacheDb.open();
+    console.log("await cache.ancestorDb.open();");
+    await cache.ancestorDb.open();
 
     await setDbVersion(cache.db, cache.version);
     return cache;
@@ -215,11 +224,12 @@ export class PersistentCache {
     // we DO want to re-balance the descendants, but we don't want to wait for
     // it because it can't effect our current fork block's cache results since
     // these caches will be for blocks higher than our own fork block
+    // Do not `await` this.
     this.rebalanceDescendantTree(
       height,
       targetBlock,
       allKnownDescendants
-    ).catch(e => {}); // if it fails, it fails.
+    ).catch(_ => {}); // if it fails, it fails.
   }
 
   async getBlock(height: Quantity) {
@@ -232,8 +242,8 @@ export class PersistentCache {
     allKnownDescendants: Buffer[]
   ) {
     const atomicBatch = this.ancestorDb.batch();
-    const closestKnownDescendants = targetBlock.closestKnownDescendants;
-    const startSize = closestKnownDescendants.length;
+    const newClosestKnownDescendants = targetBlock.closestKnownDescendants;
+    const startSize = newClosestKnownDescendants.length;
 
     for await (const maybeDescendant of findClosestDescendants(
       this.ancestorDb,
@@ -246,7 +256,7 @@ export class PersistentCache {
       if (targetBlock.key.equals(key)) continue;
 
       // if this already is a descendent of ours we can skip it
-      if (closestKnownDescendants.some(d => d.equals(key))) continue;
+      if (newClosestKnownDescendants.some(d => d.equals(key))) continue;
 
       // this possibleDescendent's descendants can't be our direct descendants
       // because trees can't merge
@@ -256,42 +266,42 @@ export class PersistentCache {
       if (allKnownDescendants.some(d => d.equals(key))) continue;
 
       maybeDescendant.closestKnownAncestor = targetBlock.key;
-      closestKnownDescendants.push(maybeDescendant.key);
+      newClosestKnownDescendants.push(maybeDescendant.key);
 
       atomicBatch.put(maybeDescendant.key, maybeDescendant.serialize());
     }
 
     // only write if we have changes to write
-    if (startSize != closestKnownDescendants.length) {
-      targetBlock.closestKnownDescendants = closestKnownDescendants;
+    if (startSize !== newClosestKnownDescendants.length) {
+      targetBlock.closestKnownDescendants = newClosestKnownDescendants;
       atomicBatch.put(targetBlock.key, targetBlock.serialize());
-    }
 
-    if (atomicBatch.length > 0) await atomicBatch.write();
+      // check `this.ancestorDb.isOpen()` as we don't need to try to write if
+      // the db was shutdown in the meantime. This can happen if ganache was
+      // closed while we were still updating the descendants
+      if (atomicBatch.length > 0 && this.ancestorDb.isOpen())
+        await atomicBatch.write();
+    }
   }
 
   async get(method: string, params: any[], key: string) {
-    console.log("get", method, params);
     const blockNumber = getBlockNumberFromParams(method, params);
-
     const height = Quantity.from(blockNumber);
     const start = lexico.encode([height.toBuffer(), Buffer.from(key)]);
     const end = lexico.encode([
       Quantity.from(height.toBigInt() + 1n).toBuffer()
     ]);
-    const rs = this.cacheDb.createReadStream({
+    const readStream = this.cacheDb.createReadStream({
       gt: start,
       lt: end,
       keys: true,
       values: true
     });
-    for await (const data of rs) {
-      const { key, value } = data as { key: Buffer; value: Buffer };
+    const hashBuf = this.hash.toBuffer();
+    for await (const data of readStream) {
+      const { key, value } = (data as any) as { key: Buffer; value: Buffer };
       const [_height, _key, blockHash] = lexico.decode(key);
-      if (
-        this.hash.toBuffer().equals(blockHash) ||
-        (await this.ancestry.has(blockHash))
-      ) {
+      if (hashBuf.equals(blockHash) || (await this.ancestry.has(blockHash))) {
         return value;
       }
     }
