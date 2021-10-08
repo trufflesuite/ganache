@@ -151,15 +151,13 @@ export class BaseHandler {
 
   async getFromSlowCache<T>(method: string, params: any[], key: string) {
     if (!this.persistentCache) return;
-    const dbValue = await this.persistentCache
-      .get(method, params, key)
-      .catch(e => {
-        if (e.notFound) return null;
-        // I/O or other error, throw as things are getting weird and the cache may
-        // have lost integrity
-        throw e;
-      });
-    if (dbValue != undefined) return JSON.parse(dbValue).result as T;
+    const raw = await this.persistentCache.get(method, params, key).catch(e => {
+      if (e.notFound) return null;
+      // I/O or other error, throw as things are getting weird and the cache may
+      // have lost integrity
+      throw e;
+    });
+    if (raw !== undefined) return { result: JSON.parse(raw).result as T, raw };
   }
 
   async queueRequest<T>(
@@ -175,11 +173,14 @@ export class BaseHandler {
     options = { noCache: false }
   ): Promise<T> {
     if (!options.noCache) {
-      let cached = this.getFromMemCache<T>(key);
-      if (cached !== undefined) return cached;
+      const memCached = this.getFromMemCache<T>(key);
+      if (memCached !== undefined) return memCached;
 
-      cached = await this.getFromSlowCache<T>(method, params, key);
-      if (cached !== undefined) return cached;
+      const diskCached = await this.getFromSlowCache<T>(method, params, key);
+      if (diskCached !== undefined) {
+        this.valueCache.set(key, Buffer.from(diskCached.raw));
+        return diskCached.result;
+      }
     }
 
     const promise = this.limiter
@@ -202,7 +203,10 @@ export class BaseHandler {
                   key,
                   typeof raw === "string" ? Buffer.from(raw) : raw
                 )
-                .catch(_ => {});
+                .catch(_ => {
+                  console.log("persitent cache error");
+                  console.log(_);
+                });
 
               // track these unawaited `puts`
               this.fireForget.add(prom);

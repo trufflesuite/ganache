@@ -215,7 +215,7 @@ export class PersistentCache {
     // we DO want to re-balance the descendants, but we don't want to wait for
     // it because it can't effect our current fork block's cache results since
     // these caches will be for blocks higher than our own fork block
-    await this.rebalanceDescendantTree(
+    this.rebalanceDescendantTree(
       height,
       targetBlock,
       allKnownDescendants
@@ -271,6 +271,7 @@ export class PersistentCache {
   }
 
   async get(method: string, params: any[], key: string) {
+    console.log("get", method, params);
     const blockNumber = getBlockNumberFromParams(method, params);
 
     const height = Quantity.from(blockNumber);

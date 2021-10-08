@@ -112,7 +112,7 @@ describe("forking", () => {
     it("handles invalid JSON-RPC responses", async () => {
       const { localProvider } = await startLocalChain(port, {
         url: `http://0.0.0.0:${port}`,
-        cache: false
+        noCache: true
       });
       // some bad values to test
       const junks = [
@@ -150,7 +150,7 @@ describe("forking", () => {
           startLocalChain(PORT, {
             url: null,
             provider: { request: "not a function" } as any,
-            cache: false
+            noCache: true
           }),
         { message: "Forking `provider` must be EIP-1193 compatible" }
       );
@@ -159,7 +159,7 @@ describe("forking", () => {
           startLocalChain(PORT, {
             url: null,
             provider: { send: "also not a function" } as any,
-            cache: false
+            noCache: true
           }),
         { message: "Forking `provider` must be EIP-1193 compatible" }
       );
@@ -173,7 +173,7 @@ describe("forking", () => {
           const provider = await startLocalChain(PORT, {
             url: null,
             provider: remoteProvider as any,
-            cache: false
+            noCache: true
           });
           localProvider = provider.localProvider;
         }
@@ -250,7 +250,7 @@ describe("forking", () => {
         const provider = await startLocalChain(PORT, {
           url: null,
           provider: remoteProvider as any,
-          cache: false
+          noCache: true
         });
         localProvider = provider.localProvider;
 
@@ -319,7 +319,7 @@ describe("forking", () => {
 
   describe("initial state", () => {
     it("should get the Network ID of the forked chain", async () => {
-      const { localProvider } = await startLocalChain(PORT, { cache: false });
+      const { localProvider } = await startLocalChain(PORT, { noCache: true });
 
       const [remoteNetworkId, localNetworkId] = await Promise.all(
         [remoteProvider, localProvider].map(p => p.send("net_version", []))
@@ -342,7 +342,7 @@ describe("forking", () => {
       const localStartBlockNum = blocks / 2;
       const { localProvider } = await startLocalChain(PORT, {
         blockNumber: localStartBlockNum,
-        cache: false
+        noCache: true
       });
 
       const localBlockNumber = parseInt(
@@ -365,7 +365,7 @@ describe("forking", () => {
     describe("block number", () => {
       let localProvider: EthereumProvider;
       beforeEach("start local chain", async () => {
-        ({ localProvider } = await startLocalChain(PORT, { cache: false }));
+        ({ localProvider } = await startLocalChain(PORT, { noCache: true }));
       });
 
       it("local block number should be 1 after the remote block on start up", async () => {
@@ -385,7 +385,7 @@ describe("forking", () => {
       });
 
       beforeEach("start local chain", async () => {
-        ({ localProvider } = await startLocalChain(PORT, { cache: false }));
+        ({ localProvider } = await startLocalChain(PORT, { noCache: true }));
       });
 
       it("should return the nonce of each account", async () => {
@@ -411,7 +411,7 @@ describe("forking", () => {
 
       beforeEach("start local chain", async () => {
         ({ localProvider, localAccounts } = await startLocalChain(PORT, {
-          cache: false
+          noCache: true
         }));
       });
 
@@ -594,7 +594,7 @@ describe("forking", () => {
     });
 
     it("should fetch contract code from the remote chain via the local chain", async () => {
-      const { localProvider } = await startLocalChain(PORT, { cache: false });
+      const { localProvider } = await startLocalChain(PORT, { noCache: true });
       const {
         blockNumbersWithCode,
         blockNumbersWithoutCode
@@ -624,7 +624,7 @@ describe("forking", () => {
     });
 
     it("should fetch initial contract data from the remote chain via the local chain", async () => {
-      const { localProvider } = await startLocalChain(PORT, { cache: false });
+      const { localProvider } = await startLocalChain(PORT, { noCache: true });
       const {
         blockNum,
         blockNumbersWithCode,
@@ -674,7 +674,7 @@ describe("forking", () => {
     });
 
     it("should fetch changed contract data from the remote chain via the local chain", async () => {
-      const { localProvider } = await startLocalChain(PORT, { cache: false });
+      const { localProvider } = await startLocalChain(PORT, { noCache: true });
       const {
         blockNum,
         blockNumbersWithCode,
