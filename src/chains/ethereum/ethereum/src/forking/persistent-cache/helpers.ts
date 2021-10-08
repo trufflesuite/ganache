@@ -83,6 +83,7 @@ export async function resolveTargetAndClosestAncestor(
 ) {
   let targetBlock: Tree;
   let closestAncestor: Tree;
+  let previousClosestAncestor: Tree;
   try {
     const key = Tree.encodeKey(targetHeight, targetHash);
     targetBlock = Tree.deserialize(key, await db.get(key));
@@ -90,15 +91,26 @@ export async function resolveTargetAndClosestAncestor(
     if (targetBlock.closestKnownAncestor.equals(BUFFER_EMPTY)) {
       // we are the genesis/earliest block
       closestAncestor = null;
+      previousClosestAncestor = null;
     } else {
-      closestAncestor = Tree.deserialize(
+      previousClosestAncestor = Tree.deserialize(
         targetBlock.closestKnownAncestor,
         await db.get(targetBlock.closestKnownAncestor)
       );
+      // check if we are still the closest known ancestor
+      closestAncestor =
+        (await findClosestAncestor(
+          db,
+          request,
+          targetHeight,
+          previousClosestAncestor.key
+        )) || previousClosestAncestor;
     }
   } catch (e) {
     // something bad happened (I/O failure?), bail
     if (!e.notFound) throw e;
+
+    previousClosestAncestor = null;
 
     // we couldn't find our target block in the database so we need to figure
     // out it's relationships via the blockchain.
@@ -120,19 +132,17 @@ export async function resolveTargetAndClosestAncestor(
 
       const earliest = new Tree(Quantity.from(earliestNumber), hash);
 
-      closestAncestor = await findClosestAncestor(
-        db,
-        request,
-        targetHeight,
-        earliest
-      );
+      closestAncestor =
+        (await findClosestAncestor(db, request, targetHeight, earliest.key)) ||
+        earliest;
       targetBlock = new Tree(targetHeight, targetHash, closestAncestor.key);
     }
   }
 
   return {
     targetBlock,
-    closestAncestor
+    closestAncestor,
+    previousClosestAncestor
   };
 }
 
@@ -172,16 +182,16 @@ export async function findClosestAncestor(
   db: LevelUp,
   request: Request,
   height: Quantity,
-  upTo: Tree
+  upTo: Buffer
 ) {
   const generator = findRelated(db, request, {
-    gte: upTo.key,
+    gte: upTo,
     lt: Tree.encodeKey(height, DATA_EMPTY),
     reverse: true
   });
   const first = await generator.next();
   await generator.return();
-  return first.value || upTo;
+  return first.value;
 }
 
 /**

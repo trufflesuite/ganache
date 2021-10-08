@@ -20,7 +20,7 @@ const testConfig = process.env["OVERKILL"]
 
 describe("forking", () => {
   describe("persistent cache", () => {
-    it("works", async () => {
+    it.only("create relationships between networks correctly", async () => {
       const arb = Arbitrary.Networks().chain(model =>
         fc.record({
           model: fc.constant(model),
@@ -41,7 +41,6 @@ describe("forking", () => {
                 number: number;
                 hash: string;
               };
-              parent: string;
               children: Set<Ref>;
             };
             const networkLookup: Map<string, Ref> = new Map();
@@ -59,7 +58,6 @@ describe("forking", () => {
                 genesisRef = {
                   hash: genesis.hash,
                   block: genesis,
-                  parent: null,
                   children: new Set()
                 };
                 networkLookup.set(genesis.hash, genesisRef);
@@ -74,7 +72,6 @@ describe("forking", () => {
                 ref = {
                   hash: block.hash,
                   block: block,
-                  parent: null,
                   children: new Set()
                 };
                 networkLookup.set(block.hash, ref);
@@ -86,9 +83,14 @@ describe("forking", () => {
                 function findLatestAncestorAndUpdateDescendants(
                   curRef: Ref
                 ): Ref {
+                  let candidate: Ref[] = [];
                   for (const child of curRef.children.values()) {
-                    // if the child is us don't do anything.
-                    if (child.hash == block.hash) continue;
+                    if (child.hash == block.hash) {
+                      // if the child is the same block as us we can delete it
+                      // because we are figuring this all out again anyway
+                      curRef.children.delete(child);
+                      continue;
+                    }
 
                     const networkBlock = network.getBlockByNumber(
                       child.block.number
@@ -102,19 +104,29 @@ describe("forking", () => {
                     if (child.block.number > block.number) {
                       curRef.children.delete(child);
                       ref.children.add(child);
-                      child.parent = ref.block.hash;
                     } else {
                       // otherwise, it might be our ancestor, keep checking!
-                      return findLatestAncestorAndUpdateDescendants(child);
+                      candidate.push(
+                        findLatestAncestorAndUpdateDescendants(child)
+                      );
                     }
                   }
-                  return curRef;
+                  // take the highest ancestor
+                  candidate.sort((a, b) => {
+                    if (a.block.number < b.block.number) {
+                      return 1;
+                    } else if (a.block.number < b.block.number) {
+                      return 0;
+                    } else {
+                      return -1;
+                    }
+                  });
+                  return candidate[0] || curRef;
                 }
                 let latestAncestor = findLatestAncestorAndUpdateDescendants(
                   genesisRef
                 );
                 latestAncestor.children.add(ref);
-                ref.parent = latestAncestor.block.hash;
               }
 
               const cache = await PersistentCache.create(dbName);
@@ -131,9 +143,12 @@ describe("forking", () => {
                   );
                 }) as any
               );
+
+              cache._reBalancePromise && (await cache._reBalancePromise);
               await cache.close();
 
               const serialized = await PersistentCache.serializeDb(dbName);
+              console.log(JSON.stringify(serialized, null, 2));
               const cacheState: Set<Ref> = new Set();
               function convertToRefs(
                 parentHash: string,
@@ -150,7 +165,6 @@ describe("forking", () => {
                       number: height.toNumber(),
                       hash: hash.toString()
                     },
-                    parent: parentHash,
                     children: new Set()
                   };
                   parent.add(ref);
@@ -165,14 +179,22 @@ describe("forking", () => {
               }
               convertToRefs(null, serialized, cacheState);
 
-              assert.deepStrictEqual(worldState, cacheState);
+              try {
+                assert.deepStrictEqual(worldState, cacheState);
+              } catch (e) {
+                console.log(e);
+                throw e;
+              }
             }
           } finally {
             await PersistentCache.deleteDb(dbName);
           }
         }),
         {
-          numRuns: testConfig.numRuns
+          numRuns: 1000,
+          endOnFailure: true,
+          seed: -981409496,
+          path: "493"
         }
       );
     });

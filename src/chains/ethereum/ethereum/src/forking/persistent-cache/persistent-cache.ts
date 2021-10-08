@@ -132,13 +132,10 @@ export class PersistentCache {
         resolve(db);
       });
     });
-    console.log("opened!");
     cache.db = db;
     cache.cacheDb = sub(db, "c", levelupOptions);
     cache.ancestorDb = sub(db, "a", levelupOptions);
-    console.log("await cache.cacheDb.open();");
     await cache.cacheDb.open();
-    console.log("await cache.ancestorDb.open();");
     await cache.ancestorDb.open();
 
     await setDbVersion(cache.db, cache.version);
@@ -151,7 +148,8 @@ export class PersistentCache {
 
     const {
       targetBlock,
-      closestAncestor
+      closestAncestor,
+      previousClosestAncestor
     } = await resolveTargetAndClosestAncestor(
       this.ancestorDb,
       this.request,
@@ -161,16 +159,34 @@ export class PersistentCache {
 
     this.ancestry = new Ancestry(this.ancestorDb, closestAncestor);
 
+    const atomicBatch = this.ancestorDb.batch();
+
+    // if we changed closest ancestors remove our targetBlock from the previous
+    // ancestor so our target block doesn't appear in the database more than
+    // once, and update our targetBlock to point to this new ancestor
+    if (
+      previousClosestAncestor &&
+      !previousClosestAncestor.key.equals(closestAncestor.key)
+    ) {
+      targetBlock.closestKnownAncestor = closestAncestor.key;
+
+      const index = previousClosestAncestor.closestKnownDescendants.findIndex(
+        buf => buf.equals(targetBlock.key)
+      );
+      previousClosestAncestor.closestKnownDescendants.splice(index, 1);
+      atomicBatch.put(
+        previousClosestAncestor.key,
+        previousClosestAncestor.serialize()
+      );
+    }
+
     let allKnownDescendants = [];
     // if we don't have a closestAncestor it because the target block is block 0
     if (closestAncestor == null) {
       allKnownDescendants = targetBlock.closestKnownDescendants;
-      await this.ancestorDb.put(targetBlock.key, targetBlock.serialize());
+      atomicBatch.put(targetBlock.key, targetBlock.serialize());
     } else {
-      const atomicBatch = this.ancestorDb.batch();
-
       const ancestorsDescendants = [targetBlock.key];
-      const newNodeClosestKnownDescendants: Buffer[] = [];
 
       await Promise.all(
         closestAncestor.closestKnownDescendants.map(async descendantKey => {
@@ -191,8 +207,8 @@ export class PersistentCache {
           );
 
           const descendantRawBlock = await this.getBlock(descendantHeight);
-          // if the block doesn't exist on our chain, it can't be our child, keep
-          // it in the parent
+          // if the block doesn't exist on our chain, it can't be our child,
+          // keep it in the parent
           if (
             descendantRawBlock == null ||
             descendantRawBlock.hash !==
@@ -200,12 +216,12 @@ export class PersistentCache {
           ) {
             ancestorsDescendants.push(descendantKey);
           } else {
-            newNodeClosestKnownDescendants.push(descendantNode.key);
+            targetBlock.closestKnownDescendants.push(descendantNode.key);
             // keep track of *all* known descendants do we don't bother
             // checking if they are a known closest descendant later on
             allKnownDescendants.push(...descendantNode.closestKnownDescendants);
             descendantNode.closestKnownAncestor = targetBlock.key;
-            // update the descendant node with it's newly assigned
+            // update the descendant node with its newly assigned
             // closestKnownAncestor
             atomicBatch.put(descendantNode.key, descendantNode.serialize());
           }
@@ -213,37 +229,49 @@ export class PersistentCache {
       );
 
       closestAncestor.closestKnownDescendants = ancestorsDescendants;
-      targetBlock.closestKnownDescendants = newNodeClosestKnownDescendants;
-
       atomicBatch.put(closestAncestor.key, closestAncestor.serialize());
-      atomicBatch.put(targetBlock.key, targetBlock.serialize());
-
-      await atomicBatch.write();
     }
+
+    // TODO(perf): we always re-save the targetBlock but could optimize to only
+    // resave if it is needed.
+    atomicBatch.put(targetBlock.key, targetBlock.serialize());
+
+    await atomicBatch.write();
 
     // we DO want to re-balance the descendants, but we don't want to wait for
     // it because it can't effect our current fork block's cache results since
     // these caches will be for blocks higher than our own fork block
     // Do not `await` this.
-    this.rebalanceDescendantTree(
+    this._reBalancePromise = this.reBalanceDescendantTree(
       height,
       targetBlock,
       allKnownDescendants
-    ).catch(_ => {}); // if it fails, it fails.
+    )
+      .catch(_ => {}) // if it fails, it fails.
+      .finally(() => {
+        this._reBalancePromise = null;
+      });
   }
+
+  /**
+   * `reBalancePromise` is used at shutdown to ensure we are done balancing the
+   * tree
+   *
+   */
+  public _reBalancePromise: Promise<void> = null;
 
   async getBlock(height: Quantity) {
     return await getBlockByNumber(this.request, height);
   }
 
-  async rebalanceDescendantTree(
+  async reBalanceDescendantTree(
     height: Quantity,
     targetBlock: Tree,
     allKnownDescendants: Buffer[]
   ) {
     const atomicBatch = this.ancestorDb.batch();
-    const newClosestKnownDescendants = targetBlock.closestKnownDescendants;
-    const startSize = newClosestKnownDescendants.length;
+    const closestKnownDescendants = targetBlock.closestKnownDescendants;
+    const startSize = closestKnownDescendants.length;
 
     for await (const maybeDescendant of findClosestDescendants(
       this.ancestorDb,
@@ -256,7 +284,7 @@ export class PersistentCache {
       if (targetBlock.key.equals(key)) continue;
 
       // if this already is a descendent of ours we can skip it
-      if (newClosestKnownDescendants.some(d => d.equals(key))) continue;
+      if (closestKnownDescendants.some(d => d.equals(key))) continue;
 
       // this possibleDescendent's descendants can't be our direct descendants
       // because trees can't merge
@@ -266,14 +294,20 @@ export class PersistentCache {
       if (allKnownDescendants.some(d => d.equals(key))) continue;
 
       maybeDescendant.closestKnownAncestor = targetBlock.key;
-      newClosestKnownDescendants.push(maybeDescendant.key);
+      closestKnownDescendants.push(maybeDescendant.key);
 
       atomicBatch.put(maybeDescendant.key, maybeDescendant.serialize());
+
+      // if the cache has been closed stop doing work so we can flush what we
+      // have to the database; descendant resolution shouldn't prevent us from
+      // fulling closing.
+      if (this.status === "closed") {
+        break;
+      }
     }
 
     // only write if we have changes to write
-    if (startSize !== newClosestKnownDescendants.length) {
-      targetBlock.closestKnownDescendants = newClosestKnownDescendants;
+    if (startSize !== closestKnownDescendants.length) {
       atomicBatch.put(targetBlock.key, targetBlock.serialize());
 
       // check `this.ancestorDb.isOpen()` as we don't need to try to write if
@@ -326,6 +360,7 @@ export class PersistentCache {
       await this.cacheDb.close();
     }
     if (this.ancestorDb) {
+      await this._reBalancePromise;
       await this.ancestorDb.close();
     }
     if (this.db) {
