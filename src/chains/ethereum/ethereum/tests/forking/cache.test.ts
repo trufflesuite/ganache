@@ -20,7 +20,7 @@ const testConfig = process.env["OVERKILL"]
 
 describe("forking", () => {
   describe("persistent cache", () => {
-    it.only("create relationships between networks correctly", async () => {
+    it("create relationships between networks correctly", async () => {
       const arb = Arbitrary.Networks().chain(model =>
         fc.record({
           model: fc.constant(model),
@@ -125,9 +125,6 @@ describe("forking", () => {
                     return -1;
                   }
                 });
-                if (candidates.length === 2) {
-                  console.log(candidates);
-                }
 
                 // move any of our latestAncestor's children that are in our network
                 // and come after us to our children.
@@ -146,7 +143,6 @@ describe("forking", () => {
                     ref.children.add(child);
                   }
                 }
-                //}
 
                 latestAncestor.children.add(ref);
               }
