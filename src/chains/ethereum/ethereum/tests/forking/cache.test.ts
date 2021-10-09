@@ -126,23 +126,26 @@ describe("forking", () => {
                   }
                 });
 
-                // move any of our latestAncestor's children that are in our network
-                // and come after us to our children.
-                // note: we _could_ figure out some other ancestry relationships
-                // by looking at _all potential_ ancestors children, but we
-                // don't because the look ups are costly.
-                for (const child of latestAncestor.children.values()) {
-                  const networkBlock = network.getBlockByNumber(
-                    child.block.number
-                  );
-                  const isInNetwork =
-                    networkBlock && networkBlock.hash === child.hash;
-                  if (!isInNetwork) continue;
-                  if (child.block.number > block.number) {
-                    latestAncestor.children.delete(child);
-                    ref.children.add(child);
+                // traverse up all descendants to fix those relationships
+                const fixDescendants = (parent: Ref) => {
+                  const children = [...parent.children.values()];
+                  for (const child of children) {
+                    const networkBlock = network.getBlockByNumber(
+                      child.block.number
+                    );
+                    const isInNetwork =
+                      networkBlock && networkBlock.hash === child.hash;
+                    if (!isInNetwork) continue;
+
+                    if (child.block.number > block.number) {
+                      parent.children.delete(child);
+                      ref.children.add(child);
+                    } else {
+                      fixDescendants(child);
+                    }
                   }
-                }
+                };
+                fixDescendants(genesisRef);
 
                 latestAncestor.children.add(ref);
               }
