@@ -213,10 +213,7 @@ describe("forking", () => {
           }
         }),
         {
-          numRuns: 1000,
-          seed: -693367450,
-          path: "245",
-          endOnFailure: true
+          numRuns: 100
         }
       );
     });
