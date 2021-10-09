@@ -48,45 +48,48 @@ describe("forking", () => {
             for (const batch of batches) {
               const block = batch.input.historicBlock;
               const network = model.networks[batch.descendantIndex];
-
-              // if we aren't the genesis block get the genesis block and add it
-              // to our world state, if needed.
-
-              let genesisRef: Ref;
-              const genesis = network.getBlockByNumber(0);
-              if (!networkLookup.has(genesis.hash)) {
-                genesisRef = {
-                  hash: genesis.hash,
-                  block: genesis,
-                  children: new Set()
-                };
-                networkLookup.set(genesis.hash, genesisRef);
-                worldState.add(genesisRef);
-              } else {
-                genesisRef = networkLookup.get(genesis.hash);
+              function getGenesis() {
+                // Get the genesis block and add it to our world state, if needed.
+                const genesis = network.getBlockByNumber(0);
+                if (!networkLookup.has(genesis.hash)) {
+                  const genesisRef: Ref = {
+                    hash: genesis.hash,
+                    block: genesis,
+                    children: new Set()
+                  };
+                  networkLookup.set(genesis.hash, genesisRef);
+                  worldState.add(genesisRef);
+                  return genesisRef;
+                } else {
+                  return networkLookup.get(genesis.hash);
+                }
+              }
+              function getOwnRef() {
+                if (!networkLookup.has(block.hash)) {
+                  const ref: Ref = {
+                    hash: block.hash,
+                    block: block,
+                    children: new Set()
+                  };
+                  // if we don't yet know about this block, add it
+                  networkLookup.set(block.hash, ref);
+                  return ref;
+                } else {
+                  return networkLookup.get(block.hash);
+                }
               }
 
-              // if we don't yet know about this block, add it
-              let ref: Ref;
-              if (!networkLookup.has(block.hash)) {
-                ref = {
-                  hash: block.hash,
-                  block: block,
-                  children: new Set()
-                };
-                networkLookup.set(block.hash, ref);
-              } else {
-                ref = networkLookup.get(block.hash);
-              }
+              const genesisRef = getGenesis();
+              const ref = getOwnRef();
 
               if (block.number > 0) {
                 function findLatestAncestorAndUpdateDescendants(
                   curRef: Ref
-                ): Ref {
-                  let candidate: Ref[] = [];
+                ): Ref[] {
+                  const candidates: Ref[] = [curRef];
                   for (const child of curRef.children.values()) {
-                    if (child.hash == block.hash) {
-                      // if the child is the same block as us we can delete it
+                    if (child.hash === block.hash) {
+                      // if the child is the same block as us we must delete it
                       // because we are figuring this all out again anyway
                       curRef.children.delete(child);
                       continue;
@@ -96,36 +99,55 @@ describe("forking", () => {
                       child.block.number
                     );
                     const isInNetwork =
-                      networkBlock && networkBlock.hash === child.block.hash;
-                    if (!isInNetwork) {
-                      continue;
-                    }
-                    // if the child is after us it is our descendent
-                    if (child.block.number > block.number) {
-                      curRef.children.delete(child);
-                      ref.children.add(child);
-                    } else {
-                      // otherwise, it might be our ancestor, keep checking!
-                      candidate.push(
-                        findLatestAncestorAndUpdateDescendants(child)
-                      );
-                    }
+                      networkBlock && networkBlock.hash === child.hash;
+                    if (!isInNetwork) continue;
+
+                    // if the child is in network and comes after us it is
+                    // an eventual descendant. continue searching!
+                    if (child.block.number >= block.number) continue;
+
+                    // otherwise, it might be our ancestor, keep checking more!
+                    candidates.push(
+                      ...findLatestAncestorAndUpdateDescendants(child)
+                    );
                   }
-                  // take the highest ancestor
-                  candidate.sort((a, b) => {
-                    if (a.block.number < b.block.number) {
-                      return 1;
-                    } else if (a.block.number < b.block.number) {
-                      return 0;
-                    } else {
-                      return -1;
-                    }
-                  });
-                  return candidate[0] || curRef;
+                  return candidates;
                 }
-                let latestAncestor = findLatestAncestorAndUpdateDescendants(
+                const candidates = findLatestAncestorAndUpdateDescendants(
                   genesisRef
                 );
+                const [latestAncestor] = candidates.sort((a, b) => {
+                  if (a.block.number < b.block.number) {
+                    return 1;
+                  } else if (a.block.number === b.block.number) {
+                    return 0;
+                  } else {
+                    return -1;
+                  }
+                });
+                if (candidates.length === 2) {
+                  console.log(candidates);
+                }
+
+                // move any of our latestAncestor's children that are in our network
+                // and come after us to our children.
+                // note: we _could_ figure out some other ancestry relationships
+                // by looking at _all potential_ ancestors children, but we
+                // don't because the look ups are costly.
+                for (const child of latestAncestor.children.values()) {
+                  const networkBlock = network.getBlockByNumber(
+                    child.block.number
+                  );
+                  const isInNetwork =
+                    networkBlock && networkBlock.hash === child.hash;
+                  if (!isInNetwork) continue;
+                  if (child.block.number > block.number) {
+                    latestAncestor.children.delete(child);
+                    ref.children.add(child);
+                  }
+                }
+                //}
+
                 latestAncestor.children.add(ref);
               }
 
@@ -192,9 +214,9 @@ describe("forking", () => {
         }),
         {
           numRuns: 1000,
-          endOnFailure: true,
-          seed: -981409496,
-          path: "493"
+          seed: -693367450,
+          path: "245",
+          endOnFailure: true
         }
       );
     });
