@@ -180,10 +180,9 @@ export class PersistentCache {
       );
     }
 
-    let allKnownDescendants = [];
+    let allKnownDescendants = [...targetBlock.closestKnownDescendants];
     // if we don't have a closestAncestor it because the target block is block 0
     if (closestAncestor == null) {
-      allKnownDescendants = targetBlock.closestKnownDescendants;
       atomicBatch.put(targetBlock.key, targetBlock.serialize());
     } else {
       const ancestorsDescendants = [targetBlock.key];
@@ -283,19 +282,29 @@ export class PersistentCache {
       // don't match with our own self
       if (targetBlock.key.equals(key)) continue;
 
-      // if this already is a descendent of ours we can skip it
-      if (closestKnownDescendants.some(d => d.equals(key))) continue;
-
       // this possibleDescendent's descendants can't be our direct descendants
       // because trees can't merge
       allKnownDescendants.push(...maybeDescendant.closestKnownDescendants);
 
+      // if this already is a descendent of ours we can skip it
+      if (closestKnownDescendants.some(d => d.equals(key))) continue;
+
       // if this already is a descendent of one of our descendants skip it
       if (allKnownDescendants.some(d => d.equals(key))) continue;
 
+      // move the descendant from the parent to the target
+      const parentTree = Tree.deserialize(
+        maybeDescendant.closestKnownAncestor,
+        await this.ancestorDb.get(maybeDescendant.closestKnownAncestor)
+      );
+      parentTree.closestKnownDescendants.splice(
+        parentTree.closestKnownDescendants.findIndex(d => d.equals(key)),
+        1
+      );
       maybeDescendant.closestKnownAncestor = targetBlock.key;
       closestKnownDescendants.push(maybeDescendant.key);
 
+      atomicBatch.put(parentTree.key, parentTree.serialize());
       atomicBatch.put(maybeDescendant.key, maybeDescendant.serialize());
 
       // if the cache has been closed stop doing work so we can flush what we
