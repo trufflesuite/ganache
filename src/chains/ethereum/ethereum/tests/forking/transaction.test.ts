@@ -15,7 +15,8 @@ describe("forking", () => {
       provider = await getProvider({
         fork: {
           url: URL,
-          blockNumber
+          blockNumber,
+          noCache: true
         }
       });
     });

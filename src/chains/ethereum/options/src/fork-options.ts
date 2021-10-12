@@ -1,8 +1,9 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
-import { Tag } from "@ganache/ethereum-utils";
+import { QUANTITY, Tag } from "@ganache/ethereum-utils";
 import { URL } from "url";
+import { Quantity } from "@ganache/utils";
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
 
 // we aren't going to treat block numbers as a bigint, so we don't want to
@@ -69,6 +70,17 @@ export type ForkConfig = {
          */
         fork_block_number: number | Tag.LATEST;
       };
+    };
+
+    /**
+     * Minimum age in seconds of the "latest" block. If the "latest" block is
+     * younger than this amount the block immediately preceding the latest block
+     * will be used instead.
+     */
+    blockAge: {
+      type: bigint;
+      rawType: number;
+      hasDefault: true;
     };
 
     /**
@@ -292,6 +304,12 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
     },
     defaultDescription: `Latest block number - 5`
     //implies: ["url"]
+  },
+  blockAge: {
+    normalize: rawInput => BigInt(rawInput),
+    cliDescription: `Minimum age in seconds of the "latest" block. If the "latest" block is younger than this amount the block immediately preceding the latest block will be used instead.`,
+    default: () => 1n,
+    cliType: "number"
   },
   username: {
     normalize,
