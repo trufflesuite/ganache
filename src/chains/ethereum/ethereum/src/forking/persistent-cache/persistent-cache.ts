@@ -31,15 +31,6 @@ const leveldownOpts = { prefix: "" };
  * A leveldb-backed cache that enables associating immutable data as it existed
  * at a specific height on a blockchain.
  *
- * Note:
- *
- * The relationships between blocks are valid, but not stable. Race
- * contention between multiple processes is possible; this may cause
- * relationships between blocks to be lost if multiple writes to the same blocks
- * occur nearly simultaneously.
- *
- * This will not cause a loss of data, but may result in increased cache misses.
- *
  * The design affords faster db reads (one read to get known closest ancestors
  * and descendants) and fast db writes (one write per node in a relationship).
  */
