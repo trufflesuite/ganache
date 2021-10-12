@@ -11,7 +11,7 @@ import { BatchManager, Ref } from "./cache/batch-manager";
 
 describe("forking", () => {
   describe("persistent cache", () => {
-    it("create relationships between networks correctly", async () => {
+    it("creates relationships between networks correctly", async () => {
       const arb = Arbitrary.Networks().chain(model =>
         fc.record({
           model: fc.constant(model),
