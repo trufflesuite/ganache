@@ -207,7 +207,7 @@ export class PersistentCache {
             ancestorsDescendants.push(descendantKey);
           } else {
             targetBlock.closestKnownDescendants.push(descendantNode.key);
-            // keep track of *all* known descendants do we don't bother
+            // keep track of *all* known descendants so we don't bother
             // checking if they are a known closest descendant later on
             allKnownDescendants.push(...descendantNode.closestKnownDescendants);
             descendantNode.closestKnownAncestor = targetBlock.key;
